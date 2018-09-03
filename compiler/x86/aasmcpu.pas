@@ -178,7 +178,9 @@ interface
       OT_XMMREG    = OT_REGNORM or otf_reg_xmm;
       OT_XMMRM     = OT_REGMEM or otf_reg_xmm;
       OT_XMEM32    = OT_REGNORM or otf_reg_xmm or otf_reg_gpr or OT_BITS32;
+      OT_XMEM32_M  = OT_XMEM32 or OT_VECTORMASK;
       OT_XMEM64    = OT_REGNORM or otf_reg_xmm or otf_reg_gpr or OT_BITS64;
+      OT_XMEM64_M  = OT_XMEM64 or OT_VECTORMASK;
 
       OT_XMMREG_M   = OT_XMMREG or OT_VECTORMASK;
       OT_XMMREG_MZ  = OT_XMMREG or OT_VECTORMASK or OT_VECTORZERO;
@@ -194,7 +196,9 @@ interface
       OT_YMMREG     = OT_REGNORM or otf_reg_ymm;
       OT_YMMRM      = OT_REGMEM or otf_reg_ymm;
       OT_YMEM32     = OT_REGNORM or otf_reg_ymm or otf_reg_gpr or OT_BITS32;
+      OT_YMEM32_M   = OT_YMEM32 or OT_VECTORMASK;
       OT_YMEM64     = OT_REGNORM or otf_reg_ymm or otf_reg_gpr or OT_BITS64;
+      OT_YMEM64_M   = OT_YMEM64 or OT_VECTORMASK;
 
       OT_YMMREG_M   = OT_YMMREG or OT_VECTORMASK;
       OT_YMMREG_MZ  = OT_YMMREG or OT_VECTORMASK or OT_VECTORZERO;
@@ -209,7 +213,10 @@ interface
       OT_ZMMREG     = OT_REGNORM or otf_reg_zmm;
       OT_ZMMRM      = OT_REGMEM or otf_reg_zmm;
       OT_ZMEM32     = OT_REGNORM or otf_reg_zmm or otf_reg_gpr or OT_BITS32;
+      OT_ZMEM32_M   = OT_ZMEM32 or OT_VECTORMASK;
       OT_ZMEM64     = OT_REGNORM or otf_reg_zmm or otf_reg_gpr or OT_BITS64;
+      OT_ZMEM64_M   = OT_ZMEM64 or OT_VECTORMASK;
+
 
       OT_ZMMREG_M   = OT_ZMMREG or OT_VECTORMASK;
       OT_ZMMREG_MZ  = OT_ZMMREG or OT_VECTORMASK or OT_VECTORZERO;
@@ -229,6 +236,7 @@ interface
       { Memory operands }
       OT_MEM8      = OT_MEMORY or OT_BITS8;
       OT_MEM16     = OT_MEMORY or OT_BITS16;
+      OT_MEM16_M   = OT_MEM16  or OT_VECTORMASK;
       OT_MEM32     = OT_MEMORY or OT_BITS32;
       OT_MEM32_M   = OT_MEMORY or OT_BITS32 or OT_VECTORMASK;
       OT_BMEM32    = OT_MEMORY or OT_BITS32 or OT_VECTORBCST;
@@ -5116,6 +5124,13 @@ implementation
                      (AsmOp = A_VCVTSI2SD) or
                      (AsmOp = A_VCVTSI2SS) or
                      (AsmOp = A_VCVTTPD2DQ) or
+                     (AsmOp = A_VCVTPD2UDQ) or
+                     (AsmOp = A_VCVTQQ2PS) or
+                     (AsmOp = A_VCVTTPD2UDQ) or
+                     (AsmOp = A_VCVTUQQ2PS) or
+                     (AsmOp = A_VCVTUSI2SD) or
+                     (AsmOp = A_VCVTUSI2SS) or
+
 
                      // TODO check
                      (AsmOp = A_VCMPSS)
