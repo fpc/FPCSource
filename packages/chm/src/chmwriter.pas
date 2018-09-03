@@ -2362,7 +2362,7 @@ begin
   IndexStream.Position:=0;
   IndexStream.write(hdr,sizeof(hdr));
   {$ifdef binindex}
-    logentry('before append');
+    logentry('before append '+inttostr(indexstream.size));
   {$endif}
 
   AppendBinaryIndexStream(IndexStream,datastream,MapStream,PropertyStream,chw);
