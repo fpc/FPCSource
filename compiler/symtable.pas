@@ -1175,22 +1175,45 @@ implementation
 
 
     destructor tabstractrecordsymtable.destroy;
+
+      { for some reason a compiler built with 3.3.1 fails building the libxml2
+        package if the below define is not defined and thus the code snippet is
+        part of the destructor itself and not a nested procedure; until that bug
+        is fixed this is used as a workaround :/ }
+{$define codegen_workaround}
+{$ifdef codegen_workaround}
+      procedure free_mop_list(mop:tmanagementoperator);
+        var
+          i : longint;
+        begin
+          if assigned(mop_list[mop]) then
+            for i:=0 to mop_list[mop].count-1 do
+              dispose(pmanagementoperator_offset_entry(mop_list[mop][i]));
+          mop_list[mop].free;
+        end;
+{$endif codegen_workaround}
+
       var
         mop : tmanagementoperator;
-        mopofs : pmanagementoperator_offset_entry;
+{$ifndef codegen_workaround}
         i : longint;
+{$endif codegen_workaround}
       begin
         if refcount>1 then
           exit;
 {$ifdef llvm}
         fllvmst.free;
 {$endif llvm}
-        for mop in tmanagementoperator do
+        for mop:=low(tmanagementoperator) to high(tmanagementoperator) do
           begin
+{$ifdef codegen_workaround}
+            free_mop_list(mop);
+{$else codegen_workaround}
             if assigned(mop_list[mop]) then
               for i:=0 to mop_list[mop].count-1 do
                 dispose(pmanagementoperator_offset_entry(mop_list[mop][i]));
             mop_list[mop].free;
+{$endif codegen_workaround}
           end;
         inherited destroy;
       end;
