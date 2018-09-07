@@ -298,17 +298,12 @@ implementation
         locdef,
         tmpdef: tdef;
         paralen: aint;
-        parashift: byte;
-        tailpadding,
         firstparaloc,
         paraaligned: boolean;
       begin
         alllocdef:=nil;
         locdef:=nil;
-        parashift := 0;
         para.reset;
-        { should the tail be shifted into the most significant bits? }
-        tailpadding:=false;
         { have we ensured that the next parameter location will be aligned to the
           next 8 byte boundary? }
         paraaligned:=false;
@@ -399,7 +394,6 @@ implementation
              (nextintreg <= RS_X17) and
              not forceintmem then begin
             paraloc^.loc := loc;
-            paraloc^.shiftval := parashift;
 
             { make sure we don't lose whether or not the type is signed }
             if (paracgsize <> OS_NO) and
@@ -410,19 +404,9 @@ implementation
                 locdef:=get_paraloc_def(paradef, paralen, firstparaloc);
               end;
 
-            { Partial aggregate data may have to be left-aligned. If so, add tail
-              padding }
-            if tailpadding and
-               (paralen < sizeof(aint)) then
+             if (paracgsize in [OS_NO, OS_128, OS_S128]) then
               begin
-                paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
-                paraloc^.size := OS_INT;
-                paraloc^.def := u64inttype;
-              end
-            else if (paracgsize in [OS_NO, OS_128, OS_S128]) then
-              begin
-                if (paralen>4) or
-                   (parashift<>0) then
+                if (paralen>4) then
                   begin
                     paraloc^.size := OS_INT;
                     paraloc^.def := osuinttype;
