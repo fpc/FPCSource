@@ -830,7 +830,7 @@ implementation
           end
         else
           case opcode of
-            A_ADC,A_ADD,A_AND,A_BIC,
+            A_ADC,A_ADD,A_AND,A_BIC,A_ORN,
             A_EOR,A_CLZ,A_RBIT,
             A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
             A_LDRSH,A_LDRT,
