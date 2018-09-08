@@ -1014,7 +1014,7 @@ TYPE
    PPVMT=^PVMT;
    VMT=RECORD
      Size,NegSize:Longint;
-     ParentLink:PVMT;
+     ParentLink:PPVMT;
    END;
 VAR SP:PPVMT; Q:PVMT;
 BEGIN
@@ -1026,7 +1026,10 @@ BEGIN
        Is_Object:=True;
        Break;
      End;
-     Q:=Q^.Parentlink;
+     IF Q^.Parentlink<>Nil THEN
+       Q:=Q^.Parentlink^
+     ELSE
+       Q:=Nil;
    End;
 END;
 
