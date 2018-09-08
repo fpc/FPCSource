@@ -9039,7 +9039,7 @@ Var
 begin
   N:=FixPath(Value, False);
   if ExtractFileExt(N)='' then
-    ChangeFileExt(N,IncExt);
+    N:=ChangeFileExt(N,IncExt);
   Result:=inherited Add(N,CPUs,OSes) as TDependency;
   Result.FDependencyType:=depInclude;
 end;
