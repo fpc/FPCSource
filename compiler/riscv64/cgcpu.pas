@@ -519,14 +519,6 @@ implementation
         src, dst, src2, dst2: TReference;
         lab:      tasmlabel;
         Count, count2: aint;
-
-        function reference_is_reusable(const ref: treference): boolean;
-          begin
-            result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
-               (ref.symbol=nil) and
-               is_imm12(ref.offset);
-          end;
-
       begin
         src2:=source;
         fixref(list,src2);
@@ -550,24 +542,16 @@ implementation
         else
         begin
           Count := len div 8;
-          if (count<=8) and reference_is_reusable(src2) then
-            src:=src2
-          else
-            begin
-              reference_reset(src,sizeof(aint),[]);
-              { load the address of src2 into src.base }
-              src.base := GetAddressRegister(list);
-              a_loadaddr_ref_reg(list, src2, src.base);
-            end;
-          if (count<=8) and reference_is_reusable(dst2) then
-            dst:=dst2
-          else
-            begin
-              reference_reset(dst,sizeof(aint),[]);
-              { load the address of dst2 into dst.base }
-              dst.base := GetAddressRegister(list);
-              a_loadaddr_ref_reg(list, dst2, dst.base);
-            end;
+          reference_reset(src,sizeof(aint),[]);
+          { load the address of src2 into src.base }
+          src.base := GetAddressRegister(list);
+          a_loadaddr_ref_reg(list, src2, src.base);
+
+          reference_reset(dst,sizeof(aint),[]);
+          { load the address of dst2 into dst.base }
+          dst.base := GetAddressRegister(list);
+          a_loadaddr_ref_reg(list, dst2, dst.base);
+
           { generate a loop }
           if Count > 4 then
           begin
