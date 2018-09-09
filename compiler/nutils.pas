@@ -1344,7 +1344,7 @@ implementation
              in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y,in_neg_assign_x,in_not_assign_x])
           ) or
           ((mhs_exceptions in pmhs_flags(arg)^) and
-           ((n.nodetype in [derefn,vecn]) or
+           ((n.nodetype in [derefn,vecn,subscriptn]) or
             ((n.nodetype in [addn,subn,muln,divn,slashn,unaryminusn]) and (n.localswitches*[cs_check_overflow,cs_check_range]<>[]))
            )
           ) then
