@@ -339,7 +339,9 @@ const
       OT_XMMREG    = OT_REGNORM or otf_reg_xmm;
       OT_XMMRM     = OT_REGMEM or otf_reg_xmm;
       OT_XMEM32    = OT_REGNORM or otf_reg_xmm or otf_reg_gpr or OT_BITS32;
+      OT_XMEM32_M  = OT_XMEM32 or OT_VECTORMASK;
       OT_XMEM64    = OT_REGNORM or otf_reg_xmm or otf_reg_gpr or OT_BITS64;
+      OT_XMEM64_M  = OT_XMEM64 or OT_VECTORMASK;
 
       OT_XMMREG_M   = OT_XMMREG or OT_VECTORMASK;
       OT_XMMREG_MZ  = OT_XMMREG or OT_VECTORMASK or OT_VECTORZERO;
@@ -355,7 +357,9 @@ const
       OT_YMMREG     = OT_REGNORM or otf_reg_ymm;
       OT_YMMRM      = OT_REGMEM or otf_reg_ymm;
       OT_YMEM32     = OT_REGNORM or otf_reg_ymm or otf_reg_gpr or OT_BITS32;
+      OT_YMEM32_M   = OT_YMEM32 or OT_VECTORMASK;
       OT_YMEM64     = OT_REGNORM or otf_reg_ymm or otf_reg_gpr or OT_BITS64;
+      OT_YMEM64_M   = OT_YMEM64 or OT_VECTORMASK;
 
       OT_YMMREG_M   = OT_YMMREG or OT_VECTORMASK;
       OT_YMMREG_MZ  = OT_YMMREG or OT_VECTORMASK or OT_VECTORZERO;
@@ -370,7 +374,9 @@ const
       OT_ZMMREG     = OT_REGNORM or otf_reg_zmm;
       OT_ZMMRM      = OT_REGMEM or otf_reg_zmm;
       OT_ZMEM32     = OT_REGNORM or otf_reg_zmm or otf_reg_gpr or OT_BITS32;
+      OT_ZMEM32_M   = OT_ZMEM32 or OT_VECTORMASK;
       OT_ZMEM64     = OT_REGNORM or otf_reg_zmm or otf_reg_gpr or OT_BITS64;
+      OT_ZMEM64_M   = OT_ZMEM64 or OT_VECTORMASK;
 
       OT_ZMMREG_M   = OT_ZMMREG or OT_VECTORMASK;
       OT_ZMMREG_MZ  = OT_ZMMREG or OT_VECTORMASK or OT_VECTORZERO;
@@ -390,6 +396,7 @@ const
       { Memory operands }
       OT_MEM8      = OT_MEMORY or OT_BITS8;
       OT_MEM16     = OT_MEMORY or OT_BITS16;
+      OT_MEM16_M   = OT_MEM16  or OT_VECTORMASK;
       OT_MEM32     = OT_MEMORY or OT_BITS32;
       OT_MEM32_M   = OT_MEMORY or OT_BITS32 or OT_VECTORMASK;
       OT_BMEM32    = OT_MEMORY or OT_BITS32 or OT_VECTORBCST;
@@ -521,7 +528,7 @@ begin
                        ;
 
           //TG TODO delete
-          if aInst = 'vpmovsxbq' then
+          if aInst = 'valignd' then
           begin
             sSuffix := sSuffix;
           end;
@@ -562,11 +569,11 @@ begin
               Item.OpActive := true;
 
               sSuffix := '';
-              if Pos('_MZ', sl_Operand) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
               if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {ru-sae}'
-               else if FSAE and (Pos('_SAE', sl_Operand) > 0) then sSuffix := ', {sae}';
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('XMM0' + sSuffix);
               Item.Values.Add('XMM1' + sSuffix);
@@ -611,11 +618,11 @@ begin
               if UsePrefix then sl_Prefix := 'oword ';
 
               sSuffix := '';
-              if Pos('_MZ', sl_Operand) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', sl_Operand) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('XMM0' + sSuffix);
               Item.Values.Add('XMM1' + sSuffix);
@@ -667,11 +674,11 @@ begin
               if UsePrefix then sl_Prefix := 'byte ';
 
               sSuffix := '';
-              if Pos('_MZ', sl_Operand) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', sl_Operand) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('XMM0' + sSuffix);
               Item.Values.Add('XMM1' + sSuffix);
@@ -727,11 +734,11 @@ begin
               if UsePrefix then sl_Prefix := 'word ';
 
               sSuffix := '';
-              if Pos('_MZ', sl_Operand) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', sl_Operand) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('XMM0' + sSuffix);
               Item.Values.Add('XMM1' + sSuffix);
@@ -785,11 +792,11 @@ begin
               Item.OpActive := true;
 
               sSuffix := '';
-              if Pos('_MZ', sl_Operand) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', sl_Operand) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('YMM0' + sSuffix);
               Item.Values.Add('YMM1' + sSuffix);
@@ -835,11 +842,11 @@ begin
               if UsePrefix then sl_Prefix := 'yword ';
 
               sSuffix := '';
-              if Pos('_MZ', sl_Operand) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', sl_Operand) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('YMM0' + sSuffix);
               Item.Values.Add('YMM1' + sSuffix);
@@ -890,11 +897,11 @@ begin
               Item.OpActive := true;
 
               sSuffix := '';
-              if Pos('_MZ', sl_Operand) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', sl_Operand) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('ZMM0' + sSuffix);
               Item.Values.Add('ZMM1' + sSuffix);
@@ -940,11 +947,11 @@ begin
               if UsePrefix then sl_Prefix := 'zword ';
 
               sSuffix := '';
-              if Pos('_MZ', sl_Operand) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', sl_Operand) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('ZMM0' + sSuffix);
               Item.Values.Add('ZMM1' + sSuffix);
@@ -998,7 +1005,8 @@ begin
               end
               else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
-            else if AnsiSameText(sl_Operand, 'MEM16') then
+            else if AnsiSameText(sl_Operand, 'MEM16') or
+                    AnsiSameText(sl_Operand, 'MEM16_M') then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otMEM16;
@@ -1006,12 +1014,14 @@ begin
 
               if UsePrefix then sl_Prefix := 'word ';
 
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'MEM32') or
                     AnsiSameText(sl_Operand, 'MEM32_M') then
@@ -1023,7 +1033,7 @@ begin
               if UsePrefix then sl_Prefix := 'dword ';
 
               sSuffix := '';
-              if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
 
               if x64 then
@@ -1043,7 +1053,7 @@ begin
               if UsePrefix then sl_Prefix := 'qword ';
 
               sSuffix := '';
-              if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
               if x64 then
               begin
@@ -1062,7 +1072,7 @@ begin
               if UsePrefix then sl_Prefix := 'oword ';
 
               sSuffix := '';
-              if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
               if x64 then
               begin
@@ -1081,7 +1091,7 @@ begin
               if UsePrefix then sl_Prefix := 'yword ';
 
               sSuffix := '';
-              if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
 
               if x64 then
@@ -1101,7 +1111,7 @@ begin
               if UsePrefix then sl_Prefix := 'zword ';
 
               sSuffix := '';
-              if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
 
               if x64 then
@@ -1438,7 +1448,7 @@ begin
               Item.OpTyp    := otKREG;
               Item.OpActive := true;
 
-              if Pos('_M', sl_Operand) > 0 then sSuffix := ' {k1}';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
               if UsePrefix then sl_Prefix := '';
 
