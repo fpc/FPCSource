@@ -2214,7 +2214,7 @@ implementation
           //(0, 16, 9, 8, 16, 32, 0, 0);
           (0, 16, 9, 8, 32, 32, 8, 0); //TG
 {$else x86_64}
-          (0,  8, 9, 8,  8, 32, 0, 0);
+          (0,  8, 9, 8,  8, 32, 8, 0);
 {$endif x86_64}
       var
         rs: tsuperregister;
@@ -4680,6 +4680,11 @@ implementation
           RegBCSTYMMSizeMask := 0;
           RegBCSTZMMSizeMask := 0;
 
+          //TG TODO delete
+          if Asmop = A_VFMADD132PD then
+          begin
+            MRefInfo         := msiUnkown;
+          end;
 
 
           while (insentry^.opcode=AsmOp) do
