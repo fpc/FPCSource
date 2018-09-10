@@ -1672,7 +1672,7 @@ implementation
       var
         sym : tsym absolute data;
         fsym : tfieldvarsym absolute data;
-        mop : tmanagementoperator absolute arg;
+        mop : tmanagementoperator;
         entry : pmanagementoperator_offset_entry;
         sublist : tfplist;
         i : longint;
@@ -1681,6 +1681,7 @@ implementation
           exit;
         if not is_record(fsym.vardef) and not is_object(fsym.vardef) and not is_cppclass(fsym.vardef) then
           exit;
+        mop:=tmanagementoperator(ptruint(arg));
         if not assigned(mop_list[mop]) then
           internalerror(2018082303);
 
