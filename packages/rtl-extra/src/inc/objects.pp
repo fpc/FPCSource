@@ -1013,7 +1013,7 @@ TYPE
    PVMT=^VMT;
    PPVMT=^PVMT;
    VMT=RECORD
-     Size,NegSize:Longint;
+     Size,NegSize:SizeInt;
      ParentLink:PPVMT;
    END;
 VAR SP:PPVMT; Q:PVMT;
