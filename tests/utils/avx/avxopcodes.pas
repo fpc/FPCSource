@@ -3807,7 +3807,7 @@ begin
 
         while sl.Count < 8 do sl.Add('');
 
-        NewOpCode := sl[0];
+        NewOpCode := ansilowercase(sl[0]);
         if NewOpCode <> '' then
         begin
           if NewOpCode <> LastOpCode then
