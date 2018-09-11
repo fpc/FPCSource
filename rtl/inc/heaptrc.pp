@@ -59,9 +59,9 @@ const
   { tracing level
     splitted in two if memory is released !! }
 {$ifdef EXTRA}
-  tracesize = 16;
+  tracesize = 32;
 {$else EXTRA}
-  tracesize = 8;
+  tracesize = 16;
 {$endif EXTRA}
   { install heaptrc memorymanager }
   useheaptrace : boolean=true;
