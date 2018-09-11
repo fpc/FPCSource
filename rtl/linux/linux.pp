@@ -110,6 +110,7 @@ const
      wake UADDR2; }
 
 {$ifndef FPC_USE_LIBC}
+{$ifndef android}
 function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 function futex(var uaddr;op,val:cint;timeout:Ptimespec;var addr2;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 function futex(var uaddr;op,val:cint;var timeout:Ttimespec;var addr2;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -117,6 +118,7 @@ function futex(var uaddr;op,val:cint;var timeout:Ttimespec;var addr2;val3:cint):
 function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 function futex(var uaddr;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 function futex(var uaddr;op,val:cint;var timeout:Ttimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif android}
 {$else}
 // futex is currently not exposed by glibc
 //function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint; cdecl; external name 'futex';
@@ -624,6 +626,8 @@ begin
   fdatasync:=do_SysCall(syscall_nr_fdatasync, fd);
 end;
 
+{$ifndef android}
+
 function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
@@ -662,6 +666,8 @@ function futex(var uaddr;op,val:cint;var timeout:Ttimespec):cint;{$ifdef SYSTEMI
 begin
   futex:=do_syscall(syscall_nr_futex,Tsysparam(@uaddr),Tsysparam(op),Tsysparam(val),Tsysparam(@timeout));
 end;
+
+{$endif android}
 
 {$else}
 
@@ -752,12 +758,6 @@ function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
 begin
   clock_settime:=do_SysCall(syscall_nr_clock_settime,tsysparam(clk_id),tsysparam(tp));
 end;
-
-{$if defined(android) and not defined(cpumips)}
-const
-  syscall_nr_setregid = syscall_nr_setregid32;
-  syscall_nr_setreuid = syscall_nr_setreuid32;
-{$endif}
 
 function setregid(rgid,egid : uid_t): cint;
 

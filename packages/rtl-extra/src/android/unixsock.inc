@@ -189,7 +189,7 @@ end;
 
 function  fpaccept (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
-  fpAccept:=do_syscall(syscall_nr_accept,S,TSysParam(addrx),TSysParam(addrlen));
+  fpAccept:=do_syscall(syscall_nr_accept4,S,TSysParam(addrx),TSysParam(addrlen), 0);
   internal_socketerror:=fpgeterrno;
 end;
 

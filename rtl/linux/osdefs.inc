@@ -95,12 +95,10 @@
 {$endif cpusparc64}
 
 {$ifdef android}
+  {$define generic_linux_syscalls}
   {$undef usestime}
   {$undef OLDMMAP}
-  {$define MMAP2}
-  {$define NO_SYSCALL_UTIME}
-  {$ifndef cpumips}
-    {$define NO_SYSCALL_GETRLIMIT}
+  {$ifndef cpu64}
+    {$define MMAP2}
   {$endif}
-  {$define FPC_USEGETTIMEOFDAY}
 {$endif android}
