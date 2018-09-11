@@ -411,6 +411,15 @@ function FpUGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external c
 {$endif}
 {$endif}
 
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+const
+  page_size = $10000;
+  {$define LAST_PAGE_GENERATES_SIGNAL}
+{$else}
+const
+  page_size = $1000;
+{$endif}
+
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 var
   limits : TRLimit;
@@ -445,7 +454,10 @@ begin
 {$endif}
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(initialStkLen);
-  StackBottom := initialstkptr - StackLength;
+  StackBottom := pointer((ptruint(initialstkptr) or (page_size - 1)) + 1 - StackLength);
+{$ifdef LAST_PAGE_GENERATES_SIGNAL}
+  StackBottom:=StackBottom + page_size;
+{$endif}
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 {$if defined(cpui386) or defined(cpuarm)}
