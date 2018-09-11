@@ -527,8 +527,9 @@ begin
                        (UpperCase(aInst) = 'VCVTPD2UDQ') or
                        (UpperCase(aInst) = 'VCVTTPD2UDQ') or
                        (UpperCase(aInst) = 'VCVTUQQ2PS') or
-
-
+                       (UpperCase(aInst) = 'VCVTQQ2PS') or
+                       (UpperCase(aInst) = 'VCVTUSI2SD') or
+                       (UpperCase(aInst) = 'VCVTUSI2SS') or
 
                        (UpperCase(aInst) = 'VCMPSS')
 
@@ -1004,9 +1005,14 @@ begin
               Item.OpTyp    := otMEM8;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'byte ';
 
-              if x64 then
+
+	      if UsePrefix then sl_Prefix := 'byte ';
+
+              
+              sSuffix := '';
+	      
+	      if x64 then
               begin
                 MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
@@ -1022,6 +1028,7 @@ begin
 
               if UsePrefix then sl_Prefix := 'word ';
 
+              sSuffix := '';
               if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
               if x64 then
@@ -1032,7 +1039,8 @@ begin
               else MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'MEM32') or
-                    AnsiSameText(sl_Operand, 'MEM32_M') then
+                    AnsiSameText(sl_Operand, 'MEM32_M') or
+                    AnsiSameText(sl_Operand, 'MEM32_MZ') then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otMEM32;
@@ -1041,7 +1049,9 @@ begin
               if UsePrefix then sl_Prefix := 'dword ';
 
               sSuffix := '';
-              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              
+	      if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
 
 
               if x64 then
@@ -1052,7 +1062,8 @@ begin
               else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM64')) or
-                    (AnsiSameText(sl_Operand, 'MEM64_M')) then
+                    (AnsiSameText(sl_Operand, 'MEM64_M')) or
+                    (AnsiSameText(sl_Operand, 'MEM64_MZ')) then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otMEM64;
@@ -1062,6 +1073,7 @@ begin
 
               sSuffix := '';
               if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
 
               if x64 then
               begin
@@ -1071,7 +1083,8 @@ begin
               else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM128')) or
-                    (AnsiSameText(sl_Operand, 'MEM128_M')) then
+                    (AnsiSameText(sl_Operand, 'MEM128_M')) or
+                    (AnsiSameText(sl_Operand, 'MEM128_MZ')) then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otMEM128;
@@ -1081,6 +1094,7 @@ begin
 
               sSuffix := '';
               if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
 
               if x64 then
               begin
@@ -1090,7 +1104,8 @@ begin
               else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM256')) or
-                    (AnsiSameText(sl_Operand, 'MEM256_M')) then
+                    (AnsiSameText(sl_Operand, 'MEM256_M')) or
+                    (AnsiSameText(sl_Operand, 'MEM256_MZ')) then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otMEM256;
@@ -1100,6 +1115,7 @@ begin
 
               sSuffix := '';
               if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
 
 
               if x64 then
@@ -1110,7 +1126,8 @@ begin
               else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
-                    (AnsiSameText(sl_Operand, 'MEM512_M')) then
+                    (AnsiSameText(sl_Operand, 'MEM512_M')) or
+                    (AnsiSameText(sl_Operand, 'MEM512_MZ')) then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otMEM512;
@@ -1120,6 +1137,7 @@ begin
 
               sSuffix := '';
               if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
 
 
               if x64 then
