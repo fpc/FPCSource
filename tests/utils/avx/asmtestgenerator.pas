@@ -1328,8 +1328,6 @@ begin
               Item.OpActive := true;
 
 
-              if UsePrefix then sl_Prefix := 'dword ';
-
               if x64 then
               begin
                 MemRegBaseIndexCombi(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
@@ -1343,8 +1341,6 @@ begin
               Item.OpTyp    := otB32;
               Item.OpActive := true;
 
-
-              if UsePrefix then sl_Prefix := 'dword ';
 
               if x64 then
               begin
@@ -1360,8 +1356,6 @@ begin
               Item.OpActive := true;
 
 
-              if UsePrefix then sl_Prefix := 'dword ';
-
               if x64 then
               begin
                 MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
@@ -1375,8 +1369,6 @@ begin
               Item.OpTyp    := otB32;
               Item.OpActive := true;
 
-
-              if UsePrefix then sl_Prefix := 'dword ';
 
               if x64 then
               begin
@@ -1392,8 +1384,6 @@ begin
               Item.OpActive := true;
 
 
-              if UsePrefix then sl_Prefix := 'qword ';
-
               if x64 then
               begin
                 MemRegBaseIndexCombi(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
@@ -1407,8 +1397,6 @@ begin
               Item.OpTyp    := otB64;
               Item.OpActive := true;
 
-
-              if UsePrefix then sl_Prefix := 'qword ';
 
               if x64 then
               begin
@@ -1424,8 +1412,6 @@ begin
               Item.OpActive := true;
 
 
-              if UsePrefix then sl_Prefix := 'qword ';
-
               if x64 then
               begin
                 MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
@@ -1439,8 +1425,6 @@ begin
               Item.OpTyp    := otB64;
               Item.OpActive := true;
 
-
-              if UsePrefix then sl_Prefix := 'qword ';
 
               if x64 then
               begin
