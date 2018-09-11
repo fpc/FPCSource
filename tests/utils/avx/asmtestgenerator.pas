@@ -523,9 +523,17 @@ begin
                        (UpperCase(aInst) = 'VCVTSI2SS') OR
                        (UpperCase(aInst) = 'VCVTTPD2DQ') or
                        (UpperCase(aInst) = 'VPMOVZXWQ') or
+                       (UpperCase(aInst) = 'VCVTPD2UDQ') or
+                       (UpperCase(aInst) = 'VCVTPD2UDQ') or
+                       (UpperCase(aInst) = 'VCVTTPD2UDQ') or
+                       (UpperCase(aInst) = 'VCVTUQQ2PS') or
+
+
+
                        (UpperCase(aInst) = 'VCMPSS')
 
                        ;
+
 
           //TG TODO delete
           if aInst = 'valignd' then
