@@ -135,6 +135,22 @@ interface
          section_count : longint;
          constructor create;
          function  getlasttaifilepos : pfileposinfo;
+         { inserts another List at the begin and make this List empty }
+         procedure insertList(p : TLinkedList); override;
+         { inserts another List before the provided item and make this List empty }
+         procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList); override;
+         { inserts another List after the provided item and make this List empty }
+         procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList); override;
+         { concats another List at the end and make this List empty }
+         procedure concatList(p : TLinkedList); override;
+         { concats another List at the start and makes a copy
+           the list is ordered in reverse.
+         }
+         procedure insertListcopy(p : TLinkedList); override;
+         { concats another List at the end and makes a copy }
+         procedure concatListcopy(p : TLinkedList); override;
+         { removes all items from the list, the items are not freed }
+         procedure RemoveAll; override;
       end;
 
       TAsmCFI=class
@@ -338,6 +354,59 @@ implementation
       end;
 
 
+    procedure TAsmList.insertList(p : TLinkedList);
+      begin
+        inherited insertList(p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListBefore(Item : TLinkedListItem; p : TLinkedList);
+      begin
+        inherited insertListBefore(Item,p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListAfter(Item : TLinkedListItem; p : TLinkedList);
+      begin
+        inherited insertListAfter(Item,p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.concatList(p : TLinkedList);
+      begin
+        inherited concatList(p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListcopy(p : TLinkedList);
+      begin
+        inherited insertListcopy(p);
+        inc(section_count,TAsmList(p).section_count);
+     end;
+
+
+    procedure TAsmList.concatListcopy(p : TLinkedList);
+      begin
+        inherited concatListcopy(p);
+        inc(section_count,TAsmList(p).section_count);
+      end;
+
+
+    procedure TAsmList.RemoveAll;
+      begin
+         inherited RemoveAll;
+         section_count:=0;
+      end;
+
+
 {****************************************************************************
                                 TAsmData
 ****************************************************************************}
@@ -424,8 +493,8 @@ implementation
         CurrAsmList:=TAsmList.create;
         for hal:=low(TAsmListType) to high(TAsmListType) do
           AsmLists[hal]:=TAsmList.create;
-        WideInits :=TLinkedList.create;
-        ResStrInits:=TLinkedList.create;
+        WideInits :=TAsmList.create;
+        ResStrInits:=TAsmList.create;
         { CFI }
         FAsmCFI:=CAsmCFI.Create;
       end;

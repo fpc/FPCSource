@@ -816,7 +816,6 @@ implementation
           begin
             n.p_asm:=TAsmList.create;
             n.p_asm.concatlistcopy(p_asm);
-            n.p_asm.section_count:=p_asm.section_count;
           end
         else n.p_asm := nil;
         n.currenttai:=currenttai;

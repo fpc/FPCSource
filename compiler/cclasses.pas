@@ -365,21 +365,21 @@ type
           { Gets last Item }
           function  GetLast:TLinkedListItem;
           { inserts another List at the begin and make this List empty }
-          procedure insertList(p : TLinkedList);
+          procedure insertList(p : TLinkedList); virtual;
           { inserts another List before the provided item and make this List empty }
-          procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList);
+          procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList); virtual;
           { inserts another List after the provided item and make this List empty }
-          procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList);
+          procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList); virtual;
           { concats another List at the end and make this List empty }
-          procedure concatList(p : TLinkedList);
+          procedure concatList(p : TLinkedList); virtual;
           { concats another List at the start and makes a copy
             the list is ordered in reverse.
           }
-          procedure insertListcopy(p : TLinkedList);
+          procedure insertListcopy(p : TLinkedList); virtual;
           { concats another List at the end and makes a copy }
-          procedure concatListcopy(p : TLinkedList);
+          procedure concatListcopy(p : TLinkedList); virtual;
           { removes all items from the list, the items are not freed }
-          procedure RemoveAll;
+          procedure RemoveAll; virtual;
           property First:TLinkedListItem read FFirst;
           property Last:TLinkedListItem read FLast;
           property Count:Integer read FCount;

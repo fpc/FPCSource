@@ -119,7 +119,7 @@ uses
 
     Constructor Tresourcestrings.Create;
       begin
-        List:=TLinkedList.Create;
+        List:=TAsmList.Create;
       end;
 
 
