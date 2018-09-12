@@ -7875,37 +7875,6 @@ kreg_m,mem64,imm8                         \350\352\361\372\1\x67\110\26         
 kreg_m,xmmreg,imm8                        \350\361\372\1\x67\110\26                 AVX512
 kreg_m,mem32,imm8                         \350\361\372\1\x67\110\26                 AVX512
 
-[VGATHERPF0DPD]
-(Ch_All)
-ymem64_m                                  \350\351\352\361\371\1\xC6\201            AVX512
-
-[VGATHERPF0DPS]
-(Ch_All)
-zmem32_m                                  \350\351\361\371\1\xC6\201                AVX512
-
-[VGATHERPF0QPD]
-(Ch_All)
-zmem64_m                                  \350\351\352\361\371\1\xC7\201            AVX512
-
-[VGATHERPF0QPS]
-(Ch_All)
-zmem32_m                                  \350\351\361\371\1\xC7\201                AVX512
-
-[VGATHERPF1DPD]
-(Ch_All)
-ymem64_m                                  \350\351\352\361\371\1\xC6\202            AVX512
-
-[VGATHERPF1DPS]
-(Ch_All)
-zmem32_m                                  \350\351\361\371\1\xC6\202                AVX512
-
-[VGATHERPF1QPD]
-(Ch_All)
-zmem64_m                                  \350\351\352\361\371\1\xC7\202            AVX512
-
-[VGATHERPF1QPS]
-(Ch_All)
-zmem32_m                                  \350\351\361\371\1\xC7\202                AVX512
 
 [VGETEXPPD]
 (Ch_All)
@@ -9136,37 +9105,6 @@ xmem32_m,xmmreg                           \350\361\371\1\xA2\101                
 ymem32_m,ymmreg                           \350\361\364\371\1\xA2\101                AVX512
 zmem32_m,zmmreg                           \350\351\361\371\1\xA2\101                AVX512
 
-[VSCATTERPF0DPD]
-(Ch_All)
-ymem64_m                                  \350\351\352\361\371\1\xC6\205            AVX512
-
-[VSCATTERPF0DPS]
-(Ch_All)
-zmem32_m                                  \350\351\361\371\1\xC6\205                AVX512
-
-[VSCATTERPF0QPD]
-(Ch_All)
-zmem64_m                                  \350\351\352\361\371\1\xC7\205            AVX512
-
-[VSCATTERPF0QPS]
-(Ch_All)
-zmem32_m                                  \350\351\361\371\1\xC7\205                AVX512
-
-[VSCATTERPF1DPD]
-(Ch_All)
-ymem64_m                                  \350\351\352\361\371\1\xC6\206            AVX512
-
-[VSCATTERPF1DPS]
-(Ch_All)
-zmem32_m                                  \350\351\361\371\1\xC6\206                AVX512
-
-[VSCATTERPF1QPD]
-(Ch_All)
-zmem64_m                                  \350\351\352\361\371\1\xC7\206            AVX512
-
-[VSCATTERPF1QPS]
-(Ch_All)
-zmem32_m                                  \350\351\361\371\1\xC7\206                AVX512
 
 [VSCATTERQPD]
 (Ch_All)
