@@ -2631,28 +2631,36 @@ implementation
            case ir of
              NR_EAX,
              NR_XMM0,
-             NR_YMM0: index:=0;
+             NR_YMM0,
+	     NR_ZMM0: index:=0;
              NR_ECX,
              NR_XMM1,
-             NR_YMM1: index:=1;
+             NR_YMM1,
+	     NR_ZMM1: index:=1;
              NR_EDX,
              NR_XMM2,
-             NR_YMM2: index:=2;
+             NR_YMM2,
+	     NR_ZMM2: index:=2;
              NR_EBX,
              NR_XMM3,
-             NR_YMM3: index:=3;
+             NR_YMM3,
+	     NR_ZMM3: index:=3;
              NR_NO,
              NR_XMM4,
-             NR_YMM4: index:=4;
+             NR_YMM4,
+	     NR_ZMM4: index:=4;
              NR_EBP,
              NR_XMM5,
-             NR_YMM5: index:=5;
+             NR_YMM5,
+	     NR_ZMM5: index:=5;
              NR_ESI,
              NR_XMM6,
-             NR_YMM6: index:=6;
+             NR_YMM6,
+	     NR_ZMM6: index:=6;
              NR_EDI,
              NR_XMM7,
-             NR_YMM7: index:=7;
+             NR_YMM7,
+	     NR_ZMM7: index:=7;
            else
              exit;
            end;
