@@ -19883,6 +19883,13 @@
   (
     opcode  : A_VFNMADD231SS;
     ops     : 3;
+    optypes : (ot_xmmreg_mz,ot_xmmreg,ot_xmmreg_er,ot_none);
+    code    : #232#241#249#1#189#72;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VFNMADD231SS;
+    ops     : 3;
     optypes : (ot_xmmreg_mz,ot_xmmreg,ot_memory or ot_bits32,ot_none);
     code    : #232#241#249#1#189#72;
     flags   : [if_avx512]

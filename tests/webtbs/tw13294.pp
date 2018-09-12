@@ -1,6 +1,7 @@
 { %skiptarget=android }
 { %cpu=i386,x86_64 }
 { %opt=-Cg- }
+{$asmmode intel}
 
 program movdtest;
 var 
@@ -12,8 +13,12 @@ begin
       movd a, %xmm0
       movd %xmm0, b
 {$else}
-      movd a(%rip), %xmm0
-      movd %xmm0, b(%rip)
+//      movd a(%rip), %xmm0
+//      movd %xmm0, b(%rip)
+
+      movd xmm0, a[rip]
+      movd b[rip], xmm0
+
 {$endif}
   end;
   if b<>128133443 then
