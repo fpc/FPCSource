@@ -6636,483 +6636,483 @@ xmmreg,xmmreg,xmmreg,xmmrm           \361\362\372\363\1\x69\75\130\366    FMA4
 
 [VFMADD132PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x98\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x98\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x98\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x98\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x98\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x98\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x98\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x98\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x98\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x98\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x98\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x98\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x98\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x98\75\120            AVX512
 
 [VFMADD132PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x98\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x98\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x98\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x98\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x98\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x98\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x98\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x98\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x98\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x98\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x98\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x98\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x98\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x98\75\120                AVX512
 
 [VFMADD132SD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x99\110                AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x99\110                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x99\75\120                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x99\75\120                AVX512
 
 [VFMADD132SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x99\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x99\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x99\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x99\75\120                    AVX512
 
 [VFMADD213PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xA8\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xA8\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xA8\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xA8\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xA8\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xA8\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xA8\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xA8\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xA8\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xA8\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xA8\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xA8\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xA8\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xA8\75\120            AVX512
 
 [VFMADD213PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xA8\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xA8\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xA8\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xA8\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xA8\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xA8\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xA8\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xA8\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xA8\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xA8\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xA8\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xA8\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xA8\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xA8\75\120                AVX512
 
 [VFMADD213SD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xA9\110                AVX512
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xA9\110                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xA9\75\120                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xA9\75\120                AVX512
 
 [VFMADD213SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xA9\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xA9\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xA9\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xA9\75\120                    AVX512
 
 [VFMADD231PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB8\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB8\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB8\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB8\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xB8\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB8\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xB8\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB8\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB8\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB8\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB8\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xB8\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB8\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xB8\75\120            AVX512
 
 [VFMADD231PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xB8\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xB8\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xB8\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xB8\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xB8\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xB8\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xB8\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xB8\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xB8\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xB8\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xB8\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xB8\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xB8\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xB8\75\120                AVX512
 
 [VFMADD231SD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xB9\110                AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xB9\110                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xB9\75\120                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xB9\75\120                AVX512
 
 [VFMADD231SS]
 (Ch_All)
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xB9\110                    AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xB9\110                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xB9\75\120                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xB9\75\120                    AVX512
 
 [VFMADDSUB132PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x96\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x96\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x96\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x96\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x96\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x96\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x96\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x96\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x96\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x96\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x96\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x96\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x96\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x96\75\120            AVX512
 
 [VFMADDSUB132PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x96\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x96\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x96\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x96\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x96\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x96\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x96\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x96\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x96\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x96\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x96\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x96\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x96\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x96\75\120                AVX512
 
 [VFMADDSUB213PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xA6\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xA6\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xA6\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xA6\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xA6\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xA6\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xA6\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xA6\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xA6\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xA6\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xA6\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xA6\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xA6\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xA6\75\120            AVX512
 
 [VFMADDSUB213PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xA6\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xA6\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xA6\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xA6\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xA6\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xA6\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xA6\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xA6\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xA6\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xA6\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xA6\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xA6\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xA6\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xA6\75\120                AVX512
 
 [VFMADDSUB231PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB6\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB6\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB6\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB6\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xB6\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB6\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xB6\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB6\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB6\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB6\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB6\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xB6\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB6\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xB6\75\120            AVX512
 
 [VFMADDSUB231PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xB6\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xB6\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xB6\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xB6\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xB6\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xB6\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xB6\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xB6\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xB6\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xB6\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xB6\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xB6\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xB6\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xB6\75\120                AVX512
 
 [VFMSUB132PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x9A\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x9A\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x9A\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x9A\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x9A\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x9A\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x9A\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x9A\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x9A\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x9A\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x9A\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x9A\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x9A\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x9A\75\120            AVX512
 
 [VFMSUB132PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x9A\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x9A\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x9A\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x9A\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x9A\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x9A\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x9A\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x9A\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x9A\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x9A\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x9A\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x9A\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x9A\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x9A\75\120                AVX512
 
 [VFMSUB132SD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x9B\110                AVX512
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x9B\110                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x9B\75\120                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x9B\75\120                AVX512
 
 [VFMSUB132SS]
 (Ch_All)
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x9B\110                    AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x9B\110                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x9B\75\120                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x9B\75\120                    AVX512
 
 [VFMSUB213PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xAA\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xAA\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xAA\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xAA\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xAA\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xAA\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xAA\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xAA\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xAA\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xAA\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xAA\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xAA\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xAA\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xAA\75\120            AVX512
 
 [VFMSUB213PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xAA\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xAA\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xAA\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xAA\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xAA\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xAA\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xAA\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xAA\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xAA\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xAA\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xAA\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xAA\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xAA\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xAA\75\120                AVX512
 
 [VFMSUB213SD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xAB\110                AVX512
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xAB\110                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xAB\75\120                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xAB\75\120                AVX512
 
 [VFMSUB213SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xAB\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xAB\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xAB\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xAB\75\120                    AVX512
 
 [VFMSUB231PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xBA\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xBA\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xBA\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xBA\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xBA\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xBA\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xBA\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xBA\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xBA\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xBA\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xBA\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xBA\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xBA\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xBA\75\120            AVX512
 
 [VFMSUB231PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xBA\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xBA\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xBA\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xBA\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xBA\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xBA\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xBA\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xBA\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xBA\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xBA\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xBA\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xBA\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xBA\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xBA\75\120                AVX512
 
 [VFMSUB231SD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xBB\110                AVX512
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xBB\110                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xBB\75\120                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xBB\75\120                AVX512
 
 [VFMSUB231SS]
 (Ch_All)
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xBB\110                    AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xBB\110                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xBB\75\120                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xBB\75\120                    AVX512
 
 [VFMSUBADD132PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x97\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x97\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x97\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x97\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x97\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x97\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x97\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x97\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x97\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x97\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x97\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x97\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x97\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x97\75\120            AVX512
 
 [VFMSUBADD132PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x97\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x97\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x97\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x97\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x97\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x97\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x97\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x97\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x97\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x97\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x97\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x97\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x97\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x97\75\120                AVX512
 
 [VFMSUBADD213PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xA7\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xA7\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xA7\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xA7\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xA7\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xA7\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xA7\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xA7\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xA7\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xA7\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xA7\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xA7\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xA7\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xA7\75\120            AVX512
 
 [VFMSUBADD213PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xA7\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xA7\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xA7\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xA7\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xA7\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xA7\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xA7\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xA7\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xA7\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xA7\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xA7\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xA7\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xA7\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xA7\75\120                AVX512
 
 [VFMSUBADD231PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB7\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB7\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB7\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB7\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xB7\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB7\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xB7\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB7\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB7\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB7\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB7\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xB7\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB7\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xB7\75\120            AVX512
 
 [VFMSUBADD231PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xB7\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xB7\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xB7\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xB7\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xB7\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xB7\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xB7\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xB7\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xB7\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xB7\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xB7\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xB7\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xB7\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xB7\75\120                AVX512
 
 [VFNMADD132PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x9C\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x9C\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x9C\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x9C\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x9C\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x9C\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x9C\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x9C\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x9C\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x9C\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x9C\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x9C\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x9C\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x9C\75\120            AVX512
 
 [VFNMADD132PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x9C\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x9C\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x9C\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x9C\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x9C\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x9C\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x9C\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x9C\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x9C\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x9C\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x9C\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x9C\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x9C\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x9C\75\120                AVX512
 
 [VFNMADD132SD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x9D\110                AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x9D\110                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x9D\75\120                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x9D\75\120                AVX512
 
 [VFNMADD132SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x9D\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x9D\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x9D\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x9D\75\120                    AVX512
 
 [VFNMADD213PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xAC\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xAC\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xAC\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xAC\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xAC\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xAC\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xAC\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xAC\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xAC\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xAC\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xAC\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xAC\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xAC\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xAC\75\120            AVX512
 
 [VFNMADD213PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xAC\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xAC\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xAC\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xAC\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xAC\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xAC\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xAC\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xAC\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xAC\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xAC\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xAC\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xAC\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xAC\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xAC\75\120                AVX512
 
 [VFNMADD213SD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xAD\110                AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xAD\110                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xAD\75\120                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xAD\75\120                AVX512
 
 [VFNMADD213SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xAD\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xAD\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xAD\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xAD\75\120                    AVX512
 
 [VFNMADD231PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xBC\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xBC\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xBC\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xBC\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xBC\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xBC\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xBC\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xBC\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xBC\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xBC\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xBC\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xBC\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xBC\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xBC\75\120            AVX512
 
 [VFNMADD231PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xBC\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xBC\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xBC\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xBC\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xBC\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xBC\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xBC\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xBC\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xBC\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xBC\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xBC\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xBC\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xBC\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xBC\75\120                AVX512
 
 [VFNMADD231SD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xBD\110                AVX512
-xmmreg_mz,xmmreg,mem128                   \350\352\361\371\1\xBD\110                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xBD\75\120                AVX512
+xmmreg_mz,xmmreg,mem128                   \350\352\361\371\1\xBD\75\120                AVX512
 
 [VFNMADD231SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xBD\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xBD\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xBD\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xBD\75\120                    AVX512
 
 [VFNMSUB132PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x9E\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x9E\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x9E\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x9E\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x9E\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x9E\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x9E\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x9E\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x9E\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x9E\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x9E\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x9E\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x9E\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x9E\75\120            AVX512
 
 [VFNMSUB132PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x9E\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x9E\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x9E\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x9E\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x9E\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x9E\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x9E\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x9E\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x9E\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x9E\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x9E\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x9E\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x9E\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x9E\75\120                AVX512
 
 [VFNMSUB132SD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x9F\110                AVX512
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x9F\110                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x9F\75\120                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x9F\75\120                AVX512
 
 [VFNMSUB132SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x9F\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x9F\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x9F\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x9F\75\120                    AVX512
 
 [VFNMSUB213PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xAE\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xAE\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xAE\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xAE\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xAE\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xAE\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xAE\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xAE\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xAE\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xAE\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xAE\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xAE\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xAE\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xAE\75\120            AVX512
 
 [VFNMSUB213PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xAE\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xAE\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xAE\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xAE\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xAE\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xAE\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xAE\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xAE\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xAE\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xAE\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xAE\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xAE\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xAE\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xAE\75\120                AVX512
 
 [VFNMSUB213SD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xAF\110                AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xAF\110                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xAF\75\120                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xAF\75\120                AVX512
 
 [VFNMSUB213SS]
 (Ch_All)
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xAF\110                    AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xAF\110                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xAF\75\120                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xAF\75\120                    AVX512
 
 [VFNMSUB231PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xBE\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xBE\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xBE\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xBE\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xBE\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xBE\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xBE\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xBE\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xBE\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xBE\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xBE\75\120            AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\xBE\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xBE\75\120            AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\xBE\75\120            AVX512
 
 [VFNMSUB231PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xBE\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xBE\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xBE\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xBE\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xBE\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xBE\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xBE\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\xBE\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xBE\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\xBE\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xBE\75\120                AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\xBE\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xBE\75\120                AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xBE\75\120                AVX512
 
 [VFNMSUB231SD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xBF\110                AVX512
-xmmreg_mz,xmmreg,mem64                  \350\352\361\371\1\xBF\110                AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\xBF\75\120                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xBF\75\120                AVX512
 
 [VFNMSUB231SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xBF\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xBF\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\xBF\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xBF\75\120                    AVX512
 
 
 
@@ -7422,21 +7422,21 @@ zmmreg_mz,zmmreg,bmem64,imm8              \350\351\352\361\372\1\x03\75\120\27  
 
 [VBLENDMPD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x65\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x65\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x65\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x65\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x65\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x65\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x65\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x65\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x65\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x65\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x65\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x65\75\120            AVX512
 
 [VBLENDMPS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x65\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x65\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x65\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x65\110                AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x65\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x65\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x65\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x65\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x65\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x65\75\120                AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x65\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x65\75\120                AVX512
 
 [VBROADCASTF32X2]
 (Ch_All)
@@ -7724,13 +7724,13 @@ ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\x7A\110        
 
 [VCVTUSI2SD]
 (Ch_All)
-xmmreg,xmmreg_er,rm64                     \334\350\352\370\1\x7B\110                AVX512
-xmmreg,xmmreg_er,rm32                     \334\350\370\1\x7B\110                    AVX512
+xmmreg,xmmreg_er,rm64                     \334\350\352\370\1\x7B\75\120                AVX512
+xmmreg,xmmreg_er,rm32                     \334\350\370\1\x7B\75\120                    AVX512
 
 [VCVTUSI2SS]
 (Ch_All)
-xmmreg,xmmreg_er,rm64                     \333\350\352\370\1\x7B\110                AVX512
-xmmreg,xmmreg_er,rm32                     \333\350\370\1\x7B\110                    AVX512
+xmmreg,xmmreg_er,rm64                     \333\350\352\370\1\x7B\75\120                AVX512
+xmmreg,xmmreg_er,rm32                     \333\350\370\1\x7B\75\120                    AVX512
 
 [VDBPSADBW]
 (Ch_All)
@@ -7898,13 +7898,13 @@ zmmreg_mz,zmmreg_sae                      \350\351\361\371\1\x42\110            
 
 [VGETEXPSD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x43\110                AVX512
-xmmreg_mz,xmmreg,xmmreg_sae               \350\352\361\371\1\x43\110                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x43\75\120                AVX512
+xmmreg_mz,xmmreg,xmmreg_sae               \350\352\361\371\1\x43\75\120                AVX512
 
 [VGETEXPSS]
 (Ch_All)
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x43\110                    AVX512
-xmmreg_mz,xmmreg,xmmreg_sae               \350\361\371\1\x43\110                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x43\75\120                    AVX512
+xmmreg_mz,xmmreg,xmmreg_sae               \350\361\371\1\x43\75\120                    AVX512
 
 [VGETMANTPD]
 (Ch_All)
@@ -8037,39 +8037,39 @@ zmmreg_mz,bmem64                          \350\351\352\361\371\1\x1F\110        
 
 [VPANDD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\370\1\xDB\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\370\1\xDB\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\370\1\xDB\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\370\1\xDB\110                AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\361\370\1\xDB\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\370\1\xDB\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\370\1\xDB\75\120                 AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\370\1\xDB\75\120                 AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\370\1\xDB\75\120             AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\370\1\xDB\75\120             AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\361\370\1\xDB\75\120             AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\370\1\xDB\75\120             AVX512
 
 [VPANDND]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\370\1\xDF\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\370\1\xDF\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\370\1\xDF\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\370\1\xDF\110                AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\361\370\1\xDF\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\370\1\xDF\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\370\1\xDF\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\370\1\xDF\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\370\1\xDF\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\370\1\xDF\75\120                AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\361\370\1\xDF\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\370\1\xDF\75\120                AVX512
 
 [VPANDNQ]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\370\1\xDF\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\370\1\xDF\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\370\1\xDF\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\370\1\xDF\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\370\1\xDF\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\370\1\xDF\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\370\1\xDF\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\370\1\xDF\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\370\1\xDF\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\370\1\xDF\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\370\1\xDF\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\370\1\xDF\75\120            AVX512
 
 [VPANDQ]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\370\1\xDB\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\370\1\xDB\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\370\1\xDB\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\370\1\xDB\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\370\1\xDB\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\370\1\xDB\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\370\1\xDB\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\370\1\xDB\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\370\1\xDB\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\370\1\xDB\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\370\1\xDB\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\370\1\xDB\75\120            AVX512
 
 [VPBLENDMB]
 (Ch_All)
@@ -8079,21 +8079,21 @@ zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x66\75\120         
 
 [VPBLENDMD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x64\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x64\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x64\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x64\110                AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x64\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x64\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x64\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x64\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x64\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x64\75\120                AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x64\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x64\75\120                AVX512
 
 [VPBLENDMQ]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x64\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x64\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x64\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x64\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x64\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x64\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x64\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x64\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x64\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x64\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x64\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x64\75\120            AVX512
 
 [VPBLENDMW]
 (Ch_All)
@@ -8212,39 +8212,39 @@ zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x75\75\120         
 
 [VPERMI2D]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x76\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x76\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x76\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x76\110                AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x76\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x76\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x76\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x76\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x76\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x76\75\120                AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x76\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x76\75\120                AVX512
 
 [VPERMI2PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x77\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x77\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x77\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x77\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x77\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x77\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x77\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x77\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x77\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x77\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x77\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x77\75\120            AVX512
 
 [VPERMI2PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x77\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x77\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x77\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x77\110                AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x77\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x77\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x77\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x77\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x77\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x77\75\120                AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x77\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x77\75\120                AVX512
 
 [VPERMI2Q]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x76\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x76\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x76\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x76\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x76\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x76\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x76\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x76\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x76\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x76\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x76\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x76\75\120            AVX512
 
 [VPERMI2W]
 (Ch_All)
@@ -8344,21 +8344,21 @@ zmmreg_mz,bmem64                          \350\351\352\361\371\1\x44\110        
 
 [VPMADD52HUQ]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB5\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB5\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB5\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB5\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\xB5\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB5\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB5\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB5\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB5\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB5\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\xB5\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB5\75\120            AVX512
 
 [VPMADD52LUQ]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB4\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB4\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB4\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB4\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\xB4\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB4\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\xB4\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\xB4\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\xB4\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\xB4\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\xB4\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xB4\75\120            AVX512
 
 [VPMAXSQ]
 (Ch_All)
@@ -8662,21 +8662,21 @@ zmmreg_mz,bmem64,imm8                     \350\351\352\361\370\1\x72\74\211\26  
 
 [VPROLVD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x15\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x15\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x15\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x15\110                AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x15\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x15\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x15\75\120                    AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x15\75\120                    AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x15\75\120                AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x15\75\120                AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x15\75\120                AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x15\75\120                AVX512
 
 [VPROLVQ]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x15\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x15\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x15\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x15\110            AVX512
-zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x15\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x15\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x15\75\120                AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x15\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x15\75\120            AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x15\75\120            AVX512
+zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x15\75\120            AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x15\75\120            AVX512
 
 [VPRORD]
 (Ch_All)
