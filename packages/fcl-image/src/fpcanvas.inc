@@ -784,7 +784,7 @@ begin
     begin
     xx := r - x;
     for t := yi to ym do
-      colors [r,t] := image.colors[xx,t-y];
+      colors [r,t] := AlphaBlend(colors [r,t], image.colors[xx,t-y]);
     end;
 end;
 
