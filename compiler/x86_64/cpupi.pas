@@ -154,6 +154,7 @@ implementation
         hdir.data.flags:=unwindflags;
         list.concat(hdir);
         list.concat(cai_seh_directive.create(ash_handlerdata));
+        inc(list.section_count);
         list.concat(tai_const.create_32bit(scopecount));
         list.concatlist(scopes);
         { return to text, required for GAS compatibility }
