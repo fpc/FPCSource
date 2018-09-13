@@ -18547,7 +18547,7 @@
     opcode  : A_VFMADD132PD;
     ops     : 3;
     optypes : (ot_xmmreg_mz,ot_xmmreg,ot_xmmrm,ot_none);
-    code    : #232#234#241#249#1#152#61#80;
+    code    : #232#234#241#242#243#249#1#152#61#80;
     flags   : [if_avx512]
   ),
   (
@@ -18561,7 +18561,7 @@
     opcode  : A_VFMADD132PD;
     ops     : 3;
     optypes : (ot_ymmreg_mz,ot_ymmreg,ot_ymmrm,ot_none);
-    code    : #232#234#241#244#249#1#152#61#80;
+    code    : #232#234#241#242#243#244#249#1#152#61#80;
     flags   : [if_avx512]
   ),
   (
@@ -18596,7 +18596,7 @@
     opcode  : A_VFMADD132PS;
     ops     : 3;
     optypes : (ot_xmmreg_mz,ot_xmmreg,ot_xmmrm,ot_none);
-    code    : #232#241#249#1#152#61#80;
+    code    : #232#241#242#249#1#152#61#80;
     flags   : [if_avx512]
   ),
   (
@@ -18610,7 +18610,7 @@
     opcode  : A_VFMADD132PS;
     ops     : 3;
     optypes : (ot_ymmreg_mz,ot_ymmreg,ot_ymmrm,ot_none);
-    code    : #232#241#244#249#1#152#61#80;
+    code    : #232#241#242#244#249#1#152#61#80;
     flags   : [if_avx512]
   ),
   (
@@ -18645,7 +18645,7 @@
     opcode  : A_VFMADD132SD;
     ops     : 3;
     optypes : (ot_xmmreg_mz,ot_xmmreg,ot_memory or ot_bits64,ot_none);
-    code    : #232#234#241#249#1#153#61#80;
+    code    : #232#234#241#242#243#249#1#153#61#80;
     flags   : [if_avx512]
   ),
   (
@@ -18666,7 +18666,7 @@
     opcode  : A_VFMADD132SS;
     ops     : 3;
     optypes : (ot_xmmreg_mz,ot_xmmreg,ot_memory or ot_bits32,ot_none);
-    code    : #232#241#249#1#153#61#80;
+    code    : #232#241#242#249#1#153#61#80;
     flags   : [if_avx512]
   ),
   (

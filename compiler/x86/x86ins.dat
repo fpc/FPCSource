@@ -6636,9 +6636,9 @@ xmmreg,xmmreg,xmmreg,xmmrm           \361\362\372\363\1\x69\75\130\366    FMA4
 
 [VFMADD132PD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x98\75\120                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\362\363\371\1\x98\75\120        AVX512
 xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x98\75\120                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x98\75\120            AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\362\363\364\371\1\x98\75\120    AVX512
 ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x98\75\120            AVX512
 zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x98\75\120            AVX512
 zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x98\75\120            AVX512
@@ -6646,9 +6646,9 @@ zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x98\75\120     
 
 [VFMADD132PS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x98\75\120                    AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\362\371\1\x98\75\120                AVX512
 xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x98\75\120                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x98\75\120                AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\362\364\371\1\x98\75\120            AVX512
 ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x98\75\120                AVX512
 zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x98\75\120                AVX512
 zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x98\75\120                AVX512
@@ -6656,13 +6656,13 @@ zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x98\75\120         
 
 [VFMADD132SD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x99\75\120                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\362\363\371\1\x99\75\120        AVX512
 xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x99\75\120                AVX512
 
 [VFMADD132SS]
 (Ch_All)
 xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x99\75\120                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x99\75\120                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\362\371\1\x99\75\120                AVX512
 
 [VFMADD213PD]
 (Ch_All)
