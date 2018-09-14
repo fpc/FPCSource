@@ -8757,13 +8757,13 @@ zmmreg_mz,bmem32                          \350\351\361\371\1\x4E\110            
 
 [VRSQRT14SD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg                   \350\352\361\371\1\x4F\110                AVX512
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x4F\110                AVX512
+xmmreg_mz,xmmreg,xmmreg                   \350\352\361\371\1\x4F\75\120             AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x4F\75\120             AVX512
 
 [VRSQRT14SS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmreg                   \350\361\371\1\x4F\110                    AVX512
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x4F\110                    AVX512
+xmmreg_mz,xmmreg,xmmreg                   \350\361\371\1\x4F\75\120                 AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x4F\75\120                 AVX512
 
 [VRSQRT28PD]
 (Ch_All)
@@ -8779,43 +8779,43 @@ zmmreg_mz,zmmreg_sae                      \350\351\361\371\1\xCC\110            
 
 [VRSQRT28SD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xCD\110                AVX512
-xmmreg_mz,xmmreg,xmmreg_sae               \350\352\361\371\1\xCD\110                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\xCD\75\120             AVX512
+xmmreg_mz,xmmreg,xmmreg_sae               \350\352\361\371\1\xCD\75\120             AVX512
 
 [VRSQRT28SS]
 (Ch_All)
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xCD\110                    AVX512
-xmmreg_mz,xmmreg,xmmreg_sae               \350\361\371\1\xCD\110                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xCD\75\120                 AVX512
+xmmreg_mz,xmmreg,xmmreg_sae               \350\361\371\1\xCD\75\120                 AVX512
 
 [VSCALEFPD]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x2C\110                AVX512
-xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x2C\110                AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x2C\110            AVX512
-ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x2C\110            AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x2C\110            AVX512
-zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x2C\110            AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x2C\110            AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x2C\75\120             AVX512
+xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x2C\75\120             AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x2C\75\120         AVX512
+ymmreg_mz,ymmreg,bmem64                   \350\352\361\364\371\1\x2C\75\120         AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\352\361\371\1\x2C\75\120         AVX512
+zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x2C\75\120         AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x2C\75\120         AVX512
 
 [VSCALEFPS]
 (Ch_All)
-xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x2C\110                    AVX512
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x2C\110                    AVX512
-ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x2C\110                AVX512
-ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x2C\110                AVX512
-zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x2C\110                AVX512
-zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x2C\110                AVX512
-zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x2C\110                AVX512
+xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x2C\75\120                 AVX512
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x2C\75\120                 AVX512
+ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x2C\75\120             AVX512
+ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\x2C\75\120             AVX512
+zmmreg_mz,zmmreg,mem512                   \350\351\361\371\1\x2C\75\120             AVX512
+zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x2C\75\120             AVX512
+zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x2C\75\120             AVX512
 
 [VSCALEFSD]
 (Ch_All)
-xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x2D\110                AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x2D\110                AVX512
+xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x2D\75\120             AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x2D\75\120             AVX512
 
 [VSCALEFSS]
 (Ch_All)
-xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x2D\110                    AVX512
-xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x2D\110                    AVX512
+xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x2D\75\120                 AVX512
+xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x2D\75\120                 AVX512
 
 [VSCATTERDPD]
 (Ch_All)
