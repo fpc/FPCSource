@@ -240,6 +240,7 @@ Const
   SharedLibExt = '.so';
   DyLibExt = '.dylib';
   DLLExt  = '.dll';
+  AIXSharedLibExt = '.a';
   ExeExt  = '.exe';
   DbgExt  = '.dbg';
   ZipExt  = '.zip';
@@ -2626,6 +2627,8 @@ begin
     Result:=LibraryName+DLLExt
   else if aOS in [darwin,macos,iphonesim] then
     Result:=LibraryName+DyLibExt
+  else if aOS = Aix then
+    Result:=LibraryName+AIXSharedLibExt
   else
     Result:=LibraryName+SharedLibExt;
 end;
