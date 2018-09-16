@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 37710
+#   Based on errore.msg of SVN revision 39700
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2018 by the Free Pascal Development team
@@ -57,7 +57,7 @@
 #
 # General
 #
-# 01026 is the last used one
+# 01027 is the last used one
 #
 # BeginOfTeX
 %
@@ -143,6 +143,10 @@ general_f_oserror=01025_F_Betriebsystemfehler: $1
 % During compilation an operating system error happened which allows no further compilation.
 general_e_exception_raised=01026_E_Kompilieren verursachte interne Ausnahme (exception)
 % Compilation was aborted, due to an exception generation.
+general_t_unitscope=01027_T_Benutzter Unit-Bereich: $1
+% When the \var{-vt} switch is used, this line tells you what unit scopes (namespaces)
+% the compiler is using when looking up units. You can add a unit scope with the
+% \var{-FN} option.
 %
 % \end{description}
 # EndOfTeX
@@ -150,7 +154,7 @@ general_e_exception_raised=01026_E_Kompilieren verursachte interne Ausnahme (exc
 #
 # Scanner
 #
-# 02104 is the last used one
+# 02105 is the last used one
 #
 # BeginOfTeX
 %
@@ -437,6 +441,7 @@ scan_w_setpeosversion_not_support=02103_W_SETPEOSVERSION wird vom Zielbetriebssy
 % The \var{\{\$SETPEOSVERSION\}} directive is not supported by the target OS.
 scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION wird vom Zielbetriebssystem nicht unterstÅtzt
 % The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
+scan_n_changecputype=02105_N_GeÑnderter CPU-Typ muss zum angegebenen Controller passen
 %
 % \end{description}
 # EndOfTeX
@@ -444,7 +449,7 @@ scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION wird vom Zielbe
 #
 # Parser
 #
-# 03346 is the last used one
+# 03348 is the last used one
 #
 # BeginOfTeX
 %
@@ -853,7 +858,7 @@ parser_f_assembler_reader_not_supported=03127_F_GewÑhlter Assembler-Leser nicht 
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
-parser_e_proc_dir_conflict=03128_E_Prozedur-Direktive $1 steht in Konflikt mit anderen Direktiven
+parser_e_proc_dir_conflict=03128_E_Prozedur-Direktive "$1" kann nicht mit $2 benutzt werden
 % You specified a procedure directive that conflicts with other directives.
 % For instance \var{cdecl} and \var{pascal} are mutually exclusive.
 parser_e_call_convention_dont_match_forward=03129_E_Aufrufkonvention passt nicht zur Forward-Deklaration
@@ -1181,7 +1186,7 @@ parser_e_packed_element_no_var_addr=03221_E_Bit packed Array-Elemente und Record
 % is in the case of packed arrays elements whose packed size is a multiple of 8 bits.
 parser_e_packed_dynamic_open_array=03222_E_Dynamische Arrays kînnen nicht packed sein
 % Only regular (and possibly in the future also open) arrays can be packed.
-parser_e_packed_element_no_loop=03223_E_Bit packed Array-Elemente und Record-Felder kînnen nicht als Loop-Variable verwerndet werden
+parser_e_packed_element_no_loop=03223_E_Bit packed Array-Elemente und Record-Felder kînnen nicht als Schleifenvariable verwerndet werden
 % If you declare an array or record as \var{packed} in Mac Pascal mode
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
@@ -1586,6 +1591,13 @@ parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345_E_Die Direktive "
 parser_e_invalid_internal_function_index=03346_E_Index $1 ist kein gÅltiger interner Funktionenindex
 % The index specified for the \var{compilerproc} directive is not an index that's recognized
 % by the compiler.
+parser_w_operator_overloaded_hidden_3=03347_W_öberladen eines Operators durch internen Operator Åberdeckt: "$1" $2 "$3"
+% An operator overload is defined for the specified overload, but the internal overload by the compiler
+% takes precedence. This only happens for operators that had been overloadable before (e.g. dynamic array + dynamic array),
+% but aren't anymore due to an internal operator being defined while this behavior is controllable by a modeswitch
+% (in case of dynamic arrays that is the modeswitch \var{ArrayOperators}).
+parser_e_threadvar_must_be_class=03348_E_Threadvariablen in Klassen oder Records mÅssen Klassenvariablen sein
+% A \var{threadvar} section inside a class or record was started without it being prefixed by \var{class}.
 %
 % \end{description}
 # EndOfTeX
@@ -1593,7 +1605,7 @@ parser_e_invalid_internal_function_index=03346_E_Index $1 ist kein gÅltiger inte
 #
 # Type Checking
 #
-# 04123 is the last used one
+# 04125 is the last used one
 #
 # BeginOfTeX
 %
@@ -1832,7 +1844,7 @@ type_e_cant_choose_overload_function=04057_E_Kann nicht bestimmen, welche der Åb
 % to any of the declared function parameter lists. e.g. when you have declared
 % a function with parameters \var{word} and \var{longint}, and then you call
 % it with a parameter which is of type \var{integer}.
-type_e_illegal_count_var=04058_E_Loop-Variable muss einen ordinalen Typ haben
+type_e_illegal_count_var=04058_E_Die Schleifenvariable muss einen ordinalen Typ haben
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
 type_w_double_c_varargs=04059_W_Der konstante Wert vom Typ real wird fÅr ein C Variablen-Argument zu double konvertiert. ErgÑnze eine explizite Typ-Konversion (typecast), um das zu verhindern
@@ -2028,6 +2040,9 @@ type_w_instance_abstract_class=04122_W_Erzeugung einer Instanz der abstrakten Kl
 type_e_function_reference_kind=04123_E_Unterprogrammreferenzen kînnen nicht als "of object" oder "is nested" deklariert werden; sie kînnen sich immer auf alle mîgliche Arten von Unterprogrammen beziehen
 % Subroutine references can refer to any kind of subroutine and hence do not
 % require specialisation for methods or nested subroutines.
+type_e_seg_procvardef_wrong_memory_model=04124_E_Prozedurvariablen speichern in diesem Memory-Modell keine Segment-Informationen
+type_w_empty_constant_range_set=04125_W_Der erste Wert des Bereichs fÅr den Mengen-Konstruktor is grî·er als der zweite. Der Bereich beschreibt deshalb eine leere Menge.
+% If a set is constructed like this: \var{s:=[9..7];]}, then an empty set is generated. As this is something normally not desired, the compiler warns about it.
 %
 % \end{description}
 # EndOfTeX
@@ -2035,7 +2050,7 @@ type_e_function_reference_kind=04123_E_Unterprogrammreferenzen kînnen nicht als 
 #
 # Symtable
 #
-# 05095 is the last used one
+# 05097 is the last used one
 #
 # BeginOfTeX
 %
@@ -2346,6 +2361,13 @@ sym_w_duplicate_id=05095_W_Duplikat des Bezeichners "$1"
 % same scope as the current identifier. This is a warning instead of an error,
 % because while this hides the identifier from the category, there are often
 % many unused categories in scope.
+sym_e_generic_type_param_mismatch=05096_E_Der generische Typparameter "$1" passt nicht zu dem in der Deklaration
+% The specified generic type parameter for the generic class, record or routine does
+% not match with the one declared in the declaration of the generic class, record
+% or routine.
+sym_e_generic_type_param_decl=05097_E_Generischer Typparameter deklariert als "$1"
+% Shows what the generic type parameter was originally declared as if a mismatch
+% is found between a declaration and the definition.
 %
 % \end{description}
 # EndOfTeX
@@ -2353,7 +2375,7 @@ sym_w_duplicate_id=05095_W_Duplikat des Bezeichners "$1"
 #
 # Codegenerator
 #
-# 06057 is the last used one
+# 06058 is the last used one
 #
 # BeginOfTeX
 %
@@ -2506,6 +2528,10 @@ cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Fun
 cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) fÅr das aktuelle Zielsystem erreicht
 % Depending of target architecture, the number of units is limited. This limit
 % has been reached. A unit counts only if it contains initialization or finalization count.
+cg_n_no_inline=06058_N_Der Aufruf der Routine "$1" ist als "inline" markiert, wird aber nicht so benhandelt
+% The directive inline is only a hint to the compiler. Sometimes the compiler ignores this hint, a subroutine
+% marked as inline is not inlined. In this case, this hint is given. Compiling with \var{-vd} might result in more information why
+% the directive inline is ignored.
 %
 % \end{description}
 # EndOfTeX
@@ -2513,7 +2539,7 @@ cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) fÅr das aktuelle Zi
 #
 # Assembler reader
 #
-# 07138s is the last used one
+# 07141 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -2682,10 +2708,10 @@ asmr_w_32bit_const_for_address=07079_W_32-Bit-Konstante fÅr Adresse erzeugt
 asmr_n_align_is_target_specific=07080_N_.align ist abhÑngig von Zielplattform, verwende .balign oder .p2align
 % Using the .align directive is platform specific, and its meaning will vary
 % from one platform to another.
-asmr_e_cannot_access_field_directly_for_parameters=07081_E_Kann fÅr Parameter nicht direkt auf Felder zugreifen
+asmr_e_cannot_access_field_directly_for_parameters=07081_E_Kann bei Parametern, die auf Zeigern basieren, nicht direkt auf Felder zugreifen
 % You should load the parameter first into a register and then access the
 % fields using that register.
-asmr_e_cannot_access_object_field_directly=07082_E_Kann auf Felder von Objekten/Klassen nicht direkt zugreifen
+asmr_e_cannot_access_object_field_directly=07082_E_Kann nicht direkt auf Felder von Objekten/Klassen zugreifen
 % You should load the self pointer first into a register and then access the
 % fields using the register as base. By default the self pointer is available
 % in the esi register on i386.
@@ -2849,6 +2875,9 @@ asmr_w_pop_cs_not_portable=07136_W_Die Instruktion "POP CS" ist nicht portabel (
 % The 'pop cs' instruction doesn't work on any CPU, except 8086 and 8088.
 asmr_e_public_must_be_used_before_label_definition=07137_E_Das Label $1 kann nur "public" deklariert werden, bevor es definiert wird
 asmr_e_local_label_cannot_be_declared_public=07138_E_Das lokale Label $1 kann nicht als "public" deklariert werden
+asmr_e_multiple_segment_overrides=07139_E_Kann "multiple segment overrides" nicht benutzen
+asmr_w_multiple_segment_overrides=07140_W_"Multiple segment overrides" (nur das letzte wird beachtet)
+asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment-Basis $1 wird erzeugt, aber von der CPU im 64-Bit-Modus ignoriert
 %
 % \end{description}
 # EndOfTeX
@@ -2856,7 +2885,7 @@ asmr_e_local_label_cannot_be_declared_public=07138_E_Das lokale Label $1 kann ni
 #
 # Assembler/binary writers
 #
-# 08031 is the last used one
+# 08033 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -2910,6 +2939,7 @@ asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit Referenzen werden nicht unterstÅt
 asmw_f_code_segment_too_large=08030_F_Code-Segment zu gro·
 asmw_f_data_segment_too_large=08031_F_Data-Segment zu gro·
 asmw_e_instruction_not_supported_by_cpu=08032_E_Befehl wird vom ausgewÑhlten Befehlssatz nicht unterstÅtzt
+asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist au·erhalb des Bereichs
 %
 % \end{description}
 # EndOfTeX
@@ -3173,7 +3203,13 @@ unit_f_ppu_invalid_entry=10016_F_UngÅltiger Eintrag in PPU-Datei: $1
 % newer version of the compiler.
 unit_f_ppu_dbx_count_problem=10017_F_PPU Dbx ZÑhler-Problem
 % There is an inconsistency in the debugging information of the unit.
-unit_e_illegal_unit_name=10018_E_UngÅltiger Unitname: $1
+unit_e_illegal_unit_name=10018_E_UngÅltiger Unitname: $1 (erwartete $2)
+% The name of the unit does not match the file name.
+% There might to two reasons: either there is a spelling mistake in the unit name
+% or there is a unit with a 8.3 name where the 8 characters are equal to first 8 characters of
+% the name of a unit with a longer name. However, this unit is not found. Example: Program contains
+% \var{uses mytestunit;}, the unit file or source of mytestunit are not available but there is a source
+% with the name \var{mytestun}. Then compiler tries to compile and use that one, however the expected unit name does not match.
 % The name of the unit doesn't match the file name.
 unit_f_too_much_units=10019_F_Zu viele Units
 % \fpc has a limit of 1024 units in a program. You can change this behavior
@@ -3344,7 +3380,7 @@ cg_f_internal_type_does_not_match=10066_F_Interner Typ "$1" ist unerwartet. öber
 #
 # Options
 #
-# 11060s is the last used one
+# 11061 is the last used one
 #
 # BeginOfTeX
 %
@@ -3499,6 +3535,7 @@ option_invalid_target_architecture=11059_E_Nicht unterstÅtzte Zielarchitektur -P
 option_features_only_for_system_unit=11060_E_Feature-Schalter werden nur beim öbersetzen der Unit "System" unterstÅtzt
 % To selected a certain feature, the system unit must be compiled with this feature enabled. All other units inherited the features set by the
 % system unit through the ppu of the system unit.
+option_debug_info_requires_external_linker=11061_N_Das ausgewÑhlte Debug-Format wird vom internen Linker nicht unterstÅtzt, schalte um auf externen Linker
 %
 % \end{description}
 # EndOfTeX
@@ -3762,9 +3799,11 @@ diskutiert werden kînnen, usw.):
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
+# It is also possible to insert comments in that section
 F*0*_Es werden nur Optionen aufgelistet, die fÅr die voreingestellte oder ausgewÑhlte Plattform gÅltig sind.
 **0*_Nach booleschen Optionen geben Sie + zum Ein- bzw. - zum Ausschalten an
 **1@<x>_Lese zusÑtzlich zu den voreingestellten Compiler-Optionen aus fpc.cfg auch die aus <x>
+# Assembler related options
 **1a_Erzeugte Assembler-Datei nicht lîschen
 **2a5_Erzeuge keine Big-Obj-COFF-Dateien fÅr GNU Binutils, die Ñlter als Version 2.25 sind (Windows, NativeNT)
 **2al_Liste Quellcode-Zeilen in der Assembler-Datei
@@ -3773,6 +3812,7 @@ F*0*_Es werden nur Optionen aufgelistet, die fÅr die voreingestellte oder ausgew
 *L2ap_Benutze Pipes anstelle temporÑrer Assembler-Dateien
 **2ar_Liste Registerbelegungsinformation in Assembler-Datei
 **2at_Liste Temp. Variablenbelegungsinfo in Assembler-Datei
+# Choice of assembler used
 **1A<x>_Ausgabe Format:
 **2Adefault_Benutze den "default" Assembler
 3*2Aas_Assembliere mit Hilfe von GNU AS
@@ -3811,6 +3851,7 @@ F*0*_Es werden nur Optionen aufgelistet, die fÅr die voreingestellte oder ausgew
 A*2Aas_Assembliere mit Hilfe von GNU AS
 P*2Aas_Assembliere mit Hilfe von GNU AS
 S*2Aas_Assembliere mit Hilfe von GNU AS
+# Used only internally by IDE
 **1b_Erzeuge Browser-Info
 **2bl_Erzeuge Info zu lokalen Symbolen
 **1B_Erzeuge alle Module (Build)
@@ -3884,6 +3925,7 @@ J*2Cv_Var/out Parameter copy-out öberprÅfung
 **2FL<x>_Benutze <x> als dynamischen Linker
 **2Fm<x>_Lade die Unicode-Konversionstabelle aus <x>.txt im Compiler-Verzeichnis
 **2FM<x>_Setze das Verzeichnis fÅr Unicode-BinÑr-Dateien
+**2FN<x>_ErgÑnze <x> zur Liste der voreingestellten Unit-Bereiche (namespaces)
 **2Fo<x>_ErgÑnze <x> zum Objektdatei-Pfad
 **2Fr<x>_Lade die Fehlermeldungs-Datei <x>
 **2FR<x>_Setze den Resource (.res) Linker auf <x>
@@ -3895,11 +3937,13 @@ J*2Cv_Var/out Parameter copy-out öberprÅfung
 *g2gc_ZeigerÅberprÅfung (experimentell, nur auf einige Systemen, kann falschen Alarm erzeugen)
 *g2gh_Heaptrace-Unit einbinden (fÅr Speicherlecks und -korruption)
 *g2gl_Line info Unit einbinden, um mehr backtrace Informationen anzuzeigen
-*g2go<x>_Setze Optionen fÅr die Debug Informationen
-*g3godwarfsets_Schalte DWARF Debug Informationen fÅr Mengen (sets) ein (verhindert debugging mit gdb < 6.5)
+*g2gm_Erzeuge Microsoft-CodeView Debug-Informationen (experimentell)
+*g2go<x>_Setze Optionen fÅr die Debug-Informationen
+*g3godwarfsets_Schalte DWARF Debug-Informationen fÅr Mengen (sets) ein (verhindert debugging mit gdb < 6.5)
 *g3gostabsabsincludes_ Absolute/volle Include-Datei-Pfade in Stabs speichern
 *g3godwarfmethodclassprefix_ Stelle Methodennamen in DWARF den Namen der Klasse voran
 *g3godwarfcpp_ Simuliere C++ Debug-Informationen in DWARF
+*g3godwarfomflinnum_ Erzeuge Zeilennummer-Informationen in den "OMF LINNUM"-Records im Format "MS LINK" zusÑtzlich zu Debug-Informationen in DWARF (KompatibilitÑt zum Open Watcom Debugger/Linker)
 *g2gp_Erhalte Gro·/Kleinschreibung in Stabs-Symbolnamen
 *g2gs_Erzeuge Stabs-Debug-Informationen
 *g2gt_Lîsche lokale Variablen (um eine Verwendung ohne Initialisierung zu finden; mehrere 't' Ñndern den Wert, mit dem Åberschrieben wird)
@@ -3996,6 +4040,7 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 **2st_Erzeuge Script um auf dem Zielsystem zu linken
 **2sr_öberspringe die Phase der "register allocation" (mit -alr benutzen)
 **1T<x>_Zielbetriebssystem::
+# i386 targets
 3*2Tandroid_Android
 3*2Taros_AROS
 3*2Tbeos_BeOS
@@ -4018,7 +4063,11 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
+# x86_64 targets
+4*2Taros_AROS
 4*2Tdarwin_Darwin/Mac OS X
+4*2Tdragonfly_DragonFly BSD
+4*2Tembedded_Embedded
 4*2Tfreebsd_FreeBSD
 4*2Tiphonesim_iPhoneSimulator
 4*2Tlinux_Linux
@@ -4026,45 +4075,65 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 4*2Topenbsd_OpenBSD
 4*2Tsolaris_Solaris
 4*2Twin64_Win64 (64 bit Windows Systeme)
+# m68k targets
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
+6*2Tembedded_Embedded
 6*2Tlinux_Linux
 6*2Tnetbsd_NetBSD
 6*2Tmacos_Mac OS
 6*2Tpalmos_PalmOS
+# i8086 targets
+8*2Tembedded_Embedded
 8*2Tmsdos_MS-DOS (und kompatible)
 8*2Twin16_Windows 16 Bit
+# arm targets
 A*2Tandroid_Android
+A*2Taros_AROS
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
 A*2Tgba_Game Boy Advance
 A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
+A*2Tnetbsd_NetBSD
+A*2Tpalmos_PalmOS
 A*2Tsymbian_Symbian
 A*2Twince_Windows CE
+# aarch64 targets
 a*2Tdarwin_Darwin/iOS
 a*2Tlinux_Linux
+# jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
+# mipsel targets
 m*2Tandroid_Android
 m*2Tembedded_Embedded
 m*2Tlinux_Linux
+# mipseb targets
 M*2Tembedded_Embedded
 M*2Tlinux_Linux
+# powerpc targets
 P*2Taix_AIX
 P*2Tamiga_AmigaOS
 P*2Tdarwin_Darwin und Mac OS X
+P*2Tembedded_Embedded
 P*2Tlinux_Linux
 P*2Tmacos_Mac OS (classic)
 P*2Tmorphos_MorphOS
 P*2Tnetbsd_NetBSD
 P*2Twii_Wii
+# powerpc64 targets
 p*2Taix_AIX
 p*2Tdarwin_Darwin/Mac OS X
+p*2Tembedded_Embedded
 p*2Tlinux_Linux
-S*2Tsolaris_Solaris
+# sparc targets
 S*2Tlinux_Linux
+S*2Tsolaris_Solaris
+# sparc64 targets
 s*2Tlinux_Linux
+# not yet ready s*2Tsolaris_Solaris
+# avr targets
 V*2Tembedded_Embedded
 **1u<x>_Entferne die Definition fÅr das Symbol <x>
 **1U<x>_Unit-Optionen:
@@ -4076,7 +4145,7 @@ V*2Tembedded_Embedded
 **2*_w : Warnungen                     u : Unit Informationen
 **2*_n : Anmerkungen                   t : Angesprochene/benutzte Dateien
 **2*_h : Hinweise                      c : Preprozessordirektiven
-**2*_i : Allgemeine Informationen      d : Debug Informationen
+**2*_i : Allgemeine Informationen      d : Debug-Informationen
 **2*_l : Zeilennummern                 r : Rhide/GCC kompatibler Modus
 **2*_s : Zeitstempel                   q : Nummer der Meldung
 **2*_a : Alles                         x : Zeige Infos Åber aufgerufene Tools
