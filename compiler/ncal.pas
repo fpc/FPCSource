@@ -4161,8 +4161,8 @@ implementation
            {  Prevent too deep inlining recursion and code bloat by inlining
 
               The actual formuala is
-                                inlinelevel+1  /-------
-                  node count <  -------------\/  10000
+                                inlinelevel/3+1    /-------
+                  node count <  -----------------\/  10000
 
               This allows exponential grow of the code only to a certain limit.
 
@@ -4173,7 +4173,7 @@ implementation
                  if the outer nodes are in a seldomly used code path
                - The code avoids to use functions from the math unit
            }
-           (node_count(tprocdef(procdefinition).inlininginfo^.code)<round(exp((1.0/(inlinelevel+1))*ln(10000)))) then
+           (node_count(tprocdef(procdefinition).inlininginfo^.code)<round(exp((1.0/(inlinelevel/3.0+1))*ln(10000)))) then
           begin
             include(callnodeflags,cnf_do_inline);
             { Check if we can inline the procedure when it references proc/var that
