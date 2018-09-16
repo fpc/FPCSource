@@ -67,9 +67,9 @@ unit rgcpu;
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
             if (spilltemp.offset and $800)<>0 then
-              helplist.concat(taicpu.op_reg_const(A_LUI,hreg,(spilltemp.offset shr 12) and $FFFFF))
+              helplist.concat(taicpu.op_reg_const(A_LUI,hreg,((spilltemp.offset shr 12)+1) and $FFFFF))
             else
-              helplist.concat(taicpu.op_reg_const(A_LUI,hreg,((spilltemp.offset shr 12)+1) and $FFFFF));
+              helplist.concat(taicpu.op_reg_const(A_LUI,hreg,(spilltemp.offset shr 12) and $FFFFF));
             helplist.concat(taicpu.op_reg_reg_const(A_ADDI,hreg,hreg,SarSmallint(spilltemp.offset shl 4,4)));
 
             helplist.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,hreg,spilltemp.base));
