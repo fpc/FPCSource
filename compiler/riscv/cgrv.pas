@@ -198,19 +198,19 @@ unit cgrv;
 
 {$ifdef RISCV64}
         if (op=OP_SHL) and
-           (size in [OS_32,OS_S32]) then
+               (size=OS_S32) then
           begin
             list.concat(taicpu.op_reg_reg_const(A_SLLIW,dst,src,a));
             maybeadjustresult(list,op,size,dst);
           end
         else if (op=OP_SHR) and
-           (size in [OS_32,OS_S32]) then
+               (size=OS_S32) then
           begin
             list.concat(taicpu.op_reg_reg_const(A_SRLIW,dst,src,a));
             maybeadjustresult(list,op,size,dst);
           end
         else if (op=OP_SAR) and
-           (size in [OS_32,OS_S32]) then
+               (size=OS_S32) then
           begin
             list.concat(taicpu.op_reg_reg_const(A_SRAIW,dst,src,a));
             maybeadjustresult(list,op,size,dst);
@@ -251,19 +251,19 @@ unit cgrv;
           else
 {$ifdef RISCV64}
             if (op=OP_SHL) and
-               (size in [OS_32,OS_S32]) then
+               (size=OS_S32) then
               begin
                 list.concat(taicpu.op_reg_reg_reg(A_SLLW,dst,src2,src1));
                 maybeadjustresult(list,op,size,dst);
               end
             else if (op=OP_SHR) and
-               (size in [OS_32,OS_S32]) then
+               (size=OS_S32) then
               begin
                 list.concat(taicpu.op_reg_reg_reg(A_SRLW,dst,src2,src1));
                 maybeadjustresult(list,op,size,dst);
               end
             else if (op=OP_SAR) and
-               (size in [OS_32,OS_S32]) then
+               (size=OS_S32) then
               begin
                 list.concat(taicpu.op_reg_reg_reg(A_SRAW,dst,src2,src1));
                 maybeadjustresult(list,op,size,dst);

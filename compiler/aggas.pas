@@ -211,7 +211,7 @@ implementation
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
 { TODO: .data.ro not yet working}
-{$if defined(arm) or defined(powerpc)}
+{$if defined(arm) or defined(riscv64) or defined(powerpc)}
           '.rodata',
 {$else arm}
           '.data',

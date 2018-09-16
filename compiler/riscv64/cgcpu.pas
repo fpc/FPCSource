@@ -95,7 +95,11 @@ implementation
       var
         ai: taicpu;
       begin
+        list.concat(tai_comment.Create(strpnew('Move '+tcgsize2str(fromsize)+'->'+tcgsize2str(tosize))));
+
         if (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S32) then
+          list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
+        else if (tosize=OS_S32) and (tcgsize2unsigned[fromsize]=OS_64) then
           list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
         else if (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
@@ -187,69 +191,15 @@ implementation
         l: TAsmLabel;
         tmpreg: tregister;
         ai: taicpu;
-      begin           
-        signed:=tcgsize2unsigned[size]<>size;
-
-        if setflags and
-           (op=OP_ADD) and
-           (src=dst) and
-           (not signed) then
+      begin
+        if setflags then
           begin
             tmpreg:=getintregister(list,size);
-            a_load_reg_reg(list,size,size,src,tmpreg);
-            src:=tmpreg;
-          end;
-
-        a_op_const_reg_reg(list,op,size,a,src,dst);
-
-        if setflags and
-           (op=OP_ADD) then
-          begin
-            current_asmdata.getjumplabel(l);
-            if signed then
-              begin
-                {
-                  t0=a<0
-                  t1=result<a
-                  jump if t0=t1
-                }
-                tmpreg:=getintregister(list,OS_INT);
-                if is_imm12(a) then
-                  list.Concat(taicpu.op_reg_reg_const(A_SLTI,tmpreg,dst,a))
-                else
-                  begin
-                    a_load_const_reg(list,OS_INT,a,tmpreg);
-                    list.Concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg,dst,tmpreg));
-                  end;
-
-                ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,NR_X0,l,0);
-                if a<0 then
-                  ai.condition:=C_NE
-                else
-                  ai.condition:=C_EQ;
-                list.concat(ai);
-              end
-            else
-              begin
-                {
-                  jump if not sum<x
-                }
-                tmpreg:=getintregister(list,OS_INT);
-                if size in [OS_S32,OS_32] then
-                  begin
-                    a_load_reg_reg(list,size,OS_64,dst,tmpreg);
-                    dst:=tmpreg;
-                  end;
-                list.Concat(taicpu.op_reg_reg_reg(A_SLTU,tmpreg,dst,src));
-                                                                        
-                ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,NR_X0,l,0);
-                ai.condition:=C_EQ;
-                list.concat(ai);
-              end;
-
-            a_call_name(list,'FPC_OVERFLOW',false);
-            a_label(list,l);
-          end;
+            a_load_const_reg(list,size,a,tmpreg);
+            a_op_reg_reg_reg_checkoverflow(list,op,size,tmpreg,src,dst,setflags,ovloc);
+          end
+        else
+          a_op_const_reg_reg(list,op,size,a,src,dst);
       end;
 
 
@@ -262,60 +212,133 @@ implementation
       begin
         signed:=tcgsize2unsigned[size]<>size;
 
-        if setflags and
-           (op=OP_ADD) and
-           (src2=dst) and
-           (not signed) then
-          begin
-            tmpreg:=getintregister(list,size);
-            a_load_reg_reg(list,size,size,src2,tmpreg);
-            src2:=tmpreg;
-          end;
-
-        a_op_reg_reg_reg(list,op,size,src1,src2,dst);
-
-        if setflags and
-           (op=OP_ADD) then
-          begin
-            current_asmdata.getjumplabel(l);
-            if signed then
+        if setflags then
+          case op of
+            OP_ADD:
               begin
-                {
-                  t0=src1<0
-                  t1=result<src1
-                  jump if t0=t1
-                }
-                tmpreg0:=getintregister(list,OS_INT);
-                tmpreg:=getintregister(list,OS_INT);
-                list.Concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg0,src1,NR_X0));
-                list.Concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg,dst,src1));
+                current_asmdata.getjumplabel(l);
 
-                ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,tmpreg0,l,0);
-                ai.condition:=C_EQ;
-                list.concat(ai);
-              end
-            else
-              begin
-                {
-                  jump if not sum<x
-                }
-                tmpreg:=getintregister(list,OS_INT);
-                if size in [OS_S32,OS_32] then
+                list.Concat(taicpu.op_reg_reg_reg(A_ADD,dst,src2,src1));
+
+                if signed then
                   begin
-                    a_load_reg_reg(list,size,OS_64,dst,tmpreg);
-                    dst:=tmpreg;
+                    {
+                      t0=src1<0
+                      t1=result<src2
+                      overflow if t0<>t1
+                    }
+                    tmpreg0:=getintregister(list,OS_INT);
+                    tmpreg:=getintregister(list,OS_INT);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg0,src1,NR_X0));
+                    list.Concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg,dst,src2));
+
+                    ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,tmpreg0,l,0);
+                    ai.condition:=C_EQ;
+                    list.concat(ai);
+                  end
+                else
+                  begin
+                    {
+                      jump if sum>=x
+                    }
+                    if size in [OS_S32,OS_32] then
+                      begin
+                        tmpreg:=getintregister(list,OS_INT);
+                        a_load_reg_reg(list,size,OS_64,dst,tmpreg);
+                        dst:=tmpreg;
+                      end;
+
+                    ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,dst,src2,l,0);
+                    ai.condition:=C_GEU;
+                    list.concat(ai);
                   end;
-                tmpreg:=getintregister(list,OS_INT);
-                list.Concat(taicpu.op_reg_reg_reg(A_SLTU,tmpreg,dst,src2));
 
-                ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,NR_X0,l,0);
-                ai.condition:=C_EQ;
-                list.concat(ai);
+                a_call_name(list,'FPC_OVERFLOW',false);
+                a_label(list,l);
               end;
+            OP_SUB:
+              begin
+                current_asmdata.getjumplabel(l);
 
-            a_call_name(list,'FPC_OVERFLOW',false);
-            a_label(list,l);
-          end;
+                list.Concat(taicpu.op_reg_reg_reg(A_SUB,dst,src2,src1));
+
+                if signed then
+                  begin
+                    tmpreg0:=getintregister(list,OS_INT);
+                    tmpreg:=getintregister(list,OS_INT);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg0,NR_X0,src1));
+                    list.Concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg,dst,src2));
+
+                    ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,tmpreg0,l,0);
+                    ai.condition:=C_EQ;
+                    list.concat(ai);
+                  end
+                else
+                  begin
+                    { no overflow if result<=src2 }
+                    if size in [OS_S32,OS_32] then
+                      begin
+                        tmpreg:=getintregister(list,OS_INT);
+                        a_load_reg_reg(list,size,OS_64,dst,tmpreg);
+                        dst:=tmpreg;
+                      end;
+
+                    ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,src2,dst,l,0);
+                    ai.condition:=C_GEU;
+                    list.concat(ai);
+                  end;
+
+                a_call_name(list,'FPC_OVERFLOW',false);
+                a_label(list,l);
+              end;
+            OP_IMUL:
+              begin
+                { No overflow if upper result is same as sign of result }
+                current_asmdata.getjumplabel(l);
+
+                tmpreg:=getintregister(list,OS_INT);
+                tmpreg0:=getintregister(list,OS_INT);
+                list.Concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2));
+                list.Concat(taicpu.op_reg_reg_reg(A_MULH,tmpreg,src1,src2));
+
+                list.concat(taicpu.op_reg_reg_const(A_SRAI,tmpreg0,dst,63));
+
+                a_cmp_reg_reg_label(list,OS_INT,OC_EQ,tmpreg,tmpreg0,l);
+
+                a_call_name(list,'FPC_OVERFLOW',false);
+                a_label(list,l);
+              end;
+            OP_MUL:
+              begin
+                { No overflow if upper result is 0 }
+                current_asmdata.getjumplabel(l);
+
+                tmpreg:=getintregister(list,OS_INT);
+                list.Concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2));
+                list.Concat(taicpu.op_reg_reg_reg(A_MULHU,tmpreg,src1,src2));
+
+                a_cmp_reg_reg_label(list,OS_INT,OC_EQ,tmpreg,NR_X0,l);
+
+                a_call_name(list,'FPC_OVERFLOW',false);
+                a_label(list,l);
+              end;
+            OP_IDIV:
+              begin
+                { Only overflow if dst is all 1's }
+                current_asmdata.getjumplabel(l);
+
+                tmpreg:=getintregister(list,OS_INT);
+                list.Concat(taicpu.op_reg_reg_reg(A_DIV,dst,src1,src2));
+                list.Concat(taicpu.op_reg_reg_const(A_ADDI,tmpreg,dst,1));
+
+                a_cmp_reg_reg_label(list,OS_INT,OC_NE,tmpreg,NR_X0,l);
+
+                a_call_name(list,'FPC_OVERFLOW',false);
+                a_label(list,l);
+              end;
+          end
+        else
+          a_op_reg_reg_reg(list,op,size,src1,src2,dst);
       end;
 
 
