@@ -376,9 +376,76 @@ implementation
 
 
     function taddnode.simplify(forinline : boolean) : tnode;
+
+      function is_range_test(nodel, noder: taddnode; var value: tnode; var cl,cr: qword): boolean;
+        const
+          is_upper_test: array[ltn..gten] of boolean = (true,true,false,false);
+          inclusive_adjust: array[boolean,ltn..gten] of integer = ((1,0,-1,0),
+                                                                   (-1,0,1,0));
+        var
+          swapl, swapr: Boolean;
+          valuer: tnode;
+          t: QWord;
+        begin
+          result:=false;
+          swapl:=false;
+          swapr:=false;
+
+          if nodel.left.nodetype=ordconstn then
+            begin
+              swapl:=true;
+              cl:=tordconstnode(nodel.left).value.uvalue;
+              value:=nodel.right;
+            end
+          else if nodel.right.nodetype=ordconstn then
+            begin
+              cl:=tordconstnode(nodel.right).value.uvalue;
+              value:=nodel.left;
+            end
+          else
+            exit;
+
+          if is_signed(value.resultdef) then
+            exit;
+
+          if noder.left.nodetype=ordconstn then
+            begin
+              swapl:=true;
+              cr:=tordconstnode(noder.left).value.uvalue;
+              valuer:=noder.right;
+            end
+          else if noder.right.nodetype=ordconstn then
+            begin
+              cr:=tordconstnode(noder.right).value.uvalue;
+              valuer:=noder.left;
+            end
+          else
+            exit;
+
+          if not value.isequal(valuer) then
+            exit;
+
+          { this could be simplified too, but probably never happens }
+          if (is_upper_test[nodel.nodetype] xor swapl)=(is_upper_test[noder.nodetype] xor swapr) then
+            exit;
+
+          cl:=cl+inclusive_adjust[swapl,nodel.nodetype];
+          cr:=cr+inclusive_adjust[swapr,noder.nodetype];
+
+          if is_upper_test[nodel.nodetype] xor swapl then
+            begin
+              t:=cl;
+              cl:=cr;
+              cr:=t;
+            end;
+
+          result:=true;
+        end;
+
       var
-        t       : tnode;
+        t       , vl: tnode;
         lt,rt   : tnodetype;
+        hdef,
         rd,ld   : tdef;
         rv,lv,v : tconstexprint;
         rvd,lvd : bestreal;
@@ -390,6 +457,7 @@ implementation
         resultset : Tconstset;
         res,
         b       : boolean;
+        cr, cl  : qword;
       begin
         result:=nil;
         l1:=0;
@@ -984,6 +1052,25 @@ implementation
             }
             if is_boolean(left.resultdef) and is_boolean(right.resultdef) then
               begin
+                { transform unsigned comparisons of (v>=x) and (v<=y)
+                  into (v-x)<(y-x)
+                }
+                if (nodetype=andn) and
+                   (left.nodetype in [ltn,lten,gtn,gten]) and
+                   (right.nodetype in [ltn,lten,gtn,gten]) and
+                   (not might_have_sideeffects(left)) and
+                   (not might_have_sideeffects(right)) and
+                   is_range_test(taddnode(left),taddnode(right),vl,cl,cr) then
+                  begin
+                    hdef:=get_unsigned_inttype(vl.resultdef);
+                    vl:=ctypeconvnode.create_internal(vl.getcopy,hdef);
+
+                    result:=caddnode.create_internal(lten,
+                              ctypeconvnode.create_internal(caddnode.create_internal(subn,vl,cordconstnode.create(cl,hdef,false)),hdef),
+                              cordconstnode.create(cr-cl,hdef,false));
+                    exit;
+                  end;
+
                 { even when short circuit boolean evaluation is active, this
                   optimization cannot be performed in case the node has
                   side effects, because this can change the result (e.g., in an
