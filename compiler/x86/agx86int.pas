@@ -467,10 +467,12 @@ implementation
     end;
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_secrel32_symbol] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
         #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
-        #9'DD RVA'#9,#9'DD SECREL32'#9
+        #9'DD RVA'#9,#9'DD SECREL32'#9,
+        #9'FIXME',#9'FIXME',#9'FIXME',#9'FIXME',
+        #9'DW'#9,#9'DD'#9,#9'DQ'#9
       );
 
     Function PadTabs(const p:string;addch:char):string;
@@ -602,6 +604,9 @@ implementation
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,
+                 aitconst_16bit_unaligned,
+                 aitconst_32bit_unaligned,
+                 aitconst_64bit_unaligned,
                  aitconst_rva_symbol,
                  aitconst_secrel32_symbol :
                    begin
