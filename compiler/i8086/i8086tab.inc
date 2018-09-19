@@ -22958,7 +22958,7 @@
     ops     : 3;
     optypes : (ot_kreg_m,ot_bmem64,ot_immediate or ot_bits8,ot_none);
     code    : #232#234#241#250#1#102#72#22;
-    flags   : [if_avx512]
+    flags   : [if_avx512,if_bcst2]
   ),
   (
     opcode  : A_VFPCLASSPD;
@@ -22972,7 +22972,7 @@
     ops     : 3;
     optypes : (ot_kreg_m,ot_bmem64,ot_immediate or ot_bits8,ot_none);
     code    : #232#234#241#244#250#1#102#72#22;
-    flags   : [if_avx512]
+    flags   : [if_avx512,if_bcst4]
   ),
   (
     opcode  : A_VFPCLASSPD;
@@ -22986,7 +22986,7 @@
     ops     : 3;
     optypes : (ot_kreg_m,ot_bmem64,ot_immediate or ot_bits8,ot_none);
     code    : #232#233#234#241#250#1#102#72#22;
-    flags   : [if_avx512]
+    flags   : [if_avx512,if_bcst8]
   ),
   (
     opcode  : A_VFPCLASSPS;

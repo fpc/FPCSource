@@ -366,15 +366,17 @@ interface
                          msiMemRegConst128,msiMemRegConst256,msiMemRegConst512);
 
       TMemRefSizeInfoBCST = (msbUnknown, msbBCST32, msbBCST64, msbMultiple);
+      TMemRefSizeInfoBCSTType = (btUnknown, bt1to2, bt1to4, bt1to8, bt1to16);
 
       TConstSizeInfo  = (csiUnkown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
 
       TInsTabMemRefSizeInfoRec = record
-        MemRefSize            : TMemRefSizeInfo;
-        MemRefSizeBCST        : TMemRefSizeInfoBCST;
-        BCSTXMMMultiplicator  : byte;
-        ExistsSSEAVX          : boolean;
-        ConstSize             : TConstSizeInfo;
+        MemRefSize               : TMemRefSizeInfo;
+        MemRefSizeBCST           : TMemRefSizeInfoBCST;
+        BCSTXMMMultiplicator     : byte;
+        ExistsSSEAVX             : boolean;
+        ConstSize                : TConstSizeInfo;
+        BCSTTypes                : Set of TMemRefSizeInfoBCSTType;
       end;
 
     const
@@ -487,7 +489,13 @@ interface
         IF_PRE,                 { it's a prefix instruction }
         IF_PASS2,               { if the instruction can change in a second pass }
         IF_IMM4,                { immediate operand is a nibble (must be in range [0..15]) }
-        IF_IMM3                 { immediate operand is a triad (must be in range [0..7]) }
+        IF_IMM3,                { immediate operand is a triad (must be in range [0..7]) }
+
+        { avx512 flags }
+        IF_BCST2,
+        IF_BCST4,
+        IF_BCST8,
+        IF_BCST16
       );
       tinsflags=set of tinsflag;
 
@@ -1800,6 +1808,12 @@ implementation
         end;
 
 
+        if opcode = A_VFPCLASSPD then
+        begin
+          vopext := 0;
+
+        end;
+
         if (InsTabMemRefSizeInfoCache^[opcode].ExistsSSEAVX) then
         begin
           for i:=0 to p^.ops-1 do
@@ -1816,7 +1830,38 @@ implementation
              end;
 
              if (oper[i]^.vopext and OTVE_VECTOR_BCST) = OTVE_VECTOR_BCST then
-              vopext := vopext or OT_VECTORBCST;
+             begin
+               vopext := vopext or OT_VECTORBCST;
+
+               if (InsTabMemRefSizeInfoCache^[opcode].BCSTTypes <> []) then
+               begin
+                 // any opcodes needs a special handling
+
+                 // default broadcast calculation is
+                 // bmem32
+                 //         xmmreg: {1to4}
+                 //         ymmreg: {1to8}
+                 //         zmmreg: {1to16}
+
+                 // bmem64
+                 //         xmmreg: {1to2}
+                 //         ymmreg: {1to4}
+                 //         zmmreg: {1to8}
+
+                 // in any opcodes not exists a mmregister
+                 // e.g. vfpclasspd  k1, [RAX] {1to8}, 0
+                 // =>> check flags
+
+                 case oper[i]^.vopext and (OTVE_VECTOR_BCST2 or OTVE_VECTOR_BCST4 or OTVE_VECTOR_BCST8 or OTVE_VECTOR_BCST16) of
+                    OTVE_VECTOR_BCST2: if not(IF_BCST2 in p^.flags) then exit;
+                    OTVE_VECTOR_BCST4: if not(IF_BCST4 in p^.flags) then exit;
+                    OTVE_VECTOR_BCST8: if not(IF_BCST8 in p^.flags) then exit;
+                   OTVE_VECTOR_BCST16: if not(IF_BCST16 in p^.flags) then exit;
+                               else exit; //TG TODO errormsg
+                 end;
+               end;
+
+             end;
 
              if (oper[i]^.vopext and OTVE_VECTOR_ER) = OTVE_VECTOR_ER then
               vopext := vopext or OT_VECTORER;
@@ -4607,6 +4652,9 @@ implementation
       AsmOp: TasmOp;
       i,j: longint;
       insentry  : PInsEntry;
+      codes : pchar;
+      c     : byte;
+
       MRefInfo: TMemRefSizeInfo;
       SConstInfo: TConstSizeInfo;
       actRegSize: int64;
@@ -4671,6 +4719,7 @@ implementation
           InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 0;
           InsTabMemRefSizeInfoCache^[AsmOp].ConstSize            := csiUnkown;
           InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX         := false;
+          InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes            := [];
 
           insentry:=@instab[i];
           RegMMXSizeMask := 0;
@@ -4688,8 +4737,9 @@ implementation
           RegBCSTYMMSizeMask := 0;
           RegBCSTZMMSizeMask := 0;
 
+
           //TG TODO delete
-          if Asmop = A_VFMADD132PD then
+          if Asmop = A_VFPCLASSPD then
           begin
             MRefInfo         := msiUnkown;
           end;
@@ -4742,7 +4792,7 @@ implementation
                   NewRegSize := (insentry^.optypes[j] and OT_SIZE_MASK);
                   if NewRegSize = 0 then
                     begin
-                      case insentry^.optypes[j] and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_REG_EXTRA_MASK) of
+                      case insentry^.optypes[j] and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
                         OT_MMXREG: begin
                                      NewRegSize := OT_BITS64;
                                    end;
@@ -4758,13 +4808,16 @@ implementation
                                      NewRegSize := OT_BITS512;
                                      InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
                                    end;
+                          OT_KREG: begin
+                                     InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                                   end;
 
                               else NewRegSize := not(0);
                       end;
                   end;
 
                 actRegSize  := actRegSize or NewRegSize;
-                actRegTypes := actRegTypes or (insentry^.optypes[j] and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_REG_EXTRA_MASK));
+                actRegTypes := actRegTypes or (insentry^.optypes[j] and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK));
                 end
               else if ((insentry^.optypes[j] and OT_MEMORY) <> 0) then
                 begin
@@ -4941,6 +4994,13 @@ implementation
                        begin
                          if MRefInfo in [msiBMem32, msiBMem64] then
                          begin
+                           if IF_BCST2  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to2];
+                           if IF_BCST4  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to4];
+                           if IF_BCST8  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to8];
+                           if IF_BCST16 in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to16];
+
+                           //InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes
+
                            // BROADCAST - OPERAND
                            RegBCSTSizeMask := RegBCSTSizeMask or actMemSize;
 
@@ -4949,6 +5009,7 @@ implementation
                              OT_YMMREG: RegBCSTYMMSizeMask := RegBCSTYMMSizeMask or actMemSize;
                              OT_ZMMREG: RegBCSTZMMSizeMask := RegBCSTZMMSizeMask or actMemSize;
                                    else begin
+
                                           RegBCSTXMMSizeMask := not(0);
                                           RegBCSTYMMSizeMask := not(0);
                                           RegBCSTZMMSizeMask := not(0);

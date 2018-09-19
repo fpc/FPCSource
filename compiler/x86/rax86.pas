@@ -1113,7 +1113,23 @@ begin
 
         end;
 
-      if MemRefInfo(opcode).BCSTXMMMultiplicator * multiplicator <> vbcst then
+      if MemRefInfo(opcode).BCSTTypes <> [] then
+      begin
+        str(MemRefInfo(opcode).BCSTXMMMultiplicator * multiplicator, bcst1);
+        str(vbcst, bcst2);
+
+        case vbcst of
+           2: if not(bt1to2 in MemRefInfo(opcode).BCSTTypes) then
+               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+           4: if not(bt1to4 in MemRefInfo(opcode).BCSTTypes) then
+               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+           8: if not(bt1to8 in MemRefInfo(opcode).BCSTTypes) then
+               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+          16: if not(bt1to16 in MemRefInfo(opcode).BCSTTypes) then
+               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+        end;
+      end
+      else if MemRefInfo(opcode).BCSTXMMMultiplicator * multiplicator <> vbcst then
       begin
         str(MemRefInfo(opcode).BCSTXMMMultiplicator * multiplicator, bcst1);
         str(vbcst, bcst2);

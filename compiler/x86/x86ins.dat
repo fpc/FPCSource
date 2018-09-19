@@ -7574,11 +7574,11 @@ xmmreg_mz,xmmreg,xmmreg_sae,imm8          \350\361\372\1\x55\75\120\27          
 [VFPCLASSPD]
 (Ch_All)
 kreg_m,xmmrm,imm8                         \350\352\361\372\1\x66\110\26             AVX512
-kreg_m,bmem64,imm8                        \350\352\361\372\1\x66\110\26             AVX512
+kreg_m,bmem64,imm8                        \350\352\361\372\1\x66\110\26             AVX512,BCST2
 kreg_m,ymmrm,imm8                         \350\352\361\364\372\1\x66\110\26         AVX512
-kreg_m,bmem64,imm8                        \350\352\361\364\372\1\x66\110\26         AVX512
+kreg_m,bmem64,imm8                        \350\352\361\364\372\1\x66\110\26         AVX512,BCST4
 kreg_m,zmmrm,imm8                         \350\351\352\361\372\1\x66\110\26         AVX512
-kreg_m,bmem64,imm8                        \350\351\352\361\372\1\x66\110\26         AVX512
+kreg_m,bmem64,imm8                        \350\351\352\361\372\1\x66\110\26         AVX512,BCST8
 
 [VFPCLASSPS]
 (Ch_All)
