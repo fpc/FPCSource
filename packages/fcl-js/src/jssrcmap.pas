@@ -54,7 +54,8 @@ type
   TSourceMapOption = (
     smoAddMonotonous, // true = AddMapping GeneratedLine/Col must be behind last add, false = check all adds for duplicate
     smoAutoLineStart, // automatically add a first column mapping, repeating last mapping
-    smoSafetyHeader // insert ')]}' at start
+    smoSafetyHeader, // insert ')]}' at start
+    smoAllowSrcLine0 // don't bark on SrcLine=0
     );
   TSourceMapOptions = set of TSourceMapOption;
 const
@@ -548,7 +549,10 @@ begin
   else
     begin
     if SrcLine<1 then
-      RaiseInvalid('invalid SrcLine');
+    begin
+      if (SrcLine<0) or not (smoAllowSrcLine0 in Options) then
+        RaiseInvalid('invalid SrcLine');
+    end;
     if SrcCol<0 then
       RaiseInvalid('invalid SrcCol');
     end;
