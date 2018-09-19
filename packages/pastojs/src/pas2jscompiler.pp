@@ -2235,7 +2235,7 @@ begin
   for i:=0 to SrcMap.SourceCount-1 do begin
     LocalFilename:=SrcMap.SourceFiles[i];
     if LocalFilename='' then continue;
-    if SrcMapInclude then
+    if SrcMapInclude and DirectoryCache.FileExists(LocalFilename) then
     begin
       // include source in SrcMap
       aFile:=FileCache.LoadFile(LocalFilename);
@@ -2314,6 +2314,7 @@ var
         SrcMap.Options:=SrcMap.Options+[smoSafetyHeader]
       else
         SrcMap.Options:=SrcMap.Options-[smoSafetyHeader];
+      SrcMap.Options:=SrcMap.Options+[smoAllowSrcLine0];
     end;
   end;
 

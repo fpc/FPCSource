@@ -102,7 +102,7 @@ begin
       Params.Assign(SharedParams);
     if FirstRunParams<>nil then
       Params.AddStrings(FirstRunParams);
-    Compile([MainFile,'-Jc','-Fu'+UnitPaths,'-JU'+PCUFormat.Ext,'-FU'+UnitOutputDir]);
+    Compile([MainFile,'-Jc','-Fu'+UnitPaths,'-JU'+PCUFormat.Ext,'-FU'+UnitOutputDir,'-Jminclude']);
     AssertFileExists(UnitOutputDir+'/system.'+PCUFormat.Ext);
     JSFilename:=UnitOutputDir+PathDelim+ExtractFilenameOnly(MainFile)+'.js';
     AssertFileExists(JSFilename);
@@ -119,7 +119,7 @@ begin
       Params.Assign(SharedParams);
     if SecondRunParams<>nil then
       Params.AddStrings(SecondRunParams);
-    Compile([MainFile,'-Jc','-FU'+UnitOutputDir],ExpExitCode);
+    Compile([MainFile,'-Jc','-FU'+UnitOutputDir,'-Jminclude'],ExpExitCode);
     if ExpExitCode=0 then
       begin
       NewSrc:=JSFile.Source;
