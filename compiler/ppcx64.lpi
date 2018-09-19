@@ -33,10 +33,12 @@
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="pp"/>
       </Unit0>
       <Unit1>
         <Filename Value="x86\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aasmcpu"/>
       </Unit1>
     </Units>
   </ProjectOptions>
@@ -69,6 +71,7 @@
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
       <CustomOptions Value="-dx86_64"/>
+      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
 </CONFIG>

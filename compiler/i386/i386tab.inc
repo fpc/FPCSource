@@ -10330,7 +10330,7 @@
     ops     : 2;
     optypes : (ot_xmmreg_mz,ot_bmem32,ot_none,ot_none);
     code    : #219#232#248#1#230#72;
-    flags   : [if_avx512]
+    flags   : [if_avx512,if_bcst2]
   ),
   (
     opcode  : A_VCVTDQ2PD;
@@ -10351,7 +10351,7 @@
     ops     : 2;
     optypes : (ot_ymmreg_mz,ot_bmem32,ot_none,ot_none);
     code    : #219#232#244#248#1#230#72;
-    flags   : [if_avx512]
+    flags   : [if_avx512,if_bcst4]
   ),
   (
     opcode  : A_VCVTDQ2PD;
@@ -10372,7 +10372,7 @@
     ops     : 2;
     optypes : (ot_zmmreg_mz,ot_bmem32,ot_none,ot_none);
     code    : #219#232#233#248#1#230#72;
-    flags   : [if_avx512]
+    flags   : [if_avx512,if_bcst8]
   ),
   (
     opcode  : A_VCVTDQ2PS;
