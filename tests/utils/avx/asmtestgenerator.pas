@@ -196,7 +196,12 @@ type
       IF_PRE,                 { it's a prefix instruction }
       IF_PASS2,               { if the instruction can change in a second pass }
       IF_IMM4,                { immediate operand is a nibble (must be in range [0..15]) }
-      IF_IMM3                 { immediate operand is a triad (must be in range [0..7]) }
+      IF_IMM3,                 { immediate operand is a triad (must be in range [0..7]) }
+
+      IF_BCST2,
+      IF_BCST4,
+      IF_BCST8,
+      IF_BCST16
     );
     tinsflags=set of tinsflag;
 
