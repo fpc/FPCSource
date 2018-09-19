@@ -1807,13 +1807,6 @@ implementation
            end;
         end;
 
-
-        if opcode = A_VFPCLASSPD then
-        begin
-          vopext := 0;
-
-        end;
-
         if (InsTabMemRefSizeInfoCache^[opcode].ExistsSSEAVX) then
         begin
           for i:=0 to p^.ops-1 do
@@ -1851,6 +1844,7 @@ implementation
                  // in any opcodes not exists a mmregister
                  // e.g. vfpclasspd  k1, [RAX] {1to8}, 0
                  // =>> check flags
+
 
                  case oper[i]^.vopext and (OTVE_VECTOR_BCST2 or OTVE_VECTOR_BCST4 or OTVE_VECTOR_BCST8 or OTVE_VECTOR_BCST16) of
                     OTVE_VECTOR_BCST2: if not(IF_BCST2 in p^.flags) then exit;
