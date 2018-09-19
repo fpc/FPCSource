@@ -530,7 +530,8 @@ begin
                        (UpperCase(aInst) = 'VCVTQQ2PS') or
                        (UpperCase(aInst) = 'VCVTUSI2SD') or
                        (UpperCase(aInst) = 'VCVTUSI2SS') or
-
+                       (UpperCase(aInst) = 'VFPCLASSPD') or
+                       (UpperCase(aInst) = 'VFPCLASSPS') or
                        (UpperCase(aInst) = 'VCMPSS')
 
                        ;
