@@ -186,8 +186,187 @@ implementation
                       DebugMsg('Peephole AddiMem2Mem performed', hp1);
 
                       GetNextInstruction(p,hp1);
+
                       AsmL.Remove(p);
                       p.Free;
+                      p:=hp1;
+
+                      result:=true;
+                    end;
+                end;
+              A_SUB:
+                begin
+                  {
+                    Turn
+                      sub x,y,z
+                      bgeu X0,x,...
+                      dealloc x
+                    Into
+                      bne y,x,...
+                  }
+                  if (taicpu(p).ops=3) and
+                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                     (hp1.typ=ait_instruction) and
+                     (taicpu(hp1).opcode=A_Bxx) and
+                     (taicpu(hp1).ops=3) and
+                     (taicpu(hp1).oper[0]^.typ=top_reg) and
+                     (taicpu(hp1).oper[0]^.reg=NR_X0) and
+                     (taicpu(hp1).oper[1]^.typ=top_reg) and
+                     (taicpu(hp1).oper[1]^.reg=taicpu(p).oper[0]^.reg) and
+                     (taicpu(hp1).condition=C_GEU) and
+                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+                     (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p,hp1)) and
+                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                    begin
+                      taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+                      taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
+                      taicpu(hp1).condition:=C_EQ;
+
+                      DebugMsg('Peephole SubBgeu2Bne performed', hp1);
+
+                      GetNextInstruction(p,hp1);
+
+                      asml.remove(p);
+                      p.Free;
+
+                      p:=hp1;
+
+                      result:=true;
+                    end;
+                end;
+              A_SLTU:
+                begin
+                  {
+                    Turn
+                      sltu x,X0,y
+                      beq/bne x, X0, ...
+                      dealloc x
+                    Into
+                      bltu/geu X0, y, ...
+                  }
+                  if (taicpu(p).ops=3) and
+                     (taicpu(p).oper[1]^.typ=top_reg) and
+                     (taicpu(p).oper[1]^.reg=NR_X0) and
+                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                     (hp1.typ=ait_instruction) and
+                     (taicpu(hp1).opcode=A_Bxx) and
+                     (taicpu(hp1).ops=3) and
+                     (taicpu(hp1).oper[0]^.typ=top_reg) and
+                     (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+                     (taicpu(hp1).oper[1]^.typ=top_reg) and
+                     (taicpu(hp1).oper[1]^.reg=NR_X0) and
+                     (taicpu(hp1).condition in [C_NE,C_EQ]) and
+                     (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p,hp1)) and
+                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                    begin    
+                      taicpu(hp1).loadreg(0,NR_X0);
+                      taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
+
+                      if taicpu(hp1).condition=C_NE then
+                        taicpu(hp1).condition:=C_LTU
+                      else
+                        taicpu(hp1).condition:=C_GEU;
+
+                      DebugMsg('Peephole SltuB2B performed', hp1);
+
+                      if not GetLastInstruction(p,hp1) then
+                        GetNextInstruction(p,hp1);
+
+                      asml.remove(p);
+                      p.Free;
+
+                      p:=hp1;
+
+                      result:=true;
+                    end;
+                end;
+              A_SLTIU:
+                begin
+                  {
+                    Turn
+                      sltiu x,y,1
+                      beq/ne x,x0,...
+                      dealloc x
+                    Into
+                      bne y,x0,...
+                  }
+                  if (taicpu(p).ops=3) and
+                     (taicpu(p).oper[2]^.typ=top_const) and
+                     (taicpu(p).oper[2]^.val=1) and
+                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                     (hp1.typ=ait_instruction) and
+                     (taicpu(hp1).opcode=A_Bxx) and
+                     (taicpu(hp1).ops=3) and
+                     (taicpu(hp1).oper[0]^.typ=top_reg) and
+                     (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+                     (taicpu(hp1).oper[1]^.typ=top_reg) and
+                     (taicpu(hp1).oper[1]^.reg=NR_X0) and
+                     (taicpu(hp1).condition in [C_NE,C_EQ]) and
+                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                    begin
+                      taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+                      taicpu(hp1).condition:=inverse_cond(taicpu(hp1).condition);
+
+                      DebugMsg('Peephole Sltiu0B2B performed', hp1);
+
+                      if not GetLastInstruction(p,hp1) then
+                        GetNextInstruction(p,hp1);
+
+                      asml.remove(p);
+                      p.Free;
+
+                      p:=hp1;
+
+                      result:=true;
+                    end;
+                end;
+              A_SLTI:
+                begin
+                  {
+                    Turn
+                      slti x,y,0
+                      beq/ne x,x0,...
+                      dealloc x
+                    Into
+                      bne y,x0,...
+                  }
+                  if (taicpu(p).ops=3) and
+                     (taicpu(p).oper[2]^.typ=top_const) and
+                     (taicpu(p).oper[2]^.val=0) and
+                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                     (hp1.typ=ait_instruction) and
+                     (taicpu(hp1).opcode=A_Bxx) and
+                     (taicpu(hp1).ops=3) and
+                     (taicpu(hp1).oper[0]^.typ=top_reg) and
+                     (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+                     (taicpu(hp1).oper[1]^.typ=top_reg) and
+                     (taicpu(hp1).oper[1]^.reg=NR_X0) and
+                     (taicpu(hp1).condition in [C_NE,C_EQ]) and
+                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                    begin
+                      if taicpu(hp1).condition=C_NE then
+                        begin
+                          taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+                          taicpu(hp1).loadreg(1,NR_X0);
+                          taicpu(hp1).condition:=C_LT;
+                        end
+                      else
+                        begin
+                          taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+                          taicpu(hp1).loadreg(1,NR_X0);
+                          taicpu(hp1).condition:=C_GE;
+                        end;
+
+                      DebugMsg('Peephole Slti0B2B performed', hp1);
+
+                      if not GetLastInstruction(p,hp1) then
+                        GetNextInstruction(p,hp1);
+
+                      asml.remove(p);
+                      p.Free;
+
                       p:=hp1;
 
                       result:=true;

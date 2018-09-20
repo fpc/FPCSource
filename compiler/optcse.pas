@@ -320,7 +320,8 @@ unit optcse;
                   { either if fastmath is on }
                   ((cs_opt_fastmath in current_settings.optimizerswitches) or
                    { or for the logical operators, they cannot overflow }
-                   (n.nodetype in [andn,orn]) or
+                   ((n.nodetype in [andn,orn]) and
+                    (n.localswitches*[cs_full_boolean_eval]=[])) or
                    { or for integers if range checking is off }
                    ((is_integer(n.resultdef) and
                     (n.localswitches*[cs_check_range,cs_check_overflow]=[]) and
@@ -329,6 +330,8 @@ unit optcse;
                    (is_set(n.resultdef))
                    ) then
                   while (n.nodetype=tbinarynode(n).left.nodetype) and
+                        { don't swap elements with full boolean evaluation. this might not be safe }
+                        (tbinarynode(n).left.localswitches*[cs_full_boolean_eval]=[]) and
                         { the resulttypes of the operands we'll swap must be equal,
                           required in case of a 32x32->64 multiplication, then we
                           cannot swap out one of the 32 bit operands for a 64 bit one
