@@ -2275,9 +2275,7 @@ begin
   FOpCodeList.Add('kandq,1,1,0,KREG,KREG,KREG,');
   FOpCodeList.Add('kandw,1,1,0,KREG,KREG,KREG,');
   FOpCodeList.Add('kmovb,1,1,0,KREG,KREG,,');
-  FOpCodeList.Add('kmovb,1,1,0,KREG,,');
   FOpCodeList.Add('kmovb,1,1,0,KREG,REG32,,');
-  FOpCodeList.Add('kmovb,1,1,0,KREG,,');
   FOpCodeList.Add('kmovb,1,1,0,REG32,KREG,,');
   FOpCodeList.Add('kmovd,1,1,0,KREG,KREG,,');
   FOpCodeList.Add('kmovd,1,1,0,KREG,MEM32,,');
@@ -2290,9 +2288,7 @@ begin
   FOpCodeList.Add('kmovq,1,1,0,MEM64,KREG,,');
   FOpCodeList.Add('kmovq,1,1,0,REG64,KREG,,');
   FOpCodeList.Add('kmovw,1,1,0,KREG,KREG,,');
-  FOpCodeList.Add('kmovw,1,1,0,KREG,,');
   FOpCodeList.Add('kmovw,1,1,0,KREG,REG32,,');
-  FOpCodeList.Add('kmovw,1,1,0,KREG,,');
   FOpCodeList.Add('kmovw,1,1,0,REG32,KREG,,');
   FOpCodeList.Add('knotb,1,1,0,KREG,KREG,,');
   FOpCodeList.Add('knotd,1,1,0,KREG,KREG,,');
