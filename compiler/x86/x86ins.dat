@@ -6824,7 +6824,7 @@ zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\xBE\75\120     
 [VFNMSUB231PS]
 (Ch_All)
 xmmreg_mz,xmmreg,xmmrm                    \350\361\362\371\1\xBE\75\120             FMA
-xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xBE\75\120                 AVX512,BCST2
+xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\xBE\75\120                 AVX512
 ymmreg_mz,ymmreg,ymmrm                    \350\361\362\364\371\1\xBE\75\120         FMA
 ymmreg_mz,ymmreg,bmem32                   \350\361\364\371\1\xBE\75\120             AVX512
 zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\xBE\75\120             AVX512
@@ -7590,11 +7590,11 @@ kreg_m,bmem64,imm8                        \350\351\352\361\372\1\x66\110\26     
 [VFPCLASSPS]
 (Ch_All)
 kreg_m,xmmrm,imm8                         \350\361\372\1\x66\110\26                 AVX512
-kreg_m,bmem32,imm8                        \350\361\372\1\x66\110\26                 AVX512
+kreg_m,bmem32,imm8                        \350\361\372\1\x66\110\26                 AVX512,BCST4
 kreg_m,ymmrm,imm8                         \350\361\364\372\1\x66\110\26             AVX512
-kreg_m,bmem32,imm8                        \350\361\364\372\1\x66\110\26             AVX512
+kreg_m,bmem32,imm8                        \350\361\364\372\1\x66\110\26             AVX512,BCST8
 kreg_m,zmmrm,imm8                         \350\351\361\372\1\x66\110\26             AVX512
-kreg_m,bmem32,imm8                        \350\351\361\372\1\x66\110\26             AVX512
+kreg_m,bmem32,imm8                        \350\351\361\372\1\x66\110\26             AVX512,BCST16
 
 [VFPCLASSSD]
 (Ch_All)
