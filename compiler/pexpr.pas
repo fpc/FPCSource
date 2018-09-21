@@ -3362,6 +3362,9 @@ implementation
          filepos    : tfileposinfo;
          callflags  : tcallnodeflags;
          idstr      : tidstring;
+         spezcontext : tspecializationcontext;
+         isspecialize,
+         mightbegeneric,
          useself,
          dopostfix,
          again,
@@ -3483,6 +3486,7 @@ implementation
                       hclassdef:=java_fpcbaserecordtype
                     else
                       internalerror(2012012401);
+                    spezcontext:=nil;
                     { if inherited; only then we need the method with
                       the same name }
                     if token <> _ID then
@@ -3508,6 +3512,18 @@ implementation
                      end
                     else
                      begin
+                       if not (m_delphi in current_settings.modeswitches) and
+                           (block_type in inline_specialization_block_types) and
+                           (token=_ID) and
+                           (idtoken=_SPECIALIZE) then
+                         begin
+                           consume(_ID);
+                           if token<>_ID then
+                             message(parser_e_methode_id_expected);
+                           isspecialize:=true;
+                         end
+                       else
+                         isspecialize:=false;
                        hs:=pattern;
                        hsorg:=orgpattern;
                        consume(_ID);
@@ -3517,53 +3533,71 @@ implementation
                          searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,[ssf_has_inherited])
                        else
                          searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
+                       if isspecialize and assigned(srsym) then
+                         begin
+                           if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                             srsym:=nil;
+                         end;
                      end;
                     if assigned(srsym) then
                      begin
-                       check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                       mightbegeneric:=(m_delphi in current_settings.modeswitches) and
+                                         (token in [_LT,_LSHARPBRACKET]) and
+                                         (sp_generic_dummy in srsym.symoptions);
                        { load the procdef from the inherited class and
                          not from self }
                        case srsym.typ of
+                         typesym,
                          procsym:
                            begin
-                             useself:=false;
-                             if is_objectpascal_helper(current_structdef) then
+                             { typesym is only a valid choice if we're dealing
+                               with a potential generic }
+                             if (srsym.typ=typesym) and not mightbegeneric then
                                begin
-                                 { for a helper load the procdef either from the
-                                   extended type, from the parent helper or from
-                                   the extended type of the parent helper
-                                   depending on the def the found symbol belongs
-                                   to }
-                                 if (srsym.Owner.defowner.typ=objectdef) and
-                                     is_objectpascal_helper(tobjectdef(srsym.Owner.defowner)) then
-                                   if def_is_related(current_structdef,tdef(srsym.Owner.defowner)) and
-                                       assigned(tobjectdef(current_structdef).childof) then
-                                     hdef:=tobjectdef(current_structdef).childof
-                                   else
-                                     begin
-                                       hdef:=tobjectdef(srsym.Owner.defowner).extendeddef;
-                                       useself:=true;
-                                     end
+                                 Message(parser_e_methode_id_expected);
+                                 p1:=cerrornode.create;
+                               end
+                             else
+                               begin
+                                 useself:=false;
+                                 if is_objectpascal_helper(current_structdef) then
+                                   begin
+                                     { for a helper load the procdef either from the
+                                       extended type, from the parent helper or from
+                                       the extended type of the parent helper
+                                       depending on the def the found symbol belongs
+                                       to }
+                                     if (srsym.Owner.defowner.typ=objectdef) and
+                                         is_objectpascal_helper(tobjectdef(srsym.Owner.defowner)) then
+                                       if def_is_related(current_structdef,tdef(srsym.Owner.defowner)) and
+                                           assigned(tobjectdef(current_structdef).childof) then
+                                         hdef:=tobjectdef(current_structdef).childof
+                                       else
+                                         begin
+                                           hdef:=tobjectdef(srsym.Owner.defowner).extendeddef;
+                                           useself:=true;
+                                         end
+                                     else
+                                       begin
+                                         hdef:=tdef(srsym.Owner.defowner);
+                                         useself:=true;
+                                       end;
+                                   end
+                                 else
+                                   hdef:=hclassdef;
+                                 if (po_classmethod in current_procinfo.procdef.procoptions) or
+                                    (po_staticmethod in current_procinfo.procdef.procoptions) then
+                                   hdef:=cclassrefdef.create(hdef);
+                                 if useself then
+                                   begin
+                                     p1:=ctypeconvnode.create_internal(load_self_node,hdef);
+                                   end
                                  else
                                    begin
-                                     hdef:=tdef(srsym.Owner.defowner);
-                                     useself:=true;
+                                     p1:=ctypenode.create(hdef);
+                                     { we need to allow helpers here }
+                                     ttypenode(p1).helperallowed:=true;
                                    end;
-                               end
-                             else
-                               hdef:=hclassdef;
-                             if (po_classmethod in current_procinfo.procdef.procoptions) or
-                                (po_staticmethod in current_procinfo.procdef.procoptions) then
-                               hdef:=cclassrefdef.create(hdef);
-                             if useself then
-                               begin
-                                 p1:=ctypeconvnode.create_internal(load_self_node,hdef);
-                               end
-                             else
-                               begin
-                                 p1:=ctypenode.create(hdef);
-                                 { we need to allow helpers here }
-                                 ttypenode(p1).helperallowed:=true;
                                end;
                            end;
                          propertysym:
@@ -3574,11 +3608,22 @@ implementation
                              p1:=cerrornode.create;
                            end;
                        end;
-                       callflags:=[cnf_inherited];
-                       include(current_procinfo.flags,pi_has_inherited);
-                       if anon_inherited then
-                         include(callflags,cnf_anon_inherited);
-                       do_member_read(hclassdef,getaddr,srsym,p1,again,callflags,nil);
+                       if mightbegeneric then
+                         begin
+                           p1:=cspecializenode.create_inherited(p1,getaddr,srsym,hclassdef);
+                         end
+                       else
+                         begin
+                           if not isspecialize then
+                             check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                           callflags:=[cnf_inherited];
+                           include(current_procinfo.flags,pi_has_inherited);
+                           if anon_inherited then
+                             include(callflags,cnf_anon_inherited);
+                           do_member_read(hclassdef,getaddr,srsym,p1,again,callflags,spezcontext);
+                         end;
+                       if p1.nodetype=errorn then
+                         spezcontext.free;
                      end
                     else
                      begin
@@ -3622,7 +3667,8 @@ implementation
                      again:=false;
                      p1:=cerrornode.create;
                    end;
-                 postfixoperators(p1,again,getaddr);
+                 if p1.nodetype<>specializen then
+                   postfixoperators(p1,again,getaddr);
                end;
 
              _INTCONST :
@@ -4045,18 +4091,22 @@ implementation
           getaddr : boolean;
           pload : tnode;
           spezcontext : tspecializationcontext;
-          structdef : tabstractrecorddef;
+          structdef,
+          inheriteddef : tabstractrecorddef;
+          callflags : tcallnodeflags;
         begin
           if n.nodetype=specializen then
             begin
               getaddr:=tspecializenode(n).getaddr;
               pload:=tspecializenode(n).left;
+              inheriteddef:=tabstractrecorddef(tspecializenode(n).inheriteddef);
               tspecializenode(n).left:=nil;
             end
           else
             begin
               getaddr:=false;
               pload:=nil;
+              inheriteddef:=nil;
             end;
 
           if assigned(parseddef) and assigned(gensym) and assigned(p2) then
@@ -4104,21 +4154,31 @@ implementation
             begin
               result:=pload;
               typecheckpass(result);
-              structdef:=nil;
-              case result.resultdef.typ of
-                objectdef,
-                recorddef:
-                  begin
-                    structdef:=tabstractrecorddef(result.resultdef);
-                  end;
-                classrefdef:
-                  begin
-                    structdef:=tabstractrecorddef(tclassrefdef(result.resultdef).pointeddef);
-                  end;
-                else
-                  internalerror(2015092703);
-              end;
-              do_member_read(structdef,getaddr,gensym,result,again,[],spezcontext);
+              structdef:=inheriteddef;
+              if not assigned(structdef) then
+                case result.resultdef.typ of
+                  objectdef,
+                  recorddef:
+                    begin
+                      structdef:=tabstractrecorddef(result.resultdef);
+                    end;
+                  classrefdef:
+                    begin
+                      structdef:=tabstractrecorddef(tclassrefdef(result.resultdef).pointeddef);
+                    end;
+                  else
+                    internalerror(2015092703);
+                end;
+              if not (structdef.typ in [recorddef,objectdef]) then
+                internalerror(2018092101);
+              if assigned(inheriteddef) then
+                begin
+                  callflags:=[cnf_inherited];
+                  include(current_procinfo.flags,pi_has_inherited);
+                end
+              else
+                callflags:=[];
+              do_member_read(structdef,getaddr,gensym,result,again,callflags,spezcontext);
               spezcontext:=nil;
             end
           else
