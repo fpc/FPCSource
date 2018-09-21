@@ -2913,8 +2913,12 @@ implementation
              (high > (system.high(int64) div 2)))) then
 {$endif cpu64bitalu}
           result := 64
-        else if (low >= 0) and
-           (high <= 1) then
+        else if (
+            (low >= 0) and
+            (high <= 1)
+           ) or (
+             ordtype in [pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]
+           ) then
           result := 1
         else
           begin
