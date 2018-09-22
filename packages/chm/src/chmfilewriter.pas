@@ -180,9 +180,7 @@ begin
     Writer.AppendIndex(FIndexStream);
     if MakeBinaryIndex then
     begin
-      {$ifdef chmindex}
-        Writeln('into binindex ');
-      {$endif}
+      Error(chmnote,'CHM has binary index');      
       Writer.AppendBinaryIndexFromSiteMap(FIndex,False);
     end;
   end;
@@ -191,6 +189,7 @@ begin
     Writer.AppendTOC(FTOCStream);
     if MakeBinaryTOC then
     begin
+      Error(chmnote,'CHM has binary toc');
       Writer.AppendBinaryTOCFromSiteMap(FToc);
     end;
   end;
@@ -1213,6 +1212,7 @@ begin
           FreeAndNil(FIndex);
           FIndex:=TChmSiteMap.Create(stindex);
           FIndex.loadfromfile(FIndexFileName);
+          Error(chmnote,'Index items:'+inttostr(findex.Items.count));
         except
           on e: Exception do
             begin

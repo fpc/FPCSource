@@ -1012,6 +1012,7 @@ begin
   result:=head<tail;
 
   n:=head-oldhead;
+  if (n>0) and (oldhead[n-1]=0) then dec(n); // remove trailing #0
   setlength(ws,n div sizeof(widechar));
   move(oldhead^,ws[1],n);
   for n:=1 to length(ws) do
@@ -1076,6 +1077,15 @@ begin
        end;
    end;
 end;
+
+procedure createentryseealso(Name:ansistring;CharIndex:integer;seealso:ansistring);
+var litem : TChmSiteMapItem;
+begin
+     item:=sitemap.items.NewItem;
+     item.KeyWord:=name;
+     item.SeeAlso:=seealso;
+end;
+
 
 procedure parselistingblock(p:pbyte);
 var
@@ -1189,8 +1199,11 @@ begin
               end;
           end;
          end;
-      if nrpairs<>0 Then
-        createentry(Name,CharIndex,Topic,Title);
+      if isseealso>0 then
+         createentryseealso(name,charindex,seealsostr)
+      else
+        if nrpairs<>0 Then
+          createentry(Name,CharIndex,Topic,Title);
       inc(head,4); // always 1
       {$ifdef binindex}
         if head<tail then
