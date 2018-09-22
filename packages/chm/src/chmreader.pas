@@ -416,6 +416,8 @@ procedure TChmReader.ReadCommonData;
        end;
      end;
      ReadWindows(FWindows);
+     fWindows.Free;
+     fStrings.Free;
    end;
    procedure ReadContextIds;
    var
@@ -441,6 +443,8 @@ procedure TChmReader.ReadCommonData;
        Str := '/'+ ReadString(fStrings, Offset, True);
        fContextList.AddContext(Value, Str);
      end;
+     fIVB.Free;
+     fStrings.Free;
    end;
 begin
    ReadFromSystem;
