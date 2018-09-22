@@ -88,6 +88,7 @@
 {$ifdef cpuaarch64}
   {$define generic_linux_syscalls}
   {$undef usestime}
+  {$define userenameat}
 {$endif cpuaarch64}
 
 {$ifdef cpusparc64}
