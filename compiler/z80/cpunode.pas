@@ -34,7 +34,7 @@ unit cpunode;
          the processor specific nodes must be included
          after the generic one (FK)
        }
-//       ,nz80add
+       ,nz80add
 //       ,nz80mat
 //       ,nz80cnv
 //       ,nz80mem
