@@ -65,6 +65,8 @@ unit cgrv;
         procedure g_save_registers(list: TAsmList); override;
         procedure g_restore_registers(list: TAsmList); override;
 
+        procedure g_profilecode(list: TAsmList); override;
+
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
@@ -432,6 +434,18 @@ unit cgrv;
       end;
 
 
+    procedure tcgrv.g_profilecode(list: TAsmList);
+      begin
+        if target_info.system in [system_riscv32_linux,system_riscv64_linux] then
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_X10,NR_RETURN_ADDRESS_REG,0));
+            a_call_name(list,'_mcount',false);
+          end
+        else
+          internalerror(2018092201);
+      end;
+
+
     procedure tcgrv.a_call_reg(list : TAsmList;reg: tregister);
       begin
         list.concat(taicpu.op_reg_reg(A_JALR,NR_RETURN_ADDRESS_REG,reg));
@@ -505,7 +519,7 @@ unit cgrv;
         end;
 
         list.concat(taicpu.op_reg_ref(op,reg,href));
-        if fromsize<>tosize then
+        if (fromsize<>tosize) and (not (tosize in [OS_SINT,OS_INT])) then
           a_load_reg_reg(list,fromsize,tosize,reg,reg);
       end;
 

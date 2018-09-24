@@ -135,7 +135,8 @@ const
                         + [system_i386_GO32V2]
                         + [system_i386_freebsd]
                         + [system_i386_netbsd]
-                        + [system_i386_wdosx];
+                        + [system_i386_wdosx]
+                        + [system_riscv32_linux,system_riscv64_linux];
 
   suppported_targets_x_smallr = systems_linux + systems_solaris
                              + [system_i386_haiku]
@@ -4149,6 +4150,32 @@ begin
   if (init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
     def_system_macro('CPUTHUMB2');
 {$endif arm}
+
+{$if defined(riscv32) or defined(riscv64)}
+  { ARMHF defaults }
+  if (target_info.abi = abi_riscv_hf) then
+    { set default cpu type to ARMv7a for ARMHF unless specified otherwise }
+    begin
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_rv64imafdc;
+      if not option.OptCPUSetExplicitly then
+        init_settings.optimizecputype:=cpu_rv64imafdc;
+
+      { Set FPU type }
+      if not(option.FPUSetExplicitly) then
+        begin
+          init_settings.fputype:=fpu_fd;
+        end
+      else
+        begin
+          if not (init_settings.fputype in [fpu_fd]) then
+            begin
+              Message(option_illegal_fpu_eabihf);
+              StopOptions(1);
+            end;
+        end;
+    end;
+{$endif defined(riscv32) or defined(riscv64)}
 
 {$ifdef jvm}
   { set default CPU type to Dalvik when targeting Android }

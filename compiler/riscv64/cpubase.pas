@@ -106,6 +106,8 @@ type
         A_SFENCE_VM
         );
 
+  TAsmOps = set of TAsmOp;
+
   {# This should define the array of instructions as string }
   op2strtable = array[tasmop] of string[8];
 
@@ -188,6 +190,8 @@ type
     type
       TAsmCond = (C_None { unconditional jumps },
         C_LT,C_LTU,C_GE,C_GEU,C_NE,C_EQ);
+
+      TAsmConds = set of TAsmCond;
 
     const
       cond2str: Array[TAsmCond] of string[4] = ({cf_none}'',

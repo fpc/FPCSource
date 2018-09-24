@@ -410,7 +410,8 @@ interface
          (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
          (name: 'EABIHF' ; supported:{$ifdef FPC_ARMHF}true{$else}false{$endif}),
          (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif}),
-         (name: 'AARCH64IOS'; supported:{$ifdef aarch64}true{$else}false{$endif})
+         (name: 'AARCH64IOS'; supported:{$ifdef aarch64}true{$else}false{$endif}),
+         (name: 'RISCVHF'; supported:{$if defined(riscv32) or defined(riscv64)}true{$else}false{$endif})
        );
 
     var
