@@ -11239,21 +11239,24 @@ var
     NeedIntfMap, HasInterfaces: Boolean;
   begin
     HasInterfaces:=false;
-    NeedIntfMap:=true;
-    CurEl:=El;
-    while CurEl<>nil do
-      begin
-      if CurEl.Interfaces.Count>0 then
+    NeedIntfMap:=false;
+    Scope:=TPas2JSClassScope(El.CustomData);
+    repeat
+      if Scope.Interfaces<>nil then
         begin
-        HasInterfaces:=true;
-        if CurEl<>El then
+        for i:=0 to Scope.Interfaces.Count-1 do
           begin
-          NeedIntfMap:=false;
-          break;
+          CurEl:=TPasClassType(Scope.Element);
+          if not IsMemberNeeded(TPasElement(CurEl.Interfaces[i])) then continue;
+          HasInterfaces:=true;
+          o:=TObject(Scope.Interfaces[i]);
+          if o is TPasProperty then
+            // interface delegation -> needs  $intfmaps={}
+            NeedIntfMap:=true;
           end;
         end;
-      CurEl:=TPasClassType(AContext.Resolver.GetPasClassAncestor(CurEl,true));
-      end;
+      Scope:=TPas2JSClassScope(Scope.AncestorScope);
+    until Scope=nil;
     if not HasInterfaces then exit;
 
     IntfMaps:=nil;

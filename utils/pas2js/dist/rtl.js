@@ -482,6 +482,7 @@ var rtl = {
     if(!map) map = {};
     var t = intf;
     var item = Object.create(t);
+    if (!aclass.hasOwnProperty('$intfmaps')) aclass.$intfmaps = {};
     aclass.$intfmaps[intf.$guid] = item;
     do{
       var names = t.$names;
