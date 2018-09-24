@@ -33,7 +33,7 @@ implementation
 {$endif}
 
 {$ifdef netbsd}
-  {$ifdef TEST_ICONV_LIBC}
+  {$ifndef DISABLE_ICONV_LIBC}
     {$define iconv_is_in_libc}
   {$endif}
 {$endif}
