@@ -1834,7 +1834,7 @@ implementation
          begin
            { generic fallback that will give an error if a wrong
              type is passed }
-           if (counter=3) then
+           if (counter=3) or (counter=2) then
              resultdef:=cshortstringtype
            else
              CGMessagePos(ppn.left.fileinfo,type_e_mismatch);
