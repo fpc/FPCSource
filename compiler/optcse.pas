@@ -298,9 +298,9 @@ unit optcse;
             if not(csedomain) then
               begin
                 { try to transform the tree to get better cse domains, consider:
-                       +
+                       +   (1)
                       / \
-                     +   C
+                (2)  +   C
                     / \
                    A   B
 
@@ -320,8 +320,7 @@ unit optcse;
                   { either if fastmath is on }
                   ((cs_opt_fastmath in current_settings.optimizerswitches) or
                    { or for the logical operators, they cannot overflow }
-                   ((n.nodetype in [andn,orn]) and
-                    (n.localswitches*[cs_full_boolean_eval]=[])) or
+                   (n.nodetype in [andn,orn]) or
                    { or for integers if range checking is off }
                    ((is_integer(n.resultdef) and
                     (n.localswitches*[cs_check_range,cs_check_overflow]=[]) and
@@ -330,8 +329,9 @@ unit optcse;
                    (is_set(n.resultdef))
                    ) then
                   while (n.nodetype=tbinarynode(n).left.nodetype) and
-                        { don't swap elements with full boolean evaluation. this might not be safe }
-                        (tbinarynode(n).left.localswitches*[cs_full_boolean_eval]=[]) and
+                    { if node (1) is fully boolean evaluated and node (2) not, we cannot do the swap as is might result in B being evaluated always,
+                      the other way round is no problem, C is still evaluated only if needed }
+                    (not(is_boolean(n.resultdef)) or not(n.nodetype in [andn,orn]) or doshortbooleval(n) or not(doshortbooleval(tbinarynode(n).left))) and
                         { the resulttypes of the operands we'll swap must be equal,
                           required in case of a 32x32->64 multiplication, then we
                           cannot swap out one of the 32 bit operands for a 64 bit one
