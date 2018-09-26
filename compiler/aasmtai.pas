@@ -262,6 +262,10 @@ interface
        ,top_para
        ,top_asmlist
 {$endif llvm}
+{$if defined(riscv32) or defined(riscv64)}
+       ,top_fenceflags
+       ,top_roundingmode
+{$endif defined(riscv32) or defined(riscv64)}
        );
 
       { kinds of operations that an instruction can perform on an operand }
@@ -463,6 +467,10 @@ interface
             top_para   : (paras: tfplist);
             top_asmlist : (asmlist: tasmlist);
         {$endif llvm}
+        {$if defined(riscv32) or defined(riscv64)}
+            top_fenceflags : (fenceflags : TFenceFlags);
+            top_roundingmode : (roundingmode : TRoundingMode);
+        {$endif defined(riscv32) or defined(riscv64)}
         end;
         poper=^toper;
 

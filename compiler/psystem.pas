@@ -346,6 +346,14 @@ implementation
         create_fpu_types;
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif mips}
+{$ifdef riscv32}
+        create_fpu_types;
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+{$endif riscv32}
+{$ifdef riscv64}
+        create_fpu_types;
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+{$endif riscv64}
 {$ifdef jvm}
         create_fpu_types;
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);

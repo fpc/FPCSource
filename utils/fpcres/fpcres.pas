@@ -72,6 +72,7 @@ begin
   writeln('  --arch, -a <name>    Set object file architecture. Supported architectures:');
   writeln('                         i386, x86_64, arm (coff)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
+  writeln('                         riscv32, riscv64,');
   writeln('                         sparc, alpha, ia64, mips, mipsel (elf)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, aarch64 (mach-o)');
   writeln('                         bigendian, littleendian (external)');
@@ -254,6 +255,8 @@ begin
     mtmipsel : Result.MachineType:=emtmipsel;
     mtppc64le : Result.MachineType:=emtppc64le;
     mtaarch64 : Result.MachineType:=emtaarch64;
+    mtriscv32 : Result.MachineType:=emtriscv32;
+    mtriscv64 : Result.MachineType:=emtriscv64;
   end;
 end;
 

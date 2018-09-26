@@ -45,7 +45,7 @@ const
 function get_cmdline:Pchar; deprecated 'use paramstr' ;
 property cmdline:Pchar read get_cmdline;
 
-{$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$if defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 {$define FPC_LOAD_SOFTFPU}
 {$endif}
 
@@ -64,6 +64,8 @@ property cmdline:Pchar read get_cmdline;
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 {$endif FPC_LOAD_SOFTFPU}
+
+{$endif defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 {$ifdef android}
   {$I sysandroidh.inc}
@@ -85,6 +87,7 @@ const
 procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
+{$if defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 {$ifdef FPC_LOAD_SOFTFPU}
 
 {$define fpc_softfpu_implementation}
@@ -108,6 +111,7 @@ procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
 {$endif FPC_LOAD_SOFTFPU}
+{$endif defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 {$I system.inc}
 

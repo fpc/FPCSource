@@ -181,6 +181,12 @@ begin
 {$ifdef sparc64}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/sparc64-linux-gnu',true);
 {$endif sparc64}
+{$ifdef riscv32}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/riscv32-linux-gnu',true);
+{$endif riscv32}
+{$ifdef riscv64}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/riscv64-linux-gnu',true);
+{$endif riscv64}
     end;
 end;
 
@@ -233,6 +239,13 @@ const defdynlinker='/lib/ld-linux-aarch64.so.1';
 {$ifdef sparc64}
   const defdynlinker='/lib64/ld-linux.so.2';
 {$endif sparc64}
+
+{$ifdef riscv32}
+  const defdynlinker='/lib32/ld.so.1';
+{$endif riscv32}
+{$ifdef riscv64}
+  const defdynlinker='/lib/ld-linux-riscv64-lp64d.so.1';
+{$endif riscv64}
 
 
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
@@ -338,6 +351,8 @@ const
                    platform_select='-EB';
   {$endif}
 {$endif}
+{$ifdef riscv32}   platform_select='';{$endif} {unknown :( }
+{$ifdef riscv64}   platform_select='';{$endif} {unknown :( }
 
 var
   platformopt: string;
@@ -1892,5 +1907,15 @@ initialization
   RegisterTarget(system_mipseb_linux_info);
 {$endif MIPSEL}
 {$endif MIPS}
+{$ifdef riscv32}
+  RegisterImport(system_riscv32_linux,timportliblinux);
+  RegisterExport(system_riscv32_linux,texportliblinux);
+  RegisterTarget(system_riscv32_linux_info);
+{$endif riscv32}
+{$ifdef riscv64}
+  RegisterImport(system_riscv64_linux,timportliblinux);
+  RegisterExport(system_riscv64_linux,texportliblinux);
+  RegisterTarget(system_riscv64_linux_info);
+{$endif riscv64}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

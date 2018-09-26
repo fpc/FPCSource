@@ -74,6 +74,12 @@ interface
 {$ifdef cpuaarch64}
         source_cpu_string = 'aarch64';
 {$endif cpuaarch64}
+{$ifdef cpuriscv64}
+        source_cpu_string = 'riscv64';
+{$endif cpuriscv64}
+{$ifdef cpuriscv32}
+        source_cpu_string = 'riscv32';
+{$endif cpuriscv32}
 
 function version_string:string;
 function full_version_string:string;

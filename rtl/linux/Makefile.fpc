@@ -90,6 +90,10 @@ override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
 
+ifeq ($(ARCH),riscv64)
+override LOADERS=prt0 cprt0 dllprt0
+endif
+
 # mipsel reuses mips files by including so some file names exist
 # twice, this causes the compiler to find sometimes wrong files and it tries
 # to recompile rtl units. To prevent this, compile always as release PPUs, this
@@ -194,6 +198,13 @@ ifeq ($(ARCH),sparc64)
   ASTARGET+=-64
   SYSNRINC=sparcgen/sysnr.inc
   ASSHAREDOPT=-KPIC
+endif
+
+ifeq ($(ARCH),riscv32)
+  ASTARGET=-march=rv32imafdc
+endif
+ifeq ($(ARCH),riscv64)
+  ASTARGET=-march=rv64imafdc
 endif
 
 ifeq ($(ARCH),arm)

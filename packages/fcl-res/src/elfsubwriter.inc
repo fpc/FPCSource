@@ -425,7 +425,12 @@ begin
       EM_PPC64  : begin RelocType:=R_PPC64_ADDR64;  SectionType:=SHT_RELA; end;
       EM_ALPHA  : begin RelocType:=R_ALPHA_REFQUAD; SectionType:=SHT_RELA; end;
       EM_IA_64  : begin RelocType:=R_IA64_DIR64LSB; SectionType:=SHT_RELA; end;
-      EM_MIPS   : begin RelocType:=R_MIPS_32;      SectionType:=SHT_RELA; end;
+      EM_MIPS   : begin RelocType:=R_MIPS_32;       SectionType:=SHT_RELA; end;
+      {$IF _TElfSubWriter_=TElf64SubWriter}
+      EM_RISCV  : begin RelocType:=R_RISCV_64;      SectionType:=SHT_RELA; end;
+      {$ELSE}
+      EM_RISCV  : begin RelocType:=R_RISCV_32;      SectionType:=SHT_RELA; end;
+      {$ENDIF}
       else
         raise EElfResourceWriterUnknownMachineException.Create('');
     end;
@@ -437,6 +442,7 @@ begin
   fDataAlignment:=4;
   {$ENDIF}
   if aMachineType=EM_IA_64 then fMachineFlags:=EF_IA_64_ABI64
+  else if aMachineType=EM_RISCV then fMachineFlags:=EF_RISCV_FLOAT_ABI_DOUBLE or EF_RISCV_RVC // This is the default class for now
   else fMachineFlags:=0;
 end;
 

@@ -1,3 +1,4 @@
+{ %OPT=-CE }
 { this test is geared towards Double values }
 
 program tb0643;

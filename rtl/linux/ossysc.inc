@@ -100,7 +100,11 @@ function Fprename(old : pchar; newpath: pchar): cint; [public, alias : 'FPC_SYSC
 
 begin
 {$if defined(generic_linux_syscalls)}
-  Fprename:=do_syscall(syscall_nr_renameat,AT_FDCWD,TSysParam(old),AT_FDCWD,TSysParam(newpath));
+  {$if defined(userenameat)}
+    Fprename:=do_syscall(syscall_nr_renameat,AT_FDCWD,TSysParam(old),AT_FDCWD,TSysParam(newpath));
+  {$else}
+    Fprename:=do_syscall(syscall_nr_renameat2,AT_FDCWD,TSysParam(old),AT_FDCWD,TSysParam(newpath),0);
+  {$endif}
 {$else}
   Fprename:=do_syscall(syscall_nr_rename,TSysParam(old),TSysParam(newpath));
 {$endif}

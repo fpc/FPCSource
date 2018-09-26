@@ -298,9 +298,9 @@ unit optcse;
             if not(csedomain) then
               begin
                 { try to transform the tree to get better cse domains, consider:
-                       +
+                       +   (1)
                       / \
-                     +   C
+                (2)  +   C
                     / \
                    A   B
 
@@ -329,6 +329,9 @@ unit optcse;
                    (is_set(n.resultdef))
                    ) then
                   while (n.nodetype=tbinarynode(n).left.nodetype) and
+                    { if node (1) is fully boolean evaluated and node (2) not, we cannot do the swap as is might result in B being evaluated always,
+                      the other way round is no problem, C is still evaluated only if needed }
+                    (not(is_boolean(n.resultdef)) or not(n.nodetype in [andn,orn]) or doshortbooleval(n) or not(doshortbooleval(tbinarynode(n).left))) and
                         { the resulttypes of the operands we'll swap must be equal,
                           required in case of a 32x32->64 multiplication, then we
                           cannot swap out one of the 32 bit operands for a 64 bit one

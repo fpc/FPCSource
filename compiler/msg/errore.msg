@@ -3814,6 +3814,7 @@ S*2Aas_Assemble using GNU AS
 **2Cc<x>_Set default calling convention to <x>
 **2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
+**2CE_Generate FPU code which can raise exceptions
 **2Cf<x>_Select fpu instruction set to use; see fpc -i or fpc -if for possible values
 **2CF<x>_Minimal floating point constant precision (default, 32, 64)
 **2Cg_Generate PIC code

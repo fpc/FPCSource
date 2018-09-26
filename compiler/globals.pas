@@ -529,6 +529,18 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i8086}
+  {$ifdef riscv32}
+        cputype : cpu_rv32imafd;
+        optimizecputype : cpu_rv32imafd;
+        asmcputype : cpu_none;
+        fputype : fpu_fd;
+  {$endif riscv32}
+  {$ifdef riscv64}
+        cputype : cpu_rv64imafdc;
+        optimizecputype : cpu_rv64imafdc;
+        asmcputype : cpu_none;
+        fputype : fpu_fd;
+  {$endif riscv64}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}

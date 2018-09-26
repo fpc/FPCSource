@@ -383,8 +383,8 @@ Unit AoptObj;
 
     function JumpTargetOp(ai: taicpu): poper; inline;
       begin
-{$if defined(MIPS)}
-        { MIPS branches can have 1,2 or 3 operands, target label is the last one. }
+{$if defined(MIPS) or defined(riscv64) or defined(riscv32)}
+        { MIPS or RiscV branches can have 1,2 or 3 operands, target label is the last one. }
         result:=ai.oper[ai.ops-1];
 {$elseif defined(SPARC64)}
         if ai.ops=2 then
@@ -1342,7 +1342,12 @@ Unit AoptObj;
 {$if defined(arm) or defined(aarch64)}
           (hp.condition=c_None) and
 {$endif arm or aarch64}
+{$if defined(riscv32) or defined(riscv64)}          
           (hp.ops>0) and
+          (hp.oper[0]^.reg=NR_X0) and
+{$else riscv}
+          (hp.ops>0) and
+{$endif riscv}
           (JumpTargetOp(hp)^.typ = top_ref) and
           (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
       end;
@@ -1390,7 +1395,7 @@ Unit AoptObj;
        to avoid endless loops with constructs such as "l5: ; jmp l5"           }
 
       var p1: tai;
-          {$if not defined(MIPS) and not defined(JVM)}
+          {$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
           p2: tai;
           l: tasmlabel;
           {$endif}
@@ -1408,7 +1413,7 @@ Unit AoptObj;
               if { the next instruction after the label where the jump hp arrives}
                  { is unconditional or of the same type as hp, so continue       }
                  IsJumpToLabelUncond(taicpu(p1))
-{$if not defined(MIPS) and not defined(JVM)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
 { for MIPS, it isn't enough to check the condition; first operands must be same, too. }
                  or
                  conditions_equal(taicpu(p1).condition,hp.condition) or
@@ -1425,7 +1430,7 @@ Unit AoptObj;
                    (IsJumpToLabelUncond(taicpu(p2)) or
                    (conditions_equal(taicpu(p2).condition,hp.condition))) and
                   SkipLabels(p1,p1))
-{$endif not MIPS and not JVM}
+{$endif not MIPS and not RV64 and not RV32 and not JVM}
                  then
                 begin
                   { quick check for loops of the form "l5: ; jmp l5 }
@@ -1446,7 +1451,7 @@ Unit AoptObj;
                   JumpTargetOp(hp)^.ref^.symbol:=JumpTargetOp(taicpu(p1))^.ref^.symbol;
                   tasmlabel(JumpTargetOp(hp)^.ref^.symbol).increfs;
                 end
-{$if not defined(MIPS) and not defined(JVM)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
               else
                 if conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) then
                   if not FindAnyLabel(p1,l) then
@@ -1477,7 +1482,7 @@ Unit AoptObj;
                       if not GetFinalDestination(hp,succ(level)) then
                         exit;
                     end;
-{$endif not MIPS and not JVM}
+{$endif not MIPS and not RV64 and not RV32 and not JVM}
           end;
         GetFinalDestination := true;
       end;

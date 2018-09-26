@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -82,6 +82,12 @@ PPC_TARGET=i8086
 endif
 ifdef AARCH64
 PPC_TARGET=aarch64
+endif
+ifdef RISCV32
+PPC_TARGET=riscv32
+endif
+ifdef RISCV64
+PPC_TARGET=riscv64
 endif
 
 # Default is to generate a compiler for the same
@@ -213,6 +219,12 @@ endif
 ifeq ($(CPC_TARGET),aarch64)
 CPUSUF=a64
 endif
+ifeq ($(CPC_TARGET),riscv32)
+CPUSUF=rv32
+endif
+ifeq ($(CPC_TARGET),riscv64)
+CPUSUF=rv64
+endif
 
 # Do not define the default -d$(CPU_TARGET) because that
 # will conflict with our -d$(CPC_TARGET)
@@ -313,6 +325,16 @@ endif
 # i8086 specific
 ifeq ($(PPC_TARGET),i8086)
 override LOCALOPT+=-Fux86
+endif
+
+# RiscV32 specific
+ifeq ($(PPC_TARGET),riscv32)
+override LOCALOPT+=-Furiscv
+endif
+
+# RiscV64 specific
+ifeq ($(PPC_TARGET),riscv64)
+override LOCALOPT+=-Furiscv
 endif
 
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
@@ -432,7 +454,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64 riscv32 riscv64
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 SYMLINKINSTALL_TARGETS=$(addsuffix _symlink_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 
@@ -802,7 +824,7 @@ ifeq ($(OS_SOURCE),win64)
   EXCLUDE_80BIT_TARGETS=1
 endif
 
-ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc sparc64),)
+ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc sparc64 riscv32 riscv64),)
   EXCLUDE_80BIT_TARGETS=1
 endif
 

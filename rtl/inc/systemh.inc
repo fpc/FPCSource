@@ -368,6 +368,51 @@ Type
   FarPointer = Pointer;
 {$endif CPUAARCH64}
 
+{$ifdef CPURISCV32}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_MUL}
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+  {$ifndef FPUNONE}
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+    ValReal = Double;
+  {$endif}
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPURISCV32}
+
+{$ifdef CPURISCV64}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_MUL}
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+  {$ifndef FPUNONE}
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+    ValReal = Double;
+  {$endif}
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPURISCV64}
+
 
 {$ifdef CPU64}
   SizeInt = Int64;
@@ -1049,10 +1094,10 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 {$define FPC_HAS_INTERNAL_SAR_DWORD}
 { $endif defined(cpux86_64) or defined(cpui386) or defined(cpuarm) or defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpumips) or defined(cpumipsel)}
 
-{$if defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64)}
+{$if defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64) or defined(cpuriscv64)}
 {$define FPC_HAS_INTERNAL_SAR_QWORD}
 {$define FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
-{$endif defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64)}
+{$endif defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64) or defined(cpuriscv64)}
 
 {$endif FPC_HAS_INTERNAL_SAR}
 

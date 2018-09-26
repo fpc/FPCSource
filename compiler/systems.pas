@@ -232,7 +232,8 @@ interface
        systems_android = [system_arm_android, system_i386_android, system_mipsel_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_sparc64_linux,system_m68k_linux,
-                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux,system_aarch64_linux];
+                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux,system_aarch64_linux,
+                       system_riscv32_linux,system_riscv64_linux];
        systems_dragonfly = [system_x86_64_dragonfly];
        systems_freebsd = [system_i386_freebsd,
                           system_x86_64_freebsd];
@@ -274,7 +275,7 @@ interface
                            system_mips_embedded,system_arm_embedded,
                            system_powerpc64_embedded,system_avr_embedded,
                            system_jvm_java32,system_mipseb_embedded,system_mipsel_embedded,
-                           system_i8086_embedded];
+                           system_i8086_embedded,system_riscv32_embedded,system_riscv64_embedded];
 
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;
@@ -397,7 +398,7 @@ interface
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',
-             'aarch64', 'wasm', 'sparc64');
+             'aarch64', 'wasm', 'sparc64','riscv32','riscv64');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
@@ -409,7 +410,8 @@ interface
          (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
          (name: 'EABIHF' ; supported:{$ifdef FPC_ARMHF}true{$else}false{$endif}),
          (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif}),
-         (name: 'AARCH64IOS'; supported:{$ifdef aarch64}true{$else}false{$endif})
+         (name: 'AARCH64IOS'; supported:{$ifdef aarch64}true{$else}false{$endif}),
+         (name: 'RISCVHF'; supported:{$if defined(riscv32) or defined(riscv64)}true{$else}false{$endif})
        );
 
     var
@@ -1036,6 +1038,14 @@ begin
 {$ifdef wasm}
   default_target(system_wasm_wasm32);
 {$endif}
+
+{$ifdef riscv32}
+  default_target(system_riscv32_linux);
+{$endif riscv32}
+
+{$ifdef riscv64}
+  default_target(system_riscv64_linux);
+{$endif riscv64}
 end;
 
 
