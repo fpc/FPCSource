@@ -176,8 +176,26 @@ uses
 *****************************************************************************}
 
 {*****************************************************************************
-                                Operand Sizes
+                                Operands
 *****************************************************************************}
+    type
+      TMemoryOrderingFlag = (moRl, moAq);
+      TMemoryOrdering = set of TMemoryOrderingFlag;
+
+      TFenceFlag = (ffI, ffO, ffR, ffW);
+      TFenceFlags = set of TFenceFlag;
+
+      TRoundingMode = (RM_Default,
+                       RM_RNE,
+                       RM_RTZ,
+                       RM_RDN,
+                       RM_RUP,
+                       RM_RMM);
+
+    const
+      roundingmode2str : array[TRoundingMode] of string[3] = ('',
+        'rne','rtz','rdn','rup','rmm');
+
 
 
 {*****************************************************************************
