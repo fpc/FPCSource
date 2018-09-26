@@ -65,7 +65,7 @@ interface
         procedure write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
         procedure write_paralocs(tcb:ttai_typedconstbuilder;para:pcgpara);
         procedure write_param_flag(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
-        procedure write_record_init_flag(tcb:ttai_typedconstbuilder;value:longword);
+        procedure write_mop_offset_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;mop:tmanagementoperator);
       public
         constructor create;
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -175,7 +175,6 @@ implementation
                               TRTTIWriter
 ***************************************************************************}
 
-
     procedure TRTTIWriter.write_methods(tcb:ttai_typedconstbuilder;st:tsymtable;visibilities:tvisibilities);
       var
         rtticount,
@@ -230,7 +229,7 @@ implementation
                       write_methodkind(tcb,def);
                       tcb.emit_ord_const(def.paras.count,u16inttype);
                       tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
-                      tcb.emit_shortstring_const(sym.realname);
+                      tcb.emit_pooled_shortstring_const_ref(sym.realname);
 
                       for k:=0 to def.paras.count-1 do
                         begin
@@ -245,7 +244,8 @@ implementation
                           else
                             write_rtti_reference(tcb,para.vardef,fullrtti);
                           write_param_flag(tcb,para);
-                          tcb.emit_shortstring_const(para.realname);
+
+                          tcb.emit_pooled_shortstring_const_ref(para.realname);
 
                           write_paralocs(tcb,@para.paraloc[callerside]);
 
@@ -348,27 +348,64 @@ implementation
       var
         locs : trttiparalocs;
         i : longint;
+        pool : THashSet;
+        entry : PHashSetItem;
+        loclab : TAsmLabel;
+        loctcb : ttai_typedconstbuilder;
+        datadef : tdef;
       begin
         locs:=paramanager.cgparalocs_to_rttiparalocs(para^.location);
         if length(locs)>high(byte) then
           internalerror(2017010601);
-        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
-        tcb.emit_ord_const(length(locs),u8inttype);
-        for i:=low(locs) to high(locs) do
+
+        if length(locs)=0 then
           begin
-            tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+            { *shrugs* }
+            tcb.emit_tai(Tai_const.Create_nil_codeptr,voidpointertype);
+            exit;
+          end;
+
+        { do we have such a paraloc already in the pool? }
+        pool:=current_asmdata.ConstPools[sp_paraloc];
+
+        entry:=pool.FindOrAdd(@locs[0],length(locs)*sizeof(trttiparaloc));
+
+        if not assigned(entry^.Data) then
+          begin
+            current_asmdata.getglobaldatalabel(loclab);
+
+            loctcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+
+            loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
-            tcb.emit_ord_const(locs[i].loctype,u8inttype);
-            tcb.emit_ord_const(locs[i].regsub,u8inttype);
-            tcb.emit_ord_const(locs[i].regindex,u16inttype);
-            { the corresponding type for aint is alusinttype }
-            tcb.emit_ord_const(locs[i].offset,alusinttype);
-            tcb.end_anonymous_record;
-          end;
-        tcb.end_anonymous_record;
+            loctcb.emit_ord_const(length(locs),u8inttype);
+            for i:=low(locs) to high(locs) do
+              begin
+                loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+                  targetinfos[target_info.system]^.alignment.recordalignmin,
+                  targetinfos[target_info.system]^.alignment.maxCrecordalign);
+                loctcb.emit_ord_const(locs[i].loctype,u8inttype);
+                loctcb.emit_ord_const(locs[i].regsub,u8inttype);
+                loctcb.emit_ord_const(locs[i].regindex,u16inttype);
+                { the corresponding type for aint is alusinttype }
+                loctcb.emit_ord_const(locs[i].offset,alusinttype);
+                loctcb.end_anonymous_record;
+              end;
+            datadef:=loctcb.end_anonymous_record;
+
+            current_asmdata.asmlists[al_typedconsts].concatList(
+              loctcb.get_final_asmlist(loclab,datadef,sec_rodata_norel,loclab.name,const_align(sizeof(pint)))
+            );
+
+            loctcb.free;
+
+            entry^.data:=loclab;
+          end
+        else
+          loclab:=TAsmLabel(entry^.Data);
+
+        tcb.emit_tai(Tai_const.Create_sym(loclab),voidpointertype);
       end;
 
 
@@ -416,13 +453,79 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.write_record_init_flag(tcb:ttai_typedconstbuilder;value:longword);
+    function compare_mop_offset_entry(item1,item2:pointer):longint;
+      var
+        entry1: pmanagementoperator_offset_entry absolute item1;
+        entry2: pmanagementoperator_offset_entry absolute item2;
       begin
-        { keep this in sync with the type declaration of TRecordInfoInitFlag(s)
-          in both rttidecl.inc and typinfo.pp }
-        if target_info.endian=endian_big then
-          value:=reverse_longword(value);
-        tcb.emit_ord_const(value,u32inttype);
+        if entry1^.offset<entry2^.offset then
+          result:=-1
+        else if entry1^.offset>entry2^.offset then
+          result:=1
+        else
+          result:=0;
+      end;
+
+
+    procedure TRTTIWriter.write_mop_offset_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;mop:tmanagementoperator);
+      var
+        list : tfplist;
+        datatcb : ttai_typedconstbuilder;
+        tbllbl : TAsmLabel;
+        entry : pmanagementoperator_offset_entry;
+        datadef,entrydef : tdef;
+        i : longint;
+        pdef : tobjectdef;
+      begin
+        list:=tfplist.create;
+        tabstractrecordsymtable(def.symtable).get_managementoperator_offset_list(mop,list);
+        if (def.typ=objectdef) then
+          begin
+            pdef:=tobjectdef(def).childof;
+            while assigned(pdef) do
+              begin
+                tabstractrecordsymtable(pdef.symtable).get_managementoperator_offset_list(mop,list);
+                pdef:=pdef.childof;
+              end;
+            list.sort(@compare_mop_offset_entry);
+          end;
+        if list.count=0 then
+          tcb.emit_tai(tai_const.create_nil_dataptr,voidpointertype)
+        else
+          begin
+            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_rtti],sec_rodata,'',datatcb,tbllbl);
+
+            datatcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+            datatcb.emit_ord_const(list.count,u32inttype);
+
+            entrydef:=get_recorddef(itp_init_mop_offset_entry,[voidcodepointertype,sizeuinttype],defaultpacking);
+
+            for i:=0 to list.count-1 do
+              begin
+                entry:=pmanagementoperator_offset_entry(list[i]);
+
+                datatcb.maybe_begin_aggregate(entrydef);
+
+                datatcb.queue_init(voidcodepointertype);
+                datatcb.queue_emit_proc(entry^.pd);
+
+                datatcb.queue_init(sizeuinttype);
+                datatcb.queue_emit_ordconst(entry^.offset,sizeuinttype);
+
+                datatcb.maybe_end_aggregate(entrydef);
+
+                dispose(entry);
+              end;
+
+            datadef:=datatcb.end_anonymous_record;
+
+            tcb.finish_internal_data_builder(datatcb,tbllbl,datadef,sizeof(pint));
+
+            tcb.emit_tai(tai_const.Create_sym(tbllbl),voidpointertype);
+          end;
+        list.free;
       end;
 
 
@@ -1213,10 +1316,8 @@ implementation
            { store rtti management operators only for init table }
            if (rt=initrtti) then
              begin
-               riif:=0;
-               if def.has_non_trivial_init_child(false) then
-                 riif:=riif or riifNonTrivialChild;
-               write_record_init_flag(tcb,riif);
+               { for now records don't have the initializer table }
+               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
                if (trecordsymtable(def.symtable).managementoperators=[]) then
                  tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
                else
@@ -1369,12 +1470,11 @@ implementation
             { pointer to management operators available only for initrtti }
             if (rt=initrtti) then
               begin
-                riif:=0;
-                if def.has_non_trivial_init_child(false) then
-                  riif:=riif or riifNonTrivialChild;
-                if assigned(def.childof) and def.childof.has_non_trivial_init_child(true) then
-                  riif:=riif or riifParentHasNonTrivialChild;
-                write_record_init_flag(tcb,riif);
+                { initializer table only available for classes currently }
+                if def.objecttype=odt_class then
+                  write_mop_offset_table(tcb,def,mop_initialize)
+                else
+                  tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
                 tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
               end;
             { enclosing record takes care of alignment }
@@ -1904,7 +2004,6 @@ implementation
         if def.owner.moduleid<>current_module.moduleid then
           current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_DATA);
       end;
-
 
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
       var

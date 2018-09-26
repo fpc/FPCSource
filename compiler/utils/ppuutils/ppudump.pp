@@ -654,6 +654,8 @@ end;
                              Read Routines
 ****************************************************************************}
 
+function readmanagementoperatoroptions(const space : string;const name : string):tmanagementoperators;forward;
+
 procedure readrecsymtableoptions;
 var
   usefieldalignment : shortint;
@@ -669,6 +671,7 @@ begin
   writeln([space,' recordalignmin: ',shortint(ppufile.getbyte)]);
   if (usefieldalignment=C_alignment) then
     writeln([space,' fieldalignment: ',shortint(ppufile.getbyte)]);
+  readmanagementoperatoroptions(space,'Fields have MOPs');
 end;
 
 procedure readsymtableoptions(const s: string);
@@ -2330,7 +2333,7 @@ end;
 
 
 
-function readmanagementoperatoroptions(const space : string):tmanagementoperators;
+function readmanagementoperatoroptions(const space : string;const name : string):tmanagementoperators;
 { type is in unit symconst }
 { Management operator options
   tmanagementoperator=(
@@ -2366,7 +2369,8 @@ begin
          if first then
            begin
              write(space);
-             write('Management operators: ');
+             write(name);
+             write(': ');
              first:=false;
            end
          else
@@ -3360,7 +3364,7 @@ begin
                  objdef.Size:=getasizeint;
                  writeln([space,'         DataSize : ',objdef.Size]);
                  writeln([space,'      PaddingSize : ',getword]);
-                 readmanagementoperatoroptions(space);
+                 readmanagementoperatoroptions(space,'Management operators');
                end;
              {read the record definitions and symbols}
              if not(df_copied_def in current_defoptions) then

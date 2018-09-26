@@ -328,15 +328,15 @@ unit TypInfo;
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
-        function GetParaLocs: PParameterLocations; inline;
         function GetTail: Pointer; inline;
         function GetNext: PVmtMethodParam; inline;
+        function GetName: ShortString; inline;
       public
         ParamType: PPTypeInfo;
         Flags: TParamFlags;
-        Name: ShortString;
-        { ParaLocs: TParameterLocations; }
-        property ParaLocs: PParameterLocations read GetParaLocs;
+        NamePtr: PShortString;
+        ParaLocs: PParameterLocations;
+        property Name: ShortString read GetName;
         property Tail: Pointer read GetTail;
         property Next: PVmtMethodParam read GetNext;
       end;
@@ -352,15 +352,17 @@ unit TypInfo;
         function GetResultLocs: PParameterLocations; inline;
         function GetTail: Pointer; inline;
         function GetNext: PIntfMethodEntry; inline;
+        function GetName: ShortString; inline;
       public
         ResultType: PPTypeInfo;
         CC: TCallConv;
         Kind: TMethodKind;
         ParamCount: Word;
         StackSize: SizeInt;
-        Name: ShortString;
+        NamePtr: PShortString;
         { Params: array[0..ParamCount - 1] of TVmtMethodParam }
-        { ResultLocs: TParameterLocations (if ResultType != Nil) }
+        { ResultLocs: PParameterLocations (if ResultType != Nil) }
+        property Name: ShortString read GetName;
         property Param[Index: Word]: PVmtMethodParam read GetParam;
         property ResultLocs: PParameterLocations read GetResultLocs;
         property Tail: Pointer read GetTail;
@@ -408,25 +410,24 @@ unit TypInfo;
         Entries: array[0..0] of TVmtMethodEntry;
       end;
 
+      TRecOpOffsetEntry =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        ManagementOperator: CodePointer;
+        FieldOffset: SizeUInt;
+      end;
 
-{$ifndef VER3_0}
-{$push}
-
-{ better alignment for TRecordInfoInit }
-{ keep in sync with ncgrtti.TRTTIWriter.write_record_init_flag() and rttidecl.inc }
-{ ToDo: different values for 8/16-bit platforms? }
-{$minenumsize 4}
-{$packset 4}
-
-      TRecordInfoInitFlag = (
-        riifNonTrivialChild,
-        { only relevant for classes }
-        riifParentHasNonTrivialChild
-      );
-      TRecordInfoInitFlags = set of TRecordInfoInitFlag;
-
-{$pop}
-{$endif}
+      TRecOpOffsetTable =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: LongWord;
+        Entries: array[0..0] of TRecOpOffsetEntry;
+      end;
+      PRecOpOffsetTable = ^TRecOpOffsetTable;
 
       PRecInitData = ^TRecInitData;
       TRecInitData =
@@ -437,7 +438,7 @@ unit TypInfo;
         Terminator: Pointer;
         Size: Integer;
 {$ifndef VER3_0}
-        Flags: TRecordInfoInitFlags;
+        InitOffsetOp: PRecOpOffsetTable;
         ManagementOp: Pointer;
 {$endif}
         ManagedFieldCount: Integer;
@@ -2960,19 +2961,19 @@ end;
 
 { TVmtMethodParam }
 
-function TVmtMethodParam.GetParaLocs: PParameterLocations;
-begin
-  Result := PParameterLocations(aligntoptr(PByte(@Name[0]) + Length(Name) + Sizeof(Name[0])));
-end;
-
 function TVmtMethodParam.GetTail: Pointer;
 begin
-  Result := ParaLocs^.Tail;
+  Result := PByte(@ParaLocs) + SizeOf(ParaLocs);
 end;
 
 function TVmtMethodParam.GetNext: PVmtMethodParam;
 begin
   Result := PVmtMethodParam(aligntoptr(Tail));
+end;
+
+function TVmtMethodParam.GetName: ShortString;
+begin
+  Result := NamePtr^;
 end;
 
 { TIntfMethodEntry }
@@ -2982,44 +2983,34 @@ begin
   if Index >= ParamCount then
     Result := Nil
   else
-    begin
-      Result := PVmtMethodParam(aligntoptr(PByte(@Name[0]) + SizeOf(Name[0]) + Length(Name)));
-      while Index > 0 do
-        begin
-          Result := Result^.Next;
-          Dec(Index);
-        end;
-    end;
+    Result := PVmtMethodParam(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + Index * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
 end;
 
 function TIntfMethodEntry.GetResultLocs: PParameterLocations;
 begin
   if not Assigned(ResultType) then
     Result := Nil
-  else if ParamCount = 0 then
-    Result := PParameterLocations(aligntoptr(PByte(@Name[0]) + SizeOf(Name[0]) + Length(Name)))
   else
-    Result := PParameterLocations(aligntoptr(Param[ParamCount - 1]^.Tail));
+    Result := PParameterLocations(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
 end;
 
 function TIntfMethodEntry.GetTail: Pointer;
-var
-  retloc: PParameterLocations;
 begin
+  Result := PByte(@NamePtr) + SizeOf(NamePtr);
+  if ParamCount > 0 then
+    Result := PByte(aligntoptr(Result)) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam))));
   if Assigned(ResultType) then
-    begin
-      retloc := ResultLocs;
-      Result := PByte(@retloc^.Count) + SizeOf(retloc^.Count) + SizeOf(TParameterLocation) * retloc^.Count;
-    end
-  else if ParamCount = 0 then
-    Result := PByte(@Name[0]) + Length(Name) + SizeOf(Byte)
-  else
-    Result := Param[ParamCount - 1]^.Tail;
+    Result := PByte(aligntoptr(Result)) + SizeOf(PParameterLocations);
 end;
 
 function TIntfMethodEntry.GetNext: PIntfMethodEntry;
 begin
   Result := PIntfMethodEntry(aligntoptr(Tail));
+end;
+
+function TIntfMethodEntry.GetName: ShortString;
+begin
+  Result := NamePtr^;
 end;
 
 { TIntfMethodTable }
