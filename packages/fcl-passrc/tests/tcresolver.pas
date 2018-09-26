@@ -916,7 +916,9 @@ procedure TCustomTestResolver.TearDown;
 {$IFDEF CheckPasTreeRefCount}
 var El: TPasElement;
 {$ENDIF}
+{$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
 var i: Integer;
+{$ENDIF}
 begin
   FResolverMsgs.Clear;
   FResolverGoodMsgs.Clear;
