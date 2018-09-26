@@ -298,18 +298,25 @@ end;
 
 function AlphaBlend(color1, color2: TFPColor): TFPColor;
 var
-  factor: single;
+  factor1, factor2: single;
 begin
   if color2.alpha = $ffff then
     Result := color2
   else
+  if color2.alpha = 0 then
+    Result := color1
+  else
+  if color1.alpha = 0 then
+    Result := color2
+  else
   begin
-    factor := (color1.alpha / $ffff) * (1 - color2.alpha / $ffff);
+    factor1 := (color1.alpha / $ffff) * (1 - color2.alpha / $ffff);
+    factor2 := color2.alpha / $ffff;
 
-    Result.red := Round(color1.red * factor + color2.red * color2.alpha / $ffff);
-    Result.green := Round(color1.green * factor + color2.green * color2.alpha / $ffff);
-    Result.blue := Round(color1.blue * factor + color2.blue * color2.alpha / $ffff);
-    Result.alpha := Round(factor * $ffff + color2.alpha);
+    Result.red := Round(color1.red * factor1 + color2.red * factor2);
+    Result.green := Round(color1.green * factor1 + color2.green * factor2);
+    Result.blue := Round(color1.blue * factor1 + color2.blue * factor2);
+    Result.alpha := Round(factor1 * $ffff + color2.alpha);
   end;
 end;
 

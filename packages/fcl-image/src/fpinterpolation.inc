@@ -223,7 +223,7 @@ begin
           NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
           NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
         end;
-        Canvas.Colors[x+dx,y+dy]:=NewCol;
+        Canvas.Colors[x+dx,y+dy]:=AlphaBlend(Canvas.Colors[x+dx,y+dy], NewCol);
       end;
     end;
   finally
