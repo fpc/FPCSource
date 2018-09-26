@@ -23,6 +23,9 @@ begin
     P.IncludePath.Add('src');
     { only enable for darwin after testing }
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx,darwin,iphonesim];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('rtl-extra'); // winsock2
     
     T:=P.Targets.AddUnit('enettypes.pp');

@@ -19,6 +19,9 @@ begin
     P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
     P.OSes:=[Win32,Win64]+AllUnixOSes;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
     P.Dependencies.Add('winunits-base',[Win32,Win64]);
     P.Dependencies.Add('univint',[darwin,iPhoneSim]);

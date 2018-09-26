@@ -21,6 +21,9 @@ begin
     P.Version:='3.3.1';
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes+AllWindowsOSes+[OS2,EMX]-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('rtl-extra',[OS2,EMX]);
 
     T:=P.Targets.AddUnit('openssl.pas');

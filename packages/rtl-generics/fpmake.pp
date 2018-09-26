@@ -24,6 +24,9 @@ begin
     P.Description := 'Generic collection library.';
     P.NeedLibC:= false;
     P.OSes := AllOSes-[embedded,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
     P.Dependencies.Add('rtl-objpas');

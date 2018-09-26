@@ -26,6 +26,8 @@ begin
     P.Description := 'Library for pixel graphics conversion';
     P.NeedLibC := false;
     P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

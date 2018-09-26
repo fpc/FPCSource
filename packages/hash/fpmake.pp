@@ -24,6 +24,9 @@ begin
     P.Description := 'Several hash and cryptography algorithms (MD5,CRC,Linux crypt and NTLM1).';
     P.NeedLibC:= false;
     P.OSes:=P.OSes-[embedded,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('rtl-objpas');
 
     P.Version:='3.3.1';

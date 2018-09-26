@@ -25,6 +25,8 @@ begin
     P.Description := 'Header to Imagemagick, a graphics manipulation program .';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := AllUnixOSes+[win32,win64]-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

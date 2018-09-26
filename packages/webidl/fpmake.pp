@@ -26,6 +26,8 @@ begin
     P.Description := 'WEB IDL parser and converter to Object Pascal classes';
     P.NeedLibC:= false;
     P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
 

@@ -46,6 +46,9 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=AllTargetsObjPas;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Email := '';
     P.Description := 'Rtl-objpas, aux. Delphi compat units';
     P.NeedLibC:= false;

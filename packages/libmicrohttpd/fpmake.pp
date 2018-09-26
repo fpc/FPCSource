@@ -25,6 +25,9 @@ begin
     P.NeedLibC:= true;
     P.Dependencies.Add('rtl-extra');
     P.OSes := [android,freebsd,linux,netbsd,openbsd,win32,win64];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('libmicrohttpd.pp');

@@ -39,6 +39,9 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=unicodeAllOSes;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Email := '';
     P.Description := 'Rtl-unicode, misc Unicode units';
     P.NeedLibC:= false;

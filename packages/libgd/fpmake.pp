@@ -21,6 +21,8 @@ begin
     P.Version:='3.3.1';
     P.SourcePath.Add('src');
     P.OSes := P.OSes - [embedded,nativent,msdos,wii,win16,atari,macos,palmos,symbian];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     T:=P.Targets.AddUnit('gd.pas');
 

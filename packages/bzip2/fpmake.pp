@@ -29,6 +29,8 @@ begin
     P.Description := 'BZip2 decompression unit.';
     P.NeedLibC:= true;
     P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

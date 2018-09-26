@@ -20,6 +20,8 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.OSes := AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 //    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('det.pas');

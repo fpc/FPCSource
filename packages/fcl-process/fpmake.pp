@@ -26,6 +26,8 @@ begin
     P.Options.Add('-S2h');
     P.NeedLibC:= false;
     P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macos,palmos,atari];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);

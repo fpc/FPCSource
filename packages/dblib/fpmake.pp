@@ -30,6 +30,10 @@ begin
       P.SourcePath.Add('src');
       P.IncludePath.Add('src');
 
+      P.OSes := DBLibOSes;
+      if Defaults.CPU=jvm then
+        P.OSes := P.OSes - [android];
+
       T:=P.Targets.AddUnit('dblib.pp',DBLibOSes);
     end;
 end;

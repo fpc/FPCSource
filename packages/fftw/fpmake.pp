@@ -26,6 +26,8 @@ begin
     P.Description := 'Library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data';
     P.NeedLibC:= true; // should be true for a header linking to C?
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
 

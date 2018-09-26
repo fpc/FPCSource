@@ -26,6 +26,8 @@ begin
     P.Description := 'Asynchronous event management of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=AllUnixOses;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/unix',AllUnixOSes);
