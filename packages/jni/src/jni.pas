@@ -177,7 +177,7 @@ type va_list=pointer;
 
       // Local Reference Management
       PushLocalFrame:function(Env:PJNIEnv;Capacity:JInt):JInt;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      PopLocalFrame:function(Env:PJNIEnv;Result:JObject):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      PopLocalFrame:function(Env:PJNIEnv;_Result:JObject):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       NewGlobalRef:function(Env:PJNIEnv;LObj:JObject):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       DeleteGlobalRef:procedure(Env:PJNIEnv;GRef:JObject);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
