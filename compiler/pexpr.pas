@@ -1005,7 +1005,7 @@ implementation
           end;
 
          { only need to get the address of the procedure? Check token because
-           in the case of opening parenthesis is possible to get pointer to 
+           in the case of opening parenthesis is possible to get pointer to
            function result (lack of checking for token was the reason of
            tw10933.pp test failure) }
          if getaddr and (token<>_LKLAMMER) then
@@ -3379,6 +3379,7 @@ implementation
         filepos:=current_tokenpos;
         again:=false;
         pd:=nil;
+        isspecialize:=false;
         if token=_ID then
          begin
            again:=true;
