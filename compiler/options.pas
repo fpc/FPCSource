@@ -4152,9 +4152,8 @@ begin
 {$endif arm}
 
 {$if defined(riscv32) or defined(riscv64)}
-  { ARMHF defaults }
+  { RISC-V defaults }
   if (target_info.abi = abi_riscv_hf) then
-    { set default cpu type to ARMv7a for ARMHF unless specified otherwise }
     begin
       {$ifdef riscv32}
       if not option.CPUSetExplicitly then
