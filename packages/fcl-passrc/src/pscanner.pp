@@ -4259,6 +4259,13 @@ begin
     FCurLine := CurSourceFile.ReadLine;
     FTokenStr := PChar(CurLine);
     Result := true;
+    if (FCurRow = 0)
+    and (Length(CurLine) >= 3)
+    and (FTokenStr[0] = #$EF)
+    and (FTokenStr[1] = #$BB)
+    and (FTokenStr[2] = #$BF) then
+      // ignore UTF-8 Byte Order Mark
+      inc(FTokenStr, 3);
     Inc(FCurRow);
     inc(FModuleRow);
     FCurColumnOffset:=1;
