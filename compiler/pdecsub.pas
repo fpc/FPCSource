@@ -2612,7 +2612,11 @@ const
       idtok:_INTERRUPT;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_interrupt;
+{$ifdef i386}
       pocall   : pocall_oldfpccall;
+{$else i386}
+      pocall   : pocall_stdcall;
+{$endif i386}
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,pocall_mwpascal,
                        pocall_pascal,pocall_far16,pocall_oldfpccall,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl];
