@@ -2028,7 +2028,7 @@ type_w_empty_constant_range_set=04125_W_The first value of a set constructur ran
 #
 # Symtable
 #
-# 05095 is the last used one
+# 05097 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2337,6 +2337,13 @@ sym_w_duplicate_id=05095_W_Duplicate identifier "$1"
 % same scope as the current identifier. This is a warning instead of an error,
 % because while this hides the identifier from the category, there are often
 % many unused categories in scope.
+sym_e_generic_type_param_mismatch=05096_E_Generic type parameter "$1" does not match with the one in the declaration
+% The specified generic type parameter for the generic class, record or routine does
+% not match with the one declared in the declaration of the generic class, record
+% or routine.
+sym_e_generic_type_param_decl=05097_E_Generic type parameter declared as "$1"
+% Shows what the generic type parameter was originally declared as if a mismatch
+% is found between a declaration and the definition.
 % \end{description}
 #
 # Codegenerator
