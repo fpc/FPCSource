@@ -1841,6 +1841,7 @@ implementation
         { the string variants all require 2 or 3 args, only the array one allows less }
         minargs:=2;
         maxargs:=3;
+        func:='';
         if is_ansistring(paradef) then
           begin
             // set resultdef to argument def
@@ -1884,7 +1885,7 @@ implementation
             resultdef:=cshortstringtype;
             func:='fpc_shortstr_copy';
           end
-        else
+        else if counter<=maxargs then
           begin
             do_error(true,'',ppn.left.fileinfo);
             exit(cerrornode.create);
