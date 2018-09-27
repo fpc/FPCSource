@@ -439,6 +439,9 @@ implementation
               cr:=t;
             end;
 
+          if cl>cr then
+            exit;
+
           result:=true;
         end;
 
