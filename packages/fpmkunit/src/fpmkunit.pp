@@ -212,7 +212,7 @@ Const
     { wince    }( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
     { gba    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
     { nds    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false, true , false, false,  true ,  true ),
+    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, true,  false, true , false, false,  true ,  true ),
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
     { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
     { iphonesim}( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
@@ -5396,7 +5396,7 @@ end;
 procedure TCustomInstaller.Info;
 Var Cpu : TCpu;
     OS  : TOS;
-  
+
 begin
   Write('CPU_TARGET=');
   for cpu:=succ(low(cpu)) to high(tcpu) do // skip NONE
