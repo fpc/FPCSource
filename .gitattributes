@@ -2217,6 +2217,7 @@ packages/fcl-db/src/export/fptexexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpxmlxsdexport.pp svneol=native#text/plain
 packages/fcl-db/src/json/Makefile svneol=native#text/plain
 packages/fcl-db/src/json/Makefile.fpc svneol=native#text/plain
+packages/fcl-db/src/json/extjsdataset.pp svneol=native#text/plain
 packages/fcl-db/src/json/fpjsondataset.pp svneol=native#text/plain
 packages/fcl-db/src/memds/Makefile svneol=native#text/plain
 packages/fcl-db/src/memds/Makefile.fpc svneol=native#text/plain

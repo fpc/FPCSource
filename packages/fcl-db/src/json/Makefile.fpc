@@ -6,7 +6,7 @@
 main=fcl-db
 
 [target]
-units=fpjsondataset
+units=fpjsondataset extjsdataset
 
 [require]
 packages=fcl-base fcl-json

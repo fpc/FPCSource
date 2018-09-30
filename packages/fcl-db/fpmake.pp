@@ -822,6 +822,13 @@ begin
     T.ResourceStrings := True;
 
     T:=P.Targets.AddUnit('fpjsondataset.pp');
+    with T.Dependencies do
+      AddUnit('db');
+    
+    T:=P.Targets.AddUnit('extjsdataset.pp');
+    with T.Dependencies do
+      AddUnit('fpjsondataset');
+
 
     P.ExamplePath.Add('tests');
     T:=P.Targets.AddExampleProgram('dbftoolsunit.pas', DBaseOSes);
