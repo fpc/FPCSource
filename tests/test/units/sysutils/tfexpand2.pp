@@ -349,6 +349,13 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  Check ('..', TestDir + TestDir1Name);
  Check ('.' + DirSep + '..', TestDir + TestDir1Name);
  Check ('..' + DirSep + '.', TestDir + TestDir1Name);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + '/' + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + TestDir2Name + DirSep + DirSep + '..',
+                                                                  TestDir + TestDir1Name);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + TestDir2Name + DirSep + DirSep + '..'
+                                               + DirSep + DirSep, TestDir + TestDir1Name + DirSep);
  {$ENDIF NODOTS}
 {$ENDIF MACOS}
 {$IFDEF NETWARE}
