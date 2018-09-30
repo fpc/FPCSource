@@ -215,7 +215,41 @@ begin
        AddConditionalLinkerPath('cpux86_64', x86_64, result);
        AddConditionalLinkerPath('cpupowerpc', powerpc, result);
        AddConditionalLinkerPath('cpupowerpc64', powerpc64, result);
-       end
+       { macOS 10.14 or later:
+          1) command line tools are installed under /Library/Developer/CommandLineTools
+          2) the system libraries still contain i386 code, but the 10.14 sdk doesn't
+            (-> only use the 10.14 sdk when targeting x86_64 or unknown architectures )
+          3) crt1.o is no longer installed under /usr -> add its directory explicitly via
+             -Fl
+            
+        We can't detect the macOS version inside fpc.cfg, unfortunately, so we can only
+        insert this while generating the configuration file.
+        
+        This will stop working when macOS 10.15 is released without i386 support, but then
+        users will be responsible for supplying their own i386 SDK anyway.
+       }
+       if DirectoryExists('/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk') then
+         begin
+           result:=result + LineEnding +
+             '-FD/Library/Developer/CommandLineTools/usr/bin' + LineEnding +
+             '#ifdef cpui386' + LineEnding +
+             '-Fl/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib' + LineEnding +
+             '#endif' + LineEnding +
+             '#ifndef cpui386' + LineEnding +
+             '#ifndef cpupowerpc' + LineEnding +
+             '#ifndef cpupowerpc64' + LineEnding +
+             '-XR/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk' + LineEnding +
+             '#endif' + LineEnding +
+             '#endif' + LineEnding +
+             '#endif';
+         end
+       else
+         begin
+           { add Xcode.app binutils to search path}
+           result:=result + LineEnding +
+             '-FD/Applications/Xcode.app/Contents/Developer/usr/bin';
+         end;
+      end;
   end; {case}
 end;
 
