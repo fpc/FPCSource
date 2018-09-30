@@ -41,8 +41,6 @@
 #ifdef darwin
 # use pipes instead of temporary files for assembling
 -ap
-# path to Xcode 4.3+ utilities (no problem if it doesn't exist)
--FD/Applications/Xcode.app/Contents/Developer/usr/bin
 #endif
 
 # ----------------
@@ -174,6 +172,9 @@
 # searchpath for fppkg user-specific packages
 -Fu%localbasepath%/units/$FPCTARGET/*
 
+# searchpath for tools
+-FD%basepath%/bin/$FPCTARGET
+
 # path to the gcclib
 %gcclibpath%
 
@@ -181,9 +182,6 @@
 #-Fl%basepath%/lib
 #-Fl/lib;/usr/lib
 -Fl%basepath%/lib/$FPCTARGET
-
-# searchpath for tools
--FD%basepath%/bin/$FPCTARGET
 
 %NEEDCROSSBINUTILSIFDEF%
 
