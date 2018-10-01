@@ -4122,7 +4122,10 @@ begin
       { Set FPU type }
       if not(option.FPUSetExplicitly) then
         begin
-          init_settings.fputype:=fpu_vfpv3_d16
+          if init_settings.cputype < cpu_armv7 then
+            init_settings.fputype:=fpu_vfpv2
+          else
+            init_settings.fputype:=fpu_vfpv3_d16;
         end
       else
         begin
