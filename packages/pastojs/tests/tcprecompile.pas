@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils,
-  fpcunit, testregistry, Pas2jsFileUtils, Pas2JsFiler,
+  fpcunit, testregistry, Pas2jsFileUtils, Pas2JsFiler, Pas2jsCompiler,
   tcunitsearch, tcmodules;
 
 type
@@ -42,6 +42,7 @@ type
       SharedParams: TStringList = nil;
       FirstRunParams: TStringList = nil;
       SecondRunParams: TStringList = nil; ExpExitCode: integer = 0);
+    function GetJSFilename(ModuleName: string): string; virtual;
   public
     constructor Create; override;
     property PCUFormat: TPas2JSPrecompileFormat read FPCUFormat write FPCUFormat;
@@ -62,6 +63,9 @@ type
     procedure TestPCU_ClassConstructor;
     procedure TestPCU_ClassInterface;
     procedure TestPCU_Namespace;
+    procedure TestPCU_CheckVersionMain;
+    procedure TestPCU_CheckVersionMain2;
+    procedure TestPCU_CheckVersionSystem;
   end;
 
 function LinesToList(const Lines: array of string): TStringList;
@@ -98,13 +102,15 @@ begin
     writeln('TTestCLI_Precompile.CheckPrecompile create pcu files=========================');
     {$ENDIF}
     Params.Clear;
+    Params.Add('-Jminclude');
+    Params.Add('-Jc');
     if SharedParams<>nil then
-      Params.Assign(SharedParams);
+      Params.AddStrings(SharedParams);
     if FirstRunParams<>nil then
       Params.AddStrings(FirstRunParams);
-    Compile([MainFile,'-Jc','-Fu'+UnitPaths,'-JU'+PCUFormat.Ext,'-FU'+UnitOutputDir,'-Jminclude']);
+    Compile([MainFile,'-Fu'+UnitPaths,'-JU'+PCUFormat.Ext,'-FU'+UnitOutputDir]);
     AssertFileExists(UnitOutputDir+'/system.'+PCUFormat.Ext);
-    JSFilename:=UnitOutputDir+PathDelim+ExtractFilenameOnly(MainFile)+'.js';
+    JSFilename:=GetJSFilename(MainFile);
     AssertFileExists(JSFilename);
     JSFile:=FindFile(JSFilename);
     OrigSrc:=JSFile.Source;
@@ -115,25 +121,32 @@ begin
     JSFile.Source:='';
     Compiler.Reset;
     Params.Clear;
+    Params.Add('-Jminclude');
+    Params.Add('-Jc');
     if SharedParams<>nil then
-      Params.Assign(SharedParams);
+      Params.AddStrings(SharedParams);
     if SecondRunParams<>nil then
       Params.AddStrings(SecondRunParams);
-    Compile([MainFile,'-Jc','-FU'+UnitOutputDir,'-Jminclude'],ExpExitCode);
+    Compile([MainFile,'-FU'+UnitOutputDir],ExpExitCode);
     if ExpExitCode=0 then
       begin
       NewSrc:=JSFile.Source;
       if not CheckSrcDiff(OrigSrc,NewSrc,s) then
-      begin
+        begin
         WriteSources;
         Fail('test1.js: '+s);
-      end;
+        end;
       end;
   finally
     SharedParams.Free;
     FirstRunParams.Free;
     SecondRunParams.Free;
   end;
+end;
+
+function TCustomTestCLI_Precompile.GetJSFilename(ModuleName: string): string;
+begin
+  Result:=UnitOutputDir+PathDelim+ExtractFilenameOnly(ModuleName)+'.js';
 end;
 
 constructor TCustomTestCLI_Precompile.Create;
@@ -459,6 +472,89 @@ begin
   CheckPrecompile('test1.pas','src');
   AssertFileExists(UnitOutputDir+'/Unit2.'+PCUFormat.Ext);
   AssertFileExists(UnitOutputDir+'/Web.Unit1.'+PCUFormat.Ext);
+end;
+
+procedure TTestCLI_Precompile.TestPCU_CheckVersionMain;
+var
+  aFile: TCLIFile;
+  s, JSFilename, ExpectedSrc: string;
+begin
+  AddUnit('src/system.pp',[
+    'type integer = longint;'],
+    ['']);
+  AddFile('test1.pas',[
+    'begin',
+    'end.']);
+  CheckPrecompile('test1.pas','src',LinesToList(['-JoCheckVersion=Main','-Jm-','-Jc-']));
+  JSFilename:=GetJSFilename('test1.js');
+  aFile:=FindFile(JSFilename);
+  AssertNotNull('File not found '+JSFilename,aFile);
+  ExpectedSrc:=LinesToStr([
+    UTF8BOM+'rtl.module("program",["system"],function () {',
+    '  "use strict";',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '    rtl.checkVersion('+IntToStr((VersionMajor*100+VersionMinor)*100+VersionRelease)+');',
+    '  };',
+    '});']);
+  if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
+    Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
+end;
+
+procedure TTestCLI_Precompile.TestPCU_CheckVersionMain2;
+var
+  aFile: TCLIFile;
+  s, JSFilename, ExpectedSrc: string;
+begin
+  AddUnit('src/system.pp',[
+    'type integer = longint;',
+    'procedure Writeln; varargs;'],
+    ['procedure Writeln; begin end;']);
+  AddFile('test1.pas',[
+    'begin',
+    '  Writeln;',
+    'end.']);
+  CheckPrecompile('test1.pas','src',LinesToList(['-JoCheckVersion=Main','-Jm-','-Jc-']));
+  JSFilename:=GetJSFilename('test1.js');
+  aFile:=FindFile(JSFilename);
+  AssertNotNull('File not found '+JSFilename,aFile);
+  ExpectedSrc:=LinesToStr([
+    UTF8BOM+'rtl.module("program",["system"],function () {',
+    '  "use strict";',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '    rtl.checkVersion('+IntToStr((VersionMajor*100+VersionMinor)*100+VersionRelease)+');',
+    '    pas.system.Writeln();',
+    '  };',
+    '});']);
+  if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
+    Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
+end;
+
+procedure TTestCLI_Precompile.TestPCU_CheckVersionSystem;
+var
+  aFile: TCLIFile;
+  s, JSFilename, ExpectedSrc: string;
+begin
+  AddUnit('src/system.pp',[
+    'type integer = longint;'],
+    ['']);
+  AddFile('test1.pas',[
+    'begin',
+    'end.']);
+  CheckPrecompile('test1.pas','src',LinesToList(['-JoCheckVersion=system','-Jm-','-Jc-']));
+  JSFilename:=GetJSFilename('system.js');
+  aFile:=FindFile(JSFilename);
+  AssertNotNull('File not found '+JSFilename,aFile);
+  writeln('TTestCLI_Precompile.TestPCU_CheckVersionMain ',aFile.Source);
+  ExpectedSrc:=LinesToStr([
+    UTF8BOM+'rtl.module("system",[],function () {',
+    '  "use strict";',
+    '  rtl.checkVersion(10101);',
+    '  var $mod = this;',
+    '});']);
+  if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
+    Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
 end;
 
 Initialization

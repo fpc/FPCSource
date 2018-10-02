@@ -211,7 +211,10 @@ const
     'UseStrict',
     'NoTypeInfo',
     'EliminateDeadCode',
-    'StoreImplJS'
+    'StoreImplJS',
+    'RTLVersionCheckMain',
+    'RTLVersionCheckSystem',
+    'RTLVersionCheckUnit'
     );
 
   PCUDefaultTargetPlatform = PlatformBrowser;

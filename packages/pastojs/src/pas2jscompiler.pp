@@ -116,8 +116,15 @@ type
     );
   TP2jsCompilerOptions = set of TP2jsCompilerOption;
   TP2jsOptimization = coEnumValuesAsNumbers..coKeepNotUsedDeclarationsWPO;
+  TP2jsRTLVersionCheck = (
+    rvcNone,
+    rvcMain,
+    rvcSystem,
+    rvcUnit
+    );
 const
   DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader,coUseStrict];
+  DefaultP2jsRTLVersionCheck = rvcNone;
   coShowAll = [coShowErrors..coShowDebug];
   coO1Enable = [coEnumValuesAsNumbers];
   coO1Disable = [coKeepNotUsedPrivates,coKeepNotUsedDeclarationsWPO];
@@ -418,6 +425,7 @@ type
   private
     FInterfaceType: TPasClassInterfaceType;
     FPrecompileInitialFlags: TPCUInitialFlags;
+    FRTLVersionCheck: TP2jsRTLVersionCheck;
     procedure AddDefinesForTargetPlatform;
     procedure AddDefinesForTargetProcessor;
     procedure AddReadingModule(aFile: TPas2jsCompilerFile);
@@ -507,6 +515,7 @@ type
     property ParamMacros: TPas2jsMacroEngine read FParamMacros;
     property PrecompileGUID: TGUID read FPrecompileGUID write FPrecompileGUID;
     property PrecompileInitialFlags: TPCUInitialFlags read FPrecompileInitialFlags;
+    property RTLVersionCheck: TP2jsRTLVersionCheck read FRTLVersionCheck write FRTLVersionCheck;
     property SrcMapEnable: boolean read GetSrcMapEnable write SetSrcMapEnable;
     property SrcMapSourceRoot: string read FSrcMapSourceRoot write FSrcMapSourceRoot;
     property SrcMapBaseDir: string read GetSrcMapBaseDir write SetSrcMapBaseDir;
@@ -828,6 +837,13 @@ begin
     Include(Result,fppas2js.coLowerCase)
   else
     Exclude(Result,fppas2js.coLowerCase);
+
+  case Compiler.RTLVersionCheck of
+    rvcNone: ;
+    rvcMain: Include(Result,fppas2js.coRTLVersionCheckMain);
+    rvcSystem: Include(Result,fppas2js.coRTLVersionCheckSystem);
+    rvcUnit: Include(Result,fppas2js.coRTLVersionCheckUnit);
+  end;
 end;
 
 procedure TPas2jsCompilerFile.CreateScannerAndParser(aFileResolver: TPas2jsFileResolver);
@@ -920,6 +936,7 @@ procedure TPas2jsCompilerFile.CreateConverter;
 begin
   if FConverter<>nil then exit;
   FConverter:=TPasToJSConverter.Create;
+  FConverter.RTLVersion:=(VersionMajor*100+VersionMinor)*100+VersionRelease;
   FConverter.Options:=GetInitialConverterOptions;
   FConverter.TargetPlatform:=Compiler.TargetPlatform;
   FConverter.TargetProcessor:=Compiler.TargetProcessor;
@@ -3280,6 +3297,12 @@ begin
                 FileCache.SearchLikeFPC:=Enable
               else if SameText(Identifier,'UseStrict') then
                 SetOption(coUseStrict,Enable)
+              else if Enable and SameText(Identifier,'CheckVersion=main') then
+                RTLVersionCheck:=rvcMain
+              else if Enable and SameText(Identifier,'CheckVersion=system') then
+                RTLVersionCheck:=rvcSystem
+              else if Enable and SameText(Identifier,'CheckVersion=unit') then
+                RTLVersionCheck:=rvcUnit
               else
                 UnknownParam;
             end;
@@ -3837,6 +3860,7 @@ begin
 
   FCompilerExe:='';
   FOptions:=DefaultP2jsCompilerOptions;
+  FRTLVersionCheck:=DefaultP2jsRTLVersionCheck;
   FMode:=p2jmObjFPC;
   FTargetPlatform:=PlatformBrowser;
   FTargetProcessor:=ProcessorECMAScript5;
@@ -4063,6 +4087,10 @@ begin
   l('   -Jo<x> : Enable or disable extra option. The x is case insensitive:');
   l('     -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.');
   l('     -JoUseStrict : add "use strict" to modules, default.');
+  l('     -JoCheckVersion- : do not add rtl version check, default.');
+  l('     -JoCheckVersion=main : insert rtl version check into main.');
+  l('     -JoCheckVersion=system : insert rtl version check into system unit init.');
+  l('     -JoCheckVersion=unit : insert rtl version check into every unit init.');
   l('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
   if PrecompileFormats.Count>0 then
   begin

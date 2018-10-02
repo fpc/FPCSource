@@ -2,6 +2,8 @@
 
 var rtl = {
 
+  version: 10101,
+
   quiet: false,
   debug_load_units: false,
   debug_rtti: false,
@@ -18,6 +20,10 @@ var rtl = {
 
   warn: function(s){
     rtl.debug('Warn: ',s);
+  },
+
+  checkVersion: function(v){
+    if (rtl.version != v) throw "expected rtl version "+v+", but found "+rtl.version;
   },
 
   hasString: function(s){

@@ -361,6 +361,7 @@ ToDos:
   v:=a[0]  gives Local variable "a" is assigned but never used
 - bug:
   exit(something) gives function result not set
+- double utf8bom at start must give error  pscanner 4259
 - setlength(dynarray)  modeswitch to not create a copy
 - check rtl.js version
 - 'new', 'Function' -> class var use .prototype
@@ -521,6 +522,7 @@ type
     pbifnAs,
     pbifnAsExt,
     pbifnCheckMethodCall,
+    pbifnCheckVersion,
     pbifnClassInstanceFree,
     pbifnClassInstanceNew,
     pbifnCreateClass,
@@ -666,6 +668,7 @@ const
     'as', // rtl.as
     'asExt', // rtl.asExt
     'checkMethodCall',
+    'checkVersion',
     '$destroy',
     '$create',
     'createClass', // rtl.createClass
@@ -1404,7 +1407,10 @@ type
     coUseStrict,   // insert 'use strict'
     coNoTypeInfo,  // do not generate RTTI
     coEliminateDeadCode,  // skip code that is never executed
-    coStoreImplJS  // store references to JS code in procscopes
+    coStoreImplJS,  // store references to JS code in procscopes
+    coRTLVersionCheckMain, // insert rtl version check into main
+    coRTLVersionCheckSystem, // insert rtl version check into system unit init
+    coRTLVersionCheckUnit // insert rtl version check into every unit init
     );
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
 const
@@ -1470,6 +1476,7 @@ type
     FOnIsTypeInfoUsed: TPas2JSIsElementUsedEvent;
     FOptions: TPasToJsConverterOptions;
     FReservedWords: TJSReservedWordList; // sorted with CompareStr
+    FRTLVersion: TJSNumber;
     FTargetPlatform: TPasToJsPlatform;
     FTargetProcessor: TPasToJsProcessor;
     Function CreatePrimitiveDotExpr(AName: string; Src: TPasElement): TJSElement;
@@ -1643,6 +1650,7 @@ type
     Procedure AddInFrontOfFunctionTry(NewEl: TJSElement; PosEl: TPasElement;
       FuncContext: TFunctionContext);
     Procedure AddInterfaceReleases(FuncContext: TFunctionContext; PosEl: TPasElement);
+    Procedure AddRTLVersionCheck(FuncContext: TFunctionContext; PosEl: TPasElement);
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -1783,6 +1791,7 @@ type
     Function ConvertPasElement(El: TPasElement; Resolver: TPas2JSResolver) : TJSElement;
     // options
     Property Options: TPasToJsConverterOptions read FOptions write FOptions default DefaultPasToJSOptions;
+    Property RTLVersion: TJSNumber read FRTLVersion write FRTLVersion;
     Property TargetPlatform: TPasToJsPlatform read FTargetPlatform write FTargetPlatform;
     Property TargetProcessor: TPasToJsProcessor read FTargetProcessor write FTargetProcessor;
     Property UseLowerCase: boolean read GetUseLowerCase write SetUseLowerCase default true;
@@ -5146,14 +5155,14 @@ Unit:
 *)
 Var
   OuterSrc , Src: TJSSourceElements;
-  RegModuleCall: TJSCallExpression;
+  RegModuleCall, Call: TJSCallExpression;
   ArgArray: TJSArguments;
   FunDecl, ImplFunc: TJSFunctionDeclarationStatement;
   UsesSection: TPasSection;
   ModuleName, ModVarName: String;
   IntfContext: TSectionContext;
   ImplVarSt: TJSVariableStatement;
-  HasImplUsesClause, ok: Boolean;
+  HasImplUsesClause, ok, NeedRTLCheckVersion: Boolean;
   UsesClause: TPasUsesClause;
 begin
   Result:=Nil;
@@ -5190,6 +5199,16 @@ begin
     if coUseStrict in Options then
       // "use strict" must be the first statement in a function
       AddToSourceElements(Src,CreateLiteralString(El,'use strict'));
+
+    NeedRTLCheckVersion:=(coRTLVersionCheckUnit in Options)
+        or ((coRTLVersionCheckSystem in Options) and IsSystemUnit(El));
+    if NeedRTLCheckVersion then
+      begin
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnCheckVersion]]);
+      Call.AddArg(CreateLiteralNumber(El,RTLVersion));
+      AddToSourceElements(Src,Call);
+      end;
 
     ImplVarSt:=nil;
     HasImplUsesClause:=false;
@@ -12654,7 +12673,7 @@ function TPasToJSConverter.ConvertInitializationSection(
 var
   FDS: TJSFunctionDeclarationStatement;
   FunName: String;
-  IsMain: Boolean;
+  IsMain, NeedRTLCheckVersion: Boolean;
   AssignSt: TJSSimpleAssignStatement;
   FuncContext: TFunctionContext;
   Body: TJSFunctionBody;
@@ -12681,13 +12700,17 @@ begin
     FunName:=FBuiltInNames[pbifnProgramMain]
   else
     FunName:=FBuiltInNames[pbifnUnitInit];
+  NeedRTLCheckVersion:=IsMain and (coRTLVersionCheckMain in Options);
 
   FuncContext:=nil;
   AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
   try
+    // $mod.$init =
     AssignSt.LHS:=CreateMemberExpression([FBuiltInNames[pbivnModule],FunName]);
-    FDS:=CreateFunctionSt(El,El.Elements.Count>0);
+    // = function(){...}
+    FDS:=CreateFunctionSt(El,(El.Elements.Count>0) or NeedRTLCheckVersion);
     AssignSt.Expr:=FDS;
+
     if El.Elements.Count>0 then
       begin
       Body:=FDS.AFunction.Body;
@@ -12698,6 +12721,16 @@ begin
 
       FuncContext.BodySt:=Body.A;
       AddInterfaceReleases(FuncContext,El);
+      Body.A:=FuncContext.BodySt;
+      end;
+
+    if NeedRTLCheckVersion then
+      begin
+      // prepend rtl.versionCheck
+      Body:=FDS.AFunction.Body;
+      if FuncContext=nil then
+        FuncContext:=TFunctionContext.Create(El,Body,AContext);
+      AddRTLVersionCheck(FuncContext,El);
       Body.A:=FuncContext.BodySt;
       end;
     Result:=AssignSt;
@@ -14900,6 +14933,41 @@ begin
       end;
 end;
 
+procedure TPasToJSConverter.AddRTLVersionCheck(FuncContext: TFunctionContext;
+  PosEl: TPasElement);
+var
+  St: TJSElement;
+  Call: TJSCallExpression;
+  NewSt: TJSStatementList;
+begin
+  St:=FuncContext.BodySt;
+  // rtl.checkVersion(RTLVersion)
+  Call:=CreateCallExpression(PosEl);
+  Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnCheckVersion]]);
+  Call.AddArg(CreateLiteralNumber(PosEl,RTLVersion));
+  if St=nil then
+    FuncContext.BodySt:=Call
+  else if St is TJSEmptyBlockStatement then
+    begin
+    St.Free;
+    FuncContext.BodySt:=Call;
+    end
+  else if St is TJSStatementList then
+    begin
+    NewSt:=TJSStatementList(CreateElement(TJSStatementList,PosEl));
+    NewSt.A:=Call;
+    NewSt.B:=St;
+    FuncContext.BodySt:=NewSt;
+    end
+  else
+    begin
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.AddRTLVersionCheck St=',GetObjName(St));
+    {$ENDIF}
+    RaiseNotSupported(PosEl,FuncContext,20181002154026,GetObjName(St));
+    end;
+end;
+
 function TPasToJSConverter.ConvertImplBlock(El: TPasImplBlock;
   AContext: TConvertContext): TJSElement;
 begin
@@ -16285,7 +16353,7 @@ end;
 
 function TPasToJSConverter.IsSystemUnit(aModule: TPasModule): boolean;
 begin
-  Result:=CompareText(aModule.Name,'system')=0;
+  Result:=(CompareText(aModule.Name,'system')=0) and (aModule.ClassType=TPasModule);
 end;
 
 function TPasToJSConverter.HasTypeInfo(El: TPasType; AContext: TConvertContext
