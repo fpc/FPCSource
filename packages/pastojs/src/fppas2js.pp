@@ -361,6 +361,7 @@ ToDos:
   v:=a[0]  gives Local variable "a" is assigned but never used
 - bug:
   exit(something) gives function result not set
+- constructor does not need reintroduce
 - double utf8bom at start must give error  pscanner 4259
 - setlength(dynarray)  modeswitch to not create a copy
 - check rtl.js version
@@ -13732,7 +13733,7 @@ begin
     aJSWriter.Options:=DefaultJSWriterOptions;
     aJSWriter.IndentSize:=2;
     aJSWriter.WriteJS(El);
-    Result:=aWriter.AsAnsistring;
+    Result:=aWriter.AsString;
   finally
     aJSWriter.Free;
     aWriter.Free;

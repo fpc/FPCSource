@@ -774,7 +774,7 @@ begin
     aJSWriter:=TJSWriter.Create(aWriter);
     aJSWriter.IndentSize:=2;
     aJSWriter.WriteJS(El);
-    Result:=aWriter.AsAnsistring;
+    Result:=aWriter.AsString;
   finally
     aJSWriter.Free;
     aWriter.Free;

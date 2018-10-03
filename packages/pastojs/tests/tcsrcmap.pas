@@ -92,7 +92,7 @@ function TCustomTestSrcMap.ConvertJSModuleToString(El: TJSElement): string;
 begin
   writeln('TCustomTestSrcMap.JSToStr ',GetObjName(El));
   JS_Writer.WriteJS(El);
-  Result:=Pas2JSMapper.AsAnsistring;
+  Result:=Pas2JSMapper.AsString;
 end;
 
 procedure TCustomTestSrcMap.CheckSrcMap(const aTitle: string;

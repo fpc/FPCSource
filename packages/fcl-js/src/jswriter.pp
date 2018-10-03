@@ -21,9 +21,20 @@ unit jswriter;
 interface
 
 uses
+  {$ifdef pas2js}
+  JS,
+  {$endif}
   SysUtils, jstoken, jsbase, jstree;
 
 Type
+  {$ifdef pas2js}
+  TJSWriterString = UnicodeString;
+  TJSWriterChar = WideChar;
+  {$else}
+  TJSWriterString = AnsiString;
+  TJSWriterChar = AnsiChar;
+  {$endif}
+
   TTextWriter = class;
 
   TTextWriterWriting = procedure(Sender: TTextWriter) of object;
@@ -37,33 +48,38 @@ Type
     FCurColumn: integer;
     FOnWriting: TTextWriterWriting;
   protected
-    Function DoWrite(Const S : AnsiString) : Integer; virtual; abstract;
+    Function DoWrite(Const S : TJSWriterString) : Integer; virtual; abstract;
+    {$ifdef fpc}
     Function DoWrite(Const S : UnicodeString) : Integer; virtual; abstract;
+    {$endif}
     procedure SetCurElement(const AValue: TJSElement); virtual;
     Procedure Writing; virtual; // called before adding new characters
   Public
     // All functions return the number of bytes copied to output stream.
     constructor Create;
+    {$ifdef fpc}
     Function Write(Const S : UnicodeString) : Integer;
-    Function Write(Const S : AnsiString) : Integer;
-    Function WriteLn(Const S : AnsiString) : Integer;
-    Function Write(Const Fmt : AnsiString; Args : Array of const) : Integer;
-    Function WriteLn(Const Fmt : AnsiString; Args : Array of const) : Integer;
-    Function Write(Const Args : Array of const) : Integer;
-    Function WriteLn(Const Args : Array of const) : Integer;
+    {$endif}
+    Function Write(Const S : TJSWriterString) : Integer;
+    Function WriteLn(Const S : TJSWriterString) : Integer;
+    Function Write(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
+    Function WriteLn(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
+    Function Write(Const Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
+    Function WriteLn(Const Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
     Property CurLine: integer read FCurLine write FCurLine;
     Property CurColumn: integer read FCurColumn write FCurColumn;// char index, not codepoint
     Property CurElement: TJSElement read FCurElement write SetCurElement;
     Property OnWriting: TTextWriterWriting read FOnWriting write FOnWriting;
   end;
 
+  {$ifdef fpc}
   { TFileWriter }
 
   TFileWriter = Class(TTextWriter)
   Protected
     FFile : Text;
     FFileName : String;
-    Function DoWrite(Const S : AnsiString) : Integer; override;
+    Function DoWrite(Const S : TJSWriterString) : Integer; override;
     Function DoWrite(Const S : UnicodeString) : Integer; override;
   Public
     Constructor Create(Const AFileNAme : String);
@@ -72,32 +88,45 @@ Type
     Procedure Close;
     Property FileName : String Read FFileName;
   end;
+  {$endif}
 
   { TBufferWriter }
 
-  TBytes = Array of byte;
   TBufferWriter = Class(TTextWriter)
+  private type
+    TBuffer = Array of {$ifdef fpc}byte{$else}string{$endif};
   private
     FBufPos,
     FCapacity: Cardinal;
-    FBuffer : TBytes;
-    function GetAsAnsistring: AnsiString;
+    FBuffer : TBuffer;
+    function GetAsString: TJSWriterString;
+    {$ifdef fpc}
     function GetBuffer: Pointer;
+    {$endif}
     function GetBufferLength: Integer;
     function GetCapacity: Cardinal;
+    {$ifdef fpc}
     function GetUnicodeString: UnicodeString;
+    {$endif}
     procedure SetCapacity(AValue: Cardinal);
   Protected
-    Function DoWrite(Const S : AnsiString) : integer; override;
+    Function DoWrite(Const S : TJSWriterString) : integer; override;
+    {$ifdef fpc}
     Function DoWrite(Const S : UnicodeString) : integer; override;
+    {$endif}
   Public
-    Constructor Create(Const ACapacity : Cardinal);
+    Constructor Create(Const ACapacity : Cardinal); reintroduce;
+    {$ifdef fpc}
     Procedure SaveToFile(Const AFileName : String);
     Property Buffer : Pointer Read GetBuffer;
+    {$endif}
     Property BufferLength : Integer Read GetBufferLength;
     Property Capacity : Cardinal Read GetCapacity Write SetCapacity;
-    Property AsAnsistring : AnsiString Read GetAsAnsistring;
+    Property AsString : TJSWriterString Read GetAsString;
+    {$ifdef fpc}
+    Property AsAnsiString : AnsiString Read GetAsString; deprecated 'use AsString instead, fpc 3.3.1';
     Property AsUnicodeString : UnicodeString Read GetUnicodeString;
+    {$endif}
   end;
 
   TJSEscapeQuote = (
@@ -109,7 +138,9 @@ Type
   { TJSWriter }
 
   TWriteOption = (woCompact,
+                  {$ifdef fpc}
                   woUseUTF8,
+                  {$endif}
                   woTabIndent,
                   woEmptyStatementAsComment,
                   woQuoteElementNames,
@@ -134,13 +165,17 @@ Type
     procedure SetOptions(AValue: TWriteOptions);
   Protected
     // Helper routines
-    Procedure Error(Const Msg : String);
-    Procedure Error(Const Fmt : String; Args : Array of const);
+    Procedure Error(Const Msg : TJSWriterString);
+    Procedure Error(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif});
     Procedure WriteIndent; // inline;
+    {$ifdef fpc}
     Procedure Write(Const U : UnicodeString);
-    Procedure Write(Const S : AnsiString);
-    Procedure WriteLn(Const S : AnsiString);
+    {$endif}
+    Procedure Write(Const S : TJSWriterString);
+    Procedure WriteLn(Const S : TJSWriterString);
+    {$ifdef fpc}
     Procedure WriteLn(Const U : UnicodeString);
+    {$endif}
     // one per type of statement
     Procedure WriteValue(V : TJSValue);  virtual;
     Procedure WriteRegularExpressionLiteral(El: TJSRegularExpressionLiteral);
@@ -179,7 +214,9 @@ Type
   Public
     Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): TJSString;
     Constructor Create(AWriter : TTextWriter);
+    {$ifdef fpc}
     Constructor Create(Const AFileName : String);
+    {$endif}
     Destructor Destroy; override;
     Procedure WriteJS(El : TJSElement);
     Procedure Indent;
@@ -192,7 +229,9 @@ Type
   end;
   EJSWriter = Class(Exception);
 
+{$ifdef fpc}
 Function UTF16ToUTF8(const S: UnicodeString): string;
+{$endif}
 
 implementation
 
@@ -200,6 +239,7 @@ Resourcestring
   SErrUnknownJSClass = 'Unknown javascript element class : %s';
   SErrNilNode = 'Nil node in Javascript';
 
+{$ifdef fpc}
 function HexDump(p: PChar; Count: integer): string;
 var
   i: Integer;
@@ -216,6 +256,7 @@ begin
   // conversion magic
   SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
+{$endif}
 
 { TBufferWriter }
 
@@ -224,24 +265,33 @@ begin
   Result:=FBufPos;
 end;
 
-function TBufferWriter.GetAsAnsistring: AnsiString;
+function TBufferWriter.GetAsString: TJSWriterString;
 begin
+  {$ifdef pas2js}
+  if FBufPos<length(FBuffer) then
+    TJSArray(FBuffer).Length:=FBufPos;
+  Result:=TJSArray(FBuffer).join('');
+  {$else}
   Result:='';
   SetLength(Result,BufferLength);
   if (BufferLength>0) then
     Move(FBuffer[0],Result[1],BufferLength);
+  {$endif}
 end;
 
+{$ifdef fpc}
 function TBufferWriter.GetBuffer: Pointer;
 begin
   Result:=Pointer(FBuffer);
 end;
+{$endif}
 
 function TBufferWriter.GetCapacity: Cardinal;
 begin
   Result:=Length(FBuffer);
 end;
 
+{$ifdef fpc}
 function TBufferWriter.GetUnicodeString: UnicodeString;
 
 Var
@@ -254,6 +304,7 @@ begin
   if (SL>0) then
     Move(FBuffer[0],Result[1],SL*SizeOf(UnicodeChar));
 end;
+{$endif}
 
 procedure TBufferWriter.SetCapacity(AValue: Cardinal);
 begin
@@ -263,13 +314,21 @@ begin
     FBufPos:=Capacity;
 end;
 
-Function TBufferWriter.DoWrite(Const S: AnsiString): integer;
-
+Function TBufferWriter.DoWrite(Const S: TJSWriterString): integer;
+{$ifdef pas2js}
+begin
+  Result:=Length(S)*2;
+  if Result=0 then exit;
+  TJSArray(FBuffer).push(S);
+  inc(FBufPos);
+  FCapacity:=FBufPos;
+end;
+{$else}
 Var
   DesLen,MinLen : Integer;
 
 begin
-  Result:=Length(S)*SizeOf(Char);
+  Result:=Length(S)*SizeOf(TJSWriterChar);
   if Result=0 then exit;
   MinLen:=Result+FBufPos;
   If (MinLen>Capacity) then
@@ -282,7 +341,9 @@ begin
   Move(S[1],FBuffer[FBufPos],Result);
   FBufPos:=FBufPos+Result;
 end;
+{$endif}
 
+{$ifdef fpc}
 Function TBufferWriter.DoWrite(Const S: UnicodeString): integer;
 
 Var
@@ -302,6 +363,7 @@ begin
   Move(S[1],FBuffer[FBufPos],Result);
   FBufPos:=FBufPos+Result;
 end;
+{$endif}
 
 Constructor TBufferWriter.Create(Const ACapacity: Cardinal);
 begin
@@ -309,8 +371,8 @@ begin
   Capacity:=ACapacity;
 end;
 
+{$ifdef fpc}
 Procedure TBufferWriter.SaveToFile(Const AFileName: String);
-
 Var
   F : File;
 
@@ -323,6 +385,7 @@ begin
     Close(F);
   end;
 end;
+{$endif}
 
 { TJSWriter }
 
@@ -330,7 +393,7 @@ procedure TJSWriter.SetOptions(AValue: TWriteOptions);
 begin
   if FOptions=AValue then Exit;
   FOptions:=AValue;
-  If woTabIndent in Foptions then
+  If woTabIndent in FOptions then
     FIndentChar:=#9
   else
     FIndentChar:=' ';
@@ -338,15 +401,15 @@ end;
 
 function TJSWriter.GetUseUTF8: Boolean;
 begin
-  Result:=(woUseUTF8 in Options)
+  Result:={$ifdef pas2js}false{$else}(woUseUTF8 in Options){$endif};
 end;
 
-procedure TJSWriter.Error(const Msg: String);
+procedure TJSWriter.Error(const Msg: TJSWriterString);
 begin
   Raise EJSWriter.Create(Msg);
 end;
 
-procedure TJSWriter.Error(const Fmt: String; Args: array of const);
+procedure TJSWriter.Error(const Fmt: TJSWriterString; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
 begin
   Raise EJSWriter.CreateFmt(Fmt,Args);
 end;
@@ -374,6 +437,7 @@ begin
     FCurIndent:=0;
 end;
 
+{$ifdef fpc}
 procedure TJSWriter.Write(const U: UnicodeString);
 
 Var
@@ -394,12 +458,15 @@ begin
     FLastChar:=U[length(U)];
     end;
 end;
+{$endif}
 
-procedure TJSWriter.Write(const S: AnsiString);
+procedure TJSWriter.Write(const S: TJSWriterString);
 begin
+  {$ifdef fpc}
   if Not (woUseUTF8 in Options) then
     Write(UnicodeString(S))
   else
+  {$endif}
     begin
     WriteIndent;
     if s='' then exit;
@@ -408,11 +475,13 @@ begin
     end;
 end;
 
-procedure TJSWriter.WriteLn(const S: AnsiString);
+procedure TJSWriter.WriteLn(const S: TJSWriterString);
 begin
+  {$ifdef fpc}
   if Not (woUseUTF8 in Options) then
     Writeln(UnicodeString(S))
   else
+  {$endif}
     begin
     WriteIndent;
     Writer.WriteLn(S);
@@ -421,6 +490,7 @@ begin
     end;
 end;
 
+{$ifdef fpc}
 procedure TJSWriter.WriteLn(const U: UnicodeString);
 Var
   S : String;
@@ -440,6 +510,7 @@ begin
     FLinePos:=0;
     end;
 end;
+{$endif}
 
 function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
   ): TJSString;
@@ -728,11 +799,13 @@ begin
   FOptions:=[woUseUTF8];
 end;
 
+{$ifdef fpc}
 constructor TJSWriter.Create(const AFileName: String);
 begin
   Create(TFileWriter.Create(AFileName));
   FFreeWriter:=True;
 end;
+{$endif}
 
 destructor TJSWriter.Destroy;
 begin
@@ -1695,9 +1768,10 @@ begin
   FSkipCurlyBrackets:=False;
 end;
 
+{$ifdef fpc}
 { TFileWriter }
 
-Function TFileWriter.DoWrite(Const S: AnsiString) : Integer;
+Function TFileWriter.DoWrite(Const S: TJSWriterString) : Integer;
 begin
   Result:=Length(S);
   system.Write(FFile,S);
@@ -1732,6 +1806,7 @@ Procedure TFileWriter.Close;
 begin
   system.Close(FFile);
 end;
+{$endif}
 
 { TTextWriter }
 
@@ -1785,7 +1860,7 @@ begin
   until false;
 end;
 
-function TTextWriter.Write(const S: AnsiString): Integer;
+function TTextWriter.Write(const S: TJSWriterString): Integer;
 var
   p: PChar;
   c: Char;
@@ -1818,32 +1893,36 @@ begin
   until false;
 end;
 
-function TTextWriter.WriteLn(const S: AnsiString): Integer;
+function TTextWriter.WriteLn(const S: TJSWriterString): Integer;
 begin
   Result:=Write(S)+Write(sLineBreak);
 end;
 
-function TTextWriter.Write(const Fmt: AnsiString;
-  Args: array of const): Integer;
+function TTextWriter.Write(const Fmt: TJSWriterString;
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 
 begin
   Result:=Write(Format(Fmt,Args));
 end;
 
-function TTextWriter.WriteLn(const Fmt: AnsiString;
-  Args: array of const): Integer;
+function TTextWriter.WriteLn(const Fmt: TJSWriterString;
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 begin
   Result:=WriteLn(Format(Fmt,Args));
 end;
 
-function TTextWriter.Write(const Args: array of const): Integer;
+function TTextWriter.Write(const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 
 Var
   I : Integer;
+  {$ifdef pas2js}
+  V: jsvalue;
+  S: TJSWriterString;
+  {$else}
   V : TVarRec;
   S : String;
   U : UnicodeString;
-
+  {$endif}
 
 begin
   Result:=0;
@@ -1851,6 +1930,21 @@ begin
     begin
     V:=Args[i];
     S:='';
+    {$ifdef pas2js}
+    case jsTypeOf(V) of
+    'boolean':
+      S:=if V then S:='true' else S:='false';
+    'number':
+      if isInteger(V) then
+        S:=str(NativeInt(V))
+      else
+        S:=str(Double(V));
+    'string':
+      S:=String(V);
+    else continue;
+    end;
+    Result:=Result+Write(S);
+    {$else}
     U:='';
     case V.VType of
        vtInteger       : Str(V.VInteger,S);
@@ -1873,10 +1967,11 @@ begin
       Result:=Result+Write(u)
     else if (S<>'') then
       Result:=Result+Write(s);
+    {$endif}
     end;
 end;
 
-function TTextWriter.WriteLn(const Args: array of const): Integer;
+function TTextWriter.WriteLn(const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 begin
   Result:=Write(Args)+Writeln('');
 end;

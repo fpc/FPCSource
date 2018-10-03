@@ -194,7 +194,7 @@ begin
   aTextWriter:=TBufferWriter.Create(120);
   aWriter:=TJSWriter.Create(aTextWriter);
   aWriter.WriteJS(Element);
-  Result:=aTextWriter.AsAnsistring;
+  Result:=aTextWriter.AsString;
   aWriter.Free;
   aTextWriter.Free;
 end;

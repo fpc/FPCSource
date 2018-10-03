@@ -2402,7 +2402,7 @@ begin
       begin
         Log.WriteMsgToStdErr:=false;
         try
-          Log.LogRaw(aFileWriter.AsAnsistring);
+          Log.LogRaw(aFileWriter.AsString);
         finally
           Log.WriteMsgToStdErr:=coWriteMsgToStdErr in Options;
         end;
