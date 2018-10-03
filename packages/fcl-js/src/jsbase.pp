@@ -20,6 +20,9 @@ unit jsbase;
 interface
 
 uses
+  {$ifdef pas2js}
+  js,
+  {$endif}
   Classes, SysUtils;
 
 Type
@@ -27,20 +30,26 @@ Type
 
   TJSString = UnicodeString;
   TJSChar = WideChar;
-  TJSPChar = PWideChar;
   TJSNumber = Double;
+  {$ifdef fpc}
+  TJSPChar = PWideChar;
+  {$endif}
 
   { TJSValue }
 
   TJSValue = Class(TObject)
   private
     FValueType: TJSType;
+    {$ifdef pas2js}
+    FValue: JSValue;
+    {$else}
     FValue : Record
       Case Integer of
       0 : (P : Pointer);
       1 : (F : TJSNumber);
       2 : (I : Integer);
     end;
+    {$endif}
     FCustomValue: TJSString;
     procedure ClearValue(ANewValue: TJSType);
     function GetAsBoolean: Boolean;
@@ -83,6 +92,87 @@ function IsValidJSIdentifier(Name: TJSString; AllowEscapeSeq: boolean = false): 
 implementation
 
 function IsValidJSIdentifier(Name: TJSString; AllowEscapeSeq: boolean): boolean;
+{$ifdef pas2js}
+const
+  HexChars = ['0'..'9','a'..'f','A'..'F'];
+var
+  p, l, i: Integer;
+begin
+  Result:=false;
+  if Name='' then exit;
+  l:=length(Name);
+  p:=1;
+  while p<=l do
+    case Name[p] of
+    '0'..'9':
+      if p=1 then
+        exit
+      else
+        inc(p);
+    'a'..'z','A'..'Z','_','$': inc(p);
+    '\':
+      begin
+      if not AllowEscapeSeq then exit;
+      inc(p);
+      if p>l then exit;
+      if Name[p]='x' then
+        begin
+        // \x00
+        inc(p);
+        if (p>l) or not (Name[p] in HexChars) then exit;
+        inc(p);
+        if (p>l) or not (Name[p] in HexChars) then exit;
+        end
+      else if Name[p]='u' then
+        begin
+        inc(p);
+        if p>l then exit;
+        if Name[p]='{' then
+          begin
+          // \u{00000}
+          i:=0;
+          repeat
+            inc(p);
+            if p>l then exit;
+            case Name[p] of
+            '}': break;
+            '0'..'9': i:=i*16+ord(Name[p])-ord('0');
+            'a'..'f': i:=i*16+ord(Name[p])-ord('a')+10;
+            'A'..'F': i:=i*16+ord(Name[p])-ord('A')+10;
+            else exit;
+            end;
+            if i>$FFFF then exit;
+          until false;
+          if (i>=$D800) and (i<$E000) then exit;
+          inc(p);
+          end
+        else
+          begin
+          // \u0000
+          for i:=1 to 4 do
+            begin
+            inc(p);
+            if (p>l) or not (Name[p] in HexChars) then exit;
+            end;
+          end;
+        // ToDo: check for invalid values like #$D800 and #$0041
+        end
+      else
+        exit; // unknown sequence
+      end;
+    #$200C,#$200D: inc(p); // zero width non-joiner/joiner
+    #$00AA..#$2000,
+    #$200E..#$D7FF:
+      inc(p); // ToDo: only those with ID_START/ID_CONTINUE see https://codepoints.net/search?IDC=1
+    #$D800..#$DFFF:
+      exit; // double code units are not allowed for JS identifiers
+    #$E000..#$FFFF:
+      inc(p);
+    else
+      exit;
+    end;
+end;
+{$else}
 var
   p: TJSPChar;
   i: Integer;
@@ -132,8 +222,9 @@ begin
             'A'..'F': i:=i*16+ord(p^)-ord('A')+10;
             else exit;
             end;
-            if i>$10FFFF then exit;
+            if i>$FFFF then exit;
           until false;
+          if (i>=$D800) and (i<$E000) then exit;
           inc(p);
           end
         else
@@ -145,6 +236,7 @@ begin
             if not (p^ in ['0'..'9','a'..'f','A'..'F']) then exit;
             end;
           end;
+        // ToDo: check for invalid values like #$D800 and #$0041
         end
       else
         exit; // unknown sequence
@@ -153,33 +245,36 @@ begin
     #$00AA..#$2000,
     #$200E..#$D7FF:
       inc(p); // ToDo: only those with ID_START/ID_CONTINUE see https://codepoints.net/search?IDC=1
-    #$D800..#$DBFF:
-      inc(p,2); // see above
+    #$D800..#$DFFF:
+      exit; // double code units are not allowed for JS identifiers
+    #$E000..#$FFFF:
+      inc(p);
     else
       exit;
     end;
   until false;
 end;
+{$endif}
 
 { TJSValue }
 
 function TJSValue.GetAsBoolean: Boolean;
 begin
   If (ValueType=jstBoolean) then
-    Result:=(FValue.I<>0)
+    Result:={$ifdef pas2js}boolean(FValue){$else}(FValue.I<>0){$endif}
   else
     Result:=False;
 end;
 
 function TJSValue.GetAsCompletion: TObject;
 begin
-  Result:=TObject(FValue.P);
+  Result:=TObject(FValue{$ifdef fpc}.P{$endif});
 end;
 
 function TJSValue.GetAsNumber: TJSNumber;
 begin
   If (ValueType=jstNumber) then
-    Result:=FValue.F
+    Result:={$ifdef pas2js}TJSNumber(FValue){$else}FValue.F{$endif}
   else
     Result:=0.0;
 end;
@@ -187,7 +282,7 @@ end;
 function TJSValue.GetAsObject: TObject;
 begin
   If (ValueType=jstObject) then
-    Result:=TObject(FValue.P)
+    Result:=TObject(FValue{$ifdef fpc}.P{$endif})
   else
     Result:=nil;
 end;
@@ -195,7 +290,7 @@ end;
 function TJSValue.GetAsReference: TObject;
 begin
   If (ValueType=jstReference) then
-    Result:=TObject(FValue.P)
+    Result:=TObject(FValue{$ifdef fpc}.P{$endif})
   else
     Result:=nil;
 end;
@@ -203,7 +298,7 @@ end;
 function TJSValue.GetAsString: TJSString;
 begin
   If (ValueType=jstString) then
-    Result:=TJSString(FValue.P)
+    Result:=TJSString(FValue{$ifdef fpc}.P{$endif})
   else
     Result:='';
 end;
@@ -221,12 +316,23 @@ end;
 procedure TJSValue.ClearValue(ANewValue : TJSType);
 
 begin
+  {$ifdef pas2js}
+  Case FValueType of
+    jstUNDEFINED: FValue:=JS.Undefined;
+    jstString : FValue:='';
+    jstNumber : FValue:=0;
+    jstBoolean : FValue:=false;
+  else
+    FValue:=JS.Null;
+  end;
+  {$else}
   Case FValueType of
     jstString : String(FValue.P):='';
     jstNumber : FValue.F:=0;
   else
     FValue.I:=0;
   end;
+  {$endif}
   FValueType:=ANewValue;
   FCustomValue:='';
 end;
@@ -234,37 +340,41 @@ end;
 procedure TJSValue.SetAsBoolean(const AValue: Boolean);
 begin
   ClearValue(jstBoolean);
+  {$ifdef pas2js}
+  FValue:=AValue;
+  {$else}
   FValue.I:=Ord(AValue);
+  {$endif}
 end;
 
 procedure TJSValue.SetAsCompletion(const AValue: TObject);
 begin
   ClearValue(jstBoolean);
-  FValue.P:=AValue;
+  FValue{$ifdef fpc}.P{$endif}:=AValue;
 end;
 
 procedure TJSValue.SetAsNumber(const AValue: TJSNumber);
 begin
   ClearValue(jstNumber);
-  FValue.F:=AValue;
+  FValue{$ifdef fpc}.F{$endif}:=AValue;
 end;
 
 procedure TJSValue.SetAsObject(const AValue: TObject);
 begin
   ClearValue(jstObject);
-  FValue.P:=AVAlue;
+  FValue{$ifdef fpc}.P{$endif}:=AVAlue;
 end;
 
 procedure TJSValue.SetAsReference(const AValue: TObject);
 begin
   ClearValue(jstReference);
-  FValue.P:=AVAlue;
+  FValue{$ifdef fpc}.P{$endif}:=AVAlue;
 end;
 
 procedure TJSValue.SetAsString(const AValue: TJSString);
 begin
   ClearValue(jstString);
-  TJSString(FValue.P):=AValue;
+  {$ifdef pas2js}FValue{$else}TJSString(FValue.P){$endif}:=AValue;
 end;
 
 procedure TJSValue.SetIsNull(const AValue: Boolean);
