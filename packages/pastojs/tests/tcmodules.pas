@@ -2391,6 +2391,8 @@ begin
   '  c:=char(c);',
   '  c:=char(i);',
   '  c:=char(65);',
+  '  c:=char(#10);',
+  '  c:=char(#$E000);',
   '']);
   ConvertProgram;
   CheckSource('TestAliasTypeRef',
@@ -2413,6 +2415,8 @@ begin
     '$mod.c = $mod.c;',
     '$mod.c = String.fromCharCode($mod.i);',
     '$mod.c = "A";',
+    '$mod.c = "\n";',
+    '$mod.c = "";',
     '']));
 end;
 
