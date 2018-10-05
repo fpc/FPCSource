@@ -11858,6 +11858,46 @@ begin
         TCFloatToInt(Value,Flo);
         end;
       end;
+    revkString:
+      begin
+      if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
+        begin
+        if length(TResEvalString(Value).S)<>1 then
+          RaiseXExpectedButYFound(20181005141025,'char','string',Params);
+        Result:=Value;
+        Value:=nil;
+        end
+      else if (bt=btWideChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
+        begin
+        if fExprEvaluator.GetWideChar(TResEvalString(Value).S,w) then
+          begin
+          Result:=Value;
+          Value:=nil;
+          end
+        else
+          RaiseXExpectedButYFound(20181005141058,'char','string',Params);
+        end;
+      end;
+    revkUnicodeString:
+      if length(TResEvalUTF16(Value).S)=1 then
+        begin
+        w:=TResEvalUTF16(Value).S[1];
+        if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
+          begin
+          if ord(w)<=255 then
+            begin
+            Result:=Value;
+            Value:=nil;
+            end
+          else
+            RaiseMsg(20181005141632,nRangeCheckError,sRangeCheckError,[],Params);
+          end
+        else if (bt=btWideChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
+          begin
+          Result:=Value;
+          Value:=nil;
+          end;
+        end;
     else
       {$IFDEF VerbosePasResEval}
       writeln('TPasResolver.OnExprEvalParams typecast to ',bt);
