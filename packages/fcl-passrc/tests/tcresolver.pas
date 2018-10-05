@@ -916,9 +916,7 @@ procedure TCustomTestResolver.TearDown;
 {$IFDEF CheckPasTreeRefCount}
 var El: TPasElement;
 {$ENDIF}
-{$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
 var i: Integer;
-{$ENDIF}
 begin
   FResolverMsgs.Clear;
   FResolverGoodMsgs.Clear;
@@ -4272,9 +4270,12 @@ begin
   '  k:=''a'';',
   '  k:='''''''';',
   '  k:=j[1];',
+  '  k:=char(#10);',
   '  w:=k;',
   '  w:=#66;',
   '  w:=#6666;',
+  '  w:=widechar(#10);',
+  '  w:=widechar(#$E0000);',
   '']);
   ParseProgram;
 end;
