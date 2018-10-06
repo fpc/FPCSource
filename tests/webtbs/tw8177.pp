@@ -12,7 +12,9 @@ program ValidateStrToInt;
 {$ifdef cpumips}
   {$define slowcpu}
 {$endif}
-
+{$ifdef android}
+  {$define slowcpu}
+{$endif}
 
 uses
   SysUtils;
