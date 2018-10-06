@@ -3751,16 +3751,15 @@ begin
     if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', init_settings.targetswitches, true) then
       InternalError(2013092801);
 
-  { Set up a default prefix for binutils when cross-compiling }
-  if source_info.system<>target_info.system then
+  { Use standard Android NDK prefixes when cross-compiling }
+  if (source_info.system<>target_info.system) and (target_info.system in systems_android) then
     case target_info.system of
-      { Use standard Android NDK prefixes }
       system_arm_android:
         utilsprefix:='arm-linux-androideabi-';
       system_i386_android:
         utilsprefix:='i686-linux-android-';
-      system_mipsel_android:
-        utilsprefix:='mipsel-linux-android-';
+      else
+        utilsprefix:=target_cpu_string + '-linux-android-';
     end;
 
   { Set up default value for the heap }

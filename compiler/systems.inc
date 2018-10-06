@@ -185,7 +185,8 @@
              system_riscv32_linux,      { 96 }
              system_riscv64_linux,      { 97 }
              system_riscv64_embedded,   { 98 }
-             system_riscv32_embedded    { 99 }
+             system_riscv32_embedded,   { 99 }
+             system_aarch64_android     { 100 }
        );
 
      type
