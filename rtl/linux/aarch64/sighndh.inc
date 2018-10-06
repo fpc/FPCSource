@@ -42,6 +42,11 @@ type
     uc_flags : cULong;
     uc_link : PUContext;
     uc_stack : stack_t;
-    uc_mcontext : TSigContext;
     uc_sigmask : sigset_t;
+    __padding : array[1..128 - sizeof(sigset_t)] of byte;
+    __pad : cULong;
+    { The following field should be 16-byte-aligned. Currently the
+      directive for specifying alignment is buggy, so the preceding
+      field was added so that the record has the right size. }
+    uc_mcontext : TSigContext;
   end;
