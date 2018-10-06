@@ -2288,7 +2288,7 @@ packages/fcl-db/src/sqldb/mysql/mysqlconn.inc svneol=native#text/plain
 packages/fcl-db/src/sqldb/odbc/Makefile svneol=native#text/plain
 packages/fcl-db/src/sqldb/odbc/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/sqldb/odbc/odbcconn.pas svneol=native#text/plain
-packages/fcl-db/src/sqldb/oracle/Makefile -text
+packages/fcl-db/src/sqldb/oracle/Makefile svneol=native#text/plain
 packages/fcl-db/src/sqldb/oracle/Makefile.fpc -text
 packages/fcl-db/src/sqldb/oracle/oracleconnection.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/postgres/Makefile svneol=native#text/plain
@@ -2316,7 +2316,7 @@ packages/fcl-db/src/sqlite/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/sqlite/sqlite3ds.pas svneol=native#text/plain
 packages/fcl-db/src/sqlite/sqliteds.pas svneol=native#text/plain
 packages/fcl-db/src/sqlite/testds.pas svneol=native#text/plain
-packages/fcl-db/tests/Makefile -text
+packages/fcl-db/tests/Makefile svneol=native#text/plain
 packages/fcl-db/tests/Makefile.fpc -text
 packages/fcl-db/tests/README.txt svneol=native#text/plain
 packages/fcl-db/tests/bufdatasettoolsunit.pas svneol=native#text/plain
