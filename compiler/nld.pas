@@ -643,7 +643,8 @@ implementation
               (
                 (right.nodetype=arrayconstructorn) and
                 (right.resultdef.typ=arraydef) and
-                (tarraydef(right.resultdef).elementdef=voidtype)
+                (tarraydef(right.resultdef).elementdef=voidtype) and
+                tarrayconstructornode(right).isempty
               )
             ) then
          begin
