@@ -60,6 +60,7 @@ begin
 
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/$(OS)');
+    P.IncludePath.Add('src/$(CPU)');
     P.IncludePath.Add('src/common',CommonSrcOSes);
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
@@ -122,6 +123,10 @@ begin
      end;
 
     T:=P.Targets.AddUnit('rtti.pp',RttiOSes);
+    with T.Dependencies do
+       begin
+         AddInclude('invoke.inc',[x86_64],RttiOSes);
+       end;
     T.ResourceStrings:=true;
   end
 end;

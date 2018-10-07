@@ -3272,8 +3272,17 @@ begin
   result := (FContextToken as IPooltoken).RttiPool.GetTypes;
 end;}
 
+{$ifndef InLazIDE}
+{$if defined(CPUX86_64) and defined(WIN64)}
+{$I invoke.inc}
+{$endif}
+{$endif}
+
 initialization
   PoolRefCount := 0;
   InitDefaultFunctionCallManager;
+{$ifdef SYSTEM_HAS_INVOKE}
+  InitSystemFunctionCallManager;
+{$endif}
 end.
 
