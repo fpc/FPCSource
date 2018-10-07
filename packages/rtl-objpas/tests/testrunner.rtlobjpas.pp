@@ -5,9 +5,15 @@ program testrunner.rtlobjpas;
 
 {$mode objfpc}{$H+}
 { Invoke needs a function call manager }
-{.$define testinvoke}
+{.$define useffi}
+{$ifdef useffi}
+{$define testinvoke}
+{$endif}
 
 uses
+{$ifdef useffi}
+  ffi.manager,
+{$endif}
   consoletestrunner,
 {$ifdef testinvoke}
   tests.rtti.invoke,
