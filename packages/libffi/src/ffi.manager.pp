@@ -41,7 +41,7 @@ begin
   Dispose(t);
 end;
 
-function TypeInfoToFFIType(aTypeInfo: PTypeInfo): pffi_type; forward;
+function TypeInfoToFFIType(aTypeInfo: PTypeInfo; aFlags: TParamFlags): pffi_type; forward;
 
 function RecordOrObjectToFFIType(aTypeInfo: PTypeInfo): pffi_type;
 var
@@ -99,7 +99,7 @@ begin
       Dec(remoffset, SizeOf(Byte))
     end;
     { now add the real field type }
-    AddElement(TypeInfoToFFIType(field^.TypeRef));
+    AddElement(TypeInfoToFFIType(field^.TypeRef, []));
     Inc(field);
     curoffset := field^.FldOffset;
   end;
@@ -153,7 +153,7 @@ begin
   Tpffi_typeArray(Result^.elements) := elements;
 end;
 
-function TypeInfoToFFIType(aTypeInfo: PTypeInfo): pffi_type;
+function TypeInfoToFFIType(aTypeInfo: PTypeInfo; aFlags: TParamFlags): pffi_type;
 
   function TypeKindName: String;
   begin
@@ -167,103 +167,106 @@ begin
   Result := @ffi_type_void;
   if Assigned(aTypeInfo) then begin
     td := GetTypeData(aTypeInfo);
-    case aTypeInfo^.Kind of
-      tkInteger,
-      tkEnumeration,
-      tkBool,
-      tkInt64,
-      tkQWord:
-        case td^.OrdType of
-          otSByte:
-            Result := @ffi_type_sint8;
-          otUByte:
-            Result := @ffi_type_uint8;
-          otSWord:
-            Result := @ffi_type_sint16;
-          otUWord:
-            Result := @ffi_type_uint16;
-          otSLong:
-            Result := @ffi_type_sint32;
-          otULong:
-            Result := @ffi_type_uint32;
-          otSQWord:
-            Result := @ffi_type_sint64;
-          otUQWord:
-            Result := @ffi_type_uint64;
-        end;
-      tkChar:
-        Result := @ffi_type_uint8;
-      tkFloat:
-        case td^.FloatType of
-          ftSingle:
-            Result := @ffi_type_float;
-          ftDouble:
-            Result := @ffi_type_double;
-          ftExtended:
-            Result := @ffi_type_longdouble;
-          ftComp:
-{$ifndef FPC_HAS_TYPE_EXTENDED}
-            Result := @ffi_type_sint64;
-{$else}
-            Result := @ffi_type_longdouble;
-{$endif}
-          ftCurr:
-            Result := @ffi_type_sint64;
-        end;
-      tkSet:
-        case td^.OrdType of
-          otUByte: begin
-            if td^.SetSize = 1 then
-              Result := @ffi_type_uint8
-            else begin
-              { ugh... build a of suitable record }
-              Result := SetToFFIType(td^.SetSize);
-            end;
+    if aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> [] then
+      Result := @ffi_type_pointer
+    else
+      case aTypeInfo^.Kind of
+        tkInteger,
+        tkEnumeration,
+        tkBool,
+        tkInt64,
+        tkQWord:
+          case td^.OrdType of
+            otSByte:
+              Result := @ffi_type_sint8;
+            otUByte:
+              Result := @ffi_type_uint8;
+            otSWord:
+              Result := @ffi_type_sint16;
+            otUWord:
+              Result := @ffi_type_uint16;
+            otSLong:
+              Result := @ffi_type_sint32;
+            otULong:
+              Result := @ffi_type_uint32;
+            otSQWord:
+              Result := @ffi_type_sint64;
+            otUQWord:
+              Result := @ffi_type_uint64;
           end;
-          otUWord:
-            Result := @ffi_type_uint16;
-          otULong:
-            Result := @ffi_type_uint32;
-        end;
-      tkWChar,
-      tkUChar:
-        Result := @ffi_type_uint16;
-      tkInterface,
-      tkAString,
-      tkUString,
-      tkWString,
-      tkInterfaceRaw,
-      tkProcVar,
-      tkDynArray,
-      tkClass,
-      tkClassRef,
-      tkPointer:
-        Result := @ffi_type_pointer;
-      tkMethod:
-        Result := RecordOrObjectToFFIType(TypeInfo(TMethod));
-      tkSString:
-        { since shortstrings are rather large they're passed as references }
-        Result := @ffi_type_pointer;
-      tkObject:
-        { passed around as pointer as well }
-        Result := @ffi_type_pointer;
-      tkArray:
-        { arrays are passed as pointers to be compatible to C }
-        Result := @ffi_type_pointer;
-      tkRecord:
-        Result := RecordOrObjectToFFIType(aTypeInfo);
-      tkVariant:
-        Result := RecordOrObjectToFFIType(TypeInfo(tvardata));
-      //tkLString: ;
-      //tkHelper: ;
-      //tkFile: ;
-      else
-        raise EInvocationError.CreateFmt(SErrTypeKindNotSupported, [TypeKindName]);
-    end;
+        tkChar:
+          Result := @ffi_type_uint8;
+        tkFloat:
+          case td^.FloatType of
+            ftSingle:
+              Result := @ffi_type_float;
+            ftDouble:
+              Result := @ffi_type_double;
+            ftExtended:
+              Result := @ffi_type_longdouble;
+            ftComp:
+  {$ifndef FPC_HAS_TYPE_EXTENDED}
+              Result := @ffi_type_sint64;
+  {$else}
+              Result := @ffi_type_longdouble;
+  {$endif}
+            ftCurr:
+              Result := @ffi_type_sint64;
+          end;
+        tkSet:
+          case td^.OrdType of
+            otUByte: begin
+              if td^.SetSize = 1 then
+                Result := @ffi_type_uint8
+              else begin
+                { ugh... build a of suitable record }
+                Result := SetToFFIType(td^.SetSize);
+              end;
+            end;
+            otUWord:
+              Result := @ffi_type_uint16;
+            otULong:
+              Result := @ffi_type_uint32;
+          end;
+        tkWChar,
+        tkUChar:
+          Result := @ffi_type_uint16;
+        tkInterface,
+        tkAString,
+        tkUString,
+        tkWString,
+        tkInterfaceRaw,
+        tkProcVar,
+        tkDynArray,
+        tkClass,
+        tkClassRef,
+        tkPointer:
+          Result := @ffi_type_pointer;
+        tkMethod:
+          Result := RecordOrObjectToFFIType(TypeInfo(TMethod));
+        tkSString:
+          { since shortstrings are rather large they're passed as references }
+          Result := @ffi_type_pointer;
+        tkObject:
+          { passed around as pointer as well }
+          Result := @ffi_type_pointer;
+        tkArray:
+          { arrays are passed as pointers to be compatible to C }
+          Result := @ffi_type_pointer;
+        tkRecord:
+          Result := RecordOrObjectToFFIType(aTypeInfo);
+        tkVariant:
+          Result := RecordOrObjectToFFIType(TypeInfo(tvardata));
+        //tkLString: ;
+        //tkHelper: ;
+        //tkFile: ;
+        else
+          raise EInvocationError.CreateFmt(SErrTypeKindNotSupported, [TypeKindName]);
+      end;
   end;
 end;
 
-function ValueToFFIValue(constref aValue: Pointer; aKind: TTypeKind; aIsResult: Boolean): Pointer;
+function ValueToFFIValue(constref aValue: Pointer; aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Pointer;
 const
   ResultTypeNeedsIndirection = [
    tkAString,
@@ -274,7 +277,9 @@ const
   ];
 begin
   Result := aValue;
-  if (aKind = tkSString) or (aIsResult and (aKind in ResultTypeNeedsIndirection)) then
+  if (aKind = tkSString) or
+      (aIsResult and (aKind in ResultTypeNeedsIndirection)) or
+      (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) then
     Result := @aValue;
 end;
 
@@ -444,8 +449,8 @@ begin
   { the order is Self/Vmt (if any), Result param (if any), other params }
 
   if not (fcfStatic in aFlags) and retparam then begin
-    argtypes[0] := TypeInfoToFFIType(aArgs[0].Info.ParamType);
-    argvalues[0] := ValueToFFIValue(aArgs[0].ValueRef, aArgs[0].Info.ParamType^.Kind, False);
+    argtypes[0] := TypeInfoToFFIType(aArgs[0].Info.ParamType, aArgs[0].Info.ParamFlags);
+    argvalues[0] := ValueToFFIValue(aArgs[0].ValueRef, aArgs[0].Info.ParamType^.Kind, aArgs[0].Info.ParamFlags, False);
     if retparam then
       Inc(retidx);
     argstart := 1;
@@ -453,16 +458,16 @@ begin
     argstart := 0;
 
   for i := Low(aArgs) + argstart to High(aArgs) do begin
-    argtypes[i - Low(aArgs) + Low(argtypes) + argoffset] := TypeInfoToFFIType(aArgs[i].Info.ParamType);
-    argvalues[i - Low(aArgs) + Low(argtypes) + argoffset] := ValueToFFIValue(aArgs[i].ValueRef, aArgs[i].Info.ParamType^.Kind, False);
+    argtypes[i - Low(aArgs) + Low(argtypes) + argoffset] := TypeInfoToFFIType(aArgs[i].Info.ParamType, aArgs[i].Info.ParamFlags);
+    argvalues[i - Low(aArgs) + Low(argtypes) + argoffset] := ValueToFFIValue(aArgs[i].ValueRef, aArgs[i].Info.ParamType^.Kind, aArgs[i].Info.ParamFlags, False);
   end;
 
   if retparam then begin
-    argtypes[retidx] := TypeInfoToFFIType(aResultType);
-    argvalues[retidx] := ValueToFFIValue(aResultValue, aResultType^.Kind, True);
+    argtypes[retidx] := TypeInfoToFFIType(aResultType, []);
+    argvalues[retidx] := ValueToFFIValue(aResultValue, aResultType^.Kind, [], True);
     rtype := @ffi_type_void;
   end else begin
-    rtype := TypeInfoToFFIType(aResultType);
+    rtype := TypeInfoToFFIType(aResultType, []);
   end;
 
   if ffi_prep_cif(@cif, abi, arglen, rtype, @argtypes[0]) <> FFI_OK then
