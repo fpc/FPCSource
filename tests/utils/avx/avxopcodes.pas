@@ -854,7 +854,7 @@ begin
             if LastOpCode <> '' then
             begin
               SaveFile(slAsm, LastOpCode, aDestPath, aFileExt, aHeaderList, aFooterList);
-              writeln(format('%s%s%s', [aDestPath, NewOpCode, aFileExt]));
+              writeln(format('%s%s%s', [aDestPath, LastOpCode, aFileExt]));
 
               slAsm.Clear;
               LastOpCode := NewOpCode;
