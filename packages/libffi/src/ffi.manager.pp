@@ -58,9 +58,10 @@ var
   end;
 
 var
-  td: PTypeData;
-  i, curoffset, remoffset: SizeInt;
+  td, fieldtd: PTypeData;
+  i, j, curoffset, remoffset: SizeInt;
   field: PManagedField;
+  ffitype: pffi_type;
 begin
   td := GetTypeData(aTypeInfo);
   if td^.TotalFieldCount = 0 then
@@ -98,8 +99,21 @@ begin
       AddElement(@ffi_type_uint8);
       Dec(remoffset, SizeOf(Byte))
     end;
-    { now add the real field type }
-    AddElement(TypeInfoToFFIType(field^.TypeRef, []));
+    { now add the real field type (Note: some are handled differently from
+      being passed as arguments, so we handle those here) }
+    if field^.TypeRef^.Kind = tkObject then
+      AddElement(RecordOrObjectToFFIType(field^.TypeRef))
+    else if field^.TypeRef^.Kind = tkSString then begin
+      fieldtd := GetTypeData(field^.TypeRef);
+      for j := 0 to fieldtd^.MaxLength + 1 do
+        AddElement(@ffi_type_uint8);
+    end else if field^.TypeRef^.Kind = tkArray then begin
+      fieldtd := GetTypeData(field^.TypeRef);
+      ffitype := TypeInfoToFFIType(fieldtd^.ArrayData.ElType, []);
+      for j := 0 to fieldtd^.ArrayData.ElCount - 1 do
+        AddElement(ffitype);
+    end else
+      AddElement(TypeInfoToFFIType(field^.TypeRef, []));
     Inc(field);
     curoffset := field^.FldOffset;
   end;
