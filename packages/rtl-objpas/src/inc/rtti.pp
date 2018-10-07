@@ -381,10 +381,15 @@ type
   EInvocationError = class(Exception);
   ENonPublicType = class(Exception);
 
-  TFunctionCallParameter = record
-    Value: TValue;
+  TFunctionCallParameterInfo = record
+    ParamType: PTypeInfo;
     ParamFlags: TParamFlags;
     ParaLocs: PParameterLocations;
+  end;
+
+  TFunctionCallParameter = record
+    ValueRef: Pointer;
+    Info: TFunctionCallParameterInfo;
   end;
   TFunctionCallParameterArray = specialize TArray<TFunctionCallParameter>;
 
@@ -400,7 +405,7 @@ type
 
   TFunctionCallManager = record
     Invoke: procedure(CodeAddress: CodePointer; const Args: TFunctionCallParameterArray; CallingConvention: TCallConv;
-              ResultType: PTypeInfo; out ResultValue: TValue; Flags: TFunctionCallFlags);
+              ResultType: PTypeInfo; ResultValue: Pointer; Flags: TFunctionCallFlags);
     CreateCallbackProc: function(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
     CreateCallbackMethod: function(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
     FreeCallback: procedure(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
@@ -433,6 +438,7 @@ function IsManaged(TypeInfo: PTypeInfo): boolean;
 { these resource strings are needed by units implementing function call managers }
 resourcestring
   SErrInvokeNotImplemented = 'Invoke functionality is not implemented';
+  SErrInvokeResultTypeNoValue = 'Function has a result type, but no result pointer provided';
   SErrInvokeFailed = 'Invoke call failed';
   SErrCallbackNotImplented = 'Callback functionality is not implemented';
   SErrCallConvNotSupported = 'Calling convention not supported: %s';
@@ -573,7 +579,7 @@ var
   FuncCallMgr: TFunctionCallManagerArray;
 
 procedure NoInvoke(aCodeAddress: CodePointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
-            aResultType: PTypeInfo; out aResultValue: TValue; aFlags: TFunctionCallFlags);
+            aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
 begin
   raise ENotImplemented.Create(SErrInvokeNotImplemented);
 end;
@@ -722,12 +728,18 @@ begin
 
   SetLength(funcargs, Length(aArgs));
   for i := Low(aArgs) to High(aArgs) do begin
-    funcargs[i - Low(aArgs) + Low(funcargs)].Value := aArgs[i];
-    funcargs[i - Low(aArgs) + Low(funcargs)].ParamFlags := [];
-    funcargs[i - Low(aArgs) + Low(funcargs)].ParaLocs := Nil;
+    funcargs[i - Low(aArgs) + Low(funcargs)].ValueRef := aArgs[i].GetReferenceToRawData;
+    funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParamType := aArgs[i].TypeInfo;
+    funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParamFlags := [];
+    funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParaLocs := Nil;
   end;
 
-  FuncCallMgr[aCallConv].Invoke(aCodeAddress, funcargs, aCallConv, aResultType, Result, flags);
+  if Assigned(aResultType) then
+    TValue.Make(Nil, aResultType, Result)
+  else
+    Result := TValue.Empty;
+
+  FuncCallMgr[aCallConv].Invoke(aCodeAddress, funcargs, aCallConv, aResultType, Result.GetReferenceToRawData, flags);
 end;
 
 function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
