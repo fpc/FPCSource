@@ -185,7 +185,7 @@ Unit rax64att;
               Consume(AS_COMMA);
               hnum:=BuildConstExpression(false,false);
               if (hnum<0) or (hnum>maxoffset[actsehdirective=ash_setframe]) or
-                ((hnum mod modulo[actsehdirective=ash_setframe])<>0) then
+                ((hnum and modulo[actsehdirective=ash_setframe])<>0) then
                 Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[actsehdirective])
               else
                 curlist.concat(cai_seh_directive.create_reg_offset(actsehdirective,hreg,hnum));
