@@ -1855,7 +1855,7 @@ end;
 
 function TValue.GetReferenceToRawData: Pointer;
 begin
-  if IsEmpty then
+  if not Assigned(FData.FTypeInfo) then
     Result := Nil
   else if Assigned(FData.FValueData) then
     Result := FData.FValueData.GetReferenceToRawData
