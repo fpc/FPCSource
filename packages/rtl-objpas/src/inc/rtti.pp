@@ -294,6 +294,37 @@ type
     function ToString: String; override;
   end;
 
+  TRttiInvokableType = class(TRttiType)
+  protected
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; virtual; abstract;
+    function GetCallingConvention: TCallConv; virtual; abstract;
+    function GetReturnType: TRttiType; virtual; abstract;
+  public
+    function GetParameters: specialize TArray<TRttiParameter>; inline;
+    property CallingConvention: TCallConv read GetCallingConvention;
+    property ReturnType: TRttiType read GetReturnType;
+  end;
+
+  TRttiMethodType = class(TRttiInvokableType)
+  private
+    FCallConv: TCallConv;
+    FReturnType: TRttiType;
+    FParams, FParamsAll: specialize TArray<TRttiParameter>;
+  protected
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
+    function GetCallingConvention: TCallConv; override;
+    function GetReturnType: TRttiType; override;
+  end;
+
+  TRttiProcedureType = class(TRttiInvokableType)
+  private
+    FParams, FParamsAll: specialize TArray<TRttiParameter>;
+  protected
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
+    function GetCallingConvention: TCallConv; override;
+    function GetReturnType: TRttiType; override;
+  end;
+
   TDispatchKind = (
     dkStatic,
     dkVtable,
@@ -553,6 +584,21 @@ type
     function GetParamType: TRttiType; override;
   public
     constructor Create(AVmtMethodParam: PVmtMethodParam);
+  end;
+
+  TRttiMethodTypeParameter = class(TRttiParameter)
+  private
+    fHandle: Pointer;
+    fName: String;
+    fFlags: TParamFlags;
+    fType: PTypeInfo;
+  protected
+    function GetHandle: Pointer; override;
+    function GetName: String; override;
+    function GetFlags: TParamFlags; override;
+    function GetParamType: TRttiType; override;
+  public
+    constructor Create(aHandle: Pointer; const aName: String; aFlags: TParamFlags; aType: PTypeInfo);
   end;
 
   TRttiIntfMethod = class(TRttiMethod)
@@ -875,6 +921,8 @@ begin
           tkWString : Result := TRttiStringType.Create(ATypeInfo);
           tkFloat   : Result := TRttiFloatType.Create(ATypeInfo);
           tkPointer : Result := TRttiPointerType.Create(ATypeInfo);
+          tkProcVar : Result := TRttiProcedureType.Create(ATypeInfo);
+          tkMethod  : Result := TRttiMethodType.Create(ATypeInfo);
         else
           Result := TRttiType.Create(ATypeInfo);
         end;
@@ -1210,6 +1258,43 @@ constructor TRttiVmtMethodParameter.Create(AVmtMethodParam: PVmtMethodParam);
 begin
   inherited Create;
   FVmtMethodParam := AVmtMethodParam;
+end;
+
+{ TRttiMethodTypeParameter }
+
+function TRttiMethodTypeParameter.GetHandle: Pointer;
+begin
+  Result := fHandle;
+end;
+
+function TRttiMethodTypeParameter.GetName: String;
+begin
+  Result := fName;
+end;
+
+function TRttiMethodTypeParameter.GetFlags: TParamFlags;
+begin
+  Result := fFlags;
+end;
+
+function TRttiMethodTypeParameter.GetParamType: TRttiType;
+var
+  context: TRttiContext;
+begin
+  context := TRttiContext.Create;
+  try
+    Result := context.GetType(FType);
+  finally
+    context.Free;
+  end;
+end;
+
+constructor TRttiMethodTypeParameter.Create(aHandle: Pointer; const aName: String; aFlags: TParamFlags; aType: PTypeInfo);
+begin
+  fHandle := aHandle;
+  fName := aName;
+  fFlags := aFlags;
+  fType := aType;
 end;
 
 { TRttiIntfMethod }
@@ -2233,6 +2318,199 @@ end;
 function TRttiMethod.GetParameters: specialize TArray<TRttiParameter>;
 begin
   Result := GetParameters(False);
+end;
+
+{ TRttiInvokableType }
+
+function TRttiInvokableType.GetParameters: specialize TArray<TRttiParameter>;
+begin
+  Result := GetParameters(False);
+end;
+
+{ TRttiMethodType }
+
+function TRttiMethodType.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
+type
+  TParamInfo = record
+    Handle: Pointer;
+    Flags: TParamFlags;
+    Name: String;
+  end;
+
+  PParamFlags = ^TParamFlags;
+  PCallConv = ^TCallConv;
+  PPPTypeInfo = ^PPTypeInfo;
+
+var
+  infos: array of TParamInfo;
+  total, visible, i: SizeInt;
+  ptr: PByte;
+  paramtypes: PPPTypeInfo;
+  context: TRttiContext;
+  obj: TRttiObject;
+begin
+  if aWithHidden and (Length(FParamsAll) > 0) then
+    Exit(FParamsAll);
+  if not aWithHidden and (Length(FParams) > 0) then
+    Exit(FParams);
+
+  ptr := @FTypeData^.ParamList[0];
+  visible := 0;
+  total := 0;
+
+  if FTypeData^.ParamCount > 0 then begin
+    SetLength(infos, FTypeData^.ParamCount);
+
+    while total < FTypeData^.ParamCount do begin
+      infos[total].Handle := ptr;
+      infos[total].Flags := PParamFlags(ptr)^;
+      Inc(ptr, SizeOf(TParamFlags));
+      { handle name }
+      infos[total].Name := PShortString(ptr)^;
+      Inc(ptr, ptr^ + SizeOf(Byte));
+      { skip type name }
+      Inc(ptr, ptr^ + SizeOf(Byte));
+      { align? }
+      if not (pfHidden in infos[total].Flags) then
+        Inc(visible);
+      Inc(total);
+    end;
+  end;
+
+  if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
+    { skip return type name }
+    ptr := AlignTypeData(PByte(ptr) + ptr^ + SizeOf(Byte));
+    { handle return type }
+    FReturnType := GRttiPool.GetType(PPPTypeInfo(ptr)^^);
+    Inc(ptr, SizeOf(PPTypeInfo));
+  end;
+
+  { handle calling convention }
+  FCallConv := PCallConv(ptr)^;
+  Inc(ptr, SizeOf(TCallConv));
+
+  SetLength(FParamsAll, FTypeData^.ParamCount);
+  SetLength(FParams, visible);
+
+  if FTypeData^.ParamCount > 0 then begin
+    context := TRttiContext.Create;
+    try
+      paramtypes := PPPTypeInfo(ptr);
+      visible := 0;
+      for i := 0 to FTypeData^.ParamCount - 1 do begin
+        obj := context.GetByHandle(infos[i].Handle);
+        if Assigned(obj) then
+          FParamsAll[i] := obj as TRttiMethodTypeParameter
+        else begin
+          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtypes[i]^);
+          context.AddObject(FParamsAll[i]);
+        end;
+
+        if not (pfHidden in infos[i].Flags) then begin
+          FParams[visible] := FParamsAll[i];
+          Inc(visible);
+        end;
+      end;
+    finally
+      context.Free;
+    end;
+  end;
+
+  if aWithHidden then
+    Result := FParamsAll
+  else
+    Result := FParams;
+end;
+
+function TRttiMethodType.GetCallingConvention: TCallConv;
+begin
+  { the calling convention is located after the parameters, so get the parameters
+    which will also initialize the calling convention }
+  GetParameters(True);
+  Result := FCallConv;
+end;
+
+function TRttiMethodType.GetReturnType: TRttiType;
+begin
+  if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
+    { the return type is located after the parameters, so get the parameters
+      which will also initialize the return type }
+    GetParameters(True);
+    Result := FReturnType;
+  end else
+    Result := Nil;
+end;
+
+{ TRttiProcedureType }
+
+function TRttiProcedureType.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
+var
+  visible, i: SizeInt;
+  param: PProcedureParam;
+  obj: TRttiObject;
+  context: TRttiContext;
+begin
+  if aWithHidden and (Length(FParamsAll) > 0) then
+    Exit(FParamsAll);
+  if not aWithHidden and (Length(FParams) > 0) then
+    Exit(FParams);
+
+  if FTypeData^.ProcSig.ParamCount = 0 then
+    Exit(Nil);
+
+  SetLength(FParamsAll, FTypeData^.ProcSig.ParamCount);
+  SetLength(FParams, FTypeData^.ProcSig.ParamCount);
+
+  context := TRttiContext.Create;
+  try
+    param := AlignTypeData(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
+    visible := 0;
+    for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
+      obj := context.GetByHandle(param);
+      if Assigned(obj) then
+        FParamsAll[i] := obj as TRttiMethodTypeParameter
+      else begin
+        FParamsAll[i] := TRttiMethodTypeParameter.Create(param, param^.Name, param^.ParamFlags, param^.ParamType);
+        context.AddObject(FParamsAll[i]);
+      end;
+
+      if not (pfHidden in param^.ParamFlags) then begin
+        FParams[visible] := FParamsAll[i];
+        Inc(visible);
+      end;
+
+      param := PProcedureParam(AlignTypeData(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+    end;
+
+    SetLength(FParams, visible);
+  finally
+    context.Free;
+  end;
+
+  if aWithHidden then
+    Result := FParamsAll
+  else
+    Result := FParams;
+end;
+
+function TRttiProcedureType.GetCallingConvention: TCallConv;
+begin
+  Result := FTypeData^.ProcSig.CC;
+end;
+
+function TRttiProcedureType.GetReturnType: TRttiType;
+var
+  context: TRttiContext;
+begin
+  if not Assigned(FTypeData^.ProcSig.ResultTypeRef) then
+    Exit(Nil);
+
+  context := TRttiContext.Create;
+  try
+    Result := context.GetType(FTypeData^.ProcSig.ResultTypeRef^);
+  finally
+    context.Free;
+  end;
 end;
 
 { TRttiStringType }

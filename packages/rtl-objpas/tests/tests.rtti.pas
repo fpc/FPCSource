@@ -70,6 +70,9 @@ type
 {$ifdef fpc}
     procedure TestInterfaceRaw;
 {$endif}
+
+    procedure TestProcVar;
+    procedure TestMethod;
   end;
 
 implementation
@@ -155,7 +158,11 @@ type
   TTestSet = set of TTestEnum;
 
   TTestProc = procedure;
+  TTestFunc1 = function: LongInt;
+  TTestFunc2 = function(aArg1: LongInt; aArg2: array of LongInt): String;
   TTestMethod = procedure of object;
+  TTestMethod1 = function: LongInt of object;
+  TTestMethod2 = function(aArg1: LongInt; aArg2: array of LongInt): String of object;
   TTestHelper = class helper for TObject
   end;
 
@@ -1548,6 +1555,111 @@ begin
     context.Free;
   end;
 end;
+
+procedure TTestCase1.TestProcVar;
+var
+  context: TRttiContext;
+  t: TRttiType;
+  p: TRttiProcedureType;
+  params: {$ifdef fpc}specialize{$endif} TArray<TRttiParameter>;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(PTypeInfo(TypeInfo(TTestProc)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
+
+    p := t as TRttiProcedureType;
+    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(not Assigned(p.ReturnType), 'Return type is assigned');
+    CheckEquals(0, Length(p.GetParameters), 'Procedure variable has parameters');
+
+    t := context.GetType(PTypeInfo(TypeInfo(TTestFunc1)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
+
+    p := t as TRttiProcedureType;
+    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(Assigned(p.ReturnType), 'Return type is not assigned');
+    //Check(p.ReturnType is TRttiOrdinalType, 'Return type is not an ordinal type');
+    CheckEquals(0, Length(p.GetParameters), 'Procedure variable has parameters');
+
+    t := context.GetType(PTypeInfo(TypeInfo(TTestFunc2)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
+
+    p := t as TRttiProcedureType;
+    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(Assigned(p.ReturnType), 'Return type is not assigned');
+    Check(p.ReturnType is TRttiStringType, 'Return type is not a string type');
+
+    params := p.GetParameters;
+    CheckEquals(2, Length(params), 'Procedure variable has incorrect amount of parameters');
+
+    Check(params[0].ParamType.TypeKind in [tkInteger, tkInt64], 'Parameter 1 is not an ordinal type');
+    //Check(params[0].ParamType is TRttiOrdinalType, 'Parameter 1 is not an ordinal type');
+    Check(pfArray in params[1].Flags, 'Parameter 2 is not an array');
+    Check(params[1].ParamType.TypeKind in [tkInteger, tkInt64], 'Parameter 2 is not an ordinal array');
+  finally
+    context.Free;
+  end;
+end;
+
+procedure TTestCase1.TestMethod;
+var
+  context: TRttiContext;
+  t: TRttiType;
+  m: TRttiMethodType;
+  params: {$ifdef fpc}specialize{$endif} TArray<TRttiParameter>;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(PTypeInfo(TypeInfo(TTestMethod)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiMethodType, 'Rtti Type is not a method type');
+
+    m := t as TRttiMethodType;
+    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(not Assigned(m.ReturnType), 'Return type is assigned');
+    CheckEquals(0, Length(m.GetParameters), 'Method variable has parameters');
+
+    t := context.GetType(PTypeInfo(TypeInfo(TTestMethod1)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiMethodType, 'Rtti Type is not a method type');
+
+    m := t as TRttiMethodType;
+    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(Assigned(m.ReturnType), 'Return type is not assigned');
+    //Check(p.ReturnType is TRttiOrdinalType, 'Return type is not an ordinal type');
+    CheckEquals(0, Length(m.GetParameters), 'Method variable has parameters');
+
+    t := context.GetType(PTypeInfo(TypeInfo(TTestMethod2)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiMethodType, 'Rtti Type is not a method type');
+
+    m := t as TRttiMethodType;
+    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(Assigned(m.ReturnType), 'Return type is not assigned');
+    Check(m.ReturnType is TRttiStringType, 'Return type is not a string type');
+
+    params := m.GetParameters;
+    CheckEquals(2, Length(params), 'Method variable has incorrect amount of parameters');
+
+    Check(params[0].ParamType.TypeKind in [tkInteger, tkInt64], 'Parameter 1 is not an ordinal type');
+    //Check(params[0].ParamType is TRttiOrdinalType, 'Parameter 1 is not an ordinal type');
+    Check(pfArray in params[1].Flags, 'Parameter 2 is not an array');
+    Check(params[1].ParamType.TypeKind in [tkInteger, tkInt64], 'Parameter 2 is not an ordinal array');
+  finally
+    context.Free;
+  end;
+end;
+
 {$endif}
 
 initialization
