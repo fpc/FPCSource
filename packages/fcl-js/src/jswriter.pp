@@ -517,26 +517,26 @@ function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
 
 Var
   I,J,L : Integer;
-  P : TJSPChar;
   R: TJSString;
+  c: Char;
 
 begin
   I:=1;
   J:=1;
   R:='';
   L:=Length(S);
-  P:=TJSPChar(S);
   While I<=L do
     begin
-    if (P^ in [#0..#31,'"','''','/','\']) then
+    c:=S[I];
+    if (c in [#0..#31,'"','''','/','\']) then
       begin
       R:=R+Copy(S,J,I-J);
-      Case P^ of
+      Case c of
         '\' : R:=R+'\\';
         '/' : R:=R+'\/';
         '"' : if Quote=jseqSingle then R:=R+'"' else R:=R+'\"';
         '''': if Quote=jseqDouble then R:=R+'''' else R:=R+'\''';
-        #0..#7,#11,#14..#31: R:=R+'\x'+TJSString(hexStr(ord(P^),2));
+        #0..#7,#11,#14..#31: R:=R+'\x'+TJSString(hexStr(ord(c),2));
         #8  : R:=R+'\b';
         #9  : R:=R+'\t';
         #10 : R:=R+'\n';
@@ -546,7 +546,6 @@ begin
       J:=I+1;
       end;
     Inc(I);
-    Inc(P);
     end;
   R:=R+Copy(S,J,I-1);
   Result:=R;
@@ -556,32 +555,36 @@ procedure TJSWriter.WriteValue(V: TJSValue);
 const
   TabWidth = 4;
 
-  function GetLineIndent(var p: PWideChar): integer;
+  function GetLineIndent(const S: TJSString; var p: integer): integer;
   var
-    h: PWideChar;
+    h, l: integer;
   begin
     h:=p;
+    l:=length(S);
     Result:=0;
-    repeat
-      case h^ of
-      #0: break;
+    while h<=l do
+      begin
+      case S[h] of
       #9: Result:=Result+(TabWidth-Result mod TabWidth);
       ' ': inc(Result);
       else break;
       end;
       inc(h);
-    until false;
+      end;
     p:=h;
   end;
 
-  function SkipToNextLineStart(p: PWideChar): PWideChar;
+  function SkipToNextLineStart(const S: TJSString; p: integer): integer;
+  var
+    l: Integer;
   begin
-    repeat
-      case p^ of
-      #0: break;
+    l:=length(S);
+    while p<=l do
+      begin
+      case S[p] of
       #10,#13:
         begin
-        if (p[1] in [#10,#13]) and (p^<>p[1]) then
+        if (p<l) and (S[p+1] in [#10,#13]) and (S[p]<>S[p+1]) then
           inc(p,2)
         else
           inc(p);
@@ -589,14 +592,14 @@ const
         end
       else inc(p);
       end;
-    until false;
+      end;
     Result:=p;
   end;
 
 Var
   S , S2: String;
   JS: TJSString;
-  p, StartP: PWideChar;
+  p, StartP: Integer;
   MinIndent, CurLineIndent, j, Exp, Code: Integer;
   i: SizeInt;
   D: TJSNumber;
@@ -606,8 +609,8 @@ begin
     JS:=V.CustomValue;
     if JS='' then exit;
 
-    p:=SkipToNextLineStart(PWideChar(JS));
-    if p^=#0 then
+    p:=SkipToNextLineStart(JS,1);
+    if p>length(JS) then
       begin
       // simple value
       Write(JS);
@@ -619,21 +622,21 @@ begin
     // find minimum indent
     MinIndent:=-1;
     repeat
-      CurLineIndent:=GetLineIndent(p);
+      CurLineIndent:=GetLineIndent(JS,p);
       if (MinIndent<0) or (MinIndent>CurLineIndent) then
         MinIndent:=CurLineIndent;
-      p:=SkipToNextLineStart(p);
-    until p^=#0;
+      p:=SkipToNextLineStart(JS,p);
+    until p>length(JS);
 
     // write value lines indented
-    p:=PWideChar(JS);
-    GetLineIndent(p); // the first line is already indented, skip
+    p:=1;
+    GetLineIndent(JS,p); // the first line is already indented, skip
     repeat
       StartP:=p;
-      p:=SkipToNextLineStart(StartP);
-      Write(copy(JS,StartP-PWideChar(JS)+1,p-StartP));
-      if p^=#0 then break;
-      CurLineIndent:=GetLineIndent(p);
+      p:=SkipToNextLineStart(JS,StartP);
+      Write(copy(JS,StartP,p-StartP));
+      if p>length(JS) then break;
+      CurLineIndent:=GetLineIndent(JS,p);
       Write(StringOfChar(FIndentChar,FCurIndent+CurLineIndent-MinIndent));
     until false;
 
@@ -655,8 +658,8 @@ begin
       end;
     jstNumber :
       if (Frac(V.AsNumber)=0)
-          and (V.AsNumber>double(low(int64)))
-          and (V.AsNumber<double(high(int64))) then
+          and (V.AsNumber>=double(MinSafeIntDouble))
+          and (V.AsNumber<=double(MaxSafeIntDouble)) then
         begin
         Str(Round(V.AsNumber),S);
         end
@@ -796,7 +799,7 @@ constructor TJSWriter.Create(AWriter: TTextWriter);
 begin
   FWriter:=AWriter;
   FIndentChar:=' ';
-  FOptions:=[woUseUTF8];
+  FOptions:=[{$ifdef fpc}woUseUTF8{$endif}];
 end;
 
 {$ifdef fpc}
@@ -918,13 +921,15 @@ end;
 
 procedure TJSWriter.WriteArrayLiteral(El: TJSArrayLiteral);
 
+type
+  BracketString = string{$ifdef fpc}[2]{$endif};
 Var
-  Chars : Array[Boolean] of string[2] = ('[]','()');
+  Chars : Array[Boolean] of BracketString = ('[]','()');
 
 Var
   i,C : Integer;
   isArgs,WC , MultiLine: Boolean;
-  BC : String[2];
+  BC : BracketString;
 
 begin
   isArgs:=El is TJSArguments;
@@ -1201,7 +1206,7 @@ end;
 procedure TJSWriter.WriteBinary(El: TJSBinary);
 
 Var
-  S : AnsiString;
+  S : String;
   AllowCompact, WithBrackets: Boolean;
 begin
   {$IFDEF VerboseJSWriter}
@@ -1278,7 +1283,7 @@ end;
 procedure TJSWriter.WriteAssignStatement(El: TJSAssignStatement);
 
 Var
-  S : AnsiString;
+  S : String;
 begin
   WriteJS(El.LHS);
   Writer.CurElement:=El;
@@ -1827,6 +1832,7 @@ begin
   FCurColumn:=1;
 end;
 
+{$ifdef fpc}
 function TTextWriter.Write(const S: UnicodeString): Integer;
 var
   p: PWideChar;
@@ -1859,38 +1865,35 @@ begin
     inc(p);
   until false;
 end;
+{$endif}
 
 function TTextWriter.Write(const S: TJSWriterString): Integer;
 var
-  p: PChar;
   c: Char;
+  l, p: Integer;
 begin
   if S='' then exit;
   Writing;
   Result:=DoWrite(S);
-  p:=PChar(S);
-  repeat
-    c:=p^;
+  l:=length(S);
+  p:=1;
+  while p<=l do
+    begin
+    c:=S[p];
     case c of
-    #0:
-      if p-PChar(S)=length(S) then
-        break
-      else
-        inc(FCurColumn);
     #10,#13:
       begin
       FCurColumn:=1;
       inc(FCurLine);
       inc(p);
-      if (p^ in [#10,#13]) and (c<>p^) then inc(p);
-      continue;
+      if (p<=l) and (S[p] in [#10,#13]) and (c<>S[p]) then inc(p);
       end;
     else
-      // ignore UTF-8 multibyte chars, CurColumn is char index, not codepoint
+      // Note about UTF-8 multibyte chars: CurColumn is char index, not codepoint
       inc(FCurColumn);
+      inc(p);
     end;
-    inc(p);
-  until false;
+    end;
 end;
 
 function TTextWriter.WriteLn(const S: TJSWriterString): Integer;
@@ -1933,7 +1936,7 @@ begin
     {$ifdef pas2js}
     case jsTypeOf(V) of
     'boolean':
-      S:=if V then S:='true' else S:='false';
+      if V then S:='true' else S:='false';
     'number':
       if isInteger(V) then
         S:=str(NativeInt(V))

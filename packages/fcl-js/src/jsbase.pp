@@ -25,6 +25,9 @@ uses
   {$endif}
   Classes, SysUtils;
 
+const
+  MinSafeIntDouble = -$10000000000000; // -4503599627370496
+  MaxSafeIntDouble =   $fffffffffffff; //  4503599627370495
 Type
   TJSType = (jstUNDEFINED,jstNull,jstBoolean,jstNumber,jstString,jstObject,jstReference,jstCompletion);
 
