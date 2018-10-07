@@ -5293,22 +5293,42 @@ reg16|32|64,regmem                    \320\333\2\x0F\xBC\110              BMI1,S
 ;********** BMI2 ***************************************************************
 ;*******************************************************************************
 
+[BZHI]
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
+reg32,rm32,reg32                      \362\371\1\xf5\76\110               BMI2,PROT
+reg64,rm64,reg64                      \362\363\371\1\xf5\76\110           BMI2,PROT,X86_64
+
+[MULX]
+(Ch_REDX, Ch_Rop1, Ch_Wop2, Ch_Wop3)
+reg32,reg32,rm32                      \334\362\371\1\xf6\75\120           BMI2,PROT
+reg64,reg64,rm64                      \334\362\363\371\1\xf6\75\120       BMI2,PROT,X86_64
+
+[PDEP]
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
+reg32,reg32,rm32                      \334\362\371\1\xf5\75\120           BMI2,PROT
+reg64,reg64,rm64                      \334\362\363\371\1\xf5\75\120       BMI2,PROT,X86_64
+
+[PEXT]
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
+reg32,reg32,rm32                      \333\362\371\1\xf5\75\120           BMI2,PROT
+reg64,reg64,rm64                      \333\362\363\371\1\xf5\75\120       BMI2,PROT,X86_64
+
 [RORX]
 (Ch_Rop1, Ch_Wop2)
-reg32,rm32,imm8                      \334\362\372\1\xf0\110\26            BMI2,PROT
-reg64,rm64,imm8                      \334\362\363\372\1\xf0\110\26        BMI2,PROT,X86_64
+reg32,rm32,imm8                       \334\362\372\1\xf0\110\26           BMI2,PROT
+reg64,rm64,imm8                       \334\362\363\372\1\xf0\110\26       BMI2,PROT,X86_64
 
 [SARX]
 (Ch_Rop1, Ch_Rop2, Ch_Wop3)
 reg32,rm32,reg32                      \333\362\371\1\xf7\76\110           BMI2,PROT
 reg64,rm64,reg64                      \333\362\363\371\1\xf7\76\110       BMI2,PROT,X86_64
 
-[SHLX]
+[SHLX]                                ; VEX.NDS.LZ.66.0F38.W0 F7 /r
 (Ch_Rop1, Ch_Rop2, Ch_Wop3)
 reg32,rm32,reg32                      \361\362\371\1\xf7\76\110           BMI2,PROT
 reg64,rm64,reg64                      \361\362\363\371\1\xf7\76\110       BMI2,PROT,X86_64
 
-[SHRX]
+[SHRX]                                ; VEX.NDS.LZ.F2.0F38.W0 F7 /r
 (Ch_Rop1, Ch_Rop2, Ch_Wop3)
 reg32,rm32,reg32                      \334\362\371\1\xf7\76\110           BMI2,PROT
 reg64,rm64,reg64                      \334\362\363\371\1\xf7\76\110       BMI2,PROT,X86_64

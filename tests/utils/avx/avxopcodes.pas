@@ -51,6 +51,14 @@ end;
 
 procedure TAVXTestGenerator.Init;
 begin
+  FOpCodeList.Add('BZHI,1,1,REG32,RM32,REG32,,');
+  FOpCodeList.Add('BZHI,1,1,REG64,RM64,REG64,,');
+  FOpCodeList.Add('MULX,1,1,REG32,REG32,RM32,,');
+  FOpCodeList.Add('MULX,1,1,REG64,REG64,RM64,,');
+  FOpCodeList.Add('PDEP,1,1,REG32,REG32,RM32,,');
+  FOpCodeList.Add('PDEP,1,1,REG64,REG64,RM64,,');
+  FOpCodeList.Add('PEXT,1,1,REG32,REG32,RM32,,');
+  FOpCodeList.Add('PEXT,1,1,REG64,REG64,RM64,,');
   FOpCodeList.Add('VADDPD,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VADDPD,1,1,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('VADDPS,1,1,XMMREG,XMMREG,XMMRM,');
