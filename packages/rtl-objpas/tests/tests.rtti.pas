@@ -52,6 +52,9 @@ type
     procedure TestMakeObject;
     procedure TestMakeArrayDynamic;
     procedure TestMakeArrayStatic;
+{$ifdef fpc}
+    procedure TestMakeArrayOpen;
+{$endif}
 
     procedure TestDataSize;
     procedure TestDataSizeEmpty;
@@ -59,6 +62,9 @@ type
     procedure TestReferenceRawDataEmpty;
 
     procedure TestIsManaged;
+{$ifdef fpc}
+    procedure TestOpenArrayToDyn;
+{$endif}
 
     procedure TestInterface;
 {$ifdef fpc}
@@ -392,6 +398,84 @@ begin
   CheckEquals(value.GetArrayElement(2).AsInteger, 84);
   CheckEquals(value.GetArrayElement(3).AsInteger, 63);
 end;
+
+{$ifdef fpc}
+procedure TTestCase1.TestMakeArrayOpen;
+
+  procedure TestOpenArrayValueCopy(aArr: array of LongInt);
+  var
+    value: TValue;
+  begin
+    TValue.MakeOpenArray(@aArr[0], Length(aArr), PTypeInfo(TypeInfo(aArr)), value);
+    CheckEquals(value.IsArray, True);
+    CheckEquals(value.IsOpenArray, True);
+    CheckEquals(value.IsObject, False);
+    CheckEquals(value.IsOrdinal, False);
+    CheckEquals(value.IsClass, False);
+    CheckEquals(value.GetArrayLength, 2);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+    value.SetArrayElement(0, 84);
+    { since this is an open array the original array is modified! }
+    CheckEquals(aArr[0], 84);
+  end;
+
+  procedure TestOpenArrayValueVar(var aArr: array of LongInt);
+  var
+    value: TValue;
+  begin
+    TValue.MakeOpenArray(@aArr[0], Length(aArr), PTypeInfo(TypeInfo(aArr)), value);
+    CheckEquals(value.IsArray, True);
+    CheckEquals(value.IsOpenArray, True);
+    CheckEquals(value.IsObject, False);
+    CheckEquals(value.IsOrdinal, False);
+    CheckEquals(value.IsClass, False);
+    CheckEquals(value.GetArrayLength, 2);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+    value.SetArrayElement(0, 84);
+    { since this is an open array the original array is modified! }
+    CheckEquals(aArr[0], 84);
+  end;
+
+  procedure TestOpenArrayValueOut(var aArr: array of LongInt);
+  var
+    value: TValue;
+  begin
+    TValue.MakeOpenArray(@aArr[0], Length(aArr), PTypeInfo(TypeInfo(aArr)), value);
+    CheckEquals(value.IsArray, True);
+    CheckEquals(value.IsOpenArray, True);
+    CheckEquals(value.IsObject, False);
+    CheckEquals(value.IsOrdinal, False);
+    CheckEquals(value.IsClass, False);
+    CheckEquals(value.GetArrayLength, 2);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+    value.SetArrayElement(0, 84);
+    value.SetArrayElement(1, 128);
+    { since this is an open array the original array is modified! }
+    CheckEquals(aArr[0], 84);
+    CheckEquals(aArr[1], 128);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 84);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 128);
+  end;
+
+var
+  arr: array of LongInt;
+begin
+  TestOpenArrayValueCopy([42, 21]);
+
+  arr := [42, 21];
+  TestOpenArrayValueVar(arr);
+  CheckEquals(arr[0], 84);
+  CheckEquals(arr[1], 21);
+
+  arr := [42, 21];
+  TestOpenArrayValueOut(arr);
+  CheckEquals(arr[0], 84);
+  CheckEquals(arr[1], 128);
+end;
+{$endif}
 
 procedure TTestCase1.TestGetIsReadable;
 var
@@ -1284,6 +1368,34 @@ begin
   CheckEquals(false, IsManaged(TypeInfo(Pointer)), 'IsManaged for tkPointer');
   CheckEquals(false, IsManaged(nil), 'IsManaged for nil');
 end;
+
+{$ifdef fpc}
+procedure TTestCase1.TestOpenArrayToDyn;
+
+  procedure OpenArrayProc(aArr: array of LongInt);
+  var
+    value: TValue;
+  begin
+{$ifndef InLazIDE}
+    value := specialize OpenArrayToDynArrayValue<LongInt>(aArr);
+{$endif}
+    CheckEquals(value.IsArray, True);
+    CheckEquals(value.IsOpenArray, False);
+    CheckEquals(value.IsObject, False);
+    CheckEquals(value.IsOrdinal, False);
+    CheckEquals(value.IsClass, False);
+    CheckEquals(value.GetArrayLength, 2);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 84);
+    value.SetArrayElement(0, 21);
+    { since this is a copy the original array is not modified! }
+    CheckEquals(aArr[0], 42);
+  end;
+
+begin
+  OpenArrayProc([42, 84]);
+end;
+{$endif}
 
 procedure TTestCase1.TestInterface;
 var

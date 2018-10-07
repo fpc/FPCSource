@@ -76,6 +76,8 @@ type
       14: (FAsSInt64: Int64);
       15: (FAsMethod: TMethod);
       16: (FAsPointer: Pointer);
+      { FPC addition for open arrays }
+      17: (FArrLength: SizeInt; FElSize: SizeInt);
   end;
 
   { TValue }
@@ -91,10 +93,15 @@ type
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
+    { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
+    class procedure MakeOpenArray(AArray: Pointer; ALength: SizeInt; ATypeInfo: PTypeInfo; out Result: TValue); static;
 {$ifndef NoGenericMethods}
     generic class function From<T>(constref aValue: T): TValue; static; inline;
+    { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
+    generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
 {$endif}
     function IsArray: boolean; inline;
+    function IsOpenArray: Boolean; inline;
     function AsString: string; inline;
     function AsUnicodeString: UnicodeString;
     function AsAnsiString: AnsiString;
@@ -435,6 +442,10 @@ function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallCon
 procedure FreeCallback(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
+
+{$ifndef InLazIDE}
+generic function OpenArrayToDynArrayValue<T>(constref aArray: array of T): TValue;
+{$endif}
 
 { these resource strings are needed by units implementing function call managers }
 resourcestring
@@ -793,6 +804,19 @@ begin
   else
     Result := false;
 end;
+
+{$ifndef InLazIDE}
+generic function OpenArrayToDynArrayValue<T>(constref aArray: array of T): TValue;
+var
+  arr: specialize TArray<T>;
+  i: SizeInt;
+begin
+  SetLength(arr, Length(aArray));
+  for i := 0 to High(aArray) do
+    arr[i] := aArray[i];
+  Result := TValue.specialize From<specialize TArray<T>>(arr);
+end;
+{$endif}
 
 { TRttiPointerType }
 
@@ -1467,10 +1491,47 @@ begin
   end;
 end;
 
+class procedure TValue.MakeOpenArray(AArray: Pointer; ALength: SizeInt; ATypeInfo: PTypeInfo; out Result: TValue);
+var
+  el: TValue;
+begin
+  Result.FData.FTypeInfo := ATypeInfo;
+  { resets the whole variant part; FValueData is already Nil }
+{$if SizeOf(TMethod) > SizeOf(QWord)}
+  Result.FData.FAsMethod.Code := Nil;
+  Result.FData.FAsMethod.Data := Nil;
+{$else}
+  Result.FData.FAsUInt64 := 0;
+{$endif}
+  if not Assigned(ATypeInfo) then
+    Exit;
+  if ATypeInfo^.Kind <> tkArray then
+    Exit;
+  if not Assigned(AArray) then
+    Exit;
+  if ALength < 0 then
+    Exit;
+  Result.FData.FValueData := TValueDataIntImpl.CreateRef(@AArray, ATypeInfo, False);
+  Result.FData.FArrLength := ALength;
+  Make(Nil, Result.TypeData^.ArrayData.ElType, el);
+  Result.FData.FElSize := el.DataSize;
+end;
+
 {$ifndef NoGenericMethods}
 generic class function TValue.From<T>(constref aValue: T): TValue;
 begin
   TValue.Make(@aValue, System.TypeInfo(T), Result);
+end;
+
+generic class function TValue.FromOpenArray<T>(constref aValue: array of T): TValue;
+var
+  arrdata: Pointer;
+begin
+  if Length(aValue) > 0 then
+    arrdata := @aValue[0]
+  else
+    arrdata := Nil;
+  TValue.MakeOpenArray(arrdata, Length(aValue), System.TypeInfo(aValue), Result);
 end;
 {$endif}
 
@@ -1584,6 +1645,14 @@ end;
 function TValue.IsArray: boolean;
 begin
   result := kind in [tkArray, tkDynArray];
+end;
+
+function TValue.IsOpenArray: Boolean;
+var
+  td: PTypeData;
+begin
+  td := TypeData;
+  Result := (Kind = tkArray) and (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0)
 end;
 
 function TValue.AsString: string;
@@ -1795,19 +1864,27 @@ begin
 end;
 
 function TValue.GetArrayLength: SizeInt;
+var
+  td: PTypeData;
 begin
   if not IsArray then
     raise EInvalidCast.Create(SErrInvalidTypecast);
   if Kind = tkDynArray then
     Result := DynArraySize(PPointer(FData.FValueData.GetReferenceToRawData)^)
-  else
-    Result := TypeData^.ArrayData.ElCount;
+  else begin
+    td := TypeData;
+    if (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0) then
+      Result := FData.FArrLength
+    else
+      Result := td^.ArrayData.ElCount;
+  end;
 end;
 
 function TValue.GetArrayElement(AIndex: SizeInt): TValue;
 var
   data: Pointer;
   eltype: PTypeInfo;
+  elsize: SizeInt;
   td: PTypeData;
 begin
   if not IsArray then
@@ -1818,7 +1895,15 @@ begin
   end else begin
     td := TypeData;
     eltype := td^.ArrayData.ElType;
-    data := PByte(FData.FValueData.GetReferenceToRawData) + AIndex * (td^.ArrayData.Size div td^.ArrayData.ElCount);
+    { open array? }
+    if (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0) then begin
+      data := PPointer(FData.FValueData.GetReferenceToRawData)^;
+      elsize := FData.FElSize
+    end else begin
+      data := FData.FValueData.GetReferenceToRawData;
+      elsize := td^.ArrayData.Size div td^.ArrayData.ElCount;
+    end;
+    data := PByte(data) + AIndex * elsize;
   end;
   { MakeWithoutCopy? }
   Make(data, eltype, Result);
@@ -1828,6 +1913,7 @@ procedure TValue.SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
 var
   data: Pointer;
   eltype: PTypeInfo;
+  elsize: SizeInt;
   td, tdv: PTypeData;
 begin
   if not IsArray then
@@ -1838,7 +1924,15 @@ begin
   end else begin
     td := TypeData;
     eltype := td^.ArrayData.ElType;
-    data := PByte(FData.FValueData.GetReferenceToRawData) + AIndex * (td^.ArrayData.Size div td^.ArrayData.ElCount);
+    { open array? }
+    if (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0) then begin
+      data := PPointer(FData.FValueData.GetReferenceToRawData)^;
+      elsize := FData.FElSize
+    end else begin
+      data := FData.FValueData.GetReferenceToRawData;
+      elsize := td^.ArrayData.Size div td^.ArrayData.ElCount;
+    end;
+    data := PByte(data) + AIndex * elsize;
   end;
   { maybe we'll later on allow some typecasts, but for now be restrictive }
   if eltype^.Kind <> AValue.Kind then
