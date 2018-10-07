@@ -193,7 +193,7 @@ type
     function GetTypeSize: integer; virtual;
     function GetBaseType: TRttiType; virtual;
   public
-    constructor create(ATypeInfo : PTypeInfo);
+    constructor Create(ATypeInfo : PTypeInfo);
     function GetProperties: specialize TArray<TRttiProperty>; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     function GetMethods: specialize TArray<TRttiMethod>; virtual;
@@ -247,7 +247,7 @@ type
   protected
     function GetVisibility: TMemberVisibility; virtual;
   public
-    constructor create(AParent: TRttiType);
+    constructor Create(AParent: TRttiType);
     property Visibility: TMemberVisibility read GetVisibility;
     property Parent: TRttiType read FParent;
   end;
@@ -265,7 +265,7 @@ type
     function GetName: string; override;
     function GetHandle: Pointer; override;
   public
-    constructor create(AParent: TRttiType; APropInfo: PPropInfo);
+    constructor Create(AParent: TRttiType; APropInfo: PPropInfo);
     function GetValue(Instance: pointer): TValue;
     procedure SetValue(Instance: pointer; const AValue: TValue);
     property PropertyType: TRttiType read GetPropertyType;
@@ -2299,9 +2299,9 @@ begin
   result := mvPublished;
 end;
 
-constructor TRttiMember.create(AParent: TRttiType);
+constructor TRttiMember.Create(AParent: TRttiType);
 begin
-  inherited create();
+  inherited Create();
   FParent := AParent;
 end;
 
@@ -2338,9 +2338,9 @@ begin
   Result := FPropInfo;
 end;
 
-constructor TRttiProperty.create(AParent: TRttiType; APropInfo: PPropInfo);
+constructor TRttiProperty.Create(AParent: TRttiType; APropInfo: PPropInfo);
 begin
-  inherited create(AParent);
+  inherited Create(AParent);
   FPropInfo := APropInfo;
 end;
 
@@ -2548,9 +2548,9 @@ begin
   Result := FTypeInfo;
 end;
 
-constructor TRttiType.create(ATypeInfo: PTypeInfo);
+constructor TRttiType.Create(ATypeInfo: PTypeInfo);
 begin
-  inherited create();
+  inherited Create();
   FTypeInfo:=ATypeInfo;
   if assigned(FTypeInfo) then
     FTypeData:=GetTypeData(ATypeInfo);
