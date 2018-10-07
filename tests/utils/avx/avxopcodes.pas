@@ -8,7 +8,7 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC, tfFasm);
+  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc);
 
   TAVXTestGenerator = class(TObject)
   private
@@ -59,6 +59,7 @@ begin
   FOpCodeList.Add('PDEP,1,1,REG64,REG64,RM64,,');
   FOpCodeList.Add('PEXT,1,1,REG32,REG32,RM32,,');
   FOpCodeList.Add('PEXT,1,1,REG64,REG64,RM64,,');
+
   FOpCodeList.Add('VADDPD,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VADDPD,1,1,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('VADDPS,1,1,XMMREG,XMMREG,XMMRM,');
@@ -828,8 +829,8 @@ var
 
     if aAsmList.Count > 0 then
     begin
-      aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, []));
-      aAsmList.AddStrings(aFooterList);
+      aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
+      aAsmList.AddStrings(StringReplace(aFooterList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
 
       aAsmList.SaveToFile(IncludeTrailingBackslash(aDestPath) + aOpCode + aFileExt);
     end;
@@ -934,6 +935,46 @@ begin
                    slFooter.Add('NOP');
 
                   slFooter.Add('  end;');
+                  slFooter.Add('end.');
+                end;
+         tfFPCInc: begin
+                  writeln(format('outputformat: fpc  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.pp';
+
+                  slHeader.Add('Program Test$$$OPCODE$$$;');
+                  slHeader.Add('{$asmmode intel}');
+                  slHeader.Add('{$warn 7102 off}');
+                  slHeader.Add('{$I $$$OPCODE$$$.inc}');
+                  slHeader.Add('Procedure Proc$$$OPCODE$$$;assembler;nostackframe;');
+                  slHeader.Add('  asm');
+
+                  for i := 1 to 10 do
+                   slHeader.Add(#9'NOP');
+
+                  for i := 1 to 10 do
+                   slFooter.Add(#9'NOP');
+
+                  slFooter.Add('  end;');
+                  slFooter.Add('procedure check(const id: string; const expected: array of byte; p: pointer);');
+                  slFooter.Add('var');
+                  slFooter.Add('  i : longint;');
+                  slFooter.Add('begin');
+                  slFooter.Add('  for i:=0 to high(expected) do');
+                  slFooter.Add('    if expected[i]<>pbyte(p)[i] then');
+                  slFooter.Add('      begin');
+                  slFooter.Add('        writeln(id, '' mismatch at offset $'',hexstr(i,4), '', expected=$'',hexstr(expected[i],2),'' actual=$'',hexstr(pbyte(p)[i],2));');
+                  slFooter.Add('        halt(1);');
+                  slFooter.Add('      end;');
+                  slFooter.Add('end;');
+
+                  slFooter.Add('begin');
+                  if aX64 then
+                    slFooter.Add('  check(''x86_64'',$$$OPCODE$$$,@Proc$$$OPCODE$$$);')
+                  else
+                    slFooter.Add('  check(''i386'',$$$OPCODE$$$,@Proc$$$OPCODE$$$);');
+                  slFooter.Add('  writeln(''ok'');');
                   slFooter.Add('end.');
                 end;
         tfNasm: begin

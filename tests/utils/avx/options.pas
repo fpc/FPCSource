@@ -84,6 +84,7 @@ begin
          'f': if sValue = 'fpc' then FOutputFormat := 'f'
                else if sValue = 'nasm' then FOutputFormat := 'n'
                else if sValue = 'fasm' then FOutputFormat := 'F'
+               else if sValue = 'fpcinc' then FOutputFormat := 'I'
                else IsInvalidParam := true;
          'p': if sValue = 'x8664' then
               begin
