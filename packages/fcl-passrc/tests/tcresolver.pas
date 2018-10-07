@@ -637,6 +637,7 @@ type
     Procedure TestPropertyArgs1;
     Procedure TestPropertyArgs2;
     Procedure TestPropertyArgsWithDefaultsFail;
+    Procedure TestPropertyArgs_StringConstDefault;
     Procedure TestProperty_Index;
     Procedure TestProperty_WrongTypeAsIndexFail;
     Procedure TestProperty_Option_ClassPropertyNonStatic;
@@ -10868,6 +10869,20 @@ begin
   Add('begin');
   CheckParserException('Property arguments can not have default values',
     PParser.nParserPropertyArgumentsCanNotHaveDefaultValues);
+end;
+
+procedure TTestResolver.TestPropertyArgs_StringConstDefault;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetItems(const s: string): byte; virtual; abstract;',
+  '    procedure SetItems(const s: string; b: byte); virtual; abstract;',
+  '    property Items[s: string]: byte read GetItems write SetItems;',
+  '  end;',
+  'begin']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProperty_Index;

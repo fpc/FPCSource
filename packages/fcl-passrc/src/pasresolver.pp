@@ -5711,6 +5711,7 @@ var
     ArgNo: Integer;
     PropArg, ProcArg: TPasArgument;
     PropArgResolved, ProcArgResolved: TPasResolverResult;
+    NeedCheckingAccess: Boolean;
   begin
     ArgNo:=0;
     while ArgNo<PropEl.Args.Count do
@@ -5723,10 +5724,23 @@ var
       inc(ArgNo);
 
       // check access: var, const, ...
+      NeedCheckingAccess:=false;
       if PropArg.Access<>ProcArg.Access then
-        RaiseMsg(20170216151808,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-          [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
-           AccessDescriptions[PropArg.Access]],ErrorEl);
+        begin
+
+        if (PropArg.Access in [argDefault, argConst])
+            and (ProcArg.Access in [argDefault, argConst]) then
+          begin
+          // passing an arg as default to const or const to default
+          if (PropArg.ArgType<>nil)
+              and (ProcArg.ArgType<>nil) then
+            NeedCheckingAccess:=true;
+          end;
+        if not NeedCheckingAccess then
+          RaiseMsg(20170216151808,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+            [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
+             AccessDescriptions[PropArg.Access]],ErrorEl);
+        end;
 
       // check argument type
       if PropArg.ArgType=nil then
@@ -5754,6 +5768,19 @@ var
           RaiseIncompatibleType(20170216151819,nIncompatibleTypeArgNo,
             [IntToStr(ArgNo)],ProcArgResolved.HiTypeEl,PropArgResolved.HiTypeEl,ErrorEl);
         end;
+
+        if NeedCheckingAccess then
+          begin
+          // passing an arg as default to const or const to default
+          // e.g.
+          //   function GetItems(const i: integer): byte;
+          //   property Items[i: integer]: byte read GetItems;
+          // => allowed for simple types
+          if not (PropArgResolved.BaseType in (btAllBooleans+btAllInteger+btAllStringAndChars+btAllFloats)) then
+            RaiseMsg(20181007181647,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+              [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
+               AccessDescriptions[PropArg.Access]],ErrorEl);
+          end;
       end;
 
     if IndexVal<>nil then
