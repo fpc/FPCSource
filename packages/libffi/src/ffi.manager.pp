@@ -70,6 +70,7 @@ begin
   New(Result);
   FillChar(Result^, SizeOf(Result), 0);
   Result^._type := _FFI_TYPE_STRUCT;
+  Result^.elements := Nil;
   curoffset := 0;
   curindex := 0;
   field := PManagedField(PByte(@td^.TotalFieldCount) + SizeOf(td^.TotalFieldCount));
@@ -144,6 +145,7 @@ begin
     Exit(Nil);
   New(Result);
   Result^._type := _FFI_TYPE_STRUCT;
+  Result^.elements := Nil;
   curindex := 0;
   SetLength(elements, aSize);
   while aSize >= SizeOf(QWord) do begin
