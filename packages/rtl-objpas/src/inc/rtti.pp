@@ -197,6 +197,7 @@ type
     function GetProperties: specialize TArray<TRttiProperty>; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     function GetMethods: specialize TArray<TRttiMethod>; virtual;
+    function GetMethod(const aName: String): TRttiMethod; virtual;
     function GetDeclaredMethods: specialize TArray<TRttiMethod>; virtual;
     property IsInstance: boolean read GetIsInstance;
     property isManaged: boolean read GetIsManaged;
@@ -2606,6 +2607,18 @@ begin
   fMethods := Concat(parentmethods, selfmethods);
 
   Result := fMethods;
+end;
+
+function TRttiType.GetMethod(const aName: String): TRttiMethod;
+var
+  methods: specialize TArray<TRttiMethod>;
+  method: TRttiMethod;
+begin
+  methods := GetMethods;
+  for method in methods do
+    if SameText(method.Name, AName) then
+      Exit(method);
+  Result := Nil;
 end;
 
 function TRttiType.GetDeclaredMethods: specialize TArray<TRttiMethod>;
