@@ -303,6 +303,7 @@ type
     function GetParameters: specialize TArray<TRttiParameter>; inline;
     property CallingConvention: TCallConv read GetCallingConvention;
     property ReturnType: TRttiType read GetReturnType;
+    function Invoke(const aProcOrMeth: TValue; const aArgs: array of TValue): TValue; virtual; abstract;
   end;
 
   TRttiMethodType = class(TRttiInvokableType)
@@ -314,6 +315,8 @@ type
     function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
     function GetCallingConvention: TCallConv; override;
     function GetReturnType: TRttiType; override;
+  public
+    function Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue; override;
   end;
 
   TRttiProcedureType = class(TRttiInvokableType)
@@ -323,6 +326,8 @@ type
     function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
     function GetCallingConvention: TCallConv; override;
     function GetReturnType: TRttiType; override;
+  public
+    function Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue; override;
   end;
 
   TDispatchKind = (
@@ -365,6 +370,9 @@ type
     property VirtualIndex: SmallInt read GetVirtualIndex;
     function ToString: String; override;
     function GetParameters: specialize TArray<TRttiParameter>; inline;
+    function Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
+    function Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
+    function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue;
   end;
 
   TRttiStructuredType = class(TRttiType)
@@ -631,11 +639,27 @@ resourcestring
   SErrInvalidTypecast         = 'Invalid class typecast';
   SErrRttiObjectNoHandle      = 'RTTI object instance has no valid handle property';
   SErrRttiObjectAlreadyRegistered = 'A RTTI object with handle 0x%x is already registered';
+  SErrInvokeInsufficientRtti  = 'Insufficient RTTI to invoke function';
+  SErrInvokeStaticNoSelf      = 'Static function must not be called with in an instance: %s';
+  SErrInvokeNotStaticNeedsSelf = 'Non static function must be called with an instance: %s';
+  SErrInvokeClassMethodClassSelf = 'Class method needs to be called with a class type: %s';
+  SErrInvokeArrayArgExpected  = 'Array argument expected for parameter %s of method %s';
+  SErrInvokeArgInvalidType    = 'Invalid type of argument for parameter %s of method %s';
+  SErrInvokeArgCount          = 'Invalid argument count for method %s; expected %d, but got %d';
+  SErrInvokeNoCodeAddr        = 'Failed to determine code address for method: %s';
+  SErrInvokeRttiDataError     = 'The RTTI data is inconsistent for method: %s';
+  SErrInvokeCallableNotProc   = 'The callable value is not a procedure variable for: %s';
+  SErrInvokeCallableNotMethod = 'The callable value is not a method variable for: %s';
 
 var
   PoolRefCount : integer;
   GRttiPool    : TRttiPool;
   FuncCallMgr: TFunctionCallManagerArray;
+
+function CCToStr(aCC: TCallConv): String; inline;
+begin
+  WriteStr(Result, aCC);
+end;
 
 procedure NoInvoke(aCodeAddress: CodePointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
             aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
@@ -799,6 +823,108 @@ begin
     Result := TValue.Empty;
 
   FuncCallMgr[aCallConv].Invoke(aCodeAddress, funcargs, aCallConv, aResultType, Result.GetReferenceToRawData, flags);
+end;
+
+function Invoke(const aName: String; aCodeAddress: CodePointer; aCallConv: TCallConv; aStatic: Boolean; aInstance: TValue; constref aArgs: array of TValue; const aParams: specialize TArray<TRttiParameter>; aReturnType: TRttiType): TValue;
+var
+  arrparam, param: TRttiParameter;
+  unhidden, highs, i: SizeInt;
+  args: TFunctionCallParameterArray;
+  highargs: array of SizeInt;
+  restype: PTypeInfo;
+  resptr: Pointer;
+  mgr: TFunctionCallManager;
+  flags: TFunctionCallFlags;
+begin
+  mgr := FuncCallMgr[aCallConv];
+  if not Assigned(mgr.Invoke) then
+    raise EInvocationError.CreateFmt(SErrCallConvNotSupported, [CCToStr(aCallConv)]);
+
+  if not Assigned(aCodeAddress) then
+    raise EInvocationError.CreateFmt(SErrInvokeNoCodeAddr, [aName]);
+
+  unhidden := 0;
+  highs := 0;
+  for param in aParams do begin
+    if unhidden < Length(aArgs) then begin
+      if pfArray in param.Flags then begin
+        if Assigned(aArgs[unhidden].TypeInfo) and not aArgs[unhidden].IsArray and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
+          raise EInvocationError.CreateFmt(SErrInvokeArrayArgExpected, [param.Name, aName]);
+      end else if not (pfHidden in param.Flags) then begin
+        if aArgs[unhidden].Kind <> param.ParamType.TypeKind then
+          raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, [param.Name, aName]);
+      end;
+    end;
+    if not (pfHidden in param.Flags) then
+      Inc(unhidden);
+    if pfHigh in param.Flags then
+      Inc(highs);
+  end;
+
+  if unhidden <> Length(aArgs) then
+    raise EInvocationError.CreateFmt(SErrInvokeArgCount, [aName, unhidden, Length(aArgs)]);
+
+  if Assigned(aReturnType) then begin
+    TValue.Make(Nil, aReturnType.FTypeInfo, Result);
+    resptr := Result.GetReferenceToRawData;
+    restype := aReturnType.FTypeInfo;
+  end else begin
+    Result := TValue.Empty;
+    resptr := Nil;
+    restype := Nil;
+  end;
+
+  SetLength(highargs, highs);
+  SetLength(args, Length(aParams));
+  unhidden := 0;
+  highs := 0;
+
+  for i := 0 to High(aParams) do begin
+    param := aParams[i];
+    args[i].Info.ParamType := param.ParamType.FTypeInfo;
+    args[i].Info.ParamFlags := param.Flags;
+    args[i].Info.ParaLocs := Nil;
+
+    if pfHidden in param.Flags then begin
+      if pfSelf in param.Flags then
+        args[i].ValueRef := aInstance.GetReferenceToRawData
+      else if pfResult in param.Flags then begin
+        if not Assigned(restype) then
+          raise EInvocationError.CreateFmt(SErrInvokeRttiDataError, [aName]);
+        args[i].ValueRef := resptr;
+        restype := Nil;
+        resptr := Nil;
+      end else if pfHigh in param.Flags then begin
+        { the corresponding array argument is the *previous* unhidden argument }
+        if aArgs[unhidden - 1].IsArray then
+          highargs[highs] := aArgs[unhidden - 1].GetArrayLength - 1
+        else if not Assigned(aArgs[unhidden - 1].TypeInfo) then
+          highargs[highs] := -1
+        else
+          highargs[highs] := 0;
+        args[i].ValueRef := @highargs[highs];
+        Inc(highs);
+      end;
+    end else begin
+      if (pfArray in param.Flags) then begin
+        if not Assigned(aArgs[unhidden].TypeInfo) then
+          args[i].ValueRef := Nil
+        else if aArgs[unhidden].Kind = tkDynArray then
+          args[i].ValueRef := PPointer(aArgs[unhidden].GetReferenceToRawData)^
+        else
+          args[i].ValueRef := aArgs[unhidden].GetReferenceToRawData;
+      end else
+        args[i].ValueRef := aArgs[unhidden].GetReferenceToRawData;
+
+      Inc(unhidden);
+    end;
+  end;
+
+  flags := [];
+  if aStatic then
+    Include(flags, fcfStatic);
+
+  mgr.Invoke(aCodeAddress, args, aCallConv, restype, resptr, flags);
 end;
 
 function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
@@ -2324,6 +2450,54 @@ begin
   Result := GetParameters(False);
 end;
 
+function TRttiMethod.Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
+var
+  instance: TValue;
+begin
+  TValue.Make(@aInstance, TypeInfo(TObject), instance);
+  Result := Invoke(instance, aArgs);
+end;
+
+function TRttiMethod.Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
+var
+  instance: TValue;
+begin
+  TValue.Make(@aInstance, TypeInfo(TClass), instance);
+  Result := Invoke(instance, aArgs);
+end;
+
+function TRttiMethod.Invoke(aInstance: TValue; const aArgs: array of TValue): TValue;
+var
+  addr: CodePointer;
+  vmt: PCodePointer;
+begin
+  if not HasExtendedInfo then
+    raise EInvocationError.Create(SErrInvokeInsufficientRtti);
+
+  if IsStatic and not aInstance.IsEmpty then
+    raise EInvocationError.CreateFmt(SErrInvokeStaticNoSelf, [Name]);
+
+  if not IsStatic and aInstance.IsEmpty then
+    raise EInvocationError.CreateFmt(SErrInvokeNotStaticNeedsSelf, [Name]);
+
+  if not IsStatic and IsClassMethod and not aInstance.IsClass then
+    raise EInvocationError.CreateFmt(SErrInvokeClassMethodClassSelf, [Name]);
+
+  addr := Nil;
+  if IsStatic then
+    addr := CodeAddress
+  else begin
+    vmt := Nil;
+    if aInstance.Kind in [tkInterface, tkInterfaceRaw] then
+      vmt := PCodePointer(PPPointer(aInstance.GetReferenceToRawData)^^);
+    { ToDo }
+    if Assigned(vmt) then
+      addr := vmt[VirtualIndex];
+  end;
+
+  Result := Rtti.Invoke(Name, addr, CallingConvention, IsStatic, aInstance, aArgs, GetParameters(True), ReturnType);
+end;
+
 { TRttiInvokableType }
 
 function TRttiInvokableType.GetParameters: specialize TArray<TRttiParameter>;
@@ -2445,6 +2619,22 @@ begin
     Result := Nil;
 end;
 
+function TRttiMethodType.Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue;
+var
+  method: PMethod;
+  inst: TValue;
+begin
+  if aCallable.Kind <> tkMethod then
+    raise EInvocationError.CreateFmt(SErrInvokeCallableNotMethod, [Name]);
+
+  method := PMethod(aCallable.GetReferenceToRawData);
+
+  { by using a pointer we can also use this for non-class instance methods }
+  TValue.Make(@method^.Data, PTypeInfo(TypeInfo(Pointer)), inst);
+
+  Result := Rtti.Invoke(Name, method^.Code, CallingConvention, False, inst, aArgs, GetParameters(True), ReturnType);
+end;
+
 { TRttiProcedureType }
 
 function TRttiProcedureType.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
@@ -2515,6 +2705,14 @@ begin
   finally
     context.Free;
   end;
+end;
+
+function TRttiProcedureType.Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue;
+begin
+  if aCallable.Kind <> tkProcVar then
+    raise EInvocationError.CreateFmt(SErrInvokeCallableNotProc, [Name]);
+
+  Result := Rtti.Invoke(Name, PCodePointer(aCallable.GetReferenceToRawData)^, CallingConvention, True, TValue.Empty, aArgs, GetParameters(True), ReturnType);
 end;
 
 { TRttiStringType }
