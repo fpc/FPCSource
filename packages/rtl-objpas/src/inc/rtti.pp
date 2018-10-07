@@ -1949,9 +1949,13 @@ end;
 function TValue.ToString: String;
 begin
   case Kind of
+    tkWString,
+    tkUString : result := AsUnicodeString;
     tkSString,
-    tkAString : result := AsString;
+    tkAString : result := AsAnsiString;
     tkInteger : result := IntToStr(AsInteger);
+    tkQWord   : result := IntToStr(AsUInt64);
+    tkInt64   : result := IntToStr(AsInt64);
     tkBool    : result := BoolToStr(AsBoolean, True);
   else
     result := '';
