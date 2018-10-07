@@ -1122,7 +1122,6 @@ end;
 
 function ProcTest5: AnsiString;
 begin
-  Writeln('Result @ ', HexStr(@Result));
   Result := TTestInterfaceClass.ProcVarInst.Test5;
 end;
 
@@ -1378,9 +1377,7 @@ begin
     for i := 0 to High(input) do
       input[i] := CopyValue(aInputArgs[i]);
 
-    writeln('calling ', name);
     res := proc.Invoke(callable, aInputArgs);
-    writeln('called ', name);
     CheckEquals(aIndex, cls.CalledMethod, 'Wrong method called for ' + name);
     Check(EqualValues(cls.ResultValue, res), 'Reported result value differs from returned for ' + name);
     Check(EqualValues(aResult, res), 'Expected result value differs from returned for ' + name);
@@ -1705,7 +1702,6 @@ procedure TTestInvoke.TestProcVarsRecs;
 var
   cls: TTestInterfaceClass;
 begin
-  try
   cls := TTestInterfaceClass.Create;
   try
     {$ifdef fpc}specialize{$endif} GenDoProcVarInvoke<TProcVarTestRecSize1>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize1, 1 or TTestInterfaceClass.RecSizeMarker,
@@ -1749,10 +1745,6 @@ begin
       {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord10>(True));
   finally
     cls.Free;
-  end;
-  except
-    DumpExceptionBacktrace(output);
-    raise;
   end;
 end;
 
