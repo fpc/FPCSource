@@ -157,6 +157,7 @@ function TypeInfoToFFIType(aTypeInfo: PTypeInfo): pffi_type;
 
   function TypeKindName: String;
   begin
+    Result := '';
     WriteStr(Result, aTypeInfo^.Kind);
   end;
 
