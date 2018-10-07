@@ -319,6 +319,7 @@ type
     function GetMethodKind: TMethodKind; virtual; abstract;
     function GetReturnType: TRttiType; virtual; abstract;
     function GetVirtualIndex: SmallInt; virtual; abstract;
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; virtual; abstract;
   public
     property CallingConvention: TCallConv read GetCallingConvention;
     property CodeAddress: CodePointer read GetCodeAddress;
@@ -332,7 +333,7 @@ type
     property ReturnType: TRttiType read GetReturnType;
     property VirtualIndex: SmallInt read GetVirtualIndex;
     function ToString: String; override;
-    function GetParameters: specialize TArray<TRttiParameter>; virtual; abstract;
+    function GetParameters: specialize TArray<TRttiParameter>; inline;
   end;
 
   TRttiStructuredType = class(TRttiType)
@@ -558,7 +559,7 @@ type
   private
     FIntfMethodEntry: PIntfMethodEntry;
     FIndex: SmallInt;
-    FParams: specialize TArray<TRttiParameter>;
+    FParams, FParamsAll: specialize TArray<TRttiParameter>;
   protected
     function GetHandle: Pointer; override;
     function GetName: String; override;
@@ -573,9 +574,9 @@ type
     function GetMethodKind: TMethodKind; override;
     function GetReturnType: TRttiType; override;
     function GetVirtualIndex: SmallInt; override;
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
   public
     constructor Create(AParent: TRttiType; AIntfMethodEntry: PIntfMethodEntry; AIndex: SmallInt);
-    function GetParameters: specialize TArray<TRttiParameter>; override;
   end;
 
 resourcestring
@@ -1295,20 +1296,23 @@ begin
   FIndex := AIndex;
 end;
 
-function TRttiIntfMethod.GetParameters: specialize TArray<TRttiParameter>;
+function TRttiIntfMethod.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
 var
   param: PVmtMethodParam;
   total, visible: SizeInt;
   context: TRttiContext;
   obj: TRttiObject;
 begin
-  if Length(FParams) > 0 then
+  if aWithHidden and (Length(FParamsAll) > 0) then
+    Exit(FParamsAll);
+  if not aWithHidden and (Length(FParams) > 0) then
     Exit(FParams);
 
   if FIntfMethodEntry^.ParamCount = 0 then
     Exit(Nil);
 
   SetLength(FParams, FIntfMethodEntry^.ParamCount);
+  SetLength(FParamsAll, FIntfMethodEntry^.ParamCount);
 
   context := TRttiContext.Create;
   try
@@ -1316,14 +1320,16 @@ begin
     visible := 0;
     param := FIntfMethodEntry^.Param[0];
     while total < FIntfMethodEntry^.ParamCount do begin
+      obj := context.GetByHandle(param);
+      if Assigned(obj) then
+        FParamsAll[total] := obj as TRttiVmtMethodParameter
+      else begin
+        FParamsAll[total] := TRttiVmtMethodParameter.Create(param);
+        context.AddObject(FParamsAll[total]);
+      end;
+
       if not (pfHidden in param^.Flags) then begin
-        obj := context.GetByHandle(param);
-        if Assigned(obj) then
-          FParams[visible] := obj as TRttiVmtMethodParameter
-        else begin
-          FParams[visible] := TRttiVmtMethodParameter.Create(param);
-          context.AddObject(FParams[visible]);
-        end;
+        FParams[visible] := FParamsAll[total];
         Inc(visible);
       end;
 
@@ -1331,12 +1337,16 @@ begin
       Inc(total);
     end;
 
-    SetLength(FParams, visible);
+    if visible <> total then
+      SetLength(FParams, visible);
   finally
     context.Free;
   end;
 
-  Result := FParams;
+  if aWithHidden then
+    Result := FParamsAll
+  else
+    Result := FParams;
 end;
 
 { TRttiFloatType }
@@ -2218,6 +2228,11 @@ begin
   end;
 
   Result := FString;
+end;
+
+function TRttiMethod.GetParameters: specialize TArray<TRttiParameter>;
+begin
+  Result := GetParameters(False);
 end;
 
 { TRttiStringType }
