@@ -41,6 +41,7 @@ Linux-mips : gcc (Debian 4.4.5-8) 4.4.5
 Android-arm    : GCC 4.7
 Android-i386   : GCC 4.7
 Android-mipsel : GCC 4.7
+Android-aarch64 : GCC 4.9
 haiku-i386 : gcc 2.95.3-haiku-100818
 aix-powerpc64 : gcc (GCC) 4.8.1 using "gcc -maix64" for TEST_CCOMPILER
                 on (AIX power-aix 1 7 00F84C0C4C00)
