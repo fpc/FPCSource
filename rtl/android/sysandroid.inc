@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2015 by Yury Sidorov,
+    Copyright (c) 2015-2018 by Yuriy Sydorov,
     member of the Free Pascal development team.
 
     Android-specific part of the System unit.
@@ -12,6 +12,70 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  **********************************************************************}
+
+var
+  __stkptr : Pointer; public name '__stkptr';
+  operatingsystem_parameter_envp : Pointer; public name 'operatingsystem_parameter_envp';
+  operatingsystem_parameter_argc : LongInt; public name 'operatingsystem_parameter_argc';
+  operatingsystem_parameter_argv : Pointer; public name 'operatingsystem_parameter_argv';
+
+  _environ: pointer external name 'environ';
+
+procedure CommonMainAndroid;
+const
+  EmptyEnv: array[0..2] of PAnsiChar = (nil, nil, nil);
+  EmptyCmdLine: array[0..0] of PAnsiChar = ( '' );
+var
+  i: longint;
+  p: PPAnsiChar;
+begin
+  // Get the current stack pointer, adjust and save it
+  __stkptr:=pointer(ptruint(Sptr) or $FFFF);
+  // Get the environment from the environ variable of libc
+  p:=_environ;
+  if p = nil then
+    operatingsystem_parameter_envp:=@EmptyEnv
+  else
+    begin
+      operatingsystem_parameter_envp:=p;
+      // Finding argc and argv. They are placed before envp
+      Dec(p);
+      if p^ = nil then
+        begin
+          i:=0;
+          while i < 200 do
+            begin
+              Dec(p);
+              if ptrint(p^) = i then
+                begin
+                  // argc found
+                  operatingsystem_parameter_argc:=i;
+                  operatingsystem_parameter_argv:=p + 1;
+                  break;
+                end;
+              Inc(i);
+            end;
+        end;
+    end;
+
+  if operatingsystem_parameter_argc = 0 then
+    begin
+      // argc and argv are not available
+      operatingsystem_parameter_argc:=1;
+      operatingsystem_parameter_argv:=@EmptyCmdLine;
+    end;
+end;
+
+// ************* Program startup code
+
+procedure ProgMainAndroid; cdecl; [public, alias:'FPC_PROG_START_ANDROID'];
+begin
+  CommonMainAndroid;
+end;
+
+// ************* Shared library startup code
+
+procedure LibMainAndroid; external name 'FPC_LIB_MAIN_ANDROID';
 
 procedure atexit(p: pointer); cdecl; external;
 
@@ -44,8 +108,15 @@ begin
     end;
 end;
 
-procedure SysInitAndroidLib; [public, alias:'FPC_LIB_INIT_ANDROID'];
+// This procedure is called first when a shared library is loaded
+
+procedure AndroidLibStart; cdecl; [public, alias:'FPC_LIB_START_ANDROID'];
 begin
+  CommonMainAndroid;
+  // Call main code FPC_LIB_MAIN_ANDROID of the library.
+  // It points either to a standard PASCALMAIN or FPC_JNI_LIB_MAIN_ANDROID if JNI_OnLoad is exported by the library
+  // The linker makes all the magic.
+  LibMainAndroid;
   { Starting from Android 4.4 stdio handles are closed by libc prior to calling
     finalization routines of shared libraries. This causes a error while trying to
     writeln during library finalization and finally a crash because the error can
@@ -58,6 +129,38 @@ begin
   // Register the finalization routine
   atexit(@SysAndroidLibExit);
 end;
+
+// ************* JNI init
+
+function JNI_OnLoad_Real(vm: pointer; reserved: pointer): longint;{$ifdef windows} stdcall {$else} cdecl {$endif}; external name 'FPC_JNI_ON_LOAD';
+procedure PascalMain; external name 'PASCALMAIN';
+
+// This proxy function is called when JVM calls the JNI_OnLoad() exported function
+function JNI_OnLoad_Proxy(vm: pointer; reserved: pointer): longint;{$ifdef windows} stdcall {$else} cdecl {$endif}; [public, alias:'FPC_JNI_ON_LOAD_PROXY'];
+begin
+  IsJniLibrary:=True;
+  // Call library initialization
+  PascalMain;
+  // Call user's JNI_OnLoad().
+  Result:=JNI_OnLoad_Real(vm, reserved);
+end;
+
+// This procedure is called instead of library initialization when JNI_OnLoad is exported
+procedure JniLibMain; [public, alias:'FPC_JNI_LIB_MAIN_ANDROID'];
+begin
+  // Must be empty.
+end;
+
+// ************* haltproc
+
+procedure _exit(e:longint); cdecl; external name 'exit';
+
+procedure _haltproc(e:longint);cdecl; [public, alias: {$if defined(CPUARM) and defined(FPC_ABI_EABI)}  '_haltproc_eabi' {$else} '_haltproc' {$endif}];
+begin
+  _exit(e);
+end;
+
+// ************* Misc functions
 
 function __system_property_get(name:Pchar; value:Pchar):longint;cdecl;external 'c' name '__system_property_get';
 
@@ -204,27 +307,6 @@ begin
   if len = High(DefaultLogTag) then
     Dec(len);
   DefaultLogTag[len + 1]:=#0;
-end;
-
-// ************* JNI init
-
-function JNI_OnLoad_Real(vm: pointer; reserved: pointer): longint;{$ifdef windows} stdcall {$else} cdecl {$endif}; external name 'FPC_JNI_ON_LOAD';
-procedure PascalMain; external name 'PASCALMAIN';
-
-// This proxy function is called when JVM calls the JNI_OnLoad() exported function
-function JNI_OnLoad_Proxy(vm: pointer; reserved: pointer): longint;{$ifdef windows} stdcall {$else} cdecl {$endif}; [public, alias:'FPC_JNI_ON_LOAD_PROXY'];
-begin
-  IsJniLibrary:=True;
-  // Call library initialization
-  PascalMain;
-  // Call user's JNI_OnLoad().
-  Result:=JNI_OnLoad_Real(vm, reserved);
-end;
-
-// This procedure is called instead of library initialization when JNI_OnLoad is exported
-procedure JniLibMain; [public, alias:'FPC_JNI_LIB_MAIN_ANDROID'];
-begin
-  // Must be empty.
 end;
 
 // ************* System init

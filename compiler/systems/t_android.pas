@@ -169,7 +169,7 @@ begin
    begin
      { Specify correct max-page-size and common-page-size to prevent big gaps between sections in resulting executable }
      s:='ld -z max-page-size=0x1000 -z common-page-size=0x1000 -z noexecstack -z now $OPT -L. -T $RES -o $EXE';
-     ExeCmd[1]:=s + ' --entry=_fpc_start';
+     ExeCmd[1]:=s + ' --entry=_start';
      DllCmd[1]:=s + ' -shared -soname $SONAME';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';

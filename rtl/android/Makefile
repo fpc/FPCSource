@@ -3753,10 +3753,15 @@ endif
 ifeq ($(ARCH),mipsel)
   ASTARGET=-mips32 -KPIC
 endif
-prt0$(OEXT) : $(ARCH)/prt0.as
-	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
-dllprt0$(OEXT) : $(ARCH)/dllprt0.as
-	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
+ifneq ($(findstring $(ARCH),aarch64 x86_64),)
+  CPUBITS=64
+else
+  CPUBITS=32
+endif
+prt0$(OEXT) : prt0.as
+	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) --defsym CPU$(CPUBITS)=1 prt0.as
+dllprt0$(OEXT) : dllprt0.as
+	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) --defsym CPU$(CPUBITS)=1 dllprt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
