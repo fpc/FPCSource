@@ -123,12 +123,18 @@ Function BuildMethodDefinition(Liste: ParametersMethod1;NumI :Integer):String;
 //Build the definition of  method
 var
   Definition: String;
-  i: integer;
+  i, v: integer;
 begin
  Result:='';
  Definition := '(';
+ v := 0;
  For i:= 1 to NumI do
  begin
+  if pfHidden in Liste.AMat[I].Flags
+   then Continue;
+  Inc(v);
+  if v>0
+   then Definition := Definition + '; ';
   if pfVar in Liste.AMat[I].Flags
    then Definition := Definition+('var ');
   if pfconst in Liste.AMat[I].Flags
@@ -143,8 +149,8 @@ begin
    then Definition := Definition+('out ');
 
   Definition := Format('%s%s: %s', [Definition, Liste.AMat[I].ParamName, Liste.AMat[I].TypeName]);
-  If I<NumI
-   then Definition := Definition + '; '
+  {If I<NumI
+   then Definition := Definition + '; '}
  end;
   Definition := Definition + ')';
 
@@ -200,7 +206,7 @@ var
  OrdinalValue,
    CurrentParamPosition,
    ParamNameLength,
-   i, j         : integer;
+   i, j, v      : integer;
    ParamName,
    TypeName     : string;
    TypeData     : PTypeData;
@@ -272,6 +278,7 @@ begin
         Definition:='(';
 //              Definition := Definition+'(';
         CurrentParamPosition := 0;
+        v := 0;
         for i:= 1 to DTypeData^.ParamCount do
           begin
             { First Handle the ParamFlag }
@@ -280,18 +287,23 @@ begin
            writeln('ord(Flags):',ord(DTypeData^.ParamList[CurrentParamPosition]));
 //         For i:= 1 to NumI do
 //         begin
-            if pfVar in Flags
-             then Definition := Definition+('var ');
-            if pfconst in Flags
-             then Definition := Definition+('const ');
-            if pfArray in Flags
-             then Definition := Definition+('array of ');
-            if pfAddress in Flags
-             then Definition := Definition+('adresse ?'); // si Self ?
-            if pfReference in Flags
-             then Definition := Definition+('reference ?'); // ??
-            if pfout in Flags
-             then Definition := Definition+('out ');
+            if not (pfHidden in Flags) then
+              begin
+                If v>0 then Definition := Definition + '; ';
+                if pfVar in Flags
+                 then Definition := Definition+('var ');
+                if pfconst in Flags
+                 then Definition := Definition+('const ');
+                if pfArray in Flags
+                 then Definition := Definition+('array of ');
+                if pfAddress in Flags
+                 then Definition := Definition+('adresse ?'); // si Self ?
+                if pfReference in Flags
+                 then Definition := Definition+('reference ?'); // ??
+                if pfout in Flags
+                 then Definition := Definition+('out ');
+                Inc(v);
+              end;
            
            { Next char is the length of the ParamName}
            inc(CurrentParamPosition,SizeOf(TParamFlags));
@@ -312,8 +324,10 @@ begin
                                    ParamNameLength + 1;
            writeln('ParamName:',i,':', ParamName);
            writeln('TypeName:',i,':', TypeName);
+           if pfHidden in Flags then
+             Continue;
            Definition := Format('%s%s: %s', [Definition, ParamName, TypeName]);
-           If I<DTypeData^.ParamCount  then Definition := Definition + '; '
+           //If I<DTypeData^.ParamCount  then Definition := Definition + '; '
          end;
         if DTypeData^.MethodKind = mkFunction then
           begin

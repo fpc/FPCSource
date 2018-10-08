@@ -60,7 +60,9 @@ begin
     inc(Offset,Len+1);
 
     writeln('Param ',i+1,'/',ParamCount,' ',CurParamName,':',CurTypeIdentifier);
-    if (CurParamName<>'Sender')  or (CurTypeIdentifier<>'TObject') then
+    // Note by SB (2019-10-08): The first parameter is now the hidden $self
+    if (CurParamName<>'$self')  or (CurTypeIdentifier<>'Pointer') then
+    //if (CurParamName<>'Sender')  or (CurTypeIdentifier<>'TObject') then
       begin
         writeln('ERROR!');
         halt(1);
