@@ -271,6 +271,7 @@
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
   {$define SUPPORT_GET_FRAME}
+  {$define SUPPORT_SAFECALL}
 {$endif aarch64}
 
 {$ifdef riscv32}
