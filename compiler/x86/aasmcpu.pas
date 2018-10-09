@@ -368,6 +368,7 @@ interface
       TMemRefSizeInfoBCST = (msbUnknown, msbBCST32, msbBCST64, msbMultiple);
       TMemRefSizeInfoBCSTType = (btUnknown, bt1to2, bt1to4, bt1to8, bt1to16);
 
+      TEVEXTupleState = (etsUnknown, etsIsTuple, etsNotTuple);
       TConstSizeInfo  = (csiUnkown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
 
       TInsTabMemRefSizeInfoRec = record
@@ -378,6 +379,8 @@ interface
         ConstSize                : TConstSizeInfo;
         BCSTTypes                : Set of TMemRefSizeInfoBCSTType;
       end;
+
+
 
     const
       MemRefMultiples: set of TMemRefSizeInfo = [msiMultiple, msiMultiple8,
@@ -495,7 +498,21 @@ interface
         IF_BCST2,
         IF_BCST4,
         IF_BCST8,
-        IF_BCST16
+        IF_BCST16,
+        IF_T2,                  { disp8 - tuple - 2 }
+        IF_T4,                  { disp8 - tuple - 4 }
+        IF_T8,                  { disp8 - tuple - 8 }
+        IF_T1S,                 { disp8 - tuple - 1 scalar }
+        IF_T1F32,
+        IF_T1F64,
+        IF_TMDDUP,
+        IF_TFV,                 { disp8 - tuple - full vector }
+        IF_TFVM,                { disp8 - tuple - full vector memory }
+        IF_TQVM,
+        IF_TMEM128,
+        IF_THV,
+        IF_THVM,
+        IF_TOVM
       );
       tinsflags=set of tinsflag;
 
@@ -503,6 +520,9 @@ interface
       IF_SMASK=[IF_SM,IF_SM2,IF_SB,IF_SW,IF_SD];
       IF_ARMASK=[IF_AR0,IF_AR1,IF_AR2];  { mask for unsized argument spec  }
       IF_PLEVEL=[IF_8086..IF_NEC]; { mask for processor level }
+
+      IF_TUPLEMASK=[IF_T2..IF_TOVM]; { mask for AVX512 disp8-tuples }
+
 
     type
       tinsentry=packed record
@@ -602,6 +622,7 @@ interface
          insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
          inssize   : shortint;
+         EVEXTupleState: TEVEXTupleState; { AVX512 disp8*N }
 {$ifdef x86_64}
          rex       : byte;
 {$endif x86_64}
@@ -617,6 +638,7 @@ interface
          procedure Swapoperands;
          function  FindInsentry(objdata:TObjData):boolean;
          function  CheckUseEVEX: boolean;
+         procedure CheckEVEXTuple(const aInput:toper; aInsEntry: pInsentry; aIsVector128, aIsVector256, aIsVector512, aIsEVEXW1: boolean);
       end;
 
     function is_64_bit_ref(const ref:treference):boolean;
@@ -978,6 +1000,7 @@ implementation
          LastInsOffset:=-1;
          InsOffset:=0;
          InsSize:=0;
+         EVEXTupleState := etsUnknown;
       end;
 
 
@@ -1974,6 +1997,191 @@ implementation
       end;
     end;
 
+    procedure taicpu.CheckEVEXTuple(const aInput:toper; aInsEntry: pInsentry; aIsVector128, aIsVector256, aIsVector512, aIsEVEXW1: boolean);
+    var
+      i: integer;
+      tuplesize: integer;
+      memsize: integer;
+    begin
+      if EVEXTupleState = etsUnknown then
+      begin
+        EVEXTupleState := etsNotTuple;
+
+        if aInsEntry^.Flags * IF_TUPLEMASK <> [] then
+        begin
+          tuplesize := 0;
+
+          if IF_TFV in aInsEntry^.Flags then
+          begin
+            for i :=  0 to aInsEntry^.ops - 1 do
+             if (aInsEntry^.optypes[i] and OT_BMEM32 = OT_BMEM32) then
+             begin
+               tuplesize := 4;
+               break;
+             end
+             else if (aInsEntry^.optypes[i] and OT_BMEM64 = OT_BMEM64) then
+             begin
+               tuplesize := 8;
+               break;
+             end
+             else if (aInsEntry^.optypes[i] and OT_MEMORY = OT_MEMORY) then
+             begin
+               if aIsVector512 then tuplesize := 64
+                else if aIsVector256 then tuplesize := 32
+                else tuplesize := 16;
+
+               break;
+             end
+             else if (aInsEntry^.optypes[i] and OT_REGNORM = OT_REGMEM) then
+             begin
+               if aIsVector512 then tuplesize := 64
+                else if aIsVector256 then tuplesize := 32
+                else tuplesize := 16;
+
+               break;
+             end;
+
+
+          end
+          else if IF_THV in aInsEntry^.Flags then
+          begin
+            for i :=  0 to aInsEntry^.ops - 1 do
+             if (aInsEntry^.optypes[i] and OT_BMEM32 = OT_BMEM32) then
+             begin
+               tuplesize := 4;
+               break;
+             end
+             else if (aInsEntry^.optypes[i] and OT_REGNORM = OT_REGMEM) then
+             begin
+               if aIsVector512 then tuplesize := 32
+                else if aIsVector256 then tuplesize := 16
+                else tuplesize := 8;
+
+               break;
+             end
+          end
+          else if IF_TFVM in aInsEntry^.Flags then
+          begin
+            if aIsVector512 then tuplesize := 64
+             else if aIsVector256 then tuplesize := 32
+             else tuplesize := 16;
+          end
+          else
+          begin
+            memsize := 0;
+
+            for i :=  0 to aInsEntry^.ops - 1 do
+            begin
+              if aInsEntry^.optypes[i] and (OT_REGNORM or OT_MEMORY) = OT_REGMEM then
+              begin
+                case aInsEntry^.optypes[i] and (OT_BITS32 or OT_BITS64) of
+                  OT_BITS32: begin
+                               memsize := 32;
+                               break;
+                             end;
+                  OT_BITS64: begin
+                               memsize := 64;
+                               break;
+                             end;
+                end;
+              end
+              else
+              case aInsEntry^.optypes[i] and (OT_MEM8 or OT_MEM16 or OT_MEM32 or OT_MEM64) of
+                  OT_MEM8: begin
+                             memsize := 8;
+                             break;
+                           end;
+                 OT_MEM16: begin
+                             memsize := 16;
+                             break;
+                           end;
+                 OT_MEM32: begin
+                             memsize := 32;
+                             break;
+                           end;
+                 OT_MEM64: //if aIsEVEXW1 then
+                           begin
+                             memsize := 64;
+                             break;
+                           end;
+              end;
+            end;
+
+            if IF_T1S in aInsEntry^.Flags then
+            begin
+              case memsize of
+                 8: tuplesize := 1;
+                16: tuplesize := 2;
+                else if aIsEVEXW1 then tuplesize := 8
+                      else tuplesize := 4;
+              end;
+            end
+            else if IF_T1F32 in aInsEntry^.Flags then tuplesize := 4
+            else if IF_T1F64 in aInsEntry^.Flags then tuplesize := 8
+            else if IF_T2 in aInsEntry^.Flags then
+            begin
+              case aIsEVEXW1 of
+                false: tuplesize := 8;
+                  else if aIsVector256 or aIsVector512 then tuplesize := 16;
+              end;
+            end
+            else if IF_T4 in aInsEntry^.Flags then
+            begin
+              case aIsEVEXW1 of
+                false: if aIsVector256 or aIsVector512 then tuplesize := 16;
+                  else if aIsVector512 then tuplesize := 32;
+              end;
+            end
+            else if IF_T8 in aInsEntry^.Flags then
+            begin
+              case aIsEVEXW1 of
+                false: if aIsVector512 then tuplesize := 32;
+              end;
+            end
+            else if IF_THVM in aInsEntry^.Flags then
+            begin
+              tuplesize := 8; // default 128bit-vectorlength
+              if aIsVector256 then tuplesize := 16
+               else if aIsVector512 then tuplesize := 32;
+            end
+            else if IF_TQVM in aInsEntry^.Flags then
+            begin
+              tuplesize := 4; // default 128bit-vectorlength
+              if aIsVector256 then tuplesize := 8
+               else if aIsVector512 then tuplesize := 16;
+            end
+            else if IF_TOVM in aInsEntry^.Flags then
+            begin
+              tuplesize := 2; // default 128bit-vectorlength
+              if aIsVector256 then tuplesize := 4
+               else if aIsVector512 then tuplesize := 8;
+            end
+            else if IF_TMEM128 in aInsEntry^.Flags then tuplesize := 16
+            else if IF_TMDDUP in aInsEntry^.Flags then
+            begin
+              tuplesize := 8; // default 128bit-vectorlength
+              if aIsVector256 then tuplesize := 32
+               else if aIsVector512 then tuplesize := 64;
+            end;
+          end;;
+
+          if tuplesize > 0 then
+          begin
+            if aInput.typ = top_ref then
+            begin
+              if (aInput.ref^.offset <> 0) and
+                 ((aInput.ref^.offset mod tuplesize) = 0) and
+                 (abs(aInput.ref^.offset) div tuplesize <= 127) then
+              begin
+                aInput.ref^.offset := aInput.ref^.offset div tuplesize;
+                EVEXTupleState := etsIsTuple;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+
 
 
     function taicpu.Pass1(objdata:TObjData):longint;
@@ -2869,6 +3077,7 @@ implementation
         len     : shortint;
         len_ea_data: shortint;
         len_ea_data_evex: shortint;
+        mref_offset: asizeint;
         ea_data : ea;
         exists_evex: boolean;
         exists_vex: boolean;
@@ -2876,6 +3085,14 @@ implementation
         exists_prefix_66: boolean;
         exists_prefix_F2: boolean;
         exists_prefix_F3: boolean;
+        exists_l256: boolean;
+        exists_l512: boolean;
+        exists_EVEXW1: boolean;
+        pmref_operand: poper;
+        //i: integer;
+        //refsize: integer;
+        //tuplesize: integer;
+        //memsize: integer;
 {$ifdef x86_64}
         omit_rexw : boolean;
 {$endif x86_64}
@@ -2890,6 +3107,8 @@ implementation
         len:=0;
         len_ea_data := 0;
         len_ea_data_evex:= 0;
+        mref_offset := 0;
+        pmref_operand := nil;
 
         codes:=@p^.code[0];
         exists_vex := false;
@@ -2898,6 +3117,9 @@ implementation
         exists_prefix_F2 := false;
         exists_prefix_F3 := false;
         exists_evex      := false;
+        exists_l256      := false;
+        exists_l512      := false;
+        exists_EVEXW1    := false;
 {$ifdef x86_64}
         rex:=0;
         omit_rexw:=false;
@@ -3054,14 +3276,20 @@ implementation
                   end;
 
 {$endif x86_64}
-                if process_ea(oper[(c shr 3) and 7]^, ea_data, 0, true) then
-                 len_ea_data_evex := ea_data.size;
-                if process_ea(oper[(c shr 3) and 7]^, ea_data, 0, false) then
-                 begin
-                  len_ea_data := ea_data.size;
-                  inc(len,ea_data.size);
-                end
-                 else Message(asmw_e_invalid_effective_address);
+                if (oper[(c shr 3) and 7]^.typ = top_ref) and
+                   (oper[(c shr 3) and 7]^.ref^.offset <> 0) then
+                begin
+                  if (exists_vex and exists_evex and CheckUseEVEX) or
+                     (not(exists_vex) and exists_evex) then
+                  begin
+                    CheckEVEXTuple(oper[(c shr 3) and 7]^, p, not(exists_l256 or exists_l512), exists_l256, exists_l512, exists_EVEXW1);
+                    //const aInput:toper; aInsEntry: pInsentry; aIsVector128, aIsVector256, aIsVector512, aIsEVEXW1: boolean);
+                  end;
+                end;
+
+                if process_ea(oper[(c shr 3) and 7]^, ea_data, 0, EVEXTupleState = etsNotTuple) then
+                 inc(len,ea_data.size)
+                  else Message(asmw_e_invalid_effective_address);
 
 {$ifdef x86_64}
                 rex:=rex or ea_data.rex;
@@ -3072,8 +3300,8 @@ implementation
               begin
                 exists_evex := true;
               end;
-            &351: ; // EVEX length bit 512
-            &352: ; // EVEX W1
+            &351: exists_l512 := true; // EVEX length bit 512
+            &352: exists_EVEXW1 := true; // EVEX W1
             &362: // VEX prefix for AVX (length = 2 or 3 bytes, dependens on REX.XBW or opcode-prefix ($0F38 or $0F3A))
                   // =>> DEFAULT = 2 Bytes
               begin
@@ -3093,7 +3321,7 @@ implementation
                   exists_vex_extension := true;
                 end;
               end;
-            &364: ; // VEX length bit 256
+            &364: exists_l256 := true; // VEX length bit 256
 
             &366, // operand 2 (ymmreg) encoded immediate byte (bit 4-7)
             &367: inc(len); // operand 3 (ymmreg) encoded immediate byte (bit 4-7)
@@ -3143,9 +3371,6 @@ implementation
           if CheckUseEVEX then
           begin
             inc(len, 4);
-
-            if len_ea_data <> len_ea_data_evex then
-             inc(len, len_ea_data_evex - len_ea_data);
           end
           else
           begin
@@ -3170,9 +3395,6 @@ implementation
           if exists_prefix_66 then dec(len);
           if exists_prefix_F2 then dec(len);
           if exists_prefix_F3 then dec(len);
-
-          if len_ea_data <> len_ea_data_evex then
-           inc(len, len_ea_data_evex - len_ea_data);
         end
         else
         begin
@@ -4267,7 +4489,7 @@ implementation
                     rfield:=c and 7;
                    opidx:=(c shr 3) and 7;
 
-                   if not process_ea(oper[opidx]^,ea_data,rfield, needed_EVEX) then
+                   if not process_ea(oper[opidx]^,ea_data,rfield, EVEXTupleState = etsNotTuple) then
                     Message(asmw_e_invalid_effective_address);
 
 

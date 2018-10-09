@@ -1110,10 +1110,10 @@ begin
   FOpCodeList.Add('vcvtsd2si,1,1,1,REG64,XMMREG_ER,,');
   FOpCodeList.Add('vcvtsd2ss,1,1,1,XMMREG_MZ,XMMREG,MEM64,');
   FOpCodeList.Add('vcvtsd2ss,1,1,1,XMMREG_MZ,XMMREG,XMMREG_ER,');
-  FOpCodeList.Add('vcvtsi2sd,1,1,1,XMMREG,XMMREG_ER,RM32,');
-  FOpCodeList.Add('vcvtsi2sd,0,1,1,XMMREG,XMMREG_ER,RM64,');
-  FOpCodeList.Add('vcvtsi2ss,1,1,1,XMMREG,XMMREG_ER,RM32,');
-  FOpCodeList.Add('vcvtsi2ss,0,1,1,XMMREG,XMMREG_ER,RM64,');
+  FOpCodeList.Add('vcvtsi2sd,1,1,1,XMMREG,XMMREG_ER,REG32,');
+  FOpCodeList.Add('vcvtsi2sd,0,1,1,XMMREG,XMMREG_ER,REG64,');
+  FOpCodeList.Add('vcvtsi2ss,1,1,1,XMMREG,XMMREG_ER,REG32,');
+  FOpCodeList.Add('vcvtsi2ss,0,1,1,XMMREG,XMMREG_ER,REG64,');
   FOpCodeList.Add('vcvtss2sd,1,1,1,XMMREG_MZ,XMMREG,MEM32,');
   FOpCodeList.Add('vcvtss2sd,1,1,1,XMMREG_MZ,XMMREG,XMMREG_SAE,');
   FOpCodeList.Add('vcvtss2si,1,1,1,REG32,MEM32,,');

@@ -201,7 +201,23 @@ type
       IF_BCST2,
       IF_BCST4,
       IF_BCST8,
-      IF_BCST16
+      IF_BCST16,
+      IF_T2,                  { disp8 - tuple - 2 }
+      IF_T4,                  { disp8 - tuple - 4 }
+      IF_T8,                  { disp8 - tuple - 8 }
+      IF_T1S,                 { disp8 - tuple - 1 scalar }
+      IF_T1F32,
+      IF_T1F64,
+      IF_TMDDUP,
+      IF_TFV,                 { disp8 - tuple - full vector }
+      IF_TFVM,                { disp8 - tuple - full vector memory }
+      IF_TQVM,
+      IF_TMEM128,
+      IF_THV,
+      IF_THVM,
+      IF_TOVM
+
+
     );
     tinsflags=set of tinsflag;
 
@@ -1754,7 +1770,7 @@ begin
   FReg32Base.Add('EBX');
   FReg32Base.Add('ECX');
   FReg32Base.Add('EDX');
-  FReg32Base.Add('ESP');
+  //FReg32Base.Add('ESP');
   //FReg32Base.Add('EBP');
   FReg32Base.Add('EDI');
   FReg32Base.Add('ESI');
@@ -1773,7 +1789,7 @@ begin
   FReg64Base.Add('RBX');
   FReg64Base.Add('RCX');
   FReg64Base.Add('RDX');
-  FReg64Base.Add('RSP');
+  //FReg64Base.Add('RSP');
   //FReg64Base.Add('RBP');
   FReg64Base.Add('RDI');
   FReg64Base.Add('RSI');
@@ -1980,14 +1996,19 @@ begin
     for il_Index := 0 to aSLIndexReg.Count - 1 do
     begin
       aRList.Add(format(aPrefix + '[%s + %s]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      aRList.Add(format(aPrefix + '[%s + %s + $10]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      aRList.Add(format(aPrefix + '[%s + %s + $40]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      aRList.Add(format(aPrefix + '[%s + %s - $10]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      aRList.Add(format(aPrefix + '[%s + %s - $40]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+
 
       aRList.Add(format(aPrefix + '[%s + %s * 2]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
       aRList.Add(format(aPrefix + '[%s + %s * 4]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
       aRList.Add(format(aPrefix + '[%s + %s * 8]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
 
-      //aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      //aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      //aRList.Add(format(aPrefix + '[%s + %s * 8 + 48]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      aRList.Add(format(aPrefix + '[%s + %s * 8 + 64]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
     end;
   end;
 end;
