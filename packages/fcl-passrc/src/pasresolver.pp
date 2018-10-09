@@ -12577,9 +12577,8 @@ begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
-  if not (rrfReadable in ParamResolved.Flags)
-      and (ParamResolved.BaseType in btAllRanges) then
-    // built-in range e.g. high(char)
+  if ParamResolved.BaseType in btAllRanges then
+    // e.g. high(char)
     Result:=cExact
   else if ParamResolved.BaseType=btSet then
     Result:=cExact
@@ -12592,7 +12591,12 @@ begin
       Result:=cExact;
     end;
   if Result=cIncompatible then
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.BI_LowHigh_OnGetCallCompatibility ParamResolved=',GetResolverResultDbg(ParamResolved));
+    {$ENDIF}
     exit(CheckRaiseTypeArgNo(20170216152338,1,Param,ParamResolved,'ordinal type, array or set',RaiseOnError));
+    end;
 
   Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;

@@ -5316,7 +5316,9 @@ begin
   '  i: TMyInt;',
   'begin',
   '  i:=-MinInt;',
-  '  i:=default(TMyInt);']);
+  '  i:=default(TMyInt);',
+  '  i:=low(i)+high(i);',
+  '']);
   ConvertProgram;
   CheckSource('TestIntegerRange',
     LinesToStr([
@@ -5328,6 +5330,7 @@ begin
     LinesToStr([
     '$mod.i = - -4503599627370496;',
     '$mod.i = -4503599627370496;',
+    '$mod.i = -4503599627370496 + 4503599627370495;',
     '']));
 end;
 

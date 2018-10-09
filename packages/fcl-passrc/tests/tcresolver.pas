@@ -3016,8 +3016,12 @@ begin
   '  MaxInt = +10;',
   'type',
   '  {#TMyInt}TMyInt = MinInt..MaxInt;',
-  'const a = low(TMyInt)+High(TMyInt);',
-  'begin']);
+  'const',
+  '  a = low(TMyInt)+High(TMyInt);',
+  'var',
+  '  i: TMyInt;',
+  'begin',
+  '  i:=low(i)+high(i);']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;
