@@ -234,8 +234,8 @@ type
   { TPrimitiveExpr }
 
   TPrimitiveExpr = class(TPasExpr)
-    Value     : AnsiString;
-    constructor Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : Ansistring); overload;
+    Value     : String;
+    constructor Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : string); overload;
     function GetDeclaration(full : Boolean) : string; override;
   end;
   
@@ -1524,7 +1524,7 @@ Type
 
   TPasImplLabelMark = class(TPasImplElement)
   public
-    LabelId: AnsiString;
+    LabelId: String;
   end;
 
   { TPassTreeVisitor }
@@ -1535,8 +1535,8 @@ Type
   end;
 
 const
-  AccessNames: array[TArgumentAccess] of string[9] = ('', 'const ', 'var ', 'out ','constref ');
-  AccessDescriptions: array[TArgumentAccess] of string[9] = ('default', 'const', 'var', 'out','constref');
+  AccessNames: array[TArgumentAccess] of string{$ifdef fpc}[9]{$endif} = ('', 'const ', 'var ', 'out ','constref ');
+  AccessDescriptions: array[TArgumentAccess] of string{$ifdef fpc}[9]{$endif} = ('default', 'const', 'var', 'out','constref');
   AllVisibilities: TPasMemberVisibilities =
      [visDefault, visPrivate, visProtected, visPublic,
       visPublished, visAutomated];
@@ -2407,7 +2407,11 @@ begin
   if FRefCount = 0 then
     begin
     FRefCount:=High(FRefCount);
+    {$ifdef pas2js}
+    Destroy;
+    {$else}
     Free;
+    {$endif}
     end
   else if FRefCount=High(FRefCount) then
     begin
@@ -4912,7 +4916,7 @@ begin
   if full then ;
 end;
 
-constructor TPrimitiveExpr.Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : Ansistring);
+constructor TPrimitiveExpr.Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : string);
 begin
   inherited Create(AParent,AKind, eopNone);
   Value:=AValue;
