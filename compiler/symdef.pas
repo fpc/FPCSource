@@ -2421,7 +2421,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_ansistring;
-         len:=ppufile.getaint;
+         len:=ppufile.getasizeint;
          encoding:=ppufile.getword;
          ppuload_platform(ppufile);
       end;
@@ -2447,7 +2447,7 @@ implementation
            encoding:=CP_UTF16LE
          else
            encoding:=CP_UTF16BE;
-         len:=ppufile.getaint;
+         len:=ppufile.getasizeint;
          ppuload_platform(ppufile);
       end;
 
@@ -2468,7 +2468,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_unicodestring;
-         len:=ppufile.getaint;
+         len:=ppufile.getasizeint;
          encoding:=ppufile.getword;
          ppuload_platform(ppufile);
       end;
@@ -2505,7 +2505,7 @@ implementation
             ppufile.putbyte(byte(len))
            end
          else
-           ppufile.putaint(len);
+           ppufile.putasizeint(len);
          if stringtype in [st_ansistring,st_unicodestring] then
            ppufile.putword(encoding);
          case stringtype of
