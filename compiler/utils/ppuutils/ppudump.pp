@@ -3313,7 +3313,7 @@ begin
              strdef:=TPpuStringDef.Create(ParentDef);
              strdef.StrType:=stWide;
              readcommondef('WideString definition',defoptions,strdef);
-             strdef.Len:=getaint;
+             strdef.Len:=getasizeint;
              writeln([space,'           Length : ',strdef.Len]);
            end;
 
@@ -3322,7 +3322,7 @@ begin
              strdef:=TPpuStringDef.Create(ParentDef);
              strdef.StrType:=stUnicode;
              readcommondef('UnicodeString definition',defoptions,strdef);
-             strdef.Len:=getaint;
+             strdef.Len:=getasizeint;
              writeln([space,'           Length : ',strdef.Len]);
              writeln([space,'         Encoding : ',getword]);
            end;
@@ -3332,7 +3332,7 @@ begin
              strdef:=TPpuStringDef.Create(ParentDef);
              strdef.StrType:=stAnsi;
              readcommondef('AnsiString definition',defoptions,strdef);
-             strdef.Len:=getaint;
+             strdef.Len:=getasizeint;
              writeln([space,'           Length : ',strdef.Len]);
              writeln([space,'         Encoding : ',getword]);
            end;
@@ -3342,7 +3342,7 @@ begin
              strdef:=TPpuStringDef.Create(ParentDef);
              strdef.StrType:=stLong;
              readcommondef('Longstring definition',defoptions,strdef);
-             strdef.Len:=getaint;
+             strdef.Len:=getasizeint;
              writeln([space,'           Length : ',strdef.Len]);
            end;
 
