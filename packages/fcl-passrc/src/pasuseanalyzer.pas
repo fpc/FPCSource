@@ -1295,6 +1295,11 @@ begin
     for i:=0 to length(Params)-1 do
       UseExpr(Params[i]);
     end
+  else if C=TRecordValues then
+    begin
+    for i:=0 to length(TRecordValues(El).Fields)-1 do
+      UseExpr(TRecordValues(El).Fields[i].ValueExp);
+    end
   else if C=TInheritedExpr then
     UseInheritedExpr(TInheritedExpr(El))
   else

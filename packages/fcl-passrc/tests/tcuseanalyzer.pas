@@ -845,22 +845,27 @@ end;
 procedure TTestUseAnalyzer.TestM_Record;
 begin
   StartProgram(false);
-  Add('procedure {#DoIt_used}DoIt;');
-  Add('type');
-  Add('  {#integer_used}integer = longint;');
-  Add('  {#trec_used}TRec = record');
-  Add('    {#a_used}a: integer;');
-  Add('    {#b_notused}b: integer;');
-  Add('    {#c_used}c: integer;');
-  Add('  end;');
-  Add('var');
-  Add('  {#r_used}r: TRec;');
-  Add('begin');
-  Add('  r.a:=3;');
-  Add('  with r do c:=4;');
-  Add('end;');
-  Add('begin');
-  Add('  DoIt;');
+  Add([
+  'procedure {#DoIt_used}DoIt;',
+  'type',
+  '  {#integer_used}integer = longint;',
+  '  {#trec_used}TRec = record',
+  '    {#a_used}a: integer;',
+  '    {#b_notused}b: integer;',
+  '    {#c_used}c: integer;',
+  '  end;',
+  'var',
+  '  {#r_used}r: TRec;',
+  'const',
+  '  ci = 2;',
+  '  cr: TRec = (a:0;b:ci;c:2);',
+  'begin',
+  '  r.a:=3;',
+  '  with r do c:=4;',
+  '  r:=cr;',
+  'end;',
+  'begin',
+  '  DoIt;']);
   AnalyzeProgram;
 end;
 
@@ -2437,18 +2442,21 @@ end;
 procedure TTestUseAnalyzer.TestWP_PublishedRecordType;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#trec_used}TRec = record');
-  Add('    {treci_used}i: longint;');
-  Add('  end;');
-  Add('  {#tobject_used}TObject = class');
-  Add('  published');
-  Add('    {#fielda_used}FieldA: TRec;');
-  Add('  end;');
-  Add('var');
-  Add('  {#o_used}o: TObject;');
-  Add('begin');
-  Add('  o:=nil;');
+  Add([
+  'type',
+  '  {#trec_used}TRec = record',
+  '    {treci_used}i: longint;',
+  '  end;',
+  'const c: TRec = (i:1);',
+  'type',
+  '  {#tobject_used}TObject = class',
+  '  published',
+  '    {#fielda_used}FieldA: TRec;',
+  '  end;',
+  'var',
+  '  {#o_used}o: TObject;',
+  'begin',
+  '  o:=nil;']);
   AnalyzeWholeProgram;
 end;
 

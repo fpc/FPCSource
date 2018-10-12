@@ -7244,6 +7244,13 @@ begin
   'type',
   '  TPoint = record x, y: longint; end;',
   'const r: TPoint = (x:1; y:2);',
+  'type',
+  '  TPasSourcePos = Record',
+  '    FileName: String;',
+  '    Row, Column: LongWord;',
+  '  end;',
+  'const',
+  '  DefPasSourcePos: TPasSourcePos = (Filename:''''; Row:0; Column:0);',
   'begin',
   '']);
   ParseProgram;
