@@ -274,6 +274,11 @@ implementation
          freetype:=Used2Free[temptype];
          if freetype=tt_none then
            internalerror(200208201);
+         if size>MaxLocalsSize then
+            begin
+              CGMessage(cg_e_localsize_too_big);
+              size:=0;  // Prevent further range check errors
+            end;
          size:=align(size,alignment);
          { First check the tmpfreelist, but not when
            we don't want to reuse an already allocated block }
@@ -417,29 +422,30 @@ implementation
             tl^.temptype:=temptype;
             tl^.def:=def;
 
-{$push}
-{$r-}
-{$warn 6018 off}
-{$warn 4044 off}
             { Extend the temp }
             if direction=-1 then
               begin
-                if qword(align(-lasttemp-alignmismatch,alignment))+size+alignmismatch>high(tl^.pos) then
-                  CGMessage(cg_e_localsize_too_big);
+                if qword(align(-lasttemp-alignmismatch,alignment))+size+alignmismatch>MaxLocalsSize then
+                  begin
+                    CGMessage(cg_e_localsize_too_big);
+                    size:=0;  // Prevent further range check errors
+                  end;
                 lasttemp:=(-align(-lasttemp-alignmismatch,alignment))-size-alignmismatch;
                 tl^.pos:=lasttemp;
               end
             else
               begin
                 tl^.pos:=align(lasttemp+alignmismatch,alignment)-alignmismatch;
-                if qword(tl^.pos)+size>high(tl^.pos) then
-                  CGMessage(cg_e_localsize_too_big);
+                if qword(tl^.pos)+size>MaxLocalsSize then
+                  begin
+                    CGMessage(cg_e_localsize_too_big);
+                    size:=0;  // Prevent further range check errors
+                  end;
                 lasttemp:=tl^.pos+size;
               end;
 {$ifdef EXTDEBUG}
          Comment(V_Note,'tgobj: (AllocTemp) lasttemp set to '+tostr(lasttemp));
 {$endif}
-{$pop}
             tl^.fini:=fini;
             tl^.alignment:=alignment;
             tl^.size:=size;
