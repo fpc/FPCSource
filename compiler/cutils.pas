@@ -346,9 +346,9 @@ implementation
         else
           begin
             if i<0 then
-              result:=((i-a+1) div a) * a
+              result:=((i+1-a) div a) * a
             else
-              result:=((i+a-1) div a) * a;
+              result:=((i-1+a) div a) * a;
           end;
       end;
 
@@ -364,9 +364,9 @@ implementation
         else
           begin
             if i<0 then
-              result:=((i-a+1) div a) * a
+              result:=((i+1-a) div a) * a
             else
-              result:=((i+a-1) div a) * a;
+              result:=((i-1+a) div a) * a;
           end;
       end;
 
@@ -380,7 +380,7 @@ implementation
         if a<=1 then
           result:=i
         else
-          result:=((i+a-1) div a) * a;
+          result:=((i-1+a) div a) * a;
       end;
 
 
