@@ -90,6 +90,11 @@ unit cgrv;
           A_NONE,A_ADD,A_AND,A_DIVU,A_DIV,A_MUL,A_MUL,
           A_None,A_None,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR,A_None,A_None);
 
+{$ifdef extdebug}
+     function ref2string(const ref : treference) : string;
+     function cgsize2string(const size : TCgSize) : string;
+     function cgop2string(const op : TOpCg) : String;
+{$endif extdebug}
 
   implementation
 
@@ -98,6 +103,54 @@ unit cgrv;
        globals,verbose,systems,cutils,
        symconst,symsym,symtable,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
+
+{$ifdef extdebug}
+     function ref2string(const ref : treference) : string;
+       begin
+         result := 'base : ' + inttostr(ord(ref.base)) + ' index : ' + inttostr(ord(ref.index)) + ' refaddr : ' + inttostr(ord(ref.refaddr)) + ' offset : ' + inttostr(ref.offset) + ' symbol : ';
+         if (assigned(ref.symbol)) then
+           result := result + ref.symbol.name;
+       end;
+
+     function cgsize2string(const size : TCgSize) : string;
+       const
+       (* TCgSize = (OS_NO,
+                  OS_8,   OS_16,   OS_32,   OS_64,   OS_128,
+                  OS_S8,  OS_S16,  OS_S32,  OS_S64,  OS_S128,
+                 { single, double, extended, comp, float128 }
+                  OS_F32, OS_F64,  OS_F80,  OS_C64,  OS_F128,
+                 { multi-media sizes: split in byte, word, dword, ... }
+                 { entities, then the signed counterparts             }
+                  OS_M8,  OS_M16,  OS_M32,  OS_M64,  OS_M128,  OS_M256,  OS_M512,
+                  OS_MS8, OS_MS16, OS_MS32, OS_MS64, OS_MS128, OS_MS256, OS_MS512,
+                 { multi-media sizes: single-precision floating-point }
+                  OS_MF32, OS_MF128, OS_MF256, OS_MF512,
+                 { multi-media sizes: double-precision floating-point }
+                  OS_MD64, OS_MD128, OS_MD256, OS_MD512); *)
+
+          cgsize_strings : array[TCgSize] of string[8] = (
+           'OS_NO',
+           'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128',
+           'OS_S8', 'OS_S16', 'OS_S32', 'OS_S64', 'OS_S128',
+           'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
+           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_M256', 'OS_M512',
+           'OS_MS8', 'OS_MS16', 'OS_MS32', 'OS_MS64', 'OS_MS128', 'OS_MS256', 'OS_MS512',
+           'OS_MF32', 'OS_MF128', 'OS_MF256', 'OS_MF512',
+           'OS_MD64', 'OS_MD128', 'OS_MD256', 'OS_MD512');
+       begin
+         result := cgsize_strings[size];
+       end;
+
+     function cgop2string(const op : TOpCg) : String;
+       const
+         opcg_strings : array[TOpCg] of string[6] = (
+           'None', 'Move', 'Add', 'And', 'Div', 'IDiv', 'IMul', 'Mul',
+           'Neg', 'Not', 'Or', 'Sar', 'Shl', 'Shr', 'Sub', 'Xor', 'Rol', 'Ror'
+         );
+       begin
+         result := opcg_strings[op];
+       end;
+{$endif extdebug}
 
 
     procedure tcgrv.a_call_name(list : TAsmList;const s : string; weak: boolean);
