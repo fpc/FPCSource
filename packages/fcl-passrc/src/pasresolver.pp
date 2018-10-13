@@ -13882,6 +13882,7 @@ begin
       AddInitialFinalizationSection(TFinalizationSection(El))
     else if AClass.InheritsFrom(TPasImplBlock) then
       // resolved when finished
+    else if AClass=TPasImplCommand then
     else if AClass=TPasUnresolvedUnitRef then
       RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
     else

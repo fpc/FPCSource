@@ -340,6 +340,7 @@ type
     Procedure TestStatementsRefs;
     Procedure TestRepeatUntilNonBoolFail;
     Procedure TestWhileDoNonBoolFail;
+    Procedure TestIfThen;
     Procedure TestIfThenNonBoolFail;
     Procedure TestIfAssignMissingSemicolonFail;
     Procedure TestForLoopVarNonVarFail;
@@ -5080,6 +5081,17 @@ begin
   Add('begin');
   Add('  while 3 do ;');
   CheckResolverException('Boolean expected, but Longint found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestIfThen;
+begin
+  StartProgram(false);
+  Add([
+  'var b: boolean;',
+  'begin',
+  '  if b then ;',
+  '  if b then else ;']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestIfThenNonBoolFail;
