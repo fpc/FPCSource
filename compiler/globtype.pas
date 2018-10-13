@@ -89,8 +89,8 @@ interface
 
      { Maximum possible size of locals space (stack frame) }
      Const
-{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
-       MaxLocalsSize = High(AWord);
+{$if defined(cpu16bitaddr)}
+       MaxLocalsSize = High(PUint);
 {$else}
        MaxLocalsSize = High(longint) - 15;
 {$endif}
