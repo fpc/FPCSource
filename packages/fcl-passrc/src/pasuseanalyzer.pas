@@ -1112,6 +1112,8 @@ begin
     UseImplElement(TPasImplIfElse(El).IfBranch);
     UseImplElement(TPasImplIfElse(El).ElseBranch);
     end
+  else if C=TPasImplCommand then
+    // used for if-then <empty> -> nothing to do
   else if C=TPasImplLabelMark then
     // label mark
   else if C=TPasImplRepeatUntil then

@@ -674,6 +674,7 @@ begin
   Add('  {#c_used}c: longint;');
   Add('begin');
   Add('  if a=0 then b:=1 else c:=2;');
+  Add('  if a=0 then else ;');
   Add('end;');
   Add('begin');
   Add('  DoIt;');
