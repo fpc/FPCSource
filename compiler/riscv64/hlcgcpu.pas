@@ -45,6 +45,9 @@ implementation
   uses
     cpubase,aasmcpu,
     defutil,
+{$ifdef extdebug}
+    aasmtai,cutils,cgrv,
+{$endif}
     cgobj,cgcpu;
 
   { thlcgcpu }
