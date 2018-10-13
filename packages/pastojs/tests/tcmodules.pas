@@ -4503,22 +4503,25 @@ end;
 procedure TTestModule.TestSet_AsParams;
 begin
   StartProgram(false);
-  Add('type TEnum = (Red,Blue);');
-  Add('type TEnums = set of TEnum;');
-  Add('procedure DoIt(vG: TEnums; const vH: TEnums; var vI: TEnums);');
-  Add('var vJ: TEnums;');
-  Add('begin');
-  Add('  vg:=vg;');
-  Add('  vj:=vh;');
-  Add('  vi:=vi;');
-  Add('  doit(vg,vg,vg);');
-  Add('  doit(vh,vh,vj);');
-  Add('  doit(vi,vi,vi);');
-  Add('  doit(vj,vj,vj);');
-  Add('end;');
-  Add('var i: TEnums;');
-  Add('begin');
-  Add('  doit(i,i,i);');
+  Add([
+  'type TEnum = (Red,Blue);',
+  'type TEnums = set of TEnum;',
+  'function DoIt(vG: TEnums; const vH: TEnums; var vI: TEnums): TEnums;',
+  'var vJ: TEnums;',
+  'begin',
+  '  Include(vg,red);',
+  '  Include(result,blue);',
+  '  vg:=vg;',
+  '  vj:=vh;',
+  '  vi:=vi;',
+  '  doit(vg,vg,vg);',
+  '  doit(vh,vh,vj);',
+  '  doit(vi,vi,vi);',
+  '  doit(vj,vj,vj);',
+  'end;',
+  'var i: TEnums;',
+  'begin',
+  '  doit(i,i,i);']);
   ConvertProgram;
   CheckSource('TestSet_AsParams',
     LinesToStr([ // statements
@@ -4529,7 +4532,10 @@ begin
     '  Blue: 1',
     '};',
     'this.DoIt = function (vG,vH,vI) {',
+    '  var Result = {};',
     '  var vJ = {};',
+    '  vG = rtl.includeSet(vG, $mod.TEnum.Red);',
+    '  Result = rtl.includeSet(Result, $mod.TEnum.Blue);',
     '  vG = rtl.refSet(vG);',
     '  vJ = rtl.refSet(vH);',
     '  vI.set(rtl.refSet(vI.get()));',
@@ -4558,6 +4564,7 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
+    '  return Result;',
     '};',
     'this.i = {};'
     ]),

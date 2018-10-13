@@ -254,7 +254,7 @@ type
     Procedure TestCharAssignStringFail;
     Procedure TestChar_ForIn;
 
-    // enums
+    // enums and sets
     Procedure TestEnums;
     Procedure TestEnumRangeFail;
     Procedure TestSets;
@@ -3568,9 +3568,12 @@ begin
   Add('function {#A1}FuncA: TFlags;');
   Add('begin');
   Add('  Result:=[red];');
+  Add('  Include(Result,green);');
+  Add('  Exclude(Result,blue);');
   Add('end;');
   Add('function {#A2}FuncA(f: TFlags): TFlags;');
   Add('begin');
+  Add('  Include(f,green);');
   Add('  Result:=f;');
   Add('end;');
   Add('var');

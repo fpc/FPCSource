@@ -12157,7 +12157,8 @@ begin
   EnumType:=nil;
   if ([rrfReadable,rrfWritable]*ParamResolved.Flags=[rrfReadable,rrfWritable])
       and ((ParamResolved.IdentEl is TPasVariable)
-        or (ParamResolved.IdentEl is TPasArgument)) then
+        or (ParamResolved.IdentEl is TPasArgument)
+        or (ParamResolved.IdentEl is TPasResultElement)) then
     begin
     if (ParamResolved.BaseType=btSet)
         and (ParamResolved.LoTypeEl is TPasEnumType) then
