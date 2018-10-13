@@ -361,6 +361,7 @@ type
     Procedure TestBitwiseOperators;
     Procedure TestFunctionInt;
     Procedure TestFunctionString;
+    Procedure TestIfThen;
     Procedure TestForLoop;
     Procedure TestForLoopInsideFunction;
     Procedure TestForLoop_ReadVarAfter;
@@ -6310,6 +6311,25 @@ begin
     LinesToStr([ // this.$main
     ''
     ]));
+end;
+
+procedure TTestModule.TestIfThen;
+begin
+  StartProgram(false);
+  Add([
+  'var b: boolean;',
+  'begin',
+  '  if b then ;',
+  '  if b then else ;']);
+  ConvertProgram;
+  CheckSource('TestIfThen',
+    LinesToStr([ // statements
+    'this.b = false;',
+    '']),
+    LinesToStr([ // this.$main
+    'if ($mod.b) ;',
+    'if ($mod.b) ;',
+    '']));
 end;
 
 procedure TTestModule.TestForLoop;

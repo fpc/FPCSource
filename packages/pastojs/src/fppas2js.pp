@@ -1726,6 +1726,7 @@ type
     Function ConvertExportSymbol(El: TPasExportSymbol; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertExpression(El: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertImplBlock(El: TPasImplBlock; AContext: TConvertContext ): TJSElement; virtual;
+    Function ConvertImplCommand(El: TPasImplCommand; AContext: TConvertContext ): TJSElement; virtual;
     Function ConvertLabelMark(El: TPasImplLabelMark; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertLabels(El: TPasLabels; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertModule(El: TPasModule; AContext: TConvertContext): TJSElement; virtual;
@@ -14994,6 +14995,16 @@ begin
     RaiseNotSupported(El,AContext,20161024192156);
 end;
 
+function TPasToJSConverter.ConvertImplCommand(El: TPasImplCommand;
+  AContext: TConvertContext): TJSElement;
+begin
+  if El.Command<>'' then
+    RaiseNotSupported(El,AContext,20181013224809,El.Command);
+  if not (El.Parent is TPasImplIfElse) then
+    RaiseNotSupported(El,AContext,20181013224929,GetObjName(El.Parent));
+  Result:=nil;
+end;
+
 function TPasToJSConverter.ConvertPackage(El: TPasPackage;
   AContext: TConvertContext): TJSElement;
 
@@ -18501,6 +18512,8 @@ begin
     Result:=ConvertProcedure(TPasProcedure(El),AContext)
   else if C.InheritsFrom(TPasImplBlock) then
     Result:=ConvertImplBlock(TPasImplBlock(El),AContext)
+  else if C=TPasImplCommand then
+    Result:=ConvertImplCommand(TPasImplCommand(El),AContext)
   else if C.InheritsFrom(TPasModule)  then
     Result:=ConvertModule(TPasModule(El),AContext)
   else If (C=TPasPackage)  then
