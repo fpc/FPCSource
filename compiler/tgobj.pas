@@ -494,7 +494,10 @@ implementation
                if not(hp^.temptype in temptypes) then
                 begin
 {$ifdef EXTDEBUG}
-                  Comment(V_Warning,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
+                  if hp^.temptype = tt_persistent then
+                    Comment(V_Note,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing')
+                  else
+                    Comment(V_Warning,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp has wrong type ('+TempTypeStr[hp^.temptype]+') not releasing'));
 {$endif}
                   exit;

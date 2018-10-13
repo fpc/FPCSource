@@ -210,7 +210,14 @@ implementation
             if (not codegenerror) then
              begin
                if (p.location.loc<>p.expectloc) then
-                 Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
+                 begin
+                   if ((p.location.loc=loc_register) and (p.expectloc=loc_cregister))
+                      or ((p.location.loc=loc_fpuregister) and (p.expectloc=loc_cfpuregister))
+                      or ((p.location.loc=loc_reference) and (p.expectloc=loc_creference)) then
+                     Comment(V_Note,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype])
+                   else
+                     Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
+                 end;
                if (p.location.loc=LOC_INVALID) then
                  Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;
