@@ -3694,6 +3694,7 @@ implementation
                begin
                  { if the code generator can handle 32 to 64-bit muls,
                    we're done here }
+                 expectloc:=LOC_REGISTER;
                end
 {$ifndef cpu64bitalu}
               { is there a 64 bit type ? }
