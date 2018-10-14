@@ -1939,7 +1939,7 @@ implementation
                       not is_objectpascal_helper(tdef(srsymtable.defowner)) then
                     internalerror(2013011401);
                   { convert const node to temp node of the extended type }
-                  if node.nodetype in (nodetype_const+[niln,addrn]) then
+                  if node.nodetype in (nodetype_const+[addrn]) then
                     begin
                       extdef:=tobjectdef(srsymtable.defowner).extendeddef;
                       newstatement:=nil;
