@@ -273,10 +273,12 @@ type
     FTokenRingCur: Integer; // index of current token in FTokenBuffer
     FTokenRingStart: Integer; // first valid ring index in FTokenBuffer, if FTokenRingStart=FTokenRingEnd the ring is empty
     FTokenRingEnd: Integer; // first invalid ring index in FTokenBuffer
+    {$ifdef VerbosePasParser}
     FDumpIndent : String;
+    procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
+    {$endif}
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
     function DoCheckHint(Element: TPasElement): Boolean;
-    procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
     function GetCurrentModeSwitches: TModeSwitches;
     Procedure SetCurrentModeSwitches(AValue: TModeSwitches);
     function GetVariableModifiers(Parent: TPasElement;
@@ -2425,7 +2427,9 @@ begin
   AllowedBinaryOps:=BinaryOP;
   if Not AllowEqual then
     Exclude(AllowedBinaryOps,tkEqual);
+  {$ifdef VerbosePasParser}
   //DumpCurToken('Entry',iaIndent);
+  {$endif}
   Result:=nil;
   ExpStack := TFPList.Create;
   SetLength(OpStack,4);
@@ -2543,10 +2547,12 @@ begin
     Result.Parent:=AParent;
 
   finally
-    {if Not Assigned(Result) then
+    {$ifdef VerbosePasParser}
+    if Not Assigned(Result) then
       DumpCurToken('Exiting (no result)',iaUndent)
     else
-      DumpCurtoken('Exiting (Result: "'+Result.GetDeclaration(true)+'") ',iaUndent);}
+      DumpCurtoken('Exiting (Result: "'+Result.GetDeclaration(true)+'") ',iaUndent);
+    {$endif}
     if not Assigned(Result) then begin
       // expression error!
       for i:=0 to ExpStack.Count-1 do
@@ -4958,7 +4964,9 @@ begin
                   IsCurTokenHint() or
                   TokenIsCallingConvention(CurTokenString,cc) or
                   (CurToken=tkIdentifier) and (CompareText(CurTokenText,'alias')=0));
-//      DumpCurToken('Done '+IntToStr(Ord(Done)));
+      {$ifdef VerbosePasParser}
+      DumpCurToken('Done '+IntToStr(Ord(Done)));
+      {$endif}
       UngetToken;
       end;
 
@@ -6098,6 +6106,7 @@ begin
   Until Done;
 end;
 
+{$ifdef VerbosePasParser}
 procedure TPasParser.DumpCurToken(const Msg: String; IndentAction: TIndentAction
   );
 begin
@@ -6114,6 +6123,7 @@ begin
   {$endif}
   {AllowWriteln-}
 end;
+{$endif}
 
 function TPasParser.GetCurrentModeSwitches: TModeSwitches;
 begin

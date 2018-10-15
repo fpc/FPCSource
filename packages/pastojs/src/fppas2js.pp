@@ -1511,7 +1511,7 @@ type
     Function GetExpressionValueType(El: TPasExpr; AContext: TConvertContext ): TJSType; virtual;
     Function GetPasIdentValueType(AName: String; AContext: TConvertContext): TJSType; virtual;
     Function ComputeConstString(Expr: TPasExpr; AContext: TConvertContext; NotEmpty: boolean): String; virtual;
-    Function IsLiteralInteger(El: TJSElement; out Number: MaxPrecInt): boolean;
+    Function IsLiteralInteger(El: TJSElement; out Number: TMaxPrecInt): boolean;
     Function IsLiteralNumber(El: TJSElement; out n: TJSNumber): boolean;
     // Name mangling
     Function GetOverloadName(El: TPasElement; AContext: TConvertContext): string;
@@ -1577,8 +1577,8 @@ type
     Procedure ConvertCharLiteralToInt(Lit: TJSLiteral; ErrorEl: TPasElement; AContext: TConvertContext); virtual;
     Function ClonePrimaryExpression(El: TJSPrimaryExpression; Src: TPasElement): TJSPrimaryExpression;
     // simple JS expressions
-    Function CreateMulNumber(El: TPasElement; JS: TJSElement; n: MaxPrecInt): TJSElement; virtual;
-    Function CreateDivideNumber(El: TPasElement; JS: TJSElement; n: MaxPrecInt): TJSElement; virtual;
+    Function CreateMulNumber(El: TPasElement; JS: TJSElement; n: TMaxPrecInt): TJSElement; virtual;
+    Function CreateDivideNumber(El: TPasElement; JS: TJSElement; n: TMaxPrecInt): TJSElement; virtual;
     Function CreateMathFloor(El: TPasElement; JS: TJSElement): TJSElement; virtual;
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement;
       CheckRightIntfRef: boolean = false): TJSElement; virtual;
@@ -1786,7 +1786,7 @@ type
         otSIntDouble, // 6 NativeInt
         otUIntDouble  // 7 NativeUInt
         );
-    Function GetOrdType(MinValue, MaxValue: MaxPrecInt; ErrorEl: TPasElement): TOrdType; virtual;
+    Function GetOrdType(MinValue, MaxValue: TMaxPrecInt; ErrorEl: TPasElement): TOrdType; virtual;
   Public
     Constructor Create;
     destructor Destroy; override;
@@ -5588,7 +5588,7 @@ begin
 end;
 
 function TPasToJSConverter.IsLiteralInteger(El: TJSElement; out
-  Number: MaxPrecInt): boolean;
+  Number: TMaxPrecInt): boolean;
 var
   Value: TJSValue;
 begin
@@ -7353,7 +7353,7 @@ var
     Arg, ArrJS: TJSElement;
     OldAccess: TCtxAccess;
     Ranges: TPasExprArray;
-    Int: MaxPrecInt;
+    Int: TMaxPrecInt;
     Param: TPasExpr;
     JSAdd: TJSAdditiveExpression;
     LowRg: TResEvalValue;
@@ -8522,7 +8522,7 @@ var
     JSBaseType:=JSBaseTypeData.JSBaseType;
   end;
 
-  function CreateBitWiseAnd(Value: TJSElement; const Mask: MaxPrecInt; Shift: integer): TJSElement;
+  function CreateBitWiseAnd(Value: TJSElement; const Mask: TMaxPrecInt; Shift: integer): TJSElement;
   // ig sign=false: Value & Mask
   // if sign=true:  Value & Mask << ZeroBits >> ZeroBits
   var
@@ -8570,7 +8570,7 @@ var
   AddExpr: TJSAdditiveExpressionPlus;
   TypeEl: TPasType;
   C: TClass;
-  Int, MinVal, MaxVal: MaxPrecInt;
+  Int, MinVal, MaxVal: TMaxPrecInt;
   aResolver: TPas2JSResolver;
   ShiftEx: TJSURShiftExpression;
 begin
@@ -8954,7 +8954,7 @@ var
   ParamResolved: TPasResolverResult;
   Ranges: TPasExprArray;
   Call: TJSCallExpression;
-  RgLen: MaxPrecInt;
+  RgLen: TMaxPrecInt;
 begin
   Result:=nil;
   Param:=El.Params[0];
@@ -9477,7 +9477,7 @@ var
   Value: TResEvalValue;
   Call: TJSCallExpression;
   MinusExpr: TJSAdditiveExpressionMinus;
-  MinVal, MaxVal: MaxPrecInt;
+  MinVal, MaxVal: TMaxPrecInt;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -10376,7 +10376,7 @@ var
   Param: TPasExpr;
   TypeEl: TPasType;
   Value: TResEvalValue;
-  MinVal, MaxVal: MaxPrecInt;
+  MinVal, MaxVal: TMaxPrecInt;
   C: TClass;
 begin
   Result:=nil;
@@ -11889,7 +11889,7 @@ var
   TIObj: TJSObjectLiteral;
   Call: TJSCallExpression;
   MinVal, MaxVal: TResEvalValue;
-  MinInt, MaxInt: MaxPrecInt;
+  MinInt, MaxInt: TMaxPrecInt;
   OrdType: TOrdType;
   TIProp: TJSObjectLiteralElement;
   fn: TPas2JSBuiltInName;
@@ -12109,7 +12109,7 @@ var
   ElType: TPasType;
   RangeEl: TPasExpr;
   Call: TJSCallExpression;
-  RgLen, RangeEnd: MaxPrecInt;
+  RgLen, RangeEnd: TMaxPrecInt;
   List: TJSStatementList;
   Func: TJSFunctionDeclarationStatement;
   Src: TJSSourceElements;
@@ -12264,10 +12264,10 @@ begin
     end;
 end;
 
-function TPasToJSConverter.GetOrdType(MinValue, MaxValue: MaxPrecInt;
+function TPasToJSConverter.GetOrdType(MinValue, MaxValue: TMaxPrecInt;
   ErrorEl: TPasElement): TOrdType;
 var
-  V: MaxPrecInt;
+  V: TMaxPrecInt;
 begin
   if MinValue<0 then
     begin
@@ -12373,7 +12373,7 @@ var
     BodyJS.A:=FirstSt;
   end;
 
-  procedure AddRangeCheck(Arg: TPasArgument; MinVal, MaxVal: MaxPrecInt;
+  procedure AddRangeCheck(Arg: TPasArgument; MinVal, MaxVal: TMaxPrecInt;
     RTLFunc: TPas2JSBuiltInName);
   var
     Call: TJSCallExpression;
@@ -12431,7 +12431,7 @@ Var
   Call: TJSCallExpression;
   ClassPath: String;
   ArgResolved: TPasResolverResult;
-  MinVal, MaxVal: MaxPrecInt;
+  MinVal, MaxVal: TMaxPrecInt;
   Lit: TJSLiteral;
   ConstSrcElems: TJSSourceElements;
   ArgTypeEl: TPasType;
@@ -13986,7 +13986,7 @@ var
   Path: String;
   FuncContext: TFunctionContext;
   DotExpr: TJSDotMemberExpression;
-  i: MaxPrecInt;
+  i: TMaxPrecInt;
   JSExpr: TJSElement;
 begin
   if ArrayExpr is TJSArrayLiteral then
@@ -15105,7 +15105,7 @@ function TPasToJSConverter.ConvertAssignStatement(El: TPasImplAssign;
   end;
 
   function CreateRangeCheck(AssignSt: TJSElement;
-    MinVal, MaxVal: MaxPrecInt; RTLFunc: TPas2JSBuiltInName): TJSElement;
+    MinVal, MaxVal: TMaxPrecInt; RTLFunc: TPas2JSBuiltInName): TJSElement;
   var
     Call: TJSCallExpression;
   begin
@@ -15165,7 +15165,7 @@ Var
   Flags: TPasResolverComputeFlags;
   LeftIsProcType, NeedClone: Boolean;
   Call: TJSCallExpression;
-  MinVal, MaxVal: MaxPrecInt;
+  MinVal, MaxVal: TMaxPrecInt;
   RightTypeEl, LeftTypeEl: TPasType;
   aResolver: TPas2JSResolver;
   NewMemE, NewME: TJSNewMemberExpression;
@@ -15651,7 +15651,7 @@ var
       end;
   end;
 
-  function GetOrd(Value: TResEvalValue; ErrorEl: TPasElement): MaxPrecInt; overload;
+  function GetOrd(Value: TResEvalValue; ErrorEl: TPasElement): TMaxPrecInt; overload;
   var
     OrdValue: TResEvalValue;
   begin
@@ -15667,7 +15667,7 @@ var
       ReleaseEvalValue(OrdValue);
   end;
 
-  function GetEnumValue(EnumType: TPasEnumType; Int: MaxPrecInt): TResEvalValue; overload;
+  function GetEnumValue(EnumType: TPasEnumType; Int: TMaxPrecInt): TResEvalValue; overload;
   begin
     if (coEnumNumbers in Options) or (Int<0) or (Int>=EnumType.Values.Count) then
       Result:=TResEvalInt.CreateValue(Int)
@@ -15679,7 +15679,7 @@ var
   FuncContext: TConvertContext;
   VarResolved, InResolved: TPasResolverResult;
   StartValue, EndValue, InValue: TResEvalValue;
-  StartInt, EndInt: MaxPrecInt;
+  StartInt, EndInt: TMaxPrecInt;
   HasLoopVar, HasEndVar, HasInVar: Boolean;
   InKind: TInKind;
   ForScope: TPasForLoopScope;
@@ -17094,7 +17094,7 @@ begin
 end;
 
 function TPasToJSConverter.CreateMulNumber(El: TPasElement; JS: TJSElement;
-  n: MaxPrecInt): TJSElement;
+  n: TMaxPrecInt): TJSElement;
 // create JS*n
 var
   Mul: TJSMultiplicativeExpressionMul;
@@ -17141,7 +17141,7 @@ begin
 end;
 
 function TPasToJSConverter.CreateDivideNumber(El: TPasElement; JS: TJSElement;
-  n: MaxPrecInt): TJSElement;
+  n: TMaxPrecInt): TJSElement;
 // create JS/n
 var
   Mul: TJSMultiplicativeExpressionDiv;

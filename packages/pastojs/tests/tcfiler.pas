@@ -1541,11 +1541,11 @@ end;
 
 procedure TTestPrecompile.Test_Base256VLQ;
 
-  procedure Test(i: MaxPrecInt);
+  procedure Test(i: TMaxPrecInt);
   var
     s: String;
     p: PByte;
-    j: MaxPrecInt;
+    j: TMaxPrecInt;
   begin
     s:=EncodeVLQ(i);
     p:=PByte(s);
@@ -1554,7 +1554,7 @@ procedure TTestPrecompile.Test_Base256VLQ;
       Fail('Encode/DecodeVLQ OrigIndex='+IntToStr(i)+' Code="'+s+'" NewIndex='+IntToStr(j));
   end;
 
-  procedure TestStr(i: MaxPrecInt; Expected: string);
+  procedure TestStr(i: TMaxPrecInt; Expected: string);
   var
     Actual: String;
   begin
@@ -1570,11 +1570,11 @@ begin
   TestStr(-1,#3);
   for i:=-8200 to 8200 do
     Test(i);
-  Test(High(MaxPrecInt));
-  Test(High(MaxPrecInt)-1);
-  Test(Low(MaxPrecInt)+2);
-  Test(Low(MaxPrecInt)+1);
-  //Test(Low(MaxPrecInt)); such a high number is not needed by pastojs
+  Test(High(TMaxPrecInt));
+  Test(High(TMaxPrecInt)-1);
+  Test(Low(TMaxPrecInt)+2);
+  Test(Low(TMaxPrecInt)+1);
+  //Test(Low(TMaxPrecInt)); such a high number is not needed by pastojs
 end;
 
 procedure TTestPrecompile.TestPC_EmptyUnit;

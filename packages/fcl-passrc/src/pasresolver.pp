@@ -1776,7 +1776,7 @@ type
     function ProcNeedsParams(El: TPasProcedureType): boolean;
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
-    function GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
+    function GetRangeLength(RangeExpr: TPasExpr): TMaxPrecInt;
     function EvalRangeLimit(RangeExpr: TPasExpr; Flags: TResEvalFlags;
       EvalLow: boolean; ErrorEl: TPasElement): TResEvalValue; virtual; // compute low() or high()
     function EvalTypeRange(Decl: TPasType; Flags: TResEvalFlags): TResEvalValue; virtual; // compute low() and high()
@@ -1785,9 +1785,9 @@ type
     function GetCombinedBoolean(Bool1, Bool2: TResolverBaseType; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedInt(const Int1, Int2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     procedure GetIntegerProps(bt: TResolverBaseType; out Precision: word; out Signed: boolean);
-    function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: MaxPrecInt): boolean;
+    function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: TMaxPrecInt): boolean;
     function GetIntegerBaseType(Precision: word; Signed: boolean; ErrorEl: TPasElement): TResolverBaseType;
-    function GetSmallestIntegerBaseType(MinVal, MaxVal: MaxPrecInt): TResolverBaseType;
+    function GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt): TResolverBaseType;
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function IsElementSkipped(El: TPasElement): boolean; virtual;
@@ -6818,7 +6818,7 @@ end;
 procedure TPasResolver.ResolveImplCaseOf(CaseOf: TPasImplCaseOf);
 type
   TRangeItem = record
-    RangeStart, RangeEnd: MaxPrecInt;
+    RangeStart, RangeEnd: TMaxPrecInt;
     Expr: TPasExpr;
     aString: UnicodeString;
     // Note: for case-of-string:
@@ -6888,7 +6888,7 @@ type
       end;
   end;
 
-  function AddRangeItem(Values: TFPList; const RangeStart, RangeEnd: MaxPrecInt;
+  function AddRangeItem(Values: TFPList; const RangeStart, RangeEnd: TMaxPrecInt;
     Expr: TPasExpr): PRangeItem;
   begin
     New(Result);
@@ -6927,7 +6927,7 @@ type
       Result:=true;
     end;
 
-    function AddStringRange(CharStart, CharEnd: MaxPrecInt): boolean;
+    function AddStringRange(CharStart, CharEnd: TMaxPrecInt): boolean;
     var
       i, o: Integer;
       s: UnicodeString;
@@ -6957,7 +6957,7 @@ type
     end;
 
   var
-    RangeStart, RangeEnd: MaxPrecInt;
+    RangeStart, RangeEnd: TMaxPrecInt;
     i: Integer;
     Item: PRangeItem;
   begin
@@ -6981,7 +6981,7 @@ type
       // Note: when FPC compares int64 with qword it converts the qword to an int64
       if TResEvalUInt(Value).UInt>HighIntAsUInt then
         ExprEvaluator.EmitRangeCheckConst(20180424212414,Value.AsString,
-          '0',IntToStr(High(MaxPrecInt)),Expr,mtError);
+          '0',IntToStr(High(TMaxPrecInt)),Expr,mtError);
       RangeStart:=TResEvalUInt(Value).UInt;
       RangeEnd:=RangeStart;
       end;
@@ -7023,7 +7023,7 @@ type
       // Note: when FPC compares int64 with qword it converts the qword to an int64
       if TResEvalRangeUInt(Value).RangeEnd>HighIntAsUInt then
         ExprEvaluator.EmitRangeCheckConst(20180424212648,Value.AsString,
-          '0',IntToStr(High(MaxPrecInt)),Expr,mtError);
+          '0',IntToStr(High(TMaxPrecInt)),Expr,mtError);
       RangeStart:=TResEvalRangeUInt(Value).RangeStart;
       RangeEnd:=TResEvalRangeUInt(Value).RangeEnd;
       end;
@@ -11674,9 +11674,9 @@ end;
 function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
   bt: TResolverBaseType): TResEvalvalue;
 
-  procedure TCFloatToInt(Value: TResEvalValue; Flo: MaxPrecFloat);
+  procedure TCFloatToInt(Value: TResEvalValue; Flo: TMaxPrecFloat);
   var
-    Int, MinIntVal, MaxIntVal: MaxPrecInt;
+    Int, MinIntVal, MaxIntVal: TMaxPrecInt;
   begin
     if bt in (btAllInteger-[btQWord]) then
       begin
@@ -11747,9 +11747,9 @@ function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
 
 var
   Value: TResEvalValue;
-  Int: MaxPrecInt;
+  Int: TMaxPrecInt;
   MinIntVal, MaxIntVal: int64;
-  Flo: MaxPrecFloat;
+  Flo: TMaxPrecFloat;
   c: Char;
   w: WideChar;
 begin
@@ -11768,7 +11768,7 @@ begin
         begin
         // int to qword
         {$R-}
-        Result:=TResEvalUInt.CreateValue(MaxPrecUInt(Int));
+        Result:=TResEvalUInt.CreateValue(TMaxPrecUInt(Int));
         {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
         end
       else if bt in (btAllInteger-[btQWord]) then
@@ -12655,7 +12655,7 @@ var
   Value: TResEvalValue;
   EnumType: TPasEnumType;
   aSet: TResEvalSet;
-  Int: MaxPrecInt;
+  Int: TMaxPrecInt;
   bt: TResolverBaseType;
   MinInt, MaxInt: int64;
   i: Integer;
@@ -13600,7 +13600,7 @@ var
   i: Integer;
   ArrayEl: TPasArrayType;
   bt: TResolverBaseType;
-  MinInt, MaxInt: MaxPrecInt;
+  MinInt, MaxInt: TMaxPrecInt;
 begin
   Evaluated:=nil;
   Param:=Params.Params[0];
@@ -16111,7 +16111,7 @@ var
   LRangeValue, RValue: TResEvalValue;
   MinVal, MaxVal: int64;
   RangeExpr: TBinaryExpr;
-  Int: MaxPrecInt;
+  Int: TMaxPrecInt;
   C: TClass;
   EnumType: TPasEnumType;
   bt: TResolverBaseType;
@@ -16193,9 +16193,9 @@ begin
           fExprEvaluator.EmitRangeCheckConst(20170530093126,
             IntToStr(TResEvalInt(RValue).Int),MinVal,MaxVal,RHS);
       revkUInt:
-        if (TResEvalUInt(RValue).UInt>High(MaxPrecInt))
-            or (MinVal>MaxPrecInt(TResEvalUInt(RValue).UInt))
-            or (MaxVal<MaxPrecInt(TResEvalUInt(RValue).UInt)) then
+        if (TResEvalUInt(RValue).UInt>High(TMaxPrecInt))
+            or (MinVal>TMaxPrecInt(TResEvalUInt(RValue).UInt))
+            or (MaxVal<TMaxPrecInt(TResEvalUInt(RValue).UInt)) then
           fExprEvaluator.EmitRangeCheckConst(20170530093616,
             IntToStr(TResEvalUInt(RValue).UInt),IntToStr(MinVal),IntToStr(MaxVal),RHS);
       revkFloat:
@@ -20027,7 +20027,7 @@ begin
     end;
 end;
 
-function TPasResolver.GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
+function TPasResolver.GetRangeLength(RangeExpr: TPasExpr): TMaxPrecInt;
 var
   Range: TResEvalValue;
 begin
@@ -20259,7 +20259,7 @@ begin
 end;
 
 function TPasResolver.GetIntegerRange(bt: TResolverBaseType; out MinVal,
-  MaxVal: MaxPrecInt): boolean;
+  MaxVal: TMaxPrecInt): boolean;
 begin
   Result:=true;
   if bt=btExtended then bt:=BaseTypeExtended;
@@ -20327,10 +20327,10 @@ begin
   RaiseRangeCheck(20170420100336,ErrorEl);
 end;
 
-function TPasResolver.GetSmallestIntegerBaseType(MinVal, MaxVal: MaxPrecInt
+function TPasResolver.GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt
   ): TResolverBaseType;
 var
-  V: MaxPrecInt;
+  V: TMaxPrecInt;
 begin
   if MinVal>MaxVal then
     MinVal:=MaxVal;
