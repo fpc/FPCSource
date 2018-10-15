@@ -1316,6 +1316,7 @@ var
   Bin: TBinaryExpr;
   Params: TParamsExpr;
   ValueResolved: TPasResolverResult;
+  Unary: TUnaryExpr;
 begin
   C:=Expr.ClassType;
   if C=TBinaryExpr then
@@ -1353,6 +1354,14 @@ begin
       UseElement(Ref.Declaration,Access,UseFull);
       end;
     end
+  else if C=TUnaryExpr then
+    begin
+    Unary:=TUnaryExpr(Expr);
+    if Unary.OpCode in [eopAdd,eopSubtract,eopAddress,eopDeref,eopMemAddress] then
+      UseExprRef(El,Unary.Operand,rraRead,false)
+    else
+      RaiseNotSupported(20181015193334,Expr,OpcodeStrings[Unary.OpCode]);
+    end
   else if (Access=rraRead)
       and ((C=TPrimitiveExpr) // Kind<>pekIdent
         or (C=TNilExpr)
@@ -1364,7 +1373,7 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.UseExprRef Expr=',GetObjName(Expr),' Access=',Access,' Declaration="',Expr.GetDeclaration(false),'"');
     {$ENDIF}
-    RaiseNotSupported(20170306102158,Expr);
+    RaiseNotSupported(20170306102159,Expr);
     end;
 end;
 

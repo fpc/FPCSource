@@ -67,6 +67,7 @@ type
     procedure TestM_Const;
     procedure TestM_ResourceString;
     procedure TestM_Record;
+    procedure TestM_PointerTyped_Record;
     procedure TestM_Array;
     procedure TestM_NestedFuncResult;
     procedure TestM_Enums;
@@ -868,6 +869,40 @@ begin
   'begin',
   '  DoIt;']);
   AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_PointerTyped_Record;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#DoIt_used}DoIt;',
+  'type',
+  '  {#prec_used}PRec = ^TRec;',
+  '  {#trec_used}TRec = record',
+  '    {#a_used}a: longint;',
+  '    {#b_notused}b: longint;',
+  '    {#c_used}c: longint;',
+  '    {#d_used}d: longint;',
+  '    {#e_used}e: longint;',
+  '  end;',
+  'var',
+  '  r: TRec;',
+  '  p: PRec;',
+  '  i: longint;',
+  'begin',
+  '  p:=@r;',
+  '  i:=p^.a;',
+  '  p^.c:=i;',
+  '  if i=p^.d then;',
+  '  if p^.e=i then;',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "b" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
+    'Local variable "c" is assigned but never used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Array;
