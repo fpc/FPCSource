@@ -17,11 +17,24 @@
 {$mode objfpc}
 {$h+}
 
+{$ifdef fpc}
+  {$define UsePChar}
+  {$define UseAnsiStrings}
+  {$define HasStreams}
+  {$IF FPC_FULLVERSION<30101}
+    {$define EmulateArrayInsert}
+  {$endif}
+{$endif}
+
 unit PParser;
 
 interface
 
-uses SysUtils, Classes, PasTree, PScanner;
+uses
+  {$ifdef pas2js}
+  pas2jsfs,
+  {$endif}
+  SysUtils, Classes, PasTree, PScanner;
 
 // message numbers
 const
@@ -215,7 +228,7 @@ type
     FRow, FColumn: Integer;
   public
     constructor Create(const AReason, AFilename: String;
-      ARow, AColumn: Integer);
+      ARow, AColumn: Integer); reintroduce;
     property Filename: String read FFilename;
     property Row: Integer read FRow;
     property Column: Integer read FColumn;
@@ -283,7 +296,7 @@ type
     Function SaveComments(Const AValue : String) : String;
     function LogEvent(E : TPParserLogEvent) : Boolean; inline;
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Msg : String; SkipSourceInfo : Boolean = False);overload;
-    Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
+    Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif};SkipSourceInfo : Boolean = False);overload;
     function GetProcTypeFromToken(tk: TToken; IsClass: Boolean=False ): TProcType;
     procedure ParseAsmBlock(AsmBlock: TPasImplAsmStatement); virtual;
     procedure ParseRecordFieldList(ARec: TPasRecordType; AEndToken: TToken; AllowMethods : Boolean);
@@ -300,7 +313,7 @@ type
       Mandatory: Boolean): boolean;
     function CheckVisibility(S: String; var AVisibility: TPasMemberVisibility): Boolean;
     procedure ParseExc(MsgNumber: integer; const Msg: String);
-    procedure ParseExc(MsgNumber: integer; const Fmt: String; Args : Array of const);
+    procedure ParseExc(MsgNumber: integer; const Fmt: String; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif});
     procedure ParseExcExpectedIdentifier;
     procedure ParseExcSyntaxError;
     procedure ParseExcTokenError(const Arg: string);
@@ -352,7 +365,7 @@ type
   public
     constructor Create(AScanner: TPascalScanner; AFileResolver: TBaseFileResolver;  AEngine: TPasTreeContainer);
     Destructor Destroy; override;
-    procedure SetLastMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const);
+    procedure SetLastMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif});
     // General parsing routines
     function CurTokenName: String;
     function CurTokenText: String;
@@ -451,13 +464,19 @@ type
   end;
 
 Type
-  TParseSourceOption = (poUseStreams,poSkipDefaultDefs);
+  TParseSourceOption = (
+    {$ifdef HasStreams}
+    poUseStreams,
+    {$endif}
+    poSkipDefaultDefs);
   TParseSourceOptions = set of TParseSourceOption;
 function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
+{$ifdef HasStreams}
 function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String;
                      UseStreams  : Boolean): TPasModule; deprecated;
+{$endif}
 function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String;
                      Options : TParseSourceOptions): TPasModule;
@@ -561,6 +580,7 @@ begin
   Result:=ParseSource(AEngine,FPCCommandLine, OSTarget, CPUTarget,[]);
 end;
 
+{$ifdef HasStreams}
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String; UseStreams : Boolean): TPasModule;
 
@@ -570,6 +590,7 @@ begin
   else
     Result:=ParseSource(AEngine,FPCCommandLine, OSTarget, CPUTarget,[]);
 end;
+{$endif}
 
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String;
@@ -577,7 +598,7 @@ function ParseSource(AEngine: TPasTreeContainer;
 var
   FileResolver: TFileResolver;
   Parser: TPasParser;
-  Start, CurPos: PChar;
+  Start, CurPos: integer; // in FPCCommandLine
   Filename: String;
   Scanner: TPascalScanner;
 
@@ -587,12 +608,9 @@ var
     s: String;
   begin
     l := CurPos - Start;
-    s:='';
-    SetLength(s, l);
-    if l > 0 then
-      Move(Start^, s[1], l)
-    else
+    if l <= 0 then
       exit;
+    s:=copy(FPCCommandLine,Start,l);
     if (s[1] = '-') and (length(s)>1) then
     begin
       case s[2] of
@@ -642,10 +660,12 @@ begin
   Parser := nil;
   try
     FileResolver := TFileResolver.Create;
+    {$ifdef HasStreams}
     FileResolver.UseStreams:=poUseStreams in Options;
+    {$endif}
     Scanner := TPascalScanner.Create(FileResolver);
-    SCanner.LogEvents:=AEngine.ScannerLogEvents;
-    SCanner.OnLog:=AEngine.Onlog;
+    Scanner.LogEvents:=AEngine.ScannerLogEvents;
+    Scanner.OnLog:=AEngine.Onlog;
     if not (poSkipDefaultDefs in Options) then
       begin
       Scanner.AddDefine('FPK');
@@ -695,18 +715,18 @@ begin
 
     if FPCCommandLine<>'' then
       begin
-        Start := @FPCCommandLine[1];
-        CurPos := Start;
-        while CurPos[0] <> #0 do
+      Start:=1;
+      CurPos := Start;
+      while CurPos<length(FPCCommandLine) do
         begin
-          if CurPos[0] = ' ' then
+        if (FPCCommandLine[CurPos] = ' ') and (FPCCommandLine[CurPos+1]<>' ') then
           begin
-            ProcessCmdLinePart;
-            Start := CurPos + 1;
+          ProcessCmdLinePart;
+          Start := CurPos + 1;
           end;
-          Inc(CurPos);
+        Inc(CurPos);
         end;
-        ProcessCmdLinePart;
+      ProcessCmdLinePart;
       end;
 
     if Filename = '' then
@@ -845,7 +865,7 @@ begin
 end;
 
 procedure TPasParser.ParseExc(MsgNumber: integer; const Fmt: String;
-  Args: array of const);
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
 var
   p: TPasSourcePos;
 begin
@@ -1809,13 +1829,13 @@ begin
         end;
       tkOf:
         begin
-          NextToken;
-          if CurToken = tkConst then
-          else
+        NextToken;
+        if CurToken = tkConst then
+        else
           begin
-            UngetToken;
-            Result.ElType := ParseType(Result,CurSourcePos);
-          end
+          UngetToken;
+          Result.ElType := ParseType(Result,CurSourcePos);
+          end;
         end
       else
         ParseExc(nParserArrayTypeSyntaxError,SParserArrayTypeSyntaxError);
@@ -2594,7 +2614,7 @@ function TPasParser.DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
 
 var
   x , v: TPasExpr;
-  n : AnsiString;
+  n : String;
   r : TRecordValues;
 begin
   if CurToken <> tkBraceOpen then
@@ -4360,7 +4380,7 @@ begin
 end;
 
 procedure TPasParser.SetLastMsg(MsgType: TMessageType; MsgNumber: integer;
-  const Fmt: String; Args: array of const);
+  const Fmt: String; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
 begin
   FLastMsgType := MsgType;
   FLastMsgNumber := MsgNumber;
@@ -4376,7 +4396,8 @@ begin
 end;
 
 procedure TPasParser.DoLog(MsgType: TMessageType; MsgNumber: integer;
-  const Fmt: String; Args: array of const; SkipSourceInfo: Boolean);
+  const Fmt: String; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  SkipSourceInfo: Boolean);
 
 Var
   Msg : String;
@@ -6086,7 +6107,11 @@ begin
   Writeln(FDumpIndent,Msg,' : ',TokenInfos[CurToken],' "',CurTokenString,'", Position: ',Scanner.CurFilename,'(',Scanner.CurRow,',',SCanner.CurColumn,') : ',Scanner.CurLine);
   if IndentAction=iaIndent then
     FDumpIndent:=FDumpIndent+'  ';
+  {$ifdef pas2js}
+  // ToDo
+  {$else}
   Flush(output);
+  {$endif}
   {AllowWriteln-}
 end;
 
@@ -6691,9 +6716,9 @@ begin
     PCT.HelperForType:=FT;
     PCT.IsExternal:=(AExternalName<>'');
     if AExternalName<>'' then
-      PCT.ExternalName:=AnsiDequotedStr(AExternalName,'''');
+      PCT.ExternalName:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalName,'''');
     if AExternalNameSpace<>'' then
-    PCT.ExternalNameSpace:=AnsiDequotedStr(AExternalNameSpace,'''');
+    PCT.ExternalNameSpace:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalNameSpace,'''');
     PCT.ObjKind := AObjKind;
     PCT.PackMode:=PackMode;
     if AObjKind=okInterface then
