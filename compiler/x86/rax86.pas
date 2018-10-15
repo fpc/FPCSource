@@ -526,10 +526,6 @@ begin
                     memopsize := operands[i].opr.varsize * 8;
             end;
 
-            //TG TODO delete
-            t := tx86operand(operands[i]).opsize;
-
-
             if memopsize = 0 then memopsize := topsize2memsize[tx86operand(operands[i]).opsize];
 
             if (memopsize > 0) and
@@ -1358,9 +1354,6 @@ var
   i     : longint;
   asize : int64;
   ai   : taicpu;
-
-  //TG TODO delete
-  ocode: tasmop;
 begin
   ConcatInstruction:=nil;
 
@@ -1559,10 +1552,6 @@ begin
    if (opcode=A_ENTER) and
       (target_info.system in [system_i386_linux,system_i386_FreeBSD,system_i386_android]) then
      Message(asmr_w_enter_not_supported_by_linux);
-
-
-  //TG TODO delete
-  oCode := opcode;
 
   ai:=taicpu.op_none(opcode,siz);
   ai.fileinfo:=filepos;

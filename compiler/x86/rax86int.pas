@@ -136,9 +136,6 @@ Unit Rax86int;
        rautils,itx86int,
        { codegen }
        procinfo,paramgr
-
-       //TG TODO delete
-       ,aasmtai
        ;
 
     type
@@ -1003,7 +1000,7 @@ Unit Rax86int;
                           if (kreg >= NR_K1) and
                              (kreg <= NR_K7) then
                           begin
-                            aop.vopext := aop.vopext or (tregisterrec(kreg).supreg  and $07); //TG TODO check
+                            aop.vopext := aop.vopext or (tregisterrec(kreg).supreg  and $07);
                             aop.vopext := aop.vopext or OTVE_VECTOR_WRITEMASK;
                           end;
                         end;
@@ -2007,8 +2004,6 @@ Unit Rax86int;
 
                 Consume(AS_REGISTER, true);
 
-                //TG TODO check
-                //while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK, AS_LOPSAE, AS_LOPER] do
                 while actasmtoken in OPEXT_STARTASMTOKEN do
                 begin
                   consume_voperand_ext(oper);
@@ -2179,8 +2174,6 @@ Unit Rax86int;
                   Message(asmr_e_invalid_reference_syntax);
 
                 Consume(AS_RBRACKET, true);
-                //TG TODO check
-                //while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST, AS_LOPSAE, AS_LOPER] do
                 while actasmtoken in OPEXT_STARTASMTOKEN do
                 begin
                   consume_voperand_ext(oper);
@@ -2299,8 +2292,6 @@ Unit Rax86int;
         tsize   : tcgint;
         hastypecast: boolean;
 
-        //TG TODO delete
-        t: tasmtoken;
       begin
         oper.vopext := 0;
 
@@ -2539,8 +2530,6 @@ Unit Rax86int;
                        expr:=actasmpattern;
                        Consume(AS_ID, true);
 
-                       //TG TODO check
-                       //while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST,AS_LOPSAE] do
                        while actasmtoken in OPEXT_STARTASMTOKEN do
                        begin
                          consume_voperand_ext(oper);
@@ -2608,10 +2597,8 @@ Unit Rax86int;
                 tempreg:=actasmregister;
                 Consume(AS_REGISTER, true);
 
-                //TG TODO check
                 if (getregtype(tempreg) in [R_MMREGISTER, R_ADDRESSREGISTER]) then
                  begin
-                  //while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK, AS_LOPSAE, AS_LOPER] do
                    while actasmtoken in OPEXT_STARTASMTOKEN do
                   begin
                     consume_voperand_ext(oper);
@@ -2709,8 +2696,6 @@ Unit Rax86int;
 
             else
               begin
-                t := actasmtoken;
-
                 Message(asmr_e_syn_operand);
                 RecoverConsume(true);
                 break;
@@ -2873,7 +2858,7 @@ Unit Rax86int;
                   Message(asmr_e_too_many_operands)
                 else
                   Dec(operandnum);
-                Consume(AS_COMMA, true); //TG CHECK
+                Consume(AS_COMMA, true);
               end;
 
             {Far constant, i.e. jmp $0000:$11111111.}
