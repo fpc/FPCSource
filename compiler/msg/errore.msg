@@ -4081,6 +4081,12 @@ p*2Taix_AIX
 p*2Tdarwin_Darwin/Mac OS X
 p*2Tembedded_Embedded
 p*2Tlinux_Linux
+# riscv32 targets
+R*2Tlinux_Linux
+R*2Tembedded_Embedded
+# riscv64 targets
+r*2Tlinux_Linux
+r*2Tembedded_Embedded
 # sparc targets
 S*2Tlinux_Linux
 S*2Tsolaris_Solaris
