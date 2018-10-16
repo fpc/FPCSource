@@ -85,13 +85,13 @@ var
     class function currentInputContext: NSTextInputContext; message 'currentInputContext';
     function initWithClient(theClient: NSTextInputClientProtocol): id; message 'initWithClient:';
     function client: id; message 'client';
-    procedure setAcceptsGlyphInfo (newValue: Boolean); message 'setAcceptsGlyphInfo:';
-    function acceptsGlyphInfo: Boolean; message 'acceptsGlyphInfo';
+    procedure setAcceptsGlyphInfo (newValue: BOOL); message 'setAcceptsGlyphInfo:';
+    function acceptsGlyphInfo: BOOL; message 'acceptsGlyphInfo';
     procedure setAllowedInputSourceLocales (newValue: NSArray); message 'setAllowedInputSourceLocales:';
     function allowedInputSourceLocales: NSArray; message 'allowedInputSourceLocales';
     procedure activate; message 'activate';
     procedure deactivate; message 'deactivate';
-    function handleEvent(theEvent: NSEvent): Boolean; message 'handleEvent:';
+    function handleEvent(theEvent: NSEvent): BOOL; message 'handleEvent:';
     procedure discardMarkedText; message 'discardMarkedText';
     procedure invalidateCharacterCoordinates; message 'invalidateCharacterCoordinates';
     function keyboardInputSources: NSArray; message 'keyboardInputSources';

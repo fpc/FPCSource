@@ -60,11 +60,11 @@
     
   public
     procedure deactivate; message 'deactivate';
-    procedure activate(exclusive: Boolean); message 'activate:';
-    function isActive: Boolean; message 'isActive';
+    procedure activate(exclusive: BOOL); message 'activate:';
+    function isActive: BOOL; message 'isActive';
     procedure drawWellInside(insideRect: NSRect); message 'drawWellInside:';
-    function isBordered: Boolean; message 'isBordered';
-    procedure setBordered(flag: Boolean); message 'setBordered:';
+    function isBordered: BOOL; message 'isBordered';
+    procedure setBordered(flag: BOOL); message 'setBordered:';
     procedure takeColorFrom(sender: id); message 'takeColorFrom:';
     procedure setColor(color_: NSColor); message 'setColor:';
     function color: NSColor; message 'color';

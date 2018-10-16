@@ -43,8 +43,8 @@
   DOMHTMLLinkElement = objcclass external (DOMHTMLElement)
     
   public
-    procedure setDisabled (newValue: Boolean); message 'setDisabled:';
-    function disabled: Boolean; message 'disabled';
+    procedure setDisabled (newValue: BOOL); message 'setDisabled:';
+    function disabled: BOOL; message 'disabled';
     procedure setCharset (newValue: NSString); message 'setCharset:';
     function charset: NSString; message 'charset';
     procedure setHref (newValue: NSString); message 'setHref:';

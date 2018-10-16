@@ -72,21 +72,21 @@
     function content: id; message 'content';
     function selection: id; message 'selection';
     function selectedObjects: NSArray; message 'selectedObjects';
-    procedure setAutomaticallyPreparesContent(flag: Boolean); message 'setAutomaticallyPreparesContent:';
-    function automaticallyPreparesContent: Boolean; message 'automaticallyPreparesContent';
+    procedure setAutomaticallyPreparesContent(flag: BOOL); message 'setAutomaticallyPreparesContent:';
+    function automaticallyPreparesContent: BOOL; message 'automaticallyPreparesContent';
     procedure prepareContent; message 'prepareContent';
     procedure setObjectClass(objectClass_: Pobjc_class); message 'setObjectClass:';
     function objectClass: Pobjc_class; message 'objectClass';
     function newObject: id; message 'newObject';
     procedure addObject(object_: id); message 'addObject:';
     procedure removeObject(object_: id); message 'removeObject:';
-    procedure setEditable(flag: Boolean); message 'setEditable:';
-    function isEditable: Boolean; message 'isEditable';
+    procedure setEditable(flag: BOOL); message 'setEditable:';
+    function isEditable: BOOL; message 'isEditable';
     procedure add(sender: id); message 'add:';
-    function canAdd: Boolean; message 'canAdd';
+    function canAdd: BOOL; message 'canAdd';
     procedure remove(sender: id); message 'remove:';
-    function canRemove: Boolean; message 'canRemove';
-    function validateUserInterfaceItem(item: NSValidatedUserInterfaceItemProtocol): Boolean; message 'validateUserInterfaceItem:';
+    function canRemove: BOOL; message 'canRemove';
+    function validateUserInterfaceItem(item: NSValidatedUserInterfaceItemProtocol): BOOL; message 'validateUserInterfaceItem:';
   end;
 
 { NSManagedControllerCategory }
@@ -97,10 +97,10 @@
     procedure setEntityName(entityName_: NSString); message 'setEntityName:';
     function fetchPredicate: NSPredicate; message 'fetchPredicate';
     procedure setFetchPredicate(predicate: NSPredicate); message 'setFetchPredicate:';
-    function fetchWithRequest_merge_error(fetchRequest: NSFetchRequest; merge: Boolean; error: NSErrorPointer): Boolean; message 'fetchWithRequest:merge:error:';
+    function fetchWithRequest_merge_error(fetchRequest: NSFetchRequest; merge: BOOL; error: NSErrorPointer): BOOL; message 'fetchWithRequest:merge:error:';
     procedure fetch(sender: id); message 'fetch:';
-    procedure setUsesLazyFetching(enabled: Boolean); message 'setUsesLazyFetching:';
-    function usesLazyFetching: Boolean; message 'usesLazyFetching';
+    procedure setUsesLazyFetching(enabled: BOOL); message 'setUsesLazyFetching:';
+    function usesLazyFetching: BOOL; message 'usesLazyFetching';
     function defaultFetchRequest: NSFetchRequest; message 'defaultFetchRequest';
   end;
 

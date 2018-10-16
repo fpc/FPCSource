@@ -175,20 +175,20 @@ var
     function initWithDataIgnoringOrientation(data: NSData): id; message 'initWithDataIgnoringOrientation:';
     procedure setSize(aSize: NSSize); message 'setSize:';
     function size: NSSize; message 'size';
-    function setName(string_: NSString): Boolean; message 'setName:';
+    function setName(string_: NSString): BOOL; message 'setName:';
     function name: NSString; message 'name';
     procedure setBackgroundColor(aColor: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
-    procedure setUsesEPSOnResolutionMismatch(flag: Boolean); message 'setUsesEPSOnResolutionMismatch:';
-    function usesEPSOnResolutionMismatch: Boolean; message 'usesEPSOnResolutionMismatch';
-    procedure setPrefersColorMatch(flag: Boolean); message 'setPrefersColorMatch:';
-    function prefersColorMatch: Boolean; message 'prefersColorMatch';
-    procedure setMatchesOnMultipleResolution(flag: Boolean); message 'setMatchesOnMultipleResolution:';
-    function matchesOnMultipleResolution: Boolean; message 'matchesOnMultipleResolution';
+    procedure setUsesEPSOnResolutionMismatch(flag: BOOL); message 'setUsesEPSOnResolutionMismatch:';
+    function usesEPSOnResolutionMismatch: BOOL; message 'usesEPSOnResolutionMismatch';
+    procedure setPrefersColorMatch(flag: BOOL); message 'setPrefersColorMatch:';
+    function prefersColorMatch: BOOL; message 'prefersColorMatch';
+    procedure setMatchesOnMultipleResolution(flag: BOOL); message 'setMatchesOnMultipleResolution:';
+    function matchesOnMultipleResolution: BOOL; message 'matchesOnMultipleResolution';
     procedure drawAtPoint_fromRect_operation_fraction(point: NSPoint; fromRect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'drawAtPoint:fromRect:operation:fraction:';
     procedure drawInRect_fromRect_operation_fraction(rect: NSRect; fromRect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'drawInRect:fromRect:operation:fraction:';
-    procedure drawInRect_fromRect_operation_fraction_respectFlipped_hints(dstSpacePortionRect: NSRect; srcSpacePortionRect: NSRect; op: NSCompositingOperation; requestedAlpha: CGFloat; respectContextIsFlipped: Boolean; hints: NSDictionary); message 'drawInRect:fromRect:operation:fraction:respectFlipped:hints:';
-    function drawRepresentation_inRect(imageRep: NSImageRep; rect: NSRect): Boolean; message 'drawRepresentation:inRect:';
+    procedure drawInRect_fromRect_operation_fraction_respectFlipped_hints(dstSpacePortionRect: NSRect; srcSpacePortionRect: NSRect; op: NSCompositingOperation; requestedAlpha: CGFloat; respectContextIsFlipped: BOOL; hints: NSDictionary); message 'drawInRect:fromRect:operation:fraction:respectFlipped:hints:';
+    function drawRepresentation_inRect(imageRep: NSImageRep; rect: NSRect): BOOL; message 'drawRepresentation:inRect:';
     procedure recache; message 'recache';
     function TIFFRepresentation: NSData; message 'TIFFRepresentation';
     function TIFFRepresentationUsingCompression_factor(comp: NSTIFFCompression; aFloat: single): NSData; message 'TIFFRepresentationUsingCompression:factor:';
@@ -196,9 +196,9 @@ var
     procedure addRepresentations(imageReps: NSArray); message 'addRepresentations:';
     procedure addRepresentation(imageRep: NSImageRep); message 'addRepresentation:';
     procedure removeRepresentation(imageRep: NSImageRep); message 'removeRepresentation:';
-    function isValid: Boolean; message 'isValid';
+    function isValid: BOOL; message 'isValid';
     procedure lockFocus; message 'lockFocus';
-    procedure lockFocusFlipped(flipped: Boolean); message 'lockFocusFlipped:';
+    procedure lockFocusFlipped(flipped: BOOL); message 'lockFocusFlipped:';
     procedure unlockFocus; message 'unlockFocus';
     function bestRepresentationForDevice(deviceDescription: NSDictionary): NSImageRep; message 'bestRepresentationForDevice:'; deprecated 'in Mac OS X 10.6 and later';
     procedure setDelegate(anObject: NSImageDelegateProtocol); message 'setDelegate:';
@@ -209,20 +209,20 @@ var
     class function imagePasteboardTypes: NSArray; message 'imagePasteboardTypes';
     class function imageTypes: NSArray; message 'imageTypes';
     class function imageUnfilteredTypes: NSArray; message 'imageUnfilteredTypes';
-    class function canInitWithPasteboard(pasteboard: NSPasteboard): Boolean; message 'canInitWithPasteboard:';
+    class function canInitWithPasteboard(pasteboard: NSPasteboard): BOOL; message 'canInitWithPasteboard:';
     procedure cancelIncrementalLoad; message 'cancelIncrementalLoad';
     procedure setCacheMode(mode: NSImageCacheMode); message 'setCacheMode:';
     function cacheMode: NSImageCacheMode; message 'cacheMode';
     function alignmentRect: NSRect; message 'alignmentRect';
     procedure setAlignmentRect(rect: NSRect); message 'setAlignmentRect:';
-    function isTemplate: Boolean; message 'isTemplate';
-    procedure setTemplate(isTemplate_: Boolean); message 'setTemplate:';
+    function isTemplate: BOOL; message 'isTemplate';
+    procedure setTemplate(isTemplate_: BOOL); message 'setTemplate:';
     function accessibilityDescription: NSString; message 'accessibilityDescription';
     procedure setAccessibilityDescription(description_: NSString); message 'setAccessibilityDescription:';
     function initWithCGImage_size(cgImage: CGImageRef; size_: NSSize): id; message 'initWithCGImage:size:';
     function CGImageForProposedRect_context_hints(proposedDestRect: NSRectPtr; referenceContext: NSGraphicsContext; hints: NSDictionary): CGImageRef; message 'CGImageForProposedRect:context:hints:';
     function bestRepresentationForRect_context_hints(rect: NSRect; referenceContext: NSGraphicsContext; hints: NSDictionary): NSImageRep; message 'bestRepresentationForRect:context:hints:';
-    function hitTestRect_withImageDestinationRect_context_hints_flipped(testRectDestSpace: NSRect; imageRectDestSpace: NSRect; context: NSGraphicsContext; hints: NSDictionary; flipped: Boolean): Boolean; message 'hitTestRect:withImageDestinationRect:context:hints:flipped:';
+    function hitTestRect_withImageDestinationRect_context_hints_flipped(testRectDestSpace: NSRect; imageRectDestSpace: NSRect; context: NSGraphicsContext; hints: NSDictionary; flipped: BOOL): BOOL; message 'hitTestRect:withImageDestinationRect:context:hints:flipped:';
   end;
 
 { NSBundleImageExtensionCategory }
@@ -233,8 +233,8 @@ var
 
 { NSDeprecated_NSImageCategory }
   NSDeprecated_NSImageCategory = objccategory external name 'NSDeprecated' (NSImage)
-    procedure setFlipped(flag: Boolean); message 'setFlipped:';
-    function isFlipped: Boolean; message 'isFlipped';
+    procedure setFlipped(flag: BOOL); message 'setFlipped:';
+    function isFlipped: BOOL; message 'isFlipped';
     procedure dissolveToPoint_fraction(point: NSPoint; aFloat: CGFloat); message 'dissolveToPoint:fraction:';
     procedure dissolveToPoint_fromRect_fraction(point: NSPoint; rect: NSRect; aFloat: CGFloat); message 'dissolveToPoint:fromRect:fraction:';
     procedure compositeToPoint_operation(point: NSPoint; op: NSCompositingOperation); message 'compositeToPoint:operation:';
@@ -242,14 +242,14 @@ var
     procedure compositeToPoint_operation_fraction(point: NSPoint; op: NSCompositingOperation; delta: CGFloat); message 'compositeToPoint:operation:fraction:';
     procedure compositeToPoint_fromRect_operation_fraction(point: NSPoint; rect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'compositeToPoint:fromRect:operation:fraction:';
     procedure lockFocusOnRepresentation(imageRepresentation: NSImageRep); message 'lockFocusOnRepresentation:';
-    procedure setScalesWhenResized(flag: Boolean); message 'setScalesWhenResized:';
-    function scalesWhenResized: Boolean; message 'scalesWhenResized';
-    procedure setDataRetained(flag: Boolean); message 'setDataRetained:';
-    function isDataRetained: Boolean; message 'isDataRetained';
-    procedure setCachedSeparately(flag: Boolean); message 'setCachedSeparately:';
-    function isCachedSeparately: Boolean; message 'isCachedSeparately';
-    procedure setCacheDepthMatchesImageDepth(flag: Boolean); message 'setCacheDepthMatchesImageDepth:';
-    function cacheDepthMatchesImageDepth: Boolean; message 'cacheDepthMatchesImageDepth';
+    procedure setScalesWhenResized(flag: BOOL); message 'setScalesWhenResized:';
+    function scalesWhenResized: BOOL; message 'scalesWhenResized';
+    procedure setDataRetained(flag: BOOL); message 'setDataRetained:';
+    function isDataRetained: BOOL; message 'isDataRetained';
+    procedure setCachedSeparately(flag: BOOL); message 'setCachedSeparately:';
+    function isCachedSeparately: BOOL; message 'isCachedSeparately';
+    procedure setCacheDepthMatchesImageDepth(flag: BOOL); message 'setCacheDepthMatchesImageDepth:';
+    function cacheDepthMatchesImageDepth: BOOL; message 'cacheDepthMatchesImageDepth';
   end;
 
 {$endif}

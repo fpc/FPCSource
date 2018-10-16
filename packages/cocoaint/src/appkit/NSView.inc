@@ -202,15 +202,15 @@ var
     function window: NSWindow; message 'window';
     function superview: NSView; message 'superview';
     function subviews: NSArray; message 'subviews';
-    function isDescendantOf(aView: NSView): Boolean; message 'isDescendantOf:';
+    function isDescendantOf(aView: NSView): BOOL; message 'isDescendantOf:';
     function ancestorSharedWithView(aView: NSView): NSView; message 'ancestorSharedWithView:';
     function opaqueAncestor: NSView; message 'opaqueAncestor';
-    procedure setHidden(flag: Boolean); message 'setHidden:';
-    function isHidden: Boolean; message 'isHidden';
-    function isHiddenOrHasHiddenAncestor: Boolean; message 'isHiddenOrHasHiddenAncestor';
+    procedure setHidden(flag: BOOL); message 'setHidden:';
+    function isHidden: BOOL; message 'isHidden';
+    function isHiddenOrHasHiddenAncestor: BOOL; message 'isHiddenOrHasHiddenAncestor';
     procedure getRectsBeingDrawn_count(rects: NSRectPtr; count: NSIntegerPtr); message 'getRectsBeingDrawn:count:';
-    function needsToDrawRect(aRect: NSRect): Boolean; message 'needsToDrawRect:';
-    function wantsDefaultClipping: Boolean; message 'wantsDefaultClipping';
+    function needsToDrawRect(aRect: NSRect): BOOL; message 'needsToDrawRect:';
+    function wantsDefaultClipping: BOOL; message 'wantsDefaultClipping';
     procedure viewDidHide; message 'viewDidHide';
     procedure viewDidUnhide; message 'viewDidUnhide';
     procedure setSubviews(newSubviews: NSArray); message 'setSubviews:';
@@ -226,12 +226,12 @@ var
     procedure removeFromSuperview; message 'removeFromSuperview';
     procedure replaceSubview_with(oldView: NSView; newView: NSView); message 'replaceSubview:with:';
     procedure removeFromSuperviewWithoutNeedingDisplay; message 'removeFromSuperviewWithoutNeedingDisplay';
-    procedure setPostsFrameChangedNotifications(flag: Boolean); message 'setPostsFrameChangedNotifications:';
-    function postsFrameChangedNotifications: Boolean; message 'postsFrameChangedNotifications';
+    procedure setPostsFrameChangedNotifications(flag: BOOL); message 'setPostsFrameChangedNotifications:';
+    function postsFrameChangedNotifications: BOOL; message 'postsFrameChangedNotifications';
     procedure resizeSubviewsWithOldSize(oldSize: NSSize); message 'resizeSubviewsWithOldSize:';
     procedure resizeWithOldSuperviewSize(oldSize: NSSize); message 'resizeWithOldSuperviewSize:';
-    procedure setAutoresizesSubviews(flag: Boolean); message 'setAutoresizesSubviews:';
-    function autoresizesSubviews: Boolean; message 'autoresizesSubviews';
+    procedure setAutoresizesSubviews(flag: BOOL); message 'setAutoresizesSubviews:';
+    function autoresizesSubviews: BOOL; message 'autoresizesSubviews';
     procedure setAutoresizingMask(mask: NSUInteger); message 'setAutoresizingMask:';
     function autoresizingMask: NSUInteger; message 'autoresizingMask';
     procedure setFrameOrigin(newOrigin: NSPoint); message 'setFrameOrigin:';
@@ -251,10 +251,10 @@ var
     procedure rotateByAngle(angle: CGFloat); message 'rotateByAngle:';
     procedure setBounds(aRect: NSRect); message 'setBounds:';
     function bounds: NSRect; message 'bounds';
-    function isFlipped: Boolean; message 'isFlipped';
-    function isRotatedFromBase: Boolean; message 'isRotatedFromBase';
-    function isRotatedOrScaledFromBase: Boolean; message 'isRotatedOrScaledFromBase';
-    function isOpaque: Boolean; message 'isOpaque';
+    function isFlipped: BOOL; message 'isFlipped';
+    function isRotatedFromBase: BOOL; message 'isRotatedFromBase';
+    function isRotatedOrScaledFromBase: BOOL; message 'isRotatedOrScaledFromBase';
+    function isOpaque: BOOL; message 'isOpaque';
     function convertPoint_fromView(aPoint: NSPoint; aView: NSView): NSPoint; message 'convertPoint:fromView:';
     function convertPoint_toView(aPoint: NSPoint; aView: NSView): NSPoint; message 'convertPoint:toView:';
     function convertSize_fromView(aSize: NSSize; aView: NSView): NSSize; message 'convertSize:fromView:';
@@ -268,16 +268,16 @@ var
     function convertSizeFromBase(aSize: NSSize): NSSize; message 'convertSizeFromBase:';
     function convertRectToBase(aRect: NSRect): NSRect; message 'convertRectToBase:';
     function convertRectFromBase(aRect: NSRect): NSRect; message 'convertRectFromBase:';
-    function canDrawConcurrently: Boolean; message 'canDrawConcurrently';
-    procedure setCanDrawConcurrently(flag: Boolean); message 'setCanDrawConcurrently:';
-    function canDraw: Boolean; message 'canDraw';
-    procedure setNeedsDisplay_(flag: Boolean); message 'setNeedsDisplay:';
+    function canDrawConcurrently: BOOL; message 'canDrawConcurrently';
+    procedure setCanDrawConcurrently(flag: BOOL); message 'setCanDrawConcurrently:';
+    function canDraw: BOOL; message 'canDraw';
+    procedure setNeedsDisplay_(flag: BOOL); message 'setNeedsDisplay:';
     procedure setNeedsDisplayInRect(invalidRect: NSRect); message 'setNeedsDisplayInRect:';
-    function needsDisplay: Boolean; message 'needsDisplay';
+    function needsDisplay: BOOL; message 'needsDisplay';
     procedure lockFocus; message 'lockFocus';
     procedure unlockFocus; message 'unlockFocus';
-    function lockFocusIfCanDraw: Boolean; message 'lockFocusIfCanDraw';
-    function lockFocusIfCanDrawInContext(context: NSGraphicsContext): Boolean; message 'lockFocusIfCanDrawInContext:';
+    function lockFocusIfCanDraw: BOOL; message 'lockFocusIfCanDraw';
+    function lockFocusIfCanDrawInContext(context: NSGraphicsContext): BOOL; message 'lockFocusIfCanDrawInContext:';
     class function focusView: NSView; message 'focusView';
     function visibleRect: NSRect; message 'visibleRect';
     procedure display; message 'display';
@@ -298,37 +298,37 @@ var
     procedure setUpGState; message 'setUpGState';
     procedure renewGState; message 'renewGState';
     procedure scrollPoint(aPoint: NSPoint); message 'scrollPoint:';
-    function scrollRectToVisible(aRect: NSRect): Boolean; message 'scrollRectToVisible:';
-    function autoscroll(theEvent: NSEvent): Boolean; message 'autoscroll:';
+    function scrollRectToVisible(aRect: NSRect): BOOL; message 'scrollRectToVisible:';
+    function autoscroll(theEvent: NSEvent): BOOL; message 'autoscroll:';
     function adjustScroll(newVisible: NSRect): NSRect; message 'adjustScroll:';
     procedure scrollRect_by(aRect: NSRect; delta: NSSize); message 'scrollRect:by:';
     procedure translateRectsNeedingDisplayInRect_by(clipRect: NSRect; delta: NSSize); message 'translateRectsNeedingDisplayInRect:by:';
     function hitTest(aPoint: NSPoint): NSView; message 'hitTest:';
-    function mouse_inRect(aPoint: NSPoint; aRect: NSRect): Boolean; message 'mouse:inRect:';
+    function mouse_inRect(aPoint: NSPoint; aRect: NSRect): BOOL; message 'mouse:inRect:';
     function viewWithTag(aTag: NSInteger): id; message 'viewWithTag:';
     function tag: NSInteger; message 'tag';
-    function performKeyEquivalent(theEvent: NSEvent): Boolean; message 'performKeyEquivalent:';
-    function acceptsFirstMouse(theEvent: NSEvent): Boolean; message 'acceptsFirstMouse:';
-    function shouldDelayWindowOrderingForEvent(theEvent: NSEvent): Boolean; message 'shouldDelayWindowOrderingForEvent:';
-    function needsPanelToBecomeKey: Boolean; message 'needsPanelToBecomeKey';
-    function mouseDownCanMoveWindow: Boolean; message 'mouseDownCanMoveWindow';
-    procedure setAcceptsTouchEvents(flag: Boolean); message 'setAcceptsTouchEvents:';
-    function acceptsTouchEvents: Boolean; message 'acceptsTouchEvents';
-    procedure setWantsRestingTouches(flag: Boolean); message 'setWantsRestingTouches:';
-    function wantsRestingTouches: Boolean; message 'wantsRestingTouches';
+    function performKeyEquivalent(theEvent: NSEvent): BOOL; message 'performKeyEquivalent:';
+    function acceptsFirstMouse(theEvent: NSEvent): BOOL; message 'acceptsFirstMouse:';
+    function shouldDelayWindowOrderingForEvent(theEvent: NSEvent): BOOL; message 'shouldDelayWindowOrderingForEvent:';
+    function needsPanelToBecomeKey: BOOL; message 'needsPanelToBecomeKey';
+    function mouseDownCanMoveWindow: BOOL; message 'mouseDownCanMoveWindow';
+    procedure setAcceptsTouchEvents(flag: BOOL); message 'setAcceptsTouchEvents:';
+    function acceptsTouchEvents: BOOL; message 'acceptsTouchEvents';
+    procedure setWantsRestingTouches(flag: BOOL); message 'setWantsRestingTouches:';
+    function wantsRestingTouches: BOOL; message 'wantsRestingTouches';
     procedure addCursorRect_cursor(aRect: NSRect; anObj: NSCursor); message 'addCursorRect:cursor:';
     procedure removeCursorRect_cursor(aRect: NSRect; anObj: NSCursor); message 'removeCursorRect:cursor:';
     procedure discardCursorRects; message 'discardCursorRects';
     procedure resetCursorRects; message 'resetCursorRects';
-    function addTrackingRect_owner_userData_assumeInside(aRect: NSRect; anObject: id; data: Pointer; flag: Boolean): NSTrackingRectTag; message 'addTrackingRect:owner:userData:assumeInside:';
+    function addTrackingRect_owner_userData_assumeInside(aRect: NSRect; anObject: id; data: Pointer; flag: BOOL): NSTrackingRectTag; message 'addTrackingRect:owner:userData:assumeInside:';
     procedure removeTrackingRect(tag_: NSTrackingRectTag); message 'removeTrackingRect:';
     function makeBackingLayer: CALayer; message 'makeBackingLayer';
     function layerContentsRedrawPolicy: NSViewLayerContentsRedrawPolicy; message 'layerContentsRedrawPolicy';
     procedure setLayerContentsRedrawPolicy(newPolicy: NSViewLayerContentsRedrawPolicy); message 'setLayerContentsRedrawPolicy:';
     function layerContentsPlacement: NSViewLayerContentsPlacement; message 'layerContentsPlacement';
     procedure setLayerContentsPlacement(newPlacement: NSViewLayerContentsPlacement); message 'setLayerContentsPlacement:';
-    procedure setWantsLayer(flag: Boolean); message 'setWantsLayer:';
-    function wantsLayer: Boolean; message 'wantsLayer';
+    procedure setWantsLayer(flag: BOOL); message 'setWantsLayer:';
+    function wantsLayer: BOOL; message 'wantsLayer';
     procedure setLayer(newLayer: CALayer); message 'setLayer:';
     function layer: CALayer; message 'layer';
     procedure setAlphaValue(viewAlpha: CGFloat); message 'setAlphaValue:';
@@ -345,9 +345,9 @@ var
     procedure removeTrackingArea(trackingArea: NSTrackingArea); message 'removeTrackingArea:';
     function trackingAreas: NSArray; message 'trackingAreas';
     procedure updateTrackingAreas; message 'updateTrackingAreas';
-    function shouldDrawColor: Boolean; message 'shouldDrawColor';
-    procedure setPostsBoundsChangedNotifications(flag: Boolean); message 'setPostsBoundsChangedNotifications:';
-    function postsBoundsChangedNotifications: Boolean; message 'postsBoundsChangedNotifications';
+    function shouldDrawColor: BOOL; message 'shouldDrawColor';
+    procedure setPostsBoundsChangedNotifications(flag: BOOL); message 'setPostsBoundsChangedNotifications:';
+    function postsBoundsChangedNotifications: BOOL; message 'postsBoundsChangedNotifications';
     function enclosingScrollView: NSScrollView; message 'enclosingScrollView';
     function menuForEvent(event: NSEvent): NSMenu; message 'menuForEvent:';
     class function defaultMenu: NSMenu; message 'defaultMenu';
@@ -358,8 +358,8 @@ var
     procedure removeAllToolTips; message 'removeAllToolTips';
     procedure viewWillStartLiveResize; message 'viewWillStartLiveResize';
     procedure viewDidEndLiveResize; message 'viewDidEndLiveResize';
-    function inLiveResize: Boolean; message 'inLiveResize';
-    function preservesContentDuringLiveResize: Boolean; message 'preservesContentDuringLiveResize';
+    function inLiveResize: BOOL; message 'inLiveResize';
+    function preservesContentDuringLiveResize: BOOL; message 'preservesContentDuringLiveResize';
     function rectPreservedDuringLiveResize: NSRect; message 'rectPreservedDuringLiveResize';
     procedure getRectsExposedDuringLiveResize_count(exposedRects: NSRect; count: NSIntegerPtr); message 'getRectsExposedDuringLiveResize:count:';
     function inputContext: NSTextInputContext; message 'inputContext';
@@ -372,13 +372,13 @@ var
 
 { NSKeyboardUI_NSViewCategory }
   NSKeyboardUI_NSViewCategory = objccategory external name 'NSKeyboardUI' (NSView)
-    function performMnemonic(theString: NSString): Boolean; message 'performMnemonic:';
+    function performMnemonic(theString: NSString): BOOL; message 'performMnemonic:';
     procedure setNextKeyView(next: NSView); message 'setNextKeyView:';
     function nextKeyView: NSView; message 'nextKeyView';
     function previousKeyView: NSView; message 'previousKeyView';
     function nextValidKeyView: NSView; message 'nextValidKeyView';
     function previousValidKeyView: NSView; message 'previousValidKeyView';
-    function canBecomeKeyView: Boolean; message 'canBecomeKeyView';
+    function canBecomeKeyView: BOOL; message 'canBecomeKeyView';
     procedure setKeyboardFocusRingNeedsDisplayInRect(rect: NSRect); message 'setKeyboardFocusRingNeedsDisplayInRect:';
     procedure setFocusRingType(focusRingType_: NSFocusRingType); message 'setFocusRingType:';
     function focusRingType: NSFocusRingType; message 'focusRingType';
@@ -392,7 +392,7 @@ var
     procedure writePDFInsideRect_toPasteboard(rect: NSRect; pasteboard: NSPasteboard); message 'writePDFInsideRect:toPasteboard:';
     function dataWithPDFInsideRect(rect: NSRect): NSData; message 'dataWithPDFInsideRect:';
     procedure print(sender: id); message 'print:';
-    function knowsPageRange(range: NSRangePointer): Boolean; message 'knowsPageRange:';
+    function knowsPageRange(range: NSRangePointer): BOOL; message 'knowsPageRange:';
     function heightAdjustLimit: CGFloat; message 'heightAdjustLimit';
     function widthAdjustLimit: CGFloat; message 'widthAdjustLimit';
     procedure adjustPageWidthNew_left_right_limit(newRight: CGFloatPtr; oldLeft: CGFloat; oldRight: CGFloat; rightLimit: CGFloat); message 'adjustPageWidthNew:left:right:limit:';
@@ -412,19 +412,19 @@ var
 
 { NSDragCategory }
   NSDragCategory = objccategory external (NSView)
-    procedure dragImage_at_offset_event_pasteboard_source_slideBack(anImage: NSImage; viewLocation: NSPoint; initialOffset: NSSize; event: NSEvent; pboard: NSPasteboard; sourceObj: id; slideFlag: Boolean); message 'dragImage:at:offset:event:pasteboard:source:slideBack:';
+    procedure dragImage_at_offset_event_pasteboard_source_slideBack(anImage: NSImage; viewLocation: NSPoint; initialOffset: NSSize; event: NSEvent; pboard: NSPasteboard; sourceObj: id; slideFlag: BOOL); message 'dragImage:at:offset:event:pasteboard:source:slideBack:';
     function registeredDraggedTypes: NSArray; message 'registeredDraggedTypes';
     procedure registerForDraggedTypes(newTypes: NSArray); message 'registerForDraggedTypes:';
     procedure unregisterDraggedTypes; message 'unregisterDraggedTypes';
-    function dragFile_fromRect_slideBack_event(filename: NSString; rect: NSRect; aFlag: Boolean; event: NSEvent): Boolean; message 'dragFile:fromRect:slideBack:event:';
-    function dragPromisedFilesOfTypes_fromRect_source_slideBack_event(typeArray: NSArray; rect: NSRect; sourceObject: id; aFlag: Boolean; event: NSEvent): Boolean; message 'dragPromisedFilesOfTypes:fromRect:source:slideBack:event:';
+    function dragFile_fromRect_slideBack_event(filename: NSString; rect: NSRect; aFlag: BOOL; event: NSEvent): BOOL; message 'dragFile:fromRect:slideBack:event:';
+    function dragPromisedFilesOfTypes_fromRect_source_slideBack_event(typeArray: NSArray; rect: NSRect; sourceObject: id; aFlag: BOOL; event: NSEvent): BOOL; message 'dragPromisedFilesOfTypes:fromRect:source:slideBack:event:';
   end;
 
 { NSFullScreenModeCategory }
   NSFullScreenModeCategory = objccategory external (NSView)
-    function enterFullScreenMode_withOptions(screen: NSScreen; options: NSDictionary): Boolean; message 'enterFullScreenMode:withOptions:';
+    function enterFullScreenMode_withOptions(screen: NSScreen; options: NSDictionary): BOOL; message 'enterFullScreenMode:withOptions:';
     procedure exitFullScreenModeWithOptions(options: NSDictionary); message 'exitFullScreenModeWithOptions:';
-    function isInFullScreenMode: Boolean; message 'isInFullScreenMode';
+    function isInFullScreenMode: BOOL; message 'isInFullScreenMode';
   end;
 
 { NSDefinitionCategory }

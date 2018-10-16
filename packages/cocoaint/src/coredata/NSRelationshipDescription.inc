@@ -76,7 +76,7 @@ type
     procedure setMinCount(minCount_: NSUInteger); message 'setMinCount:';
     function deleteRule: NSDeleteRule; message 'deleteRule';
     procedure setDeleteRule(rule: NSDeleteRule); message 'setDeleteRule:';
-    function isToMany: Boolean; message 'isToMany';
+    function isToMany: BOOL; message 'isToMany';
     function versionHash: NSData; message 'versionHash';
   end;
 

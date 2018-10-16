@@ -56,7 +56,7 @@ const
     class function systemStatusBar: NSStatusBar; message 'systemStatusBar';
     function statusItemWithLength(length: CGFloat): NSStatusItem; message 'statusItemWithLength:';
     procedure removeStatusItem(item: NSStatusItem); message 'removeStatusItem:';
-    function isVertical: Boolean; message 'isVertical';
+    function isVertical: BOOL; message 'isVertical';
     function thickness: CGFloat; message 'thickness';
   end;
 

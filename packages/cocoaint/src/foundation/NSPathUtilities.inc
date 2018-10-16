@@ -68,7 +68,7 @@ function NSHomeDirectory: NSString; cdecl; external;
 function NSHomeDirectoryForUser(userName: NSString): NSString; cdecl; external;
 function NSTemporaryDirectory: NSString; cdecl; external;
 function NSOpenStepRootDirectory: NSString; cdecl; external;
-function NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory; domainMask: NSSearchPathDomainMask; expandTilde: Boolean): NSArray; cdecl; external;
+function NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory; domainMask: NSSearchPathDomainMask; expandTilde: BOOL): NSArray; cdecl; external;
 
 {$endif}
 {$endif}
@@ -92,7 +92,7 @@ function NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory; d
   NSStringPathExtensionsCategory = objccategory external (NSString)
     class function pathWithComponents(components: NSArray): NSString; message 'pathWithComponents:';
     function pathComponents: NSArray; message 'pathComponents';
-    function isAbsolutePath: Boolean; message 'isAbsolutePath';
+    function isAbsolutePath: BOOL; message 'isAbsolutePath';
     function lastPathComponent: NSString; message 'lastPathComponent';
     function stringByDeletingLastPathComponent: NSString; message 'stringByDeletingLastPathComponent';
     function stringByAppendingPathComponent(str: NSString): NSString; message 'stringByAppendingPathComponent:';
@@ -104,9 +104,9 @@ function NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory; d
     function stringByStandardizingPath: NSString; message 'stringByStandardizingPath';
     function stringByResolvingSymlinksInPath: NSString; message 'stringByResolvingSymlinksInPath';
     function stringsByAppendingPaths(paths: NSArray): NSArray; message 'stringsByAppendingPaths:';
-    function completePathIntoString_caseSensitive_matchesIntoArray_filterTypes(outputName: NSStringPointer; flag: Boolean; outputArray: NSArrayPointer; filterTypes: NSArray): NSUInteger; message 'completePathIntoString:caseSensitive:matchesIntoArray:filterTypes:';
+    function completePathIntoString_caseSensitive_matchesIntoArray_filterTypes(outputName: NSStringPointer; flag: BOOL; outputArray: NSArrayPointer; filterTypes: NSArray): NSUInteger; message 'completePathIntoString:caseSensitive:matchesIntoArray:filterTypes:';
     function fileSystemRepresentation: PChar; message 'fileSystemRepresentation';
-    function getFileSystemRepresentation_maxLength(cname: PChar; max: NSUInteger): Boolean; message 'getFileSystemRepresentation:maxLength:';
+    function getFileSystemRepresentation_maxLength(cname: PChar; max: NSUInteger): BOOL; message 'getFileSystemRepresentation:maxLength:';
   end;
 
 { NSArrayPathExtensionsCategory }

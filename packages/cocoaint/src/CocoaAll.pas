@@ -85,8 +85,8 @@ type
 function NSSTR (inString: PChar): NSString;
 function NSMakeRange (loc: NSUInteger; len: NSUInteger): NSRange;
 function NSMaxRange (range: NSRange): NSUInteger;
-function NSLocationInRange (loc: NSUInteger; range: NSRange): boolean;
-function NSEqualRanges (range1, range2: NSRange): boolean;
+function NSLocationInRange (loc: NSUInteger; range: NSRange): BOOL;
+function NSEqualRanges (range1, range2: NSRange): BOOL;
 function NSMakePoint (x: CGFloat; y: CGFloat): NSPoint;
 function NSMakeSize(w: CGFloat; h: CGFloat): NSSize;
 function NSMakeRect(x, y: CGFloat; w, h: CGFloat): NSRect;

@@ -49,11 +49,11 @@
   public
     class function emitterCell: id; message 'emitterCell';
     class function defaultValueForKey(key: NSString): id; message 'defaultValueForKey:';
-    function shouldArchiveValueForKey(key: NSString): Boolean; message 'shouldArchiveValueForKey:';
+    function shouldArchiveValueForKey(key: NSString): BOOL; message 'shouldArchiveValueForKey:';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    procedure setEnabled (newValue: Boolean); message 'setEnabled:';
-    function isEnabled: Boolean; message 'isEnabled';
+    procedure setEnabled (newValue: BOOL); message 'setEnabled:';
+    function isEnabled: BOOL; message 'isEnabled';
     procedure setBirthRate (newValue: single); message 'setBirthRate:';
     function birthRate: single; message 'birthRate';
     procedure setLifetime (newValue: single); message 'setLifetime:';
@@ -134,8 +134,8 @@
     function repeatCount: single;
     procedure setRepeatDuration (newValue: CFTimeInterval);
     function repeatDuration: CFTimeInterval;
-    procedure setAutoreverses (newValue: Boolean);
-    function autoreverses: Boolean;
+    procedure setAutoreverses (newValue: BOOL);
+    function autoreverses: BOOL;
     procedure setFillMode (newValue: NSString);
     function fillMode: NSString;
   end;

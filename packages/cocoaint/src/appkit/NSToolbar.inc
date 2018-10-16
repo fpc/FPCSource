@@ -123,25 +123,25 @@ var
     procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
     procedure setDelegate(delegate_: NSToolbarDelegateProtocol); message 'setDelegate:';
     function delegate: NSToolbarDelegateProtocol; message 'delegate';
-    procedure setVisible(shown: Boolean); message 'setVisible:';
-    function isVisible: Boolean; message 'isVisible';
+    procedure setVisible(shown: BOOL); message 'setVisible:';
+    function isVisible: BOOL; message 'isVisible';
     procedure runCustomizationPalette(sender: id); message 'runCustomizationPalette:';
-    function customizationPaletteIsRunning: Boolean; message 'customizationPaletteIsRunning';
+    function customizationPaletteIsRunning: BOOL; message 'customizationPaletteIsRunning';
     procedure setDisplayMode(displayMode_: NSToolbarDisplayMode); message 'setDisplayMode:';
     function displayMode: NSToolbarDisplayMode; message 'displayMode';
     procedure setSelectedItemIdentifier(itemIdentifier: NSString); message 'setSelectedItemIdentifier:';
     function selectedItemIdentifier: NSString; message 'selectedItemIdentifier';
     procedure setSizeMode(sizeMode_: NSToolbarSizeMode); message 'setSizeMode:';
     function sizeMode: NSToolbarSizeMode; message 'sizeMode';
-    procedure setShowsBaselineSeparator(flag: Boolean); message 'setShowsBaselineSeparator:';
-    function showsBaselineSeparator: Boolean; message 'showsBaselineSeparator';
-    procedure setAllowsUserCustomization(allowCustomization: Boolean); message 'setAllowsUserCustomization:';
-    function allowsUserCustomization: Boolean; message 'allowsUserCustomization';
+    procedure setShowsBaselineSeparator(flag: BOOL); message 'setShowsBaselineSeparator:';
+    function showsBaselineSeparator: BOOL; message 'showsBaselineSeparator';
+    procedure setAllowsUserCustomization(allowCustomization: BOOL); message 'setAllowsUserCustomization:';
+    function allowsUserCustomization: BOOL; message 'allowsUserCustomization';
     function identifier: NSString; message 'identifier';
     function items: NSArray; message 'items';
     function visibleItems: NSArray; message 'visibleItems';
-    procedure setAutosavesConfiguration(flag: Boolean); message 'setAutosavesConfiguration:';
-    function autosavesConfiguration: Boolean; message 'autosavesConfiguration';
+    procedure setAutosavesConfiguration(flag: BOOL); message 'setAutosavesConfiguration:';
+    function autosavesConfiguration: BOOL; message 'autosavesConfiguration';
     procedure setConfigurationFromDictionary(configDict: NSDictionary); message 'setConfigurationFromDictionary:';
     function configurationDictionary: NSDictionary; message 'configurationDictionary';
     procedure validateVisibleItems; message 'validateVisibleItems';
@@ -156,7 +156,7 @@ var
 { NSToolbarDelegate Protocol }
   NSToolbarDelegateProtocol = objcprotocol external name 'NSToolbarDelegate'
   optional
-    function toolbar_itemForItemIdentifier_willBeInsertedIntoToolbar(toolbar: NSToolbar; itemIdentifier: NSString; flag: Boolean): NSToolbarItem; message 'toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:';
+    function toolbar_itemForItemIdentifier_willBeInsertedIntoToolbar(toolbar: NSToolbar; itemIdentifier: NSString; flag: BOOL): NSToolbarItem; message 'toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:';
     function toolbarDefaultItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarDefaultItemIdentifiers:';
     function toolbarAllowedItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarAllowedItemIdentifiers:';
     function toolbarSelectableItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarSelectableItemIdentifiers:';

@@ -52,10 +52,10 @@
   public
     function types: NSArray; message 'types';
     function availableTypeFromArray(types_: NSArray): NSString; message 'availableTypeFromArray:';
-    function setDataProvider_forTypes(dataProvider: NSPasteboardItemDataProviderProtocol; types_: NSArray): Boolean; message 'setDataProvider:forTypes:';
-    function setData_forType(data: NSData; type_: NSString): Boolean; message 'setData:forType:';
-    function setString_forType(string_: NSString; type_: NSString): Boolean; message 'setString:forType:';
-    function setPropertyList_forType(propertyList: id; type_: NSString): Boolean; message 'setPropertyList:forType:';
+    function setDataProvider_forTypes(dataProvider: NSPasteboardItemDataProviderProtocol; types_: NSArray): BOOL; message 'setDataProvider:forTypes:';
+    function setData_forType(data: NSData; type_: NSString): BOOL; message 'setData:forType:';
+    function setString_forType(string_: NSString; type_: NSString): BOOL; message 'setString:forType:';
+    function setPropertyList_forType(propertyList: id; type_: NSString): BOOL; message 'setPropertyList:forType:';
     function dataForType(type_: NSString): NSData; message 'dataForType:';
     function stringForType(type_: NSString): NSString; message 'stringForType:';
     function propertyListForType(type_: NSString): id; message 'propertyListForType:';

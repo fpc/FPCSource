@@ -85,36 +85,36 @@ const
     procedure setTextContent (newValue: NSString); message 'setTextContent:';
     function textContent: NSString; message 'textContent';
     function parentElement: DOMElement; message 'parentElement';
-    function isContentEditable: Boolean; message 'isContentEditable';
+    function isContentEditable: BOOL; message 'isContentEditable';
     function insertBefore_refChild(newChild: DOMNode; refChild: DOMNode): DOMNode; message 'insertBefore:refChild:';
     function replaceChild_oldChild(newChild: DOMNode; oldChild: DOMNode): DOMNode; message 'replaceChild:oldChild:';
     function removeChild(oldChild: DOMNode): DOMNode; message 'removeChild:';
     function appendChild(newChild: DOMNode): DOMNode; message 'appendChild:';
-    function hasChildNodes: Boolean; message 'hasChildNodes';
-    function cloneNode(deep: Boolean): DOMNode; message 'cloneNode:';
+    function hasChildNodes: BOOL; message 'hasChildNodes';
+    function cloneNode(deep: BOOL): DOMNode; message 'cloneNode:';
     procedure normalize; message 'normalize';
-    function isSupported_version(feature: NSString; version_: NSString): Boolean; message 'isSupported:version:';
-    function hasAttributes: Boolean; message 'hasAttributes';
-    function isSameNode(other: DOMNode): Boolean; message 'isSameNode:';
-    function isEqualNode(other: DOMNode): Boolean; message 'isEqualNode:';
+    function isSupported_version(feature: NSString; version_: NSString): BOOL; message 'isSupported:version:';
+    function hasAttributes: BOOL; message 'hasAttributes';
+    function isSameNode(other: DOMNode): BOOL; message 'isSameNode:';
+    function isEqualNode(other: DOMNode): BOOL; message 'isEqualNode:';
     function lookupPrefix(namespaceURI_: NSString): NSString; message 'lookupPrefix:';
-    function isDefaultNamespace(namespaceURI_: NSString): Boolean; message 'isDefaultNamespace:';
+    function isDefaultNamespace(namespaceURI_: NSString): BOOL; message 'isDefaultNamespace:';
     function lookupNamespaceURI(prefix_: NSString): NSString; message 'lookupNamespaceURI:';
     function compareDocumentPosition(other: DOMNode): cushort; message 'compareDocumentPosition:';
 
     { Adopted Protocols }
-    procedure addEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean);
-    procedure removeEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean);
-    function dispatchEvent(event: DOMEvent): Boolean;
-    procedure addEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean);
-    procedure removeEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean);
+    procedure addEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: BOOL);
+    procedure removeEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: BOOL);
+    function dispatchEvent(event: DOMEvent): BOOL;
+    procedure addEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: BOOL);
+    procedure removeEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: BOOL);
   end;
 
 { DOMNodeDeprecatedCategory }
   DOMNodeDeprecatedCategory = objccategory external (DOMNode)
     function insertBefore(newChild: DOMNode; refChild: DOMNode): DOMNode; message 'insertBefore:newChild:'; deprecated 'in_webkit_version_3 and later';
     function replaceChild(newChild: DOMNode; oldChild: DOMNode): DOMNode; message 'replaceChild:newChild:'; deprecated 'in_webkit_version_3 and later';
-    function isSupported(feature: NSString; version_: NSString): Boolean; message 'isSupported:feature:'; deprecated 'in_webkit_version_3 and later';
+    function isSupported(feature: NSString; version_: NSString): BOOL; message 'isSupported:feature:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

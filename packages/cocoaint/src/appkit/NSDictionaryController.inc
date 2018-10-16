@@ -89,7 +89,7 @@
     function key: NSString; message 'key';
     procedure setValue(value: id); message 'setValue:';
     function value: id; message 'value';
-    function isExplicitlyIncluded: Boolean; message 'isExplicitlyIncluded';
+    function isExplicitlyIncluded: BOOL; message 'isExplicitlyIncluded';
   end;
 
 {$endif}

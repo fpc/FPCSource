@@ -57,15 +57,15 @@ var
     
   public
     class function sharedHelpManager: NSHelpManager; message 'sharedHelpManager';
-    class procedure setContextHelpModeActive(active: Boolean); message 'setContextHelpModeActive:';
-    class function isContextHelpModeActive: Boolean; message 'isContextHelpModeActive';
+    class procedure setContextHelpModeActive(active: BOOL); message 'setContextHelpModeActive:';
+    class function isContextHelpModeActive: BOOL; message 'isContextHelpModeActive';
     procedure setContextHelp_forObject(attrString: NSAttributedString; object_: id); message 'setContextHelp:forObject:';
     procedure removeContextHelpForObject(object_: id); message 'removeContextHelpForObject:';
     function contextHelpForObject(object_: id): NSAttributedString; message 'contextHelpForObject:';
-    function showContextHelpForObject_locationHint(object_: id; pt: NSPoint): Boolean; message 'showContextHelpForObject:locationHint:';
+    function showContextHelpForObject_locationHint(object_: id; pt: NSPoint): BOOL; message 'showContextHelpForObject:locationHint:';
     procedure openHelpAnchor_inBook(anchor: NSString; book: NSString); message 'openHelpAnchor:inBook:';
     procedure findString_inBook(query: NSString; book: NSString); message 'findString:inBook:';
-    function registerBooksInBundle(bundle: NSBundle): Boolean; message 'registerBooksInBundle:';
+    function registerBooksInBundle(bundle: NSBundle): BOOL; message 'registerBooksInBundle:';
   end;
 
 { NSBundleHelpExtensionCategory }

@@ -114,8 +114,8 @@ type
     _child: NSScriptObjectSpecifier;
     _key: NSString;
     _containerClassDescription: NSScriptClassDescription;
-    _containerIsObjectBeingTested: Boolean;
-    _containerIsRangeContainerObject: Boolean;
+    _containerIsObjectBeingTested: BOOL;
+    _containerIsRangeContainerObject: BOOL;
     _padding: array[0..(2)-1] of char;
     _descriptor: NSAppleEventDescriptor;
     _error: NSInteger;
@@ -128,10 +128,10 @@ type
     procedure setChildSpecifier(child: NSScriptObjectSpecifier); message 'setChildSpecifier:';
     function containerSpecifier: NSScriptObjectSpecifier; message 'containerSpecifier';
     procedure setContainerSpecifier(subRef: NSScriptObjectSpecifier); message 'setContainerSpecifier:';
-    function containerIsObjectBeingTested: Boolean; message 'containerIsObjectBeingTested';
-    procedure setContainerIsObjectBeingTested(flag: Boolean); message 'setContainerIsObjectBeingTested:';
-    function containerIsRangeContainerObject: Boolean; message 'containerIsRangeContainerObject';
-    procedure setContainerIsRangeContainerObject(flag: Boolean); message 'setContainerIsRangeContainerObject:';
+    function containerIsObjectBeingTested: BOOL; message 'containerIsObjectBeingTested';
+    procedure setContainerIsObjectBeingTested(flag: BOOL); message 'setContainerIsObjectBeingTested:';
+    function containerIsRangeContainerObject: BOOL; message 'containerIsRangeContainerObject';
+    procedure setContainerIsRangeContainerObject(flag: BOOL); message 'setContainerIsRangeContainerObject:';
     function key: NSString; message 'key';
     procedure setKey(key_: NSString); message 'setKey:';
     function containerClassDescription: NSScriptClassDescription; message 'containerClassDescription';
@@ -196,7 +196,7 @@ type
     function insertionContainer: id; message 'insertionContainer';
     function insertionKey: NSString; message 'insertionKey';
     function insertionIndex: NSInteger; message 'insertionIndex';
-    function insertionReplaces: Boolean; message 'insertionReplaces';
+    function insertionReplaces: BOOL; message 'insertionReplaces';
   end;
 
 { NSPropertySpecifier }

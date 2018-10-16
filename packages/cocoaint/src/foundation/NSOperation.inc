@@ -77,12 +77,12 @@ var
     function init: id; message 'init';
     procedure start; message 'start';
     procedure main; message 'main';
-    function isCancelled: Boolean; message 'isCancelled';
+    function isCancelled: BOOL; message 'isCancelled';
     procedure cancel; message 'cancel';
-    function isExecuting: Boolean; message 'isExecuting';
-    function isFinished: Boolean; message 'isFinished';
-    function isConcurrent: Boolean; message 'isConcurrent';
-    function isReady: Boolean; message 'isReady';
+    function isExecuting: BOOL; message 'isExecuting';
+    function isFinished: BOOL; message 'isFinished';
+    function isConcurrent: BOOL; message 'isConcurrent';
+    function isReady: BOOL; message 'isReady';
     procedure addDependency(op: NSOperation); message 'addDependency:';
     procedure removeDependency(op: NSOperation); message 'removeDependency:';
     function dependencies: NSArray; message 'dependencies';
@@ -115,13 +115,13 @@ var
     
   public
     procedure addOperation(op: NSOperation); message 'addOperation:';
-    procedure addOperations_waitUntilFinished(ops: NSArray; wait: Boolean); message 'addOperations:waitUntilFinished:';
+    procedure addOperations_waitUntilFinished(ops: NSArray; wait: BOOL); message 'addOperations:waitUntilFinished:';
     function operations: NSArray; message 'operations';
     function operationCount: NSUInteger; message 'operationCount';
     function maxConcurrentOperationCount: NSInteger; message 'maxConcurrentOperationCount';
     procedure setMaxConcurrentOperationCount(cnt: NSInteger); message 'setMaxConcurrentOperationCount:';
-    procedure setSuspended(b: Boolean); message 'setSuspended:';
-    function isSuspended: Boolean; message 'isSuspended';
+    procedure setSuspended(b: BOOL); message 'setSuspended:';
+    function isSuspended: BOOL; message 'isSuspended';
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
     procedure cancelAllOperations; message 'cancelAllOperations';

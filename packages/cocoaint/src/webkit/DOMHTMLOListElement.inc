@@ -43,8 +43,8 @@
   DOMHTMLOListElement = objcclass external (DOMHTMLElement)
     
   public
-    procedure setCompact (newValue: Boolean); message 'setCompact:';
-    function compact: Boolean; message 'compact';
+    procedure setCompact (newValue: BOOL); message 'setCompact:';
+    function compact: BOOL; message 'compact';
     procedure setStart (newValue: cint); message 'setStart:';
     function start: cint; message 'start';
     procedure setType (newValue: NSString); message 'setType:';

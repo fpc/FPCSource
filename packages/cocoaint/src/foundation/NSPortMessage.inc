@@ -54,7 +54,7 @@
     function components: NSArray; message 'components';
     function receivePort: NSPort; message 'receivePort';
     function sendPort: NSPort; message 'sendPort';
-    function sendBeforeDate(date: NSDate): Boolean; message 'sendBeforeDate:';
+    function sendBeforeDate(date: NSDate): BOOL; message 'sendBeforeDate:';
     function msgid: cuint32; message 'msgid';
     procedure setMsgid(msgid_: cuint32); message 'setMsgid:';
   end;

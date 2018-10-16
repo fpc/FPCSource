@@ -67,20 +67,20 @@
     function localizedInputManagerName: NSString; message 'localizedInputManagerName'; deprecated 'in Mac OS X 10.6 and later';
     procedure markedTextAbandoned(cli: id); message 'markedTextAbandoned:';
     procedure markedTextSelectionChanged_client(newSel: NSRange; cli: id); message 'markedTextSelectionChanged:client:';
-    function wantsToInterpretAllKeystrokes: Boolean; message 'wantsToInterpretAllKeystrokes'; deprecated 'in Mac OS X 10.6 and later';
+    function wantsToInterpretAllKeystrokes: BOOL; message 'wantsToInterpretAllKeystrokes'; deprecated 'in Mac OS X 10.6 and later';
     function language: NSString; message 'language'; deprecated 'in Mac OS X 10.6 and later';
     function image: NSImage; message 'image'; deprecated 'in Mac OS X 10.6 and later';
     function server: NSInputServer; message 'server'; deprecated 'in Mac OS X 10.6 and later';
-    function wantsToHandleMouseEvents: Boolean; message 'wantsToHandleMouseEvents';
-    function handleMouseEvent(theMouseEvent: NSEvent): Boolean; message 'handleMouseEvent:';
-    function wantsToDelayTextChangeNotifications: Boolean; message 'wantsToDelayTextChangeNotifications'; deprecated 'in Mac OS X 10.6 and later';
+    function wantsToHandleMouseEvents: BOOL; message 'wantsToHandleMouseEvents';
+    function handleMouseEvent(theMouseEvent: NSEvent): BOOL; message 'handleMouseEvent:';
+    function wantsToDelayTextChangeNotifications: BOOL; message 'wantsToDelayTextChangeNotifications'; deprecated 'in Mac OS X 10.6 and later';
 
     { Adopted Protocols }
     procedure insertText(aString: id);
     procedure doCommandBySelector(aSelector: SEL);
     procedure setMarkedText_selectedRange(aString: id; selRange: NSRange);
     procedure unmarkText;
-    function hasMarkedText: Boolean;
+    function hasMarkedText: BOOL;
     function conversationIdentifier: NSInteger;
     function attributedSubstringFromRange(theRange: NSRange): NSAttributedString;
     function markedRange: NSRange;
@@ -102,7 +102,7 @@
     procedure doCommandBySelector(aSelector: SEL); message 'doCommandBySelector:';
     procedure setMarkedText_selectedRange(aString: id; selRange: NSRange); message 'setMarkedText:selectedRange:';
     procedure unmarkText; message 'unmarkText';
-    function hasMarkedText: Boolean; message 'hasMarkedText';
+    function hasMarkedText: BOOL; message 'hasMarkedText';
     function conversationIdentifier: NSInteger; message 'conversationIdentifier';
     function attributedSubstringFromRange(theRange: NSRange): NSAttributedString; message 'attributedSubstringFromRange:';
     function markedRange: NSRange; message 'markedRange';

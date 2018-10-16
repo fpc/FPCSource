@@ -86,7 +86,7 @@ type
       end;
     
   public
-    class function prefersTrackingUntilMouseUp: Boolean; message 'prefersTrackingUntilMouseUp';
+    class function prefersTrackingUntilMouseUp: BOOL; message 'prefersTrackingUntilMouseUp';
     function minValue: double; message 'minValue';
     procedure setMinValue(aDouble: double); message 'setMinValue:';
     function maxValue: double; message 'maxValue';
@@ -104,9 +104,9 @@ type
     function titleCell: id; message 'titleCell';
     procedure setKnobThickness(aFloat: CGFloat); message 'setKnobThickness:';
     function knobThickness: CGFloat; message 'knobThickness';
-    function knobRectFlipped(flipped: Boolean): NSRect; message 'knobRectFlipped:';
+    function knobRectFlipped(flipped: BOOL): NSRect; message 'knobRectFlipped:';
     procedure drawKnob(knobRect: NSRect); message 'drawKnob:';
-    procedure drawBarInside_flipped(aRect: NSRect; flipped: Boolean); message 'drawBarInside:flipped:';
+    procedure drawBarInside_flipped(aRect: NSRect; flipped: BOOL); message 'drawBarInside:flipped:';
     function trackRect: NSRect; message 'trackRect';
     procedure setSliderType(sliderType_: NSSliderType); message 'setSliderType:';
     function sliderType: NSSliderType; message 'sliderType';
@@ -118,8 +118,8 @@ type
     function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
     procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
     function tickMarkPosition: NSTickMarkPosition; message 'tickMarkPosition';
-    procedure setAllowsTickMarkValuesOnly(yorn: Boolean); message 'setAllowsTickMarkValuesOnly:';
-    function allowsTickMarkValuesOnly: Boolean; message 'allowsTickMarkValuesOnly';
+    procedure setAllowsTickMarkValuesOnly(yorn: BOOL); message 'setAllowsTickMarkValuesOnly:';
+    function allowsTickMarkValuesOnly: BOOL; message 'allowsTickMarkValuesOnly';
     function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
     function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
     function indexOfTickMarkAtPoint(point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';

@@ -50,7 +50,7 @@
     function numberOfArguments: NSUInteger; message 'numberOfArguments';
     function getArgumentTypeAtIndex(idx: NSUInteger): PChar; message 'getArgumentTypeAtIndex:';
     function frameLength: NSUInteger; message 'frameLength';
-    function isOneway: Boolean; message 'isOneway';
+    function isOneway: BOOL; message 'isOneway';
     function methodReturnType: PChar; message 'methodReturnType';
     function methodReturnLength: NSUInteger; message 'methodReturnLength';
   end;

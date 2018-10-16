@@ -55,10 +55,10 @@
     procedure setCommands(commands_: NSArray); message 'setCommands:';
     function displayedCommandsTitle: NSString; message 'displayedCommandsTitle';
     procedure setDisplayedCommandsTitle(title: NSString); message 'setDisplayedCommandsTitle:';
-    function listensInForegroundOnly: Boolean; message 'listensInForegroundOnly';
-    procedure setListensInForegroundOnly(flag: Boolean); message 'setListensInForegroundOnly:';
-    function blocksOtherRecognizers: Boolean; message 'blocksOtherRecognizers';
-    procedure setBlocksOtherRecognizers(flag: Boolean); message 'setBlocksOtherRecognizers:';
+    function listensInForegroundOnly: BOOL; message 'listensInForegroundOnly';
+    procedure setListensInForegroundOnly(flag: BOOL); message 'setListensInForegroundOnly:';
+    function blocksOtherRecognizers: BOOL; message 'blocksOtherRecognizers';
+    procedure setBlocksOtherRecognizers(flag: BOOL); message 'setBlocksOtherRecognizers:';
   end;
 
 {$endif}

@@ -80,7 +80,7 @@ var
     procedure processEditing; message 'processEditing';
     procedure invalidateAttributesInRange(range: NSRange); message 'invalidateAttributesInRange:';
     procedure ensureAttributesAreFixedInRange(range: NSRange); message 'ensureAttributesAreFixedInRange:';
-    function fixesAttributesLazily: Boolean; message 'fixesAttributesLazily';
+    function fixesAttributesLazily: BOOL; message 'fixesAttributesLazily';
     function editedMask: NSUInteger; message 'editedMask';
     function editedRange: NSRange; message 'editedRange';
     function changeInLength: NSInteger; message 'changeInLength';

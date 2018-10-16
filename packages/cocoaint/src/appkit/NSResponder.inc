@@ -47,8 +47,8 @@
   public
     function nextResponder: NSResponder; message 'nextResponder';
     procedure setNextResponder(aResponder: NSResponder); message 'setNextResponder:';
-    function tryToPerform_with(anAction: SEL; anObject: id): Boolean; message 'tryToPerform:with:';
-    function performKeyEquivalent(theEvent: NSEvent): Boolean; message 'performKeyEquivalent:';
+    function tryToPerform_with(anAction: SEL; anObject: id): BOOL; message 'tryToPerform:with:';
+    function performKeyEquivalent(theEvent: NSEvent): BOOL; message 'performKeyEquivalent:';
     function validRequestorForSendType_returnType(sendType: NSString; returnType: NSString): id; message 'validRequestorForSendType:returnType:';
     procedure mouseDown(theEvent: NSEvent); message 'mouseDown:';
     procedure rightMouseDown(theEvent: NSEvent); message 'rightMouseDown:';
@@ -79,16 +79,16 @@
     procedure touchesEndedWithEvent(event: NSEvent); message 'touchesEndedWithEvent:';
     procedure touchesCancelledWithEvent(event: NSEvent); message 'touchesCancelledWithEvent:';
     procedure noResponderFor(eventSelector: SEL); message 'noResponderFor:';
-    function acceptsFirstResponder: Boolean; message 'acceptsFirstResponder';
-    function becomeFirstResponder: Boolean; message 'becomeFirstResponder';
-    function resignFirstResponder: Boolean; message 'resignFirstResponder';
+    function acceptsFirstResponder: BOOL; message 'acceptsFirstResponder';
+    function becomeFirstResponder: BOOL; message 'becomeFirstResponder';
+    function resignFirstResponder: BOOL; message 'resignFirstResponder';
     procedure interpretKeyEvents(eventArray: NSArray); message 'interpretKeyEvents:';
     procedure flushBufferedKeyEvents; message 'flushBufferedKeyEvents';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
     procedure showContextHelp(sender: id); message 'showContextHelp:';
     procedure helpRequested(eventPtr: NSEvent); message 'helpRequested:';
-    function shouldBeTreatedAsInkEvent(theEvent: NSEvent): Boolean; message 'shouldBeTreatedAsInkEvent:';
+    function shouldBeTreatedAsInkEvent(theEvent: NSEvent): BOOL; message 'shouldBeTreatedAsInkEvent:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
@@ -97,7 +97,7 @@
 
 { NSKeyboardUICategory }
   NSKeyboardUICategory = objccategory external (NSResponder)
-    function performMnemonic(theString: NSString): Boolean; message 'performMnemonic:';
+    function performMnemonic(theString: NSString): BOOL; message 'performMnemonic:';
   end;
 
 { NSStandardKeyBindingMethodsCategory }
@@ -206,7 +206,7 @@
 { NSErrorPresentationCategory }
   NSErrorPresentationCategory = objccategory external (NSResponder)
     procedure presentError_modalForWindow_delegate_didPresentSelector_contextInfo(error: NSError; window: NSWindow; delegate: id; didPresentSelector: SEL; contextInfo: Pointer); message 'presentError:modalForWindow:delegate:didPresentSelector:contextInfo:';
-    function presentError(error: NSError): Boolean; message 'presentError:';
+    function presentError(error: NSError): BOOL; message 'presentError:';
     function willPresentError(error: NSError): NSError; message 'willPresentError:';
   end;
 

@@ -47,7 +47,7 @@
   public
     class function lockWithPath(path: NSString): NSDistributedLock; message 'lockWithPath:';
     function initWithPath(path: NSString): id; message 'initWithPath:';
-    function tryLock: Boolean; message 'tryLock';
+    function tryLock: BOOL; message 'tryLock';
     procedure unlock; message 'unlock';
     procedure breakLock; message 'breakLock';
     function lockDate: NSDate; message 'lockDate';

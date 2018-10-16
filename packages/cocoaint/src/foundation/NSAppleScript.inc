@@ -59,8 +59,8 @@ var
     function initWithContentsOfURL_error(url: NSURL; errorInfo: NSDictionaryPointer): id; message 'initWithContentsOfURL:error:';
     function initWithSource(source_: NSString): id; message 'initWithSource:';
     function source: NSString; message 'source';
-    function isCompiled: Boolean; message 'isCompiled';
-    function compileAndReturnError(errorInfo: NSDictionaryPointer): Boolean; message 'compileAndReturnError:';
+    function isCompiled: BOOL; message 'isCompiled';
+    function compileAndReturnError(errorInfo: NSDictionaryPointer): BOOL; message 'compileAndReturnError:';
     function executeAndReturnError(errorInfo: NSDictionaryPointer): NSAppleEventDescriptor; message 'executeAndReturnError:';
     function executeAppleEvent_error(event: NSAppleEventDescriptor; errorInfo: NSDictionaryPointer): NSAppleEventDescriptor; message 'executeAppleEvent:error:';
 

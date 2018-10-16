@@ -98,20 +98,20 @@ type
 {$define NSGEOMETRY_PAS_F}
 
 { Functions }
-function NSEqualPoints(aPoint: NSPoint; bPoint: NSPoint): Boolean; cdecl; external;
-function NSEqualSizes(aSize: NSSize; bSize: NSSize): Boolean; cdecl; external;
-function NSEqualRects(aRect: NSRect; bRect: NSRect): Boolean; cdecl; external;
-function NSIsEmptyRect(aRect: NSRect): Boolean; cdecl; external;
+function NSEqualPoints(aPoint: NSPoint; bPoint: NSPoint): BOOL; cdecl; external;
+function NSEqualSizes(aSize: NSSize; bSize: NSSize): BOOL; cdecl; external;
+function NSEqualRects(aRect: NSRect; bRect: NSRect): BOOL; cdecl; external;
+function NSIsEmptyRect(aRect: NSRect): BOOL; cdecl; external;
 function NSInsetRect(aRect: NSRect; dX: CGFloat; dY: CGFloat): NSRect; cdecl; external;
 function NSIntegralRect(aRect: NSRect): NSRect; cdecl; external;
 function NSUnionRect(aRect: NSRect; bRect: NSRect): NSRect; cdecl; external;
 function NSIntersectionRect(aRect: NSRect; bRect: NSRect): NSRect; cdecl; external;
 function NSOffsetRect(aRect: NSRect; dX: CGFloat; dY: CGFloat): NSRect; cdecl; external;
 procedure NSDivideRect(inRect: NSRect; slice: NSRectPtr; rem: NSRectPtr; amount: CGFloat; edge: NSRectEdge); cdecl; external;
-function NSPointInRect(aPoint: NSPoint; aRect: NSRect): Boolean; cdecl; external;
-function NSMouseInRect(aPoint: NSPoint; aRect: NSRect; flipped: Boolean): Boolean; cdecl; external;
-function NSContainsRect(aRect: NSRect; bRect: NSRect): Boolean; cdecl; external;
-function NSIntersectsRect(aRect: NSRect; bRect: NSRect): Boolean; cdecl; external;
+function NSPointInRect(aPoint: NSPoint; aRect: NSRect): BOOL; cdecl; external;
+function NSMouseInRect(aPoint: NSPoint; aRect: NSRect; flipped: BOOL): BOOL; cdecl; external;
+function NSContainsRect(aRect: NSRect; bRect: NSRect): BOOL; cdecl; external;
+function NSIntersectsRect(aRect: NSRect; bRect: NSRect): BOOL; cdecl; external;
 function NSStringFromPoint(aPoint: NSPoint): NSString; cdecl; external;
 function NSStringFromSize(aSize: NSSize): NSString; cdecl; external;
 function NSStringFromRect(aRect: NSRect): NSString; cdecl; external;

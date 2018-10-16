@@ -45,8 +45,8 @@
   public
     procedure setWidth (newValue: cint); message 'setWidth:';
     function width: cint; message 'width';
-    procedure setWrap (newValue: Boolean); message 'setWrap:';
-    function wrap: Boolean; message 'wrap';
+    procedure setWrap (newValue: BOOL); message 'setWrap:';
+    function wrap: BOOL; message 'wrap';
   end;
 
 {$endif}

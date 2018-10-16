@@ -70,16 +70,16 @@ type
     _cd_queueReference: id;
     
   public
-    class function contextShouldIgnoreUnmodeledPropertyChanges: Boolean; message 'contextShouldIgnoreUnmodeledPropertyChanges';
+    class function contextShouldIgnoreUnmodeledPropertyChanges: BOOL; message 'contextShouldIgnoreUnmodeledPropertyChanges';
     function initWithEntity_insertIntoManagedObjectContext(entity_: NSEntityDescription; context: NSManagedObjectContext): id; message 'initWithEntity:insertIntoManagedObjectContext:';
     function managedObjectContext: NSManagedObjectContext; message 'managedObjectContext';
     function entity: NSEntityDescription; message 'entity';
     function objectID: NSManagedObjectID; message 'objectID';
-    function isInserted: Boolean; message 'isInserted';
-    function isUpdated: Boolean; message 'isUpdated';
-    function isDeleted: Boolean; message 'isDeleted';
-    function isFault: Boolean; message 'isFault';
-    function hasFaultForRelationshipNamed(key: NSString): Boolean; message 'hasFaultForRelationshipNamed:';
+    function isInserted: BOOL; message 'isInserted';
+    function isUpdated: BOOL; message 'isUpdated';
+    function isDeleted: BOOL; message 'isDeleted';
+    function isFault: BOOL; message 'isFault';
+    function hasFaultForRelationshipNamed(key: NSString): BOOL; message 'hasFaultForRelationshipNamed:';
     function faultingState: NSUInteger; message 'faultingState';
     procedure willAccessValueForKey(key: NSString); message 'willAccessValueForKey:';
     procedure didAccessValueForKey(key: NSString); message 'didAccessValueForKey:';
@@ -103,10 +103,10 @@ type
     procedure setPrimitiveValue_forKey(value: id; key: NSString); message 'setPrimitiveValue:forKey:';
     function committedValuesForKeys(keys: NSArray): NSDictionary; message 'committedValuesForKeys:';
     function changedValues: NSDictionary; message 'changedValues';
-    function validateValue_forKey_error(value: idPtr; key: NSString; error: NSErrorPointer): Boolean; message 'validateValue:forKey:error:';
-    function validateForDelete(error: NSErrorPointer): Boolean; message 'validateForDelete:';
-    function validateForInsert(error: NSErrorPointer): Boolean; message 'validateForInsert:';
-    function validateForUpdate(error: NSErrorPointer): Boolean; message 'validateForUpdate:';
+    function validateValue_forKey_error(value: idPtr; key: NSString; error: NSErrorPointer): BOOL; message 'validateValue:forKey:error:';
+    function validateForDelete(error: NSErrorPointer): BOOL; message 'validateForDelete:';
+    function validateForInsert(error: NSErrorPointer): BOOL; message 'validateForInsert:';
+    function validateForUpdate(error: NSErrorPointer): BOOL; message 'validateForUpdate:';
   end;
 
 {$endif}

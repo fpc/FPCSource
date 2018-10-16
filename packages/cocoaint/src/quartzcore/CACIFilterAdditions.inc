@@ -40,8 +40,8 @@
   CACIFilterAdditionsCategory = objccategory external (CIFilter)
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    procedure setEnabled (newValue: Boolean); message 'setEnabled:';
-    function isEnabled: Boolean; message 'isEnabled';
+    procedure setEnabled (newValue: BOOL); message 'setEnabled:';
+    function isEnabled: BOOL; message 'isEnabled';
   end;
 
 {$endif}

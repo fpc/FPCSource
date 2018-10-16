@@ -53,16 +53,16 @@ const
   public
     function keyIdentifier: NSString; message 'keyIdentifier';
     function keyLocation: cuint; message 'keyLocation';
-    function ctrlKey: Boolean; message 'ctrlKey';
-    function shiftKey: Boolean; message 'shiftKey';
-    function altKey: Boolean; message 'altKey';
-    function metaKey: Boolean; message 'metaKey';
-    function altGraphKey: Boolean; message 'altGraphKey';
+    function ctrlKey: BOOL; message 'ctrlKey';
+    function shiftKey: BOOL; message 'shiftKey';
+    function altKey: BOOL; message 'altKey';
+    function metaKey: BOOL; message 'metaKey';
+    function altGraphKey: BOOL; message 'altGraphKey';
     function keyCode: cint; message 'keyCode';
     function charCode: cint; message 'charCode';
-    function getModifierState(keyIdentifierArg: NSString): Boolean; message 'getModifierState:';
-    procedure initKeyboardEvent_canBubble_cancelable_view_keyIdentifier_keyLocation_ctrlKey_altKey_shiftKey_metaKey_altGraphKey(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; keyIdentifier_: NSString; keyLocation_: cuint; ctrlKey_: Boolean; altKey_: Boolean; shiftKey_: Boolean; metaKey_: Boolean; altGraphKey_: Boolean); message 'initKeyboardEvent:canBubble:cancelable:view:keyIdentifier:keyLocation:ctrlKey:altKey:shiftKey:metaKey:altGraphKey:';
-    procedure initKeyboardEvent_canBubble_cancelable_view_keyIdentifier_keyLocation_ctrlKey_altKey_shiftKey_metaKey(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; keyIdentifier_: NSString; keyLocation_: cuint; ctrlKey_: Boolean; altKey_: Boolean; shiftKey_: Boolean; metaKey_: Boolean); message 'initKeyboardEvent:canBubble:cancelable:view:keyIdentifier:keyLocation:ctrlKey:altKey:shiftKey:metaKey:';
+    function getModifierState(keyIdentifierArg: NSString): BOOL; message 'getModifierState:';
+    procedure initKeyboardEvent_canBubble_cancelable_view_keyIdentifier_keyLocation_ctrlKey_altKey_shiftKey_metaKey_altGraphKey(type__: NSString; canBubble: BOOL; cancelable_: BOOL; view_: DOMAbstractView; keyIdentifier_: NSString; keyLocation_: cuint; ctrlKey_: BOOL; altKey_: BOOL; shiftKey_: BOOL; metaKey_: BOOL; altGraphKey_: BOOL); message 'initKeyboardEvent:canBubble:cancelable:view:keyIdentifier:keyLocation:ctrlKey:altKey:shiftKey:metaKey:altGraphKey:';
+    procedure initKeyboardEvent_canBubble_cancelable_view_keyIdentifier_keyLocation_ctrlKey_altKey_shiftKey_metaKey(type__: NSString; canBubble: BOOL; cancelable_: BOOL; view_: DOMAbstractView; keyIdentifier_: NSString; keyLocation_: cuint; ctrlKey_: BOOL; altKey_: BOOL; shiftKey_: BOOL; metaKey_: BOOL); message 'initKeyboardEvent:canBubble:cancelable:view:keyIdentifier:keyLocation:ctrlKey:altKey:shiftKey:metaKey:';
   end;
 
 {$endif}

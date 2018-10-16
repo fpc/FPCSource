@@ -66,8 +66,8 @@ var
   public
     function initWithContentsOfURL(nibFileURL: NSURL): id; message 'initWithContentsOfURL:';
     function initWithNibNamed_bundle(nibName: NSString; bundle: NSBundle): id; message 'initWithNibNamed:bundle:';
-    function instantiateNibWithExternalNameTable(externalNameTable: NSDictionary): Boolean; message 'instantiateNibWithExternalNameTable:';
-    function instantiateNibWithOwner_topLevelObjects(owner: id; topLevelObjects: NSArrayPointer): Boolean; message 'instantiateNibWithOwner:topLevelObjects:';
+    function instantiateNibWithExternalNameTable(externalNameTable: NSDictionary): BOOL; message 'instantiateNibWithExternalNameTable:';
+    function instantiateNibWithOwner_topLevelObjects(owner: id; topLevelObjects: NSArrayPointer): BOOL; message 'instantiateNibWithOwner:topLevelObjects:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

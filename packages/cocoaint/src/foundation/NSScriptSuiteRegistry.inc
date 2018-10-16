@@ -42,7 +42,7 @@
 { NSScriptSuiteRegistry }
   NSScriptSuiteRegistry = objcclass external (NSObject)
   private
-    _isLoadingSDEFFiles: Boolean;
+    _isLoadingSDEFFiles: BOOL;
     _reserved1: array[0..(3)-1] of char;
     _seenBundles: NSMutableSet;
     _suiteDescriptionsBeingCollected: NSMutableArray;

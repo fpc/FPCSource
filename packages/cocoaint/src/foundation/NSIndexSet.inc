@@ -79,7 +79,7 @@
     function initWithIndex(value: NSUInteger): id; message 'initWithIndex:';
     function initWithIndexesInRange(range: NSRange): id; message 'initWithIndexesInRange:';
     function initWithIndexSet(indexSet_: NSIndexSet): id; message 'initWithIndexSet:';
-    function isEqualToIndexSet(indexSet_: NSIndexSet): Boolean; message 'isEqualToIndexSet:';
+    function isEqualToIndexSet(indexSet_: NSIndexSet): BOOL; message 'isEqualToIndexSet:';
     function count: NSUInteger; message 'count';
     function firstIndex: NSUInteger; message 'firstIndex';
     function lastIndex: NSUInteger; message 'lastIndex';
@@ -89,10 +89,10 @@
     function indexLessThanOrEqualToIndex(value: NSUInteger): NSUInteger; message 'indexLessThanOrEqualToIndex:';
     function getIndexes_maxCount_inIndexRange(indexBuffer: NSUIntegerPtr; bufferSize: NSUInteger; range: NSRangePointer): NSUInteger; message 'getIndexes:maxCount:inIndexRange:';
     function countOfIndexesInRange(range: NSRange): NSUInteger; message 'countOfIndexesInRange:';
-    function containsIndex(value: NSUInteger): Boolean; message 'containsIndex:';
-    function containsIndexesInRange(range: NSRange): Boolean; message 'containsIndexesInRange:';
-    function containsIndexes(indexSet_: NSIndexSet): Boolean; message 'containsIndexes:';
-    function intersectsIndexesInRange(range: NSRange): Boolean; message 'intersectsIndexesInRange:';
+    function containsIndex(value: NSUInteger): BOOL; message 'containsIndex:';
+    function containsIndexesInRange(range: NSRange): BOOL; message 'containsIndexesInRange:';
+    function containsIndexes(indexSet_: NSIndexSet): BOOL; message 'containsIndexes:';
+    function intersectsIndexesInRange(range: NSRange): BOOL; message 'intersectsIndexesInRange:';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;

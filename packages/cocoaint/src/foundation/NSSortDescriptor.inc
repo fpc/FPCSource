@@ -48,12 +48,12 @@
     _selectorOrBlock: id;
     
   public
-    class function sortDescriptorWithKey_ascending(key_: NSString; ascending_: Boolean): id; message 'sortDescriptorWithKey:ascending:';
-    class function sortDescriptorWithKey_ascending_selector(key_: NSString; ascending_: Boolean; selector_: SEL): id; message 'sortDescriptorWithKey:ascending:selector:';
-    function initWithKey_ascending(key_: NSString; ascending_: Boolean): id; message 'initWithKey:ascending:';
-    function initWithKey_ascending_selector(key_: NSString; ascending_: Boolean; selector_: SEL): id; message 'initWithKey:ascending:selector:';
+    class function sortDescriptorWithKey_ascending(key_: NSString; ascending_: BOOL): id; message 'sortDescriptorWithKey:ascending:';
+    class function sortDescriptorWithKey_ascending_selector(key_: NSString; ascending_: BOOL; selector_: SEL): id; message 'sortDescriptorWithKey:ascending:selector:';
+    function initWithKey_ascending(key_: NSString; ascending_: BOOL): id; message 'initWithKey:ascending:';
+    function initWithKey_ascending_selector(key_: NSString; ascending_: BOOL; selector_: SEL): id; message 'initWithKey:ascending:selector:';
     function key: NSString; message 'key';
-    function ascending: Boolean; message 'ascending';
+    function ascending: BOOL; message 'ascending';
     function selector: SEL; message 'selector';
     function compareObject_toObject(object_: id; object_1: id): NSComparisonResult; message 'compareObject:toObject:';
     function reversedSortDescriptor: id; message 'reversedSortDescriptor';

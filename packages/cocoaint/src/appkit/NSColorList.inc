@@ -84,8 +84,8 @@ var
     procedure removeColorWithKey(key: NSString); message 'removeColorWithKey:';
     function colorWithKey(key: NSString): NSColor; message 'colorWithKey:';
     function allKeys: NSArray; message 'allKeys';
-    function isEditable: Boolean; message 'isEditable';
-    function writeToFile(path: NSString): Boolean; message 'writeToFile:';
+    function isEditable: BOOL; message 'isEditable';
+    function writeToFile(path: NSString): BOOL; message 'writeToFile:';
     procedure removeFile; message 'removeFile';
 
     { Adopted Protocols }

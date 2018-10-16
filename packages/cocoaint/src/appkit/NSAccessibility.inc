@@ -338,14 +338,14 @@ var
   NSAccessibilityCategory = objccategory external (NSObject)
     function accessibilityAttributeNames: NSArray; message 'accessibilityAttributeNames';
     function accessibilityAttributeValue(attribute: NSString): id; message 'accessibilityAttributeValue:';
-    function accessibilityIsAttributeSettable(attribute: NSString): Boolean; message 'accessibilityIsAttributeSettable:';
+    function accessibilityIsAttributeSettable(attribute: NSString): BOOL; message 'accessibilityIsAttributeSettable:';
     procedure accessibilitySetValue_forAttribute(value: id; attribute: NSString); message 'accessibilitySetValue:forAttribute:';
     function accessibilityParameterizedAttributeNames: NSArray; message 'accessibilityParameterizedAttributeNames';
     function accessibilityAttributeValue_forParameter(attribute: NSString; parameter: id): id; message 'accessibilityAttributeValue:forParameter:';
     function accessibilityActionNames: NSArray; message 'accessibilityActionNames';
     function accessibilityActionDescription(action: NSString): NSString; message 'accessibilityActionDescription:';
     procedure accessibilityPerformAction(action: NSString); message 'accessibilityPerformAction:';
-    function accessibilityIsIgnored: Boolean; message 'accessibilityIsIgnored';
+    function accessibilityIsIgnored: BOOL; message 'accessibilityIsIgnored';
     function accessibilityHitTest(point: NSPoint): id; message 'accessibilityHitTest:';
     function accessibilityFocusedUIElement: id; message 'accessibilityFocusedUIElement';
     function accessibilityIndexOfChild(child: id): NSUInteger; message 'accessibilityIndexOfChild:';
@@ -355,7 +355,7 @@ var
 
 { NSAccessibilityAdditionsCategory }
   NSAccessibilityAdditionsCategory = objccategory external (NSObject)
-    function accessibilitySetOverrideValue_forAttribute(value: id; attribute: NSString): Boolean; message 'accessibilitySetOverrideValue:forAttribute:';
+    function accessibilitySetOverrideValue_forAttribute(value: id; attribute: NSString): BOOL; message 'accessibilitySetOverrideValue:forAttribute:';
   end;
 
 {$endif}

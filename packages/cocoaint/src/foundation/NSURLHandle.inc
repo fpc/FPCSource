@@ -89,13 +89,13 @@ var
     function expectedResourceDataSize: clonglong; message 'expectedResourceDataSize'; deprecated 'in Mac OS X 10.4 and later';
     procedure flushCachedData; message 'flushCachedData'; deprecated 'in Mac OS X 10.4 and later';
     procedure backgroundLoadDidFailWithReason(reason: NSString); message 'backgroundLoadDidFailWithReason:'; deprecated 'in Mac OS X 10.4 and later';
-    procedure didLoadBytes_loadComplete(newBytes: NSData; yorn: Boolean); message 'didLoadBytes:loadComplete:'; deprecated 'in Mac OS X 10.4 and later';
-    class function canInitWithURL(anURL: NSURL): Boolean; message 'canInitWithURL:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure didLoadBytes_loadComplete(newBytes: NSData; yorn: BOOL); message 'didLoadBytes:loadComplete:'; deprecated 'in Mac OS X 10.4 and later';
+    class function canInitWithURL(anURL: NSURL): BOOL; message 'canInitWithURL:'; deprecated 'in Mac OS X 10.4 and later';
     class function cachedHandleForURL(anURL: NSURL): NSURLHandle; message 'cachedHandleForURL:'; deprecated 'in Mac OS X 10.4 and later';
     function propertyForKey(propertyKey: NSString): id; message 'propertyForKey:'; deprecated 'in Mac OS X 10.4 and later';
     function propertyForKeyIfAvailable(propertyKey: NSString): id; message 'propertyForKeyIfAvailable:'; deprecated 'in Mac OS X 10.4 and later';
-    function writeProperty_forKey(propertyValue: id; propertyKey: NSString): Boolean; message 'writeProperty:forKey:'; deprecated 'in Mac OS X 10.4 and later';
-    function writeData(data: NSData): Boolean; message 'writeData:'; deprecated 'in Mac OS X 10.4 and later';
+    function writeProperty_forKey(propertyValue: id; propertyKey: NSString): BOOL; message 'writeProperty:forKey:'; deprecated 'in Mac OS X 10.4 and later';
+    function writeData(data: NSData): BOOL; message 'writeData:'; deprecated 'in Mac OS X 10.4 and later';
     function loadInForeground: NSData; message 'loadInForeground'; deprecated 'in Mac OS X 10.4 and later';
     procedure beginLoadInBackground; message 'beginLoadInBackground'; deprecated 'in Mac OS X 10.4 and later';
     procedure endLoadInBackground; message 'endLoadInBackground'; deprecated 'in Mac OS X 10.4 and later';

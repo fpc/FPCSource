@@ -108,11 +108,11 @@ type
 
 { Functions }
 function NSApplicationMain(argc: cint; argv: PPChar {array of PChar}): cint; cdecl; external;
-function NSApplicationLoad: Boolean; cdecl; external;
-function NSShowsServicesMenuItem(itemName: NSString): Boolean; cdecl; external;
-function NSSetShowsServicesMenuItem(itemName: NSString; enabled: Boolean): NSInteger; cdecl; external;
+function NSApplicationLoad: BOOL; cdecl; external;
+function NSShowsServicesMenuItem(itemName: NSString): BOOL; cdecl; external;
+function NSSetShowsServicesMenuItem(itemName: NSString; enabled: BOOL): NSInteger; cdecl; external;
 procedure NSUpdateDynamicServices; cdecl; external;
-function NSPerformService(itemName: NSString; pboard: NSPasteboard): Boolean; cdecl; external;
+function NSPerformService(itemName: NSString; pboard: NSPasteboard): BOOL; cdecl; external;
 procedure NSRegisterServicesProvider(provider: id; name: NSString); cdecl; external;
 procedure NSUnregisterServicesProvider(name: NSString); cdecl; external;
 
@@ -229,11 +229,11 @@ var
     function windowWithWindowNumber(windowNum: NSInteger): NSWindow; message 'windowWithWindowNumber:';
     function mainWindow: NSWindow; message 'mainWindow';
     function keyWindow: NSWindow; message 'keyWindow';
-    function isActive: Boolean; message 'isActive';
-    function isHidden: Boolean; message 'isHidden';
-    function isRunning: Boolean; message 'isRunning';
+    function isActive: BOOL; message 'isActive';
+    function isHidden: BOOL; message 'isHidden';
+    function isRunning: BOOL; message 'isRunning';
     procedure deactivate; message 'deactivate';
-    procedure activateIgnoringOtherApps(flag: Boolean); message 'activateIgnoringOtherApps:';
+    procedure activateIgnoringOtherApps(flag: BOOL); message 'activateIgnoringOtherApps:';
     procedure hideOtherApplications(sender: id); message 'hideOtherApplications:';
     procedure unhideAllApplications(sender: id); message 'unhideAllApplications:';
     procedure finishLaunching; message 'finishLaunching';
@@ -253,15 +253,15 @@ var
     procedure beginSheet_modalForWindow_modalDelegate_didEndSelector_contextInfo(sheet: NSWindow; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheet:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
     procedure endSheet(sheet: NSWindow); message 'endSheet:';
     procedure endSheet_returnCode(sheet: NSWindow; returnCode: NSInteger); message 'endSheet:returnCode:';
-    function nextEventMatchingMask_untilDate_inMode_dequeue(mask: NSUInteger; expiration: NSDate; mode: NSString; deqFlag: Boolean): NSEvent; message 'nextEventMatchingMask:untilDate:inMode:dequeue:';
+    function nextEventMatchingMask_untilDate_inMode_dequeue(mask: NSUInteger; expiration: NSDate; mode: NSString; deqFlag: BOOL): NSEvent; message 'nextEventMatchingMask:untilDate:inMode:dequeue:';
     procedure discardEventsMatchingMask_beforeEvent(mask: NSUInteger; lastEvent: NSEvent); message 'discardEventsMatchingMask:beforeEvent:';
-    procedure postEvent_atStart(event: NSEvent; flag: Boolean); message 'postEvent:atStart:';
+    procedure postEvent_atStart(event: NSEvent; flag: BOOL); message 'postEvent:atStart:';
     function currentEvent: NSEvent; message 'currentEvent';
     procedure sendEvent(theEvent: NSEvent); message 'sendEvent:';
     procedure preventWindowOrdering; message 'preventWindowOrdering';
-    function makeWindowsPerform_inOrder(aSelector: SEL; flag: Boolean): NSWindow; message 'makeWindowsPerform:inOrder:';
+    function makeWindowsPerform_inOrder(aSelector: SEL; flag: BOOL): NSWindow; message 'makeWindowsPerform:inOrder:';
     function windows: NSArray; message 'windows';
-    procedure setWindowsNeedUpdate(needUpdate: Boolean); message 'setWindowsNeedUpdate:';
+    procedure setWindowsNeedUpdate(needUpdate: BOOL); message 'setWindowsNeedUpdate:';
     procedure updateWindows; message 'updateWindows';
     procedure setMainMenu(aMenu: NSMenu); message 'setMainMenu:';
     function mainMenu: NSMenu; message 'mainMenu';
@@ -270,16 +270,16 @@ var
     procedure setApplicationIconImage(image: NSImage); message 'setApplicationIconImage:';
     function applicationIconImage: NSImage; message 'applicationIconImage';
     function activationPolicy: NSApplicationActivationPolicy; message 'activationPolicy';
-    function setActivationPolicy(activationPolicy_: NSApplicationActivationPolicy): Boolean; message 'setActivationPolicy:';
+    function setActivationPolicy(activationPolicy_: NSApplicationActivationPolicy): BOOL; message 'setActivationPolicy:';
     function dockTile: NSDockTile; message 'dockTile';
-    function sendAction_to_from(theAction: SEL; theTarget: id; sender: id): Boolean; message 'sendAction:to:from:';
+    function sendAction_to_from(theAction: SEL; theTarget: id; sender: id): BOOL; message 'sendAction:to:from:';
     function targetForAction(theAction: SEL): id; message 'targetForAction:';
     function targetForAction_to_from(theAction: SEL; theTarget: id; sender: id): id; message 'targetForAction:to:from:';
-    function tryToPerform_with(anAction: SEL; anObject: id): Boolean; message 'tryToPerform:with:';
+    function tryToPerform_with(anAction: SEL; anObject: id): BOOL; message 'tryToPerform:with:';
     function validRequestorForSendType_returnType(sendType: NSString; returnType: NSString): id; message 'validRequestorForSendType:returnType:';
     procedure reportException(theException: NSException); message 'reportException:';
     class procedure detachDrawingThread_toTarget_withObject(selector: SEL; target: id; argument: id); message 'detachDrawingThread:toTarget:withObject:';
-    procedure replyToApplicationShouldTerminate(shouldTerminate: Boolean); message 'replyToApplicationShouldTerminate:';
+    procedure replyToApplicationShouldTerminate(shouldTerminate: BOOL); message 'replyToApplicationShouldTerminate:';
     procedure replyToOpenOrPrint(reply: NSApplicationDelegateReply); message 'replyToOpenOrPrint:';
     procedure orderFrontCharacterPalette(sender: id); message 'orderFrontCharacterPalette:';
     function presentationOptions: NSApplicationPresentationOptions; message 'presentationOptions';
@@ -287,7 +287,7 @@ var
     function currentSystemPresentationOptions: NSApplicationPresentationOptions; message 'currentSystemPresentationOptions';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): BOOL;
   end;
 
 { NSWindowsMenuCategory }
@@ -296,15 +296,15 @@ var
     function windowsMenu: NSMenu; message 'windowsMenu';
     procedure arrangeInFront(sender: id); message 'arrangeInFront:';
     procedure removeWindowsItem(win: NSWindow); message 'removeWindowsItem:';
-    procedure addWindowsItem_title_filename(win: NSWindow; aString: NSString; isFilename: Boolean); message 'addWindowsItem:title:filename:';
-    procedure changeWindowsItem_title_filename(win: NSWindow; aString: NSString; isFilename: Boolean); message 'changeWindowsItem:title:filename:';
+    procedure addWindowsItem_title_filename(win: NSWindow; aString: NSString; isFilename: BOOL); message 'addWindowsItem:title:filename:';
+    procedure changeWindowsItem_title_filename(win: NSWindow; aString: NSString; isFilename: BOOL); message 'changeWindowsItem:title:filename:';
     procedure updateWindowsItem(win: NSWindow); message 'updateWindowsItem:';
     procedure miniaturizeAll(sender: id); message 'miniaturizeAll:';
   end;
 
 { NSFullKeyboardAccessCategory }
   NSFullKeyboardAccessCategory = objccategory external (NSApplication)
-    function isFullKeyboardAccessEnabled: Boolean; message 'isFullKeyboardAccessEnabled';
+    function isFullKeyboardAccessEnabled: BOOL; message 'isFullKeyboardAccessEnabled';
   end;
 
 { NSServicesMenuCategory }
@@ -316,8 +316,8 @@ var
 
 { NSServicesRequestsCategory }
   NSServicesRequestsCategory = objccategory external (NSObject)
-    function writeSelectionToPasteboard_types(pboard: NSPasteboard; types: NSArray): Boolean; message 'writeSelectionToPasteboard:types:';
-    function readSelectionFromPasteboard(pboard: NSPasteboard): Boolean; message 'readSelectionFromPasteboard:';
+    function writeSelectionToPasteboard_types(pboard: NSPasteboard; types: NSArray): BOOL; message 'writeSelectionToPasteboard:types:';
+    function readSelectionFromPasteboard(pboard: NSPasteboard): BOOL; message 'readSelectionFromPasteboard:';
   end;
 
 { NSServicesHandlingCategory }
@@ -354,16 +354,16 @@ var
   NSApplicationDelegateProtocol = objcprotocol external name 'NSApplicationDelegate'
   optional
     function applicationShouldTerminate(sender: NSApplication): NSApplicationTerminateReply; message 'applicationShouldTerminate:';
-    function application_openFile(sender: NSApplication; filename: NSString): Boolean; message 'application:openFile:';
+    function application_openFile(sender: NSApplication; filename: NSString): BOOL; message 'application:openFile:';
     procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';
-    function application_openTempFile(sender: NSApplication; filename: NSString): Boolean; message 'application:openTempFile:';
-    function applicationShouldOpenUntitledFile(sender: NSApplication): Boolean; message 'applicationShouldOpenUntitledFile:';
-    function applicationOpenUntitledFile(sender: NSApplication): Boolean; message 'applicationOpenUntitledFile:';
-    function application_openFileWithoutUI(sender: id; filename: NSString): Boolean; message 'application:openFileWithoutUI:';
-    function application_printFile(sender: NSApplication; filename: NSString): Boolean; message 'application:printFile:';
-    function application_printFiles_withSettings_showPrintPanels(application: NSApplication; fileNames: NSArray; printSettings: NSDictionary; showPrintPanels: Boolean): NSApplicationPrintReply; message 'application:printFiles:withSettings:showPrintPanels:';
-    function applicationShouldTerminateAfterLastWindowClosed(sender: NSApplication): Boolean; message 'applicationShouldTerminateAfterLastWindowClosed:';
-    function applicationShouldHandleReopen_hasVisibleWindows(sender: NSApplication; flag: Boolean): Boolean; message 'applicationShouldHandleReopen:hasVisibleWindows:';
+    function application_openTempFile(sender: NSApplication; filename: NSString): BOOL; message 'application:openTempFile:';
+    function applicationShouldOpenUntitledFile(sender: NSApplication): BOOL; message 'applicationShouldOpenUntitledFile:';
+    function applicationOpenUntitledFile(sender: NSApplication): BOOL; message 'applicationOpenUntitledFile:';
+    function application_openFileWithoutUI(sender: id; filename: NSString): BOOL; message 'application:openFileWithoutUI:';
+    function application_printFile(sender: NSApplication; filename: NSString): BOOL; message 'application:printFile:';
+    function application_printFiles_withSettings_showPrintPanels(application: NSApplication; fileNames: NSArray; printSettings: NSDictionary; showPrintPanels: BOOL): NSApplicationPrintReply; message 'application:printFiles:withSettings:showPrintPanels:';
+    function applicationShouldTerminateAfterLastWindowClosed(sender: NSApplication): BOOL; message 'applicationShouldTerminateAfterLastWindowClosed:';
+    function applicationShouldHandleReopen_hasVisibleWindows(sender: NSApplication; flag: BOOL): BOOL; message 'applicationShouldHandleReopen:hasVisibleWindows:';
     function applicationDockMenu(sender: NSApplication): NSMenu; message 'applicationDockMenu:';
     function application_willPresentError(application: NSApplication; error: NSError): NSError; message 'application:willPresentError:';
     procedure applicationWillFinishLaunching(notification: NSNotification); message 'applicationWillFinishLaunching:';

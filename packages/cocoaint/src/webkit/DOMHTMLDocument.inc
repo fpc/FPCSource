@@ -71,7 +71,7 @@
     procedure clear; message 'clear';
     procedure captureEvents; message 'captureEvents';
     procedure releaseEvents; message 'releaseEvents';
-    function hasFocus: Boolean; message 'hasFocus';
+    function hasFocus: BOOL; message 'hasFocus';
   end;
 
 {$endif}

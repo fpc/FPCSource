@@ -103,7 +103,7 @@ var
     function delegate: NSStreamDelegateProtocol; message 'delegate';
     procedure setDelegate(delegate_: NSStreamDelegateProtocol); message 'setDelegate:';
     function propertyForKey(key: NSString): id; message 'propertyForKey:';
-    function setProperty_forKey(property_: id; key: NSString): Boolean; message 'setProperty:forKey:';
+    function setProperty_forKey(property_: id; key: NSString): BOOL; message 'setProperty:forKey:';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
     function streamStatus: NSStreamStatus; message 'streamStatus';
@@ -115,8 +115,8 @@ var
     
   public
     function read_maxLength(buffer: pbyte; len: NSUInteger): NSInteger; message 'read:maxLength:';
-    function getBuffer_length(buffer: pbyte; len: NSUIntegerPtr): Boolean; message 'getBuffer:length:';
-    function hasBytesAvailable: Boolean; message 'hasBytesAvailable';
+    function getBuffer_length(buffer: pbyte; len: NSUIntegerPtr): BOOL; message 'getBuffer:length:';
+    function hasBytesAvailable: BOOL; message 'hasBytesAvailable';
   end;
 
 { NSOutputStream }
@@ -124,7 +124,7 @@ var
     
   public
     function write_maxLength(buffer: pbyte; len: NSUInteger): NSInteger; message 'write:maxLength:';
-    function hasSpaceAvailable: Boolean; message 'hasSpaceAvailable';
+    function hasSpaceAvailable: BOOL; message 'hasSpaceAvailable';
   end;
 
 { NSSocketStreamCreationExtensionsCategory }
@@ -146,12 +146,12 @@ var
   NSOutputStreamExtensionsCategory = objccategory external (NSOutputStream)
     function initToMemory: id; message 'initToMemory';
     function initToBuffer_capacity(buffer: pbyte; capacity: NSUInteger): id; message 'initToBuffer:capacity:';
-    function initToFileAtPath_append(path: NSString; shouldAppend: Boolean): id; message 'initToFileAtPath:append:';
-    function initWithURL_append(url: NSURL; shouldAppend: Boolean): id; message 'initWithURL:append:';
+    function initToFileAtPath_append(path: NSString; shouldAppend: BOOL): id; message 'initToFileAtPath:append:';
+    function initWithURL_append(url: NSURL; shouldAppend: BOOL): id; message 'initWithURL:append:';
     class function outputStreamToMemory: id; message 'outputStreamToMemory';
     class function outputStreamToBuffer_capacity(buffer: pbyte; capacity: NSUInteger): id; message 'outputStreamToBuffer:capacity:';
-    class function outputStreamToFileAtPath_append(path: NSString; shouldAppend: Boolean): id; message 'outputStreamToFileAtPath:append:';
-    class function outputStreamWithURL_append(url: NSURL; shouldAppend: Boolean): id; message 'outputStreamWithURL:append:';
+    class function outputStreamToFileAtPath_append(path: NSString; shouldAppend: BOOL): id; message 'outputStreamToFileAtPath:append:';
+    class function outputStreamWithURL_append(url: NSURL; shouldAppend: BOOL): id; message 'outputStreamWithURL:append:';
   end;
 
 {$endif}
