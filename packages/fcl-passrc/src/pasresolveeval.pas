@@ -352,13 +352,18 @@ type
     revkUInt, // TResEvalUInt
     revkFloat, // TResEvalFloat
     revkCurrency, // TResEvalCurrency
-    revkString, // TResEvalString
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString, // TResEvalString  rawbytestring
+    {$endif}
     revkUnicodeString, // TResEvalUTF16
     revkEnum,     // TResEvalEnum
     revkRangeInt, // range of enum, int, char, widechar, e.g. 1..2
     revkRangeUInt, // range of uint, e.g. 1..2
     revkSetOfInt  // set of enum, int, char, widechar, e.g. [1,2..3]
     );
+const
+  revkAllStrings = [{$ifdef FPC_HAS_CPSTRING}revkString,{$endif}revkUnicodeString];
+type
   TResEvalValue = class(TResolveData)
   public
     Kind: TREVKind;
@@ -1419,10 +1424,13 @@ begin
         TResEvalEnum(LeftValue).Index,TResEvalEnum(RightValue).Index);
       exit;
       end;
-  revkString,revkUnicodeString:
+  {$ifdef FPC_HAS_CPSTRING}
+  revkString,
+  {$endif}
+  revkUnicodeString:
     begin
     LeftInt:=ExprStringToOrd(LeftValue,Expr.left);
-    if RightValue.Kind in [revkString,revkUnicodeString] then
+    if RightValue.Kind in revkAllStrings then
       begin
       RightInt:=ExprStringToOrd(RightValue,Expr.right);
       if LeftInt>RightInt then
@@ -1469,13 +1477,15 @@ var
   UInt: TMaxPrecUInt;
   Flo: TMaxPrecFloat;
   aCurrency: TMaxPrecCurrency;
+  {$ifdef FPC_HAS_CPSTRING}
   LeftCP, RightCP: TSystemCodePage;
+  {$endif}
   LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
   Result:=nil;
   try
-    {$Q+}
+    {$Q+} // enable overflow and range checks
     {$R+}
     case LeftValue.Kind of
     revkInt:
@@ -1566,6 +1576,7 @@ begin
         RaiseNotYetImplemented(20180421163819,Expr);
       end;
       end;
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       case RightValue.Kind of
       revkString:
@@ -1596,14 +1607,17 @@ begin
         {$ENDIF}
         RaiseNotYetImplemented(20170601141834,Expr);
       end;
+    {$endif}
     revkUnicodeString:
       case RightValue.Kind of
+      {$ifdef FPC_HAS_CPSTRING}
       revkString:
         begin
         Result:=TResEvalUTF16.Create;
         TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S
                                 +GetUnicodeStr(TResEvalString(RightValue).S,Expr.right);
         end;
+      {$endif}
       revkUnicodeString:
         begin
         Result:=TResEvalUTF16.Create;
@@ -2807,6 +2821,7 @@ begin
         Result.Free;
         RaiseNotYetImplemented(20180421165438,Expr);
       end;
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       case RightValue.Kind of
       revkString:
@@ -2825,11 +2840,14 @@ begin
         Result.Free;
         RaiseNotYetImplemented(20170711175409,Expr);
       end;
+    {$endif}
     revkUnicodeString:
       case RightValue.Kind of
+      {$ifdef FPC_HAS_CPSTRING}
       revkString:
         TResEvalBool(Result).B:=TResEvalUTF16(LeftValue).S
                                =GetUnicodeStr(TResEvalString(RightValue).S,Expr.right);
+      {$endif}
       revkUnicodeString:
         TResEvalBool(Result).B:=TResEvalUTF16(LeftValue).S
                                =TResEvalUTF16(RightValue).S;
@@ -3128,6 +3146,7 @@ begin
         Result.Free;
         RaiseNotYetImplemented(20180421165752,Expr);
       end;
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       case RightValue.Kind of
       revkString:
@@ -3155,11 +3174,14 @@ begin
         Result.Free;
         RaiseNotYetImplemented(20170711175629,Expr);
       end;
+    {$endif}
     revkUnicodeString:
       case RightValue.Kind of
+      {$ifdef FPC_HAS_CPSTRING}
       revkString:
         CmpUnicode(TResEvalUTF16(LeftValue).S,
                    GetUnicodeStr(TResEvalString(RightValue).S,Expr.right));
+      {$endif}
       revkUnicodeString:
         CmpUnicode(TResEvalUTF16(LeftValue).S,TResEvalUTF16(RightValue).S);
       else
@@ -3264,12 +3286,14 @@ begin
         RaiseMsg(20170714123700,nRangeCheckError,sRangeCheckError,[],Expr)
       else
         Int:=TResEvalUInt(LeftValue).UInt;
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       if length(TResEvalString(LeftValue).S)<>1 then
         RaiseMsg(20170714124231,nXExpectedButYFound,sXExpectedButYFound,
           ['char','string'],Expr)
       else
         Int:=ord(TResEvalString(LeftValue).S[1]);
+    {$endif}
     revkUnicodeString:
       if length(TResEvalUTF16(LeftValue).S)<>1 then
         RaiseMsg(20170714124320,nXExpectedButYFound,sXExpectedButYFound,
@@ -3387,7 +3411,10 @@ begin
   IndexValue:=nil;
   try
     case ArrayValue.Kind of
-    revkString,revkUnicodeString:
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString,
+    {$endif}
+    revkUnicodeString:
       begin
       // string[index]
       Param0:=Expr.Params[0];
@@ -3412,15 +3439,19 @@ begin
         {$ENDIF}
         RaiseNotYetImplemented(20170711182100,Expr);
       end;
+      {$ifdef FPC_HAS_CPSTRING}
       if ArrayValue.Kind=revkString then
         MaxIndex:=length(TResEvalString(ArrayValue).S)
       else
+      {$endif}
         MaxIndex:=length(TResEvalUTF16(ArrayValue).S);
       if (Int<1) or (Int>MaxIndex) then
         EmitRangeCheckConst(20170711183058,IntToStr(Int),'1',IntToStr(MaxIndex),Param0,mtError);
+      {$ifdef FPC_HAS_CPSTRING}
       if ArrayValue.Kind=revkString then
         Result:=TResEvalString.CreateValue(TResEvalString(ArrayValue).S[Int])
       else
+      {$endif}
         Result:=TResEvalUTF16.CreateValue(TResEvalUTF16(ArrayValue).S[Int]);
       exit;
       end;
@@ -3514,6 +3545,7 @@ begin
         RangeStart:=TResEvalUInt(Value).UInt;
         RangeEnd:=RangeStart;
         end;
+      {$ifdef FPC_HAS_CPSTRING}
       revkString:
         begin
         if Result.ElKind=revskNone then
@@ -3529,6 +3561,7 @@ begin
         RangeStart:=ord(TResEvalString(Value).S[1]);
         RangeEnd:=RangeStart;
         end;
+      {$endif}
       revkUnicodeString:
         begin
         if Result.ElKind=revskNone then
@@ -3837,9 +3870,12 @@ end;
 function TResExprEvaluator.ExprStringToOrd(Value: TResEvalValue;
   PosEl: TPasElement): longword;
 var
+  {$ifdef FPC_HAS_CPSTRING}
   S: RawByteString;
+  {$endif}
   U: UnicodeString;
 begin
+  {$ifdef FPC_HAS_CPSTRING}
   if Value.Kind=revkString then
     begin
     // ord(ansichar)
@@ -3850,7 +3886,9 @@ begin
     else
       Result:=ord(S[1]);
     end
-  else if Value.Kind=revkUnicodeString then
+  else
+  {$endif}
+  if Value.Kind=revkUnicodeString then
     begin
     // ord(widechar)
     U:=TResEvalUTF16(Value).S;
@@ -3884,15 +3922,18 @@ function TResExprEvaluator.EvalPrimitiveExprString(Expr: TPrimitiveExpr
 
   procedure Add(h: String);
   begin
+    {$ifdef FPC_HAS_CPSTRING}
     if Result.Kind=revkString then
       TResEvalString(Result).S:=TResEvalString(Result).S+h
     else
-      begin
       TResEvalUTF16(Result).S:=TResEvalUTF16(Result).S+GetUnicodeStr(h,Expr);
-      end;
+    {$else}
+    TResEvalUTF16(Result).S:=TResEvalUTF16(Result).S+h;
+    {$endif}
   end;
 
   procedure AddHash(u: longword);
+  {$ifdef FPC_HAS_CPSTRING}
   var
     h: RawByteString;
   begin
@@ -3909,9 +3950,14 @@ function TResExprEvaluator.EvalPrimitiveExprString(Expr: TPrimitiveExpr
     else
       TResEvalUTF16(Result).S:=TResEvalUTF16(Result).S+WideChar(u);
   end;
+  {$else}
+  begin
+    TResEvalUTF16(Result).S:=TResEvalUTF16(Result).S+WideChar(u);
+  end;
+  {$endif}
 
 var
-  p, StartP: PChar;
+  p, StartP, l: integer;
   c: Char;
   u: longword;
   S: String;
@@ -3921,29 +3967,36 @@ begin
   {$IFDEF VerbosePasResEval}
   //writeln('TResExprEvaluator.EvalPrimitiveExprString (',S,')');
   {$ENDIF}
-  if S='' then
+  l:=length(S);
+  if l=0 then
     RaiseInternalError(20170523113809);
+  {$ifdef FPC_HAS_CPSTRING}
   Result:=TResEvalString.Create;
-  p:=PChar(S);
-  repeat
-    case p^ of
+  {$else}
+  Result:=TResEvalUTF16.Create;
+  {$endif}
+  p:=1;
+  while p<=l do
+    case S[p] of
+    {$ifdef UsePChar}
     #0: break;
+    {$endif}
     '''':
       begin
       inc(p);
       StartP:=p;
       repeat
-        c:=p^;
-        case c of
-        #0:
+        if p>l then
           RaiseInternalError(20170523113938);
+        c:=S[p];
+        case c of
         '''':
           begin
           if p>StartP then
-            Add(copy(S,StartP-PChar(S)+1,p-StartP));
+            Add(copy(S,StartP,p-StartP));
           inc(p);
           StartP:=p;
-          if p^<>'''' then
+          if (p>l) or (S[p]<>'''') then
             break;
           Add('''');
           inc(p);
@@ -3954,21 +4007,23 @@ begin
         end;
       until false;
       if p>StartP then
-        Add(copy(S,StartP-PChar(S)+1,p-StartP));
+        Add(copy(S,StartP,p-StartP));
       end;
     '#':
       begin
       inc(p);
-      if p^='$' then
+      if p>l then
+        RaiseInternalError(20181016121354);
+      if S[p]='$' then
         begin
         // #$hexnumber
         inc(p);
         StartP:=p;
         u:=0;
-        repeat
-          c:=p^;
+        while p<=l do
+          begin
+          c:=S[p];
           case c of
-          #0: break;
           '0'..'9': u:=u*16+ord(c)-ord('0');
           'a'..'f': u:=u*16+ord(c)-ord('a')+10;
           'A'..'F': u:=u*16+ord(c)-ord('A')+10;
@@ -3977,7 +4032,7 @@ begin
           if u>$10FFFF then
             RangeError(20170523115712);
           inc(p);
-        until false;
+          end;
         if p=StartP then
           RaiseInternalError(20170207164956);
         if u>$ffff then
@@ -3995,17 +4050,17 @@ begin
         // #decimalnumber
         StartP:=p;
         u:=0;
-        repeat
-          c:=p^;
+        while p<=l do
+          begin
+          c:=S[p];
           case c of
-          #0: break;
           '0'..'9': u:=u*10+ord(c)-ord('0');
           else break;
           end;
           if u>$ffff then
             RangeError(20170523123137);
           inc(p);
-        until false;
+          end;
         if p=StartP then
           RaiseInternalError(20170523123806);
         AddHash(u);
@@ -4015,7 +4070,9 @@ begin
       begin
       // ^A is #1
       inc(p);
-      c:=p^;
+      if p>l then
+        RaiseInternalError(20181016121520);
+      c:=S[p];
       case c of
       'a'..'z': AddHash(ord(c)-ord('a')+1);
       'A'..'Z': AddHash(ord(c)-ord('A')+1);
@@ -4024,9 +4081,8 @@ begin
       inc(p);
       end;
     else
-      RaiseNotYetImplemented(20170523123815,Expr,'ord='+IntToStr(ord(p^)));
+      RaiseNotYetImplemented(20170523123815,Expr,'ord='+IntToStr(ord(S[p])));
     end;
-  until false;
   {$IFDEF VerbosePasResEval}
   //writeln('TResExprEvaluator.EvalPrimitiveExprString Result=',Result.AsString);
   {$ENDIF}
@@ -4044,7 +4100,9 @@ constructor TResExprEvaluator.Create;
 begin
   inherited Create;
   FAllowedInts:=ReitDefaults;
+  {$ifdef FPC_HAS_CPSTRING}
   FDefaultEncoding:=CP_ACP;
+  {$endif}
 end;
 
 function TResExprEvaluator.Eval(Expr: TPasExpr; Flags: TResEvalFlags
@@ -4253,7 +4311,7 @@ begin
           RaiseNotYetImplemented(20170522215906,ValueExpr);
           end;
       revskChar:
-        if Value.Kind in [revkString,revkUnicodeString] then
+        if Value.Kind in revkAllStrings then
           begin
           // string in char..char
           CharIndex:=ExprStringToOrd(Value,ValueExpr);
@@ -4450,10 +4508,12 @@ begin
         Int:=TResEvalInt(Value).Int;
       if (Int<0) or (Int>$ffff) then
         EmitRangeCheckConst(20170711195747,Value.AsString,0,$ffff,ErrorEl,mtError);
-      if Int>$ff then
-        Result:=TResEvalUTF16.CreateValue(WideChar(Int))
+      {$ifdef FPC_HAS_CPSTRING}
+      if Int<=$ff then
+        Result:=TResEvalString.CreateValue(chr(Int))
       else
-        Result:=TResEvalString.CreateValue(chr(Int));
+      {$endif}
+        Result:=TResEvalUTF16.CreateValue(WideChar(Int))
       end;
   else
     {$IFDEF VerbosePasResEval}
@@ -4474,11 +4534,13 @@ begin
         Result:=TResEvalInt.CreateValue(0);
     revkInt,revkUInt:
       Result:=Value;
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       if length(TResEvalString(Value).S)<>1 then
         RaiseRangeCheck(20170624160128,ErrorEl)
       else
         Result:=TResEvalInt.CreateValue(ord(TResEvalString(Value).S[1]));
+    {$endif}
     revkUnicodeString:
       if length(TResEvalUTF16(Value).S)<>1 then
         RaiseRangeCheck(20170624160129,ErrorEl)
@@ -4504,8 +4566,10 @@ begin
       PredInt(TResEvalInt(Value),ErrorEl);
     revkUInt:
       PredUInt(TResEvalUInt(Value),ErrorEl);
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       PredString(TResEvalString(Value),ErrorEl);
+    {$endif}
     revkUnicodeString:
       PredUnicodeString(TResEvalUTF16(Value),ErrorEl);
     revkEnum:
@@ -4529,8 +4593,10 @@ begin
       SuccInt(TResEvalInt(Value),ErrorEl);
     revkUInt:
       SuccUInt(TResEvalUInt(Value),ErrorEl);
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       SuccString(TResEvalString(Value),ErrorEl);
+    {$endif}
     revkUnicodeString:
       SuccUnicodeString(TResEvalUTF16(Value),ErrorEl);
     revkEnum:
@@ -4639,7 +4705,7 @@ begin
         begin
         ValStr:=TResEvalEnum(Value).AsString;
         if Format1>0 then
-          ValStr:=Space(Format1)+ValStr;
+          ValStr:=StringOfChar(' ',Format1)+ValStr;
         end;
       else
         AllConst:=false;
@@ -4653,7 +4719,11 @@ begin
     S:=S+ValStr;
   end;
   if AllConst then
+    {$ifdef FPC_HAS_CPSTRING}
     Result:=TResEvalString.CreateValue(S);
+    {$else}
+    Result:=TResEvalUTF16.CreateValue(S);
+    {$endif}
 end;
 
 function TResExprEvaluator.EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
@@ -5545,6 +5615,7 @@ begin
     exit(l)
   else
     exit(m);
+  Result:=-1;
 end;
 
 function TResEvalSet.Intersects(aRangeStart, aRangeEnd: TMaxPrecInt): integer;
