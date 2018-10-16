@@ -1037,7 +1037,7 @@ implementation
     begin
       { since all comparisons return their results in a register, we'll often
         get comparisons against true/false -> optimise }
-      if (size=pasbool8type) and
+      if (size=pasbool1type) and
          (cmp_op in [OC_EQ,OC_NE]) then
         begin
           { convert to an llvmbool1type and use directly }

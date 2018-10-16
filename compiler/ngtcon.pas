@@ -613,6 +613,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
       begin
         case def.ordtype of
+           pasbool1,
            pasbool8,
            bool8bit,
            pasbool16,

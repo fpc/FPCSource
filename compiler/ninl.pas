@@ -392,7 +392,7 @@ implementation
           procname:=procname+'enum'
         else
           case torddef(source.resultdef).ordtype of
-            pasbool8,pasbool16,pasbool32,pasbool64,
+            pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
             bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
             else
@@ -806,6 +806,7 @@ implementation
                       readfunctype:=s64currencytype;
                       is_real:=true;
                     end;
+                  pasbool1,
                   pasbool8,
                   pasbool16,
                   pasbool32,
@@ -822,7 +823,7 @@ implementation
                     else
                       begin
                         name := procprefixes[do_read]+'boolean';
-                        readfunctype:=pasbool8type;
+                        readfunctype:=pasbool1type;
                       end
                   else
                     begin
@@ -1043,7 +1044,7 @@ implementation
                   { in case of writing a chararray, add whether it's zero-based }
                   if para.left.resultdef.typ=arraydef then
                     para := ccallparanode.create(cordconstnode.create(
-                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool8type,false),para)
+                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool1type,false),para)
                   else
                   { in case of reading an ansistring pass a codepage argument }
                   if do_read and is_ansistring(para.left.resultdef) then
@@ -2274,7 +2275,7 @@ implementation
                    else
                      hp:=create_simplified_ord_const(sqr(vl.uvalue),resultdef,forinline);
                  in_const_odd :
-                   hp:=cordconstnode.create(qword(odd(int64(vl))),pasbool8type,true);
+                   hp:=cordconstnode.create(qword(odd(int64(vl))),pasbool1type,true);
                  in_const_swap_word :
                    hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resultdef,true);
                  in_const_swap_long :
@@ -2336,6 +2337,7 @@ implementation
                     orddef :
                       begin
                         case torddef(left.resultdef).ordtype of
+                          pasbool1,
                           pasbool8,
                           uchar:
                             begin
@@ -3126,7 +3128,7 @@ implementation
                   { Postpone conversion into addnode until firstpass, so targets
                     may override first_assigned and insert specific code. }
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
-                  resultdef:=pasbool8type;
+                  resultdef:=pasbool1type;
                 end;
 
               in_ofs_x :

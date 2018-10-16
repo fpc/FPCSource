@@ -1129,7 +1129,7 @@ implementation
                                def:=corddef.create(uchar,lv,hv,true)
                              else
                                if is_boolean(pt1.resultdef) then
-                                 def:=corddef.create(pasbool8,lv,hv,true)
+                                 def:=corddef.create(pasbool1,lv,hv,true)
                                else if is_signed(pt1.resultdef) then
                                  def:=corddef.create(range_to_basetype(lv,hv),lv,hv,true)
                                else
@@ -1335,7 +1335,7 @@ implementation
 {$ifdef cpu64bitaddr}
                     u32bit,s64bit,
 {$endif cpu64bitaddr}
-                    pasbool8,pasbool16,pasbool32,pasbool64,
+                    pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
                     bool8bit,bool16bit,bool32bit,bool64bit,
                     uwidechar] then
                     begin

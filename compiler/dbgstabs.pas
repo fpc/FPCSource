@@ -696,6 +696,7 @@ implementation
             case def.ordtype of
               uvoid :
                 ss:=def_stab_number(def);
+              pasbool1,
               pasbool8,
               pasbool16,
               pasbool32,
@@ -724,6 +725,7 @@ implementation
                 ss:='-20;';
               uwidechar :
                 ss:='-30;';
+              pasbool1,
               pasbool8,
               bool8bit :
                 ss:='-21;';

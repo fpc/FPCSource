@@ -634,7 +634,7 @@ interface
                   end;
 
                   if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-                    resultdef:=pasbool8type;
+                    resultdef:=pasbool1type;
                   result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
                       ctypeconvnode.create_internal(right,fdef),
                       ccallparanode.create(

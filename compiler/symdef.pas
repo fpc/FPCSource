@@ -1039,7 +1039,8 @@ interface
        voidtype,                  { Void (procedure) }
        cansichartype,             { Char }
        cwidechartype,             { WideChar }
-       pasbool8type,              { boolean type }
+       pasbool1type,              { boolean type }
+       pasbool8type,
        pasbool16type,
        pasbool32type,
        pasbool64type,
@@ -2886,7 +2887,7 @@ implementation
           0,
           1,2,4,8,16,
           1,2,4,8,16,
-          1,2,4,8,
+          1,1,2,4,8,
           1,2,4,8,
           1,2,8
         );
@@ -2917,7 +2918,7 @@ implementation
             (low >= 0) and
             (high <= 1)
            ) or (
-             ordtype in [pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]
+             ordtype in [pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]
            ) then
           result := 1
         else
@@ -2940,7 +2941,7 @@ implementation
           varUndefined,
           varbyte,varword,varlongword,varqword,varUndefined,
           varshortint,varsmallint,varinteger,varint64,varUndefined,
-          varboolean,varboolean,varboolean,varboolean,
+          varboolean,varboolean,varboolean,varboolean,varboolean,
           varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
@@ -2970,7 +2971,7 @@ implementation
           'untyped',
           'Byte','Word','DWord','QWord','UInt128',
           'ShortInt','SmallInt','LongInt','Int64','Int128',
-          'Boolean','Boolean16','Boolean32','Boolean64',
+          'Boolean','Boolean8','Boolean16','Boolean32','Boolean64',
           'ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
 
@@ -6231,14 +6232,14 @@ implementation
              '',
              'Uc','Us','Ui','Us','',
              'Sc','s','i','x','',
-             'b','b','b','b','b',
+             'b','b','b','b','b','b',
              'c','w','x');
 {$else NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[1] = (
              'v',
              'h','t','j','y','',
              'a','s','i','x','',
-             'b','b','b','b',
+             'b','b','b','b','b',
              'b','b','b','b',
              'c','w','x');
 

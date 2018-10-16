@@ -3178,12 +3178,12 @@ implementation
                 else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool8type,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool1type,false);
                    end
                 else
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool8type,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool1type,false);
                    end
                 else
                   if vo_is_msgsel in para.parasym.varoptions then

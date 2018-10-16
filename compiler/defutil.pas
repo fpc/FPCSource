@@ -478,7 +478,7 @@ implementation
                is_ordinal:=dt in [uchar,uwidechar,
                                   u8bit,u16bit,u32bit,u64bit,
                                   s8bit,s16bit,s32bit,s64bit,
-                                  pasbool8,pasbool16,pasbool32,pasbool64,
+                                  pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
                                   bool8bit,bool16bit,bool32bit,bool64bit];
              end;
            enumdef :
@@ -558,14 +558,14 @@ implementation
     function is_boolean(def : tdef) : boolean;
       begin
         result:=(def.typ=orddef) and
-                    (torddef(def).ordtype in [pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]);
+                    (torddef(def).ordtype in [pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]);
       end;
 
 
     function is_pasbool(def : tdef) : boolean;
       begin
         result:=(def.typ=orddef) and
-                    (torddef(def).ordtype in [pasbool8,pasbool16,pasbool32,pasbool64]);
+                    (torddef(def).ordtype in [pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]);
       end;
 
     { true if def is a C-style boolean (non-zero value = true, zero = false) }
@@ -902,7 +902,7 @@ implementation
     { true, if def is a 8 bit ordinal type }
     function is_8bit(def : tdef) : boolean;
       begin
-         result:=(def.typ=orddef) and (torddef(def).ordtype in [u8bit,s8bit,pasbool8,bool8bit,uchar])
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u8bit,s8bit,pasbool1,pasbool8,bool8bit,uchar])
       end;
 
     { true, if def is a 16 bit int type }
@@ -1146,6 +1146,8 @@ implementation
                      range_to_type(torddef(def).low,torddef(def).high,result);
                  end
                else case torddef(def).ordtype of
+                 pasbool1:
+                   result:=pasbool1type;
                  pasbool8:
                    result:=pasbool8type;
                  pasbool16:
@@ -1601,6 +1603,7 @@ implementation
                 result:=tkQWord;
               s64bit:
                 result:=tkInt64;
+              pasbool1,
               pasbool8,
               pasbool16,
               pasbool32,

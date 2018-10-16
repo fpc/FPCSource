@@ -215,7 +215,7 @@ implementation
 
       begin
          result:=nil;
-         resultdef:=pasbool8type;
+         resultdef:=pasbool1type;
          typecheckpass(right);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
@@ -258,7 +258,7 @@ implementation
              }
              if  (
                    (left.resultdef.typ = orddef) and not
-                   (torddef(left.resultdef).ordtype in [s8bit,u8bit,uchar,pasbool8,bool8bit])
+                   (torddef(left.resultdef).ordtype in [s8bit,u8bit,uchar,pasbool1,pasbool8,bool8bit])
                  )
                 or
                  (
@@ -296,7 +296,7 @@ implementation
             ((right.nodetype = setconstn) and
              (tnormalset(tsetconstnode(right).value_set^) = [])) then
           begin
-            t:=cordconstnode.create(0,pasbool8type,false);
+            t:=cordconstnode.create(0,pasbool1type,false);
             typecheckpass(t);
             result:=t;
             exit;
@@ -323,10 +323,10 @@ implementation
                  { into account                                             }
                  if Tordconstnode(left).value.signed then
                    t:=cordconstnode.create(byte(tordconstnode(left).value.svalue in Tsetconstnode(right).value_set^),
-                     pasbool8type,true)
+                     pasbool1type,true)
                  else
                    t:=cordconstnode.create(byte(tordconstnode(left).value.uvalue in Tsetconstnode(right).value_set^),
-                     pasbool8type,true);
+                     pasbool1type,true);
                  typecheckpass(t);
                  result:=t;
                  exit;
@@ -336,7 +336,7 @@ implementation
                  if (Tordconstnode(left).value<int64(tsetdef(right.resultdef).setbase)) or
                     (Tordconstnode(left).value>int64(Tsetdef(right.resultdef).setmax)) then
                    begin
-                     t:=cordconstnode.create(0, pasbool8type, true);
+                     t:=cordconstnode.create(0, pasbool1type, true);
                      typecheckpass(t);
                      result:=t;
                      exit;

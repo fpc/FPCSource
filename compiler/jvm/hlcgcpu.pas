@@ -1241,7 +1241,7 @@ implementation
           if not ((size.typ=pointerdef) or
                  ((size.typ=orddef) and
                   (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                            pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                                             pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
             begin
               a_load_reg_stack(list,size,src1);
               if op in [OP_SUB,OP_IMUL] then
@@ -1346,7 +1346,7 @@ implementation
         orddef:
           begin
             case torddef(eledef).ordtype of
-              pasbool8,s8bit,u8bit,bool8bit,uchar,
+              pasbool1,pasbool8,s8bit,u8bit,bool8bit,uchar,
               s16bit,u16bit,bool16bit,pasbool16,
               uwidechar,
               s32bit,u32bit,bool32bit,pasbool32,
@@ -1371,7 +1371,7 @@ implementation
             else
               begin
                 { deepcopy=true }
-                a_load_const_stack(list,pasbool8type,1,R_INTREGISTER);
+                a_load_const_stack(list,pasbool1type,1,R_INTREGISTER);
                 { ndim }
                 a_load_const_stack(list,s32inttype,ndim,R_INTREGISTER);
                 { eletype }

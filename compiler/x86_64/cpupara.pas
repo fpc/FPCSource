@@ -181,7 +181,7 @@ unit cpupara;
                  as per the x86-64 ABI -> do the same }
                if not assigned(cl.def) or
                   not is_pasbool(cl.def) or
-                  (size>1) then
+                  (torddef(cl.def).ordtype<>pasbool1) then
                  cl.def:=u32inttype;
              end
            else

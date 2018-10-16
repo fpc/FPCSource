@@ -1497,7 +1497,7 @@ implementation
         if node.nodetype=asn then
           node.resultdef:=realtodef
         else
-          node.resultdef:=pasbool8type;
+          node.resultdef:=pasbool1type;
     end;
 
 

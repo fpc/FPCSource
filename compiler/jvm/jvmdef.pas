@@ -539,6 +539,7 @@ implementation
           orddef:
             begin
               case torddef(def).ordtype of
+                pasbool1,
                 pasbool8:
                   begin
                     objdef:=tobjectdef(search_system_type('JLBOOLEAN').typedef);
@@ -622,6 +623,7 @@ implementation
           orddef:
             begin
               case torddef(def).ordtype of
+                pasbool1,
                 pasbool8:
                   result:='BOOLEANVALUE';
                 s8bit,
@@ -784,6 +786,7 @@ implementation
           orddef:
             begin
               case torddef(def).ordtype of
+                pasbool1,
                 pasbool8:
                   begin
                     result:=tobjectdef(search_system_type('FPCBOOLEANTHREADVAR').typedef);

@@ -3629,7 +3629,7 @@ unit cgx86;
          if not ((def.typ=pointerdef) or
                 ((def.typ=orddef) and
                  (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                           pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                                           pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
            cond:=C_NO
          else
            cond:=C_NB;

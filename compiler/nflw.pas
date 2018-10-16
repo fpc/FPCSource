@@ -472,7 +472,7 @@ implementation
           one }
         hp:=cwhilerepeatnode.create(
           { repeat .. until false }
-          cordconstnode.create(0,pasbool8type,false),innerloop,false,true);
+          cordconstnode.create(0,pasbool1type,false),innerloop,false,true);
         addstatement(outerloopbodystatement,hp);
 
         { create the outer repeat/until and add it to the the main body }
@@ -1105,7 +1105,7 @@ implementation
 
          if not(is_boolean(left.resultdef)) and
            not(is_typeparam(left.resultdef)) then
-             inserttypeconv(left,pasbool8type);
+             inserttypeconv(left,pasbool1type);
 
          { Give warnings for code that will never be executed for
            while false do }
@@ -1339,7 +1339,7 @@ implementation
             end;
         if not is_constboolnode(condition) then
             aktstate.store_fact(condition,
-             cordconstnode.create(byte(checknegate),pasbool8type,true))
+             cordconstnode.create(byte(checknegate),pasbool1type,true))
         else
             condition.destroy;
     end;
@@ -1420,7 +1420,7 @@ implementation
 
          if not(is_boolean(left.resultdef)) and
            not(is_typeparam(left.resultdef)) then
-             inserttypeconv(left,pasbool8type);
+             inserttypeconv(left,pasbool1type);
 
          result:=internalsimplify(not(nf_internal in flags));
       end;

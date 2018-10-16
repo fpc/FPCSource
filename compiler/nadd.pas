@@ -619,17 +619,17 @@ implementation
                  else
                    t:=cordconstnode.create(lv and rv,resultdef,true);
                ltn :
-                 t:=cordconstnode.create(ord(lv<rv),pasbool8type,true);
+                 t:=cordconstnode.create(ord(lv<rv),pasbool1type,true);
                lten :
-                 t:=cordconstnode.create(ord(lv<=rv),pasbool8type,true);
+                 t:=cordconstnode.create(ord(lv<=rv),pasbool1type,true);
                gtn :
-                 t:=cordconstnode.create(ord(lv>rv),pasbool8type,true);
+                 t:=cordconstnode.create(ord(lv>rv),pasbool1type,true);
                gten :
-                 t:=cordconstnode.create(ord(lv>=rv),pasbool8type,true);
+                 t:=cordconstnode.create(ord(lv>=rv),pasbool1type,true);
                equaln :
-                 t:=cordconstnode.create(ord(lv=rv),pasbool8type,true);
+                 t:=cordconstnode.create(ord(lv=rv),pasbool1type,true);
                unequaln :
-                 t:=cordconstnode.create(ord(lv<>rv),pasbool8type,true);
+                 t:=cordconstnode.create(ord(lv<>rv),pasbool1type,true);
                slashn :
                  begin
                    { int/int becomes a real }
@@ -647,9 +647,9 @@ implementation
         else if cmp_of_disjunct_ranges(res) then
           begin
             if res then
-              t:=Cordconstnode.create(1,pasbool8type,true)
+              t:=Cordconstnode.create(1,pasbool1type,true)
             else
-              t:=Cordconstnode.create(0,pasbool8type,true);
+              t:=Cordconstnode.create(0,pasbool1type,true);
             { don't do this optimization, if the variable expression might
               have a side effect }
             if (is_constintnode(left) and might_have_sideeffects(right)) or
@@ -755,17 +755,17 @@ implementation
                 slashn :
                   t:=crealconstnode.create(lvd/rvd,resultrealdef);
                 ltn :
-                  t:=cordconstnode.create(ord(lvd<rvd),pasbool8type,true);
+                  t:=cordconstnode.create(ord(lvd<rvd),pasbool1type,true);
                 lten :
-                  t:=cordconstnode.create(ord(lvd<=rvd),pasbool8type,true);
+                  t:=cordconstnode.create(ord(lvd<=rvd),pasbool1type,true);
                 gtn :
-                  t:=cordconstnode.create(ord(lvd>rvd),pasbool8type,true);
+                  t:=cordconstnode.create(ord(lvd>rvd),pasbool1type,true);
                 gten :
-                  t:=cordconstnode.create(ord(lvd>=rvd),pasbool8type,true);
+                  t:=cordconstnode.create(ord(lvd>=rvd),pasbool1type,true);
                 equaln :
-                  t:=cordconstnode.create(ord(lvd=rvd),pasbool8type,true);
+                  t:=cordconstnode.create(ord(lvd=rvd),pasbool1type,true);
                 unequaln :
-                  t:=cordconstnode.create(ord(lvd<>rvd),pasbool8type,true);
+                  t:=cordconstnode.create(ord(lvd<>rvd),pasbool1type,true);
                 else
                   internalerror(2008022102);
              end;
@@ -842,17 +842,17 @@ implementation
                      t:=cstringconstnode.createunistr(ws1);
                   end;
                 ltn :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),pasbool1type,true);
                 lten :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),pasbool1type,true);
                 gtn :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),pasbool1type,true);
                 gten :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),pasbool1type,true);
                 equaln :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),pasbool1type,true);
                 unequaln :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),pasbool1type,true);
                 else
                   internalerror(2008022103);
              end;
@@ -920,17 +920,17 @@ implementation
                       tstringconstnode(t).changestringtype(getansistringdef)
                   end;
                 ltn :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool1type,true);
                 lten :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),pasbool1type,true);
                 gtn :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),pasbool1type,true);
                 gten :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),pasbool1type,true);
                 equaln :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),pasbool1type,true);
                 unequaln :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),pasbool8type,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),pasbool1type,true);
                 else
                   internalerror(2008022104);
              end;
@@ -968,22 +968,22 @@ implementation
                unequaln :
                   begin
                     b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),pasbool8type,true);
+                    t:=cordconstnode.create(byte(b),pasbool1type,true);
                   end;
                equaln :
                   begin
                     b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),pasbool8type,true);
+                    t:=cordconstnode.create(byte(b),pasbool1type,true);
                   end;
                lten :
                   begin
                     b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),pasbool8type,true);
+                    t:=cordconstnode.create(byte(b),pasbool1type,true);
                   end;
                gten :
                   begin
                     b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),pasbool8type,true);
+                    t:=cordconstnode.create(byte(b),pasbool1type,true);
                   end;
                 else
                   internalerror(2008022105);
@@ -1602,12 +1602,12 @@ implementation
                 begin
                   if not is_boolean(ld) then
                     begin
-                      inserttypeconv(left,pasbool8type);
+                      inserttypeconv(left,pasbool1type);
                       ld := left.resultdef;
                     end;
                   if not is_boolean(rd) then
                     begin
-                      inserttypeconv(right,pasbool8type);
+                      inserttypeconv(right,pasbool1type);
                       rd := right.resultdef;
                     end;
                 end;
@@ -1644,8 +1644,8 @@ implementation
                       { convert both to pasbool to perform the comparison (so
                         that longbool(4) = longbool(2), since both represent
                         "true" }
-                      inserttypeconv(left,pasbool8type);
-                      inserttypeconv(right,pasbool8type);
+                      inserttypeconv(left,pasbool1type);
+                      inserttypeconv(right,pasbool1type);
                     end;
                   unequaln,
                   equaln:
@@ -1689,8 +1689,8 @@ implementation
                        end;
                       { Delphi-compatibility: convert both to pasbool to
                         perform the equality comparison }
-                      inserttypeconv(left,pasbool8type);
-                      inserttypeconv(right,pasbool8type);
+                      inserttypeconv(left,pasbool1type);
+                      inserttypeconv(right,pasbool1type);
                     end;
                   else
                     begin
@@ -2500,7 +2500,7 @@ implementation
           begin
              case nodetype of
                 ltn,lten,gtn,gten,equaln,unequaln :
-                  resultdef:=pasbool8type;
+                  resultdef:=pasbool1type;
                 slashn :
                   resultdef:=resultrealdef;
                 addn:
@@ -3489,7 +3489,7 @@ implementation
         if not(target_info.system in systems_wince) then
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-              resultdef:=pasbool8type;
+              resultdef:=pasbool1type;
             result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
                 ctypeconvnode.create_internal(right,fdef),
                 ccallparanode.create(

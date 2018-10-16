@@ -487,7 +487,7 @@ implementation
         { prepend new }
         newparas:=ccallparanode.create(newnode,newparas);
         { prepend deepcopy }
-        newparas:=ccallparanode.create(cordconstnode.create(0,pasbool8type,false),newparas);
+        newparas:=ccallparanode.create(cordconstnode.create(0,pasbool1type,false),newparas);
         { call the right setlenght helper }
         if ndims>1 then
           begin

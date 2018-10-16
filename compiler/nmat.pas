@@ -1200,6 +1200,7 @@ implementation
              v:=tordconstnode(left).value;
              def:=left.resultdef;
              case torddef(left.resultdef).ordtype of
+               pasbool1,
                pasbool8,
                pasbool16,
                pasbool32,

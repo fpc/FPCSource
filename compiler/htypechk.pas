@@ -3122,7 +3122,7 @@ implementation
         variantorddef_cl: array[tordtype] of tvariantequaltype =
           (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,tve_incompatible,
            tve_shortint,tve_smallint,tve_longint,tve_chari64,tve_incompatible,
-           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
+           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_chari64,tve_chari64,tve_dblcurrency);
 { TODO: fixme for 128 bit floats }
