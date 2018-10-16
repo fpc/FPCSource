@@ -16208,7 +16208,7 @@ begin
         else
           begin
           {$IFDEF VerbosePasResEval}
-          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalFloat(RValue).FloatValue),' ',TResEvalFloat(RValue).FloatValue<MaxPrecFloat(low(MaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue>MaxPrecFloat(high(MaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue,' ',high(MaxPrecInt));
+          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalFloat(RValue).FloatValue),' ',TResEvalFloat(RValue).FloatValue<TMaxPrecFloat(low(TMaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue>TMaxPrecFloat(high(TMaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue,' ',high(TMaxPrecInt));
           {$ENDIF}
           RaiseRangeCheck(20170802133750,RHS);
           end;
@@ -16222,7 +16222,7 @@ begin
         else
           begin
           {$IFDEF VerbosePasResEval}
-          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalCurrency(RValue).Value),' ',TResEvalCurrency(RValue).Value,' ',high(MaxPrecInt));
+          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalCurrency(RValue).Value),' ',TResEvalCurrency(RValue).Value,' ',high(TMaxPrecInt));
           {$ENDIF}
           RaiseRangeCheck(20180421171438,RHS);
           end;
@@ -18628,7 +18628,7 @@ begin
           Result:=cExact
         else if ToTypeBaseType in btAllInteger then
           begin
-          if FromResolved.BaseType in (btArrayRangeTypes+[btRange]) then
+          if FromResolved.BaseType in (btArrayRangeTypes+[btRange,btCurrency]) then
             Result:=cCompatible
           else if FromResolved.BaseType=btContext then
             begin

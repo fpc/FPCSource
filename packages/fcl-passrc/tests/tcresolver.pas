@@ -2791,7 +2791,10 @@ begin
   '  c=double(currency(-123456890123456));',
   '  d=currency(-1);',
   '  e=currency(word(-1));',
+  'var',
   '  i: longint = 1;',
+  '  i64: int64;',
+  '  f: double;',
   'begin',
   '  a:=i;',
   '  a:=i+a;',
@@ -2807,6 +2810,14 @@ begin
   '  a:=i*a;',
   '  a:=a/i;',
   '  a:=i/a;',
+  '  a:=i64;',
+  '  a:=currency(i64);',
+  //'  i64:=a;', not allowed
+  '  i64:=int64(a);', // truncates a
+  '  a:=f;',
+  '  a:=currency(f);',
+  '  f:=a;',
+  '  f:=double(a);',
   '']);
   ParseProgram;
   CheckResolverUnexpectedHints;
