@@ -8588,7 +8588,13 @@ begin
       begin
       // integer to integer -> value
       Result:=ConvertElement(Param,AContext);
-      if to_bt=btCurrency then
+      if ParamResolved.BaseType=btCurrency then
+        begin
+        if to_bt<>btCurrency then
+          // currency to integer -> Math.floor(value/10000)
+          Result:=CreateMathFloor(Param,CreateDivideNumber(Param,Result,10000));
+        end
+      else if to_bt=btCurrency then
         // integer to currency -> value*10000
         Result:=CreateMulNumber(Param,Result,10000);
       if (to_bt<>btIntDouble) and not (Result is TJSLiteral) then
@@ -15240,12 +15246,21 @@ begin
       end
     else if AssignContext.LeftResolved.BaseType=btCurrency then
       begin
-      if AssignContext.RightResolved.BaseType<>btCurrency then
+      if AssignContext.RightResolved.BaseType=btCurrency then
+        // currency := currency
+      else if AssignContext.RightResolved.BaseType in btAllJSFloats then
         begin
         // currency := double  ->  currency := Math.floor(double*10000)
         AssignContext.RightSide:=CreateMulNumber(El,AssignContext.RightSide,10000);
         AssignContext.RightSide:=CreateMathFloor(El,AssignContext.RightSide);
-        end;
+        end
+      else if AssignContext.RightResolved.BaseType in btAllJSInteger then
+        begin
+        // currency := integer  ->  currency := double*10000
+        AssignContext.RightSide:=CreateMulNumber(El,AssignContext.RightSide,10000);
+        end
+      else
+        RaiseNotSupported(El,AContext,20181016094542,GetResolverResultDbg(AssignContext.RightResolved));
       end
     else if AssignContext.RightResolved.BaseType=btCurrency then
       begin
