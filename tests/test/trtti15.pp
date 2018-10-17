@@ -96,16 +96,19 @@ begin
   if aMethod^.ParamCount < 1 then
     ErrorHalt('Expected at least 1 parameter, but got 0', []);
 
-  { first parameter is always self }
+  { first parameter in aParams is always self }
   c := 1;
-  TestParam(aMethod^.Param[0], aParams[0].name, aParams[0].flags, aParams[0].paramtype);
 
-  for i := 1 to aMethod^.ParamCount - 1 do begin
+  for i := 0 to aMethod^.ParamCount - 1 do begin
     param := aMethod^.Param[i];
     if pfResult in param^.Flags then
       Continue;
-    TestParam(param, aParams[c].name, aParams[c].flags, aParams[c].paramtype);
-    Inc(c);
+    if pfSelf in param^.Flags then
+      TestParam(param, aParams[0].name, aParams[0].flags, aParams[0].paramtype)
+    else begin
+      TestParam(param, aParams[c].name, aParams[c].flags, aParams[c].paramtype);
+      Inc(c);
+    end;
   end;
 
   if c <> Length(aParams) then
