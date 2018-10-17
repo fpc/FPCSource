@@ -253,13 +253,21 @@ asm
 end;
 {$endif cpusparc or cpusparc64}
 
-{$ifndef android}
+{$if defined(android)}
+
+{$if defined(cpux86_64)}
+  {$define NEED_USER_TRAMPOLINE}
+{$endif}
+
+{$else not android}
+
 {$if defined(cpui386) or defined(cpuarm) or defined(cpux86_64)}
   {$define NEED_USER_TRAMPOLINE}
 {$endif}
 {$if defined(cpui386) or defined(cpuarm)}
   {$define NEED_USER_TRAMPOLINE_RT_DIFFERENT}
 {$endif}
+
 {$endif android}
 
 {$ifdef NEED_USER_TRAMPOLINE}
