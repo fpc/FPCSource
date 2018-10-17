@@ -4296,7 +4296,7 @@ begin
 {$ifdef x86_64}
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
       { normally, win64 doesn't support the legacy fpu }
-      if target_info.system=system_x86_64_win64 then
+      if target_info.system in [system_x86_64_win64,system_x86_64_android] then
         undef_system_macro('FPC_HAS_TYPE_EXTENDED')
       else
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
