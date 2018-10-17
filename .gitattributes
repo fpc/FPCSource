@@ -8807,6 +8807,7 @@ rtl/android/prt0.as svneol=native#text/plain
 rtl/android/sysandroid.inc svneol=native#text/plain
 rtl/android/sysandroidh.inc svneol=native#text/plain
 rtl/android/unixandroid.inc svneol=native#text/plain
+rtl/android/x86_64/sysnr.inc svneol=native#text/plain
 rtl/arm/arm.inc svneol=native#text/plain
 rtl/arm/armdefines.inc svneol=native#text/plain
 rtl/arm/cpu.pp svneol=native#text/pascal

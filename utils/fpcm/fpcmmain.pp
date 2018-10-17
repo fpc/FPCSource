@@ -143,7 +143,7 @@ interface
         { wii }     ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false),
         { aix }     ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false,   false, false, false, false, false, false,  false),
         { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   true,  false, false, false, false, false,  false),
-        { android } ( true,  false, false, false, false, true,  false, false, false, false, false, true,  false, false,   true,  false, true,  false, false, false,  false),
+        { android } ( true,  false, false, false, true,  true,  false, false, false, false, false, true,  false, false,   true,  false, true,  false, false, false,  false),
         { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false, false, false, false,  false),
         { aros }    ( true,  false, false, false, true,  true,  false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false),
         {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false),

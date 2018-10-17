@@ -175,11 +175,11 @@ begin
      ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';
      ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
      ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
      DynamicLinker:='/system/bin/linker64';
 {$else}
      DynamicLinker:='/system/bin/linker';
-{$endif cpu64bit}
+{$endif cpu64bitalu}
    end;
 end;
 
@@ -500,6 +500,11 @@ initialization
   RegisterExport(system_i386_android,texportlibandroid);
   RegisterTarget(system_i386_android_info);
 {$endif I386}
+{$ifdef X86_64}
+  RegisterImport(system_x86_64_android,timportlibandroid);
+  RegisterExport(system_x86_64_android,texportlibandroid);
+  RegisterTarget(system_x86_64_android_info);
+{$endif X86_64}
 {$ifdef MIPSEL}
   RegisterImport(system_mipsel_android,timportlibandroid);
   RegisterExport(system_mipsel_android,texportlibandroid);
