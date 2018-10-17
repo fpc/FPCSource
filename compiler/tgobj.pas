@@ -425,7 +425,7 @@ implementation
             { Extend the temp }
             if direction=-1 then
               begin
-                if qword(align(-lasttemp-alignmismatch,alignment))+size+alignmismatch>MaxLocalsSize then
+                if Int64(align(-lasttemp-alignmismatch,alignment))+size+alignmismatch>MaxLocalsSize then
                   begin
                     CGMessage(cg_e_localsize_too_big);
                     size:=0;  // Prevent further range check errors
@@ -436,7 +436,7 @@ implementation
             else
               begin
                 tl^.pos:=align(lasttemp+alignmismatch,alignment)-alignmismatch;
-                if qword(tl^.pos)+size>MaxLocalsSize then
+                if Int64(tl^.pos)+size>MaxLocalsSize then
                   begin
                     CGMessage(cg_e_localsize_too_big);
                     size:=0;  // Prevent further range check errors
