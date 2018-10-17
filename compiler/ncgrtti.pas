@@ -176,26 +176,6 @@ implementation
 ***************************************************************************}
 
     procedure TRTTIWriter.write_methods(tcb:ttai_typedconstbuilder;st:tsymtable;visibilities:tvisibilities);
-
-      procedure _write_para(para : tparavarsym);
-        begin
-          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
-            targetinfos[target_info.system]^.alignment.recordalignmin,
-            targetinfos[target_info.system]^.alignment.maxCrecordalign);
-
-          if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
-            write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
-          else
-            write_rtti_reference(tcb,para.vardef,fullrtti);
-          write_param_flag(tcb,para);
-
-          tcb.emit_pooled_shortstring_const_ref(para.realname);
-
-          write_paralocs(tcb,@para.paraloc[callerside]);
-
-          tcb.end_anonymous_record;
-        end;
-
       var
         rtticount,
         totalcount,
@@ -251,24 +231,25 @@ implementation
                       tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
                       tcb.emit_pooled_shortstring_const_ref(sym.realname);
 
-                      { Always write $self first. It is needed to find it, since at least for aarch64
-                        $self is placed after $result in the list. }
                       for k:=0 to def.paras.count-1 do
                         begin
                           para:=tparavarsym(def.paras[k]);
-                          if vo_is_self in para.varoptions then
-                            begin
-                              _write_para(para);
-                              break;
-                            end;
-                        end;
 
-                      { Write all other parameters }
-                      for k:=0 to def.paras.count-1 do
-                        begin
-                          para:=tparavarsym(def.paras[k]);
-                          if not (vo_is_self in para.varoptions) then
-                            _write_para(para);
+                          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+                            targetinfos[target_info.system]^.alignment.recordalignmin,
+                            targetinfos[target_info.system]^.alignment.maxCrecordalign);
+
+                          if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
+                            write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
+                          else
+                            write_rtti_reference(tcb,para.vardef,fullrtti);
+                          write_param_flag(tcb,para);
+
+                          tcb.emit_pooled_shortstring_const_ref(para.realname);
+
+                          write_paralocs(tcb,@para.paraloc[callerside]);
+
+                          tcb.end_anonymous_record;
                         end;
 
                       if not is_void(def.returndef) then
