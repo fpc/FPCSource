@@ -377,7 +377,7 @@ implementation
     }
       begin
         { for 0 and 1 no aligning is needed }
-        if a<=1 then
+        if (a<=1) or (i=0) then
           result:=i
         else
           result:=((i-1+a) div a) * a;
