@@ -343,8 +343,11 @@ UNITPREFIX=rtl
 CPU_UNITS=
 SYSINIT_UNITS=
 LOADERS=prt0 dllprt0
+ifeq ($(findstring $(ARCH),i386 x86_64 arm),$(ARCH))
+CPU_UNITS=cpu
+endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx
+CPU_UNITS+=mmx
 endif
 SYSTEMUNIT=system
 ifdef RELEASE
