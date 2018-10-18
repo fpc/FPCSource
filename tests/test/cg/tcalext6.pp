@@ -10,6 +10,17 @@
 program calext6;
 {$MODE DELPHI}
 
+uses ctypes;
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$define test_longdouble}
+{$endif}
+
+{$if defined(cpux86_64) and defined(android) and (sizeof(clongdouble)<>16)}
+  // On x86_64-android long double is 128-bit. There is no support for 128-bit floats in FPC yet.
+  {$undef test_longdouble}
+{$endif}
+
 { requires libgcc for the C functions }
 {$ifdef FPUSOFT}
   {$define NO_FLOAT}
@@ -19,14 +30,6 @@ program calext6;
 { for softfloat calls in the C code }
 {$linklib gcc}
 {$endif}
-
-{$ifdef VER2_4}
-uses
-  ctypes;
-
-type
-  cextended = clongdouble;
-{$endif VER2_4}
 
 type
   int8_t = shortint;
@@ -227,7 +230,7 @@ begin
     WriteLn('Failed');
 end;
 
-{$if defined(FPC_HAS_TYPE_EXTENDED) and (sizeof(double)<>sizeof(cextended))}
+{$if defined(test_longdouble) and (sizeof(double)<>sizeof(cextended))}
 procedure verify(val1, val2 : cextended; nr : Integer); overload;
 begin
   success := success and (val1 = val2);
@@ -237,7 +240,7 @@ begin
   else
     WriteLn('Failed');
 end;
-{$endif FPC_HAS_TYPE_EXTENDED}
+{$endif test_longdouble}
 
 function check1(s : struct1) : single;
 begin
@@ -351,7 +354,7 @@ function pass14(s : struct14; b: byte) : int64_t; cdecl; external;
 function pass15(s : struct15; b: byte) : int64_t; cdecl; external;
 function pass16(s : struct16; b: byte) : single; cdecl; external;
 function pass17(s : struct17; b: byte) : single; cdecl; external;
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef test_longdouble}
 function pass31(s : struct31; b: byte; var ss: single) : cextended; cdecl; external;
 {$endif}
 
@@ -372,7 +375,7 @@ function pass14a(b: byte; s : struct14) : struct14; cdecl; external;
 function pass15a(b: byte; s : struct15) : struct15; cdecl; external;
 function pass16a(b: byte; s : struct16) : struct16; cdecl; external;
 function pass17a(b: byte; s : struct17) : struct17; cdecl; external;
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef test_longdouble}
 function pass31a(b: byte; s : struct31) : struct31; cdecl; external;
 {$endif}
 
@@ -536,7 +539,7 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef test_longdouble}
   verify(pass31(s31,31,ss), check31(s31), 31);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -615,7 +618,7 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef test_longdouble}
   verify(check31(pass31a(31,s31)), check31(s31), 71);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -702,7 +705,7 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef test_longdouble}
   verify(pass31a(31,s31).v1, s31.v1, 101);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -932,7 +935,7 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef test_longdouble}
   {$ifdef TestFPUStack }
   for i:=1 to 12 do
   {$endif TestFPUStack }

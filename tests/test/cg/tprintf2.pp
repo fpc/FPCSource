@@ -15,6 +15,11 @@ uses
   {$undef TEST_EXTENDED}
 {$endif beos}
 
+{$if defined(cpux86_64) and defined(android) and (sizeof(clongdouble)<>16)}
+  // On x86_64-android long double is 128-bit. There is no support for 128-bit floats in FPC yet.
+  {$undef TEST_EXTENDED}
+{$endif}
+
 {$ifdef WINDOWS}
 const
 {$ifdef wince}
