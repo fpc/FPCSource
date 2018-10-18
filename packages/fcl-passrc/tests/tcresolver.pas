@@ -13959,34 +13959,41 @@ end;
 procedure TTestResolver.TestPointer;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class end;');
-  Add('  TClass = class of TObject;');
-  Add('  TMyPtr = pointer;');
-  Add('  TArrInt = array of longint;');
-  Add('  TFunc = function: longint;');
-  Add('procedure DoIt; begin end;');
-  Add('var');
-  Add('  p: TMyPtr;');
-  Add('  Obj: TObject;');
-  Add('  Cl: TClass;');
-  Add('  a: tarrint;');
-  Add('  f: TFunc;');
-  Add('begin');
-  Add('  p:=nil;');
-  Add('  if p=nil then;');
-  Add('  if nil=p then;');
-  Add('  if Assigned(p) then;');
-  Add('  p:=obj;');
-  Add('  p:=cl;');
-  Add('  p:=a;');
-  Add('  p:=Pointer(f);');
-  Add('  p:=@DoIt;');
-  Add('  p:=Pointer(@DoIt);');
-  Add('  obj:=TObject(p);');
-  Add('  cl:=TClass(p);');
-  Add('  a:=TArrInt(p);');
-  Add('  p:=Pointer(a);');
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TClass = class of TObject;',
+  '  TMyPtr = pointer;',
+  '  TArrInt = array of longint;',
+  '  TFunc = function: longint;',
+  'procedure DoIt; begin end;',
+  'var',
+  '  p: TMyPtr;',
+  '  Obj: TObject;',
+  '  Cl: TClass;',
+  '  a: tarrint;',
+  '  f: TFunc;',
+  '  s: string;',
+  '  u: unicodestring;',
+  'begin',
+  '  p:=nil;',
+  '  if p=nil then;',
+  '  if nil=p then;',
+  '  if Assigned(p) then;',
+  '  p:=obj;',
+  '  p:=cl;',
+  '  p:=a;',
+  '  p:=Pointer(f);',
+  '  p:=@DoIt;',
+  '  p:=Pointer(@DoIt);',
+  '  obj:=TObject(p);',
+  '  cl:=TClass(p);',
+  '  a:=TArrInt(p);',
+  '  p:=Pointer(a);',
+  '  p:=Pointer(s);',
+  '  s:=String(p);',
+  '  p:=pointer(u);',
+  '  u:=UnicodeString(p);']);
   ParseProgram;
 end;
 

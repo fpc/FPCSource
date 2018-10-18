@@ -275,12 +275,19 @@ unit PasResolver;
 {$mode objfpc}{$H+}
 {$inline on}
 
+{$ifdef fpc}
+  {$define UsePChar}
+{$endif}
+
 {$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
 {$IFOPT R+}{$DEFINE RangeCheckOn}{$ENDIF}
 
 interface
 
 uses
+  {$ifdef pas2js}
+  js,
+  {$endif}
   Classes, SysUtils, Math, Types, contnrs,
   PasTree, PScanner, PParser, PasResolveEval;
 
@@ -355,6 +362,8 @@ const
   btAllStrings = [btString,btAnsiString,btShortString,
     btWideString,btUnicodeString,btRawByteString];
   btAllStringAndChars = btAllStrings+btAllChars;
+  btAllStringPointer = [btString,btAnsiString,btWideString,btUnicodeString,
+    btRawByteString];
   btAllFloats = [btSingle,btDouble,btExtended,btCExtended,btCurrency];
   btAllBooleans = [btBoolean,btByteBool,btWordBool,btLongBool,btQWordBool];
   btArrayRangeTypes = btAllChars+btAllBooleans+btAllInteger;
@@ -517,6 +526,25 @@ const
   ResolverResultVar = 'Result';
 
 type
+  {$ifdef pas2js}
+  TPasResIterate = procedure(Item, Arg: pointer) of object;
+
+  { TPasResHashList }
+
+  TPasResHashList = class(TJSObject)
+  public
+    constructor Create; reintroduce;
+    destructor Destroy;
+    procedure Add(const aName: string; Item: Pointer);
+    function Find(const aName: string): Pointer;
+    procedure ForEachCall(Proc: TPasResIterate; Arg: Pointer);
+    procedure Clear;
+  end;
+  {$else}
+  TPasResHashList = TFPHashList;
+  {$endif}
+
+type
 
   { EPasResolve }
 
@@ -525,7 +553,7 @@ type
     FPasElement: TPasElement;
     procedure SetPasElement(AValue: TPasElement);
   public
-    Id: int64;
+    Id: TMaxPrecInt;
     MsgType: TMessageType;
     MsgNumber: integer;
     MsgPattern: String;
@@ -579,7 +607,7 @@ type
     procedure OnClearItem(Item, Dummy: pointer);
     procedure OnCollectItem(Item, aList: pointer);
   public
-    References: TFPHashList; // hash list of TPasScopeReference
+    References: TPasResHashList; // hash list of TPasScopeReference
     constructor Create(aScope: TPasScope);
     destructor Destroy; override;
     procedure Clear;
@@ -683,7 +711,7 @@ type
 
   TPasIdentifierScope = Class(TPasScope)
   private
-    FItems: TFPHashList;
+    FItems: TPasResHashList;
     procedure InternalAdd(Item: TPasIdentifier);
     procedure OnClearItem(Item, Dummy: pointer);
     procedure OnCollectItem(Item, List: pointer);
@@ -1167,14 +1195,14 @@ type
     FBuiltInProcs: array[TResolverBuiltInProc] of TResElDataBuiltInProc;
     FDefaultNameSpace: String;
     FDefaultScope: TPasDefaultScope;
-    FDynArrayMaxIndex: int64;
-    FDynArrayMinIndex: int64;
+    FDynArrayMaxIndex: TMaxPrecInt;
+    FDynArrayMinIndex: TMaxPrecInt;
     FLastCreatedData: array[TResolveDataListKind] of TResolveData;
     FLastElement: TPasElement;
     FLastMsg: string;
     FLastMsgArgs: TMessageArgs;
     FLastMsgElement: TPasElement;
-    FLastMsgId: int64;
+    FLastMsgId: TMaxPrecInt;
     FLastMsgNumber: integer;
     FLastMsgPattern: string;
     FLastMsgType: TMessageType;
@@ -1403,7 +1431,7 @@ type
       MinCount: integer; RaiseOnError: boolean): boolean;
     function CheckBuiltInMaxParamCount(Proc: TResElDataBuiltInProc; Params: TParamsExpr;
       MaxCount: integer; RaiseOnError: boolean): integer;
-    function CheckRaiseTypeArgNo(id: int64; ArgNo: integer; Param: TPasExpr;
+    function CheckRaiseTypeArgNo(id: TMaxPrecInt; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
     function FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
     function FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
@@ -1416,7 +1444,7 @@ type
     procedure FindRangeErrorConstructors(ErrorEl: TPasElement); virtual;
   protected
     fExprEvaluator: TResExprEvaluator;
-    procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: int64;
+    procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: TMaxPrecInt;
       MsgType: TMessageType; MsgNumber: integer; const Fmt: String;
       Args: array of const; PosEl: TPasElement); virtual;
     function OnExprEvalIdentifier(Sender: TResExprEvaluator;
@@ -1624,9 +1652,9 @@ type
       out Line, Column: integer);
     class function GetDbgSourcePosStr(El: TPasElement): string;
     function GetElementSourcePosStr(El: TPasElement): string;
-    procedure SetLastMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
+    procedure SetLastMsg(const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
       Const Fmt : String; Args : Array of const; PosEl: TPasElement);
-    procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
+    procedure LogMsg(const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
       const Fmt: String; Args: Array of const; PosEl: TPasElement); overload;
     class function GetWarnIdentifierNumbers(Identifier: string;
       out MsgNumbers: TIntegerDynArray): boolean; virtual;
@@ -1634,28 +1662,28 @@ type
       out GotDesc, ExpDesc: String); overload;
     procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasType;
       out GotDesc, ExpDesc: String); overload;
-    procedure RaiseMsg(const Id: int64; MsgNumber: integer; const Fmt: String;
+    procedure RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer; const Fmt: String;
       Args: Array of const; ErrorPosEl: TPasElement); virtual;
-    procedure RaiseNotYetImplemented(id: int64; El: TPasElement; Msg: string = ''); virtual;
-    procedure RaiseInternalError(id: int64; const Msg: string = '');
-    procedure RaiseInvalidScopeForElement(id: int64; El: TPasElement; const Msg: string = '');
-    procedure RaiseIdentifierNotFound(id: int64; Identifier: string; El: TPasElement);
-    procedure RaiseXExpectedButYFound(id: int64; const X,Y: string; El: TPasElement);
-    procedure RaiseContextXExpectedButYFound(id: int64; const C,X,Y: string; El: TPasElement);
-    procedure RaiseContextXInvalidY(id: int64; const X,Y: string; El: TPasElement);
-    procedure RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
-    procedure RaiseVarExpected(id: int64; ErrorEl: TPasElement; IdentEl: TPasElement);
-    procedure RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
-    procedure RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
+    procedure RaiseNotYetImplemented(id: TMaxPrecInt; El: TPasElement; Msg: string = ''); virtual;
+    procedure RaiseInternalError(id: TMaxPrecInt; const Msg: string = '');
+    procedure RaiseInvalidScopeForElement(id: TMaxPrecInt; El: TPasElement; const Msg: string = '');
+    procedure RaiseIdentifierNotFound(id: TMaxPrecInt; Identifier: string; El: TPasElement);
+    procedure RaiseXExpectedButYFound(id: TMaxPrecInt; const X,Y: string; El: TPasElement);
+    procedure RaiseContextXExpectedButYFound(id: TMaxPrecInt; const C,X,Y: string; El: TPasElement);
+    procedure RaiseContextXInvalidY(id: TMaxPrecInt; const X,Y: string; El: TPasElement);
+    procedure RaiseConstantExprExp(id: TMaxPrecInt; ErrorEl: TPasElement);
+    procedure RaiseVarExpected(id: TMaxPrecInt; ErrorEl: TPasElement; IdentEl: TPasElement);
+    procedure RaiseRangeCheck(id: TMaxPrecInt; ErrorEl: TPasElement);
+    procedure RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: integer;
       const Args: array of const; const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
-    procedure RaiseIncompatibleType(id: int64; MsgNumber: integer;
+    procedure RaiseIncompatibleType(id: TMaxPrecInt; MsgNumber: integer;
       const Args: array of const; GotType, ExpType: TPasType; ErrorEl: TPasElement);
-    procedure RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
+    procedure RaiseIncompatibleTypeRes(id: TMaxPrecInt; MsgNumber: integer;
       const Args: array of const; const GotType, ExpType: TPasResolverResult;
       ErrorEl: TPasElement);
-    procedure RaiseInvalidProcTypeModifier(id: int64; ProcType: TPasProcedureType;
+    procedure RaiseInvalidProcTypeModifier(id: TMaxPrecInt; ProcType: TPasProcedureType;
       ptm: TProcTypeModifier; ErrorEl: TPasElement);
-    procedure RaiseInvalidProcModifier(id: int64; Proc: TPasProcedure;
+    procedure RaiseInvalidProcModifier(id: TMaxPrecInt; Proc: TPasProcedure;
       pm: TProcedureModifier; ErrorEl: TPasElement);
     procedure WriteScopes;
     // find value and type of an element
@@ -1806,8 +1834,8 @@ type
     property BaseTypeLength: TResolverBaseType read FBaseTypeLength write FBaseTypeLength;
     property BuiltInProcs[bp: TResolverBuiltInProc]: TResElDataBuiltInProc read GetBuiltInProcs;
     property ExprEvaluator: TResExprEvaluator read fExprEvaluator;
-    property DynArrayMinIndex: int64 read FDynArrayMinIndex write FDynArrayMinIndex;
-    property DynArrayMaxIndex: int64 read FDynArrayMaxIndex write FDynArrayMaxIndex;
+    property DynArrayMinIndex: TMaxPrecInt read FDynArrayMinIndex write FDynArrayMinIndex;
+    property DynArrayMaxIndex: TMaxPrecInt read FDynArrayMaxIndex write FDynArrayMaxIndex;
     // parsed values
     property DefaultNameSpace: String read FDefaultNameSpace;
     property RootElement: TPasModule read FRootElement write SetRootElement;
@@ -1831,7 +1859,7 @@ type
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
     property LastMsgElement: TPasElement read FLastMsgElement write FLastMsgElement;
-    property LastMsgId: int64 read FLastMsgId write FLastMsgId;
+    property LastMsgId: TMaxPrecInt read FLastMsgId write FLastMsgId;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
@@ -2471,6 +2499,53 @@ begin
   str(a,Result);
 end;
 
+{$ifdef pas2js}
+{ TPasResHashList }
+
+constructor TPasResHashList.Create;
+begin
+
+end;
+
+destructor TPasResHashList.Destroy;
+begin
+
+end;
+
+procedure TPasResHashList.Add(const aName: string; Item: Pointer);
+begin
+  Properties[aName]:=Item;
+end;
+
+function TPasResHashList.Find(const aName: string): Pointer;
+begin
+  if hasOwnProperty(aName) then
+    Result:=Pointer(Properties[aName])
+  else
+    Result:=nil;
+end;
+
+procedure TPasResHashList.ForEachCall(Proc: TPasResIterate; Arg: Pointer);
+var
+  key: string;
+begin
+  for key in TJSObject(Self) do
+    if hasOwnProperty(key) then
+      Proc(Pointer(Properties[key]),Arg);
+end;
+
+procedure TPasResHashList.Clear;
+var
+  Arr: TStringDynArray;
+  i: Integer;
+begin
+  Arr:=getOwnPropertyNames(Self);
+  for i:=0 to length(Arr)-1 do
+    JSDelete(Self,Arr[i]);
+end;
+
+{$endif}
+
 { TResElDataBuiltInProc }
 
 destructor TResElDataBuiltInProc.Destroy;
@@ -2561,14 +2636,18 @@ end;
 
 constructor TPasScopeReferences.Create(aScope: TPasScope);
 begin
-  References:=TFPHashList.Create;
+  References:=TPasResHashList.Create;
   FScope:=aScope;
 end;
 
 destructor TPasScopeReferences.Destroy;
 begin
   Clear;
+  {$ifdef pas2js}
+  References.Free;
+  {$else}
   FreeAndNil(References);
+  {$endif}
   inherited Destroy;
 end;
 
@@ -11288,7 +11367,7 @@ begin
   Result:=cExact;
 end;
 
-function TPasResolver.CheckRaiseTypeArgNo(id: int64; ArgNo: integer;
+function TPasResolver.CheckRaiseTypeArgNo(id: TMaxPrecInt; ArgNo: integer;
   Param: TPasExpr; const ParamResolved: TPasResolverResult; Expected: string;
   RaiseOnError: boolean): integer;
 begin
@@ -11474,7 +11553,7 @@ begin
 end;
 
 procedure TPasResolver.OnExprEvalLog(Sender: TResExprEvaluator;
-  const id: int64; MsgType: TMessageType; MsgNumber: integer;
+  const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
   const Fmt: String; Args: array of const; PosEl: TPasElement);
 begin
   if MsgType<=mtError then
@@ -11747,8 +11826,7 @@ function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
 
 var
   Value: TResEvalValue;
-  Int: TMaxPrecInt;
-  MinIntVal, MaxIntVal: int64;
+  Int, MinIntVal, MaxIntVal: TMaxPrecInt;
   Flo: TMaxPrecFloat;
   c: Char;
   w: WideChar;
@@ -12655,9 +12733,8 @@ var
   Value: TResEvalValue;
   EnumType: TPasEnumType;
   aSet: TResEvalSet;
-  Int: TMaxPrecInt;
   bt: TResolverBaseType;
-  MinInt, MaxInt: int64;
+  Int, MinInt, MaxInt: TMaxPrecInt;
   i: Integer;
   Expr: TPasExpr;
 begin
@@ -13722,7 +13799,7 @@ begin
   FBaseTypeExtended:=btDouble;
   FBaseTypeLength:=btInt64;
   FDynArrayMinIndex:=0;
-  FDynArrayMaxIndex:=High(int64);
+  FDynArrayMaxIndex:=High(TMaxPrecInt);
 
   cTGUIDToString:=cTypeConversion+1;
   cStringToTGUID:=cTypeConversion+1;
@@ -15216,7 +15293,7 @@ begin
     Result:=Line;
 end;
 
-procedure TPasResolver.SetLastMsg(const id: int64; MsgType: TMessageType;
+procedure TPasResolver.SetLastMsg(const id: TMaxPrecInt; MsgType: TMessageType;
   MsgNumber: integer; const Fmt: String; Args: array of const;
   PosEl: TPasElement);
 var
@@ -15258,7 +15335,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TPasResolver.RaiseMsg(const Id: int64; MsgNumber: integer;
+procedure TPasResolver.RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer;
   const Fmt: String; Args: array of const; ErrorPosEl: TPasElement);
 var
   E: EPasResolve;
@@ -15275,7 +15352,7 @@ begin
   raise E;
 end;
 
-procedure TPasResolver.RaiseNotYetImplemented(id: int64; El: TPasElement;
+procedure TPasResolver.RaiseNotYetImplemented(id: TMaxPrecInt; El: TPasElement;
   Msg: string);
 var
   s: String;
@@ -15289,12 +15366,12 @@ begin
   RaiseMsg(id,nNotYetImplemented,s,[GetObjName(El)],El);
 end;
 
-procedure TPasResolver.RaiseInternalError(id: int64; const Msg: string);
+procedure TPasResolver.RaiseInternalError(id: TMaxPrecInt; const Msg: string);
 begin
   raise Exception.Create('Internal error: ['+IntToStr(id)+'] '+Msg);
 end;
 
-procedure TPasResolver.RaiseInvalidScopeForElement(id: int64; El: TPasElement;
+procedure TPasResolver.RaiseInvalidScopeForElement(id: TMaxPrecInt; El: TPasElement;
   const Msg: string);
 var
   i: Integer;
@@ -15311,7 +15388,7 @@ begin
   RaiseInternalError(id,s);
 end;
 
-procedure TPasResolver.RaiseIdentifierNotFound(id: int64; Identifier: string;
+procedure TPasResolver.RaiseIdentifierNotFound(id: TMaxPrecInt; Identifier: string;
   El: TPasElement);
 begin
   {$IFDEF VerbosePasResolver}
@@ -15321,30 +15398,30 @@ begin
   RaiseMsg(id,nIdentifierNotFound,sIdentifierNotFound,[Identifier],El);
 end;
 
-procedure TPasResolver.RaiseXExpectedButYFound(id: int64; const X, Y: string;
+procedure TPasResolver.RaiseXExpectedButYFound(id: TMaxPrecInt; const X, Y: string;
   El: TPasElement);
 begin
   RaiseMsg(id,nXExpectedButYFound,sXExpectedButYFound,[X,Y],El);
 end;
 
-procedure TPasResolver.RaiseContextXExpectedButYFound(id: int64; const C, X,
+procedure TPasResolver.RaiseContextXExpectedButYFound(id: TMaxPrecInt; const C, X,
   Y: string; El: TPasElement);
 begin
   RaiseMsg(id,nContextExpectedXButFoundY,sContextExpectedXButFoundY,[C,X,Y],El);
 end;
 
-procedure TPasResolver.RaiseContextXInvalidY(id: int64; const X, Y: string;
+procedure TPasResolver.RaiseContextXInvalidY(id: TMaxPrecInt; const X, Y: string;
   El: TPasElement);
 begin
   RaiseMsg(id,nContextXInvalidY,sContextXInvalidY,[X,Y],El);
 end;
 
-procedure TPasResolver.RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
+procedure TPasResolver.RaiseConstantExprExp(id: TMaxPrecInt; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nConstantExpressionExpected,sConstantExpressionExpected,[],ErrorEl);
 end;
 
-procedure TPasResolver.RaiseVarExpected(id: int64; ErrorEl: TPasElement;
+procedure TPasResolver.RaiseVarExpected(id: TMaxPrecInt; ErrorEl: TPasElement;
   IdentEl: TPasElement);
 begin
   if IdentEl is TPasProperty then
@@ -15354,12 +15431,12 @@ begin
     RaiseMsg(id,nVariableIdentifierExpected,sVariableIdentifierExpected,[],ErrorEl);
 end;
 
-procedure TPasResolver.RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
+procedure TPasResolver.RaiseRangeCheck(id: TMaxPrecInt; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nRangeCheckError,sRangeCheckError,[],ErrorEl);
 end;
 
-procedure TPasResolver.RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
+procedure TPasResolver.RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: integer;
   const Args: array of const; const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
 
   function GetString(ArgNo: integer): string;
@@ -15397,7 +15474,7 @@ begin
   end;
 end;
 
-procedure TPasResolver.RaiseIncompatibleType(id: int64; MsgNumber: integer;
+procedure TPasResolver.RaiseIncompatibleType(id: TMaxPrecInt; MsgNumber: integer;
   const Args: array of const; GotType, ExpType: TPasType; ErrorEl: TPasElement);
 var
   DescA, DescB: String;
@@ -15412,7 +15489,7 @@ begin
   RaiseIncompatibleTypeDesc(id,MsgNumber,Args,DescA,DescB,ErrorEl);
 end;
 
-procedure TPasResolver.RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
+procedure TPasResolver.RaiseIncompatibleTypeRes(id: TMaxPrecInt; MsgNumber: integer;
   const Args: array of const; const GotType, ExpType: TPasResolverResult;
   ErrorEl: TPasElement);
 var
@@ -15425,21 +15502,21 @@ begin
   RaiseIncompatibleTypeDesc(id,MsgNumber,Args,GotDesc,ExpDesc,ErrorEl);
 end;
 
-procedure TPasResolver.RaiseInvalidProcTypeModifier(id: int64;
+procedure TPasResolver.RaiseInvalidProcTypeModifier(id: TMaxPrecInt;
   ProcType: TPasProcedureType; ptm: TProcTypeModifier; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(ProcType),
     ProcTypeModifiers[ptm]],ErrorEl);
 end;
 
-procedure TPasResolver.RaiseInvalidProcModifier(id: int64; Proc: TPasProcedure;
+procedure TPasResolver.RaiseInvalidProcModifier(id: TMaxPrecInt; Proc: TPasProcedure;
   pm: TProcedureModifier; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(Proc),
     ModifierNames[pm]],ErrorEl);
 end;
 
-procedure TPasResolver.LogMsg(const id: int64; MsgType: TMessageType;
+procedure TPasResolver.LogMsg(const id: TMaxPrecInt; MsgType: TMessageType;
   MsgNumber: integer; const Fmt: String; Args: array of const;
   PosEl: TPasElement);
 var
@@ -16109,9 +16186,8 @@ procedure TPasResolver.CheckAssignExprRange(
 // if RHS is a constant check if it fits into range LeftResolved
 var
   LRangeValue, RValue: TResEvalValue;
-  MinVal, MaxVal: int64;
+  Int, MinVal, MaxVal: TMaxPrecInt;
   RangeExpr: TBinaryExpr;
-  Int: TMaxPrecInt;
   C: TClass;
   EnumType: TPasEnumType;
   bt: TResolverBaseType;
@@ -18667,11 +18743,14 @@ begin
         else if ToTypeBaseType in btAllStrings then
           begin
           if FromResolved.BaseType in btAllStringAndChars then
-            Result:=cCompatible;
+            Result:=cCompatible
+          else if (FromResolved.BaseType=btPointer)
+              and (ToTypeBaseType in btAllStringPointer) then
+            Result:=cExact;
           end
         else if ToTypeBaseType=btPointer then
           begin
-          if FromResolved.BaseType=btPointer then
+          if FromResolved.BaseType in ([btPointer]+btAllStringPointer) then
             Result:=cExact
           else if FromResolved.BaseType=btContext then
             begin
