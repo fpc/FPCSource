@@ -325,6 +325,7 @@ unit cpubase;
     procedure shifterop_reset(var so : tshifterop); {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
 
     function is_shifter_const(d: aint; size: tcgsize): boolean;
 
@@ -490,6 +491,10 @@ unit cpubase;
           internalerror(200603251);
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
 
     function is_shifter_const(d: aint; size: tcgsize): boolean;
       var

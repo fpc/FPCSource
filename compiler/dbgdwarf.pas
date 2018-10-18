@@ -2543,7 +2543,7 @@ implementation
         blocksize,size_of_int : longint;
         tag : tdwarf_tag;
         has_high_reg : boolean;
-        dreg,dreghigh : byte;
+        dreg,dreghigh : shortint;
 {$ifdef i8086}
         has_segment_sym_name : boolean=false;
         segment_sym_name : TSymStr='';
@@ -2574,15 +2574,19 @@ implementation
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER :
             begin
-              dreg:=dwarf_reg(sym.localloc.register);
+              { dwarf_reg_no_error might return -1
+                in case the register variable has been optimized out }
+              dreg:=dwarf_reg_no_error(sym.localloc.register);
               has_high_reg:=(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) and (sym.localloc.registerhi<>NR_NO);
               if has_high_reg then
-                dreghigh:=dwarf_reg(sym.localloc.registerhi);
+                dreghigh:=dwarf_reg_no_error(sym.localloc.registerhi);
+              if dreghigh=-1 then
+                has_high_reg:=false;
               if (sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) and
                  (sym.typ=paravarsym) and
                   paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
                   not(vo_has_local_copy in sym.varoptions) and
-                  not is_open_string(sym.vardef) then
+                  not is_open_string(sym.vardef) and (dreg>=0) then
                 begin
                   templist.concat(tai_const.create_8bit(ord(DW_OP_bregx)));
                   templist.concat(tai_const.create_uleb128bit(dreg));
@@ -2608,7 +2612,7 @@ implementation
                       templist.concat(tai_const.create_uleb128bit(size_of_int));
                       blocksize:=blocksize+1+Lengthuleb128(size_of_int);
                     end
-                  else
+                  else if (dreg>=0) then
                     begin
                       templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
                       templist.concat(tai_const.create_uleb128bit(dreg));
