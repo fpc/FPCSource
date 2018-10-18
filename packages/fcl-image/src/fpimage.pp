@@ -721,7 +721,10 @@ function TryHtmlToFPColor(const S: String; out FPColor: TFPColor): Boolean;
   begin
     Val('$'+Hex, W, Code);
     Result := (Code = 0);
-    if not Result then W := 0;
+    if Result then
+      W := W or (W shl 8)
+    else
+      W := 0;
   end;
 
 var
