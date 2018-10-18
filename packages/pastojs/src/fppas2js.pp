@@ -2850,14 +2850,13 @@ begin
     if ParentC=TProcedureBody then
       begin
       // local var
-      if (AbsIdent.Parent=El.Parent)
-          or ((AbsIdent is TPasArgument)
-            and (AbsIdent.Parent.Parent=El.Parent.Parent)) then
+      if (AbsIdent.Parent is TProcedureBody)
+          or (AbsIdent is TPasArgument) then
         // ok
       else
         begin
         {$IFDEF VerbosePas2JS}
-        writeln('TPas2JSResolver.FinishVariable absolute: Parent=',GetObjName(El.Parent),' AbsParent=',GetObjName(AbsIdent.Parent));
+        writeln('TPas2JSResolver.FinishVariable absolute: El.Parent=',GetObjName(El.Parent),'.Parent=',GetObjName(El.Parent.Parent),' AbsParent=',GetObjName(AbsIdent.Parent),'.Parent=',GetObjName(AbsIdent.Parent.Parent));
         {$ENDIF}
         RaiseMsg(20171226102424,nInvalidAbsoluteLocation,sInvalidAbsoluteLocation,[],El.AbsoluteExpr);
         end;
