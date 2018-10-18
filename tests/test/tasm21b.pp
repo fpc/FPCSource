@@ -1,4 +1,5 @@
 { %CPU=x86_64 }
+{ %skiptarget=android }
 
 {$MODE TP}
 {$ASMMODE INTEL}

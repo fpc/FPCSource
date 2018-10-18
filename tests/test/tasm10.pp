@@ -1,4 +1,5 @@
 { %CPU=x86_64 }
+{ %skiptarget=android }
 { Tests that object fields with zero offset are handled by Intel assembler reader
   the same way as fields with nonzero offset }
 {$ifdef fpc}
