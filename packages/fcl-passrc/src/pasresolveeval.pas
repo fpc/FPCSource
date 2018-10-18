@@ -61,6 +61,10 @@ unit PasResolveEval;
 
 {$mode objfpc}{$H+}
 
+{$ifdef fpc}
+  {$define UsePChar}
+{$endif}
+
 {$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
 {$IFOPT R+}{$DEFINE RangeCheckOn}{$ENDIF}
 
