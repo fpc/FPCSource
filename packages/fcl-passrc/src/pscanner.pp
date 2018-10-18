@@ -2330,13 +2330,13 @@ end;
 { TFileStreamLineReader }
 
 constructor TFileStreamLineReader.Create(const AFilename: string);
-{$ifdef UseStreams}
+{$ifdef HasStreams}
 Var
   S : TFileStream;
 {$endif}
 begin
   inherited Create(AFilename);
-  {$ifdef UseStreams}
+  {$ifdef HasStreams}
   S:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
   try
      InitFromStream(S);
