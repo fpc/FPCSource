@@ -8764,6 +8764,12 @@ begin
       Result:=ConvertElement(Param,AContext);
       exit;
       end
+    else if ParamResolved.BaseType=btPointer then
+      begin
+      // string(aPointer) -> value
+      Result:=ConvertElement(Param,AContext);
+      exit;
+      end
     else if IsParamPas2JSBaseType then
       begin
       if JSBaseType=pbtJSValue then
@@ -8843,14 +8849,20 @@ begin
       begin
       if JSBaseType=pbtJSValue then
         begin
-        // convert jsvalue to pointer -> pass through
+        // convert jsvalue to pointer -> value
         Result:=ConvertElement(Param,AContext);
         exit;
         end;
       end
+    else if ParamResolved.BaseType in btAllJSStrings then
+      begin
+      // pointer(aString) -> value
+      Result:=ConvertElement(Param,AContext);
+      exit;
+      end
     else if ParamResolved.BaseType=btContext then
       begin
-      // convert user type/value to pointer -> pass through
+      // convert user type/value to pointer -> value
       Result:=ConvertElement(Param,AContext);
       exit;
       end;

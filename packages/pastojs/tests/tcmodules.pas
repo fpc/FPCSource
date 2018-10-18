@@ -17938,6 +17938,7 @@ begin
   '  C: tclass;',
   '  a: tarrint;',
   '  p: Pointer = nil;',
+  '  s: string;',
   'begin',
   '  p:=p;',
   '  p:=nil;',
@@ -17954,6 +17955,8 @@ begin
   '  a:=TArrInt(p);',
   '  p:=n;',
   '  p:=Pointer(a);',
+  '  p:=pointer(s);',
+  '  s:=string(p);',
   '']);
   ConvertProgram;
   CheckSource('TestPointer',
@@ -17970,6 +17973,7 @@ begin
     'this.C = null;',
     'this.a = [];',
     'this.p = null;',
+    'this.s = "";',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.p;',
@@ -17987,6 +17991,8 @@ begin
     '$mod.a = $mod.p;',
     '$mod.p = null;',
     '$mod.p = $mod.a;',
+    '$mod.p = $mod.s;',
+    '$mod.s = $mod.p;',
     '']));
 end;
 
