@@ -52,6 +52,7 @@ var
   u_strCaseCompare: function (s1: PUnicodeChar; length1: int32_t; s2: PUnicodeChar; length2: int32_t; options: uint32_t; var pErrorCode: UErrorCode): int32_t; cdecl;
   u_getDataDirectory: function(): PAnsiChar; cdecl;
   u_setDataDirectory: procedure(directory: PAnsiChar); cdecl;
+  u_init: procedure(var status: UErrorCode); cdecl;
 
   ucol_open: function(loc: PAnsiChar; var status: UErrorCode): PUCollator; cdecl;
   ucol_close: procedure (coll: PUCollator); cdecl;
@@ -64,16 +65,37 @@ threadvar
   LastCP: TSystemCodePage;
   DefColl: PUCollator;
 
+function MaskExceptions: dword;
+begin
+{$ifdef cpux86_64}
+  Result:=GetMXCSR;
+  SetMXCSR(Result or %0000000010000000 {MM_MaskInvalidOp} or %0001000000000000 {MM_MaskPrecision});
+{$else}
+  Result:=0;
+{$endif cpux86_64}
+end;
+
+procedure UnmaskExceptions(oldmask: dword);
+begin
+{$ifdef cpux86_64}
+  SetMXCSR(oldmask);
+{$endif cpux86_64}
+end;
+
 function OpenConverter(const name: ansistring): PUConverter;
 var
   err: UErrorCode;
+  oldmask: dword;
 begin
+  { ucnv_open() must be called with some SSE exception masked on x86_64-android. }
+  oldmask:=MaskExceptions;
   err:=0;
   Result:=ucnv_open(PAnsiChar(name), err);
   if Result <> nil then begin
     ucnv_setSubstChars(Result, '?', 1, err);
     ucnv_setFallback(Result, True);
   end;
+  UnmaskExceptions(oldmask);
 end;
 
 procedure InitThreadData;
@@ -504,6 +526,7 @@ var
   i: longint;
   s: ansistring;
   dir: PAnsiChar;
+  err: UErrorCode;
 begin
   Result:=False;
 {$ifdef android}
@@ -563,6 +586,7 @@ begin
   if not GetIcuProc('u_strCaseCompare', u_strCaseCompare) then exit;
   if not GetIcuProc('u_getDataDirectory', u_getDataDirectory) then exit;
   if not GetIcuProc('u_setDataDirectory', u_setDataDirectory) then exit;
+  if not GetIcuProc('u_init', u_init) then exit;
 
   if not GetIcuProc('ucol_open', ucol_open, 1) then exit;
   if not GetIcuProc('ucol_close', ucol_close, 1) then exit;
@@ -573,6 +597,9 @@ begin
   dir:=u_getDataDirectory();
   if (dir = nil) or (dir^ = #0) then
     u_setDataDirectory('/system/usr/icu');
+
+  err:=0;
+  u_init(err);
 
   Result:=True;
 end;
