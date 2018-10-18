@@ -325,8 +325,8 @@ type
   end;
 
 function EqualRect(const r1,r2 : TRect) : Boolean;
-function Rect(Left,Top,Right,Bottom : Integer) : TRect;
-function Bounds(ALeft,ATop,AWidth,AHeight : Integer) : TRect;
+function Rect(Left,Top,Right,Bottom : Integer) : TRect; inline;
+function Bounds(ALeft,ATop,AWidth,AHeight : Integer) : TRect; inline;
 function Point(x,y : Integer) : TPoint; inline;
 function PtInRect(const Rect : TRect; const p : TPoint) : Boolean;
 function IntersectRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
@@ -335,7 +335,7 @@ function IsRectEmpty(const Rect : TRect) : Boolean;
 function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
 function CenterPoint(const Rect: TRect): TPoint;
 function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
-function Size(AWidth, AHeight: Integer): TSize;
+function Size(AWidth, AHeight: Integer): TSize; inline;
 function Size(const ARect: TRect): TSize;
 
 implementation
@@ -352,7 +352,7 @@ begin
   EqualRect:=(r1.left=r2.left) and (r1.right=r2.right) and (r1.top=r2.top) and (r1.bottom=r2.bottom);
 end;
 
-function Rect(Left,Top,Right,Bottom : Integer) : TRect;
+function Rect(Left,Top,Right,Bottom : Integer) : TRect; inline;
 
 begin
   Rect.Left:=Left;
@@ -361,7 +361,7 @@ begin
   Rect.Bottom:=Bottom;
 end;
 
-function Bounds(ALeft,ATop,AWidth,AHeight : Integer) : TRect;
+function Bounds(ALeft,ATop,AWidth,AHeight : Integer) : TRect; inline;
 
 begin
   Bounds.Left:=ALeft;
@@ -497,13 +497,13 @@ begin
     Result := False;
 end;
 
-function Size(AWidth, AHeight: Integer): TSize;
+function Size(AWidth, AHeight: Integer): TSize; inline;
 begin
   Result.cx := AWidth;
   Result.cy := AHeight;
 end;
 
-function Size(const ARect: TRect): TSize;
+function Size(const ARect: TRect): TSize; inline;
 begin
   Result.cx := ARect.Right - ARect.Left;
   Result.cy := ARect.Bottom - ARect.Top;
