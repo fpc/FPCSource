@@ -2398,9 +2398,10 @@ unit aoptx86;
           (taicpu(hp2).oper[1]^.typ = top_ref) then
           begin
             CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs,tai(p.next));
             UpdateUsedRegs(TmpUsedRegs,tai(hp1.next));
-            if (RefsEqual(taicpu(hp2).oper[1]^.ref^, taicpu(p).oper[0]^.ref^) and
-              not(RegUsedAfterInstruction(taicpu(hp2).oper[0]^.reg,hp2, TmpUsedRegs))) then
+            if (RefsEqual(taicpu(hp2).oper[1]^.ref^,taicpu(p).oper[0]^.ref^) and
+              not(RegUsedAfterInstruction(taicpu(hp2).oper[0]^.reg,hp2,TmpUsedRegs))) then
               { change   mov            (ref), reg
                          add/sub/or/... reg2/$const, reg
                          mov            reg, (ref)
@@ -2444,6 +2445,7 @@ unit aoptx86;
             (taicpu(hp1).oper[1]^.typ = top_reg)
           ) and (
             GetNextInstruction(hp1, hp2) and
+            (tai(hp2).typ=ait_instruction) and
             (taicpu(hp2).opsize = S_Q) and
             (
               (
