@@ -235,6 +235,7 @@ var rtl = {
 
   initClass: function(c,parent,name,initfn){
     parent[name] = c;
+    c.$class = c; // Note: o.$class === Object.getPrototypeOf(o)
     c.$classname = name;
     if ((parent.$module) && (parent.$module.$impl===parent)) parent=parent.$module;
     c.$parent = parent;
@@ -272,21 +273,22 @@ var rtl = {
       c.$create = function(fnname,args){
         if (args == undefined) args = [];
         var o = Object.create(this);
-        o.$class = this; // Note: o.$class === Object.getPrototypeOf(o)
         o.$init();
         try{
           o[fnname].apply(o,args);
           o.AfterConstruction();
         } catch($e){
-          o.$destroy;
+          // do not call BeforeDestruction
+          if (this.Destroy) this.Destroy();
+          this.$final();
           throw $e;
         }
         return o;
       };
       c.$destroy = function(fnname){
         this.BeforeDestruction();
-        this[fnname]();
-        this.$final;
+        if (this[fnname]) this[fnname]();
+        this.$final();
       };
     };
     rtl.initClass(c,parent,name,initfn);
@@ -306,21 +308,22 @@ var rtl = {
       } else {
         o = Object.create(this);
       }
-      o.$class = this; // Note: o.$class === Object.getPrototypeOf(o)
-      o.$init();
+      if (o.$init) o.$init();
       try{
         o[fnname].apply(o,args);
         if (o.AfterConstruction) o.AfterConstruction();
       } catch($e){
-        o.$destroy;
+        // do not call BeforeDestruction
+        if (this.Destroy) this.Destroy();
+        if (this.$final) this.$final();
         throw $e;
       }
       return o;
     };
     c.$destroy = function(fnname){
       if (this.BeforeDestruction) this.BeforeDestruction();
-      this[fnname]();
-      this.$final;
+      if (this[fnname]) this[fnname]();
+      if (this.$final) this.$final();
     };
     rtl.initClass(c,parent,name,initfn);
   },
