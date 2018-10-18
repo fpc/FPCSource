@@ -3185,18 +3185,22 @@ end;
 procedure TTestResolver.TestString_Element;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  s: string;');
-  Add('  c: char;');
-  Add('begin');
-  Add('  if s[1]=s then ;');
-  Add('  if s=s[2] then ;');
-  Add('  if s[3+4]=c then ;');
-  Add('  if c=s[5] then ;');
-  Add('  c:=s[6];');
-  Add('  s[7]:=c;');
-  Add('  s[8]:=''a'';');
-  Add('  s[9+1]:=''b'';');
+  Add([
+  'var',
+  '  s: string;',
+  '  c: char;',
+  'begin',
+  '  if s[1]=s then ;',
+  '  if s=s[2] then ;',
+  '  if s[3+4]=c then ;',
+  '  if c=s[5] then ;',
+  '  c:=s[6];',
+  '  s[7]:=c;',
+  '  s[8]:=''a'';',
+  '  s[9+1]:=''b'';',
+  '  s[10]:='''''''';',
+  '  s[11]:=^g;',
+  '  s[12]:=^H;']);
   ParseProgram;
 end;
 

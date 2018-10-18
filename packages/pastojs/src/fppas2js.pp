@@ -7345,6 +7345,20 @@ var
     end;
   end;
 
+  procedure ConvCharToInt(var Arg: TJSElement; Param: TPasElement);
+  begin
+    if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstString) then
+      begin
+      // convert char literal to int
+      ConvertCharLiteralToInt(TJSLiteral(Arg),Param,ArgContext);
+      end
+    else
+      begin
+      // convert char to int  ->  Arg.charCodeAt(0)
+      Arg:=CreateCallCharCodeAt(Arg,0,Param);
+      end;
+  end;
+
   procedure ConvertArray(ArrayEl: TPasArrayType);
   var
     BracketEx, Sub: TJSBracketMemberExpression;
@@ -7455,22 +7469,16 @@ var
                   end
                 else
                   Int:=ord(TResEvalString(LowRg).S[1]);
-                if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstString) then
-                  begin
-                  // convert char literal to int
-                  ConvertCharLiteralToInt(TJSLiteral(Arg),Param,ArgContext);
-                  end
-                else
-                  begin
-                  // convert char to int  ->  Arg.charCodeAt(0)
-                  Arg:=CreateCallCharCodeAt(Arg,0,Param);
-                  end;
+                ConvCharToInt(Arg,Param);
                 end;
               revkUnicodeString:
+                begin
                 if length(TResEvalUTF16(LowRg).S)<>1 then
                   ArgContext.Resolver.RaiseXExpectedButYFound(20170910213247,'char','string',Param)
                 else
                   Int:=ord(TResEvalUTF16(LowRg).S[1]);
+                ConvCharToInt(Arg,Param);
+                end
               else
                 RaiseNotSupported(Param,ArgContext,20170910170446);
               end;
