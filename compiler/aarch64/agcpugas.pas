@@ -274,7 +274,7 @@ unit agcpugas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM';
-            supported_targets : [system_aarch64_linux];
+            supported_targets : [system_aarch64_linux,system_aarch64_android];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '// ';
