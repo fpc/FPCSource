@@ -1,5 +1,6 @@
 { %cpu=x86_64 }
 { %opt=-vw -Sew }
+{ %skiptarget=android }
 
 {$ifdef windows}
   {$imagebase $10000}
