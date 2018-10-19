@@ -4103,6 +4103,8 @@ implementation
       end;
 
      function tinlinenode.first_sqr_real : tnode;
+      var
+         callnode : tcallnode;
       begin
 {$ifndef cpufpemu}
         { this procedure might be only used for cpus definining cpufpemu else
@@ -4111,9 +4113,10 @@ implementation
 {$endif cpufpemu}
         { create the call to the helper }
         { on entry left node contains the parameter }
-        result := ctypeconvnode.create(ccallnode.createintern('fpc_sqr_real',
-                ccallparanode.create(left,nil)),resultdef);
-        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
+        callnode:=ccallnode.createintern('fpc_sqr_real',
+                    ccallparanode.create(left,nil));
+        result := ctypeconvnode.create(callnode,resultdef);
+        include(callnode.callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
