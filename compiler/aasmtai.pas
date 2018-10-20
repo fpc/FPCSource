@@ -578,6 +578,9 @@ interface
           function getcopy:tlinkedlistitem;override;
        end;
 
+       type
+         TSectionFlags = (SF_None,SF_A,SF_W,SF_X);
+         TSectionProgbits = (SPB_None,SPB_PROGBITS,SPB_NOBITS);
 
        { Generates a section / segment directive }
        tai_section = class(tai)
@@ -585,7 +588,11 @@ interface
           secorder : TasmSectionorder;
           secalign : longint;
           name     : pshortstring;
-          sec      : TObjSection; { used in binary writer }
+          { used in binary writer }
+          sec      : TObjSection;
+          { used only by ELF so far }
+          secflags : TSectionFlags;
+          secprogbits : TSectionProgbits;
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -947,7 +954,7 @@ interface
       add_reg_instruction_hook : tadd_reg_instruction_proc;
 
     procedure maybe_new_object_file(list:TAsmList);
-    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+    function new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default) : tai_section;
 
     function ppuloadai(ppufile:tcompilerppufile):tai;
     procedure ppuwriteai(ppufile:tcompilerppufile;n:tai);
@@ -966,7 +973,6 @@ implementation
     const
       pputaimarker = 254;
 
-
 {****************************************************************************
                                  Helpers
  ****************************************************************************}
@@ -978,9 +984,10 @@ implementation
       end;
 
 
-    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+    function new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default) : tai_section;
       begin
-        list.concat(tai_section.create(Asectype,Aname,Aalign,Asecorder));
+        Result:=tai_section.create(Asectype,Aname,Aalign,Asecorder);
+        list.concat(Result);
         inc(list.section_count);
         list.concat(cai_align.create(Aalign));
       end;
@@ -1211,6 +1218,8 @@ implementation
         sectype:=TAsmSectiontype(ppufile.getbyte);
         secalign:=ppufile.getlongint;
         name:=ppufile.getpshortstring;
+        secflags:=TSectionFlags(ppufile.getbyte);
+        secprogbits:=TSectionProgbits(ppufile.getbyte);
         sec:=nil;
       end;
 
@@ -1227,6 +1236,8 @@ implementation
         ppufile.putbyte(byte(sectype));
         ppufile.putlongint(secalign);
         ppufile.putstring(name^);
+        ppufile.putbyte(byte(secflags));
+        ppufile.putbyte(byte(secprogbits));
       end;
 
 

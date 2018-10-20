@@ -1049,12 +1049,15 @@ unit raatt;
        hl         : tasmlabel;
        commname,
        symname,
-       symval     : string;
+       symval     ,sectionname: string;
        lasTSec    : TAsmSectiontype;
        l1,
        l2,
        symofs     : tcgint;
        symtyp     : TAsmsymtype;
+       section    : tai_section;
+       secflags   : TSectionFlags;
+       secprogbits : TSectionProgbits;
      Begin
        Message1(asmr_d_start_reading,'GNU AS');
        firsttoken:=TRUE;
@@ -1312,9 +1315,61 @@ unit raatt;
            AS_SECTION:
              begin
                Consume(AS_SECTION);
-               new_section(curlist, sec_user, actasmpattern, 0);
+               sectionname:=actasmpattern;
+               secflags:=SF_None;
+               secprogbits:=SPB_None;
+               Consume(AS_STRING);
+               if actasmtoken=AS_COMMA then
+                 begin
+                   Consume(AS_COMMA);
+                   if actasmtoken=AS_STRING then
+                     begin
+                       case actasmpattern of
+                         'a':
+                           secflags:=SF_A;
+                         'w':
+                           secflags:=SF_W;
+                         'x':
+                           secflags:=SF_X;
+                         '':
+                           secflags:=SF_None;
+                         else
+                           Message(asmr_e_syntax_error);
+                       end;
+                       Consume(AS_STRING);
+                       if actasmtoken=AS_COMMA then
+                         begin
+                           Consume(AS_COMMA);
+                           if actasmtoken=AS_MOD then
+                             begin
+                               Consume(AS_MOD);
+                               if actasmtoken=AS_ID then
+                                 begin
+                                   case actasmpattern of
+                                     'PROGBITS':
+                                       secprogbits:=SPB_PROGBITS;
+                                     'NOBITS':
+                                       secprogbits:=SPB_NOBITS;
+                                     else
+                                       Message(asmr_e_syntax_error);
+                                   end;
+                                   Consume(AS_ID);
+                                 end
+                               else
+                                 Message(asmr_e_syntax_error);
+                             end
+                           else
+                             Message(asmr_e_syntax_error);
+                         end;
+                     end
+                   else
+                     Message(asmr_e_syntax_error);
+                 end;
+
                //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
-               consume(AS_STRING);
+               section:=new_section(curlist, sec_user, sectionname, 0);
+               section.secflags:=secflags;
+               section.secprogbits:=secprogbits;
              end;
 
            AS_TARGET_DIRECTIVE:

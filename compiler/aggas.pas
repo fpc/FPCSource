@@ -49,7 +49,8 @@ interface
         function sectionattrs(atype:TAsmSectiontype):string;virtual;
         function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
         function sectionalignment_aix(atype:TAsmSectiontype;secalign: longint):string;
-        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint);virtual;
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
+          secflags:TSectionFlags=SF_None;secprogbits:TSectionProgbits=SPB_None);virtual;
         procedure WriteExtraHeader;virtual;
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
@@ -457,7 +458,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint);
+    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=SF_None;secprogbits:TSectionProgbits=SPB_None);
       var
         s : string;
       begin
@@ -491,58 +492,85 @@ implementation
         end;
         s:=sectionname(atype,aname,aorder);
         writer.AsmWrite(s);
-        case atype of
-          sec_fpc :
-            if aname = 'resptrs' then
-              writer.AsmWrite(', "a", @progbits');
-          sec_stub :
-            begin
-              case target_info.system of
-                { there are processor-independent shortcuts available    }
-                { for this, namely .symbol_stub and .picsymbol_stub, but }
-                { they don't work and gcc doesn't use them either...     }
-                system_powerpc_darwin,
-                system_powerpc64_darwin:
-                  if (cs_create_pic in current_settings.moduleswitches) then
-                    writer.AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
-                  else
-                    writer.AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
-                system_i386_darwin,
-                system_i386_iphonesim:
-                  writer.AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
-                system_arm_darwin:
-                  if (cs_create_pic in current_settings.moduleswitches) then
-                    writer.AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
-                  else
-                    writer.AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
-                { darwin/(x86-64/AArch64) uses PC-based GOT addressing, no
-                  explicit symbol stubs }
-                else
-                  internalerror(2006031101);
-              end;
-            end;
-        else
-          { GNU AS won't recognize '.text.n_something' section name as belonging
-            to '.text' and assigns default attributes to it, which is not
-            always correct. We have to fix it.
-
-            TODO: This likely applies to all systems which smartlink without
-            creating libraries }
+        { flags explicitly defined? }
+        if (secflags<>SF_None) or (secprogbits<>SPB_None) then
           begin
-            if is_smart_section(atype) and (aname<>'') then
+            case secflags of
+              SF_A:
+                writer.AsmWrite(',"a"');
+              SF_W:
+                writer.AsmWrite(',"w"');
+              SF_X:
+                writer.AsmWrite(',"x"');
+              SF_None:
+                writer.AsmWrite(',""');
+              else
+                Internalerror(2018101502);
+            end;
+            case secprogbits of
+              SPB_PROGBITS:
+                writer.AsmWrite(',%progbits');
+              SPB_NOBITS:
+                writer.AsmWrite(',%nobits');
+              SPB_None:
+                ;
+              else
+                Internalerror(2018101503);
+            end;
+          end
+        else
+          case atype of
+            sec_fpc :
+              if aname = 'resptrs' then
+                writer.AsmWrite(', "a", @progbits');
+            sec_stub :
               begin
-                s:=sectionattrs(atype);
-                if (s<>'') then
-                  writer.AsmWrite(',"'+s+'"');
+                case target_info.system of
+                  { there are processor-independent shortcuts available    }
+                  { for this, namely .symbol_stub and .picsymbol_stub, but }
+                  { they don't work and gcc doesn't use them either...     }
+                  system_powerpc_darwin,
+                  system_powerpc64_darwin:
+                    if (cs_create_pic in current_settings.moduleswitches) then
+                      writer.AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
+                    else
+                      writer.AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
+                  system_i386_darwin,
+                  system_i386_iphonesim:
+                    writer.AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
+                  system_arm_darwin:
+                    if (cs_create_pic in current_settings.moduleswitches) then
+                      writer.AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
+                    else
+                      writer.AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
+                  { darwin/(x86-64/AArch64) uses PC-based GOT addressing, no
+                    explicit symbol stubs }
+                  else
+                    internalerror(2006031101);
+                end;
               end;
-            if target_info.system in systems_aix then
-              begin
-                s:=sectionalignment_aix(atype,secalign);
-                if s<>'' then
-                  writer.AsmWrite(','+s);
-              end;
+          else
+            { GNU AS won't recognize '.text.n_something' section name as belonging
+              to '.text' and assigns default attributes to it, which is not
+              always correct. We have to fix it.
+
+              TODO: This likely applies to all systems which smartlink without
+              creating libraries }
+            begin
+              if is_smart_section(atype) and (aname<>'') then
+                begin
+                  s:=sectionattrs(atype);
+                  if (s<>'') then
+                    writer.AsmWrite(',"'+s+'"');
+                end;
+              if target_info.system in systems_aix then
+                begin
+                  s:=sectionalignment_aix(atype,secalign);
+                  if s<>'' then
+                    writer.AsmWrite(','+s);
+                end;
+            end;
           end;
-        end;
         writer.AsmLn;
         LastSecType:=atype;
       end;
@@ -725,9 +753,11 @@ implementation
              begin
                if tai_section(hp).sectype<>sec_none then
                  if replaceforbidden then
-                   WriteSection(tai_section(hp).sectype,ReplaceForbiddenAsmSymbolChars(tai_section(hp).name^),tai_section(hp).secorder,tai_section(hp).secalign)
+                   WriteSection(tai_section(hp).sectype,ReplaceForbiddenAsmSymbolChars(tai_section(hp).name^),tai_section(hp).secorder,
+                     tai_section(hp).secalign,tai_section(hp).secflags,tai_section(hp).secprogbits)
                  else
-                   WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder,tai_section(hp).secalign)
+                   WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder,
+                     tai_section(hp).secalign,tai_section(hp).secflags,tai_section(hp).secprogbits)
                else
                  begin
 {$ifdef EXTDEBUG}
