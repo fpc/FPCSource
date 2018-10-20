@@ -2549,7 +2549,7 @@ unit cgcpu;
               cg.a_load_const_reg(list,OS_S32,longint(highvalue),hreg);
               { don't use cg.a_op_const_reg() here, because a possible optimized
                 ADDQ/SUBQ wouldn't set the eXtend bit }
-              list.concat(taicpu.op_const_reg(opcode,S_L,lowvalue,regdst.reglo));
+              list.concat(taicpu.op_const_reg(opcode,S_L,longint(lowvalue),regdst.reglo));
               list.concat(taicpu.op_reg_reg(xopcode,S_L,hreg,regdst.reghi));
             end;
           OP_AND,OP_OR,OP_XOR:
