@@ -4124,6 +4124,7 @@ implementation
       var
         fdef: tdef;
         procname: string[31];
+        callnode: tcallnode;
       begin
         if ((cs_fp_emulation in current_settings.moduleswitches)
 {$ifdef cpufpemu}
@@ -4155,9 +4156,10 @@ implementation
           begin
             { create the call to the helper }
             { on entry left node contains the parameter }
-            result := ctypeconvnode.create(ccallnode.createintern('fpc_sqrt_real',
-                ccallparanode.create(left,nil)),resultdef);
-            include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
+            callnode := ccallnode.createintern('fpc_sqrt_real',
+                ccallparanode.create(left,nil));
+            result := ctypeconvnode.create(callnode,resultdef);
+            include(callnode.callnodeflags,cnf_check_fpu_exceptions);
           end;
         left := nil;
       end;
