@@ -2603,7 +2603,7 @@ begin
                    write  ([space,'  PointerType : ']);
                    readderef('',constdef.TypeRef);
                    constdef.ConstType:=ctInt;
-                   constdef.VInt:=getptruint;
+                   constdef.VInt:=int64(getptruint);
                    writeln([space,'        Value : ',constdef.VInt])
                  end;
                conststring,
