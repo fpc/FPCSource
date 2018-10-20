@@ -131,7 +131,11 @@ unit agarmgas;
 
         if target_info.abi = abi_eabihf then
           { options based on what gcc uses on debian armhf }
-          result:='-mfloat-abi=hard -meabi=5 '+result;
+          result:='-mfloat-abi=hard -meabi=5 '+result
+        else if (target_info.abi = abi_eabi) and not(current_settings.fputype = fpu_soft) then
+          result:='-mfloat-abi=softfp -meabi=5 '+result
+        else if (target_info.abi = abi_eabi) and (current_settings.fputype = fpu_soft) then
+          result:='-mfloat-abi=soft -meabi=5 '+result;
       end;
 
     procedure TArmGNUAssembler.WriteExtraHeader;
