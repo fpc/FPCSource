@@ -268,7 +268,7 @@ unit cpupara;
                  We also have to figure out a better switch for this, because this is
                  now compiler and platform specific... (KB) }
 
-               if (tprocdef(p).proccalloption in [pocall_syscall,pocall_cdecl,pocall_cppdecl]) and
+               if (tabstractprocdef(p).proccalloption in [pocall_syscall,pocall_cdecl,pocall_cppdecl]) and
                   (target_info.system in [system_m68k_palmos,system_m68k_linux]) and
                   assigned(result.def) and
                   (result.def.typ in [stringdef,pointerdef,classrefdef,objectdef,
@@ -408,9 +408,9 @@ unit cpupara;
                   return a struct by address. we will probably need some kind of a
                   switch to support these various ABIs when generating cdecl calls (KB) }
                 if ((vo_is_funcret in hp.varoptions) and
-                    (tprocdef(p).proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                    (tabstractprocdef(p).proccalloption in [pocall_cdecl,pocall_cppdecl]) and
                     (target_info.system in [system_m68k_linux]) and
-                    (tprocdef(p).returndef.typ = recorddef)) then
+                    (tabstractprocdef(p).returndef.typ = recorddef)) then
                   begin
                     paraloc^.loc:=LOC_REGISTER;
                     paraloc^.register:=NR_M68K_STRUCT_RESULT_REG;
