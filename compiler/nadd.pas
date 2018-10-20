@@ -377,7 +377,7 @@ implementation
 
     function taddnode.simplify(forinline : boolean) : tnode;
 
-      function is_range_test(nodel, noder: taddnode; var value: tnode; var cl,cr: qword): boolean;
+      function is_range_test(nodel, noder: taddnode; var value: tnode; var cl,cr: Tconstexprint): boolean;
         const
           is_upper_test: array[ltn..gten] of boolean = (true,true,false,false);
           inclusive_adjust: array[boolean,ltn..gten] of integer = ((1,0,-1,0),
@@ -460,7 +460,7 @@ implementation
         resultset : Tconstset;
         res,
         b       : boolean;
-        cr, cl  : qword;
+        cr, cl  : Tconstexprint;
       begin
         result:=nil;
         l1:=0;
