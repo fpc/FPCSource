@@ -3800,7 +3800,10 @@ implementation
 
              _CWSTRING:
                begin
-                 p1:=cstringconstnode.createunistr(patternw);
+                 if getlengthwidestring(patternw)=1 then
+                   p1:=cordconstnode.create(ord(getcharwidestring(patternw,0)),cwidechartype,true)
+                 else
+                   p1:=cstringconstnode.createunistr(patternw);
                  consume(_CWSTRING);
                  if token in postfixoperator_tokens then
                    begin

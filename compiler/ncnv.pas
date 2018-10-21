@@ -1635,12 +1635,6 @@ implementation
              fcc:=(pb[0] shl 24) or (pb[1] shl 16) or (pb[2] shl 8) or pb[3];
              result:=cordconstnode.create(fcc,u32inttype,false);
            end
-         else if is_widechar(resultdef) and
-            (tstringconstnode(left).cst_type=cst_unicodestring) and
-            (pcompilerwidestring(tstringconstnode(left).value_str)^.len=1) then
-           begin
-             result:=cordconstnode.create(pcompilerwidestring(tstringconstnode(left).value_str)^.data[0], resultdef, false);
-           end
          else
            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
       end;
