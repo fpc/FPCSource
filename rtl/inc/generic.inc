@@ -14,13 +14,30 @@
 
  **********************************************************************}
 
+function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  var
+    tmp: PtrUInt;
+  begin
+    tmp:=addr+PtrUInt(alignment-1);
+    result:=tmp-(tmp mod alignment)
+  end;
+
+
+{$ifndef cpujvm}
+function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+  var
+    tmp: PtrUInt;
+  begin
+    tmp:=PtrUInt(addr)+(alignment-1);
+    result:=pointer(tmp-(tmp mod alignment));
+  end;
+{$endif}
 
 {****************************************************************************
                                Primitives
 ****************************************************************************}
 type
   pstring = ^shortstring;
-
 
 {$ifndef FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
 {$define FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
@@ -2422,27 +2439,6 @@ procedure inclocked(var l:int64);
 {$ifndef FPC_SYSTEM_HAS_SPTR}
 {_$error Sptr must be defined for each processor }
 {$endif ndef FPC_SYSTEM_HAS_SPTR}
-
-
-
-function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-  var
-    tmp: PtrUInt;
-  begin
-    tmp:=addr+PtrUInt(alignment-1);
-    result:=tmp-(tmp mod alignment)
-  end;
-
-
-{$ifndef cpujvm}
-function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
-  var
-    tmp: PtrUInt;
-  begin
-    tmp:=PtrUInt(addr)+(alignment-1);
-    result:=pointer(tmp-(tmp mod alignment));
-  end;
-{$endif}
 
 {****************************************************************************
                                  Str()
