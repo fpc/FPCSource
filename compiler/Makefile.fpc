@@ -464,11 +464,11 @@ $(PPC_TARGETS):
         $(MAKE) PPC_TARGET=$@ CPU_UNITDIR=$@ compiler
 
 $(INSTALL_TARGETS):
-        $(MAKE) PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@) all
-		$(MAKE) PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@) install
+        $(MAKE) PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@) compiler
+		$(MAKE) PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@) exeinstall
 
 $(SYMLINKINSTALL_TARGETS):
-        $(MAKE) PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@) all
+        $(MAKE) PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@) compiler
 		$(MAKE) PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@) installsymlink
 
 alltargets: $(ALLTARGETS)
@@ -903,10 +903,12 @@ endif
 
 fullinstall:
 ifndef EXCLUDE_80BIT_TARGETS
-        $(MAKE) $(addsuffix _exe_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
+        $(MAKE) $(addsuffix _exe_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS))) $(addsuffix _all,$(TARGET_DIRS))
 else
-        $(MAKE) $(addsuffix _exe_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
+        $(MAKE) $(addsuffix _exe_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS))))) $(addsuffix _all,$(TARGET_DIRS))
 endif
+        $(MAKE) $(addsuffix _install,$(TARGET_DIRS))
+	
 
 install: quickinstall
 ifndef CROSSINSTALL
