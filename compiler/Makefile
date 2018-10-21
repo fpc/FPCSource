@@ -4518,7 +4518,7 @@ else
 	$(MAKE) $(addsuffix _exe_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS))))) $(addsuffix _all,$(TARGET_DIRS))
 endif
 	$(MAKE) $(addsuffix _install,$(TARGET_DIRS))
-install: quickinstall
+auxfilesinstall:
 ifndef CROSSINSTALL
 ifdef UNIXHier
 	$(MKDIR) $(INSTALL_BASEDIR)
@@ -4527,6 +4527,8 @@ endif
 	$(MKDIR) $(MSGINSTALLDIR)
 	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 endif
+install: 
+	$(MAKE) quickinstall auxfilesinstall FPC=$(BASEDIR)/$(INSTALLEXEFILE)
 installsymlink: install
 ifneq ($(PPCCPULOCATION),$(INSTALL_BINDIR))
 	$(MKDIR) $(INSTALL_BINDIR)
