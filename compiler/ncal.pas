@@ -4586,6 +4586,8 @@ implementation
         { this is just to play it safe, there are more safe situations }
         if (n.nodetype = derefn) or
            ((n.nodetype = loadn) and
+            { can be nil in case of internally generated labels like $raiseaddr }
+            assigned(tloadnode(n).symtable) and
             { globals and fields of (possibly global) objects could always be changed in the callee }
             ((tloadnode(n).symtable.symtabletype in [globalsymtable,ObjectSymtable]) or
             { statics can only be modified by functions in the same unit }
