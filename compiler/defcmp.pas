@@ -1880,7 +1880,7 @@ implementation
                else
                 { Just about everything can be converted to a formaldef...}
                 if not (def_from.typ in [abstractdef,errordef]) then
-                  eq:=te_convert_l2;
+                  eq:=te_convert_l6;
              end;
         end;
 

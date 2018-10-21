@@ -1964,7 +1964,7 @@ implementation
               { all types can be passed to a formaldef,
                 but it is not the prefered way }
               if not is_constnode(fromnode) then
-                eq:=te_convert_l2
+                eq:=te_convert_l6
               else
                 eq:=te_incompatible;
             end;
@@ -2037,11 +2037,6 @@ implementation
       begin
         { Note: eq must be already valid, it will only be updated! }
         case def_to.typ of
-          formaldef :
-            begin
-              { all types can be passed to a formaldef }
-              eq:=te_equal;
-            end;
           stringdef :
             begin
               { to support ansi/long/wide strings in a proper way }
