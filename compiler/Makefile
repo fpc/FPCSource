@@ -4528,7 +4528,11 @@ endif
 	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 endif
 install: 
+ifndef FPC
 	$(MAKE) quickinstall auxfilesinstall FPC=$(BASEDIR)/$(INSTALLEXEFILE)
+else
+	$(MAKE) quickinstall auxfilesinstall
+endif
 installsymlink: install
 ifneq ($(PPCCPULOCATION),$(INSTALL_BINDIR))
 	$(MKDIR) $(INSTALL_BINDIR)

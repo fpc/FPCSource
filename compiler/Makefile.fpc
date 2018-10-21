@@ -921,7 +921,12 @@ endif
 	
 
 install: 
+# if no FPC is passed, use that one we assume, we just build
+ifndef FPC
 	$(MAKE) quickinstall auxfilesinstall FPC=$(BASEDIR)/$(INSTALLEXEFILE)
+else
+	$(MAKE) quickinstall auxfilesinstall
+endif
 
 # This also installs a link from bin to the actual executable.
 # The .deb does that later.
