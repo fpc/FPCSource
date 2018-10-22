@@ -135,6 +135,10 @@ type
     FParent: TPasElement;
     FHints : TPasMemberHints;
     FHintMessage : String;
+    {$ifdef pas2js}
+    FPasElementId: NativeInt;
+    class var FLastPasElementId: NativeInt;
+    {$endif}
     {$ifdef EnablePasTreeGlobalRefCount}
     class var FGlobalRefCount: int64;
     {$endif}
@@ -175,9 +179,12 @@ type
     property RefCount: LongWord read FRefCount;
     property Name: string read FName write FName;
     property Parent: TPasElement read FParent Write SetParent;
-    Property Hints : TPasMemberHints Read FHints Write FHints;
-    Property HintMessage : String Read FHintMessage Write FHintMessage;
-    Property DocComment : String Read FDocComment Write FDocComment;
+    property Hints : TPasMemberHints Read FHints Write FHints;
+    property HintMessage : String Read FHintMessage Write FHintMessage;
+    property DocComment : String Read FDocComment Write FDocComment;
+    {$ifdef pas2js}
+    property PasElementId: NativeInt read FPasElementId; // global unique id
+    {$endif}
     {$ifdef EnablePasTreeGlobalRefCount}
     class property GlobalRefCount: int64 read FGlobalRefCount write FGlobalRefCount;
     {$endif}
@@ -2308,6 +2315,10 @@ begin
   inherited Create;
   FName := AName;
   FParent := AParent;
+  {$ifdef pas2js}
+  inc(FLastPasElementId);
+  FPasElementId:=FLastPasElementId;
+  {$endif}
   {$ifdef EnablePasTreeGlobalRefCount}
   Inc(FGlobalRefCount);
   {$endif}
