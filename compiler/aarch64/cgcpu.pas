@@ -942,7 +942,6 @@ implementation
               instr:=taicpu.op_reg_reg(A_MOV,makeregsize(reg2,OS_32),makeregsize(reg1,OS_32))
             else
               instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
-            list.Concat(tai_comment.Create(strpnew('====')));
             list.Concat(instr);
             { Notify the register allocator that we have written a move instruction so
              it can try to eliminate it. }
