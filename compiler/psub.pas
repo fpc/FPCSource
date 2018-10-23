@@ -1046,7 +1046,7 @@ implementation
       end;
 
 
-{$if defined(i386) or defined(x86_64) or defined(arm) or defined(riscv32) or defined(riscv64) or defined(m68k)}
+{$if defined(i386) or defined(x86_64) or defined(arm) or defined(aarch64) or defined(riscv32) or defined(riscv64) or defined(m68k)}
     const
       exception_flags: array[boolean] of tprocinfoflags = (
         [],
@@ -1058,7 +1058,7 @@ implementation
       begin
         tg:=tgobjclass.create;
 
-{$if defined(i386) or defined(x86_64) or defined(arm) or defined(m68k)}
+{$if defined(i386) or defined(x86_64) or defined(arm) or defined(aarch64) or defined(m68k)}
 {$if defined(arm)}
         { frame and stack pointer must be always the same on arm thumb so it makes no
           sense to fiddle with a frame pointer }
@@ -1102,11 +1102,16 @@ implementation
                 not(cs_generate_stackframes in current_settings.localswitches) and
                 not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
+{$if defined(aarch64)}
+               { on aarch64, it must be a leaf subroutine }
+                not(pi_do_call in flags) and
+{$endif defined(aarch64)}
                 not ((pi_has_stackparameter in flags)
-{$ifndef arm}   { Outgoing parameter(s) on stack do not need stackframe on x86 targets
+{$if defined(i386) or defined(x86_64)}
+               { Outgoing parameter(s) on stack do not need stackframe on x86 targets
                  with fixed stack. On ARM it fails, see bug #25050 }
                   and (not paramanager.use_fixed_stack)
-{$endif arm}
+{$endif defined(i386) or defined(x86_64)}
                   ) and
                 ((flags*([pi_has_assembler_block,pi_is_assembler,
                         pi_needs_stackframe]+
@@ -1137,6 +1142,7 @@ implementation
                     { Only need to set the framepointer }
                     framepointer:=NR_STACK_POINTER_REG;
                     tg.direction:=1;
+                    Include(flags,pi_no_framepointer_needed)
                   end
 {$if defined(arm)}
                 { On arm, the stack frame size can be estimated to avoid using an extra frame pointer,

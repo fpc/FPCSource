@@ -1872,6 +1872,13 @@ implementation
         ref: treference;
         totalstackframesize: longint;
       begin
+        { on aarch64, we need to store the link register and the generate a frame pointer if the subroutine either
+          - receives parameters on the stack
+          - is not a leaf procedure
+          - has nested procedures
+          - helpers retrieve the stack pointer
+        }
+
         hitem:=list.last;
         { pi_has_unwind_info may already be set at this point if there are
           SEH directives in assembler body. In this case, .seh_endprologue
@@ -1885,28 +1892,30 @@ implementation
 
             if target_info.system=system_aarch64_win64 then
               include(current_procinfo.flags,pi_has_unwind_info);
-
-            { save stack pointer and return address }
-            reference_reset_base(ref,NR_SP,-16,ctempposinvalid,16,[]);
-            ref.addressmode:=AM_PREINDEXED;
-            list.concat(taicpu.op_reg_reg_ref(A_STP,NR_FP,NR_LR,ref));
-            current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
-            current_asmdata.asmcfi.cfa_offset(list,NR_FP,-16);
-            current_asmdata.asmcfi.cfa_offset(list,NR_LR,-8);
-            if target_info.system=system_aarch64_win64 then
-              list.concat(cai_seh_directive.create_offset(ash_savefplr_x,16));
-            { initialise frame pointer }
-            if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+            if not(pi_no_framepointer_needed in current_procinfo.flags) then
               begin
-                a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_SP,NR_FP);
-                current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FP);
+                { save stack pointer and return address }
+                reference_reset_base(ref,NR_SP,-16,ctempposinvalid,16,[]);
+                ref.addressmode:=AM_PREINDEXED;
+                list.concat(taicpu.op_reg_reg_ref(A_STP,NR_FP,NR_LR,ref));
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
+                current_asmdata.asmcfi.cfa_offset(list,NR_FP,-16);
+                current_asmdata.asmcfi.cfa_offset(list,NR_LR,-8);
                 if target_info.system=system_aarch64_win64 then
-                  list.concat(cai_seh_directive.create(ash_setfp));
-              end
-            else
-              begin
-                gen_load_frame_for_exceptfilter(list);
-                localsize:=current_procinfo.maxpushedparasize;
+                  list.concat(cai_seh_directive.create_offset(ash_savefplr_x,16));
+                { initialise frame pointer }
+                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                  begin
+                    a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_SP,NR_FP);
+                    current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FP);
+                    if target_info.system=system_aarch64_win64 then
+                      list.concat(cai_seh_directive.create(ash_setfp));
+                  end
+                else
+                  begin
+                    gen_load_frame_for_exceptfilter(list);
+                    localsize:=current_procinfo.maxpushedparasize;
+                  end;
               end;
 
             totalstackframesize:=localsize;
@@ -2081,7 +2090,6 @@ implementation
       end;
 
 
-
     procedure tcgaarch64.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
       var
         ref: treference;
@@ -2122,13 +2130,22 @@ implementation
                 load_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE);
               end
             else if current_procinfo.final_localsize<>0 then
-              { restore stack pointer }
-              a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
+              begin
+                { restore stack pointer }
+                if pi_no_framepointer_needed in current_procinfo.flags then
+                  handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
+                    current_procinfo.framepointer,NR_IP0,false,true)
+                else
+                  a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
+              end;
 
-            { restore framepointer and return address }
-            reference_reset_base(ref,NR_SP,16,ctempposinvalid,16,[]);
-            ref.addressmode:=AM_POSTINDEXED;
-            list.concat(taicpu.op_reg_reg_ref(A_LDP,NR_FP,NR_LR,ref));
+            if not(pi_no_framepointer_needed in current_procinfo.flags) then
+              begin
+                { restore framepointer and return address }
+                reference_reset_base(ref,NR_SP,16,ctempposinvalid,16,[]);
+                ref.addressmode:=AM_POSTINDEXED;
+                list.concat(taicpu.op_reg_reg_ref(A_LDP,NR_FP,NR_LR,ref));
+              end;
           end;
 
         { return }

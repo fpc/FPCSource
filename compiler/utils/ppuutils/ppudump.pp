@@ -1661,7 +1661,10 @@ const
          (mask:pi_uses_get_frame;
          str:' uses get_frame'),
          (mask:pi_uses_ymm;
-         str:' uses ymm register (x86 only)')
+         str:' uses ymm register (x86 only)'),
+         (mask:pi_no_framepointer_needed;
+         str:' set if no frame pointer is needed, the rules when this applies is target specific'
+         )
   );
 var
   procinfooptions : tprocinfoflags;

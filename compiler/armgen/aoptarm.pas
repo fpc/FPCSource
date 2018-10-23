@@ -1133,7 +1133,8 @@ Implementation
           GetNextInstruction(p, hp1) and
           (hp1.typ = ait_instruction) and
           (taicpu(hp1).condition = C_None) and
-          (taicpu(hp1).oppostfix = taicpu(p).oppostfix) then
+          (taicpu(hp1).oppostfix = taicpu(p).oppostfix) and
+          (taicpu(hp1).ops>0) and (taicpu(hp1).oper[0]^.typ=top_reg) then
           begin
             { Saves constant dereferencing and makes it easier to change the size if necessary }
             SrcReg := taicpu(p).oper[0]^.reg;
