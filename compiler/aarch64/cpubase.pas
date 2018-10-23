@@ -48,6 +48,8 @@ unit cpubase;
     type
       TAsmOp= {$i a64op.inc}
 
+      TAsmOps = set of TAsmOp;
+
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
