@@ -212,6 +212,8 @@ Works:
 - $warn identifier ON|off|error|default
 
 ToDo:
+- Include/Exclude for set of int/char/bool
+- set of CharRange
 - error if property method resolution is not used
 - $H-hintpos$H+
 - $pop, $push
@@ -220,21 +222,17 @@ ToDo:
   - property defaultvalue
   - IntSet:=[-1]
   - CharSet:=[#13]
-- Include/Exclude for set of int/char/bool
 - proc: check if forward and impl default values match
 - call array of proc without ()
-- array+array
-- set of CharRange
+- anonymous functions
+- attributes
 - object
-- generics, nested param lists
 - type helpers
 - record/class helpers
-- generics
+- generics, nested param lists
 - futures
 - operator overload
    - operator enumerator
-- attributes
-- anonymous functions
 - TPasFileType
 - labels
 - $zerobasedstrings on|off
@@ -1125,7 +1123,7 @@ type
     rcSetReferenceFlags,  // set flags of references while computing type, used by Resolve* methods
     rcNoImplicitProc,    // do not call a function without params, includes rcNoImplicitProcType
     rcNoImplicitProcType, // do not call a proc type without params
-    rcConstant,  // resolve a constant expresson
+    rcConstant,  // resolve a constant expression, error if not computable
     rcType       // resolve a type expression
     );
   TPasResolverComputeFlags = set of TPasResolverComputeFlag;
@@ -5751,7 +5749,8 @@ begin
     end
   else if El.Expr<>nil then
     begin
-    Value:=Eval(El.Expr,[refConst]);
+    // no VarType, has Expr, e.g. const a = Expr
+    Value:=Eval(El.Expr,[refConstExt]); // e.g. const Tau = 2*PI
     ReleaseEvalValue(Value);
     end;
   if El.AbsoluteExpr<>nil then
@@ -7252,17 +7251,18 @@ begin
             ConvertRangeToElement(OfExprResolved);
           CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
 
-          Value:=Eval(OfExpr,[]); // allow external const, no refConst
+          Value:=Eval(OfExpr,[refConstExt]);
           if Value<>nil then
             begin
-            if not AddValue(Value,Values,ValueSet,OfExpr) then
+            if Value.Kind=revkExternal then
+              begin
+              // external const
+              end
+            else if not AddValue(Value,Values,ValueSet,OfExpr) then
               RaiseIncompatibleTypeRes(20180424210815,nIncompatibleTypesGotExpected,
                 [],OfExprResolved,CaseExprResolved,OfExpr);
             ReleaseEvalValue(Value);
             end
-          else if (OfExprResolved.IdentEl is TPasConst)
-              and (TPasConst(OfExprResolved.IdentEl).Expr=nil) then
-            // externl const
           else
             RaiseMsg(20180518102047,nConstantExpressionExpected,sConstantExpressionExpected,[],OfExpr);
           end;
@@ -7376,7 +7376,7 @@ begin
           if bt in [btSet,btArrayOrSet] then
             begin
             if (StartResolved.IdentEl=nil) and (StartResolved.ExprEl<>nil) then
-              InRange:=Eval(StartResolved.ExprEl,[refAutoConst]);
+              InRange:=Eval(StartResolved.ExprEl,[]);
             if InRange=nil then
               InRange:=EvalTypeRange(StartResolved.LoTypeEl,[]);
             end
@@ -11684,6 +11684,7 @@ var
   ResolvedType: TPasResolverResult;
   EnumValue: TPasEnumValue;
   EnumType: TPasEnumType;
+  EvalFlags: TResEvalFlags;
 begin
   Result:=nil;
   if not (Expr.CustomData is TResolvedReference) then
@@ -11706,7 +11707,10 @@ begin
         end
       else
         ResolvedType.BaseType:=btNone;
-      Result:=fExprEvaluator.Eval(TPasConst(Decl).Expr,Flags+[refConst]);
+      EvalFlags:=Flags;
+      if not (refConstExt in EvalFlags) then
+        Include(EvalFlags,refConst);
+      Result:=fExprEvaluator.Eval(TPasConst(Decl).Expr,EvalFlags);
       if Result<>nil then
         begin
         if (Result.Element<>nil) and (Result.Element<>TPasConst(Decl).Expr) then
@@ -11739,9 +11743,18 @@ begin
           end;
         exit;
         end;
+      end
+    else if vmExternal in TPasConst(Decl).VarModifiers then
+      begin
+      Result:=TResEvalExternal.Create;
+      Result.IdentEl:=Decl;
+      exit;
       end;
     if refConst in Flags then
+      begin
+      ReleaseEvalValue(Result);
       RaiseConstantExprExp(20170518214928,Expr);
+      end;
     end
   else if C=TPasEnumValue then
     begin
@@ -11753,9 +11766,9 @@ begin
   else if C.InheritsFrom(TPasType) then
     Result:=EvalTypeRange(TPasType(Decl),Flags);
   {$IFDEF VerbosePasResEval}
-  writeln('TPasResolver.OnExprEvalIdentifier END Result=',dbgs(Result),' refConst=',refConst in Flags);
+  writeln('TPasResolver.OnExprEvalIdentifier END Result=',dbgs(Result),' refConst=',refConst in Flags,' refConstExt=',refConstExt in Flags);
   {$ENDIF}
-  if (Result=nil) and (refConst in Flags) then
+  if (Result=nil) and ([refConst,refConstExt]*Flags<>[]) then
     RaiseConstantExprExp(20170518213616,Expr);
 end;
 
@@ -11955,7 +11968,7 @@ begin
   {$IFDEF VerbosePasResEval}
   writeln('TPasResolver.EvalBaseTypeCast bt=',bt);
   {$ENDIF}
-  Value:=Eval(Params.Params[0],[refAutoConst]);
+  Value:=Eval(Params.Params[0],[refAutoConstExt]);
   if Value=nil then exit;
   try
     case Value.Kind of
@@ -12139,6 +12152,8 @@ begin
           Value:=nil;
           end;
         end;
+    revkExternal:
+      exit;
     else
       {$IFDEF VerbosePasResEval}
       writeln('TPasResolver.OnExprEvalParams typecast to ',bt);
@@ -12233,6 +12248,7 @@ var
   ParamResolved: TPasResolverResult;
   Value: TResEvalValue;
   Ranges: TPasExprArray;
+  IdentEl: TPasElement;
 begin
   Evaluated:=nil;
   // first param: string or dynamic array or type/const of static array
@@ -12263,10 +12279,11 @@ begin
       if length(Ranges)=0 then
         begin
         // open or dynamic array
-        if (ParamResolved.IdentEl is TPasVariable)
-            and (TPasVariable(ParamResolved.IdentEl).Expr is TPasExpr) then
+        IdentEl:=ParamResolved.IdentEl;
+        if (IdentEl is TPasVariable)
+            and (TPasVariable(IdentEl).Expr is TPasExpr) then
           begin
-          Expr:=TPasVariable(ParamResolved.IdentEl).Expr;
+          Expr:=TPasVariable(IdentEl).Expr;
           if Expr is TArrayValues then
             Evaluated:=TResEvalInt.CreateValue(length(TArrayValues(Expr).Values))
           else if (Expr is TParamsExpr) and (TParamsExpr(Expr).Kind=pekSet) then
@@ -15990,10 +16007,12 @@ begin
         exit(CheckRaiseTypeArgNo(20170216152417,ArgNo,Param,ParamResolved,'integer',RaiseOnError));
       if EmitHints then
         begin
-        ParamValue:=Eval(Param,[refAutoConst]);
+        ParamValue:=Eval(Param,[refAutoConstExt]);
         if ParamValue<>nil then
           try // has const value -> check range
-            if (ParamValue.Kind<>revkInt)
+            if ParamValue.Kind=revkExternal then
+              // ignore
+            else if (ParamValue.Kind<>revkInt)
                 or (TResEvalInt(ParamValue).Int<DynArrayMinIndex)
                 or (TResEvalInt(ParamValue).Int>DynArrayMaxIndex) then
               fExprEvaluator.EmitRangeCheckConst(20170520202212,ParamValue.AsString,
@@ -16366,7 +16385,7 @@ begin
     exit; // arrays and records are checked by element, not by the whole value
   if LTypeEl is TPasClassOfType then
     exit; // class-of are checked only by type, not by value
-  RValue:=Eval(RHS,[refAutoConst]);
+  RValue:=Eval(RHS,[refAutoConstExt]);
   if RValue=nil then
     exit; // not a const expression
   {$IFDEF VerbosePasResEval}
@@ -16374,7 +16393,9 @@ begin
   {$ENDIF}
   LRangeValue:=nil;
   try
-    if LeftResolved.BaseType=btCustom then
+    if RValue.Kind=revkExternal then
+      // skip
+    else if LeftResolved.BaseType=btCustom then
       CheckAssignExprRangeToCustom(LeftResolved,RValue,RHS)
     else if LeftResolved.BaseType=btSet then
       begin
@@ -16663,7 +16684,7 @@ begin
         // LHS is ansichar
         if GetActualBaseType(RHS.SubType)=btAnsiChar then
           exit(cExact);
-        RValue:=Eval(RHS,[refAutoConst]);
+        RValue:=Eval(RHS,[refAutoConstExt]);
         if RValue<>nil then
           try
             // ansichar:=constvalue
@@ -16677,6 +16698,8 @@ begin
                 exit(cIncompatible);
               wc:=TResEvalUTF16(RValue).S[1];
               end;
+            revkExternal:
+              exit(cCompatible);
             else
               RaiseNotYetImplemented(20171108194650,ErrorEl);
             end;
@@ -16857,7 +16880,7 @@ begin
             revskInt:
               if RHS.BaseType in btAllInteger then
                 begin
-                RValue:=Eval(RHS,[refAutoConst]);
+                RValue:=Eval(RHS,[refAutoConstExt]);
                 if RValue<>nil then
                   begin
                   // ToDo: check range
@@ -16867,7 +16890,7 @@ begin
             revskChar:
               if RHS.BaseType in btAllStringAndChars then
                 begin
-                RValue:=Eval(RHS,[refAutoConst]);
+                RValue:=Eval(RHS,[refAutoConstExt]);
                 if RValue<>nil then
                   begin
                   case RValue.Kind of
@@ -16882,6 +16905,8 @@ begin
                       exit(cIncompatible);
                     wc:=TResEvalUTF16(RValue).S[1];
                     end;
+                  revkExternal:
+                    exit(cCompatible);
                   else
                     RaiseNotYetImplemented(20171108192232,ErrorEl);
                   end;
@@ -16894,7 +16919,7 @@ begin
             revskBool:
               if RHS.BaseType=btBoolean then
                 begin
-                RValue:=Eval(RHS,[refAutoConst]);
+                RValue:=Eval(RHS,[refAutoConstExt]);
                 if RValue<>nil then
                   begin
                   // ToDo: check range
@@ -17045,7 +17070,7 @@ begin
             and (rrfReadable in RHS.Flags) then
           begin
           // GUIDVar := string, e.g. IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}'
-          Value:=Eval(RHS,[refConst]);
+          Value:=Eval(RHS,[refConstExt]);
           try
             if Value=nil then
               if RaiseOnIncompatible then
@@ -18324,7 +18349,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
       exit;
       end;
     // static array -> check length of string
-    Value:=Eval(Expr,[refAutoConst]);
+    Value:=Eval(Expr,[refAutoConst]); // no external const allowed
     try
       case Value.Kind of
       {$ifdef FPC_HAS_CPSTRING}

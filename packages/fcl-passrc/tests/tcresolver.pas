@@ -2725,9 +2725,18 @@ procedure TTestResolver.TestConstExternal;
 begin
   Parser.Options:=Parser.Options+[po_ExtConstWithoutExpr];
   StartProgram(false);
-  Add('const NaN: double; external name ''Global.Nan'';');
-  Add('begin');
+  Add([
+  'const',
+  '  PI: double; external name ''Global.PI'';',
+  '  Tau = 2*PI;',
+  '  TauD: double = 2*PI;',
+  'var',
+  '  d: double = PI;',
+  '  e: double = PI+Tau;',
+  'begin',
+  '  d:=pi+tau;']);
   ParseProgram;
+  // ToDo: fail on const Tau = 2*Var
 end;
 
 procedure TTestResolver.TestIntegerTypeCast;
@@ -12380,11 +12389,11 @@ begin
   '  TArrStr = array of string;',
   'const',
   '  Ints: TArrInt = (1,2,3);',
-  '  Names: array of string = (''a'',''foo'');',
   '  Aliases: TarrStr = (''foo'',''b'');',
   '  OneInt: TArrInt = (7);',
   '  OneInt2: array of integer = (7);',
   '  Chars: array of char = ''aoc'';',
+  '  Names: array of string = (''a'',''foo'');',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'procedure DoIt(Ints: TArrInt);',
   'begin',
@@ -12422,11 +12431,11 @@ begin
   '  TArrOfSet = array of TSetOfEnum;',
   'const',
   '  Ints: TArrInt = {#ints_array}[1,2,1];',
-  '  Names: array of string = {#names_array}[''a'',''a''];',
   '  Aliases: TarrStr = {#aliases_array}[''foo'',''b'',''b''];',
   '  OneInt: TArrInt = {#oneint_array}[7];',
   '  TwoInt: array of integer = {#twoint1_array}[7]+{#twoint2_array}[8];',
   '  Chars: array of char = ''aoc'';',
+  '  Names: array of string = {#names_array}[''a'',''a''];',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'procedure {#DoArrOfSet}DoIt(const s: TArrOfSet); overload; begin end;',
   'procedure {#DoArrOfArrInt}DoIt(const a: TArrInt2); overload; begin end;',

@@ -5190,17 +5190,21 @@ begin
   StartProgram(false);
   Add([
   'const',
-  '  NaN: double; external name ''Global.NaN'';',
+  '  PI: double; external name ''Global.PI'';',
+  '  Tau = 2*pi;',
   'var d: double;',
   'begin',
-  '  d:=NaN;']);
+  '  d:=pi;',
+  '  d:=tau+pi;']);
   ConvertProgram;
   CheckSource('TestConstExternal',
     LinesToStr([
+    'this.Tau = 2*Global.PI;',
     'this.d = 0.0;'
     ]),
     LinesToStr([
-    '$mod.d = Global.NaN;'
+    '$mod.d = Global.PI;',
+    '$mod.d = $mod.Tau + Global.PI;'
     ]));
 end;
 
@@ -7999,11 +8003,11 @@ begin
   '  TArrStr = array of string;',
   'const',
   '  Ints: TArrInt = (1,2,3);',
-  '  Names: array of string = (''a'',''foo'');',
   '  Aliases: TarrStr = (''foo'',''b'');',
   '  OneInt: TArrInt = (7);',
   '  OneStr: array of integer = (7);',
   '  Chars: array of char = ''aoc'';',
+  '  Names: array of string = (''a'',''foo'');',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'var i: integer;',
   'begin',
@@ -8022,11 +8026,11 @@ begin
   CheckSource('TestArray_DynArrayConstObjFPC',
     LinesToStr([ // statements
     'this.Ints = [1, 2, 3];',
-    'this.Names = ["a", "foo"];',
     'this.Aliases = ["foo", "b"];',
     'this.OneInt = [7];',
     'this.OneStr = [7];',
     'this.Chars = ["a", "o", "c"];',
+    'this.Names = ["a", "foo"];',
     'this.NameCount = (0 + (rtl.length($mod.Names) - 1)) + rtl.length($mod.Names);',
     'this.i = 0;',
     '']),
@@ -8056,11 +8060,11 @@ begin
   '  TArrStr = array of string;',
   'const',
   '  Ints: TArrInt = [1,1,2];',
-  '  Names: array of string = [''a'',''a''];',
   '  Aliases: TarrStr = [''foo'',''b''];',
   '  OneInt: TArrInt = [7];',
   '  OneStr: array of integer = [7]+[8];',
   '  Chars: array of char = ''aoc'';',
+  '  Names: array of string = [''a'',''a''];',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'begin',
   '']);
@@ -8068,11 +8072,11 @@ begin
   CheckSource('TestArray_DynArrayConstDelphi',
     LinesToStr([ // statements
     'this.Ints = [1, 1, 2];',
-    'this.Names = ["a", "a"];',
     'this.Aliases = ["foo", "b"];',
     'this.OneInt = [7];',
     'this.OneStr = rtl.arrayConcatN([7],[8]);',
     'this.Chars = ["a", "o", "c"];',
+    'this.Names = ["a", "a"];',
     'this.NameCount = (0 + (rtl.length($mod.Names) - 1)) + rtl.length($mod.Names);',
     '']),
     LinesToStr([ // $mod.$main

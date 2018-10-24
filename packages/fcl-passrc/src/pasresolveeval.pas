@@ -361,9 +361,10 @@ type
     {$endif}
     revkUnicodeString, // TResEvalUTF16
     revkEnum,     // TResEvalEnum
-    revkRangeInt, // range of enum, int, char, widechar, e.g. 1..2
-    revkRangeUInt, // range of uint, e.g. 1..2
-    revkSetOfInt  // set of enum, int, char, widechar, e.g. [1,2..3]
+    revkRangeInt, // TResEvalRangeInt: range of enum, int, char, widechar, e.g. 1..2
+    revkRangeUInt, // TResEvalRangeUInt: range of uint, e.g. 1..2
+    revkSetOfInt,  // set of enum, int, char, widechar, e.g. [1,2..3]
+    revkExternal // TResEvalExternal: an external const
     );
 const
   revkAllStrings = [{$ifdef FPC_HAS_CPSTRING}revkString,{$endif}revkUnicodeString];
@@ -372,6 +373,7 @@ type
   public
     Kind: TREVKind;
     IdentEl: TPasElement;
+    // Note: "Element" is used when the TResEvalValue is stored as CustomData of an Element
     constructor CreateKind(const aKind: TREVKind);
     function Clone: TResEvalValue; virtual;
     function AsDebugString: string; virtual;
@@ -586,9 +588,20 @@ type
     procedure ConsistencyCheck;
   end;
 
+  { TResEvalExternal }
+
+  TResEvalExternal = class(TResEvalValue)
+  public
+    constructor Create; override;
+    function Clone: TResEvalValue; override;
+    function AsString: string; override;
+  end;
+
   TResEvalFlag = (
     refConst, // computing a const, error if a value is not const
-    refAutoConst // set refConst if in a const
+    refConstExt, // as refConst, except allow external const
+    refAutoConst, // set refConst if in a const
+    refAutoConstExt // set refConstExt if in a const
     );
   TResEvalFlags = set of TResEvalFlag;
 
@@ -953,6 +966,24 @@ begin
     Result:=v.AsDebugString;
 end;
 
+{ TResEvalExternal }
+
+constructor TResEvalExternal.Create;
+begin
+  inherited Create;
+  Kind:=revkExternal;
+end;
+
+function TResEvalExternal.Clone: TResEvalValue;
+begin
+  Result:=inherited Clone;
+end;
+
+function TResEvalExternal.AsString: string;
+begin
+  Result:=inherited AsString;
+end;
+
 { TResEvalCurrency }
 
 constructor TResEvalCurrency.Create;
@@ -1187,6 +1218,8 @@ begin
           Result:=Result.Clone;
         TResEvalCurrency(Result).Value:=-TResEvalCurrency(Result).Value;
         end;
+      revkExternal:
+        exit;
       else
         begin
         if Result.Element=nil then
@@ -1226,6 +1259,8 @@ begin
           Result:=Result.Clone;
         TResEvalUInt(Result).UInt:=not TResEvalUInt(Result).UInt;
         end;
+      revkExternal:
+        exit;
       else
         begin
         if Result.Element=nil then
@@ -1263,6 +1298,24 @@ begin
     if LeftValue=nil then exit;
     RightValue:=Eval(Expr.right,Flags);
     if RightValue=nil then exit;
+
+    if LeftValue.Kind=revkExternal then
+      begin
+      if [refConst,refConstExt]*Flags=[refConst] then
+        RaiseConstantExprExp(20181024134508,Expr.left);
+      Result:=LeftValue;
+      LeftValue:=nil;
+      exit;
+      end;
+    if RightValue.Kind=revkExternal then
+      begin
+      if [refConst,refConstExt]*Flags=[refConst] then
+        RaiseConstantExprExp(20181024134545,Expr.right);
+      Result:=RightValue;
+      RightValue:=nil;
+      exit;
+      end;
+
     case Expr.Kind of
     pekRange:
       // leftvalue..rightvalue
@@ -3390,7 +3443,7 @@ begin
   end;
   if Result=nil then
     begin
-    if (refConst in Flags) then
+    if [refConst,refConstExt]*Flags<>[] then
       RaiseConstantExprExp(20170713124038,Expr);
     exit;
     end;
@@ -3408,7 +3461,7 @@ begin
   ArrayValue:=Eval(Expr.Value,Flags);
   if ArrayValue=nil then
     begin
-    if (refConst in Flags) then
+    if [refConst,refConstExt]*Flags<>[] then
       RaiseConstantExprExp(20170711181321,Expr.Value);
     exit;
     end;
@@ -3425,7 +3478,7 @@ begin
       IndexValue:=Eval(Param0,Flags);
       if IndexValue=nil then
         begin
-        if (refConst in Flags) then
+        if [refConst,refConstExt]*Flags<>[] then
           RaiseConstantExprExp(20170711181603,Param0);
         exit;
         end;
@@ -3466,7 +3519,7 @@ begin
       RaiseNotYetImplemented(20170711181507,Expr);
     end;
 
-    if (refConst in Flags) then
+    if [refConst,refConstExt]*Flags<>[] then
       RaiseConstantExprExp(20170522173150,Expr);
   finally
     ReleaseEvalValue(ArrayValue);
@@ -4133,6 +4186,12 @@ begin
     if IsConst(Expr) then
       Include(Flags,refConst);
     end;
+  if refAutoConstExt in Flags then
+    begin
+    Exclude(Flags,refAutoConstExt);
+    if IsConst(Expr) then
+      Include(Flags,refConstExt);
+    end;
 
   C:=Expr.ClassType;
   if C=TPrimitiveExpr then
@@ -4206,7 +4265,7 @@ begin
     Result:=EvalParamsExpr(TParamsExpr(Expr),Flags)
   else if C=TArrayValues then
     Result:=EvalArrayValuesExpr(TArrayValues(Expr),Flags)
-  else if refConst in Flags then
+  else if [refConst,refConstExt]*Flags<>[] then
     RaiseConstantExprExp(20170518213800,Expr);
   {$IFDEF VerbosePasResEval}
   writeln('TResExprEvaluator.Eval END ',Expr.ClassName,' result=',Result<>nil,' ',dbgs(Result));
