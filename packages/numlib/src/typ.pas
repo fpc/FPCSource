@@ -43,7 +43,9 @@ unit typ;
 {$I DIRECT.INC}                 {Contains "global" compilerswitches which
                                   are imported into every unit of the library }
 
+{$if sizeof(extended)=10}
 {$DEFINE ArbExtended}
+{$endif}
 
 interface
 
