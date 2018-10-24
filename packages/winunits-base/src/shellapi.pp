@@ -22,7 +22,7 @@
   {$PACKRECORDS C}
 {$else}
   {$PACKRECORDS 1}
-$endif}
+{$endif}
 {$calling stdcall}
 {$mode objfpc}
 
