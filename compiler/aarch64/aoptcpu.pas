@@ -128,10 +128,8 @@ Implementation
          (abs(taicpu(hp1).oper[2]^.val)<256)
         ) and
         { don't apply the optimization if the base register is loaded }
-        (p.oper[0]^.reg<>p.oper[1]^.ref^.base) and
+        (getsupreg(p.oper[0]^.reg)<>getsupreg(p.oper[1]^.ref^.base)) and
         not(RegModifiedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) and
-        { don't apply the optimization if the (new) index register is loaded }
-        (p.oper[0]^.reg<>taicpu(hp1).oper[2]^.reg) and
         not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) then
         begin
           DebugMsg('Peephole Str/LdrAdd/Sub2Str/Ldr Postindex done', p);
