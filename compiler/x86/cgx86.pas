@@ -376,6 +376,10 @@ unit cgx86;
       end;
 
 
+{ Range check must be disabled explicitly as the code serves
+  on three different architecture sizes }
+{$R-}
+
 {****************************************************************************
                        This is private property, keep out! :)
 ****************************************************************************}
