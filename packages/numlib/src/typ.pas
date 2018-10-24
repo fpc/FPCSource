@@ -43,14 +43,15 @@ unit typ;
 {$I DIRECT.INC}                 {Contains "global" compilerswitches which
                                   are imported into every unit of the library }
 
-{$if sizeof(extended)=10}
-{$DEFINE ArbExtended}
-{$endif}
 
 interface
 
 uses
   Math;
+
+{$if sizeof(extended)=10}
+{$DEFINE ArbExtended}
+{$endif}
 
 
 CONST numlib_version=2;         {used to detect version conflicts between
