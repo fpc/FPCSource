@@ -9,6 +9,7 @@ version=3.3.1
 [target]
 dirs_linux=linux
 dirs_win32=win32
+dirs_wdosx=win32
 dirs_wince=wince
 dirs_win64=win64
 dirs_go32v2=go32v2

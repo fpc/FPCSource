@@ -364,6 +364,9 @@ endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 override TARGET_DIRS+=openbsd
 endif
+ifeq ($(FULL_TARGET),i386-wdosx)
+override TARGET_DIRS+=win32
+endif
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_DIRS+=darwin
 endif
@@ -1811,6 +1814,9 @@ TARGET_DIRS_NETWARE=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_OPENBSD=1
+endif
+ifeq ($(FULL_TARGET),i386-wdosx)
+TARGET_DIRS_WIN32=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_DARWIN=1
