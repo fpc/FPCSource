@@ -5,7 +5,7 @@ program nodepas2js;
 uses
   JS, NodeJS, NodeJSFS, Math,
   Classes, SysUtils,
-  jsbase, jstree, jswriter,
+  jsbase, jstree, jswriter, jsonscanner,// JSSrcMap,
   fpjson,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver, PasUseAnalyzer,
   FPPas2Js,
