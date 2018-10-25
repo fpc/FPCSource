@@ -4132,7 +4132,6 @@ begin
     end;
 
   // El is a candidate (might be incompatible)
-  writeln('AAA1 TPasResolver.OnFindCallElements ',Data^.Distance,' ',Distance);
   if (Data^.Found=nil)
       or ((Data^.Distance=cIncompatible) and (Distance<cIncompatible)) then
     begin
