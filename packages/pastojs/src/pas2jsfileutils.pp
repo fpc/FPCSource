@@ -214,25 +214,329 @@ function TryCreateRelativePath(const Filename, BaseDirectory: String;
   - Filename = foo/bar BaseDirectory = bar/foo Result = False (no shared base directory)
   - Filename = /foo BaseDirectory = bar Result = False (mixed absolute and relative)
 }
+{$IFDEF Pas2js}
 begin
   Result:=false;
   RelPath:=Filename;
   if (BaseDirectory='') or (Filename='') then exit;
   writeln('TryCreateRelativePath ToDo: ',Filename,' Base=',BaseDirectory,' UsePointDirectory=',UsePointDirectory);
 end;
+{$ELSE}
+  function IsNameChar(c: char): boolean; inline;
+  begin
+    Result:=(c<>#0) and not (c in AllowDirectorySeparators);
+  end;
+
+var
+  UpDirCount: Integer;
+  ResultPos: Integer;
+  i: Integer;
+  FileNameRestLen, SharedDirs: Integer;
+  FileP, BaseP, FileEndP, BaseEndP: PChar;
+begin
+  Result:=false;
+  RelPath:=Filename;
+  if (BaseDirectory='') or (Filename='') then exit;
+  // check for different windows file drives
+  if (CompareText(ExtractFileDrive(Filename),
+                     ExtractFileDrive(BaseDirectory))<>0)
+  then
+    exit;
+
+  FileP:=PChar(Filename);
+  BaseP:=PChar(BaseDirectory);
+
+  //writeln('TryCreateRelativePath START File="',FileP,'" Base="',BaseP,'"');
+
+  // skip matching directories
+  SharedDirs:=0;
+  if FileP^ in AllowDirectorySeparators then
+  begin
+    if not (BaseP^ in AllowDirectorySeparators) then exit;
+    repeat
+      while FileP^ in AllowDirectorySeparators do inc(FileP);
+      while BaseP^ in AllowDirectorySeparators do inc(BaseP);
+      if (FileP^=#0) or (BaseP^=#0) then break;
+      //writeln('TryCreateRelativePath check match .. File="',FileP,'" Base="',BaseP,'"');
+      FileEndP:=FileP;
+      BaseEndP:=BaseP;
+      while IsNameChar(FileEndP^) do inc(FileEndP);
+      while IsNameChar(BaseEndP^) do inc(BaseEndP);
+      if CompareFilenames(copy(Filename,FileP-PChar(Filename)+1,FileEndP-FileP),
+        copy(BaseDirectory,BaseP-PChar(BaseDirectory)+1,BaseEndP-BaseP))<>0
+      then
+        break;
+      FileP:=FileEndP;
+      BaseP:=BaseEndP;
+      inc(SharedDirs);
+    until false;
+  end else if (BaseP^ in AllowDirectorySeparators) then
+    exit;
+
+  //writeln('TryCreateRelativePath skipped matches File="',FileP,'" Base="',BaseP,'"');
+  if SharedDirs=0 then exit;
+
+  // calculate needed '../'
+  UpDirCount:=0;
+  BaseEndP:=BaseP;
+  while IsNameChar(BaseEndP^) do begin
+    inc(UpDirCount);
+    while IsNameChar(BaseEndP^) do inc(BaseEndP);
+    while BaseEndP^ in AllowDirectorySeparators do inc(BaseEndP);
+  end;
+
+  //writeln('TryCreateRelativePath UpDirCount=',UpDirCount,' File="',FileP,'" Base="',BaseP,'"');
+  // create relative filename
+  if (FileP^=#0) and (UpDirCount=0) then
+  begin
+    // Filename is the BaseDirectory
+    if UsePointDirectory then
+      RelPath:='.'
+    else
+      RelPath:='';
+    exit(true);
+  end;
+
+  FileNameRestLen:=length(Filename)-(FileP-PChar(Filename));
+  SetLength(RelPath,3*UpDirCount+FileNameRestLen);
+  ResultPos:=1;
+  for i:=1 to UpDirCount do begin
+    RelPath[ResultPos]:='.';
+    RelPath[ResultPos+1]:='.';
+    RelPath[ResultPos+2]:=PathDelim;
+    inc(ResultPos,3);
+  end;
+  if FileNameRestLen>0 then
+    Move(FileP^,RelPath[ResultPos],FileNameRestLen);
+  Result:=true;
+end;
+{$ENDIF}
 
 function ResolveDots(const AFilename: string): string;
 //trim double path delims and expand special dirs like .. and .
 //on Windows change also '/' to '\' except for filenames starting with '\\?\'
+{$IFDEF Pas2js}
 var
   Len: Integer;
 begin
   Len:=length(AFilename);
   if Len=0 then exit('');
-
   Result:=AFilename;
   writeln('ResolveDots ToDo ',AFilename);
 end;
+{$ELSE}
+
+  {$ifdef windows}
+  function IsDriveDelim(const Path: string; p: integer): boolean; inline;
+  begin
+    Result:=(p=2) and (Path[2]=DriveDelim) and (Path[1] in ['a'..'z','A'..'Z']);
+  end;
+  {$endif}
+
+  function IsPathDelim(const Path: string; p: integer): boolean;
+  begin
+    if (p<=0) or (Path[p]=PathDelim) then exit(true);
+    {$ifdef windows}
+    if IsDriveDelim(Path,p) then
+      exit(true);
+    {$endif}
+    Result:=false;
+  end;
+
+var SrcPos, DestPos, Len, DirStart: integer;
+  c: char;
+  MacroPos: LongInt;
+begin
+  Len:=length(AFilename);
+  if Len=0 then exit('');
+
+  Result:=AFilename;
+
+  {$ifdef windows}
+  //Special case: everything is literal after this, even dots (this does not apply to '//?/')
+  if (length(AFilename)>=4) and (AFilename[1]='\') and (AFilename[2]='\')
+  and (AFilename[3]='?') and (AFilename[4]='\') then
+    exit;
+  {$endif}
+
+  SrcPos:=1;
+  DestPos:=1;
+
+  // trim double path delimiters and special dirs . and ..
+  while (SrcPos<=Len) do begin
+    c:=AFilename[SrcPos];
+    {$ifdef windows}
+    //change / to \. The WinApi accepts both, but it leads to strange effects in other places
+    if (c in AllowDirectorySeparators) then c := PathDelim;
+    {$endif}
+    // check for duplicate path delims
+    if (c=PathDelim) then
+    begin
+      inc(SrcPos);
+      {$IFDEF Windows}
+      if (DestPos>2)
+      {$ELSE}
+      if (DestPos>1)
+      {$ENDIF}
+      and (Result[DestPos-1]=PathDelim) then
+      begin
+        // skip duplicate PathDelim
+        continue;
+      end;
+      Result[DestPos]:=c;
+      inc(DestPos);
+      continue;
+    end;
+    // check for special dirs . and ..
+    if (c='.') then
+    begin
+      if (SrcPos<Len) then
+      begin
+        if (AFilename[SrcPos+1] in AllowDirectorySeparators)
+        and IsPathDelim(Result,DestPos-1) then
+        begin
+          // special dir ./ or */./
+          // -> skip
+          inc(SrcPos,2);
+          while (SrcPos<=Len) and (AFilename[SrcPos] in AllowDirectorySeparators) do
+            inc(SrcPos);
+          continue;
+        end else if (AFilename[SrcPos+1]='.')
+        and ((SrcPos+1=Len) or (AFilename[SrcPos+2] in AllowDirectorySeparators)) then
+        begin
+          // special dir ..
+          //  1. ..      -> copy
+          //  2. /..     -> skip .., keep /
+          //  3. C:..    -> copy
+          //  4. C:\..   -> skip .., keep C:\
+          //  5. \\..    -> skip .., keep \\
+          //  6. ../..   -> copy because if the first '..' was not resolved, the next can't neither
+          //  7. dir/..  -> trim dir and ..
+          //  8. dir$macro/..  -> copy
+          if DestPos=1 then
+          begin
+            //  1. .. or ../  -> copy
+          end else if (DestPos=2) and (Result[1]=PathDelim) then
+          begin
+            //  2. /..     -> skip .., keep /
+            inc(SrcPos,2);
+            continue;
+          {$IFDEF Windows}
+          end else if (DestPos=3) and IsDriveDelim(Result,2) then
+          begin
+            //  3. C:..    -> copy
+          end else if (DestPos=4) and (Result[3]=PathDelim)
+          and IsDriveDelim(Result,2) then
+          begin
+            //  4. C:\..   -> skip .., keep C:\
+            inc(SrcPos,2);
+            continue;
+          end else if (DestPos=3) and (Result[1]=PathDelim)
+          and (Result[2]=PathDelim) then
+          begin
+            //  5. \\..    -> skip .., keep \\
+            inc(SrcPos,2);
+            continue;
+          {$ENDIF}
+          end else if (DestPos>1) and (Result[DestPos-1]=PathDelim) then
+          begin
+            // */.
+            if (DestPos>3)
+            and (Result[DestPos-2]='.') and (Result[DestPos-3]='.')
+            and IsPathDelim(Result,DestPos-4) then
+            begin
+              //  6. ../..   -> copy because if the first '..' was not resolved, the next can't neither
+            end else begin
+              //  7. xxxdir/..  -> trim dir and skip ..
+              DirStart:=DestPos-2;
+              while (DirStart>1) and (Result[DirStart-1]<>PathDelim) do
+                dec(DirStart);
+              {$ifdef windows}
+              if (DirStart=1) and IsDriveDelim(Result,2) then
+                inc(DirStart,2);
+              {$endif}
+              MacroPos:=DirStart;
+              while MacroPos<DestPos do begin
+                if (Result[MacroPos]='$')
+                and (Result[MacroPos+1] in ['(','a'..'z','A'..'Z']) then
+                begin
+                  // 8. directory contains a macro -> keep
+                  break;
+                end;
+                inc(MacroPos);
+              end;
+              if MacroPos=DestPos then
+              begin
+                // previous directory does not contain a macro -> remove dir/..
+                DestPos:=DirStart;
+                inc(SrcPos,2);
+                //writeln('ResolveDots ',DestPos,' SrcPos=',SrcPos,' File="',AFilename,'" Result="',copy(Result,1,DestPos-1),'"');
+                if SrcPos>Len then
+                begin
+                  // '..' at end of filename
+                  if (DestPos>1) and (Result[DestPos-1]=PathDelim) then
+                  begin
+                    // foo/dir/.. -> foo
+                    dec(DestPos);
+                  end else if (DestPos=1) then
+                  begin
+                    // foo/.. -> .
+                    Result[1]:='.';
+                    DestPos:=2;
+                  end;
+                end else if DestPos=1 then
+                begin
+                  // e.g. 'foo/../'
+                  while (SrcPos<=Len) and (AFilename[SrcPos] in AllowDirectorySeparators) do
+                    inc(SrcPos);
+                end;
+                continue;
+              end;
+            end;
+          end;
+        end;
+      end else begin
+        // special dir . at end of filename
+        if DestPos=1 then
+        begin
+          Result:='.';
+          exit;
+        end;
+        if (DestPos>2) and (Result[DestPos-1]=PathDelim)
+        {$ifdef windows}
+        and not IsDriveDelim(Result,DestPos-2)
+        {$endif}
+        then begin
+          // foo/. -> foo
+          // C:foo\. -> C:foo
+          // C:\. -> C:\
+          dec(DestPos);
+        end;
+        break;
+      end;
+    end;
+    // copy directory
+    repeat
+      Result[DestPos]:=c;
+      inc(DestPos);
+      inc(SrcPos);
+      if (SrcPos>Len) then break;
+      c:=AFilename[SrcPos];
+      {$ifdef windows}
+      //change / to \. The WinApi accepts both, but it leads to strange effects in other places
+      if (c in AllowDirectorySeparators) then c := PathDelim;
+      {$endif}
+      if c=PathDelim then break;
+    until false;
+  end;
+  // trim result
+  if DestPos<=length(AFilename) then
+    if (DestPos=1) then
+      Result:='.'
+    else
+      SetLength(Result,DestPos-1);
+end;
+{$ENDIF}
 
 procedure ForcePathDelims(Var FileName: string);
 begin
@@ -245,10 +549,18 @@ var
   c: Char;
 begin
   Result:=Filename;
+  {$IFDEF Pas2js}
   if PathDelim='/' then
     c:='\'
   else
     c:='/';
+  {$ELSE}
+  {$IFDEF Windows}
+  c:='/';
+  {$ELSE}
+  c:='/';
+  {$ENDIF}
+  {$ENDIF}
   for i:=1 to length(Result) do
     if Result[i]=c then
       Result[i]:=PathDelim;
@@ -274,17 +586,87 @@ end;
 
 function CompareFilenames(const File1, File2: string): integer;
 begin
+  {$IFDEF Pas2js}
   writeln('CompareFilenames ToDo ',File1,' ',File2);
   Result:=0;
+  {$ELSE}
+  Result:=AnsiCompareFileName(File1,File2);
+  {$ENDIF}
 end;
 
 function MatchGlobbing(Mask, Name: string): boolean;
 // match * and ?
+{$IFDEF Pa2js}
 begin
   if Mask='' then exit(Name='');
   writeln('MatchGlobbing ToDo ',Mask,' Name=',Name);
   Result:=false;
 end;
+{$ELSE}
+
+  function IsNameEnd(NameP: PChar): boolean; inline;
+  begin
+    Result:=(NameP^=#0) and (NameP-PChar(Name)=length(Name));
+  end;
+
+  function Check(MaskP, NameP: PChar): boolean;
+  var
+    c: Integer;
+  begin
+    repeat
+      case MaskP^ of
+      #0:
+        exit(IsNameEnd(NameP));
+      '?':
+        if not IsNameEnd(NameP) then
+        begin
+          inc(MaskP);
+          c:=UTF8CharacterStrictLength(NameP);
+          if c<1 then c:=1;
+          inc(NameP,c);
+        end else
+          exit(false);
+      '*':
+        begin
+          repeat
+            inc(MaskP);
+          until MaskP^<>'*';
+          if MaskP=#0 then exit(true);
+          while not IsNameEnd(NameP) do begin
+            inc(NameP);
+            if Check(MaskP,NameP) then exit(true);
+          end;
+          exit(false);
+        end;
+      else
+        if NameP^<>MaskP^ then exit(false);
+        c:=UTF8CharacterStrictLength(MaskP);
+        if c<1 then c:=1;
+        inc(MaskP);
+        c:=UTF8CharacterStrictLength(NameP);
+        if c<1 then c:=1;
+        inc(NameP,c);
+      end;
+    until false;
+  end;
+
+var
+  MaskP: PChar;
+begin
+  if Mask='' then exit(Name='');
+  {$IFDEF CaseInsensitiveFilenames}
+  Mask:=AnsiLowerCase(Mask);
+  Name:=AnsiLowerCase(Name);
+  {$ENDIF}
+  MaskP:=PChar(Mask);
+  while (MaskP^='*') and (MaskP[1]='*') do inc(MaskP);
+  if (MaskP^='*') and (MaskP[1]=#0) then
+    exit(true); // the * mask fits all, even the empty string
+  if Name='' then
+    exit(false);
+  Result:=Check(MaskP,PChar(Name));
+end;
+{$ENDIF}
 
 function GetNextDelimitedItem(const List: string; Delimiter: char;
   var Position: integer): string;
