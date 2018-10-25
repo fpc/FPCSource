@@ -392,6 +392,7 @@ type
     Procedure TestProcOverloadWithBaseTypes2;
     Procedure TestProcOverloadWithDefaultArgs;
     Procedure TestProcOverloadNearestHigherPrecision;
+    Procedure TestProcOverloadForLoopIntDouble;
     Procedure TestProcOverloadStringArgCount;
     Procedure TestProcCallLowPrecision;
     Procedure TestProcOverloadUntyped;
@@ -6037,6 +6038,21 @@ begin
   'var w: word;',
   'begin',
   '  {@longint}DoIt(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadForLoopIntDouble;
+begin
+  StartProgram(false);
+  Add([
+  'function {#int}Max(a,b: longint): longint; external; overload;',
+  'function {#double}Max(a,b: double): double; external; overload;',
+  'var',
+  '  i: longint;',
+  '  S: string;',
+  'begin',
+  '  for i:=0 to Max(length(s),1) do ;',
   '']);
   ParseProgram;
 end;

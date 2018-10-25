@@ -1271,9 +1271,10 @@ type
       cAliasExact = cExact+1;
       cCompatible = cAliasExact+1;
       cIntToIntConversion = ord(High(TResolverBaseType));
-      cToFloatConversion = 2*cIntToIntConversion;
+      cFloatToFloatConversion = 2*cIntToIntConversion;
       cTypeConversion = cExact+10000; // e.g. TObject to Pointer
       cLossyConversion = cExact+100000;
+      cIntToFloatConversion = cExact+400000; // int to float is worse than bigint to smallint
       cIncompatible = High(integer);
     var
       cTGUIDToString: integer;
@@ -1313,7 +1314,7 @@ type
     procedure OnFindFirstElement(El: TPasElement; ElScope, StartScope: TPasScope;
       FindFirstElementData: Pointer; var Abort: boolean); virtual;
     procedure OnFindCallElements(El: TPasElement; ElScope, StartScope: TPasScope;
-      FindProcsData: Pointer; var Abort: boolean); virtual;
+      FindProcsData: Pointer; var Abort: boolean); virtual; // find candidates for Name(params)
     procedure OnFindOverloadProc(El: TPasElement; ElScope, StartScope: TPasScope;
       FindOverloadData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
@@ -4131,6 +4132,7 @@ begin
     end;
 
   // El is a candidate (might be incompatible)
+  writeln('AAA1 TPasResolver.OnFindCallElements ',Data^.Distance,' ',Distance);
   if (Data^.Found=nil)
       or ((Data^.Distance=cIncompatible) and (Distance<cIncompatible)) then
     begin
@@ -4154,9 +4156,11 @@ begin
     writeln('TPasResolver.OnFindCallElements Found another candidate, but it is incompatible -> ignore')
     {$ENDIF}
   else if (Data^.Distance=Distance)
-      or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)) then
+      or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)
+          and ((Distance>=cIntToFloatConversion)=(Data^.Distance>=cIntToFloatConversion))) then
     begin
-    // found another compatible one -> collect
+    // found another similar compatible one -> collect
+    // Note: cLossyConversion is better than cIntToFloatConversion, not similar
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Found another candidate Distance=',Distance,' OldDistance=',Data^.Distance);
     {$ENDIF}
@@ -4183,13 +4187,13 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Found a better candidate Distance=',Distance,' Data^.Distance=',Data^.Distance);
     {$ENDIF}
-    Data^.Found:=El;
-    Data^.ElScope:=ElScope;
-    Data^.StartScope:=StartScope;
-    Data^.Distance:=Distance;
-    if (Distance<cLossyConversion) then
+    if (Distance<cLossyConversion)
+        or ((Distance>=cIntToFloatConversion)<>(Data^.Distance>=cIntToFloatConversion)) then
       begin
       // found a good one
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.OnFindCallElements Found a good candidate Distance=',Distance,' Data^.Distance=',Data^.Distance);
+      {$ENDIF}
       Data^.Count:=1;
       if Data^.List<>nil then
         Data^.List.Clear;
@@ -4198,10 +4202,21 @@ begin
       begin
       // found another lossy one
       // -> collect them
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.OnFindCallElements Found another lossy candidate Distance=',Distance,' Data^.Distance=',Data^.Distance);
+      {$ENDIF}
       inc(Data^.Count);
       end;
+    Data^.Found:=El;
+    Data^.ElScope:=ElScope;
+    Data^.StartScope:=StartScope;
+    Data^.Distance:=Distance;
     if Data^.List<>nil then
       Data^.List.Add(El);
+    end
+  else
+    begin
+    // found a worse one
     end;
 end;
 
@@ -15918,7 +15933,10 @@ begin
         exit(cIncompatible);
         end;
       end;
-    inc(Result,ParamCompatibility);
+    if Result<cTypeConversion then
+      inc(Result,ParamCompatibility)
+    else
+      Result:=Max(Result,ParamCompatibility);
     inc(i);
     end;
   if (i<ProcArgs.Count) then
@@ -16120,7 +16138,8 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.CheckOverloadProcCompatibility ',i,'/',ProcArgs1.Count);
     {$ENDIF}
-    if not CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i])) then
+    if not CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),
+                                     TPasArgument(ProcArgs2[i])) then
       exit;
     end;
   Result:=true;
@@ -16812,28 +16831,38 @@ begin
       end;
       end
     else if (LBT in btAllFloats)
-        and (RBT in (btAllFloats+btAllInteger)) then
+        and (RBT in btAllFloats) then
       begin
-      Result:=cToFloatConversion+ord(LBT)-ord(RBT);
+      Result:=cFloatToFloatConversion+ord(LBT)-ord(RBT);
       case LBT of
       btSingle:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
-            btIntSingle,btUIntSingle]) then
+        if RBT>btSingle then
           inc(Result,cLossyConversion);
       btDouble:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
-            btIntSingle,btUIntSingle,btSingle,
-            btLongWord,btLongint,
-            btIntDouble,btUIntDouble]) then
+        if RBT>btDouble then
           inc(Result,cLossyConversion);
       btExtended,btCExtended:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
-            btIntSingle,btUIntSingle,btSingle,
-            btLongWord,btLongint,
-            {$ifdef HasInt64}
-            btInt64,btComp,
-            {$endif}
-            btIntDouble,btUIntDouble,btDouble]) then
+        if RBT>btCExtended then
+          inc(Result,cLossyConversion);
+      btCurrency:
+        inc(Result,cLossyConversion);
+      else
+        RaiseNotYetImplemented(20170417205910,ErrorEl,BaseTypeNames[LBT]);
+      end;
+      end
+    else if (LBT in btAllFloats)
+        and (RBT in btAllInteger) then
+      begin
+      Result:=cIntToFloatConversion+ord(LBT)-ord(RBT);
+      case LBT of
+      btSingle:
+        if RBT>btUIntSingle then
+          inc(Result,cLossyConversion);
+      btDouble:
+        if RBT>btUIntDouble then
+          inc(Result,cLossyConversion);
+      btExtended,btCExtended:
+        if RBT>btCExtended then
           inc(Result,cLossyConversion);
       btCurrency:
         if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
@@ -16841,7 +16870,7 @@ begin
             btLongWord,btLongint]) then
           inc(Result,cLossyConversion);
       else
-        RaiseNotYetImplemented(20170417205910,ErrorEl,BaseTypeNames[LBT]);
+        RaiseNotYetImplemented(20170417205911,ErrorEl,BaseTypeNames[LBT]);
       end;
       end
     else if LBT=btNil then
