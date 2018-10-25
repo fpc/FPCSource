@@ -886,6 +886,7 @@ implementation
                else if (asminfo^.id=as_x86_64_masm) and
                  (fixed_opcode=A_MOVQ) then
                  writer.AsmWrite(#9#9'mov')
+{$ifdef I386}
                else if (asminfo^.id = as_i386_wasm) and ((fixed_opcode=A_RETD)
                        or (fixed_opcode=A_RETND) or (fixed_opcode=A_RETFD)) then
                  begin
@@ -899,6 +900,7 @@ implementation
                          writer.AsmWrite(#9#9'retf');
                    end
                  end
+{$endif I386}
                else
                  writer.AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]+suffix);
                if taicpu(hp).ops<>0 then
