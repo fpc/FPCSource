@@ -21,7 +21,6 @@
 unit Pas2jsLogger;
 
 {$mode objfpc}{$H+}
-{$inline on}
 
 {$i pas2js_defines.inc}
 

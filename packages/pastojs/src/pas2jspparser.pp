@@ -19,7 +19,8 @@
 unit Pas2jsPParser;
 
 {$mode objfpc}{$H+}
-{$inline on}
+
+{$i pas2js_defines.inc}
 
 interface
 
@@ -40,10 +41,9 @@ type
     FLog: TPas2jsLogger;
   public
     constructor Create(AScanner: TPascalScanner;
-      AFileResolver: TBaseFileResolver; AEngine: TPasTreeContainer);
-    procedure SetLastMsg(MsgType: TMessageType; MsgNumber: integer;
-      Const Fmt : String; Args : Array of const);
-    procedure RaiseParserError(MsgNumber: integer; Args: array of const);
+      AFileResolver: TBaseFileResolver; AEngine: TPasTreeContainer); reintroduce;
+    procedure RaiseParserError(MsgNumber: integer;
+      Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
     procedure ParseSubModule(var Module: TPasModule);
     property Log: TPas2jsLogger read FLog write FLog;
   end;
@@ -115,13 +115,8 @@ begin
   Options:=Options+po_pas2js;
 end;
 
-procedure TPas2jsPasParser.SetLastMsg(MsgType: TMessageType;
-  MsgNumber: integer; const Fmt: String; Args: array of const);
-begin
-  inherited SetLastMsg(MsgType,MsgNumber,Fmt,Args);
-end;
-
-procedure TPas2jsPasParser.RaiseParserError(MsgNumber: integer; Args: array of const);
+procedure TPas2jsPasParser.RaiseParserError(MsgNumber: integer;
+  Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
 var
   Msg: TPas2jsMessage;
 begin
@@ -154,7 +149,7 @@ function TPas2jsCompilerResolver.CreateElement(AClass: TPTreeElement;
 begin
   if AClass=TFinalizationSection then
     (CurrentParser as TPas2jsPasParser).RaiseParserError(nFinalizationNotSupported,[]);
-  Result:=inherited;
+  Result:=inherited CreateElement(AClass,AName,AParent,AVisibility,ASrcPos);
   if (Result is TPasModule) then
     OnCheckSrcName(Result);
 end;

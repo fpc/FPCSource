@@ -596,7 +596,7 @@ end;
 
 function MatchGlobbing(Mask, Name: string): boolean;
 // match * and ?
-{$IFDEF Pa2js}
+{$IFDEF Pas2js}
 begin
   if Mask='' then exit(Name='');
   writeln('MatchGlobbing ToDo ',Mask,' Name=',Name);
