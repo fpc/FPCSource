@@ -49,7 +49,7 @@ Type
     FOnWriting: TTextWriterWriting;
   protected
     Function DoWrite(Const S : TJSWriterString) : Integer; virtual; abstract;
-    {$ifdef fpc}
+    {$ifdef FPC_HAS_CPSTRING}
     Function DoWrite(Const S : UnicodeString) : Integer; virtual; abstract;
     {$endif}
     procedure SetCurElement(const AValue: TJSElement); virtual;
@@ -57,7 +57,7 @@ Type
   Public
     // All functions return the number of bytes copied to output stream.
     constructor Create;
-    {$ifdef fpc}
+    {$ifdef FPC_HAS_CPSTRING}
     Function Write(Const S : UnicodeString) : Integer;
     {$endif}
     Function Write(Const S : TJSWriterString) : Integer;
@@ -105,13 +105,13 @@ Type
     {$endif}
     function GetBufferLength: Integer;
     function GetCapacity: Cardinal;
-    {$ifdef fpc}
+    {$ifdef FPC_HAS_CPSTRING}
     function GetUnicodeString: UnicodeString;
     {$endif}
     procedure SetCapacity(AValue: Cardinal);
   Protected
     Function DoWrite(Const S : TJSWriterString) : integer; override;
-    {$ifdef fpc}
+    {$ifdef FPC_HAS_CPSTRING}
     Function DoWrite(Const S : UnicodeString) : integer; override;
     {$endif}
   Public
@@ -123,7 +123,7 @@ Type
     Property BufferLength : Integer Read GetBufferLength;
     Property Capacity : Cardinal Read GetCapacity Write SetCapacity;
     Property AsString : TJSWriterString Read GetAsString;
-    {$ifdef fpc}
+    {$ifdef FPC_HAS_CPSTRING}
     Property AsAnsiString : AnsiString Read GetAsString; deprecated 'use AsString instead, fpc 3.3.1';
     Property AsUnicodeString : UnicodeString Read GetUnicodeString;
     {$endif}
@@ -138,7 +138,7 @@ Type
   { TJSWriter }
 
   TWriteOption = (woCompact,
-                  {$ifdef fpc}
+                  {$ifdef FPC_HAS_CPSTRING}
                   woUseUTF8,
                   {$endif}
                   woTabIndent,
@@ -168,12 +168,12 @@ Type
     Procedure Error(Const Msg : TJSWriterString);
     Procedure Error(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif});
     Procedure WriteIndent; // inline;
-    {$ifdef fpc}
+    {$ifdef FPC_HAS_CPSTRING}
     Procedure Write(Const U : UnicodeString);
     {$endif}
     Procedure Write(Const S : TJSWriterString);
     Procedure WriteLn(Const S : TJSWriterString);
-    {$ifdef fpc}
+    {$ifdef FPC_HAS_CPSTRING}
     Procedure WriteLn(Const U : UnicodeString);
     {$endif}
     // one per type of statement
@@ -229,7 +229,7 @@ Type
   end;
   EJSWriter = Class(Exception);
 
-{$ifdef fpc}
+{$ifdef FPC_HAS_CPSTRING}
 Function UTF16ToUTF8(const S: UnicodeString): string;
 {$endif}
 
@@ -239,7 +239,7 @@ Resourcestring
   SErrUnknownJSClass = 'Unknown javascript element class : %s';
   SErrNilNode = 'Nil node in Javascript';
 
-{$ifdef fpc}
+{$ifdef FPC_HAS_CPSTRING}
 function HexDump(p: PChar; Count: integer): string;
 var
   i: Integer;
@@ -291,7 +291,7 @@ begin
   Result:=Length(FBuffer);
 end;
 
-{$ifdef fpc}
+{$ifdef FPC_HAS_CPSTRING}
 function TBufferWriter.GetUnicodeString: UnicodeString;
 
 Var
@@ -343,7 +343,7 @@ begin
 end;
 {$endif}
 
-{$ifdef fpc}
+{$ifdef FPC_HAS_CPSTRING}
 Function TBufferWriter.DoWrite(Const S: UnicodeString): integer;
 
 Var
@@ -401,7 +401,7 @@ end;
 
 function TJSWriter.GetUseUTF8: Boolean;
 begin
-  Result:={$ifdef pas2js}false{$else}(woUseUTF8 in Options){$endif};
+  Result:={$ifdef FPC_HAS_CPSTRING}(woUseUTF8 in Options){$else}false{$endif};
 end;
 
 procedure TJSWriter.Error(const Msg: TJSWriterString);
@@ -409,7 +409,8 @@ begin
   Raise EJSWriter.Create(Msg);
 end;
 
-procedure TJSWriter.Error(const Fmt: TJSWriterString; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
+procedure TJSWriter.Error(const Fmt: TJSWriterString;
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
 begin
   Raise EJSWriter.CreateFmt(Fmt,Args);
 end;
@@ -437,7 +438,7 @@ begin
     FCurIndent:=0;
 end;
 
-{$ifdef fpc}
+{$ifdef FPC_HAS_CPSTRING}
 procedure TJSWriter.Write(const U: UnicodeString);
 
 Var
@@ -462,7 +463,7 @@ end;
 
 procedure TJSWriter.Write(const S: TJSWriterString);
 begin
-  {$ifdef fpc}
+  {$ifdef FPC_HAS_CPSTRING}
   if Not (woUseUTF8 in Options) then
     Write(UnicodeString(S))
   else
@@ -477,7 +478,7 @@ end;
 
 procedure TJSWriter.WriteLn(const S: TJSWriterString);
 begin
-  {$ifdef fpc}
+  {$ifdef FPC_HAS_CPSTRING}
   if Not (woUseUTF8 in Options) then
     Writeln(UnicodeString(S))
   else
@@ -490,7 +491,7 @@ begin
     end;
 end;
 
-{$ifdef fpc}
+{$ifdef FPC_HAS_CPSTRING}
 procedure TJSWriter.WriteLn(const U: UnicodeString);
 Var
   S : String;
@@ -799,7 +800,7 @@ constructor TJSWriter.Create(AWriter: TTextWriter);
 begin
   FWriter:=AWriter;
   FIndentChar:=' ';
-  FOptions:=[{$ifdef fpc}woUseUTF8{$endif}];
+  FOptions:=[{$ifdef FPC_HAS_CPSTRING}woUseUTF8{$endif}];
 end;
 
 {$ifdef fpc}
@@ -1832,7 +1833,7 @@ begin
   FCurColumn:=1;
 end;
 
-{$ifdef fpc}
+{$ifdef FPC_HAS_CPSTRING}
 function TTextWriter.Write(const S: UnicodeString): Integer;
 var
   p: PWideChar;
@@ -1974,7 +1975,8 @@ begin
     end;
 end;
 
-function TTextWriter.WriteLn(const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
+function TTextWriter.WriteLn(
+  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 begin
   Result:=Write(Args)+Writeln('');
 end;
