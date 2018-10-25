@@ -18,6 +18,10 @@ unit jswriter;
 { $DEFINE DEBUGJSWRITER}
 {AllowWriteln}
 
+{$if defined(fpc) or defined(NodeJS)}
+  {$define HasFileWriter}
+{$endif}
+
 interface
 
 uses
@@ -72,17 +76,22 @@ Type
     Property OnWriting: TTextWriterWriting read FOnWriting write FOnWriting;
   end;
 
-  {$ifdef fpc}
+  {$ifdef HasFileWriter}
   { TFileWriter }
 
   TFileWriter = Class(TTextWriter)
   Protected
+    {$ifdef NodeJS}
+    {$else}
     FFile : Text;
+    {$endif}
     FFileName : String;
     Function DoWrite(Const S : TJSWriterString) : Integer; override;
+    {$ifdef FPC_HAS_CPSTRING}
     Function DoWrite(Const S : UnicodeString) : Integer; override;
+    {$endif}
   Public
-    Constructor Create(Const AFileNAme : String);
+    Constructor Create(Const AFileName : String); reintroduce;
     Destructor Destroy; override;
     Procedure Flush;
     Procedure Close;
@@ -214,7 +223,7 @@ Type
   Public
     Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): TJSString;
     Constructor Create(AWriter : TTextWriter);
-    {$ifdef fpc}
+    {$ifdef HasFileWriter}
     Constructor Create(Const AFileName : String);
     {$endif}
     Destructor Destroy; override;
@@ -803,7 +812,7 @@ begin
   FOptions:=[{$ifdef FPC_HAS_CPSTRING}woUseUTF8{$endif}];
 end;
 
-{$ifdef fpc}
+{$ifdef HasFileWriter}
 constructor TJSWriter.Create(const AFileName: String);
 begin
   Create(TFileWriter.Create(AFileName));
@@ -1774,27 +1783,37 @@ begin
   FSkipCurlyBrackets:=False;
 end;
 
-{$ifdef fpc}
+{$ifdef HasFileWriter}
 { TFileWriter }
 
 Function TFileWriter.DoWrite(Const S: TJSWriterString) : Integer;
 begin
   Result:=Length(S);
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.DoWrite ToDo ',S);
+  {$else}
   system.Write(FFile,S);
+  {$endif}
 end;
 
+{$ifdef FPC_HAS_CPSTRING}
 Function TFileWriter.DoWrite(Const S: UnicodeString) : Integer;
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
   system.Write(FFile,S);
 end;
+{$endif}
 
-Constructor TFileWriter.Create(Const AFileNAme: String);
+Constructor TFileWriter.Create(Const AFileName: String);
 begin
   inherited Create;
   FFileName:=AFileName;
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.Create ToDo ',AFileName);
+  {$else}
   Assign(FFile,AFileName);
   Rewrite(FFile);
+  {$endif}
 end;
 
 Destructor TFileWriter.Destroy;
@@ -1805,12 +1824,20 @@ end;
 
 Procedure TFileWriter.Flush;
 begin
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.Flush ToDO');
+  {$else}
   system.Flush(FFile);
+  {$endif}
 end;
 
 Procedure TFileWriter.Close;
 begin
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.DoWrite ToDo ');
+  {$else}
   system.Close(FFile);
+  {$endif}
 end;
 {$endif}
 
