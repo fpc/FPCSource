@@ -450,9 +450,6 @@ unit FPPas2Js;
 interface
 
 uses
-  {$ifdef pas2js}
-  js,
-  {$endif}
   Classes, SysUtils, math, contnrs,
   jsbase, jstree, jswriter,
   PasTree, PScanner, PasResolveEval, PasResolver;
@@ -1474,6 +1471,7 @@ type
     function GetUseLowerCase: boolean; inline;
     function GetUseSwitchStatement: boolean; inline;
   private
+    {$IFDEF EnableForLoopRunnerCheck}
     type
       TForLoopFindData = record
         ForLoop: TPasImplForLoop;
@@ -1484,6 +1482,7 @@ type
       end;
       PForLoopFindData = ^TForLoopFindData;
     procedure ForLoop_OnProcBodyElement(El: TPasElement; arg: pointer);
+    {$ENDIF}
   private
     FBuiltInNames: array[TPas2JSBuiltInName] of string;
     FOnIsElementUsed: TPas2JSIsElementUsedEvent;
@@ -4267,8 +4266,7 @@ begin
         '''':
           begin
           if p>StartP then
-            Result:=Result+TJSString({$IFDEF FPC_HAS_CPSTRING}UTF8Decode({$ENDIF}
-               copy(S,StartP,p-StartP){$IFDEF FPC_HAS_CPSTRING}){$ENDIF});
+            Result:=Result+StrToJSString(copy(S,StartP,p-StartP));
           inc(p);
           StartP:=p;
           if (p>l) or (S[p]<>'''') then
@@ -4282,8 +4280,7 @@ begin
         end;
       until false;
       if p>StartP then
-        Result:=Result+TJSString({$IFDEF FPC_HAS_CPSTRING}UTF8Decode({$ENDIF}
-          copy(S,StartP,p-StartP){$IFDEF FPC_HAS_CPSTRING}){$ENDIF});
+        Result:=Result+StrToJSString(copy(S,StartP,p-StartP));
       end;
     '#':
       begin
@@ -5079,6 +5076,7 @@ begin
       exit(TFunctionContext(Ctx));
     Ctx:=Ctx.Parent;
     end;
+  Result:=nil;
 end;
 
 procedure TConvertContext.WriteStack;
@@ -6766,13 +6764,6 @@ end;
 function TPasToJSConverter.ConvertIdentifierExpr(El: TPasExpr;
   const aName: string; AContext: TConvertContext): TJSElement;
 
-  function IsClassSelf(Decl: TPasElement): boolean;
-  begin
-    if (Decl.ClassType<>TPasClassType) or (CompareText(aName,'Self')<>0) then
-      exit(false);
-    Result:=AContext.GetSelfContext<>nil;
-  end;
-
   procedure CallImplicit(Decl: TPasElement);
   var
     ProcType: TPasProcedureType;
@@ -7450,11 +7441,13 @@ var
     JSAdd: TJSAdditiveExpression;
     LowRg: TResEvalValue;
     JSUnaryPlus: TJSUnaryPlusExpression;
-    w: WideChar;
     IsRangeCheck, ok, NeedRangeCheck: Boolean;
     CallEx: TJSCallExpression;
     AssignContext: TAssignContext;
     ArgList: TFPList;
+    {$IFDEF FPC_HAS_CPSTRING}
+    w: WideChar;
+    {$ENDIF}
   begin
     Result:=nil;
     Arg:=nil;
@@ -7537,6 +7530,7 @@ var
                 Int:=TResEvalEnum(LowRg).Index;
               revkInt:
                 Int:=TResEvalInt(LowRg).Int;
+              {$IFDEF FPC_HAS_CPSTRING}
               revkString:
                 begin
                 if length(TResEvalString(LowRg).S)<>1 then
@@ -7550,6 +7544,7 @@ var
                   Int:=ord(TResEvalString(LowRg).S[1]);
                 ConvCharToInt(Arg,Param);
                 end;
+              {$ENDIF}
               revkUnicodeString:
                 begin
                 if length(TResEvalUTF16(LowRg).S)<>1 then
@@ -7656,36 +7651,12 @@ var
       if not ok then
         begin
         ArrJS.Free;
-        for i:=0 to ArgList.Count-1 do TJSElement(ArgList[i]).Free;
+        for i:=0 to ArgList.Count-1 do
+          TJSElement(ArgList[i]).{$IFDEF pas2js}Destroy{$ELSE}Free{$ENDIF};
         Arg.Free;
         Result.Free;
         end;
       ArgList.Free;
-    end;
-  end;
-
-  procedure ConvertJSObject;
-  var
-    B: TJSBracketMemberExpression;
-    OldAccess: TCtxAccess;
-  begin
-    B:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-    try
-      // add read accessor
-      OldAccess:=AContext.Access;
-      AContext.Access:=caRead;
-      B.MExpr:=ConvertElement(El.Value,AContext);
-      AContext.Access:=OldAccess;
-
-      // add parameter
-      ArgContext.Access:=caRead;
-      B.Name:=ConvertElement(El.Params[0],ArgContext);
-      ArgContext.Access:=OldAccess;
-
-      Result:=B;
-    finally
-      if Result=nil then
-        B.Free;
     end;
   end;
 
@@ -8042,6 +8013,7 @@ var
   NeedIntfRef: Boolean;
   DestRange, SrcRange: TResEvalValue;
   LastArg: TJSArrayLiteralElement;
+  CallArgs: TJSArguments;
 begin
   Result:=nil;
   if El.Kind<>pekFuncParams then
@@ -8386,11 +8358,12 @@ begin
     else if Elements=nil then
       RaiseInconsistency(20180720154413,El);
     CreateProcedureCallArgs(Elements,El,TargetProcType,AContext);
+    CallArgs:=Call.Args;
     if (Elements.Count=0)
-        and (Call.Args.Elements.Count>0)
+        and (CallArgs.Elements.Count>0)
         then
       begin
-      LastArg:=Call.Args.Elements[Call.Args.Elements.Count-1];
+      LastArg:=CallArgs.Elements[CallArgs.Elements.Count-1];
       if not (LastArg.Expr is TJSArrayLiteral) then
         RaiseNotSupported(El,AContext,20180720161317);
       JsArrLit:=TJSArrayLiteral(LastArg.Expr);
@@ -8398,9 +8371,9 @@ begin
         RaiseNotSupported(El,AContext,20180720161324);
       LastArg.Free;
       end;
-    if Call.Args.Elements.Count=0 then
+    if CallArgs.Elements.Count=0 then
       begin
-      Call.Args.Free;
+      CallArgs.Free;
       Call.Args:=nil;
       end;
     if NeedIntfRef then
@@ -11565,7 +11538,7 @@ begin
     if El.ObjKind=okInterface then
       begin
       // add parameter: string constant guid
-      Call.AddArg(CreateLiteralString(El,upcase(Scope.GUID)));
+      Call.AddArg(CreateLiteralString(El,uppercase(Scope.GUID)));
 
       // add parameter: array of function names
       AddInterfaceProcNames(Call);
@@ -12405,6 +12378,7 @@ begin
     end;
 end;
 
+{$IFDEF EnableForLoopRunnerCheck}
 procedure TPasToJSConverter.ForLoop_OnProcBodyElement(El: TPasElement;
   arg: pointer);
 // Called by ConvertForStatement on each element of the current proc body
@@ -12426,6 +12400,7 @@ begin
       end;
     end;
 end;
+{$ENDIF}
 
 procedure TPasToJSConverter.SetUseEnumNumbers(const AValue: boolean);
 begin
@@ -12579,13 +12554,13 @@ begin
         begin
         // precompiled global var or type
         Lit:=TJSLiteral.Create(Line,Col,El.SourceFilename);
-        Lit.Value.CustomValue:=UTF8Decode(ImplProcScope.GlobalJS[i]);
+        Lit.Value.CustomValue:=StrToJSString(ImplProcScope.GlobalJS[i]);
         AddToSourceElements(ConstSrcElems,Lit);
         end;
       end;
     // precompiled body
     Lit:=TJSLiteral.Create(Line,Col,El.SourceFilename);
-    Lit.Value.CustomValue:=UTF8Decode(ImplProcScope.BodyJS);
+    Lit.Value.CustomValue:=StrToJSString(ImplProcScope.BodyJS);
     Result:=Lit;
     exit;
     end;
@@ -12796,7 +12771,7 @@ begin
     // precompiled JS
     TPasResolver.UnmangleSourceLineNumber(El.Parent.SourceLinenumber,Line,Col);
     Lit:=TJSLiteral.Create(Line,Col,El.Parent.SourceFilename);
-    Lit.Value.CustomValue:=UTF8Decode(Scope.JS);
+    Lit.Value.CustomValue:=StrToJSString(Scope.JS);
     Result:=Lit;
     exit;
     end;
@@ -13139,8 +13114,10 @@ begin
     Result:=CreateLiteralNumber(El,TResEvalUInt(Value).UInt);
   revkFloat:
     Result:=CreateLiteralNumber(El,TResEvalFloat(Value).FloatValue);
+  {$IFDEF FPC_HAS_CPSTRING}
   revkString:
     Result:=CreateLiteralString(El,TResEvalString(Value).S);
+  {$ENDIF}
   revkUnicodeString:
     Result:=CreateLiteralJSString(El,TResEvalUTF16(Value).S);
   revkEnum:
@@ -13981,7 +13958,7 @@ begin
       Result:=ConvertArrayExpr(ArrayType,0,Expr)
     else if ExprResolved.BaseType in btAllStringAndChars then
       begin
-      US:=TJSString(UTF8Decode(aResolver.ComputeConstString(Expr,false,true)));
+      US:=StrToJSString(aResolver.ComputeConstString(Expr,false,true));
       ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
       Result:=ArrLit;
       for i:=1 to length(US) do
@@ -15847,16 +15824,21 @@ var
         begin
         // for <var> in <constant> do
         case InValue.Kind of
-        revkString,revkUnicodeString:
+        {$IFDEF FPC_HAS_CPSTRING}
+        revkString,
+        {$ENDIF}
+        revkUnicodeString:
           begin
           // example:
           //  for c in 'foo' do ;
           // -> for (var $l1 = 0, $li2 = 'foo'; $l1<=2; $l1++) c = $li2.charAt($l1);
           InKind:=ikString;
           StartInt:=0;
+          {$IFDEF FPC_HAS_CPSTRING}
           if InValue.Kind=revkString then
             EndInt:=length(UTF8Decode(TResEvalString(InValue).S))-1
           else
+          {$ENDIF}
             EndInt:=length(TResEvalUTF16(InValue).S)-1;
           ReleaseEvalValue(InValue);
           end;
@@ -16682,7 +16664,7 @@ begin
     Changed:=false;
     Find(JSExpr);
   until not changed;
-  aName:=UTF8Encode(JSName);
+  aName:=JSStringToString(JSName);
 end;
 
 function TPasToJSConverter.CreateUnary(Members: array of string; E: TJSElement): TJSUnary;

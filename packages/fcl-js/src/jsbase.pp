@@ -91,6 +91,8 @@ Type
   end;
 
 function IsValidJSIdentifier(Name: TJSString; AllowEscapeSeq: boolean = false): boolean;
+function StrToJSString(const S: String): TJSString; inline;
+function JSStringToString(const S: TJSString): String; inline;
 
 implementation
 
@@ -258,6 +260,16 @@ begin
   until false;
 end;
 {$endif}
+
+function StrToJSString(const S: String): TJSString;
+begin
+  Result:={$ifdef pas2js}S{$else}UTF8Decode(S){$endif};
+end;
+
+function JSStringToString(const S: TJSString): String;
+begin
+  Result:={$ifdef pas2js}S{$else}UTF8Encode(S){$endif};
+end;
 
 { TJSValue }
 
