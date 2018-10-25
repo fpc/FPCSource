@@ -5,10 +5,11 @@ program nodepas2js;
 uses
   JS, NodeJS, NodeJSFS, Math,
   Classes, SysUtils,
-  jstree, jswriter,
+  jsbase, jstree, jswriter,
   fpjson,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver, PasUseAnalyzer,
-  FPPas2Js;
+  FPPas2Js,
+  Pas2jsFileUtils, Pas2jsLogger;
 
 begin
   // Your code here

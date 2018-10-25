@@ -41,7 +41,7 @@ begin
     for i:=1 to ParamCount do
       ParamList.Add(Params[i]);
     try
-      Compiler.Run(ParamStr(0),GetCurrentDirUTF8,ParamList);
+      Compiler.Run(ParamStr(0),GetCurrentDirPJ,ParamList);
     except
       on E: ECompilerTerminate do ;
       on E: Exception do
