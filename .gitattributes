@@ -6995,6 +6995,7 @@ packages/pastojs/src/pas2jscompiler.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsfilecache.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsfiler.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsfileutils.pp svneol=native#text/plain
+packages/pastojs/src/pas2jsfileutilsnodejs.inc svneol=native#text/plain
 packages/pastojs/src/pas2jsfileutilsunix.inc svneol=native#text/plain
 packages/pastojs/src/pas2jsfileutilswin.inc svneol=native#text/plain
 packages/pastojs/src/pas2jslibcompiler.pp svneol=native#text/plain

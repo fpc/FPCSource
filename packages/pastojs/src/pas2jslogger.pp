@@ -23,9 +23,14 @@ unit Pas2jsLogger;
 {$mode objfpc}{$H+}
 {$inline on}
 
+{$i pas2js_defines.inc}
+
 interface
 
 uses
+  {$IFDEF Pas2JS}
+  JS, NodeJSFS,
+  {$ENDIF}
   Classes, SysUtils, PasTree, PScanner, jstree, jsbase, jswriter, fpjson,
   Pas2jsFileUtils;
 
@@ -41,6 +46,41 @@ const
 
 const
   DefaultLogMsgTypes = [mtFatal..mtDebug]; // by default show everything
+
+type
+  {$IFDEF Pas2JS}
+
+  { TPas2jsStream }
+
+  TPas2jsStream = class
+  public
+    procedure Write(const s: string); virtual; abstract;
+  end;
+
+  { TPas2jsFileStream }
+
+  TPas2jsFileStream = class(TPas2JSStream)
+  public
+    constructor Create(Filename: string; Mode: cardinal);
+    destructor Destroy; override;
+    procedure Write(const s: string); override;
+  end;
+const
+  fmCreate        = $FF00;
+  fmOpenRead      = 0;
+  //fmOpenWrite     = 1;
+  //fmOpenReadWrite = 2;
+  { Share modes}
+  //fmShareCompat    = $0000;
+  //fmShareExclusive = $0010;
+  //fmShareDenyWrite = $0020;
+  //fmShareDenyRead  = $0030;
+  fmShareDenyNone  = $0040;
+
+  {$ELSE}
+  TPas2jsStream = TStream;
+  TPas2jsFileStream = TFileStream;
+  {$ENDIF}
 
 type
 
@@ -59,7 +99,7 @@ type
 
   TPas2jsLogger = class
   private
-    FDebugLog: TStream;
+    FDebugLog: TPas2JSStream;
     FEncoding: string;
     FLastMsgCol: integer;
     FLastMsgFile: string;
@@ -67,8 +107,7 @@ type
     FLastMsgNumber: integer;
     FLastMsgTxt: string;
     FLastMsgType: TMessageType;
-    FMsgNumberDisabled: PInteger;// sorted ascending
-    FMsgNumberDisabledCount: integer;
+    FMsgNumberDisabled: array of Integer;// sorted ascending
     FMsg: TFPList; // list of TPas2jsMessage
     FOnFormatPath: TPScannerFormatPathEvent;
     FOnLog: TPas2jsLogEvent;
@@ -77,7 +116,9 @@ type
     FShowMsgNumbers: boolean;
     FShowMsgTypes: TMessageTypes;
     FSorted: boolean;
+    {$IFDEF HasStdErr}
     FWriteMsgToStdErr: boolean;
+    {$ENDIF}
     function GetMsgCount: integer;
     function GetMsgNumberDisabled(MsgNumber: integer): boolean;
     function GetMsgs(Index: integer): TPas2jsMessage; inline;
@@ -87,7 +128,7 @@ type
     procedure SetOutputFilename(AValue: string);
     procedure SetSorted(AValue: boolean);
     procedure DoLogRaw(const Msg: string; SkipEncoding : Boolean);
-    function Concatenate(Args: array of const): string;
+    function Concatenate(Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF}): string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -95,20 +136,25 @@ type
     function FindMsg(MsgNumber: integer; ExceptionOnNotFound: boolean): TPas2jsMessage;
     procedure Sort;
     procedure LogRaw(const Msg: string); overload;
-    procedure LogRaw(Args: array of const); overload;
+    procedure LogRaw(Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF}); overload;
     procedure LogLn;
     procedure LogPlain(const Msg: string); overload;
-    procedure LogPlain(Args: array of const); overload;
-    procedure LogMsg(MsgNumber: integer; Args: array of const;
+    procedure LogPlain(Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF}); overload;
+    procedure LogMsg(MsgNumber: integer;
+      Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF};
       const Filename: string = ''; Line: integer = 0; Col: integer = 0;
       UseFilter: boolean = true);
     procedure Log(MsgType: TMessageType; Msg: string; MsgNumber: integer = 0;
       const Filename: string = ''; Line: integer = 0; Col: integer = 0;
       UseFilter: boolean = true);
-    procedure LogMsgIgnoreFilter(MsgNumber: integer; Args: array of const);
+    procedure LogMsgIgnoreFilter(MsgNumber: integer;
+      Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
+    {$IFDEF FPC}
     procedure LogExceptionBackTrace;
+    {$ENDIF}
     function MsgTypeToStr(MsgType: TMessageType): string;
-    function GetMsgText(MsgNumber: integer; Args: array of const): string;
+    function GetMsgText(MsgNumber: integer;
+      Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF}): string;
     function FormatMsg(MsgType: TMessageType; Msg: string; MsgNumber: integer = 0;
       const Filename: string = ''; Line: integer = 0; Col: integer = 0): string;
     function FormatJSONMsg(MsgType: TMessageType; Msg: string; MsgNumber: integer = 0;
@@ -131,7 +177,9 @@ type
     property OutputFilename: string read FOutputFilename write SetOutputFilename;
     property ShowMsgNumbers: boolean read FShowMsgNumbers write FShowMsgNumbers;
     property ShowMsgTypes: TMessageTypes read FShowMsgTypes write FShowMsgTypes;
+    {$IFDEF HasStdErr}
     property WriteMsgToStdErr: boolean read FWriteMsgToStdErr write FWriteMsgToStdErr;
+    {$ENDIF}
     property Sorted: boolean read FSorted write SetSorted;
     property OnLog: TPas2jsLogEvent read FOnLog write FOnLog;
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
@@ -140,13 +188,13 @@ type
     property LastMsgCol: integer read FLastMsgCol write FLastMsgCol;
     property LastMsgTxt: string read FLastMsgTxt write FLastMsgTxt;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
-    property DebugLog: TStream read FDebugLog write FDebugLog;
+    property DebugLog: TPas2jsStream read FDebugLog write FDebugLog;
   end;
 
-function CompareP2JMessage(Item1, Item2: Pointer): Integer;
+function CompareP2JMessage(Item1, Item2: {$IFDEF Pas2JS}JSValue{$ELSE}Pointer{$ENDIF}): Integer;
 
-function QuoteStr(const s: string): string;
-function DeQuoteStr(const s: string): string;
+function QuoteStr(const s: string; Quote: char = '"'): string;
+function DeQuoteStr(const s: string; Quote: char = '"'): string;
 function AsString(Element: TPasElement; Full: boolean = true): string; overload;
 function AsString(Element: TJSElement): string; overload;
 function DbgString(Element: TJSElement; Indent: integer): string; overload;
@@ -154,12 +202,14 @@ function DbgAsString(Element: TJSValue; Indent: integer): string; overload;
 function DbgAsString(Element: TJSArrayLiteralElements; Indent: integer): string; overload;
 function DbgAsString(Element: TJSObjectLiteralElements; Indent: integer): string; overload;
 function DbgAsString(Element: TJSObjectLiteralElement; Indent: integer): string; overload;
+{$IFDEF UsePChar}
 function DbgHexMem(p: Pointer; Count: integer): string;
+{$ENDIF}
 function DbgStr(const s: string): string;
 
 implementation
 
-function CompareP2JMessage(Item1, Item2: Pointer): Integer;
+function CompareP2JMessage(Item1, Item2: {$IFDEF Pas2JS}JSValue{$ELSE}Pointer{$ENDIF}): Integer;
 var
   Msg1: TPas2jsMessage absolute Item1;
   Msg2: TPas2jsMessage absolute Item2;
@@ -167,14 +217,14 @@ begin
   Result:=Msg1.Number-Msg2.Number;
 end;
 
-function QuoteStr(const s: string): string;
+function QuoteStr(const s: string; Quote: char): string;
 begin
-  Result:=AnsiQuotedStr(S,'"');
+  Result:={$IFDEF Pas2JS}SysUtils.QuotedStr{$ELSE}AnsiQuotedStr{$ENDIF}(S,Quote);
 end;
 
-function DeQuoteStr(const s: string): string;
+function DeQuoteStr(const s: string; Quote: char): string;
 begin
-  Result:=AnsiDequotedStr(S,'"');
+  Result:={$IFDEF Pas2JS}SysUtils.DeQuoteString{$ELSE}AnsiDequotedStr{$ENDIF}(S,Quote);
 end;
 
 function AsString(Element: TPasElement; Full: boolean): string;
@@ -252,16 +302,16 @@ begin
     if Element is TJSStatementList then
     begin
       Result:=DbgString(TJSBinaryExpression(Element).A,Indent+2)+';'+LineEnding
-             +Space(Indent)+DbgString(TJSBinaryExpression(Element).B,Indent);
+             +StringOfChar(' ',Indent)+DbgString(TJSBinaryExpression(Element).B,Indent);
     end else if Element is TJSVariableDeclarationList then
     begin
       Result:=DbgString(TJSBinaryExpression(Element).A,Indent+2)+';'+LineEnding
-             +Space(Indent)+DbgString(TJSBinaryExpression(Element).B,Indent);
+             +StringOfChar(' ',Indent)+DbgString(TJSBinaryExpression(Element).B,Indent);
     end else if Element is TJSWithStatement then
     begin
       Result:='with ('+DbgString(TJSBinaryExpression(Element).A,Indent+2)+'){'+LineEnding
-             +Space(Indent)+DbgString(TJSBinaryExpression(Element).B,Indent+2)+LineEnding
-             +Space(Indent)+'}';
+             +StringOfChar(' ',Indent)+DbgString(TJSBinaryExpression(Element).B,Indent+2)+LineEnding
+             +StringOfChar(' ',Indent)+'}';
     end else if Element is TJSBinaryExpression then
     begin
       Result:=DbgString(TJSBinaryExpression(Element).A,Indent+2);
@@ -299,12 +349,12 @@ begin
   end else if Element is TJSIfStatement then
   begin
     Result:='if('+DbgString(TJSIfStatement(Element).Cond,Indent+2)+'){'+LineEnding
-       +Space(Indent+2)+DbgString(TJSIfStatement(Element).BTrue,Indent+2)+LineEnding
-       +Space(Indent);
+       +StringOfChar(' ',Indent+2)+DbgString(TJSIfStatement(Element).BTrue,Indent+2)+LineEnding
+       +StringOfChar(' ',Indent);
     if TJSIfStatement(Element).BFalse<>nil then
       Result+=' else {'+LineEnding
-         +Space(Indent+2)+DbgString(TJSIfStatement(Element).BFalse,Indent+2)+LineEnding
-         +Space(Indent)+'}';
+         +StringOfChar(' ',Indent+2)+DbgString(TJSIfStatement(Element).BFalse,Indent+2)+LineEnding
+         +StringOfChar(' ',Indent)+'}';
 
   // body
   end else if Element is TJSBodyStatement then
@@ -351,8 +401,8 @@ begin
     end else begin
       if TJSBodyStatement(Element).Body<>nil then
         Result+='{'+LineEnding
-          +Space(Indent+2)+DbgString(TJSBodyStatement(Element).Body,Indent+2)+LineEnding
-          +Space(Indent)+'}'
+          +StringOfChar(' ',Indent+2)+DbgString(TJSBodyStatement(Element).Body,Indent+2)+LineEnding
+          +StringOfChar(' ',Indent)+'}'
       else
         Result+='{}';
     end;
@@ -372,14 +422,14 @@ begin
     jstNull: Result:='null';
     jstBoolean: Result:=BoolToStr(Element.AsBoolean,'true','false');
     jstNumber: str(Element.AsNumber,Result);
-    jstString: Result:=AnsiQuotedStr(Element.AsString{%H-},'''');
+    jstString: Result:=QuoteStr(Element.AsString{%H-},'''');
     jstObject: Result:='{:OBJECT:}';
     jstReference: Result:='{:REFERENCE:}';
     JSTCompletion: Result:='{:COMPLETION:}';
     else Result:='{:Unknown ValueType '+IntToStr(ord(Element.ValueType))+':}';
     end;
   end;
-  Result:=Space(Indent)+Result;
+  Result:=StringOfChar(' ',Indent)+Result;
 end;
 
 function DbgAsString(Element: TJSArrayLiteralElements; Indent: integer): string;
@@ -410,6 +460,7 @@ begin
           +':'+DbgString(TJSObjectLiteralElement(Element).Expr,Indent+2);
 end;
 
+{$IFDEF UsePChar}
 function DbgHexMem(p: Pointer; Count: integer): string;
 var
   i: Integer;
@@ -418,6 +469,7 @@ begin
   for i:=0 to Count-1 do
     Result:=Result+HexStr(ord(PChar(p)[i]),2);
 end;
+{$ENDIF}
 
 function DbgStr(const s: string): string;
 var
@@ -434,6 +486,26 @@ begin
   end;
 end;
 
+{$IFDEF Pas2JS}
+{ TPas2jsFileStream }
+
+constructor TPas2jsFileStream.Create(Filename: string; Mode: cardinal);
+begin
+  writeln('TPas2JSFileStream.Create TODO ',Filename,' Mode=',Mode);
+end;
+
+destructor TPas2jsFileStream.Destroy;
+begin
+  writeln('TPas2JSFileStream.Destroy TODO');
+  inherited Destroy;
+end;
+
+procedure TPas2jsFileStream.Write(const s: string);
+begin
+  writeln('TPas2JSFileStream.Write TODO s="',s,'"');
+end;
+{$ENDIF}
+
 { TPas2jsLogger }
 
 function TPas2jsLogger.GetMsgs(Index: integer): TPas2jsMessage;
@@ -447,7 +519,7 @@ var
   l, r, m, CurMsgNumber: Integer;
 begin
   l:=0;
-  r:=FMsgNumberDisabledCount-1;
+  r:=length(FMsgNumberDisabled)-1;
   m:=0;
   while l<=r do begin
     m:=(l+r) div 2;
@@ -472,7 +544,11 @@ procedure TPas2jsLogger.SetEncoding(const AValue: string);
 var
   NewValue: String;
 begin
+  {$IFDEF Pas2JS}
+  NewValue:=Trim(lowercase(AValue));
+  {$ELSE}
   NewValue:=NormalizeEncoding(AValue);
+  {$ENDIF}
   if FEncoding=NewValue then Exit;
   //LogPlain(ClassName+': Encoding changed from "'+FEncoding+'" to "'+NewValue+'"');
   FEncoding:=NewValue;
@@ -488,28 +564,33 @@ procedure TPas2jsLogger.SetMsgNumberDisabled(MsgNumber: integer; AValue: boolean
 var
   InsertPos, OldCount: Integer;
 begin
-  OldCount:=FMsgNumberDisabledCount;
+  OldCount:=length(FMsgNumberDisabled);
   if AValue then
   begin
     // enable
     InsertPos:=FindMsgNumberDisabled(MsgNumber,true);
     if (InsertPos<OldCount) and (FMsgNumberDisabled[InsertPos]=MsgNumber) then
       exit; // already disabled
-    inc(FMsgNumberDisabledCount);
-    ReAllocMem(FMsgNumberDisabled,SizeOf(Integer)*FMsgNumberDisabledCount);
-    if InsertPos<OldCount then
-      Move(FMsgNumberDisabled[InsertPos],FMsgNumberDisabled[InsertPos+1],
-           SizeOf(Integer)*(OldCount-InsertPos));
+    // insert into array
+    {$IF defined(FPC) and (FPC_FULLVERSION<30101)}
+    SetLength(FMsgNumberDisabled,OldCount+1);
     FMsgNumberDisabled[InsertPos]:=MsgNumber;
+    {$ELSE}
+    Insert(MsgNumber,FMsgNumberDisabled,InsertPos);
+    {$ENDIF}
   end else begin
     // disable
     InsertPos:=FindMsgNumberDisabled(MsgNumber,false);
     if InsertPos<0 then exit;
+    // delete from array
+    {$IF defined(FPC) and (FPC_FULLVERSION<30101)}
     if InsertPos+1<OldCount then
       Move(FMsgNumberDisabled[InsertPos+1],FMsgNumberDisabled[InsertPos],
            SizeOf(Integer)*(OldCount-InsertPos-1));
-    dec(FMsgNumberDisabledCount);
-    ReAllocMem(FMsgNumberDisabled,SizeOf(Integer)*FMsgNumberDisabledCount);
+    SetLength(FMsgNumberDisabled,OldCount-1);
+    {$ELSE}
+    Delete(FMsgNumberDisabled,InsertPos,1);
+    {$ENDIF}
   end;
 end;
 
@@ -536,6 +617,7 @@ begin
   if SkipEncoding then
     S:=Msg
   else begin
+    {$IFDEF FPC_HAS_CPSTRING}
     if (Encoding='utf8') or (Encoding='json') then
       S:=Msg
     else if Encoding='console' then
@@ -547,6 +629,9 @@ begin
       if FOutputFile=nil then
         S:=UTF8ToConsole(Msg);
     end;
+    {$ELSE}
+    S:=Msg;
+    {$ENDIF}
   end;
   //writeln('TPas2jsLogger.LogPlain "',Encoding,'" "',DbgStr(S),'"');
   if DebugLog<>nil then
@@ -556,48 +641,74 @@ begin
   else if FOutputFile<>nil then
     FOutputFile.Write(S+LineEnding)
   else begin
+    {$IFDEF FPC_HAS_CPSTRING}
     // prevent codepage conversion magic
     SetCodePage(RawByteString(S), CP_OEMCP, False);
+    {$ENDIF}
     {AllowWriteln}
+    {$IFDEF HasStdErr}
     if WriteMsgToStdErr then
       writeln(StdErr,S)
     else
+    {$ENDIF}
       writeln(S);
     {AllowWriteln-}
   end;
 end;
 
-function TPas2jsLogger.Concatenate(Args: array of const): string;
+function TPas2jsLogger.Concatenate(
+  Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF}): string;
 var
   s: String;
   i: Integer;
+  {$IFDEF Pas2JS}
+  V: JSValue;
+  {$ELSE}
+  V: TVarRec;
+  {$ENDIF}
 begin
   s:='';
   for i:=Low(Args) to High(Args) do
   begin
-    case Args[i].VType of
-      vtInteger:      s += IntToStr(Args[i].VInteger);
-      vtBoolean:      s += BoolToStr(Args[i].VBoolean);
-      vtChar:         s += Args[i].VChar;
-      {$ifndef FPUNONE}
-      vtExtended:     ; //  Args[i].VExtended^;
-      {$ENDIF}
-      vtString:       s += Args[i].VString^;
-      vtPointer:      ; //  Args[i].VPointer;
-      vtPChar:        s += Args[i].VPChar;
-      vtObject:       ; //  Args[i].VObject;
-      vtClass:        ; //  Args[i].VClass;
-      vtWideChar:     s += AnsiString(Args[i].VWideChar);
-      vtPWideChar:    s += AnsiString(Args[i].VPWideChar);
-      vtAnsiString:   s += AnsiString(Args[i].VAnsiString);
-      vtCurrency:     ; //  Args[i].VCurrency^);
-      vtVariant:      ; //  Args[i].VVariant^);
-      vtInterface:    ; //  Args[i].VInterface^);
-      vtWidestring:   s += AnsiString(WideString(Args[i].VWideString));
-      vtInt64:        s += IntToStr(Args[i].VInt64^);
-      vtQWord:        s += IntToStr(Args[i].VQWord^);
-      vtUnicodeString:s += AnsiString(UnicodeString(Args[i].VUnicodeString));
+    V:=Args[i];
+    {$IFDEF Pas2JS}
+    case jsTypeOf(V) of
+    'boolean':
+      if V then s+='true' else s+='false';
+    'number':
+      if isInteger(V) then
+        s+=str(NativeInt(V))
+      else
+        s+=str(Double(V));
+    'string':
+      s+=String(V);
+    else continue;
     end;
+    {$ELSE}
+    case V.VType of
+      vtInteger:      s += IntToStr(V.VInteger);
+      vtBoolean:      s += BoolToStr(V.VBoolean);
+      vtChar:         s += V.VChar;
+      {$ifndef FPUNONE}
+      vtExtended:     ; //  V.VExtended^;
+      {$ENDIF}
+      vtString:       s += V.VString^;
+      vtPointer:      ; //  V.VPointer;
+      vtPChar:        s += V.VPChar;
+      vtObject:       ; //  V.VObject;
+      vtClass:        ; //  V.VClass;
+      vtWideChar:     s += AnsiString(V.VWideChar);
+      vtPWideChar:    s += AnsiString(V.VPWideChar);
+      vtAnsiString:   s += AnsiString(V.VAnsiString);
+      vtCurrency:     ; //  V.VCurrency^);
+      vtVariant:      ; //  V.VVariant^);
+      vtInterface:    ; //  V.VInterface^);
+      vtWidestring:   s += AnsiString(WideString(V.VWideString));
+      vtInt64:        s += IntToStr(V.VInt64^);
+      vtQWord:        s += IntToStr(V.VQWord^);
+      vtUnicodeString:s += AnsiString(UnicodeString(V.VUnicodeString));
+    end;
+    {$ENDIF}
   end;
   Result:=s;
 end;
@@ -615,10 +726,9 @@ begin
   CloseOutputFile;
   CloseDebugLog;
   for i:=0 to FMsg.Count-1 do
-    TObject(FMsg[i]).Free;
+    TObject(FMsg[i]).{$IFDEF Pas2JS}Destroy{$ELSE}Free{$ENDIF};
   FreeAndNil(FMsg);
-  ReAllocMem(FMsgNumberDisabled,0);
-  FMsgNumberDisabledCount:=0;
+  FMsgNumberDisabled:=nil;
   inherited Destroy;
 end;
 
@@ -688,7 +798,7 @@ begin
 end;
 
 function TPas2jsLogger.GetMsgText(MsgNumber: integer;
-  Args: array of const): string;
+  Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF}): string;
 var
   Msg: TPas2jsMessage;
 begin
@@ -702,7 +812,8 @@ begin
   DoLogRaw(Msg,False);
 end;
 
-procedure TPas2jsLogger.LogRaw(Args: array of const);
+procedure TPas2jsLogger.LogRaw(
+  Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
 begin
   LogRaw(Concatenate(Args));
 end;
@@ -716,7 +827,11 @@ procedure TPas2jsLogger.DebugLogWriteLn(Msg: string);
 begin
   if FDebugLog=nil then exit;
   Msg:=Msg+LineEnding;
+  {$IFDEF Pas2JS}
+  FDebugLog.Write(Msg);
+  {$ELSE}
   FDebugLog.Write(Msg[1],length(Msg));
+  {$ENDIF}
 end;
 
 function TPas2jsLogger.GetEncodingCaption: string;
@@ -724,9 +839,11 @@ begin
   Result:=Encoding;
   if Result='' then
   begin
+    {$IFDEF FPC_HAS_CPSTRING}
     if FOutputFile=nil then
       Result:='console'
     else
+    {$ENDIF}
       Result:='utf-8';
   end;
   if Result='console' then
@@ -753,12 +870,14 @@ begin
     DoLogRaw(Msg,False);
 end;
 
-procedure TPas2jsLogger.LogPlain(Args: array of const);
+procedure TPas2jsLogger.LogPlain(
+  Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
 begin
   LogPlain(Concatenate(Args));
 end;
 
-procedure TPas2jsLogger.LogMsg(MsgNumber: integer; Args: array of const;
+procedure TPas2jsLogger.LogMsg(MsgNumber: integer;
+  Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF};
   const Filename: string; Line: integer; Col: integer; UseFilter: boolean);
 var
   Msg: TPas2jsMessage;
@@ -789,11 +908,12 @@ begin
 end;
 
 procedure TPas2jsLogger.LogMsgIgnoreFilter(MsgNumber: integer;
-  Args: array of const);
+  Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
 begin
   LogMsg(MsgNumber,Args,'',0,0,false);
 end;
 
+{$IFDEF FPC}
 procedure TPas2jsLogger.LogExceptionBackTrace;
 var
   lErrorAddr: CodePointer;
@@ -808,6 +928,7 @@ begin
   for FrameNumber := 0 to FrameCount-1 do
     Log(mtDebug,BackTraceStrFunc(Frames[FrameNumber]));
 end;
+{$ENDIF}
 
 function TPas2jsLogger.MsgTypeToStr(MsgType: TMessageType): string;
 begin
@@ -887,8 +1008,10 @@ begin
   if DirectoryExists(OutputFilename) then
     raise Exception.Create('Log is directory: "'+OutputFilename+'"');
   FOutputFile:=TFileWriter.Create(OutputFilename);
+  {$IFDEF FPC_HAS_CPSTRING}
   if (Encoding='') or (Encoding='utf8') then
     FOutputFile.Write(UTF8BOM);
+  {$ENDIF}
 end;
 
 procedure TPas2jsLogger.Flush;
@@ -907,11 +1030,7 @@ end;
 procedure TPas2jsLogger.Reset;
 begin
   OutputFilename:='';
-  if FMsgNumberDisabled<>nil then
-  begin
-    ReAllocMem(FMsgNumberDisabled,0);
-    FMsgNumberDisabledCount:=0;
-  end;
+  FMsgNumberDisabled:=nil;
   ShowMsgNumbers:=false;
   FShowMsgTypes:=DefaultLogMsgTypes;
 end;
@@ -930,7 +1049,7 @@ procedure TPas2jsLogger.OpenDebugLog;
 const
   DbgLogFilename = 'pas2jsdebug.log';
 begin
-  FDebugLog:=TFileStream.Create(DbgLogFilename,fmCreate or fmShareDenyNone);
+  FDebugLog:=TPas2jsFileStream.Create(DbgLogFilename,fmCreate or fmShareDenyNone);
 end;
 
 procedure TPas2jsLogger.CloseDebugLog;

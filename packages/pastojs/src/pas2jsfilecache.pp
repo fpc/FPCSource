@@ -1425,7 +1425,7 @@ begin
 
   if ExtractFilePath(aFilename)<>'' then
     begin
-    Result:=ExpandFileNameUTF8(aFilename,BaseDirectory);
+    Result:=ExpandFileNamePJ(aFilename,BaseDirectory);
     if not FileExistsLogged(Result) then
       Result:='';
     exit;
@@ -1993,7 +1993,7 @@ begin
   if ExtractFilename(Result)='' then
     if RaiseOnError then
       raise EFileNotFoundError.Create('invalid file name "'+Filename+'"');
-  Result:=ExpandFileNameUTF8(Result,BaseDirectory);
+  Result:=ExpandFileNamePJ(Result,BaseDirectory);
   if (ExtractFilename(Result)='') or not FilenameIsAbsolute(Result) then
     if RaiseOnError then
       raise EFileNotFoundError.Create('invalid file name "'+Filename+'"');
@@ -2128,9 +2128,9 @@ function TPas2jsFilesCache.ExpandDirectory(const Filename, BaseDir: string
 begin
   if Filename='' then exit('');
   if BaseDir<>'' then
-    Result:=ExpandFileNameUTF8(Filename,BaseDir)
+    Result:=ExpandFileNamePJ(Filename,BaseDir)
   else
-    Result:=ExpandFileNameUTF8(Filename,BaseDirectory);
+    Result:=ExpandFileNamePJ(Filename,BaseDirectory);
   if Result='' then exit;
   Result:=IncludeTrailingPathDelimiter(Result);
 end;

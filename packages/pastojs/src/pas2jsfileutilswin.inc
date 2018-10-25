@@ -268,7 +268,7 @@ begin
   {$endif}
 end;
 
-function ExpandFileNameUtf8(const FileName: string; {const} BaseDir: String = ''): String;
+function ExpandFileNamePJ(const FileName: string; {const} BaseDir: String = ''): String;
 var
   IsAbs, StartsWithRoot, CanUseBaseDir : Boolean;
   {$ifndef WinCE}
@@ -305,11 +305,11 @@ begin
     begin
       FnDrive := UpCase(Fn[1]);
       GetDirUtf8(Byte(FnDrive)-64, CurDir{%H-});
-      CurDrive := UpCase(GetCurrentDirUtf8[1]);
+      CurDrive := UpCase(GetCurrentDirPJ[1]);
     end
     else
     begin
-      CurDir := GetCurrentDirUtf8;
+      CurDir := GetCurrentDirPJ;
       FnDrive := UpCase(CurDir[1]);
       CurDrive := FnDrive;
     end;
@@ -377,7 +377,7 @@ begin
   end;
 end;
 
-function GetCurrentDirUtf8: String;
+function GetCurrentDirPJ: String;
 {$ifndef WinCE}
 var
   w   : UnicodeString;
@@ -421,7 +421,7 @@ begin
   Result:=((FileGetAttrUTF8(AFilename) and faReadOnly) = 0);
 end;
 
-function GetEnvironmentVariableCountUTF8: Integer;
+function GetEnvironmentVariableCountPJ: Integer;
 var
   hp,p : PWideChar;
 begin
@@ -437,7 +437,7 @@ begin
   FreeEnvironmentStringsW(p);
 end;
 
-function GetEnvironmentStringUTF8(Index: Integer): string;
+function GetEnvironmentStringPJ(Index: Integer): string;
 var
   hp,p : PWideChar;
 begin
@@ -455,7 +455,7 @@ begin
   FreeEnvironmentStringsW(p);
 end;
 
-function GetEnvironmentVariableUTF8(const EnvVar: string): String;
+function GetEnvironmentVariablePJ(const EnvVar: string): String;
 begin
   Result:=UTF16ToUTF8(SysUtils.GetEnvironmentVariable(UTF8ToUTF16(EnvVar)));
 end;

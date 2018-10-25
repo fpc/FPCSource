@@ -2975,7 +2975,7 @@ var
   aFilename: String;
 begin
   // first try HOME directory
-  aFilename:=ChompPathDelim(GetEnvironmentVariableUTF8('HOME'));
+  aFilename:=ChompPathDelim(GetEnvironmentVariablePJ('HOME'));
   if aFilename<>'' then
     begin
     aFilename:=aFilename+PathDelim{$IFDEF UNIX}+'.'{$ENDIF}+DefaultConfigFile;
@@ -3716,7 +3716,7 @@ begin
   RegisterMessages;
 
   FFileCache:=TPas2jsFilesCache.Create(Log);
-  FFileCache.BaseDirectory:=GetCurrentDirUTF8;
+  FFileCache.BaseDirectory:=GetCurrentDirPJ;
   FFileCacheAutoFree:=true;
   FDirectoryCache:=FFileCache.DirectoryCache;
   FLog.OnFormatPath:=@FileCache.FormatPath;
@@ -3793,7 +3793,7 @@ function TPas2jsCompiler.OnMacroEnv(Sender: TObject; var Params: string;
   Lvl: integer): boolean;
 begin
   if Lvl=0 then ;
-  Params:=GetEnvironmentVariableUTF8(Params);
+  Params:=GetEnvironmentVariablePJ(Params);
   Result:=true;
 end;
 
@@ -4428,7 +4428,7 @@ end;
 
 function TPas2jsCompiler.ExpandFileName(const Filename: string): string;
 begin
-  Result:=ExpandFileNameUTF8(Filename,FileCache.BaseDirectory);
+  Result:=ExpandFileNamePJ(Filename,FileCache.BaseDirectory);
 end;
 
 end.
