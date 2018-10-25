@@ -19282,15 +19282,15 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.DoIt($mod.d);',
     '$mod.DoIt($mod.dt);',
-    '$mod.DoIt($mod.i);',
-    '$mod.DoIt($mod.b);',
-    '$mod.DoIt($mod.shi);',
-    '$mod.DoIt($mod.w);',
-    '$mod.DoIt($mod.smi);',
-    '$mod.DoIt($mod.lw);',
-    '$mod.DoIt($mod.li);',
-    '$mod.DoIt($mod.ni);',
-    '$mod.DoIt($mod.nu);',
+    '$mod.DoIt$1($mod.i);',
+    '$mod.DoIt$1($mod.b);',
+    '$mod.DoIt$1($mod.shi);',
+    '$mod.DoIt$1($mod.w);',
+    '$mod.DoIt$1($mod.smi);',
+    '$mod.DoIt$1($mod.lw);',
+    '$mod.DoIt$1($mod.li);',
+    '$mod.DoIt$1($mod.ni);',
+    '$mod.DoIt$1($mod.nu);',
     '']));
 end;
 
