@@ -285,7 +285,7 @@ interface
 
 uses
   {$ifdef pas2js}
-  js, pas2jsfs,
+  js, NodeJSFS,
   {$endif}
   Classes, SysUtils, Math, Types, contnrs,
   PasTree, PScanner, PParser, PasResolveEval;

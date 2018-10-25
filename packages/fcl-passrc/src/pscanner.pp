@@ -32,7 +32,7 @@ interface
 
 uses
   {$ifdef pas2js}
-  js, pas2jsfs, Types,
+  js, NodeJSFS, Types,
   {$endif}
   SysUtils, Classes;
 
