@@ -287,7 +287,7 @@ begin
   //See: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
   if (Length(Fn) > 3) and (Fn[1] = PathDelim) and (Fn[2] = PathDelim) and
      (Fn[3] = '?') and (Fn[4] = PathDelim) //Do NOT use AllowDirectorySeparators here!
-     then Exit;
+     then Exit(FN);
   ForcePathDelims(Fn);
   IsAbs := FileNameIsWinAbsolute(Fn);
   if not IsAbs then
