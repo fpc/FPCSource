@@ -277,7 +277,7 @@ var
   {$endif}
   CurDir, Fn: String;
 begin
-  //writeln('LazFileUtils.ExpandFileNameUtf8');
+  //writeln('LazFileUtils.ExpandFileNamePJ');
   //writeln('FileName = "',FileName,'"');
   //writeln('BaseDir  = "',BaseDir,'"');
 
@@ -372,7 +372,7 @@ begin
     Fn := ResolveDots(Fn);
     //if BaseDir is something like 'z:foo\' or '\' then this needs to be expanded as well
     if not FileNameIsAbsolute(Fn) then
-      Fn := ExpandFileNameUtf8(Fn, '');
+      Fn := ExpandFileNamePJ(Fn, '');
     Result := Fn;
   end;
 end;
