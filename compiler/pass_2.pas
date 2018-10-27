@@ -180,6 +180,7 @@ implementation
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
+         oldexecutionweight : longint;
       begin
          if not assigned(p) then
           internalerror(200208221);
@@ -191,6 +192,7 @@ implementation
             current_filepos:=p.fileinfo;
             current_settings.localswitches:=p.localswitches;
             codegenerror:=false;
+            oldexecutionweight:=cg.executionweight;
             if assigned(p.optinfo) then
               cg.executionweight:=min(p.optinfo^.executionweight,QWord(high(cg.executionweight)))
             else
@@ -227,6 +229,7 @@ implementation
             codegenerror:=codegenerror or oldcodegenerror;
             current_settings.localswitches:=oldlocalswitches;
             current_filepos:=oldpos;
+            cg.executionweight:=oldexecutionweight;
           end
          else
            codegenerror:=true;
