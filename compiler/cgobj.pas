@@ -1925,11 +1925,20 @@ implementation
     procedure tcg.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
         tmpreg : tregister;
+        tmpref : treference;
       begin
+        if assigned(ref.symbol) then
+          begin
+            tmpreg:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+            reference_reset_base(tmpref,tmpreg,0,ref.temppos,ref.alignment,[]);
+          end
+        else
+          tmpref:=ref;
         tmpreg:=getintregister(list,size);
-        a_load_ref_reg(list,size,size,ref,tmpreg);
+        a_load_ref_reg(list,size,size,tmpref,tmpreg);
         a_op_const_reg(list,op,size,a,tmpreg);
-        a_load_reg_ref(list,size,size,tmpreg,ref);
+        a_load_reg_ref(list,size,size,tmpreg,tmpref);
       end;
 
 
@@ -1949,9 +1958,18 @@ implementation
     procedure tcg.a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister;  const ref: TReference);
       var
         tmpreg : tregister;
+        tmpref : treference;
       begin
+        if assigned(ref.symbol) then
+          begin
+            tmpreg:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+            reference_reset_base(tmpref,tmpreg,0,ref.temppos,ref.alignment,[]);
+          end
+        else
+          tmpref:=ref;
         tmpreg:=getintregister(list,size);
-        a_load_ref_reg(list,size,size,ref,tmpreg);
+        a_load_ref_reg(list,size,size,tmpref,tmpreg);
         if op in [OP_NEG,OP_NOT] then
           begin
             if reg<>NR_NO then
@@ -1960,7 +1978,7 @@ implementation
           end
         else
           a_op_reg_reg(list,op,size,reg,tmpreg);
-        a_load_reg_ref(list,size,size,tmpreg,ref);
+        a_load_reg_ref(list,size,size,tmpreg,tmpref);
       end;
 
 
