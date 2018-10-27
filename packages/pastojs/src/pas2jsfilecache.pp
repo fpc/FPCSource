@@ -910,7 +910,12 @@ begin
   writeln('TPas2jsCachedDirectory.WriteDebugReport Count=',Count,' Path="',Path,'"');
   for i:=0 to Count-1 do begin
     Entry:=Entries[i];
+    {$IFDEF Pas2js}
+    writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',Entry.Time,' Dir=',faDirectory and Entry.Attr>0);
+    raise Exception.Create('TPas2jsCachedDirectory.WriteDebugReport TODO FileDateToDateTime');
+    {$ELSE}
     writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',DateTimeToStr(FileDateToDateTime(Entry.Time)),' Dir=',faDirectory and Entry.Attr>0);
+    {$ENDIF}
   end;
   {AllowWriteln-}
 end;
@@ -993,7 +998,7 @@ begin
   if Info.Dir<>nil then
     Result:=(Info.Dir.FileAttr(Info.ShortFilename) and faDirectory)>0
   else
-    Result:=SysUtils.DirectoryExists(Info.Filename);
+    Result:={$IFDEF pas2js}NodeJSFS{$ELSE}SysUtils{$ENDIF}.DirectoryExists(Info.Filename);
 end;
 
 function TPas2jsCachedDirectories.FileExists(Filename: string): boolean;
@@ -1005,7 +1010,7 @@ begin
   if Info.Dir<>nil then
     Result:=Info.Dir.IndexOfFile(Info.ShortFilename)>=0
   else
-    Result:=SysUtils.FileExists(Info.Filename);
+    Result:={$IFDEF pas2js}NodeJSFS{$ELSE}SysUtils{$ENDIF}.FileExists(Info.Filename);
 end;
 
 function TPas2jsCachedDirectories.FileExistsI(var Filename: string): integer;
@@ -1018,7 +1023,7 @@ begin
   if not GetFileInfo(Info) then exit;
   if Info.Dir=nil then
   begin
-    if SysUtils.FileExists(Info.Filename) then
+    if {$IFDEF pas2js}NodeJSFS{$ELSE}SysUtils{$ENDIF}.FileExists(Info.Filename) then
       Result:=1;
   end
   else
@@ -1267,7 +1272,13 @@ begin
     FSource:=NewSource;
     FFileEncoding:=EncodingBinary;
   end else
+  begin
+    {$IFDEF FPC_HAS_CPSTRING}
     FSource:=ConvertTextToUTF8(NewSource,FFileEncoding);
+    {$ELSE}
+    FSource:=NewSource;
+    {$ENDIF}
+  end;
   FLoaded:=true;
   FCacheStamp:=Cache.ResetStamp;
   FLoadedFileAge:=Cache.DirectoryCache.FileAge(Filename);
@@ -1783,8 +1794,11 @@ end;
 
 function TPas2jsFilesCache.ReadFile(Filename: string; var Source: string
   ): boolean;
+{$IFDEF Pas2js}
+{$ELSE}
 var
   ms: TMemoryStream;
+{$ENDIF}
 begin
   Result:=false;
   try
@@ -1792,6 +1806,9 @@ begin
       Result:=OnReadFile(Filename,Source);
     if Result then
       Exit;
+    {$IFDEF Pas2js}
+    raise Exception.Create('TPas2jsFilesCache.ReadFile TODO');
+    {$ELSE}
     ms:=TMemoryStream.Create;
     try
       ms.LoadFromFile(Filename);
@@ -1803,6 +1820,7 @@ begin
     finally
       ms.Free;
     end;
+    {$ENDIF}
   except
     on E: Exception do begin
       EPas2jsFileCache.Create('Error reading file "'+Filename+'": '+E.Message);
@@ -1813,7 +1831,7 @@ end;
 procedure TPas2jsFilesCache.FindMatchingFiles(Mask: string; MaxCount: integer;
   Files: TStrings);
 
-  procedure TooMany(id: int64);
+  procedure TooMany(id: TMaxPrecInt);
   begin
     raise EListError.Create('found too many files "'+Mask+'". Max='+IntToStr(MaxCount)+' ['+IntToStr(id)+']');
   end;
@@ -1965,7 +1983,9 @@ end;
 function TPas2jsFilesCache.CreateResolver: TPas2jsFileResolver;
 begin
   Result := TPas2jsFileResolver.Create(Self);
+  {$IFDEF HasStreams}
   Result.UseStreams:=false;
+  {$ENDIF}
   Result.BaseDirectory:=BaseDirectory; // beware: will be changed by Scanner.OpenFile
 end;
 

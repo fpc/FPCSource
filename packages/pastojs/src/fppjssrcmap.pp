@@ -76,7 +76,7 @@ begin
     raise Exception.Create('TPas2JSSrcMap.Release');
   dec(fRefCount);
   if fRefCount<0 then
-    {$IFDEF pas2js}Destroy{$ELSE}Free{$ENDIF};
+    Free;
 end;
 
 { TPas2JSMapper }
