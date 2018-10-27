@@ -60,7 +60,9 @@ type
                    foSingleLineObject,  // Object without CR/LF : all on one line
                    foDoNotQuoteMembers, // Do not quote object member names.
                    foUseTabchar,        // Use tab characters instead of spaces.
-                   foSkipWhiteSpace);   // Do not use whitespace at all
+                   foSkipWhiteSpace,    // Do not use whitespace at all
+                   foSkipWhiteSpaceOnlyLeading   //  When foSkipWhiteSpace is active, skip whitespace for object members only before :
+                   );
   TFormatOptions = set of TFormatOption;
 
 Const
@@ -3200,7 +3202,7 @@ function TJSONObject.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
 Var
   i : Integer;
   S : TJSONStringType;
-  MultiLine,UseQuotes, SkipWhiteSpace : Boolean;
+  MultiLine,UseQuotes, SkipWhiteSpace,SkipWhiteSpaceOnlyLeading : Boolean;
   NSep,Sep,Ind : String;
   V : TJSONStringType;
   D : TJSONData;
@@ -3210,10 +3212,16 @@ begin
   UseQuotes:=Not (foDoNotQuoteMembers in options);
   MultiLine:=Not (foSingleLineObject in Options);
   SkipWhiteSpace:=foSkipWhiteSpace in Options;
+  SkipWhiteSpaceOnlyLeading:=foSkipWhiteSpaceOnlyLeading in Options;
   CurrentIndent:=CurrentIndent+Indent;
   Ind:=IndentString(Options, CurrentIndent);
   If SkipWhiteSpace then
-    NSep:=':'
+    begin
+    if SkipWhiteSpaceOnlyLeading then
+      NSep:=': '
+    else
+      NSep:=':'
+    end
   else
     NSep:=' : ';
   If MultiLine then
