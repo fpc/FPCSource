@@ -1694,7 +1694,8 @@ type
     Function ConvertFuncParams(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertExternalConstructor(Left: TPasElement; Ref: TResolvedReference;
       ParamsExpr: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertTObjectFree(Bin: TBinaryExpr; NameExpr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertTObjectFree_Bin(Bin: TBinaryExpr; NameExpr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertTObjectFree_With(NameExpr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertTypeCastToBaseType(El: TParamsExpr; AContext: TConvertContext; ToBaseTypeData: TResElDataBaseType): TJSElement; virtual;
     Function ConvertArrayOrSetLiteral(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Length(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -2488,6 +2489,7 @@ procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
     Left: TPasExpr;
     LeftResolved: TPasResolverResult;
     IdentEl: TPasElement;
+    C: TClass;
   begin
     if not IsTObjectFreeMethod(El) then exit;
     if Ref.WithExprScope<>nil then
@@ -2497,46 +2499,55 @@ procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
         exit; // with TSomeClass.Free do Free  -> ok
       RaiseMsg(20170517092407,nFreeNeedsVar,sFreeNeedsVar,[],El);
       end;
-    if (El.Parent.ClassType<>TBinaryExpr) then
-      RaiseMsg(20170516151916,nFreeNeedsVar,sFreeNeedsVar,[],El);
-    Bin:=TBinaryExpr(El.Parent);
-    if (Bin.right<>El) or (Bin.OpCode<>eopSubIdent) then
-      RaiseMsg(20170516151950,nFreeNeedsVar,sFreeNeedsVar,[],El);
-    if rrfImplicitCallWithoutParams in Ref.Flags then
-      // ".Free;" -> ok
-    else if Bin.Parent is TParamsExpr then
+    C:=El.Parent.ClassType;
+    if (C=TBinaryExpr) then
       begin
-      if Bin.Parent.Parent is TPasExpr then
-        RaiseMsg(20170516161345,nFreeNeedsVar,sFreeNeedsVar,[],El);
-      // ".Free();" -> ok
-      end
-    else if Bin.Parent is TPasImplElement then
-      // ok
-    else
-      begin
-      {$IFDEF VerbosePas2JS}
-      writeln('TPas2JSResolver.ResolveNameExpr.CheckTObjectFree Bin.Parent=',GetObjName(Bin.Parent));
-      {$ENDIF}
-      RaiseMsg(20170516160347,nFreeNeedsVar,sFreeNeedsVar,[],El);
-      end;
+      // expr.Free
+      Bin:=TBinaryExpr(El.Parent);
+      if (Bin.right<>El) or (Bin.OpCode<>eopSubIdent) then
+        RaiseMsg(20170516151950,nFreeNeedsVar,sFreeNeedsVar,[],El);
+      if rrfImplicitCallWithoutParams in Ref.Flags then
+        // ".Free;" -> ok
+      else if Bin.Parent is TParamsExpr then
+        begin
+        if Bin.Parent.Parent is TPasExpr then
+          RaiseMsg(20170516161345,nFreeNeedsVar,sFreeNeedsVar,[],El);
+        // ".Free();" -> ok
+        end
+      else if Bin.Parent is TPasImplElement then
+        // ok
+      else
+        begin
+        {$IFDEF VerbosePas2JS}
+        writeln('TPas2JSResolver.ResolveNameExpr.CheckTObjectFree Bin.Parent=',GetObjName(Bin.Parent));
+        {$ENDIF}
+        RaiseMsg(20170516160347,nFreeNeedsVar,sFreeNeedsVar,[],El);
+        end;
 
-    Left:=Bin.left;
-    ComputeElement(Left,LeftResolved,[]);
-    if not (rrfReadable in LeftResolved.Flags) then
-      RaiseMsg(20170516152300,nFreeNeedsVar,sFreeNeedsVar,[],El);
-    if not (rrfWritable in LeftResolved.Flags) then
-      RaiseMsg(20170516152307,nFreeNeedsVar,sFreeNeedsVar,[],El);
-    IdentEl:=LeftResolved.IdentEl;
-    if IdentEl=nil then
-      RaiseMsg(20170516152401,nFreeNeedsVar,sFreeNeedsVar,[],El);
-    if IdentEl.ClassType=TPasArgument then
-      exit; // readable and writable argument -> ok
-    if (IdentEl.ClassType=TPasVariable)
-       or (IdentEl.ClassType=TPasConst) then
-      exit; // readable and writable variable -> ok
-    if IdentEl.ClassType=TPasResultElement then
-      exit; // readable and writable function result -> ok
-    RaiseMsg(20170516152455,nFreeNeedsVar,sFreeNeedsVar,[],El);
+      Left:=Bin.left;
+      ComputeElement(Left,LeftResolved,[]);
+      if not (rrfReadable in LeftResolved.Flags) then
+        RaiseMsg(20170516152300,nFreeNeedsVar,sFreeNeedsVar,[],El);
+      if not (rrfWritable in LeftResolved.Flags) then
+        RaiseMsg(20170516152307,nFreeNeedsVar,sFreeNeedsVar,[],El);
+      IdentEl:=LeftResolved.IdentEl;
+      if IdentEl=nil then
+        RaiseMsg(20170516152401,nFreeNeedsVar,sFreeNeedsVar,[],El);
+      if IdentEl.ClassType=TPasArgument then
+        exit; // readable and writable argument -> ok
+      if (IdentEl.ClassType=TPasVariable)
+         or (IdentEl.ClassType=TPasConst) then
+        exit; // readable and writable variable -> ok
+      if IdentEl.ClassType=TPasResultElement then
+        exit; // readable and writable function result -> ok
+      RaiseMsg(20170516152455,nFreeNeedsVar,sFreeNeedsVar,[],El);
+      end
+    else if C.InheritsFrom(TPasImplBlock) then
+      begin
+      // e.g.  "begin Free end;"  OR  "if expr then Free;"  -> ok
+      exit;
+      end;
+    RaiseMsg(20170516152454,nFreeNeedsVar,sFreeNeedsVar,[],El);
   end;
 
   procedure CheckResultEl(Ref: TResolvedReference);
@@ -5388,7 +5399,6 @@ function TPasToJSConverter.CreateFreeOrNewInstanceExpr(Ref: TResolvedReference;
   AContext: TConvertContext): TJSCallExpression;
 // create "$create("funcname");"
 var
-  ok: Boolean;
   C: TJSCallExpression;
   Proc: TPasProcedure;
   ProcScope: TPasProcedureScope;
@@ -5411,7 +5421,6 @@ begin
     RaiseInconsistency(20170125191923,aClass);
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr aClass.Name=',aClass.Name);
   C:=CreateCallExpression(Ref.Element);
-  ok:=false;
   try
     // add "$create()"
     if rrfNewInstance in Ref.Flags then
@@ -5423,12 +5432,11 @@ begin
     // parameter: "funcname"
     ArgEx := CreateLiteralString(Ref.Element,TransformVariableName(Proc,AContext));
     C.AddArg(ArgEx);
-    ok:=true;
+    Result:=C;
   finally
-    if not ok then
+    if Result=nil then
       C.Free;
   end;
-  Result:=C;
 end;
 
 function TPasToJSConverter.CreateFunctionSt(El: TPasElement; WithBody: boolean;
@@ -6560,7 +6568,7 @@ begin
       end
     else if aResolver.IsTObjectFreeMethod(RightEl) then
       begin
-      Result:=ConvertTObjectFree(El,RightEl,AContext);
+      Result:=ConvertTObjectFree_Bin(El,RightEl,AContext);
       exit;
       end;
     end;
@@ -6869,7 +6877,7 @@ begin
 
   if (Ref.WithExprScope<>nil) and aResolver.IsTObjectFreeMethod(El) then
     begin
-    Result:=ConvertTObjectFree(nil,El,AContext);
+    Result:=ConvertTObjectFree_With(El,AContext);
     exit;
     end;
 
@@ -8468,7 +8476,7 @@ begin
   end;
 end;
 
-function TPasToJSConverter.ConvertTObjectFree(Bin: TBinaryExpr;
+function TPasToJSConverter.ConvertTObjectFree_Bin(Bin: TBinaryExpr;
   NameExpr: TPasExpr; AContext: TConvertContext): TJSElement;
 
   function CreateCallRTLFree(Obj, Prop: TJSElement): TJSElement;
@@ -8488,33 +8496,13 @@ var
   DotExpr: TJSDotMemberExpression;
   BracketJS: TJSBracketMemberExpression;
   aName: TJSString;
-  WithExprScope: TPas2JSWithExprScope;
 begin
   Result:=nil;
 
-  LeftJS:=nil;
+  LeftJS:=ConvertElement(Bin.left,AContext);
   try
-    WithExprScope:=TResolvedReference(NameExpr.CustomData).WithExprScope as TPas2JSWithExprScope;
-    if WithExprScope<>nil then
-      begin
-      if AContext.Resolver.GetNewInstanceExpr(WithExprScope.Expr)<>nil then
-        begin
-        // "with TSomeClass.Create do Free"
-        // -> "$with1=rtl.freeLoc($with1);
-        Getter:=CreatePrimitiveDotExpr(WithExprScope.WithVarName,WithExprScope.Expr);
-        Setter:=CreatePrimitiveDotExpr(WithExprScope.WithVarName,WithExprScope.Expr);
-        Result:=CreateCallRTLFreeLoc(Setter,Getter,NameExpr);
-        exit;
-        end;
-      {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.ConvertTObjectFree With=',GetObjName(WithExprScope.Expr));
-      {$ENDIF}
-      RaiseInconsistency(20170517092248,Bin);
-      end;
-
-    LeftJS:=ConvertElement(Bin.left,AContext);
     {$IFDEF VerbosePas2JS}
-    writeln('TPasToJSConverter.ConvertTObjectFree ',GetObjName(LeftJS));
+    writeln('TPasToJSConverter.ConvertTObjectFree_Bin ',GetObjName(LeftJS));
     {$ENDIF}
 
     if LeftJS is TJSPrimaryExpressionIdent then
@@ -8557,6 +8545,31 @@ begin
     if Result=nil then
       LeftJS.Free;
   end;
+end;
+
+function TPasToJSConverter.ConvertTObjectFree_With(NameExpr: TPasExpr;
+  AContext: TConvertContext): TJSElement;
+var
+  WithExprScope: TPas2JSWithExprScope;
+  Getter, Setter: TJSElement;
+begin
+  Result:=nil;
+  WithExprScope:=TResolvedReference(NameExpr.CustomData).WithExprScope as TPas2JSWithExprScope;
+  if WithExprScope=nil then
+    RaiseInconsistency(20181027133210,NameExpr);
+  if AContext.Resolver.GetNewInstanceExpr(WithExprScope.Expr)<>nil then
+    begin
+    // "with TSomeClass.Create do Free"
+    // -> "$with1=rtl.freeLoc($with1);
+    Getter:=CreatePrimitiveDotExpr(WithExprScope.WithVarName,WithExprScope.Expr);
+    Setter:=CreatePrimitiveDotExpr(WithExprScope.WithVarName,WithExprScope.Expr);
+    Result:=CreateCallRTLFreeLoc(Setter,Getter,NameExpr);
+    exit;
+    end;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.ConvertTObjectFree_With With=',GetObjName(WithExprScope.Expr));
+  {$ENDIF}
+  RaiseInconsistency(20170517092248,NameExpr);
 end;
 
 function TPasToJSConverter.ConvertTypeCastToBaseType(El: TParamsExpr;
