@@ -3993,6 +3993,11 @@ begin
 end;
 
 procedure TTestJSONString.TestJSONStringToString;
+
+Const
+  // Glowing star in UTF8
+  GlowingStar = #$F0#$9F#$8C#$9F;
+
 begin
   TestFrom('','');
   TestFrom('A','A');
@@ -4029,6 +4034,9 @@ begin
   TestFrom('\n\n',#10#10);
   TestFrom('\f\f',#12#12);
   TestFrom('\r\r',#13#13);
+  TestFrom('\u00f8','ø'); // this is ø
+  TestFrom('\u00f8\"','ø"'); // this is ø"
+  TestFrom('\ud83c\udf1f',GlowingStar);
 end;
 
 procedure TTestJSONString.TestStringToJSONString;

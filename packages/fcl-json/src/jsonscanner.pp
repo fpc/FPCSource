@@ -218,10 +218,30 @@ var
   TokenStart: PChar;
   it : TJSONToken;
   I : Integer;
-  OldLength, SectionLength,  tstart,tcol, u: Integer;
+  OldLength, SectionLength,  tstart,tcol, u1,u2: Integer;
   C , c2: char;
   S : String;
   IsStar,EOC: Boolean;
+
+  Procedure MaybeAppendUnicode;
+
+  Var
+    u : String;
+
+  begin
+  // if there is a leftover \u, append
+  if (u1<>0) then
+    begin
+    if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
+      U:=Utf8Encode(WideString(WideChar(u1))) // ToDo: use faster function
+    else
+      U:=String(WideChar(u1)); // WideChar converts the encoding. Should it warn on loss?
+    FCurTokenString:=FCurTokenString+U;
+    OldLength:=Length(FCurTokenString);
+    u1:=0;
+    end;
+  end;
+
 
 begin
   if FTokenStr = nil then
@@ -262,6 +282,7 @@ begin
         TokenStart := FTokenStr;
         OldLength := 0;
         FCurTokenString := '';
+        u1:=0;
         while not (FTokenStr[0] in [#0,C]) do
           begin
           if (FTokenStr[0]='\') then
@@ -282,43 +303,64 @@ begin
               '/' : S:='/';
               'u' : begin
                     S:='0000';
-                    u:=0;
+                    u2:=0;
                     For I:=1 to 4 do
                       begin
                       Inc(FTokenStr);
                       c2:=FTokenStr^;
                       Case c2 of
-                        '0'..'9': u:=u*16+ord(c2)-ord('0');
-                        'A'..'F': u:=u*16+ord(c2)-ord('A')+10;
-                        'a'..'f': u:=u*16+ord(c2)-ord('a')+10;
+                        '0'..'9': u2:=u2*16+ord(c2)-ord('0');
+                        'A'..'F': u2:=u2*16+ord(c2)-ord('A')+10;
+                        'a'..'f': u2:=u2*16+ord(c2)-ord('a')+10;
                       else
                         Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
                       end;
                       end;
                     // ToDo: 4-bytes UTF16
-                    if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
-                      S:=Utf8Encode(WideString(WideChar(u))) // ToDo: use faster function
+                    if u1<>0 then
+                      begin
+                      if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
+                        S:=Utf8Encode(WideString(WideChar(u1)+WideChar(u2))) // ToDo: use faster function
+                      else
+                        S:=String(WideChar(u1)+WideChar(u2)); // WideChar converts the encoding. Should it warn on loss?
+                      u1:=0;
+                      end
                     else
-                      S:=String(WideChar(u)); // WideChar converts the encoding. Should it warn on loss?
+                      begin
+                      S:='';
+                      u1:=u2;
+                      end
                     end;
               #0  : Error(SErrOpenString);
             else
               Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
             end;
-            SetLength(FCurTokenString, OldLength + SectionLength+1+Length(S));
-            if SectionLength > 0 then
-              Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-            Move(S[1],FCurTokenString[OldLength + SectionLength+1],Length(S));
-            Inc(OldLength, SectionLength+Length(S));
+            I:=Length(S);
+            if (SectionLength+I>0) then
+              begin
+              // If length=1, we know it was not \uXX, but u1 can be nonzero, and we must first append it.
+              // example: \u00f8\"
+              if I=1 then
+                MaybeAppendUnicode;
+              SetLength(FCurTokenString, OldLength + SectionLength+Length(S));
+              if SectionLength > 0 then
+                Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
+              if I>0 then
+                Move(S[1],FCurTokenString[OldLength + SectionLength+1],i);
+              Inc(OldLength, SectionLength+Length(S));
+              end;
             // Next char
             TokenStart := FTokenStr+1;
-            end;
+            end
+          else
+            MaybeAppendUnicode;
           if FTokenStr[0] = #0 then
             Error(SErrOpenString);
           Inc(FTokenStr);
           end;
         if FTokenStr[0] = #0 then
           Error(SErrOpenString);
+        MaybeAppendUnicode;
         SectionLength := FTokenStr - TokenStart;
         SetLength(FCurTokenString, OldLength + SectionLength);
         if SectionLength > 0 then

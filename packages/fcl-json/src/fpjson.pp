@@ -875,14 +875,29 @@ end;
 function JSONStringToString(const S: TJSONStringType): TJSONStringType;
 
 Var
-  I,J,L : Integer;
-  w : String;
+  I,J,L,U1,U2 : Integer;
+  App,W : String;
+
+  Procedure MaybeAppendUnicode;
+
+  Var
+    U : String;
+
+  begin
+    if (U1<>0) then
+      begin
+      U:=UTF8Encode(WideChar(U1));
+      Result:=Result+U;
+      U1:=0;
+      end;
+  end;
 
 begin
   I:=1;
   J:=1;
   L:=Length(S);
   Result:='';
+  U1:=0;
   While (I<=L) do
     begin
     if (S[I]='\') then
@@ -891,25 +906,41 @@ begin
       If I<L then
         begin
         Inc(I);
+        App:='';
         Case S[I] of
           '\','"','/'
-              : Result:=Result+S[I];
-          'b' : Result:=Result+#8;
-          't' : Result:=Result+#9;
-          'n' : Result:=Result+#10;
-          'f' : Result:=Result+#12;
-          'r' : Result:=Result+#13;
+              : App:=S[I];
+          'b' : App:=#8;
+          't' : App:=#9;
+          'n' : App:=#10;
+          'f' : App:=#12;
+          'r' : App:=#13;
           'u' : begin
                 W:=Copy(S,I+1,4);
                 Inc(I,4);
-                Result:=Result+TJSONStringType(WideChar(StrToInt('$'+W)));
+                u2:=StrToInt('$'+W);
+                if (U1<>0) then
+                  begin
+                  App:=UTF8Encode(WideChar(U1)+WideChar(U2));
+                  U2:=0;
+                  end
+                else
+                  U1:=U2;
                 end;
         end;
+        if App<>'' then
+          begin
+          MaybeAppendUnicode;
+          Result:=Result+App;
+          end;
         end;
       J:=I+1;
-      end;
+      end
+    else
+      MaybeAppendUnicode;
     Inc(I);
     end;
+  MaybeAppendUnicode;
   Result:=Result+Copy(S,J,I-J+1);
 end;
 

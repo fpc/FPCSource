@@ -37,6 +37,7 @@ type
     procedure DoTestFloat(F: TJSONFloat); overload;
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
     procedure DoTestObject(S: String; const ElNames: array of String; DoJSONTest : Boolean = True);
+    procedure DoTestString(S : String; AResult : String);
     procedure DoTestString(S : String);
     procedure DoTestArray(S: String; ACount: Integer; IgnoreJSON: Boolean=False);
     Procedure DoTestClass(S : String; AClass : TJSONDataClass);
@@ -79,7 +80,7 @@ Var
   J : TJSONData;
   
 begin
-  P:=TJSONParser.Create('');
+  P:=TJSONParser.Create('',[joUTF8]);
   Try
     J:=P.Parse;
     If (J<>Nil) then
@@ -97,7 +98,7 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('1');
+  P:=TJSONParser.Create('1',[joUTF8]);
   Try
     J:=P.Parse;
     If (J=Nil) then
@@ -117,7 +118,7 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('123456789012345');
+  P:=TJSONParser.Create('123456789012345',[joUTF8]);
   Try
     J:=P.Parse;
     If (J=Nil) then
@@ -137,7 +138,7 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('null');
+  P:=TJSONParser.Create('null',[joUTF8]);
   Try
     J:=P.Parse;
     If (J=Nil) then
@@ -156,7 +157,7 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('true');
+  P:=TJSONParser.Create('true',[joUTF8]);
   Try
     J:=P.Parse;
     If (J=Nil) then
@@ -176,7 +177,7 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('false');
+  P:=TJSONParser.Create('false',[joUTF8]);
   Try
     J:=P.Parse;
     If (J=Nil) then
@@ -206,10 +207,18 @@ end;
 
 procedure TTestParser.TestString;
 
+Const
+  // Glowing star in UTF8
+  GlowingStar = #$F0#$9F#$8C#$9F;
+
 begin
   DoTestString('A string');
   DoTestString('');
   DoTestString('\"');
+  DoTestString('\u00f8','ø'); // this is ø
+  DoTestString('\u00f8\"','ø"'); // this is ø"
+//  Writeln(GlowingStar);
+  DoTestString('\ud83c\udf1f',GlowingStar);
 end;
 
 
@@ -348,7 +357,7 @@ Var
 
 begin
   J:=Nil;
-  P:=TJSONParser.Create(S);
+  P:=TJSONParser.Create(S,[joUTF8]);
   Try
     P.Options:=FOptions;
     J:=P.Parse;
@@ -400,7 +409,7 @@ Var
   D : TJSONData;
 
 begin
-  P:=TJSONParser.Create(S);
+  P:=TJSONParser.Create(S,[joUTF8]);
   try
     D:=P.Parse;
     try
@@ -536,7 +545,7 @@ Var
 
 begin
   ParseOK:=False;
-  P:=TJSONParser.Create(S);
+  P:=TJSONParser.Create(S,[joUTF8]);
   P.OPtions:=Options;
   J:=Nil;
   Try
@@ -561,24 +570,30 @@ end;
 
 procedure TTestParser.DoTestString(S: String);
 
+begin
+  DoTestString(S,JSONStringToString(S));
+end;
+
+procedure TTestParser.DoTestString(S: String; AResult : String);
+
 Var
   P : TJSONParser;
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('"'+S+'"');
+  P:=TJSONParser.Create('"'+S+'"',[joUTF8]);
   Try
     J:=P.Parse;
     If (J=Nil) then
       Fail('Parse of string "'+S+'" fails');
     TestJSONType(J,jtString);
-    TestAsString(J,JSONStringToString(S));
-    TestJSON(J,'"'+S+'"');
+    TestAsString(J,aResult);
+    if Pos('\u',S)=0 then
+      TestJSON(J,'"'+S+'"');
   Finally
     FreeAndNil(J);
     FreeAndNil(P);
   end;
-
 end;
 
 procedure TTestParser.DoTestFloat(F : TJSONFloat);
@@ -598,7 +613,7 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create(S);
+  P:=TJSONParser.Create(S,[joUTF8]);
   Try
     J:=P.Parse;
     If (J=Nil) then
