@@ -15,8 +15,10 @@
 {$IFDEF FPC}
   {$DEFINE UsePChar}
   {$DEFINE HasInt64}
+  {$DEFINE HasStreams}
   {$DEFINE UTF8_RTL}
   {$DEFINE HasStdErr}
+  {$DEFINE HasPas2jsFiler}
 {$ENDIF}
 
 

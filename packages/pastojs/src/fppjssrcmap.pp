@@ -76,7 +76,7 @@ begin
     raise Exception.Create('TPas2JSSrcMap.Release');
   dec(fRefCount);
   if fRefCount<0 then
-    Free;
+    {$IFDEF pas2js}Destroy{$ELSE}Free{$ENDIF};
 end;
 
 { TPas2JSMapper }
@@ -128,8 +128,7 @@ end;
 procedure TPas2JSMapper.Writing;
 var
   S: TJSString;
-  p: PWideChar;
-  Line: Integer;
+  p, l, Line: Integer;
 begin
   inherited Writing;
   if SrcMap=nil then exit;
@@ -153,15 +152,14 @@ begin
     begin
     // possible multi line value, e.g. asm-block
     S:=TJSLiteral(CurElement).Value.CustomValue;
-    p:=PWideChar(S);
+    l:=length(S);
+    p:=1;
     Line:=0;
-    repeat
-      case p^ of
-      #0:
-        break;
+    while p<=l do
+      case S[p] of
       #10,#13:
         begin
-        if (p[1] in [#10,#13]) and (p^<>p[1]) then
+        if (p<l) and (S[p+1] in [#10,#13]) and (S[p]<>S[p+1]) then
           inc(p,2)
         else
           inc(p);
@@ -175,7 +173,6 @@ begin
       else
         inc(p);
       end;
-    until false;
     end;
 end;
 
@@ -187,33 +184,33 @@ end;
 
 procedure TPas2JSMapper.WriteFile(Src, Filename: string);
 var
-  p, EndP, LineStart: PChar;
+  l, p, LineStart: integer;
 begin
   if Src='' then exit;
   FSrcFilename:=Filename;
   FSrcLine:=1;
   FSrcColumn:=1;
-  p:=PChar(Src);
-  EndP:=p+length(Src);
+  l:=length(Src);
+  p:=1;
   repeat
     LineStart:=p;
-    repeat
-      case p^ of
-      #0: if p=EndP then break;
+    while (p<=l) do
+      case Src[p] of
       #10,#13:
         begin
-        if (p[1] in [#10,#13]) and (p^<>p[1]) then
+        if (p<l) and (Src[p+1] in [#10,#13]) and (Src[p]<>Src[p+1]) then
+          inc(p,2)
+        else
           inc(p);
-        inc(p);
         break;
         end;
+      else
+        inc(p);
       end;
-      inc(p);
-    until false;
     FNeedMapping:=true;
-    Write(copy(Src,LineStart-PChar(Src)+1,p-LineStart));
+    Write(copy(Src,LineStart,p-LineStart));
     inc(FSrcLine);
-  until p>=EndP;
+  until p>l;
 end;
 
 end.

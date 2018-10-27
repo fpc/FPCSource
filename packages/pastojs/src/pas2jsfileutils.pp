@@ -48,6 +48,9 @@ function GetForcedPathDelims(Const FileName: string): String;
 function ExtractFilenameOnly(const aFilename: string): string;
 function GetCurrentDirPJ: String;
 function CompareFilenames(const File1, File2: string): integer;
+{$IFDEF Pas2js}
+function FilenameToKey(const Filename: string): string;
+{$ENDIF}
 
 function GetPhysicalFilename(const Filename: string;
         ExceptionOnError: boolean): string;
@@ -593,6 +596,26 @@ begin
   Result:=AnsiCompareFileName(File1,File2);
   {$ENDIF}
 end;
+
+{$IFDEF Pas2js}
+function FilenameToKey(const Filename: string): string;
+begin
+  {$IFDEF Pas2js}
+  Result:=Filename;
+  // ToDo lowercase on windows, normalize on darwin
+  {$ELSE}
+    {$IFDEF Windows}
+    Result:=AnsiLowerCase(Filename);
+    {$ELSE}
+      {$IFDEF Darwin}
+      todo
+      {$ELSE}
+      Result:=Filename;
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF}
+end;
+{$ENDIF}
 
 function MatchGlobbing(Mask, Name: string): boolean;
 // match * and ?
