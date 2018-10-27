@@ -68,31 +68,36 @@ const
     expression: '\nd';
     inputText: 'abc'#13#10'def';
     substitutionText: '\n\x{10}\r\\';
-    expectedResult: 'abc'#13#10#16#13'\ef'
+    expectedResult: 'abc'#13#10#16#13'\ef';
+    MatchStart: 0
     ),
     (
     expression: '(\w*)';
     inputText: 'name.ext';
     substitutionText: '$1.new';
-    expectedResult: 'name.new.new.ext.new.new'
+    expectedResult: 'name.new.new.ext.new.new';
+    MatchStart: 0
     ),
     (
     expression: #$d'('#$a')';
     inputText: 'word'#$d#$a;
     substitutionText: '$1';
-    expectedResult: 'word'#$a
+    expectedResult: 'word'#$a;
+    MatchStart: 0
     ),
     (
     expression: '(word)';
     inputText: 'word';
     substitutionText: '\U$1\\r';
-    expectedResult: 'WORD\r'
+    expectedResult: 'WORD\r';
+    MatchStart: 0
     ),
     (
     expression: '(word)';
     inputText: 'word';
     substitutionText: '$1\n';
-    expectedResult: 'word'#$a
+    expectedResult: 'word'#$a;
+    MatchStart: 0
     ),
     (
     expression: '[A-Z]';
