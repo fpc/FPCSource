@@ -767,7 +767,7 @@ type
     function DoFetchToken: TToken;
     procedure ClearFiles;
     Procedure ClearMacros;
-    Procedure SetCurTokenString(AValue : string);
+    Procedure SetCurTokenString(AValue: string);
     procedure SetCurrentBoolSwitches(const AValue: TBoolSwitches); virtual;
     procedure SetCurrentModeSwitches(AValue: TModeSwitches); virtual;
     procedure SetCurrentValueSwitch(V: TValueSwitch; const AValue: string);
@@ -3082,8 +3082,12 @@ begin
   PushStackItem;
   if Length(Param)>1 then
     begin
-      if (Param[1]=#39) and (Param[length(Param)]=#39) then
-       param:=copy(param,2,length(param)-2);
+    if (Param[1]='''') then
+      begin
+      if Param[length(Param)]<>'''' then
+        Error(nErrOpenString,SErrOpenString,[]);
+      Param:=copy(Param,2,length(Param)-2);
+      end;
     end;
   FCurSourceFile := FileResolver.FindIncludeFile(Param);
   if not Assigned(FCurSourceFile) then
@@ -3274,14 +3278,14 @@ function TPascalScanner.HandleInclude(const Param: String): TToken;
 
 begin
   Result:=tkComment;
-  if ((Param='') or (Param[1]<>'%')) then
-    HandleIncludeFile(Param)
-  else if Param[1]='%' then
+  if (Param<>'') and (Param[1]='%') then
     begin
-    FCurTokenString:='{$i '+Param+'}';
+    FCurTokenString:=''''+Param+'''';
     FCurToken:=tkString;
     Result:=FCurToken;
     end
+  else
+    HandleIncludeFile(Param);
 end;
 
 procedure TPascalScanner.HandleMode(const Param: String);
