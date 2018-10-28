@@ -86,6 +86,7 @@ Procedure UnPack(Const Z : PackedArrayType; Out A : UnpackedArrayType; StartInde
 Function Slice(Const A : ArrayType; ACount : Integer) : ArrayType2;
 Function Default(Const T : AnyType) : AnyType;
 Function TypeInfo(Const T : AnyType) : Pointer;
+Function GetTypeKind(Const T : AnyType) : TTypeKind;
 Procedure Fail;
 Function TypeOf(T : TObjectType) : Pointer;
 Procedure Initialize(Var T : TAnyType; ACount : SizeInt = 1);
