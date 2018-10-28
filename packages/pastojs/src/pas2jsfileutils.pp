@@ -222,7 +222,9 @@ begin
   Result:=false;
   RelPath:=Filename;
   if (BaseDirectory='') or (Filename='') then exit;
+  {AllowWriteln}
   writeln('TryCreateRelativePath ToDo: ',Filename,' Base=',BaseDirectory,' UsePointDirectory=',UsePointDirectory);
+  {AllowWriteln-}
 end;
 {$ELSE}
   function IsNameChar(c: char): boolean; inline;
@@ -325,7 +327,9 @@ begin
   Len:=length(AFilename);
   if Len=0 then exit('');
   Result:=AFilename;
+  {AllowWriteln}
   writeln('ResolveDots ToDo ',AFilename);
+  {AllowWriteln-}
 end;
 {$ELSE}
 
@@ -590,7 +594,10 @@ end;
 function CompareFilenames(const File1, File2: string): integer;
 begin
   {$IFDEF Pas2js}
+  {AllowWriteln}
   writeln('CompareFilenames ToDo ',File1,' ',File2);
+  {AllowWriteln-}
+  raise Exception.Create('CompareFilenames ToDo');
   Result:=0;
   {$ELSE}
   Result:=AnsiCompareFileName(File1,File2);
@@ -622,7 +629,10 @@ function MatchGlobbing(Mask, Name: string): boolean;
 {$IFDEF Pas2js}
 begin
   if Mask='' then exit(Name='');
+  {AllowWriteln}
   writeln('MatchGlobbing ToDo ',Mask,' Name=',Name);
+  {AllowWriteln-}
+  raise Exception.Create('MatchGlobbing ToDo');
   Result:=false;
 end;
 {$ELSE}

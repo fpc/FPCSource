@@ -17,7 +17,9 @@
 
 function FilenameIsAbsolute(const aFilename: string): boolean;
 begin
+  {AllowWriteln}
   writeln('FilenameIsAbsolute ToDo ',aFilename);
+  {AllowWriteln-}
   Result:=FilenameIsUnixAbsolute(aFilename);
   raise Exception.Create('FilenameIsAbsolute ToDo');
 end;
@@ -61,7 +63,9 @@ end;
 
 function GetCurrentDirPJ: String;
 begin
+  {AllowWriteln}
   writeln('GetCurrentDirPJ ToDo');
+  {AllowWriteln-}
   Result:='';
   raise Exception.Create('GetCurrentDirPJ ToDo');
 end;
@@ -100,14 +104,18 @@ end;
 function ResolveSymLinks(const Filename: string; ExceptionOnError: boolean
   ): string;
 begin
+  {AllowWriteln}
   writeln('ResolveSymLinks ToDo ',Filename,' ',ExceptionOnError);
+  {AllowWriteln-}
   Result:=Filename;
   raise Exception.Create('ResolveSymLinks ToDo');
 end;
 
 function FileIsWritable(const AFilename: string): boolean;
 begin
+  {AllowWriteln}
   writeln('FileIsWritable ToDo ',AFilename);
+  {AllowWriteln-}
   Result := false;
   raise Exception.Create('FileIsWritable ToDo');
 end;

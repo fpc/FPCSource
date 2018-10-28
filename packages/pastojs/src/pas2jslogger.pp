@@ -490,18 +490,27 @@ end;
 
 constructor TPas2jsFileStream.Create(Filename: string; Mode: cardinal);
 begin
+  {AllowWriteln}
   writeln('TPas2JSFileStream.Create TODO ',Filename,' Mode=',Mode);
+  {AllowWriteln-}
+  raise Exception.Create('TPas2JSFileStream.Create');
 end;
 
 destructor TPas2jsFileStream.Destroy;
 begin
+  {AllowWriteln}
   writeln('TPas2JSFileStream.Destroy TODO');
+  {AllowWriteln-}
+  raise Exception.Create('TPas2JSFileStream.Destroy');
   inherited Destroy;
 end;
 
 procedure TPas2jsFileStream.Write(const s: string);
 begin
+  {AllowWriteln}
   writeln('TPas2JSFileStream.Write TODO s="',s,'"');
+  {AllowWriteln-}
+  raise Exception.Create('TPas2JSFileStream.Write');
 end;
 {$ENDIF}
 
