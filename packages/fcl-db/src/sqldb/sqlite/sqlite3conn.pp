@@ -43,12 +43,34 @@ type
  
   TArrayStringArray = Array of TStringArray;
   PArrayStringArray = ^TArrayStringArray;
- 
-  { TSQLite3Connection }
 
+  // VFS not supported at this time.
+  // Do not change the order. See NativeFlags constant in GetSQLiteOpenFlags.
+
+  TSQLiteOpenFlag = (
+    sofReadOnly,
+    sofReadWrite,
+    sofCreate,
+    sofNoMutex,
+    sofFullMutex,
+    sofSharedCache,
+    sofPrivateCache,
+    sofURI,
+    sofMemory
+  );
+  TSQLiteOpenFlags = set of TSQLiteOpenFlag;
+
+Const
+  DefaultOpenFlags = [sofReadWrite,sofCreate];
+
+  { TSQLite3Connection }
+Type
   TSQLite3Connection = class(TSQLConnection)
   private
     fhandle: psqlite3;
+    FOpenFlags: TSQLiteOpenFlags;
+    function GetSQLiteOpenFlags: Integer;
+    procedure SetOpenFlags(AValue: TSQLiteOpenFlags);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -98,6 +120,8 @@ type
     // Warning: CollationName has to be a UTF-8 string
     procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
     procedure LoadExtension(LibraryFile: string);
+  Published
+    Property OpenFlags : TSQLiteOpenFlags Read FOpenFlags Write SetOpenFlags default DefaultOpenFlags;
   end;
 
   { TSQLite3ConnectionDef }
@@ -274,6 +298,7 @@ begin
   inherited Create(AOwner);
   FConnOptions := [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID];
   FieldNameQuoteChars:=DoubleQuotes;
+  FOpenFlags:=DefaultOpenFlags;
 end;
 
 procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
@@ -766,6 +791,38 @@ begin
   execsql('BEGIN');
 end;
 
+function TSQLite3Connection.GetSQLiteOpenFlags: Integer;
+
+Const
+  NativeFlags : Array[TSQLiteOpenFlag] of Integer = (
+    SQLITE_OPEN_READONLY,
+    SQLITE_OPEN_READWRITE,
+    SQLITE_OPEN_CREATE,
+    SQLITE_OPEN_NOMUTEX,
+    SQLITE_OPEN_FULLMUTEX,
+    SQLITE_OPEN_SHAREDCACHE,
+    SQLITE_OPEN_PRIVATECACHE,
+    SQLITE_OPEN_URI,
+    SQLITE_OPEN_MEMORY
+  );
+Var
+  F : TSQLiteOpenFlag;
+
+begin
+  Result:=0;
+  For F in TSQLiteOpenFlags do
+    if F in FOpenFlags then
+      Result:=Result or NativeFlags[F];
+end;
+
+
+procedure TSQLite3Connection.SetOpenFlags(AValue: TSQLiteOpenFlags);
+begin
+  if FOpenFlags=AValue then Exit;
+  CheckDisConnected;
+  FOpenFlags:=AValue;
+end;
+
 procedure TSQLite3Connection.DoInternalConnect;
 var
   filename: ansistring;
@@ -775,7 +832,7 @@ begin
     DatabaseError(SErrNoDatabaseName,self);
   InitializeSQLite;
   filename := DatabaseName;
-  checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
+  checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,Nil));
   if (Length(Password)>0) and assigned(sqlite3_key) then
     checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
   if Params.IndexOfName('foreign_keys') <> -1 then
