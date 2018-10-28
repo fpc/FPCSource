@@ -12,6 +12,10 @@
 
  **********************************************************************}
 
+{$if defined(FPC_USE_PSEABIEH)}
+{$i psabiehh.inc}
+{$endif}
+
 Const
   { Type of exception. Currently only one. }
   FPC_EXCEPTION   = 1;

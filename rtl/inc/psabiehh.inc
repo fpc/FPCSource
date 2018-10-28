@@ -1,0 +1,61 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2017-2018 by Jonas Maebe,
+    member of the Free Pascal development team
+
+    This file contains support for Itanium psABI EH
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+
+{$packrecords c}
+
+const
+  FPC_URC_NO_REASON = FPC_Unwind_Reason_Code(0);
+  FPC_URC_FOREIGN_EXCEPTION_CAUGHT = FPC_Unwind_Reason_Code(1);
+  FPC_URC_FATAL_PHASE2_ERROR = FPC_Unwind_Reason_Code(2);
+  FPC_URC_FATAL_PHASE1_ERROR = FPC_Unwind_Reason_Code(3);
+  FPC_URC_NORMAL_STOP = FPC_Unwind_Reason_Code(4);
+  FPC_URC_END_OF_STACK = FPC_Unwind_Reason_Code(5);
+  FPC_URC_HANDLER_FOUND = FPC_Unwind_Reason_Code(6);
+  FPC_URC_INSTALL_CONTEXT = FPC_Unwind_Reason_Code(7);
+  FPC_URC_CONTINUE_UNWIND = FPC_Unwind_Reason_Code(8);
+
+const
+  FPC_UA_SEARCH_PHASE = FPC_Unwind_Action(1);
+  FPC_UA_CLEANUP_PHASE = FPC_Unwind_Action(2);
+  FPC_UA_HANDLER_FRAME = FPC_Unwind_Action(4);
+  FPC_UA_FORCE_UNWIND = FPC_Unwind_Action(8);
+  FPC_UA_END_OF_STACK = FPC_Unwind_Action(16);
+
+type
+  PFPC_Unwind_Context = ^FPC_Unwind_Context;
+  FPC_Unwind_Context = record
+  end;
+
+  procedure _Unwind_RaiseException(exception_object: PFPC_Unwind_Exception); cdecl; external;
+  procedure _Unwind_Resume(exception_object: PFPC_Unwind_Exception); cdecl; external;
+
+type
+  TFPC_psabieh_exceptionClass = record
+    case byte of
+      0: (u: qword); {cuint64}
+      1: (a: array[0..7] of char);
+  end;
+
+{$push}
+{$j-}
+const
+  FPC_psabieh_exceptionClass_ID: TFPC_psabieh_exceptionClass =
+    (a: 'FPC1PAS'#0);
+{$pop}
+
+
+{$packrecords default}

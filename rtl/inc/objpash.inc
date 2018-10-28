@@ -339,6 +339,23 @@
        PPDispatch = ^PDispatch;
        PInterface = PUnknown;
 
+{$ifdef FPC_USE_PSEABIEH}
+       { needed here for TExceptObject (rest is in psabiehh.inc) }
+       FPC_Unwind_Reason_Code = longint; {cint}
+       FPC_Unwind_Action = longint; {cint}
+
+       PFPC_Unwind_Exception = ^FPC_Unwind_Exception;
+
+       FPC_Unwind_Exception_Cleanup_Fn =
+         procedure(reason: FPC_Unwind_Reason_Code; exc: PFPC_Unwind_Exception); cdecl;
+
+       FPC_Unwind_Exception = record
+         exception_class: qword;
+         exception_cleanup: FPC_Unwind_Exception_Cleanup_Fn;
+         private_1: ptruint;
+         private_2: ptruint;
+       end;
+{$endif FPC_USE_PSEABIEH}
 
        TExceptProc = Procedure (Obj : TObject; Addr : CodePointer; FrameCount:Longint; Frame: PCodePointer);
 
@@ -356,6 +373,14 @@
          ExceptRec  : Pointer;
          ReraiseBuf : jmp_buf;
 {$endif FPC_USE_WIN32_SEH}
+{$ifdef FPC_USE_PSEABIEH}
+         { cached info from unwind phase for action phase }
+         handler_switch_value: longint;
+         language_specific_data: PByte;
+         landing_pad: PtrUInt;
+         { libunwind exception handling data (must be last!) }
+         unwind_exception: FPC_Unwind_Exception;
+{$endif FPC_USE_PSEABIEH}
        end;
 
     Const

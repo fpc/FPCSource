@@ -26,6 +26,10 @@ Var
   ExceptObjectStack : PExceptObject;
   ExceptTryLevel    : ObjpasInt;
 
+{$ifdef FPC_USE_PSEABIEH}
+{$i psabieh.inc}
+{$endif}
+
 Function RaiseList : PExceptObject;
 begin
   RaiseList:=ExceptObjectStack;
@@ -82,7 +86,7 @@ end;
 { This routine is called only from fpc_raiseexception, which uses ExceptTryLevel
   flag to guard against repeated exceptions which can occur due to corrupted stack
   or heap. }
-Procedure PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer);
+function PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer): PExceptObject;
 var
   Newobj : PExceptObject;
   _ExceptObjectStack : ^PExceptObject;
@@ -131,6 +135,7 @@ begin
     End;
   NewObj^.framecount:=framecount;
   NewObj^.frames:=frames;
+  Result:=NewObj;
 end;
 
 Procedure DoUnHandledException;
