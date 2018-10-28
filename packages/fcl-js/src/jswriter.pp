@@ -99,11 +99,13 @@ Type
   end;
   {$endif}
 
+  TBufferWriter_Buffer = Array of {$ifdef fpc}byte{$else}string{$endif};
+
   { TBufferWriter }
 
   TBufferWriter = Class(TTextWriter)
   private type
-    TBuffer = Array of {$ifdef fpc}byte{$else}string{$endif};
+    TBuffer = TBufferWriter_Buffer;
   private
     FBufPos,
     FCapacity: Cardinal;
@@ -128,6 +130,9 @@ Type
     {$ifdef fpc}
     Procedure SaveToFile(Const AFileName : String);
     Property Buffer : Pointer Read GetBuffer;
+    {$endif}
+    {$ifdef pas2js}
+    Property Buffer: TBufferWriter_Buffer read FBuffer;
     {$endif}
     Property BufferLength : Integer Read GetBufferLength;
     Property Capacity : Cardinal Read GetCapacity Write SetCapacity;

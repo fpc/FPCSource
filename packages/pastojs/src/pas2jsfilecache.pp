@@ -31,6 +31,7 @@ uses
     {$ENDIF}
   {$ENDIF}
   Classes, SysUtils,
+  fpjson,
   PScanner, PasUseAnalyzer, PasResolver, FPPJsSrcMap,
   {$IFDEF HasPas2jsFiler}
   Pas2JsFiler,
@@ -339,9 +340,7 @@ type
     procedure GetListing(const aDirectory: string; var Files: TStrings;
                          FullPaths: boolean = true);
     procedure RaiseDuplicateFile(aFilename: string);
-    {$IFDEF HasStreams}
-    procedure SaveToFile(ms: TMemoryStream; Filename: string);
-    {$ENDIF}
+    procedure SaveToFile(ms: TFPJSStream; Filename: string);
     function ExpandDirectory(const Filename, BaseDir: string): string;
   public
     property AllJSIntoMainJS: Boolean read GetAllJSIntoMainJS write SetAllJSIntoMainJS;
@@ -2166,15 +2165,19 @@ begin
   end;
 end;
 
-{$IFDEF HasStreams}
-procedure TPas2jsFilesCache.SaveToFile(ms: TMemoryStream; Filename: string);
+procedure TPas2jsFilesCache.SaveToFile(ms: TFPJSStream; Filename: string);
 var
   s: string;
-  l: Int64;
   i: Integer;
+  {$IFDEF FPC}
+  l: TMaxPrecInt;
+  {$ENDIF}
 begin
   if Assigned(OnWriteFile) then
   begin
+    {$IFDEF Pas2js}
+    s:=ms.join('');
+    {$ELSE}
     l:=ms.Size-ms.Position;
     if l>0 then
     begin
@@ -2184,9 +2187,13 @@ begin
     end
     else
       s:='';
+    {$ENDIF}
     OnWriteFile(Filename,s);
   end else
   begin
+    {$IFDEF Pas2js}
+    raise Exception.Create('TPas2jsFilesCache.SaveToFile TODO '+Filename);
+    {$ELSE}
     try
       ms.SaveToFile(Filename);
     except
@@ -2201,9 +2208,9 @@ begin
         raise;
       end;
     end;
+    {$ENDIF}
   end;
 end;
-{$ENDIF}
 
 function TPas2jsFilesCache.ExpandDirectory(const Filename, BaseDir: string
   ): string;

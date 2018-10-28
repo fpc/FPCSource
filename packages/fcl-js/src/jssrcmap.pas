@@ -140,8 +140,8 @@ type
     function ToJSON: TJSONObject; virtual;
     function ToString: string; override;
     procedure LoadFromJSON(Obj: TJSONObject); virtual;
+    procedure SaveToStream(aStream: TFPJSStream); virtual;
     {$ifdef HasStreams}
-    procedure SaveToStream(aStream: TStream); virtual;
     procedure LoadFromStream(aStream: TStream); virtual;
     procedure SaveToFile(Filename: string); virtual;
     procedure LoadFromFile(Filename: string); virtual;
@@ -1079,21 +1079,27 @@ begin
   ParseMappings(aMappings);
 end;
 
-{$ifdef HasStreams}
-procedure TSourceMap.SaveToStream(aStream: TStream);
+procedure TSourceMap.SaveToStream(aStream: TFPJSStream);
 var
   Obj: TJSONObject;
 begin
   Obj:=ToJSON;
   try
     if smoSafetyHeader in Options then
+      begin
+      {$ifdef pas2js}
+      aStream.push(DefaultSrcMapHeader);
+      {$else}
       aStream.Write(DefaultSrcMapHeader[1],length(DefaultSrcMapHeader));
+      {$endif}
+      end;
     Obj.DumpJSON(aStream);
   finally
     Obj.Free;
   end;
 end;
 
+{$ifdef HasStreams}
 procedure TSourceMap.LoadFromStream(aStream: TStream);
 var
   s: string;

@@ -20,7 +20,7 @@ interface
 
 uses
   {$IFDEF Pas2js}
-  NodeJSFS,
+  JS, NodeJSFS,
   {$ENDIF}
   Classes, SysUtils, RtlConsts, contnrs,
   jstree, jswriter, JSSrcMap,
@@ -2459,7 +2459,11 @@ var
 var
   DestFilename, DestDir, Src, MapFilename: String;
   aJSWriter: TJSWriter;
-  ms: TMemoryStream;
+  {$IFDEF Pas2js}
+  buf: TJSArray;
+  {$ELSE}
+  buf: TMemoryStream;
+  {$ENDIF}
 begin
   //writeln('TPas2jsCompiler.WriteJSFiles ',aFile.PasFilename,' Need=',aFile.NeedBuild,' Checked=',Checked.Find(aFile)<>nil);
   if (aFile.JSModule=nil) or (not aFile.NeedBuild) then exit;
@@ -2502,8 +2506,10 @@ begin
       aJSWriter.WriteJS(aFile.JSModule);
     except
       on E: Exception do begin
+        {$IFDEF FPC}
         if ShowDebug then
           Log.LogExceptionBackTrace;
+        {$ENDIF}
         Log.LogPlain('[20180204193420] Error while creating JavaScript "'+FileCache.FormatPath(DestFilename)+'": '+E.Message);
         Terminate(ExitCodeErrorInternal);
       end;
@@ -2521,11 +2527,15 @@ begin
       // write to stdout
       if FreeWriter then
       begin
+        {$IFDEF HasStdErr}
         Log.WriteMsgToStdErr:=false;
+        {$ENDIF}
         try
           Log.LogRaw(aFileWriter.AsString);
         finally
+          {$IFDEF HasStdErr}
           Log.WriteMsgToStdErr:=coWriteMsgToStdErr in Options;
+          {$ENDIF}
         end;
       end;
     end else if FreeWriter then
@@ -2553,33 +2563,58 @@ begin
 
       // write js
       try
-        ms:=TMemoryStream.Create;
+        {$IFDEF Pas2js}
+        buf:=TJSArray.new;
+        {$ELSE}
+        buf:=TMemoryStream.Create;
+        {$ENDIF}
         try
+          {$IFDEF FPC_HAS_CPSTRING}
           // UTF8-BOM
           if (Log.Encoding='') or (Log.Encoding='utf8') then
           begin
             Src:=String(UTF8BOM);
-            ms.Write(Src[1],length(Src));
+            buf.Write(Src[1],length(Src));
           end;
+          {$ENDIF}
           // JS source
-          ms.Write(aFileWriter.Buffer^,aFileWriter.BufferLength);
+          {$IFDEF Pas2js}
+          buf:=TJSArray(aFileWriter.Buffer).slice();
+          {$ELSE}
+          buf.Write(aFileWriter.Buffer^,aFileWriter.BufferLength);
+          {$ENDIF}
           // source map comment
           if aFileWriter.SrcMap<>nil then
           begin
             Src:='//# sourceMappingURL='+ExtractFilename(MapFilename)+LineEnding;
-            ms.Write(Src[1],length(Src));
+            {$IFDEF Pas2js}
+            buf.push(Src);
+            {$ELSE}
+            buf.Write(Src[1],length(Src));
+            {$ENDIF}
           end;
-          ms.Position:=0;
-          FileCache.SaveToFile(ms,DestFilename);
+          {$IFDEF Pas2js}
+          {$ELSE}
+          buf.Position:=0;
+          {$ENDIF}
+          FileCache.SaveToFile(buf,DestFilename);
         finally
-          ms.Free;
+          {$IFDEF Pas2js}
+          buf:=nil;
+          {$ELSE}
+          buf.Free;
+          {$ENDIF}
         end;
       except
         on E: Exception do begin
+          {$IFDEF FPC}
           if ShowDebug then
             Log.LogExceptionBackTrace;
           if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
             Log.LogPlain('Error: '+E.Message);
+          {$ELSE}
+          Log.LogPlain('Error: '+E.Message);
+          {$ENDIF}
           Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(DestFilename))]);
           Terminate(ExitCodeWriteError);
         end;
@@ -2592,21 +2627,36 @@ begin
                    not (coShowLineNumbers in Options));
         FinishSrcMap(aFileWriter.SrcMap);
         try
-          ms:=TMemoryStream.Create;
+          {$IFDEF Pas2js}
+          buf:=TJSArray.new;
+          {$ELSE}
+          buf:=TMemoryStream.Create;
+          {$ENDIF}
           try
             // Note: No UTF-8 BOM in source map, Chrome 59 gives an error
-            aFileWriter.SrcMap.SaveToStream(ms);
-            ms.Position:=0;
-            FileCache.SaveToFile(ms,MapFilename);
+            aFileWriter.SrcMap.SaveToStream(buf);
+            {$IFDEF Pas2js}
+            {$ELSE}
+            buf.Position:=0;
+            {$ENDIF}
+            FileCache.SaveToFile(buf,MapFilename);
           finally
-            ms.Free;
+            {$IFDEF Pas2js}
+            buf:=nil;
+            {$ELSE}
+            buf.Free;
+            {$ENDIF}
           end;
         except
           on E: Exception do begin
+            {$IFDEF FPC}
             if ShowDebug then
               Log.LogExceptionBackTrace;
             if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
               Log.LogPlain('Error: '+E.Message);
+            {$ELSE}
+            Log.LogPlain('Error: '+E.Message);
+            {$ENDIF}
             Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(MapFilename))]);
             Terminate(ExitCodeWriteError);
           end;
@@ -2853,7 +2903,9 @@ end;
 procedure TPas2jsCompiler.SetWriteMsgToStdErr(const AValue: boolean);
 begin
   SetOption(coWriteMsgToStdErr,AValue);
+  {$IFDEF HasStdErr}
   Log.WriteMsgToStdErr:=AValue;
+  {$ENDIF}
 end;
 
 procedure TPas2jsCompiler.AddDefinesForTargetPlatform;
@@ -2911,14 +2963,14 @@ const
   IdentChars = ['a'..'z','A'..'Z','_','0'..'9'];
 var
   Line: String;
-  p, StartP: PChar;
+  l, p, StartP: integer;
 
   function GetWord: String;
   begin
     StartP:=p;
-    while (p^ in IdentChars) or (p^>#127) do inc(p);
-    Result:=copy(Line,StartP-PChar(Line)+1,p-StartP);
-    while p^ in [' ',#9] do inc(p);
+    while (p<=l) and ((Line[p] in IdentChars) or (Line[p]>#127)) do inc(p);
+    Result:=copy(Line,StartP,p-StartP);
+    while (p<=l) and (Line[p] in [' ',#9]) do inc(p);
   end;
 
   procedure DebugCfgDirective(const s: string);
@@ -2951,15 +3003,16 @@ begin
       if ShowDebug then
         Log.LogMsgIgnoreFilter(nInterpretingFileOption,[QuoteStr(Line)]);
       if Line='' then continue;
-      p:=PChar(Line);
-      while (p^ in [' ',#9]) do inc(p);
-      if p^=#0 then continue; // empty line
+      l:=length(Line);
+      p:=1;
+      while (p<=l) and (Line[p] in [' ',#9]) do inc(p);
+      if l>p then continue; // empty line
 
-      if p^='#' then
+      if (p<=l) and (Line[p]='#') then
       begin
         // cfg directive
         inc(p);
-        if p^ in [#0,#9,' ','-'] then continue; // comment
+        if (p<=l) and (Line[p] in [#0,#9,' ','-']) then continue; // comment
         Directive:=lowercase(GetWord);
         case Directive of
         'ifdef','ifndef':
@@ -2987,7 +3040,7 @@ begin
             inc(IfLvl);
             if Skip=skipNone then
             begin
-              Expr:=copy(Line,p-PChar(Line)+1,length(Line));
+              Expr:=copy(Line,p,length(Line));
               if ConditionEvaluator.Eval(Expr) then
               begin
                 // execute block
@@ -3031,7 +3084,7 @@ begin
             if (Skip=skipIf) and (IfLvl=SkipLvl) then
             begin
               // if-block was skipped -> try this elseif
-              Expr:=copy(Line,p-PChar(Line)+1,length(Line));
+              Expr:=copy(Line,p,length(Line));
               if ConditionEvaluator.Eval(Expr) then
               begin
                 // execute elseif block
@@ -3067,7 +3120,7 @@ begin
             end;
           end;
         'error':
-          ParamFatal('user defined: '+copy(Line,p-PChar(Line)+1,length(Line)))
+          ParamFatal('user defined: '+copy(Line,p,length(Line)))
         else
           if Skip=skipNone then
             CfgSyntaxError('unknown directive "#'+Directive+'"')
@@ -3077,7 +3130,7 @@ begin
       end else if Skip=skipNone then
       begin
         // option line
-        Line:=String(p);
+        Line:=copy(Line,p,length(Line));
         ReadParam(Line,false,false);
       end;
     end;
@@ -3939,7 +3992,13 @@ begin
       FreeStuff;
     except
       on E: Exception do
+      begin
+        {$IFDEF Pas2js}
+        Log.LogRaw('TPas2jsCompiler.Destroy '+E.Message);
+        {$ELSE}
         Log.LogExceptionBackTrace;
+        {$ENDIF}
+      end;
     end
   else
     FreeStuff;
@@ -4039,7 +4098,9 @@ begin
 
   ClearDefines;
   TStringList(FDefines).Sorted:=True;
+  {$IFDEF FPC}
   TStringList(FDefines).Duplicates:=dupError;
+  {$ENDIF}
 
   AddDefine('PAS2JS');
   AddDefine('PAS2JS_FULLVERSION',IntToStr((VersionMajor*100+VersionMinor)*100+VersionRelease));
@@ -4126,8 +4187,10 @@ begin
     on E: ECompilerTerminate do
     begin
     end else begin
+      {$IFDEF FPC}
       if ShowDebug then
         Log.LogExceptionBackTrace;
+      {$ENDIF}
       raise;
     end;
   end;
@@ -4138,17 +4201,18 @@ const
   MaxLineLen = 78;
   Indent = 12;
 
-  procedure l(s: string);
+  procedure w(s: string);
   var
-    p, LastCharStart, WordBreak: PChar;
+    l, p, LastCharStart, WordBreak: integer;
     Len: integer;
     CodePointCount: Integer;
 
     procedure InitLine;
     begin
-      p:=PChar(s);
+      l:=length(s);
+      p:=1;
       LastCharStart:=p;
-      WordBreak:=nil;
+      WordBreak:=0;
       CodePointCount:=0;
     end;
 
@@ -4159,19 +4223,23 @@ const
       exit;
     end;
     InitLine;
-    repeat
-      case p^ of
-      #0:
-        if p-PChar(s)=length(s) then
-          break
-        else
-          inc(p);
-      'a'..'z','A'..'Z','0'..'9','_','-','.',',','"','''','`',#128..#255:
+    while p<=l do
+    begin
+      case s[p] of
+      'a'..'z','A'..'Z','0'..'9','_','-','.',',','"','''','`',
+      #128..high(char) :
         begin
         LastCharStart:=p;
+        {$IFDEF FPC_HAS_CPSTRING}
         Len:=UTF8CharacterStrictLength(p);
         if Len=0 then Len:=1;
         inc(p,Len);
+        {$ELSE}
+        if (p<l) and (s[p] in [#$DC00..#$DFFF]) then
+          inc(p,2)
+        else
+          inc(p,1);
+        {$ENDIF}
         end;
       else
         LastCharStart:=p;
@@ -4181,15 +4249,16 @@ const
       inc(CodePointCount);
       if CodePointCount>=MaxLineLen then
       begin
-        if (WordBreak=nil) or (WordBreak-PChar(s)<MaxLineLen div 3) then
+        if (WordBreak=0)
+            or (WordBreak<MaxLineLen div {$IFDEF FPC_HAS_CPSTRING}3{$ELSE}2{$ENDIF}) then
           WordBreak:=LastCharStart;
-        Len:=WordBreak-PChar(s);
+        Len:=WordBreak-1;
         Log.LogRaw(LeftStr(s,Len));
         Delete(s,1,len);
-        s:=Space(Indent)+Trim(s);
+        s:=StringOfChar(' ',Indent)+Trim(s);
         InitLine;
       end;
-    until false;
+    end;
     Log.LogRaw(s);
   end;
 
@@ -4201,66 +4270,66 @@ begin
   Log.LogLn;
   if CompilerExe<>'' then
   begin
-    l('Usage: '+CompilerExe+' <your.pas>');
+    w('Usage: '+CompilerExe+' <your.pas>');
   end else begin
-    l('Usage: pas2js <your.pas>');
+    w('Usage: pas2js <your.pas>');
   end;
   Log.LogLn;
-  l('Options:');
-  l('Put + after a boolean switch option to enable it, - to disable it');
-  l('  @<x>    : Read compiler options from file <x> in addition to the default '+DefaultConfigFile);
-  l('  -B      : Rebuild all');
-  l('  -d<x>   : Defines the symbol <x>. Optional: -d<x>:=<value>');
-  l('  -i<x>   : Write information and halt. <x> is a combination of the following:');
-  l('    -iD   : Write compiler date');
-  l('    -iSO  : Write compiler OS');
-  l('    -iSP  : Write compiler host processor');
-  l('    -iTO  : Write target platform');
-  l('    -iTP  : Write target processor');
-  l('    -iV   : Write short compiler version');
-  l('    -iW   : Write full compiler version');
-  l('    -ic   : Write list of supported JS processors usable by -P<x>');
-  l('    -io   : Write list of supported optimizations usable by -Oo<x>');
-  l('    -it   : Write list of supported targets usable by -T<x>');
-  l('  -C<x>   : Code generation options. <x> is a combination of the following letters:');
+  w('Options:');
+  w('Put + after a boolean switch option to enable it, - to disable it');
+  w('  @<x>    : Read compiler options from file <x> in addition to the default '+DefaultConfigFile);
+  w('  -B      : Rebuild all');
+  w('  -d<x>   : Defines the symbol <x>. Optional: -d<x>:=<value>');
+  w('  -i<x>   : Write information and halt. <x> is a combination of the following:');
+  w('    -iD   : Write compiler date');
+  w('    -iSO  : Write compiler OS');
+  w('    -iSP  : Write compiler host processor');
+  w('    -iTO  : Write target platform');
+  w('    -iTP  : Write target processor');
+  w('    -iV   : Write short compiler version');
+  w('    -iW   : Write full compiler version');
+  w('    -ic   : Write list of supported JS processors usable by -P<x>');
+  w('    -io   : Write list of supported optimizations usable by -Oo<x>');
+  w('    -it   : Write list of supported targets usable by -T<x>');
+  w('  -C<x>   : Code generation options. <x> is a combination of the following letters:');
   // -C3        Turn on ieee error checking for constants
-  l('    o     : Overflow checking of integer operations');
+  w('    o     : Overflow checking of integer operations');
   // -CO        Check for possible overflow of integer operations
-  l('    r     : Range checking');
-  l('    R     : Object checks. Verify method calls and object type casts.');
-  l('  -F...   Set file names and paths:');
-  l('   -Fe<x> : Redirect output to file <x>. UTF-8 encoded.');
-  l('   -FE<x> : Set main output path to <x>');
-  l('   -Fi<x> : Add <x> to include paths');
-  l('   -FN<x> : add <x> to namespaces. Namespaces with trailing - are removed.');
-  l('            Delphi calls this flag "unit scope names".');
-  //l('   -Fr<x> : Load error message file <x>');
-  l('   -Fu<x> : Add <x> to unit paths');
-  l('   -FU<x> : Set unit output path to <x>');
-  l('  -I<x>   : Add <x> to include paths, same as -Fi');
-  l('  -J...  Extra options of pas2js');
-  l('   -Jc    : Write all JavaScript concatenated into the output file');
-  l('   -Je<x> : Encode messages as <x>.');
-  l('     -Jeconsole : Console codepage. This is the default.');
-  l('     -Jesystem  : System codepage. On non Windows console and system are the same.');
-  l('     -Jeutf-8   : Unicode UTF-8. Default when using -Fe.');
-  l('     -JeJSON    : Output compiler messages as JSON. Logo etc are outputted as-is.');
-  l('   -Ji<x> : Insert JS file <x> into main JS file. E.g. -Jirtl.js. Can be given multiple times. To remove a file name append a minus, e.g. -Jirtl.js-.');
-  l('   -Jl    : lower case identifiers');
-  l('   -Jm    : generate source maps');
-  l('     -Jmsourceroot=<x> : use x as "sourceRoot", prefix URL for source file names.');
-  l('     -Jmbasedir=<x> : write source file names relative to directory x.');
-  l('     -Jminclude : include Pascal sources in source map.');
-  l('     -Jmxssiheader : start source map with XSSI protection )]}'', default.');
-  l('     -Jm- : disable generating source maps');
-  l('   -Jo<x> : Enable or disable extra option. The x is case insensitive:');
-  l('     -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.');
-  l('     -JoUseStrict : add "use strict" to modules, default.');
-  l('     -JoCheckVersion- : do not add rtl version check, default.');
-  l('     -JoCheckVersion=main : insert rtl version check into main.');
-  l('     -JoCheckVersion=system : insert rtl version check into system unit init.');
-  l('     -JoCheckVersion=unit : insert rtl version check into every unit init.');
-  l('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
+  w('    r     : Range checking');
+  w('    R     : Object checks. Verify method calls and object type casts.');
+  w('  -F...   Set file names and paths:');
+  w('   -Fe<x> : Redirect output to file <x>. UTF-8 encoded.');
+  w('   -FE<x> : Set main output path to <x>');
+  w('   -Fi<x> : Add <x> to include paths');
+  w('   -FN<x> : add <x> to namespaces. Namespaces with trailing - are removed.');
+  w('            Delphi calls this flag "unit scope names".');
+  //w('   -Fr<x> : Load error message file <x>');
+  w('   -Fu<x> : Add <x> to unit paths');
+  w('   -FU<x> : Set unit output path to <x>');
+  w('  -I<x>   : Add <x> to include paths, same as -Fi');
+  w('  -J...  Extra options of pas2js');
+  w('   -Jc    : Write all JavaScript concatenated into the output file');
+  w('   -Je<x> : Encode messages as <x>.');
+  w('     -Jeconsole : Console codepage. This is the default.');
+  w('     -Jesystem  : System codepage. On non Windows console and system are the same.');
+  w('     -Jeutf-8   : Unicode UTF-8. Default when using -Fe.');
+  w('     -JeJSON    : Output compiler messages as JSON. Logo etc are outputted as-is.');
+  w('   -Ji<x> : Insert JS file <x> into main JS file. E.g. -Jirtl.js. Can be given multiple times. To remove a file name append a minus, e.g. -Jirtl.js-.');
+  w('   -Jl    : lower case identifiers');
+  w('   -Jm    : generate source maps');
+  w('     -Jmsourceroot=<x> : use x as "sourceRoot", prefix URL for source file names.');
+  w('     -Jmbasedir=<x> : write source file names relative to directory x.');
+  w('     -Jminclude : include Pascal sources in source map.');
+  w('     -Jmxssiheader : start source map with XSSI protection )]}'', default.');
+  w('     -Jm- : disable generating source maps');
+  w('   -Jo<x> : Enable or disable extra option. The x is case insensitive:');
+  w('     -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.');
+  w('     -JoUseStrict : add "use strict" to modules, default.');
+  w('     -JoCheckVersion- : do not add rtl version check, default.');
+  w('     -JoCheckVersion=main : insert rtl version check into main.');
+  w('     -JoCheckVersion=system : insert rtl version check into system unit init.');
+  w('     -JoCheckVersion=unit : insert rtl version check into every unit init.');
+  w('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
   {$IFDEF HasPas2jsFiler}
   if PrecompileFormats.Count>0 then
   begin
@@ -4271,58 +4340,58 @@ begin
     l('     -JU- : Disable prior -JU<x> option. Do not create precompiled units.');
   end;
   {$ENDIF}
-  l('  -l      : Write logo');
-  l('  -MDelphi: Delphi 7 compatibility mode');
-  l('  -MObjFPC: FPC''s Object Pascal compatibility mode (default)');
-  l('  -NS<x>  : obsolete: add <x> to namespaces. Same as -FN<x>');
-  l('  -n      : Do not read the default config files');
-  l('  -o<x>   : Change main JavaScript file to <x>, "." means stdout');
-  l('  -O<x>   : Optimizations:');
-  l('    -O-   : Disable optimizations');
-  l('    -O1   : Level 1 optimizations (quick and debugger friendly)');
-  //l('    -O2   : Level 2 optimizations (Level 1 + not debugger friendly)');
-  l('    -Oo<x> : Enable or disable optimization. The x is case insensitive:');
-  l('      -OoEnumNumbers[-] : write enum value as number instead of name. Default in -O1.');
-  l('      -OoRemoveNotUsedPrivates[-] : Default is enabled');
-  l('      -OoRemoveNotUsedDeclarations[-] : Default enabled for programs with -Jc');
-  l('  -P<x>   : Set target processor. Case insensitive:');
-  l('    -Pecmascript5 : default');
-  l('    -Pecmascript6');
-  l('  -S<x>   : Syntax options. <x> is a combination of the following letters:');
-  l('    a     : Turn on assertions');
-  l('    c     : Support operators like C (*=,+=,/= and -=)');
-  l('    d     : Same as -Mdelphi');
-  l('    m     : Enables macro replacements');
-  l('    2     : Same as -Mobjfpc (default)');
-  l('  -SI<x>   : Set interface style to <x>');
-  l('    -SIcom   : COM compatible interface (default)');
-  l('    -SIcorba : CORBA compatible interface');
-  l('  -T<x>   : Set target platform');
-  l('    -Tbrowser : default');
-  l('    -Tnodejs  : add pas.run(), includes -Jc');
-  l('  -u<x>   : Undefines the symbol <x>');
-  l('  -v<x>   : Be verbose. <x> is a combination of the following letters:');
-  l('    e     : Show errors (default)');
-  l('    w     : Show warnings');
-  l('    n     : Show notes');
-  l('    h     : Show hints');
-  l('    i     : Show info');
-  l('    l     : Show line numbers, needs -vi');
-  l('    a     : Show everything');
-  l('    0     : Show nothing (except errors)');
-  l('    b     : Show file names with full path');
-  l('    c     : Show conditionals');
-  l('    t     : Show tried/used files');
-  l('    d     : Show debug notes and info, enables -vni');
-  l('    q     : Show message numbers');
-  l('    x     : Show used tools');
-  l('    v     : Write pas2jsdebug.log with lots of debugging info');
-  l('    z     : Write messages to stderr, -o. still uses stdout.');
-  l('  -vm<x>,<y>: Do not show messages numbered <x> and <y>.');
-  l('  -?      : Show this help');
-  l('  -h      : Show this help');
+  w('  -l      : Write logo');
+  w('  -MDelphi: Delphi 7 compatibility mode');
+  w('  -MObjFPC: FPC''s Object Pascal compatibility mode (default)');
+  w('  -NS<x>  : obsolete: add <x> to namespaces. Same as -FN<x>');
+  w('  -n      : Do not read the default config files');
+  w('  -o<x>   : Change main JavaScript file to <x>, "." means stdout');
+  w('  -O<x>   : Optimizations:');
+  w('    -O-   : Disable optimizations');
+  w('    -O1   : Level 1 optimizations (quick and debugger friendly)');
+  //w('    -O2   : Level 2 optimizations (Level 1 + not debugger friendly)');
+  w('    -Oo<x> : Enable or disable optimization. The x is case insensitive:');
+  w('      -OoEnumNumbers[-] : write enum value as number instead of name. Default in -O1.');
+  w('      -OoRemoveNotUsedPrivates[-] : Default is enabled');
+  w('      -OoRemoveNotUsedDeclarations[-] : Default enabled for programs with -Jc');
+  w('  -P<x>   : Set target processor. Case insensitive:');
+  w('    -Pecmascript5 : default');
+  w('    -Pecmascript6');
+  w('  -S<x>   : Syntax options. <x> is a combination of the following letters:');
+  w('    a     : Turn on assertions');
+  w('    c     : Support operators like C (*=,+=,/= and -=)');
+  w('    d     : Same as -Mdelphi');
+  w('    m     : Enables macro replacements');
+  w('    2     : Same as -Mobjfpc (default)');
+  w('  -SI<x>   : Set interface style to <x>');
+  w('    -SIcom   : COM compatible interface (default)');
+  w('    -SIcorba : CORBA compatible interface');
+  w('  -T<x>   : Set target platform');
+  w('    -Tbrowser : default');
+  w('    -Tnodejs  : add pas.run(), includes -Jc');
+  w('  -u<x>   : Undefines the symbol <x>');
+  w('  -v<x>   : Be verbose. <x> is a combination of the following letters:');
+  w('    e     : Show errors (default)');
+  w('    w     : Show warnings');
+  w('    n     : Show notes');
+  w('    h     : Show hints');
+  w('    i     : Show info');
+  w('    l     : Show line numbers, needs -vi');
+  w('    a     : Show everything');
+  w('    0     : Show nothing (except errors)');
+  w('    b     : Show file names with full path');
+  w('    c     : Show conditionals');
+  w('    t     : Show tried/used files');
+  w('    d     : Show debug notes and info, enables -vni');
+  w('    q     : Show message numbers');
+  w('    x     : Show used tools');
+  w('    v     : Write pas2jsdebug.log with lots of debugging info');
+  w('    z     : Write messages to stderr, -o. still uses stdout.');
+  w('  -vm<x>,<y>: Do not show messages numbered <x> and <y>.');
+  w('  -?      : Show this help');
+  w('  -h      : Show this help');
   Log.LogLn;
-  l('Macros: Format is $Name, $Name$ or $Name()');
+  w('Macros: Format is $Name, $Name$ or $Name()');
   for i:=0 to ParamMacros.Count-1 do begin
     ParamMacro:=ParamMacros[i];
     Log.LogRaw(['  $',ParamMacro.Name,BoolToStr(ParamMacro.CanHaveParams,'()',''),': ',ParamMacro.Description]);
@@ -4505,9 +4574,11 @@ begin
 
   if (UnitFilename='') or not DirectoryCache.FileExists(UnitFilename) then
   begin
+    {$IFDEF HasPas2jsFiler}
     if aFormat=nil then
       Log.LogMsg(nSourceFileNotFound,[QuoteStr(UnitFilename)])
     else
+    {$ENDIF}
       Log.LogMsg(nUnitFileNotFound,[QuoteStr(UnitFilename)]);
     Terminate(ExitCodeFileNotFound);
   end;
@@ -4519,7 +4590,7 @@ begin
     Terminate(ExitCodeFileNotFound);
   end;
 
-  aFile:=TPas2jsCompilerFile.Create(Self,UnitFilename,aFormat);
+  aFile:=TPas2jsCompilerFile.Create(Self,UnitFilename{$IFDEF HasPas2jsFiler},aFormat{$ENDIF});
   if UseUnitName<>'' then
     begin
     {$IFDEF VerboseSetPasUnitName}
@@ -4549,13 +4620,16 @@ begin
 
   if ShowDebug then
     Log.LogPlain(['Debug: Opening file "',UnitFilename,'"...']);
-  if aFile.PCUFormat=nil then
+  {$IFDEF HasPas2jsFiler}
+  if aFile.PCUFormat<>nil then
+  begin
+    aFile.FileResolver.BaseDirectory:=ExtractFilePath(UnitFilename);
+    aFile.CreatePCUReader;
+  end else
+  {$ENDIF}
   begin
     // open file (beware: this changes FileResolver.BaseDirectory)
     aFile.OpenFile(UnitFilename);
-  end else begin
-    aFile.FileResolver.BaseDirectory:=ExtractFilePath(UnitFilename);
-    aFile.CreatePCUReader;
   end;
 end;
 

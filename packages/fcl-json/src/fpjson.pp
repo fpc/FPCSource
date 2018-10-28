@@ -30,7 +30,6 @@ uses
   contnrs;
 
 type
-
   TJSONtype = (jtUnknown, jtNumber, jtString, jtBoolean, jtNull, jtArray, jtObject);
   TJSONInstanceType = (
     jitUnknown,
@@ -52,9 +51,11 @@ type
   TJSONCharType = AnsiChar;
   PJSONCharType = ^TJSONCharType;
   TJSONVariant = variant;
+  TFPJSStream = TStream;
   {$else}
   TJSONCharType = char;
   TJSONVariant = jsvalue;
+  TFPJSStream = TJSArray;
   {$endif}
   TFormatOption = (foSingleLineArray,   // Array without CR/LF : all on one line
                    foSingleLineObject,  // Object without CR/LF : all on one line
@@ -142,9 +143,7 @@ Type
   public
     Constructor Create; virtual;
     Procedure Clear;  virtual; Abstract;
-    {$ifdef fpc}
-    Procedure DumpJSON(S : TStream);
-    {$endif}
+    Procedure DumpJSON(S : TFPJSStream);
     // Get enumerator
     function GetEnumerator: TBaseJSONEnumerator; virtual;
     Function FindPath(Const APath : TJSONStringType) : TJSONdata;
@@ -1272,14 +1271,16 @@ begin
   Clear;
 end;
 
-{$ifdef fpc}
-procedure TJSONData.DumpJSON(S: TStream);
+procedure TJSONData.DumpJSON(S: TFPJSStream);
 
   Procedure W(T : String);
-
   begin
-    if (T<>'') then
-      S.WriteBuffer(T[1],Length(T)*SizeOf(Char));
+    if T='' then exit;
+    {$ifdef pas2js}
+    S.push(T);
+    {$else}
+    S.WriteBuffer(T[1],Length(T)*SizeOf(Char));
+    {$endif}
   end;
 
 Var
@@ -1318,7 +1319,6 @@ begin
     W(AsJSON)
   end;
 end;
-{$endif}
 
 class function TJSONData.GetCompressedJSON: Boolean; {$ifdef fpc}static;{$endif}
 begin
