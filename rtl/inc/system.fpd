@@ -42,6 +42,7 @@ Procedure Dispose (P : TypedPointer; Des : TProcedure);
 Procedure Exclude (Var S : TSetType; E : TSetElement);
 Procedure Exit(Const X : TAnyType);
 Procedure Exit;
+Function FPC_EH_Return_Data_Regno(Nr: Longint): Longint;
 Function High (Arg: TypeOrVariable) : TOrdinal;
 Procedure Inc (Var X : TOrdinal);
 Procedure Inc (Var X : TOrdinal; Increment : TOrdinal);
