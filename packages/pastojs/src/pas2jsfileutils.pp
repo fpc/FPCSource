@@ -724,20 +724,25 @@ begin
     exit;
   end;
 
-  {$IFDEF Windows}
-  Result:=GetWindowsEncoding;
+  {$IFDEF Pas2js}
+  Result:=EncodingUTF8;
   {$ELSE}
-    {$IFDEF Darwin}
-    Result:=EncodingUTF8;
+    {$IFDEF Windows}
+    Result:=GetWindowsEncoding;
     {$ELSE}
-    Lang := GetEnvironmentVariable('LC_ALL');
-    if Lang='' then
-    begin
-      Lang := GetEnvironmentVariable('LC_MESSAGES');
+      {$IFDEF Darwin}
+      Result:=EncodingUTF8;
+      {$ELSE}
+      // unix
+      Lang := GetEnvironmentVariable('LC_ALL');
       if Lang='' then
-        Lang := GetEnvironmentVariable('LANG');
-    end;
-    Result:=GetUnixEncoding;
+      begin
+        Lang := GetEnvironmentVariable('LC_MESSAGES');
+        if Lang='' then
+          Lang := GetEnvironmentVariable('LANG');
+      end;
+      Result:=GetUnixEncoding;
+      {$ENDIF}
     {$ENDIF}
   {$ENDIF}
   Result:=NormalizeEncoding(Result);
@@ -756,6 +761,15 @@ begin
 end;
 
 function IsASCII(const s: string): boolean; inline;
+{$IFDEF Pas2js}
+var
+  i: Integer;
+begin
+  for i:=1 to length(s) do
+    if s[i]>#127 then exit(false);
+  Result:=true;
+end;
+{$ELSE}
 var
   p: PChar;
 begin
@@ -769,6 +783,7 @@ begin
     inc(p);
   until false;
 end;
+{$ENDIF}
 
 {$IFDEF FPC_HAS_CPSTRING}
 function UTF8CharacterStrictLength(P: PChar): integer;

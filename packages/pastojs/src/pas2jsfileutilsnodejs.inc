@@ -19,6 +19,7 @@ function FilenameIsAbsolute(const aFilename: string): boolean;
 begin
   writeln('FilenameIsAbsolute ToDo ',aFilename);
   Result:=FilenameIsUnixAbsolute(aFilename);
+  raise Exception.Create('FilenameIsAbsolute ToDo');
 end;
 
 function ExpandFileNamePJ(const FileName: string; BaseDir: string): string;
@@ -62,6 +63,7 @@ function GetCurrentDirPJ: String;
 begin
   writeln('GetCurrentDirPJ ToDo');
   Result:='';
+  raise Exception.Create('GetCurrentDirPJ ToDo');
 end;
 
 function GetPhysicalFilename(const Filename: string; ExceptionOnError: boolean
@@ -100,12 +102,14 @@ function ResolveSymLinks(const Filename: string; ExceptionOnError: boolean
 begin
   writeln('ResolveSymLinks ToDo ',Filename,' ',ExceptionOnError);
   Result:=Filename;
+  raise Exception.Create('ResolveSymLinks ToDo');
 end;
 
 function FileIsWritable(const AFilename: string): boolean;
 begin
   writeln('FileIsWritable ToDo ',AFilename);
   Result := false;
+  raise Exception.Create('FileIsWritable ToDo');
 end;
 
 function GetEnvironmentVariableCountPJ: Integer;
@@ -121,6 +125,11 @@ end;
 function GetEnvironmentVariablePJ(const EnvVar: string): String;
 begin
   Result:=GetEnvironmentVariable(EnvVar);
+end;
+
+function GetConsoleTextEncoding: string;
+begin
+  Result:=GetDefaultTextEncoding;
 end;
 
 procedure InitPlatform;

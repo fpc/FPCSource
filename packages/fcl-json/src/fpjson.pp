@@ -886,7 +886,7 @@ Var
   begin
     if (U1<>0) then
       begin
-      U:=UTF8Encode(WideChar(U1));
+      U:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode(WideChar(U1)){$ELSE}widechar(U1){$ENDIF};
       Result:=Result+U;
       U1:=0;
       end;
@@ -921,7 +921,7 @@ begin
                 u2:=StrToInt('$'+W);
                 if (U1<>0) then
                   begin
-                  App:=UTF8Encode(WideChar(U1)+WideChar(U2));
+                  App:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode({$ENDIF}WideChar(U1)+WideChar(U2){$IFDEF FPC_HAS_CPSTRING}){$ENDIF};
                   U2:=0;
                   end
                 else
