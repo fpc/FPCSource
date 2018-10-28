@@ -2300,7 +2300,7 @@ implementation
                      vl:=eh_return_data_regno(vl.svalue);
                      if vl=-1 then
                        CGMessagePos(left.fileinfo,type_e_range_check_error_bounds);
-                     result:=genintconstnode(vl);
+                     hp:=genintconstnode(vl);
                    end;
                  else
                    internalerror(88);
