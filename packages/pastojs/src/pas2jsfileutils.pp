@@ -70,14 +70,11 @@ type TChangeStamp = SizeInt;
 const InvalidChangeStamp = low(TChangeStamp);
 procedure IncreaseChangeStamp(var Stamp: TChangeStamp);
 
-{$IFDEF FPC_HAS_CPSTRING}
 const
-  UTF8BOM = #$EF#$BB#$BF;
   EncodingUTF8 = 'UTF-8';
   EncodingSystem = 'System';
 function NormalizeEncoding(const Encoding: string): string;
 function IsNonUTF8System: boolean;// true if system encoding is not UTF-8
-function UTF8CharacterStrictLength(P: PChar): integer;
 function GetDefaultTextEncoding: string;
 function GetConsoleTextEncoding: string;
 {$IFDEF Windows}
@@ -89,6 +86,11 @@ function GetWindowsEncoding(AConsole: Boolean = False): string;
 function GetUnixEncoding: string;
 {$ENDIF}
 function IsASCII(const s: string): boolean; inline;
+
+{$IFDEF FPC_HAS_CPSTRING}
+const
+  UTF8BOM = #$EF#$BB#$BF;
+function UTF8CharacterStrictLength(P: PChar): integer;
 
 function UTF8ToUTF16(const s: string): UnicodeString;
 function UTF16ToUTF8(const s: UnicodeString): string;
@@ -107,7 +109,6 @@ implementation
 uses Windows;
 {$ENDIF}
 
-{$IFDEF FPC_HAS_CPSTRING}
 var
   EncodingValid: boolean = false;
   DefaultTextEncoding: string = EncodingSystem;
@@ -116,8 +117,7 @@ var
   Lang: string = '';
   {$ENDIF}
   {$ENDIF}
-  NonUTF8System: boolean = false;
-{$ENDIF}
+  NonUTF8System: boolean = {$IFDEF FPC_HAS_CPSTRING}false{$ELSE}true{$ENDIF};
 
 function FilenameIsWinAbsolute(const aFilename: string): boolean;
 begin
@@ -711,12 +711,66 @@ begin
     Stamp:=InvalidChangeStamp+1;
 end;
 
-{$IFDEF FPC_HAS_CPSTRING}
 function IsNonUTF8System: boolean;
 begin
   Result:=NonUTF8System;
 end;
 
+function GetDefaultTextEncoding: string;
+begin
+  if EncodingValid then
+  begin
+    Result:=DefaultTextEncoding;
+    exit;
+  end;
+
+  {$IFDEF Windows}
+  Result:=GetWindowsEncoding;
+  {$ELSE}
+    {$IFDEF Darwin}
+    Result:=EncodingUTF8;
+    {$ELSE}
+    Lang := GetEnvironmentVariable('LC_ALL');
+    if Lang='' then
+    begin
+      Lang := GetEnvironmentVariable('LC_MESSAGES');
+      if Lang='' then
+        Lang := GetEnvironmentVariable('LANG');
+    end;
+    Result:=GetUnixEncoding;
+    {$ENDIF}
+  {$ENDIF}
+  Result:=NormalizeEncoding(Result);
+
+  DefaultTextEncoding:=Result;
+  EncodingValid:=true;
+end;
+
+function NormalizeEncoding(const Encoding: string): string;
+var
+  i: Integer;
+begin
+  Result:=LowerCase(Encoding);
+  for i:=length(Result) downto 1 do
+    if Result[i]='-' then Delete(Result,i,1);
+end;
+
+function IsASCII(const s: string): boolean; inline;
+var
+  p: PChar;
+begin
+  if s='' then exit(true);
+  p:=PChar(s);
+  repeat
+    case p^ of
+    #0: if p-PChar(s)=length(s) then exit(true);
+    #128..#255: exit(false);
+    end;
+    inc(p);
+  until false;
+end;
+
+{$IFDEF FPC_HAS_CPSTRING}
 function UTF8CharacterStrictLength(P: PChar): integer;
 begin
   if p=nil then exit(0);
@@ -758,60 +812,6 @@ begin
       exit(0);
   end else
     exit(0);
-end;
-
-function GetDefaultTextEncoding: string;
-begin
-  if EncodingValid then
-  begin
-    Result:=DefaultTextEncoding;
-    exit;
-  end;
-
-  {$IFDEF Windows}
-  Result:=GetWindowsEncoding;
-  {$ELSE}
-  {$IFDEF Darwin}
-  Result:=EncodingUTF8;
-  {$ELSE}
-  Lang := GetEnvironmentVariable('LC_ALL');
-  if Lang='' then
-  begin
-    Lang := GetEnvironmentVariable('LC_MESSAGES');
-    if Lang='' then
-      Lang := GetEnvironmentVariable('LANG');
-  end;
-  Result:=GetUnixEncoding;
-  {$ENDIF}
-  {$ENDIF}
-  Result:=NormalizeEncoding(Result);
-
-  DefaultTextEncoding:=Result;
-  EncodingValid:=true;
-end;
-
-function NormalizeEncoding(const Encoding: string): string;
-var
-  i: Integer;
-begin
-  Result:=LowerCase(Encoding);
-  for i:=length(Result) downto 1 do
-    if Result[i]='-' then Delete(Result,i,1);
-end;
-
-function IsASCII(const s: string): boolean; inline;
-var
-  p: PChar;
-begin
-  if s='' then exit(true);
-  p:=PChar(s);
-  repeat
-    case p^ of
-    #0: if p-PChar(s)=length(s) then exit(true);
-    #128..#255: exit(false);
-    end;
-    inc(p);
-  until false;
 end;
 
 function UTF8ToUTF16(const s: string): UnicodeString;

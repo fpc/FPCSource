@@ -2796,6 +2796,17 @@ End.
     <li>{$modeswitch arrayoperators}: allow + operator to concatenate arrays, default in mode delphi</li>
     <li>{$macro on|off} enables macro replacements. Only macros with a value are replaced. Macros are never replaced inside directives.</li>
     <li>{$I filename} or {$include filename} - insert include file</li>
+    <li>{$I %param%}:
+      <ul>
+        <li>%date%: current date as string literal, '[yyyy/mm/dd]'</li>
+        <li>%time%: current time as string literal, 'hh:mm:ss'</li>
+        <li>%line%: current source line number as string literal, e.g. '123'</li>
+        <li>%currentroutine%: short name of current routine as string literal</li>
+        <li>%pas2jstarget%, %pas2jstargetos%, %fpctarget%, %fpctargetos%: target os as string literal, e.g. 'Browser'</li>
+        <li>%pas2jstargetcpu%, %fpctargetcpu%: target cpu as string literal, e.g. 'ECMAScript5'</li>
+        <li>%pas2jsversion%, %fpcversion%: compiler version as strnig literal, e.g. '1.0.2'</li>
+      </ul>
+    </li>
     <li>{$Warnings on|off}</li>
     <li>{$Notes on|off}</li>
     <li>{$Hints on|off}</li>
@@ -2843,8 +2854,8 @@ End.
     <ul>
     <li>PASJS</li>
     <li>PAS2JS_FULLVERSION - major*1000+minor*100+release, e.g. 1.2.3 = 10203</li>
-    <li>Target platform: BROWSER, NODEJS</li>
-    <li>Target processor: ECMAScript5, ECMAScript6, ECMAScript=5</li>
+    <li>Target platform: Browser, NodeJS, Pas2JSTargetOS=&lt;value&gt;</li>
+    <li>Target processor: ECMAScript5, ECMAScript6, ECMAScript=5, Pas2JSTargetCPU=&lt;value&gt;</li>
     <li>Mode: DELPHI, OBJFPC</li>
     </ul>
     </div>

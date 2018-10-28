@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, fpcunit, testregistry, contnrs,
   jstree, jswriter, jsbase,
   PasTree, PScanner, PasResolver, PParser, PasResolveEval,
-  FPPas2Js;
+  Pas2jsPParser, FPPas2Js;
 
 const
   // default parser+scanner options
@@ -76,7 +76,7 @@ type
     FOnFindUnit: TOnFindUnit;
     FParser: TTestPasParser;
     FStreamResolver: TStreamResolver;
-    FScanner: TPascalScanner;
+    FScanner: TPas2jsPasScanner;
     FSource: string;
   public
     destructor Destroy; override;
@@ -86,7 +86,7 @@ type
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
     property Filename: string read FFilename write FFilename;
     property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
-    property Scanner: TPascalScanner read FScanner write FScanner;
+    property Scanner: TPas2jsPasScanner read FScanner write FScanner;
     property Parser: TTestPasParser read FParser write FParser;
     property Source: string read FSource write FSource;
     property Module: TPasModule read FModule;
@@ -119,7 +119,7 @@ type
     FHintMsgs: TObjectList; // list of TTestHintMessage
     FHintMsgsGood: TFPList; // list of TTestHintMessage marked as expected
     FJSRegModuleCall: TJSCallExpression;
-    FScanner: TPascalScanner;
+    FScanner: TPas2jsPasScanner;
     FSkipTests: boolean;
     FSource: TStringList;
     FFirstPasStatement: TPasImplBlock;
@@ -138,7 +138,7 @@ type
     procedure SetUp; override;
     function CreateConverter: TPasToJSConverter; virtual;
     function LoadUnit(const aUnitName: String): TPasModule;
-    procedure InitScanner(aScanner: TPascalScanner); virtual;
+    procedure InitScanner(aScanner: TPas2jsPasScanner); virtual;
     procedure TearDown; override;
     Procedure Add(Line: string); virtual;
     Procedure Add(const Lines: array of string);
@@ -210,7 +210,7 @@ type
     destructor Destroy; override;
     property Source: TStringList read FSource;
     property FileResolver: TStreamResolver read FFileResolver;
-    property Scanner: TPascalScanner read FScanner;
+    property Scanner: TPas2jsPasScanner read FScanner;
     property Parser: TTestPasParser read FParser;
     property MsgCount: integer read GetMsgCount;
     property Msgs[Index: integer]: TTestHintMessage read GetMsgs;
@@ -232,6 +232,7 @@ type
     Procedure Test_ModeSwitchCBlocksFail;
     Procedure TestUnit_UseSystem;
     Procedure TestUnit_Intf1Impl2Intf1;
+    Procedure TestIncludeVersion;
 
     // vars/const
     Procedure TestVarInt;
@@ -1072,9 +1073,9 @@ end;
 procedure TCustomTestModule.OnScannerLog(Sender: TObject; const Msg: String);
 var
   Item: TTestHintMessage;
-  aScanner: TPascalScanner;
+  aScanner: TPas2jsPasScanner;
 begin
-  aScanner:=Sender as TPascalScanner;
+  aScanner:=Sender as TPas2jsPasScanner;
   Item:=TTestHintMessage.Create;
   Item.Id:=aScanner.LastMsgNumber;
   Item.MsgType:=aScanner.LastMsgType;
@@ -1115,7 +1116,7 @@ begin
       CurEngine.StreamResolver.OwnsStreams:=True;
       //writeln('TTestModule.FindUnit SOURCE=',CurEngine.Source);
       CurEngine.StreamResolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
-      CurEngine.Scanner:=TPascalScanner.Create(CurEngine.StreamResolver);
+      CurEngine.Scanner:=TPas2jsPasScanner.Create(CurEngine.StreamResolver);
       InitScanner(CurEngine.Scanner);
       CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.StreamResolver,CurEngine);
       CurEngine.Parser.Options:=po_tcmodules;
@@ -1157,11 +1158,12 @@ begin
   FFileResolver:=TStreamResolver.Create;
   FFileResolver.OwnsStreams:=True;
 
-  FScanner:=TPascalScanner.Create(FFileResolver);
+  FScanner:=TPas2jsPasScanner.Create(FFileResolver);
   InitScanner(FScanner);
 
   FEngine:=AddModule(Filename);
   FEngine.Scanner:=FScanner;
+  FScanner.Resolver:=FEngine;
 
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
   FParser.OnLog:=@OnParserLog;
@@ -1180,7 +1182,7 @@ begin
   Result.Options:=co_tcmodules;
 end;
 
-procedure TCustomTestModule.InitScanner(aScanner: TPascalScanner);
+procedure TCustomTestModule.InitScanner(aScanner: TPas2jsPasScanner);
 begin
   aScanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
   aScanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
@@ -1191,6 +1193,8 @@ begin
   aScanner.CurrentBoolSwitches:=msAllPas2jsBoolSwitchesReadOnly+[bsHints,bsNotes,bsWarnings,bsWriteableConst];
 
   aScanner.OnLog:=@OnScannerLog;
+
+  aScanner.CompilerVersion:='Comp.Ver.tcmodules';
 end;
 
 procedure TCustomTestModule.TearDown;
@@ -2246,6 +2250,32 @@ begin
     '']),
     LinesToStr([
     '']) );
+end;
+
+procedure TTestModule.TestIncludeVersion;
+begin
+  StartProgram(false);
+  Add([
+  'var s: string;',
+  'begin',
+  '  s:={$I %line%};',
+  '  s:={$I %currentroutine%};',
+  '  s:={$I %pas2jsversion%};',
+  '  s:={$I %pas2jstarget%};',
+  '  s:={$I %pas2jstargetos%};',
+  '  s:={$I %pas2jstargetcpu%};',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIncludeVersion',
+    'this.s="";',
+    LinesToStr([
+    '$mod.s = "5";',
+    '$mod.s = "<anonymous>";',
+    '$mod.s = "Comp.Ver.tcmodules";',
+    '$mod.s = "Browser";',
+    '$mod.s = "Browser";',
+    '$mod.s = "ECMAScript5";',
+    '']));
 end;
 
 procedure TTestModule.TestVarInt;

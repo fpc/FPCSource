@@ -375,7 +375,7 @@ ToDos:
   - array of interface
   - record member interface
 
-Not in Version 1.0:
+ToDo:
 - record field external name
 - make records more lightweight
 - 1 as TEnum, ERangeError
@@ -385,6 +385,7 @@ Not in Version 1.0:
 - property read Arr[0]  https://bugs.freepascal.org/view.php?id=33416
 - write, writeln
 - array of const
+- Result:=inherited;
 - sets
   - set of char, boolean, integer range, char range, enum range
 - call array of proc element without ()

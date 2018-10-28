@@ -9,7 +9,7 @@ uses
   fpjson,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver, PasUseAnalyzer,
   FPPas2Js,
-  Pas2jsFileUtils, Pas2jsLogger, Pas2jsPParser, Pas2jsFileCache;
+  Pas2jsFileUtils, Pas2jsLogger, Pas2jsPParser, Pas2jsFileCache, Pas2jsCompiler;
 
 begin
   // Your code here
