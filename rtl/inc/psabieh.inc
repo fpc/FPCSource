@@ -331,11 +331,6 @@ function FPC_psabieh_get_ttype_entry(const info: FPC_psabieh_lsda_header_info; i
     result:=TClass(ptr);
   end;
 
-function FPC_psabieh_can_catch(catch_type: TClass; thrown: TObject): boolean;
-  begin
-    result:=thrown is catch_type
-  end;
-
 // Return true if THROW_TYPE matches one if the filter types.
 function FPC_psabieh_check_exception_spec(const info: FPC_psabieh_lsda_header_info; thrown: TObject; filter_value: PtrInt): boolean;
   var
@@ -410,6 +405,7 @@ function FPC_psabieh_find_action_record(const info: FPC_psabieh_lsda_header_info
             if cs_action<>0 then
               action_record:=info.action_table+cs_action-1;
             result:=true;
+            exit;
           end;
       end;
   end;
@@ -652,7 +648,7 @@ function FPC_psabieh_personality_v0(version: cint; actions: FPC_Unwind_Action; e
     {$if sizeof(pointer)<>sizeof(SizeInt)}
       {$error Add support for extending pointer values}
     {$endif}
-    _Unwind_SetGR(context,fpc_eh_return_data_regno(0),libunwind_exception);
+    _Unwind_SetGR(context,fpc_eh_return_data_regno(0),PtrUInt(libunwind_exception));
     _Unwind_SetGR (context,fpc_eh_return_data_regno(1),handler_switch_value);
     _Unwind_SetIP(context,landing_pad);
     result:=FPC_URC_INSTALL_CONTEXT;
