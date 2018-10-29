@@ -8125,7 +8125,8 @@ begin
         or (C=TPasRecordType)
         or (C=TPasEnumType)
         or (C=TPasRangeType)
-        or (C=TPasArrayType) then
+        or (C=TPasArrayType)
+        or (C=TPasPointerType) then
       begin
       // typecast
       // default is to simply replace  "aType(value)" with "value"

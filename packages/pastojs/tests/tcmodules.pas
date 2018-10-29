@@ -18244,6 +18244,7 @@ begin
   '  r: TRec;',
   '  p: PRec;',
   '  q: ^TRec;',
+  '  Ptr: pointer;',
   'begin',
   '  new(p);',
   '  p:=@r;',
@@ -18255,6 +18256,8 @@ begin
   '  dispose(p);',
   '  new(q);',
   '  dispose(q);',
+  '  Ptr:=p;',
+  '  p:=PRec(ptr);',
   '']);
   ConvertProgram;
   CheckSource('TestPointer_Record',
@@ -18272,6 +18275,7 @@ begin
     'this.r = new $mod.TRec();',
     'this.p = null;',
     'this.q = null;',
+    'this.Ptr = null;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = new $mod.TRec();',
@@ -18284,6 +18288,8 @@ begin
     '$mod.p = null;',
     '$mod.q = new $mod.TRec();',
     '$mod.q = null;',
+    '$mod.Ptr = $mod.p;',
+    '$mod.p = $mod.Ptr;',
     '']));
 end;
 
