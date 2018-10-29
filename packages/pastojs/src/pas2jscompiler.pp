@@ -3006,13 +3006,13 @@ begin
       l:=length(Line);
       p:=1;
       while (p<=l) and (Line[p] in [' ',#9]) do inc(p);
-      if l>p then continue; // empty line
+      if p>l then continue; // empty line
 
       if (p<=l) and (Line[p]='#') then
       begin
         // cfg directive
         inc(p);
-        if (p<=l) and (Line[p] in [#0,#9,' ','-']) then continue; // comment
+        if (p>l) or (Line[p] in [#0,#9,' ','-']) then continue; // comment
         Directive:=lowercase(GetWord);
         case Directive of
         'ifdef','ifndef':
