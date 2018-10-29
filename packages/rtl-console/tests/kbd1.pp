@@ -25,7 +25,7 @@ begin
     kbFnKey:
       Writeln('Function key');
     kbPhys:
-      Writeln('Physical key $' + HexStr(K and $FFFF, 4));
+      Writeln('Physical key ', K and $FFFF, ' - $' + HexStr(K and $FFFF, 4));
   end;
   if (GetKeyEventFlags(K) and kbReleased) <> 0 then
     Writeln('Released key event');
