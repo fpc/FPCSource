@@ -736,7 +736,7 @@ procedure ReleaseEvalValue(var Value: TResEvalValue);
 begin
   if Value=nil then exit;
   if Value.Element<>nil then exit;
-  Value.Free;
+  Value.{$ifdef pas2js}Destroy{$else}Free{$endif};
   Value:=nil;
 end;
 

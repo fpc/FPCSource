@@ -28,7 +28,7 @@ uses
   {$ifdef pas2js}
   JS,
   {$endif}
-  SysUtils, jstoken, jsbase, jstree;
+  SysUtils, jsbase, jstree;
 
 Type
   {$ifdef pas2js}
@@ -99,11 +99,13 @@ Type
   end;
   {$endif}
 
+  TBufferWriter_Buffer = Array of {$ifdef fpc}byte{$else}string{$endif};
+
   { TBufferWriter }
 
   TBufferWriter = Class(TTextWriter)
   private type
-    TBuffer = Array of {$ifdef fpc}byte{$else}string{$endif};
+    TBuffer = TBufferWriter_Buffer;
   private
     FBufPos,
     FCapacity: Cardinal;
@@ -128,6 +130,9 @@ Type
     {$ifdef fpc}
     Procedure SaveToFile(Const AFileName : String);
     Property Buffer : Pointer Read GetBuffer;
+    {$endif}
+    {$ifdef pas2js}
+    Property Buffer: TBufferWriter_Buffer read FBuffer;
     {$endif}
     Property BufferLength : Integer Read GetBufferLength;
     Property Capacity : Cardinal Read GetCapacity Write SetCapacity;
@@ -528,7 +533,7 @@ function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
 Var
   I,J,L : Integer;
   R: TJSString;
-  c: Char;
+  c: WideChar;
 
 begin
   I:=1;
@@ -538,7 +543,7 @@ begin
   While I<=L do
     begin
     c:=S[I];
-    if (c in [#0..#31,'"','''','/','\']) then
+    if (c in [#0..#31,'"','''','/','\']) or (c>=#$ff00) then
       begin
       R:=R+Copy(S,J,I-J);
       Case c of
@@ -552,6 +557,7 @@ begin
         #10 : R:=R+'\n';
         #12 : R:=R+'\f';
         #13 : R:=R+'\r';
+        #$ff00..#$ffff: R:=R+'\u'+TJSString(HexStr(ord(c),4));
       end;
       J:=I+1;
       end;
@@ -1462,14 +1468,6 @@ procedure TJSWriter.WriteSwitchStatement(El: TJSSwitchStatement);
 
 Var
   C : Boolean;
-
-  Procedure WriteCaseLabel(L : TJSString);
-
-  begin
-    Write(l);
-  end;
-
-Var
   I : Integer;
   EC : TJSCaseElement;
 
