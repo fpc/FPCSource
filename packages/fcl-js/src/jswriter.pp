@@ -533,7 +533,7 @@ function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
 Var
   I,J,L : Integer;
   R: TJSString;
-  c: Char;
+  c: WideChar;
 
 begin
   I:=1;
@@ -543,7 +543,7 @@ begin
   While I<=L do
     begin
     c:=S[I];
-    if (c in [#0..#31,'"','''','/','\']) then
+    if (c in [#0..#31,'"','''','/','\']) or (c>=#$ff00) then
       begin
       R:=R+Copy(S,J,I-J);
       Case c of
@@ -557,6 +557,7 @@ begin
         #10 : R:=R+'\n';
         #12 : R:=R+'\f';
         #13 : R:=R+'\r';
+        #$ff00..#$ffff: R:=R+'\u'+TJSString(HexStr(ord(c),4));
       end;
       J:=I+1;
       end;
