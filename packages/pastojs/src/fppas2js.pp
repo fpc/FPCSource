@@ -18501,7 +18501,8 @@ begin
         CreatePrimitiveDotExpr(FBuiltInNames[pbivnExceptObject],El),El);
       ListFirst.A:=V;
       // add statements
-      AddToStatementList(ListFirst,ListLast,ConvertElement(El.Body,AContext),El);
+      if El.Body<>nil then
+        AddToStatementList(ListFirst,ListLast,ConvertElement(El.Body,AContext),El);
       end
     else if El.Body<>nil then
       // add statements
