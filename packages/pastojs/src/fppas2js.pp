@@ -9745,8 +9745,10 @@ var
   begin
     V:=ConvertElement(Param,AContext);
     if IsPred then
+      // pred(int) -> Param-1
       Expr:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,El))
     else
+      // succ(int) -> Param+1
       Expr:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
     Expr.A:=V;
     Expr.B:=CreateLiteralNumber(El,1);
@@ -9756,9 +9758,33 @@ var
   procedure CreateSwitchBool;
   begin
     if IsPred then
+      // pred(bool) -> false
       ConvertBuiltIn_PredSucc:=CreateLiteralBoolean(El,false)
     else
+      // succ(bool) -> true
       ConvertBuiltIn_PredSucc:=CreateLiteralBoolean(El,true);
+  end;
+
+  procedure CreateCharPredSucc(Param: TPasExpr);
+  var
+    V: TJSElement;
+    Call: TJSCallExpression;
+    Expr: TJSAdditiveExpression;
+  begin
+    V:=ConvertElement(Param,AContext);
+    // V.charCodeAt()
+    Call:=CreateCallCharCodeAt(V,0,El);
+    if IsPred then
+      // pred(V) -> V.charCodeAt-1
+      Expr:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,El))
+    else
+      // succ(V) -> V.charCodeAt+1
+      Expr:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
+    Expr.A:=Call;
+    Expr.B:=CreateLiteralNumber(El,1);
+    // String.fromCharCode(V.charCodeAt+1)
+    Call:=CreateCallFromCharCode(Expr,El);
+    ConvertBuiltIn_PredSucc:=Call;
   end;
 
 var
@@ -9779,6 +9805,11 @@ begin
   else if ResolvedEl.BaseType in btAllJSBooleans then
     begin
     CreateSwitchBool;
+    exit;
+    end
+  else if ResolvedEl.BaseType in btAllJSChars then
+    begin
+    CreateCharPredSucc(Param);
     exit;
     end
   else if ResolvedEl.BaseType=btContext then

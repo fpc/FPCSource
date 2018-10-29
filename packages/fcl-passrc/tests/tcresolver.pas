@@ -238,8 +238,7 @@ type
     Procedure TestInt_ForIn;
 
     // strings
-    Procedure TestChar_Ord;
-    Procedure TestChar_Chr;
+    Procedure TestChar_BuiltInProcs;
     Procedure TestString_SetLength;
     Procedure TestString_Element;
     Procedure TestStringElement_MissingArgFail;
@@ -3158,25 +3157,21 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestChar_Ord;
+procedure TTestResolver.TestChar_BuiltInProcs;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  c: char;');
-  Add('  i: longint;');
-  Add('begin');
-  Add('  i:=ord(c);');
-  ParseProgram;
-end;
-
-procedure TTestResolver.TestChar_Chr;
-begin
-  StartProgram(false);
-  Add('var');
-  Add('  c: char;');
-  Add('  i: longint;');
-  Add('begin');
-  Add('  c:=chr(i);');
+  Add([
+  'var',
+  '  c: char;',
+  '  i: longint;',
+  'begin',
+  '  i:=ord(c);',
+  '  c:=chr(i);',
+  '  c:=pred(c);',
+  '  c:=succ(c);',
+  '  c:=low(c);',
+  '  c:=high(c);',
+  '']);
   ParseProgram;
 end;
 

@@ -263,8 +263,7 @@ type
     // strings
     Procedure TestCharConst;
     Procedure TestChar_Compare;
-    Procedure TestChar_Ord;
-    Procedure TestChar_Chr;
+    Procedure TestChar_BuiltInProcs;
     Procedure TestStringConst;
     Procedure TestStringConstSurrogate;
     Procedure TestString_Length;
@@ -5803,18 +5802,25 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestChar_Ord;
+procedure TTestModule.TestChar_BuiltInProcs;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  c: char;');
-  Add('  i: longint;');
-  Add('  s: string;');
-  Add('begin');
-  Add('  i:=ord(c);');
-  Add('  i:=ord(s[i]);');
+  Add([
+  'var',
+  '  c: char;',
+  '  i: longint;',
+  '  s: string;',
+  'begin',
+  '  i:=ord(c);',
+  '  i:=ord(s[i]);',
+  '  c:=chr(i);',
+  '  c:=pred(c);',
+  '  c:=succ(c);',
+  '  c:=low(c);',
+  '  c:=high(c);',
+  '']);
   ConvertProgram;
-  CheckSource('TestChar_Ord',
+  CheckSource('TestChar_BuiltInProcs',
     LinesToStr([
     'this.c = "";',
     'this.i = 0;',
@@ -5823,25 +5829,11 @@ begin
     LinesToStr([
     '$mod.i = $mod.c.charCodeAt();',
     '$mod.i = $mod.s.charCodeAt($mod.i-1);',
-    '']));
-end;
-
-procedure TTestModule.TestChar_Chr;
-begin
-  StartProgram(false);
-  Add('var');
-  Add('  c: char;');
-  Add('  i: longint;');
-  Add('begin');
-  Add('  c:=chr(i);');
-  ConvertProgram;
-  CheckSource('TestChar_Chr',
-    LinesToStr([
-    'this.c = "";',
-    'this.i = 0;'
-    ]),
-    LinesToStr([
     '$mod.c = String.fromCharCode($mod.i);',
+    '$mod.c = String.fromCharCode($mod.c.charCodeAt() - 1);',
+    '$mod.c = String.fromCharCode($mod.c.charCodeAt() + 1);',
+    '$mod.c = "\x00";',
+    '$mod.c = "\uFFFF";',
     '']));
 end;
 
@@ -7209,7 +7201,7 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.c = "\x00";',
-    '$mod.c = "'#$EF#$BF#$BF'";',
+    '$mod.c = "\uFFFF";',
     '$mod.Arr[66] = "a";',
     '$mod.Arr[68] = $mod.Arr[$mod.c.charCodeAt()];',
     '$mod.Arr[$mod.c.charCodeAt()] = $mod.Arr[100];',
