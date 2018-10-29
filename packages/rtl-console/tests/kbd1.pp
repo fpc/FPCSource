@@ -5,13 +5,18 @@ uses
 
 procedure ShowKeyEvent(K: TKeyEvent);
 begin
-  case GetKeyEventFlags(K) of
-    kbASCII    : Writeln('ASCII key');
-    kbUniCode  : Writeln('Unicode key');
-    kbFnKey    : Writeln('Function key');
-    kbPhys     : Writeln('Physical key');
-    kbReleased : Writeln('Released key event');
+  case GetKeyEventFlags(K) and 3 of
+    kbASCII:
+      Writeln('ASCII key #', Ord(GetKeyEventChar(K)));
+    kbUniCode:
+      Writeln('Unicode key');
+    kbFnKey:
+      Writeln('Function key');
+    kbPhys:
+      Writeln('Physical key $' + HexStr(K and $FFFF, 4));
   end;
+  if (GetKeyEventFlags(K) and kbReleased) <> 0 then
+    Writeln('Released key event');
   Writeln('Got key : ', KeyEventToString(K));
 end;
 
