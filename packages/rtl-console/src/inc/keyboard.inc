@@ -154,6 +154,53 @@ begin
     TranslateKeyEventUnicode:=DefaultTranslateKeyEventUnicode(KeyEvent);
 end;
 
+function ConvertToEnhancedKeyEvent(KeyEvent: TKeyEvent): TEnhancedKeyEvent;
+begin
+  FillChar(ConvertToEnhancedKeyEvent,SizeOf(ConvertToEnhancedKeyEvent),0);
+  if KeyEvent=0 then
+    exit;
+  ConvertToEnhancedKeyEvent.ShiftState:=GetKeyEventShiftState(KeyEvent);
+  case GetKeyEventFlags(KeyEvent) of
+    kbASCII:
+      ConvertToEnhancedKeyEvent.AsciiChar:=GetKeyEventChar(KeyEvent);
+    kbUniCode:
+      ConvertToEnhancedKeyEvent.UnicodeChar:=WideChar(GetKeyEventUniCode(KeyEvent));
+    kbFnKey:
+      ConvertToEnhancedKeyEvent.VirtualKeyCode:=GetKeyEventCode(KeyEvent);
+    kbPhys:
+      // Not good, we need a GetKeyEventScanCode function !!
+      ConvertToEnhancedKeyEvent.VirtualScanCode:=KeyEvent and $ffff;
+  end;
+  { todo: set ConvertToEnhancedKeyEvent.Flags }
+  { todo: attempt to set AsciiChar and WideChar if they are missing }
+end;
+
+function DefaultGetEnhancedKeyEvent: TEnhancedKeyEvent;
+begin
+  DefaultGetEnhancedKeyEvent:=ConvertToEnhancedKeyEvent(GetKeyEvent);
+end;
+
+function GetEnhancedKeyEvent: TEnhancedKeyEvent;
+begin
+  if Assigned(CurrentKeyBoardDriver.GetEnhancedKeyEvent) then
+    GetEnhancedKeyEvent:=CurrentKeyBoardDriver.GetEnhancedKeyEvent()
+  else
+    GetEnhancedKeyEvent:=DefaultGetEnhancedKeyEvent;
+end;
+
+function DefaultPollEnhancedKeyEvent: TEnhancedKeyEvent;
+begin
+  DefaultPollEnhancedKeyEvent:=ConvertToEnhancedKeyEvent(PollKeyEvent);
+end;
+
+function PollEnhancedKeyEvent: TEnhancedKeyEvent;
+begin
+  if Assigned(CurrentKeyBoardDriver.PollEnhancedKeyEvent) then
+    PollEnhancedKeyEvent:=CurrentKeyBoardDriver.PollEnhancedKeyEvent()
+  else
+    PollEnhancedKeyEvent:=DefaultPollEnhancedKeyEvent;
+end;
+
 type
   TTranslationEntry = packed record
     Min, Max: Byte;
