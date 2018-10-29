@@ -28,7 +28,7 @@ uses
   {$ifdef pas2js}
   JS,
   {$endif}
-  SysUtils, jstoken, jsbase, jstree;
+  SysUtils, jsbase, jstree;
 
 Type
   {$ifdef pas2js}
@@ -1467,14 +1467,6 @@ procedure TJSWriter.WriteSwitchStatement(El: TJSSwitchStatement);
 
 Var
   C : Boolean;
-
-  Procedure WriteCaseLabel(L : TJSString);
-
-  begin
-    Write(l);
-  end;
-
-Var
   I : Integer;
   EC : TJSCaseElement;
 

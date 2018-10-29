@@ -40,8 +40,10 @@ uses
     {$ifdef nodejs}
     NodeJSFS,
     {$endif}
+  {$else}
+  contnrs,
   {$endif}
-  Classes, SysUtils, contnrs, fpjson
+  Classes, SysUtils, fpjson
   {$ifdef HasJsonParser}
   , jsonparser, jsonscanner
   {$endif}
