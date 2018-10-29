@@ -14254,12 +14254,15 @@ begin
   '  r: TRec;',
   '  p: PRec;',
   '  i: longint;',
+  '  Ptr: pointer;',
   'begin',
   '  p:=@r;',
   '  i:=p^.x;',
   '  p^.x:=i;',
   '  if i=p^.x then;',
   '  if p^.x=i then;',
+  '  ptr:=p;',
+  '  p:=PRec(ptr);',
   '']);
   ParseProgram;
 end;

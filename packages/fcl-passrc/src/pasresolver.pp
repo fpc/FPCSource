@@ -3498,9 +3498,12 @@ end;
 
 procedure TPasIdentifierScope.InternalAdd(Item: TPasIdentifier);
 var
-  Index: Integer;
   OldItem: TPasIdentifier;
   LoName: string;
+  {$ifdef pas2js}
+  {$ELSE}
+  Index: Integer;
+  {$ENDIF}
 begin
   LoName:=lowercase(Item.Identifier);
   {$ifdef pas2js}
@@ -5501,7 +5504,7 @@ procedure TPasResolver.FinishMethodDeclHeader(Proc: TPasProcedure);
     Proc.Visibility:=OverloadProc.Visibility;
   end;
 
-  {$IF FPC_FULLVERSION<30101}
+  {$IF defined(fpc) and (FPC_FULLVERSION<30101)}
   procedure Delete(var A: TArrayOfPasProcedure; Index, Count: integer); overload;
   var
     i: Integer;
@@ -11975,7 +11978,6 @@ var
   Value: TResEvalValue;
   Int, MinIntVal, MaxIntVal: TMaxPrecInt;
   Flo: TMaxPrecFloat;
-  c: Char;
   w: WideChar;
 begin
   Result:=nil;
@@ -12064,8 +12066,7 @@ begin
       {$ifdef FPC_HAS_CPSTRING}
       else if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
         try
-          c:=Char(Int);
-          Result:=TResEvalString.CreateValue(c);
+          Result:=TResEvalString.CreateValue(Char(Int));
         except
           RaiseMsg(20180125112510,nRangeCheckError,sRangeCheckError,[],Params);
         end
@@ -12380,6 +12381,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
 end;
@@ -12442,6 +12444,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
 end;
@@ -13246,6 +13249,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraRead);
   FinishCallArgAccess(P[1],rraVarParam);
 end;
@@ -13341,6 +13345,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraOutParam);
   for i:=0 to length(Params.Params)-1 do
     FinishCallArgAccess(P[i],rraRead);
@@ -13588,6 +13593,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
   FinishCallArgAccess(P[2],rraRead);
@@ -14194,6 +14200,7 @@ var
   i: Integer;
   UsesUnit: TPasUsesUnit;
 begin
+  Result:=nil;
   //writeln('TPasResolver.FindElement Name="',aName,'"');
   ErrorEl:=nil; // use nil to use scanner position as error position
 
@@ -15464,6 +15471,7 @@ begin
     if Scope is TPasProcedureScope then
       exit(TPasProcedureScope(Scope));
   until false;
+  Result:=nil;
 end;
 
 class function TPasResolver.MangleSourceLineNumber(Line, Column: integer
@@ -16113,6 +16121,7 @@ begin
         [],Params);
     ArrayEl:=TPasArrayType(NextType);
   until false;
+  Result:=cIncompatible;
 end;
 
 function TPasResolver.CheckOverloadProcCompatibility(Proc1, Proc2: TPasProcedure
@@ -16393,8 +16402,10 @@ var
   C: TClass;
   EnumType: TPasEnumType;
   bt: TResolverBaseType;
-  w: WideChar;
   LTypeEl: TPasType;
+  {$ifdef FPC_HAS_CPSTRING}
+  w: WideChar;
+  {$endif}
 begin
   LTypeEl:=LeftResolved.LoTypeEl;
   if (LTypeEl<>nil)
@@ -17066,7 +17077,10 @@ begin
             end
           else if (C=TPasProcedureType) or (C=TPasFunctionType) then
             // UntypedPointer:=procvar
-            Result:=cLossyConversion;
+            Result:=cLossyConversion
+          else if C=TPasPointerType then
+            // UntypedPointer:=TypedPointer
+            Result:=cExact;
           end;
         end;
       end
@@ -18112,7 +18126,8 @@ var
 
   function RaiseIncompatType: integer;
   begin
-    if not RaiseOnIncompatible then exit(cIncompatible);
+    Result:=cIncompatible;
+    if not RaiseOnIncompatible then exit;
     RaiseIncompatibleTypeRes(20170216152505,nIncompatibleTypesGotExpected,
       [],RHS,LHS,ErrorEl);
   end;
@@ -18364,8 +18379,10 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
     Value: TResEvalValue;
     ElBT: TResolverBaseType;
     l: Integer;
-    US: UnicodeString;
     S: String;
+    {$ifdef FPC_HAS_CPSTRING}
+    US: UnicodeString;
+    {$endif}
   begin
     if Expr=nil then exit;
     ElBT:=GetActualBaseType(ElTypeResolved.BaseType);
