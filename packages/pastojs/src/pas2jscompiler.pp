@@ -21,8 +21,10 @@ interface
 uses
   {$IFDEF Pas2js}
   JS, NodeJSFS,
+  {$ELSE}
+  RtlConsts,
   {$ENDIF}
-  Classes, SysUtils, RtlConsts, contnrs,
+  Classes, SysUtils, contnrs,
   jstree, jswriter, JSSrcMap,
   PScanner, PParser, PasTree, PasResolver, PasUseAnalyzer, PasResolveEval,
   FPPas2Js, FPPJsSrcMap, Pas2jsFileUtils, Pas2jsLogger,
@@ -305,10 +307,10 @@ type
     procedure HandleException(E: Exception);
     procedure DoLogMsgAtEl(MsgType: TMessageType; const Msg: string;
       MsgNumber: integer; El: TPasElement);
-    function OnWriterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
     procedure RaiseInternalError(id: TMaxPrecInt; Msg: string);
     procedure ReaderFinished;
     {$IFDEF HasPas2jsFiler}
+    function OnWriterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
     procedure WritePCU;
     {$ENDIF}
   public
@@ -1240,12 +1242,6 @@ begin
   Log.Log(MsgType,Msg,MsgNumber,Filename,Line,Col);
 end;
 
-function TPas2jsCompilerFile.OnWriterIsElementUsed(Sender: TObject;
-  El: TPasElement): boolean;
-begin
-  Result:=UseAnalyzer.IsUsed(El);
-end;
-
 procedure TPas2jsCompilerFile.RaiseInternalError(id: TMaxPrecInt; Msg: string);
 begin
   Compiler.RaiseInternalError(id,Msg);
@@ -1301,6 +1297,12 @@ begin
 end;
 
 {$IFDEF HasPas2jsFiler}
+function TPas2jsCompilerFile.OnWriterIsElementUsed(Sender: TObject;
+  El: TPasElement): boolean;
+begin
+  Result:=UseAnalyzer.IsUsed(El);
+end;
+
 procedure TPas2jsCompilerFile.WritePCU;
 var
   PF: TPas2JSPrecompileFormat;
@@ -2076,6 +2078,8 @@ begin
     Value:=CondDirectiveBool[true];
     exit(true);
   end;
+
+  Result:=false;
 end;
 
 procedure TPas2jsCompiler.Compile(StartTime: TDateTime);
@@ -3210,9 +3214,10 @@ var
   p, l, i: Integer;
   c: Char;
   aProc, pr: TPasToJsProcessor;
-  Enable, Found: Boolean;
+  Enable: Boolean;
   aPlatform, pl: TPasToJsPlatform;
   {$IFDEF HasPas2jsFiler}
+  Found: Boolean;
   PF: TPas2JSPrecompileFormat;
   {$ENDIF}
 begin

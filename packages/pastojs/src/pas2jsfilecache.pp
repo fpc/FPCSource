@@ -2168,8 +2168,8 @@ end;
 procedure TPas2jsFilesCache.SaveToFile(ms: TFPJSStream; Filename: string);
 var
   s: string;
-  i: Integer;
   {$IFDEF FPC}
+  i: Integer;
   l: TMaxPrecInt;
   {$ENDIF}
 begin
