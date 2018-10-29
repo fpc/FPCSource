@@ -3,11 +3,23 @@ program kbd1;
 uses
   keyboard;
 
+procedure ShowASCIIKey(C: Char);
+begin
+  Write('ASCII key #', Ord(C), ' - #$', HexStr(Ord(C), 2));
+  if C = '''' then
+    Write(' - ''''''''')
+  else if (C >= #32) and (C <= #126) then
+    Write(' - ''', C, '''')
+  else if C < #32 then
+    Write(' - ^', Chr(Ord(C) + Ord('@')));
+  Writeln;
+end;
+
 procedure ShowKeyEvent(K: TKeyEvent);
 begin
   case GetKeyEventFlags(K) and 3 of
     kbASCII:
-      Writeln('ASCII key #', Ord(GetKeyEventChar(K)));
+      ShowASCIIKey(GetKeyEventChar(K));
     kbUniCode:
       Writeln('Unicode key');
     kbFnKey:
