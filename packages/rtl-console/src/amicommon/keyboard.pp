@@ -620,6 +620,8 @@ const
 //    TranslateKeyEvent : @SysTranslateKeyEvent;
     TranslateKeyEvent : Nil;
     TranslateKeyEventUnicode : Nil;
+    GetEnhancedKeyEvent : Nil;
+    PollEnhancedKeyEvent : Nil;
   );
 
 

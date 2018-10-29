@@ -876,6 +876,8 @@ Const
     GetShiftState : @SysGetShiftState;
     TranslateKeyEvent : @SysTranslateKeyEvent;
     TranslateKeyEventUnicode : Nil;
+    GetEnhancedKeyEvent : Nil;
+    PollEnhancedKeyEvent : Nil;
   );
 
 

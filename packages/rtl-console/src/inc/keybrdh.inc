@@ -143,6 +143,8 @@ Type
     GetShiftState : Function : Byte;
     TranslateKeyEvent : Function (KeyEvent: TKeyEvent): TKeyEvent;
     TranslateKeyEventUniCode : Function (KeyEvent: TKeyEvent): TKeyEvent;
+    GetEnhancedKeyEvent : Function : TEnhancedKeyEvent;
+    PollEnhancedKeyEvent : Function : TEnhancedKeyEvent;
   end;
 
 procedure InitKeyboard;

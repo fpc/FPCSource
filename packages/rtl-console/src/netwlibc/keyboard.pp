@@ -125,6 +125,8 @@ Const
       GetShiftState : @SysGetShiftState;
       TranslateKeyEvent : nil;  //@SysTranslateKeyEvent;
       TranslateKeyEventUnicode : Nil;
+      GetEnhancedKeyEvent : Nil;
+      PollEnhancedKeyEvent : Nil;
     );
 
 begin
