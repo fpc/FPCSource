@@ -4231,7 +4231,7 @@ const
         begin
         LastCharStart:=p;
         {$IFDEF FPC_HAS_CPSTRING}
-        Len:=UTF8CharacterStrictLength(p);
+        Len:=UTF8CharacterStrictLength(@s[p]);
         if Len=0 then Len:=1;
         inc(p,Len);
         {$ELSE}
@@ -4333,11 +4333,11 @@ begin
   {$IFDEF HasPas2jsFiler}
   if PrecompileFormats.Count>0 then
   begin
-    l('   -JU<x> : Create precompiled units in format x.');
+    w('   -JU<x> : Create precompiled units in format x.');
     for i:=0 to PrecompileFormats.Count-1 do
       with PrecompileFormats[i] do
-        l('     -JU'+Ext+' : '+Description);
-    l('     -JU- : Disable prior -JU<x> option. Do not create precompiled units.');
+        w('     -JU'+Ext+' : '+Description);
+    w('     -JU- : Disable prior -JU<x> option. Do not create precompiled units.');
   end;
   {$ENDIF}
   w('  -l      : Write logo');

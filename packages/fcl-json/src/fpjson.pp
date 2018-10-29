@@ -51,7 +51,7 @@ type
   TJSONCharType = AnsiChar;
   PJSONCharType = ^TJSONCharType;
   TJSONVariant = variant;
-  TFPJSStream = TStream;
+  TFPJSStream = TMemoryStream;
   {$else}
   TJSONCharType = char;
   TJSONVariant = jsvalue;
