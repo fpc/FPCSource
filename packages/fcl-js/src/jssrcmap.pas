@@ -51,7 +51,6 @@ uses
 
 const
   Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  DefaultSrcMapHeader = ')]}'''+LineEnding;
 
 type
   EJSSourceMap = class(Exception);
@@ -167,6 +166,8 @@ type
     property Sorted: boolean read FSorted write SetSorted; // Segments are sorted for GeneratedLine/Col
   end;
 
+function DefaultSrcMapHeader: string;
+
 function EncodeBase64VLQ(i: NativeInt): String; // base64 Variable Length Quantity
 function DecodeBase64VLQ(const s: string): NativeInt; // base64 Variable Length Quantity
 function DecodeBase64VLQ(
@@ -179,6 +180,11 @@ procedure DebugSrcMapLine(GeneratedLine: integer; var GeneratedLineSrc: String;
   SrcMap: TSourceMap; out InfoLine: String);
 
 implementation
+
+function DefaultSrcMapHeader: string;
+begin
+  Result:=')]}'''+LineEnding;
+end;
 
 function EncodeBase64VLQ(i: NativeInt): String;
 { Convert signed number to base64-VLQ:
