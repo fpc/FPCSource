@@ -155,6 +155,8 @@ begin
 end;
 
 function ConvertToEnhancedKeyEvent(KeyEvent: TKeyEvent): TEnhancedKeyEvent;
+var
+  TranslatedKeyEvent: TKeyEvent;
 begin
   FillChar(ConvertToEnhancedKeyEvent,SizeOf(ConvertToEnhancedKeyEvent),0);
   if KeyEvent=0 then
@@ -168,11 +170,26 @@ begin
     kbFnKey:
       ConvertToEnhancedKeyEvent.VirtualKeyCode:=GetKeyEventCode(KeyEvent);
     kbPhys:
-      // Not good, we need a GetKeyEventScanCode function !!
       ConvertToEnhancedKeyEvent.VirtualScanCode:=KeyEvent and $ffff;
   end;
+  TranslatedKeyEvent:=TranslateKeyEvent(KeyEvent);
+  case GetKeyEventFlags(TranslatedKeyEvent) of
+    kbASCII:
+      ConvertToEnhancedKeyEvent.AsciiChar:=GetKeyEventChar(TranslatedKeyEvent);
+    kbUniCode:
+      ConvertToEnhancedKeyEvent.UnicodeChar:=WideChar(GetKeyEventUniCode(TranslatedKeyEvent));
+    kbFnKey:
+      ConvertToEnhancedKeyEvent.VirtualKeyCode:=GetKeyEventCode(TranslatedKeyEvent);
+    kbPhys:
+      ConvertToEnhancedKeyEvent.VirtualScanCode:=TranslatedKeyEvent and $ffff;
+  end;
   { todo: set ConvertToEnhancedKeyEvent.Flags }
-  { todo: attempt to set AsciiChar and WideChar if they are missing }
+  if (ConvertToEnhancedKeyEvent.UnicodeChar=WideChar(0)) and
+     (ConvertToEnhancedKeyEvent.AsciiChar>=#0) and
+     (ConvertToEnhancedKeyEvent.AsciiChar<=#127) then
+    ConvertToEnhancedKeyEvent.UnicodeChar:=WideChar(ConvertToEnhancedKeyEvent.AsciiChar);
+  { todo: maybe also convert extended ASCII (>=#128) codes to Unicode as well
+    (according to the console code page) }
 end;
 
 function DefaultGetEnhancedKeyEvent: TEnhancedKeyEvent;
