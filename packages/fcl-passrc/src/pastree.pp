@@ -2038,16 +2038,7 @@ begin
   Result:=SPasTreeUnit;
 end;
 
-{ TPasStringType }
-
-
-{$IFNDEF FPC}
-  const
-    LineEnding = sLineBreak;
-{$ENDIF}
-
 { Parse tree element type name functions }
-
 function TPasElement.ElementTypeName: string; begin Result := SPasTreeElement end;
 
 function TPasElement.HintsString: String;
