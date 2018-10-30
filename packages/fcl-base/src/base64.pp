@@ -456,6 +456,8 @@ var
   Outstream : TStringStream;
   Encoder   : TBase64EncodingStream;
 begin
+  if Length(s)=0 then 
+    Exit('');
   Outstream:=TStringStream.Create('');
   try
     Encoder:=TBase64EncodingStream.create(outstream);

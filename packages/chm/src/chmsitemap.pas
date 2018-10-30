@@ -253,10 +253,8 @@ begin
            begin
             if (FLevel > 0 ) then 
              begin
-
-              if LowerCase(GetTagName(AActualTag)) = 'param' then begin
-
-                TagAttributeName := GetVal(AActualTag, 'name');
+                if LowerCase(GetTagName(AActualTag)) = 'param' then begin
+                  TagAttributeName := GetVal(AActualTag, 'name');
                 TagAttributeValue := GetVal(AActualTag, 'value');
                 //writeln('name,value',tagattributename, ' ',tagattributevalue);
                 if TagAttributeName <> '' then begin
@@ -424,7 +422,7 @@ var
       WriteString('<LI> <OBJECT type="text/sitemap">');
       Inc(Indent, 8);
 
-      if (SiteMapType = stIndex) and (Item.Children.Count > 0) then
+      if (SiteMapType = stIndex) and ((Item.Children.Count > 0) or (item.seealso<>'')) then
          WriteParam('Keyword', Item.Text);
       //if Item.KeyWord <> '' then WriteParam('Keyword', Item.KeyWord);
       if Item.Text <> '' then WriteParam('Name', Item.Text);

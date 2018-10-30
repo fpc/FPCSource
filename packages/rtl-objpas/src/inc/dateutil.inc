@@ -2616,7 +2616,7 @@ begin
                 matchchar(ptrn[pind]);
             end;
      end;
-   if (pind<plen) and (plen>0) and (ptrn[plen-1]<>#9) then  // allow omission of trailing whitespace
+   if (pind<plen) and (plen>0) and not (ptrn[plen-1] in [#9, '"']) then  // allow omission of trailing whitespace
      RaiseException(format(SFullpattern,[poffs+pind+1]));
 end;
 

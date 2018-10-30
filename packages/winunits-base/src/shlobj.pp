@@ -1018,7 +1018,7 @@ Type
       TCATEGORY_INFO = CATEGORY_INFO;
       PCATEGORY_INFO = ^CATEGORY_INFO;
 
-      LPSHColumnID = SHColumnID;
+      LPSHColumnID = ^SHColumnID;
       TSHColumnid = SHColumnID;
       pSHColumnID = LPSHColumnID;
 
