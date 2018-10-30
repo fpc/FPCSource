@@ -15,21 +15,26 @@ begin
   Writeln;
 end;
 
+procedure ShowUnicodeKey(WC: WideChar);
+begin
+  Writeln('Unicode key #', Ord(WC));
+end;
+
 procedure ShowKeyEvent(K: TKeyEvent);
 begin
   case GetKeyEventFlags(K) and 3 of
     kbASCII:
       ShowASCIIKey(GetKeyEventChar(K));
     kbUniCode:
-      Writeln('Unicode key');
+      ShowUnicodeKey(WideChar(GetKeyEventUniCode(K)));
     kbFnKey:
-      Writeln('Function key');
+      Writeln('Function key ', FunctionKeyName(GetKeyEventCode(K)));
     kbPhys:
       Writeln('Physical key ', K and $FFFF, ' - $' + HexStr(K and $FFFF, 4));
   end;
+  Writeln('Shift state: ', ShiftStateToString(K, True));
   if (GetKeyEventFlags(K) and kbReleased) <> 0 then
     Writeln('Released key event');
-  Writeln('Got key : ', KeyEventToString(K));
 end;
 
 var
