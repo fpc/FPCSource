@@ -29,7 +29,7 @@ uses
   BaseUnix,
   {$ENDIF}
   {$IFDEF Pas2JS}
-  NodeJSFS,
+  JS, NodeJS, NodeJSFS,
   {$ENDIF}
   SysUtils, Classes;
 
@@ -164,12 +164,23 @@ begin
     if (Len >= 2) and (Result[2] in AllowDirectorySeparators) then
       MinLen := 2; // keep UNC '\\', chomp 'a\' to 'a'
     {$ENDIF}
+    {$IFDEF Pas2js}
+    if (Len >= 2) and (Result[2]=Result[1]) and (PathDelim='\') then
+      MinLen := 2; // keep UNC '\\', chomp 'a\' to 'a'
+    {$ENDIF}
   end
   else begin
     MinLen := 0;
     {$IFdef MSWindows}
     if (Len >= 3) and (Result[1] in ['a'..'z', 'A'..'Z'])  and
        (Result[2] = ':') and (Result[3] in AllowDirectorySeparators)
+    then
+      MinLen := 3;
+    {$ENDIF}
+    {$IFdef Pas2js}
+    if (PathDelim='\')
+        and (Len >= 3) and (Result[1] in ['a'..'z', 'A'..'Z'])
+        and (Result[2] = ':') and (Result[3] in AllowDirectorySeparators)
     then
       MinLen := 3;
     {$ENDIF}
@@ -321,15 +332,8 @@ function ResolveDots(const AFilename: string): string;
 //trim double path delims and expand special dirs like .. and .
 //on Windows change also '/' to '\' except for filenames starting with '\\?\'
 {$IFDEF Pas2js}
-var
-  Len: Integer;
 begin
-  Len:=length(AFilename);
-  if Len=0 then exit('');
-  Result:=AFilename;
-  {AllowWriteln}
-  writeln('ResolveDots ToDo ',AFilename);
-  {AllowWriteln-}
+  Result:=NJS_Path.resolve(AFilename);
 end;
 {$ELSE}
 
@@ -592,12 +596,20 @@ begin
 end;
 
 function CompareFilenames(const File1, File2: string): integer;
+{$IFDEF Pas2js}
+var
+  a, b: string;
+{$ENDIF}
 begin
   {$IFDEF Pas2js}
-  {AllowWriteln}
-  writeln('CompareFilenames ToDo ',File1,' ',File2);
-  {AllowWriteln-}
-  raise Exception.Create('CompareFilenames ToDo');
+  a:=FilenameToKey(File1);
+  b:=FilenameToKey(File2);
+  if a<b then
+    exit(-1)
+  else if a>b then
+    exit(1)
+  else
+    exit(0);
   Result:=0;
   {$ELSE}
   Result:=AnsiCompareFileName(File1,File2);
@@ -608,8 +620,19 @@ end;
 function FilenameToKey(const Filename: string): string;
 begin
   {$IFDEF Pas2js}
-  Result:=Filename;
-  // ToDo lowercase on windows, normalize on darwin
+  case NJS_OS.platform of
+  'darwin':
+    {$IF ECMAScript>5}
+    Result:=TJSString(Filename).normalize('NFD');
+    {$ELSE}
+    begin
+    Result:=Filename;
+    raise Exception.Create('requires ECMAScript6');
+    end;
+    {$ENDIF}
+  'win32': Result:=lowercase(Filename);
+  else Result:=Filename;
+  end;
   {$ELSE}
     {$IFDEF Windows}
     Result:=AnsiLowerCase(Filename);

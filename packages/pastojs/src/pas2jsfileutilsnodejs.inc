@@ -17,11 +17,7 @@
 
 function FilenameIsAbsolute(const aFilename: string): boolean;
 begin
-  {AllowWriteln}
-  writeln('FilenameIsAbsolute ToDo ',aFilename);
-  {AllowWriteln-}
-  Result:=FilenameIsUnixAbsolute(aFilename);
-  raise Exception.Create('FilenameIsAbsolute ToDo');
+  Result:=NJS_Path.isAbsolute(aFilename);
 end;
 
 function ExpandFileNamePJ(const FileName: string; BaseDir: string): string;
@@ -29,8 +25,7 @@ var
   IsAbs: Boolean;
   HomeDir, Fn: String;
 begin
-  Fn := FileName;
-  ForcePathDelims(Fn);
+  Fn := GetForcedPathDelims(Filename);
   IsAbs := FileNameIsUnixAbsolute(Fn);
   if (not IsAbs) then
   begin
@@ -63,11 +58,7 @@ end;
 
 function GetCurrentDirPJ: String;
 begin
-  {AllowWriteln}
-  writeln('GetCurrentDirPJ ToDo');
-  {AllowWriteln-}
-  Result:='';
-  raise Exception.Create('GetCurrentDirPJ ToDo');
+  Result:=GetCurrentDir;
 end;
 
 function GetPhysicalFilename(const Filename: string; ExceptionOnError: boolean
@@ -103,21 +94,62 @@ end;
 
 function ResolveSymLinks(const Filename: string; ExceptionOnError: boolean
   ): string;
+var
+  LinkFilename: string;
+  AText: string;
+  Depth: Integer;
 begin
-  {AllowWriteln}
-  writeln('ResolveSymLinks ToDo ',Filename,' ',ExceptionOnError);
-  {AllowWriteln-}
   Result:=Filename;
-  raise Exception.Create('ResolveSymLinks ToDo');
+  Depth:=0;
+  while Depth<12 do
+  begin
+    inc(Depth);
+    try
+      LinkFilename:=NJS_FS.readlinkSync(Result);
+    except
+      if not ExceptionOnError then
+        exit;
+      if isString(JSExceptValue) then
+        AText:=String(JSExceptValue)
+      else if isObject(JSExceptValue) and isString(TJSObject(JSExceptValue)['message']) then
+      begin
+        if TJSObject(JSExceptValue)['code']='EINVAL' then
+        begin
+          // not a symbolic link
+          exit;
+        end;
+        AText:=String(TJSObject(JSExceptValue)['message']);
+      end else
+        AText:='uknown error ('+jsTypeOf(JSExceptValue)+')';
+      if Pos(Filename,AText)<1 then
+        AText+=' "'+Filename+'"';
+      raise EFOpenError.Create(AText);
+    end;
+    if LinkFilename='' then
+    begin
+      // not a symbolic link, just a regular file
+      exit;
+    end;
+    if not FilenameIsAbsolute(LinkFilename) then
+      Result:=ExtractFilePath(Result)+LinkFilename
+    else
+      Result:=LinkFilename;
+  end;
+  // probably an endless loop
+  if ExceptionOnError then
+    raise EFOpenError.Create('too many links, maybe an endless loop.')
+  else
+    Result:='';
 end;
 
 function FileIsWritable(const AFilename: string): boolean;
 begin
-  {AllowWriteln}
-  writeln('FileIsWritable ToDo ',AFilename);
-  {AllowWriteln-}
-  Result := false;
-  raise Exception.Create('FileIsWritable ToDo');
+  try
+    NJS_FS.accessSync(AFilename,W_OK);
+  except
+    exit(false);
+  end;
+  Result:=true;
 end;
 
 function GetEnvironmentVariableCountPJ: Integer;
