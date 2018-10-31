@@ -199,9 +199,9 @@ unit aoptcpu;
         end;
 
       if GetNextInstruction(p,next) and
-         (taicpu(next).typ = ait_instruction) and
+         (next.typ = ait_instruction) and
          GetNextInstruction(next,next2) and
-         (taicpu(next2).typ = ait_instruction) and
+         (next2.typ = ait_instruction) and
          (taicpu(next).opcode <> taicpu(p).opcode) and
          (taicpu(next2).opcode = taicpu(p).opcode) and
          (taicpu(p).oper[0]^.typ = top_reg) and
