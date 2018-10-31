@@ -59,7 +59,12 @@
       </Debugging>
     </Linking>
     <Other>
-      <CustomOptions Value="-Jeutf-8 -Jc"/>
+      <CustomOptions Value="-Jeutf-8
+-Jc
+-dVerboseFileCache"/>
+      <OtherDefines Count="1">
+        <Define0 Value="VerboseFileCache"/>
+      </OtherDefines>
       <CompilerPath Value="$(pas2js)"/>
     </Other>
   </CompilerOptions>

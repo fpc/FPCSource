@@ -1206,6 +1206,9 @@ function TPas2jsCachedFile.Load(RaiseOnError: boolean; Binary: boolean
 
   procedure Err(const ErrorMsg: string);
   begin
+    {$IFDEF VerboseFileCache}
+    writeln('TPas2jsCachedFile.Load.Err ErrorMsg="',ErrorMsg,'"');
+    {$ENDIF}
     FLastErrorMsg:=ErrorMsg;
     if RaiseOnError then
       raise EPas2jsFileCache.Create(FLastErrorMsg);
@@ -1213,6 +1216,7 @@ function TPas2jsCachedFile.Load(RaiseOnError: boolean; Binary: boolean
 
 var
   NewSource: string;
+  b: Boolean;
 begin
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load START "',Filename,'" Loaded=',Loaded);
@@ -1250,7 +1254,18 @@ begin
     exit;
   end;
   NewSource:='';
-  if not Cache.ReadFile(Filename,NewSource) then exit;
+  if RaiseOnError then
+    b:=Cache.ReadFile(Filename,NewSource)
+  else
+    try
+      b:=Cache.ReadFile(Filename,NewSource);
+    except
+    end;
+  if not b then begin
+    Err('Read error "'+Filename+'"');
+    exit;
+  end;
+
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load ENCODE ',Filename,' FFileEncoding=',FFileEncoding);
   {$ENDIF}
@@ -1799,6 +1814,7 @@ begin
     except
       raise EReadError.Create(String(JSExceptValue));
     end;
+    Result:=true;
     {$ELSE}
     ms:=TMemoryStream.Create;
     try
