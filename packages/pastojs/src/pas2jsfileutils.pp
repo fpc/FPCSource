@@ -236,11 +236,7 @@ function TryCreateRelativePath(const Filename, BaseDirectory: String;
 var
   UpDirCount: Integer;
   i: Integer;
-  {$IFDEF Pas2js}
   s: string;
-  {$ELSE}
-  ResultPos, FileNameRestLen: Integer;
-  {$ENDIF}
   SharedDirs: Integer;
   FileP, BaseP, FileEndP, BaseEndP, FileL, BaseL: integer;
 begin
@@ -313,7 +309,6 @@ begin
     exit(true);
   end;
 
-  {$IFDEF Pas2js}
   s:='';
   for i:=1 to UpDirCount do
     s+='..'+PathDelim;
@@ -322,19 +317,6 @@ begin
   else
     s+=copy(Filename,FileP);
   RelPath:=s;
-  {$ELSE}
-  FileNameRestLen:=length(Filename)-(FileP-1);
-  SetLength(RelPath,3*UpDirCount+FileNameRestLen);
-  ResultPos:=1;
-  for i:=1 to UpDirCount do begin
-    RelPath[ResultPos]:='.';
-    RelPath[ResultPos+1]:='.';
-    RelPath[ResultPos+2]:=PathDelim;
-    inc(ResultPos,3);
-  end;
-  if FileNameRestLen>0 then
-    Move(FileP^,RelPath[ResultPos],FileNameRestLen);
-  {$ENDIF}
   Result:=true;
 end;
 
