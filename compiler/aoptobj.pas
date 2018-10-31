@@ -327,7 +327,7 @@ Unit AoptObj;
         function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
 
         { removes p from asml, updates registers and replaces it by a valid value, if this is the case true is returned }
-        function RemoveCurrentP(var p : taicpu): boolean;
+        function RemoveCurrentP(var p : tai): boolean;
 
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
@@ -1289,7 +1289,7 @@ Unit AoptObj;
       end;
 
 
-    function TAOptObj.RemoveCurrentP(var p : taicpu) : boolean;
+    function TAOptObj.RemoveCurrentP(var p : tai) : boolean;
       var
         hp1 : tai;
       begin
@@ -1299,7 +1299,7 @@ Unit AoptObj;
         UpdateUsedRegs(tai(p.Next));
         AsmL.Remove(p);
         p.Free;
-        p:=taicpu(hp1);
+        p:=hp1;
       end;
 
 
