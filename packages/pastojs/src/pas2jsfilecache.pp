@@ -27,7 +27,7 @@ interface
 uses
   {$IFDEF Pas2js}
     {$IFDEF NodeJS}
-    NodeJSFS,
+    JS, NodeJSFS,
     {$ENDIF}
   {$ENDIF}
   Classes, SysUtils,
@@ -602,18 +602,12 @@ begin
 end;
 
 procedure TPas2jsCachedDirectory.DoReadDir;
-{$IFDEF Pas2js}
-{$ELSE}
 var
   Info: TUnicodeSearchRec;
-{$ENDIF}
 begin
   if Assigned(Pool.OnReadDirectory) then
     if Pool.OnReadDirectory(Self) then exit;
 
-  {$IFDEF Pas2js}
-  raise Exception.Create('TPas2jsCachedDirectory.DoReadDir TODO');
-  {$ELSE}
   // Note: do not add a 'if not DirectoryExists then exit'.
   // This will not work on automounted directories. You must use FindFirst.
   if FindFirst(UnicodeString(Path+AllFilesMask),faAnyFile,Info)=0 then
@@ -628,7 +622,6 @@ begin
     until FindNext(Info)<>0;
   end;
   FindClose(Info);
-  {$ENDIF}
 end;
 
 constructor TPas2jsCachedDirectory.Create(aPath: string;
@@ -909,12 +902,7 @@ begin
   writeln('TPas2jsCachedDirectory.WriteDebugReport Count=',Count,' Path="',Path,'"');
   for i:=0 to Count-1 do begin
     Entry:=Entries[i];
-    {$IFDEF Pas2js}
-    writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',Entry.Time,' Dir=',faDirectory and Entry.Attr>0);
-    raise Exception.Create('TPas2jsCachedDirectory.WriteDebugReport TODO FileDateToDateTime');
-    {$ELSE}
     writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',DateTimeToStr(FileDateToDateTime(Entry.Time)),' Dir=',faDirectory and Entry.Attr>0);
-    {$ENDIF}
   end;
   {AllowWriteln-}
 end;
@@ -1806,7 +1794,11 @@ begin
     if Result then
       Exit;
     {$IFDEF Pas2js}
-    raise Exception.Create('TPas2jsFilesCache.ReadFile TODO');
+    try
+      Source:=NJS_FS.readFileSync(Filename,new(['encoding','utf8']));
+    except
+      raise EReadError.Create(String(JSExceptValue));
+    end;
     {$ELSE}
     ms:=TMemoryStream.Create;
     try
@@ -2192,7 +2184,12 @@ begin
   end else
   begin
     {$IFDEF Pas2js}
-    raise Exception.Create('TPas2jsFilesCache.SaveToFile TODO '+Filename);
+    try
+      s:=ms.join('');
+      NJS_FS.writeFileSync(Filename,s,new(['encoding','utf8']));
+    except
+      raise EWriteError.Create(String(JSExceptValue));
+    end;
     {$ELSE}
     try
       ms.SaveToFile(Filename);

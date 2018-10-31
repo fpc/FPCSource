@@ -2238,12 +2238,24 @@ function TPas2JSResolver.GetOverloadAt(const aName: String; Index: integer
   ): TPasIdentifier;
 var
   i: Integer;
+  Scope: TPasIdentifierScope;
 begin
   Result:=nil;
   for i:=FOverloadScopes.Count-1 downto 0 do
     begin
     // find last added
-    Result:=TPasIdentifierScope(FOverloadScopes[i]).FindLocalIdentifier(aName);
+    Scope:=TPasIdentifierScope(FOverloadScopes[i]);
+    if (Scope.ClassType=TPas2JSSectionScope) and (i<FOverloadScopes.Count-1) then
+      begin
+      // Note: the elevated locals are after the section scope and before the next deeper scope
+
+      // check elevated locals
+      Result:=TPas2JSSectionScope(Scope).FindElevatedLocal(aName);
+      Result:=GetOverloadAt(Result,Index);
+      if Result<>nil then
+        exit;
+      end;
+    Result:=Scope.FindLocalIdentifier(aName);
     Result:=GetOverloadAt(Result,Index);
     if Result<>nil then
       exit;

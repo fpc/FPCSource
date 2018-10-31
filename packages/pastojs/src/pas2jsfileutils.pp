@@ -228,16 +228,6 @@ function TryCreateRelativePath(const Filename, BaseDirectory: String;
   - Filename = foo/bar BaseDirectory = bar/foo Result = False (no shared base directory)
   - Filename = /foo BaseDirectory = bar Result = False (mixed absolute and relative)
 }
-{$IFDEF Pas2js}
-begin
-  Result:=false;
-  RelPath:=Filename;
-  if (BaseDirectory='') or (Filename='') then exit;
-  {AllowWriteln}
-  writeln('TryCreateRelativePath ToDo: ',Filename,' Base=',BaseDirectory,' UsePointDirectory=',UsePointDirectory);
-  {AllowWriteln-}
-end;
-{$ELSE}
   function IsNameChar(c: char): boolean; inline;
   begin
     Result:=(c<>#0) and not (c in AllowDirectorySeparators);
@@ -245,65 +235,75 @@ end;
 
 var
   UpDirCount: Integer;
-  ResultPos: Integer;
   i: Integer;
-  FileNameRestLen, SharedDirs: Integer;
-  FileP, BaseP, FileEndP, BaseEndP: PChar;
+  {$IFDEF Pas2js}
+  s: string;
+  {$ELSE}
+  ResultPos, FileNameRestLen: Integer;
+  {$ENDIF}
+  SharedDirs: Integer;
+  FileP, BaseP, FileEndP, BaseEndP, FileL, BaseL: integer;
 begin
   Result:=false;
   RelPath:=Filename;
   if (BaseDirectory='') or (Filename='') then exit;
+  {$IFDEF Windows}
   // check for different windows file drives
   if (CompareText(ExtractFileDrive(Filename),
                      ExtractFileDrive(BaseDirectory))<>0)
   then
     exit;
+  {$ENDIF}
 
-  FileP:=PChar(Filename);
-  BaseP:=PChar(BaseDirectory);
-
-  //writeln('TryCreateRelativePath START File="',FileP,'" Base="',BaseP,'"');
+  FileP:=1;
+  FileL:=length(Filename);
+  BaseP:=1;
+  BaseL:=length(BaseDirectory);
 
   // skip matching directories
   SharedDirs:=0;
-  if FileP^ in AllowDirectorySeparators then
+  if Filename[FileP] in AllowDirectorySeparators then
   begin
-    if not (BaseP^ in AllowDirectorySeparators) then exit;
+    if not (BaseDirectory[BaseP] in AllowDirectorySeparators) then exit;
     repeat
-      while FileP^ in AllowDirectorySeparators do inc(FileP);
-      while BaseP^ in AllowDirectorySeparators do inc(BaseP);
-      if (FileP^=#0) or (BaseP^=#0) then break;
-      //writeln('TryCreateRelativePath check match .. File="',FileP,'" Base="',BaseP,'"');
+      while (FileP<=FileL) and (Filename[FileP] in AllowDirectorySeparators) do
+        inc(FileP);
+      while (BaseP<=BaseL) and (BaseDirectory[BaseP] in AllowDirectorySeparators) do
+        inc(BaseP);
+      if (FileP>FileL) or (BaseP>BaseL) then break;
+      //writeln('TryCreateRelativePath check match .. File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
       FileEndP:=FileP;
       BaseEndP:=BaseP;
-      while IsNameChar(FileEndP^) do inc(FileEndP);
-      while IsNameChar(BaseEndP^) do inc(BaseEndP);
-      if CompareFilenames(copy(Filename,FileP-PChar(Filename)+1,FileEndP-FileP),
-        copy(BaseDirectory,BaseP-PChar(BaseDirectory)+1,BaseEndP-BaseP))<>0
+      while (FileEndP<=FileL) and IsNameChar(Filename[FileEndP]) do inc(FileEndP);
+      while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do inc(BaseEndP);
+      if CompareFilenames(copy(Filename,FileP,FileEndP-FileP),
+        copy(BaseDirectory,BaseP,BaseEndP-BaseP))<>0
       then
         break;
       FileP:=FileEndP;
       BaseP:=BaseEndP;
       inc(SharedDirs);
     until false;
-  end else if (BaseP^ in AllowDirectorySeparators) then
+  end else if (BaseDirectory[BaseP] in AllowDirectorySeparators) then
     exit;
 
-  //writeln('TryCreateRelativePath skipped matches File="',FileP,'" Base="',BaseP,'"');
+  //writeln('TryCreateRelativePath skipped matches SharedDirs=',SharedDirs,' File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
   if SharedDirs=0 then exit;
 
   // calculate needed '../'
   UpDirCount:=0;
   BaseEndP:=BaseP;
-  while IsNameChar(BaseEndP^) do begin
+  while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do begin
     inc(UpDirCount);
-    while IsNameChar(BaseEndP^) do inc(BaseEndP);
-    while BaseEndP^ in AllowDirectorySeparators do inc(BaseEndP);
+    while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do
+      inc(BaseEndP);
+    while (BaseEndP<=BaseL) and (BaseDirectory[BaseEndP] in AllowDirectorySeparators) do
+      inc(BaseEndP);
   end;
 
-  //writeln('TryCreateRelativePath UpDirCount=',UpDirCount,' File="',FileP,'" Base="',BaseP,'"');
+  //writeln('TryCreateRelativePath UpDirCount=',UpDirCount,' File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
   // create relative filename
-  if (FileP^=#0) and (UpDirCount=0) then
+  if (FileP>FileL) and (UpDirCount=0) then
   begin
     // Filename is the BaseDirectory
     if UsePointDirectory then
@@ -313,7 +313,17 @@ begin
     exit(true);
   end;
 
-  FileNameRestLen:=length(Filename)-(FileP-PChar(Filename));
+  {$IFDEF Pas2js}
+  s:='';
+  for i:=1 to UpDirCount do
+    s+='..'+PathDelim;
+  if (FileP>FileL) and (UpDirCount>0) then
+    s:=LeftStr(s,length(s)-1)
+  else
+    s+=copy(Filename,FileP);
+  RelPath:=s;
+  {$ELSE}
+  FileNameRestLen:=length(Filename)-(FileP-1);
   SetLength(RelPath,3*UpDirCount+FileNameRestLen);
   ResultPos:=1;
   for i:=1 to UpDirCount do begin
@@ -324,9 +334,9 @@ begin
   end;
   if FileNameRestLen>0 then
     Move(FileP^,RelPath[ResultPos],FileNameRestLen);
+  {$ENDIF}
   Result:=true;
 end;
-{$ENDIF}
 
 function ResolveDots(const AFilename: string): string;
 //trim double path delims and expand special dirs like .. and .
@@ -652,6 +662,7 @@ function MatchGlobbing(Mask, Name: string): boolean;
 {$IFDEF Pas2js}
 begin
   if Mask='' then exit(Name='');
+  if Mask='*' then exit(true);
   {AllowWriteln}
   writeln('MatchGlobbing ToDo ',Mask,' Name=',Name);
   {AllowWriteln-}
