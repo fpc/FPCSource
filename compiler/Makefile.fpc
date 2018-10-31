@@ -831,7 +831,8 @@ cvstest:
 #
 # 1. build a compiler using cycle
 # 2. remove all .ppufiles
-# 3. build all supported cross compilers except the
+# 3. clean and recompile rtl if DOWPOCYCLE is set
+# 4. build all supported cross compilers except the
 #    current PPC_TARGET which was already build
 # unless FPC_SUPPORT_X87_TYPES_ON_WIN64 is set,
 # win64 cannot compile i386 or i8086 compiler
@@ -852,6 +853,10 @@ fullcycle:
         $(MAKE) distclean
         $(MAKE) cycle
         $(MAKE) ppuclean
+ifdef DOWPOCYCLE
+        $(MAKE) rtlclean
+        $(MAKE) rtl 'FPC=$(BASEDIR)/$(EXENAME)'
+endif
 ifndef EXCLUDE_80BIT_TARGETS
         $(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
 else
