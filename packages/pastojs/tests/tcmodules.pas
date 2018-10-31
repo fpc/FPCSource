@@ -389,6 +389,7 @@ type
     Procedure TestArray_StaticChar;
     Procedure TestArray_StaticMultiDim;
     Procedure TestArrayOfRecord;
+    Procedure TestArray_StaticRecord;
     Procedure TestArrayOfSet;
     // call(set)  literal and clone var
     // call([set])   literal and clone var
@@ -7320,6 +7321,44 @@ begin
     '$mod.i = 0;',
     '$mod.i = rtl.length($mod.Arr)-1;',
     '']));
+end;
+
+procedure TTestModule.TestArray_StaticRecord;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record',
+  '    Int: longint;',
+  '  end;',
+  '  TArrayRec = array[1..2] of TRec;',
+  'var',
+  '  Arr: TArrayRec;',
+  'begin',
+  '  arr[1].int:=length(arr)+low(arr)+high(arr);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_StaticRecord',
+    LinesToStr([ // statements
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.Int = s.Int;',
+    '  } else {',
+    '    this.Int = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.Int === b.Int;',
+    '  };',
+    '};',
+    'this.TArrayRec$clone = function (a) {',
+    '  var r = [];',
+    '  for (var i = 0; i < 2; i++) r.push(new $mod.TRec(a[i]));',
+    '  return r;',
+    '};',
+    'this.Arr = rtl.arraySetLength(null, $mod.TRec, 2);',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Arr[0].Int = (2 + 1) + 2;']));
 end;
 
 procedure TTestModule.TestArrayOfSet;

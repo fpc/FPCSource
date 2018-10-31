@@ -14075,7 +14075,13 @@ begin
         end;
 
       // add parameter defaultvalue
-      DefaultValue:=CreateValInit(ElTypeResolved.LoTypeEl,nil,El,AContext);
+      if ElTypeResolved.LoTypeEl is TPasRecordType then
+        begin
+        // array of record -> push the type reference
+        DefaultValue:=CreateReferencePathExpr(ElTypeResolved.LoTypeEl,AContext);
+        end
+      else
+        DefaultValue:=CreateValInit(ElTypeResolved.LoTypeEl,nil,El,AContext);
       Call.AddArg(DefaultValue);
 
       // add parameters dim1,dim2,...
