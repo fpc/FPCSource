@@ -279,8 +279,8 @@ var rtl = {
           o.AfterConstruction();
         } catch($e){
           // do not call BeforeDestruction
-          if (this.Destroy) this.Destroy();
-          this.$final();
+          if (o.Destroy) o.Destroy();
+          o.$final();
           throw $e;
         }
         return o;
@@ -314,8 +314,8 @@ var rtl = {
         if (o.AfterConstruction) o.AfterConstruction();
       } catch($e){
         // do not call BeforeDestruction
-        if (this.Destroy) this.Destroy();
-        if (this.$final) this.$final();
+        if (o.Destroy) o.Destroy();
+        if (o.$final) this.$final();
         throw $e;
       }
       return o;
