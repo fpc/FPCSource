@@ -144,7 +144,7 @@ begin
     '%date%':
       begin
         DecodeDate(Now,Year,Month,Day);
-        SetStr('['+IntToStr(Year)+'/'+IntToStr(Month)+'/'+IntToStr(Day)+']');
+        SetStr(IntToStr(Year)+'/'+IntToStr(Month)+'/'+IntToStr(Day));
         exit;
       end;
     '%time%':
