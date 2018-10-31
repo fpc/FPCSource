@@ -4426,7 +4426,7 @@ implementation
                     foffset:=tfieldvarsym(symtable.symlist[i]).fieldoffset*8;
                     fsize:=tfieldvarsym(symtable.symlist[i]).vardef.size*8;
                   end;
-                if (foffset div (sizeof(aword)*8)) <> ((foffset+fsize-1) div (sizeof(aword)*8)) then
+                if (fsize>0) and ((foffset div (sizeof(aword)*8)) <> ((foffset+fsize-1) div (sizeof(aword)*8))) then
                   exit;
                 { search recursively }
                 if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and
