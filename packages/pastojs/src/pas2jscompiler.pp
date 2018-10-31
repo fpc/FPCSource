@@ -305,6 +305,9 @@ type
     {$ENDIF}
     procedure HandleUnknownException(E: Exception);
     procedure HandleException(E: Exception);
+    {$IFDEF Pas2js}
+    procedure HandleJSException(Msg: string; E: jsvalue);
+    {$ENDIF}
     procedure DoLogMsgAtEl(MsgType: TMessageType; const Msg: string;
       MsgNumber: integer; El: TPasElement);
     procedure RaiseInternalError(id: TMaxPrecInt; Msg: string);
@@ -489,6 +492,9 @@ type
     procedure InitParamMacros;
     procedure ClearDefines;
     procedure RaiseInternalError(id: TMaxPrecInt; Msg: string);
+    {$IFDEF Pas2js}
+    procedure HandleJSException(Msg: string; E: jsvalue; TerminateInternal: boolean = true);
+    {$ENDIF}
     function GetExitCode: Longint; virtual;
     procedure SetExitCode(Value: Longint); virtual;
   public
@@ -1224,6 +1230,13 @@ begin
     HandleUnknownException(E);
 end;
 
+{$IFDEF Pas2js}
+procedure TPas2jsCompilerFile.HandleJSException(Msg: string; E: jsvalue);
+begin
+  Compiler.HandleJSException(Msg,E,true);
+end;
+{$ENDIF}
+
 procedure TPas2jsCompilerFile.DoLogMsgAtEl(MsgType: TMessageType;
   const Msg: string; MsgNumber: integer; El: TPasElement);
 var
@@ -1293,6 +1306,11 @@ begin
       raise;
     on E: Exception do
       HandleException(E);
+    {$IFDEF pas2js}
+    else
+      HandleJSException('[20181031190529] TPas2jsCompilerFile.ReaderFinished File="'+PasFilename+'"',
+                        JSExceptValue);
+    {$ENDIF}
   end;
 end;
 
@@ -1403,6 +1421,9 @@ begin
       raise;
     on E: Exception do
       HandleException(E);
+    {$IFDEF pas2js}
+    else HandleJSException('[20181031190536] TPas2jsCompilerFile.OpenFile "'+aFilename+'"',JSExceptValue);
+    {$ENDIF}
   end;
 end;
 
@@ -1446,6 +1467,11 @@ begin
       raise;
     on E: Exception do
       HandleException(E);
+    {$IFDEF pas2js}
+    else
+      HandleJSException('[20181031190541] TPas2jsCompilerFile.ReadUnit File="'+PasFilename+'"',
+                        JSExceptValue);
+    {$ENDIF}
   end;
   if FReaderState=prsReading then
     FReaderState:=prsError;
@@ -1486,6 +1512,11 @@ begin
       raise;
     on E: Exception do
       HandleException(E);
+    {$IFDEF pas2js}
+    else
+      HandleJSException('[20181031190545] TPas2jsCompilerFile.ReadContinue File="'+PasFilename+'"',
+                        JSExceptValue);
+    {$ENDIF}
   end;
   if FReaderState=prsReading then
     FReaderState:=prsError;
@@ -1532,6 +1563,11 @@ begin
       raise;
     on E: Exception do
       HandleException(E);
+    {$IFDEF pas2js}
+    else
+      HandleJSException('[20181031190549] TPas2jsCompilerFile.CreateJS File="'+PasFilename+'"',
+                        JSExceptValue);
+    {$ENDIF}
   end;
 end;
 
@@ -2516,7 +2552,10 @@ begin
         {$ENDIF}
         Log.LogPlain('[20180204193420] Error while creating JavaScript "'+FileCache.FormatPath(DestFilename)+'": '+E.Message);
         Terminate(ExitCodeErrorInternal);
-      end;
+      end
+      {$IFDEF Pas2js}
+      else HandleJSException('[20181031190520] TPas2jsCompiler.WriteJSFiles Error while creating JavaScript',JSExceptValue);
+      {$ENDIF}
     end;
 
     if aFile.IsMainFile and (TargetPlatform=PlatformNodeJS) then
@@ -2621,7 +2660,10 @@ begin
           {$ENDIF}
           Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(DestFilename))]);
           Terminate(ExitCodeWriteError);
-        end;
+        end
+        {$IFDEF Pas2js}
+        else HandleJSException('[20181031190637] TPas2jsCompiler.WriteJSFiles',JSExceptValue,true);
+        {$ENDIF}
       end;
 
       // write source map
@@ -2663,7 +2705,10 @@ begin
             {$ENDIF}
             Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(MapFilename))]);
             Terminate(ExitCodeWriteError);
-          end;
+          end
+          {$IFDEF Pas2js}
+          else HandleJSException('[20181031190737] TPas2jsCompiler.WriteJSFiles',JSExceptValue);
+          {$ENDIF}
         end;
       end;
     end;
@@ -2722,6 +2767,32 @@ begin
   Log.LogPlain('['+IntToStr(id)+'] '+Msg);
   raise Exception.Create(Msg);
 end;
+
+{$IFDEF Pas2js}
+procedure TPas2jsCompiler.HandleJSException(Msg: string; E: jsvalue;
+  TerminateInternal: boolean);
+var
+  obj: JS.TJSObject;
+begin
+  if isObject(E) then
+  begin
+    obj:=js.TJSObject(E);
+    if isExt(obj,TJSError) then
+    begin
+      {AllowWriteln}
+      if obj['stack'] then
+        writeln(obj['stack']);
+      {AllowWriteln-}
+      Log.Log(mtFatal,Msg+': '+String(obj['message']));
+    end else
+      Log.Log(mtFatal,Msg+': '+String(E));
+  end else begin
+    Log.Log(mtFatal,Msg+': '+String(E));
+  end;
+  if TerminateInternal then
+    Terminate(ExitCodeErrorInternal);
+end;
+{$ENDIF}
 
 function TPas2jsCompiler.GetExitCode: Longint;
 begin
@@ -4003,7 +4074,10 @@ begin
         {$ELSE}
         Log.LogExceptionBackTrace;
         {$ENDIF}
-      end;
+      end
+      {$IFDEF Pas2js}
+      else HandleJSException('[20181031190818] TPas2jsCompiler.Destroy',JSExceptValue);
+      {$ENDIF}
     end
   else
     FreeStuff;
@@ -4195,6 +4269,9 @@ begin
       {$IFDEF FPC}
       if ShowDebug then
         Log.LogExceptionBackTrace;
+      {$ENDIF}
+      {$IFDEF Pas2js}
+      HandleJSException('[20181031190933] TPas2jsCompiler.Run',JSExceptValue,false);
       {$ENDIF}
       raise;
     end;
