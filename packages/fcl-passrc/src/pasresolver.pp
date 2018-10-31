@@ -569,10 +569,11 @@ type
 
   { TPasResHashList }
 
-  TPasResHashList = class(TJSObject)
+  TPasResHashList = class
+  private
+    FItems: TJSObject;
   public
     constructor Create; reintroduce;
-    destructor Destroy;
     procedure Add(const aName: string; Item: Pointer);
     function Find(const aName: string): Pointer;
     procedure ForEachCall(Proc: TPasResIterate; Arg: Pointer);
@@ -2550,23 +2551,18 @@ end;
 
 constructor TPasResHashList.Create;
 begin
-
-end;
-
-destructor TPasResHashList.Destroy;
-begin
-
+  FItems:=TJSObject.new;
 end;
 
 procedure TPasResHashList.Add(const aName: string; Item: Pointer);
 begin
-  Properties[aName]:=Item;
+  FItems['%'+aName]:=Item;
 end;
 
 function TPasResHashList.Find(const aName: string): Pointer;
 begin
-  if hasOwnProperty(aName) then
-    Result:=Pointer(Properties[aName])
+  if FItems.hasOwnProperty('%'+aName) then
+    Result:=Pointer(FItems['%'+aName])
   else
     Result:=nil;
 end;
@@ -2575,9 +2571,9 @@ procedure TPasResHashList.ForEachCall(Proc: TPasResIterate; Arg: Pointer);
 var
   key: string;
 begin
-  for key in TJSObject(Self) do
-    if hasOwnProperty(key) then
-      Proc(Pointer(Properties[key]),Arg);
+  for key in FItems do
+    if FItems.hasOwnProperty(key) then
+      Proc(Pointer(FItems[key]),Arg);
 end;
 
 procedure TPasResHashList.Clear;
@@ -2585,15 +2581,15 @@ var
   Arr: TStringDynArray;
   i: Integer;
 begin
-  Arr:=getOwnPropertyNames(Self);
+  Arr:=TJSObject.getOwnPropertyNames(FItems);
   for i:=0 to length(Arr)-1 do
-    JSDelete(Self,Arr[i]);
+    JSDelete(FItems,Arr[i]);
 end;
 
 procedure TPasResHashList.Remove(const aName: string);
 begin
-  if hasOwnProperty(aName) then
-    JSDelete(Self,aName);
+  if FItems.hasOwnProperty('%'+aName) then
+    JSDelete(FItems,'%'+aName);
 end;
 
 {$endif}
