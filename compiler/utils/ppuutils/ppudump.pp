@@ -1059,7 +1059,7 @@ begin
      Writeln([fileindex,' (',line,',',column,')']);
      if Def <> nil then
        begin
-         Def.FilePos.FileIndex:=fileindex - 1;
+         Def.FilePos.FileIndex:=fileindex;
          Def.FilePos.Line:=line;
          Def.FilePos.Col:=column;
        end;
