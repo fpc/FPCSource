@@ -1331,7 +1331,7 @@ Implementation
                         if taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg then
                           taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
 
-                        dealloc:=FindRegDeAlloc(taicpu(p).oper[1]^.reg, taicpu(p.Next));
+                        dealloc:=FindRegDeAlloc(taicpu(p).oper[1]^.reg, tai(p.Next));
                         if Assigned(dealloc) then
                           begin
                             asml.remove(dealloc);
