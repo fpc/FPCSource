@@ -3301,10 +3301,17 @@ unit aoptx86;
               MatchOpType(taicpu(hp1),top_const,top_reg) and
               (getsupreg(taicpu(p).oper[1]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) then
               begin
+{$ifopt R+}
+{$define RANGE_WAS_ON}
+{$R-}
+{$endif}
                 { get length of potential and mask }
                 MaskLength:=SizeOf(taicpu(p).oper[0]^.val)*8-BsrQWord(taicpu(p).oper[0]^.val)-1;
 
                 { really a mask? }
+{$ifdef RANGE_WAS_ON}
+{$R+}
+{$endif}
                 if (((QWord(1) shl MaskLength)-1)=taicpu(p).oper[0]^.val) and
                   { unmasked part shifted out? }
                   ((MaskLength+taicpu(hp1).oper[0]^.val)>=topsize2memsize[taicpu(hp1).opsize]) then
