@@ -6716,7 +6716,7 @@ function TPasToJSConverter.ConvertPrimitiveExpression(El: TPrimitiveExpr;
 Var
   L : TJSLiteral;
   Number : TJSNumber;
-  ConversionError : Integer;
+  ConversionError , Code: Integer;
   i: TMaxPrecInt;
   S: String;
 begin
@@ -6751,8 +6751,8 @@ begin
         end;
       '$','&','%':
         begin
-          i:=StrToInt64Def(El.Value,-1);
-          if i<0 then
+          val(El.Value,i,Code);
+          if Code<>0 then
             DoError(20161024224442,nInvalidNumber,sInvalidNumber,[El.Value],El);
           Number:=i;
           if Number<>i then
