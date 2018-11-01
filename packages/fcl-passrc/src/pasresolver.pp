@@ -11283,7 +11283,8 @@ begin
         Result:=btWideChar; // ''''
     #$DC00..#$DFFF: ;
     else
-      Result:=btWideChar;
+      if (l=3) and (Value[3]='''') then
+        Result:=btWideChar; // e.g. 'a'
     end;
     {$endif}
     end;
@@ -16779,7 +16780,6 @@ begin
         else
           {$IFDEF VerbosePasResolver}
           writeln('TPasResolver.CheckAssignResCompatibility ',{$ifdef pas2js}str(LBT){$else}LBT{$ENDIF});
-          writeln('AAA1 TPasResolver.CheckAssignResCompatibility ',str(BaseTypeChar),' ',str(BaseTypeString));
           {$ENDIF}
           RaiseNotYetImplemented(20170417195208,ErrorEl,BaseTypeNames[LBT]);
         end
