@@ -5021,7 +5021,7 @@ begin
   '  for er in TSetOfEnumRg do ;',
   '']);
   ConvertProgram;
-  CheckSource('TestEnumName',
+  CheckSource('TestSet_ForIn',
     LinesToStr([ // statements
     'this.TEnum = {',
     '  "0":"Red",',
@@ -5042,7 +5042,10 @@ begin
     'for ($mod.e = 0; $mod.e <= 1; $mod.e++) $mod.e2 = $mod.e;',
     'for ($mod.e = 1; $mod.e <= 2; $mod.e++) $mod.e2 = $mod.e;',
     'for ($mod.e in rtl.createSet($mod.TEnum.Red, $mod.TEnum.Blue)) $mod.e2 = $mod.e;',
-    'for ($mod.e in $mod.s) $mod.e2 = $mod.e;',
+    'for (var $l1 in $mod.s){',
+    '  $mod.e = +$l1;',
+    '  $mod.e2 = $mod.e;',
+    '};',
     'for ($mod.er = 1; $mod.er <= 2; $mod.er++) ;',
     '']));
 end;
@@ -5757,12 +5760,15 @@ begin
     'for (var $l8 = 11; $l8 <= 13; $l8++) $mod.i = $l8;',
     'for (var $l9 = 0; $l9 <= 255; $l9++) $mod.i = $l9;',
     'for (var $l10 = 3; $l10 <= 7; $l10++) $mod.i = $l10;',
-    'for ($mod.i in $mod.soi) $mod.i2 = $mod.i;',
-    'for (var $l11 = 3; $l11 <= 7; $l11++) $mod.i = $l11;',
-    'for ($mod.i in $mod.soir) ;',
-    'for (var $l12 = 3; $l12 <= 7; $l12++) $mod.ir = $l12;',
-    'for (var $l13 = 3; $l13 <= 7; $l13++) $mod.ir = $l13;',
-    'for ($mod.ir in $mod.soir) ;',
+    'for (var $l11 in $mod.soi) {',
+    '  $mod.i = +$l11;',
+    '  $mod.i2 = $mod.i;',
+    '};',
+    'for (var $l12 = 3; $l12 <= 7; $l12++) $mod.i = $l12;',
+    'for (var $l13 in $mod.soir) $mod.i = +$l13;',
+    'for (var $l14 = 3; $l14 <= 7; $l14++) $mod.ir = $l14;',
+    'for (var $l15 = 3; $l15 <= 7; $l15++) $mod.ir = $l15;',
+    'for (var $l16 in $mod.soir) $mod.ir = +$l16;',
     '']));
 end;
 

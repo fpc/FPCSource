@@ -1563,6 +1563,7 @@ type
     Function CreateArgumentAccess(Arg: TPasArgument; AContext: TConvertContext;
       PosEl: TPasElement): TJSElement; virtual;
     Function CreateUnary(Members: array of string; E: TJSElement): TJSUnary;
+    Function CreateUnaryPlus(Expr: TJSElement; El: TPasElement): TJSUnaryPlusExpression;
     Function CreateMemberExpression(Members: array of string): TJSDotMemberExpression;
     Function CreateCallExpression(El: TPasElement): TJSCallExpression;
     Function CreateCallCharCodeAt(Arg: TJSElement; aNumber: integer; El: TPasElement): TJSCallExpression; virtual;
@@ -4270,7 +4271,7 @@ var
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ExtractPasStringLiteral S="',S,'" ',RawStrToCaption(S,100),' ',length(S));
+  writeln('TPasToJSConverter.ExtractPasStringLiteral S="',S,'" ',{$IFDEF pas2js}copy(s,100){$ELSE}RawStrToCaption(S,100){$ENDIF},' ',length(S));
   {$ENDIF}
   if S='' then
     RaiseInternalError(20170207154543);
@@ -5519,7 +5520,7 @@ begin
     eopAdd:
       begin
       E:=ConvertElement(El.Operand,AContext);
-      U:=TJSUnaryPlusExpression(CreateElement(TJSUnaryPlusExpression,El));
+      U:=CreateUnaryPlus(E,El);
       U.A:=E;
       end;
     eopSubtract:
@@ -7464,7 +7465,6 @@ var
     Param: TPasExpr;
     JSAdd: TJSAdditiveExpression;
     LowRg: TResEvalValue;
-    JSUnaryPlus: TJSUnaryPlusExpression;
     IsRangeCheck, ok, NeedRangeCheck: Boolean;
     CallEx: TJSCallExpression;
     AssignContext: TAssignContext;
@@ -7525,9 +7525,7 @@ var
                   else
                     begin
                     // -> convert bool to int with unary plus:  +bool
-                    JSUnaryPlus:=TJSUnaryPlusExpression(CreateElement(TJSUnaryPlusExpression,Param));
-                    JSUnaryPlus.A:=Arg;
-                    Arg:=JSUnaryPlus;
+                    Arg:=CreateUnaryPlus(Arg,Param);
                     end;
                   end
                 else
@@ -15770,7 +15768,6 @@ var
   function ConvExpr(Expr: TPasExpr): TJSElement; overload;
   var
     ResolvedEl: TPasResolverResult;
-    JSUnaryPlus: TJSUnaryPlusExpression;
   begin
     Result:=ConvertElement(Expr,AContext);
     if Result is TJSLiteral then
@@ -15803,9 +15800,7 @@ var
           or ((ResolvedEl.BaseType=btRange) and (ResolvedEl.SubType in btAllJSBooleans)) then
         begin
         // convert bool variable to int: +expr
-        JSUnaryPlus:=TJSUnaryPlusExpression(CreateElement(TJSUnaryPlusExpression,Expr));
-        JSUnaryPlus.A:=Result;
-        Result:=JSUnaryPlus;
+        Result:=CreateUnaryPlus(Result,Expr);
         end;
       end;
   end;
@@ -16040,7 +16035,7 @@ var
           else
             InKind:=ikSetInt;
           HasInVar:=false;
-          HasLoopVar:=InKind<>ikSetInt;
+          HasLoopVar:=true;
           HasEndVar:=false;
           exit;
           end
@@ -16324,7 +16319,10 @@ begin
         begin
         if InKind<>ikNone then
           case InKind of
-          ikEnum,ikSetInt: ;
+          ikEnum,ikSetInt:
+            if ForSt.ClassType=TJSForInStatement then
+              // $in=+$l
+              SimpleAss.Expr:=CreateUnaryPlus(SimpleAss.Expr,PosEl);
           ikBool,ikSetBool:
             // $in!==0;
             SimpleAss.Expr:=CreateStrictNotEqual0(SimpleAss.Expr,PosEl);
@@ -16747,6 +16745,13 @@ begin
   asi.Expr := E;
   asi.LHS := CreateMemberExpression(Members);
   Result := unary;
+end;
+
+function TPasToJSConverter.CreateUnaryPlus(Expr: TJSElement; El: TPasElement
+  ): TJSUnaryPlusExpression;
+begin
+  Result:=TJSUnaryPlusExpression(CreateElement(TJSUnaryPlusExpression,El));
+  Result.A:=Expr;
 end;
 
 function TPasToJSConverter.CreateMemberExpression(Members: array of string): TJSDotMemberExpression;
