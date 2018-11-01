@@ -9310,10 +9310,11 @@ var
   Expr, SrcEl: TPasExpr;
   ExprResolved: TPasResolverResult;
   ExprArg: TPasArgument;
-  ValueJS: TJSElement;
+  LHS, ValueJS: TJSElement;
   Call: TJSCallExpression;
   IsInc: Boolean;
   AddJS: TJSAdditiveExpression;
+  AssignContext: TAssignContext;
 begin
   Result:=nil;
   IsInc:=CompareText((El.Value as TPrimitiveExpr).Value,'inc')=0;
@@ -9330,6 +9331,8 @@ begin
   // check target variable
   AssignSt:=nil;
   Call:=nil;
+  AssignContext:=nil;
+  LHS:=nil;
   try
     if ExprResolved.IdentEl is TPasArgument then
       begin
@@ -9367,14 +9370,38 @@ begin
       RaiseNotSupported(Expr,AContext,20170501151316);
       end;
 
+    AssignContext:=TAssignContext.Create(Expr,nil,AContext);
+    AContext.Resolver.ComputeElement(Expr,AssignContext.LeftResolved,[rcNoImplicitProc]);
+    SetResolverValueExpr(AssignContext.RightResolved,
+      AssignContext.LeftResolved.BaseType,AssignContext.LeftResolved.LoTypeEl,
+      AssignContext.LeftResolved.HiTypeEl,Expr,[rrfReadable]);
+    AssignContext.RightSide:=ValueJS;
+    ValueJS:=nil;
+    LHS:=ConvertElement(Expr,AssignContext);
+
+    if AssignContext.Call<>nil then
+      begin
+      // left side is a Setter -> RightSide was already inserted as parameter
+      RaiseNotSupported(El,AContext,20181101154351);
+      end
+    else
+      begin
+      // left side is a variable
+      if AssignContext.RightSide=nil then
+        RaiseInconsistency(20180622211919,El);
+
+      end;
+
     // convert inc(avar,b)  to  a+=b
     if IsInc then
       AssignSt:=TJSAddEqAssignStatement(CreateElement(TJSAddEqAssignStatement,SrcEl))
     else
       AssignSt:=TJSSubEqAssignStatement(CreateElement(TJSSubEqAssignStatement,SrcEl));
-    AssignSt.LHS:=ConvertExpression(El.Params[0],AContext);
-    AssignSt.Expr:=ValueJS;
-    ValueJS:=nil;
+
+    AssignSt.LHS:=LHS;
+    LHS:=nil;
+    AssignSt.Expr:=AssignContext.RightSide;
+    AssignContext.RightSide:=nil;
     Result:=AssignSt;
   finally
     ValueJS.Free;
@@ -9382,6 +9409,12 @@ begin
       begin
       AssignSt.Free;
       Call.Free;
+      LHS.Free;
+      end;
+    if AssignContext<>nil then
+      begin
+      AssignContext.RightSide.Free;
+      AssignContext.Free;
       end;
   end;
 end;

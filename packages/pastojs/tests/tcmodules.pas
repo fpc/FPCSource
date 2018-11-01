@@ -9960,33 +9960,36 @@ end;
 procedure TTestModule.TestClass_ClassVar;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('  public');
-  Add('    class var vI: longint;');
-  Add('    class var Sub: TObject;');
-  Add('    constructor Create;');
-  Add('    class function GetIt(Par: longint): tobject;');
-  Add('  end;');
-  Add('constructor tobject.create;');
-  Add('begin');
-  Add('  vi:=vi+1;');
-  Add('  Self.vi:=Self.vi+1;');
-  Add('end;');
-  Add('class function tobject.getit(par: longint): tobject;');
-  Add('begin');
-  Add('  vi:=vi+par;');
-  Add('  Self.vi:=Self.vi+par;');
-  Add('  Result:=self.sub;');
-  Add('end;');
-  Add('var Obj: tobject;');
-  Add('begin');
-  Add('  obj:=tobject.create;');
-  Add('  tobject.vi:=3;');
-  Add('  if tobject.vi=4 then ;');
-  Add('  tobject.sub:=nil;');
-  Add('  obj.sub:=nil;');
-  Add('  obj.sub.sub:=nil;');
+  Add([
+  'type',
+  '  TObject = class',
+  '  public',
+  '    class var vI: longint;',
+  '    class var Sub: TObject;',
+  '    constructor Create;',
+  '    class function GetIt(Par: longint): tobject;',
+  '  end;',
+  'constructor tobject.create;',
+  'begin',
+  '  vi:=vi+1;',
+  '  Self.vi:=Self.vi+1;',
+  '  inc(vi);',
+  'end;',
+  'class function tobject.getit(par: longint): tobject;',
+  'begin',
+  '  vi:=vi+par;',
+  '  Self.vi:=Self.vi+par;',
+  '  inc(vi);',
+  '  Result:=self.sub;',
+  'end;',
+  'var Obj: tobject;',
+  'begin',
+  '  obj:=tobject.create;',
+  '  tobject.vi:=3;',
+  '  if tobject.vi=4 then ;',
+  '  tobject.sub:=nil;',
+  '  obj.sub:=nil;',
+  '  obj.sub.sub:=nil;']);
   ConvertProgram;
   CheckSource('TestClass_ClassVar',
     LinesToStr([ // statements
@@ -10000,11 +10003,13 @@ begin
     '  this.Create = function(){',
     '    this.$class.vI = this.vI+1;',
     '    this.$class.vI = this.vI+1;',
+    '    this.$class.vI += 1;',
     '  };',
     '  this.GetIt = function(Par){',
     '    var Result = null;',
     '    this.vI = this.vI + Par;',
     '    this.vI = this.vI + Par;',
+    '    this.vI += 1;',
     '    Result = this.Sub;',
     '    return Result;',
     '  };',
