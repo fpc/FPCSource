@@ -1334,7 +1334,7 @@ function TPas2jsFileResolver.FindIncludeFileName(const aFilename: string): Strin
       end;
     // then search in include path
     for i:=0 to Cache.IncludePaths.Count-1 do begin
-      Result:=Cache.IncludePaths[i]+Filename;
+      Result:=IncludeTrailingPathDelimiter(Cache.IncludePaths[i])+Filename;
       if SearchLowUpCase(Result) then exit;
     end;
     Result:='';
@@ -1403,6 +1403,7 @@ function TPas2jsFileResolver.FindUnitFileName(const aUnitname,
   function SearchInDir(Dir: string; var Filename: string): boolean;
   // search in Dir for pp, pas, p times given case, lower case, upper case
   begin
+    Dir:=IncludeTrailingPathDelimiter(Dir);
     Filename:=Dir+aUnitname+'.pp';
     if SearchLowUpCase(Filename) then exit(true);
     Filename:=Dir+aUnitname+'.pas';
@@ -1475,10 +1476,11 @@ end;
 function TPas2jsFileResolver.FindCustomJSFileName(const aFilename: string
   ): String;
 
-  function SearchInDir(const Dir: string): boolean;
+  function SearchInDir(Dir: string): boolean;
   var
     CurFilename: String;
   begin
+    Dir:=IncludeTrailingPathDelimiter(Dir);
     CurFilename:=Dir+aFilename;
     Result:=FileExistsLogged(CurFilename);
     if Result then
