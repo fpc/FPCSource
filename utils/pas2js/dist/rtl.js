@@ -905,8 +905,8 @@ var rtl = {
   },
 
   eqSet: function(s,t){
-    for (var key in s) if (!t[key] && (key!='$shared')) return false;
-    for (var key in t) if (!s[key] && (key!='$shared')) return false;
+    for (var key in s) if (!t[key]) return false;
+    for (var key in t) if (!s[key]) return false;
     return true;
   },
 
@@ -915,12 +915,12 @@ var rtl = {
   },
 
   leSet: function(s,t){
-    for (var key in s) if (!t[key] && (key!='$shared')) return false;
+    for (var key in s) if (!t[key]) return false;
     return true;
   },
 
   geSet: function(s,t){
-    for (var key in t) if (!s[key] && (key!='$shared')) return false;
+    for (var key in t) if (!s[key]) return false;
     return true;
   },
 
