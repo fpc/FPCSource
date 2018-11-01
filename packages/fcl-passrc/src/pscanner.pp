@@ -3079,7 +3079,6 @@ end;
 procedure TPascalScanner.HandleIncludeFile(Param: String);
 
 begin
-  PushStackItem;
   if Length(Param)>1 then
     begin
     if (Param[1]='''') then
@@ -3092,6 +3091,7 @@ begin
   FCurSourceFile := FileResolver.FindIncludeFile(Param);
   if not Assigned(FCurSourceFile) then
     Error(nErrIncludeFileNotFound, SErrIncludeFileNotFound, [Param]);
+  PushStackItem;
   FCurFilename := Param;
   if FCurSourceFile is TFileLineReader then
     FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
