@@ -474,7 +474,7 @@ end;
 procedure TSourceMap.TStringToIndex.Add(const Value: String; Index: integer);
 begin
   {$ifdef pas2js}
-  FItems[Value]:=Index;
+  FItems['%'+Value]:=Index;
   {$else}
   // Note: nil=0 means not found in TFPHashList
   FItems.Add(Value,{%H-}Pointer(PtrInt(Index+1)));
@@ -485,8 +485,8 @@ function TSourceMap.TStringToIndex.FindValue(const Value: String
   ): integer;
 begin
   {$ifdef pas2js}
-  if FItems.hasOwnProperty(Value) then
-    Result:=integer(FItems[Value])
+  if FItems.hasOwnProperty('%'+Value) then
+    Result:=integer(FItems['%'+Value])
   else
     Result:=-1;
   {$else}
