@@ -336,6 +336,7 @@ type
     Procedure TestEnumRange_Array;
     Procedure TestEnum_ForIn;
     Procedure TestEnum_ScopedNumber;
+    Procedure TestEnum_InFunction;
     Procedure TestSet_Enum;
     Procedure TestSet_Operators;
     Procedure TestSet_Operator_In;
@@ -432,6 +433,7 @@ type
     Procedure TestRecord_FieldArray;
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
+    Procedure TestRecord_InFunction;
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -4275,6 +4277,58 @@ begin
     '']),
     LinesToStr([
     '$mod.e = 1;']));
+end;
+
+procedure TTestModule.TestEnum_InFunction;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  procedure Sub;',
+  '  type',
+  '    TEnumSub = (Left, Right);',
+  '  var',
+  '    es: TEnumSub;',
+  '  begin',
+  '    es:=Left;',
+  '  end;',
+  'var',
+  '  e, e2: TEnum;',
+  'begin',
+  '  if e in [red,blue] then e2:=e;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestEnum_InFunction',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var TEnum = {',
+    '    "0":"Red",',
+    '    Red:0,',
+    '    "1":"Green",',
+    '    Green:1,',
+    '    "2":"Blue",',
+    '    Blue:2',
+    '    };',
+    '  function Sub() {',
+    '    var TEnumSub = {',
+    '      "0": "Left",',
+    '      Left: 0,',
+    '      "1": "Right",',
+    '      Right: 1',
+    '    };',
+    '    var es = 0;',
+    '    es = TEnumSub.Left;',
+    '  };',
+    '  var e = 0;',
+    '  var e2 = 0;',
+    '  if (e in rtl.createSet(TEnum.Red, TEnum.Blue)) e2 = e;',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
 end;
 
 procedure TTestModule.TestSet_Enum;
@@ -9204,6 +9258,46 @@ begin
   SetExpectedPasResolverError('Illegal type conversion: "TPoint" to "record TRec"',
     nIllegalTypeConversionTo);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestRecord_InFunction;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'type',
+  '  TPoint = record x,y: longint; end;',
+  '  TPoints = array of TPoint;',
+  'var',
+  '  r: TPoint;',
+  '  p: TPoints;',
+  'begin',
+  '  SetLength(p,2);',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRecord_InFunction',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  function TPoint(s) {',
+    '    if (s) {',
+    '      this.x = s.x;',
+    '      this.y = s.y;',
+    '    } else {',
+    '      this.x = 0;',
+    '      this.y = 0;',
+    '    };',
+    '    this.$equal = function (b) {',
+    '      return (this.x === b.x) && (this.y === b.y);',
+    '    };',
+    '  };',
+    '  var r = new TPoint();',
+    '  var p = [];',
+    '  p = rtl.arraySetLength(p, TPoint, 2);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
 end;
 
 procedure TTestModule.TestClass_TObjectDefaultConstructor;
@@ -21160,7 +21254,7 @@ begin
   CheckSource('TestRTTI_LocalTypes',
     LinesToStr([ // statements
     'this.DoIt = function () {',
-    '  this.TPoint = function (s) {',
+    '  function TPoint(s) {',
     '    if (s) {',
     '      this.x = s.x;',
     '      this.y = s.y;',

@@ -6654,10 +6654,13 @@ var
 begin
   if PosEl=nil then PosEl:=El;
   CurName:=TransformVariableName(El,Name,false,AContext);
-  ParentName:=AContext.GetLocalName(El.Parent);
-  if ParentName='' then
-    ParentName:='this';
-  CurName:=ParentName+'.'+CurName;
+  if not (El.Parent is TProcedureBody) then
+    begin
+    ParentName:=AContext.GetLocalName(El.Parent);
+    if ParentName='' then
+      ParentName:='this';
+    CurName:=ParentName+'.'+CurName;
+    end;
   Result:=CreatePrimitiveDotExpr(CurName,PosEl);
 end;
 
@@ -11911,16 +11914,21 @@ begin
     Obj:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
     if AContext is TObjectContext then
       begin
-      // add 'TypeName: function(){}'
+      // add 'TypeName: {}'
       ParentObj:=TObjectContext(AContext).JSElement as TJSObjectLiteral;
       ObjLit:=ParentObj.Elements.AddElement;
       ObjLit.Name:=TJSString(TransformVariableName(El,AContext));
       ObjLit.Expr:=Obj;
       Result:=Obj;
       end
+    else if El.Parent is TProcedureBody then
+      begin
+      // add 'var TypeName = {}'
+      Result:=CreateVarStatement(TransformVariableName(El,AContext),Obj,El);
+      end
     else
       begin
-      // add 'this.TypeName = function(){}'
+      // add 'this.TypeName = {}'
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
       AssignSt.Expr:=Obj;
@@ -15625,8 +15633,6 @@ function TPasToJSConverter.ConvertIfStatement(El: TPasImplIfElse;
 Var
   C,BThen,BElse : TJSElement;
   T : TJSIfStatement;
-  ok: Boolean;
-
 begin
   Result:=nil;
   if AContext=nil then ;
@@ -17788,6 +17794,7 @@ begin
           Prepend(Result,ParentEl.Name);
         end;
       ParentEl:=ParentEl.Parent;
+      if ParentEl is TProcedureBody then break;
       end;
     end;
 
@@ -18946,7 +18953,6 @@ var
   BodyFirst, BodyLast, ListFirst, ListLast: TJSStatementList;
   FuncContext: TFunctionContext;
   ObjLit: TJSObjectLiteral;
-  ObjEl: TJSObjectLiteralElement;
   IfSt: TJSIfStatement;
   Call, Call2: TJSCallExpression;
   ok: Boolean;
@@ -18958,14 +18964,13 @@ begin
   ok:=false;
   try
     FDS:=CreateFunctionSt(El);
-    if AContext is TObjectContext then
+    FD:=FDS.AFunction;
+    if El.Parent is TProcedureBody then
       begin
-      // add 'TypeName: function(){}'
-      ObjLit:=TObjectContext(AContext).JSElement as TJSObjectLiteral;
-      Result:=ObjLit;
-      ObjEl:=ObjLit.Elements.AddElement;
-      ObjEl.Name:=TJSString(TransformVariableName(El,AContext));
-      ObjEl.Expr:=FDS;
+      // ToDo: elevate to non local scope
+      // add 'function TypeName(){}'
+      Result:=FDS;
+      FD.Name:=TJSString(TransformVariableName(El,AContext));
       end
     else
       begin
@@ -18975,7 +18980,6 @@ begin
       AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
       AssignSt.Expr:=FDS;
       end;
-    FD:=FDS.AFunction;
     // add param s
     FD.Params.Add(SrcParamName);
     // create function body
