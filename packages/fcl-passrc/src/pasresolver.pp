@@ -2577,13 +2577,8 @@ begin
 end;
 
 procedure TPasResHashList.Clear;
-var
-  Arr: TStringDynArray;
-  i: Integer;
 begin
-  Arr:=TJSObject.getOwnPropertyNames(FItems);
-  for i:=0 to length(Arr)-1 do
-    JSDelete(FItems,Arr[i]);
+  FItems:=TJSObject.new;
 end;
 
 procedure TPasResHashList.Remove(const aName: string);
@@ -2591,7 +2586,6 @@ begin
   if FItems.hasOwnProperty('%'+aName) then
     JSDelete(FItems,'%'+aName);
 end;
-
 {$endif}
 
 { TResElDataBuiltInProc }
@@ -3511,6 +3505,11 @@ begin
     end;
   FItems.Add(LoName,Item);
   {$IFDEF VerbosePasResolver}
+  if Item.Owner<>nil then
+    raise Exception.Create('20160925184110');
+  Item.Owner:=Self;
+  {$ENDIF}
+  {$IFDEF VerbosePasResolver}
   if FindIdentifier(Item.Identifier)<>Item then
     raise Exception.Create('20181018173201');
   {$ENDIF}
@@ -4023,7 +4022,7 @@ begin
 
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Proc Distance=',Distance,
-      ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',ord(Data^.Distance),
+      ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',Data^.Distance,
       ' Signature={',GetProcTypeDescription(Proc.ProcType,[prptdUseName,prptdAddPaths]),'}',
       ' Abort=',Abort);
     {$ENDIF}
@@ -16778,6 +16777,10 @@ begin
         btWideString,btUnicodeString:
           Result:=cCompatible;
         else
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.CheckAssignResCompatibility ',{$ifdef pas2js}str(LBT){$else}LBT{$ENDIF});
+          writeln('AAA1 TPasResolver.CheckAssignResCompatibility ',str(BaseTypeChar),' ',str(BaseTypeString));
+          {$ENDIF}
           RaiseNotYetImplemented(20170417195208,ErrorEl,BaseTypeNames[LBT]);
         end
       else if RBT=btContext then
@@ -19813,6 +19816,15 @@ begin
                         FBaseTypes[btString],FBaseTypes[btString],[rrfReadable])
   else
     RaiseNotYetImplemented(20160922163705,El);
+  {$IF defined(nodejs) and defined(VerbosePasResolver)}
+  if not isNumber(ResolvedEl.BaseType) then
+    begin
+    {AllowWriteln}
+    writeln('TPasResolver.ComputeElement ',GetObjName(El),' typeof ResolvedEl.BaseType=',jsTypeOf(ResolvedEl.BaseType),' ResolvedEl=',GetResolverResultDbg(ResolvedEl));
+    RaiseInternalError(20181101123527,jsTypeOf(ResolvedEl.LoTypeEl));
+    {AllowWriteln-}
+    end;
+  {$ENDIF}
 end;
 
 function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;

@@ -140,7 +140,7 @@ type
     class var FLastPasElementId: NativeInt;
     {$endif}
     {$ifdef EnablePasTreeGlobalRefCount}
-    class var FGlobalRefCount: int64;
+    class var FGlobalRefCount: NativeInt;
     {$endif}
   protected
     procedure ProcessHints(const ASemiColonPrefix: boolean; var AResult: string); virtual;
@@ -186,7 +186,7 @@ type
     property PasElementId: NativeInt read FPasElementId; // global unique id
     {$endif}
     {$ifdef EnablePasTreeGlobalRefCount}
-    class property GlobalRefCount: int64 read FGlobalRefCount write FGlobalRefCount;
+    class property GlobalRefCount: NativeInt read FGlobalRefCount write FGlobalRefCount;
     {$endif}
   end;
 

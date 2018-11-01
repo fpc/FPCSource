@@ -463,7 +463,7 @@ begin
     if ContainsItem(Item) then
       raise Exception.Create('TPasAnalyzerSet.Add duplicate');
   {$ifdef pas2js}
-  FItems[FItemToName(Item)]:=Item;
+  FItems['%'+FItemToName(Item)]:=Item;
   inc(FCount);
   {$else}
   FTree.Add(Item);
@@ -475,7 +475,7 @@ procedure TPasAnalyzerKeySet.Remove(Item: Pointer);
 var
   aName: string;
 begin
-  aName:=FItemToName(Item);
+  aName:='%'+FItemToName(Item);
   if not FItems.hasOwnProperty(aName) then exit;
   JSDelete(FItems,aName);
   dec(FCount);
@@ -489,7 +489,7 @@ end;
 function TPasAnalyzerKeySet.ContainsItem(Item: Pointer): boolean;
 begin
   {$ifdef pas2js}
-  Result:=FItems.hasOwnProperty(FItemToName(Item));
+  Result:=FItems.hasOwnProperty('%'+FItemToName(Item));
   {$else}
   Result:=FTree.Find(Item)<>nil;
   {$endif}
@@ -498,7 +498,7 @@ end;
 function TPasAnalyzerKeySet.ContainsKey(Key: Pointer): boolean;
 begin
   {$ifdef pas2js}
-  Result:=FItems.hasOwnProperty(FKeyToName(Key));
+  Result:=FItems.hasOwnProperty('%'+FKeyToName(Key));
   {$else}
   Result:=FTree.FindKey(Key,FCompareKeyWithData)<>nil;
   {$endif}
@@ -509,7 +509,7 @@ function TPasAnalyzerKeySet.FindItem(Item: Pointer): Pointer;
 var
   aName: string;
 begin
-  aName:=FItemToName(Item);
+  aName:='%'+FItemToName(Item);
   if not FItems.hasOwnProperty(aName) then
     exit(nil)
   else
@@ -532,7 +532,7 @@ function TPasAnalyzerKeySet.FindKey(Key: Pointer): Pointer;
 var
   aName: string;
 begin
-  aName:=FKeyToName(Key);
+  aName:='%'+FKeyToName(Key);
   if not FItems.hasOwnProperty(aName) then
     exit(nil)
   else
