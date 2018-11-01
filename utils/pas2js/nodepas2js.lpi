@@ -61,9 +61,15 @@
     <Other>
       <CustomOptions Value="-Jeutf-8
 -Jc
--dVerboseFileCache"/>
-      <OtherDefines Count="1">
+-dVerboseFileCache
+-dVerbosePasResolver
+-dVerbosePas2JS
+-dVerbosePasResEval"/>
+      <OtherDefines Count="4">
         <Define0 Value="VerboseFileCache"/>
+        <Define1 Value="VerbosePasResolver"/>
+        <Define2 Value="VerbosePas2JS"/>
+        <Define3 Value="VerbosePasResEval"/>
       </OtherDefines>
       <CompilerPath Value="$(pas2js)"/>
     </Other>

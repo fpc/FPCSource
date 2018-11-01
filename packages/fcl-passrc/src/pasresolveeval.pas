@@ -4239,6 +4239,9 @@ begin
           {$ENDIF}
           exit;
           end;
+        {$IFDEF VerbosePasResEval}
+        writeln('TResExprEvaluator.Eval Value="',TPrimitiveExpr(Expr).Value,'"');
+        {$ENDIF}
         RaiseRangeCheck(20170518202252,Expr);
         end;
       pekString:
