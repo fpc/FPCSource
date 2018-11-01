@@ -4399,6 +4399,7 @@ begin
    begin
      init_settings.alignment.procalign:=1;
      init_settings.alignment.jumpalign:=1;
+     init_settings.alignment.coalescealign:=1;
      init_settings.alignment.loopalign:=1;
 {$ifdef x86}
      { constalignmax=1 keeps the executable and thus the memory foot print small but

@@ -319,6 +319,8 @@ implementation
 *)
                    ;
                    hlcg.a_jmp_always(current_asmdata.CurrAsmList,hl);
+                   if not(cs_opt_size in current_settings.optimizerswitches) then
+                     current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignmax));
                 end;
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
               secondpass(t1);
@@ -347,12 +349,15 @@ implementation
                   current_asmdata.CurrAsmList := TAsmList.create;
                 end;
 *)
-              current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
+              if not(cs_opt_size in current_settings.optimizerswitches) then
+                current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.coalescealign,current_settings.alignment.coalescealignmax));
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
            end;
          if not(assigned(right)) then
            begin
-              hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
+             if not(cs_opt_size in current_settings.optimizerswitches) then
+               current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.coalescealign,current_settings.alignment.coalescealignmax));
+             hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
            end;
 
 (*

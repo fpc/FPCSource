@@ -3095,6 +3095,7 @@ implementation
           fillsize:=0;
           fillop:=0;
           use_op:=false;
+          maxbytes:=aligntype;
        end;
 
 
@@ -3109,6 +3110,7 @@ implementation
           fillsize:=0;
           fillop:=_op;
           use_op:=true;
+          maxbytes:=aligntype;
        end;
 
 
@@ -3138,6 +3140,7 @@ implementation
          use_op:=true;
          fillsize:=0;
          fillop:=0;
+         maxbytes:=aligntype;
        end;
 
 
@@ -3157,6 +3160,7 @@ implementation
         fillsize:=0;
         fillop:=ppufile.getbyte;
         use_op:=ppufile.getboolean;
+        maxbytes:=ppufile.getbyte;
       end;
 
 
@@ -3166,6 +3170,7 @@ implementation
         ppufile.putbyte(aligntype);
         ppufile.putbyte(fillop);
         ppufile.putboolean(use_op);
+        ppufile.putbyte(maxbytes);
       end;
 
 
