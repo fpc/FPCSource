@@ -24,6 +24,14 @@ unit aoptutils;
 
 {$i fpcdefs.inc}
 
+{$ifdef avr}
+  {$define MAXOPTS_2}
+{$endif}
+
+{$ifdef jvm}
+  {$define MAXOPTS_2}
+{$endif}
+
   interface
 
     uses
@@ -31,7 +39,9 @@ unit aoptutils;
 
     function MatchOpType(const p : taicpu;type0: toptype) : Boolean;
     function MatchOpType(const p : taicpu;type0,type1 : toptype) : Boolean;
+{$ifndef MAXOPTS_2}
     function MatchOpType(const p : taicpu; type0,type1,type2 : toptype) : Boolean;
+{$endif ndef MAXOPTS_2}
 
     { skips all labels and returns the next "real" instruction }
     function SkipLabels(hp: tai; var hp2: tai): boolean;
@@ -50,10 +60,12 @@ unit aoptutils;
       end;
 
 
+{$ifndef MAXOPTS_2}
     function MatchOpType(const p : taicpu; type0,type1,type2 : toptype) : Boolean;
       begin
         Result:=(p.ops=3) and (p.oper[0]^.typ=type0) and (p.oper[1]^.typ=type1) and (p.oper[2]^.typ=type1);
       end;
+{$endif ndef MAXOPTS_2}
 
 
     { skips all labels and returns the next "real" instruction }
