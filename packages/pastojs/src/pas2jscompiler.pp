@@ -1276,7 +1276,6 @@ begin
       Log.DebugLogWriteLn(PasModule.GetDeclaration(true));
     end;
 
-
     if{$IFDEF HasPas2jsFiler}PCUReader=nil{$ELSE}true{$ENDIF} then
       begin
       // read source module (instead of precompiled module)

@@ -1313,7 +1313,7 @@ begin
   Filename:=FindIncludeFileName(aFilename);
   if Filename='' then exit;
   try
-    Result := TFileLineReader.Create(Filename);
+    Result:=FindSourceFile(Filename);
   except
     // error is shown in the scanner, which has the context information
   end;

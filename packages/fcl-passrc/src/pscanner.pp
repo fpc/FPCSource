@@ -2735,10 +2735,10 @@ begin
       begin
       if FIncludeStack.Count > 0 then
         begin
-        CurSourceFile.{$ifdef pas2js}Destroy{$else}Free{$endif};
         IncludeStackItem :=
           TIncludeStackItem(FIncludeStack[FIncludeStack.Count - 1]);
         FIncludeStack.Delete(FIncludeStack.Count - 1);
+        CurSourceFile.{$ifdef pas2js}Destroy{$else}Free{$endif};
         FCurSourceFile := IncludeStackItem.SourceFile;
         FCurFilename := IncludeStackItem.Filename;
         FCurToken := IncludeStackItem.Token;
@@ -3078,6 +3078,8 @@ end;
 
 procedure TPascalScanner.HandleIncludeFile(Param: String);
 
+var
+  NewSourceFile: TLineReader;
 begin
   if Length(Param)>1 then
     begin
@@ -3088,10 +3090,12 @@ begin
       Param:=copy(Param,2,length(Param)-2);
       end;
     end;
-  FCurSourceFile := FileResolver.FindIncludeFile(Param);
-  if not Assigned(FCurSourceFile) then
+  NewSourceFile := FileResolver.FindIncludeFile(Param);
+  if not Assigned(NewSourceFile) then
     Error(nErrIncludeFileNotFound, SErrIncludeFileNotFound, [Param]);
+
   PushStackItem;
+  FCurSourceFile:=NewSourceFile;
   FCurFilename := Param;
   if FCurSourceFile is TFileLineReader then
     FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
