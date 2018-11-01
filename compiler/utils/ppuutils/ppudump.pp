@@ -1820,7 +1820,8 @@ begin
               begin
                 len:=gettokenbufsizeint;
                 setlength(astring,len);
-                move(tokenbuf[tbi],astring[1],len);
+                if len>0 then
+                  move(tokenbuf[tbi],astring[1],len);
                 write([' ',astring]);
                 inc(tbi,len);
               end;
