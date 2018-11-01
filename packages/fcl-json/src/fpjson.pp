@@ -2766,8 +2766,8 @@ end;
 function TJSONObject.GetElements(const AName: string): TJSONData;
 begin
   {$ifdef pas2js}
-  if FHash.hasOwnProperty(AName) then
-    Result:=TJSONData(FHash[AName])
+  if FHash.hasOwnProperty('%'+AName) then
+    Result:=TJSONData(FHash['%'+AName])
   else
     DoError(SErrNonexistentElement,[AName]);
   {$else}
@@ -2806,7 +2806,7 @@ begin
     FNames:=TJSObject.getOwnPropertyNames(FHash);
   if (Index<0) or (Index>=FCount) then
     DoError(SListIndexError,[Index]);
-  Result:=FNames[Index];
+  Result:=copy(FNames[Index],2);
   {$else}
   Result:=FHash.NameOfIndex(Index);
   {$endif}
@@ -2861,9 +2861,9 @@ end;
 procedure TJSONObject.SetElements(const AName: string; const AValue: TJSONData);
 {$ifdef pas2js}
 begin
-  if not FHash.hasOwnProperty(AName) then
+  if not FHash.hasOwnProperty('%'+AName) then
     inc(FCount);
-  FHash[AName]:=AValue;
+  FHash['%'+AName]:=AValue;
   FNames:=nil;
 end;
 {$else}
@@ -3299,7 +3299,7 @@ begin
   Cont:=True;
   for i:=0 to length(FNames) do
     begin
-    Iterator(FNames[I],TJSONData(FHash[FNames[i]]),Data,Cont);
+    Iterator(copy(FNames[I],2),TJSONData(FHash[FNames[i]]),Data,Cont);
     if not Cont then break;
     end;
 end;
@@ -3337,7 +3337,7 @@ begin
   {$ifdef pas2js}
   if FNames=nil then
     FNames:=TJSObject.getOwnPropertyNames(FHash);
-  Result:=TJSArray(FNames).indexOf(AName); // -1 if not found
+  Result:=TJSArray(FNames).indexOf('%'+AName); // -1 if not found
   {$else}
   Result:=FHash.FindIndexOf(AName);
   {$endif}
@@ -3362,14 +3362,14 @@ end;
 
 function TJSONObject.DoAdd(const AName: TJSONStringType; AValue: TJSONData; FreeOnError : Boolean = True): Integer;
 begin
-  if {$ifdef pas2js}FHash.hasOwnProperty(AName){$else}(IndexOfName(aName)<>-1){$endif} then
+  if {$ifdef pas2js}FHash.hasOwnProperty('%'+AName){$else}(IndexOfName(aName)<>-1){$endif} then
     begin
     if FreeOnError then
       FreeAndNil(AValue);
     DoError(SErrDuplicateValue,[aName]);
     end;
   {$ifdef pas2js}
-  FHash[AName]:=AValue;
+  FHash['%'+AName]:=AValue;
   FNames:=nil;
   inc(FCount);
   Result:=FCount;
@@ -3441,7 +3441,7 @@ begin
   {$ifdef pas2js}
   if (Index<0) or (Index>=FCount) then
     DoError(SListIndexError,[Index]);
-  JSDelete(FHash,GetNameOf(Index));
+  JSDelete(FHash,'%'+GetNameOf(Index));
   FNames:=nil;
   dec(FCount);
   {$else}
@@ -3452,8 +3452,8 @@ end;
 procedure TJSONObject.Delete(const AName: string);
 {$ifdef pas2js}
 begin
-  if not FHash.hasOwnProperty(AName) then exit;
-  JSDelete(FHash,AName);
+  if not FHash.hasOwnProperty('%'+AName) then exit;
+  JSDelete(FHash,'%'+AName);
   FNames:=nil;
   dec(FCount);
 end;
@@ -3511,8 +3511,8 @@ end;
 function TJSONObject.Get(const AName: String): TJSONVariant;
 {$ifdef pas2js}
 begin
-  if FHash.hasOwnProperty(AName) then
-    Result:=TJSONData(FHash[AName]).Value
+  if FHash.hasOwnProperty('%'+AName) then
+    Result:=TJSONData(FHash['%'+AName]).Value
   else
     Result:=nil;
 end;
@@ -3653,8 +3653,8 @@ end;
 function TJSONObject.Find(const AName: String): TJSONData;
 {$ifdef pas2js}
 begin
-  if FHash.hasOwnProperty(AName) then
-    Result:=TJSONData(FHash[AName])
+  if FHash.hasOwnProperty('%'+AName) then
+    Result:=TJSONData(FHash['%'+AName])
   else
     Result:=nil;
 end;
