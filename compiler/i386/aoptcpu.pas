@@ -524,18 +524,18 @@ begin
             { Handle Jmp Optimizations }
             if taicpu(p).is_jmp then
               begin
-      {the following if-block removes all code between a jmp and the next label,
-        because it can never be executed}
+                { the following if-block removes all code between a jmp and the next label,
+                  because it can never be executed }
                 if (taicpu(p).opcode = A_JMP) then
                   begin
                     hp2:=p;
                     while GetNextInstruction(hp2, hp1) and
                           (hp1.typ <> ait_label) do
-                      if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
+                      if not(hp1.typ in ([ait_label]+skipinstr)) then
                         begin
                           { don't kill start/end of assembler block,
                             no-line-info-start/end etc }
-                          if hp1.typ<>ait_marker then
+                          if not(hp1.typ in [ait_align,ait_marker]) then
                             begin
                               asml.remove(hp1);
                               hp1.free;

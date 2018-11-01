@@ -1551,7 +1551,7 @@ Unit AoptObj;
                                   and (hp1.typ <> ait_jcatch)
 {$endif}
                                   do
-                              if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
+                              if not(hp1.typ in ([ait_label]+skipinstr)) then
                                 begin
                                   if (hp1.typ = ait_instruction) and
                                      taicpu(hp1).is_jmp and
@@ -1560,7 +1560,7 @@ Unit AoptObj;
                                      TAsmLabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).decrefs;
                                   { don't kill start/end of assembler block,
                                     no-line-info-start/end etc }
-                                  if hp1.typ<>ait_marker then
+                                  if not(hp1.typ in [ait_align,ait_marker]) then
                                     begin
 {$ifdef cpudelayslot}
                                       if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then
