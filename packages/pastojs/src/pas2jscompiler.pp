@@ -2773,6 +2773,7 @@ procedure TPas2jsCompiler.HandleJSException(Msg: string; E: jsvalue;
   TerminateInternal: boolean);
 var
   obj: JS.TJSObject;
+  Exc: Exception;
 begin
   if isObject(E) then
   begin
@@ -2784,6 +2785,21 @@ begin
         writeln(obj['stack']);
       {AllowWriteln-}
       Log.Log(mtFatal,Msg+': '+String(obj['message']));
+    end else if isExt(obj,TObject) then
+    begin
+      if TObject(obj) is Exception then
+      begin
+        Exc:=Exception(TObject(obj));
+        {$ifdef NodeJS}
+        {AllowWriteln}
+        if Exc.NodeJSError<>nil then
+          writeln(Exc.NodeJSError.stack);
+        {AllowWriteln-}
+        {$endif}
+        Log.Log(mtFatal,Msg+': ('+Exc.ClassName+') '+Exc.Message);
+      end else begin
+        Log.Log(mtFatal,Msg+': ('+TObject(obj).ClassName+')');
+      end;
     end else
       Log.Log(mtFatal,Msg+': '+String(E));
   end else begin
