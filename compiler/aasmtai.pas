@@ -852,11 +852,13 @@ interface
         { alignment for operator }
         tai_align_abstract = class(tai)
            aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
+           maxbytes  : byte;   { if needed bytes would be larger than maxbyes, alignment is ignored }
            fillsize  : byte;   { real size to fill }
            fillop    : byte;   { value to fill with - optional }
            use_op    : boolean;
            constructor Create(b:byte);virtual;
            constructor Create_op(b: byte; _op: byte);virtual;
+           constructor create_max(b: byte; max: byte);virtual;
            constructor Create_zeros(b:byte);
            constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
            procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -3107,6 +3109,21 @@ implementation
           fillsize:=0;
           fillop:=_op;
           use_op:=true;
+       end;
+
+
+     constructor tai_align_abstract.create_max(b : byte; max : byte);
+       begin
+          inherited Create;
+          typ:=ait_align;
+          if b in [1,2,4,8,16,32] then
+            aligntype := b
+          else
+            aligntype := 1;
+          maxbytes:=max;
+          fillsize:=0;
+          fillop:=0;
+          use_op:=false;
        end;
 
 
