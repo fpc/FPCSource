@@ -397,9 +397,6 @@ interface
 
       { alignment for operator }
       tai_align = class(tai_align_abstract)
-         reg       : tregister;
-         constructor create(b:byte);override;
-         constructor create_op(b: byte; _op: byte);override;
          function calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;override;
       end;
 
@@ -742,20 +739,6 @@ implementation
 {****************************************************************************
                               TAI_ALIGN
  ****************************************************************************}
-
-    constructor tai_align.create(b: byte);
-      begin
-        inherited create(b);
-        reg:=NR_ECX;
-      end;
-
-
-    constructor tai_align.create_op(b: byte; _op: byte);
-      begin
-        inherited create_op(b,_op);
-        reg:=NR_NO;
-      end;
-
 
     function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
