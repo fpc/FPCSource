@@ -2309,6 +2309,7 @@ begin
   {$ifdef pas2js}
   inc(FLastPasElementId);
   FPasElementId:=FLastPasElementId;
+  //writeln('TPasElement.Create ',Name,':',ClassName,' ID=[',FPasElementId,']');
   {$endif}
   {$ifdef EnablePasTreeGlobalRefCount}
   Inc(FGlobalRefCount);

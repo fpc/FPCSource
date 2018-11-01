@@ -386,7 +386,7 @@ var
   aModule: TPasModule;
 begin
   if El=nil then exit('nil');
-  Result:=El.FullName+':'+El.ClassName;
+  Result:=El.PathName+':'+El.ClassName;
   aModule:=El.GetModule;
   if aModule=El then exit;
   if aModule=nil then
@@ -459,14 +459,18 @@ end;
 
 procedure TPasAnalyzerKeySet.Add(Item: Pointer; CheckDuplicates: boolean);
 begin
-  if CheckDuplicates then
+  if CheckDuplicates {$IFDEF VerbosePasAnalyzer}or true{$endif} then
     if ContainsItem(Item) then
-      raise Exception.Create('TPasAnalyzerSet.Add duplicate');
+      raise Exception.Create('[20181101151755] TPasAnalyzerSet.Add duplicate');
   {$ifdef pas2js}
   FItems['%'+FItemToName(Item)]:=Item;
   inc(FCount);
   {$else}
   FTree.Add(Item);
+  {$endif}
+  {$ifdef VerbosePasAnalyzer}
+  if not ContainsItem(Item) then
+    raise Exception.Create('[20181101151811] TPasAnalyzerSet.Add failed');
   {$endif}
 end;
 
@@ -866,8 +870,9 @@ begin
   if El=nil then
     RaiseInconsistency(20170308093407,'');
   {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.Add ',GetElModName(El),' New=',not PAElementExists(El));
+  writeln('TPasAnalyzer.Add ',GetElModName(El),' New=',not PAElementExists(El){$IFDEF Pas2js},' ID=[',El.PasElementId,']'{$ENDIF});
   {$ENDIF}
+  {$IFDEF VerbosePasAnalyzer}CheckDuplicate:=true;{$ENDIF}
   if CheckDuplicate and PAElementExists(El) then
     RaiseInconsistency(20170304201318,'');
   if aClass=nil then
@@ -876,7 +881,7 @@ begin
   Result.Element:=El;
   FUsedElements.Add(Result);
   {$IFDEF VerbosePasAnalyzer}
-  //writeln('TPasAnalyzer.Add END ',GetElModName(El),' Success=',PAElementExists(El),' ',ptruint(pointer(El)));
+  writeln('TPasAnalyzer.Add END ',GetElModName(El),' Success=',PAElementExists(El),' ',{$Ifdef pas2js}El.PasElementId{$else}ptruint(pointer(El)){$endif});
   {$ENDIF}
 end;
 
@@ -1156,7 +1161,7 @@ begin
   if ElementVisited(aModule,Mode) then exit;
 
   {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.UseModule ',GetElModName(aModule),' Mode=',Mode);
+  writeln('TPasAnalyzer.UseModule ',GetElModName(aModule),' Mode=',Mode{$IFDEF pas2js},' ',aModule.PasElementId{$ENDIF});
   {$ENDIF}
   if Mode in [paumAllExports,paumAllPasUsable] then
     begin
