@@ -576,7 +576,7 @@ type
     constructor Create; reintroduce;
     procedure Add(const aName: string; Item: Pointer);
     function Find(const aName: string): Pointer;
-    procedure ForEachCall(Proc: TPasResIterate; Arg: Pointer);
+    procedure ForEachCall(const Proc: TPasResIterate; Arg: Pointer);
     procedure Clear;
     procedure Remove(const aName: string);
   end;
@@ -810,7 +810,7 @@ type
 
   TPasInitialFinalizationScope = Class(TPasScope)
   public
-    References: TPasScopeReferences; // created by TPasAnalyzer
+    References: TPasScopeReferences; // created by TPasAnalyzer, not used by resolver
     function AddReference(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;
     destructor Destroy; override;
   end;
@@ -1063,6 +1063,8 @@ type
   TPRResolveVarAccesses = set of TResolvedRefAccess;
 
 const
+  rraAllWrite = [rraAssign,rraReadAndAssign,rraVarParam,rraOutParam];
+
   ResolvedToPSRefAccess: array[TResolvedRefAccess] of TPSRefAccess = (
     psraNone, // rraNone
     psraRead,  // rraRead
@@ -1837,6 +1839,7 @@ type
     function IsVarInit(Expr: TPasExpr): boolean;
     function IsEmptyArrayExpr(const ResolvedEl: TPasResolverResult): boolean;
     function IsClassMethod(El: TPasElement): boolean;
+    function IsClassField(El: TPasElement): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
@@ -2567,7 +2570,7 @@ begin
     Result:=nil;
 end;
 
-procedure TPasResHashList.ForEachCall(Proc: TPasResIterate; Arg: Pointer);
+procedure TPasResHashList.ForEachCall(const Proc: TPasResIterate; Arg: Pointer);
 var
   key: string;
 begin
@@ -20174,6 +20177,13 @@ begin
        or (C=TPasClassProcedure)
        or (C=TPasClassFunction)
        or (C=TPasClassOperator);
+end;
+
+function TPasResolver.IsClassField(El: TPasElement): boolean;
+begin
+  Result:=((El.ClassType=TPasVariable) or (El.ClassType=TPasConst))
+    and ([vmClass,vmStatic]*TPasVariable(El).VarModifiers<>[])
+    and (El.Parent is TPasClassType);
 end;
 
 function TPasResolver.IsExternalClass_Name(aClass: TPasClassType;
