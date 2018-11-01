@@ -57,6 +57,7 @@ unit aoptx86;
         function DoSubAddOpt(var p : tai) : Boolean;
 
         function PrePeepholeOptSxx(var p : tai) : boolean;
+        function PrePeepholeOptIMUL(var p : tai) : boolean;
 
         function OptPass1AND(var p : tai) : boolean;
         function OptPass1VMOVAP(var p : tai) : boolean;
@@ -715,6 +716,91 @@ unit aoptx86;
                 hp1.free;
               end;
           end;
+      end;
+
+
+    function TX86AsmOptimizer.PrePeepholeOptIMUL(var p : tai) : boolean;
+      var
+        opsize : topsize;
+        hp1 : tai;
+        tmpref : treference;
+        hp2 : taicpu;
+        ShiftValue : Cardinal;
+        BaseValue : TCGInt;
+      begin
+        result:=false;
+        opsize:=taicpu(p).opsize;
+        { changes certain "imul const, %reg"'s to lea sequences }
+        if (MatchOpType(taicpu(p),top_const,top_reg) or
+            MatchOpType(taicpu(p),top_const,top_reg,top_reg)) and
+           (opsize in [S_L{$ifdef x86_64},S_Q{$endif x86_64}]) then
+          if (taicpu(p).oper[0]^.val = 1) then
+            if (taicpu(p).ops = 2) then
+             { remove "imul $1, reg" }
+              begin
+                hp1 := tai(p.Next);
+                asml.remove(p);
+                DebugMsg(SPeepholeOptimization + 'Imul2Nop done',p);
+                p.free;
+                p := hp1;
+                result:=true;
+              end
+            else
+             { change "imul $1, reg1, reg2" to "mov reg1, reg2" }
+              begin
+                hp1 := taicpu.Op_Reg_Reg(A_MOV, opsize, taicpu(p).oper[1]^.reg,taicpu(p).oper[2]^.reg);
+                InsertLLItem(p.previous, p.next, hp1);
+                DebugMsg(SPeepholeOptimization + 'Imul2Mov done',p);
+                p.free;
+                p := hp1;
+              end
+          else if
+           ((taicpu(p).ops <= 2) or
+            (taicpu(p).oper[2]^.typ = Top_Reg)) and
+           not(cs_opt_size in current_settings.optimizerswitches) and
+           (not(GetNextInstruction(p, hp1)) or
+             not((tai(hp1).typ = ait_instruction) and
+                 ((taicpu(hp1).opcode=A_Jcc) and
+                  (taicpu(hp1).condition in [C_O,C_NO])))) then
+            begin
+              {
+                imul X, reg1, reg2 to
+                  lea (reg1,reg1,Y), reg2
+                  shl ZZ,reg2
+                imul XX, reg1 to
+                  lea (reg1,reg1,YY), reg1
+                  shl ZZ,reg2
+
+                This optimziation makes sense for pretty much every x86, except the VIA Nano3000: it has IMUL latency 2, lea/shl pair as well,
+                it does not exist as a separate optimization target in FPC though.
+
+                This optimziation can be applied as long as only two bits are set in the constant and those two bits are separated by
+                at most two zeros
+              }
+              reference_reset(tmpref,1,[]);
+              if (PopCnt(QWord(taicpu(p).oper[0]^.val))=2) and (BsrQWord(taicpu(p).oper[0]^.val)-BsfQWord(taicpu(p).oper[0]^.val)<=3) then
+                begin
+                  ShiftValue:=BsfQWord(taicpu(p).oper[0]^.val);
+                  BaseValue:=taicpu(p).oper[0]^.val shr ShiftValue;
+                  TmpRef.base := taicpu(p).oper[1]^.reg;
+                  TmpRef.index := taicpu(p).oper[1]^.reg;
+                  if not(BaseValue in [3,5,9]) then
+                    Internalerror(2018110101);
+                  TmpRef.ScaleFactor := BaseValue-1;
+                  if (taicpu(p).ops = 2) then
+                    hp1 := taicpu.op_ref_reg(A_LEA, opsize, TmpRef, taicpu(p).oper[1]^.reg)
+                  else
+                    hp1 := taicpu.op_ref_reg(A_LEA, opsize, TmpRef, taicpu(p).oper[2]^.reg);
+                  AsmL.InsertAfter(hp1,p);
+                  DebugMsg(SPeepholeOptimization + 'Imul2LeaShl done',p);
+                  AsmL.Remove(p);
+                  taicpu(hp1).fileinfo:=taicpu(p).fileinfo;
+                  p.free;
+                  p := hp1;
+                  if ShiftValue>0 then
+                    AsmL.InsertAfter(taicpu.op_const_reg(A_SHL, opsize, ShiftValue, taicpu(hp1).oper[1]^.reg),hp1);
+              end;
+            end;
       end;
 
 
