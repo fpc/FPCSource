@@ -4594,7 +4594,7 @@ implementation
              ((tloadnode(n).symtable.symtabletype = staticsymtable) and
               (tloadnode(n).symtable = TSymtable(arg))) or
              { if the addr of the symbol is taken somewhere, it can be also non-local }
-             ((tloadnode(n).symtableentry is tabstractvarsym) and
+             ((tloadnode(n).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) and
 	      (tabstractvarsym(tloadnode(n).symtableentry).addr_taken))
             )
            ) or
