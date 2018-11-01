@@ -44,7 +44,7 @@ interface
     tx64tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
       constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r,_t1:TNode);override;
+      constructor create_implicit(l,r:TNode);override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
     end;
@@ -176,9 +176,9 @@ constructor tx64tryfinallynode.create(l, r: TNode);
       end;
   end;
 
-constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
+constructor tx64tryfinallynode.create_implicit(l, r: TNode);
   begin
-    inherited create_implicit(l, r, _t1);
+    inherited create_implicit(l, r);
     if (target_info.system=system_x86_64_win64) then
       begin
         if df_generic in current_procinfo.procdef.defoptions then
@@ -254,8 +254,8 @@ procedure tx64tryfinallynode.pass_generate_code;
     { Do not generate a frame that catches exceptions if the only action
       would be reraising it. Doing so is extremely inefficient with SEH
       (in contrast with setjmp/longjmp exception handling) }
-    catch_frame:=implicitframe and ((not has_no_code(t1)) or
-      (current_procinfo.procdef.proccalloption=pocall_safecall));
+    catch_frame:=implicitframe and
+      (current_procinfo.procdef.proccalloption=pocall_safecall);
 
     oldflowcontrol:=flowcontrol;
     flowcontrol:=[fc_inflowcontrol];
@@ -458,28 +458,12 @@ procedure tx64tryexceptnode.pass_generate_code;
             inc(onnodecount.value);
             hnode:=tonnode(hnode).left;
           end;
-        { add 'else' node to the filter list, too }
-        if assigned(t1) then
-          begin
-            hlist.concat(tai_const.create_32bit(-1));
-            hlist.concat(tai_const.create_rva_sym(lastonlabel));
-            inc(onnodecount.value);
-          end;
         { now move filter table to permanent list all at once }
         current_procinfo.aktlocaldata.concatlist(hlist);
         hlist.free;
       end;
 
     cg.a_label(current_asmdata.CurrAsmList,lastonlabel);
-    if assigned(t1) then
-      begin
-        { here we don't have to reset flowcontrol           }
-        { the default and on flowcontrols are handled equal }
-        secondpass(t1);
-        cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        if (flowcontrol*[fc_exit,fc_break,fc_continue]<>[]) then
-          cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
-      end;
     exceptflowcontrol:=flowcontrol;
 
     if fc_exit in exceptflowcontrol then

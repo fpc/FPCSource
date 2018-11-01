@@ -44,7 +44,7 @@ interface
     ti386tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
       constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r,_t1:TNode);override;
+      constructor create_implicit(l,r:TNode);override;
       function pass_1: tnode;override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
@@ -183,9 +183,9 @@ constructor ti386tryfinallynode.create(l, r: TNode);
     include(finalizepi.flags,pi_uses_exceptions);
   end;
 
-constructor ti386tryfinallynode.create_implicit(l, r, _t1: TNode);
+constructor ti386tryfinallynode.create_implicit(l, r: TNode);
   begin
-    inherited create_implicit(l, r, _t1);
+    inherited create_implicit(l, r);
     if (target_info.system<>system_i386_win32) then
       exit;
 
