@@ -545,10 +545,10 @@ begin
 end;
 
 
-function PPUFlags2Str(flags:longint):string;
+function PPUFlags2Str(flags:dword):string;
 type
   tflagopt=record
-    mask : longint;
+    mask : dword;
     str  : string[30];
   end;
 const
@@ -586,10 +586,11 @@ const
     (mask: $10000000;str:'i8086_cs_equals_ds'),
     (mask: $20000000;str:'package_deny'),
     (mask: $40000000;str:'package_weak'),
-    (mask: longint($80000000);str:'i8086_ss_equals_ds')
+    (mask: dword($80000000);str:'i8086_ss_equals_ds')
   );
 var
-  i,ntflags : longint;
+  i : longint;
+  ntflags : dword;
   first  : boolean;
   s : string;
 begin

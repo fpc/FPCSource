@@ -196,8 +196,8 @@ type
     compiler : word;
     cpu      : word;
     target   : word;
-    flags    : longint;
-    size     : longint; { size of the ppufile without header }
+    flags    : dword;
+    size     : dword; { size of the ppufile without header }
   end;
   pentryheader=^tentryheader;
 
