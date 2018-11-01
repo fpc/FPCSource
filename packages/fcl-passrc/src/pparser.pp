@@ -5772,7 +5772,7 @@ begin
             NextToken;
             ImplRaise.ExceptAddr:=DoParseExpression(ImplRaise);
             end;
-          if Curtoken in [tkSemicolon,tkEnd] then
+          if Curtoken in [tkElse,tkEnd,tkSemicolon] then
             UngetToken
           end;
         end;

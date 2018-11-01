@@ -15628,31 +15628,30 @@ Var
   ok: Boolean;
 
 begin
+  Result:=nil;
   if AContext=nil then ;
   C:=Nil;
   BThen:=Nil;
   BElse:=Nil;
-  ok:=false;
   try
     C:=ConvertElement(El.ConditionExpr,AContext);
     if Assigned(El.IfBranch) then
       BThen:=ConvertElement(El.IfBranch,AContext);
     if Assigned(El.ElseBranch) then
       BElse:=ConvertElement(El.ElseBranch,AContext);
-    ok:=true;
+    T:=TJSIfStatement(CreateElement(TJSIfStatement,El));
+    T.Cond:=C;
+    T.BTrue:=BThen;
+    T.BFalse:=BElse;
+    Result:=T;
   finally
-    if not ok then
+    if Result=nil then
       begin
       FreeAndNil(C);
       FreeAndNil(BThen);
       FreeAndNil(BElse);
       end;
   end;
-  T:=TJSIfStatement(CreateElement(TJSIfStatement,El));
-  T.Cond:=C;
-  T.BTrue:=BThen;
-  T.BFalse:=BElse;
-  Result:=T;
 end;
 
 function TPasToJSConverter.ConvertWhileStatement(El: TPasImplWhileDo;

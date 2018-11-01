@@ -372,6 +372,7 @@ type
     Procedure TestTryFinally;
     Procedure TestTryExcept;
     Procedure TestTryExcept_ReservedWords;
+    Procedure TestIfThenRaiseElse;
     Procedure TestCaseOf;
     Procedure TestCaseOf_UseSwitch;
     Procedure TestCaseOfNoElse;
@@ -6762,6 +6763,44 @@ begin
     '    if (error.Symbol === "") throw error;',
     '  } else throw $e',
     '};',
+    '']));
+end;
+
+procedure TTestModule.TestIfThenRaiseElse;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'var b: boolean;',
+  'begin',
+  '  if b then',
+  '    raise TObject.Create',
+  '  else',
+  '    b:=false;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIfThenRaiseElse',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '  };',
+    '});',
+    'this.b = false;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if ($mod.b) {',
+    '  throw $mod.TObject.$create("Create")}',
+    ' else $mod.b = false;',
     '']));
 end;
 
