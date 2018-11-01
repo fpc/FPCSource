@@ -6584,6 +6584,16 @@ begin
       begin
       Result:=ConvertTObjectFree_Bin(El,RightEl,AContext);
       exit;
+      end
+    else if (RightRef.Access in rraAllWrite)
+        and aResolver.IsClassField(RightRefDecl) then
+      begin
+      // e.g. "Something.aClassVar:=" -> "aClass.aClassVar:="
+      Left:=CreateReferencePathExpr(RightRefDecl.Parent,AContext);
+      Result:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+      TJSDotMemberExpression(Result).MExpr:=Left;
+      TJSDotMemberExpression(Result).Name:=TJSString(TransformVariableName(RightRefDecl,AContext));
+      exit;
       end;
     end;
 
@@ -6847,6 +6857,7 @@ var
   Value: TResEvalValue;
   aResolver: TPas2JSResolver;
   BracketExpr: TJSBracketMemberExpression;
+  PathExpr: TJSElement;
 begin
   Result:=nil;
   if not (El.CustomData is TResolvedReference) then
@@ -6954,6 +6965,16 @@ begin
       CallImplicit(Decl);
     exit;
     end
+  else if (Ref.Access in rraAllWrite)
+      and aResolver.IsClassField(Decl) then
+    begin
+    // writing a class var  -> aClass.VarName
+    PathExpr:=CreateReferencePathExpr(Decl.Parent,AContext);
+    Result:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+    TJSDotMemberExpression(Result).MExpr:=PathExpr;
+    TJSDotMemberExpression(Result).Name:=TJSString(TransformVariableName(Decl,AContext));
+    exit;
+    end
   else if Decl.ClassType=TPasConst then
     begin
     if TPasConst(Decl).IsConst and (TPasConst(Decl).Expr<>nil) then
@@ -6963,10 +6984,10 @@ begin
       if Value<>nil then
         try
           if Value.Kind in [revkNil,revkBool,revkInt,revkUInt,revkFloat,revkEnum] then
-          begin
+            begin
             Result:=ConvertConstValue(Value,AContext,El);
             exit;
-          end;
+            end;
         finally
           ReleaseEvalValue(Value);
         end;
@@ -9389,7 +9410,6 @@ begin
       // left side is a variable
       if AssignContext.RightSide=nil then
         RaiseInconsistency(20180622211919,El);
-
       end;
 
     // convert inc(avar,b)  to  a+=b

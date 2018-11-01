@@ -448,7 +448,8 @@ type
     Procedure TestClass_CallInherited_NoParams;
     Procedure TestClass_CallInherited_WithParams;
     Procedure TestClasS_CallInheritedConstructor;
-    Procedure TestClass_ClassVar;
+    Procedure TestClass_ClassVar_Assign;
+    //ToDo Procedure TestClass_ClassVar_Arg;
     Procedure TestClass_CallClassMethod;
     Procedure TestClass_Property;
     Procedure TestClass_Property_ClassMethod;
@@ -9957,7 +9958,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestClass_ClassVar;
+procedure TTestModule.TestClass_ClassVar_Assign;
 begin
   StartProgram(false);
   Add([
@@ -9991,7 +9992,7 @@ begin
   '  obj.sub:=nil;',
   '  obj.sub.sub:=nil;']);
   ConvertProgram;
-  CheckSource('TestClass_ClassVar',
+  CheckSource('TestClass_ClassVar_Assign',
     LinesToStr([ // statements
     'rtl.createClass($mod,"TObject",null,function(){',
     '  this.vI = 0;',
@@ -10001,15 +10002,15 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function(){',
-    '    this.$class.vI = this.vI+1;',
-    '    this.$class.vI = this.vI+1;',
-    '    this.$class.vI += 1;',
+    '    $mod.TObject.vI = this.vI+1;',
+    '    $mod.TObject.vI = this.vI+1;',
+    '    $mod.TObject.vI += 1;',
     '  };',
     '  this.GetIt = function(Par){',
     '    var Result = null;',
-    '    this.vI = this.vI + Par;',
-    '    this.vI = this.vI + Par;',
-    '    this.vI += 1;',
+    '    $mod.TObject.vI = this.vI + Par;',
+    '    $mod.TObject.vI = this.vI + Par;',
+    '    $mod.TObject.vI += 1;',
     '    Result = this.Sub;',
     '    return Result;',
     '  };',
@@ -10021,8 +10022,8 @@ begin
     '$mod.TObject.vI = 3;',
     'if ($mod.TObject.vI === 4);',
     '$mod.TObject.Sub=null;',
-    '$mod.Obj.$class.Sub=null;',
-    '$mod.Obj.Sub.$class.Sub=null;',
+    '$mod.TObject.Sub=null;',
+    '$mod.TObject.Sub=null;',
     '']));
 end;
 
@@ -10079,25 +10080,25 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function(){',
-    '    this.$class.Sub = this.$class.GetIt(3);',
-    '    this.$class.vI = this.GetMore(4);',
-    '    this.$class.Sub = this.$class.GetIt(5);',
-    '    this.$class.vI = this.GetMore(6);',
+    '    $mod.TObject.Sub = this.$class.GetIt(3);',
+    '    $mod.TObject.vI = this.GetMore(4);',
+    '    $mod.TObject.Sub = this.$class.GetIt(5);',
+    '    $mod.TObject.vI = this.GetMore(6);',
     '  };',
     '  this.GetMore = function(Par){',
     '    var Result = 0;',
-    '    this.$class.Sub = this.$class.GetIt(11);',
-    '    this.$class.vI = this.GetMore(12);',
-    '    this.$class.Sub = this.$class.GetIt(13);',
-    '    this.$class.vI = this.GetMore(14);',
+    '    $mod.TObject.Sub = this.$class.GetIt(11);',
+    '    $mod.TObject.vI = this.GetMore(12);',
+    '    $mod.TObject.Sub = this.$class.GetIt(13);',
+    '    $mod.TObject.vI = this.GetMore(14);',
     '    return Result;',
     '  };',
     '  this.GetIt = function(Par){',
     '    var Result = null;',
-    '    this.Sub = this.GetIt(21);',
-    '    this.vI = this.Sub.GetMore(22);',
-    '    this.Sub = this.GetIt(23);',
-    '    this.vI = this.Sub.GetMore(24);',
+    '    $mod.TObject.Sub = this.GetIt(21);',
+    '    $mod.TObject.vI = this.Sub.GetMore(22);',
+    '    $mod.TObject.Sub = this.GetIt(23);',
+    '    $mod.TObject.vI = this.Sub.GetMore(24);',
     '    return Result;',
     '  };',
     '});',
@@ -10108,7 +10109,7 @@ begin
     '$mod.TObject.GetIt(5);',
     '$mod.Obj.$class.GetIt(6);',
     '$mod.Obj.Sub.$class.GetIt(7);',
-    '$mod.Obj.Sub.$class.GetIt(8).$class.Sub=null;',
+    '$mod.TObject.Sub=null;',
     '$mod.Obj.Sub.$class.GetIt(9).$class.GetIt(10);',
     '$mod.Obj.Sub.$class.GetIt(11).Sub.$class.GetIt(12);',
     '']));
@@ -11768,8 +11769,8 @@ begin
     '    function Sub() {',
     '      Self.Key = Self.Key + 2;',
     '      Self.Key = Self.Key + 3;',
-    '      Self.$class.State = Self.State + 4;',
-    '      Self.$class.State = Self.State + 5;',
+    '      $mod.TObject.State = Self.State + 4;',
+    '      $mod.TObject.State = Self.State + 5;',
     '      $mod.TObject.State = $mod.TObject.State + 6;',
     '      Self.SetSize(Self.GetSize() + 7);',
     '      Self.SetSize(Self.GetSize() + 8);',
@@ -11777,8 +11778,8 @@ begin
     '    Sub();',
     '    Self.Key = Self.Key + 12;',
     '    Self.Key = Self.Key + 13;',
-    '    Self.$class.State = Self.State + 14;',
-    '    Self.$class.State = Self.State + 15;',
+    '    $mod.TObject.State = Self.State + 14;',
+    '    $mod.TObject.State = Self.State + 15;',
     '    $mod.TObject.State = $mod.TObject.State + 16;',
     '    Self.SetSize(Self.GetSize() + 17);',
     '    Self.SetSize(Self.GetSize() + 18);',
@@ -11844,8 +11845,8 @@ begin
     '    function Sub() {',
     '      Self.Key = Self.Key + 2;',
     '      Self.Key = Self.Key + 3;',
-    '      Self.$class.State = Self.State + 4;',
-    '      Self.$class.State = Self.State + 5;',
+    '      $mod.TObject.State = Self.State + 4;',
+    '      $mod.TObject.State = Self.State + 5;',
     '      $mod.TObject.State = $mod.TObject.State + 6;',
     '      Self.SetSize(Self.GetSize() + 7);',
     '      Self.SetSize(Self.GetSize() + 8);',
@@ -11853,8 +11854,8 @@ begin
     '    Sub();',
     '    Self.Key = Self.Key + 12;',
     '    Self.Key = Self.Key + 13;',
-    '    Self.$class.State = Self.State + 14;',
-    '    Self.$class.State = Self.State + 15;',
+    '    $mod.TObject.State = Self.State + 14;',
+    '    $mod.TObject.State = Self.State + 15;',
     '    $mod.TObject.State = $mod.TObject.State + 16;',
     '    Self.SetSize(Self.GetSize() + 17);',
     '    Self.SetSize(Self.GetSize() + 18);',
@@ -11910,16 +11911,16 @@ begin
     '  this.DoIt = function () {',
     '    var Self = this;',
     '    function Sub() {',
-    '      Self.State = Self.State + 2;',
-    '      Self.State = Self.State + 3;',
+    '      $mod.TObject.State = Self.State + 2;',
+    '      $mod.TObject.State = Self.State + 3;',
     '      $mod.TObject.State = $mod.TObject.State + 4;',
     '      Self.SetSize(Self.GetSize() + 5);',
     '      Self.SetSize(Self.GetSize() + 6);',
     '      $mod.TObject.SetSize($mod.TObject.GetSize() + 7);',
     '    };',
     '    Sub();',
-    '    Self.State = Self.State + 12;',
-    '    Self.State = Self.State + 13;',
+    '    $mod.TObject.State = Self.State + 12;',
+    '    $mod.TObject.State = Self.State + 13;',
     '    $mod.TObject.State = $mod.TObject.State + 14;',
     '    Self.SetSize(Self.GetSize() + 15);',
     '    Self.SetSize(Self.GetSize() + 16);',
@@ -12478,7 +12479,7 @@ begin
     'this.C = null;'
     ]),
     LinesToStr([ // $mod.$main
-    '$mod.C.id = $mod.C.id;',
+    '$mod.TObject.id = $mod.C.id;',
     '']));
 end;
 
@@ -12628,7 +12629,7 @@ begin
     '    b = this === null;',
     '    b = this.GlobalId === 3;',
     '    b = 4 === this.GlobalId;',
-    '    this.GlobalId = 5;',
+    '    $mod.TObject.GlobalId = 5;',
     '    this.ProcA();',
     '  };',
     '});'
