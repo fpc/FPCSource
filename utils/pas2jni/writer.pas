@@ -155,6 +155,7 @@ type
     JavaOutPath: string;
     IncludeList: TStringList;
     ExcludeList: TStringList;
+    LibAutoLoad: boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -1628,13 +1629,15 @@ begin
         end;
       end;
 
-      Fjs.WriteLn('static private boolean _JniLibLoaded = false;');
-      Fjs.WriteLn('public static void InitJni() {');
-      Fjs.WriteLn('if (!_JniLibLoaded) {', 1);
-      Fjs.WriteLn('_JniLibLoaded=true;', 2);
-      Fjs.WriteLn(Format('System.loadLibrary("%s");', [LibName]), 2);
-      Fjs.WriteLn('}', 1);
-      Fjs.WriteLn('}');
+      if LibAutoLoad then begin
+        Fjs.WriteLn('static private boolean _JniLibLoaded = false;');
+        Fjs.WriteLn('public static void InitJni() {');
+        Fjs.WriteLn('if (!_JniLibLoaded) {', 1);
+        Fjs.WriteLn('_JniLibLoaded=true;', 2);
+        Fjs.WriteLn(Format('System.loadLibrary("%s");', [LibName]), 2);
+        Fjs.WriteLn('}', 1);
+        Fjs.WriteLn('}');
+      end;
 
       // Support functions
       Fjs.WriteLn('public native static long AllocMemory(int Size);');
@@ -1644,7 +1647,8 @@ begin
       Fjs.WriteLn;
       Fjs.WriteLn('public static class PascalObject {');
       Fjs.IncI;
-      Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
+      if LibAutoLoad then
+        Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
       Fjs.WriteLn('protected long _pasobj = 0;');
       Fjs.WriteLn('protected PascalObject() { }');
       Fjs.WriteLn('protected PascalObject(PascalObject obj) { if (obj != null) _pasobj=obj._pasobj; }');
@@ -1675,12 +1679,6 @@ begin
       Fjs.WriteLn('public void __Release() { _pasobj = 0; }');
       Fjs.DecI;
       Fjs.WriteLn('}');
-
-      // Class
-      Fjs.WriteLn;
-      Fjs.WriteLn('native static long GetClassRef(int index);');
-      AddNativeMethod(u, '_GetClassRef', 'GetClassRef', '(I)J');
-      Fjs.WriteLn('static TClass GetTClass(int index) { TClass c = new TClass(null); c._pasobj=GetClassRef(index); return c; }');
 
       // Record
       Fjs.WriteLn;
@@ -2025,8 +2023,10 @@ begin
       Fjs.WriteLn;
 
     end;
-    Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
-    Fjs.WriteLn;
+    if LibAutoLoad then begin
+      Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
+      Fjs.WriteLn;
+    end;
 
     // First pass
     for i:=0 to u.Count - 1 do begin
@@ -2072,6 +2072,14 @@ begin
         dtClassRef:
           WriteClassRef(TClassRefDef(d), False);
       end;
+    end;
+
+    // Class ref helpers
+    if FClasses.IndexOf('system.TClass', nil) >= 0 then begin
+      Fjs.WriteLn('native static long GetClassRef(int index);');
+      AddNativeMethod(u, '_GetClassRef', 'GetClassRef', '(I)J');
+      Fjs.WriteLn('static TClass GetTClass(int index) { TClass c = new TClass(null); c._pasobj=GetClassRef(index); return c; }');
+      Fjs.WriteLn;
     end;
 
     Fjs.DecI;
@@ -2729,6 +2737,7 @@ begin
   FThisUnit:=TUnitDef.Create(nil, dtUnit);
   FRecords:=TObjectList.Create(False);
   FRealClasses:=TObjectList.Create(False);
+  LibAutoLoad:=True;
 end;
 
 function DoCanUseDef(def, refdef: TDef): boolean;

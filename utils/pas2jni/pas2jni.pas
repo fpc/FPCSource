@@ -33,15 +33,16 @@ begin
   writeln;
   writeln('Options:');
   writeln('  -U<path> - Unit search path, semicolon delimited. Wildcards are allowed.');
-  writeln('  -L<name> - Set output library name.');
-  writeln('  -P<name> - Set Java package name.');
+  writeln('  -L<name> - Set the output library name.');
+  writeln('  -P<name> - Set the Java package name.');
   writeln('  -O<path> - Set output path for Pascal files.');
   writeln('  -J<path> - Set output path for Java files.');
-  writeln('  -D<prog> - Set full path to the "ppudump" program.');
+  writeln('  -D<prog> - Set the full path to the "ppudump" program.');
   writeln('  -I<list> - Include the list of specified objects in the output. The list is');
   writeln('             semicolon delimited. To read the list from a file use -I@<file>');
   writeln('  -E<list> - Exclude the list of specified objects from the output. The list is');
   writeln('             semicolon delimited. To read the list from a file use -E@<file>');
+  writeln('  -N       - Do not generate a Java code for auto-loading of the shared library.');
   writeln('  -?       - Show this help information.');
 end;
 
@@ -150,6 +151,8 @@ begin
             w.ExcludeList.AddStrings(sl);
             sl.Free;
           end;
+        'N':
+          w.LibAutoLoad:=False;
         '?', 'H':
           begin
             ShowUsage;
