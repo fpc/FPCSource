@@ -67,6 +67,8 @@ begin
   Log(etInfo,'Listening on port %d, serving files from directory: %s',[Port,D]);
 {$ifdef unix}
   MimeTypesFile:='/etc/mime.types';
+  if not FileExists(MimeTypesFile) then
+    MimeTypesFile:='';
 {$endif}
   TSimpleFileModule.BaseDir:=IncludeTrailingPathDelimiter(D);
   TSimpleFileModule.OnLog:=@Log;
