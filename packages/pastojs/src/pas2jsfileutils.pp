@@ -619,7 +619,7 @@ begin
     {$ELSE}
     begin
     Result:=Filename;
-    raise Exception.Create('requires ECMAScript6');
+    raise Exception.Create('pas2jsfileutils FilenameToKey requires ECMAScript6 "normalize" under darwin');
     end;
     {$ENDIF}
   'win32': Result:=lowercase(Filename);

@@ -1191,10 +1191,8 @@ end;
 
 procedure TPas2jsCompilerFile.HandleException(E: Exception);
 begin
-  {$IFDEF FPC}
   if ShowDebug then
-    Log.LogExceptionBackTrace;
-  {$ENDIF}
+    Log.LogExceptionBackTrace(E);
   if E is EScannerError then
   begin
     Log.Log(Scanner.LastMsgType,Scanner.LastMsg,Scanner.LastMsgNumber,
@@ -2545,10 +2543,8 @@ begin
       aJSWriter.WriteJS(aFile.JSModule);
     except
       on E: Exception do begin
-        {$IFDEF FPC}
         if ShowDebug then
-          Log.LogExceptionBackTrace;
-        {$ENDIF}
+          Log.LogExceptionBackTrace(E);
         Log.LogPlain('[20180204193420] Error while creating JavaScript "'+FileCache.FormatPath(DestFilename)+'": '+E.Message);
         Terminate(ExitCodeErrorInternal);
       end
@@ -2649,14 +2645,12 @@ begin
         end;
       except
         on E: Exception do begin
-          {$IFDEF FPC}
           if ShowDebug then
-            Log.LogExceptionBackTrace;
+            Log.LogExceptionBackTrace(E);
+          {$IFDEF FPC}
           if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
-            Log.LogPlain('Error: '+E.Message);
-          {$ELSE}
-          Log.LogPlain('Error: '+E.Message);
           {$ENDIF}
+            Log.LogPlain('Error: '+E.Message);
           Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(DestFilename))]);
           Terminate(ExitCodeWriteError);
         end
@@ -2694,14 +2688,12 @@ begin
           end;
         except
           on E: Exception do begin
-            {$IFDEF FPC}
             if ShowDebug then
-              Log.LogExceptionBackTrace;
+              Log.LogExceptionBackTrace(E);
+            {$IFDEF FPC}
             if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
-              Log.LogPlain('Error: '+E.Message);
-            {$ELSE}
-            Log.LogPlain('Error: '+E.Message);
             {$ENDIF}
+              Log.LogPlain('Error: '+E.Message);
             Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(MapFilename))]);
             Terminate(ExitCodeWriteError);
           end
@@ -4084,11 +4076,7 @@ begin
     except
       on E: Exception do
       begin
-        {$IFDEF Pas2js}
-        Log.LogRaw('TPas2jsCompiler.Destroy '+E.Message);
-        {$ELSE}
-        Log.LogExceptionBackTrace;
-        {$ENDIF}
+        Log.LogExceptionBackTrace(E);
       end
       {$IFDEF Pas2js}
       else HandleJSException('[20181031190818] TPas2jsCompiler.Destroy',JSExceptValue);
@@ -4280,11 +4268,13 @@ begin
   except
     on E: ECompilerTerminate do
     begin
-    end else begin
-      {$IFDEF FPC}
+    end;
+    on E: Exception do begin
       if ShowDebug then
-        Log.LogExceptionBackTrace;
-      {$ENDIF}
+        Log.LogExceptionBackTrace(E);
+    end else begin
+      if ShowDebug then
+        Log.LogExceptionBackTrace(nil);
       {$IFDEF Pas2js}
       HandleJSException('[20181031190933] TPas2jsCompiler.Run',JSExceptValue,false);
       {$ENDIF}
