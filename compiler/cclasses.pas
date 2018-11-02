@@ -138,24 +138,24 @@ type
     constructor Create(FreeObjects : Boolean);
     destructor Destroy; override;
     procedure Clear;
-    function Add(AObject: TObject): Integer;
+    function Add(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Delete(Index: Integer);
-    procedure Exchange(Index1, Index2: Integer);
-    function Expand: TFPObjectList;
-    function Extract(Item: TObject): TObject;
+    procedure Exchange(Index1, Index2: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Expand: TFPObjectList;{$ifdef CCLASSESINLINE}inline;{$endif}
+    function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer;
+    function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Insert(Index: Integer; AObject: TObject);
-    function First: TObject;
-    function Last: TObject;
-    procedure Move(CurIndex, NewIndex: Integer);
+    procedure Insert(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function First: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Last: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Move(CurIndex, NewIndex: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Assign(Obj:TFPObjectList);
     procedure ConcatListCopy(Obj:TFPObjectList);
-    procedure Pack;
-    procedure Sort(Compare: TListSortCompare);
-    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
-    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+    procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Sort(Compare: TListSortCompare); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -293,26 +293,26 @@ type
     constructor Create(FreeObjects : boolean = True);
     destructor Destroy; override;
     procedure Clear;
-    function Add(const AName:TSymStr;AObject: TObject): Integer;
-    function NameOfIndex(Index: Integer): TSymStr;
-    function HashOfIndex(Index: Integer): LongWord;
-    function GetNextCollision(Index: Integer): Integer;
+    function Add(const AName:TSymStr;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function NameOfIndex(Index: Integer): TSymStr; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetNextCollision(Index: Integer): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Delete(Index: Integer);
-    function Expand: TFPHashObjectList;
-    function Extract(Item: TObject): TObject;
+    function Expand: TFPHashObjectList; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer;
-    function Find(const s:TSymStr): TObject;
-    function FindIndexOf(const s:TSymStr): Integer;
+    function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Find(const s:TSymStr): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function FindIndexOf(const s:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
-    function Rename(const AOldName,ANewName:TSymStr): Integer;
+    function Rename(const AOldName,ANewName:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Pack;
-    procedure ShowStatistics;
-    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
-    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
-    procedure WhileEachCall(proc2call:TObjectListCallback;arg:pointer);
-    procedure WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+    procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ShowStatistics; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure WhileEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
