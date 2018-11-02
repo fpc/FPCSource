@@ -458,12 +458,28 @@ procedure tx64tryexceptnode.pass_generate_code;
             inc(onnodecount.value);
             hnode:=tonnode(hnode).left;
           end;
+        { add 'else' node to the filter list, too }
+        if assigned(t1) then
+          begin
+            hlist.concat(tai_const.create_32bit(-1));
+            hlist.concat(tai_const.create_rva_sym(lastonlabel));
+            inc(onnodecount.value);
+          end;
         { now move filter table to permanent list all at once }
         current_procinfo.aktlocaldata.concatlist(hlist);
         hlist.free;
       end;
 
     cg.a_label(current_asmdata.CurrAsmList,lastonlabel);
+    if assigned(t1) then
+      begin
+        { here we don't have to reset flowcontrol           }
+        { the default and on flowcontrols are handled equal }
+        secondpass(t1);
+        cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
+        if (flowcontrol*[fc_exit,fc_break,fc_continue]<>[]) then
+          cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+      end;
     exceptflowcontrol:=flowcontrol;
 
     if fc_exit in exceptflowcontrol then
