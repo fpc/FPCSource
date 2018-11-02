@@ -455,7 +455,7 @@ begin
 {$endif}
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(initialStkLen);
-  StackBottom := pointer((ptruint(initialstkptr) or (page_size - 1)) + 1 - StackLength);
+  StackBottom := pointer(ptruint((ptruint(initialstkptr) or (page_size - 1)) + 1 - StackLength));
 {$ifdef LAST_PAGE_GENERATES_SIGNAL}
   StackBottom:=StackBottom + page_size;
 {$endif}
