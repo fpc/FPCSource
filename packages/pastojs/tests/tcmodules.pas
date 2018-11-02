@@ -22422,7 +22422,8 @@ begin
   StartProgram(false);
   Add([
   '{$R+}',
-  'type TLetter = char;',
+  'type',
+  '  TLetter = char;',
   'var',
   '  b: TLetter = ''2'';',
   '  w: TLetter = ''3'';',
@@ -22571,29 +22572,44 @@ procedure TTestModule.TestRangeChecks_StringIndex;
 begin
   StartProgram(false);
   Add([
+  'type',
+  '  TObject = class',
+  '    S: string;',
+  '  end;',
   '{$R+}',
   'procedure DoIt(var h: string);',
   'var',
   '  s: string;',
   '  i: longint;',
   '  c: char;',
+  '  o: tobject;',
   'begin',
   '  c:=s[1];',
   '  s[i]:=s[i];',
   '  h[i]:=h[i];',
+  '  c:=o.s[i];',
   'end;',
   'begin',
   '']);
   ConvertProgram;
   CheckSource('TestRangeChecks_StringIndex',
     LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.S = "";',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
     'this.DoIt = function (h) {',
     '  var s = "";',
     '  var i = 0;',
     '  var c = "";',
+    '  var o = null;',
     '  c = rtl.rcc(rtl.rcCharAt(s, 0), 0, 65535);',
     '  s = rtl.rcSetCharAt(s, i - 1, rtl.rcCharAt(s, i - 1));',
     '  h.set(rtl.rcSetCharAt(h.get(), i - 1, rtl.rcCharAt(h.get(), i - 1)));',
+    '  c = rtl.rcc(o.S.charAt(i - 1), 0, 65535);',
     '};',
     '']),
     LinesToStr([ // $mod.$main

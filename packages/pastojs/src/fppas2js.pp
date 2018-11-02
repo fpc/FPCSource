@@ -7431,7 +7431,10 @@ var
 
       CallEx:=CreateCallExpression(El);
       try
-        if IsRangeCheck then
+        if IsRangeCheck
+            and (not (El.Parent is TBinaryExpr)
+              or (TBinaryExpr(El.Parent).right<>El)
+              or (TBinaryExpr(El.Parent).OpCode<>eopSubIdent)) then
           begin
           // read s[index]  ->  rtl.rcCharAt(s,index-1)
           CallEx.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckGetCharAt],El);
