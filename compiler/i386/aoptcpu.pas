@@ -152,8 +152,7 @@ end;
 
 procedure TCPUAsmOptimizer.PrePeepHoleOpts;
 var
-  p,hp1: tai;
-  tmpRef: treference;
+  p: tai;
 begin
   p := BlockStart;
   while (p <> BlockEnd) Do

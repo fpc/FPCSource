@@ -722,7 +722,6 @@ unit aoptx86;
         opsize : topsize;
         hp1 : tai;
         tmpref : treference;
-        hp2 : taicpu;
         ShiftValue : Cardinal;
         BaseValue : TCGInt;
       begin
