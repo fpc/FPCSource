@@ -828,7 +828,7 @@ Unit AoptObj;
               If (TInstr(p).oper[Count]^.typ = Top_Ref) Then
                 TmpResult := RefsEq(Ref, PInstr(p)^.oper[Count]^.ref^);
               Inc(Count);
-            Until (Count = MaxOps) or TmpResult;
+            Until (Count = max_operands) or TmpResult;
           End;
         RefInInstruction := TmpResult;
       End;
