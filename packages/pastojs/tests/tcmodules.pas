@@ -5776,26 +5776,32 @@ end;
 procedure TTestModule.TestCharConst;
 begin
   StartProgram(false);
-  Add('const');
-  Add('  c: char = ''1'';');
-  Add('begin');
-  Add('  c:=#0;');
-  Add('  c:=#1;');
-  Add('  c:=#9;');
-  Add('  c:=#10;');
-  Add('  c:=#13;');
-  Add('  c:=#31;');
-  Add('  c:=#32;');
-  Add('  c:=#$A;');
-  Add('  c:=#$0A;');
-  Add('  c:=#$b;');
-  Add('  c:=#$0b;');
-  Add('  c:=^A;');
-  Add('  c:=''"'';');
-  Add('  c:=default(char);');
-  Add('  c:=#$00E4;'); // ä
-  Add('  c:=''ä'';');
-  Add('  c:=#$E4;'); // ä
+  Add([
+  'const',
+ '  c: char = ''1'';',
+ 'begin',
+ '  c:=#0;',
+ '  c:=#1;',
+ '  c:=#9;',
+ '  c:=#10;',
+ '  c:=#13;',
+ '  c:=#31;',
+ '  c:=#32;',
+ '  c:=#$A;',
+ '  c:=#$0A;',
+ '  c:=#$b;',
+ '  c:=#$0b;',
+ '  c:=^A;',
+ '  c:=''"'';',
+ '  c:=default(char);',
+ '  c:=#$00E4;', // ä
+ '  c:=''ä'';',
+ '  c:=#$E4;', // ä
+ '  c:=#$D800;', // invalid UTF-16
+ '  c:=#$DFFF;', // invalid UTF-16
+ '  c:=#$FFFF;', // last UCS-2
+ '  c:=high(c);', // last UCS-2
+ '']);
   ConvertProgram;
   CheckSource('TestCharConst',
     LinesToStr([
@@ -5819,6 +5825,10 @@ begin
     '$mod.c = "ä";',
     '$mod.c = "ä";',
     '$mod.c = "ä";',
+    '$mod.c="\uD800";',
+    '$mod.c="\uDFFF";',
+    '$mod.c="\uFFFF";',
+    '$mod.c="\uFFFF";',
     '']));
 end;
 
