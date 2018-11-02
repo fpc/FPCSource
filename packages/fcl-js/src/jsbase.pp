@@ -176,6 +176,7 @@ begin
     else
       exit;
     end;
+  Result:=true;
 end;
 {$else}
 var
