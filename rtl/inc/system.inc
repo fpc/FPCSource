@@ -734,7 +734,7 @@ End;
 function StackTop: pointer;
 begin
   { Avoid wrap to zero on 32-bit }
-  if ptruint(StackBottom)+ StackLength > high(ptruint) then
+  if ptruint(StackBottom) > high(ptruint) - StackLength then
     result:=pointer(ptruint(high(ptruint)))
   else
     result:=StackBottom + StackLength;
