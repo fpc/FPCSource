@@ -567,7 +567,7 @@ unit cpupara;
     function try_build_homogeneous_aggregate(def: tdef; words: longint; var classes: tx64paraclasses): longint;
       var
         i, vecsize, maxvecsize, veccount: longint;
-        size, byte_offset: aint;
+        {size, }byte_offset: aint;
         vs: TFieldVarSym;
         checkalignment: Boolean;
       begin
@@ -594,13 +594,13 @@ unit cpupara;
 
               { Get the information and position on the last entry }
               vs:=TFieldVarSym(TAbstractRecordDef(def).symtable.symlist[TAbstractRecordDef(def).symtable.symlist.count - 1]);
-              size:=vs.vardef.size;
+              //size:=vs.vardef.size;
 
               checkalignment:=true;
               if not TAbstractRecordSymtable(TAbstractRecordDef(def).symtable).is_packed then
                 begin
                   byte_offset:=vs.fieldoffset;
-                  size:=vs.vardef.size;
+                  //size:=vs.vardef.size;
                 end
               else
                 begin
@@ -609,14 +609,14 @@ unit cpupara;
                     begin
                       { calculate the number of bytes spanned by
                         this bitpacked field }
-                      size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8);
+                      //size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8);
                       { our bitpacked fields are interpreted as always being
                         aligned, because unlike in C we don't have char:1, int:1
                         etc (so everything is basically a char:x) }
                       checkalignment:=false;
                     end
                   else
-                    size:=vs.vardef.size;
+                    ;//size:=vs.vardef.size;
                 end;
               { If [..] an object [..] contains unaligned fields, it has class
                 MEMORY }
