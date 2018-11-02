@@ -2960,8 +2960,7 @@ const
       }
       var
         p     : longint;
-        name,
-        other : TIDString;
+        name : TIDString;
         po_comp : tprocoptions;
         tokenloc : TFilePosInfo;
       begin

@@ -1291,8 +1291,6 @@ implementation
             tcb.free;
           end;
 
-        var
-          riif : byte;
         begin
            write_header(tcb,def,tkRecord);
            { need extra reqalign record, because otherwise the u32 int will
@@ -1439,8 +1437,6 @@ implementation
         procedure objectdef_rtti(def: tobjectdef);
 
           procedure objectdef_rtti_fields(def:tobjectdef);
-          var
-            riif : byte;
           begin
             { - for compatiblity with record RTTI we need to write a terminator-
                 Nil pointer for initrtti as well for objects

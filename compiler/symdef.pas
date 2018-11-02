@@ -1553,9 +1553,7 @@ implementation
         s: string;
         list: TFPObjectList;
         def: tdef;
-        sym,srsym : tsym;
-        srsymtable : tsymtable;
-        entry : tgenericdummyentry;
+        sym : tsym;
       begin
         { search the symtable from first to last; the helper to use will be the
           last one in the list }

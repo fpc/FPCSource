@@ -3671,7 +3671,6 @@ var
   env: ansistring;
   i : tfeature;
   j : longint;
-  abi : tabi;
   tmplist : TCmdStrList;
   cmditem,
   tmpcmditem : TCmdStrListItem;

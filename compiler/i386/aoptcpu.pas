@@ -153,7 +153,6 @@ end;
 procedure TCPUAsmOptimizer.PrePeepHoleOpts;
 var
   p,hp1: tai;
-  l: aint;
   tmpRef: treference;
 begin
   p := BlockStart;
@@ -206,10 +205,6 @@ var
   p,hp1,hp2 : tai;
   hp3,hp4: tai;
   v:aint;
-
-  TmpRef: TReference;
-
-  TmpBool1, TmpBool2: Boolean;
 
   function GetFinalDestination(asml: TAsmList; hp: taicpu; level: longint): boolean;
   {traces sucessive jumps to their final destination and sets it, e.g.
@@ -815,7 +810,7 @@ end;
 
 procedure TCPUAsmOptimizer.PostPeepHoleOpts;
 var
-  p,hp1,hp2: tai;
+  p,hp1: tai;
 begin
   p := BlockStart;
   ClearUsedRegs;

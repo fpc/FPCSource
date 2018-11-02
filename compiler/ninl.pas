@@ -4747,8 +4747,6 @@ implementation
 
        var
          procname : String;
-         c : longint;
-         n,
          newn,
          datan,
          datacountn,
@@ -4949,7 +4947,6 @@ implementation
          n,
          arrn,
          firstn : tnode;
-         startidx,
          i : longint;
          arrconstr : tarrayconstructornode;
          newstatement : tstatementnode;

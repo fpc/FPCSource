@@ -250,8 +250,6 @@ unit aoptx86;
 
 
     function InstrReadsFlags(p: tai): boolean;
-      var
-        l: longint;
       begin
         InstrReadsFlags := true;
         case p.typ of
@@ -1033,7 +1031,6 @@ unit aoptx86;
       var
         TmpUsedRegs : TAllUsedRegs;
         hp1,hp2 : tai;
-        alloc ,dealloc: tai_regalloc;
       begin
         result:=false;
         if MatchOpType(taicpu(p),top_reg,top_reg) and
@@ -2148,8 +2145,10 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.OptPass1Sub(var p : tai) : boolean;
+{$ifdef i386}
       var
         hp1 : tai;
+{$endif i386}
       begin
         Result:=false;
         { * change "subl $2, %esp; pushw x" to "pushl x"}
@@ -2390,7 +2389,10 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
       var
        TmpUsedRegs : TAllUsedRegs;
-       hp1,hp2,hp3: tai;
+       hp1,hp2: tai;
+{$ifdef x86_64}
+       hp3: tai;
+{$endif x86_64}
       begin
         Result:=false;
         if MatchOpType(taicpu(p),top_reg,top_reg) and
@@ -3316,7 +3318,6 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass1AND(var p : tai) : boolean;
       var
         hp1 : tai;
-        RegName1, RegName2: string;
         MaskLength : Cardinal;
       begin
         Result:=false;
@@ -3666,7 +3667,9 @@ unit aoptx86;
     function TX86AsmOptimizer.PostPeepholeOptCall(var p : tai) : Boolean;
       var
         hp1 : tai;
+{$ifndef x86_64}
         hp2 : taicpu;
+{$endif x86_64}
       begin
         Result:=false;
 {$ifndef x86_64}

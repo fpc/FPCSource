@@ -692,9 +692,7 @@ DefaultDiv:
     procedure tx86shlshrnode.second_mmx;
       var
         op         : TAsmOp;
-        cmpop      : boolean;
         mmxbase    : tmmxtype;
-        hreg,
         hregister  : tregister;
       begin
         secondpass(left);
@@ -704,7 +702,6 @@ DefaultDiv:
         if codegenerror then
           exit;
 
-        cmpop:=false;
         op:=A_NOP;
 
         mmxbase:=mmx_type(left.resultdef);

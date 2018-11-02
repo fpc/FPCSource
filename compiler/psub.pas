@@ -2132,9 +2132,12 @@ implementation
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
         pdflags    : tpdflags;
-        def,pd,firstpd : tprocdef;
+        pd,firstpd : tprocdef;
+{$ifdef genericdef_for_nested}
+        def : tprocdef;
         srsym : tsym;
         i : longint;
+{$endif genericdef_for_nested}
       begin
          { save old state }
          old_current_procinfo:=current_procinfo;

@@ -489,7 +489,6 @@ unit rgobj;
     procedure Trgobj.dispose_reginfo;
       var
         i : cardinal;
-        j : longint;
       begin
         if reginfo<>nil then
           begin

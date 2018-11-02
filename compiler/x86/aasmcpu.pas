@@ -2399,7 +2399,7 @@ implementation
     function process_ea_ref_16(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
-        md,s,rv  : byte;
+        md,s  : byte;
         base,
         o     : longint;
         ir,br : Tregister;
@@ -3726,7 +3726,6 @@ implementation
     procedure build_spilling_operation_type_table;
       var
         opcode : tasmop;
-        i      : integer;
       begin
         new(operation_type_table);
         fillchar(operation_type_table^,sizeof(toperation_type_table),byte(operand_read));

@@ -1127,18 +1127,15 @@ implementation
 
     procedure tcgaarch64.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       var
-        bitsize,
-        signbit: longint;
+        bitsize: longint;
       begin
         if srcsize in [OS_64,OS_S64] then
           begin
             bitsize:=64;
-            signbit:=6;
           end
         else
           begin
             bitsize:=32;
-            signbit:=5;
           end;
         { source is 0 -> dst will have to become 255 }
         list.concat(taicpu.op_reg_const(A_CMP,src,0));

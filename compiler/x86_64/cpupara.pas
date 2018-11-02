@@ -402,7 +402,7 @@ unit cpupara;
 
     function finalize_aggregate_classification(calloption: tproccalloption; def: tdef; words: longint; var classes: tx64paraclasses): longint;
       var
-        i, j, vecsize, maxvecsize: longint;
+        i, vecsize, maxvecsize: longint;
       begin
         { Workaround: It's not immediately possible to determine if a Double is
           by itself or is part of an aligned vector. If the latter, correct the
@@ -566,7 +566,7 @@ unit cpupara;
 
     function try_build_homogeneous_aggregate(def: tdef; words: longint; var classes: tx64paraclasses): longint;
       var
-        i, vecsize, maxvecsize, veccount, num: longint;
+        i, vecsize, maxvecsize, veccount: longint;
         size, byte_offset: aint;
         vs: TFieldVarSym;
         checkalignment: Boolean;
@@ -1043,7 +1043,7 @@ unit cpupara;
     { Returns the size of a single element in the aggregate, or the entire vector, if it is one of these types, 0 otherwise }
     function is_simd_vector_type_or_homogeneous_aggregate(calloption: tproccalloption; def: tdef; varspez: tvarspez): aint;
       var
-        numclasses,i,vecsize,veccount,maxvecsize,elementsize,tempsize:longint;
+        numclasses,i,vecsize,veccount,maxvecsize:longint;
         classes: tx64paraclasses;
         firstclass: tx64paraclasstype;
       begin
@@ -1614,7 +1614,6 @@ unit cpupara;
         varalign,
         paraalign  : longint;
         use_ms_abi : boolean;
-        elementsize: asizeint; { for HVAs and HFAs under vectorcall }
       begin
         paraalign:=get_para_align(p.proccalloption);
         use_ms_abi:=x86_64_use_ms_abi(p.proccalloption);
