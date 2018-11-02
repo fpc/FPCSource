@@ -356,6 +356,7 @@ Works:
 
 ToDos:
 - do not rename property Date
+- Result:=inherited;
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - bug:
   v:=a[0]  gives Local variable "a" is assigned but never used
@@ -374,8 +375,7 @@ ToDos:
 - interfaces
   - array of interface
   - record member interface
-
-ToDo:
+- range check o.arr[i]  o.astring[i]
 - record field external name
 - make records more lightweight
 - 1 as TEnum, ERangeError
@@ -6774,7 +6774,7 @@ begin
           case El.Value[1] of
           '$': S:='0x'+S;
           '&': if TargetProcessor=ProcessorECMAScript5 then
-                 S:='0'+S
+                 S:='' // in strict mode 01 is forbidden
                else
                  S:='0o'+S;
           '%': if TargetProcessor=ProcessorECMAScript5 then
