@@ -356,7 +356,6 @@ Works:
 
 ToDos:
 - do not rename property Date
-- Result:=inherited;
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - bug:
   v:=a[0]  gives Local variable "a" is assigned but never used
@@ -365,7 +364,6 @@ ToDos:
 - constructor does not need reintroduce
 - double utf8bom at start must give error  pscanner 4259
 - setlength(dynarray)  modeswitch to not create a copy
-- check rtl.js version
 - 'new', 'Function' -> class var use .prototype
 - static arrays
   - clone multi dim static array
