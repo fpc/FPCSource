@@ -488,6 +488,9 @@ begin
   if LastConv <> nil then
     ucnv_close(LastConv);
 
+  if LibVer = '_3_8' then
+    exit;  // ICU v3.8 on Android 1.5-2.1 is buggy and can't be unloaded properly
+
   if hlibICU <> 0 then begin
     UnloadLibrary(hlibICU);
     hlibICU:=0;
