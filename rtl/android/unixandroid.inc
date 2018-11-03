@@ -104,33 +104,33 @@ type
           true  : (__tm_gmtoff : longint;__tm_zone : Pchar);
 	 end;
 
-function localtime(t: PLongInt): Ptm; cdecl; external 'c' name 'localtime';
+function localtime(t: Ptime_t): Ptm; cdecl; external 'c' name 'localtime';
 
 var
   c_tzname: array[0..1] of PAnsiChar; external 'c' name 'tzname';
 
-procedure ReadTimeZoneFromLibC;
+function ReadTimeZoneFromLibC: boolean;
 var
-  t: longint;
+  t: time_t;
   tt: Ptm;
 begin
-  t:=fptime;
-  tt:=localtime(@t);
+  ReadTimeZoneFromLibC:=False;
   tzname[false]:=c_tzname[0];
   tzname[true]:=c_tzname[1];
+  t:=fptime;
+  tt:=localtime(@t);
   if tt <> nil then
     begin
       tzdaylight:=tt^.tm_isdst <> 0;
       tzseconds:=tt^.tm_gmtoff;
+      ReadTimeZoneFromLibC:=tzname[false] <> nil;
     end;
 end;
 
 procedure InitLocalTime;
 begin
-  if SystemApiLevel > 10 then
-    ReadTimeZoneFromLibC;
-  // If current Android version is too old and does not support timezone
-  // in libc, use ICU library.
-  if tzname[false] = nil then
+  if (SystemApiLevel <= 10) or not ReadTimeZoneFromLibC then
+    // If current Android version is too old and does not support timezone
+    // in libc, use ICU library.
     ReadTimeZoneFromICU;
 end;
