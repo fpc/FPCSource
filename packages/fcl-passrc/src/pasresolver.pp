@@ -4373,6 +4373,9 @@ begin
                 // hidden method has implementation, but no statements -> useless
                 // -> do not give a hint for hiding this useless method
                 // Note: if this happens in the same unit, the body was not yet parsed
+              else if (Proc is TPasConstructor)
+                  and (Data^.Proc.ClassType=Proc.ClassType) then
+                // do not give a hint for hiding a constructor
               else
                 LogMsg(20171118214523,mtHint,
                   nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
@@ -19463,6 +19466,50 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
       end;
   end;
 
+  procedure ComputeInherited(Expr: TInheritedExpr);
+  var
+    Ref: TResolvedReference;
+    Proc: TPasProcedure;
+    TypeEl: TPasProcedureType;
+    aClass: TPasClassType;
+    HasName: Boolean;
+  begin
+    // "inherited;"
+    Ref:=TResolvedReference(El.CustomData);
+    Proc:=NoNil(Ref.Declaration) as TPasProcedure;
+    TypeEl:=TPasProcedure(Proc).ProcType;
+    SetResolverIdentifier(ResolvedEl,btProc,Proc,
+      TypeEl,TypeEl,[rrfCanBeStatement]);
+    HasName:=(El.Parent.ClassType=TBinaryExpr)
+       and (TBinaryExpr(El.Parent).OpCode=eopNone); // true if 'inherited Proc;'
+    if HasName or (rcNoImplicitProc in Flags) then
+      exit;
+
+    // inherited;  -> implicit call possible
+    if Proc is TPasFunction then
+      begin
+      // function => return result
+      ComputeElement(TPasFunction(Proc).FuncType.ResultEl,
+        ResolvedEl,Flags+[rcType],StartEl);
+      Exclude(ResolvedEl.Flags,rrfWritable);
+      end
+    else if (Proc.ClassType=TPasConstructor)
+        and (rrfNewInstance in Ref.Flags) then
+      begin
+      // new instance constructor -> return value of type class
+      aClass:=GetReference_NewInstanceClass(Ref);
+      SetResolverValueExpr(ResolvedEl,btContext,aClass,aClass,Expr,[rrfReadable]);
+      end
+    else if ParentNeedsExprResult(Expr) then
+      begin
+      // a procedure
+      exit;
+      end;
+    if rcSetReferenceFlags in Flags then
+      Include(Ref.Flags,rrfImplicitCallWithoutParams);
+    Include(ResolvedEl.Flags,rrfCanBeStatement);
+  end;
+
 var
   DeclEl: TPasElement;
   ElClass: TClass;
@@ -19622,13 +19669,7 @@ begin
     begin
     // writeln('TPasResolver.ComputeElement TInheritedExpr El.CustomData=',GetObjName(El.CustomData));
     if El.CustomData is TResolvedReference then
-      begin
-        // "inherited;"
-        DeclEl:=NoNil(TResolvedReference(El.CustomData).Declaration) as TPasProcedure;
-        TypeEl:=TPasProcedure(DeclEl).ProcType;
-        SetResolverIdentifier(ResolvedEl,btProc,DeclEl,
-          TypeEl,TypeEl,[rrfCanBeStatement]);
-      end
+      ComputeInherited(TInheritedExpr(El))
     else
       // no ancestor proc
       SetResolverIdentifier(ResolvedEl,btBuiltInProc,nil,nil,nil,[rrfCanBeStatement]);
