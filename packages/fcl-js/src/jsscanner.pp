@@ -504,22 +504,15 @@ begin
   SetLength(FCurTokenString,Len);
   if Len > 0 then
     Move(TokenStart^,FCurTokenString[1],Len);
- // Check if this is a keyword or identifier
- // !!!: Optimize this!
-  I:=FirstKeyword;
-  While (Result=tjsIdentifier) and (I<=Lastkeyword) do
-    begin
-    if (CurTokenString=TokenInfos[i]) then
+  // Check if this is a keyword or identifier
+  // !!!: Optimize this!
+  for i:=FirstKeyword to Lastkeyword do
+    if CurTokenString=TokenInfos[i] then
       begin
       Result := i;
       FCurToken := Result;
       exit;
       end;
-    {$Push}
-    {$R-}
-    I:=Succ(I);
-    {$Pop}
-    end
 end;
 
 Function TJSScanner.FetchToken: TJSToken;
