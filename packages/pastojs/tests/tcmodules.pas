@@ -445,7 +445,7 @@ type
     Procedure TestClass_Inheritance;
     Procedure TestClass_TypeAlias;
     Procedure TestClass_AbstractMethod;
-    Procedure TestClass_CallInherited_NoParams;
+    Procedure TestClass_CallInherited_ProcNoParams;
     Procedure TestClass_CallInherited_WithParams;
     Procedure TestClasS_CallInheritedConstructor;
     Procedure TestClass_ClassVar_Assign;
@@ -9726,46 +9726,47 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestClass_CallInherited_NoParams;
+procedure TTestModule.TestClass_CallInherited_ProcNoParams;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    procedure DoAbstract; virtual; abstract;');
-  Add('    procedure DoVirtual; virtual;');
-  Add('    procedure DoIt;');
-  Add('  end;');
-  Add('  TA = class');
-  Add('    procedure doabstract; override;');
-  Add('    procedure dovirtual; override;');
-  Add('    procedure DoSome;');
-  Add('  end;');
-  Add('procedure tobject.dovirtual;');
-  Add('begin');
-  Add('  inherited; // call non existing ancestor -> ignore silently');
-  Add('end;');
-  Add('procedure tobject.doit;');
-  Add('begin');
-  Add('end;');
-  Add('procedure ta.doabstract;');
-  Add('begin');
-  Add('  inherited dovirtual; // call TObject.DoVirtual');
-  Add('end;');
-  Add('procedure ta.dovirtual;');
-  Add('begin');
-  Add('  inherited; // call TObject.DoVirtual');
-  Add('  inherited dovirtual; // call TObject.DoVirtual');
-  Add('  inherited dovirtual(); // call TObject.DoVirtual');
-  Add('  doit;');
-  Add('  doit();');
-  Add('end;');
-  Add('procedure ta.dosome;');
-  Add('begin');
-  Add('  inherited; // call non existing ancestor method -> silently ignore');
-  Add('end;');
-  Add('begin');
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoAbstract; virtual; abstract;',
+  '    procedure DoVirtual; virtual;',
+  '    procedure DoIt;',
+  '  end;',
+  '  TA = class',
+  '    procedure doabstract; override;',
+  '    procedure dovirtual; override;',
+  '    procedure DoSome;',
+  '  end;',
+  'procedure tobject.dovirtual;',
+  'begin',
+  '  inherited; // call non existing ancestor -> ignore silently',
+  'end;',
+  'procedure tobject.doit;',
+  'begin',
+  'end;',
+  'procedure ta.doabstract;',
+  'begin',
+  '  inherited dovirtual; // call TObject.DoVirtual',
+  'end;',
+  'procedure ta.dovirtual;',
+  'begin',
+  '  inherited; // call TObject.DoVirtual',
+  '  inherited dovirtual; // call TObject.DoVirtual',
+  '  inherited dovirtual(); // call TObject.DoVirtual',
+  '  doit;',
+  '  doit();',
+  'end;',
+  'procedure ta.dosome;',
+  'begin',
+  '  inherited; // call non existing ancestor method -> silently ignore',
+  'end;',
+  'begin']);
   ConvertProgram;
-  CheckSource('TestClass_CallInherited_NoParams',
+  CheckSource('TestClass_CallInherited_ProcNoParams',
     LinesToStr([ // statements
     'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
@@ -9800,42 +9801,52 @@ end;
 procedure TTestModule.TestClass_CallInherited_WithParams;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    procedure DoAbstract(pA: longint; pB: longint = 0); virtual; abstract;');
-  Add('    procedure DoVirtual(pA: longint; pB: longint = 0); virtual;');
-  Add('    procedure DoIt(pA: longint; pB: longint = 0);');
-  Add('    procedure DoIt2(pA: longint = 1; pB: longint = 2);');
-  Add('  end;');
-  Add('  TClassA = class');
-  Add('    procedure DoAbstract(pA: longint; pB: longint = 0); override;');
-  Add('    procedure DoVirtual(pA: longint; pB: longint = 0); override;');
-  Add('  end;');
-  Add('procedure tobject.dovirtual(pa: longint; pb: longint = 0);');
-  Add('begin');
-  Add('end;');
-  Add('procedure tobject.doit(pa: longint; pb: longint = 0);');
-  Add('begin');
-  Add('end;');
-  Add('procedure tobject.doit2(pa: longint; pb: longint = 0);');
-  Add('begin');
-  Add('end;');
-  Add('procedure tclassa.doabstract(pa: longint; pb: longint = 0);');
-  Add('begin');
-  Add('  inherited dovirtual(pa,pb); // call TObject.DoVirtual(pA,pB)');
-  Add('  inherited dovirtual(pa); // call TObject.DoVirtual(pA,0)');
-  Add('end;');
-  Add('procedure tclassa.dovirtual(pa: longint; pb: longint = 0);');
-  Add('begin');
-  Add('  inherited; // call TObject.DoVirtual(pA,pB)');
-  Add('  inherited dovirtual(pa,pb); // call TObject.DoVirtual(pA,pB)');
-  Add('  inherited dovirtual(pa); // call TObject.DoVirtual(pA,0)');
-  Add('  doit(pa,pb);');
-  Add('  doit(pa);');
-  Add('  doit2(pa);');
-  Add('  doit2;');
-  Add('end;');
-  Add('begin');
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoAbstract(pA: longint; pB: longint = 0); virtual; abstract;',
+  '    procedure DoVirtual(pA: longint; pB: longint = 0); virtual;',
+  '    procedure DoIt(pA: longint; pB: longint = 0);',
+  '    procedure DoIt2(pA: longint = 1; pB: longint = 2);',
+  '    function GetIt(pA: longint = 1; pB: longint = 2): longint;',
+  '  end;',
+  '  TClassA = class',
+  '    procedure DoAbstract(pA: longint; pB: longint = 0); override;',
+  '    procedure DoVirtual(pA: longint; pB: longint = 0); override;',
+  '    function GetIt(pA: longint = 1; pB: longint = 2): longint;',
+  '  end;',
+  'procedure tobject.dovirtual(pa: longint; pb: longint = 0);',
+  'begin',
+  'end;',
+  'procedure tobject.doit(pa: longint; pb: longint = 0);',
+  'begin',
+  'end;',
+  'procedure tobject.doit2(pa: longint; pb: longint = 0);',
+  'begin',
+  'end;',
+  'function tobject.getit(pa: longint; pb: longint = 0): longint;',
+  'begin',
+  'end;',
+  'procedure tclassa.doabstract(pa: longint; pb: longint = 0);',
+  'begin',
+  '  inherited dovirtual(pa,pb); // call TObject.DoVirtual(pA,pB)',
+  '  inherited dovirtual(pa); // call TObject.DoVirtual(pA,0)',
+  'end;',
+  'procedure tclassa.dovirtual(pa: longint; pb: longint = 0);',
+  'begin',
+  '  inherited; // call TObject.DoVirtual(pA,pB)',
+  '  inherited dovirtual(pa,pb); // call TObject.DoVirtual(pA,pB)',
+  '  inherited dovirtual(pa); // call TObject.DoVirtual(pA,0)',
+  '  doit(pa,pb);',
+  '  doit(pa);',
+  '  doit2(pa);',
+  '  doit2;',
+  'end;',
+  'function tclassa.getit(pa: longint; pb: longint = 0): longint;',
+  'begin',
+  '  pa:=inherited;',
+  'end;',
+  'begin']);
   ConvertProgram;
   CheckSource('TestClass_CallInherited_WithParams',
     LinesToStr([ // statements
@@ -9849,6 +9860,10 @@ begin
     '  this.DoIt = function (pA,pB) {',
     '  };',
     '  this.DoIt2 = function (pA,pB) {',
+    '  };',
+    '  this.GetIt = function (pA, pB) {',
+    '    var Result = 0;',
+    '    return Result;',
     '  };',
     '});',
     'rtl.createClass($mod, "TClassA", $mod.TObject, function () {',
@@ -9864,6 +9879,11 @@ begin
     '    this.DoIt(pA,0);',
     '    this.DoIt2(pA,2);',
     '    this.DoIt2(1,2);',
+    '  };',
+    '  this.GetIt$1 = function (pA, pB) {',
+    '    var Result = 0;',
+    '    pA = $mod.TObject.GetIt.apply(this, arguments);',
+    '    return Result;',
     '  };',
     '});'
     ]),
