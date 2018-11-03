@@ -419,7 +419,7 @@ begin
     jstNull: Result:='null';
     jstBoolean: Result:=BoolToStr(Element.AsBoolean,'true','false');
     jstNumber: str(Element.AsNumber,Result);
-    jstString: Result:=QuoteStr(Element.AsString{%H-},'''');
+    jstString: Result:=QuoteStr(String(Element.AsString),'''');
     jstObject: Result:='{:OBJECT:}';
     jstReference: Result:='{:REFERENCE:}';
     JSTCompletion: Result:='{:COMPLETION:}';
@@ -924,7 +924,9 @@ procedure TPas2jsLogger.LogExceptionBackTrace(E: Exception);
 begin
   {$IFDEF NodeJS}
   if (E<>nil) and (E.NodeJSError<>nil) then
+    {AllowWriteln}
     writeln(E.NodeJSError.Stack);
+    {AllowWriteln-}
   {$ENDIF}
 end;
 {$ELSE}
@@ -940,6 +942,7 @@ begin
   Log(mtDebug,BackTraceStrFunc(lErrorAddr));
   for FrameNumber := 0 to FrameCount-1 do
     Log(mtDebug,BackTraceStrFunc(Frames[FrameNumber]));
+  if E=nil then ;
 end;
 {$ENDIF}
 
