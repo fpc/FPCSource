@@ -45,7 +45,7 @@ var
   TZStandardName: utf8string;
   TZDaylightName: utf8string;
 
-function GetIcuProc(const Name: AnsiString; var ProcPtr; libId: longint): boolean; external name 'CWSTRING_GET_ICU_PROC';
+  GetIcuProc: function (const Name: AnsiString; var ProcPtr; libId: longint): boolean; external name 'ANDROID_GET_ICU_PROC';
 
 procedure ReadTimeZoneFromICU;
 var
@@ -55,6 +55,7 @@ var
   err: UErrorCode;
   cal: UCalendar;
 begin
+  if not Assigned(GetIcuProc) then exit;
   if not GetIcuProc('ucal_open', ucal_open, 1) then exit;
   if not GetIcuProc('ucal_close', ucal_close, 1) then exit;
   if not GetIcuProc('ucal_getTimeZoneDisplayName', ucal_getTimeZoneDisplayName, 1) then exit;
@@ -128,7 +129,7 @@ procedure InitLocalTime;
 begin
   if SystemApiLevel > 10 then
     ReadTimeZoneFromLibC;
-  // If cuurent Android version is too old and does not support timezone
+  // If current Android version is too old and does not support timezone
   // in libc, use ICU library.
   if tzname[false] = nil then
     ReadTimeZoneFromICU;

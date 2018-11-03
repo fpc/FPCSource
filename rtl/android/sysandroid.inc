@@ -21,6 +21,8 @@ var
 
   _environ: pointer external name 'environ';
 
+  GetIcuProc: pointer; public name 'ANDROID_GET_ICU_PROC';
+
 procedure CommonMainAndroid;
 const
   EmptyEnv: array[0..2] of PAnsiChar = (nil, nil, nil);

@@ -64,11 +64,12 @@ var
   unum_close: procedure (fmt: UNumberFormat); cdecl;
   unum_getSymbol: function (fmt: UNumberFormat; symbol: UNumberFormatSymbol; result: PUnicodeChar; resultLength: int32_t; var status: UErrorCode): int32_t; cdecl;
 
-function GetIcuProc(const Name: AnsiString; out ProcPtr; libId: longint = 0): boolean; external name 'CWSTRING_GET_ICU_PROC';
+  GetIcuProc: function (const Name: AnsiString; var ProcPtr; libId: longint): boolean; external name 'ANDROID_GET_ICU_PROC';
 
 procedure InitIcuFunctions;
 begin
   if FunctionsInited then exit;
+  if not Assigned(GetIcuProc) then exit;
   if not GetIcuProc('udat_open', udat_open, 1) then exit;
   if not GetIcuProc('udat_close', udat_close, 1) then exit;
   if not GetIcuProc('udat_toPattern', udat_toPattern, 1) then exit;

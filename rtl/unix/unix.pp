@@ -16,9 +16,6 @@ Unit Unix;
 Interface
 
 Uses
-{$ifdef android}
-  cwstring,
-{$endif android}
   BaseUnix,UnixType;
 // If you deprecated new symbols, please annotate the version.
 // this makes it easier to decide if they can already be removed.
