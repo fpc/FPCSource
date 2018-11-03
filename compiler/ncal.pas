@@ -4832,11 +4832,16 @@ implementation
         ptrtype: tdef;
         tempnode: ttempcreatenode;
         paraaddr: taddrnode;
+        isfuncretnode : boolean;
       begin
         ptrtype:=cpointerdef.getreusable(para.left.resultdef);
         tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true);
         addstatement(inlineinitstatement,tempnode);
-        addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+        isfuncretnode:=nf_is_funcret in para.left.flags;
+        if isfuncretnode then
+          addstatement(inlinecleanupstatement,ctempdeletenode.create_normal_temp(tempnode))
+        else
+          addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
           tempnode.includetempflag(ti_addr_taken);
@@ -4848,6 +4853,8 @@ implementation
         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
           paraaddr));
         para.left:=cderefnode.create(ctemprefnode.create(tempnode));
+        if isfuncretnode then
+          Include(para.left.flags,nf_is_funcret);
       end;
 
 
