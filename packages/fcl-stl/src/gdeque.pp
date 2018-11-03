@@ -34,6 +34,7 @@ type
   public
     function Size():SizeUInt;inline;
     constructor Create();
+    Procedure  Clear;
     procedure PushBack(value:T);inline;
     procedure PushFront(value:T);inline;
     procedure PopBack();inline;
@@ -56,6 +57,12 @@ begin
   FDataSize:=0;
   FCapacity:=0;
   FStart:=0;
+end;
+
+procedure TDeque.Clear;
+begin
+ FDataSize:=0;
+ FStart:=0;
 end;
 
 function TDeque.Size():SizeUInt;inline;
