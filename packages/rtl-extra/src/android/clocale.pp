@@ -88,6 +88,9 @@ function GetCurrentLocaleStr: utf8string;
 var
   s: utf8string;
 begin
+  Result:=GetSystemProperty('persist.sys.locale');
+  if Result <> '' then
+    exit;
   Result:=GetSystemProperty('persist.sys.language');
   if Result = '' then
     exit;
