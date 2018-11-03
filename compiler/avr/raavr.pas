@@ -58,204 +58,208 @@ unit raavr;
         Operands: array[0..max_operands-1] of TAVROpConstraint;
       end;
 
+{$PUSH}
+{$WARN 3177 off : Some fields coming after "$1" were not initialized}
   const
     AVRInstrConstraint: array[TAsmOp] of TAVRInstrConstraint =
       // A_NONE
-      ((numOperands: 0; Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+      ((numOperands: 0; Operands: ((typ: top_none), (typ: top_none))),
       // A_ADD
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_ADC
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_ADIW
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_even_24_30), (typ: top_const; max: 63; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_even_24_30), (typ: top_const; max: 63; min: 0))),
        // A_SUB
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_SUBI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128))),
        // A_SBC
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_SBCI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128))),
        // A_SBRC
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0))),
        // A_SBRS
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0))),
        // A_SBIW
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_even_24_30), (typ: top_const; max: 63; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_even_24_30), (typ: top_const; max: 63; min: 0))),
        // A_AND
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_ANDI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128))),
        // A_OR
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_ORI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128))),
        // A_EOR
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_COM
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_NEG
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_SBR
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128))),
        // A_CBR
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128))),
        // A_INC
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_DEC
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_TST
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_MUL
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_MULS
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_reg; rt: rt_16_31), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_reg; rt: rt_16_31))),
        // A_MULSU
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_23), (typ: top_reg; rt: rt_16_23), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_23), (typ: top_reg; rt: rt_16_23))),
        // A_FMUL
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_23), (typ: top_reg; rt: rt_16_23), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_23), (typ: top_reg; rt: rt_16_23))),
        // A_FMULS
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_23), (typ: top_reg; rt: rt_16_23), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_23), (typ: top_reg; rt: rt_16_23))),
        // A_FMULSU
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_23), (typ: top_reg; rt: rt_16_23), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_23), (typ: top_reg; rt: rt_16_23))),
        // A_RJMP
-       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 2047; min: -2048), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 2047; min: -2048), (typ: top_reg; rt: rt_all))),
        // A_IJMP
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_EIJMP
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_JMP, max size depends on size op PC
-       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: (1 shl 22 - 1); min: 0), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: (1 shl 22 - 1); min: 0), (typ: top_none))),
        // A_RCALL
-       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 2047; min: -2048), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 2047; min: -2048), (typ: top_none))),
        // A_ICALL
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_EICALL
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CALL, max size depends on size op PC
-       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: (1 shl 22 - 1); min: 0), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: (1 shl 22 - 1); min: 0), (typ: top_none))),
        // A_RET
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_IRET
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CPSE
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_CP
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_CPC
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_CPI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128))),
        // A_SBIC
-       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 31; min: 0), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 31; min: 0), (typ: top_const; max: 7; min: 0))),
        // A_SBIS
-       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 31; min: 0), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 31; min: 0), (typ: top_const; max: 7; min: 0))),
        // A_BRxx
-       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 63; min: -64), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 63; min: -64), (typ: top_none))),
        // A_MOV
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all))),
        // A_MOVW
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_even), (typ: top_reg; rt: rt_even), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_even), (typ: top_reg; rt: rt_even))),
        // A_LDI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128))),
        // A_LDS TODO: There are 2 versions with different machine codes and constant ranges. Could possibly distinguish based on size of PC?
        // Perhaps handle separately with a check on sub-architecture? Range check only important if smaller instruction code selected on larger arch
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 65535; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 65535; min: 0))),
        // A_LD
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_XYZ; am: [AM_UNCHANGED, AM_POSTINCREMENT, AM_PREDRECEMENT]), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_XYZ; am: [AM_UNCHANGED, AM_POSTINCREMENT, AM_PREDRECEMENT]))),
        // A_LDD
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_YZ; am: [AM_UNCHANGED]; minconst: 0; maxconst: 63), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_YZ; am: [AM_UNCHANGED]; minconst: 0; maxconst: 63))),
        // A_STS TODO: See LDS above
-       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 65535; min: 0), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 65535; min: 0), (typ: top_reg; rt: rt_all))),
        // A_ST
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_XYZ; am: [AM_UNCHANGED, AM_POSTINCREMENT, AM_PREDRECEMENT]), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_XYZ; am: [AM_UNCHANGED, AM_POSTINCREMENT, AM_PREDRECEMENT]), (typ: top_reg; rt: rt_all))),
        // A_STD
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_YZ; am: [AM_UNCHANGED]; minconst: 0; maxconst: 63), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_YZ; am: [AM_UNCHANGED]; minconst: 0; maxconst: 63), (typ: top_reg; rt: rt_all))),
        // A_LPM
-       (numOperands: (1 shl 0 + 1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_Z; am: [AM_UNCHANGED, AM_POSTINCREMENT]), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0 + 1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_Z; am: [AM_UNCHANGED, AM_POSTINCREMENT]))),
        // A_ELPM
-       (numOperands: (1 shl 0 + 1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_Z; am: [AM_UNCHANGED, AM_POSTINCREMENT]), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0 + 1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_Z; am: [AM_UNCHANGED, AM_POSTINCREMENT]))),
        // A_SPM
-       (numOperands: (1 shl 0 + 1 shl 1); Operands: ((typ: top_reg; rt: rt_Z; am: [AM_UNCHANGED, AM_POSTINCREMENT]), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0 + 1 shl 1); Operands: ((typ: top_reg; rt: rt_Z; am: [AM_UNCHANGED, AM_POSTINCREMENT]), (typ: top_none))),
        // A_IN
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 63; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 63; min: 0))),
        // A_OUT
-       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 63; min: 0), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 63; min: 0), (typ: top_reg; rt: rt_all))),
        // A_PUSH
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_POP
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_LSL
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_LSR
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_ROL
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_ROR
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_ASR
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_SWAP
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_BSET
-       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 7; min: 0), (typ: top_none))),
        // A_BCLR
-       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_const; max: 7; min: 0), (typ: top_none))),
        // A_SBI
-       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 32; min: 0), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 32; min: 0), (typ: top_const; max: 7; min: 0))),
        // A_CBI
-       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 32; min: 0), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 32; min: 0), (typ: top_const; max: 7; min: 0))),
        // A_SEC
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_SEH
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_SEI
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_SEN
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_SER
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_none))),
        // A_SES
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_SET
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_SEV
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_SEZ
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CLC
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CLH
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CLI
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CLN
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CLR
-       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none))),
        // A_CLS
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CLT
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CLV
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_CLZ
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_BST
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0))),
        // A_BLD
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0))),
        // A_BREAK
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_NOP
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_SLEEP
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_WDR
-       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 0); Operands: ((typ: top_none), (typ: top_none))),
        // A_XCH
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_Z), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none)))
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_Z), (typ: top_reg; rt: rt_all)))
        );
+{$POP}
+
 
   implementation
     uses
