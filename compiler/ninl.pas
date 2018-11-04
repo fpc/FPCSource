@@ -1740,7 +1740,7 @@ implementation
         { last param must be var }
         destppn:=ppn.left;
         valid_for_var(destppn,true);
-        set_varstate(destppn,vs_written,[vsf_must_be_valid,vsf_use_hints]);
+        set_varstate(destppn,vs_written,[vsf_must_be_valid,vsf_use_hints,vsf_use_hint_for_string_result]);
         { first param must be a string or dynamic array ...}
         isarray:=is_dynamic_array(destppn.resultdef);
         if not((destppn.resultdef.typ=stringdef) or

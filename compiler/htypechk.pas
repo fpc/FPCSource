@@ -183,7 +183,7 @@ interface
 
     { sets varsym varstate field correctly }
     type
-      tvarstateflag = (vsf_must_be_valid,vsf_use_hints);
+      tvarstateflag = (vsf_must_be_valid,vsf_use_hints,vsf_use_hint_for_string_result);
       tvarstateflags = set of tvarstateflag;
     procedure set_varstate(p:tnode;newstate:tvarstate;varstateflags:tvarstateflags);
 
@@ -1299,7 +1299,20 @@ implementation
                                begin
                                  if (vo_is_funcret in hsym.varoptions) then
                                    begin
-                                     if (vsf_use_hints in varstateflags) then
+                                     { An uninitialized function Result of a managed type needs special handling.
+                                       When passing it as a var parameter a warning need to be emitted, since a user
+                                       may expect Result to be empty (nil) by default as it happens with local vars
+                                       of a managed type. But this is not true for Result and may lead to serious issues.
+
+                                       The only exception is SetLength(Result, ?) for a string Result. A user always
+                                       expects undefined contents of the string after calling SetLength(). In such
+                                       case a hint need to be emitted.
+                                     }
+                                     if is_managed_type(hsym.vardef) then
+                                       if not ( is_string(hsym.vardef) and (vsf_use_hint_for_string_result in varstateflags) ) then
+                                         exclude(varstateflags,vsf_use_hints);
+
+                                     if vsf_use_hints in varstateflags then
                                        begin
                                          if is_managed_type(hsym.vardef) then
                                            CGMessagePos(p.fileinfo,sym_h_managed_function_result_uninitialized)
