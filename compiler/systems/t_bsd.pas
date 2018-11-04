@@ -379,8 +379,8 @@ begin
   if startupfile<>'' then
     begin
      if not librarysearchpath.FindFile(startupfile,false,result) then
-       result:='/usr/lib/'+startupfile
-    end
+       result:='/usr/lib/'+startupfile;
+    end;
   result:=maybequoted(result);
 end;
 
