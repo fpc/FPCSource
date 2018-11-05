@@ -7424,6 +7424,7 @@ packages/rtl-console/src/win16/video.pp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-lalt.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-lctrl.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-lshift.dmp svneol=native#text/plain
+packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-numlock.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-ralt.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-rctrl.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-rshift.dmp svneol=native#text/plain
