@@ -228,7 +228,7 @@ begin
                      begin                          {add to queue}
                        fillchar (ir, sizeof (ir), 0);
                        bKeyDown := true;
-                       AsciiChar := char (c);
+                       UnicodeChar := WideChar (c);
                                                 {and add to queue}
                        EnterCriticalSection (lockVar);
                        keyboardeventqueue[nextfreekeyevent]:=ir.Event.KeyEvent;
@@ -641,6 +641,15 @@ CONST
    (n : $00; s : $0F; c : $94; a: $00));     {0F Tab }
 
 
+function WideCharToOemCpChar(WC: WideChar): Char;
+var
+  Res: Char;
+begin
+  if WideCharToMultiByte(CP_OEMCP,0,@WC,1,@Res,1,nil,nil)=0 then
+    Res:=#0;
+  WideCharToOemCpChar:=Res;
+end;
+
 function TranslateKey (t : TKeyEventRecord) : TKeyEvent;
 var key : TKeyEvent;
     ss  : byte;
@@ -652,16 +661,16 @@ begin
   Key := 0;
   if t.bKeyDown then
   begin
-    { ascii-char is <> 0 if not a specal key }
+    { unicode-char is <> 0 if not a specal key }
     { we return it here otherwise we have to translate more later }
-    if t.AsciiChar <> #0 then
+    if t.UnicodeChar <> WideChar(0) then
     begin
       if (t.dwControlKeyState and ENHANCED_KEY <> 0) and
          (t.wVirtualKeyCode = $DF) then
         begin
           t.dwControlKeyState:=t.dwControlKeyState and not ENHANCED_KEY;
           t.wVirtualKeyCode:=VK_DIVIDE;
-          t.AsciiChar:='/';
+          t.UnicodeChar:='/';
         end;
       {drivers needs scancode, we return it here as under dos and linux
        with $03000000 = the lowest two bytes is the physical representation}
@@ -669,13 +678,13 @@ begin
       Scancode:=KeyToQwertyScan[t.wVirtualKeyCode AND $00FF];
       If ScanCode>0 then
         t.wVirtualScanCode:=ScanCode;
-      Key := byte (t.AsciiChar) + (t.wVirtualScanCode shl 8) + $03000000;
+      Key := byte (WideCharToOemCpChar(t.UnicodeChar)) + (t.wVirtualScanCode shl 8) + $03000000;
       ss := transShiftState (t.dwControlKeyState);
       key := key or (ss shl 16);
       if (ss and kbAlt <> 0) and rightistruealt(t.dwControlKeyState) then
         key := key and $FFFFFF00;
 {$else not USEKEYCODES}
-      Key := byte (t.AsciiChar) + ((t.wVirtualScanCode AND $00FF) shl 8) + $03000000;
+      Key := byte (WideCharToOemCpChar(t.UnicodeChar)) + ((t.wVirtualScanCode AND $00FF) shl 8) + $03000000;
 {$endif not USEKEYCODES}
     end else
     begin

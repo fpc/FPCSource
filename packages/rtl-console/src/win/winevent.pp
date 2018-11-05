@@ -122,7 +122,7 @@ interface
               }
               if not(ExitEventHandleThread) then
                 begin
-                   if ReadConsoleInput(StdInputHandle,ir[0],irsize,dwRead) then
+                   if ReadConsoleInputW(StdInputHandle,ir[0],irsize,dwRead) then
                     begin
                       i:=0;
                       EnterCriticalSection(HandlerChanging);
