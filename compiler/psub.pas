@@ -93,7 +93,7 @@ implementation
     uses
        sysutils,
        { common }
-       cutils,
+       cutils, cmsgs,
        { global }
        globtype,tokens,verbose,comphook,constexp,
        systems,cpubase,aasmbase,aasmtai,aasmdata,
@@ -138,6 +138,14 @@ implementation
        ;
 
     function checknodeinlining(procdef: tprocdef): boolean;
+
+      procedure _no_inline(const reason: TMsgStr);
+        begin
+          exclude(procdef.procoptions,po_inline);
+          Message1(parser_h_not_supported_for_inline,reason);
+          Message(parser_h_inlining_disabled);
+        end;
+
       var
         i : integer;
         currpara : tparavarsym;
@@ -150,26 +158,22 @@ implementation
           exit;
         if pi_has_assembler_block in current_procinfo.flags then
           begin
-            Message1(parser_h_not_supported_for_inline,'assembler');
-            Message(parser_h_inlining_disabled);
+            _no_inline('assembler');
             exit;
           end;
         if pi_has_global_goto in current_procinfo.flags then
           begin
-            Message1(parser_h_not_supported_for_inline,'global goto');
-            Message(parser_h_inlining_disabled);
+            _no_inline('global goto');
             exit;
           end;
         if pi_has_nested_exit in current_procinfo.flags then
           begin
-            Message1(parser_h_not_supported_for_inline,'nested exit');
-            Message(parser_h_inlining_disabled);
+            _no_inline('nested exit');
             exit;
           end;
         if pi_calls_c_varargs in current_procinfo.flags then
           begin
-            Message1(parser_h_not_supported_for_inline,'called C-style varargs functions');
-            Message(parser_h_inlining_disabled);
+            _no_inline('called C-style varargs functions');
             exit;
           end;
         { the compiler cannot handle inherited in inlined subroutines because
@@ -177,8 +181,7 @@ implementation
           is not available }
         if pi_has_inherited in current_procinfo.flags then
           begin
-            Message1(parser_h_not_supported_for_inline,'inherited');
-            Message(parser_h_inlining_disabled);
+            _no_inline('inherited');
             exit;
           end;
         for i:=0 to procdef.paras.count-1 do
@@ -189,8 +192,7 @@ implementation
                 begin
                   if (currpara.varspez in [vs_out,vs_var,vs_const,vs_constref]) then
                     begin
-                      Message1(parser_h_not_supported_for_inline,'formal parameter');
-                      Message(parser_h_inlining_disabled);
+                      _no_inline('formal parameter');
                       exit;
                     end;
                 end;
@@ -199,8 +201,7 @@ implementation
                   if is_array_of_const(currpara.vardef) or
                      is_variant_array(currpara.vardef) then
                     begin
-                      Message1(parser_h_not_supported_for_inline,'array of const');
-                      Message(parser_h_inlining_disabled);
+                      _no_inline('array of const');
                       exit;
                     end;
                   { open arrays might need re-basing of the index, i.e. if you pass
@@ -208,8 +209,7 @@ implementation
                     if you directly inline it }
                   if is_open_array(currpara.vardef) then
                     begin
-                      Message1(parser_h_not_supported_for_inline,'open array');
-                      Message(parser_h_inlining_disabled);
+                      _no_inline('open array');
                       exit;
                     end;
                 end;
