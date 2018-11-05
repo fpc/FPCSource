@@ -1053,6 +1053,11 @@ begin
   FFreeObjects := True;
 end;
 
+function TFPObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result := FList.IndexOf(Pointer(AObject));
+end;
+
 function TFPObjectList.GetCount: integer;
 begin
   Result := FList.Count;
@@ -1123,11 +1128,6 @@ begin
       TObject(FList[Result]).Free;
     FList.Delete(Result);
   end;
-end;
-
-function TFPObjectList.IndexOf(AObject: TObject): Integer;
-begin
-  Result := FList.IndexOf(Pointer(AObject));
 end;
 
 function TFPObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
@@ -1765,72 +1765,6 @@ end;
 
 
 {*****************************************************************************
-                               TFPHashObject
-*****************************************************************************}
-
-procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:TSymStr);
-var
-  Index : integer;
-begin
-  FOwner:=HashObjectList;
-  Index:=HashObjectList.Add(s,Self);
-  FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
-end;
-
-
-constructor TFPHashObject.CreateNotOwned;
-begin
-  FStrIndex:=-1;
-end;
-
-
-constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
-begin
-  InternalChangeOwner(HashObjectList,s);
-end;
-
-
-procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
-begin
-  InternalChangeOwner(HashObjectList,PSymStr(@FOwner.List.Strs[FStrIndex])^);
-end;
-
-
-procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:TSymStr);
-begin
-  InternalChangeOwner(HashObjectList,s);
-end;
-
-
-procedure TFPHashObject.Rename(const ANewName:TSymStr);
-var
-  Index : integer;
-begin
-  Index:=FOwner.Rename(PSymStr(@FOwner.List.Strs[FStrIndex])^,ANewName);
-  if Index<>-1 then
-    FStrIndex:=FOwner.List.List^[Index].StrIndex;
-end;
-
-
-function TFPHashObject.GetName:TSymStr;
-begin
-  if FOwner<>nil then
-    Result:=PSymStr(@FOwner.List.Strs[FStrIndex])^
-  else
-    Result:='';
-end;
-
-
-function TFPHashObject.GetHash:Longword;
-begin
-  if FOwner<>nil then
-    Result:=FPHash(PSymStr(@FOwner.List.Strs[FStrIndex])^)
-  else
-    Result:=$ffffffff;
-end;
-
-
-{*****************************************************************************
             TFPHashObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
@@ -1860,6 +1794,11 @@ begin
     for i := 0 to FHashList.Count - 1 do
       TObject(FHashList[i]).Free;
   FHashList.Clear;
+end;
+
+function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result := FHashList.IndexOf(Pointer(AObject));
 end;
 
 function TFPHashObjectList.GetCount: integer;
@@ -1944,12 +1883,6 @@ begin
     end;
 end;
 
-function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
-begin
-  Result := FHashList.IndexOf(Pointer(AObject));
-end;
-
-
 function TFPHashObjectList.Find(const s:TSymStr): TObject;
 begin
   result:=TObject(FHashList.Find(s));
@@ -2028,6 +1961,72 @@ end;
 procedure TFPHashObjectList.WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
 begin
   FHashList.WhileEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
+
+{*****************************************************************************
+                               TFPHashObject
+*****************************************************************************}
+
+procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:TSymStr);
+var
+  Index : integer;
+begin
+  FOwner:=HashObjectList;
+  Index:=HashObjectList.Add(s,Self);
+  FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
+end;
+
+
+constructor TFPHashObject.CreateNotOwned;
+begin
+  FStrIndex:=-1;
+end;
+
+
+constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
+begin
+  InternalChangeOwner(HashObjectList,s);
+end;
+
+
+procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
+begin
+  InternalChangeOwner(HashObjectList,PSymStr(@FOwner.List.Strs[FStrIndex])^);
+end;
+
+
+procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:TSymStr);
+begin
+  InternalChangeOwner(HashObjectList,s);
+end;
+
+
+procedure TFPHashObject.Rename(const ANewName:TSymStr);
+var
+  Index : integer;
+begin
+  Index:=FOwner.Rename(PSymStr(@FOwner.List.Strs[FStrIndex])^,ANewName);
+  if Index<>-1 then
+    FStrIndex:=FOwner.List.List^[Index].StrIndex;
+end;
+
+
+function TFPHashObject.GetName:TSymStr;
+begin
+  if FOwner<>nil then
+    Result:=PSymStr(@FOwner.List.Strs[FStrIndex])^
+  else
+    Result:='';
+end;
+
+
+function TFPHashObject.GetHash:Longword;
+begin
+  if FOwner<>nil then
+    Result:=FPHash(PSymStr(@FOwner.List.Strs[FStrIndex])^)
+  else
+    Result:=$ffffffff;
 end;
 
 
