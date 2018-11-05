@@ -781,8 +781,6 @@ begin
          if b <> 0 then
            key := (key and $FFFF0000) or (cardinal (b) shl 8);
        end;
-
-     TranslateKey := key;
   end;
   translateKey := Key;
 end;
