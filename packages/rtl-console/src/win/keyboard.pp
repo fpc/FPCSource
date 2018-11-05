@@ -874,6 +874,150 @@ begin
   SysGetShiftState:= lastShiftState;
 end;
 
+
+function TranslateEnhancedKeyEvent (t : TKeyEventRecord) : TEnhancedKeyEvent;
+var key : TEnhancedKeyEvent;
+    ss  : byte;
+{$ifdef  USEKEYCODES}
+    ScanCode  : byte;
+{$endif  USEKEYCODES}
+    b   : byte;
+begin
+  FillChar(Key,SizeOf(Key),0);
+  if t.bKeyDown then
+  begin
+    { unicode-char is <> 0 if not a specal key }
+    { we return it here otherwise we have to translate more later }
+    if t.UnicodeChar <> WideChar(0) then
+    begin
+      if (t.dwControlKeyState and ENHANCED_KEY <> 0) and
+         (t.wVirtualKeyCode = $DF) then
+        begin
+          t.dwControlKeyState:=t.dwControlKeyState and not ENHANCED_KEY;
+          t.wVirtualKeyCode:=VK_DIVIDE;
+          t.UnicodeChar:='/';
+        end;
+      {drivers needs scancode, we return it here as under dos and linux
+       with $03000000 = the lowest two bytes is the physical representation}
+{$ifdef  USEKEYCODES}
+      Scancode:=KeyToQwertyScan[t.wVirtualKeyCode AND $00FF];
+      If ScanCode>0 then
+        t.wVirtualScanCode:=ScanCode;
+      Key.UnicodeChar := t.UnicodeChar;
+      Key.AsciiChar := WideCharToOemCpChar(t.UnicodeChar);
+      Key.VirtualScanCode := byte (Key.AsciiChar) + (t.wVirtualScanCode shl 8);
+      ss := transShiftState (t.dwControlKeyState);
+      Key.ShiftState := ss;
+      if (ss and kbAlt <> 0) and rightistruealt(t.dwControlKeyState) then
+        Key.VirtualScanCode := Key.VirtualScanCode and $FF00;
+{$else not USEKEYCODES}
+      Key.UnicodeChar := t.UnicodeChar;
+      Key.AsciiChar := WideCharToOemCpChar(t.UnicodeChar);
+      Key.VirtualScanCode := byte (Key.AsciiChar) + ((t.wVirtualScanCode AND $00FF) shl 8);
+{$endif not USEKEYCODES}
+    end else
+    begin
+{$ifdef  USEKEYCODES}
+      Scancode:=KeyToQwertyScan[t.wVirtualKeyCode AND $00FF];
+      If ScanCode>0 then
+        t.wVirtualScanCode:=ScanCode;
+{$endif not USEKEYCODES}
+      FillChar(TranslateEnhancedKeyEvent,SizeOf(TranslateEnhancedKeyEvent),0);
+      { ignore shift,ctrl,alt,numlock,capslock alone }
+      case t.wVirtualKeyCode of
+        $0010,         {shift}
+        $0011,         {ctrl}
+        $0012,         {alt}
+        $0014,         {capslock}
+        $0090,         {numlock}
+        $0091,         {scrollock}
+        { This should be handled !! }
+        { these last two are OEM specific
+          this is not good !!! }
+        $00DC,         {^ : next key i.e. a is modified }
+        { Strange on my keyboard this corresponds to double point over i or u PM }
+        $00DD: exit;   {´ and ` : next key i.e. e is modified }
+      end;
+
+      Key.VirtualScanCode := t.wVirtualScanCode shl 8;  { make lower 8 bit=0 like under dos }
+    end;
+    { Handling of ~ key as AltGr 2 }
+    { This is also French keyboard specific !! }
+    { but without this I can not get a ~ !! PM }
+    { MvdV: not rightruealtised, since it already has frenchkbd guard}
+    if (t.wVirtualKeyCode=$32) and
+       (KeyBoardLayout = FrenchKeyboard) and
+       (t.dwControlKeyState and RIGHT_ALT_PRESSED <> 0) then
+    begin
+      Key.UnicodeChar := '~';
+      Key.AsciiChar := '~';
+      Key.VirtualScanCode := (Key.VirtualScanCode and $ff00) or ord('~');
+    end;
+    { ok, now add Shift-State }
+    ss := transShiftState (t.dwControlKeyState);
+    Key.ShiftState := ss;
+
+    { Reset Ascii-Char if Alt+Key, fv needs that, may be we
+      need it for other special keys too
+      18 Sept 1999 AD: not for right Alt i.e. for AltGr+ß = \ on german keyboard }
+    if ((ss and kbAlt <> 0) and rightistruealt(t.dwControlKeyState)) or
+    (*
+      { yes, we need it for cursor keys, 25=left, 26=up, 27=right,28=down}
+      {aggg, this will not work because esc is also virtualKeyCode 27!!}
+      {if (t.wVirtualKeyCode >= 25) and (t.wVirtualKeyCode <= 28) then}
+        no VK_ESCAPE is $1B !!
+        there was a mistake :
+         VK_LEFT is $25 not 25 !! *)
+       { not $2E VK_DELETE because its only the Keypad point !! PM }
+      (t.wVirtualKeyCode in [$21..$28,$2C,$2D,$2F]) then
+      { if t.wVirtualScanCode in [$47..$49,$4b,$4d,$4f,$50..$53] then}
+        Key.VirtualScanCode := Key.VirtualScanCode and $FF00;
+
+    {and translate to dos-scancodes to make fv happy, we will convert this
+     back in translateKeyEvent}
+
+     if rightistruealt(t.dwControlKeyState) then {not for alt-gr}
+     if (t.wVirtualScanCode >= low (DosTT)) and
+        (t.wVirtualScanCode <= high (dosTT)) then
+     begin
+       b := 0;
+       if (ss and kbAlt) <> 0 then
+         b := DosTT[t.wVirtualScanCode].a
+       else
+       if (ss and kbCtrl) <> 0 then
+         b := DosTT[t.wVirtualScanCode].c
+       else
+       if (ss and kbShift) <> 0 then
+         b := DosTT[t.wVirtualScanCode].s
+       else
+         b := DosTT[t.wVirtualScanCode].n;
+       if b <> 0 then
+         Key.VirtualScanCode := (Key.VirtualScanCode and $00FF) or (cardinal (b) shl 8);
+     end;
+
+     {Alt-0 to Alt-9}
+     if rightistruealt(t.dwControlKeyState) then {not for alt-gr}
+       if (t.wVirtualScanCode >= low (DosTT09)) and
+          (t.wVirtualScanCode <= high (dosTT09)) then
+       begin
+         b := 0;
+         if (ss and kbAlt) <> 0 then
+           b := DosTT09[t.wVirtualScanCode].a
+         else
+         if (ss and kbCtrl) <> 0 then
+           b := DosTT09[t.wVirtualScanCode].c
+         else
+         if (ss and kbShift) <> 0 then
+           b := DosTT09[t.wVirtualScanCode].s
+         else
+           b := DosTT09[t.wVirtualScanCode].n;
+         if b <> 0 then
+           Key.VirtualScanCode := cardinal (b) shl 8;
+       end;
+  end;
+  TranslateEnhancedKeyEvent := Key;
+end;
+
 Const
   SysKeyboardDriver : TKeyboardDriver = (
     InitDriver : @SysInitKeyBoard;
