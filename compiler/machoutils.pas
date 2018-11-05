@@ -523,7 +523,7 @@ const
     end;
 
 
-  function sizeNList(cputarget: cpu_type_t): integer; inline;
+  function sizeNList(cputarget: cpu_type_t): integer;
     begin
       Result:=is64NlistSize[ cputarget and CPU_ARCH_ABI64 > 0];
     end;
