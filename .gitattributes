@@ -7421,6 +7421,7 @@ packages/rtl-console/src/win16/crt.pp svneol=native#text/plain
 packages/rtl-console/src/win16/keyboard.pp svneol=native#text/plain
 packages/rtl-console/src/win16/mouse.pp svneol=native#text/plain
 packages/rtl-console/src/win16/video.pp svneol=native#text/plain
+packages/rtl-console/tests/fpc-3.0.4-win64/us101-bgph1-cp866.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-lalt.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-lctrl.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-lshift.dmp svneol=native#text/plain
