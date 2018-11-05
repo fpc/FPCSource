@@ -126,9 +126,9 @@ interface
           { this function can be used to determine whether a def is really a
             generic declaration or just a normal type declared inside another
             generic }
-          function is_generic:boolean;inline;
+          function is_generic:boolean;
           { same as above for specializations }
-          function is_specialization:boolean;inline;
+          function is_specialization:boolean;
           { registers this def in the unit's deflist; no-op if already registered }
           procedure register_def; override;
           { add the def to the top of the symtable stack if it's not yet owned
