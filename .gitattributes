@@ -7421,6 +7421,7 @@ packages/rtl-console/src/win16/crt.pp svneol=native#text/plain
 packages/rtl-console/src/win16/keyboard.pp svneol=native#text/plain
 packages/rtl-console/src/win16/mouse.pp svneol=native#text/plain
 packages/rtl-console/src/win16/video.pp svneol=native#text/plain
+packages/rtl-console/tests/bios/kbd_us.ods -text svneol=unset#application/vnd.oasis.opendocument.spreadsheet
 packages/rtl-console/tests/bios/us101.bdf svneol=native#text/plain
 packages/rtl-console/tests/bios/us101_capslock.bdf svneol=native#text/plain
 packages/rtl-console/tests/bios/us101_capslock_lshift.bdf svneol=native#text/plain
