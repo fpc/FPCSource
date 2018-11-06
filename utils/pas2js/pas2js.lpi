@@ -21,9 +21,6 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <CommandLineParams Value="-Tbrowser -Jirtl.js -Jc /home/michael/projects/pas2js/demo/rtl/democollection.pas"/>
-      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
