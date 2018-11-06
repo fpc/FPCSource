@@ -7428,6 +7428,7 @@ packages/rtl-console/tests/bios/us101_capslock_lshift.bdf svneol=native#text/pla
 packages/rtl-console/tests/bios/us101_lalt.bdf svneol=native#text/plain
 packages/rtl-console/tests/bios/us101_lalt_lctrl.bdf svneol=native#text/plain
 packages/rtl-console/tests/bios/us101_lalt_lctrl_lshift.bdf svneol=native#text/plain
+packages/rtl-console/tests/bios/us101_lalt_lshift.bdf svneol=native#text/plain
 packages/rtl-console/tests/bios/us101_lctrl.bdf svneol=native#text/plain
 packages/rtl-console/tests/bios/us101_lctrl_lshift.bdf svneol=native#text/plain
 packages/rtl-console/tests/bios/us101_lshift.bdf svneol=native#text/plain
