@@ -62,8 +62,17 @@ type
     ShiftState, Flags: Byte;
   end;
 
-{ System independent function key codes }
 const
+{ The Nil value for the enhanced key event }
+  NilEnhancedKeyEvent: TEnhancedKeyEvent = (
+    VirtualKeyCode: 0;
+    VirtualScanCode: 0;
+    UnicodeChar: #0;
+    AsciiChar: #0;
+    ShiftState: 0;
+    Flags: 0;
+  );
+{ System independent function key codes }
   kbdF1        = $FF01;
   kbdF2        = $FF02;
   kbdF3        = $FF03;
