@@ -347,9 +347,13 @@ implementation
             exit;
           end;
 
-        if (atype=sec_threadvar) and
-          (target_info.system in (systems_windows+systems_wince)) then
-          secname:='.tls';
+        if atype=sec_threadvar then
+          begin
+            if (target_info.system in (systems_windows+systems_wince)) then
+              secname:='.tls'
+            else if (target_info.system in systems_linux) then
+              secname:='.tbss';
+          end;
 
         { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
           Thus, data which normally goes into .rodata and .rodata_norel sections must
@@ -943,6 +947,11 @@ implementation
                         WriteAixIntConst(tai_const(hp));
                       writer.AsmLn;
                     end;
+                 aitconst_gottpoff:
+                   begin
+                     writer.AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(gottpoff)+(.-'+tai_const(hp).endsym.name+tostr_with_plus(tai_const(hp).symofs)+')');
+                     writer.Asmln;
+                   end;
 {$endif cpu64bitaddr}
                  aitconst_got:
                    begin

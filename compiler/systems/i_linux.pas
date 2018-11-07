@@ -589,7 +589,7 @@ unit i_linux;
             name         : 'Linux for ARMHF';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_requires_proper_alignment,
+                            tf_requires_proper_alignment,tf_section_threadvars,
                             tf_smartlink_sections,tf_pic_uses_got,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;
@@ -660,6 +660,9 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
+{$ifdef tls_threadvars}
+                            tf_section_threadvars,
+{$endif tls_threadvars}
                             tf_smartlink_sections,tf_pic_uses_got,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;

@@ -145,7 +145,11 @@ interface
           { offset of symbol's GOT slot in GOT }
           aitconst_got,
           { offset of symbol itself from GOT }
-          aitconst_gotoff_symbol
+          aitconst_gotoff_symbol,
+          { ARM TLS code }
+          aitconst_gottpoff,
+          aitconst_tpoff
+
         );
 
         tairealconsttype = (
@@ -1759,7 +1763,7 @@ implementation
       end;
 
 
-    constructor tai_const.Create_rel_sym_offset(_typ: taiconst_type; _sym,_endsym: tasmsymbol; _ofs: int64);
+    constructor tai_const.Create_rel_sym_offset(_typ: taiconst_type; _sym, _endsym: tasmsymbol; _ofs: int64);
        begin
          self.create_sym_offset(_sym,_ofs);
          consttype:=_typ;

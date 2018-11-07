@@ -1451,6 +1451,9 @@ implementation
             { allocate got register if needed }
             allocate_got_register(aktproccode);
 
+            if pi_uses_threadvar in flags then
+              allocate_tls_register(aktproccode);
+
             { Allocate space in temp/registers for parast and localst }
             current_filepos:=entrypos;
             gen_alloc_symtable(aktproccode,procdef,procdef.parast);
@@ -1561,6 +1564,10 @@ implementation
                (got<>NR_NO) then
               cg.a_reg_sync(aktproccode,got);
 
+            if (pi_uses_threadvar in flags) and
+              (tlsoffset<>NR_NO) then
+              cg.a_reg_sync(aktproccode,tlsoffset);
+
             gen_free_symtable(aktproccode,procdef.localst);
             gen_free_symtable(aktproccode,procdef.parast);
 
@@ -1579,7 +1586,7 @@ implementation
               begin
                 current_filepos:=entrypos;
                 hlcg.gen_stack_check_call(templist);
-                aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
+                aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist);
               end;
 
             { this code (got loading) comes before everything which has }
@@ -1599,8 +1606,12 @@ implementation
             current_filepos:=entrypos;
             { load got if necessary }
             cg.g_maybe_got_init(templist);
-
             aktproccode.insertlistafter(headertai,templist);
+
+            if pi_uses_threadvar in flags then
+              cg.g_maybe_tls_init(templist);
+            aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist);
+
 
             { re-enable if more code at the end is ever generated here
             cg.set_regalloc_live_range_direction(rad_forward);

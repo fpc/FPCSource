@@ -1354,7 +1354,9 @@ const
          (mask:pi_calls_c_varargs;
          str:' calls function with C-style varargs '),
          (mask:pi_has_open_array_parameter;
-         str:' has open array parameter ')
+         str:' has open array parameter '),
+         (mask:pi_uses_threadvar;
+         str:' uses threadvars ')
   );
 var
   procinfooptions : tprocinfoflags;

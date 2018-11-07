@@ -2516,6 +2516,15 @@ Implementation
 
   { TODO : schedule also forward }
   { TODO : schedule distance > 1 }
+
+    { returns true if p might be a load of a pc relative tls offset }
+    function PossibleTLSLoad(const p: tai) : boolean;
+      begin
+        Result:=(p.typ=ait_instruction) and (taicpu(p).opcode=A_LDR) and (taicpu(p).oper[1]^.typ=top_ref) and (((taicpu(p).oper[1]^.ref^.base=NR_PC) and
+          (taicpu(p).oper[1]^.ref^.index<>NR_NO)) or ((taicpu(p).oper[1]^.ref^.base<>NR_NO) and
+          (taicpu(p).oper[1]^.ref^.index=NR_PC)));
+      end;
+
     var
       hp1,hp2,hp3,hp4,hp5,insertpos : tai;
       list : TAsmList;
@@ -2572,7 +2581,9 @@ Implementation
             ) and
             { if we modify the basereg AND the first instruction used that reg, we can not schedule }
             ((taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) or
-             not(instructionLoadsFromReg(taicpu(hp1).oper[1]^.ref^.base,p))) then
+             not(instructionLoadsFromReg(taicpu(hp1).oper[1]^.ref^.base,p))) and
+            not(PossibleTLSLoad(p)) and
+            not(PossibleTLSLoad(hp1)) then
             begin
               hp3:=tai(p.Previous);
               hp5:=tai(p.next);

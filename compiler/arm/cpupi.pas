@@ -49,6 +49,8 @@ unit cpupi;
           procedure generate_parameter_info;override;
           procedure allocate_got_register(list : TAsmList);override;
           procedure postprocess_code;override;
+
+          procedure allocate_tls_register(list : TAsmList);override;
        end;
 
 
@@ -274,6 +276,12 @@ unit cpupi;
       begin
         { because of the limited constant size of the arm, all data access is done pc relative }
         finalizearmcode(aktproccode,aktlocaldata);
+      end;
+
+
+    procedure tcpuprocinfo.allocate_tls_register(list: TAsmList);
+      begin
+        current_procinfo.tlsoffset:=cg.getaddressregister(list);
       end;
 
 begin

@@ -429,7 +429,10 @@ implementation
                   include(current_procinfo.flags,pi_needs_got);
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
-                  include(current_procinfo.flags,pi_do_call);
+                  begin
+                    include(current_procinfo.flags,pi_do_call);
+                    include(current_procinfo.flags,pi_uses_threadvar);
+                  end;
               end;
             procsym :
                 begin

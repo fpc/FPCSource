@@ -107,13 +107,15 @@ unit cgcpu;
         { try to generate optimized 32 Bit multiplication, returns true if successful generated }
         function try_optimized_mul32_const_reg_reg(list: TAsmList; a: tcgint; src, dst: tregister) : boolean;
 
-        { clear out potential overflow bits from 8 or 16 bit operations  }
-        { the upper 24/16 bits of a register after an operation          }
+        { clear out potential overflow bits from 8 or 16 bit operations
+          the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
         { mla for thumb requires that none of the registers is equal to r13/r15, this method ensures this }
         procedure safe_mla(list: TAsmList;op1,op2,op3,op4 : TRegister);
 
+
+        procedure g_maybe_tls_init(list : TAsmList); override;
       end;
 
       { tcgarm is shared between normal arm and thumb-2 }
@@ -2114,7 +2116,7 @@ unit cgcpu;
                    end;
                end;
              end;
-        end;
+          end;
       end;
 
 
@@ -2476,6 +2478,8 @@ unit cgcpu;
                     a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
                 indirection_done:=true;
               end
+            else if ref.refaddr=addr_gottpoff then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
             else if (cs_create_pic in current_settings.moduleswitches) then
               if (tf_pic_uses_got in target_info.flags) then
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
@@ -3268,6 +3272,15 @@ unit cgcpu;
         checkreg(op3);
         checkreg(op4);
         list.concat(taicpu.op_reg_reg_reg_reg(A_MLA,op1,op2,op3,op4));
+      end;
+
+
+    procedure tbasecgarm.g_maybe_tls_init(list : TAsmList);
+      begin
+        list.concat(tai_regalloc.alloc(NR_R0,nil));
+        a_call_name(list,'fpc_read_tp',false);
+        a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,current_procinfo.tlsoffset);
+        list.concat(tai_regalloc.dealloc(NR_R0,nil));
       end;
 
 
@@ -5026,7 +5039,10 @@ unit cgcpu;
                 cg.a_label(current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
-                current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
+                if ref.refaddr=addr_gottpoff then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+                else
+                  current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
 
                 { load consts entry }
                 tmpref.symbol:=l;

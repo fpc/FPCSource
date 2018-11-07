@@ -700,7 +700,9 @@ interface
            for i8086 cpu huge memory model,
            as this changes SP register it requires special handling
            to restore DS segment register  }
-         pi_has_open_array_parameter
+         pi_has_open_array_parameter,
+         { subroutine uses threadvars }
+         pi_uses_threadvar
        );
        tprocinfoflags=set of tprocinfoflag;
 

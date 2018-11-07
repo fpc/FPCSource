@@ -493,8 +493,8 @@ implementation
                          reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment,[])
                      end
                    else
-                     location:=gvs.localloc;
-                 end;
+                      location:=gvs.localloc;
+                  end;
 
                 { make const a LOC_CREFERENCE }
                 if (gvs.varspez=vs_const) and
