@@ -142,7 +142,7 @@ implementation
       procedure _no_inline(const reason: TMsgStr);
         begin
           include(procdef.implprocoptions,pio_inline_not_possible);
-          Message1(parser_h_not_supported_for_inline,reason);
+          Message1(parser_n_not_supported_for_inline,reason);
           Message(parser_h_inlining_disabled);
         end;
 
@@ -2060,7 +2060,7 @@ implementation
           begin
             if (po_inline in current_procinfo.procdef.procoptions) then
               begin
-                Message1(parser_h_not_supported_for_inline,'nested procedures');
+                Message1(parser_n_not_supported_for_inline,'nested procedures');
                 Message(parser_h_inlining_disabled);
                 exclude(current_procinfo.procdef.procoptions,po_inline);
               end;

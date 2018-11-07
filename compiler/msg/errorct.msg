@@ -719,7 +719,7 @@ parser_e_function_already_declared_public_forward=03120_E_La funció "$1" ja està
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_No es poden utilitzar EXPORT i EXTERNAL conjuntament
 % These two procedure directives are mutually exclusive
-parser_h_not_supported_for_inline=03123_H_Encara no es permet "$1" dins de procediment/funció inserits
+parser_n_not_supported_for_inline=03123_N_Encara no es permet "$1" dins de procediment/funció inserits
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_S'ha deshabilitat l'inseriment
 % Inlining of procedures is disabled.
