@@ -3091,6 +3091,9 @@ var
   ptm: TProcTypeModifier;
   TypeEl, ElTypeEl: TPasType;
 begin
+  if El.Parent.Parent is TPasRecordType then
+    RaiseNotYetImplemented(20181107183603,El,'methods in records');
+
   inherited FinishProcedureType(El);
 
   if El is TPasFunctionType then
