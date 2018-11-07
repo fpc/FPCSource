@@ -38,6 +38,7 @@ interface
 implementation
 
     uses
+      globals,
       cutils,verbose,systems,
       aasmbase,aasmtai,aasmdata,
       cgutils,cgobj,
@@ -88,7 +89,15 @@ implementation
           begin
             case target_info.system of
               system_i386_linux,system_i386_android:
-                location.reference.segment:=NR_GS;
+                begin
+                  location.reference.segment:=NR_GS;
+                  case current_settings.tlsmodel of
+                    tlsm_local:
+                      location.reference.refaddr:=addr_ntpoff;
+                    else
+                      Internalerror(2018110401);
+                  end;
+                end;
             end;
           end;
       end;

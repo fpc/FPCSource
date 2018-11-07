@@ -442,13 +442,56 @@ begin
 end;
 
 
-{$ifdef CPUARM}
-
-Function fpset_tls(p : pointer):cint;
+{$if defined(CPUARM)}
+{$define INITTLS}
+Function fpset_tls(p : pointer;size : SizeUInt):cint;
 begin
- Result:=do_syscall(__ARM_NR_set_tls,TSysParam(p));
+  Result:=do_syscall(__ARM_NR_set_tls,TSysParam(p));
 end;
+{$endif defined(CPUARM)}
 
+{$if defined(CPUI386)}
+{$define INITTLS}
+Function fpset_tls(p : pointer;size : SizeUInt):cint;
+var
+  desc : record
+    entry_number : dword;
+    base_addr : dword;
+    limit : dword;
+    flags : dword;
+  end;
+  selector : word;
+begin
+  // get descriptor from the kernel
+  desc.entry_number:=$ffffffff;
+  // TLS is accessed by negative offsets, only the TCB pointer is at offset 0
+  desc.base_addr:=dword(p)+size-SizeOf(Pointer);
+  // 4 GB, limit is given in pages
+  desc.limit:=$fffff;
+  // seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1
+  desc.flags:=%1010001;
+  Result:=do_syscall(syscall_nr_set_thread_area,TSysParam(@desc));
+  if Result=0 then
+    begin
+      selector:=desc.entry_number*8+3;
+      asm
+        movw selector,%gs
+        movl desc.base_addr,%eax
+        movl %eax,%gs:0
+      end;
+    end;
+end;
+{$endif defined(CPUI386)}
+
+{$ifdef INITTLS}
+{ This code initialized the TLS segment for single threaded and static programs.
+
+  In case of multithreaded and/or dynamically linked programs it is assumed that they
+  dependent anyways on glibc which initializes tls properly.
+
+  As soon as a purely FPC dynamic loading or multithreading is implemented, the code
+  needs to be extended to handle these cases as well.
+}
 
 procedure InitTLS; [public,alias:'FPC_INITTLS'];
   const
@@ -474,11 +517,12 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
     tls : pointer;
     auxp : ppointer;
     found : boolean;
+    size : SizeUInt;
   begin
     auxp:=ppointer(envp);
     { skip environment }
     while assigned(auxp^) do
-     inc(auxp);
+      inc(auxp);
     inc(auxp);
     { now we are at the auxillary vector }
     while assigned(auxp^) do
@@ -503,8 +547,14 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
       end;
     if found then
       begin
-        tls:=Fpmmap(nil,phdr^.p_memsz,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-        fpset_tls(tls);
+        size:=phdr^.p_memsz;
+{$ifdef CPUI386}
+        { threadvars should start at a page boundary,
+          add extra space for the TCB }
+        size:=Align(size,4096)+sizeof(Pointer);
+{$endif CPUI386}
+        tls:=Fpmmap(nil,size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+        fpset_tls(tls,size);
       end;
   end;
 {$endif CPUARM}

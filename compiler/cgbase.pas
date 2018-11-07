@@ -126,7 +126,10 @@ interface
          ,addr_gottpoff
          ,addr_tpoff
          {$ENDIF}
-
+         {$IFDEF i386}
+         ,addr_ntpoff
+         ,addr_tlsgd
+         {$ENDIF}
          );
 
 

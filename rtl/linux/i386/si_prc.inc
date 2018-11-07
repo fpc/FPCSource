@@ -45,6 +45,8 @@ var
 function fpc_geteipasebxlocal : pointer; [external name 'fpc_geteipasebx'];
 {$endif}
 
+procedure InitTLS; [external name 'FPC_INITTLS'];
+
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 asm
   { First locate the start of the environment variables }
@@ -92,6 +94,8 @@ asm
   {$else FPC_PIC}
   	movl    %esp,initialstkptr
   {$endif FPC_PIC}
+
+  call    InitTLS
 
   xorl    %ebp,%ebp
   call    PASCALMAIN
