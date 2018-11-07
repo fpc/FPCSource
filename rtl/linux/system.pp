@@ -441,6 +441,75 @@ begin
     result := stklen;
 end;
 
+
+{$ifdef CPUARM}
+
+Function fpset_tls(p : pointer):cint;
+begin
+ Result:=do_syscall(__ARM_NR_set_tls,TSysParam(p));
+end;
+
+
+procedure InitTLS; [public,alias:'FPC_INITTLS'];
+  const
+    PT_TLS = 7;
+
+  type
+    tphdr = record
+      p_type,
+      p_offset,
+      p_vaddr,
+      p_paddr,
+      p_filesz,
+      p_memsz,
+      p_flags,
+      p_align : dword;
+    end;
+    pphdr = ^tphdr;
+
+  var
+    phdr : pphdr;
+    phnum : dword;
+    i   : integer;
+    tls : pointer;
+    auxp : ppointer;
+    found : boolean;
+  begin
+    auxp:=ppointer(envp);
+    { skip environment }
+    while assigned(auxp^) do
+     inc(auxp);
+    inc(auxp);
+    { now we are at the auxillary vector }
+    while assigned(auxp^) do
+      begin
+        case plongint(auxp)^ of
+          3:
+            phdr:=pphdr(ppointer(auxp+1)^);
+          5:
+            phnum:=pdword(auxp+1)^;
+        end;
+        inc(auxp,2);
+      end;
+    found:=false;
+    for i:=1 to phnum do
+      begin
+        if phdr^.p_type=PT_TLS then
+          begin
+            found:=true;
+            break;
+          end;
+        inc(phdr);
+      end;
+    if found then
+      begin
+        tls:=Fpmmap(nil,phdr^.p_memsz,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+        fpset_tls(tls);
+      end;
+  end;
+{$endif CPUARM}
+
+
 begin
 {$if defined(i386) and not defined(FPC_USE_LIBC)}
   InitSyscallIntf;
