@@ -1018,6 +1018,37 @@ begin
   TranslateEnhancedKeyEvent := Key;
 end;
 
+function SysGetEnhancedKeyEvent: TEnhancedKeyEvent;
+var t   : TKeyEventRecord;
+    key : TEnhancedKeyEvent;
+begin
+  key := NilEnhancedKeyEvent;
+  repeat
+     if getKeyEventFromQueueWait (t) then
+       key := TranslateEnhancedKeyEvent (t);
+  until key <> NilEnhancedKeyEvent;
+  SysGetEnhancedKeyEvent := key;
+end;
+
+function SysPollEnhancedKeyEvent: TEnhancedKeyEvent;
+var t   : TKeyEventRecord;
+    k   : TEnhancedKeyEvent;
+begin
+  SysPollEnhancedKeyEvent := NilEnhancedKeyEvent;
+  if getKeyEventFromQueue (t, true) then
+  begin
+    { we get an enty for shift, ctrl, alt... }
+    k := TranslateEnhancedKeyEvent (t);
+    while (k = NilEnhancedKeyEvent) do
+    begin
+      getKeyEventFromQueue (t, false);  {remove it}
+      if not getKeyEventFromQueue (t, true) then exit;
+      k := TranslateEnhancedKeyEvent (t)
+    end;
+    SysPollEnhancedKeyEvent := k;
+  end;
+end;
+
 Const
   SysKeyboardDriver : TKeyboardDriver = (
     InitDriver : @SysInitKeyBoard;
