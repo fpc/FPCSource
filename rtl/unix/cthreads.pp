@@ -159,6 +159,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       var
         dataindex : pointer;
       begin
+{$ifndef FPC_SECTION_THREADVARS}
         { we've to allocate the memory from system  }
         { because the FPC heap management uses      }
         { exceptions which use threadvars but       }
@@ -167,6 +168,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         DataIndex:=Pointer(Fpmmap(nil,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
         FillChar(DataIndex^,threadvarblocksize,0);
         pthread_setspecific(tlskey,dataindex);
+{$endif FPC_SECTION_THREADVARS}
       end;
 
 
@@ -321,7 +323,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       begin
         { We're still running in single thread mode, setup the TLS }
         pthread_key_create(@TLSKey,nil);
+{$ifndef FPC_SECTION_THREADVARS}
         InitThreadVars(@CRelocateThreadvar);
+{$endif FPC_SECTION_THREADVARS}
         { used to clean up threads that we did not create ourselves:
            a) the default value for a key (and hence also this one) in
               new threads is NULL, and if it's still like that when the
