@@ -3457,7 +3457,7 @@ begin
         NamePos:=CurSourcePos;
         List:=TFPList.Create;
         try
-          ReadGenericArguments(List,Nil);
+          ReadGenericArguments(List,Declarations);
           ExpectToken(tkEqual);
           NextToken;
           Case CurToken of
@@ -3859,7 +3859,7 @@ begin
   CheckToken(tkSquaredBraceClose);
 end;
 
-procedure TPasParser.ReadGenericArguments(List : TFPList;Parent : TPasElement);
+procedure TPasParser.ReadGenericArguments(List: TFPList; Parent: TPasElement);
 
 Var
   N : String;
