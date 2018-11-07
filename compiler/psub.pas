@@ -1203,6 +1203,46 @@ implementation
         procdef.has_inlininginfo:=true;
        end;
 
+    procedure searchthreadvar(p: TObject; arg: pointer);
+      var
+        i : longint;
+        pd : tprocdef;
+      begin
+        case tsym(p).typ of
+          staticvarsym :
+            begin
+                  { local (procedure or unit) variables only need finalization
+                    if they are used
+                  }
+              if (vo_is_thread_var in tstaticvarsym(p).varoptions) and
+                 ((tstaticvarsym(p).refs>0) or
+                  { global (unit) variables always need finalization, since
+                    they may also be used in another unit
+                  }
+                  (tstaticvarsym(p).owner.symtabletype=globalsymtable)) and
+                  (
+                    (tstaticvarsym(p).varspez<>vs_const) or
+                    (vo_force_finalize in tstaticvarsym(p).varoptions)
+                  ) and
+                 not(vo_is_funcret in tstaticvarsym(p).varoptions) and
+                 not(vo_is_external in tstaticvarsym(p).varoptions) and
+                 is_managed_type(tstaticvarsym(p).vardef) then
+                include(current_procinfo.flags,pi_uses_threadvar);
+            end;
+          procsym :
+            begin
+              for i:=0 to tprocsym(p).ProcdefList.Count-1 do
+                begin
+                  pd:=tprocdef(tprocsym(p).ProcdefList[i]);
+                  if assigned(pd.localst) and
+                     (pd.procsym=tprocsym(p)) and
+                     (pd.localst.symtabletype<>staticsymtable) then
+                    pd.localst.SymList.ForEachCall(@searchthreadvar,arg);
+                end;
+            end;
+        end;
+      end;
+
 
     function searchusercode(var n: tnode; arg: pointer): foreachnoderesult;
       begin
@@ -1229,6 +1269,19 @@ implementation
 
 
     procedure tcgprocinfo.generate_code;
+
+       procedure check_for_threadvars_in_initfinal;
+         begin
+           if current_procinfo.procdef.proctypeoption=potype_unitfinalize then
+             begin
+                { this is also used for initialization of variables in a
+                  program which does not have a globalsymtable }
+                if assigned(current_module.globalsymtable) then
+                  TSymtable(current_module.globalsymtable).SymList.ForEachCall(@searchthreadvar,nil);
+                TSymtable(current_module.localsymtable).SymList.ForEachCall(@searchthreadvar,nil);
+             end;
+         end;
+
       var
         old_current_procinfo : tprocinfo;
         oldmaxfpuregisters : longint;
@@ -1425,6 +1478,10 @@ implementation
           (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
           (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
           procdef.isempty:=true;
+
+        { unit static/global symtables might contain threadvars which are not explicitly used but which might
+          require a tls register, so check for such variables }
+        check_for_threadvars_in_initfinal;
 
         { add implicit entry and exit code }
         add_entry_exit_code;
