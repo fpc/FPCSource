@@ -4031,6 +4031,15 @@ begin
      not(cs_link_separate_dbg_file in init_settings.globalswitches) then
     exclude(init_settings.globalswitches,cs_link_strip);
 
+  { choose a reasonable tls model }
+  if (tf_section_threadvars in target_info.flags) and (init_settings.tlsmodel=tlsm_none) then
+    begin
+      if cs_create_pic in init_settings.moduleswitches then
+        init_settings.tlsmodel:=tlsm_general
+      else
+        init_settings.tlsmodel:=tlsm_local;
+    end;
+
   { set Mac OS X version default macros if not specified explicitly }
   option.MaybeSetDefaultMacVersionMacro;
 

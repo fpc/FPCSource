@@ -706,6 +706,13 @@ interface
        );
        tprocinfoflags=set of tprocinfoflag;
 
+       ttlsmodel = (tlsm_none,
+         { elf tls model: works for all kind of code and thread vars }
+         tlsm_general,
+         { elf tls model: works only if the thread vars are declared and used in the same executable }
+         tlsm_local
+       );
+
     type
       { float types -- warning, this enum/order is used internally by the RTL
         as well in rtl/inc/real2str.inc }
