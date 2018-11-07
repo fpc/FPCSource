@@ -423,7 +423,9 @@ type
     { the routine contains no code }
     pio_empty,
     { the inline body of this routine is available }
-    pio_has_inlininginfo
+    pio_has_inlininginfo,
+    { inline is not possible (has assembler block, etc) }
+    pio_inline_not_possible
   );
   timplprocoptions = set of timplprocoption;
 

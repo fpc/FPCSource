@@ -141,6 +141,7 @@ implementation
 
       procedure _no_inline(const reason: TMsgStr);
         begin
+          include(procdef.implprocoptions,pio_inline_not_possible);
           Message1(parser_h_not_supported_for_inline,reason);
           Message(parser_h_inlining_disabled);
         end;

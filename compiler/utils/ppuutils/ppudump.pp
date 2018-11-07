@@ -2228,7 +2228,8 @@ type
 const
   piopt : array[low(timplprocoption)..high(timplprocoption)] of tpiopt=(
     (mask:pio_empty; str:'IsEmpty'),
-    (mask:pio_has_inlininginfo; str:'HasInliningInfo')
+    (mask:pio_has_inlininginfo; str:'HasInliningInfo'),
+    (mask:pio_inline_not_possible; str:'InlineNotPossible')
   );
 var
   i: timplprocoption;

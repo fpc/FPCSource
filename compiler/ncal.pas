@@ -4373,8 +4373,12 @@ implementation
              result:=pass1_inline
            else
              begin
-               if (po_inline in procdefinition.procoptions) and not(po_compilerproc in procdefinition.procoptions) then
-                 Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker]));
+               if (po_inline in procdefinition.procoptions) and not(po_compilerproc in procdefinition.procoptions) and
+                  (procdefinition.typ=procdef) and
+                  not (pio_inline_not_possible in tprocdef(procdefinition).implprocoptions) then
+                 begin
+                   Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker]));
+                 end;
                mark_unregable_parameters;
                result:=pass1_normal;
              end;
