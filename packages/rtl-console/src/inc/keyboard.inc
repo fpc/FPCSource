@@ -218,6 +218,16 @@ begin
     PollEnhancedKeyEvent:=DefaultPollEnhancedKeyEvent;
 end;
 
+operator = (const a, b: TEnhancedKeyEvent) res: Boolean;
+begin
+  res:=(a.VirtualKeyCode = b.VirtualKeyCode) and
+       (a.VirtualScanCode = b.VirtualScanCode) and
+       (a.UnicodeChar = b.UnicodeChar) and
+       (a.AsciiChar = b.AsciiChar) and
+       (a.ShiftState = b.ShiftState) and
+       (a.Flags = b.Flags);
+end;
+
 type
   TTranslationEntry = packed record
     Min, Max: Byte;

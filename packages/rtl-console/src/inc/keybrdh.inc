@@ -225,3 +225,5 @@ function GetEnhancedKeyEvent: TEnhancedKeyEvent;
 function PollEnhancedKeyEvent: TEnhancedKeyEvent;
 { Checks if a keyevent is available, and returns it if one is found. If no
   event is pending, it returns 0 }
+
+operator = (const a, b: TEnhancedKeyEvent) res: Boolean;
