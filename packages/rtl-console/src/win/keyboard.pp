@@ -883,7 +883,7 @@ var key : TEnhancedKeyEvent;
 {$endif  USEKEYCODES}
     b   : byte;
 begin
-  FillChar(Key,SizeOf(Key),0);
+  Key := NilEnhancedKeyEvent;
   if t.bKeyDown then
   begin
     { unicode-char is <> 0 if not a specal key }
@@ -922,7 +922,7 @@ begin
       If ScanCode>0 then
         t.wVirtualScanCode:=ScanCode;
 {$endif not USEKEYCODES}
-      FillChar(TranslateEnhancedKeyEvent,SizeOf(TranslateEnhancedKeyEvent),0);
+      TranslateEnhancedKeyEvent := NilEnhancedKeyEvent;
       { ignore shift,ctrl,alt,numlock,capslock alone }
       case t.wVirtualKeyCode of
         $0010,         {shift}
