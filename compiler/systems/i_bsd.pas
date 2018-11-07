@@ -60,9 +60,9 @@ unit i_bsd;
             name         : 'FreeBSD/ELF for i386';
             shortname    : 'FreeBSD';
             flags        : [tf_pic_uses_got,tf_files_case_sensitive,
-{$ifdef segment_threadvars}
+{$ifdef tls_threadvars}
                             tf_section_threadvars,
-{$endif segment_threadvars}
+{$endif tls_threadvars}
                             tf_needs_symbol_type,tf_needs_symbol_size
                             ,tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_i386;
