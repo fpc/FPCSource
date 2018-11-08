@@ -41,6 +41,7 @@ interface
           function pass_typecheck_cpu:tnode;virtual;
           function simplify(forinline : boolean): tnode;override;
           function docompare(p: tnode): boolean; override;
+          procedure mark_write;override;
 
           { returns a node tree where the inc/dec are replaced by add/sub }
           function getaddsub_for_incdec : tnode;
@@ -4076,6 +4077,16 @@ implementation
           (inlinenumber = tinlinenode(p).inlinenumber);
       end;
 
+
+    procedure tinlinenode.mark_write;
+      begin
+        case inlinenumber of
+	  in_aligned_x, in_unaligned_x:
+           tcallparanode(left).left.mark_write;
+        else
+          inherited mark_write;
+        end;
+      end;
 
     function tinlinenode.first_pi : tnode;
       begin
