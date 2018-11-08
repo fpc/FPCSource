@@ -87,6 +87,7 @@ implementation
 
         if (tf_section_threadvars in target_info.flags) then
           begin
+{$ifdef i386}
             case target_info.system of
               system_i386_linux,system_i386_android:
                 begin
@@ -99,6 +100,7 @@ implementation
                   end;
                 end;
             end;
+{$endif i386}
           end;
       end;
 

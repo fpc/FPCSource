@@ -1108,6 +1108,7 @@ unit cgx86;
 
         with dirref do
           begin
+{$ifdef i386}
             if refaddr=addr_ntpoff then
               begin
                 { Convert thread local address to a process global addres
@@ -1138,7 +1139,7 @@ unit cgx86;
                     Internalerror(2018110403);
                 end;
               end;
-
+{$endif i386}
             if (base=NR_NO) and (index=NR_NO) then
               begin
                 if assigned(dirref.symbol) then

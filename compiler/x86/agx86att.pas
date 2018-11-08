@@ -179,8 +179,10 @@ interface
                  owner.writer.AsmWrite('@GOT');
 {$endif x86_64}
                end;
+{$ifdef i386}
              addr_ntpoff:
                owner.writer.AsmWrite('@ntpoff');
+{$endif i386}
            end;
 
            if offset<0 then
@@ -227,7 +229,7 @@ interface
             else
               owner.writer.AsmWrite(gas_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got,addr_ntpoff] then
+            if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got{$ifdef i386},addr_ntpoff{$endif i386}] then
               WriteReference(o.ref^)
             else
               begin
