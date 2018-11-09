@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, fpcunit, testregistry, contnrs,
   jstree, jswriter, jsbase,
   PasTree, PScanner, PasResolver, PParser, PasResolveEval,
-  Pas2jsPParser, FPPas2Js;
+  FPPas2Js;
 
 const
   // default parser+scanner options
@@ -3317,6 +3317,14 @@ begin
   '  { a:{ b:{}, c:[]}, d:''1'' };',
   '  end;',
   '  asm console.log(); end;',
+  '  asm',
+  '    s = "'' ";',
+  '    s = ''" '';',
+  '    s = s + "world" + "''";',
+  '    // end',
+  '    s = ''end'';',
+  '    s = "end";',
+  '  end;',
   'end;',
   'begin']);
   ConvertProgram;
@@ -3326,6 +3334,12 @@ begin
     '  var Result = 0;',
     '  { a:{ b:{}, c:[]}, d:''1'' };',
     '  console.log();',
+    '  s = "'' ";',
+    '  s = ''" '';',
+    '  s = s + "world" + "''";',
+    '  // end',
+    '  s = ''end'';',
+    '  s = "end";',
     '  return Result;',
     '};'
     ]),

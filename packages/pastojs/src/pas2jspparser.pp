@@ -34,23 +34,6 @@ const // Messages
 
 type
 
-  { TPas2jsPasScanner }
-
-  TPas2jsPasScanner = class(TPascalScanner)
-  private
-    FCompilerVersion: string;
-    FResolver: TPas2JSResolver;
-    FTargetPlatform: TPasToJsPlatform;
-    FTargetProcessor: TPasToJsProcessor;
-  protected
-    function HandleInclude(const Param: String): TToken; override;
-  public
-    property CompilerVersion: string read FCompilerVersion write FCompilerVersion;
-    property Resolver: TPas2JSResolver read FResolver write FResolver;
-    property TargetPlatform: TPasToJsPlatform read FTargetPlatform write FTargetPlatform;
-    property TargetProcessor: TPasToJsProcessor read FTargetProcessor write FTargetProcessor;
-  end;
-
   { TPas2jsPasParser }
 
   TPas2jsPasParser = class(TPasParser)
@@ -121,81 +104,6 @@ var
 begin
   LastMsgNumber:=-1;
   r(mtError,nFinalizationNotSupported,sFinalizationNotSupported);
-end;
-
-{ TPas2jsPasScanner }
-
-function TPas2jsPasScanner.HandleInclude(const Param: String): TToken;
-
-  procedure SetStr(const s: string);
-  begin
-    Result:=tkString;
-    SetCurTokenString(''''+s+'''');
-  end;
-
-var
-  Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
-  i: Integer;
-  Scope: TPasScope;
-begin
-  if (Param<>'') and (Param[1]='%') then
-  begin
-    case lowercase(Param) of
-    '%date%':
-      begin
-        DecodeDate(Now,Year,Month,Day);
-        SetStr(IntToStr(Year)+'/'+IntToStr(Month)+'/'+IntToStr(Day));
-        exit;
-      end;
-    '%time%':
-      begin
-        DecodeTime(Now,Hour,Minute,Second,MilliSecond);
-        SetStr(Format('%2d:%2d:%2d',[Hour,Minute,Second]));
-        exit;
-      end;
-    '%pas2jstarget%','%fpctarget%',
-    '%pas2jstargetos%','%fpctargetos%':
-      begin
-        SetStr(PasToJsPlatformNames[TargetPlatform]);
-        exit;
-      end;
-    '%pas2jstargetcpu%','%fpctargetcpu%':
-      begin
-        SetStr(PasToJsProcessorNames[TargetProcessor]);
-        exit;
-      end;
-    '%pas2jsversion%','%fpcversion%':
-      begin
-        SetStr(CompilerVersion);
-        exit;
-      end;
-    '%line%':
-      begin
-        SetStr(IntToStr(CurRow));
-        exit;
-      end;
-    '%currentroutine%':
-      begin
-        if Resolver<>nil then
-          for i:=Resolver.ScopeCount-1 downto 0 do
-          begin
-            Scope:=Resolver.Scopes[i];
-            if (Scope.Element is TPasProcedure)
-                and (Scope.Element.Name<>'') then
-            begin
-              SetStr(Scope.Element.Name);
-              exit;
-            end;
-          end;
-        SetStr('<anonymous>');
-        exit;
-      end;
-    else
-      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
-        ['$i '+Param]);
-    end;
-  end;
-  Result:=inherited HandleInclude(Param);
 end;
 
 { TPas2jsPasParser }

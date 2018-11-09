@@ -25,7 +25,7 @@ interface
 uses
   Classes, SysUtils, fpcunit, testregistry,
   PasTree, PScanner, PasResolver, PasResolveEval, PParser, PasUseAnalyzer,
-  FPPas2Js, Pas2JsFiler, Pas2jsPParser,
+  FPPas2Js, Pas2JsFiler,
   tcmodules, jstree;
 
 type

@@ -928,13 +928,7 @@ const
      'valueOf'
     );
 
-const
-  ClassVarModifiersType = [vmClass,vmStatic];
-  LowJSNativeInt = MinSafeIntDouble;
-  HighJSNativeInt = MaxSafeIntDouble;
-  LowJSBoolean = false;
-  HighJSBoolean = true;
-Type
+type
 
   { EPas2JS }
 
@@ -946,6 +940,29 @@ Type
     Id: TMaxPrecInt;
     MsgType: TMessageType;
   end;
+
+type
+  TPasToJsPlatform = (
+    PlatformBrowser,
+    PlatformNodeJS
+    );
+  TPasToJsPlatforms = set of TPasToJsPlatform;
+const
+  PasToJsPlatformNames: array[TPasToJsPlatform] of string = (
+   'Browser',
+   'NodeJS'
+    );
+type
+  TPasToJsProcessor = (
+    ProcessorECMAScript5,
+    ProcessorECMAScript6
+    );
+  TPasToJsProcessors = set of TPasToJsProcessor;
+const
+  PasToJsProcessorNames: array[TPasToJsProcessor] of string = (
+   'ECMAScript5',
+   'ECMAScript6'
+    );
 
 //------------------------------------------------------------------------------
 // Pas2js built-in types
@@ -961,6 +978,13 @@ const
     'None',
     'JSValue'
     );
+
+const
+  ClassVarModifiersType = [vmClass,vmStatic];
+  LowJSNativeInt = MinSafeIntDouble;
+  HighJSNativeInt = MaxSafeIntDouble;
+  LowJSBoolean = false;
+  HighJSBoolean = true;
 
 //------------------------------------------------------------------------------
 // Element CustomData
@@ -1141,6 +1165,29 @@ const
     proMethodAddrAsPointer
     ];
 type
+  TPas2JSResolver = class;
+
+  { TPas2jsPasScanner }
+
+  TPas2jsPasScanner = class(TPascalScanner)
+  private
+    FCompilerVersion: string;
+    FResolver: TPas2JSResolver;
+    FTargetPlatform: TPasToJsPlatform;
+    FTargetProcessor: TPasToJsProcessor;
+  protected
+    function HandleInclude(const Param: String): TToken; override;
+  public
+    function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
+      override;
+    property CompilerVersion: string read FCompilerVersion write FCompilerVersion;
+    property Resolver: TPas2JSResolver read FResolver write FResolver;
+    property TargetPlatform: TPasToJsPlatform read FTargetPlatform write FTargetPlatform;
+    property TargetProcessor: TPasToJsProcessor read FTargetProcessor write FTargetProcessor;
+  end;
+
+  { TPas2JSResolver }
+
   TPas2JSResolver = class(TPasResolver)
   private
     FJSBaseTypes: array[TPas2jsBaseType] of TPasUnresolvedSymbolRef;
@@ -1427,32 +1474,7 @@ const
     woCompactObjectLiterals,
     woCompactArguments];
 type
-
   TPas2JSIsElementUsedEvent = function(Sender: TObject; El: TPasElement): boolean of object;
-
-  TPasToJsPlatform = (
-    PlatformBrowser,
-    PlatformNodeJS
-    );
-  TPasToJsPlatforms = set of TPasToJsPlatform;
-const
-  PasToJsPlatformNames: array[TPasToJsPlatform] of string = (
-   'Browser',
-   'NodeJS'
-    );
-type
-  TPasToJsProcessor = (
-    ProcessorECMAScript5,
-    ProcessorECMAScript6
-    );
-  TPasToJsProcessors = set of TPasToJsProcessor;
-const
-  PasToJsProcessorNames: array[TPasToJsProcessor] of string = (
-   'ECMAScript5',
-   'ECMAScript6'
-    );
-
-type
   TJSReservedWordList = array of String;
 
   TRefPathKind = (
@@ -1844,6 +1866,7 @@ const
   TempRefObjGetterName = 'get';
   TempRefObjSetterName = 'set';
   TempRefObjSetterArgName = 'v';
+  IdentChars = ['0'..'9', 'A'..'Z', 'a'..'z','_'];
 
 function CodePointToJSString(u: longword): TJSString;
 begin
@@ -2016,6 +2039,245 @@ constructor TFCLocalIdentifier.Create(const aName: string; TheEl: TPasElement);
 begin
   Name:=aName;
   Element:=TheEl;
+end;
+
+{ TPas2jsPasScanner }
+
+function TPas2jsPasScanner.HandleInclude(const Param: String): TToken;
+
+  procedure SetStr(const s: string);
+  begin
+    Result:=tkString;
+    SetCurTokenString(''''+s+'''');
+  end;
+
+var
+  Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
+  i: Integer;
+  Scope: TPasScope;
+begin
+  if (Param<>'') and (Param[1]='%') then
+  begin
+    case lowercase(Param) of
+    '%date%':
+      begin
+        DecodeDate(Now,Year,Month,Day);
+        SetStr(IntToStr(Year)+'/'+IntToStr(Month)+'/'+IntToStr(Day));
+        exit;
+      end;
+    '%time%':
+      begin
+        DecodeTime(Now,Hour,Minute,Second,MilliSecond);
+        SetStr(Format('%2d:%2d:%2d',[Hour,Minute,Second]));
+        exit;
+      end;
+    '%pas2jstarget%','%fpctarget%',
+    '%pas2jstargetos%','%fpctargetos%':
+      begin
+        SetStr(PasToJsPlatformNames[TargetPlatform]);
+        exit;
+      end;
+    '%pas2jstargetcpu%','%fpctargetcpu%':
+      begin
+        SetStr(PasToJsProcessorNames[TargetProcessor]);
+        exit;
+      end;
+    '%pas2jsversion%','%fpcversion%':
+      begin
+        SetStr(CompilerVersion);
+        exit;
+      end;
+    '%line%':
+      begin
+        SetStr(IntToStr(CurRow));
+        exit;
+      end;
+    '%currentroutine%':
+      begin
+        if Resolver<>nil then
+          for i:=Resolver.ScopeCount-1 downto 0 do
+          begin
+            Scope:=Resolver.Scopes[i];
+            if (Scope.Element is TPasProcedure)
+                and (Scope.Element.Name<>'') then
+            begin
+              SetStr(Scope.Element.Name);
+              exit;
+            end;
+          end;
+        SetStr('<anonymous>');
+        exit;
+      end;
+    else
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
+        ['$i '+Param]);
+    end;
+  end;
+  Result:=inherited HandleInclude(Param);
+end;
+
+function TPas2jsPasScanner.ReadNonPascalTillEndToken(StopAtLineEnd: boolean
+  ): TToken;
+var
+  StartPos, MyTokenPos: integer;
+  s: string;
+  l: integer;
+
+  Procedure CommitTokenPos;
+  begin
+    {$IFDEF Pas2js}
+    TokenPos:=MyTokenPos;
+    {$ELSE}
+    TokenPos:=PChar(s)+MyTokenPos-1;
+    {$ENDIF}
+  end;
+
+  Procedure Add;
+  var
+    AddLen: PtrInt;
+  begin
+    AddLen:=MyTokenPos-StartPos;
+    if AddLen=0 then
+      SetCurTokenString('')
+    else
+      begin
+      SetCurTokenString(CurTokenString+copy(CurLine,StartPos,AddLen));
+      StartPos:=MyTokenPos;
+      end;
+  end;
+
+  function DoEndOfLine: boolean;
+  begin
+    Add;
+    if StopAtLineEnd then
+      begin
+      ReadNonPascalTillEndToken := tkLineEnding;
+      CommitTokenPos;
+      SetCurToken(tkLineEnding);
+      FetchLine;
+      exit(true);
+      end;
+    if not FetchLine then
+      begin
+      ReadNonPascalTillEndToken := tkEOF;
+      SetCurToken(tkEOF);
+      exit(true);
+      end;
+    s:=CurLine;
+    l:=length(s);
+    MyTokenPos:=1;
+    StartPos:=MyTokenPos;
+    Result:=false;
+  end;
+
+begin
+  SetCurTokenString('');
+  s:=CurLine;
+  l:=length(s);
+  {$IFDEF Pas2js}
+  MyTokenPos:=TokenPos;
+  {$ELSE}
+  {$IFDEF VerbosePas2JS}
+  if (TokenPos<PChar(s)) or (TokenPos>PChar(s)+length(s)) then
+    Error(nErrRangeCheck,'[20181109104812]');
+  {$ENDIF}
+  MyTokenPos:=TokenPos-PChar(s)+1;
+  {$ENDIF}
+  StartPos:=MyTokenPos;
+  repeat
+    if MyTokenPos>l then
+      if DoEndOfLine then exit;
+    case s[MyTokenPos] of
+    '''':
+      begin
+      inc(MyTokenPos);
+      repeat
+        if MyTokenPos>l then
+          Error(nErrOpenString,SErrOpenString);
+        case s[MyTokenPos] of
+        '''':
+          begin
+          inc(MyTokenPos);
+          break;
+          end;
+        #10,#13:
+          begin
+          // string literal missing closing apostroph
+          break;
+          end
+        else
+          inc(MyTokenPos);
+        end;
+      until false;
+      end;
+    '"':
+      begin
+      inc(MyTokenPos);
+      repeat
+        if MyTokenPos>l then
+          Error(nErrOpenString,SErrOpenString);
+        case s[MyTokenPos] of
+        '"':
+          begin
+          inc(MyTokenPos);
+          break;
+          end;
+        #10,#13:
+          begin
+          // string literal missing closing quote
+          break;
+          end
+        else
+          inc(MyTokenPos);
+        end;
+      until false;
+      end;
+    '/':
+      begin
+      inc(MyTokenPos);
+      if (MyTokenPos<=l) and (s[MyTokenPos]='/') then
+        begin
+        // skip Delphi comment //, see Note above
+        repeat
+          inc(MyTokenPos);
+        until (MyTokenPos>l) or (s[MyTokenPos] in [#10,#13]);
+        end;
+      end;
+    '0'..'9', 'A'..'Z', 'a'..'z','_':
+      begin
+      // number or identifier
+      if (CompareText(copy(s,MyTokenPos,3),'end')=0)
+          and ((MyTokenPos+3>l) or not (s[MyTokenPos+3] in IdentChars)) then
+        begin
+        // 'end' found
+        Add;
+        if CurTokenString<>'' then
+          begin
+          // return characters in front of 'end'
+          Result:=tkWhitespace;
+          CommitTokenPos;
+          SetCurToken(Result);
+          exit;
+          end;
+        // return 'end'
+        Result := tkend;
+        SetCurTokenString(copy(s,MyTokenPos,3));
+        inc(MyTokenPos,3);
+        CommitTokenPos;
+        SetCurToken(Result);
+        exit;
+        end
+      else
+        begin
+        // skip identifier
+        while (MyTokenPos<=l) and (s[MyTokenPos] in IdentChars) do
+          inc(MyTokenPos);
+        end;
+      end;
+    else
+      inc(MyTokenPos);
+    end;
+  until false;
 end;
 
 { TPas2JSResolver }
