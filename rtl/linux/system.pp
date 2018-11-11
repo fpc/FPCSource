@@ -496,6 +496,7 @@ end;
 procedure InitTLS; [public,alias:'FPC_INITTLS'];
   const
     PT_TLS = 7;
+    PT_DYNAMIC = 2;
 
   type
     tphdr = record
@@ -536,18 +537,30 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
         inc(auxp,2);
       end;
     found:=false;
+    size:=0;
     for i:=1 to phnum do
       begin
-        if phdr^.p_type=PT_TLS then
-          begin
-            found:=true;
-            break;
-          end;
+        case phdr^.p_type of
+          PT_TLS:
+            begin
+              found:=true;
+              inc(size,phdr^.p_memsz);
+              size:=Align(size,phdr^.p_align);
+            end;
+          PT_DYNAMIC:
+            { if the program header contains a dynamic section, the program
+              is linked dynamically so the dynamic linker takes care of the
+              allocation of the TLS segment.
+
+              We cannot allocate it by ourself anyways as PT_TLS provides only
+              the size of TLS data of the executable itself
+             }
+            exit;
+        end;
         inc(phdr);
       end;
     if found then
       begin
-        size:=phdr^.p_memsz;
 {$ifdef CPUI386}
         { threadvars should start at a page boundary,
           add extra space for the TCB }

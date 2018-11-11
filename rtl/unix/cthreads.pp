@@ -233,7 +233,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
     procedure CReleaseThreadVars;
       begin
+{$ifndef FPC_SECTION_THREADVARS}
         Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
+{$endif FPC_SECTION_THREADVARS}
       end;
 
 { Include OS independent Threadvar initialization }
@@ -300,9 +302,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
+
         { Initialize thread }
         InitThread(ti.stklen);
+
+        dispose(pthreadinfo(param));
         { Start thread function }
 {$ifdef DEBUG_MT}
         writeln('Jumping to thread function');
@@ -323,9 +327,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       begin
         { We're still running in single thread mode, setup the TLS }
         pthread_key_create(@TLSKey,nil);
-{$ifndef FPC_SECTION_THREADVARS}
         InitThreadVars(@CRelocateThreadvar);
-{$endif FPC_SECTION_THREADVARS}
         { used to clean up threads that we did not create ourselves:
            a) the default value for a key (and hence also this one) in
               new threads is NULL, and if it's still like that when the

@@ -1901,7 +1901,10 @@ implementation
             { Switching index to base position gives shorter assembler instructions.
               Converting index*2 to base+index also gives shorter instructions. }
             if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=2) and
-               (ss_equals_ds or (ref.segment<>NR_NO) or (ref.index<>NR_EBP)) then
+               (ss_equals_ds or (ref.segment<>NR_NO) or (ref.index<>NR_EBP))
+               { do not mess with tls references, they have the (,reg,1) format on purpose
+                 else the linker cannot resolve/replace them }
+               {$ifdef i386} and (ref.refaddr<>addr_tlsgd) {$endif i386} then
               begin
                 ref.base:=ref.index;
                 if ref.scalefactor=2 then

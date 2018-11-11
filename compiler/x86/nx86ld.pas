@@ -40,10 +40,11 @@ implementation
     uses
       globals,
       cutils,verbose,systems,
-      aasmbase,aasmtai,aasmdata,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       cgutils,cgobj,
       symconst,symdef,symtable,
-      cgbase,cpubase,parabase,paramgr;
+      cgbase,cpubase,parabase,paramgr,
+      procinfo;
 
 {*****************************************************************************
                            TX86LOADNODE
@@ -91,10 +92,29 @@ implementation
             case target_info.system of
               system_i386_linux,system_i386_android:
                 begin
-                  location.reference.segment:=NR_GS;
                   case current_settings.tlsmodel of
                     tlsm_local:
-                      location.reference.refaddr:=addr_ntpoff;
+                      begin
+                        location.reference.segment:=NR_GS;
+                        location.reference.refaddr:=addr_ntpoff;
+                      end;
+                    tlsm_general:
+                      begin
+                        if not(cs_create_pic in current_settings.moduleswitches) then
+                          Internalerror(2018110701);
+                        reference_reset(href,0,[]);
+                        location.reference.index:=current_procinfo.got;
+                        location.reference.scalefactor:=1;
+                        location.reference.refaddr:=addr_tlsgd;
+                        cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                        current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_LEA,S_L,location.reference,NR_EAX));
+                        cg.g_call(current_asmdata.CurrAsmList,'___tls_get_addr');
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_EAX,hregister);
+                        reference_reset(location.reference,location.reference.alignment,location.reference.volatility);
+                        location.reference.base:=hregister;
+                      end;
                     else
                       Internalerror(2018110401);
                   end;

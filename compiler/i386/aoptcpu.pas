@@ -399,7 +399,7 @@ begin
                       begin
                         if (base = NR_NO) and
                            (index <> NR_NO) and
-                           (scalefactor in [0,1]) then
+                           (scalefactor in [0,1]) and (refaddr<>addr_tlsgd) then
                           begin
                             base := index;
                             index := NR_NO
