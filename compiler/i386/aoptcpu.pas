@@ -393,18 +393,6 @@ begin
             else
             { All other optimizes }
               begin
-                for l := 0 to taicpu(p).ops-1 Do
-                  if (taicpu(p).oper[l]^.typ = top_ref) then
-                    With taicpu(p).oper[l]^.ref^ Do
-                      begin
-                        if (base = NR_NO) and
-                           (index <> NR_NO) and
-                           (scalefactor in [0,1]) and (refaddr<>addr_tlsgd) then
-                          begin
-                            base := index;
-                            index := NR_NO
-                          end
-                      end;
                 case taicpu(p).opcode Of
                   A_AND:
                     if OptPass1And(p) then
