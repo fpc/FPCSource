@@ -1,4 +1,4 @@
-{ %norun }
+{ %FAIL }
 
 program project1;
 
