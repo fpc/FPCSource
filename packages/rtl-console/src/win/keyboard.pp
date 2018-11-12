@@ -15,6 +15,7 @@
  **********************************************************************}
 unit Keyboard;
 interface
+{$define FPC_USE_ENHANCED_KEY_EVENTS}
 {$ifdef DEBUG}
 uses
   windows;
@@ -1050,6 +1051,19 @@ begin
 end;
 
 Const
+{$ifdef FPC_USE_ENHANCED_KEY_EVENTS}
+  SysKeyboardDriver : TKeyboardDriver = (
+    InitDriver : @SysInitKeyBoard;
+    DoneDriver : @SysDoneKeyBoard;
+    GetKeyevent : Nil;
+    PollKeyEvent : Nil;
+    GetShiftState : @SysGetShiftState;
+    TranslateKeyEvent : @SysTranslateKeyEvent;
+    TranslateKeyEventUnicode : Nil;
+    GetEnhancedKeyEvent : @SysGetEnhancedKeyEvent;
+    PollEnhancedKeyEvent : @SysPollEnhancedKeyEvent;
+  );
+{$else FPC_USE_ENHANCED_KEY_EVENTS}
   SysKeyboardDriver : TKeyboardDriver = (
     InitDriver : @SysInitKeyBoard;
     DoneDriver : @SysDoneKeyBoard;
@@ -1061,6 +1075,7 @@ Const
     GetEnhancedKeyEvent : Nil;
     PollEnhancedKeyEvent : Nil;
   );
+{$endif FPC_USE_ENHANCED_KEY_EVENTS}
 
 
 begin
