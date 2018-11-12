@@ -1198,7 +1198,7 @@ type
     procedure OnClearHashItem(Item, Dummy: pointer);
   protected
     FOverloadScopes: TFPList; // list of TPasIdentifierScope
-    function HasOverloadIndex(El: TPasElement): boolean; virtual;
+    function HasOverloadIndex(El: TPasElement; WithElevatedLocal: boolean = false): boolean; virtual;
     function GetOverloadIndex(Identifier: TPasIdentifier;
       StopAt: TPasElement): integer;
     function GetOverloadAt(Identifier: TPasIdentifier; var Index: integer): TPasIdentifier;
@@ -2354,7 +2354,8 @@ begin
     end;
 end;
 
-function TPas2JSResolver.HasOverloadIndex(El: TPasElement): boolean;
+function TPas2JSResolver.HasOverloadIndex(El: TPasElement;
+  WithElevatedLocal: boolean): boolean;
 var
   C: TClass;
   ProcScope: TPasProcedureScope;
@@ -2364,7 +2365,7 @@ begin
     exit(false)
   else if C=TPasConst then
     begin
-    if El.Parent is TProcedureBody then
+    if (not WithElevatedLocal) and (El.Parent is TProcedureBody) then
       exit(false); // local const counted via TPas2JSSectionScope.FElevatedLocals
     end
   else if C=TPasClassType then
@@ -2400,11 +2401,8 @@ begin
     El:=Identifier.Element;
     Identifier:=Identifier.NextSameIdentifier;
     if El=StopAt then
-      begin
-      Result:=0;
-      continue;
-      end;
-    if HasOverloadIndex(El) then
+      Result:=0
+    else if HasOverloadIndex(El) then
       inc(Result);
     end;
 end;
@@ -2462,6 +2460,7 @@ var
   CurEl: TPasElement;
 begin
   Result:=0;
+  if not HasOverloadIndex(El,true) then exit;
   for i:=FOverloadScopes.Count-1 downto 0 do
     begin
     Scope:=TPasIdentifierScope(FOverloadScopes[i]);

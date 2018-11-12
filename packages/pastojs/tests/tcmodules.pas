@@ -520,6 +520,7 @@ type
     Procedure TestExternalClass_FunctionResultInTypeCast;
     Procedure TestExternalClass_NonExternalOverride;
     Procedure TestExternalClass_OverloadHint;
+    Procedure TestExternalClass_SameNamePublishedProperty;
     Procedure TestExternalClass_Property;
     Procedure TestExternalClass_ClassProperty;
     Procedure TestExternalClass_ClassOf;
@@ -13354,6 +13355,43 @@ begin
     LinesToStr([ // statements
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_SameNamePublishedProperty;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  JSwiper = class external name ''Swiper''',
+  '    constructor New;',
+  '  end;',
+  '  TObject = class',
+  '  private',
+  '    FSwiper: JSwiper;',
+  '  published',
+  '    property Swiper: JSwiper read FSwiper write FSwiper;',
+  '  end;',
+  'begin',
+  '  JSwiper.new;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_SameNamePublishedProperty',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FSwiper = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FSwiper = undefined;',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("Swiper", 0, $mod.$rtti["JSwiper"], "FSwiper", "FSwiper");',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    'new Swiper();',
     '']));
 end;
 
