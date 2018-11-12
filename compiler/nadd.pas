@@ -2964,10 +2964,8 @@ implementation
 
     function taddnode.first_adddynarray : tnode;
       var
-        p: tnode;
         newstatement : tstatementnode;
         tempnode (*,tempnode2*) : ttempcreatenode;
-        cmpfuncname: string;
         para: tcallparanode;
       begin
         result:=nil;

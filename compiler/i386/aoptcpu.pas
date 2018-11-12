@@ -152,9 +152,7 @@ end;
 
 procedure TCPUAsmOptimizer.PrePeepHoleOpts;
 var
-  p,hp1: tai;
-  l: aint;
-  tmpRef: treference;
+  p: tai;
 begin
   p := BlockStart;
   while (p <> BlockEnd) Do
@@ -169,205 +167,8 @@ begin
               end;
             case taicpu(p).opcode Of
               A_IMUL:
-                {changes certain "imul const, %reg"'s to lea sequences}
-                begin
-                  if (taicpu(p).oper[0]^.typ = Top_Const) and
-                     (taicpu(p).oper[1]^.typ = Top_Reg) and
-                     (taicpu(p).opsize = S_L) then
-                    if (taicpu(p).oper[0]^.val = 1) then
-                      if (taicpu(p).ops = 2) then
-                       {remove "imul $1, reg"}
-                        begin
-                          hp1 := tai(p.Next);
-                          asml.remove(p);
-                          p.free;
-                          p := hp1;
-                          continue;
-                        end
-                      else
-                       {change "imul $1, reg1, reg2" to "mov reg1, reg2"}
-                        begin
-                          hp1 := taicpu.Op_Reg_Reg(A_MOV, S_L, taicpu(p).oper[1]^.reg,taicpu(p).oper[2]^.reg);
-                          InsertLLItem(p.previous, p.next, hp1);
-                          p.free;
-                          p := hp1;
-                        end
-                    else if
-                     ((taicpu(p).ops <= 2) or
-                      (taicpu(p).oper[2]^.typ = Top_Reg)) and
-                     (taicpu(p).oper[0]^.val <= 12) and
-                     not(cs_opt_size in current_settings.optimizerswitches) and
-                     (not(GetNextInstruction(p, hp1)) or
-                       {GetNextInstruction(p, hp1) and}
-                       not((tai(hp1).typ = ait_instruction) and
-                           ((taicpu(hp1).opcode=A_Jcc) and
-                            (taicpu(hp1).condition in [C_O,C_NO])))) then
-                      begin
-                        reference_reset(tmpref,1,[]);
-                        case taicpu(p).oper[0]^.val Of
-                          3: begin
-                             {imul 3, reg1, reg2 to
-                                lea (reg1,reg1,2), reg2
-                              imul 3, reg1 to
-                                lea (reg1,reg1,2), reg1}
-                               TmpRef.base := taicpu(p).oper[1]^.reg;
-                               TmpRef.index := taicpu(p).oper[1]^.reg;
-                               TmpRef.ScaleFactor := 2;
-                               if (taicpu(p).ops = 2) then
-                                 hp1 := taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg)
-                               else
-                                 hp1 := taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[2]^.reg);
-                               InsertLLItem(p.previous, p.next, hp1);
-                               p.free;
-                               p := hp1;
-                            end;
-                         5: begin
-                            {imul 5, reg1, reg2 to
-                               lea (reg1,reg1,4), reg2
-                             imul 5, reg1 to
-                               lea (reg1,reg1,4), reg1}
-                              TmpRef.base := taicpu(p).oper[1]^.reg;
-                              TmpRef.index := taicpu(p).oper[1]^.reg;
-                              TmpRef.ScaleFactor := 4;
-                              if (taicpu(p).ops = 2) then
-                                hp1 := taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg)
-                              else
-                                hp1 := taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[2]^.reg);
-                              InsertLLItem(p.previous, p.next, hp1);
-                              p.free;
-                              p := hp1;
-                            end;
-                         6: begin
-                            {imul 6, reg1, reg2 to
-                               lea (,reg1,2), reg2
-                               lea (reg2,reg1,4), reg2
-                             imul 6, reg1 to
-                               lea (reg1,reg1,2), reg1
-                               add reg1, reg1}
-                              if (current_settings.optimizecputype <= cpu_386) then
-                                begin
-                                  TmpRef.index := taicpu(p).oper[1]^.reg;
-                                  if (taicpu(p).ops = 3) then
-                                    begin
-                                      TmpRef.base := taicpu(p).oper[2]^.reg;
-                                      TmpRef.ScaleFactor := 4;
-                                      hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg);
-                                    end
-                                  else
-                                    begin
-                                      hp1 :=  taicpu.op_reg_reg(A_ADD, S_L,
-                                        taicpu(p).oper[1]^.reg,taicpu(p).oper[1]^.reg);
-                                    end;
-                                  InsertLLItem(p, p.next, hp1);
-                                  reference_reset(tmpref,2,[]);
-                                  TmpRef.index := taicpu(p).oper[1]^.reg;
-                                  TmpRef.ScaleFactor := 2;
-                                  if (taicpu(p).ops = 3) then
-                                    begin
-                                      TmpRef.base := NR_NO;
-                                      hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef,
-                                        taicpu(p).oper[2]^.reg);
-                                    end
-                                  else
-                                    begin
-                                      TmpRef.base := taicpu(p).oper[1]^.reg;
-                                      hp1 := taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg);
-                                    end;
-                                  InsertLLItem(p.previous, p.next, hp1);
-                                  p.free;
-                                  p := tai(hp1.next);
-                                end
-                            end;
-                          9: begin
-                             {imul 9, reg1, reg2 to
-                                lea (reg1,reg1,8), reg2
-                              imul 9, reg1 to
-                                lea (reg1,reg1,8), reg1}
-                               TmpRef.base := taicpu(p).oper[1]^.reg;
-                               TmpRef.index := taicpu(p).oper[1]^.reg;
-                               TmpRef.ScaleFactor := 8;
-                               if (taicpu(p).ops = 2) then
-                                 hp1 := taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg)
-                               else
-                                 hp1 := taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[2]^.reg);
-                               InsertLLItem(p.previous, p.next, hp1);
-                               p.free;
-                               p := hp1;
-                             end;
-                         10: begin
-                            {imul 10, reg1, reg2 to
-                               lea (reg1,reg1,4), reg2
-                               add reg2, reg2
-                             imul 10, reg1 to
-                               lea (reg1,reg1,4), reg1
-                               add reg1, reg1}
-                               if (current_settings.optimizecputype <= cpu_386) then
-                                 begin
-                                   if (taicpu(p).ops = 3) then
-                                     hp1 :=  taicpu.op_reg_reg(A_ADD, S_L,
-                                       taicpu(p).oper[2]^.reg,taicpu(p).oper[2]^.reg)
-                                   else
-                                     hp1 := taicpu.op_reg_reg(A_ADD, S_L,
-                                       taicpu(p).oper[1]^.reg,taicpu(p).oper[1]^.reg);
-                                   InsertLLItem(p, p.next, hp1);
-                                   TmpRef.base := taicpu(p).oper[1]^.reg;
-                                   TmpRef.index := taicpu(p).oper[1]^.reg;
-                                   TmpRef.ScaleFactor := 4;
-                                   if (taicpu(p).ops = 3) then
-                                      hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[2]^.reg)
-                                    else
-                                      hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg);
-                                   InsertLLItem(p.previous, p.next, hp1);
-                                   p.free;
-                                   p := tai(hp1.next);
-                                 end
-                             end;
-                         12: begin
-                            {imul 12, reg1, reg2 to
-                               lea (,reg1,4), reg2
-                               lea (reg2,reg1,8), reg2
-                             imul 12, reg1 to
-                               lea (reg1,reg1,2), reg1
-                               lea (,reg1,4), reg1}
-                               if (current_settings.optimizecputype <= cpu_386)
-                                 then
-                                   begin
-                                     TmpRef.index := taicpu(p).oper[1]^.reg;
-                                     if (taicpu(p).ops = 3) then
-                                       begin
-                                         TmpRef.base := taicpu(p).oper[2]^.reg;
-                                         TmpRef.ScaleFactor := 8;
-                                         hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[2]^.reg);
-                                       end
-                                     else
-                                       begin
-                                         TmpRef.base := NR_NO;
-                                         TmpRef.ScaleFactor := 4;
-                                         hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg);
-                                       end;
-                                     InsertLLItem(p, p.next, hp1);
-                                     reference_reset(tmpref,2,[]);
-                                     TmpRef.index := taicpu(p).oper[1]^.reg;
-                                     if (taicpu(p).ops = 3) then
-                                       begin
-                                         TmpRef.base := NR_NO;
-                                         TmpRef.ScaleFactor := 4;
-                                         hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[2]^.reg);
-                                       end
-                                     else
-                                       begin
-                                         TmpRef.base := taicpu(p).oper[1]^.reg;
-                                         TmpRef.ScaleFactor := 2;
-                                         hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg);
-                                       end;
-                                     InsertLLItem(p.previous, p.next, hp1);
-                                     p.free;
-                                     p := tai(hp1.next);
-                                   end
-                             end
-                        end;
-                      end;
-                end;
+                if PrePeepholeOptIMUL(p) then
+                  Continue;
               A_SAR,A_SHR:
                 if PrePeepholeOptSxx(p) then
                   continue;
@@ -403,10 +204,6 @@ var
   p,hp1,hp2 : tai;
   hp3,hp4: tai;
   v:aint;
-
-  TmpRef: TReference;
-
-  TmpBool1, TmpBool2: Boolean;
 
   function GetFinalDestination(asml: TAsmList; hp: taicpu; level: longint): boolean;
   {traces sucessive jumps to their final destination and sets it, e.g.
@@ -524,18 +321,18 @@ begin
             { Handle Jmp Optimizations }
             if taicpu(p).is_jmp then
               begin
-      {the following if-block removes all code between a jmp and the next label,
-        because it can never be executed}
+                { the following if-block removes all code between a jmp and the next label,
+                  because it can never be executed }
                 if (taicpu(p).opcode = A_JMP) then
                   begin
                     hp2:=p;
                     while GetNextInstruction(hp2, hp1) and
                           (hp1.typ <> ait_label) do
-                      if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
+                      if not(hp1.typ in ([ait_label]+skipinstr)) then
                         begin
                           { don't kill start/end of assembler block,
                             no-line-info-start/end etc }
-                          if hp1.typ<>ait_marker then
+                          if not(hp1.typ in [ait_align,ait_marker]) then
                             begin
                               asml.remove(hp1);
                               hp1.free;
@@ -596,18 +393,6 @@ begin
             else
             { All other optimizes }
               begin
-                for l := 0 to taicpu(p).ops-1 Do
-                  if (taicpu(p).oper[l]^.typ = top_ref) then
-                    With taicpu(p).oper[l]^.ref^ Do
-                      begin
-                        if (base = NR_NO) and
-                           (index <> NR_NO) and
-                           (scalefactor in [0,1]) then
-                          begin
-                            base := index;
-                            index := NR_NO
-                          end
-                      end;
                 case taicpu(p).opcode Of
                   A_AND:
                     if OptPass1And(p) then
@@ -1012,7 +797,7 @@ end;
 
 procedure TCPUAsmOptimizer.PostPeepHoleOpts;
 var
-  p,hp1,hp2: tai;
+  p,hp1: tai;
 begin
   p := BlockStart;
   ClearUsedRegs;

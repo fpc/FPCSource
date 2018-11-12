@@ -4482,6 +4482,10 @@ fullcycle:
 	$(MAKE) distclean
 	$(MAKE) cycle
 	$(MAKE) ppuclean
+ifdef DOWPOCYCLE
+	$(MAKE) rtlclean
+	$(MAKE) rtl 'FPC=$(BASEDIR)/$(EXENAME)'
+endif
 ifndef EXCLUDE_80BIT_TARGETS
 	$(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
 else

@@ -140,7 +140,7 @@ type
     class var FLastPasElementId: NativeInt;
     {$endif}
     {$ifdef EnablePasTreeGlobalRefCount}
-    class var FGlobalRefCount: int64;
+    class var FGlobalRefCount: NativeInt;
     {$endif}
   protected
     procedure ProcessHints(const ASemiColonPrefix: boolean; var AResult: string); virtual;
@@ -186,7 +186,7 @@ type
     property PasElementId: NativeInt read FPasElementId; // global unique id
     {$endif}
     {$ifdef EnablePasTreeGlobalRefCount}
-    class property GlobalRefCount: int64 read FGlobalRefCount write FGlobalRefCount;
+    class property GlobalRefCount: NativeInt read FGlobalRefCount write FGlobalRefCount;
     {$endif}
   end;
 
@@ -236,6 +236,7 @@ type
     destructor Destroy; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
+    class function IsRightSubIdent(El: TPasElement): boolean;
   end;
 
   { TPrimitiveExpr }
@@ -2038,16 +2039,7 @@ begin
   Result:=SPasTreeUnit;
 end;
 
-{ TPasStringType }
-
-
-{$IFNDEF FPC}
-  const
-    LineEnding = sLineBreak;
-{$ENDIF}
-
 { Parse tree element type name functions }
-
 function TPasElement.ElementTypeName: string; begin Result := SPasTreeElement end;
 
 function TPasElement.HintsString: String;
@@ -2318,6 +2310,7 @@ begin
   {$ifdef pas2js}
   inc(FLastPasElementId);
   FPasElementId:=FLastPasElementId;
+  //writeln('TPasElement.Create ',Name,':',ClassName,' ID=[',FPasElementId,']');
   {$endif}
   {$ifdef EnablePasTreeGlobalRefCount}
   Inc(FGlobalRefCount);
@@ -5068,6 +5061,15 @@ begin
   inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,left,false);
   ForEachChildCall(aMethodCall,Arg,right,false);
+end;
+
+class function TBinaryExpr.IsRightSubIdent(El: TPasElement): boolean;
+var
+  Bin: TBinaryExpr;
+begin
+  if (El=nil) or not (El.Parent is TBinaryExpr) then exit(false);
+  Bin:=TBinaryExpr(El.Parent);
+  Result:=(Bin.right=El) and (Bin.OpCode=eopSubIdent);
 end;
 
 { TParamsExpr }

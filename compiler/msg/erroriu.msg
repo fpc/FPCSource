@@ -771,7 +771,7 @@ parser_e_function_already_declared_public_forward=03120_E_La funzione è già dich
 % declaration in the \var{implementation} section.
 parser_e_not_external_and_export=03121_E_Non si possono usare sia EXPORT che EXTERNAL
 % These two procedure directives are mutually exclusive.
-parser_h_not_supported_for_inline=03123_H_"$1" non è ancora supportata all'interno di procedure o funzioni inline
+parser_n_not_supported_for_inline=03123_N_"$1" non è ancora supportata all'interno di procedure o funzioni inline
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inlining disabilitato
 % Inlining of procedures is disabled.

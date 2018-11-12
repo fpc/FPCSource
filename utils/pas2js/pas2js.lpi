@@ -21,15 +21,9 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <CommandLineParams Value="-Tbrowser -Jirtl.js -Jc /home/michael/projects/pas2js/demo/rtl/democollection.pas"/>
-      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
-          <local>
-            <CommandLineParams Value="-Tbrowser -Jirtl.js -Jc /home/michael/projects/pas2js/demo/rtl/democollection.pas"/>
-          </local>
         </Mode0>
       </Modes>
     </RunParams>
@@ -47,6 +41,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../../packages/fcl-js/src;../../packages/fcl-json/src;../../packages/fcl-passrc/src;../../packages/pastojs/src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

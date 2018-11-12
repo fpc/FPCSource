@@ -21,12 +21,14 @@ var
 
   _environ: pointer external name 'environ';
 
+  GetIcuProc: pointer; public name 'ANDROID_GET_ICU_PROC';
+
 procedure CommonMainAndroid;
 const
   EmptyEnv: array[0..2] of PAnsiChar = (nil, nil, nil);
   EmptyCmdLine: array[0..0] of PAnsiChar = ( '' );
 var
-  i: longint;
+  i: cardinal;
   p: PPAnsiChar;
 begin
   // Get the current stack pointer, adjust and save it
@@ -46,7 +48,7 @@ begin
           while i < 200 do
             begin
               Dec(p);
-              if ptrint(p^) = i then
+              if ptruint(p^) = i then
                 begin
                   // argc found
                   operatingsystem_parameter_argc:=i;

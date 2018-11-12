@@ -2496,7 +2496,7 @@ implementation
             sl_absolutetype,
             sl_typeconv:
               begin
-                currdef:=tfieldvarsym(symlist^.sym).vardef;
+                currdef:=symlist^.def;
                 { ignore, these don't change the address }
               end;
             sl_vec:

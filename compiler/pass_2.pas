@@ -194,7 +194,7 @@ implementation
             codegenerror:=false;
             oldexecutionweight:=cg.executionweight;
             if assigned(p.optinfo) then
-              cg.executionweight:=min(p.optinfo^.executionweight,QWord(high(cg.executionweight)))
+              cg.executionweight:=min(p.optinfo^.executionweight,high(cg.executionweight))
             else
               cg.executionweight:=100;
 {$ifdef EXTDEBUG}

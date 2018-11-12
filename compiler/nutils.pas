@@ -196,7 +196,7 @@ implementation
               result := foreachnode(procmethod,tcallnode(n).funcretnode,f,arg) or result;
               result := foreachnode(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
-          ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
+          ifn, whilerepeatn, forn, tryexceptn:
             begin
               { not in one statement, won't work because of b- }
               result := foreachnode(procmethod,tloopnode(n).t1,f,arg) or result;
@@ -293,7 +293,7 @@ implementation
               result := foreachnodestatic(procmethod,tcallnode(n).funcretnode,f,arg) or result;
               result := foreachnodestatic(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
-          ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
+          ifn, whilerepeatn, forn, tryexceptn:
             begin
               { not in one statement, won't work because of b- }
               result := foreachnodestatic(procmethod,tloopnode(n).t1,f,arg) or result;

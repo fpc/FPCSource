@@ -95,6 +95,11 @@ unit procinfo;
           got : tregister;
           CurrGOTLabel : tasmlabel;
 
+          { register containing the tlsoffset }
+          tlsoffset : tregister;
+          { reference label for tls addresses }
+          tlslabel : tasmlabel;
+
           { Holds the reference used to store all saved registers. }
           save_regs_ref : treference;
 
@@ -149,6 +154,9 @@ unit procinfo;
 
           { Allocate got register }
           procedure allocate_got_register(list: TAsmList);virtual;
+
+          { Allocate tls register }
+          procedure allocate_tls_register(list: TAsmList);virtual;
 
           { get frame pointer }
           procedure init_framepointer; virtual;
@@ -287,6 +295,11 @@ implementation
       begin
         { most os/cpu combo's don't use this yet, so not yet abstract }
       end;
+
+    procedure tprocinfo.allocate_tls_register(list : TAsmList);
+      begin
+      end;
+
 
     procedure tprocinfo.init_framepointer;
       begin

@@ -3,7 +3,12 @@
 {$mode delphi}
 
 uses
-  sysutils;
+  sysutils
+{$ifdef WINDOWS}
+  ,windows
+{$endif WINDOWS}
+  ;
+
 
 {$define use_inline }
 

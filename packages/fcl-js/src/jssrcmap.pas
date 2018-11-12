@@ -51,7 +51,6 @@ uses
 
 const
   Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  DefaultSrcMapHeader = ')]}'''+LineEnding;
 
 type
   EJSSourceMap = class(Exception);
@@ -167,6 +166,8 @@ type
     property Sorted: boolean read FSorted write SetSorted; // Segments are sorted for GeneratedLine/Col
   end;
 
+function DefaultSrcMapHeader: string;
+
 function EncodeBase64VLQ(i: NativeInt): String; // base64 Variable Length Quantity
 function DecodeBase64VLQ(const s: string): NativeInt; // base64 Variable Length Quantity
 function DecodeBase64VLQ(
@@ -179,6 +180,11 @@ procedure DebugSrcMapLine(GeneratedLine: integer; var GeneratedLineSrc: String;
   SrcMap: TSourceMap; out InfoLine: String);
 
 implementation
+
+function DefaultSrcMapHeader: string;
+begin
+  Result:=')]}'''+LineEnding;
+end;
 
 function EncodeBase64VLQ(i: NativeInt): String;
 { Convert signed number to base64-VLQ:
@@ -468,7 +474,7 @@ end;
 procedure TSourceMap.TStringToIndex.Add(const Value: String; Index: integer);
 begin
   {$ifdef pas2js}
-  FItems[Value]:=Index;
+  FItems['%'+Value]:=Index;
   {$else}
   // Note: nil=0 means not found in TFPHashList
   FItems.Add(Value,{%H-}Pointer(PtrInt(Index+1)));
@@ -479,8 +485,8 @@ function TSourceMap.TStringToIndex.FindValue(const Value: String
   ): integer;
 begin
   {$ifdef pas2js}
-  if FItems.hasOwnProperty(Value) then
-    Result:=integer(FItems[Value])
+  if FItems.hasOwnProperty('%'+Value) then
+    Result:=integer(FItems['%'+Value])
   else
     Result:=-1;
   {$else}

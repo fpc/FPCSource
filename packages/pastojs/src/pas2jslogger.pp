@@ -148,9 +148,7 @@ type
       UseFilter: boolean = true);
     procedure LogMsgIgnoreFilter(MsgNumber: integer;
       Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
-    {$IFDEF FPC}
-    procedure LogExceptionBackTrace;
-    {$ENDIF}
+    procedure LogExceptionBackTrace(E: Exception);
     function MsgTypeToStr(MsgType: TMessageType): string;
     function GetMsgText(MsgNumber: integer;
       Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF}): string;
@@ -421,7 +419,7 @@ begin
     jstNull: Result:='null';
     jstBoolean: Result:=BoolToStr(Element.AsBoolean,'true','false');
     jstNumber: str(Element.AsNumber,Result);
-    jstString: Result:=QuoteStr(Element.AsString{%H-},'''');
+    jstString: Result:=QuoteStr(String(Element.AsString),'''');
     jstObject: Result:='{:OBJECT:}';
     jstReference: Result:='{:REFERENCE:}';
     JSTCompletion: Result:='{:COMPLETION:}';
@@ -921,8 +919,17 @@ begin
   LogMsg(MsgNumber,Args,'',0,0,false);
 end;
 
-{$IFDEF FPC}
-procedure TPas2jsLogger.LogExceptionBackTrace;
+procedure TPas2jsLogger.LogExceptionBackTrace(E: Exception);
+{$IFDEF Pas2js}
+begin
+  {$IFDEF NodeJS}
+  if (E<>nil) and (E.NodeJSError<>nil) then
+    {AllowWriteln}
+    writeln(E.NodeJSError.Stack);
+    {AllowWriteln-}
+  {$ENDIF}
+end;
+{$ELSE}
 var
   lErrorAddr: CodePointer;
   FrameCount: LongInt;
@@ -935,6 +942,7 @@ begin
   Log(mtDebug,BackTraceStrFunc(lErrorAddr));
   for FrameNumber := 0 to FrameCount-1 do
     Log(mtDebug,BackTraceStrFunc(Frames[FrameNumber]));
+  if E=nil then ;
 end;
 {$ENDIF}
 

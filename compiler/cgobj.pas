@@ -437,6 +437,8 @@ unit cgobj;
 
           { initialize the pic/got register }
           procedure g_maybe_got_init(list: TAsmList); virtual;
+          { initialize the tls register if needed }
+          procedure g_maybe_tls_init(list : TAsmList); virtual;
           { allocallcpuregisters, a_call_name, deallocallcpuregisters sequence }
           procedure g_call(list: TAsmList; const s: string);
           { Generate code to exit an unwind-protected region. The default implementation
@@ -2780,6 +2782,12 @@ implementation
     procedure tcg.g_maybe_got_init(list: TAsmList);
       begin
       end;
+
+
+    procedure tcg.g_maybe_tls_init(list: TAsmList);
+      begin
+      end;
+
 
     procedure tcg.g_call(list: TAsmList;const s: string);
       begin

@@ -444,6 +444,8 @@ uses cutils, cclasses;
                (opcode in [A_FSGNJ_S,A_FSGNJ_D]) and
                (oper[0]^.reg=oper[1]^.reg) and
                (oper[0]^.reg=oper[2]^.reg);
+         else
+           result:=false;
         end;
       end;
 

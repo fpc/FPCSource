@@ -27,7 +27,7 @@ interface
 uses
   {$IFDEF Pas2js}
     {$IFDEF NodeJS}
-    NodeJSFS,
+    JS, NodeJSFS,
     {$ENDIF}
   {$ENDIF}
   Classes, SysUtils,
@@ -602,18 +602,12 @@ begin
 end;
 
 procedure TPas2jsCachedDirectory.DoReadDir;
-{$IFDEF Pas2js}
-{$ELSE}
 var
   Info: TUnicodeSearchRec;
-{$ENDIF}
 begin
   if Assigned(Pool.OnReadDirectory) then
     if Pool.OnReadDirectory(Self) then exit;
 
-  {$IFDEF Pas2js}
-  raise Exception.Create('TPas2jsCachedDirectory.DoReadDir TODO');
-  {$ELSE}
   // Note: do not add a 'if not DirectoryExists then exit'.
   // This will not work on automounted directories. You must use FindFirst.
   if FindFirst(UnicodeString(Path+AllFilesMask),faAnyFile,Info)=0 then
@@ -628,7 +622,6 @@ begin
     until FindNext(Info)<>0;
   end;
   FindClose(Info);
-  {$ENDIF}
 end;
 
 constructor TPas2jsCachedDirectory.Create(aPath: string;
@@ -909,12 +902,7 @@ begin
   writeln('TPas2jsCachedDirectory.WriteDebugReport Count=',Count,' Path="',Path,'"');
   for i:=0 to Count-1 do begin
     Entry:=Entries[i];
-    {$IFDEF Pas2js}
-    writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',Entry.Time,' Dir=',faDirectory and Entry.Attr>0);
-    raise Exception.Create('TPas2jsCachedDirectory.WriteDebugReport TODO FileDateToDateTime');
-    {$ELSE}
     writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',DateTimeToStr(FileDateToDateTime(Entry.Time)),' Dir=',faDirectory and Entry.Attr>0);
-    {$ENDIF}
   end;
   {AllowWriteln-}
 end;
@@ -1218,6 +1206,9 @@ function TPas2jsCachedFile.Load(RaiseOnError: boolean; Binary: boolean
 
   procedure Err(const ErrorMsg: string);
   begin
+    {$IFDEF VerboseFileCache}
+    writeln('TPas2jsCachedFile.Load.Err ErrorMsg="',ErrorMsg,'"');
+    {$ENDIF}
     FLastErrorMsg:=ErrorMsg;
     if RaiseOnError then
       raise EPas2jsFileCache.Create(FLastErrorMsg);
@@ -1225,6 +1216,7 @@ function TPas2jsCachedFile.Load(RaiseOnError: boolean; Binary: boolean
 
 var
   NewSource: string;
+  b: Boolean;
 begin
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load START "',Filename,'" Loaded=',Loaded);
@@ -1262,7 +1254,18 @@ begin
     exit;
   end;
   NewSource:='';
-  if not Cache.ReadFile(Filename,NewSource) then exit;
+  if RaiseOnError then
+    b:=Cache.ReadFile(Filename,NewSource)
+  else
+    try
+      b:=Cache.ReadFile(Filename,NewSource);
+    except
+    end;
+  if not b then begin
+    Err('Read error "'+Filename+'"');
+    exit;
+  end;
+
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load ENCODE ',Filename,' FFileEncoding=',FFileEncoding);
   {$ENDIF}
@@ -1310,7 +1313,7 @@ begin
   Filename:=FindIncludeFileName(aFilename);
   if Filename='' then exit;
   try
-    Result := TFileLineReader.Create(Filename);
+    Result:=FindSourceFile(Filename);
   except
     // error is shown in the scanner, which has the context information
   end;
@@ -1331,7 +1334,7 @@ function TPas2jsFileResolver.FindIncludeFileName(const aFilename: string): Strin
       end;
     // then search in include path
     for i:=0 to Cache.IncludePaths.Count-1 do begin
-      Result:=Cache.IncludePaths[i]+Filename;
+      Result:=IncludeTrailingPathDelimiter(Cache.IncludePaths[i])+Filename;
       if SearchLowUpCase(Result) then exit;
     end;
     Result:='';
@@ -1400,6 +1403,7 @@ function TPas2jsFileResolver.FindUnitFileName(const aUnitname,
   function SearchInDir(Dir: string; var Filename: string): boolean;
   // search in Dir for pp, pas, p times given case, lower case, upper case
   begin
+    Dir:=IncludeTrailingPathDelimiter(Dir);
     Filename:=Dir+aUnitname+'.pp';
     if SearchLowUpCase(Filename) then exit(true);
     Filename:=Dir+aUnitname+'.pas';
@@ -1472,10 +1476,11 @@ end;
 function TPas2jsFileResolver.FindCustomJSFileName(const aFilename: string
   ): String;
 
-  function SearchInDir(const Dir: string): boolean;
+  function SearchInDir(Dir: string): boolean;
   var
     CurFilename: String;
   begin
+    Dir:=IncludeTrailingPathDelimiter(Dir);
     CurFilename:=Dir+aFilename;
     Result:=FileExistsLogged(CurFilename);
     if Result then
@@ -1806,7 +1811,12 @@ begin
     if Result then
       Exit;
     {$IFDEF Pas2js}
-    raise Exception.Create('TPas2jsFilesCache.ReadFile TODO');
+    try
+      Source:=NJS_FS.readFileSync(Filename,new(['encoding','utf8']));
+    except
+      raise EReadError.Create(String(JSExceptValue));
+    end;
+    Result:=true;
     {$ELSE}
     ms:=TMemoryStream.Create;
     try
@@ -2192,7 +2202,12 @@ begin
   end else
   begin
     {$IFDEF Pas2js}
-    raise Exception.Create('TPas2jsFilesCache.SaveToFile TODO '+Filename);
+    try
+      s:=ms.join('');
+      NJS_FS.writeFileSync(Filename,s,new(['encoding','utf8']));
+    except
+      raise EWriteError.Create(String(JSExceptValue));
+    end;
     {$ELSE}
     try
       ms.SaveToFile(Filename);

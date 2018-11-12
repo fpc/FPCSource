@@ -51,6 +51,8 @@ uses
           ait_instruction:
             begin
               case taicpu(p).opcode of
+                A_IMUL:
+                  result:=PrePeepholeOptIMUL(p);
                 A_SAR,A_SHR:
                   result:=PrePeepholeOptSxx(p);
               end;

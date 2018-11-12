@@ -107,7 +107,10 @@ _start:
         /* align sp again to 8 byte boundary, needed by eabi */
         sub sp,sp,#4
 
-	/* Let the libc call main and exit with its return code.  */
+	/* Initialize TLS */
+	bl FPC_INITTLS
+
+	/* Call main program, it will never return  */
 	bl PASCALMAIN
 
 	.globl  _haltproc

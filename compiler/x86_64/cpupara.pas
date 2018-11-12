@@ -402,7 +402,7 @@ unit cpupara;
 
     function finalize_aggregate_classification(calloption: tproccalloption; def: tdef; words: longint; var classes: tx64paraclasses): longint;
       var
-        i, j, vecsize, maxvecsize: longint;
+        i, vecsize, maxvecsize: longint;
       begin
         { Workaround: It's not immediately possible to determine if a Double is
           by itself or is part of an aligned vector. If the latter, correct the
@@ -566,8 +566,8 @@ unit cpupara;
 
     function try_build_homogeneous_aggregate(def: tdef; words: longint; var classes: tx64paraclasses): longint;
       var
-        i, vecsize, maxvecsize, veccount, num: longint;
-        size, byte_offset: aint;
+        i, vecsize, maxvecsize, veccount: longint;
+        {size, }byte_offset: aint;
         vs: TFieldVarSym;
         checkalignment: Boolean;
       begin
@@ -594,13 +594,13 @@ unit cpupara;
 
               { Get the information and position on the last entry }
               vs:=TFieldVarSym(TAbstractRecordDef(def).symtable.symlist[TAbstractRecordDef(def).symtable.symlist.count - 1]);
-              size:=vs.vardef.size;
+              //size:=vs.vardef.size;
 
               checkalignment:=true;
               if not TAbstractRecordSymtable(TAbstractRecordDef(def).symtable).is_packed then
                 begin
                   byte_offset:=vs.fieldoffset;
-                  size:=vs.vardef.size;
+                  //size:=vs.vardef.size;
                 end
               else
                 begin
@@ -609,14 +609,14 @@ unit cpupara;
                     begin
                       { calculate the number of bytes spanned by
                         this bitpacked field }
-                      size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8);
+                      //size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8);
                       { our bitpacked fields are interpreted as always being
                         aligned, because unlike in C we don't have char:1, int:1
                         etc (so everything is basically a char:x) }
                       checkalignment:=false;
                     end
                   else
-                    size:=vs.vardef.size;
+                    ;//size:=vs.vardef.size;
                 end;
               { If [..] an object [..] contains unaligned fields, it has class
                 MEMORY }
@@ -1043,7 +1043,7 @@ unit cpupara;
     { Returns the size of a single element in the aggregate, or the entire vector, if it is one of these types, 0 otherwise }
     function is_simd_vector_type_or_homogeneous_aggregate(calloption: tproccalloption; def: tdef; varspez: tvarspez): aint;
       var
-        numclasses,i,vecsize,veccount,maxvecsize,elementsize,tempsize:longint;
+        numclasses,i,vecsize,veccount,maxvecsize:longint;
         classes: tx64paraclasses;
         firstclass: tx64paraclasstype;
       begin
@@ -1614,7 +1614,6 @@ unit cpupara;
         varalign,
         paraalign  : longint;
         use_ms_abi : boolean;
-        elementsize: asizeint; { for HVAs and HFAs under vectorcall }
       begin
         paraalign:=get_para_align(p.proccalloption);
         use_ms_abi:=x86_64_use_ms_abi(p.proccalloption);

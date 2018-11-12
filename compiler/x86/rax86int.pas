@@ -1966,8 +1966,8 @@ Unit Rax86int;
           end;
         until false;
       end;
-
-
+{ Disable range check because opr.val must accept values from min(longint) to max(dword) for i386 }
+{$R-}
     Procedure tx86intreader.BuildConstantOperand(oper: tx86operand);
       var
         l,size : tcgint;

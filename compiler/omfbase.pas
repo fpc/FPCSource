@@ -1349,18 +1349,23 @@ implementation
         internalerror(2015033103);
       SetLength(s, len);
       UniqueString(s);
-      Move(RawData[Offset+1],s[1],len);
+      if len>0 then
+        Move(RawData[Offset+1],s[1],len);
     end;
 
   function TOmfRawRecord.WriteStringAt(Offset: Integer; s: string): Integer;
+    var
+      len : longint;
     begin
-      if Length(s)>255 then
+      len:=Length(s);
+      if len>255 then
         internalerror(2015033101);
-      result:=Offset+Length(s)+1;
+      result:=Offset+len+1;
       if result>High(RawData) then
         internalerror(2015033102);
-      RawData[Offset]:=Length(s);
-      Move(s[1], RawData[Offset+1], Length(s));
+      RawData[Offset]:=len;
+      if len>0 then
+        Move(s[1], RawData[Offset+1], len);
     end;
 
   function TOmfRawRecord.ReadIndexedRef(Offset: Integer; out IndexedRef: Integer): Integer;
@@ -1420,7 +1425,7 @@ implementation
       b:=0;
       for I:=-3 to RecordLength-2 do
         b:=byte(b+RawData[I]);
-      SetChecksumByte($100-b);
+      SetChecksumByte(byte($100-b));
     end;
 
   function TOmfRawRecord.VerifyChecksumByte: boolean;
@@ -1521,14 +1526,18 @@ implementation
     end;
 
   procedure TOmfRecord_COMENT.EncodeTo(RawRecord: TOmfRawRecord);
+    var
+      len : longint;
     begin
       RawRecord.RecordType:=RT_COMENT;
-      if (Length(FCommentString)+3)>High(RawRecord.RawData) then
+      len:=Length(FCommentString);
+      if (len+3)>High(RawRecord.RawData) then
         internalerror(2015033105);
-      RawRecord.RecordLength:=Length(FCommentString)+3;
+      RawRecord.RecordLength:=len+3;
       RawRecord.RawData[0]:=CommentType;
       RawRecord.RawData[1]:=CommentClass;
-      Move(FCommentString[1],RawRecord.RawData[2],Length(FCommentString));
+      if len>0 then
+        Move(FCommentString[1],RawRecord.RawData[2],len);
       RawRecord.CalculateChecksumByte;
     end;
 

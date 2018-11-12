@@ -397,9 +397,6 @@ interface
 
       { alignment for operator }
       tai_align = class(tai_align_abstract)
-         reg       : tregister;
-         constructor create(b:byte);override;
-         constructor create_op(b: byte; _op: byte);override;
          function calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;override;
       end;
 
@@ -742,20 +739,6 @@ implementation
 {****************************************************************************
                               TAI_ALIGN
  ****************************************************************************}
-
-    constructor tai_align.create(b: byte);
-      begin
-        inherited create(b);
-        reg:=NR_ECX;
-      end;
-
-
-    constructor tai_align.create_op(b: byte; _op: byte);
-      begin
-        inherited create_op(b,_op);
-        reg:=NR_NO;
-      end;
-
 
     function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
@@ -1918,7 +1901,10 @@ implementation
             { Switching index to base position gives shorter assembler instructions.
               Converting index*2 to base+index also gives shorter instructions. }
             if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=2) and
-               (ss_equals_ds or (ref.segment<>NR_NO) or (ref.index<>NR_EBP)) then
+               (ss_equals_ds or (ref.segment<>NR_NO) or (ref.index<>NR_EBP))
+               { do not mess with tls references, they have the (,reg,1) format on purpose
+                 else the linker cannot resolve/replace them }
+               {$ifdef i386} and (ref.refaddr<>addr_tlsgd) {$endif i386} then
               begin
                 ref.base:=ref.index;
                 if ref.scalefactor=2 then
@@ -2416,7 +2402,7 @@ implementation
     function process_ea_ref_16(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
-        md,s,rv  : byte;
+        md,s  : byte;
         base,
         o     : longint;
         ir,br : Tregister;
@@ -3743,7 +3729,6 @@ implementation
     procedure build_spilling_operation_type_table;
       var
         opcode : tasmop;
-        i      : integer;
       begin
         new(operation_type_table);
         fillchar(operation_type_table^,sizeof(toperation_type_table),byte(operand_read));

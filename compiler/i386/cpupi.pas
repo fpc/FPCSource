@@ -95,11 +95,18 @@ unit cpupi;
           para_stack_size := 0;
       end;
 
+
     procedure tcpuprocinfo.allocate_got_register(list: tasmlist);
       begin
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
-            got := cg.getaddressregister(list);
+            if pi_uses_threadvar in flags then
+              begin
+                cg.getcpuregister(list,NR_EBX);
+                got := NR_EBX;
+              end
+            else
+              got := cg.getaddressregister(list);
           end;
       end;
 

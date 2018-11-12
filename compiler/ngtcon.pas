@@ -1522,7 +1522,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         bp   : tbitpackedval;
         error,
         is_packed: boolean;
-        startoffset: aint;
+        startoffset: aword;
 
       procedure handle_stringconstn;
         begin

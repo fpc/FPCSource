@@ -648,6 +648,8 @@ type
   TPScannerWarnEvent = procedure(Sender: TObject; Identifier: string; State: TWarnMsgState; var Handled: boolean) of object;
   TPScannerModeDirective = procedure(Sender: TObject; NewMode: TModeSwitch; Before: boolean; var Handled: boolean) of object;
 
+  TPasScannerTokenPos = {$ifdef UsePChar}PChar{$else}integer{$endif};
+
   TPascalScanner = class
   private
     type
@@ -700,7 +702,7 @@ type
     FSkipGlobalSwitches: boolean;
     FSkipWhiteSpace: Boolean;
     FTokenOptions: TTokenOptions;
-    FTokenPos: {$ifdef UsePChar}PChar;{$else}integer; { position in FCurLine }{$endif}
+    FTokenPos: TPasScannerTokenPos; // position in FCurLine }
     FIncludeStack: TFPList;
     FFiles: TStrings;
     FWarnMsgStates: TWarnMsgNumberStateArr;
@@ -767,13 +769,15 @@ type
     function DoFetchToken: TToken;
     procedure ClearFiles;
     Procedure ClearMacros;
-    Procedure SetCurTokenString(AValue: string);
+    Procedure SetCurToken(const AValue: TToken);
+    Procedure SetCurTokenString(const AValue: string);
     procedure SetCurrentBoolSwitches(const AValue: TBoolSwitches); virtual;
     procedure SetCurrentModeSwitches(AValue: TModeSwitches); virtual;
     procedure SetCurrentValueSwitch(V: TValueSwitch; const AValue: string);
     procedure SetWarnMsgState(Number: integer; State: TWarnMsgState); virtual;
     function GetWarnMsgState(Number: integer): TWarnMsgState; virtual;
     function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
+    property TokenPos: TPasScannerTokenPos read FTokenPos write FTokenPos;
   public
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
@@ -786,7 +790,7 @@ type
     procedure UnSetTokenOption(aOption : TTokenoption);
     function CheckToken(aToken : TToken; const ATokenString : String) : TToken;
     function FetchToken: TToken;
-    function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
+    function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken; virtual;
     function AddDefine(const aName: String; Quiet: boolean = false): boolean;
     function RemoveDefine(const aName: String; Quiet: boolean = false): boolean;
     function UnDefine(const aName: String; Quiet: boolean = false): boolean; // check defines and macros
@@ -2662,9 +2666,14 @@ begin
   FMacros.Clear;
 end;
 
-procedure TPascalScanner.SetCurTokenString(AValue: string);
+procedure TPascalScanner.SetCurToken(const AValue: TToken);
 begin
-  FCurtokenString:=AValue;
+  FCurToken:=AValue;
+end;
+
+procedure TPascalScanner.SetCurTokenString(const AValue: string);
+begin
+  FCurTokenString:=AValue;
 end;
 
 procedure TPascalScanner.OpenFile(AFilename: string);
@@ -2735,10 +2744,10 @@ begin
       begin
       if FIncludeStack.Count > 0 then
         begin
-        CurSourceFile.{$ifdef pas2js}Destroy{$else}Free{$endif};
         IncludeStackItem :=
           TIncludeStackItem(FIncludeStack[FIncludeStack.Count - 1]);
         FIncludeStack.Delete(FIncludeStack.Count - 1);
+        CurSourceFile.{$ifdef pas2js}Destroy{$else}Free{$endif};
         FCurSourceFile := IncludeStackItem.SourceFile;
         FCurFilename := IncludeStackItem.Filename;
         FCurToken := IncludeStackItem.Token;
@@ -2865,9 +2874,10 @@ begin
       {$endif}
       '''':
         begin
-        // Note: Eventually there should be a mechanism to override parsing non-pascal
-        // By default skip Pascal string literals, as this is more intuitive in
-        // IDEs with Pascal highlighters
+        // Notes:
+        // 1. Eventually there should be a mechanism to override parsing non-pascal
+        // 2. By default skip Pascal string literals, as this is more intuitive
+        //    in IDEs with Pascal highlighters
         inc(FTokenPos);
         repeat
           {$ifndef UsePChar}
@@ -3078,8 +3088,9 @@ end;
 
 procedure TPascalScanner.HandleIncludeFile(Param: String);
 
+var
+  NewSourceFile: TLineReader;
 begin
-  PushStackItem;
   if Length(Param)>1 then
     begin
     if (Param[1]='''') then
@@ -3089,9 +3100,12 @@ begin
       Param:=copy(Param,2,length(Param)-2);
       end;
     end;
-  FCurSourceFile := FileResolver.FindIncludeFile(Param);
-  if not Assigned(FCurSourceFile) then
+  NewSourceFile := FileResolver.FindIncludeFile(Param);
+  if not Assigned(NewSourceFile) then
     Error(nErrIncludeFileNotFound, SErrIncludeFileNotFound, [Param]);
+
+  PushStackItem;
+  FCurSourceFile:=NewSourceFile;
   FCurFilename := Param;
   if FCurSourceFile is TFileLineReader then
     FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages

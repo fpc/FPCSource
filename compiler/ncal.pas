@@ -4373,8 +4373,12 @@ implementation
              result:=pass1_inline
            else
              begin
-               if (po_inline in procdefinition.procoptions) and not(po_compilerproc in procdefinition.procoptions) then
-                 Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker]));
+               if (po_inline in procdefinition.procoptions) and not(po_compilerproc in procdefinition.procoptions) and
+                  (procdefinition.typ=procdef) and
+                  not (pio_inline_not_possible in tprocdef(procdefinition).implprocoptions) then
+                 begin
+                   Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker]));
+                 end;
                mark_unregable_parameters;
                result:=pass1_normal;
              end;
@@ -4594,7 +4598,8 @@ implementation
              ((tloadnode(n).symtable.symtabletype = staticsymtable) and
               (tloadnode(n).symtable = TSymtable(arg))) or
              { if the addr of the symbol is taken somewhere, it can be also non-local }
-             (tabstractvarsym(tloadnode(n).symtableentry).addr_taken)
+             ((tloadnode(n).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) and
+	      (tabstractvarsym(tloadnode(n).symtableentry).addr_taken))
             )
            ) or
            ((n.nodetype = subscriptn) and
@@ -4831,11 +4836,16 @@ implementation
         ptrtype: tdef;
         tempnode: ttempcreatenode;
         paraaddr: taddrnode;
+        isfuncretnode : boolean;
       begin
         ptrtype:=cpointerdef.getreusable(para.left.resultdef);
         tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true);
         addstatement(inlineinitstatement,tempnode);
-        addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+        isfuncretnode:=nf_is_funcret in para.left.flags;
+        if isfuncretnode then
+          addstatement(inlinecleanupstatement,ctempdeletenode.create_normal_temp(tempnode))
+        else
+          addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
           tempnode.includetempflag(ti_addr_taken);
@@ -4847,6 +4857,8 @@ implementation
         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
           paraaddr));
         para.left:=cderefnode.create(ctemprefnode.create(tempnode));
+        if isfuncretnode then
+          Include(para.left.flags,nf_is_funcret);
       end;
 
 

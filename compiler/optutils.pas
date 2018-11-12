@@ -49,7 +49,7 @@ unit optutils;
     procedure CalcDefSum(p : tnode);
 
     { calculates/estimates the field execution weight of optinfo }
-    procedure CalcExecutionWeights(p : tnode;Initial : AWord = 100);
+    procedure CalcExecutionWeights(p : tnode;Initial : longint = 100);
 
     { returns true, if n is a valid node and has life info }
     function has_life_info(n : tnode) : boolean;
@@ -359,12 +359,12 @@ unit optutils;
 
     function SetExecutionWeight(var n: tnode; arg: pointer): foreachnoderesult;
       var
-        Weight : AWord;
+        Weight : longint;
         i : Integer;
       begin
         Result:=fen_false;
         n.allocoptinfo;
-        Weight:=max(PAWord(arg)^,1);
+        Weight:=max(plongint(arg)^,1);
         case n.nodetype of
           casen:
             begin
@@ -393,7 +393,7 @@ unit optutils;
       end;
 
 
-    procedure CalcExecutionWeights(p : tnode;Initial : AWord = 100);
+    procedure CalcExecutionWeights(p : tnode;Initial : longint = 100);
       begin
         if assigned(p) then
           foreachnodestatic(pm_postprocess,p,@SetExecutionWeight,Pointer(@Initial));

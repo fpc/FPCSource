@@ -175,6 +175,21 @@ implementation
                               TRTTIWriter
 ***************************************************************************}
 
+    function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+      begin
+        result:=ref_rtti(def,rt,indirect,'');
+      end;
+
+    function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+      begin
+        result:=ref_rtti(def,rt,indirect,'_o2s');
+      end;
+
+    function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+      begin
+        result:=ref_rtti(def,rt,indirect,'_s2o');
+      end;
+
     procedure TRTTIWriter.write_methods(tcb:ttai_typedconstbuilder;st:tsymtable;visibilities:tvisibilities);
       var
         rtticount,
@@ -1291,8 +1306,6 @@ implementation
             tcb.free;
           end;
 
-        var
-          riif : byte;
         begin
            write_header(tcb,def,tkRecord);
            { need extra reqalign record, because otherwise the u32 int will
@@ -1439,8 +1452,6 @@ implementation
         procedure objectdef_rtti(def: tobjectdef);
 
           procedure objectdef_rtti_fields(def:tobjectdef);
-          var
-            riif : byte;
           begin
             { - for compatiblity with record RTTI we need to write a terminator-
                 Nil pointer for initrtti as well for objects
@@ -2049,22 +2060,6 @@ implementation
             reqalign:=1;
             defaultpacking:=1;
           end;
-      end;
-
-
-    function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
-      begin
-        result:=ref_rtti(def,rt,indirect,'');
-      end;
-
-    function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
-      begin
-        result:=ref_rtti(def,rt,indirect,'_o2s');
-      end;
-
-    function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
-      begin
-        result:=ref_rtti(def,rt,indirect,'_s2o');
       end;
 
 end.

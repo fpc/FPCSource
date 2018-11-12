@@ -1726,7 +1726,6 @@ implementation
    function ttai_typedconstbuilder.begin_dynarray_const(arrdef:tdef;var startlab:tasmlabel;out arrlengthloc:ttypedconstplaceholder):tasmlabofs;
      var
        dynarray_symofs: asizeint;
-       elesize: word;
      begin
        result.lab:=startlab;
        result.ofs:=0;

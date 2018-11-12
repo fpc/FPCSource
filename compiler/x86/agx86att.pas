@@ -164,20 +164,29 @@ interface
              owner.writer.AsmWrite(symbol.name);
            if assigned(relsymbol) then
              owner.writer.AsmWrite('-'+relsymbol.name);
-           if ref.refaddr=addr_pic then
-             begin
-               { @GOT and @GOTPCREL references are only allowed for symbol alone,
-                 indexing, relsymbol or offset cannot be present. }
-               if assigned(relsymbol) or (offset<>0) or (index<>NR_NO) then
-                 InternalError(2015011801);
+           case ref.refaddr of
+             addr_pic:
+               begin
+                 { @GOT and @GOTPCREL references are only allowed for symbol alone,
+                   indexing, relsymbol or offset cannot be present. }
+                 if assigned(relsymbol) or (offset<>0) or (index<>NR_NO) then
+                   InternalError(2015011801);
 {$ifdef x86_64}
-               if (base<>NR_RIP) then
-                 InternalError(2015011802);
-               owner.writer.AsmWrite('@GOTPCREL');
+                 if (base<>NR_RIP) then
+                   InternalError(2015011802);
+                 owner.writer.AsmWrite('@GOTPCREL');
 {$else x86_64}
-               owner.writer.AsmWrite('@GOT');
+                 owner.writer.AsmWrite('@GOT');
 {$endif x86_64}
-             end;
+               end;
+{$ifdef i386}
+             addr_ntpoff:
+               owner.writer.AsmWrite('@ntpoff');
+             addr_tlsgd:
+               owner.writer.AsmWrite('@tlsgd');
+{$endif i386}
+           end;
+
            if offset<0 then
              owner.writer.AsmWrite(tostr(offset))
            else
@@ -222,7 +231,7 @@ interface
             else
               owner.writer.AsmWrite(gas_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
+            if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got{$ifdef i386},addr_ntpoff,addr_tlsgd{$endif i386}] then
               WriteReference(o.ref^)
             else
               begin

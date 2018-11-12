@@ -569,13 +569,14 @@ type
 
   { TPasResHashList }
 
-  TPasResHashList = class(TJSObject)
+  TPasResHashList = class
+  private
+    FItems: TJSObject;
   public
     constructor Create; reintroduce;
-    destructor Destroy;
     procedure Add(const aName: string; Item: Pointer);
     function Find(const aName: string): Pointer;
-    procedure ForEachCall(Proc: TPasResIterate; Arg: Pointer);
+    procedure ForEachCall(const Proc: TPasResIterate; Arg: Pointer);
     procedure Clear;
     procedure Remove(const aName: string);
   end;
@@ -809,7 +810,7 @@ type
 
   TPasInitialFinalizationScope = Class(TPasScope)
   public
-    References: TPasScopeReferences; // created by TPasAnalyzer
+    References: TPasScopeReferences; // created by TPasAnalyzer, not used by resolver
     function AddReference(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;
     destructor Destroy; override;
   end;
@@ -1062,6 +1063,8 @@ type
   TPRResolveVarAccesses = set of TResolvedRefAccess;
 
 const
+  rraAllWrite = [rraAssign,rraReadAndAssign,rraVarParam,rraOutParam];
+
   ResolvedToPSRefAccess: array[TResolvedRefAccess] of TPSRefAccess = (
     psraNone, // rraNone
     psraRead,  // rraRead
@@ -1836,6 +1839,7 @@ type
     function IsVarInit(Expr: TPasExpr): boolean;
     function IsEmptyArrayExpr(const ResolvedEl: TPasResolverResult): boolean;
     function IsClassMethod(El: TPasElement): boolean;
+    function IsClassField(El: TPasElement): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
@@ -2550,52 +2554,41 @@ end;
 
 constructor TPasResHashList.Create;
 begin
-
-end;
-
-destructor TPasResHashList.Destroy;
-begin
-
+  FItems:=TJSObject.new;
 end;
 
 procedure TPasResHashList.Add(const aName: string; Item: Pointer);
 begin
-  Properties[aName]:=Item;
+  FItems['%'+aName]:=Item;
 end;
 
 function TPasResHashList.Find(const aName: string): Pointer;
 begin
-  if hasOwnProperty(aName) then
-    Result:=Pointer(Properties[aName])
+  if FItems.hasOwnProperty('%'+aName) then
+    Result:=Pointer(FItems['%'+aName])
   else
     Result:=nil;
 end;
 
-procedure TPasResHashList.ForEachCall(Proc: TPasResIterate; Arg: Pointer);
+procedure TPasResHashList.ForEachCall(const Proc: TPasResIterate; Arg: Pointer);
 var
   key: string;
 begin
-  for key in TJSObject(Self) do
-    if hasOwnProperty(key) then
-      Proc(Pointer(Properties[key]),Arg);
+  for key in FItems do
+    if FItems.hasOwnProperty(key) then
+      Proc(Pointer(FItems[key]),Arg);
 end;
 
 procedure TPasResHashList.Clear;
-var
-  Arr: TStringDynArray;
-  i: Integer;
 begin
-  Arr:=getOwnPropertyNames(Self);
-  for i:=0 to length(Arr)-1 do
-    JSDelete(Self,Arr[i]);
+  FItems:=TJSObject.new;
 end;
 
 procedure TPasResHashList.Remove(const aName: string);
 begin
-  if hasOwnProperty(aName) then
-    JSDelete(Self,aName);
+  if FItems.hasOwnProperty('%'+aName) then
+    JSDelete(FItems,'%'+aName);
 end;
-
 {$endif}
 
 { TResElDataBuiltInProc }
@@ -3515,6 +3508,11 @@ begin
     end;
   FItems.Add(LoName,Item);
   {$IFDEF VerbosePasResolver}
+  if Item.Owner<>nil then
+    raise Exception.Create('20160925184110');
+  Item.Owner:=Self;
+  {$ENDIF}
+  {$IFDEF VerbosePasResolver}
   if FindIdentifier(Item.Identifier)<>Item then
     raise Exception.Create('20181018173201');
   {$ENDIF}
@@ -4027,7 +4025,7 @@ begin
 
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Proc Distance=',Distance,
-      ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',ord(Data^.Distance),
+      ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',Data^.Distance,
       ' Signature={',GetProcTypeDescription(Proc.ProcType,[prptdUseName,prptdAddPaths]),'}',
       ' Abort=',Abort);
     {$ENDIF}
@@ -4375,6 +4373,9 @@ begin
                 // hidden method has implementation, but no statements -> useless
                 // -> do not give a hint for hiding this useless method
                 // Note: if this happens in the same unit, the body was not yet parsed
+              else if (Proc is TPasConstructor)
+                  and (Data^.Proc.ClassType=Proc.ClassType) then
+                // do not give a hint for hiding a constructor
               else
                 LogMsg(20171118214523,mtHint,
                   nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
@@ -11288,7 +11289,8 @@ begin
         Result:=btWideChar; // ''''
     #$DC00..#$DFFF: ;
     else
-      Result:=btWideChar;
+      if (l=3) and (Value[3]='''') then
+        Result:=btWideChar; // e.g. 'a'
     end;
     {$endif}
     end;
@@ -16782,6 +16784,9 @@ begin
         btWideString,btUnicodeString:
           Result:=cCompatible;
         else
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.CheckAssignResCompatibility ',{$ifdef pas2js}str(LBT){$else}LBT{$ENDIF});
+          {$ENDIF}
           RaiseNotYetImplemented(20170417195208,ErrorEl,BaseTypeNames[LBT]);
         end
       else if RBT=btContext then
@@ -19461,6 +19466,50 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
       end;
   end;
 
+  procedure ComputeInherited(Expr: TInheritedExpr);
+  var
+    Ref: TResolvedReference;
+    Proc: TPasProcedure;
+    TypeEl: TPasProcedureType;
+    aClass: TPasClassType;
+    HasName: Boolean;
+  begin
+    // "inherited;"
+    Ref:=TResolvedReference(El.CustomData);
+    Proc:=NoNil(Ref.Declaration) as TPasProcedure;
+    TypeEl:=TPasProcedure(Proc).ProcType;
+    SetResolverIdentifier(ResolvedEl,btProc,Proc,
+      TypeEl,TypeEl,[rrfCanBeStatement]);
+    HasName:=(El.Parent.ClassType=TBinaryExpr)
+       and (TBinaryExpr(El.Parent).OpCode=eopNone); // true if 'inherited Proc;'
+    if HasName or (rcNoImplicitProc in Flags) then
+      exit;
+
+    // inherited;  -> implicit call possible
+    if Proc is TPasFunction then
+      begin
+      // function => return result
+      ComputeElement(TPasFunction(Proc).FuncType.ResultEl,
+        ResolvedEl,Flags+[rcType],StartEl);
+      Exclude(ResolvedEl.Flags,rrfWritable);
+      end
+    else if (Proc.ClassType=TPasConstructor)
+        and (rrfNewInstance in Ref.Flags) then
+      begin
+      // new instance constructor -> return value of type class
+      aClass:=GetReference_NewInstanceClass(Ref);
+      SetResolverValueExpr(ResolvedEl,btContext,aClass,aClass,Expr,[rrfReadable]);
+      end
+    else if ParentNeedsExprResult(Expr) then
+      begin
+      // a procedure
+      exit;
+      end;
+    if rcSetReferenceFlags in Flags then
+      Include(Ref.Flags,rrfImplicitCallWithoutParams);
+    Include(ResolvedEl.Flags,rrfCanBeStatement);
+  end;
+
 var
   DeclEl: TPasElement;
   ElClass: TClass;
@@ -19620,13 +19669,7 @@ begin
     begin
     // writeln('TPasResolver.ComputeElement TInheritedExpr El.CustomData=',GetObjName(El.CustomData));
     if El.CustomData is TResolvedReference then
-      begin
-        // "inherited;"
-        DeclEl:=NoNil(TResolvedReference(El.CustomData).Declaration) as TPasProcedure;
-        TypeEl:=TPasProcedure(DeclEl).ProcType;
-        SetResolverIdentifier(ResolvedEl,btProc,DeclEl,
-          TypeEl,TypeEl,[rrfCanBeStatement]);
-      end
+      ComputeInherited(TInheritedExpr(El))
     else
       // no ancestor proc
       SetResolverIdentifier(ResolvedEl,btBuiltInProc,nil,nil,nil,[rrfCanBeStatement]);
@@ -19817,6 +19860,15 @@ begin
                         FBaseTypes[btString],FBaseTypes[btString],[rrfReadable])
   else
     RaiseNotYetImplemented(20160922163705,El);
+  {$IF defined(nodejs) and defined(VerbosePasResolver)}
+  if not isNumber(ResolvedEl.BaseType) then
+    begin
+    {AllowWriteln}
+    writeln('TPasResolver.ComputeElement ',GetObjName(El),' typeof ResolvedEl.BaseType=',jsTypeOf(ResolvedEl.BaseType),' ResolvedEl=',GetResolverResultDbg(ResolvedEl));
+    RaiseInternalError(20181101123527,jsTypeOf(ResolvedEl.LoTypeEl));
+    {AllowWriteln-}
+    end;
+  {$ENDIF}
 end;
 
 function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
@@ -20166,6 +20218,13 @@ begin
        or (C=TPasClassProcedure)
        or (C=TPasClassFunction)
        or (C=TPasClassOperator);
+end;
+
+function TPasResolver.IsClassField(El: TPasElement): boolean;
+begin
+  Result:=((El.ClassType=TPasVariable) or (El.ClassType=TPasConst))
+    and ([vmClass,vmStatic]*TPasVariable(El).VarModifiers<>[])
+    and (El.Parent is TPasClassType);
 end;
 
 function TPasResolver.IsExternalClass_Name(aClass: TPasClassType;

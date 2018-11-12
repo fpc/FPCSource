@@ -159,6 +159,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       var
         dataindex : pointer;
       begin
+{$ifndef FPC_SECTION_THREADVARS}
         { we've to allocate the memory from system  }
         { because the FPC heap management uses      }
         { exceptions which use threadvars but       }
@@ -167,6 +168,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         DataIndex:=Pointer(Fpmmap(nil,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
         FillChar(DataIndex^,threadvarblocksize,0);
         pthread_setspecific(tlskey,dataindex);
+{$endif FPC_SECTION_THREADVARS}
       end;
 
 
@@ -231,7 +233,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
     procedure CReleaseThreadVars;
       begin
+{$ifndef FPC_SECTION_THREADVARS}
         Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
+{$endif FPC_SECTION_THREADVARS}
       end;
 
 { Include OS independent Threadvar initialization }
@@ -298,9 +302,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
+
         { Initialize thread }
         InitThread(ti.stklen);
+
+        dispose(pthreadinfo(param));
         { Start thread function }
 {$ifdef DEBUG_MT}
         writeln('Jumping to thread function');
