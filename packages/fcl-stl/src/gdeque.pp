@@ -72,10 +72,7 @@ end;
 
 function TDeque.IsEmpty():boolean;inline;
 begin
-  if Size()=0 then 
-    IsEmpty:=true
-  else 
-    IsEmpty:=false;
+  IsEmpty:=Size()=0;
 end;
 
 procedure TDeque.PushBack(value:T);inline;
