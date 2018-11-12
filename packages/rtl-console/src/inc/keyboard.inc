@@ -110,9 +110,12 @@ end;
 
 function ConvertToLegacyKeyEvent(const KeyEvent: TEnhancedKeyEvent): TKeyEvent;
 begin
-  ConvertToLegacyKeyEvent:=(kbPhys shl 24) or
-    ConvertExtendedToStandardScanCode(KeyEvent.VirtualScanCode) or
-    (KeyEvent.ShiftState shl 16);
+  if KeyEvent=NilEnhancedKeyEvent then
+    ConvertToLegacyKeyEvent:=0
+  else
+    ConvertToLegacyKeyEvent:=(kbPhys shl 24) or
+      ConvertExtendedToStandardScanCode(KeyEvent.VirtualScanCode) or
+      (KeyEvent.ShiftState shl 16);
 end;
 
 
