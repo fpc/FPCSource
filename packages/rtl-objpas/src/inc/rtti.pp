@@ -76,6 +76,8 @@ type
       14: (FAsSInt64: Int64);
       15: (FAsMethod: TMethod);
       16: (FAsPointer: Pointer);
+      { FPC addition for open arrays }
+      17: (FArrLength: SizeInt; FElSize: SizeInt);
   end;
 
   { TValue }
@@ -91,10 +93,15 @@ type
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
+    { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
+    class procedure MakeOpenArray(AArray: Pointer; ALength: SizeInt; ATypeInfo: PTypeInfo; out Result: TValue); static;
 {$ifndef NoGenericMethods}
     generic class function From<T>(constref aValue: T): TValue; static; inline;
+    { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
+    generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
 {$endif}
     function IsArray: boolean; inline;
+    function IsOpenArray: Boolean; inline;
     function AsString: string; inline;
     function AsUnicodeString: UnicodeString;
     function AsAnsiString: AnsiString;
@@ -287,6 +294,42 @@ type
     function ToString: String; override;
   end;
 
+  TRttiInvokableType = class(TRttiType)
+  protected
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; virtual; abstract;
+    function GetCallingConvention: TCallConv; virtual; abstract;
+    function GetReturnType: TRttiType; virtual; abstract;
+  public
+    function GetParameters: specialize TArray<TRttiParameter>; inline;
+    property CallingConvention: TCallConv read GetCallingConvention;
+    property ReturnType: TRttiType read GetReturnType;
+    function Invoke(const aProcOrMeth: TValue; const aArgs: array of TValue): TValue; virtual; abstract;
+  end;
+
+  TRttiMethodType = class(TRttiInvokableType)
+  private
+    FCallConv: TCallConv;
+    FReturnType: TRttiType;
+    FParams, FParamsAll: specialize TArray<TRttiParameter>;
+  protected
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
+    function GetCallingConvention: TCallConv; override;
+    function GetReturnType: TRttiType; override;
+  public
+    function Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue; override;
+  end;
+
+  TRttiProcedureType = class(TRttiInvokableType)
+  private
+    FParams, FParamsAll: specialize TArray<TRttiParameter>;
+  protected
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
+    function GetCallingConvention: TCallConv; override;
+    function GetReturnType: TRttiType; override;
+  public
+    function Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue; override;
+  end;
+
   TDispatchKind = (
     dkStatic,
     dkVtable,
@@ -312,6 +355,7 @@ type
     function GetMethodKind: TMethodKind; virtual; abstract;
     function GetReturnType: TRttiType; virtual; abstract;
     function GetVirtualIndex: SmallInt; virtual; abstract;
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; virtual; abstract;
   public
     property CallingConvention: TCallConv read GetCallingConvention;
     property CodeAddress: CodePointer read GetCodeAddress;
@@ -325,7 +369,10 @@ type
     property ReturnType: TRttiType read GetReturnType;
     property VirtualIndex: SmallInt read GetVirtualIndex;
     function ToString: String; override;
-    function GetParameters: specialize TArray<TRttiParameter>; virtual; abstract;
+    function GetParameters: specialize TArray<TRttiParameter>; inline;
+    function Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
+    function Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
+    function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue;
   end;
 
   TRttiStructuredType = class(TRttiType)
@@ -436,6 +483,10 @@ procedure FreeCallback(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
 
+{$ifndef InLazIDE}
+generic function OpenArrayToDynArrayValue<T>(constref aArray: array of T): TValue;
+{$endif}
+
 { these resource strings are needed by units implementing function call managers }
 resourcestring
   SErrInvokeNotImplemented = 'Invoke functionality is not implemented';
@@ -543,11 +594,26 @@ type
     constructor Create(AVmtMethodParam: PVmtMethodParam);
   end;
 
+  TRttiMethodTypeParameter = class(TRttiParameter)
+  private
+    fHandle: Pointer;
+    fName: String;
+    fFlags: TParamFlags;
+    fType: PTypeInfo;
+  protected
+    function GetHandle: Pointer; override;
+    function GetName: String; override;
+    function GetFlags: TParamFlags; override;
+    function GetParamType: TRttiType; override;
+  public
+    constructor Create(aHandle: Pointer; const aName: String; aFlags: TParamFlags; aType: PTypeInfo);
+  end;
+
   TRttiIntfMethod = class(TRttiMethod)
   private
     FIntfMethodEntry: PIntfMethodEntry;
     FIndex: SmallInt;
-    FParams: specialize TArray<TRttiParameter>;
+    FParams, FParamsAll: specialize TArray<TRttiParameter>;
   protected
     function GetHandle: Pointer; override;
     function GetName: String; override;
@@ -562,9 +628,9 @@ type
     function GetMethodKind: TMethodKind; override;
     function GetReturnType: TRttiType; override;
     function GetVirtualIndex: SmallInt; override;
+    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
   public
     constructor Create(AParent: TRttiType; AIntfMethodEntry: PIntfMethodEntry; AIndex: SmallInt);
-    function GetParameters: specialize TArray<TRttiParameter>; override;
   end;
 
 resourcestring
@@ -573,11 +639,27 @@ resourcestring
   SErrInvalidTypecast         = 'Invalid class typecast';
   SErrRttiObjectNoHandle      = 'RTTI object instance has no valid handle property';
   SErrRttiObjectAlreadyRegistered = 'A RTTI object with handle 0x%x is already registered';
+  SErrInvokeInsufficientRtti  = 'Insufficient RTTI to invoke function';
+  SErrInvokeStaticNoSelf      = 'Static function must not be called with in an instance: %s';
+  SErrInvokeNotStaticNeedsSelf = 'Non static function must be called with an instance: %s';
+  SErrInvokeClassMethodClassSelf = 'Class method needs to be called with a class type: %s';
+  SErrInvokeArrayArgExpected  = 'Array argument expected for parameter %s of method %s';
+  SErrInvokeArgInvalidType    = 'Invalid type of argument for parameter %s of method %s';
+  SErrInvokeArgCount          = 'Invalid argument count for method %s; expected %d, but got %d';
+  SErrInvokeNoCodeAddr        = 'Failed to determine code address for method: %s';
+  SErrInvokeRttiDataError     = 'The RTTI data is inconsistent for method: %s';
+  SErrInvokeCallableNotProc   = 'The callable value is not a procedure variable for: %s';
+  SErrInvokeCallableNotMethod = 'The callable value is not a method variable for: %s';
 
 var
   PoolRefCount : integer;
   GRttiPool    : TRttiPool;
   FuncCallMgr: TFunctionCallManagerArray;
+
+function CCToStr(aCC: TCallConv): String; inline;
+begin
+  WriteStr(Result, aCC);
+end;
 
 procedure NoInvoke(aCodeAddress: CodePointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
             aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
@@ -743,6 +825,108 @@ begin
   FuncCallMgr[aCallConv].Invoke(aCodeAddress, funcargs, aCallConv, aResultType, Result.GetReferenceToRawData, flags);
 end;
 
+function Invoke(const aName: String; aCodeAddress: CodePointer; aCallConv: TCallConv; aStatic: Boolean; aInstance: TValue; constref aArgs: array of TValue; const aParams: specialize TArray<TRttiParameter>; aReturnType: TRttiType): TValue;
+var
+  arrparam, param: TRttiParameter;
+  unhidden, highs, i: SizeInt;
+  args: TFunctionCallParameterArray;
+  highargs: array of SizeInt;
+  restype: PTypeInfo;
+  resptr: Pointer;
+  mgr: TFunctionCallManager;
+  flags: TFunctionCallFlags;
+begin
+  mgr := FuncCallMgr[aCallConv];
+  if not Assigned(mgr.Invoke) then
+    raise EInvocationError.CreateFmt(SErrCallConvNotSupported, [CCToStr(aCallConv)]);
+
+  if not Assigned(aCodeAddress) then
+    raise EInvocationError.CreateFmt(SErrInvokeNoCodeAddr, [aName]);
+
+  unhidden := 0;
+  highs := 0;
+  for param in aParams do begin
+    if unhidden < Length(aArgs) then begin
+      if pfArray in param.Flags then begin
+        if Assigned(aArgs[unhidden].TypeInfo) and not aArgs[unhidden].IsArray and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
+          raise EInvocationError.CreateFmt(SErrInvokeArrayArgExpected, [param.Name, aName]);
+      end else if not (pfHidden in param.Flags) then begin
+        if aArgs[unhidden].Kind <> param.ParamType.TypeKind then
+          raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, [param.Name, aName]);
+      end;
+    end;
+    if not (pfHidden in param.Flags) then
+      Inc(unhidden);
+    if pfHigh in param.Flags then
+      Inc(highs);
+  end;
+
+  if unhidden <> Length(aArgs) then
+    raise EInvocationError.CreateFmt(SErrInvokeArgCount, [aName, unhidden, Length(aArgs)]);
+
+  if Assigned(aReturnType) then begin
+    TValue.Make(Nil, aReturnType.FTypeInfo, Result);
+    resptr := Result.GetReferenceToRawData;
+    restype := aReturnType.FTypeInfo;
+  end else begin
+    Result := TValue.Empty;
+    resptr := Nil;
+    restype := Nil;
+  end;
+
+  SetLength(highargs, highs);
+  SetLength(args, Length(aParams));
+  unhidden := 0;
+  highs := 0;
+
+  for i := 0 to High(aParams) do begin
+    param := aParams[i];
+    args[i].Info.ParamType := param.ParamType.FTypeInfo;
+    args[i].Info.ParamFlags := param.Flags;
+    args[i].Info.ParaLocs := Nil;
+
+    if pfHidden in param.Flags then begin
+      if pfSelf in param.Flags then
+        args[i].ValueRef := aInstance.GetReferenceToRawData
+      else if pfResult in param.Flags then begin
+        if not Assigned(restype) then
+          raise EInvocationError.CreateFmt(SErrInvokeRttiDataError, [aName]);
+        args[i].ValueRef := resptr;
+        restype := Nil;
+        resptr := Nil;
+      end else if pfHigh in param.Flags then begin
+        { the corresponding array argument is the *previous* unhidden argument }
+        if aArgs[unhidden - 1].IsArray then
+          highargs[highs] := aArgs[unhidden - 1].GetArrayLength - 1
+        else if not Assigned(aArgs[unhidden - 1].TypeInfo) then
+          highargs[highs] := -1
+        else
+          highargs[highs] := 0;
+        args[i].ValueRef := @highargs[highs];
+        Inc(highs);
+      end;
+    end else begin
+      if (pfArray in param.Flags) then begin
+        if not Assigned(aArgs[unhidden].TypeInfo) then
+          args[i].ValueRef := Nil
+        else if aArgs[unhidden].Kind = tkDynArray then
+          args[i].ValueRef := PPointer(aArgs[unhidden].GetReferenceToRawData)^
+        else
+          args[i].ValueRef := aArgs[unhidden].GetReferenceToRawData;
+      end else
+        args[i].ValueRef := aArgs[unhidden].GetReferenceToRawData;
+
+      Inc(unhidden);
+    end;
+  end;
+
+  flags := [];
+  if aStatic then
+    Include(flags, fcfStatic);
+
+  mgr.Invoke(aCodeAddress, args, aCallConv, restype, resptr, flags);
+end;
+
 function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   if not Assigned(FuncCallMgr[aCallConv].CreateCallbackProc) then
@@ -793,6 +977,19 @@ begin
   else
     Result := false;
 end;
+
+{$ifndef InLazIDE}
+generic function OpenArrayToDynArrayValue<T>(constref aArray: array of T): TValue;
+var
+  arr: specialize TArray<T>;
+  i: SizeInt;
+begin
+  SetLength(arr, Length(aArray));
+  for i := 0 to High(aArray) do
+    arr[i] := aArray[i];
+  Result := TValue.specialize From<specialize TArray<T>>(arr);
+end;
+{$endif}
 
 { TRttiPointerType }
 
@@ -850,6 +1047,8 @@ begin
           tkWString : Result := TRttiStringType.Create(ATypeInfo);
           tkFloat   : Result := TRttiFloatType.Create(ATypeInfo);
           tkPointer : Result := TRttiPointerType.Create(ATypeInfo);
+          tkProcVar : Result := TRttiProcedureType.Create(ATypeInfo);
+          tkMethod  : Result := TRttiMethodType.Create(ATypeInfo);
         else
           Result := TRttiType.Create(ATypeInfo);
         end;
@@ -1187,6 +1386,43 @@ begin
   FVmtMethodParam := AVmtMethodParam;
 end;
 
+{ TRttiMethodTypeParameter }
+
+function TRttiMethodTypeParameter.GetHandle: Pointer;
+begin
+  Result := fHandle;
+end;
+
+function TRttiMethodTypeParameter.GetName: String;
+begin
+  Result := fName;
+end;
+
+function TRttiMethodTypeParameter.GetFlags: TParamFlags;
+begin
+  Result := fFlags;
+end;
+
+function TRttiMethodTypeParameter.GetParamType: TRttiType;
+var
+  context: TRttiContext;
+begin
+  context := TRttiContext.Create;
+  try
+    Result := context.GetType(FType);
+  finally
+    context.Free;
+  end;
+end;
+
+constructor TRttiMethodTypeParameter.Create(aHandle: Pointer; const aName: String; aFlags: TParamFlags; aType: PTypeInfo);
+begin
+  fHandle := aHandle;
+  fName := aName;
+  fFlags := aFlags;
+  fType := aType;
+end;
+
 { TRttiIntfMethod }
 
 function TRttiIntfMethod.GetHandle: Pointer;
@@ -1271,20 +1507,23 @@ begin
   FIndex := AIndex;
 end;
 
-function TRttiIntfMethod.GetParameters: specialize TArray<TRttiParameter>;
+function TRttiIntfMethod.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
 var
   param: PVmtMethodParam;
   total, visible: SizeInt;
   context: TRttiContext;
   obj: TRttiObject;
 begin
-  if Length(FParams) > 0 then
+  if aWithHidden and (Length(FParamsAll) > 0) then
+    Exit(FParamsAll);
+  if not aWithHidden and (Length(FParams) > 0) then
     Exit(FParams);
 
   if FIntfMethodEntry^.ParamCount = 0 then
     Exit(Nil);
 
   SetLength(FParams, FIntfMethodEntry^.ParamCount);
+  SetLength(FParamsAll, FIntfMethodEntry^.ParamCount);
 
   context := TRttiContext.Create;
   try
@@ -1292,14 +1531,16 @@ begin
     visible := 0;
     param := FIntfMethodEntry^.Param[0];
     while total < FIntfMethodEntry^.ParamCount do begin
+      obj := context.GetByHandle(param);
+      if Assigned(obj) then
+        FParamsAll[total] := obj as TRttiVmtMethodParameter
+      else begin
+        FParamsAll[total] := TRttiVmtMethodParameter.Create(param);
+        context.AddObject(FParamsAll[total]);
+      end;
+
       if not (pfHidden in param^.Flags) then begin
-        obj := context.GetByHandle(param);
-        if Assigned(obj) then
-          FParams[visible] := obj as TRttiVmtMethodParameter
-        else begin
-          FParams[visible] := TRttiVmtMethodParameter.Create(param);
-          context.AddObject(FParams[visible]);
-        end;
+        FParams[visible] := FParamsAll[total];
         Inc(visible);
       end;
 
@@ -1307,12 +1548,16 @@ begin
       Inc(total);
     end;
 
-    SetLength(FParams, visible);
+    if visible <> total then
+      SetLength(FParams, visible);
   finally
     context.Free;
   end;
 
-  Result := FParams;
+  if aWithHidden then
+    Result := FParamsAll
+  else
+    Result := FParams;
 end;
 
 { TRttiFloatType }
@@ -1467,10 +1712,47 @@ begin
   end;
 end;
 
+class procedure TValue.MakeOpenArray(AArray: Pointer; ALength: SizeInt; ATypeInfo: PTypeInfo; out Result: TValue);
+var
+  el: TValue;
+begin
+  Result.FData.FTypeInfo := ATypeInfo;
+  { resets the whole variant part; FValueData is already Nil }
+{$if SizeOf(TMethod) > SizeOf(QWord)}
+  Result.FData.FAsMethod.Code := Nil;
+  Result.FData.FAsMethod.Data := Nil;
+{$else}
+  Result.FData.FAsUInt64 := 0;
+{$endif}
+  if not Assigned(ATypeInfo) then
+    Exit;
+  if ATypeInfo^.Kind <> tkArray then
+    Exit;
+  if not Assigned(AArray) then
+    Exit;
+  if ALength < 0 then
+    Exit;
+  Result.FData.FValueData := TValueDataIntImpl.CreateRef(@AArray, ATypeInfo, False);
+  Result.FData.FArrLength := ALength;
+  Make(Nil, Result.TypeData^.ArrayData.ElType, el);
+  Result.FData.FElSize := el.DataSize;
+end;
+
 {$ifndef NoGenericMethods}
 generic class function TValue.From<T>(constref aValue: T): TValue;
 begin
   TValue.Make(@aValue, System.TypeInfo(T), Result);
+end;
+
+generic class function TValue.FromOpenArray<T>(constref aValue: array of T): TValue;
+var
+  arrdata: Pointer;
+begin
+  if Length(aValue) > 0 then
+    arrdata := @aValue[0]
+  else
+    arrdata := Nil;
+  TValue.MakeOpenArray(arrdata, Length(aValue), System.TypeInfo(aValue), Result);
 end;
 {$endif}
 
@@ -1584,6 +1866,14 @@ end;
 function TValue.IsArray: boolean;
 begin
   result := kind in [tkArray, tkDynArray];
+end;
+
+function TValue.IsOpenArray: Boolean;
+var
+  td: PTypeData;
+begin
+  td := TypeData;
+  Result := (Kind = tkArray) and (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0)
 end;
 
 function TValue.AsString: string;
@@ -1785,9 +2075,13 @@ end;
 function TValue.ToString: String;
 begin
   case Kind of
+    tkWString,
+    tkUString : result := AsUnicodeString;
     tkSString,
-    tkAString : result := AsString;
+    tkAString : result := AsAnsiString;
     tkInteger : result := IntToStr(AsInteger);
+    tkQWord   : result := IntToStr(AsUInt64);
+    tkInt64   : result := IntToStr(AsInt64);
     tkBool    : result := BoolToStr(AsBoolean, True);
   else
     result := '';
@@ -1795,19 +2089,27 @@ begin
 end;
 
 function TValue.GetArrayLength: SizeInt;
+var
+  td: PTypeData;
 begin
   if not IsArray then
     raise EInvalidCast.Create(SErrInvalidTypecast);
   if Kind = tkDynArray then
     Result := DynArraySize(PPointer(FData.FValueData.GetReferenceToRawData)^)
-  else
-    Result := TypeData^.ArrayData.ElCount;
+  else begin
+    td := TypeData;
+    if (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0) then
+      Result := FData.FArrLength
+    else
+      Result := td^.ArrayData.ElCount;
+  end;
 end;
 
 function TValue.GetArrayElement(AIndex: SizeInt): TValue;
 var
   data: Pointer;
   eltype: PTypeInfo;
+  elsize: SizeInt;
   td: PTypeData;
 begin
   if not IsArray then
@@ -1818,7 +2120,15 @@ begin
   end else begin
     td := TypeData;
     eltype := td^.ArrayData.ElType;
-    data := PByte(FData.FValueData.GetReferenceToRawData) + AIndex * (td^.ArrayData.Size div td^.ArrayData.ElCount);
+    { open array? }
+    if (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0) then begin
+      data := PPointer(FData.FValueData.GetReferenceToRawData)^;
+      elsize := FData.FElSize
+    end else begin
+      data := FData.FValueData.GetReferenceToRawData;
+      elsize := td^.ArrayData.Size div td^.ArrayData.ElCount;
+    end;
+    data := PByte(data) + AIndex * elsize;
   end;
   { MakeWithoutCopy? }
   Make(data, eltype, Result);
@@ -1828,6 +2138,7 @@ procedure TValue.SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
 var
   data: Pointer;
   eltype: PTypeInfo;
+  elsize: SizeInt;
   td, tdv: PTypeData;
 begin
   if not IsArray then
@@ -1838,7 +2149,15 @@ begin
   end else begin
     td := TypeData;
     eltype := td^.ArrayData.ElType;
-    data := PByte(FData.FValueData.GetReferenceToRawData) + AIndex * (td^.ArrayData.Size div td^.ArrayData.ElCount);
+    { open array? }
+    if (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0) then begin
+      data := PPointer(FData.FValueData.GetReferenceToRawData)^;
+      elsize := FData.FElSize
+    end else begin
+      data := FData.FValueData.GetReferenceToRawData;
+      elsize := td^.ArrayData.Size div td^.ArrayData.ElCount;
+    end;
+    data := PByte(data) + AIndex * elsize;
   end;
   { maybe we'll later on allow some typecasts, but for now be restrictive }
   if eltype^.Kind <> AValue.Kind then
@@ -2124,6 +2443,276 @@ begin
   end;
 
   Result := FString;
+end;
+
+function TRttiMethod.GetParameters: specialize TArray<TRttiParameter>;
+begin
+  Result := GetParameters(False);
+end;
+
+function TRttiMethod.Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
+var
+  instance: TValue;
+begin
+  TValue.Make(@aInstance, TypeInfo(TObject), instance);
+  Result := Invoke(instance, aArgs);
+end;
+
+function TRttiMethod.Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
+var
+  instance: TValue;
+begin
+  TValue.Make(@aInstance, TypeInfo(TClass), instance);
+  Result := Invoke(instance, aArgs);
+end;
+
+function TRttiMethod.Invoke(aInstance: TValue; const aArgs: array of TValue): TValue;
+var
+  addr: CodePointer;
+  vmt: PCodePointer;
+begin
+  if not HasExtendedInfo then
+    raise EInvocationError.Create(SErrInvokeInsufficientRtti);
+
+  if IsStatic and not aInstance.IsEmpty then
+    raise EInvocationError.CreateFmt(SErrInvokeStaticNoSelf, [Name]);
+
+  if not IsStatic and aInstance.IsEmpty then
+    raise EInvocationError.CreateFmt(SErrInvokeNotStaticNeedsSelf, [Name]);
+
+  if not IsStatic and IsClassMethod and not aInstance.IsClass then
+    raise EInvocationError.CreateFmt(SErrInvokeClassMethodClassSelf, [Name]);
+
+  addr := Nil;
+  if IsStatic then
+    addr := CodeAddress
+  else begin
+    vmt := Nil;
+    if aInstance.Kind in [tkInterface, tkInterfaceRaw] then
+      vmt := PCodePointer(PPPointer(aInstance.GetReferenceToRawData)^^);
+    { ToDo }
+    if Assigned(vmt) then
+      addr := vmt[VirtualIndex];
+  end;
+
+  Result := Rtti.Invoke(Name, addr, CallingConvention, IsStatic, aInstance, aArgs, GetParameters(True), ReturnType);
+end;
+
+{ TRttiInvokableType }
+
+function TRttiInvokableType.GetParameters: specialize TArray<TRttiParameter>;
+begin
+  Result := GetParameters(False);
+end;
+
+{ TRttiMethodType }
+
+function TRttiMethodType.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
+type
+  TParamInfo = record
+    Handle: Pointer;
+    Flags: TParamFlags;
+    Name: String;
+  end;
+
+  PParamFlags = ^TParamFlags;
+  PCallConv = ^TCallConv;
+  PPPTypeInfo = ^PPTypeInfo;
+
+var
+  infos: array of TParamInfo;
+  total, visible, i: SizeInt;
+  ptr: PByte;
+  paramtypes: PPPTypeInfo;
+  context: TRttiContext;
+  obj: TRttiObject;
+begin
+  if aWithHidden and (Length(FParamsAll) > 0) then
+    Exit(FParamsAll);
+  if not aWithHidden and (Length(FParams) > 0) then
+    Exit(FParams);
+
+  ptr := @FTypeData^.ParamList[0];
+  visible := 0;
+  total := 0;
+
+  if FTypeData^.ParamCount > 0 then begin
+    SetLength(infos, FTypeData^.ParamCount);
+
+    while total < FTypeData^.ParamCount do begin
+      infos[total].Handle := ptr;
+      infos[total].Flags := PParamFlags(ptr)^;
+      Inc(ptr, SizeOf(TParamFlags));
+      { handle name }
+      infos[total].Name := PShortString(ptr)^;
+      Inc(ptr, ptr^ + SizeOf(Byte));
+      { skip type name }
+      Inc(ptr, ptr^ + SizeOf(Byte));
+      { align? }
+      if not (pfHidden in infos[total].Flags) then
+        Inc(visible);
+      Inc(total);
+    end;
+  end;
+
+  if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
+    { skip return type name }
+    ptr := AlignTypeData(PByte(ptr) + ptr^ + SizeOf(Byte));
+    { handle return type }
+    FReturnType := GRttiPool.GetType(PPPTypeInfo(ptr)^^);
+    Inc(ptr, SizeOf(PPTypeInfo));
+  end;
+
+  { handle calling convention }
+  FCallConv := PCallConv(ptr)^;
+  Inc(ptr, SizeOf(TCallConv));
+
+  SetLength(FParamsAll, FTypeData^.ParamCount);
+  SetLength(FParams, visible);
+
+  if FTypeData^.ParamCount > 0 then begin
+    context := TRttiContext.Create;
+    try
+      paramtypes := PPPTypeInfo(ptr);
+      visible := 0;
+      for i := 0 to FTypeData^.ParamCount - 1 do begin
+        obj := context.GetByHandle(infos[i].Handle);
+        if Assigned(obj) then
+          FParamsAll[i] := obj as TRttiMethodTypeParameter
+        else begin
+          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtypes[i]^);
+          context.AddObject(FParamsAll[i]);
+        end;
+
+        if not (pfHidden in infos[i].Flags) then begin
+          FParams[visible] := FParamsAll[i];
+          Inc(visible);
+        end;
+      end;
+    finally
+      context.Free;
+    end;
+  end;
+
+  if aWithHidden then
+    Result := FParamsAll
+  else
+    Result := FParams;
+end;
+
+function TRttiMethodType.GetCallingConvention: TCallConv;
+begin
+  { the calling convention is located after the parameters, so get the parameters
+    which will also initialize the calling convention }
+  GetParameters(True);
+  Result := FCallConv;
+end;
+
+function TRttiMethodType.GetReturnType: TRttiType;
+begin
+  if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
+    { the return type is located after the parameters, so get the parameters
+      which will also initialize the return type }
+    GetParameters(True);
+    Result := FReturnType;
+  end else
+    Result := Nil;
+end;
+
+function TRttiMethodType.Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue;
+var
+  method: PMethod;
+  inst: TValue;
+begin
+  if aCallable.Kind <> tkMethod then
+    raise EInvocationError.CreateFmt(SErrInvokeCallableNotMethod, [Name]);
+
+  method := PMethod(aCallable.GetReferenceToRawData);
+
+  { by using a pointer we can also use this for non-class instance methods }
+  TValue.Make(@method^.Data, PTypeInfo(TypeInfo(Pointer)), inst);
+
+  Result := Rtti.Invoke(Name, method^.Code, CallingConvention, False, inst, aArgs, GetParameters(True), ReturnType);
+end;
+
+{ TRttiProcedureType }
+
+function TRttiProcedureType.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
+var
+  visible, i: SizeInt;
+  param: PProcedureParam;
+  obj: TRttiObject;
+  context: TRttiContext;
+begin
+  if aWithHidden and (Length(FParamsAll) > 0) then
+    Exit(FParamsAll);
+  if not aWithHidden and (Length(FParams) > 0) then
+    Exit(FParams);
+
+  if FTypeData^.ProcSig.ParamCount = 0 then
+    Exit(Nil);
+
+  SetLength(FParamsAll, FTypeData^.ProcSig.ParamCount);
+  SetLength(FParams, FTypeData^.ProcSig.ParamCount);
+
+  context := TRttiContext.Create;
+  try
+    param := AlignTypeData(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
+    visible := 0;
+    for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
+      obj := context.GetByHandle(param);
+      if Assigned(obj) then
+        FParamsAll[i] := obj as TRttiMethodTypeParameter
+      else begin
+        FParamsAll[i] := TRttiMethodTypeParameter.Create(param, param^.Name, param^.ParamFlags, param^.ParamType);
+        context.AddObject(FParamsAll[i]);
+      end;
+
+      if not (pfHidden in param^.ParamFlags) then begin
+        FParams[visible] := FParamsAll[i];
+        Inc(visible);
+      end;
+
+      param := PProcedureParam(AlignTypeData(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+    end;
+
+    SetLength(FParams, visible);
+  finally
+    context.Free;
+  end;
+
+  if aWithHidden then
+    Result := FParamsAll
+  else
+    Result := FParams;
+end;
+
+function TRttiProcedureType.GetCallingConvention: TCallConv;
+begin
+  Result := FTypeData^.ProcSig.CC;
+end;
+
+function TRttiProcedureType.GetReturnType: TRttiType;
+var
+  context: TRttiContext;
+begin
+  if not Assigned(FTypeData^.ProcSig.ResultTypeRef) then
+    Exit(Nil);
+
+  context := TRttiContext.Create;
+  try
+    Result := context.GetType(FTypeData^.ProcSig.ResultTypeRef^);
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiProcedureType.Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue;
+begin
+  if aCallable.Kind <> tkProcVar then
+    raise EInvocationError.CreateFmt(SErrInvokeCallableNotProc, [Name]);
+
+  Result := Rtti.Invoke(Name, PCodePointer(aCallable.GetReferenceToRawData)^, CallingConvention, True, TValue.Empty, aArgs, GetParameters(True), ReturnType);
 end;
 
 { TRttiStringType }
@@ -2683,8 +3272,17 @@ begin
   result := (FContextToken as IPooltoken).RttiPool.GetTypes;
 end;}
 
+{$ifndef InLazIDE}
+{$if defined(CPUX86_64) and defined(WIN64)}
+{$I invoke.inc}
+{$endif}
+{$endif}
+
 initialization
   PoolRefCount := 0;
   InitDefaultFunctionCallManager;
+{$ifdef SYSTEM_HAS_INVOKE}
+  InitSystemFunctionCallManager;
+{$endif}
 end.
 

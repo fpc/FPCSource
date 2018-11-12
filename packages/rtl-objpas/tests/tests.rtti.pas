@@ -52,6 +52,9 @@ type
     procedure TestMakeObject;
     procedure TestMakeArrayDynamic;
     procedure TestMakeArrayStatic;
+{$ifdef fpc}
+    procedure TestMakeArrayOpen;
+{$endif}
 
     procedure TestDataSize;
     procedure TestDataSizeEmpty;
@@ -59,11 +62,17 @@ type
     procedure TestReferenceRawDataEmpty;
 
     procedure TestIsManaged;
+{$ifdef fpc}
+    procedure TestOpenArrayToDyn;
+{$endif}
 
     procedure TestInterface;
 {$ifdef fpc}
     procedure TestInterfaceRaw;
 {$endif}
+
+    procedure TestProcVar;
+    procedure TestMethod;
   end;
 
 implementation
@@ -149,7 +158,11 @@ type
   TTestSet = set of TTestEnum;
 
   TTestProc = procedure;
+  TTestFunc1 = function: LongInt;
+  TTestFunc2 = function(aArg1: LongInt; aArg2: array of LongInt): String;
   TTestMethod = procedure of object;
+  TTestMethod1 = function: LongInt of object;
+  TTestMethod2 = function(aArg1: LongInt; aArg2: array of LongInt): String of object;
   TTestHelper = class helper for TObject
   end;
 
@@ -392,6 +405,84 @@ begin
   CheckEquals(value.GetArrayElement(2).AsInteger, 84);
   CheckEquals(value.GetArrayElement(3).AsInteger, 63);
 end;
+
+{$ifdef fpc}
+procedure TTestCase1.TestMakeArrayOpen;
+
+  procedure TestOpenArrayValueCopy(aArr: array of LongInt);
+  var
+    value: TValue;
+  begin
+    TValue.MakeOpenArray(@aArr[0], Length(aArr), PTypeInfo(TypeInfo(aArr)), value);
+    CheckEquals(value.IsArray, True);
+    CheckEquals(value.IsOpenArray, True);
+    CheckEquals(value.IsObject, False);
+    CheckEquals(value.IsOrdinal, False);
+    CheckEquals(value.IsClass, False);
+    CheckEquals(value.GetArrayLength, 2);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+    value.SetArrayElement(0, 84);
+    { since this is an open array the original array is modified! }
+    CheckEquals(aArr[0], 84);
+  end;
+
+  procedure TestOpenArrayValueVar(var aArr: array of LongInt);
+  var
+    value: TValue;
+  begin
+    TValue.MakeOpenArray(@aArr[0], Length(aArr), PTypeInfo(TypeInfo(aArr)), value);
+    CheckEquals(value.IsArray, True);
+    CheckEquals(value.IsOpenArray, True);
+    CheckEquals(value.IsObject, False);
+    CheckEquals(value.IsOrdinal, False);
+    CheckEquals(value.IsClass, False);
+    CheckEquals(value.GetArrayLength, 2);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+    value.SetArrayElement(0, 84);
+    { since this is an open array the original array is modified! }
+    CheckEquals(aArr[0], 84);
+  end;
+
+  procedure TestOpenArrayValueOut(var aArr: array of LongInt);
+  var
+    value: TValue;
+  begin
+    TValue.MakeOpenArray(@aArr[0], Length(aArr), PTypeInfo(TypeInfo(aArr)), value);
+    CheckEquals(value.IsArray, True);
+    CheckEquals(value.IsOpenArray, True);
+    CheckEquals(value.IsObject, False);
+    CheckEquals(value.IsOrdinal, False);
+    CheckEquals(value.IsClass, False);
+    CheckEquals(value.GetArrayLength, 2);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+    value.SetArrayElement(0, 84);
+    value.SetArrayElement(1, 128);
+    { since this is an open array the original array is modified! }
+    CheckEquals(aArr[0], 84);
+    CheckEquals(aArr[1], 128);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 84);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 128);
+  end;
+
+var
+  arr: array of LongInt;
+begin
+  TestOpenArrayValueCopy([42, 21]);
+
+  arr := [42, 21];
+  TestOpenArrayValueVar(arr);
+  CheckEquals(arr[0], 84);
+  CheckEquals(arr[1], 21);
+
+  arr := [42, 21];
+  TestOpenArrayValueOut(arr);
+  CheckEquals(arr[0], 84);
+  CheckEquals(arr[1], 128);
+end;
+{$endif}
 
 procedure TTestCase1.TestGetIsReadable;
 var
@@ -1285,6 +1376,34 @@ begin
   CheckEquals(false, IsManaged(nil), 'IsManaged for nil');
 end;
 
+{$ifdef fpc}
+procedure TTestCase1.TestOpenArrayToDyn;
+
+  procedure OpenArrayProc(aArr: array of LongInt);
+  var
+    value: TValue;
+  begin
+{$ifndef InLazIDE}
+    value := specialize OpenArrayToDynArrayValue<LongInt>(aArr);
+{$endif}
+    CheckEquals(value.IsArray, True);
+    CheckEquals(value.IsOpenArray, False);
+    CheckEquals(value.IsObject, False);
+    CheckEquals(value.IsOrdinal, False);
+    CheckEquals(value.IsClass, False);
+    CheckEquals(value.GetArrayLength, 2);
+    CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+    CheckEquals(value.GetArrayElement(1).AsInteger, 84);
+    value.SetArrayElement(0, 21);
+    { since this is a copy the original array is not modified! }
+    CheckEquals(aArr[0], 42);
+  end;
+
+begin
+  OpenArrayProc([42, 84]);
+end;
+{$endif}
+
 procedure TTestCase1.TestInterface;
 var
   context: TRttiContext;
@@ -1436,6 +1555,111 @@ begin
     context.Free;
   end;
 end;
+
+procedure TTestCase1.TestProcVar;
+var
+  context: TRttiContext;
+  t: TRttiType;
+  p: TRttiProcedureType;
+  params: {$ifdef fpc}specialize{$endif} TArray<TRttiParameter>;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(PTypeInfo(TypeInfo(TTestProc)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
+
+    p := t as TRttiProcedureType;
+    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(not Assigned(p.ReturnType), 'Return type is assigned');
+    CheckEquals(0, Length(p.GetParameters), 'Procedure variable has parameters');
+
+    t := context.GetType(PTypeInfo(TypeInfo(TTestFunc1)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
+
+    p := t as TRttiProcedureType;
+    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(Assigned(p.ReturnType), 'Return type is not assigned');
+    //Check(p.ReturnType is TRttiOrdinalType, 'Return type is not an ordinal type');
+    CheckEquals(0, Length(p.GetParameters), 'Procedure variable has parameters');
+
+    t := context.GetType(PTypeInfo(TypeInfo(TTestFunc2)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
+
+    p := t as TRttiProcedureType;
+    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(Assigned(p.ReturnType), 'Return type is not assigned');
+    Check(p.ReturnType is TRttiStringType, 'Return type is not a string type');
+
+    params := p.GetParameters;
+    CheckEquals(2, Length(params), 'Procedure variable has incorrect amount of parameters');
+
+    Check(params[0].ParamType.TypeKind in [tkInteger, tkInt64], 'Parameter 1 is not an ordinal type');
+    //Check(params[0].ParamType is TRttiOrdinalType, 'Parameter 1 is not an ordinal type');
+    Check(pfArray in params[1].Flags, 'Parameter 2 is not an array');
+    Check(params[1].ParamType.TypeKind in [tkInteger, tkInt64], 'Parameter 2 is not an ordinal array');
+  finally
+    context.Free;
+  end;
+end;
+
+procedure TTestCase1.TestMethod;
+var
+  context: TRttiContext;
+  t: TRttiType;
+  m: TRttiMethodType;
+  params: {$ifdef fpc}specialize{$endif} TArray<TRttiParameter>;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(PTypeInfo(TypeInfo(TTestMethod)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiMethodType, 'Rtti Type is not a method type');
+
+    m := t as TRttiMethodType;
+    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(not Assigned(m.ReturnType), 'Return type is assigned');
+    CheckEquals(0, Length(m.GetParameters), 'Method variable has parameters');
+
+    t := context.GetType(PTypeInfo(TypeInfo(TTestMethod1)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiMethodType, 'Rtti Type is not a method type');
+
+    m := t as TRttiMethodType;
+    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(Assigned(m.ReturnType), 'Return type is not assigned');
+    //Check(p.ReturnType is TRttiOrdinalType, 'Return type is not an ordinal type');
+    CheckEquals(0, Length(m.GetParameters), 'Method variable has parameters');
+
+    t := context.GetType(PTypeInfo(TypeInfo(TTestMethod2)));
+    Check(Assigned(t), 'Rtti Type is Nil');
+    Check(t is TRttiInvokableType, 'Rtti Type is not an invokeable');
+    Check(t is TRttiMethodType, 'Rtti Type is not a method type');
+
+    m := t as TRttiMethodType;
+    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(Assigned(m.ReturnType), 'Return type is not assigned');
+    Check(m.ReturnType is TRttiStringType, 'Return type is not a string type');
+
+    params := m.GetParameters;
+    CheckEquals(2, Length(params), 'Method variable has incorrect amount of parameters');
+
+    Check(params[0].ParamType.TypeKind in [tkInteger, tkInt64], 'Parameter 1 is not an ordinal type');
+    //Check(params[0].ParamType is TRttiOrdinalType, 'Parameter 1 is not an ordinal type');
+    Check(pfArray in params[1].Flags, 'Parameter 2 is not an array');
+    Check(params[1].ParamType.TypeKind in [tkInteger, tkInt64], 'Parameter 2 is not an ordinal array');
+  finally
+    context.Free;
+  end;
+end;
+
 {$endif}
 
 initialization
