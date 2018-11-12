@@ -82,6 +82,40 @@ begin
 end;
 
 
+{ Converts an Extended 101/102-Keyboard function scan code (as returned by int
+  16h, AH=10h/11h) to a standard 101/102-Keyboard function scan code (as would
+  be returned by int 16h, AH=00h/01h). However, keys that are not returned by
+  the standard keyboard function (e.g. F11, F12, etc.) are still let through.
+  Only those that return different codes are converted. }
+function ConvertExtendedToStandardScanCode(ScanCode: Word): Word;
+begin
+  if (ScanCode and $FF)=$E0 then
+    ConvertExtendedToStandardScanCode:=ScanCode and $FF00
+  else
+    case ScanCode of
+      { Numpad Enter -> Regular Enter }
+      $E00D:
+        ConvertExtendedToStandardScanCode:=$1C0D;
+      { Ctrl + Numpad Enter -> Ctrl + Regular Enter }
+      $E00A:
+        ConvertExtendedToStandardScanCode:=$1C0A;
+      { Numpad '/' -> Regular '/' }
+      $E02F:
+        ConvertExtendedToStandardScanCode:=$352F;
+      else
+        ConvertExtendedToStandardScanCode:=ScanCode;
+    end;
+end;
+
+
+function ConvertToLegacyKeyEvent(const KeyEvent: TEnhancedKeyEvent): TKeyEvent;
+begin
+  ConvertToLegacyKeyEvent:=(kbPhys shl 24) or
+    ConvertExtendedToStandardScanCode(KeyEvent.VirtualScanCode) or
+    (KeyEvent.ShiftState shl 16);
+end;
+
+
 function GetKeyEvent: TKeyEvent;
 
 begin
@@ -93,6 +127,8 @@ begin
     end;
   If Assigned(CurrentKeyBoardDriver.GetKeyEvent) Then
     GetKeyEvent:=CurrentKeyBoardDriver.GetKeyEvent()
+  else if Assigned(CurrentKeyboardDriver.GetEnhancedKeyEvent) then
+    GetKeyEvent:=ConvertToLegacyKeyEvent(CurrentKeyboardDriver.GetEnhancedKeyEvent())
   else
     GetKeyEvent:=0;
 end;
@@ -110,6 +146,8 @@ begin
     // PollKeyEvent procedure
     // to avoid problems if that procedure is called directly PM
     end
+  else if Assigned(CurrentKeyboardDriver.PollEnhancedKeyEvent) then
+    PollKeyEvent:=ConvertToLegacyKeyEvent(CurrentKeyboardDriver.PollEnhancedKeyEvent())
   else
     PollKeyEvent:=0;
 end;
