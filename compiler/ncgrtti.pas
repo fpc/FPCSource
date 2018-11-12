@@ -1339,40 +1339,32 @@ implementation
 
            procedure write_para(parasym:tparavarsym);
              begin
-               { only store user visible parameters }
-               if not(vo_is_hidden_para in parasym.varoptions) then
-                 begin
-                   { write flags for current parameter }
-                   write_param_flag(tcb,parasym);
-                   { write name of current parameter }
-                   tcb.emit_shortstring_const(parasym.realname);
-                   { write name of type of current parameter }
-                   write_rtti_name(tcb,parasym.vardef);
-                 end;
+               { write flags for current parameter }
+               write_param_flag(tcb,parasym);
+               { write name of current parameter }
+               tcb.emit_shortstring_const(parasym.realname);
+               { write name of type of current parameter }
+               write_rtti_name(tcb,parasym.vardef);
              end;
 
            procedure write_procedure_param(parasym:tparavarsym);
              begin
-               { only store user visible parameters }
-               if not(vo_is_hidden_para in parasym.varoptions) then
-                 begin
-                   { every parameter is expected to start aligned }
-                   tcb.begin_anonymous_record(
-                     internaltypeprefixName[itp_rtti_proc_param]+tostr(length(parasym.realname)),
-                     defaultpacking,min(reqalign,SizeOf(PInt)),
-                     targetinfos[target_info.system]^.alignment.recordalignmin,
-                     targetinfos[target_info.system]^.alignment.maxCrecordalign);
-                   { write flags for current parameter }
-                   write_param_flag(tcb,parasym);
-                   { write param type }
-                   if is_open_array(parasym.vardef) or is_array_of_const(parasym.vardef) then
-                     write_rtti_reference(tcb,tarraydef(parasym.vardef).elementdef,fullrtti)
-                   else
-                     write_rtti_reference(tcb,parasym.vardef,fullrtti);
-                   { write name of current parameter }
-                   tcb.emit_shortstring_const(parasym.realname);
-                   tcb.end_anonymous_record;
-                 end;
+               { every parameter is expected to start aligned }
+               tcb.begin_anonymous_record(
+                 internaltypeprefixName[itp_rtti_proc_param]+tostr(length(parasym.realname)),
+                 defaultpacking,min(reqalign,SizeOf(PInt)),
+                 targetinfos[target_info.system]^.alignment.recordalignmin,
+                 targetinfos[target_info.system]^.alignment.maxCrecordalign);
+               { write flags for current parameter }
+               write_param_flag(tcb,parasym);
+               { write param type }
+               if is_open_array(parasym.vardef) or is_array_of_const(parasym.vardef) then
+                 write_rtti_reference(tcb,tarraydef(parasym.vardef).elementdef,fullrtti)
+               else
+                 write_rtti_reference(tcb,parasym.vardef,fullrtti);
+               { write name of current parameter }
+               tcb.emit_shortstring_const(parasym.realname);
+               tcb.end_anonymous_record;
              end;
 
         var
@@ -1392,7 +1384,7 @@ implementation
 
                { write parameter info. The parameters must be written in reverse order
                  if this method uses right to left parameter pushing! }
-               tcb.emit_ord_const(def.maxparacount,u8inttype);
+               tcb.emit_ord_const(def.paras.count,u8inttype);
 
                for i:=0 to def.paras.count-1 do
                  write_para(tparavarsym(def.paras[i]));
@@ -1412,13 +1404,12 @@ implementation
                { enclosing record takes care of alignment }
                { write params typeinfo }
                for i:=0 to def.paras.count-1 do
-                 if not(vo_is_hidden_para in tparavarsym(def.paras[i]).varoptions) then
-                   begin
-                     if is_open_array(tparavarsym(def.paras[i]).vardef) or is_array_of_const(tparavarsym(def.paras[i]).vardef) then
-                       write_rtti_reference(tcb,tarraydef(tparavarsym(def.paras[i]).vardef).elementdef,fullrtti)
-                     else
-                       write_rtti_reference(tcb,tparavarsym(def.paras[i]).vardef,fullrtti);
-                   end;
+                 begin
+                   if is_open_array(tparavarsym(def.paras[i]).vardef) or is_array_of_const(tparavarsym(def.paras[i]).vardef) then
+                     write_rtti_reference(tcb,tarraydef(tparavarsym(def.paras[i]).vardef).elementdef,fullrtti)
+                   else
+                     write_rtti_reference(tcb,tparavarsym(def.paras[i]).vardef,fullrtti);
+                 end;
                tcb.end_anonymous_record;
             end
           else
@@ -1436,7 +1427,7 @@ implementation
               { write result typeinfo }
               write_rtti_reference(tcb,def.returndef,fullrtti);
               { write parameter count }
-              tcb.emit_ord_const(def.maxparacount,u8inttype);
+              tcb.emit_ord_const(def.paras.count,u8inttype);
               for i:=0 to def.paras.count-1 do
                 write_procedure_param(tparavarsym(def.paras[i]));
               tcb.end_anonymous_record;
