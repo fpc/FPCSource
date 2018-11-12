@@ -330,6 +330,7 @@ begin
   CheckEquals(AValue.IsClass, False);
   CheckEquals(AValue.IsObject, True);
   Check(AValue.AsObject=ATestClass);
+  Check(PPointer(AValue.GetReferenceToRawData)^ = Pointer(ATestClass));
   CheckEquals(TTestValueClass(AValue.AsObject).AInteger, 54329);
   ATestClass.Free;
 end;
@@ -350,6 +351,7 @@ begin
   CheckEquals(value.GetArrayLength, 2);
   CheckEquals(value.GetArrayElement(0).AsInteger, 42);
   CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+  Check(PPointer(value.GetReferenceToRawData)^ = Pointer(arr));
   value.SetArrayElement(0, 84);
   CheckEquals(arr[0], 84);
 end;

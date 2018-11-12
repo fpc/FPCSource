@@ -193,10 +193,11 @@ type
     function GetTypeSize: integer; virtual;
     function GetBaseType: TRttiType; virtual;
   public
-    constructor create(ATypeInfo : PTypeInfo);
+    constructor Create(ATypeInfo : PTypeInfo);
     function GetProperties: specialize TArray<TRttiProperty>; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     function GetMethods: specialize TArray<TRttiMethod>; virtual;
+    function GetMethod(const aName: String): TRttiMethod; virtual;
     function GetDeclaredMethods: specialize TArray<TRttiMethod>; virtual;
     property IsInstance: boolean read GetIsInstance;
     property isManaged: boolean read GetIsManaged;
@@ -247,7 +248,7 @@ type
   protected
     function GetVisibility: TMemberVisibility; virtual;
   public
-    constructor create(AParent: TRttiType);
+    constructor Create(AParent: TRttiType);
     property Visibility: TMemberVisibility read GetVisibility;
     property Parent: TRttiType read FParent;
   end;
@@ -265,7 +266,7 @@ type
     function GetName: string; override;
     function GetHandle: Pointer; override;
   public
-    constructor create(AParent: TRttiType; APropInfo: PPropInfo);
+    constructor Create(AParent: TRttiType; APropInfo: PPropInfo);
     function GetValue(Instance: pointer): TValue;
     procedure SetValue(Instance: pointer; const AValue: TValue);
     property PropertyType: TRttiType read GetPropertyType;
@@ -381,10 +382,15 @@ type
   EInvocationError = class(Exception);
   ENonPublicType = class(Exception);
 
-  TFunctionCallParameter = record
-    Value: TValue;
+  TFunctionCallParameterInfo = record
+    ParamType: PTypeInfo;
     ParamFlags: TParamFlags;
     ParaLocs: PParameterLocations;
+  end;
+
+  TFunctionCallParameter = record
+    ValueRef: Pointer;
+    Info: TFunctionCallParameterInfo;
   end;
   TFunctionCallParameterArray = specialize TArray<TFunctionCallParameter>;
 
@@ -400,7 +406,7 @@ type
 
   TFunctionCallManager = record
     Invoke: procedure(CodeAddress: CodePointer; const Args: TFunctionCallParameterArray; CallingConvention: TCallConv;
-              ResultType: PTypeInfo; out ResultValue: TValue; Flags: TFunctionCallFlags);
+              ResultType: PTypeInfo; ResultValue: Pointer; Flags: TFunctionCallFlags);
     CreateCallbackProc: function(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
     CreateCallbackMethod: function(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
     FreeCallback: procedure(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
@@ -433,6 +439,7 @@ function IsManaged(TypeInfo: PTypeInfo): boolean;
 { these resource strings are needed by units implementing function call managers }
 resourcestring
   SErrInvokeNotImplemented = 'Invoke functionality is not implemented';
+  SErrInvokeResultTypeNoValue = 'Function has a result type, but no result pointer provided';
   SErrInvokeFailed = 'Invoke call failed';
   SErrCallbackNotImplented = 'Callback functionality is not implemented';
   SErrCallConvNotSupported = 'Calling convention not supported: %s';
@@ -573,7 +580,7 @@ var
   FuncCallMgr: TFunctionCallManagerArray;
 
 procedure NoInvoke(aCodeAddress: CodePointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
-            aResultType: PTypeInfo; out aResultValue: TValue; aFlags: TFunctionCallFlags);
+            aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
 begin
   raise ENotImplemented.Create(SErrInvokeNotImplemented);
 end;
@@ -722,12 +729,18 @@ begin
 
   SetLength(funcargs, Length(aArgs));
   for i := Low(aArgs) to High(aArgs) do begin
-    funcargs[i - Low(aArgs) + Low(funcargs)].Value := aArgs[i];
-    funcargs[i - Low(aArgs) + Low(funcargs)].ParamFlags := [];
-    funcargs[i - Low(aArgs) + Low(funcargs)].ParaLocs := Nil;
+    funcargs[i - Low(aArgs) + Low(funcargs)].ValueRef := aArgs[i].GetReferenceToRawData;
+    funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParamType := aArgs[i].TypeInfo;
+    funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParamFlags := [];
+    funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParaLocs := Nil;
   end;
 
-  FuncCallMgr[aCallConv].Invoke(aCodeAddress, funcargs, aCallConv, aResultType, Result, flags);
+  if Assigned(aResultType) then
+    TValue.Make(Nil, aResultType, Result)
+  else
+    Result := TValue.Empty;
+
+  FuncCallMgr[aCallConv].Invoke(aCodeAddress, funcargs, aCallConv, aResultType, Result.GetReferenceToRawData, flags);
 end;
 
 function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
@@ -1855,7 +1868,7 @@ end;
 
 function TValue.GetReferenceToRawData: Pointer;
 begin
-  if IsEmpty then
+  if not Assigned(FData.FTypeInfo) then
     Result := Nil
   else if Assigned(FData.FValueData) then
     Result := FData.FValueData.GetReferenceToRawData
@@ -2299,9 +2312,9 @@ begin
   result := mvPublished;
 end;
 
-constructor TRttiMember.create(AParent: TRttiType);
+constructor TRttiMember.Create(AParent: TRttiType);
 begin
-  inherited create();
+  inherited Create();
   FParent := AParent;
 end;
 
@@ -2338,9 +2351,9 @@ begin
   Result := FPropInfo;
 end;
 
-constructor TRttiProperty.create(AParent: TRttiType; APropInfo: PPropInfo);
+constructor TRttiProperty.Create(AParent: TRttiType; APropInfo: PPropInfo);
 begin
-  inherited create(AParent);
+  inherited Create(AParent);
   FPropInfo := APropInfo;
 end;
 
@@ -2548,9 +2561,9 @@ begin
   Result := FTypeInfo;
 end;
 
-constructor TRttiType.create(ATypeInfo: PTypeInfo);
+constructor TRttiType.Create(ATypeInfo: PTypeInfo);
 begin
-  inherited create();
+  inherited Create();
   FTypeInfo:=ATypeInfo;
   if assigned(FTypeInfo) then
     FTypeData:=GetTypeData(ATypeInfo);
@@ -2594,6 +2607,18 @@ begin
   fMethods := Concat(parentmethods, selfmethods);
 
   Result := fMethods;
+end;
+
+function TRttiType.GetMethod(const aName: String): TRttiMethod;
+var
+  methods: specialize TArray<TRttiMethod>;
+  method: TRttiMethod;
+begin
+  methods := GetMethods;
+  for method in methods do
+    if SameText(method.Name, AName) then
+      Exit(method);
+  Result := Nil;
 end;
 
 function TRttiType.GetDeclaredMethods: specialize TArray<TRttiMethod>;
