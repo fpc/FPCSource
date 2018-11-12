@@ -158,7 +158,7 @@ function ConvertToEnhancedKeyEvent(KeyEvent: TKeyEvent): TEnhancedKeyEvent;
 var
   TranslatedKeyEvent: TKeyEvent;
 begin
-  FillChar(ConvertToEnhancedKeyEvent,SizeOf(ConvertToEnhancedKeyEvent),0);
+  ConvertToEnhancedKeyEvent:=NilEnhancedKeyEvent;
   if KeyEvent=0 then
     exit;
   ConvertToEnhancedKeyEvent.ShiftState:=GetKeyEventShiftState(KeyEvent);
