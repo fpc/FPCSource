@@ -4223,47 +4223,47 @@ begin
   if FileCount>0 then
     RaiseInternalError(20170504161340,'internal error: TPas2jsCompiler.Run FileCount>0');
 
-  // ste working directory, need by all relative filenames
-  FileCache.BaseDirectory:=aWorkingDir;
-
-  CompilerExe:=aCompilerExe; // maybe needed to find the default config
-
-  // quick check command line params
-  for i:=0 to ParamList.Count-1 do
-    ReadParam(ParamList[i],true,true);
-  if WriteDebugLog then
-    Log.OpenDebugLog;
-  if ShowLogo then
-    WriteLogo;
-
-  // read default config
-  if not SkipDefaultConfig then
-    LoadDefaultConfig;
-
-  // read command line parameters
-  for i:=0 to ParamList.Count-1 do
-    ReadParam(ParamList[i],false,true);
-
-  // now we know, if the logo can be displayed
-  if ShowLogo then
-    WriteLogo;
-
-  // show debug info
-  if ShowDebug then
-  begin
-    WriteOptions;
-    WriteDefines;
-  end;
-  if ShowDebug or ShowTriedUsedFiles then
-    WriteFoldersAndSearchPaths;
-
-  if FileCache.MainSrcFile='' then
-    ParamFatal('No source file name in command line');
-  if not DirectoryCache.FileExists(FileCache.MainSrcFile) then
-    ParamFatal('Pascal file not found: "'+FileCache.MainSrcFile+'"');
-
-  // compile
   try
+    // set working directory, need by all relative filenames
+    FileCache.BaseDirectory:=aWorkingDir;
+
+    CompilerExe:=aCompilerExe; // maybe needed to find the default config
+
+    // quick check command line params
+    for i:=0 to ParamList.Count-1 do
+      ReadParam(ParamList[i],true,true);
+    if WriteDebugLog then
+      Log.OpenDebugLog;
+    if ShowLogo then
+      WriteLogo;
+
+    // read default config
+    if not SkipDefaultConfig then
+      LoadDefaultConfig;
+
+    // read command line parameters
+    for i:=0 to ParamList.Count-1 do
+      ReadParam(ParamList[i],false,true);
+
+    // now we know, if the logo can be displayed
+    if ShowLogo then
+      WriteLogo;
+
+    // show debug info
+    if ShowDebug then
+    begin
+      WriteOptions;
+      WriteDefines;
+    end;
+    if ShowDebug or ShowTriedUsedFiles then
+      WriteFoldersAndSearchPaths;
+
+    if FileCache.MainSrcFile='' then
+      ParamFatal('No source file name in command line');
+    if not DirectoryCache.FileExists(FileCache.MainSrcFile) then
+      ParamFatal('Pascal file not found: "'+FileCache.MainSrcFile+'"');
+
+    // compile
     Compile(StartTime);
   except
     on E: ECompilerTerminate do
