@@ -145,6 +145,25 @@ begin
   transShiftState := b;
 end;
 
+{ translate win32 shift-state to keyboard shift state }
+function transEnhShiftState (ControlKeyState : dword) : TEnhancedShiftState;
+var b : TEnhancedShiftState;
+begin
+  b := [];
+  if ControlKeyState and SHIFT_PRESSED <> 0 then  { win32 makes no difference between left and right shift }
+    Include(b,essShift);
+  if ControlKeyState and LEFT_CTRL_PRESSED <> 0 then
+    b:=b+[essCtrl,essLeftCtrl];
+  if ControlKeyState and RIGHT_CTRL_PRESSED <> 0 then
+    b:=b+[essCtrl,essRightCtrl];
+  if ControlKeyState and LEFT_ALT_PRESSED <> 0 then
+    b:=b+[essAlt,essLeftAlt];
+  if ControlKeyState and RIGHT_ALT_PRESSED <> 0 then
+    b:=b+[essAlt,essRightAlt];
+  transEnhShiftState := b;
+end;
+
+
 { The event-Handler thread from the unit event will call us if a key-event
   is available }
 
@@ -878,7 +897,7 @@ end;
 
 function TranslateEnhancedKeyEvent (t : TKeyEventRecord) : TEnhancedKeyEvent;
 var key : TEnhancedKeyEvent;
-    ss  : byte;
+    ss  : TEnhancedShiftState;
 {$ifdef  USEKEYCODES}
     ScanCode  : byte;
 {$endif  USEKEYCODES}
@@ -907,9 +926,9 @@ begin
       Key.UnicodeChar := t.UnicodeChar;
       Key.AsciiChar := WideCharToOemCpChar(t.UnicodeChar);
       Key.VirtualScanCode := byte (Key.AsciiChar) + (t.wVirtualScanCode shl 8);
-      ss := transShiftState (t.dwControlKeyState);
+      ss := transEnhShiftState (t.dwControlKeyState);
       Key.ShiftState := ss;
-      if (ss and kbAlt <> 0) and rightistruealt(t.dwControlKeyState) then
+      if (essAlt in ss) and rightistruealt(t.dwControlKeyState) then
         Key.VirtualScanCode := Key.VirtualScanCode and $FF00;
 {$else not USEKEYCODES}
       Key.UnicodeChar := t.UnicodeChar;
@@ -955,13 +974,13 @@ begin
       Key.VirtualScanCode := (Key.VirtualScanCode and $ff00) or ord('~');
     end;
     { ok, now add Shift-State }
-    ss := transShiftState (t.dwControlKeyState);
+    ss := transEnhShiftState (t.dwControlKeyState);
     Key.ShiftState := ss;
 
     { Reset Ascii-Char if Alt+Key, fv needs that, may be we
       need it for other special keys too
       18 Sept 1999 AD: not for right Alt i.e. for AltGr+ß = \ on german keyboard }
-    if ((ss and kbAlt <> 0) and rightistruealt(t.dwControlKeyState)) or
+    if (essAlt in ss) and rightistruealt(t.dwControlKeyState) or
     (*
       { yes, we need it for cursor keys, 25=left, 26=up, 27=right,28=down}
       {aggg, this will not work because esc is also virtualKeyCode 27!!}
@@ -982,13 +1001,13 @@ begin
         (t.wVirtualScanCode <= high (dosTT)) then
      begin
        b := 0;
-       if (ss and kbAlt) <> 0 then
+       if essAlt in ss then
          b := DosTT[t.wVirtualScanCode].a
        else
-       if (ss and kbCtrl) <> 0 then
+       if essCtrl in ss then
          b := DosTT[t.wVirtualScanCode].c
        else
-       if (ss and kbShift) <> 0 then
+       if essShift in ss then
          b := DosTT[t.wVirtualScanCode].s
        else
          b := DosTT[t.wVirtualScanCode].n;
@@ -1002,13 +1021,13 @@ begin
           (t.wVirtualScanCode <= high (dosTT09)) then
        begin
          b := 0;
-         if (ss and kbAlt) <> 0 then
+         if essAlt in ss then
            b := DosTT09[t.wVirtualScanCode].a
          else
-         if (ss and kbCtrl) <> 0 then
+         if essCtrl in ss then
            b := DosTT09[t.wVirtualScanCode].c
          else
-         if (ss and kbShift) <> 0 then
+         if essShift in ss then
            b := DosTT09[t.wVirtualScanCode].s
          else
            b := DosTT09[t.wVirtualScanCode].n;

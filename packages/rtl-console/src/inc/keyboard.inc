@@ -108,6 +108,28 @@ begin
 end;
 
 
+function ConvertEnhancedToLegacyShiftState(const ShiftState: TEnhancedShiftState): Byte;
+begin
+  ConvertEnhancedToLegacyShiftState:=0;
+  if essAlt in ShiftState then
+    ConvertEnhancedToLegacyShiftState:=ConvertEnhancedToLegacyShiftState or kbAlt;
+  if essCtrl in ShiftState then
+    ConvertEnhancedToLegacyShiftState:=ConvertEnhancedToLegacyShiftState or kbCtrl;
+  if essShift in ShiftState then
+    begin
+      if ([essLeftShift,essRightShift]*ShiftState)=[] then
+        ConvertEnhancedToLegacyShiftState:=ConvertEnhancedToLegacyShiftState or kbShift
+      else
+        begin
+          if essLeftShift in ShiftState then
+            ConvertEnhancedToLegacyShiftState:=ConvertEnhancedToLegacyShiftState or kbLeftShift;
+          if essRightShift in ShiftState then
+            ConvertEnhancedToLegacyShiftState:=ConvertEnhancedToLegacyShiftState or kbRightShift;
+        end;
+    end;
+end;
+
+
 function ConvertToLegacyKeyEvent(const KeyEvent: TEnhancedKeyEvent): TKeyEvent;
 begin
   if KeyEvent=NilEnhancedKeyEvent then
@@ -115,7 +137,7 @@ begin
   else
     ConvertToLegacyKeyEvent:=(kbPhys shl 24) or
       ConvertExtendedToStandardScanCode(KeyEvent.VirtualScanCode) or
-      (KeyEvent.ShiftState shl 16);
+      (ConvertEnhancedToLegacyShiftState(KeyEvent.ShiftState) shl 16);
 end;
 
 
@@ -198,11 +220,25 @@ end;
 function ConvertToEnhancedKeyEvent(KeyEvent: TKeyEvent): TEnhancedKeyEvent;
 var
   TranslatedKeyEvent: TKeyEvent;
+  ShiftState: Byte;
 begin
   ConvertToEnhancedKeyEvent:=NilEnhancedKeyEvent;
   if KeyEvent=0 then
     exit;
-  ConvertToEnhancedKeyEvent.ShiftState:=GetKeyEventShiftState(KeyEvent);
+  ConvertToEnhancedKeyEvent.ShiftState:=[];
+  ShiftState:=GetKeyEventShiftState(KeyEvent);
+  if (kbAlt and ShiftState)<>0 then
+    Include(ConvertToEnhancedKeyEvent.ShiftState,essAlt);
+  if (kbCtrl and ShiftState)<>0 then
+    Include(ConvertToEnhancedKeyEvent.ShiftState,essCtrl);
+  if (kbShift and ShiftState)<>0 then
+    begin
+      Include(ConvertToEnhancedKeyEvent.ShiftState,essShift);
+      if (kbLeftShift and ShiftState)<>0 then
+        Include(ConvertToEnhancedKeyEvent.ShiftState,essLeftShift);
+      if (kbRightShift and ShiftState)<>0 then
+        Include(ConvertToEnhancedKeyEvent.ShiftState,essRightShift);
+    end;
   case GetKeyEventFlags(KeyEvent) of
     kbASCII:
       ConvertToEnhancedKeyEvent.AsciiChar:=GetKeyEventChar(KeyEvent);
