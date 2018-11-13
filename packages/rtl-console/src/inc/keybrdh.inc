@@ -55,10 +55,13 @@ type
   possibily having the same name (but different value). }
 
   TEnhancedShiftState = set of (
+    essShift,
     essLeftShift,
     essRightShift,
+    essCtrl,
     essLeftCtrl,
     essRightCtrl,
+    essAlt,
     essLeftAlt,
     essRightAlt,
     essCapsLockPressed,
