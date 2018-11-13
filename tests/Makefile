@@ -2346,6 +2346,9 @@ endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
 endif
+ifdef TEST_PARALLEL
+override DOTESTOPT+=-L
+endif
 ifdef TEST_BENCH
 override DOTESTOPT+=-D
 endif
