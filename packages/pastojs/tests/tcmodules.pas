@@ -5617,6 +5617,8 @@ begin
   '  j:=c;',
   '  Write(c);',
   '  c:=default(currency);',
+  '  j:=str(c);',
+  '  j:=str(c:0:3);',
   '']);
   ConvertProgram;
   CheckSource('TestCurrency',
@@ -5684,6 +5686,8 @@ begin
     '$mod.j = $mod.c / 10000;',
     '$mod.Write($mod.c / 10000);',
     '$mod.c = 0;',
+    '$mod.j = rtl.floatToStr($mod.c / 10000);',
+    '$mod.j = rtl.floatToStr($mod.c / 10000, 0, 3);',
     '']));
 end;
 
