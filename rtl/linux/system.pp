@@ -446,7 +446,7 @@ end;
 {$define INITTLS}
 Function fpset_tls(p : pointer;size : SizeUInt):cint;
 begin
-  Result:=do_syscall(__ARM_NR_set_tls,TSysParam(p));
+  Result:=do_syscall(syscall_nr___ARM_NR_set_tls,TSysParam(p));
 end;
 {$endif defined(CPUARM)}
 

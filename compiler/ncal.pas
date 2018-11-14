@@ -1903,18 +1903,27 @@ implementation
       var
         lastinitstatement : tstatementnode;
       begin
+        if not assigned(n) then
+          exit;
         if not assigned(callinitblock) then
-          callinitblock:=internalstatements(lastinitstatement)
-        else
-          lastinitstatement:=laststatement(callinitblock);
+          begin
+            callinitblock:=internalstatements(lastinitstatement);
+            lastinitstatement.left.free;
+            lastinitstatement.left:=n;
+            firstpass(tnode(callinitblock));
+            exit;
+          end;
+        lastinitstatement:=laststatement(callinitblock);
         { all these nodes must be immediately typechecked, because this routine }
         { can be called from pass_1 (i.e., after typecheck has already run) and }
         { moreover, the entire blocks themselves are also only typechecked in   }
         { pass_1, while the the typeinfo is already required after the          }
         { typecheck pass for simplify purposes (not yet perfect, because the    }
         { statementnodes themselves are not typechecked this way)               }
-        firstpass(n);
         addstatement(lastinitstatement,n);
+        firstpass(tnode(lastinitstatement));
+        { Update expectloc for callinitblock }
+        callinitblock.expectloc:=lastinitstatement.expectloc;
       end;
 
 
@@ -1922,13 +1931,22 @@ implementation
       var
         lastdonestatement : tstatementnode;
       begin
+        if not assigned(n) then
+          exit;
         if not assigned(callcleanupblock) then
-          callcleanupblock:=internalstatements(lastdonestatement)
-        else
-          lastdonestatement:=laststatement(callcleanupblock);
+          begin
+            callcleanupblock:=internalstatements(lastdonestatement);
+            lastdonestatement.left.free;
+            lastdonestatement.left:=n;
+            firstpass(tnode(callcleanupblock));
+            exit;
+          end;
+        lastdonestatement:=laststatement(callcleanupblock);
         { see comments in add_init_statement }
-        firstpass(n);
         addstatement(lastdonestatement,n);
+        firstpass(tnode(lastdonestatement));
+        { Update expectloc for callcleanupblock }
+        callcleanupblock.expectloc:=lastdonestatement.expectloc;
       end;
 
 

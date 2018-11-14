@@ -10282,14 +10282,11 @@ end;
 function TPasToJSConverter.ConvertBuiltInStrParam(El: TPasExpr;
   AContext: TConvertContext; IsStrFunc, IsFirst: boolean): TJSElement;
 var
-  ResolvedEl: TPasResolverResult;
-  NeedStrLit: Boolean;
   Add: TJSElement;
-  Call: TJSCallExpression;
-  PlusEl: TJSAdditiveExpressionPlus;
-  Bracket: TJSBracketMemberExpression;
 
   procedure PrependStrLit;
+  var
+    PlusEl: TJSAdditiveExpressionPlus;
   begin
     PlusEl:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
     PlusEl.A:=CreateLiteralString(El,'');
@@ -10297,6 +10294,12 @@ var
     Add:=PlusEl;
   end;
 
+var
+  ResolvedEl: TPasResolverResult;
+  NeedStrLit: Boolean;
+  Call: TJSCallExpression;
+  Bracket: TJSBracketMemberExpression;
+  Arg: TJSElement;
 begin
   Result:=nil;
   AContext.Resolver.ComputeElement(El,ResolvedEl,[]);
@@ -10305,17 +10308,20 @@ begin
   Bracket:=nil;
   try
     NeedStrLit:=false;
-    if ResolvedEl.BaseType in (btAllJSBooleans+btAllJSInteger) then
+    if ResolvedEl.BaseType in (btAllJSBooleans+btAllJSInteger-[btCurrency]) then
       begin
       NeedStrLit:=true;
       Add:=ConvertElement(El,AContext);
       end
-    else if ResolvedEl.BaseType in btAllJSFloats then
+    else if ResolvedEl.BaseType in (btAllJSFloats+[btCurrency]) then
       begin
       // convert to rtl.floatToStr(El,width,precision)
       Call:=CreateCallExpression(El);
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnFloatToStr]]);
-      Call.AddArg(ConvertElement(El,AContext));
+      Arg:=ConvertElement(El,AContext);
+      if ResolvedEl.BaseType=btCurrency then
+        Arg:=CreateDivideNumber(El,Arg,10000);
+      Call.AddArg(Arg);
       if El.format1<>nil then
         Call.AddArg(ConvertElement(El.format1,AContext));
       if El.format2<>nil then

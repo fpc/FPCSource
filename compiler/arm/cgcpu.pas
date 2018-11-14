@@ -1037,7 +1037,7 @@ unit cgcpu;
             { Doing two shifts instead of two bics might allow the peephole optimizer to fold the second shift
               into the following instruction}
             else if (op = OP_AND) and
-                    is_continuous_mask(a, lsb, width) and
+                    is_continuous_mask(aword(a), lsb, width) and
                     ((lsb = 0) or ((lsb + width) = 32)) then
               begin
                 shifterop_reset(so);
@@ -4633,7 +4633,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg(A_UXTH,dst,src))
             else if (op = OP_AND) and is_thumb32_imm(not(dword(a))) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
-            else if (op = OP_AND) and is_continuous_mask(not(a), shift, width) then
+            else if (op = OP_AND) and is_continuous_mask(aword(not(a)), shift, width) then
               begin
                 a_load_reg_reg(list,size,size,src,dst);
                 list.concat(taicpu.op_reg_const_const(A_BFC,dst,shift,width))
