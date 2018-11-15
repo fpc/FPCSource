@@ -88,7 +88,10 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
               if (right.location.loc=LOC_CONSTANT) and
-                 (not is_imm12(-right.location.value)) then
+                 { right.location.value might be $8000000000000000, 
+                   and its minus value generates an overflow here }
+                 {$ifopt Q+} ((right.location.value = int64($8000000000000000)) or {$endif}
+                 (not is_imm12(-right.location.value)) {$ifopt Q+}){$endif} then
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if right.location.loc=LOC_CONSTANT then
@@ -103,7 +106,10 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
               if (right.location.loc=LOC_CONSTANT) and
-                 (not is_imm12(-right.location.value)) then
+                 { right.location.value might be $8000000000000000, 
+                   and its minus value generates an overflow here }
+                 {$ifopt Q+} ((right.location.value = int64($8000000000000000)) or {$endif}
+                 (not is_imm12(-right.location.value)) {$ifopt Q+}){$endif} then
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if right.location.loc=LOC_CONSTANT then
