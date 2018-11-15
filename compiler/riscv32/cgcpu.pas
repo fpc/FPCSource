@@ -69,6 +69,9 @@ unit cgcpu;
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
 
     procedure tcgrv32.init_register_allocators;
       begin
