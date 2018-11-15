@@ -160,6 +160,12 @@ begin
     b:=b+[essAlt,essLeftAlt];
   if ControlKeyState and RIGHT_ALT_PRESSED <> 0 then
     b:=b+[essAlt,essRightAlt];
+  if ControlKeyState and NUMLOCK_ON <> 0 then
+    Include(b,essNumLockOn);
+  if ControlKeyState and CAPSLOCK_ON <> 0 then
+    Include(b,essCapsLockOn);
+  if ControlKeyState and SCROLLLOCK_ON <> 0 then
+    Include(b,essScrollLockOn);
   transEnhShiftState := b;
 end;
 
