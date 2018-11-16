@@ -54,7 +54,7 @@ type
   dependent. System dependent constants may be defined to cover those, with
   possibily having the same name (but different value). }
 
-  TEnhancedShiftState = set of (
+  TEnhancedShiftStateElement = (
     essShift,
     essLeftShift,
     essRightShift,
@@ -71,6 +71,7 @@ type
     essScrollLockPressed,
     essScrollLockOn
   );
+  TEnhancedShiftState = set of TEnhancedShiftStateElement;
 
   TEnhancedKeyEvent = record
     VirtualKeyCode: Word;    { device-independent identifier of the key }
