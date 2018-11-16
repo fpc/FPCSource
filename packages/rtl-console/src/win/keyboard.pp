@@ -922,7 +922,6 @@ end;
 
 function TranslateEnhancedKeyEvent (t : TFPKeyEventRecord) : TEnhancedKeyEvent;
 var key : TEnhancedKeyEvent;
-    ss  : TEnhancedShiftState;
 {$ifdef  USEKEYCODES}
     ScanCode  : byte;
 {$endif  USEKEYCODES}
@@ -951,9 +950,8 @@ begin
       Key.UnicodeChar := t.ev.UnicodeChar;
       Key.AsciiChar := WideCharToOemCpChar(t.ev.UnicodeChar);
       Key.VirtualScanCode := byte (Key.AsciiChar) + (t.ev.wVirtualScanCode shl 8);
-      ss := t.ShiftState;
-      Key.ShiftState := ss;
-      if (essAlt in ss) and rightistruealt(t.ev.dwControlKeyState) then
+      Key.ShiftState := t.ShiftState;
+      if (essAlt in t.ShiftState) and rightistruealt(t.ev.dwControlKeyState) then
         Key.VirtualScanCode := Key.VirtualScanCode and $FF00;
 {$else not USEKEYCODES}
       Key.UnicodeChar := t.ev.UnicodeChar;
@@ -999,13 +997,12 @@ begin
       Key.VirtualScanCode := (Key.VirtualScanCode and $ff00) or ord('~');
     end;
     { ok, now add Shift-State }
-    ss := t.ShiftState;
-    Key.ShiftState := ss;
+    Key.ShiftState := t.ShiftState;
 
     { Reset Ascii-Char if Alt+Key, fv needs that, may be we
       need it for other special keys too
       18 Sept 1999 AD: not for right Alt i.e. for AltGr+ß = \ on german keyboard }
-    if (essAlt in ss) and rightistruealt(t.ev.dwControlKeyState) or
+    if (essAlt in t.ShiftState) and rightistruealt(t.ev.dwControlKeyState) or
     (*
       { yes, we need it for cursor keys, 25=left, 26=up, 27=right,28=down}
       {aggg, this will not work because esc is also virtualKeyCode 27!!}
@@ -1026,13 +1023,13 @@ begin
         (t.ev.wVirtualScanCode <= high (dosTT)) then
      begin
        b := 0;
-       if essAlt in ss then
+       if essAlt in t.ShiftState then
          b := DosTT[t.ev.wVirtualScanCode].a
        else
-       if essCtrl in ss then
+       if essCtrl in t.ShiftState then
          b := DosTT[t.ev.wVirtualScanCode].c
        else
-       if essShift in ss then
+       if essShift in t.ShiftState then
          b := DosTT[t.ev.wVirtualScanCode].s
        else
          b := DosTT[t.ev.wVirtualScanCode].n;
@@ -1046,13 +1043,13 @@ begin
           (t.ev.wVirtualScanCode <= high (dosTT09)) then
        begin
          b := 0;
-         if essAlt in ss then
+         if essAlt in t.ShiftState then
            b := DosTT09[t.ev.wVirtualScanCode].a
          else
-         if essCtrl in ss then
+         if essCtrl in t.ShiftState then
            b := DosTT09[t.ev.wVirtualScanCode].c
          else
-         if essShift in ss then
+         if essShift in t.ShiftState then
            b := DosTT09[t.ev.wVirtualScanCode].s
          else
            b := DosTT09[t.ev.wVirtualScanCode].n;
