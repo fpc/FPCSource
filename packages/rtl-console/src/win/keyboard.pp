@@ -177,6 +177,16 @@ procedure HandleKeyboard(var ir:INPUT_RECORD);
       Include(b,essCapsLockOn);
     if ControlKeyState and SCROLLLOCK_ON <> 0 then
       Include(b,essScrollLockOn);
+    if (GetKeyState(VK_LSHIFT) and $8000) <> 0 then
+      b:=b+[essShift,essLeftShift];
+    if (GetKeyState(VK_RSHIFT) and $8000) <> 0 then
+      b:=b+[essShift,essRightShift];
+    if (GetKeyState(VK_NUMLOCK) and $8000) <> 0 then
+      Include(b,essNumLockPressed);
+    if (GetKeyState(VK_CAPITAL) and $8000) <> 0 then
+      Include(b,essCapsLockPressed);
+    if (GetKeyState(VK_SCROLL) and $8000) <> 0 then
+      Include(b,essScrollLockPressed);
     transEnhShiftState := b;
   end;
 
