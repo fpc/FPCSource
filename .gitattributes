@@ -7448,6 +7448,7 @@ packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-rctrl.dmp svneol=native#text
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us-rshift.dmp svneol=native#text/plain
 packages/rtl-console/tests/fpc-3.0.4-win64/us101-us.dmp svneol=native#text/plain
 packages/rtl-console/tests/kbd1.pp svneol=native#text/plain
+packages/rtl-console/tests/kbd2.pp svneol=native#text/plain
 packages/rtl-console/tests/kbdbdump.pp svneol=native#text/x-pascal
 packages/rtl-console/tests/kbddump.pp svneol=native#text/plain
 packages/rtl-console/tests/kbdtest.pp svneol=native#text/plain
