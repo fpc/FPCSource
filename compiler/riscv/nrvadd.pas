@@ -63,6 +63,13 @@ implementation
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj;
 
+{$undef AVOID_OVERFLOW}
+{$ifopt Q+}
+  {$define AVOID_OVERFLOW}
+  const
+     low_value = {$ifdef CPUALU64} low(int64) {$else} low(longint) {$endif};
+{$endif}
+
     procedure trvaddnode.Cmp(signed: boolean);
       var
         flabel,tlabel: tasmlabel;
@@ -90,8 +97,8 @@ implementation
               if (right.location.loc=LOC_CONSTANT) and
                  { right.location.value might be $8000000000000000, 
                    and its minus value generates an overflow here }
-                 {$ifopt Q+} ((right.location.value = int64($8000000000000000)) or {$endif}
-                 (not is_imm12(-right.location.value)) {$ifopt Q+}){$endif} then
+                 {$ifdef AVOID_OVERFLOW} ((right.location.value = low_value) or {$endif}
+                 (not is_imm12(-right.location.value)) {$ifdef AVOID_OVERFLOW}){$endif} then
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if right.location.loc=LOC_CONSTANT then
@@ -108,8 +115,8 @@ implementation
               if (right.location.loc=LOC_CONSTANT) and
                  { right.location.value might be $8000000000000000, 
                    and its minus value generates an overflow here }
-                 {$ifopt Q+} ((right.location.value = int64($8000000000000000)) or {$endif}
-                 (not is_imm12(-right.location.value)) {$ifopt Q+}){$endif} then
+                 {$ifdef AVOID_OVERFLOW} ((right.location.value = low_value) or {$endif}
+                 (not is_imm12(-right.location.value)) {$ifdef AVOID_OVERFLOW}){$endif} then
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if right.location.loc=LOC_CONSTANT then
