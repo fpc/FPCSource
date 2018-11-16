@@ -51,6 +51,7 @@ const MaxQueueSize = 120;
 type
   TFPKeyEventRecord = record
     ev: TKeyEventRecord;
+    ShiftState: TEnhancedShiftState;
   end;
 var
    keyboardeventqueue : array[0..maxqueuesize] of TFPKeyEventRecord;
@@ -149,35 +150,36 @@ begin
   transShiftState := b;
 end;
 
-{ translate win32 shift-state to keyboard shift state }
-function transEnhShiftState (ControlKeyState : dword) : TEnhancedShiftState;
-var b : TEnhancedShiftState;
-begin
-  b := [];
-  if ControlKeyState and SHIFT_PRESSED <> 0 then  { win32 makes no difference between left and right shift }
-    Include(b,essShift);
-  if ControlKeyState and LEFT_CTRL_PRESSED <> 0 then
-    b:=b+[essCtrl,essLeftCtrl];
-  if ControlKeyState and RIGHT_CTRL_PRESSED <> 0 then
-    b:=b+[essCtrl,essRightCtrl];
-  if ControlKeyState and LEFT_ALT_PRESSED <> 0 then
-    b:=b+[essAlt,essLeftAlt];
-  if ControlKeyState and RIGHT_ALT_PRESSED <> 0 then
-    b:=b+[essAlt,essRightAlt];
-  if ControlKeyState and NUMLOCK_ON <> 0 then
-    Include(b,essNumLockOn);
-  if ControlKeyState and CAPSLOCK_ON <> 0 then
-    Include(b,essCapsLockOn);
-  if ControlKeyState and SCROLLLOCK_ON <> 0 then
-    Include(b,essScrollLockOn);
-  transEnhShiftState := b;
-end;
-
 
 { The event-Handler thread from the unit event will call us if a key-event
   is available }
 
 procedure HandleKeyboard(var ir:INPUT_RECORD);
+
+  { translate win32 shift-state to keyboard shift state }
+  function transEnhShiftState (ControlKeyState : dword) : TEnhancedShiftState;
+  var b : TEnhancedShiftState;
+  begin
+    b := [];
+    if ControlKeyState and SHIFT_PRESSED <> 0 then  { win32 makes no difference between left and right shift }
+      Include(b,essShift);
+    if ControlKeyState and LEFT_CTRL_PRESSED <> 0 then
+      b:=b+[essCtrl,essLeftCtrl];
+    if ControlKeyState and RIGHT_CTRL_PRESSED <> 0 then
+      b:=b+[essCtrl,essRightCtrl];
+    if ControlKeyState and LEFT_ALT_PRESSED <> 0 then
+      b:=b+[essAlt,essLeftAlt];
+    if ControlKeyState and RIGHT_ALT_PRESSED <> 0 then
+      b:=b+[essAlt,essRightAlt];
+    if ControlKeyState and NUMLOCK_ON <> 0 then
+      Include(b,essNumLockOn);
+    if ControlKeyState and CAPSLOCK_ON <> 0 then
+      Include(b,essCapsLockOn);
+    if ControlKeyState and SCROLLLOCK_ON <> 0 then
+      Include(b,essScrollLockOn);
+    transEnhShiftState := b;
+  end;
+
 var
    i      : longint;
    c      : word;
@@ -235,6 +237,8 @@ begin
                  begin
                    keyboardeventqueue[nextfreekeyevent].ev:=
                      ir.Event.KeyEvent;
+                   keyboardeventqueue[nextfreekeyevent].ShiftState:=
+                     transEnhShiftState(dwControlKeyState);
                    incqueueindex(nextfreekeyevent);
                  end;
               end;
@@ -262,6 +266,7 @@ begin
                                                 {and add to queue}
                        EnterCriticalSection (lockVar);
                        keyboardeventqueue[nextfreekeyevent].ev:=ir.Event.KeyEvent;
+                       keyboardeventqueue[nextfreekeyevent].ShiftState:=transEnhShiftState(dwControlKeyState);
                        incqueueindex(nextfreekeyevent);
                        SetEvent (newKeyEvent);      {event that a new key is available}
                        LeaveCriticalSection (lockVar);
@@ -936,7 +941,7 @@ begin
       Key.UnicodeChar := t.ev.UnicodeChar;
       Key.AsciiChar := WideCharToOemCpChar(t.ev.UnicodeChar);
       Key.VirtualScanCode := byte (Key.AsciiChar) + (t.ev.wVirtualScanCode shl 8);
-      ss := transEnhShiftState (t.ev.dwControlKeyState);
+      ss := t.ShiftState;
       Key.ShiftState := ss;
       if (essAlt in ss) and rightistruealt(t.ev.dwControlKeyState) then
         Key.VirtualScanCode := Key.VirtualScanCode and $FF00;
@@ -984,7 +989,7 @@ begin
       Key.VirtualScanCode := (Key.VirtualScanCode and $ff00) or ord('~');
     end;
     { ok, now add Shift-State }
-    ss := transEnhShiftState (t.ev.dwControlKeyState);
+    ss := t.ShiftState;
     Key.ShiftState := ss;
 
     { Reset Ascii-Char if Alt+Key, fv needs that, may be we
