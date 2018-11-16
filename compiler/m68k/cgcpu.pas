@@ -138,6 +138,9 @@ unit cgcpu;
        symsym,symtable,defutil,paramgr,procinfo,
        rgobj,tgobj,rgcpu,fmodule;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
 
     const
       { opcode table lookup }

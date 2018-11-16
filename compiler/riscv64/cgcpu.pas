@@ -63,6 +63,9 @@ implementation
       symconst, fmodule, symtable,
       rgobj, tgobj, cpupi, procinfo, paramgr, cpupara;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  64-bit and 32-bit values are done without explicit typecasts }
+{$R-}
 
     procedure tcgrv64.init_register_allocators;
       begin

@@ -2773,7 +2773,7 @@ unit cgx86;
 
     type  copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx);
 
-    var srcref,dstref:Treference;
+    var srcref,dstref,tmpref:Treference;
         r,r0,r1,r2,r3:Tregister;
         helpsize:tcgint;
         copysize:byte;
@@ -3049,8 +3049,10 @@ unit cgx86;
               end
             else
               begin
-                dstref.segment:=NR_NO;
-                a_loadaddr_ref_reg(list,dstref,REGDI);
+                { load offset of dest. reference }
+                tmpref:=dstref;
+                tmpref.segment:=NR_NO;
+                a_loadaddr_ref_reg(list,tmpref,REGDI);
 {$ifdef volatile_es}
                 saved_es:=false;
 {$else volatile_es}
@@ -3086,8 +3088,10 @@ unit cgx86;
               end
             else
               begin
-                srcref.segment:=NR_NO;
-                a_loadaddr_ref_reg(list,srcref,REGSI);
+                { load offset of source reference }
+                tmpref:=srcref;
+                tmpref.segment:=NR_NO;
+                a_loadaddr_ref_reg(list,tmpref,REGSI);
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
                 saved_ds:=true;
                 if srcref.segment<>NR_NO then
