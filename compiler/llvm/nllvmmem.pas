@@ -48,7 +48,7 @@ interface
         procedure pass_generate_code; override;
         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
         procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
-        procedure update_reference_offset(var ref: treference; index, mulsize: aint); override;
+        procedure update_reference_offset(var ref: treference; index, mulsize: ASizeInt); override;
       end;
 
 
@@ -294,7 +294,7 @@ implementation
     end;
 
 
-  procedure tllvmvecnode.update_reference_offset(var ref: treference; index, mulsize: aint);
+  procedure tllvmvecnode.update_reference_offset(var ref: treference; index, mulsize: ASizeInt);
     begin
       if not is_packed_array(left.resultdef) or
          not (tarraydef(left.resultdef).elementdef.typ in [enumdef,orddef]) then
