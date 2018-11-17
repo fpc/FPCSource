@@ -653,7 +653,11 @@ implementation
       begin
          case nr of
            0: result:=0;
+{$ifdef x86_64}
+           1: result:=1;
+{$else}
            1: result:=2;
+{$endif}
            else
              result:=-1;
          end;
