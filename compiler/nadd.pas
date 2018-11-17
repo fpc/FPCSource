@@ -377,11 +377,11 @@ implementation
 
     function taddnode.simplify(forinline : boolean) : tnode;
 
-      function is_range_test(nodel, noder: taddnode; var value: tnode; var cl,cr: Tconstexprint): boolean;
+      function is_range_test(nodel, noder: taddnode; out value: tnode; var cl,cr: Tconstexprint): boolean;
         const
           is_upper_test: array[ltn..gten] of boolean = (true,true,false,false);
-          inclusive_adjust: array[boolean,ltn..gten] of integer = ((1,0,-1,0),
-                                                                   (-1,0,1,0));
+          inclusive_adjust: array[boolean,ltn..gten] of integer = ((-1,0,1,0),
+                                                                   (1,0,-1,0));
         var
           swapl, swapr: Boolean;
           valuer: tnode;
@@ -1056,7 +1056,7 @@ implementation
             if is_boolean(left.resultdef) and is_boolean(right.resultdef) then
               begin
                 { transform unsigned comparisons of (v>=x) and (v<=y)
-                  into (v-x)<(y-x)
+                  into (v-x)<=(y-x)
                 }
                 if (nodetype=andn) and
                    (left.nodetype in [ltn,lten,gtn,gten]) and
