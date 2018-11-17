@@ -6329,6 +6329,8 @@ begin
   Result:=isVisibility(S,AVisibility);
   if Result then
     begin
+    if (AVisibility=visPublished) and (msOmitRTTI in Scanner.CurrentModeSwitches) then
+      AVisibility:=visPublic;
     if B then
       case AVisibility of
         visPrivate   : AVisibility:=visStrictPrivate;

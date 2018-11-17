@@ -315,6 +315,7 @@ type
     Procedure TestIncDec;
     Procedure TestIncStringFail;
     Procedure TestTypeInfo;
+    Procedure TestTypeInfo_FailRTTIDisabled;
 
     // statements
     Procedure TestForLoop;
@@ -4705,6 +4706,21 @@ begin
   '  p:=typeinfo(c.ClassType);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeInfo_FailRTTIDisabled;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch OmitRTTI}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  'var o: TObject;',
+  'begin',
+  '  if typeinfo(o)=nil then ;',
+  '']);
+  CheckResolverException(sSymbolCannotBePublished,nSymbolCannotBePublished);
 end;
 
 procedure TTestResolver.TestForLoop;

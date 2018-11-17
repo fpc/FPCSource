@@ -1801,7 +1801,9 @@ type
       PosEl: TPasElement; RaiseIfConst: boolean = true): boolean;
     function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
     // utility functions
+    function ElHasModeSwitch(El: TPasElement; ms: TModeSwitch): boolean;
     function GetElModeSwitches(El: TPasElement): TModeSwitches;
+    function ElHasBoolSwitch(El: TPasElement; bs: TBoolSwitch): boolean;
     function GetElBoolSwitches(El: TPasElement): TBoolSwitches;
     function GetProcTypeDescription(ProcType: TPasProcedureType;
       Flags: TPRProcTypeDescFlags = [prptdUseName,prptdResolveSimpleAlias]): string;
@@ -8112,7 +8114,7 @@ begin
     begin
     LTypeEl:=LeftResolved.LoTypeEl;
     if (LTypeEl.ClassType=TPasPointerType)
-        and (msAutoDeref in GetElModeSwitches(El))
+        and ElHasModeSwitch(El,msAutoDeref)
         and (rrfReadable in LeftResolved.Flags)
         then
       begin
@@ -8567,7 +8569,7 @@ procedure TPasResolver.ResolveArrayParamsArgs(Params: TParamsExpr;
     if not IsStringIndex then
       begin
       // pointer
-      if not (bsPointerMath in GetElBoolSwitches(Params)) then
+      if not ElHasBoolSwitch(Params,bsPointerMath) then
         exit(false);
       end;
     Result:=true;
@@ -9624,7 +9626,7 @@ begin
         else if RightResolved.BaseType=btPointer then
           begin
           if (Bin.OpCode in [eopAdd,eopSubtract])
-              and (bsPointerMath in GetElBoolSwitches(Bin)) then
+              and ElHasBoolSwitch(Bin,bsPointerMath) then
             begin
             // integer+CanonicalPointer
             SetResolverValueExpr(ResolvedEl,btPointer,
@@ -9638,7 +9640,7 @@ begin
           if RightTypeEl.ClassType=TPasPointerType then
             begin
             if (Bin.OpCode in [eopAdd,eopSubtract])
-                and (bsPointerMath in GetElBoolSwitches(Bin)) then
+                and ElHasBoolSwitch(Bin,bsPointerMath) then
               begin
               // integer+TypedPointer
               RightTypeEl:=TPasPointerType(RightTypeEl).DestType;
@@ -9837,7 +9839,7 @@ begin
       if (RightResolved.BaseType in btAllInteger) then
         case Bin.OpCode of
         eopAdd,eopSubtract:
-          if bsPointerMath in GetElBoolSwitches(Bin) then
+          if ElHasBoolSwitch(Bin,bsPointerMath) then
             begin
             // pointer+integer -> pointer
             SetResolverValueExpr(ResolvedEl,btPointer,
@@ -10118,7 +10120,7 @@ begin
           begin
           if IsDynArray(LeftTypeEl)
               and (Bin.OpCode=eopAdd)
-              and (msArrayOperators in GetElModeSwitches(Bin))
+              and ElHasModeSwitch(Bin,msArrayOperators)
               and ((RightResolved.BaseType in [btArrayOrSet,btArrayLit])
                 or IsDynArray(RightResolved.LoTypeEl)) then
             begin
@@ -10131,7 +10133,7 @@ begin
         else if LeftTypeEl.ClassType=TPasPointerType then
           begin
           if (RightResolved.BaseType in btAllInteger)
-              and (bsPointerMath in GetElBoolSwitches(Bin)) then
+              and ElHasBoolSwitch(Bin,bsPointerMath) then
             begin
             // TypedPointer+Integer
             SetLeftValueExpr([rrfReadable]);
@@ -10226,7 +10228,7 @@ begin
     if (rrfReadable in LeftResolved.Flags)
         and (rrfReadable in RightResolved.Flags)
         and (Bin.OpCode=eopAdd)
-        and (msArrayOperators in GetElModeSwitches(Bin)) then
+        and ElHasModeSwitch(Bin,msArrayOperators) then
       begin
       if RightResolved.BaseType=btArrayLit then
         begin
@@ -12581,14 +12583,14 @@ begin
     Result:=cExact
   else if ParamResolved.BaseType=btPointer then
     begin
-    if bsPointerMath in GetElBoolSwitches(Expr) then
+    if ElHasBoolSwitch(Expr,bsPointerMath) then
       Result:=cExact;
     end
   else if ParamResolved.BaseType=btContext then
     begin
     TypeEl:=ParamResolved.LoTypeEl;
     if (TypeEl.ClassType=TPasPointerType)
-        and (bsPointerMath in GetElBoolSwitches(Expr)) then
+        and ElHasBoolSwitch(Expr,bsPointerMath) then
       Result:=cExact;
     end;
   if Result=cIncompatible then
@@ -17675,6 +17677,12 @@ begin
     exit(true);
 end;
 
+function TPasResolver.ElHasModeSwitch(El: TPasElement; ms: TModeSwitch
+  ): boolean;
+begin
+  Result:=ms in GetElModeSwitches(El);
+end;
+
 function TPasResolver.GetElModeSwitches(El: TPasElement): TModeSwitches;
 var
   C: TClass;
@@ -17692,6 +17700,12 @@ begin
     El:=El.Parent;
     end;
   Result:=CurrentParser.CurrentModeswitches;
+end;
+
+function TPasResolver.ElHasBoolSwitch(El: TPasElement; bs: TBoolSwitch
+  ): boolean;
+begin
+  Result:=bs in GetElBoolSwitches(El);
 end;
 
 function TPasResolver.GetElBoolSwitches(El: TPasElement): TBoolSwitches;
@@ -20280,7 +20294,7 @@ end;
 function TPasResolver.IsArrayOperatorAdd(Expr: TPasExpr): boolean;
 begin
   Result:=(Expr<>nil) and (Expr.ClassType=TBinaryExpr) and (Expr.OpCode=eopAdd)
-          and (msArrayOperators in GetElModeSwitches(Expr));
+          and ElHasModeSwitch(Expr,msArrayOperators);
 end;
 
 function TPasResolver.IsTypeCast(Params: TParamsExpr): boolean;
@@ -20603,8 +20617,14 @@ begin
   if El.CustomData is TResElDataBaseType then
     exit(true); // base type
   if El.Parent=nil then exit;
-  if (El.Parent is TPasType) and not HasTypeInfo(TPasType(El.Parent)) then
-    exit;
+  if El.Parent is TPasType then
+    begin
+    if not HasTypeInfo(TPasType(El.Parent)) then
+      exit;
+    end
+  else
+    if ElHasModeSwitch(El,msOmitRTTI) then
+      exit;
   Result:=true;
 end;
 
