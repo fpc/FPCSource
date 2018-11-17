@@ -963,6 +963,11 @@ implementation
                   end;
 
                 end;
+              finalizetempsn:
+                begin
+                  result:=NODE_COMPLEXITY_INF;
+                  exit;
+                end;
               else
                 begin
                   result := NODE_COMPLEXITY_INF;

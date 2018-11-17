@@ -59,6 +59,13 @@ interface
        end;
        tspecializenodeclass = class of tspecializenode;
 
+       tfinalizetempsnode = class(tnode)
+          constructor create;virtual;
+          function pass_1 : tnode;override;
+          function pass_typecheck:tnode;override;
+       end;
+       tfinalizetempsnodeclass = class of tfinalizetempsnode;
+
        tasmnode = class(tnode)
           p_asm : TAsmList;
           currenttai : tai;
@@ -289,6 +296,7 @@ interface
        cnothingnode : tnothingnodeclass = tnothingnode;
        cerrornode : terrornodeclass = terrornode;
        cspecializenode : tspecializenodeclass = tspecializenode;
+       cfinalizetempsnode: tfinalizetempsnodeclass = tfinalizetempsnode;
        casmnode : tasmnodeclass = tasmnode;
        cstatementnode : tstatementnodeclass = tstatementnode;
        cblocknode : tblocknodeclass = tblocknode;
@@ -361,7 +369,6 @@ implementation
             addstatement(stat,result)
           end;
       end;
-
 
 
 {*****************************************************************************
@@ -453,6 +460,28 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          codegenerror:=true;
+      end;
+
+
+{*****************************************************************************
+                             TFINALIZETEMPSNODE
+*****************************************************************************}
+
+    constructor tfinalizetempsnode.create;
+      begin
+        inherited create(finalizetempsn);
+      end;
+
+    function tfinalizetempsnode.pass_1: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_VOID;
+      end;
+
+    function tfinalizetempsnode.pass_typecheck: tnode;
+      begin
+        resultdef:=voidtype;
+        result:=nil;
       end;
 
 

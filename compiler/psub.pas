@@ -47,9 +47,8 @@ interface
         loadpara_asmnode,
         exitlabel_asmnode,
         stackcheck_asmnode,
-        init_asmnode,
-        final_asmnode : tasmnode;
-        final_used : boolean;
+        init_asmnode    : tasmnode;
+        temps_finalized : boolean;
         dfabuilder : TDFABuilder;
 
         destructor  destroy;override;
@@ -678,8 +677,6 @@ implementation
      destructor tcgprocinfo.destroy;
        begin
          code.free;
-         if not final_used then
-           final_asmnode.free;
          inherited destroy;
        end;
 
@@ -768,9 +765,9 @@ implementation
                   (cs_implicit_exceptions in current_settings.moduleswitches)) then
                   begin
                     include(tocode.flags,nf_block_with_exit);
-                    addstatement(newstatement,final_asmnode);
+                    addstatement(newstatement,cfinalizetempsnode.create);
                     cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
-                    final_used:=true;
+                    temps_finalized:=true;
                   end;
 
                 { construction successful -> beforedestruction should be called
@@ -880,8 +877,7 @@ implementation
         { Generate code/locations used at end of proc }
         current_filepos:=exitpos;
         exitlabel_asmnode:=casmnode.create_get_position;
-        final_asmnode:=casmnode.create_get_position;
-        final_used:=false;
+        temps_finalized:=false;
         bodyexitcode:=generate_bodyexit_block;
 
         { Generate procedure by combining init+body+final,
@@ -914,13 +910,13 @@ implementation
             current_filepos:=exitpos;
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
-            addstatement(codestatement,final_asmnode);
+            addstatement(codestatement,cfinalizetempsnode.create);
             cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,codestatement);
-            final_used:=true;
+            temps_finalized:=true;
 
             current_filepos:=entrypos;
             wrappedbody:=ctryfinallynode.create_implicit(code,finalcode);
-            { afterconstruction must be called after final_asmnode, because it
+            { afterconstruction must be called after finalizetemps, because it
                has to execute after the temps have been finalised in case of a
                refcounted class (afterconstruction decreases the refcount
                without freeing the instance if the count becomes nil, while
@@ -947,12 +943,12 @@ implementation
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then
               begin
-                addstatement(newstatement,final_asmnode);
+                addstatement(newstatement,cfinalizetempsnode.create);
                 cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
-                final_used:=true;
+                temps_finalized:=true;
               end;
           end;
-        if not final_used then
+        if not temps_finalized then
           begin
             current_filepos:=exitpos;
             cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
@@ -1569,16 +1565,13 @@ implementation
 
             if assigned(finalize_procinfo) then
               generate_exceptfilter(tcgprocinfo(finalize_procinfo))
-            else
+            else if not temps_finalized then
               begin
                 hlcg.gen_finalize_code(templist);
                 { the finalcode must be concated if there was no position available,
                   using insertlistafter will result in an insert at the start
                   when currentai=nil }
-                if assigned(final_asmnode) and assigned(final_asmnode.currenttai) then
-                  aktproccode.insertlistafter(final_asmnode.currenttai,templist)
-                else
-                  aktproccode.concatlist(templist);
+                aktproccode.concatlist(templist);
               end;
             { insert exit label at the correct position }
             hlcg.a_label(templist,CurrExitLabel);
@@ -1753,7 +1746,6 @@ implementation
             delete_marker(exitlabel_asmnode);
             delete_marker(stackcheck_asmnode);
             delete_marker(init_asmnode);
-            delete_marker(final_asmnode);
 
 {$ifndef NoOpt}
             if not(cs_no_regalloc in current_settings.globalswitches) then

@@ -4567,13 +4567,14 @@ implementation
       cleanup_regvars(list);
 {$endif OLDREGVARS}
 
-      { finalize temporary data }
-      finalizetempvariables(list);
-
       { finalize paras data }
       if assigned(current_procinfo.procdef.parast) and
          not(po_assembler in current_procinfo.procdef.procoptions) then
         current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
+
+      { finalize temporary data }
+      finalizetempvariables(list);
+
       current_procinfo:=old_current_procinfo;
     end;
 

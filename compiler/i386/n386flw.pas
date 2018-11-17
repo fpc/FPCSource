@@ -247,8 +247,6 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
         if implicitframe then
           begin
             current_procinfo.finalize_procinfo:=finalizepi;
-            { don't leave dangling pointer }
-            tcgprocinfo(current_procinfo).final_asmnode:=nil;
           end;
       end;
   end;
