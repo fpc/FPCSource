@@ -517,7 +517,6 @@ implementation
 
       begin
          inherited create(assignn,l,r);
-         l.mark_write;
          assigntype:=at_normal;
          if r.nodetype = typeconvn then
            ttypeconvnode(r).warn_pointer_to_signed:=false;
@@ -586,6 +585,8 @@ implementation
         set_unique(left);
 
         typecheckpass(left);
+
+        left.mark_write;
 
         { PI. This is needed to return correct resultdef of add nodes for ansistrings
           rawbytestring return needs to be replaced by left.resultdef }
