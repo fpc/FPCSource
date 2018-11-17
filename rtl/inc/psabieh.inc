@@ -161,7 +161,7 @@ function fpc_read_uleb128 (p: PByte; out val: PTRUInt): PByte;
       inc(p);
       res:=res or (PtrUInt(b and $7f) shl shift);
       inc(shift,7);
-    until (b and $80)<>0;
+    until (b and $80)=0;
 
     val:=res;
     result:=p;
@@ -181,7 +181,7 @@ function fpc_read_sleb128 (p: PByte; out val: PtrInt): PByte;
       inc(p);
       res:=res or (PtrUInt(b and $7f) shl shift);
       inc(shift,7);
-    until (b and $80)<>0;
+    until (b and $80)=0;
     if (shift<8*(sizeof(res))) and
        ((b and $40)<>0) then
       res:=res or -(PtrUInt(1) shl shift);
