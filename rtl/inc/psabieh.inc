@@ -117,7 +117,12 @@ function FPC_psabieh_size_of_encoded_value(encoding: byte): longint;
       DW_EH_PE_udata8:
         exit(8);
       else
-        halt(217);
+        begin
+{$ifdef excdebug}
+          writeln('Unsupported encoding: $', hexstr(encoding,sizeof(encoding)*2));
+{$endif}
+          halt(217);
+        end;
     end
   end;
 
@@ -143,7 +148,12 @@ function FPC_psabieh_base_of_encoded_value (encoding: byte; context: PFPC_Unwind
       DW_EH_PE_funcrel:
         exit(_Unwind_GetRegionStart(context));
       else
-        halt(217);
+        begin
+{$ifdef excdebug}
+          writeln('Unsupported base of encoding: $', hexstr(encoding,sizeof(encoding)*2));
+{$endif}
+          halt(217);
+        end;
       end;
   end;
 
@@ -205,52 +215,57 @@ function FPC_psabieh_read_encoded_value_with_base (encoding: byte; base: PtrUInt
     else
       begin
         case encoding and $0f of
-	  DW_EH_PE_absptr:
+	        DW_EH_PE_absptr:
             begin
               res:=unaligned(PPtrUint(p)^);
-	      result:=p+sizeof(PtrUInt);
+	            result:=p+sizeof(PtrUInt);
             end;
-	  DW_EH_PE_uleb128:
-	    begin
+	        DW_EH_PE_uleb128:
+	          begin
               result:=fpc_read_uleb128(p,res);
             end;
-	  DW_EH_PE_sleb128:
-	    begin
+	        DW_EH_PE_sleb128:
+	          begin
               result:=fpc_read_sleb128(p,tmpres);
-	      res:=PtrUInt(tmpres);;
+	            res:=PtrUInt(tmpres);;
             end;
-	  DW_EH_PE_udata2:
+	        DW_EH_PE_udata2:
             begin
-	      res:=unaligned(pword(p)^);
-	      result:=p+2;
+	            res:=unaligned(pword(p)^);
+	            result:=p+2;
             end;
-	  DW_EH_PE_udata4:
+	        DW_EH_PE_udata4:
             begin
-	      res:=unaligned(pdword(p)^);
-	      result:=p+4;
-	    end;
-	  DW_EH_PE_udata8:
+	            res:=unaligned(pdword(p)^);
+	            result:=p+4;
+	          end;
+	        DW_EH_PE_udata8:
             begin
-	      res:=unaligned(pqword(p)^);
-	      result:=p+8;
-	    end;
-	  DW_EH_PE_sdata2:
+	            res:=unaligned(pqword(p)^);
+	            result:=p+8;
+	          end;
+	        DW_EH_PE_sdata2:
             begin
-	      res:=PtrUInt(unaligned(psmallint(p)^));
-	      result:=p+2;
+	            res:=PtrUInt(unaligned(psmallint(p)^));
+	            result:=p+2;
             end;
-	  DW_EH_PE_sdata4:
+	        DW_EH_PE_sdata4:
             begin
-	      res:=PtrUInt(unaligned(plongint(p)^));
-	      result:=p+4;
-	    end;
-	  DW_EH_PE_sdata8:
+	            res:=PtrUInt(unaligned(plongint(p)^));
+	            result:=p+4;
+	          end;
+	        DW_EH_PE_sdata8:
             begin
-	      res:=PtrUInt(unaligned(pint64(p)^));
-	      result:=p+8;
-	    end;
+	            res:=PtrUInt(unaligned(pint64(p)^));
+	            result:=p+8;
+	          end;
           else
-            halt(217);
+            begin
+{$ifdef excdebug}
+              writeln('Unsupported encoding of value with base: $', hexstr(encoding,sizeof(encoding)*2));
+{$endif}
+              halt(217);
+            end;
         end;
         if res<>0 then
           begin
@@ -316,7 +331,16 @@ function FPC_psabieh_parse_lsda_header(context: PFPC_Unwind_Context; p: PByte; o
     inc(p);
     p:=fpc_read_uleb128(p,tmp);
     info.action_table:=p+tmp;
-
+{$ifdef excdebug}
+    writeln('lsda header');
+    writeln('  * start: $',hexstr(info.start,sizeof(info.start)*2));
+    writeln('  * lp_start encoding: $',hexstr(lpstart_encoding,sizeof(lpstart_encoding)*2));
+    writeln('  * lp_start: $',hexstr(info.LPStart,sizeof(info.LPStart)*2));
+    writeln('  * ttype_encoding: $',hexstr(info.ttype_encoding,sizeof(info.ttype_encoding)*2));
+    writeln('  * ttype base: $',hexstr(info.TType));
+    writeln('  * ttype_encoding: $',hexstr(info.call_site_encoding,sizeof(info.call_site_encoding)*2));
+    writeln('  * action table: $', hexstr(p),' (offset: ',tmp,')');
+{$endif}
     result:=p;
   end;
 
@@ -387,6 +411,9 @@ function FPC_psabieh_find_action_record(const info: FPC_psabieh_lsda_header_info
     cs_action: PtrUInt {_Unwind_Word};
   begin
     result:=false;
+{$ifdef excdebug}
+    writeln('find action record start: p: $',hexstr(p),'; lsda covered code start: $',hexstr(info.Start,sizeof(info.start)*2),'; lsda action table: $',hexstr(info.action_table),'; lsda call site encoding: $',hexstr(info.call_site_encoding,2),'; ip: $', hexstr(ip,sizeof(ip)*2));
+{$endif}
     while (p<info.action_table) do
       begin
         // Note that all call-site encodings are "absolute" displacements.
@@ -395,6 +422,9 @@ function FPC_psabieh_find_action_record(const info: FPC_psabieh_lsda_header_info
         p:=FPC_psabieh_read_encoded_value (nil, info.call_site_encoding, p, cs_lp);
         p:=FPC_read_uleb128 (p, &cs_action);
 
+{$ifdef excdebug}
+        writeln('find action record: cs_start: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,', lp: ', cs_lp);
+{$endif}
         // The table is sorted, so if we've passed the ip, stop.
         if ip<(info.Start+cs_start) then
           p:=info.action_table
@@ -404,10 +434,16 @@ function FPC_psabieh_find_action_record(const info: FPC_psabieh_lsda_header_info
               landing_pad:=info.LPStart+cs_lp;
             if cs_action<>0 then
               action_record:=info.action_table+cs_action-1;
+{$ifdef excdebug}
+              writeln('action record result: action_record: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,', lp: ', cs_lp);
+{$endif}
             result:=true;
             exit;
           end;
       end;
+{$ifdef excdebug}
+    writeln('find action record failed');
+{$endif}
   end;
 
 
@@ -552,8 +588,14 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
     if (actions=(FPC_UA_CLEANUP_PHASE or FPC_UA_HANDLER_FRAME)) and
        not foreign_exception then
       begin
+{$ifdef excdebug}
+        writeln('restoring caught exception');
+{$endif}
         FPC_psabieh_restore_caught_exception(libunwind_exception,handler_switch_value,
                                  language_specific_data,landing_pad);
+{$ifdef excdebug}
+        writeln('restoring caught exception, landing_pad = $',hexstr(landing_pad,sizeof(landing_pad)*2));
+{$endif}
         if landing_pad<>0 then
           found_type:=found_handler
         else
@@ -566,6 +608,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
         // If no LSDA, then there are no handlers or cleanups.
         if not assigned(language_specific_data) then
           begin
+{$ifdef excdebug}
+            writeln('did not find lsda');
+{$endif}
             exit(FPC_URC_CONTINUE_UNWIND);
           end;
 
@@ -581,6 +626,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
         // Search the call-site table for the action associated with this IP.
         if FPC_psabieh_find_action_record(info,p,ip,landing_pad,action_record) then
           begin
+{$ifdef excdebug}
+            writeln('found action record');
+{$endif}
             if landing_pad=0 then
               begin
                 // If ip is present, and has a null landing pad, there are
@@ -598,6 +646,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
               begin
                 // Otherwise we have a catch handler or exception specification.
                 found_type:=FPC_psabieh_find_handler(info,foreign_exception,actions,WrappedException^.FObject,action_record,handler_switch_value);
+{$ifdef excdebug}
+                writeln('find_handler: ',found_type);
+{$endif}
               end
           end
         else
@@ -618,6 +669,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 
             if not foreign_exception then
               begin
+{$ifdef excdebug}
+                writeln('saving native exception: $',hexstr(landing_pad,sizeof(landing_pad)*2));
+{$endif}
                 // For domestic exceptions, we cache data from phase 1 for phase 2.
                 FPC_psabieh_save_caught_exception(libunwind_exception,
                                         handler_switch_value,language_specific_data,
@@ -631,17 +685,30 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
        foreign_exception then
       begin
         if found_type=found_terminate then
-          halt(217)
+          begin
+{$ifdef excdebug}
+            writeln('foreign exception or force unwind, and found type = found terminate; actions = $',hexstr(actions,sizeof(actions)*2),'; foreign exception ', foreign_exception);
+{$endif}
+            halt(217);
+          end
         { can only perform cleanups when force-unwinding }
         else if handler_switch_value<0 then
           begin
-            RunError(217)
+{$ifdef excdebug}
+            writeln('foreign exception or force unwind, handler_switch_value < 0: ', handler_switch_value);
+{$endif}
+            halt(217)
           end
       end
     else
       begin
         if found_type=found_terminate then
-          halt(217);
+          begin
+{$ifdef excdebug}
+            writeln('native exception and no force unwind, and force_terminate');
+{$endif}
+            halt(217);
+          end;
       end;
     { For targets with pointers smaller than the word size, we must extend the
        pointer, and this extension is target dependent.  }
@@ -669,7 +736,12 @@ procedure FPC_psabieh_ExceptionCleanUp(reason: FPC_Unwind_Reason_Code; exc:PFPC_
     // like the GCC _Unwind_DeleteException function does.
     if (reason<>FPC_URC_FOREIGN_EXCEPTION_CAUGHT) and
        (reason<>FPC_URC_NO_REASON) then
-      halt(217);
+      begin
+{$ifdef excdebug}
+        writeln('exception cleanup and reason not foreign exception or no reason, reason = $',hexstr(reason,sizeof(reason)*2));
+{$endif}
+        halt(217);
+      end;
 
     ExceptWrapper:=FPC_psabieh_GetExceptionWrapper(exc);
     ExceptWrapper^.FObject.free;
@@ -690,7 +762,12 @@ begin
   writeln ('In psabieh RaiseException');
 {$endif}
   if ExceptTryLevel<>0 then
-    Halt(217);
+    begin
+{$ifdef excdebug}
+      writeln('exception while raising exception, aborting');
+{$endif}
+      Halt(217);
+    end;
   ExceptTryLevel:=1;
   ExceptWrapper:=PushExceptObject(Obj,AnAddr,AFrame);
   ExceptWrapper^.unwind_exception.exception_class:=FPC_psabieh_exceptionClass_ID.u;
@@ -704,6 +781,9 @@ begin
       RaiseProc(FObject,Addr,FrameCount,Frames);
   _Unwind_RaiseException(@ExceptWrapper^.unwind_exception);
   // should never return
+{$ifdef excdebug}
+  writeln('_Unwind_RaiseException returned');
+{$endif}
   Halt(217);
 end;
 
@@ -723,7 +803,12 @@ function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compi
       begin
         // Can't link foreign exceptions with our stack
         if assigned(_ExceptObjectStack) then
-          halt(217);
+          begin
+{$ifdef excdebug}
+            writeln('begin catch for nested foreigh exception');
+{$endif}
+            halt(217);
+          end;
         // This is a wrong conversion, but as long as afterwards we only access
         // fields of PFPC_Unwind_Exception, it's fine
         _ExceptObjectStack:=FPC_psabieh_GetExceptionWrapper(exc);
@@ -811,6 +896,9 @@ procedure FPC_psabi_end_catch; cdecl; compilerproc;
         else if refcount<0 then
           begin
             // A bug in the exception handling library or compiler.
+{$ifdef excdebug}
+            writeln('refcount for exception is negative in end catch');
+{$endif}
             halt(217);
           end;
       end;
