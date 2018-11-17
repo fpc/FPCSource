@@ -1090,7 +1090,8 @@ const
     msNestedComment,
     msExternalClass,
     msArrayOperators,
-    msIgnoreAttributes];
+    msIgnoreAttributes,
+    msOmitRTTI];
 
   msAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings
