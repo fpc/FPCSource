@@ -836,7 +836,7 @@ function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compi
     if _ExceptObjectStack<>ExceptWrapper then
       begin
         ExceptWrapper^.Next:=_ExceptObjectStack;
-        _ExceptObjectStack:=ExceptWrapper;
+        ExceptObjectStack:=ExceptWrapper;
       end;
 
     result:= ExceptWrapper^.FObject;
