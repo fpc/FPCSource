@@ -517,7 +517,7 @@ function FPC_psabieh_find_handler(const info: FPC_psabieh_lsda_header_info; cons
 procedure __gxx_personality_v0(version: cint; actions: FPC_Unwind_Action; exceptionClass: cuint64; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context); cdecl; external;
 {$endif FPC_PSABIEH_CPLUSPLUSSUPPORT}
 
-function FPC_psabieh_personality_v0(version: cint; actions: FPC_Unwind_Action; exceptionClass: cuint64; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl;
+function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Action; exceptionClass: qword; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl;
   var
     WrappedException: PExceptObject;
     found_type: FPC_psabieh_found_handler_type;

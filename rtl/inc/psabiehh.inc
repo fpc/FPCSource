@@ -57,5 +57,8 @@ const
     (a: 'FPC1PAS'#0);
 {$pop}
 
+function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Action; exceptionClass: qword; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl;
+function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compilerproc;
+procedure FPC_psabi_end_catch; cdecl; compilerproc;
 
 {$packrecords default}
