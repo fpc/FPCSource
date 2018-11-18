@@ -27,6 +27,7 @@ begin
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-passrc');
+    P.Dependencies.Add('fcl-process');
     Defaults.Options.Add('-Sc');
 
     P.Author := 'Free Pascal development team';
