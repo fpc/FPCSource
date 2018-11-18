@@ -421,6 +421,11 @@ begin
   Result:=((FileGetAttrUTF8(AFilename) and faReadOnly) = 0);
 end;
 
+function FileIsWritable(const AFilename: string): boolean;
+begin
+  Result:=FileExists(AFilename);
+end;
+
 function GetEnvironmentVariableCountPJ: Integer;
 var
   hp,p : PWideChar;

@@ -342,6 +342,7 @@ type
     procedure RaiseDuplicateFile(aFilename: string);
     procedure SaveToFile(ms: TFPJSStream; Filename: string);
     function ExpandDirectory(const Filename, BaseDir: string): string;
+    function ExpandExecutable(const Filename, BaseDir: string): string;
   public
     property AllJSIntoMainJS: Boolean read GetAllJSIntoMainJS write SetAllJSIntoMainJS;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
@@ -2216,9 +2217,9 @@ begin
         i:=GetLastOSError;
         if i<>0 then
           Log.LogPlain('Note: '+SysErrorMessage(i));
-        if not SysUtils.DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
+        if not DirectoryCache.DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
           Log.LogPlain('Note: file cache inconsistency: folder does not exist "'+ChompPathDelim(ExtractFilePath(Filename))+'"');
-        if SysUtils.FileExists(Filename) and not FileIsWritable(Filename) then
+        if DirectoryCache.FileExists(Filename) and not FileIsWritable(Filename) then
           Log.LogPlain('Note: file is not writable "'+Filename+'"');
         raise;
       end;
@@ -2237,6 +2238,56 @@ begin
     Result:=ExpandFileNamePJ(Filename,BaseDirectory);
   if Result='' then exit;
   Result:=IncludeTrailingPathDelimiter(Result);
+end;
+
+function TPas2jsFilesCache.ExpandExecutable(const Filename, BaseDir: string
+  ): string;
+
+  function TryFile(CurFilename: string): boolean;
+  begin
+    Result:=false;
+    CurFilename:=ResolveDots(CurFilename);
+    if not DirectoryCache.FileExists(CurFilename) then exit;
+    ExpandExecutable:=CurFilename;
+    Result:=true;
+  end;
+
+var
+  PathVar, CurPath: String;
+  p, StartPos: Integer;
+begin
+  if Filename='' then exit('');
+  if ExtractFilePath(Filename)='' then
+  begin
+    // no file path -> search
+    {$IFDEF Windows}
+    // search in BaseDir
+    if BaseDir<>'' then
+    begin
+      if TryFile(IncludeTrailingPathDelimiter(BaseDir)+Filename) then exit;
+    end else if BaseDirectory<>'' then
+    begin
+      if TryFile(IncludeTrailingPathDelimiter(BaseDirectory)+Filename) then exit;
+    end;
+    {$ENDIF}
+    // search in PATH
+    PathVar:=GetEnvironmentVariablePJ('PATH');
+    p:=1;
+    while p<=length(PathVar) do
+    begin
+      while (p<=length(PathVar)) and (PathVar[p]=PathSeparator) do inc(p);
+      StartPos:=p;
+      while (p<=length(PathVar)) and (PathVar[p]<>PathSeparator) do inc(p);
+      CurPath:=copy(PathVar,StartPos,p-StartPos);
+      if CurPath='' then continue;
+      CurPath:=ExpandFileNamePJ(CurPath);
+      if CurPath='' then continue;
+      if TryFile(IncludeTrailingPathDelimiter(CurPath)+Filename) then exit;
+    end;
+  end else if BaseDir<>'' then
+    Result:=ExpandFileNamePJ(Filename,BaseDir)
+  else
+    Result:=ExpandFileNamePJ(Filename,BaseDirectory);
 end;
 
 end.

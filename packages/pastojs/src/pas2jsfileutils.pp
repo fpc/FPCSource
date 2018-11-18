@@ -58,6 +58,7 @@ function ResolveSymLinks(const Filename: string;
                  {%H-}ExceptionOnError: boolean): string; // if a link is broken returns ''
 function MatchGlobbing(Mask, Name: string): boolean;
 function FileIsWritable(const AFilename: string): boolean;
+function FileIsExecutable(const AFilename: string): boolean;
 
 function GetEnvironmentVariableCountPJ: Integer;
 function GetEnvironmentStringPJ(Index: Integer): string;
