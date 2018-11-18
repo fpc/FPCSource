@@ -22,9 +22,9 @@ uses
   {$IFDEF Pas2js}
   JS, NodeJSFS,
   {$ELSE}
-  RtlConsts,
+  RtlConsts, process,
   {$ENDIF}
-  Classes, SysUtils, contnrs, process,
+  Classes, SysUtils, contnrs,
   jstree, jswriter, JSSrcMap,
   PScanner, PParser, PasTree, PasResolver, PasUseAnalyzer, PasResolveEval,
   FPPas2Js, FPPJsSrcMap, Pas2jsFileUtils, Pas2jsLogger,
@@ -3338,10 +3338,10 @@ var
   aProc, pr: TPasToJsProcessor;
   Enable: Boolean;
   aPlatform, pl: TPasToJsPlatform;
+  PostProc: TStringList;
   {$IFDEF HasPas2jsFiler}
   Found: Boolean;
   PF: TPas2JSPrecompileFormat;
-  PostProc: TStringList;
   {$ENDIF}
 begin
   //writeln('TPas2jsCompiler.ReadParam ',Param,' ',Quick,' ',FromCmdLine);
@@ -4118,6 +4118,17 @@ end;
 
 function TPas2jsCompiler.CallPostProcessor(const JSFilename: String;
   Cmd: TStringList; JS: TJSWriterString): TJSWriterString;
+{$IFDEF pas2js}
+begin
+  Result:='';
+  if ShowUsedTools then
+    Log.LogMsgIgnoreFilter(nPostProcessorRunX,[QuoteStr(JSFilename)+' | '+CmdListAsStr(Cmd)]);
+  raise EFOpenError.Create('post processing is not yet implemented in platform nodejs');
+  if JSFilename='' then ;
+  if Cmd=nil then ;
+  if JS='' then ;
+end;
+{$ELSE}
 const
   BufSize = 65536;
 var
@@ -4240,6 +4251,7 @@ begin
   if ShowUsedTools then
     Log.LogMsgIgnoreFilter(nPostProcessorFinished,[]);
 end;
+{$ENDIF}
 
 constructor TPas2jsCompiler.Create;
 begin

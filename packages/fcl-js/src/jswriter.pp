@@ -324,7 +324,7 @@ end;
 procedure TBufferWriter.SetAsString(const AValue: TJSWriterString);
 begin
   {$ifdef pas2js}
-  FBuffer:=TJSArray.new;
+  SetLength(FBuffer,0);
   FCapacity:=0;
   {$endif}
   FBufPos:=0;
