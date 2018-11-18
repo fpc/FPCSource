@@ -1342,7 +1342,7 @@ implementation
     function check_for_sideeffect(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         result:=fen_false;
-        if (n.nodetype in [assignn,calln,asmn]) or
+        if (n.nodetype in [assignn,calln,asmn,finalizetempsn]) or
           ((n.nodetype=inlinen) and
            (tinlinenode(n).inlinenumber in [in_write_x,in_writeln_x,in_read_x,in_readln_x,in_str_x_string,
              in_val_x,in_reset_x,in_rewrite_x,in_reset_typedfile,in_rewrite_typedfile,

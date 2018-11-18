@@ -63,6 +63,7 @@ interface
           constructor create;virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
        tfinalizetempsnodeclass = class of tfinalizetempsnode;
 
@@ -482,6 +483,12 @@ implementation
       begin
         resultdef:=voidtype;
         result:=nil;
+      end;
+
+    function tfinalizetempsnode.docompare(p: tnode): boolean;
+      begin
+        { these nodes should never be coalesced }
+        result:=false;
       end;
 
 
