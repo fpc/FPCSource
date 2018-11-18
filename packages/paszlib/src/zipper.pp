@@ -1609,6 +1609,8 @@ Begin
       begin
         Compressed_Size := FZip.Size;
         LocalZip64Fld.Compressed_Size := 0;
+        if LocalZip64Fld.Original_Size > 0 then
+          IsZip64 := true;
       end;
       if AZipVersionReqd > Extract_Version_Reqd then
         Extract_Version_Reqd := AZipVersionReqd;
@@ -1623,7 +1625,6 @@ Begin
   FOutStream.WriteBuffer(ZFileName[1],Length(ZFileName));
   if IsZip64 then
   begin
-    LocalZip64ExtHdr.Header_ID:=ZIP64_HEADER_ID;
     FOutStream.WriteBuffer({$IFDEF ENDIAN_BIG}SwapEDFH{$ENDIF}(LocalZip64ExtHdr),SizeOf(LocalZip64ExtHdr));
     FOutStream.WriteBuffer({$IFDEF ENDIAN_BIG}SwapZ64EIF{$ENDIF}(LocalZip64Fld),SizeOf(LocalZip64Fld));
   end;
@@ -1682,7 +1683,7 @@ Begin
             end;
           end;
       // Move past extra fields
-      FOutStream.Seek(SavePos+LocalHdr.Extra_Field_Length,soFromBeginning);
+      //FOutStream.Seek(SavePos+LocalHdr.Extra_Field_Length,soFromBeginning);
       end;
     SavePos := FOutStream.Position;
     FillChar(CentralHdr,SizeOf(CentralHdr),0);
@@ -1732,9 +1733,16 @@ Begin
       else
         Local_Header_Offset := HdrPos;
       end;
+
+      if IsZip64 then
+      begin
+          CentralHdr.Extra_Field_Length:=SizeOf(LocalZip64ExtHdr)+SizeOf(LocalZip64Fld);
+      end else CentralHdr.Extra_Field_Length :=0;
+
     FOutStream.Seek(0,soEnd);
     FOutStream.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapCFH{$ENDIF}(CentralHdr),SizeOf(CentralHdr));
     FOutStream.WriteBuffer(ZFileName[1],Length(ZFileName));
+
     if IsZip64 then
       begin
       FOutStream.Seek(0,soEnd);
@@ -1744,7 +1752,7 @@ Begin
 
     Inc(ACount);
     // Move past compressed file data to next header:
-    if Iszip64 then
+    if LocalZip64Fld.Compressed_Size > 0 then
       FOutStream.Seek(SavePos + LocalZip64Fld.Compressed_Size,soBeginning)
     else
       FOutStream.Seek(SavePos + LocalHdr.Compressed_Size,soBeginning);
@@ -2093,7 +2101,7 @@ function TUnZipper.OpenOutput(OutFileName: RawByteString;
 Var
   Path: RawByteString;
   OldDirectorySeparators: set of char;
-  
+
 Begin
   { the default RTL behavior is broken on Unix platforms
     for Windows compatibility: it allows both '/' and '\'
@@ -2521,7 +2529,10 @@ Begin
           end;
         end;
       // Move past extra fields and file comment to next header
-      FZipStream.Seek(SavePos+Extra_Field_Length+File_Comment_Length,soFromBeginning);
+      if File_Comment_Length > 0 then
+          FZipStream.Seek(File_Comment_Length,soFromCurrent);
+      // this doesn't work properly when zip file size is over 4Gb, so commented off
+      //FZipStream.Seek(SavePos+Extra_Field_Length+File_Comment_Length,soFromBeginning);
       end;
     end;
 end;
@@ -2605,7 +2616,7 @@ Var
           OnProgress:=Self.OnProgress;
           OnPercent:=Self.OnPercent;
           DeCompress;
-          Self.FTotPos := FTotPos; 
+          Self.FTotPos := FTotPos;
           if Item.CRC32 <> Crc32Val then
             raise EZipError.CreateFmt(SErrInvalidCRC,[Item.ArchiveFileName]);
         Finally

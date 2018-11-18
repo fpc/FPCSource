@@ -415,8 +415,8 @@ Const
  * The following SWIs are ARM private.
  *}
   __ARM_NR_BASE                         = syscall_nr_base+$f0000;
-  __ARM_NR_breakpoint                   = __ARM_NR_BASE+1;
-  __ARM_NR_cacheflush                   = __ARM_NR_BASE+2;
-  __ARM_NR_usr26                        = __ARM_NR_BASE+3;
-  __ARM_NR_usr32                        = __ARM_NR_BASE+4;
-  __ARM_NR_set_tls                      = __ARM_NR_BASE+5;
+  syscall_nr___ARM_NR_breakpoint        = __ARM_NR_BASE+1;
+  syscall_nr___ARM_NR_cacheflush        = __ARM_NR_BASE+2;
+  syscall_nr___ARM_NR_usr26             = __ARM_NR_BASE+3;
+  syscall_nr___ARM_NR_usr32             = __ARM_NR_BASE+4;
+  syscall_nr___ARM_NR_set_tls           = __ARM_NR_BASE+5;

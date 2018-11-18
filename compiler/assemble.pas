@@ -1700,6 +1700,13 @@ Implementation
                      { here we must determine the fillsize which is used in pass2 }
                      Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Tai_align_abstract(hp).aligntype)-
                        ObjData.CurrObjSec.Size;
+
+                     { maximum number of bytes for alignment exeeded? }
+                     if (Tai_align_abstract(hp).aligntype<>Tai_align_abstract(hp).maxbytes) and
+                       (Tai_align_abstract(hp).fillsize>Tai_align_abstract(hp).maxbytes) then
+                       Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Byte(Tai_align_abstract(hp).aligntype div 2))-
+                         ObjData.CurrObjSec.Size;
+
                      ObjData.alloc(Tai_align_abstract(hp).fillsize);
                    end;
                end;

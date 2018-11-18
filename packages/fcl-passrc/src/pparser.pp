@@ -32,7 +32,7 @@ interface
 
 uses
   {$ifdef pas2js}
-  pas2jsfs,
+  NodeJSFS,
   {$endif}
   SysUtils, Classes, PasTree, PScanner;
 
@@ -3457,7 +3457,7 @@ begin
         NamePos:=CurSourcePos;
         List:=TFPList.Create;
         try
-          ReadGenericArguments(List,Nil);
+          ReadGenericArguments(List,Declarations);
           ExpectToken(tkEqual);
           NextToken;
           Case CurToken of
@@ -3859,7 +3859,7 @@ begin
   CheckToken(tkSquaredBraceClose);
 end;
 
-procedure TPasParser.ReadGenericArguments(List : TFPList;Parent : TPasElement);
+procedure TPasParser.ReadGenericArguments(List: TFPList; Parent: TPasElement);
 
 Var
   N : String;
@@ -5772,7 +5772,7 @@ begin
             NextToken;
             ImplRaise.ExceptAddr:=DoParseExpression(ImplRaise);
             end;
-          if Curtoken in [tkSemicolon,tkEnd] then
+          if Curtoken in [tkElse,tkEnd,tkSemicolon] then
             UngetToken
           end;
         end;
@@ -6329,6 +6329,8 @@ begin
   Result:=isVisibility(S,AVisibility);
   if Result then
     begin
+    if (AVisibility=visPublished) and (msOmitRTTI in Scanner.CurrentModeSwitches) then
+      AVisibility:=visPublic;
     if B then
       case AVisibility of
         visPrivate   : AVisibility:=visStrictPrivate;

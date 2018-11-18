@@ -1225,8 +1225,6 @@ implementation
 
 
     procedure tx86inlinenode.second_int_real;
-      var
-        extrareg : TRegister;
       begin
         if use_vectorfpu(resultdef) then
           begin

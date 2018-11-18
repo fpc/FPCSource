@@ -18,13 +18,17 @@ unit jswriter;
 { $DEFINE DEBUGJSWRITER}
 {AllowWriteln}
 
+{$if defined(fpc) or defined(NodeJS)}
+  {$define HasFileWriter}
+{$endif}
+
 interface
 
 uses
   {$ifdef pas2js}
   JS,
   {$endif}
-  SysUtils, jstoken, jsbase, jstree;
+  SysUtils, jsbase, jstree;
 
 Type
   {$ifdef pas2js}
@@ -72,17 +76,22 @@ Type
     Property OnWriting: TTextWriterWriting read FOnWriting write FOnWriting;
   end;
 
-  {$ifdef fpc}
+  {$ifdef HasFileWriter}
   { TFileWriter }
 
   TFileWriter = Class(TTextWriter)
   Protected
+    {$ifdef NodeJS}
+    {$else}
     FFile : Text;
+    {$endif}
     FFileName : String;
     Function DoWrite(Const S : TJSWriterString) : Integer; override;
+    {$ifdef FPC_HAS_CPSTRING}
     Function DoWrite(Const S : UnicodeString) : Integer; override;
+    {$endif}
   Public
-    Constructor Create(Const AFileNAme : String);
+    Constructor Create(Const AFileName : String); reintroduce;
     Destructor Destroy; override;
     Procedure Flush;
     Procedure Close;
@@ -90,11 +99,13 @@ Type
   end;
   {$endif}
 
+  TBufferWriter_Buffer = Array of {$ifdef fpc}byte{$else}string{$endif};
+
   { TBufferWriter }
 
   TBufferWriter = Class(TTextWriter)
   private type
-    TBuffer = Array of {$ifdef fpc}byte{$else}string{$endif};
+    TBuffer = TBufferWriter_Buffer;
   private
     FBufPos,
     FCapacity: Cardinal;
@@ -119,6 +130,9 @@ Type
     {$ifdef fpc}
     Procedure SaveToFile(Const AFileName : String);
     Property Buffer : Pointer Read GetBuffer;
+    {$endif}
+    {$ifdef pas2js}
+    Property Buffer: TBufferWriter_Buffer read FBuffer;
     {$endif}
     Property BufferLength : Integer Read GetBufferLength;
     Property Capacity : Cardinal Read GetCapacity Write SetCapacity;
@@ -214,7 +228,7 @@ Type
   Public
     Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): TJSString;
     Constructor Create(AWriter : TTextWriter);
-    {$ifdef fpc}
+    {$ifdef HasFileWriter}
     Constructor Create(Const AFileName : String);
     {$endif}
     Destructor Destroy; override;
@@ -519,9 +533,9 @@ function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
 Var
   I,J,L : Integer;
   R: TJSString;
-  c: Char;
-
+  c: WideChar;
 begin
+  //system.writeln('TJSWriter.EscapeString "',S,'"');
   I:=1;
   J:=1;
   R:='';
@@ -529,7 +543,8 @@ begin
   While I<=L do
     begin
     c:=S[I];
-    if (c in [#0..#31,'"','''','/','\']) then
+    if (c in [#0..#31,'"','''','/','\'])
+        or (c>=#$ff00) or ((c>=#$D800) and (c<=#$DFFF)) then
       begin
       R:=R+Copy(S,J,I-J);
       Case c of
@@ -543,6 +558,25 @@ begin
         #10 : R:=R+'\n';
         #12 : R:=R+'\f';
         #13 : R:=R+'\r';
+        #$D800..#$DFFF:
+          begin
+          if (I<L) then
+            begin
+            c:=S[I+1];
+            if (c>=#$D000) and (c<=#$DFFF) then
+              begin
+              inc(I,2); // surrogate, two char codepoint
+              continue;
+              end
+            else
+              // invalid UTF-16, cannot be encoded as UTF-8 -> encode as hex
+              R:=R+'\u'+TJSString(HexStr(ord(c),4));
+            end
+          else
+            // invalid UTF-16 at end of string, cannot be encoded as UTF-8 -> encode as hex
+            R:=R+'\u'+TJSString(HexStr(ord(c),4));
+          end;
+        #$FF00..#$FFFF: R:=R+'\u'+TJSString(HexStr(ord(c),4));
       end;
       J:=I+1;
       end;
@@ -550,6 +584,7 @@ begin
     end;
   R:=R+Copy(S,J,I-1);
   Result:=R;
+  //system.writeln('TJSWriter.EscapeString Result="',Result,'"');
 end;
 
 procedure TJSWriter.WriteValue(V: TJSValue);
@@ -803,7 +838,7 @@ begin
   FOptions:=[{$ifdef FPC_HAS_CPSTRING}woUseUTF8{$endif}];
 end;
 
-{$ifdef fpc}
+{$ifdef HasFileWriter}
 constructor TJSWriter.Create(const AFileName: String);
 begin
   Create(TFileWriter.Create(AFileName));
@@ -1453,14 +1488,6 @@ procedure TJSWriter.WriteSwitchStatement(El: TJSSwitchStatement);
 
 Var
   C : Boolean;
-
-  Procedure WriteCaseLabel(L : TJSString);
-
-  begin
-    Write(l);
-  end;
-
-Var
   I : Integer;
   EC : TJSCaseElement;
 
@@ -1774,27 +1801,37 @@ begin
   FSkipCurlyBrackets:=False;
 end;
 
-{$ifdef fpc}
+{$ifdef HasFileWriter}
 { TFileWriter }
 
 Function TFileWriter.DoWrite(Const S: TJSWriterString) : Integer;
 begin
   Result:=Length(S);
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.DoWrite ToDo ',S);
+  {$else}
   system.Write(FFile,S);
+  {$endif}
 end;
 
+{$ifdef FPC_HAS_CPSTRING}
 Function TFileWriter.DoWrite(Const S: UnicodeString) : Integer;
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
   system.Write(FFile,S);
 end;
+{$endif}
 
-Constructor TFileWriter.Create(Const AFileNAme: String);
+Constructor TFileWriter.Create(Const AFileName: String);
 begin
   inherited Create;
   FFileName:=AFileName;
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.Create ToDo ',AFileName);
+  {$else}
   Assign(FFile,AFileName);
   Rewrite(FFile);
+  {$endif}
 end;
 
 Destructor TFileWriter.Destroy;
@@ -1805,12 +1842,20 @@ end;
 
 Procedure TFileWriter.Flush;
 begin
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.Flush ToDO');
+  {$else}
   system.Flush(FFile);
+  {$endif}
 end;
 
 Procedure TFileWriter.Close;
 begin
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.DoWrite ToDo ');
+  {$else}
   system.Close(FFile);
+  {$endif}
 end;
 {$endif}
 

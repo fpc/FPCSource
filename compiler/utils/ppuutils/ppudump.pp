@@ -545,10 +545,10 @@ begin
 end;
 
 
-function PPUFlags2Str(flags:longint):string;
+function PPUFlags2Str(flags:dword):string;
 type
   tflagopt=record
-    mask : longint;
+    mask : dword;
     str  : string[30];
   end;
 const
@@ -586,10 +586,11 @@ const
     (mask: $10000000;str:'i8086_cs_equals_ds'),
     (mask: $20000000;str:'package_deny'),
     (mask: $40000000;str:'package_weak'),
-    (mask: longint($80000000);str:'i8086_ss_equals_ds')
+    (mask: dword($80000000);str:'i8086_ss_equals_ds')
   );
 var
-  i,ntflags : longint;
+  i : longint;
+  ntflags : dword;
   first  : boolean;
   s : string;
 begin
@@ -1059,7 +1060,7 @@ begin
      Writeln([fileindex,' (',line,',',column,')']);
      if Def <> nil then
        begin
-         Def.FilePos.FileIndex:=fileindex - 1;
+         Def.FilePos.FileIndex:=fileindex;
          Def.FilePos.Line:=line;
          Def.FilePos.Col:=column;
        end;
@@ -1353,7 +1354,9 @@ const
          (mask:pi_calls_c_varargs;
          str:' calls function with C-style varargs '),
          (mask:pi_has_open_array_parameter;
-         str:' has open array parameter ')
+         str:' has open array parameter '),
+         (mask:pi_uses_threadvar;
+         str:' uses threadvars ')
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1820,7 +1823,8 @@ begin
               begin
                 len:=gettokenbufsizeint;
                 setlength(astring,len);
-                move(tokenbuf[tbi],astring[1],len);
+                if len>0 then
+                  move(tokenbuf[tbi],astring[1],len);
                 write([' ',astring]);
                 inc(tbi,len);
               end;
@@ -2226,7 +2230,8 @@ type
 const
   piopt : array[low(timplprocoption)..high(timplprocoption)] of tpiopt=(
     (mask:pio_empty; str:'IsEmpty'),
-    (mask:pio_has_inlininginfo; str:'HasInliningInfo')
+    (mask:pio_has_inlininginfo; str:'HasInliningInfo'),
+    (mask:pio_inline_not_possible; str:'InlineNotPossible')
   );
 var
   i: timplprocoption;
@@ -2783,7 +2788,7 @@ begin
            begin
              def:=TPpuFieldDef.Create(ParentDef);
              readabstractvarsym('Field Variable symbol ',varoptions,TPpuVarDef(def));
-             writeln([space,'      Address : ',getaint]);
+             writeln([space,'      Address : ',getasizeint]);
              if vo_has_mangledname in varoptions then
                writeln([space,' Mangled name : ',getstring]);
            end;

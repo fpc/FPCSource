@@ -1,5 +1,6 @@
 
 {$inline on}
+
 {$IFDEF Windows}
   {$define CaseInsensitiveFilenames}
   {$define HasUNCPaths}
@@ -11,6 +12,13 @@
   {$DEFINE NotLiteralFilenames} // e.g. HFS+ normalizes file names
 {$ENDIF}
 
-{$DEFINE UTF8_RTL}
+{$IFDEF FPC}
+  {$DEFINE UsePChar}
+  {$DEFINE HasInt64}
+  {$DEFINE HasStreams}
+  {$DEFINE UTF8_RTL}
+  {$DEFINE HasStdErr}
+  {$DEFINE HasPas2jsFiler}
+{$ENDIF}
 
 

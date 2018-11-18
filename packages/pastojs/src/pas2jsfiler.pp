@@ -60,7 +60,11 @@ unit Pas2JsFiler;
 interface
 
 uses
-  Classes, Types, SysUtils, contnrs, zstream, AVL_Tree,
+  Classes, Types, SysUtils, contnrs,
+  {$ifdef pas2js}
+  {$else}
+  zstream, AVL_Tree,
+  {$endif}
   fpjson, jsonparser, jsonscanner,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver,
   Pas2jsFileUtils, FPPas2Js;
@@ -163,7 +167,8 @@ const
     'ArrayOperators',
     'ExternalClass',
     'PrefixedAttributes',
-    'IgnoreAttributes'
+    'IgnoreAttributes',
+    'OmitRTTI'
     );
 
   PCUDefaultBoolSwitches: TBoolSwitches = [

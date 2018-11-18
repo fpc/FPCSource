@@ -734,7 +734,7 @@ End;
 function StackTop: pointer;
 begin
   { Avoid wrap to zero on 32-bit }
-  if ptruint(StackBottom)+ StackLength > high(ptruint) then
+  if ptruint(StackBottom) > high(ptruint) - StackLength then
     result:=pointer(ptruint(high(ptruint)))
   else
     result:=StackBottom + StackLength;
@@ -1577,10 +1577,8 @@ end;
 { Generic threadmanager }
 {$i thread.inc}
 
-{$ifndef FPC_SECTION_THREADVARS}
 { Generic threadvar support }
 {$i threadvr.inc}
-{$endif FPC_SECTION_THREADVARS}
 
 {$ifdef DISABLE_NO_THREAD_MANAGER}
 { OS Dependent implementation }

@@ -274,6 +274,9 @@ implementation
                      to it from the structure or linking will fail }
                    if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
                      begin
+                       { note: we keep hdef so that we might at least read the
+                               constant data correctly for error recovery }
+                       check_allowed_for_var_or_const(hdef,false);
                        sym:=cfieldvarsym.create(orgname,varspez,hdef,[],true);
                        symtablestack.top.insert(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));

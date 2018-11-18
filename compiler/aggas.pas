@@ -347,9 +347,13 @@ implementation
             exit;
           end;
 
-        if (atype=sec_threadvar) and
-          (target_info.system in (systems_windows+systems_wince)) then
-          secname:='.tls';
+        if atype=sec_threadvar then
+          begin
+            if (target_info.system in (systems_windows+systems_wince)) then
+              secname:='.tls'
+            else if (target_info.system in systems_linux) then
+              secname:='.tbss';
+          end;
 
         { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
           Thus, data which normally goes into .rodata and .rodata_norel sections must
@@ -620,9 +624,10 @@ implementation
         end;
 
 
-      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint;lasthp:tai);
+      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; maxbytes: byte; out last_align: longint;lasthp:tai);
         var
           i: longint;
+          alignment64 : int64;
 {$ifdef m68k}
           instr : string;
 {$endif}
@@ -649,14 +654,33 @@ implementation
                   else
                     begin
 {$endif m68k}
-                  writer.AsmWrite(#9'.balign '+tostr(alignment));
-                  if use_op then
-                    writer.AsmWrite(','+tostr(fillop))
+                      alignment64:=alignment;
+                      if (maxbytes<>alignment) and ispowerof2(alignment64,i) then
+                        begin
+                          if use_op then
+                            begin
+                              writer.AsmWrite(#9'.p2align '+tostr(i)+','+tostr(fillop)+','+tostr(maxbytes));
+                              writer.AsmLn;
+                              writer.AsmWrite(#9'.p2align '+tostr(i-1)+','+tostr(fillop));
+                            end
+                          else
+                            begin
+                              writer.AsmWrite(#9'.p2align '+tostr(i)+',,'+tostr(maxbytes));
+                              writer.AsmLn;
+                              writer.AsmWrite(#9'.p2align '+tostr(i-1));
+                            end
+                        end
+                      else
+                        begin
+                          writer.AsmWrite(#9'.balign '+tostr(alignment));
+                          if use_op then
+                            writer.AsmWrite(','+tostr(fillop))
 {$ifdef x86}
-                  { force NOP as alignment op code }
-                  else if (LastSecType=sec_code) and (asminfo^.id<>as_solaris_as) then
-                    writer.AsmWrite(',0x90');
+                          { force NOP as alignment op code }
+                          else if (LastSecType=sec_code) and (asminfo^.id<>as_solaris_as) then
+                            writer.AsmWrite(',0x90');
 {$endif x86}
+                        end;
 {$ifdef m68k}
                     end;
 {$endif m68k}
@@ -746,7 +770,7 @@ implementation
 
            ait_align :
              begin
-               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align,lasthp);
+               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,tai_align_abstract(hp).maxbytes,last_align,lasthp);
              end;
 
            ait_section :
@@ -923,6 +947,11 @@ implementation
                         WriteAixIntConst(tai_const(hp));
                       writer.AsmLn;
                     end;
+                 aitconst_gottpoff:
+                   begin
+                     writer.AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(gottpoff)+(.-'+tai_const(hp).endsym.name+tostr_with_plus(tai_const(hp).symofs)+')');
+                     writer.Asmln;
+                   end;
 {$endif cpu64bitaddr}
                  aitconst_got:
                    begin

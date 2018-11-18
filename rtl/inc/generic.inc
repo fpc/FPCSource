@@ -29,7 +29,7 @@ function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLIN
     tmp: PtrUInt;
   begin
     tmp:=PtrUInt(addr)+(alignment-1);
-    result:=pointer(tmp-(tmp mod alignment));
+    result:=pointer(ptruint(tmp-(tmp mod alignment)));
   end;
 {$endif}
 

@@ -28,7 +28,7 @@ interface
 
     uses
       cclasses,
-      symtable,symsym,symdef;
+      symtable,symsym,symdef,symtype;
 
     type
       tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final,vd_canreorder,vd_check_generic);
@@ -44,6 +44,8 @@ interface
 
     procedure try_consume_sectiondirective(var asection: ansistring);
 
+    function check_allowed_for_var_or_const(def:tdef;allowdynarray:boolean):boolean;
+
 implementation
 
     uses
@@ -54,7 +56,7 @@ implementation
        globtype,globals,tokens,verbose,constexp,
        systems,
        { symtable }
-       symconst,symbase,symtype,defutil,defcmp,symcreat,
+       symconst,symbase,defutil,defcmp,symcreat,
 {$if defined(i386) or defined(i8086)}
        symcpu,
 {$endif}
@@ -1541,6 +1543,47 @@ implementation
       end;
 
 
+    function check_allowed_for_var_or_const(def:tdef;allowdynarray:boolean):boolean;
+      var
+        stowner,tmpdef : tdef;
+        st : tsymtable;
+      begin
+        result:=true;
+        st:=symtablestack.top;
+        if not (st.symtabletype in [recordsymtable,objectsymtable]) then
+          exit;
+        stowner:=tdef(st.defowner);
+        while assigned(stowner) and (stowner.typ in [objectdef,recorddef]) do
+          begin
+            if def.typ=arraydef then
+              begin
+                tmpdef:=def;
+                while (tmpdef.typ=arraydef) do
+                  begin
+                    { dynamic arrays are allowed in certain cases }
+                    if allowdynarray and (ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions) then
+                      begin
+                        tmpdef:=nil;
+                        break;
+                      end;
+                    tmpdef:=tarraydef(tmpdef).elementdef;
+                  end;
+              end
+            else
+              tmpdef:=def;
+            if assigned(tmpdef) and
+                (is_object(tmpdef) or is_record(tmpdef)) and
+                is_owned_by(tabstractrecorddef(stowner),tabstractrecorddef(tmpdef)) then
+              begin
+                Message1(type_e_type_is_not_completly_defined,tabstractrecorddef(tmpdef).RttiName);
+                result:=false;
+                break;
+              end;
+            stowner:=tdef(stowner.owner.defowner);
+          end;
+      end;
+
+
     procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean);
       var
          sc : TFPObjectList;
@@ -1644,35 +1687,9 @@ implementation
              { allow only static fields reference to struct where they are declared }
              if not (vd_class in options) then
                begin
-                 stowner:=tdef(recst.defowner);
-                 while assigned(stowner) and (stowner.typ in [objectdef,recorddef]) do
-                   begin
-                     if hdef.typ=arraydef then
-                       begin
-                         tmpdef:=hdef;
-                         while (tmpdef.typ=arraydef) do
-                           begin
-                             { dynamic arrays are allowed }
-                             if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
-                               begin
-                                 tmpdef:=nil;
-                                 break;
-                               end;
-                             tmpdef:=tarraydef(tmpdef).elementdef;
-                           end;
-                       end
-                     else
-                       tmpdef:=hdef;
-                     if assigned(tmpdef) and
-                         (is_object(tmpdef) or is_record(tmpdef)) and
-                         is_owned_by(tabstractrecorddef(stowner),tabstractrecorddef(tmpdef)) then
-                       begin
-                         Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
-                         { for error recovery or compiler will crash later }
-                         hdef:=generrordef;
-                       end;
-                     stowner:=tdef(stowner.owner.defowner);
-                   end;
+                 if not check_allowed_for_var_or_const(hdef,true) then
+                   { for error recovery or compiler will crash later }
+                   hdef:=generrordef;
                end;
 
              { Process procvar directives }

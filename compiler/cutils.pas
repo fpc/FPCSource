@@ -144,7 +144,8 @@ interface
 
     { allocates mem for a copy of s, copies s to this mem and returns }
     { a pointer to this mem                                           }
-    function stringdup(const s : string) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : shortstring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : ansistring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
 
     {# Allocates memory for the string @var(s) and copies s as zero
        terminated string to that allocated memory and returns a pointer
@@ -1221,12 +1222,18 @@ implementation
       end;
 
 
-    function stringdup(const s : string) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : shortstring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
       begin
          getmem(result,length(s)+1);
          result^:=s;
       end;
 
+
+    function stringdup(const s : ansistring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+      begin
+         getmem(result,length(s)+1);
+         result^:=s;
+      end;
 
     function CompareStr(const S1, S2: string): Integer;
       var

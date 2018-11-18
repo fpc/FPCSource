@@ -96,6 +96,15 @@ begin
 end;
 {$endif wince}
 
+{$ifdef linux}
+function fpc_read_tp : pointer; [public, alias: 'fpc_read_tp'];assembler; nostackframe;
+asm
+  // Helper is located at 0xffff0fe0
+  mvn r0,#0x0000f000 // mov r0, #0xffff0fff
+  sub pc,r0,#0x1f    // Jump to helper
+end;
+{$endif linux}
+
 {****************************************************************************
                        stack frame related stuff
 ****************************************************************************}

@@ -41,6 +41,7 @@ interface
           function pass_typecheck_cpu:tnode;virtual;
           function simplify(forinline : boolean): tnode;override;
           function docompare(p: tnode): boolean; override;
+          procedure mark_write;override;
 
           { returns a node tree where the inc/dec are replaced by add/sub }
           function getaddsub_for_incdec : tnode;
@@ -1740,7 +1741,7 @@ implementation
         { last param must be var }
         destppn:=ppn.left;
         valid_for_var(destppn,true);
-        set_varstate(destppn,vs_written,[vsf_must_be_valid]);
+        set_varstate(destppn,vs_written,[vsf_must_be_valid,vsf_use_hints,vsf_use_hint_for_string_result]);
         { first param must be a string or dynamic array ...}
         isarray:=is_dynamic_array(destppn.resultdef);
         if not((destppn.resultdef.typ=stringdef) or
@@ -4084,6 +4085,16 @@ implementation
       end;
 
 
+    procedure tinlinenode.mark_write;
+      begin
+        case inlinenumber of
+	  in_aligned_x, in_unaligned_x:
+           tcallparanode(left).left.mark_write;
+        else
+          inherited mark_write;
+        end;
+      end;
+
     function tinlinenode.first_pi : tnode;
       begin
         result:=crealconstnode.create(getpi,pbestrealtype^);
@@ -4754,8 +4765,6 @@ implementation
 
        var
          procname : String;
-         c : longint;
-         n,
          newn,
          datan,
          datacountn,
@@ -4956,7 +4965,6 @@ implementation
          n,
          arrn,
          firstn : tnode;
-         startidx,
          i : longint;
          arrconstr : tarrayconstructornode;
          newstatement : tstatementnode;

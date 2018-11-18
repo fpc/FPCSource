@@ -532,7 +532,7 @@ begin
     FSubtables[i].Offset:=ReadUInt32(AStream); // 4 bytes - Offset of subtable
     end;
   UE:=FCMapH.SubtableCount-1;
-  if UE=0 then
+  if UE=-1 then
     // No CMap subtable entries, this is not an error, just exit.
     exit;
   While (UE>=0) and ((FSubtables[UE].PlatformID<>3) or (FSubtables[UE].EncodingID<> 1)) do

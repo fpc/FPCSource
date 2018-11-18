@@ -35,9 +35,9 @@ unit i_linux;
             name         : 'Linux for i386';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_pic_uses_got,tf_smartlink_sections{,tf_winlikewidestring},
-{$ifdef segment_threadvars}
+{$ifdef tls_threadvars}
                             tf_section_threadvars,
-{$endif segment_threadvars}
+{$endif tls_threadvars}
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_needs_dwarf_cfi,tf_has_winlike_resources,
                             tf_safecall_exceptions, tf_safecall_clearstack];
@@ -79,8 +79,11 @@ unit i_linux;
             alignment    :
               (
                 procalign       : 16;
-                loopalign       : 4;
-                jumpalign       : 0;
+                loopalign       : 8;
+                jumpalign       : 16;
+                jumpalignmax    : 10;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
@@ -147,6 +150,9 @@ unit i_linux;
                 procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 16;
                 varalignmin     : 0;
@@ -213,6 +219,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -278,6 +287,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -342,6 +354,9 @@ unit i_linux;
                 procalign       : 8;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 4;
                 constalignmax   : 16;
                 varalignmin     : 4;
@@ -407,6 +422,9 @@ unit i_linux;
                 procalign       : 16;
                 loopalign       : 8;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
@@ -474,6 +492,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 4;
                 constalignmax   : 8;
                 varalignmin     : 4;
@@ -541,6 +562,9 @@ unit i_linux;
                 procalign       : 16;
                 loopalign       : 8;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 4;
                 constalignmax   : 16;
                 varalignmin     : 4;
@@ -566,6 +590,9 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
+{$ifdef tls_threadvars}
+                            tf_section_threadvars,
+{$endif tls_threadvars}
                             tf_smartlink_sections,tf_pic_uses_got,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;
@@ -608,6 +635,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
@@ -633,6 +663,9 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
+{$ifdef tls_threadvars}
+                            tf_section_threadvars,
+{$endif tls_threadvars}
                             tf_smartlink_sections,tf_pic_uses_got,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;
@@ -675,6 +708,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
@@ -742,6 +778,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -807,6 +846,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -878,6 +920,9 @@ unit i_linux;
                 procalign       : 8;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
@@ -945,6 +990,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
@@ -1012,6 +1060,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
@@ -1078,6 +1129,9 @@ unit i_linux;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
@@ -1144,6 +1198,9 @@ unit i_linux;
                 procalign       : 8;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignmax    : 0;
+                coalescealign   : 0;
+                coalescealignmax: 0;
                 constalignmin   : 4;
                 constalignmax   : 16;
                 varalignmin     : 4;

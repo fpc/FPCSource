@@ -126,9 +126,9 @@ interface
           { this function can be used to determine whether a def is really a
             generic declaration or just a normal type declared inside another
             generic }
-          function is_generic:boolean;inline;
+          function is_generic:boolean;
           { same as above for specializations }
-          function is_specialization:boolean;inline;
+          function is_specialization:boolean;
           { registers this def in the unit's deflist; no-op if already registered }
           procedure register_def; override;
           { add the def to the top of the symtable stack if it's not yet owned
@@ -1553,9 +1553,7 @@ implementation
         s: string;
         list: TFPObjectList;
         def: tdef;
-        sym,srsym : tsym;
-        srsymtable : tsymtable;
-        entry : tgenericdummyentry;
+        sym : tsym;
       begin
         { search the symtable from first to last; the helper to use will be the
           last one in the list }
@@ -4426,7 +4424,7 @@ implementation
                     foffset:=tfieldvarsym(symtable.symlist[i]).fieldoffset*8;
                     fsize:=tfieldvarsym(symtable.symlist[i]).vardef.size*8;
                   end;
-                if (foffset div (sizeof(aword)*8)) <> ((foffset+fsize-1) div (sizeof(aword)*8)) then
+                if (fsize>0) and ((foffset div (sizeof(aword)*8)) <> ((foffset+fsize-1) div (sizeof(aword)*8))) then
                   exit;
                 { search recursively }
                 if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and

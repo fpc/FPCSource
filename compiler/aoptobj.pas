@@ -327,7 +327,7 @@ Unit AoptObj;
         function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
 
         { removes p from asml, updates registers and replaces it by a valid value, if this is the case true is returned }
-        function RemoveCurrentP(var p : taicpu): boolean;
+        function RemoveCurrentP(var p : tai): boolean;
 
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
@@ -828,7 +828,7 @@ Unit AoptObj;
               If (TInstr(p).oper[Count]^.typ = Top_Ref) Then
                 TmpResult := RefsEq(Ref, PInstr(p)^.oper[Count]^.ref^);
               Inc(Count);
-            Until (Count = MaxOps) or TmpResult;
+            Until (Count = max_operands) or TmpResult;
           End;
         RefInInstruction := TmpResult;
       End;
@@ -1289,7 +1289,7 @@ Unit AoptObj;
       end;
 
 
-    function TAOptObj.RemoveCurrentP(var p : taicpu) : boolean;
+    function TAOptObj.RemoveCurrentP(var p : tai) : boolean;
       var
         hp1 : tai;
       begin
@@ -1299,7 +1299,7 @@ Unit AoptObj;
         UpdateUsedRegs(tai(p.Next));
         AsmL.Remove(p);
         p.Free;
-        p:=taicpu(hp1);
+        p:=hp1;
       end;
 
 
@@ -1551,7 +1551,7 @@ Unit AoptObj;
                                   and (hp1.typ <> ait_jcatch)
 {$endif}
                                   do
-                              if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
+                              if not(hp1.typ in ([ait_label]+skipinstr)) then
                                 begin
                                   if (hp1.typ = ait_instruction) and
                                      taicpu(hp1).is_jmp and
@@ -1560,7 +1560,7 @@ Unit AoptObj;
                                      TAsmLabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).decrefs;
                                   { don't kill start/end of assembler block,
                                     no-line-info-start/end etc }
-                                  if hp1.typ<>ait_marker then
+                                  if not(hp1.typ in [ait_align,ait_marker]) then
                                     begin
 {$ifdef cpudelayslot}
                                       if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then

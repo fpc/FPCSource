@@ -145,7 +145,11 @@ interface
           { offset of symbol's GOT slot in GOT }
           aitconst_got,
           { offset of symbol itself from GOT }
-          aitconst_gotoff_symbol
+          aitconst_gotoff_symbol,
+          { ARM TLS code }
+          aitconst_gottpoff,
+          aitconst_tpoff
+
         );
 
         tairealconsttype = (
@@ -852,11 +856,13 @@ interface
         { alignment for operator }
         tai_align_abstract = class(tai)
            aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
+           maxbytes  : byte;   { if needed bytes would be larger than maxbyes, alignment is ignored }
            fillsize  : byte;   { real size to fill }
            fillop    : byte;   { value to fill with - optional }
            use_op    : boolean;
            constructor Create(b:byte);virtual;
            constructor Create_op(b: byte; _op: byte);virtual;
+           constructor create_max(b: byte; max: byte);virtual;
            constructor Create_zeros(b:byte);
            constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
            procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1757,7 +1763,7 @@ implementation
       end;
 
 
-    constructor tai_const.Create_rel_sym_offset(_typ: taiconst_type; _sym,_endsym: tasmsymbol; _ofs: int64);
+    constructor tai_const.Create_rel_sym_offset(_typ: taiconst_type; _sym, _endsym: tasmsymbol; _ofs: int64);
        begin
          self.create_sym_offset(_sym,_ofs);
          consttype:=_typ;
@@ -3093,6 +3099,7 @@ implementation
           fillsize:=0;
           fillop:=0;
           use_op:=false;
+          maxbytes:=aligntype;
        end;
 
 
@@ -3107,6 +3114,22 @@ implementation
           fillsize:=0;
           fillop:=_op;
           use_op:=true;
+          maxbytes:=aligntype;
+       end;
+
+
+     constructor tai_align_abstract.create_max(b : byte; max : byte);
+       begin
+          inherited Create;
+          typ:=ait_align;
+          if b in [1,2,4,8,16,32] then
+            aligntype := b
+          else
+            aligntype := 1;
+          maxbytes:=max;
+          fillsize:=0;
+          fillop:=0;
+          use_op:=false;
        end;
 
 
@@ -3121,6 +3144,7 @@ implementation
          use_op:=true;
          fillsize:=0;
          fillop:=0;
+         maxbytes:=aligntype;
        end;
 
 
@@ -3140,6 +3164,7 @@ implementation
         fillsize:=0;
         fillop:=ppufile.getbyte;
         use_op:=ppufile.getboolean;
+        maxbytes:=ppufile.getbyte;
       end;
 
 
@@ -3149,6 +3174,7 @@ implementation
         ppufile.putbyte(aligntype);
         ppufile.putbyte(fillop);
         ppufile.putboolean(use_op);
+        ppufile.putbyte(maxbytes);
       end;
 
 

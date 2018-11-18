@@ -307,7 +307,7 @@ var
   // restored classes:
   RestResolver: TTestEnginePasResolver;
   RestFileResolver: TFileResolver;
-  RestScanner: TPascalScanner;
+  RestScanner: TPas2jsPasScanner;
   RestParser: TPasParser;
   RestConverter: TPasToJSConverter;
   RestJSModule: TJSSourceElements;
@@ -348,7 +348,7 @@ begin
       writeln('TCustomTestPrecompile.WriteReadUnit PCU END-------');
 
       RestFileResolver:=TFileResolver.Create;
-      RestScanner:=TPascalScanner.Create(RestFileResolver);
+      RestScanner:=TPas2jsPasScanner.Create(RestFileResolver);
       InitScanner(RestScanner);
       RestResolver:=TTestEnginePasResolver.Create;
       RestResolver.Filename:=Engine.Filename;

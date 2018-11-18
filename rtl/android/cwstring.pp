@@ -488,6 +488,9 @@ begin
   if LastConv <> nil then
     ucnv_close(LastConv);
 
+  if LibVer = '_3_8' then
+    exit;  // ICU v3.8 on Android 1.5-2.1 is buggy and can't be unloaded properly
+
   if hlibICU <> 0 then begin
     UnloadLibrary(hlibICU);
     hlibICU:=0;
@@ -498,7 +501,7 @@ begin
   end;
 end;
 
-function GetIcuProc(const Name: AnsiString; out ProcPtr; libId: longint = 0): boolean; [public, alias: 'CWSTRING_GET_ICU_PROC'];
+function GetIcuProc(const Name: AnsiString; out ProcPtr; libId: longint = 0): boolean;
 var
   p: pointer;
   hLib: TLibHandle;
@@ -606,6 +609,9 @@ end;
 
 var
   oldm: TUnicodeStringManager;
+{$ifdef android}
+  SysGetIcuProc: pointer; external name 'ANDROID_GET_ICU_PROC';
+{$endif android}
 
 initialization
   GetUnicodeStringManager(oldm);
@@ -614,6 +620,7 @@ initialization
   if LoadICU then begin
     SetCWideStringManager;
     {$ifdef android}
+    SysGetIcuProc:=@GetIcuProc;
     SetStdIOCodePages;
     {$endif android}
   end;

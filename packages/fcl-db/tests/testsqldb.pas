@@ -72,6 +72,7 @@ type
     procedure TestUseImplicitTransaction;
     procedure TestUseExplicitTransaction;
     procedure TestExplicitConnect;
+    procedure TestGetStatementInfo;
   end;
 
   { TTestTSQLScript }
@@ -837,6 +838,39 @@ begin
   SQLDBConnector.Query.SQL.Text:='select * from FPDEV';
   AssertException('toExplicitStart raises exception on implicit start',EDatabaseError,@TryOpen)
 end;
+
+procedure TTestTSQLConnection.TestGetStatementInfo;
+var StmtInfo: TSQLStatementInfo;
+begin
+  // single table
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM tab1');
+  AssertEquals('StatementType', ord(stSELECT), ord(StmtInfo.StatementType));
+  AssertEquals('TableName', 'tab1', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM tab2 WHERE col1=1');
+  AssertEquals('TableName', 'tab2', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  // single table with schema
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM dbo.tab2 WHERE col1=1');
+  AssertEquals('TableName', 'dbo.tab2', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  // single table with quoted schema
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM "dbo".tab2 WHERE col1=1');
+  AssertEquals('TableName', '"dbo".tab2', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM "dbo"."tab2" WHERE col1=1');
+  AssertEquals('TableName', '"dbo"."tab2"', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  // multiple tables
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM tab3,tab4 WHERE col1=1');
+  AssertEquals('TableName', '', StmtInfo.TableName);
+  AssertEquals('Updateable', False, StmtInfo.Updateable);
+  // function
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM dbo.fn1(1)');
+  AssertEquals('TableName', '', StmtInfo.TableName);
+  AssertEquals('Updateable', False, StmtInfo.Updateable);
+end;
+
 
 { TTestTSQLScript }
 

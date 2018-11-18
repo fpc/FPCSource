@@ -285,7 +285,7 @@ interface
 
 uses
   {$ifdef pas2js}
-  js, pas2jsfs,
+  js, NodeJSFS,
   {$endif}
   Classes, SysUtils, Math, Types, contnrs,
   PasTree, PScanner, PParser, PasResolveEval;
@@ -569,13 +569,14 @@ type
 
   { TPasResHashList }
 
-  TPasResHashList = class(TJSObject)
+  TPasResHashList = class
+  private
+    FItems: TJSObject;
   public
     constructor Create; reintroduce;
-    destructor Destroy;
     procedure Add(const aName: string; Item: Pointer);
     function Find(const aName: string): Pointer;
-    procedure ForEachCall(Proc: TPasResIterate; Arg: Pointer);
+    procedure ForEachCall(const Proc: TPasResIterate; Arg: Pointer);
     procedure Clear;
     procedure Remove(const aName: string);
   end;
@@ -809,7 +810,7 @@ type
 
   TPasInitialFinalizationScope = Class(TPasScope)
   public
-    References: TPasScopeReferences; // created by TPasAnalyzer
+    References: TPasScopeReferences; // created by TPasAnalyzer, not used by resolver
     function AddReference(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;
     destructor Destroy; override;
   end;
@@ -1062,6 +1063,8 @@ type
   TPRResolveVarAccesses = set of TResolvedRefAccess;
 
 const
+  rraAllWrite = [rraAssign,rraReadAndAssign,rraVarParam,rraOutParam];
+
   ResolvedToPSRefAccess: array[TResolvedRefAccess] of TPSRefAccess = (
     psraNone, // rraNone
     psraRead,  // rraRead
@@ -1798,7 +1801,9 @@ type
       PosEl: TPasElement; RaiseIfConst: boolean = true): boolean;
     function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
     // utility functions
+    function ElHasModeSwitch(El: TPasElement; ms: TModeSwitch): boolean;
     function GetElModeSwitches(El: TPasElement): TModeSwitches;
+    function ElHasBoolSwitch(El: TPasElement; bs: TBoolSwitch): boolean;
     function GetElBoolSwitches(El: TPasElement): TBoolSwitches;
     function GetProcTypeDescription(ProcType: TPasProcedureType;
       Flags: TPRProcTypeDescFlags = [prptdUseName,prptdResolveSimpleAlias]): string;
@@ -1836,6 +1841,7 @@ type
     function IsVarInit(Expr: TPasExpr): boolean;
     function IsEmptyArrayExpr(const ResolvedEl: TPasResolverResult): boolean;
     function IsClassMethod(El: TPasElement): boolean;
+    function IsClassField(El: TPasElement): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
@@ -2550,52 +2556,41 @@ end;
 
 constructor TPasResHashList.Create;
 begin
-
-end;
-
-destructor TPasResHashList.Destroy;
-begin
-
+  FItems:=TJSObject.new;
 end;
 
 procedure TPasResHashList.Add(const aName: string; Item: Pointer);
 begin
-  Properties[aName]:=Item;
+  FItems['%'+aName]:=Item;
 end;
 
 function TPasResHashList.Find(const aName: string): Pointer;
 begin
-  if hasOwnProperty(aName) then
-    Result:=Pointer(Properties[aName])
+  if FItems.hasOwnProperty('%'+aName) then
+    Result:=Pointer(FItems['%'+aName])
   else
     Result:=nil;
 end;
 
-procedure TPasResHashList.ForEachCall(Proc: TPasResIterate; Arg: Pointer);
+procedure TPasResHashList.ForEachCall(const Proc: TPasResIterate; Arg: Pointer);
 var
   key: string;
 begin
-  for key in TJSObject(Self) do
-    if hasOwnProperty(key) then
-      Proc(Pointer(Properties[key]),Arg);
+  for key in FItems do
+    if FItems.hasOwnProperty(key) then
+      Proc(Pointer(FItems[key]),Arg);
 end;
 
 procedure TPasResHashList.Clear;
-var
-  Arr: TStringDynArray;
-  i: Integer;
 begin
-  Arr:=getOwnPropertyNames(Self);
-  for i:=0 to length(Arr)-1 do
-    JSDelete(Self,Arr[i]);
+  FItems:=TJSObject.new;
 end;
 
 procedure TPasResHashList.Remove(const aName: string);
 begin
-  if hasOwnProperty(aName) then
-    JSDelete(Self,aName);
+  if FItems.hasOwnProperty('%'+aName) then
+    JSDelete(FItems,'%'+aName);
 end;
-
 {$endif}
 
 { TResElDataBuiltInProc }
@@ -3498,9 +3493,12 @@ end;
 
 procedure TPasIdentifierScope.InternalAdd(Item: TPasIdentifier);
 var
-  Index: Integer;
   OldItem: TPasIdentifier;
   LoName: string;
+  {$ifdef pas2js}
+  {$ELSE}
+  Index: Integer;
+  {$ENDIF}
 begin
   LoName:=lowercase(Item.Identifier);
   {$ifdef pas2js}
@@ -3511,6 +3509,11 @@ begin
     Item.NextSameIdentifier:=OldItem;
     end;
   FItems.Add(LoName,Item);
+  {$IFDEF VerbosePasResolver}
+  if Item.Owner<>nil then
+    raise Exception.Create('20160925184110');
+  Item.Owner:=Self;
+  {$ENDIF}
   {$IFDEF VerbosePasResolver}
   if FindIdentifier(Item.Identifier)<>Item then
     raise Exception.Create('20181018173201');
@@ -4024,7 +4027,7 @@ begin
 
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Proc Distance=',Distance,
-      ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',ord(Data^.Distance),
+      ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',Data^.Distance,
       ' Signature={',GetProcTypeDescription(Proc.ProcType,[prptdUseName,prptdAddPaths]),'}',
       ' Abort=',Abort);
     {$ENDIF}
@@ -4372,6 +4375,9 @@ begin
                 // hidden method has implementation, but no statements -> useless
                 // -> do not give a hint for hiding this useless method
                 // Note: if this happens in the same unit, the body was not yet parsed
+              else if (Proc is TPasConstructor)
+                  and (Data^.Proc.ClassType=Proc.ClassType) then
+                // do not give a hint for hiding a constructor
               else
                 LogMsg(20171118214523,mtHint,
                   nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
@@ -5501,7 +5507,7 @@ procedure TPasResolver.FinishMethodDeclHeader(Proc: TPasProcedure);
     Proc.Visibility:=OverloadProc.Visibility;
   end;
 
-  {$IF FPC_FULLVERSION<30101}
+  {$IF defined(fpc) and (FPC_FULLVERSION<30101)}
   procedure Delete(var A: TArrayOfPasProcedure; Index, Count: integer); overload;
   var
     i: Integer;
@@ -8108,7 +8114,7 @@ begin
     begin
     LTypeEl:=LeftResolved.LoTypeEl;
     if (LTypeEl.ClassType=TPasPointerType)
-        and (msAutoDeref in GetElModeSwitches(El))
+        and ElHasModeSwitch(El,msAutoDeref)
         and (rrfReadable in LeftResolved.Flags)
         then
       begin
@@ -8563,7 +8569,7 @@ procedure TPasResolver.ResolveArrayParamsArgs(Params: TParamsExpr;
     if not IsStringIndex then
       begin
       // pointer
-      if not (bsPointerMath in GetElBoolSwitches(Params)) then
+      if not ElHasBoolSwitch(Params,bsPointerMath) then
         exit(false);
       end;
     Result:=true;
@@ -9620,7 +9626,7 @@ begin
         else if RightResolved.BaseType=btPointer then
           begin
           if (Bin.OpCode in [eopAdd,eopSubtract])
-              and (bsPointerMath in GetElBoolSwitches(Bin)) then
+              and ElHasBoolSwitch(Bin,bsPointerMath) then
             begin
             // integer+CanonicalPointer
             SetResolverValueExpr(ResolvedEl,btPointer,
@@ -9634,7 +9640,7 @@ begin
           if RightTypeEl.ClassType=TPasPointerType then
             begin
             if (Bin.OpCode in [eopAdd,eopSubtract])
-                and (bsPointerMath in GetElBoolSwitches(Bin)) then
+                and ElHasBoolSwitch(Bin,bsPointerMath) then
               begin
               // integer+TypedPointer
               RightTypeEl:=TPasPointerType(RightTypeEl).DestType;
@@ -9833,7 +9839,7 @@ begin
       if (RightResolved.BaseType in btAllInteger) then
         case Bin.OpCode of
         eopAdd,eopSubtract:
-          if bsPointerMath in GetElBoolSwitches(Bin) then
+          if ElHasBoolSwitch(Bin,bsPointerMath) then
             begin
             // pointer+integer -> pointer
             SetResolverValueExpr(ResolvedEl,btPointer,
@@ -10114,7 +10120,7 @@ begin
           begin
           if IsDynArray(LeftTypeEl)
               and (Bin.OpCode=eopAdd)
-              and (msArrayOperators in GetElModeSwitches(Bin))
+              and ElHasModeSwitch(Bin,msArrayOperators)
               and ((RightResolved.BaseType in [btArrayOrSet,btArrayLit])
                 or IsDynArray(RightResolved.LoTypeEl)) then
             begin
@@ -10127,7 +10133,7 @@ begin
         else if LeftTypeEl.ClassType=TPasPointerType then
           begin
           if (RightResolved.BaseType in btAllInteger)
-              and (bsPointerMath in GetElBoolSwitches(Bin)) then
+              and ElHasBoolSwitch(Bin,bsPointerMath) then
             begin
             // TypedPointer+Integer
             SetLeftValueExpr([rrfReadable]);
@@ -10222,7 +10228,7 @@ begin
     if (rrfReadable in LeftResolved.Flags)
         and (rrfReadable in RightResolved.Flags)
         and (Bin.OpCode=eopAdd)
-        and (msArrayOperators in GetElModeSwitches(Bin)) then
+        and ElHasModeSwitch(Bin,msArrayOperators) then
       begin
       if RightResolved.BaseType=btArrayLit then
         begin
@@ -11285,7 +11291,8 @@ begin
         Result:=btWideChar; // ''''
     #$DC00..#$DFFF: ;
     else
-      Result:=btWideChar;
+      if (l=3) and (Value[3]='''') then
+        Result:=btWideChar; // e.g. 'a'
     end;
     {$endif}
     end;
@@ -11975,7 +11982,6 @@ var
   Value: TResEvalValue;
   Int, MinIntVal, MaxIntVal: TMaxPrecInt;
   Flo: TMaxPrecFloat;
-  c: Char;
   w: WideChar;
 begin
   Result:=nil;
@@ -12064,8 +12070,7 @@ begin
       {$ifdef FPC_HAS_CPSTRING}
       else if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
         try
-          c:=Char(Int);
-          Result:=TResEvalString.CreateValue(c);
+          Result:=TResEvalString.CreateValue(Char(Int));
         except
           RaiseMsg(20180125112510,nRangeCheckError,sRangeCheckError,[],Params);
         end
@@ -12380,6 +12385,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
 end;
@@ -12442,6 +12448,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
 end;
@@ -12576,14 +12583,14 @@ begin
     Result:=cExact
   else if ParamResolved.BaseType=btPointer then
     begin
-    if bsPointerMath in GetElBoolSwitches(Expr) then
+    if ElHasBoolSwitch(Expr,bsPointerMath) then
       Result:=cExact;
     end
   else if ParamResolved.BaseType=btContext then
     begin
     TypeEl:=ParamResolved.LoTypeEl;
     if (TypeEl.ClassType=TPasPointerType)
-        and (bsPointerMath in GetElBoolSwitches(Expr)) then
+        and ElHasBoolSwitch(Expr,bsPointerMath) then
       Result:=cExact;
     end;
   if Result=cIncompatible then
@@ -13246,6 +13253,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraRead);
   FinishCallArgAccess(P[1],rraVarParam);
 end;
@@ -13341,6 +13349,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraOutParam);
   for i:=0 to length(Params.Params)-1 do
     FinishCallArgAccess(P[i],rraRead);
@@ -13588,6 +13597,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
   FinishCallArgAccess(P[2],rraRead);
@@ -14194,6 +14204,7 @@ var
   i: Integer;
   UsesUnit: TPasUsesUnit;
 begin
+  Result:=nil;
   //writeln('TPasResolver.FindElement Name="',aName,'"');
   ErrorEl:=nil; // use nil to use scanner position as error position
 
@@ -15464,6 +15475,7 @@ begin
     if Scope is TPasProcedureScope then
       exit(TPasProcedureScope(Scope));
   until false;
+  Result:=nil;
 end;
 
 class function TPasResolver.MangleSourceLineNumber(Line, Column: integer
@@ -16113,6 +16125,7 @@ begin
         [],Params);
     ArrayEl:=TPasArrayType(NextType);
   until false;
+  Result:=cIncompatible;
 end;
 
 function TPasResolver.CheckOverloadProcCompatibility(Proc1, Proc2: TPasProcedure
@@ -16393,8 +16406,10 @@ var
   C: TClass;
   EnumType: TPasEnumType;
   bt: TResolverBaseType;
-  w: WideChar;
   LTypeEl: TPasType;
+  {$ifdef FPC_HAS_CPSTRING}
+  w: WideChar;
+  {$endif}
 begin
   LTypeEl:=LeftResolved.LoTypeEl;
   if (LTypeEl<>nil)
@@ -16771,6 +16786,9 @@ begin
         btWideString,btUnicodeString:
           Result:=cCompatible;
         else
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.CheckAssignResCompatibility ',{$ifdef pas2js}str(LBT){$else}LBT{$ENDIF});
+          {$ENDIF}
           RaiseNotYetImplemented(20170417195208,ErrorEl,BaseTypeNames[LBT]);
         end
       else if RBT=btContext then
@@ -17066,7 +17084,10 @@ begin
             end
           else if (C=TPasProcedureType) or (C=TPasFunctionType) then
             // UntypedPointer:=procvar
-            Result:=cLossyConversion;
+            Result:=cLossyConversion
+          else if C=TPasPointerType then
+            // UntypedPointer:=TypedPointer
+            Result:=cExact;
           end;
         end;
       end
@@ -17656,6 +17677,12 @@ begin
     exit(true);
 end;
 
+function TPasResolver.ElHasModeSwitch(El: TPasElement; ms: TModeSwitch
+  ): boolean;
+begin
+  Result:=ms in GetElModeSwitches(El);
+end;
+
 function TPasResolver.GetElModeSwitches(El: TPasElement): TModeSwitches;
 var
   C: TClass;
@@ -17673,6 +17700,12 @@ begin
     El:=El.Parent;
     end;
   Result:=CurrentParser.CurrentModeswitches;
+end;
+
+function TPasResolver.ElHasBoolSwitch(El: TPasElement; bs: TBoolSwitch
+  ): boolean;
+begin
+  Result:=bs in GetElBoolSwitches(El);
 end;
 
 function TPasResolver.GetElBoolSwitches(El: TPasElement): TBoolSwitches;
@@ -18112,7 +18145,8 @@ var
 
   function RaiseIncompatType: integer;
   begin
-    if not RaiseOnIncompatible then exit(cIncompatible);
+    Result:=cIncompatible;
+    if not RaiseOnIncompatible then exit;
     RaiseIncompatibleTypeRes(20170216152505,nIncompatibleTypesGotExpected,
       [],RHS,LHS,ErrorEl);
   end;
@@ -18364,8 +18398,10 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
     Value: TResEvalValue;
     ElBT: TResolverBaseType;
     l: Integer;
-    US: UnicodeString;
     S: String;
+    {$ifdef FPC_HAS_CPSTRING}
+    US: UnicodeString;
+    {$endif}
   begin
     if Expr=nil then exit;
     ElBT:=GetActualBaseType(ElTypeResolved.BaseType);
@@ -19444,6 +19480,50 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
       end;
   end;
 
+  procedure ComputeInherited(Expr: TInheritedExpr);
+  var
+    Ref: TResolvedReference;
+    Proc: TPasProcedure;
+    TypeEl: TPasProcedureType;
+    aClass: TPasClassType;
+    HasName: Boolean;
+  begin
+    // "inherited;"
+    Ref:=TResolvedReference(El.CustomData);
+    Proc:=NoNil(Ref.Declaration) as TPasProcedure;
+    TypeEl:=TPasProcedure(Proc).ProcType;
+    SetResolverIdentifier(ResolvedEl,btProc,Proc,
+      TypeEl,TypeEl,[rrfCanBeStatement]);
+    HasName:=(El.Parent.ClassType=TBinaryExpr)
+       and (TBinaryExpr(El.Parent).OpCode=eopNone); // true if 'inherited Proc;'
+    if HasName or (rcNoImplicitProc in Flags) then
+      exit;
+
+    // inherited;  -> implicit call possible
+    if Proc is TPasFunction then
+      begin
+      // function => return result
+      ComputeElement(TPasFunction(Proc).FuncType.ResultEl,
+        ResolvedEl,Flags+[rcType],StartEl);
+      Exclude(ResolvedEl.Flags,rrfWritable);
+      end
+    else if (Proc.ClassType=TPasConstructor)
+        and (rrfNewInstance in Ref.Flags) then
+      begin
+      // new instance constructor -> return value of type class
+      aClass:=GetReference_NewInstanceClass(Ref);
+      SetResolverValueExpr(ResolvedEl,btContext,aClass,aClass,Expr,[rrfReadable]);
+      end
+    else if ParentNeedsExprResult(Expr) then
+      begin
+      // a procedure
+      exit;
+      end;
+    if rcSetReferenceFlags in Flags then
+      Include(Ref.Flags,rrfImplicitCallWithoutParams);
+    Include(ResolvedEl.Flags,rrfCanBeStatement);
+  end;
+
 var
   DeclEl: TPasElement;
   ElClass: TClass;
@@ -19603,13 +19683,7 @@ begin
     begin
     // writeln('TPasResolver.ComputeElement TInheritedExpr El.CustomData=',GetObjName(El.CustomData));
     if El.CustomData is TResolvedReference then
-      begin
-        // "inherited;"
-        DeclEl:=NoNil(TResolvedReference(El.CustomData).Declaration) as TPasProcedure;
-        TypeEl:=TPasProcedure(DeclEl).ProcType;
-        SetResolverIdentifier(ResolvedEl,btProc,DeclEl,
-          TypeEl,TypeEl,[rrfCanBeStatement]);
-      end
+      ComputeInherited(TInheritedExpr(El))
     else
       // no ancestor proc
       SetResolverIdentifier(ResolvedEl,btBuiltInProc,nil,nil,nil,[rrfCanBeStatement]);
@@ -19800,6 +19874,15 @@ begin
                         FBaseTypes[btString],FBaseTypes[btString],[rrfReadable])
   else
     RaiseNotYetImplemented(20160922163705,El);
+  {$IF defined(nodejs) and defined(VerbosePasResolver)}
+  if not isNumber(ResolvedEl.BaseType) then
+    begin
+    {AllowWriteln}
+    writeln('TPasResolver.ComputeElement ',GetObjName(El),' typeof ResolvedEl.BaseType=',jsTypeOf(ResolvedEl.BaseType),' ResolvedEl=',GetResolverResultDbg(ResolvedEl));
+    RaiseInternalError(20181101123527,jsTypeOf(ResolvedEl.LoTypeEl));
+    {AllowWriteln-}
+    end;
+  {$ENDIF}
 end;
 
 function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
@@ -20151,6 +20234,13 @@ begin
        or (C=TPasClassOperator);
 end;
 
+function TPasResolver.IsClassField(El: TPasElement): boolean;
+begin
+  Result:=((El.ClassType=TPasVariable) or (El.ClassType=TPasConst))
+    and ([vmClass,vmStatic]*TPasVariable(El).VarModifiers<>[])
+    and (El.Parent is TPasClassType);
+end;
+
 function TPasResolver.IsExternalClass_Name(aClass: TPasClassType;
   const ExtName: string): boolean;
 var
@@ -20204,7 +20294,7 @@ end;
 function TPasResolver.IsArrayOperatorAdd(Expr: TPasExpr): boolean;
 begin
   Result:=(Expr<>nil) and (Expr.ClassType=TBinaryExpr) and (Expr.OpCode=eopAdd)
-          and (msArrayOperators in GetElModeSwitches(Expr));
+          and ElHasModeSwitch(Expr,msArrayOperators);
 end;
 
 function TPasResolver.IsTypeCast(Params: TParamsExpr): boolean;
@@ -20527,8 +20617,14 @@ begin
   if El.CustomData is TResElDataBaseType then
     exit(true); // base type
   if El.Parent=nil then exit;
-  if (El.Parent is TPasType) and not HasTypeInfo(TPasType(El.Parent)) then
-    exit;
+  if El.Parent is TPasType then
+    begin
+    if not HasTypeInfo(TPasType(El.Parent)) then
+      exit;
+    end
+  else
+    if ElHasModeSwitch(El,msOmitRTTI) then
+      exit;
   Result:=true;
 end;
 

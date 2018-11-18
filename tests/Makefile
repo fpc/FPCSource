@@ -5,7 +5,7 @@ default: allexectests
 MAKEFILETARGETS=i386-linux i386-go32v2 i386-win32 i386-os2 i386-freebsd i386-beos i386-haiku i386-netbsd i386-solaris i386-netware i386-openbsd i386-wdosx i386-darwin i386-emx i386-watcom i386-netwlibc i386-wince i386-embedded i386-symbian i386-nativent i386-iphonesim i386-android i386-aros m68k-linux m68k-netbsd m68k-amiga m68k-atari m68k-palmos m68k-macos m68k-embedded powerpc-linux powerpc-netbsd powerpc-amiga powerpc-macos powerpc-darwin powerpc-morphos powerpc-embedded powerpc-wii powerpc-aix sparc-linux sparc-netbsd sparc-solaris sparc-embedded x86_64-linux x86_64-freebsd x86_64-netbsd x86_64-solaris x86_64-openbsd x86_64-darwin x86_64-win64 x86_64-embedded x86_64-iphonesim x86_64-android x86_64-aros x86_64-dragonfly arm-linux arm-netbsd arm-palmos arm-darwin arm-wince arm-gba arm-nds arm-embedded arm-symbian arm-android arm-aros powerpc64-linux powerpc64-darwin powerpc64-embedded powerpc64-aix avr-embedded armeb-linux armeb-embedded mips-linux mipsel-linux mipsel-embedded mipsel-android jvm-java jvm-android i8086-embedded i8086-msdos i8086-win16 aarch64-linux aarch64-darwin aarch64-android wasm-wasm sparc64-linux riscv32-linux riscv32-embedded riscv64-linux riscv64-embedded
 BSDs = freebsd netbsd openbsd darwin dragonfly
 UNIXs = linux $(BSDs) solaris qnx haiku aix
-LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari
+LIMIT83fs = go32v2 os2 emx watcom msdos
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
 .PHONY: FORCE
@@ -184,12 +184,6 @@ $(error When compiling for arm-embedded, a sub-architecture (e.g. SUBARCH=armv4t
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
-ifeq ($(SUBARCH),)
-$(error When compiling for avr-embedded, a sub-architecture (e.g. SUBARCH=avr25 or SUBARCH=avr35) must be defined)
-endif
-override FPCOPT+=-Cp$(SUBARCH)
-endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic32mx) must be defined)
@@ -232,7 +226,7 @@ endif
 export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE
 ifdef FPCDIR
 override FPCDIR:=$(subst \,/,$(FPCDIR))
-ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl)),)
+ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl units)),)
 override FPCDIR=wrong
 endif
 else
@@ -241,7 +235,7 @@ endif
 ifdef DEFAULT_FPCDIR
 ifeq ($(FPCDIR),wrong)
 override FPCDIR:=$(subst \,/,$(DEFAULT_FPCDIR))
-ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl)),)
+ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl units)),)
 override FPCDIR=wrong
 endif
 endif
@@ -255,11 +249,11 @@ endif
 else
 override FPCDIR:=$(subst /$(FPC),,$(firstword $(strip $(wildcard $(addsuffix /$(FPC),$(SEARCHPATH))))))
 override FPCDIR:=$(FPCDIR)/..
-ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl)),)
+ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl units)),)
 override FPCDIR:=$(FPCDIR)/..
-ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl)),)
+ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl units)),)
 override FPCDIR:=$(BASEDIR)
-ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl)),)
+ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl units)),)
 override FPCDIR=c:/pp
 endif
 endif
@@ -304,7 +298,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(TARGETSUFFIX))
 ifeq ($(UNITSDIR),)
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
-PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
+PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifndef FPCFPMAKE
 ifdef CROSSCOMPILE
 ifeq ($(strip $(wildcard $(addsuffix /compiler/ppc$(SRCEXEEXT),$(FPCDIR)))),)
@@ -356,6 +350,9 @@ endif
 ifeq ($(FULL_TARGET),i386-solaris)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
+ifeq ($(FULL_TARGET),i386-qnx)
+override TARGET_PROGRAMS+=gparmake createlst
+endif
 ifeq ($(FULL_TARGET),i386-netware)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
@@ -401,6 +398,9 @@ endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
+ifeq ($(FULL_TARGET),m68k-freebsd)
+override TARGET_PROGRAMS+=gparmake createlst
+endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
@@ -410,10 +410,10 @@ endif
 ifeq ($(FULL_TARGET),m68k-atari)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(FULL_TARGET),m68k-openbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-macos)
+ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
@@ -497,9 +497,6 @@ endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
-override TARGET_PROGRAMS+=gparmake createlst
-endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
@@ -522,9 +519,6 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_PROGRAMS+=gparmake createlst
-endif
-ifeq ($(FULL_TARGET),arm-aros)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
@@ -564,9 +558,6 @@ ifeq ($(FULL_TARGET),jvm-java)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_PROGRAMS+=gparmake createlst
-endif
-ifeq ($(FULL_TARGET),i8086-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
@@ -999,21 +990,6 @@ STATICLIBPREFIX=
 STATICLIBEXT=.a
 SHORTSUFFIX=d16
 endif
-ifeq ($(OS_TARGET),embedded)
-ifeq ($(CPU_TARGET),i8086)
-STATICLIBPREFIX=
-STATICLIBEXT=.a
-else
-EXEEXT=.bin
-endif
-SHORTSUFFIX=emb
-endif
-ifeq ($(OS_TARGET),win16)
-STATICLIBPREFIX=
-STATICLIBEXT=.a
-SHAREDLIBEXT=.dll
-SHORTSUFFIX=w16
-endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)
 ZIPSUFFIX=$(SHORTSUFFIX)
@@ -1296,6 +1272,9 @@ endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
 endif
+ifeq ($(FULL_TARGET),i386-qnx)
+REQUIRE_PACKAGES_RTL=1
+endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
 endif
@@ -1341,6 +1320,9 @@ endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
+ifeq ($(FULL_TARGET),m68k-freebsd)
+REQUIRE_PACKAGES_RTL=1
+endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
@@ -1350,10 +1332,10 @@ endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-macos)
+ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
@@ -1437,9 +1419,6 @@ endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
-REQUIRE_PACKAGES_RTL=1
-endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
 endif
@@ -1462,9 +1441,6 @@ ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),arm-android)
-REQUIRE_PACKAGES_RTL=1
-endif
-ifeq ($(FULL_TARGET),arm-aros)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
@@ -1504,9 +1480,6 @@ ifeq ($(FULL_TARGET),jvm-java)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-REQUIRE_PACKAGES_RTL=1
-endif
-ifeq ($(FULL_TARGET),i8086-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
@@ -1592,7 +1565,6 @@ endif
 ifeq ($(OS_SOURCE),openbsd)
 override FPCOPT+=-FD$(NEW_BINUTILS_PATH)
 override FPCMAKEOPT+=-FD$(NEW_BINUTILS_PATH)
-override FPMAKE_BUILD_OPT+=-FD$(NEW_BINUTILS_PATH)
 endif
 ifndef CROSSBOOTSTRAP
 ifneq ($(BINUTILSPREFIX),)
@@ -1605,7 +1577,6 @@ endif
 ifndef CROSSCOMPILE
 ifneq ($(BINUTILSPREFIX),)
 override FPCMAKEOPT+=-XP$(BINUTILSPREFIX)
-override FPMAKE_BUILD_OPT+=-XP$(BINUTILSPREFIX)
 endif
 endif
 ifdef UNITDIR
@@ -1704,9 +1675,6 @@ ifdef LINKSHARED
 endif
 ifdef OPT
 override FPCOPT+=$(OPT)
-endif
-ifdef FPMAKEBUILDOPT
-override FPMAKE_BUILD_OPT+=$(FPMAKEBUILDOPT)
 endif
 ifdef FPCOPTDEF
 override FPCOPT+=$(addprefix -d,$(FPCOPTDEF))
@@ -1850,11 +1818,7 @@ ifdef INSTALL_BUILDUNIT
 override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
 endif
 ifdef INSTALLPPUFILES
-ifneq ($(IMPORTLIBPREFIX)-$(STATICLIBEXT),$(STATICLIBPREFIX)-$(STATICLIBEXT))
 override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
-else
-override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
-endif
 ifneq ($(UNITTARGETDIRPREFIX),)
 override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPUFILES)))
 override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPULINKFILES))))
@@ -1903,7 +1867,7 @@ endif
 fpc_sourceinstall: distclean
 	$(MKDIR) $(INSTALL_SOURCEDIR)
 	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
-fpc_exampleinstall: $(EXAMPLEINSTALLTARGET) $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
+fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
 ifdef HASEXAMPLES
 	$(MKDIR) $(INSTALL_EXAMPLEDIR)
 endif
@@ -1956,7 +1920,7 @@ ifdef LIB_NAME
 	-$(DEL) $(LIB_NAME) $(LIB_FULLNAME)
 endif
 	-$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *$(ASMEXT) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) *$(ASMEXT) *_ppas$(BATCHEXT)
 fpc_cleanall: $(CLEANTARGET)
 ifdef CLEANEXEFILES
 	-$(DEL) $(CLEANEXEFILES)
@@ -1982,16 +1946,12 @@ ifneq ($(PPUEXT),.ppu)
 endif
 	-$(DELTREE) *$(SMARTEXT)
 	-$(DEL) fpcmade.* Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) *_ppas$(BATCHEXT)
 ifdef AOUTEXT
 	-$(DEL) *$(AOUTEXT)
 endif
 ifdef DEBUGSYMEXT
 	-$(DEL) *$(DEBUGSYMEXT)
-endif
-ifdef LOCALFPMAKEBIN
-	-$(DEL) $(LOCALFPMAKEBIN)
-	-$(DEL) $(FPMAKEBINOBJ)
 endif
 fpc_distclean: cleanall
 .PHONY: fpc_baseinfo
@@ -2349,6 +2309,9 @@ override DOTESTOPT+=-O
 endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
+endif
+ifdef TEST_PARALLEL
+override DOTESTOPT+=-L
 endif
 ifdef TEST_BENCH
 override DOTESTOPT+=-D

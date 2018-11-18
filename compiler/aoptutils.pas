@@ -27,10 +27,13 @@ unit aoptutils;
   interface
 
     uses
-      aasmtai,aasmcpu;
+      cpubase,aasmtai,aasmcpu;
 
     function MatchOpType(const p : taicpu;type0: toptype) : Boolean;
     function MatchOpType(const p : taicpu;type0,type1 : toptype) : Boolean;
+{$if max_operands>2}
+    function MatchOpType(const p : taicpu; type0,type1,type2 : toptype) : Boolean;
+{$endif max_operands>2}
 
     { skips all labels and returns the next "real" instruction }
     function SkipLabels(hp: tai; var hp2: tai): boolean;
@@ -47,6 +50,14 @@ unit aoptutils;
       begin
         Result:=(p.ops=2) and (p.oper[0]^.typ=type0) and (p.oper[1]^.typ=type1);
       end;
+
+
+{$if max_operands>2}
+    function MatchOpType(const p : taicpu; type0,type1,type2 : toptype) : Boolean;
+      begin
+        Result:=(p.ops=3) and (p.oper[0]^.typ=type0) and (p.oper[1]^.typ=type1) and (p.oper[2]^.typ=type2);
+      end;
+{$endif max_operands>2}
 
 
     { skips all labels and returns the next "real" instruction }

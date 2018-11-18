@@ -196,7 +196,7 @@ implementation
               result := foreachnode(procmethod,tcallnode(n).funcretnode,f,arg) or result;
               result := foreachnode(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
-          ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
+          ifn, whilerepeatn, forn, tryexceptn:
             begin
               { not in one statement, won't work because of b- }
               result := foreachnode(procmethod,tloopnode(n).t1,f,arg) or result;
@@ -293,7 +293,7 @@ implementation
               result := foreachnodestatic(procmethod,tcallnode(n).funcretnode,f,arg) or result;
               result := foreachnodestatic(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
-          ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
+          ifn, whilerepeatn, forn, tryexceptn:
             begin
               { not in one statement, won't work because of b- }
               result := foreachnodestatic(procmethod,tloopnode(n).t1,f,arg) or result;
@@ -963,6 +963,11 @@ implementation
                   end;
 
                 end;
+              finalizetempsn:
+                begin
+                  result:=NODE_COMPLEXITY_INF;
+                  exit;
+                end;
               else
                 begin
                   result := NODE_COMPLEXITY_INF;
@@ -1337,7 +1342,7 @@ implementation
     function check_for_sideeffect(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         result:=fen_false;
-        if (n.nodetype in [assignn,calln,asmn]) or
+        if (n.nodetype in [assignn,calln,asmn,finalizetempsn]) or
           ((n.nodetype=inlinen) and
            (tinlinenode(n).inlinenumber in [in_write_x,in_writeln_x,in_read_x,in_readln_x,in_str_x_string,
              in_val_x,in_reset_x,in_rewrite_x,in_reset_typedfile,in_rewrite_typedfile,

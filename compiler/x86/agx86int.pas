@@ -66,7 +66,7 @@ implementation
     const
       line_length = 70;
       max_tokens : longint = 25;
-
+(*
       wasm_cpu_name : array[tcputype] of string = (
 {$if defined(x86_64)}
         'IA64',        // cpu_none,
@@ -100,6 +100,7 @@ implementation
         '686'       // cpu_PentiumM
 {$endif}
       );
+*)
       secnames : array[TAsmSectiontype] of string[4] = ('','',
         'CODE','DATA','DATA','DATA','BSS','TLS',
         '','','','','','',

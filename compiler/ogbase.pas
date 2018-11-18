@@ -275,7 +275,6 @@ interface
      private
        FData       : TDynamicArray;
        FSecOptions : TObjSectionOptions;
-       FComdatSelection : TObjSectionComdatSelection;
        FCachedFullName : pshortstring;
        FSizeLimit : TObjSectionOfs;
        procedure SetSecOptions(Aoptions:TObjSectionOptions);

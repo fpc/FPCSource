@@ -736,7 +736,7 @@ procedure ReleaseEvalValue(var Value: TResEvalValue);
 begin
   if Value=nil then exit;
   if Value.Element<>nil then exit;
-  Value.Free;
+  Value.{$ifdef pas2js}Destroy{$else}Free{$endif};
   Value:=nil;
 end;
 
@@ -4239,6 +4239,9 @@ begin
           {$ENDIF}
           exit;
           end;
+        {$IFDEF VerbosePasResEval}
+        writeln('TResExprEvaluator.Eval Value="',TPrimitiveExpr(Expr).Value,'"');
+        {$ENDIF}
         RaiseRangeCheck(20170518202252,Expr);
         end;
       pekString:

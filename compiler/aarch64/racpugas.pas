@@ -933,7 +933,6 @@ Unit racpugas;
         j  : longint;
         hs : string;
         maxlen : longint;
-        icond : tasmcond;
       Begin
         { making s a value parameter would break other assembler readers }
         hs:=s;

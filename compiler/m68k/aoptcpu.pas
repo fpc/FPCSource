@@ -49,6 +49,9 @@ unit aoptcpu;
     uses
       cutils, aasmcpu, cgutils, globals, verbose, cpuinfo, itcpugas;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
 
     function opname(var p: tai): string;
       begin
@@ -139,7 +142,7 @@ unit aoptcpu;
       result:=false;
 
       if GetNextInstruction(p,next) and 
-         (taicpu(next).typ = ait_instruction) and
+         (next.typ = ait_instruction) and
          (taicpu(next).opcode = taicpu(p).opcode) and
          (taicpu(p).opsize = taicpu(next).opsize) and
          (taicpu(p).oper[1]^.typ = top_reg) and
@@ -163,8 +166,10 @@ unit aoptcpu;
                     if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
                       begin
                         DebugMsg('Optimizer: '+opstr+' + '+opstr+' removed',p);
+			GetNextInstruction(p,next);
                         asml.remove(p);
                         p.free;
+			p:=next;
                       end
                     else
                       DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #1',p)
@@ -199,9 +204,9 @@ unit aoptcpu;
         end;
 
       if GetNextInstruction(p,next) and
-         (taicpu(next).typ = ait_instruction) and
+         (next.typ = ait_instruction) and
          GetNextInstruction(next,next2) and
-         (taicpu(next2).typ = ait_instruction) and
+         (next2.typ = ait_instruction) and
          (taicpu(next).opcode <> taicpu(p).opcode) and
          (taicpu(next2).opcode = taicpu(p).opcode) and
          (taicpu(p).oper[0]^.typ = top_reg) and
@@ -266,8 +271,10 @@ unit aoptcpu;
                    (taicpu(p).oper[0]^.ref^.offset = 0) then
                   begin
                     DebugMsg('Optimizer: LEA 0(Ax),Ax removed',p);
+		    GetNextInstruction(p,next);
                     asml.remove(p);
                     p.free;
+		    p:=next;
                     result:=true;
                   end;
               { Address register sub/add can be replaced with ADDQ/SUBQ or LEA if the value is in the

@@ -171,7 +171,7 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      max_operands = 4;
+      max_operands = 2;
 
       maxintregs = 15;
       maxfpuregs = 0;

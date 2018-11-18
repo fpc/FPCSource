@@ -700,9 +700,18 @@ interface
            for i8086 cpu huge memory model,
            as this changes SP register it requires special handling
            to restore DS segment register  }
-         pi_has_open_array_parameter
+         pi_has_open_array_parameter,
+         { subroutine uses threadvars }
+         pi_uses_threadvar
        );
        tprocinfoflags=set of tprocinfoflag;
+
+       ttlsmodel = (tlsm_none,
+         { elf tls model: works for all kind of code and thread vars }
+         tlsm_general,
+         { elf tls model: works only if the thread vars are declared and used in the same executable }
+         tlsm_local
+       );
 
     type
       { float types -- warning, this enum/order is used internally by the RTL

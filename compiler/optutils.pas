@@ -49,7 +49,7 @@ unit optutils;
     procedure CalcDefSum(p : tnode);
 
     { calculates/estimates the field execution weight of optinfo }
-    procedure CalcExecutionWeights(p : tnode;Initial : AWord = 100);
+    procedure CalcExecutionWeights(p : tnode;Initial : longint = 100);
 
     { returns true, if n is a valid node and has life info }
     function has_life_info(n : tnode) : boolean;
@@ -359,50 +359,41 @@ unit optutils;
 
     function SetExecutionWeight(var n: tnode; arg: pointer): foreachnoderesult;
       var
-        Weight : AWord;
+        Weight : longint;
         i : Integer;
       begin
         Result:=fen_false;
         n.allocoptinfo;
-        Weight:=PAWord(arg)^;
+        Weight:=max(plongint(arg)^,1);
         case n.nodetype of
           casen:
             begin
               CalcExecutionWeights(tcasenode(n).left,Weight);
               for i:=0 to tcasenode(n).blocks.count-1 do
-                CalcExecutionWeights(pcaseblock(tcasenode(n).blocks[i])^.statement,max(1,Weight div case_count_labels(tcasenode(n).labels)));
+                CalcExecutionWeights(pcaseblock(tcasenode(n).blocks[i])^.statement,Weight div case_count_labels(tcasenode(n).labels));
 
-              CalcExecutionWeights(tcasenode(n).elseblock,max(1,Weight div case_count_labels(tcasenode(n).labels)));
+              CalcExecutionWeights(tcasenode(n).elseblock,Weight div case_count_labels(tcasenode(n).labels));
               Result:=fen_norecurse_false;
             end;
           whilerepeatn:
             begin
-              CalcExecutionWeights(twhilerepeatnode(n).right,max(Weight,1)*8);
-              CalcExecutionWeights(twhilerepeatnode(n).left,max(Weight,1)*8);
+              CalcExecutionWeights(twhilerepeatnode(n).right,Weight*8);
+              CalcExecutionWeights(twhilerepeatnode(n).left,Weight*8);
               Result:=fen_norecurse_false;
             end;
           ifn:
             begin
               CalcExecutionWeights(tifnode(n).left,Weight);
-              CalcExecutionWeights(tifnode(n).right,max(Weight div 2,1));
-              CalcExecutionWeights(tifnode(n).t1,max(Weight div 2,1));
+              CalcExecutionWeights(tifnode(n).right,Weight div 2);
+              CalcExecutionWeights(tifnode(n).t1,Weight div 2);
               Result:=fen_norecurse_false;
             end;
-          else
-{$push}
-{ The code below emits two warnings if ptruint and aword are the same type }
-{$warn 4044 off}
-{$warn 6018 off}
-            if PAWord(arg)^ > high(aword) then
-              n.optinfo^.executionweight:=high(AWord)
-            else
-              n.optinfo^.executionweight:=PAWord(arg)^;
-{$pop}
         end;
+        n.optinfo^.executionweight:=Weight;
       end;
 
 
-    procedure CalcExecutionWeights(p : tnode;Initial : AWord = 100);
+    procedure CalcExecutionWeights(p : tnode;Initial : longint = 100);
       begin
         if assigned(p) then
           foreachnodestatic(pm_postprocess,p,@SetExecutionWeight,Pointer(@Initial));

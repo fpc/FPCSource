@@ -1098,6 +1098,7 @@ unit cgx86;
     procedure tcgx86.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
         dirref,tmpref : treference;
+        tmpreg : TRegister;
       begin
         dirref:=ref;
 
@@ -1107,6 +1108,38 @@ unit cgx86;
 
         with dirref do
           begin
+{$ifdef i386}
+            if refaddr=addr_ntpoff then
+              begin
+                { Convert thread local address to a process global addres
+                  as we cannot handle far pointers.}
+                case target_info.system of
+                  system_i386_linux,system_i386_android:
+                    if segment=NR_GS then
+                      begin
+                        reference_reset(tmpref,1,[]);
+                        tmpref.segment:=NR_GS;
+                        tmpreg:=getaddressregister(list);
+                        a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,tmpreg);
+                        reference_reset(tmpref,1,[]);
+                        tmpref.symbol:=symbol;
+                        tmpref.refaddr:=refaddr;
+                        tmpref.base:=tmpreg;
+                        if base<>NR_NO then
+                          tmpref.index:=base;
+                        list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,tmpreg));
+                        segment:=NR_NO;
+                        base:=tmpreg;
+                        symbol:=nil;
+                        refaddr:=addr_no;
+                      end
+                    else
+                      Internalerror(2018110402);
+                  else
+                    Internalerror(2018110403);
+                end;
+              end;
+{$endif i386}
             if (base=NR_NO) and (index=NR_NO) then
               begin
                 if assigned(dirref.symbol) then
@@ -1196,26 +1229,7 @@ unit cgx86;
                 else
                   a_load_reg_reg(list,OS_16,OS_16,segment,GetNextReg(r));
 {$else i8086}
-                if (tf_section_threadvars in target_info.flags) then
-                  begin
-                    { Convert thread local address to a process global addres
-                      as we cannot handle far pointers.}
-                    case target_info.system of
-                      system_i386_linux,system_i386_android:
-                        if segment=NR_GS then
-                          begin
-                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset',AT_DATA),0,sizeof(pint),[]);
-                            tmpref.segment:=NR_GS;
-                            list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
-                          end
-                        else
-                          cgmessage(cg_e_cant_use_far_pointer_there);
-                      else
-                        cgmessage(cg_e_cant_use_far_pointer_there);
-                    end;
-                  end
-                else
-                  cgmessage(cg_e_cant_use_far_pointer_there);
+                cgmessage(cg_e_cant_use_far_pointer_there);
 {$endif i8086}
               end;
           end;
@@ -2066,6 +2080,14 @@ unit cgx86;
             reference_reset_base(href,src,al,ctempposinvalid,0,[]);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
+        else if (op=OP_SHL) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
+          (int64(a)>=1) and (int64(a)<=3) then
+          begin
+            reference_reset_base(href,NR_NO,0,ctempposinvalid,0,[]);
+            href.index:=src;
+            href.scalefactor:=1 shl longint(a);
+            list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
+          end
         else if (op=OP_SUB) and
           ((size in [OS_32,OS_S32]) or
            { lea supports only 32 bit signed displacments }
@@ -2759,7 +2781,7 @@ unit cgx86;
 
     type  copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx);
 
-    var srcref,dstref:Treference;
+    var srcref,dstref,tmpref:Treference;
         r,r0,r1,r2,r3:Tregister;
         helpsize:tcgint;
         copysize:byte;
@@ -2774,6 +2796,24 @@ unit cgx86;
       make_simple_ref(list,srcref);
       make_simple_ref(list,dstref);
 {$endif not i8086}
+{$ifdef i386}
+      { we could handle "far" pointers here, but reloading es/ds is probably much slower
+        than just resolving the tls segment }
+      if (srcref.refaddr=addr_ntpoff) and (srcref.segment=NR_GS) then
+        begin
+          r:=getaddressregister(list);
+          a_loadaddr_ref_reg(list,srcref,r);
+          reference_reset(srcref,srcref.alignment,srcref.volatility);
+          srcref.base:=r;
+        end;
+       if (dstref.refaddr=addr_ntpoff) and (dstref.segment=NR_GS) then
+         begin
+           r:=getaddressregister(list);
+           a_loadaddr_ref_reg(list,dstref,r);
+           reference_reset(dstref,dstref.alignment,dstref.volatility);
+           dstref.base:=r;
+         end;
+{$endif i386}
       cm:=copy_move;
       helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then
@@ -2811,8 +2851,9 @@ unit cgx86;
          not(len in copy_len_sizes) then
         cm:=copy_string;
 {$ifndef i8086}
-      if (srcref.segment<>NR_NO) or
-         (dstref.segment<>NR_NO) then
+      { using %fs and %gs as segment prefixes is perfectly valid }
+      if ((srcref.segment<>NR_NO) and (srcref.segment<>NR_FS) and (srcref.segment<>NR_GS)) or
+         ((dstref.segment<>NR_NO) and (dstref.segment<>NR_FS) and (dstref.segment<>NR_GS)) then
         cm:=copy_string;
 {$endif not i8086}
       case cm of
@@ -3004,8 +3045,8 @@ unit cgx86;
         else {copy_string, should be a good fallback in case of unhandled}
           begin
             getcpuregister(list,REGDI);
-            if (dest.segment=NR_NO) and
-               (segment_regs_equal(NR_SS,NR_DS) or ((dest.base<>NR_BP) and (dest.base<>NR_SP))) then
+            if (dstref.segment=NR_NO) and
+               (segment_regs_equal(NR_SS,NR_DS) or ((dstref.base<>NR_BP) and (dstref.base<>NR_SP))) then
               begin
                 a_loadaddr_ref_reg(list,dstref,REGDI);
                 saved_es:=false;
@@ -3016,17 +3057,19 @@ unit cgx86;
               end
             else
               begin
-                dstref.segment:=NR_NO;
-                a_loadaddr_ref_reg(list,dstref,REGDI);
+                { load offset of dest. reference }
+                tmpref:=dstref;
+                tmpref.segment:=NR_NO;
+                a_loadaddr_ref_reg(list,tmpref,REGDI);
 {$ifdef volatile_es}
                 saved_es:=false;
 {$else volatile_es}
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_ES));
                 saved_es:=true;
 {$endif volatile_es}
-                if dest.segment<>NR_NO then
-                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dest.segment))
-                else if (dest.base=NR_BP) or (dest.base=NR_SP) then
+                if dstref.segment<>NR_NO then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dstref.segment))
+                else if (dstref.base=NR_BP) or (dstref.base=NR_SP) then
                   list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_SS))
                 else
                   internalerror(2014040401);
@@ -3044,8 +3087,8 @@ unit cgx86;
                 srcref.index:=NR_NO;
               end;
 {$endif i8086}
-            if ((source.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or ((source.base<>NR_BP) and (source.base<>NR_SP)))) or
-               (is_segment_reg(source.segment) and segment_regs_equal(source.segment,NR_DS)) then
+            if ((srcref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or ((srcref.base<>NR_BP) and (srcref.base<>NR_SP)))) or
+               (is_segment_reg(srcref.segment) and segment_regs_equal(srcref.segment,NR_DS)) then
               begin
                 srcref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,srcref,REGSI);
@@ -3053,13 +3096,15 @@ unit cgx86;
               end
             else
               begin
-                srcref.segment:=NR_NO;
-                a_loadaddr_ref_reg(list,srcref,REGSI);
+                { load offset of source reference }
+                tmpref:=srcref;
+                tmpref.segment:=NR_NO;
+                a_loadaddr_ref_reg(list,tmpref,REGSI);
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
                 saved_ds:=true;
-                if source.segment<>NR_NO then
-                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,source.segment))
-                else if (source.base=NR_BP) or (source.base=NR_SP) then
+                if srcref.segment<>NR_NO then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,srcref.segment))
+                else if (srcref.base=NR_BP) or (srcref.base=NR_SP) then
                   list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_SS))
                 else
                   internalerror(2014040402);

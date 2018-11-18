@@ -44,7 +44,18 @@ interface
        talignmentinfo = packed record
          procalign,
          loopalign,
+         { alignment for labels after unconditional jumps, this must be a power of two }
          jumpalign,
+         { max. alignment for labels after unconditional jumps:
+           the compiler tries to align jumpalign, however, to do so it inserts at maximum jumpalignmax bytes or uses
+           the next smaller power of two of jumpalign }
+         jumpalignmax,
+         { alignment for labels where two flows of the program flow coalesce, this must be a power of two }
+         coalescealign,
+         { max. alignment for labels where two flows of the program flow coalesce
+           the compiler tries to align to coalescealign, however, to do so it inserts at maximum coalescealignmax bytes or uses
+           the next smaller power of two of coalescealign }
+         coalescealignmax,
          constalignmin,
          constalignmax,
          varalignmin,
@@ -658,6 +669,14 @@ begin
        jumpalign:=s.jumpalign
      else if s.jumpalign<>0 then
        result:=false;
+     if (s.coalescealign in [1,2,4,8,16,32,64,128]) or (s.coalescealign=256) then
+       coalescealign:=s.coalescealign
+     else if s.coalescealign<>0 then
+       result:=false;
+     if s.jumpalignmax>0 then
+       jumpalignmax:=s.jumpalignmax;
+     if s.coalescealign>0 then
+       coalescealignmax:=s.coalescealignmax;
      { general update rules:
        minimum: if higher then update
        maximum: if lower then update or if undefined then update }
