@@ -2788,7 +2788,7 @@ begin
            begin
              def:=TPpuFieldDef.Create(ParentDef);
              readabstractvarsym('Field Variable symbol ',varoptions,TPpuVarDef(def));
-             writeln([space,'      Address : ',getaint]);
+             writeln([space,'      Address : ',getasizeint]);
              if vo_has_mangledname in varoptions then
                writeln([space,' Mangled name : ',getstring]);
            end;
