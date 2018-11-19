@@ -81,7 +81,7 @@ const
   nUnitFileNotFound = 136; sUnitFileNotFound = 'unit file not found %s';
   nClassInterfaceStyleIs = 137; sClassInterfaceStyleIs = 'Class interface style is %s';
   nMacroXSetToY = 138; sMacroXSetToY = 'Macro %s set to %s';
-  nPostProcessorX = 139; sPostProcessorX = 'Post processor: %s';
+  nPostProcessorInfoX = 139; sPostProcessorInfoX = 'Post processor: %s';
   nPostProcessorRunX = 140; sPostProcessorRunX = 'Run post processor: %s';
   nPostProcessorFailX = 141; sPostProcessorFailX = 'Post processor failed: %s';
   nPostProcessorWarnX = 142; sPostProcessorWarnX = 'Post processor: %s';
@@ -385,12 +385,6 @@ type
   TPas2JSWPOptimizer = class(TPasAnalyzer)
   end;
 
-  TPas2jsParamState = (
-    ppsSingle,
-    ppsPostProc
-    );
-  TPas2jsParamStates = set of TPas2jsParamState;
-
   { TPas2jsCompiler }
 
   TPas2jsCompiler = class
@@ -412,7 +406,6 @@ type
     FMode: TP2jsMode;
     FOptions: TP2jsCompilerOptions;
     FParamMacros: TPas2jsMacroEngine;
-    FParamState: TPas2jsParamState;
     FPostProcs: TObjectList;
     FSrcMapSourceRoot: string;
     FTargetPlatform: TPasToJsPlatform;
@@ -477,7 +470,6 @@ type
     procedure LoadConfig(CfgFilename: string);
     procedure LoadDefaultConfig;
     procedure ParamFatal(Msg: string);
-    procedure CheckParamsClosed;
     procedure ReadParam(Param: string; Quick, FromCmdLine: boolean);
     procedure ReadSingleLetterOptions(const Param: string; p: integer;
       const Allowed: string; out Enabled, Disabled: string);
@@ -570,7 +562,6 @@ type
     property Mode: TP2jsMode read FMode write SetMode;
     property Options: TP2jsCompilerOptions read FOptions write SetOptions;
     property ParamMacros: TPas2jsMacroEngine read FParamMacros;
-    property ParamState: TPas2jsParamState read FParamState;
     {$IFDEF HasPas2jsFiler}
     property PrecompileGUID: TGUID read FPrecompileGUID write FPrecompileGUID;
     property PrecompileInitialFlags: TPCUInitialFlags read FPrecompileInitialFlags;
@@ -3092,7 +3083,7 @@ var
   Skip: TSkip;
   CacheFile: TPas2jsCachedFile;
 begin
-  if ShowTriedUsedFiles then
+  if ShowDebug or ShowTriedUsedFiles then
     Log.LogMsgIgnoreFilter(nReadingOptionsFromFile,[QuoteStr(CfgFilename)]);
   IfLvl:=0;
   SkipLvl:=0;
@@ -3241,14 +3232,12 @@ begin
         ReadParam(Line,false,false);
       end;
     end;
-    CheckParamsClosed;
   finally
     FCurrentCfgFilename:=OldCfgFilename;
     FCurrentCfgLineNumber:=OldCfgLineNumber;
     aFile.Free;
   end;
-  if ParamState<>ppsSingle then
-  if ShowTriedUsedFiles then
+  if ShowDebug or ShowTriedUsedFiles then
     Log.LogMsgIgnoreFilter(nEndOfReadingConfigFile,[QuoteStr(CfgFilename)]);
 end;
 
@@ -3259,7 +3248,7 @@ procedure TPas2jsCompiler.LoadDefaultConfig;
     Result:=false;
     if aFilename='' then exit;
     aFilename:=ExpandFileName(aFilename);
-    if ShowTriedUsedFiles then
+    if ShowDebug or ShowTriedUsedFiles then
       Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
     if not DirectoryCache.FileExists(aFilename) then exit;
     Result:=true;
@@ -3301,20 +3290,6 @@ begin
   else
     Log.LogPlain(['Fatal: ',Msg]);
   Terminate(ExitCodeErrorInParams);
-end;
-
-procedure TPas2jsCompiler.CheckParamsClosed;
-begin
-  case ParamState of
-  ppsSingle: ;
-  ppsPostProc:
-    if CurrentCfgFilename<>'' then
-      ParamFatal('-Jpostproc requires a line with a single ; at the end')
-    else
-      ParamFatal('-Jpostproc requires a single ; at the end');
-  else
-    ParamFatal('multi argument option needs closing');
-  end;
 end;
 
 procedure TPas2jsCompiler.ReadParam(Param: string; Quick, FromCmdLine: boolean);
@@ -3362,36 +3337,6 @@ begin
 
   l:=length(Param);
   p:=1;
-
-  case ParamState of
-  ppsPostProc:
-    begin
-      // parse multi arguments of -Jpostproc command ;
-      if Quick then
-        PostProc:=nil
-      else
-        PostProc:=TStringList(PostProcs[PostProcs.Count-1]);
-      if Param=';' then
-      begin
-        if (PostProc<>nil) and (PostProc.Count=0) then
-          ParamFatal('-Jpostproc needs command');
-        FParamState:=ppsSingle;
-      end else if PostProc<>nil then
-      begin
-        if PostProc.Count=0 then
-        begin
-          // check executable
-          Value:=FileCache.ExpandExecutable(Param,'');
-          if Value='' then
-            ParamFatal('-Jpostproc executable "'+Param+'" not found');
-          Param:=Value;
-        end;
-        PostProc.Add(Param);
-      end;
-      exit;
-    end;
-  end;
-
   case Param[p] of
   '-':
     begin
@@ -3660,20 +3605,26 @@ begin
                 UnknownParam;
             end;
           'p':
+            // -Jp<...>
+            if copy(Param,p,3)='cmd' then
             begin
-              // -J<p...>
-              Identifier:=copy(Param,p-1,length(Param));
-              case Identifier of
-              'postproc':
-                begin
-                FParamState:=ppsPostProc;
-                if not Quick then
-                  PostProcs.Add(TStringList.Create);
-                end;
-              else
-                UnknownParam;
+              inc(p,3);
+              if not Quick then
+              begin
+                PostProc:=TStringList.Create;
+                PostProcs.Add(PostProc);
+                SplitCmdLineParams(copy(Param,p,length(Param)),PostProc);
+                if PostProc.Count<1 then
+                  ParamFatal('-Jpcmd executable missing');
+                // check executable
+                Value:=PostProc[0];
+                aFilename:=FileCache.ExpandExecutable(PostProc[0],'');
+                if aFilename='' then
+                  ParamFatal('-Jpcmd executable "'+Value+'" not found');
+                PostProc[0]:=aFilename;
               end;
-            end;
+            end else
+              UnknownParam;
           'u':
             if not Quick then
               if not FileCache.AddSrcUnitPaths(copy(Param,p,length(Param)),FromCmdLine,ErrorMsg) then
@@ -4089,7 +4040,7 @@ begin
   r(mtFatal,nUnitFileNotFound,sUnitFileNotFound);
   r(mtInfo,nClassInterfaceStyleIs,sClassInterfaceStyleIs);
   r(mtInfo,nMacroXSetToY,sMacroXSetToY);
-  r(mtInfo,nPostProcessorX,sPostProcessorX);
+  r(mtInfo,nPostProcessorInfoX,sPostProcessorInfoX);
   r(mtInfo,nPostProcessorRunX,sPostProcessorRunX);
   r(mtError,nPostProcessorFailX,sPostProcessorFailX);
   r(mtWarning,nPostProcessorWarnX,sPostProcessorWarnX);
@@ -4121,7 +4072,7 @@ function TPas2jsCompiler.CallPostProcessor(const JSFilename: String;
 {$IFDEF pas2js}
 begin
   Result:='';
-  if ShowUsedTools then
+  if ShowDebug or ShowUsedTools then
     Log.LogMsgIgnoreFilter(nPostProcessorRunX,[QuoteStr(JSFilename)+' | '+CmdListAsStr(Cmd)]);
   raise EFOpenError.Create('post processing is not yet implemented in platform nodejs');
   if JSFilename='' then ;
@@ -4141,7 +4092,7 @@ var
 begin
   Result:='';
   Exe:=Cmd[0];
-  if ShowUsedTools then
+  if ShowDebug or ShowUsedTools then
     Log.LogMsgIgnoreFilter(nPostProcessorRunX,[QuoteStr(JSFilename)+' | '+CmdListAsStr(Cmd)]);
   if DirectoryCache.DirectoryExists(Exe) then
     raise EFOpenError.Create('post processor "'+Exe+'" is a directory');
@@ -4248,7 +4199,7 @@ begin
     Log.LogMsg(nPostProcessorFailX,[CmdListAsStr(Cmd)]);
     Terminate(ExitCodeToolError);
   end;
-  if ShowUsedTools then
+  if ShowDebug or ShowUsedTools then
     Log.LogMsgIgnoreFilter(nPostProcessorFinished,[]);
 end;
 {$ENDIF}
@@ -4486,7 +4437,6 @@ begin
     // quick check command line params
     for i:=0 to ParamList.Count-1 do
       ReadParam(ParamList[i],true,true);
-    CheckParamsClosed;
     if WriteDebugLog then
       Log.OpenDebugLog;
     if ShowLogo then
@@ -4499,7 +4449,6 @@ begin
     // read command line parameters
     for i:=0 to ParamList.Count-1 do
       ReadParam(ParamList[i],false,true);
-    CheckParamsClosed;
 
     // now we know, if the logo can be displayed
     if ShowLogo then
@@ -4675,7 +4624,7 @@ begin
   w('     -JoCheckVersion=main : insert rtl version check into main.');
   w('     -JoCheckVersion=system : insert rtl version check into system unit init.');
   w('     -JoCheckVersion=unit : insert rtl version check into every unit init.');
-  w('   -Jpostproc command ;  : Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. Depending on the used shell you have to escape the ending ; with a ''\''. This option can be added multiple times to call several postprocessors in succession.');
+  w('   -Jpcmd<command> : Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. This option can be added multiple times to call several postprocessors in succession.');
   w('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
   {$IFDEF HasPas2jsFiler}
   if PrecompileFormats.Count>0 then
@@ -4828,7 +4777,7 @@ begin
   for i:=0 to PostProcs.Count-1 do
   begin
     PostProc:=TStringList(PostProcs[i]);
-    Log.LogMsgIgnoreFilter(nPostProcessorX,[CmdListAsStr(PostProc)]);
+    Log.LogMsgIgnoreFilter(nPostProcessorInfoX,[CmdListAsStr(PostProc)]);
   end;
 end;
 
