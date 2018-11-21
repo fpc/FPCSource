@@ -1858,6 +1858,7 @@ unit aoptx86;
 {$ifdef i386}
               { byte registers of esi, edi, ebp, esp are not available on i386 }
               and ((taicpu(hp2).opsize<>S_B) or not(getsupreg(taicpu(hp1).oper[0]^.reg) in [RS_ESI,RS_EDI,RS_EBP,RS_ESP]))
+              and ((taicpu(hp2).opsize<>S_B) or not(getsupreg(taicpu(p).oper[0]^.reg) in [RS_ESI,RS_EDI,RS_EBP,RS_ESP]))
 {$endif i386}
               then
               { change   movsX/movzX    reg/ref, reg2
