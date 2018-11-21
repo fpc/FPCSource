@@ -1853,6 +1853,7 @@ unit aoptx86;
                   end;
                 ReleaseUsedRegs(TmpUsedRegs);
               end
+{$ifndef x86_64}
             else if MatchOpType(taicpu(hp2),top_reg,top_reg) and
               not(SuperRegistersEqual(taicpu(hp1).oper[0]^.reg,taicpu(hp2).oper[1]^.reg))
 {$ifdef i386}
@@ -1929,8 +1930,8 @@ unit aoptx86;
                   end;
                 ReleaseUsedRegs(TmpUsedRegs);
               end;
+{$endif x86_64}
           end
-
         else if GetNextInstruction_p and
           MatchInstruction(hp1,A_BTS,A_BTR,[Taicpu(p).opsize]) and
           GetNextInstruction(hp1, hp2) and
@@ -1984,7 +1985,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.OptPass1MOVXX(var p : tai) : boolean;
+   function TX86AsmOptimizer.OptPass1MOVXX(var p : tai) : boolean;
       var
         hp1 : tai;
       begin
