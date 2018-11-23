@@ -182,6 +182,11 @@ begin
         OSes:=[Win32,Win64];
         Dependencies.AddUnit('custhttpsys');
       end;
+    with P.Targets.AddUnit('fphttpstatus.pas') do
+      begin
+        Dependencies.AddUnit('fphttpserver');
+        Dependencies.AddUnit('HTTPDefs');
+      end;
     T:=P.Targets.AddUnit('fcgigate.pp');
     T.ResourceStrings:=true;
     With T.Dependencies do
