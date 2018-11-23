@@ -30,6 +30,10 @@ begin
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
 
+    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macos,palmos,atari];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.SourcePath.Add('lnet',lnetOSes);
     P.IncludePath.Add('lnet/sys',lnetOSes);
 
