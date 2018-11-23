@@ -26,6 +26,10 @@ begin
     P.Description := 'Free Pascal documentation generation utility.';
     P.NeedLibC:= false;
 
+    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macos,palmos,atari];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
