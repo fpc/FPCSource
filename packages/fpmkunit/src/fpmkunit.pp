@@ -1683,6 +1683,7 @@ ResourceString
   SWarnNoFCLProcessSupport= 'No FCL-Process support';
   SWarnRetryRemDirectory     = 'Failed to remove directory "%s". Retry after a short delay';
   SWarnCombinedPathAndUDir= 'Warning: Better do not combine the SearchPath and Global/Local-UnitDir parameters';
+  SWarnUnregisteredResource= 'Warning: Adding resource file "%s", which is not registered.';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -8694,7 +8695,20 @@ begin
         List.Add(APrefixU + RSJFileName)
       else
         List.Add(APrefixU + RSTFileName);
-    end;
+    end
+  else
+    begin
+      if FileExists(APrefixU + RSJFileName) then
+        begin
+          Installer.Log(VlDebug,Format(SWarnUnregisteredResource,[APrefixU + RSJFileName]));
+          List.Add(APrefixU + RSJFileName);
+        end
+      else if FileExists(APrefixU + RSTFileName) then
+        begin
+          Installer.Log(VlDebug,Format(SWarnUnregisteredResource,[APrefixU + RSTFileName]));
+          List.Add(APrefixU + RSTFileName);
+        end;
+     end;
   // Maybe add later ?  AddConditionalStrings(List,CleanFiles);
 end;
 
@@ -8726,7 +8740,20 @@ begin
         List.Add(APrefixU + RSJFileName)
       else
         List.Add(APrefixU + RSTFileName);
-    end;
+    end
+  else
+    begin
+      if FileExists(UnitsDir + RSJFileName) then
+        begin
+          Installer.Log(VlDebug,Format(SWarnUnregisteredResource,[APrefixU + RSJFileName]));
+          List.Add(APrefixU + RSJFileName);
+        end
+      else if FileExists(UnitsDir + RSTFileName) then
+        begin
+          Installer.Log(VlDebug,Format(SWarnUnregisteredResource,[APrefixU + RSTFileName]));
+          List.Add(APrefixU + RSTFileName);
+        end;
+     end;
 end;
 
 

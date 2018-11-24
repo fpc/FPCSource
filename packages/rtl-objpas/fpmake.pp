@@ -64,6 +64,7 @@ begin
     P.IncludePath.Add('src/common',CommonSrcOSes);
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('widestrutils.pp',StrUtilsOses-ConvUtilOSes);
     T:=P.Targets.AddUnit('varutils.pp',VarUtilsOses);
     with T.Dependencies do
