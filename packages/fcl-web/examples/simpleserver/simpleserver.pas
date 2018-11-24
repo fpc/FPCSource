@@ -46,6 +46,7 @@ begin
   Writeln('-i --indexpage=name Directory index page to use (default: index.html)');
   Writeln('-n --noindexpage    Do not allow index page.');
   Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
+  Writeln('-m --mimetypes=file path of mime.types, default under unix: /etc/mime.types');
   Writeln('-q --quiet          Do not write diagnostic messages');
   Halt(Ord(Msg<>''));
 end;
@@ -65,10 +66,24 @@ begin
   if D='' then
     D:=GetCurrentDir;
   Log(etInfo,'Listening on port %d, serving files from directory: %s',[Port,D]);
+
+  if HasOption('m','mimetypes') then
+    MimeTypesFile:=GetOptionValue('m','mimetypes');
 {$ifdef unix}
-  MimeTypesFile:='/etc/mime.types';
-  if not FileExists(MimeTypesFile) then
-    MimeTypesFile:='';
+  if MimeTypesFile='' then
+    begin
+    MimeTypesFile:='/etc/mime.types';
+    if not FileExists(MimeTypesFile) then
+      begin
+      {$ifdef darwin}
+      MimeTypesFile:='/private/etc/apache2/mime.types';
+      if not FileExists(MimeTypesFile) then
+      {$endif}
+        MimeTypesFile:='';
+      end;
+    end;
+  if (MimeTypesFile<>'') and not FileExists(MimeTypesFile) then
+    Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
 {$endif}
   TSimpleFileModule.BaseDir:=IncludeTrailingPathDelimiter(D);
   TSimpleFileModule.OnLog:=@Log;
