@@ -584,6 +584,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 
     WrappedException:=FPC_psabieh_GetExceptionWrapper(libunwind_exception);
 
+{$ifdef excdebug}
+    writeln('Personality started for wrapper ',hexstr(WrappedException),' = fpc exc ',hexstr(WrappedException^.FObject),', refcount is now ',WrappedException^.refcount);
+{$endif}
     // Shortcut for phase 2 found handler for domestic exception.
     if (actions=(FPC_UA_CLEANUP_PHASE or FPC_UA_HANDLER_FRAME)) and
        not foreign_exception then
@@ -646,9 +649,6 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
               begin
                 // Otherwise we have a catch handler or exception specification.
                 found_type:=FPC_psabieh_find_handler(info,foreign_exception,actions,WrappedException^.FObject,action_record,handler_switch_value);
-{$ifdef excdebug}
-                writeln('find_handler: ',found_type);
-{$endif}
               end
           end
         else
@@ -658,6 +658,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
             // was not expecting to throw.
             found_type:=found_terminate;
           end;
+{$ifdef excdebug}
+        writeln('find_handler: ',found_type);
+{$endif}
 
          if found_type=found_nothing then
            exit(FPC_URC_CONTINUE_UNWIND);
@@ -715,6 +718,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
     {$if sizeof(pointer)<>sizeof(SizeInt)}
       {$error Add support for extending pointer values}
     {$endif}
+{$ifdef excdebug}
+    writeln('returning exception $',hexstr(libunwind_exception),' with switch value ',handler_switch_value);
+{$endif}
     _Unwind_SetGR(context,fpc_eh_return_data_regno(0),PtrUInt(libunwind_exception));
     _Unwind_SetGR (context,fpc_eh_return_data_regno(1),handler_switch_value);
     _Unwind_SetIP(context,landing_pad);
@@ -744,6 +750,9 @@ procedure FPC_psabieh_ExceptionCleanUp(reason: FPC_Unwind_Reason_Code; exc:PFPC_
       end;
 
     ExceptWrapper:=FPC_psabieh_GetExceptionWrapper(exc);
+{$ifdef excdebug}
+        writeln('exception cleanup: deleting wrapper ',hexstr(ExceptWrapper),' and fpc exception ',hexstr(ExceptWrapper^.FObject));
+{$endif}
     ExceptWrapper^.FObject.free;
     ExceptWrapper^.FObject:=nil;
     if assigned(ExceptWrapper^.frames) then
@@ -759,9 +768,10 @@ var
   _ExceptObjectStack : PExceptObject;
   _ExceptAddrstack : PExceptAddr;
   ExceptWrapper: PExceptObject;
+  RaiseResult: FPC_Unwind_Reason_Code;
 begin
 {$ifdef excdebug}
-  writeln ('In psabieh RaiseException');
+  writeln ('In psabieh RaiseException for object ',hexstr(obj),' of class type ',obj.classname);
 {$endif}
   if ExceptTryLevel<>0 then
     begin
@@ -781,10 +791,10 @@ begin
   if (RaiseProc <> nil) and (_ExceptObjectStack <> nil) then
     with _ExceptObjectStack^ do
       RaiseProc(FObject,Addr,FrameCount,Frames);
-  _Unwind_RaiseException(@ExceptWrapper^.unwind_exception);
+  RaiseResult:=_Unwind_RaiseException(@ExceptWrapper^.unwind_exception);
   // should never return
 {$ifdef excdebug}
-  writeln('_Unwind_RaiseException returned');
+  writeln('_Unwind_RaiseException returned: ',RaiseResult);
 {$endif}
   Halt(217);
 end;
@@ -799,6 +809,9 @@ function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compi
     _ExceptObjectStack : PExceptObject;
     count: longint;
   begin
+{$ifdef excdebug}
+    writeln('start begin_catch unwind exception ',hexstr(exc));
+{$endif}
     _ExceptObjectStack:=ExceptObjectStack;
     // hand off foreign exceptions to the C++ runtime
     if exc^.exception_class<>FPC_psabieh_exceptionClass_ID.u then
@@ -841,6 +854,9 @@ function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compi
         ExceptObjectStack:=ExceptWrapper;
       end;
 
+{$ifdef excdebug}
+    writeln('stop begin_catch for wrapper ',hexstr(ExceptWrapper),' = fpc exc ',hexstr(ExceptWrapper^.FObject),', refcount is now ',count);
+{$endif}
     result:= ExceptWrapper^.FObject;
 {$ifdef __ARM_EABI_UNWINDER__}
     _Unwind_Complete(ExceptWrapper);
@@ -857,8 +873,11 @@ procedure FPC_psabi_end_catch; cdecl; compilerproc;
     refcount: longint;
   begin
     _ExceptObjectStack:=ExceptObjectStack;
+{$ifdef excdebug}
+    writeln('start end_catch unwind exception ',hexstr(@_ExceptObjectStack^.unwind_exception));
+{$endif}
     // A rethrow of a foreign exception will be removed from the
-    // the exception stack immediately by __cxa_rethrow.
+    // the exception stack immediately by __cxa_rethrow -> stack could be empty here
     if not assigned(_ExceptObjectStack) then
       exit;
 
@@ -877,17 +896,26 @@ procedure FPC_psabi_end_catch; cdecl; compilerproc;
       end;
 
     refcount:=_ExceptObjectStack^.refcount;
+{$ifdef excdebug}
+    writeln('middle end_catch for wrapper ',hexstr(_ExceptObjectStack),' = fpc exception ',hexstr(_ExceptObjectStack^.FObject),' with refcount ',refcount);
+{$endif}
     if refcount<0 then
       begin
         // This exception was rethrown.  Decrement the (inverted) catch
         // count and remove it from the chain when it reaches zero.
         inc(refcount);
+{$ifdef excdebug}
+        writeln('stop end_catch, rethrown, new refcount: ',refcount);
+{$endif}
         if refcount = 0 then
           ExceptObjectStack:=_ExceptObjectStack^.next;
       end
     else
       begin
         dec(refcount);
+{$ifdef excdebug}
+        writeln('stop end_catch, not rethrown, new refcount: ',refcount);
+{$endif}
         if refcount=0 then
           begin
             // Handling for this exception is complete.  Destroy the object.

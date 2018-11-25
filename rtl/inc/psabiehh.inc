@@ -40,7 +40,7 @@ type
   FPC_Unwind_Context = record
   end;
 
-  procedure _Unwind_RaiseException(exception_object: PFPC_Unwind_Exception); cdecl; external;
+  function _Unwind_RaiseException(exception_object: PFPC_Unwind_Exception): FPC_Unwind_Reason_Code; cdecl; external;
   procedure _Unwind_Resume(exception_object: PFPC_Unwind_Exception); cdecl; external;
 
 type
