@@ -354,11 +354,13 @@ begin
 end;
 {$endif FPC_SYSTEM_HAS_DONEEXCEPTION}
 
+{$ifndef FPC_SYSTEM_HAS_RAISENESTED}
 procedure fpc_raise_nested;[public,alias:'FPC_RAISE_NESTED']compilerproc;
 begin
   Internal_PopSecondObjectStack.Free;
   Internal_Reraise;
 end;
+{$endif FPC_SYSTEM_HAS_RAISENESTED}
 
 {$ifndef FPC_SYSTEM_HAS_SAFECALLHANDLER}
 function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;

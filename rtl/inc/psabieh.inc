@@ -55,6 +55,7 @@ function FPC_psabieh_GetExceptionWrapper(exceptionObject: PFPC_Unwind_Exception)
     result:=PExceptObject(exceptionObject+1)-1;
   end;
 
+function _Unwind_Resume_or_Rethrow (context:PFPC_Unwind_Context): FPC_Unwind_Reason_Code;cdecl;external;
 procedure _Unwind_DeleteException(context:PFPC_Unwind_Context);cdecl;external;
 function _Unwind_GetGR(context:PFPC_Unwind_Context; index:cint):PtrUInt;cdecl;external;
 procedure _Unwind_SetGR(context:PFPC_Unwind_Context; index:cint; new_value:PtrUInt);cdecl;external;
@@ -901,6 +902,10 @@ procedure FPC_psabi_end_catch; cdecl; compilerproc;
 {$endif}
     if refcount<0 then
       begin
+        { Can happen in the original glibc code, but not for us. When re-raising an
+          exception, we always immediately do this to an outer frame }
+        halt(217);
+(*
         // This exception was rethrown.  Decrement the (inverted) catch
         // count and remove it from the chain when it reaches zero.
         inc(refcount);
@@ -909,6 +914,7 @@ procedure FPC_psabi_end_catch; cdecl; compilerproc;
 {$endif}
         if refcount = 0 then
           ExceptObjectStack:=_ExceptObjectStack^.next;
+*)
       end
     else
       begin
@@ -933,4 +939,103 @@ procedure FPC_psabi_end_catch; cdecl; compilerproc;
           end;
       end;
     _ExceptObjectStack^.refcount:=refcount;
+  end;
+
+{$ifdef FPC_PSABIEH_CPLUSPLUSSUPPORT}
+procedure __cxa_rethrow; cdecl; external; noreturn;
+{$endif FPC_PSABIEH_CPLUSPLUSSUPPORT}
+
+{$define FPC_SYSTEM_HAS_RERAISE}
+procedure fpc_ReRaise; [public,alias:'FPC_RERAISE']; compilerproc;
+  var
+    _ExceptObjectStack: PExceptObject;
+    refcount: longint;
+    reraise_error: FPC_Unwind_Reason_Code;
+  begin
+    _ExceptObjectStack:=ExceptObjectStack;
+    // globals->uncaughtExceptions += 1;
+
+{$ifdef excdebug}
+    writeln('start reraise for wrapper ',hexstr(_ExceptObjectStack));
+{$endif}
+    // Watch for luser rethrowing with no active exception.
+    if assigned(_ExceptObjectStack) then
+      begin
+        // Tell __cxa_end_catch this is a rethrow.
+        if _ExceptObjectStack^.unwind_exception.exception_class<>FPC_psabieh_exceptionClass_ID.u then
+{$ifdef FPC_PSABIEH_CPLUSPLUSSUPPORT}
+          begin
+            { remove foreign exception; since we never link multiple foreign
+              exceptions, we know the stack is now empty }
+            ExceptObjectStack:=nil;
+            __cxa_rethrow;
+            { should never be reached }
+            halt(217);
+          end
+{$endif FPC_PSABIEH_CPLUSPLUSSUPPORT}
+        else
+          begin
+            { undo the begin_catch }
+            dec(_ExceptObjectStack^.refcount);
+          end;
+
+{$ifdef excdebug}
+    writeln('Stop reraise, new refcount = ',_ExceptObjectStack^.refcount);
+{$endif}
+//  #ifdef _GLIBCXX_SJLJ_EXCEPTIONS
+//        _Unwind_SjLj_Resume_or_Rethrow (&header->unwindHeader);
+//  #else
+//  #if defined(_LIBUNWIND_STD_ABI)
+//        _Unwind_RaiseException (@_ExceptObjectStack^.unwind_exception);
+//  #else
+        reraise_error:=_Unwind_Resume_or_Rethrow (@_ExceptObjectStack^.unwind_exception);
+{$ifdef excdebug}
+        writeln('reraise failed, error = ',reraise_error);
+{$endif}
+//  #endif
+//  #endif
+        // Some sort of unwinding error.
+        halt(217);
+      end;
+    halt(217);
+  end;
+
+
+{$define FPC_SYSTEM_HAS_RAISENESTED}
+procedure fpc_raise_nested;compilerproc;
+  var
+    hp, _ExceptObjectStack: PExceptObject;
+  begin
+    _ExceptObjectStack:=ExceptObjectStack;
+    if not(assigned(_ExceptObjectStack)) or
+       not(assigned(_ExceptObjectStack^.next)) then
+      begin
+{$ifdef excdebug}
+        writeln ('raise_nested: At end of ExceptionObjectStack');
+{$endif}
+        halt(217);
+      end;
+
+    if _ExceptObjectStack^.unwind_exception.exception_class<>FPC_psabieh_exceptionClass_ID.u then
+      begin
+{$ifdef excdebug}
+        writeln ('raise_nested: top of stack contains foreign exception');
+{$endif}
+        halt(217);
+      end;
+
+    hp:=_ExceptObjectStack^.next;
+    _ExceptObjectStack^.next:=hp^.next;
+{$ifdef excdebug}
+    writeln('raise_nested: raising nested wrapper ',hexstr(_ExceptObjectStack),' = fpc exception ',hexstr(_ExceptObjectStack^.FObject),' with refcount ',_ExceptObjectStack^.refcount{,' (will increase to ',_ExceptObjectStack^.refcount+1,')'});
+    writeln('raise_nested: previous exception ',hexstr(hp),' = fpc exception ',hexstr(hp^.FObject),' with refcount ',hp^.refcount,' (will delete if refcount = 1, otherwise decrease to',hp^.refcount-1,')');
+{$endif}
+    if hp^.refcount=1 then
+      { we need to free the original exception object if its refcount=1
+        (means it was not acquired, only refcount increase by begin_catch) }
+      _Unwind_DeleteException(@hp^.unwind_exception)
+    else
+      dec(hp^.refcount);
+    _Unwind_RaiseException(@_ExceptObjectStack^.unwind_exception);
+    halt(217);
   end;
