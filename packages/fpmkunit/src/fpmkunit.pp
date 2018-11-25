@@ -19,6 +19,7 @@ unit fpmkunit;
 {$Mode objfpc}
 {$H+}
 {$inline on}
+{$MODESWITCH TYPEHELPERS} 
 
 { For target or cpu dependent dependencies also add an overload where you
   can pass only a set of cpus. This is disabled for now because it creates
@@ -1683,7 +1684,7 @@ ResourceString
   SWarnNoFCLProcessSupport= 'No FCL-Process support';
   SWarnRetryRemDirectory     = 'Failed to remove directory "%s". Retry after a short delay';
   SWarnCombinedPathAndUDir= 'Warning: Better do not combine the SearchPath and Global/Local-UnitDir parameters';
-  SWarnUnregisteredResource= 'Warning: Adding resource file "%s", which is not registered.';
+  SWarnRemovedNonEmptyDirectory = 'Warning: Removed non empty directory "%s"';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -1750,6 +1751,7 @@ ResourceString
   SDbgTargetHasToBeCompiled = 'At least one of the targets in the package has to be compiled.';
   SDbgDeletedFile           = 'Recursively deleted file "%s"';
   SDbgRemovedDirectory      = 'Recursively removed directory "%s"';
+  SDbgUnregisteredResource  = 'Adding resource file "%s", which is not registered.';
 
 
   // Help messages for usage
@@ -8001,10 +8003,29 @@ begin
         CmdRemoveDirs(DirectoryList);
 
         DirectoryList.Clear;
-        if DirectoryExists(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS))) then
-          DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
-        if DirectoryExists(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS))) then
-          DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
+
+        { force directory removal for units and bin dir if it ends with /$fpc_target }
+        if DirectoryExists(APackage.GetBinOutputDir(ACPU,AOS)) and
+           (MakeTargetString(ACPU,AOS)=ExtractFileName(ExcludeTrailingPathDelimiter(APackage.GetBinOutputDir(ACPU,AOS)))) then
+          begin
+            Installer.Log(vlWarning,Format(SWarnRemovedNonEmptyDirectory,[APackage.Directory+APackage.GetBinOutputDir(ACPU,AOS)]));
+            DirectoryList.Add(APackage.GetBinOutputDir(ACPU,AOS));
+            CmdRemoveTrees(DirectoryList);
+            DirectoryList.Clear;
+          end;
+        if DirectoryExists(APackage.GetUnitsOutputDir(ACPU,AOS)) and
+           (MakeTargetString(ACPU,AOS)=ExtractFileName(ExcludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(ACPU,AOS)))) then
+          begin
+            Installer.Log(vlWarning,Format(SWarnRemovedNonEmptyDirectory,[APackage.Directory+APackage.GetUnitsOutputDir(ACPU,AOS)]));
+            DirectoryList.Add(APackage.GetUnitsOutputDir(ACPU,AOS));
+            CmdRemoveTrees(DirectoryList);
+            DirectoryList.Clear;
+          end;
+        { Also remove units/ or bin/ directory if empty }
+        if IsDirectoryEmpty(ExtractFileDir(ExcludeTrailingPathDelimiter(APackage.GetBinOutputDir(ACPU,AOS)))) then
+          DirectoryList.Add(ExtractFileDir(ExcludeTrailingPathDelimiter(APackage.GetBinOutputDir(ACPU,AOS))));
+        if IsDirectoryEmpty(ExtractFileDir(ExcludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(ACPU,AOS)))) then
+          DirectoryList.Add(ExtractFileDir(ExcludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(ACPU,AOS))));
         CmdRemoveDirs(DirectoryList);
       finally
         DirectoryList.Free;
@@ -8700,12 +8721,12 @@ begin
     begin
       if FileExists(APrefixU + RSJFileName) then
         begin
-          Installer.Log(VlDebug,Format(SWarnUnregisteredResource,[APrefixU + RSJFileName]));
+          Installer.Log(VlDebug,Format(SDbgUnregisteredResource,[APrefixU + RSJFileName]));
           List.Add(APrefixU + RSJFileName);
         end
       else if FileExists(APrefixU + RSTFileName) then
         begin
-          Installer.Log(VlDebug,Format(SWarnUnregisteredResource,[APrefixU + RSTFileName]));
+          Installer.Log(VlDebug,Format(SDbgUnregisteredResource,[APrefixU + RSTFileName]));
           List.Add(APrefixU + RSTFileName);
         end;
      end;
@@ -8745,12 +8766,12 @@ begin
     begin
       if FileExists(UnitsDir + RSJFileName) then
         begin
-          Installer.Log(VlDebug,Format(SWarnUnregisteredResource,[APrefixU + RSJFileName]));
+          Installer.Log(VlDebug,Format(SDbgUNregisteredResource,[APrefixU + RSJFileName]));
           List.Add(APrefixU + RSJFileName);
         end
       else if FileExists(UnitsDir + RSTFileName) then
         begin
-          Installer.Log(VlDebug,Format(SWarnUnregisteredResource,[APrefixU + RSTFileName]));
+          Installer.Log(VlDebug,Format(SDbgUNregisteredResource,[APrefixU + RSTFileName]));
           List.Add(APrefixU + RSTFileName);
         end;
      end;
