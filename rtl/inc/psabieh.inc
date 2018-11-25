@@ -746,6 +746,8 @@ procedure FPC_psabieh_ExceptionCleanUp(reason: FPC_Unwind_Reason_Code; exc:PFPC_
     ExceptWrapper:=FPC_psabieh_GetExceptionWrapper(exc);
     ExceptWrapper^.FObject.free;
     ExceptWrapper^.FObject:=nil;
+    if assigned(ExceptWrapper^.frames) then
+      freemem(ExceptWrapper^.frames);
     Dispose(ExceptWrapper);
   end;
 
