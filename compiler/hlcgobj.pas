@@ -4984,7 +4984,6 @@ implementation
                 end
               else
                 begin
-                  { pass proper alignment info }
                   g_concatcopy(list,tparavarsym(p).vardef,href,localcopyloc.reference);
                 end;
               { update localloc of varsym }
