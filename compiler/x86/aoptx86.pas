@@ -1782,75 +1782,156 @@ unit aoptx86;
           (hp1.typ = ait_instruction) and
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_MOV,[]) and
-          OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
-          (taicpu(hp2).oper[0]^.typ=top_reg) and
           (SuperRegistersEqual(taicpu(hp2).oper[0]^.reg,taicpu(p).oper[1]^.reg)) and
           (IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg) or
            ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and (taicpu(hp2).opsize=S_L) and
             IsFoldableArithOp(taicpu(hp1), newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[1]^.reg),R_SUBQ)))
           ) then
-          { change   movsX/movzX    reg/ref, reg2
-                     add/sub/or/... reg3/$const, reg2
-                     mov            reg2 reg/ref
-            to       add/sub/or/... reg3/$const, reg/ref      }
           begin
-            CopyUsedRegs(TmpUsedRegs);
-            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-            UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
-            If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
+            if OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
+              (taicpu(hp2).oper[0]^.typ=top_reg) then
+              { change   movsX/movzX    reg/ref, reg2
+                         add/sub/or/... reg3/$const, reg2
+                         mov            reg2 reg/ref
+                         dealloc        reg2
+                to
+                         add/sub/or/... reg3/$const, reg/ref      }
               begin
-                { by example:
-                    movswl  %si,%eax        movswl  %si,%eax      p
-                    decl    %eax            addl    %edx,%eax     hp1
-                    movw    %ax,%si         movw    %ax,%si       hp2
-                  ->
-                    movswl  %si,%eax        movswl  %si,%eax      p
-                    decw    %eax            addw    %edx,%eax     hp1
-                    movw    %ax,%si         movw    %ax,%si       hp2
-                }
-                DebugMsg(SPeepholeOptimization + 'MovOpMov2Op ('+
-                      debug_op2str(taicpu(p).opcode)+debug_opsize2str(taicpu(p).opsize)+' '+
-                      debug_op2str(taicpu(hp1).opcode)+debug_opsize2str(taicpu(hp1).opsize)+' '+
-                      debug_op2str(taicpu(hp2).opcode)+debug_opsize2str(taicpu(hp2).opsize),p);
-                taicpu(hp1).changeopsize(taicpu(hp2).opsize);
-                {
-                  ->
-                    movswl  %si,%eax        movswl  %si,%eax      p
-                    decw    %si             addw    %dx,%si       hp1
-                    movw    %ax,%si         movw    %ax,%si       hp2
-                }
-                case taicpu(hp1).ops of
-                  1:
-                    begin
-                      taicpu(hp1).loadoper(0, taicpu(hp2).oper[1]^);
-                      if taicpu(hp1).oper[0]^.typ=top_reg then
-                        setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                CopyUsedRegs(TmpUsedRegs);
+                UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+                If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
+                  begin
+                    { by example:
+                        movswl  %si,%eax        movswl  %si,%eax      p
+                        decl    %eax            addl    %edx,%eax     hp1
+                        movw    %ax,%si         movw    %ax,%si       hp2
+                      ->
+                        movswl  %si,%eax        movswl  %si,%eax      p
+                        decw    %eax            addw    %edx,%eax     hp1
+                        movw    %ax,%si         movw    %ax,%si       hp2
+                    }
+                    DebugMsg(SPeepholeOptimization + 'MovOpMov2Op ('+
+                          debug_op2str(taicpu(p).opcode)+debug_opsize2str(taicpu(p).opsize)+' '+
+                          debug_op2str(taicpu(hp1).opcode)+debug_opsize2str(taicpu(hp1).opsize)+' '+
+                          debug_op2str(taicpu(hp2).opcode)+debug_opsize2str(taicpu(hp2).opsize),p);
+                    taicpu(hp1).changeopsize(taicpu(hp2).opsize);
+                    {
+                      ->
+                        movswl  %si,%eax        movswl  %si,%eax      p
+                        decw    %si             addw    %dx,%si       hp1
+                        movw    %ax,%si         movw    %ax,%si       hp2
+                    }
+                    case taicpu(hp1).ops of
+                      1:
+                        begin
+                          taicpu(hp1).loadoper(0, taicpu(hp2).oper[1]^);
+                          if taicpu(hp1).oper[0]^.typ=top_reg then
+                            setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                        end;
+                      2:
+                        begin
+                          taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
+                          if (taicpu(hp1).oper[0]^.typ=top_reg) and
+                            (taicpu(hp1).opcode<>A_SHL) and
+                            (taicpu(hp1).opcode<>A_SHR) and
+                            (taicpu(hp1).opcode<>A_SAR) then
+                            setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                        end;
+                      else
+                        internalerror(2008042701);
                     end;
-                  2:
-                    begin
-                      taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
-                      if (taicpu(hp1).oper[0]^.typ=top_reg) and
-                        (taicpu(hp1).opcode<>A_SHL) and
-                        (taicpu(hp1).opcode<>A_SHR) and
-                        (taicpu(hp1).opcode<>A_SAR) then
-                        setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                    {
+                      ->
+                        decw    %si             addw    %dx,%si       p
+                    }
+                    asml.remove(p);
+                    asml.remove(hp2);
+                    p.Free;
+                    hp2.Free;
+                    p := hp1;
+                  end;
+                ReleaseUsedRegs(TmpUsedRegs);
+              end
+{$ifndef x86_64}
+            else if MatchOpType(taicpu(hp2),top_reg,top_reg) and
+              not(SuperRegistersEqual(taicpu(hp1).oper[0]^.reg,taicpu(hp2).oper[1]^.reg))
+{$ifdef i386}
+              { byte registers of esi, edi, ebp, esp are not available on i386 }
+              and ((taicpu(hp2).opsize<>S_B) or not(getsupreg(taicpu(hp1).oper[0]^.reg) in [RS_ESI,RS_EDI,RS_EBP,RS_ESP]))
+              and ((taicpu(hp2).opsize<>S_B) or not(getsupreg(taicpu(p).oper[0]^.reg) in [RS_ESI,RS_EDI,RS_EBP,RS_ESP]))
+{$endif i386}
+              then
+              { change   movsX/movzX    reg/ref, reg2
+                         add/sub/or/... regX/$const, reg2
+                         mov            reg2, reg3
+                         dealloc        reg2
+                to
+                         movsX/movzX    reg/ref, reg3
+                         add/sub/or/... reg3/$const, reg3
+              }
+              begin
+                CopyUsedRegs(TmpUsedRegs);
+                UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+                If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
+                  begin
+                    { by example:
+                        movswl  %si,%eax        movswl  %si,%eax      p
+                        decl    %eax            addl    %edx,%eax     hp1
+                        movw    %ax,%si         movw    %ax,%si       hp2
+                      ->
+                        movswl  %si,%eax        movswl  %si,%eax      p
+                        decw    %eax            addw    %edx,%eax     hp1
+                        movw    %ax,%si         movw    %ax,%si       hp2
+                    }
+                    DebugMsg(SPeepholeOptimization + 'MovOpMov2MovOp ('+
+                          debug_op2str(taicpu(p).opcode)+debug_opsize2str(taicpu(p).opsize)+' '+
+                          debug_op2str(taicpu(hp1).opcode)+debug_opsize2str(taicpu(hp1).opsize)+' '+
+                          debug_op2str(taicpu(hp2).opcode)+debug_opsize2str(taicpu(hp2).opsize),p);
+                    taicpu(hp1).changeopsize(taicpu(hp2).opsize);
+                    taicpu(p).changeopsize(taicpu(hp2).opsize);
+                    if taicpu(p).oper[0]^.typ=top_reg then
+                      setsubreg(taicpu(p).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                    taicpu(p).loadoper(1, taicpu(hp2).oper[1]^);
+                    AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,usedregs);
+                    {
+                      ->
+                        movswl  %si,%eax        movswl  %si,%eax      p
+                        decw    %si             addw    %dx,%si       hp1
+                        movw    %ax,%si         movw    %ax,%si       hp2
+                    }
+                    case taicpu(hp1).ops of
+                      1:
+                        begin
+                          taicpu(hp1).loadoper(0, taicpu(hp2).oper[1]^);
+                          if taicpu(hp1).oper[0]^.typ=top_reg then
+                            setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                        end;
+                      2:
+                        begin
+                          taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
+                          if (taicpu(hp1).oper[0]^.typ=top_reg) and
+                            (taicpu(hp1).opcode<>A_SHL) and
+                            (taicpu(hp1).opcode<>A_SHR) and
+                            (taicpu(hp1).opcode<>A_SAR) then
+                            setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                        end;
+                      else
+                        internalerror(2018111801);
                     end;
-                  else
-                    internalerror(2008042701);
-                end;
-                {
-                  ->
-                    decw    %si             addw    %dx,%si       p
-                }
-                asml.remove(p);
-                asml.remove(hp2);
-                p.Free;
-                hp2.Free;
-                p := hp1;
+                    {
+                      ->
+                        decw    %si             addw    %dx,%si       p
+                    }
+                    asml.remove(hp2);
+                    hp2.Free;
+//                    p := hp1;
+                  end;
+                ReleaseUsedRegs(TmpUsedRegs);
               end;
-            ReleaseUsedRegs(TmpUsedRegs);
+{$endif x86_64}
           end
-
         else if GetNextInstruction_p and
           MatchInstruction(hp1,A_BTS,A_BTR,[Taicpu(p).opsize]) and
           GetNextInstruction(hp1, hp2) and
@@ -1904,7 +1985,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.OptPass1MOVXX(var p : tai) : boolean;
+   function TX86AsmOptimizer.OptPass1MOVXX(var p : tai) : boolean;
       var
         hp1 : tai;
       begin

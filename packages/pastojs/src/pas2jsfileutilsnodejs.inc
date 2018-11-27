@@ -152,6 +152,16 @@ begin
   Result:=true;
 end;
 
+function FileIsExecutable(const AFilename: string): boolean;
+begin
+  try
+    NJS_FS.accessSync(AFilename,X_OK);
+  except
+    exit(false);
+  end;
+  Result:=true;
+end;
+
 function GetEnvironmentVariableCountPJ: Integer;
 begin
   Result:=GetEnvironmentVariableCount;

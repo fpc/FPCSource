@@ -27,6 +27,7 @@ begin
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-passrc');
+    P.Dependencies.Add('fcl-process');
     Defaults.Options.Add('-Sc');
 
     P.Author := 'Free Pascal development team';
@@ -41,6 +42,7 @@ begin
 
     T:=P.Targets.AddUnit('pas2jsfiler.pp');
     T:=P.Targets.AddUnit('fppas2js.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fppjssrcmap.pp');
     T:=P.Targets.AddUnit('pas2jsfilecache.pp');
     T:=P.Targets.AddUnit('pas2jsfileutils.pp');

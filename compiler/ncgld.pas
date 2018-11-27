@@ -420,6 +420,7 @@ implementation
         href : treference;
         newsize : tcgsize;
         vd : tdef;
+        alignment: longint;
         indirect : boolean;
         name : TSymStr;
       begin
@@ -529,7 +530,10 @@ implementation
                     { assume packed records may always be unaligned }
                     if not(resultdef.typ in [recorddef,objectdef]) or
                        (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
-                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment,[])
+                      begin
+                        alignment:=min(min(min(resultdef.alignment,current_settings.alignment.localalignmax),current_settings.alignment.constalignmax),current_settings.alignment.varalignmax);
+                        location_reset_ref(location,LOC_REFERENCE,newsize,alignment,[]);
+                      end
                     else
                       location_reset_ref(location,LOC_REFERENCE,newsize,1,[]);
                     hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);

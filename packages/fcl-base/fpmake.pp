@@ -78,12 +78,14 @@ begin
           AddUnit('inifiles');
         end;
     T:=P.Targets.AddUnit('inifiles.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('contnrs');
         end;
     T:=P.Targets.AddUnit('iostream.pp');
     T:=P.Targets.AddUnit('nullstream.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('maskutils.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('pooledmm.pp');
@@ -96,11 +98,13 @@ begin
     T:=P.Targets.AddUnit('streamcoll.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('streamex.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('streamio.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fptemplate.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[go32v2,nativent,atari]);
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('uriparser.pp');
     T:=P.Targets.AddUnit('wformat.pp');
     T:=P.Targets.AddUnit('whtml.pp');
@@ -117,6 +121,7 @@ begin
       T.ResourceStrings:=true;
 
     T:=P.Targets.AddUnit('fileinfo.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.addUnit('fpmimetypes.pp');
     T:=P.Targets.AddUnit('csvreadwrite.pp');
     T:=P.Targets.addUnit('csvdocument.pp');

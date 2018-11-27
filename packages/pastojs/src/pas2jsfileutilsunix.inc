@@ -148,6 +148,15 @@ begin
   Result := BaseUnix.FpAccess(AFilename, BaseUnix.W_OK) = 0;
 end;
 
+function FileIsExecutable(const AFilename: string): boolean;
+var
+  Info : Stat;
+begin
+  // first check AFilename is not a directory and then check if executable
+  Result:= (FpStat(AFilename,info{%H-})<>-1) and FPS_ISREG(info.st_mode) and
+           (BaseUnix.FpAccess(AFilename,BaseUnix.X_OK)=0);
+end;
+
 function GetEnvironmentVariableCountPJ: Integer;
 begin
   Result:=GetEnvironmentVariableCount;

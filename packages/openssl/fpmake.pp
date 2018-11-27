@@ -28,6 +28,7 @@ begin
 
     T:=P.Targets.AddUnit('openssl.pas');
     T:=P.Targets.AddUnit('fpopenssl.pp');
+      T.ResourceStrings:=true;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('test1.pas');

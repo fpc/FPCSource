@@ -1840,6 +1840,9 @@ unit rgobj;
         p : tai;
         i : integer;
         supreg, u: tsuperregister;
+{$ifdef arm}
+        so: pshifterop;
+{$endif arm}
       begin
         { All allocations are available. Now we can generate the
           interference graph. Walk through all instructions, we can

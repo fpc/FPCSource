@@ -361,7 +361,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     procedure tasmlisttypedconstbuilder.flush_packed_value(var bp: tbitpackedval);
       var
         bitstowrite: longint;
-        writeval : AInt;
+        writeval : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
       begin
         if (bp.curbitoffset < AIntBits) then
           begin
@@ -403,7 +403,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     { parses a packed array constant }
     procedure tasmlisttypedconstbuilder.parse_packed_array_def(def: tarraydef);
       var
-        i  : aint;
+        i  : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         bp : tbitpackedval;
       begin
         if not(def.elementdef.typ in [orddef,enumdef]) then
@@ -455,7 +455,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tasmlisttypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
       var
-        strlength : aint;
+        strlength : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         strval    : pchar;
         ll        : tasmlabofs;
         ca        : pchar;
@@ -1518,11 +1518,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         sorg,s  : TIDString;
         tmpguid : tguid;
         recoffset,
-        fillbytes  : aint;
+        fillbytes  : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         bp   : tbitpackedval;
         error,
         is_packed: boolean;
-        startoffset: aword;
+        startoffset: {$ifdef CPU8BITALU}word{$else}aword{$endif};
 
       procedure handle_stringconstn;
         begin
@@ -1733,10 +1733,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         obj    : tobjectdef;
         srsym  : tsym;
         st     : tsymtable;
-        objoffset : aint;
+        objoffset : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         s,sorg : TIDString;
         vmtwritten : boolean;
-        startoffset:aint;
+        startoffset : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
       begin
         { no support for packed object }
         if is_packed_record_or_object(def) then
@@ -1926,7 +1926,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         recsym,
         srsym   : tsym;
         sorg,s  : TIDString;
-        recoffset : aint;
+        recoffset : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         error,
         is_packed: boolean;
 
@@ -2095,7 +2095,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         obj    : tobjectdef;
         srsym  : tsym;
         st     : tsymtable;
-        objoffset : aint;
+        objoffset : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         s,sorg : TIDString;
       begin
         { no support for packed object }

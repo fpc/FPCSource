@@ -582,21 +582,32 @@ implementation
         obj_def: tobjectdef;
         self_temp,
         vmt_temp: ttempcreatenode;
-        check_self: tnode;
+        check_self,n: tnode;
         stat: tstatementnode;
         block: tblocknode;
         paras: tcallparanode;
-        docheck: boolean;
+        docheck,is_typecasted_classref: boolean;
       begin
         self_resultdef:=self_node.resultdef;
         case self_resultdef.typ of
           classrefdef:
-            obj_def:=tobjectdef(tclassrefdef(self_resultdef).pointeddef);
+            begin
+              obj_def:=tobjectdef(tclassrefdef(self_resultdef).pointeddef);
+            end;
           objectdef:
             obj_def:=tobjectdef(self_resultdef);
           else
             internalerror(2015052701);
         end;
+        n:=self_node;
+        is_typecasted_classref:=false;
+	if (n.nodetype=typeconvn) then
+          begin
+            while assigned(n) and (n.nodetype=typeconvn) and (nf_explicit in ttypeconvnode(n).flags) do
+              n:=ttypeconvnode(n).left;
+            if assigned(n) and (n.resultdef.typ=classrefdef) then
+              is_typecasted_classref:=true;
+	  end;
         if is_classhelper(obj_def) then
           obj_def:=tobjectdef(tobjectdef(obj_def).extendeddef);
         docheck:=
@@ -639,14 +650,14 @@ implementation
             addstatement(stat,ctempdeletenode.create_normal_temp(self_temp));
             self_node:=ctemprefnode.create(self_temp);
           end;
-        { get the VMT field in case of a class/object }
-        if (self_resultdef.typ=objectdef) and
-           assigned(tobjectdef(self_resultdef).vmt_field) then
-          result:=csubscriptnode.create(tobjectdef(self_resultdef).vmt_field,self_node)
         { in case of a classref, the "instance" is a pointer
           to pointer to a VMT and there is no vmt field }
-        else if self_resultdef.typ=classrefdef then
+        if is_typecasted_classref or (self_resultdef.typ=classrefdef) then
           result:=self_node
+        { get the VMT field in case of a class/object }
+        else if (self_resultdef.typ=objectdef) and
+           assigned(tobjectdef(self_resultdef).vmt_field) then
+          result:=csubscriptnode.create(tobjectdef(self_resultdef).vmt_field,self_node)
         { in case of an interface, the "instance" is a pointer to a pointer
           to a VMT -> dereference once already }
         else

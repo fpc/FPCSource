@@ -234,7 +234,7 @@ implementation
     procedure tcginnode.pass_generate_code;
        var
          adjustment,
-         setbase    : aint;
+         setbase    : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
          l, l2      : tasmlabel;
          hr,
          pleftreg   : tregister;

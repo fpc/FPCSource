@@ -42,6 +42,7 @@ const
   ExitCodeSyntaxError = 6;
   ExitCodeConverterError = 7;
   ExitCodePCUError = 8;
+  ExitCodeToolError = 9;
 
 const
   DefaultLogMsgTypes = [mtFatal..mtDebug]; // by default show everything

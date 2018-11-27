@@ -765,7 +765,8 @@ implementation
                   (cs_implicit_exceptions in current_settings.moduleswitches)) then
                   begin
                     include(tocode.flags,nf_block_with_exit);
-                    addstatement(newstatement,cfinalizetempsnode.create);
+                    if procdef.proctypeoption<>potype_exceptfilter then
+                      addstatement(newstatement,cfinalizetempsnode.create);
                     cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                     temps_finalized:=true;
                   end;
@@ -910,7 +911,8 @@ implementation
             current_filepos:=exitpos;
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
-            addstatement(codestatement,cfinalizetempsnode.create);
+            if procdef.proctypeoption<>potype_exceptfilter then
+              addstatement(codestatement,cfinalizetempsnode.create);
             cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,codestatement);
             temps_finalized:=true;
 
@@ -943,7 +945,8 @@ implementation
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then
               begin
-                addstatement(newstatement,cfinalizetempsnode.create);
+                if procdef.proctypeoption<>potype_exceptfilter then
+                  addstatement(newstatement,cfinalizetempsnode.create);
                 cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                 temps_finalized:=true;
               end;
