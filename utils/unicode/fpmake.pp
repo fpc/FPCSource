@@ -36,6 +36,7 @@ begin
     T := P.Targets.AddImplicitUnit('helper.pas');
     T.ResourceStrings := true;
     T.Install := false;
+    T := P.Targets.AddImplicitUnit('cldrtxt.pas');
     T := P.Targets.AddImplicitUnit('cldrxml.pas');
     T.ResourceStrings := true;
     T.Install := false;
@@ -46,6 +47,7 @@ begin
     T.Install := false;
     T := P.Targets.AddImplicitUnit('cldrhelper.pas');
     T.Install := false;
+    T.ResourceStrings:=true;
     T := P.Targets.AddImplicitUnit('cldrtest.pas');
     T.Install := false;
     T := P.Targets.AddImplicitUnit('grbtree.pas');

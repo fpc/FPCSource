@@ -29,6 +29,7 @@ begin
     P.Dependencies.Add('fcl-passrc');
 
     T:=P.Targets.AddProgram('pas2ut.pp');
+    T.ResourceStrings:=true;
     end;
 end;
 
