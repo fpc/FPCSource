@@ -19,7 +19,7 @@ unit fpmkunit;
 {$Mode objfpc}
 {$H+}
 {$inline on}
-{$MODESWITCH TYPEHELPERS} 
+{$MODESWITCH TYPEHELPERS}
 
 { For target or cpu dependent dependencies also add an overload where you
   can pass only a set of cpus. This is disabled for now because it creates
@@ -1762,7 +1762,8 @@ ResourceString
   SHelpBuild          = 'Build all units in the package(s).';
   SHelpInstall        = 'Install all units in the package(s).';
   SHelpUnInstall      = 'Uninstall the package(s).';
-  SHelpClean          = 'Clean (remove) all units in the package(s).';
+  SHelpClean          = 'Clean (remove) all generated files in the package(s) for current CPU-OS target.';
+  SHelpDistclean      = 'Clean (remove) all generated files in the package(s) for all targets.';
   SHelpArchive        = 'Create archive (zip) with all units in the package(s).';
   SHelpHelp           = 'This message.';
   SHelpManifest       = 'Create a manifest suitable for import in repository.';
@@ -5343,6 +5344,7 @@ begin
   LogCmd('install',SHelpInstall);
   LogCmd('uninstall',SHelpUnInstall);
   LogCmd('clean',SHelpClean);
+  LogCmd('distclean',SHelpDistclean);
   LogCmd('archive',SHelpArchive);
   LogCmd('manifest',SHelpManifest);
   LogCmd('zipinstall',SHelpZipInstall);
