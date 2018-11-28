@@ -892,6 +892,18 @@ implementation
         addstatement(newstatement,entry_asmnode);
         cnodeutils.procdef_block_add_implicit_initialize_nodes(procdef,newstatement);
         addstatement(newstatement,init_asmnode);
+        if assigned(procdef.parentfpinitblock) then
+          begin
+            if assigned(tblocknode(procdef.parentfpinitblock).left) then
+              begin
+                { could be an asmn in case of a pure assembler procedure,
+                  but those shouldn't access nested variables }
+                addstatement(newstatement,procdef.parentfpinitblock);
+              end
+            else
+              procdef.parentfpinitblock.free;
+            procdef.parentfpinitblock:=nil;
+          end;
         addstatement(newstatement,bodyentrycode);
 
         if (cs_implicit_exceptions in current_settings.moduleswitches) and
@@ -1875,6 +1887,7 @@ implementation
          old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
          old_current_specializedef: tstoreddef;
+         parentfpinitblock: tnode;
          old_parse_generic: boolean;
          recordtokens : boolean;
 
@@ -1987,16 +2000,10 @@ implementation
                begin
                  if assigned(tblocknode(procdef.parentfpinitblock).left) then
                    begin
-                     { could be an asmn in case of a pure assembler procedure,
-                       but those shouldn't access nested variables }
-                     if code.nodetype<>blockn then
-                       internalerror(2015122601);
-                     tblocknode(code).left:=cstatementnode.create(procdef.parentfpinitblock,tblocknode(code).left);
-                     do_typecheckpass(tblocknode(code).left);
+                     parentfpinitblock:=procdef.parentfpinitblock;
+                     do_typecheckpass(parentfpinitblock);
+                     procdef.parentfpinitblock:=parentfpinitblock;
                    end
-                 else
-                   procdef.parentfpinitblock.free;
-                 procdef.parentfpinitblock:=nil;
                end;
 
            end;

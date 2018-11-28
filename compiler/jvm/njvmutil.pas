@@ -28,7 +28,7 @@ interface
   uses
     cclasses,
     node,nbas,
-    ngenutil,
+    fmodule,ngenutil,
     symtype,symconst,symsym,symdef;
 
 
@@ -36,6 +36,7 @@ interface
     tjvmnodeutils = class(tnodeutils)
       class function initialize_data_node(p:tnode; force: boolean):tnode; override;
       class function finalize_data_node(p:tnode):tnode; override;
+      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); override;
       class function force_init: boolean; override;
       class procedure insertbssdata(sym: tstaticvarsym); override;
       class function create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef; override;
@@ -63,7 +64,7 @@ interface
 implementation
 
     uses
-      verbose,cutils,globtype,globals,constexp,fmodule,compinnr,
+      verbose,cutils,globtype,globals,constexp,compinnr,
       aasmdata,aasmtai,cpubase,aasmbase,aasmcpu,
       symbase,symcpu,symtable,defutil,jvmdef,
       ncnv,ncon,ninl,ncal,nld,nmem,
@@ -169,6 +170,12 @@ implementation
       // do nothing
       p.free;
       result:=cnothingnode.create;
+    end;
+
+
+  class procedure tjvmnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
+    begin
+      { class constructors are implicitly called by the JVM runtime and cannot be called explicitly }
     end;
 
 

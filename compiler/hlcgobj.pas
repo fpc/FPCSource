@@ -429,6 +429,11 @@ unit hlcgobj;
           }
           procedure g_exception_reason_discard(list : TAsmList; size: tdef; href: treference); virtual;
 
+          {#
+              Call when the current location should never be reached
+          }
+          procedure g_unreachable(list: TAsmList); virtual;
+
           procedure g_maybe_testself(list : TAsmList; selftype: tdef; reg:tregister);
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
@@ -3156,6 +3161,12 @@ implementation
   procedure thlcgobj.g_exception_reason_discard(list: TAsmList; size: tdef; href: treference);
     begin
       { do nothing by default }
+    end;
+
+
+  procedure thlcgobj.g_unreachable(list: TAsmList);
+    begin
+      { nothing }
     end;
 
 

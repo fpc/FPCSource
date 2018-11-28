@@ -87,6 +87,8 @@ uses
 
       procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
 
+      procedure g_unreachable(list: TAsmList); override;
+
       procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference);override;
 
       procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister); override;
@@ -1093,6 +1095,11 @@ implementation
       { implement in tcg because required by the overridden a_label; doesn't use
         any high level stuff anyway }
       cg.a_jmp_always(list,l);
+    end;
+
+  procedure thlcgllvm.g_unreachable(list: TAsmList);
+    begin
+      list.Concat(taillvm.op_none(la_unreachable));
     end;
 
 
