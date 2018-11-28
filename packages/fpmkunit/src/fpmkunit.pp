@@ -7994,6 +7994,8 @@ procedure TBuildEngine.Clean(APackage: TPackage; ACPU: TCPU; AOS: TOS);
 Var
   List : TStringList;
   DirectoryList : TStringList;
+  RemainingList : TStrings;
+  i : longint;
 begin
   List:=TStringList.Create;
   try
@@ -8022,6 +8024,11 @@ begin
           begin
             Installer.Log(vlWarning,Format(SWarnRemovedNonEmptyDirectory,[APackage.Directory+APackage.GetBinOutputDir(ACPU,AOS)]));
             DirectoryList.Add(APackage.GetBinOutputDir(ACPU,AOS));
+            RemainingList := TStringList.Create;
+            SearchFiles(AllFilesMask, APackage.GetBinOutputDir(ACPU,AOS), true, RemainingList);
+            for i:=0 to RemainingList.Count-1 do
+              Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+            RemainingList.Free;
             CmdRemoveTrees(DirectoryList);
             DirectoryList.Clear;
           end;
@@ -8030,6 +8037,11 @@ begin
           begin
             Installer.Log(vlWarning,Format(SWarnRemovedNonEmptyDirectory,[APackage.Directory+APackage.GetUnitsOutputDir(ACPU,AOS)]));
             DirectoryList.Add(APackage.GetUnitsOutputDir(ACPU,AOS));
+            RemainingList := TStringList.Create;
+            SearchFiles(AllFilesMask, APackage.GetUnitsOutputDir(ACPU,AOS), true, RemainingList);
+            for i:=0 to RemainingList.Count-1 do
+              Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+            RemainingList.Free;
             CmdRemoveTrees(DirectoryList);
             DirectoryList.Clear;
           end;
