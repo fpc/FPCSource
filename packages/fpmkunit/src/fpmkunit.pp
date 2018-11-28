@@ -1673,7 +1673,6 @@ ResourceString
   SWarnSkipPackageTargetProgress = '[%3.0f%%] Skipped package %s which has been disabled for target %s';
   SWarnSkipPackageTarget = 'Skipped package %s which has been disabled for target %s';
   SWarnInstallationPackagecomplete = 'Installation package %s for target %s succeeded';
-  SWarnCleanPackagecomplete = 'Clean of package %s completed';
   SWarnCanNotGetAccessRights = 'Warning: Failed to copy access-rights from file %s';
   SWarnCanNotSetAccessRights = 'Warning: Failed to copy access-rights to file %s';
   SWarnCanNotGetFileAge = 'Warning: Failed to get FileAge for %s';
@@ -1694,6 +1693,7 @@ ResourceString
   SInfoUnInstallingPackage= 'Uninstalling package %s';
   SInfoArchivingPackage   = 'Archiving package %s in "%s"';
   SInfoCleaningPackage    = 'Cleaning package %s';
+  SInfoCleanPackagecomplete = 'Clean of package %s completed';
   SInfoManifestPackage    = 'Creating manifest for package %s';
   SInfoPkgListPackage    = 'Adding package %s to the package list';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
@@ -1752,7 +1752,7 @@ ResourceString
   SDbgDeletedFile           = 'Recursively deleted file "%s"';
   SDbgRemovedDirectory      = 'Recursively removed directory "%s"';
   SDbgUnregisteredResource  = 'Adding resource file "%s", which is not registered.';
-
+  SDbgSearchingDir          = 'Searching dir  %s.';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -2538,7 +2538,8 @@ procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; 
   var
     Info : TSearchRec;
   begin
-    Writeln('Searching ',Searchdir);
+    if assigned(Installer) then
+      Installer.Log(VlDebug,Format(SDbgSearchingDir,[SearchDir]));
     if FindFirst(SearchDir+AllFilesMask,faAnyFile and faDirectory,Info)=0 then
     begin
       repeat
@@ -3739,6 +3740,7 @@ begin
   OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(ACPU,AOS));
   OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(ACPU,AOS));
   List.Add(GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS));
+  List.Add(ManifestFile);
   AddConditionalStrings(Self, List,CleanFiles,ACPU,AOS);
   For I:=0 to FTargets.Count-1 do
     FTargets.TargetItems[I].GetCleanFiles(List, OU, OB, ACPU, AOS);
@@ -7937,14 +7939,20 @@ var
   AOS: TOS;
   DirectoryList : TStringList;
 begin
+  if not AllTargets and (not(Defaults.OS in APackage.OSes) or
+     not (Defaults.CPU in APackage.CPUs))  then
+    exit;
   Log(vlInfo,SInfoCleaningPackage,[APackage.Name]);
   try
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
     // Check for inherited options (packagevariants) from other packages
-    ResolveDependencies(APackage.Dependencies, (APackage.Collection as TPackages));
-    CheckDependencies(APackage, False);
-    APackage.SetDefaultPackageVariant;
+    if (Defaults.OS in APackage.OSes) and (Defaults.CPU in APackage.CPUs) then
+      begin
+        ResolveDependencies(APackage.Dependencies, (APackage.Collection as TPackages));
+        CheckDependencies(APackage, False);
+        APackage.SetDefaultPackageVariant;
+      end;
     DoBeforeClean(Apackage);
     AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
     if AllTargets then
@@ -7956,7 +7964,8 @@ begin
           for ACPU:=low(TCpu) to high(TCpu) do if ACPU<>cpuNone then
             for AOS:=low(TOS) to high(TOS) do if AOS<>osNone then
               begin
-                if OSCPUSupported[AOS,ACPU] then
+                if OSCPUSupported[AOS,ACPU] and (AOS in APackage.OSes) and
+                   (ACPU in APackage.CPUs) then
                   begin
                     // First perform a normal clean, to be sure that all files
                     // which are not in the units- or bin-dir are cleaned. (like
@@ -7975,6 +7984,7 @@ begin
       Clean(APackage, Defaults.CPU, Defaults.OS);
     DoAfterClean(Apackage);
   Finally
+    log(vlInfo, SInfoCleanPackagecomplete, [APackage.Name]);
     If (APackage.Directory<>'') then
       EnterDir('');
   end;
@@ -8374,7 +8384,6 @@ begin
       P:=Packages.PackageItems[i];
       If AllTargets or PackageOK(P) then
         Clean(P, AllTargets);
-      log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
   NotifyEventCollection.CallEvents(neaAfterClean, Self);
 end;
