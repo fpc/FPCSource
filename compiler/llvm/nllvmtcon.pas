@@ -103,6 +103,7 @@ interface
       procedure emit_tai(p: tai; def: tdef); override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
       procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef); override;
+      procedure emit_dynarray_offset(const ll: tasmlabofs; const arrlength: asizeint; const arrdef: tarraydef; const arrconstdatadef: trecorddef); override;
       procedure queue_init(todef: tdef); override;
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
@@ -452,6 +453,40 @@ implementation
        { since llvm doesn't support labels in the middle of structs, this
          offset should never be 0  }
        internalerror(2014080506);
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.emit_dynarray_offset(const ll: tasmlabofs; const arrlength: asizeint; const arrdef: tarraydef; const arrconstdatadef: trecorddef);
+    var
+      field: tfieldvarsym;
+      dataptrdef: tdef;
+    begin
+      { nil pointer? }
+      if not assigned(ll.lab) then
+        begin
+          if ll.ofs<>0 then
+            internalerror(2015030701);
+          inherited;
+          exit;
+        end;
+      { if the returned offset is <> 0, then the string data
+        starts at that offset -> translate to a field for the
+        high level code generator }
+      if ll.ofs<>0 then
+        begin
+          { field corresponding to this offset }
+          field:=trecordsymtable(arrconstdatadef.symtable).findfieldbyoffset(ll.ofs);
+          { pointerdef to the string data array }
+          dataptrdef:=cpointerdef.getreusable(field.vardef);
+          { the fields of the resourcestring record are declared as ansistring }
+          queue_init(dataptrdef);
+          queue_subscriptn(arrconstdatadef,field);
+          queue_emit_asmsym(ll.lab,arrconstdatadef);
+        end
+      else
+       { since llvm doesn't support labels in the middle of structs, this
+         offset should never be 0  }
+       internalerror(2018112401);
     end;
 
 

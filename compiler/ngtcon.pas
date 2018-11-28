@@ -1227,7 +1227,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
                     ftcb.finish_internal_data_builder(datatcb,ll,dynarrdef,sizeof(pint));
 
-                    ftcb.emit_dynarray_offset(llofs,dyncount,def);
+                    ftcb.emit_dynarray_offset(llofs,dyncount,def,trecorddef(dynarrdef));
                   end;
               end
             else

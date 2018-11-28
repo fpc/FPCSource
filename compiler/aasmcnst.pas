@@ -349,7 +349,7 @@ type
      procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);virtual;
 
      { emits a tasmlabofs as returned by begin_dynarray_const }
-     procedure emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tdef);virtual;
+     procedure emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tarraydef; const arrconstdatadef: trecorddef);virtual;
      { starts a dynamic array constant so that its data can be emitted directly afterwards }
      function begin_dynarray_const(arrdef:tdef;var startlab:tasmlabel;out arrlengthloc:ttypedconstplaceholder):tasmlabofs;virtual;
      function end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder):tdef;virtual;
@@ -1717,7 +1717,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tdef);
+   procedure ttai_typedconstbuilder.emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tarraydef; const arrconstdatadef: trecorddef);
      begin
        emit_tai(tai_const.create_sym_offset(ll.lab,ll.ofs),arrdef);
      end;
