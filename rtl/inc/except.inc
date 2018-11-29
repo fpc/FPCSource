@@ -317,26 +317,6 @@ begin
     end;
 end;
 
-{$ifdef VER2_6}
-Procedure fpc_DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION']; compilerproc;
-begin
-  { with free we're on the really safe side }
-  o.Free;
-end;
-
-{ TODO: no longer used, clean up }
-function fpc_GetExceptionAddr : CodePointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
-var
-  _ExceptObjectStack : PExceptObject;
-begin
-  _ExceptObjectStack:=ExceptObjectStack;
-  if _ExceptObjectStack=nil then
-    fpc_GetExceptionAddr:=nil
-  else
-    fpc_GetExceptionAddr:=_ExceptObjectStack^.Addr;
-end;
-{$endif VER2_6}
-
 Procedure SysInitExceptions;
 {
   Initialize exceptionsupport
