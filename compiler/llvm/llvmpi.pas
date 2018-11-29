@@ -39,8 +39,9 @@ interface
         constructor create(aparent: tprocinfo); override;
         destructor destroy; override;
         procedure pushexceptlabel(lab: TAsmLabel);
-        procedure popexceptlabel(lab: TAsmLabel);
-        function CurrExceptLabel: TAsmLabel; inline;
+        { returns true if there no more exception labels on the stack }
+        function popexceptlabel(lab: TAsmLabel): boolean;
+        function CurrExceptLabel: TAsmLabel;
       end;
 
 implementation
@@ -71,11 +72,12 @@ implementation
       end;
 
 
-    procedure tllvmprocinfo.popexceptlabel(lab: TAsmLabel);
+    function tllvmprocinfo.popexceptlabel(lab: TAsmLabel): boolean;
       begin
         if CurrExceptLabel<>lab then
           internalerror(2016121302);
         fexceptlabelstack.count:=fexceptlabelstack.count-1;
+        result:=fexceptlabelstack.count=0;
       end;
 
 

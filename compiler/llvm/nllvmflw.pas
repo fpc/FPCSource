@@ -26,8 +26,9 @@ unit nllvmflw;
 interface
 
     uses
+      globtype,
       aasmbase,aasmdata,
-      nflw, ncgflw, ncgnstfl;
+      node, nflw, ncgflw, ncgnstfl;
 
     type
       tllvmlabelnode = class(tcglabelnode)
@@ -39,19 +40,25 @@ interface
         class procedure emit_except_label(list: TAsmList; var exceptionstate: texceptionstate); override;
       end;
 
+    tllvmraisenode = class(tcgraisenode)
+      function pass_1: tnode; override;
+      procedure pass_generate_code; override;
+    end;
+
 
 implementation
+
+    uses
+      systems,globals,verbose,
+      symconst,symtable,symsym,llvmdef,defutil,
+      pass_2,cgutils,hlcgobj,parabase,paramgr,tgobj,
+      llvmbase,aasmtai,aasmllvm,
+      procinfo,llvmpi;
+
 
 {*****************************************************************************
                              SecondLabel
 *****************************************************************************}
-
-    uses
-      systems,
-      symconst,symdef,llvmdef,
-      cgbase,cgutils,hlcgobj,
-      llvmbase,aasmllvm,
-      procinfo,llvmpi;
 
     function tllvmlabelnode.getasmlabel: tasmlabel;
       begin
@@ -133,9 +140,47 @@ implementation
       end;
 
 
+{*****************************************************************************
+                     tllvmexceptionstatehandler
+*****************************************************************************}
+
+    function tllvmraisenode.pass_1: tnode;
+      begin
+        if assigned(left) then
+          result:=inherited
+        else
+          begin
+            expectloc:=LOC_VOID;
+            result:=nil;
+          end;
+      end;
+
+
+    procedure tllvmraisenode.pass_generate_code;
+      var
+        currexceptlabel: tasmlabel;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+        currexceptlabel:=nil;
+        { a reraise must raise the exception to the parent exception frame }
+        if fc_catching_exceptions in flowcontrol then
+          begin
+            currexceptlabel:=tllvmprocinfo(current_procinfo).CurrExceptLabel;
+            if tllvmprocinfo(current_procinfo).popexceptlabel(currexceptlabel) then
+              exclude(flowcontrol,fc_catching_exceptions);
+          end;
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+        if assigned(currexceptlabel) then
+          begin
+            tllvmprocinfo(current_procinfo).pushexceptlabel(currexceptlabel);
+            include(flowcontrol,fc_catching_exceptions);
+          end;
+      end;
+
 
 begin
   clabelnode:=tllvmlabelnode;
   cexceptionstatehandler:=tllvmexceptionstatehandler;
+  craisenode:=tllvmraisenode;
 end.
 
