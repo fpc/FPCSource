@@ -3157,6 +3157,12 @@ begin
     else
       undef_system_macro('FPC_SECTION_THREADVARS');
 
+  if (tf_use_psabieh in target_info.flags) then
+    if def then
+      def_system_macro('FPC_USE_PSABIEH')
+    else
+      undef_system_macro('FPC_USE_PSABIEH');
+
   { Code generation flags }
   if (tf_pic_default in target_info.flags) then
     if def then

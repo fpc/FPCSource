@@ -165,7 +165,9 @@ interface
             tf_x86_far_procs_push_odd_bp,
             { indicates that this target can use dynamic packages otherwise an
               error will be generated if a package file is compiled }
-            tf_supports_packages
+            tf_supports_packages,
+            { use PSABI/Dwarf-based "zero cost" exception handling }
+            tf_use_psabieh
        );
 
        psysteminfo = ^tsysteminfo;

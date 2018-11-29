@@ -65,6 +65,7 @@ interface
         procedure parse_body;
 
         function has_assembler_child : boolean;
+        procedure set_eh_info; override;
       end;
 
 
@@ -1126,6 +1127,16 @@ implementation
           end;
       end;
 
+    procedure tcgprocinfo.set_eh_info;
+      begin
+        inherited;
+         if (tf_use_psabieh in target_info.flags) and
+            ((pi_uses_exceptions in flags) or
+             ((cs_implicit_exceptions in current_settings.moduleswitches) and
+              (pi_needs_implicit_finally in flags))) then
+           procdef.personality:=search_system_proc('_FPC_PSABIEH_PERSONALITY_V0');
+      end;
+
     procedure tcgprocinfo.generate_code_tree;
       var
         hpi : tcgprocinfo;
@@ -1748,6 +1759,8 @@ implementation
                not(pi_has_implicit_finally in flags) and
                not(target_info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
+
+            current_procinfo.set_eh_info;
 
             { Position markers are only used to insert additional code after the secondpass
               and before this point. They are of no use in optimizer. Instead of checking and

@@ -178,6 +178,9 @@ unit procinfo;
           procedure updatestackalignment(alignment: longint);
           { Specific actions after the code has been generated }
           procedure postprocess_code; virtual;
+
+          { set exception handling info }
+          procedure set_eh_info; virtual;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -310,6 +313,11 @@ implementation
     procedure tprocinfo.postprocess_code;
       begin
         { no action by default }
+      end;
+
+    procedure tprocinfo.set_eh_info;
+      begin
+        { default code is in tcgprocinfo }
       end;
 
 end.
