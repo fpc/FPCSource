@@ -105,10 +105,19 @@ interface
 
 
        tcgtryexceptnode = class(ttryexceptnode)
+        protected
+          type
+            tframetype = (ft_try,ft_except);
+
+          procedure emit_jump_out_of_try_except_frame(list: TasmList; frametype: tframetype; const exceptiontate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel, outerlabel: tasmlabel); virtual;
+        public
           procedure pass_generate_code;override;
        end;
 
        tcgtryfinallynode = class(ttryfinallynode)
+        protected
+          procedure emit_jump_out_of_try_finally_frame(list: TasmList; const reason: byte; const exceptionstate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel: tasmlabel);
+        public
           procedure handle_safecall_exception;
           procedure pass_generate_code;override;
        end;
@@ -694,6 +703,19 @@ implementation
     var
        endexceptlabel : tasmlabel;
 
+     { jump out of an try/except block }
+     procedure tcgtryexceptnode.emit_jump_out_of_try_except_frame(list: TasmList; frametype: tframetype; const exceptiontate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel, outerlabel: tasmlabel);
+       begin
+          hlcg.a_label(list,framelabel);
+          { we must also destroy the address frame which guards
+            the exception object }
+          hlcg.g_call_system_proc(list,'fpc_popaddrstack',[],nil);
+          hlcg.g_exception_reason_discard(list,osuinttype,excepttemps.reasonbuf);
+          if frametype=ft_except then
+            cexceptionstatehandler.cleanupobjectstack;
+          hlcg.a_jmp_always(list,outerlabel);
+       end;
+
 
     procedure tcgtryexceptnode.pass_generate_code;
 
@@ -841,63 +863,23 @@ implementation
            end;
 
          if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
-           begin
-              { do some magic for exit in the try block }
-              hlcg.a_label(current_asmdata.CurrAsmList,exitexceptlabel);
-              { we must also destroy the address frame which guards }
-              { exception object                                    }
-              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
-              hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              cexceptionstatehandler.cleanupobjectstack;
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
-           end;
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,exitexceptlabel,oldCurrExitLabel);
 
          if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
-           begin
-              hlcg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
-              { we must also destroy the address frame which guards }
-              { exception object                                    }
-              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
-              hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              cexceptionstatehandler.cleanupobjectstack;
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
-           end;
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,breakexceptlabel,oldBreakLabel);
 
          if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
-           begin
-              hlcg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
-              { we must also destroy the address frame which guards }
-              { exception object                                    }
-              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
-              hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              cexceptionstatehandler.cleanupobjectstack;
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
-           end;
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,continueexceptlabel,oldContinueLabel);
 
          if fc_exit in trystate.newflowcontrol then
-           begin
-              { do some magic for exit in the try block }
-              hlcg.a_label(current_asmdata.CurrAsmList,exittrylabel);
-              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
-              hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
-           end;
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,exittrylabel,oldCurrExitLabel);
 
          if fc_break in trystate.newflowcontrol then
-           begin
-              hlcg.a_label(current_asmdata.CurrAsmList,breaktrylabel);
-              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
-              hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
-           end;
+          emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,breaktrylabel,oldBreakLabel);
 
          if fc_continue in trystate.newflowcontrol then
-           begin
-              hlcg.a_label(current_asmdata.CurrAsmList,continuetrylabel);
-              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
-              hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
-           end;
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,continuetrylabel,oldContinueLabel);
+
          cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          hlcg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
 
@@ -1069,6 +1051,16 @@ implementation
                              SecondTryFinally
 *****************************************************************************}
 
+    { jump out of a finally block }
+    procedure tcgtryfinallynode.emit_jump_out_of_try_finally_frame(list: TasmList; const reason: byte; const exceptionstate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel: tasmlabel);
+      begin
+         hlcg.a_label(list,framelabel);
+         hlcg.g_exception_reason_discard(list,osuinttype,excepttemps.reasonbuf);
+         hlcg.g_exception_reason_save_const(list,osuinttype,reason,excepttemps.reasonbuf);
+         hlcg.a_jmp_always(list,exceptionstate.exceptionlabel);
+      end;
+
+
     procedure tcgtryfinallynode.handle_safecall_exception;
       var
         cgpara: tcgpara;
@@ -1207,26 +1199,11 @@ implementation
              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil);
              { do some magic for exit,break,continue in the try block }
              if fc_exit in finallyexceptionstate.newflowcontrol then
-               begin
-                  hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
-                  hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-                  hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,osuinttype,2,excepttemps.reasonbuf);
-                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallyexceptionstate.exceptionlabel);
-               end;
+               emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,2,finallyexceptionstate,excepttemps,exitfinallylabel);
              if fc_break in finallyexceptionstate.newflowcontrol then
-              begin
-                 hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
-                 hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-                 hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,osuinttype,3,excepttemps.reasonbuf);
-                 hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallyexceptionstate.exceptionlabel);
-               end;
+               emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,3,finallyexceptionstate,excepttemps,breakfinallylabel);
              if fc_continue in finallyexceptionstate.newflowcontrol then
-               begin
-                  hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
-                  hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-                  hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,osuinttype,4,excepttemps.reasonbuf);
-                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallyexceptionstate.exceptionlabel);
-               end;
+               emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,4,finallyexceptionstate,excepttemps,continuefinallylabel);
            end;
          cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          hlcg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
