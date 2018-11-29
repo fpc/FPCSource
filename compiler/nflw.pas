@@ -189,7 +189,10 @@ interface
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
-       ttryfinallynode = class(tbinarynode)
+       { the third node is to store a copy of the finally code for llvm:
+         it needs one copy to execute in case an exception occurs, and
+         one in case no exception occurs }
+       ttryfinallynode = class(ttertiarynode)
           implicitframe : boolean;
           constructor create(l,r:tnode);virtual;reintroduce;
           constructor create_implicit(l,r:tnode);virtual;
@@ -2299,14 +2302,16 @@ implementation
 
     constructor ttryfinallynode.create(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r);
+        inherited create(tryfinallyn,l,r,nil);
+        third:=nil;
         implicitframe:=false;
       end;
 
 
     constructor ttryfinallynode.create_implicit(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r);
+        inherited create(tryfinallyn,l,r,nil);
+        third:=nil;
         implicitframe:=true;
       end;
 
@@ -2323,6 +2328,12 @@ implementation
         typecheckpass(right);
         // "except block" is "used"? (JM)
         set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
+
+        if assigned(third) then
+          begin
+            typecheckpass(third);
+            set_varstate(third,vs_readwritten,[vsf_must_be_valid]);
+          end;
       end;
 
 
@@ -2333,6 +2344,8 @@ implementation
         firstpass(left);
 
         firstpass(right);
+        if assigned(third) then
+          firstpass(third);
 
         include(current_procinfo.flags,pi_do_call);
 
