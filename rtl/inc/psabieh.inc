@@ -1039,3 +1039,7 @@ procedure fpc_raise_nested;compilerproc;
     _Unwind_RaiseException(@_ExceptObjectStack^.unwind_exception);
     halt(217);
   end;
+
+procedure FPC_DummyPotentialRaise; nostackframe; assembler;
+  asm
+  end;

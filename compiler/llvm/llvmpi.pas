@@ -29,25 +29,30 @@ interface
       cclasses,
       aasmbase,
       procinfo,
-      cpupi;
+      cpupi,
+      aasmllvm;
 
     type
       tllvmprocinfo = class(tcpuprocinfo)
        private
         fexceptlabelstack: tfplist;
+        flandingpadstack: tfplist;
        public
         constructor create(aparent: tprocinfo); override;
         destructor destroy; override;
         procedure pushexceptlabel(lab: TAsmLabel);
-        { returns true if there no more exception labels on the stack }
+        { returns true if there no more landing pads on the stack }
         function popexceptlabel(lab: TAsmLabel): boolean;
         function CurrExceptLabel: TAsmLabel;
+        procedure pushlandingpad(pad: taillvm);
+        procedure poppad;
+        function currlandingpad: taillvm;
       end;
 
 implementation
 
     uses
-      globtype,verbose,systems,
+      globtype,globals,verbose,systems,
       symtable;
 
 
@@ -55,6 +60,7 @@ implementation
       begin
         inherited;
         fexceptlabelstack:=tfplist.create;
+        flandingpadstack:=tfplist.create;
       end;
 
     destructor tllvmprocinfo.destroy;
@@ -62,6 +68,9 @@ implementation
         if fexceptlabelstack.Count<>0 then
           Internalerror(2016121301);
         fexceptlabelstack.free;
+        if flandingpadstack.Count<>0 then
+          internalerror(2018051901);
+        flandingpadstack.free;
         inherited;
       end;
 
@@ -86,6 +95,27 @@ implementation
         result:=TAsmLabel(fexceptlabelstack.last);
         if not assigned(result) then
           internalerror(2016121703);
+      end;
+
+
+    procedure tllvmprocinfo.pushlandingpad(pad: taillvm);
+      begin
+        flandingpadstack.add(pad);
+      end;
+
+    procedure tllvmprocinfo.poppad;
+      begin
+        if flandingpadstack.Count=0 then
+          internalerror(2018051902);
+        flandingpadstack.Count:=flandingpadstack.Count-1;
+      end;
+
+
+    function tllvmprocinfo.currlandingpad: taillvm;
+      begin
+        if flandingpadstack.Count=0 then
+          internalerror(2018051903);
+        result:=taillvm(flandingpadstack.last);
       end;
 
 

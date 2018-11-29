@@ -61,4 +61,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compilerproc;
 procedure FPC_psabi_end_catch; cdecl; compilerproc;
 
+{ llvm cannot create a catch/cleanup block if there is no call inside the
+  try block to a routine that can raise an exception. Hence, we will call
+  a dummy routine that llvm cannot analyse for such try blocks }
+procedure FPC_DummyPotentialRaise;
+
 {$packrecords default}
