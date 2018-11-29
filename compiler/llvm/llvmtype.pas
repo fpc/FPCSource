@@ -401,7 +401,15 @@ implementation
           ait_typedconst:
             insert_typedconst_typeconversion(toplevellist,tai_abstracttypedconst(p));
           ait_llvmdecl:
-            insert_asmlist_typeconversions(toplevellist,taillvmdecl(p).initdata);
+            begin
+              if (ldf_definition in taillvmdecl(p).flags) and
+                 (taillvmdecl(p).def.typ=procdef) and
+                 assigned(tprocdef(taillvmdecl(p).def).personality) then
+                maybe_insert_extern_sym_decl(toplevellist,
+                  current_asmdata.RefAsmSymbol(tprocdef(taillvmdecl(p).def).personality.mangledname,AT_FUNCTION,false),
+                  tprocdef(taillvmdecl(p).def).personality);
+              insert_asmlist_typeconversions(toplevellist,taillvmdecl(p).initdata);
+            end;
         end;
       end;
 

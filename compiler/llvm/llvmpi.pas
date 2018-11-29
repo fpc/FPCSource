@@ -38,6 +38,7 @@ interface
        public
         constructor create(aparent: tprocinfo); override;
         destructor destroy; override;
+        procedure set_first_temp_offset; override;
         procedure pushexceptlabel(lab: TAsmLabel);
         procedure popexceptlabel(lab: TAsmLabel);
         function CurrExceptLabel: TAsmLabel; inline;
@@ -46,7 +47,7 @@ interface
 implementation
 
     uses
-      globtype,verbose,
+      globtype,verbose,systems,
       symtable;
 
 
@@ -62,6 +63,15 @@ implementation
           Internalerror(2016121301);
         fexceptlabelstack.free;
         inherited;
+      end;
+
+
+    procedure tllvmprocinfo.set_first_temp_offset;
+      begin
+        inherited;
+        if not(target_info.system in systems_windows) and
+           (([pi_uses_exceptions,pi_needs_implicit_finally]*flags)<>[]) then
+          procdef.personality:=search_system_proc('_FPC_EXCEPTION_PERSONALITY_DO_NOTHING_V0');
       end;
 
 

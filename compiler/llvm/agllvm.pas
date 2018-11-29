@@ -1195,6 +1195,14 @@ implementation
                       WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
                       writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_def));
                       WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
+                      if assigned(tprocdef(taillvmdecl(hp).def).personality) then
+                        begin
+                          writer.AsmWrite(' personality i8* bitcast (');
+                          writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def).personality, '', lpd_procvar));
+                          writer.AsmWrite('* ');
+                          writer.AsmWrite(llvmmangledname(tprocdef(taillvmdecl(hp).def).personality.mangledname));
+                          writer.AsmWrite(' to i8*)');
+                        end;
                       writer.AsmWriteln(' {');
                     end;
                 end
