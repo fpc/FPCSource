@@ -693,7 +693,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
             writeln('foreign exception or force unwind, and found type = found terminate; actions = $',hexstr(actions,sizeof(actions)*2),'; foreign exception ', foreign_exception);
 {$endif}
-            halt(217);
+            RunError(217);
           end
         { can only perform cleanups when force-unwinding }
         else if handler_switch_value<0 then
@@ -701,7 +701,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
             writeln('foreign exception or force unwind, handler_switch_value < 0: ', handler_switch_value);
 {$endif}
-            halt(217)
+            RunError(217)
           end
       end
     else
@@ -711,7 +711,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
             writeln('native exception and no force unwind, and force_terminate');
 {$endif}
-            halt(217);
+            RunError(217);
           end;
       end;
     { For targets with pointers smaller than the word size, we must extend the
@@ -935,7 +935,7 @@ procedure FPC_psabi_end_catch; cdecl; compilerproc;
 {$ifdef excdebug}
             writeln('refcount for exception is negative in end catch');
 {$endif}
-            halt(217);
+            RunError(217);
           end;
       end;
     _ExceptObjectStack^.refcount:=refcount;
@@ -970,7 +970,7 @@ procedure fpc_ReRaise; [public,alias:'FPC_RERAISE']; compilerproc;
             ExceptObjectStack:=nil;
             __cxa_rethrow;
             { should never be reached }
-            halt(217);
+            RunError(217);
           end
 {$endif FPC_PSABIEH_CPLUSPLUSSUPPORT}
         else
@@ -995,9 +995,9 @@ procedure fpc_ReRaise; [public,alias:'FPC_RERAISE']; compilerproc;
 //  #endif
 //  #endif
         // Some sort of unwinding error.
-        halt(217);
+        RunError(217);
       end;
-    halt(217);
+    RunError(217);
   end;
 
 
@@ -1013,7 +1013,7 @@ procedure fpc_raise_nested;compilerproc;
 {$ifdef excdebug}
         writeln ('raise_nested: At end of ExceptionObjectStack');
 {$endif}
-        halt(217);
+        halt(1);
       end;
 
     if _ExceptObjectStack^.unwind_exception.exception_class<>FPC_psabieh_exceptionClass_ID.u then
@@ -1021,7 +1021,7 @@ procedure fpc_raise_nested;compilerproc;
 {$ifdef excdebug}
         writeln ('raise_nested: top of stack contains foreign exception');
 {$endif}
-        halt(217);
+        halt(1);
       end;
 
     hp:=_ExceptObjectStack^.next;
@@ -1037,7 +1037,7 @@ procedure fpc_raise_nested;compilerproc;
     else
       dec(hp^.refcount);
     _Unwind_RaiseException(@_ExceptObjectStack^.unwind_exception);
-    halt(217);
+    RunError(217);
   end;
 
 procedure FPC_DummyPotentialRaise; nostackframe; assembler;
