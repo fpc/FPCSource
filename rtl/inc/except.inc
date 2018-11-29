@@ -26,7 +26,7 @@ Var
   ExceptObjectStack : PExceptObject;
   ExceptTryLevel    : ObjpasInt;
 
-{$ifdef FPC_USE_PSEABIEH}
+{$ifdef FPC_USE_PSABIEH}
 {$i psabieh.inc}
 {$endif}
 

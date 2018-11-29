@@ -12,7 +12,7 @@
 
  **********************************************************************}
 
-{$if defined(FPC_USE_PSEABIEH)}
+{$if defined(FPC_USE_PSABIEH)}
 {$i psabiehh.inc}
 {$endif}
 

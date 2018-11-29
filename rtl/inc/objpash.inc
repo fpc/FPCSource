@@ -339,7 +339,7 @@
        PPDispatch = ^PDispatch;
        PInterface = PUnknown;
 
-{$ifdef FPC_USE_PSEABIEH}
+{$ifdef FPC_USE_PSABIEH}
        { needed here for TExceptObject (rest is in psabiehh.inc) }
        FPC_Unwind_Reason_Code = longint; {cint}
        FPC_Unwind_Action = longint; {cint}
@@ -355,7 +355,7 @@
          private_1: ptruint;
          private_2: ptruint;
        end;
-{$endif FPC_USE_PSEABIEH}
+{$endif FPC_USE_PSABIEH}
 
        TExceptProc = Procedure (Obj : TObject; Addr : CodePointer; FrameCount:Longint; Frame: PCodePointer);
 
@@ -373,14 +373,14 @@
          ExceptRec  : Pointer;
          ReraiseBuf : jmp_buf;
 {$endif FPC_USE_WIN32_SEH}
-{$ifdef FPC_USE_PSEABIEH}
+{$ifdef FPC_USE_PSABIEH}
          { cached info from unwind phase for action phase }
          handler_switch_value: longint;
          language_specific_data: PByte;
          landing_pad: PtrUInt;
          { libunwind exception handling data (must be last!) }
          unwind_exception: FPC_Unwind_Exception;
-{$endif FPC_USE_PSEABIEH}
+{$endif FPC_USE_PSABIEH}
        end;
 
     Const
