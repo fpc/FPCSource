@@ -204,6 +204,14 @@ implementation
       totaloffset:=0;
       orgsize:=size;
       a_load_ref_cgpara_init_src(list,cgpara,r,size,initialref);
+      if initialref.refaddr=addr_full then
+        begin
+          cgpara.check_simple_location;
+          location^.llvmvalueloc:=true;
+          location^.llvmloc.loc:=LOC_CREFERENCE;
+          location^.llvmloc.sym:=initialref.symbol;
+          exit;
+        end;
       userecord:=
         (orgsize<>size) and
         assigned(cgpara.location^.next);
@@ -305,7 +313,8 @@ implementation
       reg: tregister;
     begin
       newrefsize:=llvmgetcgparadef(para,true);
-      if refsize<>newrefsize then
+      if (refsize<>newrefsize) and
+         (initialref.refaddr<>addr_full) then
         begin
           reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize));
           a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize),initialref,reg);
@@ -394,24 +403,21 @@ implementation
 
   procedure thlcgllvm.a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
 
-    procedure load_ref_anyreg(def: tdef; const ref: treference; reg: tregister; var callpara: pllvmcallpara);
+    procedure load_ref_anyreg(def: tdef; const ref: treference; reg: tregister);
       begin
         case getregtype(reg) of
           R_INTREGISTER,
           R_ADDRESSREGISTER:
             begin
               a_load_ref_reg(list,def,def,ref,reg);
-              callpara^.loc:=LOC_REGISTER;
             end;
           R_FPUREGISTER:
             begin
               a_loadfpu_ref_reg(list,def,def,ref,reg);
-              callpara^.loc:=LOC_FPUREGISTER;
             end;
           R_MMREGISTER:
             begin
               a_loadmm_ref_reg(list,def,def,ref,reg,mms_movescalar);
-              callpara^.loc:=LOC_MMREGISTER;
             end;
           else
             internalerror(2014012213);
@@ -445,46 +451,55 @@ implementation
                 callpara^.byval:=not paraloc^.llvmvalueloc;
               end;
             llvmextractvalueextinfo(paras[i]^.def, callpara^.def, callpara^.valueext);
-            if paraloc^.llvmloc.loc=LOC_CONSTANT then
-              begin
-                callpara^.loc:=LOC_CONSTANT;
-                callpara^.value:=paraloc^.llvmloc.value;
-              end
-            else
-              begin
-                callpara^.loc:=paraloc^.loc;
-                case callpara^.loc of
-                  LOC_REFERENCE:
-                    begin
-                      if paraloc^.llvmvalueloc then
-                        internalerror(2014012307)
-                      else
-                        begin
-                          reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, ctempposinvalid, paraloc^.def.alignment, []);
-                          res:=getregisterfordef(list, paraloc^.def);
-                          load_ref_anyreg(callpara^.def, href, res, callpara);
-                        end;
-                      callpara^.reg:=res
-                    end;
-                  LOC_REGISTER,
-                  LOC_FPUREGISTER,
-                  LOC_MMREGISTER:
-                    begin
-                      { undo explicit value extension }
-                      if callpara^.valueext<>lve_none then
-                        begin
-                          res:=getregisterfordef(list, callpara^.def);
-                          a_load_reg_reg(list, paraloc^.def, callpara^.def, paraloc^.register, res);
-                          paraloc^.register:=res;
-                        end;
-                        callpara^.reg:=paraloc^.register
-                    end;
-                  { empty records }
-                  LOC_VOID:
-                    begin
-                    end
-                  else
-                    internalerror(2014010605);
+            case paraloc^.llvmloc.loc of
+              LOC_CONSTANT:
+                begin
+                  callpara^.typ:=top_const;
+                  callpara^.value:=paraloc^.llvmloc.value;
+                end;
+              LOC_CREFERENCE:
+                begin
+                  callpara^.typ:=top_ref;
+                  callpara^.sym:=paraloc^.llvmloc.sym;
+                end
+              else
+                begin
+                  case paraloc^.loc of
+                    LOC_REFERENCE:
+                      begin
+                        if paraloc^.llvmvalueloc then
+                          internalerror(2014012307)
+                        else
+                          begin
+                            callpara^.typ:=top_reg;
+                            reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, ctempposinvalid, paraloc^.def.alignment, []);
+                            res:=getregisterfordef(list, paraloc^.def);
+                            load_ref_anyreg(callpara^.def, href, res);
+                          end;
+                        callpara^.register:=res
+                      end;
+                    LOC_REGISTER,
+                    LOC_FPUREGISTER,
+                    LOC_MMREGISTER:
+                      begin
+                        callpara^.typ:=top_reg;
+                        { undo explicit value extension }
+                        if callpara^.valueext<>lve_none then
+                          begin
+                            res:=getregisterfordef(list, callpara^.def);
+                            a_load_reg_reg(list, paraloc^.def, callpara^.def, paraloc^.register, res);
+                            paraloc^.register:=res;
+                          end;
+                        callpara^.register:=paraloc^.register
+                      end;
+                    { empty records }
+                    LOC_VOID:
+                      begin
+                        callpara^.typ:=top_undef;
+                      end
+                    else
+                      internalerror(2014010605);
+                  end;
                 end;
               end;
             callparas.add(callpara);

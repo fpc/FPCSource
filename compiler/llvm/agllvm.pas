@@ -26,6 +26,7 @@ unit agllvm;
 interface
 
     uses
+      cclasses,
       globtype,globals,systems,
       aasmbase,aasmtai,aasmdata,
       assemble,
@@ -88,6 +89,7 @@ interface
 
         function getopcodestr(hp: taillvm): TSymStr;
         function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
+        procedure writeparas(const paras: tfplist);
         procedure WriteAsmRegisterAllocationClobbers(list: tasmlist);
       end;
 
@@ -96,7 +98,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cclasses,cfileutl,
+      cutils,cfileutl,
       fmodule,verbose,
       objcasm,
       aasmcnst,symconst,symdef,symtable,
@@ -302,39 +304,64 @@ implementation
       end;
 
 
-   function getparas(const paras: tfplist): ansistring;
+   procedure TLLVMInstrWriter.writeparas(const paras: tfplist);
      var
        i: longint;
+       tmpinline: cardinal;
        para: pllvmcallpara;
+       tmpasmblock: boolean;
+       hp: tai;
      begin
-       result:='(';
+       tmpinline:=1;
+       tmpasmblock:=false;
+       owner.writer.AsmWrite(fstr);
+       fstr:='';
+       owner.writer.AsmWrite('(');
        for i:=0 to paras.count-1 do
          begin
            if i<>0 then
-             result:=result+', ';
+             owner.writer.AsmWrite(', ');
            para:=pllvmcallpara(paras[i]);
-           result:=result+llvmencodetypename(para^.def);
+           owner.writer.AsmWrite(llvmencodetypename(para^.def));
            if para^.valueext<>lve_none then
-             result:=result+llvmvalueextension2str[para^.valueext];
+             owner.writer.AsmWrite(llvmvalueextension2str[para^.valueext]);
            if para^.byval then
-             result:=result+' byval';
+             owner.writer.AsmWrite(' byval');
            if para^.sret then
-             result:=result+' sret';
-           case para^.loc of
-             LOC_REGISTER,
-             LOC_FPUREGISTER,
-             LOC_MMREGISTER:
-               result:=result+' '+getregisterstring(para^.reg);
-             LOC_CONSTANT:
-               result:=result+' '+tostr(int64(para^.value));
+             owner.writer.AsmWrite(' sret');
+           case para^.typ of
+             top_reg:
+               begin
+                 owner.writer.AsmWrite(' ');
+                 owner.writer.AsmWrite(getregisterstring(para^.register));
+               end;
+             top_ref:
+               begin
+                 owner.writer.AsmWrite(' ');
+                 owner.writer.AsmWrite(llvmasmsymname(para^.sym));
+               end;
+             top_const:
+               begin
+                 owner.writer.AsmWrite(' ');
+                 owner.writer.AsmWrite(tostr(para^.value));
+               end;
+             top_tai:
+               begin
+                 tmpinline:=1;
+                 tmpasmblock:=false;
+                 hp:=para^.ai;
+                 owner.writer.AsmWrite(fstr);
+                 fstr:='';
+                 owner.WriteTai(false,false,tmpinline,tmpasmblock,hp);
+               end;
              { empty records }
-             LOC_VOID:
-               result:=result+' undef';
+             top_undef:
+               owner.writer.AsmWrite(' undef');
              else
                internalerror(2014010801);
            end;
          end;
-       result:=result+')';
+       owner.writer.AsmWrite(')');
      end;
 
 
@@ -436,7 +463,8 @@ implementation
            end;
          top_para:
            begin
-             result:=getparas(o.paras);
+             writeparas(o.paras);
+             result:='';
            end;
          top_tai:
            begin
@@ -531,7 +559,7 @@ implementation
             owner.writer.AsmWrite('~{memory},~{fpsr},~{flags}');
             WriteAsmRegisterAllocationClobbers(taillvm(hp).oper[0]^.asmlist);
             owner.writer.AsmWrite('"');
-            owner.writer.AsmWrite(getparas(taillvm(hp).oper[1]^.paras));
+            writeparas(taillvm(hp).oper[1]^.paras);
             done:=true;
           end;
         la_load,

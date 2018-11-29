@@ -206,12 +206,13 @@ interface
       valueext: tllvmvalueextension;
       byval,
       sret: boolean;
-      case loc: tcgloc of
-        LOC_REFERENCE,
-        LOC_REGISTER,
-        LOC_FPUREGISTER,
-        LOC_MMREGISTER: (reg: tregister);
-        LOC_CONSTANT: (value: tcgint);
+      case typ: toptype of
+        top_none: ();
+        top_reg: (register: tregister);
+        top_ref: (sym: tasmsymbol);
+        top_const: (value: int64);
+        top_undef :  ();
+        top_tai    : (ai: tai);
     end;
 
 
@@ -319,9 +320,9 @@ uses
                 new(callpara);
                 callpara^:=pllvmcallpara(o.paras[i])^;
                 oper[opidx]^.paras.add(callpara);
-                if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                if (callpara^.typ = top_reg) and
                    assigned(add_reg_instruction_hook) then
-                  add_reg_instruction_hook(self,callpara^.reg);
+                  add_reg_instruction_hook(self,callpara^.register);
               end;
           end;
       end;
@@ -329,13 +330,21 @@ uses
 
     procedure taillvm.clearop(opidx: longint);
       var
+        callpara: pllvmcallpara;
         i: longint;
       begin
         case oper[opidx]^.typ of
           top_para:
             begin
               for i:=0 to oper[opidx]^.paras.count-1 do
-                dispose(pllvmcallpara(oper[opidx]^.paras[i]));
+                begin
+                  callpara:=pllvmcallpara(oper[opidx]^.paras[i]);
+                  case callpara^.typ of
+                    top_tai:
+                      callpara^.ai.free;
+                  end;
+                  dispose(callpara);
+                end;
               oper[opidx]^.paras.free;
             end;
           top_tai:
@@ -459,9 +468,9 @@ uses
             for i:=0 to _paras.count-1 do
               begin
                 callpara:=pllvmcallpara(_paras[i]);
-                if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                if (callpara^.typ=top_reg) and
                    assigned(add_reg_instruction_hook) then
-                  add_reg_instruction_hook(self,callpara^.reg);
+                  add_reg_instruction_hook(self,callpara^.register);
               end;
             typ:=top_para;
           end;
