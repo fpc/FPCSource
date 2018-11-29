@@ -422,7 +422,7 @@ Var
 begin
   Result:=High(TRouteMethod);
   MN:=Uppercase(S);
-  While (Result>=Low(TRouteMethod)) and (RouteMethodNames[Result]<>MN) do
+  While (Result>Low(TRouteMethod)) and (RouteMethodNames[Result]<>MN) do
     Result:=Pred(Result);
   if Result=rmAll then Result:=rmUnknown;
 end;
