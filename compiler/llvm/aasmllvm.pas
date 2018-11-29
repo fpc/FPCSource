@@ -120,6 +120,9 @@ interface
         { e.g. dst = invoke retsize reg (paras) to label <normal label> unwind label <exception label> }
         constructor invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab:TAsmLabel);
 
+        { e.g. dst := extractvalue srcsize src, 0 (note: no type for the index) }
+        constructor extract(op: tllvmop; dst: tregister; srcsize: tdef; src: tregister; idx: longint);
+
         { inline function-level assembler code and parameters }
         constructor asm_paras(asmlist: tasmlist; paras: tfplist);
 
@@ -1141,6 +1144,17 @@ uses
         loadparas(4,paras);
         loadsymbol(5,retlab,0);
         loadsymbol(6,exceptlab,0);
+      end;
+
+
+    constructor taillvm.extract(op: tllvmop; dst: tregister; srcsize: tdef; src: tregister; idx: longint);
+      begin
+        create_llvm(op);
+        ops:=4;
+        loadreg(0,dst);
+        loaddef(1,srcsize);
+        loadreg(2,src);
+        loadconst(3,idx)
       end;
 
 
