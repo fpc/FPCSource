@@ -138,6 +138,8 @@ interface
         procedure loadparas(opidx: longint; _paras: tfplist);
         procedure loadasmlist(opidx: longint; _asmlist: tasmlist);
 
+        procedure landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
+
         { register spilling code }
         function spilling_get_operation_type(opnr: longint): topertype;override;
         function spilling_get_reg_type(opnr: longint): tdef;
@@ -471,6 +473,21 @@ uses
            asmlist:=_asmlist;
            typ:=top_asmlist;
          end;
+      end;
+
+
+    procedure taillvm.landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
+      var
+        lastclause,
+        clause: taillvm;
+      begin
+        if llvmopcode<>la_landingpad then
+          internalerror(2018052001);
+        clause:=taillvm.exceptclause(op,voidpointertype,nil,nil);
+        lastclause:=self;
+        while assigned(lastclause.oper[2]^.ai) do
+          lastclause:=taillvm(lastclause.oper[2]^.ai);
+        lastclause.loadtai(2,clause);
       end;
 
 
