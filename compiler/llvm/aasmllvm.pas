@@ -115,6 +115,10 @@ interface
         constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
         { e.g. dst = call retsize reg (paras) }
         constructor call_size_reg_paras(callpd: tdef; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
+        { e.g. dst = invoke retsize name (paras) to label <normal label> unwind label <exception label> }
+        constructor invoke_size_name_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef;name: tasmsymbol; paras: tfplist; retlab, exceptlab:TAsmLabel);
+        { e.g. dst = invoke retsize reg (paras) to label <normal label> unwind label <exception label> }
+        constructor invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab:TAsmLabel);
 
         { inline function-level assembler code and parameters }
         constructor asm_paras(asmlist: tasmlist; paras: tfplist);
@@ -1092,6 +1096,34 @@ uses
         loaddef(2,callpd);
         loadreg(3,reg);
         loadparas(4,paras);
+      end;
+
+
+    constructor taillvm.invoke_size_name_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; name: tasmsymbol; paras: tfplist; retlab, exceptlab: TAsmLabel);
+      begin
+        create_llvm(la_invoke);
+        ops:=7;
+        loaddef(0,retsize);
+        loadreg(1,dst);
+        loaddef(2,callpd);
+        loadsymbol(3,name,0);
+        loadparas(4,paras);
+        loadsymbol(5,retlab,0);
+        loadsymbol(6,exceptlab,0);
+      end;
+
+
+    constructor taillvm.invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab: TAsmLabel);
+      begin
+        create_llvm(la_invoke);
+        ops:=7;
+        loaddef(0,retsize);
+        loadreg(1,dst);
+        loaddef(2,callpd);
+        loadreg(3,reg);
+        loadparas(4,paras);
+        loadsymbol(5,retlab,0);
+        loadsymbol(6,exceptlab,0);
       end;
 
 
