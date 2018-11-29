@@ -433,6 +433,7 @@ implementation
     procedure TLLVMTypeInfo.maybe_insert_extern_sym_decl(toplevellist: tasmlist; sym: tasmsymbol; def: tdef);
       var
         sec: tasmsectiontype;
+        i: longint;
       begin
         { Necessery for "external" declarations for symbols not declared in the
           current unit. We can't create these declarations when the alias is
@@ -450,6 +451,20 @@ implementation
               sec:=sec_data;
             toplevellist.Concat(taillvmdecl.createdecl(sym,def,nil,sec,def.alignment));
             record_asmsym_def(sym,def,true);
+            { the external symbol may never be called, in which case the types
+              of its parameters will never be process -> do it here }
+            if (def.typ=procdef) then
+              begin
+                { can't use this condition to determine whether or not we need
+                  to generate the argument defs, because this information does
+                  not get reset when multiple units are compiled during a
+                  single compiler invocation }
+                if (tprocdef(def).has_paraloc_info=callnoside) then
+                  tprocdef(def).init_paraloc_info(callerside);
+                for i:=0 to tprocdef(def).paras.count-1 do
+                  record_def(llvmgetcgparadef(tparavarsym(tprocdef(def).paras[i]).paraloc[callerside],true));
+                record_def(llvmgetcgparadef(tprocdef(def).funcretloc[callerside],true));
+              end;
           end;
       end;
 
