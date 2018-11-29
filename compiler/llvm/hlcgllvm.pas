@@ -169,7 +169,7 @@ implementation
     aasmllvm,llvmbase,tgllvm,
     symtable,symllvm,
     paramgr,
-    procinfo,cpuinfo,cgobj,cgllvm,cghlcpu,
+    pass_2,procinfo,llvmpi,cpuinfo,cgobj,cgllvm,cghlcpu,
     cgcpu,hlcgcpu;
 
   const
@@ -520,9 +520,21 @@ implementation
       llvmretdef,
       hlretdef: tdef;
       res: tregister;
+      nextinslab,
+      exceptlab: TAsmLabel;
     begin
       a_call_common(list,pd,paras,forceresdef,res,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas));
+      if not(fc_catching_exceptions in flowcontrol) or
+         { no invoke for intrinsics }
+         (copy(s,1,5)='llvm.') then
+        list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas))
+      else
+        begin
+          current_asmdata.getjumplabel(nextinslab);
+          exceptlab:=tllvmprocinfo(current_procinfo).CurrExceptLabel;
+          list.concat(taillvm.invoke_size_name_paras_retlab_exceptlab(get_call_pd(pd),res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas,nextinslab,exceptlab));
+          a_label(list,nextinslab);
+        end;
       result:=get_call_result_cgpara(pd,forceresdef);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -534,9 +546,19 @@ implementation
       llvmretdef,
       hlretdef: tdef;
       res: tregister;
+      nextinslab,
+      exceptlab: TAsmLabel;
     begin
       a_call_common(list,pd,paras,nil,res,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,llvmretdef,reg,callparas));
+      if not(fc_catching_exceptions in flowcontrol) then
+        list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,llvmretdef,reg,callparas))
+      else
+        begin
+          current_asmdata.getjumplabel(nextinslab);
+          exceptlab:=tllvmprocinfo(current_procinfo).CurrExceptLabel;
+          list.concat(taillvm.invoke_size_reg_paras_retlab_exceptlab(get_call_pd(pd),res,llvmretdef,reg,callparas,nextinslab,exceptlab));
+          a_label(list,nextinslab);
+        end;
       result:=get_call_result_cgpara(pd,nil);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
