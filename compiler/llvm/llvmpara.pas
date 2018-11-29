@@ -231,6 +231,11 @@ unit llvmpara;
     end;
 
 begin
+  if not assigned(paramanager) then
+    begin
+      writeln('Internalerror 2018052006');
+      halt(1);
+    end;
   { replace the native parameter manager. Maybe this has to be moved to a
     procedure like the creations of the code generators, but possibly not since
     we still call the original paramanager }

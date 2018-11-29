@@ -157,9 +157,6 @@ uses
       procedure set_call_function_result(const list: TAsmList; const pd: tabstractprocdef; const llvmretdef, hlretdef: tdef; const resval: tregister; var retpara: tcgpara);
     end;
 
-  procedure create_hlcodegen;
-
-
 implementation
 
   uses
@@ -171,6 +168,9 @@ implementation
     paramgr,
     pass_2,procinfo,llvmpi,cpuinfo,cgobj,cgllvm,cghlcpu,
     cgcpu,hlcgcpu;
+
+  var
+    create_hlcodegen_cpu: TProcedure = nil;
 
   const
     topcg2llvmop: array[topcg] of tllvmop =
@@ -2052,7 +2052,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_llvm;
     begin
       if not assigned(current_procinfo) or
          not(po_assembler in current_procinfo.procdef.procoptions) then
@@ -2064,11 +2064,20 @@ implementation
       else
         begin
           tgobjclass:=orgtgclass;
-          hlcgcpu.create_hlcodegen;
+          create_hlcodegen_cpu;
           { todo: handle/remove chlcgobj }
         end;
     end;
 
 begin
   chlcgobj:=thlcgllvm;
+  { this unit must initialise after hlcgobj;
+    message system has not been initialised yet here }
+  if not assigned(create_hlcodegen) then
+    begin
+      writeln('Internalerror 2018052003');
+      halt(1);
+    end;
+  create_hlcodegen_cpu:=create_hlcodegen;
+  create_hlcodegen:=@create_hlcodegen_llvm;
 end.

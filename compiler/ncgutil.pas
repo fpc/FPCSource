@@ -111,10 +111,6 @@ implementation
     dbgbase,
     nbas,ncon,nld,nmem,nutils,
     tgobj,cgobj,hlcgobj,hlcgcpu
-{$ifdef llvm}
-    { override create_hlcodegen from hlcgcpu }
-    , hlcgllvm
-{$endif}
 {$ifdef powerpc}
     , cpupi
 {$endif}

@@ -669,7 +669,7 @@ unit hlcgobj;
        { class type of high level code generator class (also valid when hlcg is
          nil, in order to be able to call its virtual class methods) }
        chlcgobj: thlcgobjclass;
-
+       create_hlcodegen: TProcedure;
 
     procedure destroy_hlcodegen;
 

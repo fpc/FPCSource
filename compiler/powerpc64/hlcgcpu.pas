@@ -41,8 +41,6 @@ type
     procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
   end;
 
-   procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -119,7 +117,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgcpu.create;
       create_codegen;
@@ -129,4 +127,5 @@ implementation
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

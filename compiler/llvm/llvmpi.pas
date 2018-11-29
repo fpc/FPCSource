@@ -98,6 +98,11 @@ implementation
 
 
 begin
+  if not assigned(cprocinfo) then
+    begin
+      writeln('Internalerror 2018052005');
+      halt(1);
+    end;
   cprocinfo:=tllvmprocinfo;
 end.
 
