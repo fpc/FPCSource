@@ -479,7 +479,7 @@ implementation
                                   u8bit,u16bit,u32bit,u64bit,
                                   s8bit,s16bit,s32bit,s64bit,
                                   pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
-                                  bool8bit,bool16bit,bool32bit,bool64bit];
+                                  bool8bit,bool16bit,bool32bit,bool64bit,customint];
              end;
            enumdef :
              is_ordinal:=true;
@@ -550,7 +550,8 @@ implementation
       begin
         result:=(def.typ=orddef) and
                     (torddef(def).ordtype in [u8bit,u16bit,u32bit,u64bit,
-                                          s8bit,s16bit,s32bit,s64bit]);
+                                          s8bit,s16bit,s32bit,s64bit,
+                                          customint]);
       end;
 
 
@@ -948,8 +949,11 @@ implementation
       begin
         result:=(def1.typ=orddef) and (def2.typ=orddef) and
           (torddef(def1).ordtype in [u8bit,u16bit,u32bit,u64bit,
-                                     s8bit,s16bit,s32bit,s64bit]) and
-          (torddef(def1).ordtype=torddef(def2).ordtype);
+                                     s8bit,s16bit,s32bit,s64bit,customint]) and
+          (torddef(def1).ordtype=torddef(def2).ordtype) and
+          ((torddef(def1).ordtype<>customint) or
+           ((torddef(def1).low=torddef(def2).low) and
+            (torddef(def1).high=torddef(def2).high)));
       end;
 
 

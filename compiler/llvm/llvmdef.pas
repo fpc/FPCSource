@@ -351,8 +351,10 @@ implementation
                 passing it as a parameter may result in unexpected behaviour }
               else if def=llvmbool1type then
                 encodedstr:=encodedstr+'i1'
+              else if torddef(def).ordtype<>customint then
+                encodedstr:=encodedstr+'i'+tostr(def.size*8)
               else
-                encodedstr:=encodedstr+'i'+tostr(def.size*8);
+                encodedstr:=encodedstr+'i'+tostr(def.packedbitsize);
             end;
           pointerdef :
             begin
@@ -836,6 +838,8 @@ implementation
                   s64bit,
                   u64bit:
                     typename:=typename+'i64';
+                  customint:
+                    typename:=typename+'i'+tostr(torddef(hdef).packedbitsize);
                   else
                     { other types should not appear currently, add as needed }
                     internalerror(2014012001);
@@ -876,6 +880,7 @@ implementation
         usedef: tdef;
         valueext: tllvmvalueextension;
         i: longint;
+        sizeleft: asizeint;
       begin
         { single location }
         if not assigned(cgpara.location^.next) then
@@ -903,10 +908,36 @@ implementation
         { multiple locations -> create temp record }
         retloc:=cgpara.location;
         i:=0;
+        sizeleft:=cgpara.Def.size;
         repeat
           if i>high(retdeflist) then
             internalerror(2016121801);
-          retdeflist[i]:=retloc^.def;
+          if assigned(retloc^.next) then
+            begin
+              retdeflist[i]:=retloc^.def;
+              dec(sizeleft,retloc^.def.size);
+            end
+          else
+            begin
+              case sizeleft of
+                1:
+                  retdeflist[i]:=u8inttype;
+                2:
+                  retdeflist[i]:=u16inttype;
+                3:
+                  retdeflist[i]:=u24inttype;
+                4:
+                  retdeflist[i]:=u32inttype;
+                5:
+                  retdeflist[i]:=u40inttype;
+                6:
+                  retdeflist[i]:=u48inttype;
+                7:
+                  retdeflist[i]:=u56inttype;
+                else
+                  retdeflist[i]:=retloc^.def;
+              end;
+            end;
           inc(i);
           retloc:=retloc^.next;
         until not assigned(retloc);
