@@ -789,7 +789,7 @@ implementation
           optstr:=optstr+' -disable-fp-elim';
         { fast math }
         if cs_opt_fastmath in current_settings.optimizerswitches then
-          optstr:=optstr+' -enable-unsafe-fp-math -enable-fp-mad -fp-contract=fast';
+          optstr:=optstr+' -enable-unsafe-fp-math -fp-contract=fast'; { -enable-fp-mad support depends on version }
         { smart linking }
         if cs_create_smart in current_settings.moduleswitches then
           optstr:=optstr+' -data-sections -function-sections';
