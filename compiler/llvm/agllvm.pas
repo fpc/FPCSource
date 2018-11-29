@@ -570,7 +570,7 @@ implementation
               end
           end;
         la_ret, la_br, la_switch, la_indirectbr,
-        la_invoke, la_resume,
+        la_resume,
         la_unreachable,
         la_store,
         la_fence,
@@ -581,7 +581,8 @@ implementation
           begin
             { instructions that never have a result }
           end;
-        la_call:
+        la_call,
+        la_invoke:
           begin
             if taillvm(hp).oper[1]^.reg<>NR_NO then
               owner.writer.AsmWrite(getregisterstring(taillvm(hp).oper[1]^.reg)+' = ');
@@ -684,9 +685,16 @@ implementation
               for i:=opstart to taillvm(hp).ops-1 do
                 begin
                    owner.writer.AsmWrite(sep);
+                   { special invoke interjections: "to label X unwind label Y" }
+                   if (op=la_invoke) then
+                     case i of
+                       5: owner.writer.AsmWrite('to ');
+                       6: owner.writer.AsmWrite('unwind ');
+                     end;
+
                    owner.writer.AsmWrite(getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]));
                    if (taillvm(hp).oper[i]^.typ in [top_def,top_cond,top_fpcond]) or
-                      (op in [la_call,la_landingpad,la_catch,la_filter]) then
+                      (op in [la_call,la_invoke,la_landingpad,la_catch,la_filter]) then
                      sep :=' '
                    else
                      sep:=', ';

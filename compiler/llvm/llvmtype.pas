@@ -196,7 +196,7 @@ implementation
                    (p.oper[opidx]^.ref^.symbol.bind<>AB_TEMP) then
                   begin
                     if (opidx=3) and
-                       (p.llvmopcode=la_call) then
+                       (p.llvmopcode in [la_call,la_invoke]) then
                       record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef,false)
                     { not a named register }
                     else if (p.oper[opidx]^.ref^.refaddr<>addr_full) then
@@ -288,7 +288,8 @@ implementation
         i: longint;
       begin
         case p.llvmopcode of
-          la_call:
+          la_call,
+          la_invoke:
             if p.oper[3]^.typ=top_ref then
               begin
                 maybe_insert_extern_sym_decl(toplevellist,p.oper[3]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef);
