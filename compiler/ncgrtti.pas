@@ -1018,15 +1018,36 @@ implementation
                  otSByte,otSWord,otSLong,otSQWord,otUByte{otNone},
                  otUByte,otUByte,otUWord,otULong,otUQWord,
                  otSByte,otSWord,otSLong,otSQWord,
-                 otUByte,otUWord,otUByte);
+                 otUByte,otUWord,otUByte,255);
             var
               elesize: string[1];
+              deftrans: byte;
           begin
             write_header(tcb,def,typekind);
-            case trans[def.ordtype] of
+            deftrans:=trans[def.ordtype];
+            case deftrans of
               otUQWord,
               otSQWord:
-                elesize:='8'
+                elesize:='8';
+              255:
+                begin
+                  if def.packedbitsize<=32 then
+                    begin
+                      elesize:='4';
+                      if def.low<0 then
+                        deftrans:=otSLong
+                      else
+                        deftrans:=otULong;
+                    end
+                  else
+                    begin
+                      elesize:='8';
+                      if def.low<0 then
+                        deftrans:=otSQWord
+                      else
+                        deftrans:=otUQWord;
+                    end;
+                end
               else
                 elesize:='4'
             end;
@@ -1042,7 +1063,7 @@ implementation
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
             {Convert to longint to smuggle values in high(longint)+1..high(cardinal) into asmlist.}
-            case trans[def.ordtype] of
+            case deftrans of
               otUQWord:
                 begin
                   tcb.emit_ord_const(min,u64inttype);

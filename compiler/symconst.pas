@@ -271,7 +271,7 @@ type
     s8bit,s16bit,s32bit,s64bit,s128bit,
     pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
     bool8bit,bool16bit,bool32bit,bool64bit,
-    uchar,uwidechar,scurrency
+    uchar,uwidechar,scurrency,customint
   );
 
   tordtypeset = set of tordtype;

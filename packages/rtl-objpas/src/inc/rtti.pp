@@ -437,6 +437,7 @@ type
 
   TFunctionCallParameter = record
     ValueRef: Pointer;
+    ValueSize: SizeInt;
     Info: TFunctionCallParameterInfo;
   end;
   TFunctionCallParameterArray = specialize TArray<TFunctionCallParameter>;
@@ -812,6 +813,7 @@ begin
   SetLength(funcargs, Length(aArgs));
   for i := Low(aArgs) to High(aArgs) do begin
     funcargs[i - Low(aArgs) + Low(funcargs)].ValueRef := aArgs[i].GetReferenceToRawData;
+    funcargs[i - Low(aArgs) + Low(funcargs)].ValueSize := aArgs[i].DataSize;
     funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParamType := aArgs[i].TypeInfo;
     funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParamFlags := [];
     funcargs[i - Low(aArgs) + Low(funcargs)].Info.ParaLocs := Nil;

@@ -1376,7 +1376,7 @@ procedure TFPCustomHTTPClient.HTTPMethod(const AMethod, AURL: String;
   Stream: TStream; const AllowedResponseCodes: array of Integer);
 
 Var
-  M,L,NL : String;
+  M,L,NL,RNL : String;
   RC : Integer;
   RR : Boolean; // Repeat request ?
 
@@ -1399,17 +1399,22 @@ begin
         if (RC>MaxRedirects) then
           Raise EHTTPClient.CreateFmt(SErrMaxRedirectsReached,[RC]);
         NL:=GetHeader(FResponseHeaders,'Location');
-        if Not Assigned(FOnRedirect) then
-          L:=NL
-        else
+        if Assigned(FOnRedirect) then
           FOnRedirect(Self,L,NL);
+        if (not IsAbsoluteURI(NL)) and ResolveRelativeURI(L,NL,RNL) then
+          NL:=RNL;
         if (RedirectForcesGET(FResponseStatusCode)) then
           M:='GET';
-        L:=NL;
         // Request has saved cookies in sentcookies.
-        FreeAndNil(FCookies);
-        FCookies:=FSentCookies;
-        FSentCookies:=Nil;
+        if ParseURI(L).Host=ParseURI(NL).Host then
+          FreeAndNil(FSentCookies)
+        else
+          begin
+          FreeAndNil(FCookies);
+          FCookies:=FSentCookies;
+          FSentCookies:=Nil;
+          end;
+        L:=NL;
         end;
       end;
     if (FResponseStatusCode=401) then

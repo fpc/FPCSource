@@ -232,7 +232,7 @@ implementation
                    construction (the record is build from the paraloc
                    types) }
                  else if userecord then
-                   a_load_ref_reg(list,location^.def,location^.def,tmpref,location^.register)
+                   a_load_ref_reg(list,fielddef,location^.def,tmpref,location^.register)
                  { if the parameter is passed in a single paraloc, the
                    paraloc's type may be different from the declared type
                    -> use the original complete parameter size as source so

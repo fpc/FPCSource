@@ -2937,7 +2937,7 @@ procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef);
     u8bit,u16bit,u32bit,u64bit,u128bit,
     s8bit,s16bit,s32bit,s64bit,s128bit,
     bool8bit,bool16bit,bool32bit,bool64bit,
-    uchar,uwidechar,scurrency
+    uchar,uwidechar,scurrency,customint
   ); }
 
 { type tobjecttyp is in symconst unit }
@@ -3145,6 +3145,12 @@ begin
                    orddef.OrdType:=otCurrency;
                    orddef.Size:=8;
                  end;
+               customint:
+                 begin
+                   writeln('customint');
+                   orddef.OrdType:=otSint;
+                   orddef.Size:=sizeof(ASizeInt);
+                 end
                else
                  WriteWarning('Invalid base type: ' + IntToStr(b));
              end;
