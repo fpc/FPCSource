@@ -110,6 +110,7 @@ interface
         constructor blockaddress(fun, lab: tasmsymbol);
         constructor landingpad(dst:tregister;def:tdef;firstclause:taillvm);
         constructor exceptclause(op:tllvmop;def:tdef;kind:TAsmSymbol;nextclause:taillvm);
+        constructor cleanupclause;
 
         { e.g. dst = call retsize name (paras) }
         constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
@@ -486,7 +487,10 @@ uses
       begin
         if llvmopcode<>la_landingpad then
           internalerror(2018052001);
-        clause:=taillvm.exceptclause(op,voidpointertype,nil,nil);
+        if op<>la_cleanup then
+          clause:=taillvm.exceptclause(op,voidpointertype,nil,nil)
+        else
+          clause:=taillvm.cleanupclause;
         lastclause:=self;
         while assigned(lastclause.oper[2]^.ai) do
           lastclause:=taillvm(lastclause.oper[2]^.ai);
@@ -1087,6 +1091,13 @@ uses
         loaddef(0,def);
         loadsymbol(1,kind,0);
         loadtai(2,nextclause);
+      end;
+
+
+    constructor taillvm.cleanupclause;
+      begin
+        create_llvm(la_cleanup);
+        ops:=0;
       end;
 
 

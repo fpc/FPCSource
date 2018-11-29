@@ -70,6 +70,7 @@ interface
       la_type, { type definition }
       la_catch, { catch clause of a landingpad }
       la_filter, { filter clause of a landingpad }
+      la_cleanup, { cleanup clause of a landingpad (finally) }
       la_x_to_inttoptr, { have to convert something first to int before it can be converted to a pointer }
       la_ptrtoint_to_x, { have to convert a pointer first to int before it can be converted to something else }
       la_asmblock

@@ -577,7 +577,8 @@ implementation
         la_cmpxchg,
         la_atomicrmw,
         la_catch,
-        la_filter:
+        la_filter,
+        la_cleanup:
           begin
             { instructions that never have a result }
           end;
@@ -694,7 +695,7 @@ implementation
 
                    owner.writer.AsmWrite(getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]));
                    if (taillvm(hp).oper[i]^.typ in [top_def,top_cond,top_fpcond]) or
-                      (op in [la_call,la_invoke,la_landingpad,la_catch,la_filter]) then
+                      (op in [la_call,la_invoke,la_landingpad,la_catch,la_filter,la_cleanup]) then
                      sep :=' '
                    else
                      sep:=', ';
