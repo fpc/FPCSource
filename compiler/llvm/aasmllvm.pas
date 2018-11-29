@@ -488,7 +488,7 @@ uses
         if llvmopcode<>la_landingpad then
           internalerror(2018052001);
         if op<>la_cleanup then
-          clause:=taillvm.exceptclause(op,voidpointertype,nil,nil)
+          clause:=taillvm.exceptclause(op,def,kind,nil)
         else
           clause:=taillvm.cleanupclause;
         lastclause:=self;
@@ -569,7 +569,7 @@ uses
               end;
             end;
           la_ret, la_switch, la_indirectbr,
-          la_resume:
+          la_resume, la_catch:
             begin
               { ret size reg }
               if opnr=1 then
@@ -1085,11 +1085,14 @@ uses
 
 
     constructor taillvm.exceptclause(op: tllvmop; def: tdef; kind: TAsmSymbol; nextclause: taillvm);
+      var
+        ref: treference;
       begin
         create_llvm(op);
         ops:=3;
         loaddef(0,def);
-        loadsymbol(1,kind,0);
+        reference_reset_symbol(ref,kind,0,def.alignment,[]);
+        loadref(1,ref);
         loadtai(2,nextclause);
       end;
 
