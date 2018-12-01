@@ -221,11 +221,10 @@ begin
   {$ENDIF}
   inherited SetUp;
   FDefaultFileAge:=DateTimeToFileDate(Now);
+  WorkDir:=ExtractFilePath(ParamStr(0));
   {$IFDEF Windows}
-  WorkDir:='P:\test';
   CompilerExe:='P:\bin\pas2js.exe';
   {$ELSE}
-  WorkDir:='/home/user';
   CompilerExe:='/usr/bin/pas2js';
   {$ENDIF}
   FCompiler:=TTestCompiler.Create;
@@ -684,7 +683,7 @@ begin
     '  a:=b;',
     'end.']);
   Compile(['test1.pas','-Jc'],ExitCodeSyntaxError);
-  AssertEquals('ErrorMsg','Duplicate file found: "/home/user/sub/unit1.pas" and "/home/user/unit1.pas"',ErrorMsg);
+  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'sub/unit1.pas" and "'+WorkDir+'unit1.pas"',ErrorMsg);
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile_IndirectDuplicate;
@@ -704,7 +703,7 @@ begin
     'begin',
     'end.']);
   Compile(['test1.pas','-Jc'],ExitCodeSyntaxError);
-  AssertEquals('ErrorMsg','Duplicate file found: "/home/user/unit1.pas" and "/home/user/sub/unit1.pas"',ErrorMsg);
+  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'unit1.pas" and "'+WorkDir+'sub/unit1.pas"',ErrorMsg);
 end;
 
 Initialization
