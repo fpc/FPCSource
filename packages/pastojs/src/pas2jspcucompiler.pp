@@ -254,7 +254,7 @@ begin
   if MyFile.PasModule.ClassType<>TPasModule then
   begin
     {$IFDEF REALLYVERBOSE}
-    writeln('TPas2jsCompilerFile.WritePCU not a unit: ',PasFilename,' skip');
+    writeln('TPas2jsCompilerFile.WritePCU not a unit: ',MyFile.PasFilename,' skip');
     {$ENDIF}
     exit;
   end;
@@ -262,7 +262,7 @@ begin
   if (MyFile.PCUFilename<>'') or (FPCUReader<>nil) then
   begin
     {$IFDEF REALLYVERBOSE}
-    writeln('TPas2jsCompilerFile.WritePCU already precompiled "',PCUFilename,'" Reader=',GetObjName(PCUReader));
+    writeln('TPas2jsCompilerFile.WritePCU already precompiled "',MyFile.PCUFilename,'" Reader=',GetObjName(FPCUReader));
     {$ENDIF}
     exit;
   end;
@@ -276,7 +276,7 @@ begin
   // Set as our filename
   SetPCUFilename(FN);
   {$IFDEF REALLYVERBOSE}
-  writeln('TPas2jsCompilerFile.WritePCU precompiling ',PCUFilename);
+  writeln('TPas2jsCompilerFile.WritePCU precompiling ',MyFile.PCUFilename);
   {$ENDIF}
 
   JS:=nil;
@@ -295,11 +295,11 @@ begin
     JS:=MyFile.Converter.ConvertPasElement(MyFile.PasModule,MyFile.PascalResolver);
     MyFile.Converter.Options:=MyFile.Converter.Options-[coStoreImplJS];
     {$IFDEF REALLYVERBOSE}
-    writeln('TPas2jsCompilerFile.WritePCU create pcu ... ',PCUFilename);
+    writeln('TPas2jsCompilerFile.WritePCU create pcu ... ',MyFile.PCUFilename);
     {$ENDIF}
     Writer.WritePCU(MyFile.PascalResolver,MyFile.Converter,PrecompileInitialFlags,ms,AllowCompressed);
     {$IFDEF REALLYVERBOSE}
-    writeln('TPas2jsCompilerFile.WritePCU precompiled ',PCUFilename);
+    writeln('TPas2jsCompilerFile.WritePCU precompiled ',MyFile.PCUFilename);
     {$ENDIF}
 
     MyFile.Log.LogMsg(nWritingFile,[QuoteStr(Compiler.FileCache.FormatPath(MyFile.PCUFilename))],'',0,0,
@@ -327,7 +327,7 @@ begin
     ms.Position:=0;
     Compiler.FileCache.SaveToFile(ms,MyFile.PCUFilename);
     {$IFDEF REALLYVERBOSE}
-    writeln('TPas2jsCompilerFile.WritePCU written ',PCUFilename);
+    writeln('TPas2jsCompilerFile.WritePCU written ',MyFile.PCUFilename);
     {$ENDIF}
   finally
     JS.Free;
