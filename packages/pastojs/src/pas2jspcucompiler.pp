@@ -199,7 +199,7 @@ function TFilerPCUSupport.FindPCU(const UseUnitName: string; out  aFormat: TPas2
       CurFormat:=PrecompileFormats[i];
       if not CurFormat.Enabled then continue;
       Filename:=DirPath+UseUnitName+'.'+CurFormat.Ext;
-      if MyFile.FileResolver.SearchLowUpCase(Filename) then
+      if Compiler.FileCache.SearchLowUpCase(Filename,MyFile.FileResolver.StrictFileCase) then
       begin
         FindPCU:=Filename;
         aFormat:=CurFormat;

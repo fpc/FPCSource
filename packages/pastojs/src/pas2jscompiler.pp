@@ -1566,7 +1566,7 @@ var
         FoundPasUnitName:=TestUnitName;
       end else begin
         // search pas in unit path
-        FoundPasFilename:=FileResolver.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
+        FoundPasFilename:=Compiler.FileCache.FindUnitFileName(TestUnitName,'',FoundPasIsForeign,FileResolver.StrictFileCase);
         if FoundPasFilename<>'' then
           FoundPasUnitName:=TestUnitName;
       end;
@@ -1631,7 +1631,7 @@ begin
     if FoundPasFilename='' then
     begin
       // search Pascal file
-      FoundPasFilename:=FileResolver.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
+      FoundPasFilename:=Compiler.FileCache.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign,FileResolver.StrictFileCase);
       if FoundPasFilename<>'' then
         begin
         if InFilename<>'' then
@@ -1772,7 +1772,7 @@ begin
 
     UseJSFilename:='';
     if (not IsForeign) then
-      UseJSFilename:=FileResolver.FindUnitJSFileName(UseFilename);
+      UseJSFilename:=Compiler.FileCache.FindUnitJSFileName(UseFilename);
     //  Log.LogPlain(['Debug: TPas2jsPasTree.FindUnit Self=',FileResolver.Cache.FormatPath(PasFilename),
     //    ' Uses=',ActualUnitname,' Found="',FileResolver.Cache.FormatPath(UseFilename),'"',
     //    ' IsForeign=',IsForeign,' JSFile="',FileResolver.Cache.FormatPath(useJSFilename),'"']);
