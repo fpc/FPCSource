@@ -509,7 +509,7 @@ type
     FUseStreams: Boolean;
     {$endif}
   Protected
-    Function FindIncludeFileName(const AName: string): String;
+    Function FindIncludeFileName(const AName: string): String; virtual;
     Function CreateFileReader(Const AFileName : String) : TLineReader; virtual;
   Public
     function FindSourceFile(const AName: string): TLineReader; override;
