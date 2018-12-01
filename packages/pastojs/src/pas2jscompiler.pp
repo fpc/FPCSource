@@ -539,7 +539,7 @@ type
     procedure LoadPasFile(UnitFilename, UseUnitName: string;
       out aFile: TPas2jsCompilerFile
       {$IFDEF HasPas2jsFiler}; aFormat: TPas2JSPrecompileFormat = nil{$ENDIF});
-    function FindUnitWithName(const TheUnitName: string): TPas2jsCompilerFile;
+    function FindLoadedUnit(const TheUnitName: string): TPas2jsCompilerFile;
     procedure AddUsedUnit(aFile: TPas2jsCompilerFile);
 
     function ExpandFileName(const Filename: string): string;
@@ -1778,7 +1778,7 @@ var
     if FoundPasFilename='' then
     begin
       // search loaded units
-      aFile:=Compiler.FindUnitWithName(TestUnitName);
+      aFile:=Compiler.FindLoadedUnit(TestUnitName);
       if aFile<>nil then
       begin
         FoundPasFilename:=aFile.PasFilename;
@@ -1845,7 +1845,7 @@ begin
     if InFilename='' then
     begin
       // search unitname in loaded units
-      aFile:=Compiler.FindUnitWithName(UseUnitname);
+      aFile:=Compiler.FindLoadedUnit(UseUnitname);
       if aFile<>nil then
       begin
         FoundPasFilename:=aFile.PasFilename;
@@ -1986,7 +1986,7 @@ begin
 
     if InFilename<>'' then
     begin
-      aFile:=Compiler.FindUnitWithName(UseUnitname);
+      aFile:=Compiler.FindLoadedUnit(UseUnitname);
       if aFile<>nil then
       begin
         {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
@@ -2031,7 +2031,7 @@ begin
     // add file to trees
     Compiler.AddUsedUnit(aFile);
     // consistency checks
-    OtherFile:=Compiler.FindUnitWithName(UseUnitname);
+    OtherFile:=Compiler.FindLoadedUnit(UseUnitname);
     if aFile<>OtherFile then
     begin
       if OtherFile=nil then
@@ -4211,7 +4211,6 @@ begin
   FFileCache:=TPas2jsFilesCache.Create(Log);
   FFileCache.BaseDirectory:=GetCurrentDirPJ;
   FFileCacheAutoFree:=true;
-  FDirectoryCache:=FFileCache.DirectoryCache;
   FLog.OnFormatPath:=@FileCache.FormatPath;
   FPostProcs:=TObjectList.Create(true);
 
@@ -4265,7 +4264,6 @@ destructor TPas2jsCompiler.Destroy;
       FreeAndNil(FFileCache)
     else
       FFileCache:=nil;
-    FDirectoryCache:=nil;
 
     FreeAndNil(FParamMacros);
   end;
@@ -4951,7 +4949,7 @@ begin
   end;
 end;
 
-function TPas2jsCompiler.FindUnitWithName(const TheUnitName: string
+function TPas2jsCompiler.FindLoadedUnit(const TheUnitName: string
   ): TPas2jsCompilerFile;
 begin
   if not IsValidIdent(TheUnitName,true) then exit(nil);
@@ -4964,7 +4962,7 @@ var
 begin
   if aFile.PasUnitName='' then
     RaiseInternalError(20170504161347,'missing PasUnitName "'+aFile.PasFilename+'"');
-  OldFile:=FindUnitWithName(aFile.PasUnitName);
+  OldFile:=FindLoadedUnit(aFile.PasUnitName);
   if OldFile<>nil then
   begin
     if OldFile<>aFile then
