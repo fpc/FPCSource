@@ -394,7 +394,6 @@ type
     FCurrentCfgFilename: string;
     FCurrentCfgLineNumber: integer;
     FDefines: TStrings; // Objects can be TMacroDef
-    FDirectoryCache: TPas2jsCachedDirectories;
     FFileCache: TPas2jsFilesCache;
     FFileCacheAutoFree: boolean;
     FFiles: TPasAnalyzerKeySet; // set of TPas2jsCompilerFile, key is PasFilename
@@ -543,7 +542,6 @@ type
     function FindUnitWithName(const TheUnitName: string): TPas2jsCompilerFile;
     procedure AddUsedUnit(aFile: TPas2jsCompilerFile);
 
-    function DirectoryExists(const Filename: string): boolean;
     function ExpandFileName(const Filename: string): string;
   public
     property CompilerExe: string read FCompilerExe write SetCompilerExe;
@@ -552,7 +550,6 @@ type
     property CurrentCfgLineNumber: integer read FCurrentCfgLineNumber;
     property DefaultNamespace: String read GetDefaultNamespace;
     property Defines: TStrings read FDefines;
-    property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
     property FileCache: TPas2jsFilesCache read FFileCache write SetFileCache;
     property FileCacheAutoFree: boolean read FFileCacheAutoFree write FFileCacheAutoFree;
     property FileCount: integer read GetFileCount;
@@ -1389,7 +1386,7 @@ begin
 
     // check output directory
     DestDir:=ChompPathDelim(ExtractFilePath(PCUFilename));
-    if (DestDir<>'') and not Compiler.DirectoryExists(DestDir) then
+    if (DestDir<>'') and not Compiler.FileCache.DirectoryExists(DestDir) then
     begin
       {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
       writeln('TPas2jsCompilerFile.WritePCU output dir not found "',DestDir,'"');
@@ -1397,7 +1394,7 @@ begin
       Log.LogMsg(nOutputDirectoryNotFound,[QuoteStr(Compiler.FileCache.FormatPath(DestDir))]);
       Compiler.Terminate(ExitCodeFileNotFound);
     end;
-    if Compiler.DirectoryExists(PCUFilename) then
+    if Compiler.FileCache.DirectoryExists(PCUFilename) then
     begin
       {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
       writeln('TPas2jsCompilerFile.WritePCU file is folder "',DestDir,'"');
@@ -2327,10 +2324,10 @@ begin
       Mark(nUnitNeedsCompileDueToOption,[aFile.GetModuleName,'-B'])
     else if FileCache.AllJSIntoMainJS then
       Mark(nUnitNeedsCompileDueToOption,[aFile.GetModuleName,'-Jc'])
-    else if (aFile.JSFilename<>'') and (not DirectoryCache.FileExists(aFile.JSFilename)) then
+    else if (aFile.JSFilename<>'') and (not FileCache.FileExists(aFile.JSFilename)) then
       Mark(nUnitNeedsCompileJSMissing,[aFile.GetModuleName,FileCache.FormatPath(aFile.JSFilename)])
     else if (aFile.JSFilename<>'')
-    and (DirectoryCache.FileAge(aFile.PasFilename)>DirectoryCache.FileAge(aFile.JSFilename))
+    and (FileCache.FileAge(aFile.PasFilename)>FileCache.FileAge(aFile.JSFilename))
     then begin
       Mark(nUnitNeedsCompilePasHasChanged,[aFile.GetModuleName,QuoteStr(FileCache.FormatPath(aFile.JSFilename))])
     end;
@@ -2421,7 +2418,7 @@ begin
   for i:=0 to SrcMap.SourceCount-1 do begin
     LocalFilename:=SrcMap.SourceFiles[i];
     if LocalFilename='' then continue;
-    if SrcMapInclude and DirectoryCache.FileExists(LocalFilename) then
+    if SrcMapInclude and FileCache.FileExists(LocalFilename) then
     begin
       // include source in SrcMap
       aFile:=FileCache.LoadFile(LocalFilename);
@@ -3250,7 +3247,7 @@ procedure TPas2jsCompiler.LoadDefaultConfig;
     aFilename:=ExpandFileName(aFilename);
     if ShowDebug or ShowTriedUsedFiles then
       Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
-    if not DirectoryCache.FileExists(aFilename) then exit;
+    if not FileCache.FileExists(aFilename) then exit;
     Result:=true;
     LoadConfig(aFilename);
   end;
@@ -3800,7 +3797,7 @@ begin
       if aFilename='' then
         ParamFatal('invalid config file at param position '+IntToStr(i));
       aFilename:=ExpandFileName(aFilename);
-      if not DirectoryCache.FileExists(aFilename) then
+      if not FileCache.FileExists(aFilename) then
         ParamFatal('config file not found: "'+copy(Param,2,length(Param))+'"');
       LoadConfig(aFilename);
     end;
@@ -4094,7 +4091,7 @@ begin
   Exe:=Cmd[0];
   if ShowDebug or ShowUsedTools then
     Log.LogMsgIgnoreFilter(nPostProcessorRunX,[QuoteStr(JSFilename)+' | '+CmdListAsStr(Cmd)]);
-  if DirectoryCache.DirectoryExists(Exe) then
+  if FileCache.DirectoryExists(Exe) then
     raise EFOpenError.Create('post processor "'+Exe+'" is a directory');
   if not FileIsExecutable(Exe) then
     raise EFOpenError.Create('post processor "'+Exe+'" is a not executable');
@@ -4467,7 +4464,7 @@ begin
 
     if FileCache.MainSrcFile='' then
       ParamFatal('No source file name in command line');
-    if not DirectoryCache.FileExists(FileCache.MainSrcFile) then
+    if not FileCache.FileExists(FileCache.MainSrcFile) then
       ParamFatal('Pascal file not found: "'+FileCache.MainSrcFile+'"');
 
     // compile
@@ -4893,7 +4890,7 @@ begin
   aFile:=FindUnitWithFile(UnitFilename);
   if aFile<>nil then exit;
 
-  if (UnitFilename='') or not DirectoryCache.FileExists(UnitFilename) then
+  if (UnitFilename='') or not FileCache.FileExists(UnitFilename) then
   begin
     {$IFDEF HasPas2jsFiler}
     if aFormat=nil then
@@ -4905,7 +4902,7 @@ begin
   end;
 
   UnitFilename:=ExpandFileName(UnitFilename);
-  if DirectoryCache.DirectoryExists(UnitFilename) then
+  if FileCache.DirectoryExists(UnitFilename) then
   begin
     Log.LogMsg(nFileIsFolder,[QuoteStr(UnitFilename)]);
     Terminate(ExitCodeFileNotFound);
@@ -4977,10 +4974,6 @@ begin
   end;
 end;
 
-function TPas2jsCompiler.DirectoryExists(const Filename: string): boolean;
-begin
-  Result:=FileCache.DirectoryCache.DirectoryExists(Filename);
-end;
 
 function TPas2jsCompiler.ExpandFileName(const Filename: string): string;
 begin

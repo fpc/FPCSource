@@ -330,6 +330,10 @@ type
     function CreateResolver: TPas2jsFileResolver;
     function FormatPath(const aPath: string): string;
     function GetResolvedMainJSFile: string;
+    Function DirectoryExists(Filename: string): boolean; virtual;
+    function FileExists(Filename: string): boolean; virtual;
+    function FileExistsI(var Filename: string): integer; // returns number of found files
+    function FileAge(const Filename: string): TPas2jsFileAgeTime; virtual;
     function FindFile(Filename: string): TPas2jsCachedFile;
     function LoadFile(Filename: string; Binary: boolean = false): TPas2jsCachedFile;
     function NormalizeFilename(const Filename: string; RaiseOnError: boolean): string;
@@ -683,7 +687,7 @@ begin
 end;
 
 function TPas2jsCachedDirectory.Add(const Name: string;
-  Time: TPas2jsFileAgeTime; Attr: TPas2jsFileAttr; Size: TPas2jsFileSize
+Time: TPas2jsFileAgeTime; Attr: TPas2jsFileAttr; Size: TPas2jsFileSize
   ): TPas2jsCachedDirectoryEntry;
 begin
   Result:=TPas2jsCachedDirectoryEntry.Create;
@@ -1244,12 +1248,12 @@ begin
   {$ENDIF}
   // needs (re)load
   Result:=false;
-  if not Cache.DirectoryCache.FileExists(Filename) then
+  if not Cache.FileExists(Filename) then
   begin
     Err('File not found "'+Filename+'"');
     exit;
   end;
-  if Cache.DirectoryCache.DirectoryExists(Filename) then
+  if Cache.DirectoryExists(Filename) then
   begin
     Err('File is a directory "'+Filename+'"');
     exit;
@@ -1384,10 +1388,10 @@ begin
   Result:=nil;
   CurFilename:=aFilename;
   if StrictFileCase or Cache.SearchLikeFPC then
-    Found:=Cache.DirectoryCache.FileExists(CurFilename)
+    Found:=Cache.FileExists(CurFilename)
   else
   begin
-    i:=Cache.DirectoryCache.FileExistsI(CurFilename);
+    i:=Cache.FileExistsI(CurFilename);
     Found:=i=1;
     if i>1 then
       Cache.RaiseDuplicateFile(CurFilename);
@@ -1526,7 +1530,7 @@ end;
 
 function TPas2jsFileResolver.FileExistsLogged(const Filename: string): boolean;
 begin
-  Result:=Cache.DirectoryCache.FileExists(Filename);
+  Result:=Cache.FileExists(Filename);
   if Cache.ShowTriedUsedFiles then
     if Result then
       Cache.Log.LogMsgIgnoreFilter(nSearchingFileFound,[Cache.FormatPath(Filename)])
@@ -1883,7 +1887,7 @@ procedure TPas2jsFilesCache.FindMatchingFiles(Mask: string; MaxCount: integer;
       inc(p);
     end;
     // mask has no placeholder -> search directly
-    if DirectoryCache.FileExists(aMask) then
+    if FileExists(aMask) then
     begin
       if Files.Count>=MaxCount then
         TooMany(20180126091913);
@@ -2056,6 +2060,26 @@ begin
   Result:=FMainJSFileResolved;
 end;
 
+function TPas2jsFilesCache.DirectoryExists(Filename: string): boolean;
+begin
+  Result:=DirectoryCache.DirectoryExists(FileName);
+end;
+
+function TPas2jsFilesCache.FileExists(Filename: string): boolean;
+begin
+  Result:=DirectoryCache.FileExists(FileName);
+end;
+
+function TPas2jsFilesCache.FileExistsI(var Filename: string): integer;
+begin
+  Result:=DirectoryCache.FileExistsI(FileName);
+end;
+
+function TPas2jsFilesCache.FileAge(const Filename: string): TPas2jsFileAgeTime;
+begin
+  Result:=DirectoryCache.FileAge(FileName);
+end;
+
 function TPas2jsFilesCache.FindFile(Filename: string): TPas2jsCachedFile;
 begin
   Filename:=NormalizeFilename(Filename,true);
@@ -2065,8 +2089,7 @@ end;
 function TPas2jsFilesCache.LoadFile(Filename: string; Binary: boolean
   ): TPas2jsCachedFile;
 begin
-  Filename:=NormalizeFilename(Filename,true);
-  Result:=TPas2jsCachedFile(FFiles.FindKey(Pointer(Filename)));
+  Result:=FindFile(FileName);
   if Result=nil then
   begin
     // new file
@@ -2217,9 +2240,9 @@ begin
         i:=GetLastOSError;
         if i<>0 then
           Log.LogPlain('Note: '+SysErrorMessage(i));
-        if not DirectoryCache.DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
+        if not DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
           Log.LogPlain('Note: file cache inconsistency: folder does not exist "'+ChompPathDelim(ExtractFilePath(Filename))+'"');
-        if DirectoryCache.FileExists(Filename) and not FileIsWritable(Filename) then
+        if FileExists(Filename) and not FileIsWritable(Filename) then
           Log.LogPlain('Note: file is not writable "'+Filename+'"');
         raise;
       end;
@@ -2247,7 +2270,7 @@ function TPas2jsFilesCache.ExpandExecutable(const Filename, BaseDir: string
   begin
     Result:=false;
     CurFilename:=ResolveDots(CurFilename);
-    if not DirectoryCache.FileExists(CurFilename) then exit;
+    if not FileExists(CurFilename) then exit;
     ExpandExecutable:=CurFilename;
     Result:=true;
   end;
