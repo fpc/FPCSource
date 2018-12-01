@@ -33,9 +33,6 @@ uses
   Classes, SysUtils,
   fpjson,
   PScanner, PasUseAnalyzer, PasResolver, FPPJsSrcMap,
-  {$IFDEF HasPas2jsFiler}
-  Pas2JsFiler,
-  {$ENDIF}
   Pas2jsLogger, Pas2jsFileUtils;
 
 const // Messages
@@ -288,9 +285,6 @@ type
     FOnReadFile: TPas2jsReadFileEvent;
     FOnWriteFile: TPas2jsWriteFileEvent;
     FOptions: TP2jsFileCacheOptions;
-    {$IFDEF HasPas2jsFiler}
-    FPrecompileFormat: TPas2JSPrecompileFormat;
-    {$ENDIF}
     FReadLineCounter: SizeInt;
     FResetStamp: TChangeStamp;
     FSrcMapBaseDir: string;
@@ -317,12 +311,13 @@ type
     procedure SetUnitOutputPath(AValue: string);
     procedure SetOption(Flag: TP2jsFileCacheOption; Enable: boolean);
   protected
+    function GetHasPCUSupport: Boolean; virtual;
     function ReadFile(Filename: string; var Source: string): boolean; virtual;
     procedure FindMatchingFiles(Mask: string; MaxCount: integer; Files: TStrings);// find files, matching * and ?
   public
     constructor Create(aLog: TPas2jsLogger);
     destructor Destroy; override;
-    procedure Reset;
+    procedure Reset; virtual;
     function AddIncludePaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function AddNamespaces(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function AddUnitPaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
@@ -364,9 +359,6 @@ type
     property Namespaces: TStringList read FNamespaces;
     property NamespacesFromCmdLine: integer read FNamespacesFromCmdLine;
     property Options: TP2jsFileCacheOptions read FOptions write SetOptions default DefaultPas2jsFileCacheOptions;
-    {$IFDEF HasPas2jsFiler}
-    property PrecompileFormat: TPas2JSPrecompileFormat read FPrecompileFormat write FPrecompileFormat;
-    {$ENDIF}
     property ReadLineCounter: SizeInt read FReadLineCounter write FReadLineCounter;
     property ResetStamp: TChangeStamp read FResetStamp;
     property SearchLikeFPC: boolean read GetSearchLikeFPC write SetSearchLikeFPC;
@@ -379,6 +371,7 @@ type
     property OnReadFile: TPas2jsReadFileEvent read FOnReadFile write FOnReadFile;
     property OnWriteFile: TPas2jsWriteFileEvent read FOnWriteFile write FOnWriteFile;
   end;
+
 
 {$IFDEF Pas2js}
 function PtrStrToStr(StrAsPtr: Pointer): string;
@@ -571,6 +564,7 @@ begin
   Delete(Result,1,3);
 end;
 {$ENDIF}
+
 
 { TPas2jsCachedDirectory }
 
@@ -1605,6 +1599,11 @@ begin
   Result:=caoAllJSIntoMainJS in FOptions;
 end;
 
+function TPas2jsFilesCache.GetHasPCUSupport: Boolean;
+begin
+  Result:=False;
+end;
+
 function TPas2jsFilesCache.GetSearchLikeFPC: boolean;
 begin
   Result:=caoSearchLikeFPC in FOptions;
@@ -1958,9 +1957,6 @@ begin
   FStates:=FStates-[cfsMainJSFileResolved];
   FNamespaces.Clear;
   FNamespacesFromCmdLine:=0;
-  {$IFDEF HasPas2jsFiler}
-  FPrecompileFormat:=nil;
-  {$ENDIF}
   FSrcMapBaseDir:='';
   // FOnReadFile: TPas2jsReadFileEvent; keep
   // FOnWriteFile: TPas2jsWriteFileEvent; keep
