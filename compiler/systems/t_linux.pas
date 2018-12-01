@@ -1424,6 +1424,10 @@ begin
   if HasExports then
     cmdstr:=cmdstr+' -E';
 
+  { create eh_frame_hdr section? }
+  if tf_use_psabieh in target_info.flags then
+    cmdstr:=cmdstr+ ' --eh-frame-hdr';
+
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
 
   { Create external .dbg file with debuginfo }
