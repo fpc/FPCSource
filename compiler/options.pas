@@ -3413,6 +3413,9 @@ procedure read_arguments(cmd:TCmdStr);
       controller: tcontrollertype;
       s: string;
     begin
+{$ifdef llvm}
+      def_system_macro('CPULLVM');
+{$endif}
       for cputype:=low(tcputype) to high(tcputype) do
         undef_system_macro('CPU'+Cputypestr[cputype]);
       def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
