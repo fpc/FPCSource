@@ -29,7 +29,7 @@ interface
   uses
     cclasses,globtype,
     fmodule,
-    aasmdata,
+    aasmbase,aasmdata,
     node,nbas,symtype,symsym,symconst,symdef;
 
 
@@ -138,6 +138,11 @@ interface
         info) }
       class procedure InsertObjectInfo; virtual;
 
+      { register that asm symbol sym with type def has to be considered as "used" even if not
+        references to it can be found. If compileronly, this is only for the compiler, otherwise
+        also for the linker }
+      class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); virtual;
+
      strict protected
       class procedure add_main_procdef_paras(pd: tdef); virtual;
     end;
@@ -152,7 +157,7 @@ implementation
     uses
       verbose,version,globals,cutils,constexp,compinnr,
       systems,procinfo,pparautl,
-      aasmbase,aasmtai,aasmcnst,
+      aasmtai,aasmcnst,
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nutils,
       ppu,
@@ -1542,6 +1547,12 @@ implementation
 
 
   class procedure tnodeutils.InsertObjectInfo;
+    begin
+      { don't do anything by default }
+    end;
+
+
+  class procedure tnodeutils.RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean);
     begin
       { don't do anything by default }
     end;
