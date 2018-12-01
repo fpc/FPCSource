@@ -1489,8 +1489,12 @@ implementation
         sign         : tdwarf_type;
         signform     : tdwarf_form;
         fullbytesize : byte;
+        ordtype      : tordtype;
       begin
-        case def.ordtype of
+        ordtype:=def.ordtype;
+        if ordtype=customint then
+          ordtype:=range_to_basetype(def.low,def.high);
+        case ordtype of
           s8bit,
           s16bit,
           s32bit,
@@ -1524,7 +1528,7 @@ implementation
                     basedef:=s16inttype
                   else
                     basedef:=u16inttype;
-                4:
+                3,4:
                   if (sign=DW_ATE_signed) then
                     basedef:=s32inttype
                   else

@@ -31,7 +31,7 @@ unit PParser;
 interface
 
 uses
-  {$ifdef pas2js}
+  {$ifdef NODEJS}
   NodeJSFS,
   {$endif}
   SysUtils, Classes, PasTree, PScanner;
@@ -94,6 +94,7 @@ const
   nParserResourcestringsMustBeGlobal = 2054;
   nParserOnlyOneVariableCanBeAbsolute = 2055;
   nParserXNotAllowedInY = 2056;
+  nFileSystemsNotSupported = 2057;
 
 // resourcestring patterns of messages
 resourcestring
@@ -153,6 +154,7 @@ resourcestring
   SParserResourcestringsMustBeGlobal = 'Resourcestrings can be only static or global';
   SParserOnlyOneVariableCanBeAbsolute = 'Only one variable can be absolute';
   SParserXNotAllowedInY = '%s is not allowed in %s';
+  SErrFileSystemNotSupported = 'No support for filesystems enabled';
 
 type
   TPasScopeType = (
@@ -472,6 +474,10 @@ Type
     {$endif}
     poSkipDefaultDefs);
   TParseSourceOptions = set of TParseSourceOption;
+
+Var
+  DefaultFileResolverClass : TBaseFileResolverClass = Nil;
+
 function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
 {$ifdef HasStreams}
@@ -597,8 +603,9 @@ end;
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String;
   Options : TParseSourceOptions): TPasModule;
+
 var
-  FileResolver: TFileResolver;
+  FileResolver: TBaseFileResolver;
   Parser: TPasParser;
   Start, CurPos: integer; // in FPCCommandLine
   Filename: String;
@@ -648,7 +655,7 @@ var
       end;
     end else
       if Filename <> '' then
-        raise Exception.Create(SErrMultipleSourceFiles)
+        raise ENotSupportedException.Create(SErrMultipleSourceFiles)
       else
         Filename := s;
   end;
@@ -656,14 +663,17 @@ var
 var
   s: String;
 begin
+  if DefaultFileResolverClass=Nil then
+    raise ENotImplemented.Create(SErrFileSystemNotSupported);
   Result := nil;
   FileResolver := nil;
   Scanner := nil;
   Parser := nil;
   try
-    FileResolver := TFileResolver.Create;
+    FileResolver := DefaultFileResolverClass.Create;
     {$ifdef HasStreams}
-    FileResolver.UseStreams:=poUseStreams in Options;
+    if FileResolver is TFileResolver then
+      TFileResolver(FileResolver).UseStreams:=poUseStreams in Options;
     {$endif}
     Scanner := TPascalScanner.Create(FileResolver);
     Scanner.LogEvents:=AEngine.ScannerLogEvents;
@@ -733,7 +743,9 @@ begin
 
     if Filename = '' then
       raise Exception.Create(SErrNoSourceGiven);
+{$IFDEF HASFS}
     FileResolver.AddIncludePath(ExtractFilePath(FileName));
+{$ENDIF}
     Scanner.OpenFile(Filename);
     Parser.ParseMain(Result);
   finally
@@ -6989,4 +7001,8 @@ begin
   Result.Kind:=pekListOfExp;
 end;
 
+initialization
+{$IFDEF HASFS}
+  DefaultFileResolverClass:=TFileResolver;
+{$ENDIF}
 end.

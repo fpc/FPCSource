@@ -16,6 +16,10 @@ unit Pas2jsCompiler;
 
 {$I pas2js_defines.inc}
 
+{$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
+{$DEFINE ReallyVerbose}
+{$ENDIF}
+
 interface
 
 uses
@@ -27,11 +31,7 @@ uses
   Classes, SysUtils, contnrs,
   jstree, jswriter, JSSrcMap,
   PScanner, PParser, PasTree, PasResolver, PasUseAnalyzer, PasResolveEval,
-  FPPas2Js, FPPJsSrcMap, Pas2jsFileUtils, Pas2jsLogger,
-  {$IFDEF HasPas2jsFiler}
-  Pas2JsFiler,
-  {$ENDIF}
-  Pas2jsFileCache, Pas2jsPParser;
+  FPPas2Js, FPPJsSrcMap, Pas2jsFileUtils, Pas2jsLogger, Pas2jsFileCache, Pas2jsPParser;
 
 const
   VersionMajor = 1;
@@ -46,8 +46,6 @@ const
   nOptionIsEnabled = 101; sOptionIsEnabled = 'Option "%s" is %s';
   nSyntaxModeIs = 102; sSyntaxModeIs = 'Syntax mode is %s';
   nMacroDefined = 103; sMacroDefined = 'Macro defined: %s';
-  nUsingPath = 104; sUsingPath = 'Using %s: "%s"';
-  nFolderNotFound = 105; sFolderNotFound = '%s not found: %s';
   nNameValue = 106; sNameValue = '%s: %s';
   nReadingOptionsFromFile = 107; sReadingOptionsFromFile = 'Reading options from file %s';
   nEndOfReadingConfigFile = 108; sEndOfReadingConfigFile = 'End of reading config file %s';
@@ -242,6 +240,7 @@ type
   ECompilerTerminate = class(Exception);
 
   TPas2jsCompiler = class;
+  TPas2JSCompilerFile = Class;
 
   TUsedBySection = (
     ubMainSection,
@@ -256,6 +255,31 @@ type
     prsFinished,
     prsError
     );
+
+  { TPCUSupport }
+
+  TPCUSupport = Class(TObject)
+  private
+    FFile: TPas2JSCompilerFile;
+  Protected
+    procedure RaiseInternalError(id: TMaxPrecInt; Msg: string);
+    Procedure SetPasModule(aModule : TPasModule);
+    Procedure SetReaderState(aReaderState: TPas2JSReaderState);
+    Procedure SetPCUFileName(Const FN : String);
+  public
+    Constructor create (aCompilerFile : TPas2JSCompilerFile);
+    Function HandleException(E: Exception) : Boolean;virtual; abstract;
+    procedure CreatePCUReader; virtual; abstract;
+    Function HasReader : Boolean; virtual; abstract;
+    Function ReadContinue : Boolean; virtual; abstract;
+    Function ReadCanContinue : Boolean; virtual; abstract;
+    function FindPCU(const UseUnitName: string): string;virtual; abstract;
+    Procedure SetInitialCompileFlags; virtual; abstract;
+    Procedure WritePCU;virtual; abstract;
+    Procedure ReadUnit; virtual; abstract;
+    Property MyFile : TPas2JSCompilerFile Read FFile;
+  end;
+
 
   { TPas2jsCompilerFile }
 
@@ -275,12 +299,8 @@ type
     FPasModule: TPasModule;
     FPasResolver: TPas2jsCompilerResolver;
     FPasUnitName: string;
-    {$IFDEF HasPas2jsFiler}
     FPCUFilename: string;
-    FPCUFormat: TPas2JSPrecompileFormat;
-    FPCUReader: TPCUCustomReader;
-    FPCUReaderStream: TStream;
-    {$ENDIF}
+    FPCUSupport : TPCUSupport;
     FReaderState: TPas2jsReaderState;
     FScanner: TPas2jsPasScanner;
     FShowDebug: boolean;
@@ -292,22 +312,11 @@ type
     function OnConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
     procedure OnPasResolverLog(Sender: TObject; const Msg: String);
     procedure OnParserLog(Sender: TObject; const Msg: String);
-    {$IFDEF HasPas2jsFiler}
-    procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
-      out Count: integer);
-    function OnPCUConverterIsElementUsed(Sender: TObject; El: TPasElement
-      ): boolean;
-    function OnPCUConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement
-      ): boolean;
-    {$ENDIF}
     procedure OnScannerLog(Sender: TObject; const Msg: String);
     procedure OnUseAnalyzerMessage(Sender: TObject; Msg: TPAMessage);
     procedure HandleEParserError(E: EParserError);
     procedure HandleEPasResolve(E: EPasResolve);
     procedure HandleEPas2JS(E: EPas2JS);
-    {$IFDEF HasPas2jsFiler}
-    procedure HandleEPCUReader(E: EPas2JsReadError);
-    {$ENDIF}
     procedure HandleUnknownException(E: Exception);
     procedure HandleException(E: Exception);
     {$IFDEF Pas2js}
@@ -317,28 +326,19 @@ type
       MsgNumber: integer; El: TPasElement);
     procedure RaiseInternalError(id: TMaxPrecInt; Msg: string);
     procedure ReaderFinished;
-    {$IFDEF HasPas2jsFiler}
-    function OnWriterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
-    procedure WritePCU;
-    {$ENDIF}
   public
-    constructor Create(aCompiler: TPas2jsCompiler; const aPasFilename: string
-      {$IFDEF HasPas2jsFiler};aFormat: TPas2JSPrecompileFormat = nil{$ENDIF});
+    constructor Create(aCompiler: TPas2jsCompiler; const aPasFilename: string);
     destructor Destroy; override;
+    Function CreatePCUSupport : TPCUSupport; virtual;
     function GetInitialModeSwitches: TModeSwitches;
+    function IsUnitReadFromPCU: Boolean;
     function GetInitialBoolSwitches: TBoolSwitches;
     function GetInitialConverterOptions: TPasToJsConverterOptions;
     procedure CreateScannerAndParser(aFileResolver: TPas2jsFileResolver);
     procedure CreateConverter;
-    {$IFDEF HasPas2jsFiler}
-    procedure CreatePCUReader;
-    function FindPCU(const UseUnitName: string; out aFormat: TPas2JSPrecompileFormat): string;
-    {$ENDIF}
     function OnResolverFindModule(const UseUnitName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule;
-    function LoadUsedUnit(const UseFilename, UseUnitname, InFilename: String;
-      NameExpr, InFileExpr: TPasExpr; UseIsForeign: boolean
-      {$IFDEF HasPas2jsFiler}; aFormat: TPas2JSPrecompileFormat = nil{$ENDIF}): TPas2jsCompilerFile;
+    function LoadUsedUnit(const UseFilename, UseUnitname, InFilename: String; NameExpr, InFileExpr: TPasExpr; UseIsForeign: boolean; IsPCU : Boolean): TPas2jsCompilerFile;
     procedure OnResolverCheckSrcName(const Element: TPasElement);
     procedure OpenFile(aFilename: string);// beware: this changes FileResolver.BaseDirectory
     procedure ReadUnit;
@@ -367,12 +367,8 @@ type
     property PasFilename: String read FPasFilename; // can be the PCUFilename
     property PasModule: TPasModule read FPasModule;
     property PasUnitName: string read FPasUnitName write FPasUnitName;// unit name in program
-    {$IFDEF HasPas2jsFiler}
     property PCUFilename: string read FPCUFilename;
-    property PCUFormat: TPas2JSPrecompileFormat read FPCUFormat write FPCUFormat;
-    property PCUReader: TPCUCustomReader read FPCUReader;
-    property PCUReaderStream: TStream read FPCUReaderStream;
-    {$ENDIF}
+    Property PCUSupport : TPCUSupport Read FPCUSupport;
     property Scanner: TPas2jsPasScanner read FScanner;
     property ShowDebug: boolean read FShowDebug write FShowDebug;
     property UseAnalyzer: TPasAnalyzer read FUseAnalyzer; // unit analysis
@@ -389,12 +385,13 @@ type
 
   TPas2jsCompiler = class
   private
+    FMainJSFileResolved : String;
+    FIsMainJSFileResolved : Boolean;
     FCompilerExe: string;
     FConditionEval: TCondDirectiveEvaluator;
     FCurrentCfgFilename: string;
     FCurrentCfgLineNumber: integer;
     FDefines: TStrings; // Objects can be TMacroDef
-    FDirectoryCache: TPas2jsCachedDirectories;
     FFileCache: TPas2jsFilesCache;
     FFileCacheAutoFree: boolean;
     FFiles: TPasAnalyzerKeySet; // set of TPas2jsCompilerFile, key is PasFilename
@@ -414,32 +411,36 @@ type
     FWPOAnalyzer: TPas2JSWPOptimizer;
     FInterfaceType: TPasClassInterfaceType;
     FRTLVersionCheck: TP2jsRTLVersionCheck;
-    {$IFDEF HasPas2jsFiler}
     FPrecompileGUID: TGUID;
-    FPrecompileInitialFlags: TPCUInitialFlags;
-    {$ENDIF}
+    FInsertFilenames: TStringList;
+    procedure AddInsertJSFilename(const aFilename: string);
     procedure ConditionEvalLog(Sender: TCondDirectiveEvaluator;
       Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
     function ConditionEvalVariable(Sender: TCondDirectiveEvaluator;
       aName: String; out Value: string): boolean;
     function GetDefaultNamespace: String;
     function GetFileCount: integer;
+    function GetResolvedMainJSFile: string;
     function GetShowDebug: boolean;
     function GetShowFullPaths: boolean;
     function GetShowLogo: Boolean; inline;
     function GetShowTriedUsedFiles: boolean;
     function GetShowUsedTools: boolean; inline;
     function GetSkipDefaultConfig: Boolean; inline;
-    function GetSrcMapBaseDir: string;
     function GetSrcMapEnable: boolean;
     function GetSrcMapInclude: boolean;
     function GetSrcMapXSSIHeader: boolean;
     function GetWriteDebugLog: boolean;
     function GetWriteMsgToStdErr: boolean;
+    function HandleOptionOptimization(C: Char; aValue: String): Boolean;
+    function IndexOfInsertJSFilename(const aFilename: string): integer;
+    procedure InsertCustomJSFiles(aWriter: TPas2JSMapper);
     function OnMacroCfgDir(Sender: TObject; var Params: string; Lvl: integer
       ): boolean;
     function OnMacroEnv(Sender: TObject; var Params: string; Lvl: integer
       ): boolean;
+    procedure RemoveInsertJSFilename(const aFilename: string);
+    function ResolvedMainJSFile: string;
     procedure SetCompilerExe(AValue: string);
     procedure SetFileCache(AValue: TPas2jsFilesCache);
     procedure SetMode(AValue: TP2jsMode);
@@ -465,11 +466,14 @@ type
     procedure RemoveReadingModule(aFile: TPas2jsCompilerFile);
     function CreateSetOfCompilerFiles_Filename: TPasAnalyzerKeySet;
   private
+    FAllJSIntoMainJS: Boolean;
+    FMainJSFile: String;
+    FMainSrcFile: String;
+    FSrcMapBaseDir: string;
     // params, cfg files
     procedure CfgSyntaxError(const Msg: string);
     procedure LoadConfig(CfgFilename: string);
     procedure LoadDefaultConfig;
-    procedure ParamFatal(Msg: string);
     procedure ReadParam(Param: string; Quick, FromCmdLine: boolean);
     procedure ReadSingleLetterOptions(const Param: string; p: integer;
       const Allowed: string; out Enabled, Disabled: string);
@@ -477,7 +481,21 @@ type
     procedure ReadSyntaxFlags(Param: String; p: integer);
     procedure ReadVerbosityFlags(Param: String; p: integer);
     procedure RegisterMessages;
+    procedure SetAllJSIntoMainJS(AValue: Boolean);
   protected
+    Function FormatPath(Const aPath : String) : String;
+    Function FullFormatPath(Const aPath : String) : String;
+    Procedure WritePrecompiledFormats;virtual;
+    procedure ParamFatal(Msg: string);
+    procedure WriteHelpLine(S: String);
+    // Override these for PCU format
+    function CreateCompilerFile(const UnitFileName: String): TPas2jsCompilerFile; virtual;
+    // Command-line option handling
+    procedure HandleOptionPCUFormat(aValue: String); virtual;
+    function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): Boolean; virtual;
+    function HandleOptionJS(C: Char; aValue: String; Quick,FromCmdLine: Boolean): Boolean; virtual;
+    procedure HandleOptionConfigFile(aPos: Integer; const aFileName: string); virtual;
+    procedure HandleOptionInfo(aValue: string);
     // DoWriteJSFile: return false to use the default write function.
     procedure CallPostProcessors(const JSFilename: String; aWriter: TPas2JSMapper); virtual;
     function CallPostProcessor(const JSFilename: String; Cmd: TStringList; JS: TJSWriterString): TJSWriterString; virtual;
@@ -488,9 +506,6 @@ type
       Checked: TPasAnalyzerKeySet { set of TPas2jsCompilerFile, key is PasFilename };
       var SrcFileCount: integer): boolean;
     procedure OptimizeProgram(aFile: TPas2jsCompilerFile); virtual;
-    {$IFDEF HasPas2jsFiler}
-    function CreatePrecompileFilename(aFile: TPas2jsCompilerFile): string; virtual;
-    {$ENDIF}
     procedure CreateJavaScript(aFile: TPas2jsCompilerFile;
       Checked: TPasAnalyzerKeySet { set of TPas2jsCompilerFile, key is PasFilename });
     procedure FinishSrcMap(SrcMap: TPas2JSSrcMap); virtual;
@@ -509,7 +524,7 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure Reset;
+    procedure Reset; virtual;
     procedure Run(
       aCompilerExe: string; // needed for default config and help
       aWorkingDir: string;
@@ -537,13 +552,11 @@ type
     procedure SetOption(Flag: TP2jsCompilerOption; Enable: boolean);
 
     function FindUnitWithFile(PasFilename: string): TPas2jsCompilerFile;
-    procedure LoadPasFile(UnitFilename, UseUnitName: string;
-      out aFile: TPas2jsCompilerFile
-      {$IFDEF HasPas2jsFiler}; aFormat: TPas2JSPrecompileFormat = nil{$ENDIF});
-    function FindUnitWithName(const TheUnitName: string): TPas2jsCompilerFile;
+    procedure LoadPasFile(UnitFilename, UseUnitName: string; out aFile: TPas2jsCompilerFile; isPCU : Boolean);
+    Function FindUnitJSFileName(aFileName : String) : String;
+    function FindLoadedUnit(const TheUnitName: string): TPas2jsCompilerFile;
     procedure AddUsedUnit(aFile: TPas2jsCompilerFile);
 
-    function DirectoryExists(const Filename: string): boolean;
     function ExpandFileName(const Filename: string): string;
   public
     property CompilerExe: string read FCompilerExe write SetCompilerExe;
@@ -552,7 +565,6 @@ type
     property CurrentCfgLineNumber: integer read FCurrentCfgLineNumber;
     property DefaultNamespace: String read GetDefaultNamespace;
     property Defines: TStrings read FDefines;
-    property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
     property FileCache: TPas2jsFilesCache read FFileCache write SetFileCache;
     property FileCacheAutoFree: boolean read FFileCacheAutoFree write FFileCacheAutoFree;
     property FileCount: integer read GetFileCount;
@@ -562,15 +574,11 @@ type
     property Mode: TP2jsMode read FMode write SetMode;
     property Options: TP2jsCompilerOptions read FOptions write SetOptions;
     property ParamMacros: TPas2jsMacroEngine read FParamMacros;
-    {$IFDEF HasPas2jsFiler}
     property PrecompileGUID: TGUID read FPrecompileGUID write FPrecompileGUID;
-    property PrecompileInitialFlags: TPCUInitialFlags read FPrecompileInitialFlags;
-    {$ENDIF}
     property PostProcs: TObjectList read FPostProcs; // list of TStrings
     property RTLVersionCheck: TP2jsRTLVersionCheck read FRTLVersionCheck write FRTLVersionCheck;
     property SrcMapEnable: boolean read GetSrcMapEnable write SetSrcMapEnable;
     property SrcMapSourceRoot: string read FSrcMapSourceRoot write FSrcMapSourceRoot;
-    property SrcMapBaseDir: string read GetSrcMapBaseDir write SetSrcMapBaseDir;
     property SrcMapInclude: boolean read GetSrcMapInclude write SetSrcMapInclude;
     property SrcMapXSSIHeader: boolean read GetSrcMapXSSIHeader write SetSrcMapXSSIHeader;
     property ShowDebug: boolean read GetShowDebug write SetShowDebug;
@@ -584,8 +592,16 @@ type
     property WPOAnalyzer: TPas2JSWPOptimizer read FWPOAnalyzer; // Whole Program Optimization
     property WriteDebugLog: boolean read GetWriteDebugLog write SetWriteDebugLog;
     property WriteMsgToStdErr: boolean read GetWriteMsgToStdErr write SetWriteMsgToStdErr;
+    property AllJSIntoMainJS : Boolean Read FAllJSIntoMainJS Write SetAllJSIntoMainJS;
     property ExitCode: longint read GetExitCode write SetExitCode;
+    property InsertFilenames: TStringList read FInsertFilenames;
+    Property MainJSFile : String Read FMainJSFile Write FMainJSFile;
+    Property MainSrcFile : String Read FMainSrcFile Write FMainSrcFile;
+    property SrcMapBaseDir: string read FSrcMapBaseDir write SetSrcMapBaseDir; // includes trailing pathdelim
   end;
+
+
+
 
 {$IFDEF Pas2js}
 function Pas2jsCompilerFile_FilenameToKeyName(Item: Pointer): String;
@@ -680,6 +696,34 @@ end;
 function GetCompiledTargetCPU: string;
 begin
   Result:=lowerCase({$I %FPCTARGETCPU%});
+end;
+
+
+{ TPCUSupport }
+
+procedure TPCUSupport.RaiseInternalError(id: TMaxPrecInt; Msg: string);
+begin
+  MyFile.RaiseInternalError(id,msg);
+end;
+
+procedure TPCUSupport.SetPasModule(aModule: TPasModule);
+begin
+  MyFile.FPasModule:=aModule;
+end;
+
+procedure TPCUSupport.SetReaderState(aReaderState: TPas2JSReaderState);
+begin
+  MyFile.FReaderState:=aReaderState;
+end;
+
+procedure TPCUSupport.SetPCUFileName(const FN: String);
+begin
+  FFile.FPCUFilename:=FN;
+end;
+
+constructor TPCUSupport.create(aCompilerFile : TPas2JSCompilerFile);
+begin
+  FFile:=aCompilerFile;
 end;
 
 
@@ -825,19 +869,13 @@ end;
 
 { TPas2jsCompilerFile }
 
-constructor TPas2jsCompilerFile.Create(aCompiler: TPas2jsCompiler;
-  const aPasFilename: string
-  {$IFDEF HasPas2jsFiler};aFormat: TPas2JSPrecompileFormat = nil{$ENDIF});
+constructor TPas2jsCompilerFile.Create(aCompiler: TPas2jsCompiler; const aPasFilename: string);
+
 var
   ub: TUsedBySection;
 begin
   FCompiler:=aCompiler;
   FPasFilename:=aPasFilename;
-  {$IFDEF HasPas2jsFiler}
-  FPCUFormat:=aFormat;
-  if aFormat<>nil then
-    FPCUFilename:=aPasFilename;
-  {$ENDIF}
   FLog:=Compiler.Log;
   FPasResolver:=TPas2jsCompilerResolver.Create;
   FPasResolver.Owner:=Self;
@@ -846,22 +884,22 @@ begin
   FPasResolver.OnLog:=@OnPasResolverLog;
   FPasResolver.Log:=Log;
   FPasResolver.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
-  FIsMainFile:=CompareFilenames(Compiler.FileCache.MainSrcFile,PasFilename)=0;
+  FIsMainFile:=CompareFilenames(Compiler.MainSrcFile,PasFilename)=0;
   for ub in TUsedBySection do
     FUsedBy[ub]:=TFPList.Create;
   FUseAnalyzer:=TPasAnalyzer.Create;
   FUseAnalyzer.OnMessage:=@OnUseAnalyzerMessage;
   FUseAnalyzer.Resolver:=FPasResolver;
+  FPCUSupport:=CreatePCUSupport;
+  if FPCUSupport<>nil then
+    FPCUFilename:=aPasFilename;
 end;
 
 destructor TPas2jsCompilerFile.Destroy;
 var
   ub: TUsedBySection;
 begin
-  {$IFDEF HasPas2jsFiler}
-  FreeAndNil(FPCUReader);
-  FreeAndNil(FPCUReaderStream);
-  {$ENDIF}
+  FreeAndNil(FPCUSupport);
   FreeAndNil(FUseAnalyzer);
   for ub in TUsedBySection do
     FreeAndNil(FUsedBy[ub]);
@@ -875,6 +913,11 @@ begin
     FPasModule.ReleaseUsedUnits;
   ReleaseAndNil(TPasElement(FPasModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
   inherited Destroy;
+end;
+
+function TPas2jsCompilerFile.CreatePCUSupport: TPCUSupport;
+begin
+  Result:=Nil;
 end;
 
 function TPas2jsCompilerFile.GetInitialModeSwitches: TModeSwitches;
@@ -945,7 +988,8 @@ begin
   FScanner := TPas2jsPasScanner.Create(FileResolver);
   Scanner.LogEvents:=PascalResolver.ScannerLogEvents;
   Scanner.OnLog:=@OnScannerLog;
-  Scanner.OnFormatPath:=@Compiler.FileCache.FormatPath;
+  Scanner.OnFormatPath:=@Compiler.FormatPath;
+
 
   // create parser (Note: this sets some scanner options to defaults)
   FParser := TPas2jsPasParser.Create(Scanner, FileResolver, PascalResolver);
@@ -1087,40 +1131,6 @@ begin
           aScanner.CurFilename,aScanner.CurRow,aScanner.CurColumn);
 end;
 
-{$IFDEF HasPas2jsFiler}
-procedure TPas2jsCompilerFile.OnFilerGetSrc(Sender: TObject; aFilename: string;
-  out p: PChar; out Count: integer);
-var
-  SrcFile: TPas2jsCachedFile;
-begin
-  if Sender=nil then
-    RaiseInternalError(20180311135558,aFilename);
-  SrcFile:=Compiler.FileCache.LoadFile(aFilename);
-  if SrcFile=nil then
-    RaiseInternalError(20180311135329,aFilename);
-  p:=PChar(SrcFile.Source);
-  Count:=length(SrcFile.Source);
-end;
-
-function TPas2jsCompilerFile.OnPCUConverterIsElementUsed(Sender: TObject;
-  El: TPasElement): boolean;
-begin
-  if (coKeepNotUsedPrivates in Compiler.Options) then
-    Result:=true
-  else
-    Result:=UseAnalyzer.IsUsed(El);
-end;
-
-function TPas2jsCompilerFile.OnPCUConverterIsTypeInfoUsed(Sender: TObject;
-  El: TPasElement): boolean;
-begin
-  if Sender=nil then ;
-  if El=nil then ;
-  // PCU does not need precompiled typeinfo
-  Result:=false;
-end;
-{$ENDIF}
-
 procedure TPas2jsCompilerFile.OnScannerLog(Sender: TObject; const Msg: String);
 var
   aScanner: TPas2jsPasScanner;
@@ -1178,18 +1188,7 @@ begin
   Compiler.Terminate(ExitCodeConverterError);
 end;
 
-{$IFDEF HasPas2jsFiler}
-procedure TPas2jsCompilerFile.HandleEPCUReader(E: EPas2JsReadError);
-begin
-  if E.Owner is TPCUCustomReader then
-  begin
-    Log.Log(mtError,E.Message,0,PCUFilename);
-  end else begin
-    Log.Log(mtError,E.Message);
-  end;
-  Compiler.Terminate(ExitCodePCUError);
-end;
-{$ENDIF}
+
 
 procedure TPas2jsCompilerFile.HandleUnknownException(E: Exception);
 begin
@@ -1226,15 +1225,7 @@ begin
     Log.Log(mtFatal,E.Message);
     Compiler.Terminate(ExitCodeFileNotFound);
   end
-  {$IFDEF HasPas2jsFiler}
-  else if E is EPas2JsReadError then
-    HandleEPCUReader(EPas2JsReadError(E))
-  else if (E is EPas2JsWriteError) then
-  begin
-    Log.Log(mtFatal,E.ClassName+':'+E.Message);
-    Compiler.Terminate(ExitCodeErrorInternal);
-  end
-  {$ENDIF}
+  else if Not (Assigned(PCUSupport) and PCUSupport.HandleException(E)) then
   else
     HandleUnknownException(E);
 end;
@@ -1269,11 +1260,14 @@ begin
   Compiler.RaiseInternalError(id,Msg);
 end;
 
+Function TPas2jsCompilerFile.IsUnitReadFromPCU : Boolean;
+
+begin
+  Result:=Assigned(PCUSupport) and PCUSupport.HasReader;
+end;
+
 procedure TPas2jsCompilerFile.ReaderFinished;
-{$IFDEF HasPas2jsFiler}
-var
-  aPrecompileFormat: TPas2JSPrecompileFormat;
-{$ENDIF}
+
 begin
   FReaderState:=prsFinished;
   try
@@ -1285,30 +1279,18 @@ begin
       Log.DebugLogWriteLn(PasModule.GetDeclaration(true));
     end;
 
-    if{$IFDEF HasPas2jsFiler}PCUReader=nil{$ELSE}true{$ENDIF} then
-      begin
-      // read source module (instead of precompiled module)
+    if IsUnitReadFromPCU then
+      UseAnalyzer.Options:=UseAnalyzer.Options+[paoImplReferences];
 
-      {$IFDEF HasPas2jsFiler}
-      // -> analyze module
-      aPrecompileFormat:=Compiler.FileCache.PrecompileFormat;
-      if aPrecompileFormat<>nil then
-        UseAnalyzer.Options:=UseAnalyzer.Options+[paoImplReferences];
-      {$ENDIF}
-
-      {$IFDEF VerboseUnitQueue}
-      writeln('TPas2jsCompilerFile.ReaderFinished analyzing ',PasFilename,' ...');
-      {$ENDIF}
-      UseAnalyzer.AnalyzeModule(FPasModule);
-      {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-      writeln('TPas2jsCompilerFile.ReaderFinished analyzed ',PasFilename,' ScopeModule=',GetObjName(UseAnalyzer.ScopeModule));
-      {$ENDIF}
-
-      {$IFDEF HasPas2jsFiler}
-      if (aPrecompileFormat<>nil) and (PCUReader=nil) then
-        WritePCU;
-      {$ENDIF}
-      end;
+    {$IFDEF VerboseUnitQueue}
+    writeln('TPas2jsCompilerFile.ReaderFinished analyzing ',PasFilename,' ...');
+    {$ENDIF}
+    UseAnalyzer.AnalyzeModule(FPasModule);
+    {$IFDEF ReallyVerbose}
+    writeln('TPas2jsCompilerFile.ReaderFinished analyzed ',PasFilename,' ScopeModule=',GetObjName(UseAnalyzer.ScopeModule));
+    {$ENDIF}
+    if Assigned(PCUSupport) and Not PCUSupport.HasReader then
+      PCUSupport.WritePCU;
   except
     on E: ECompilerTerminate do
       raise;
@@ -1322,102 +1304,6 @@ begin
   end;
 end;
 
-{$IFDEF HasPas2jsFiler}
-function TPas2jsCompilerFile.OnWriterIsElementUsed(Sender: TObject;
-  El: TPasElement): boolean;
-begin
-  Result:=UseAnalyzer.IsUsed(El);
-end;
-
-procedure TPas2jsCompilerFile.WritePCU;
-var
-  PF: TPas2JSPrecompileFormat;
-  Writer: TPCUWriter;
-  ms: TMemoryStream;
-  DestDir: String;
-  JS: TJSElement;
-begin
-  if PasModule.ClassType<>TPasModule then
-  begin
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-    writeln('TPas2jsCompilerFile.WritePCU not a unit: ',PasFilename,' skip');
-    {$ENDIF}
-    exit;
-  end;
-
-  if (PCUFilename<>'') or (PCUReader<>nil) then
-  begin
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-    writeln('TPas2jsCompilerFile.WritePCU already precompiled "',PCUFilename,'" Reader=',GetObjName(PCUReader));
-    {$ENDIF}
-    exit;
-  end;
-  FPCUFilename:=Compiler.CreatePrecompileFilename(Self);
-  FPCUFormat:=Compiler.FileCache.PrecompileFormat;
-
-  {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-  writeln('TPas2jsCompilerFile.WritePCU precompiling ',PCUFilename);
-  {$ENDIF}
-
-  JS:=nil;
-  PF:=Compiler.FileCache.PrecompileFormat;
-  ms:=TMemoryStream.Create;
-  Writer:=PF.WriterClass.Create;
-  try
-    Writer.GUID:=Compiler.PrecompileGUID;
-    Writer.OnGetSrc:=@OnFilerGetSrc;
-    Writer.OnIsElementUsed:=@OnWriterIsElementUsed;
-
-    // create JavaScript for procs, initialization, finalization
-    CreateConverter;
-    Converter.Options:=Converter.Options+[coStoreImplJS];
-    Converter.OnIsElementUsed:=@OnPCUConverterIsElementUsed;
-    Converter.OnIsTypeInfoUsed:=@OnPCUConverterIsTypeInfoUsed;
-    JS:=Converter.ConvertPasElement(PasModule,PascalResolver);
-    Converter.Options:=Converter.Options-[coStoreImplJS];
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-    writeln('TPas2jsCompilerFile.WritePCU create pcu ... ',PCUFilename);
-    {$ENDIF}
-    Writer.WritePCU(PascalResolver,Converter,Compiler.PrecompileInitialFlags,ms,
-      {$IFDEF DisablePCUCompressed}false{$ELSE}true{$ENDIF});
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-    writeln('TPas2jsCompilerFile.WritePCU precompiled ',PCUFilename);
-    {$ENDIF}
-
-    Log.LogMsg(nWritingFile,[QuoteStr(Compiler.FileCache.FormatPath(PCUFilename))],'',0,0,
-               not (coShowLineNumbers in Compiler.Options));
-
-    // check output directory
-    DestDir:=ChompPathDelim(ExtractFilePath(PCUFilename));
-    if (DestDir<>'') and not Compiler.DirectoryExists(DestDir) then
-    begin
-      {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-      writeln('TPas2jsCompilerFile.WritePCU output dir not found "',DestDir,'"');
-      {$ENDIF}
-      Log.LogMsg(nOutputDirectoryNotFound,[QuoteStr(Compiler.FileCache.FormatPath(DestDir))]);
-      Compiler.Terminate(ExitCodeFileNotFound);
-    end;
-    if Compiler.DirectoryExists(PCUFilename) then
-    begin
-      {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-      writeln('TPas2jsCompilerFile.WritePCU file is folder "',DestDir,'"');
-      {$ENDIF}
-      Log.LogMsg(nFileIsFolder,[QuoteStr(Compiler.FileCache.FormatPath(PCUFilename))]);
-      Compiler.Terminate(ExitCodeWriteError);
-    end;
-
-    ms.Position:=0;
-    Compiler.FileCache.SaveToFile(ms,PCUFilename);
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-    writeln('TPas2jsCompilerFile.WritePCU written ',PCUFilename);
-    {$ENDIF}
-  finally
-    JS.Free;
-    Writer.Free;
-    ms.Free;
-  end;
-end;
-{$ENDIF}
 
 procedure TPas2jsCompilerFile.OpenFile(aFilename: string);
 begin
@@ -1449,14 +1335,9 @@ begin
     Compiler.AddReadingModule(Self);
     PascalResolver.InterfaceOnly:=IsForeign;
 
-    {$IFDEF HasPas2jsFiler}
-    if PCUReader<>nil then
-    begin
-      PCUReader.ReadPCU(PascalResolver,PCUReaderStream);
-      FPasModule:=PascalResolver.RootElement;
-      FReaderState:=prsCanContinue;
-    end else
-    {$ENDIF}
+    if Assigned(PCUSupport) then
+      PCUSupport.ReadUnit
+    else
     begin
       if IsMainFile then
         Parser.ParseMain(FPasModule)
@@ -1499,15 +1380,13 @@ begin
     {$IFDEF VerboseUnitQueue}
     writeln('TPas2jsCompilerFile.ReadContinue ',PasFilename);
     {$ENDIF}
-    {$IFDEF HasPas2jsFiler}
-    if PCUReader<>nil then
-      Result:=PCUReader.ReadContinue
+    if Assigned(PCUSupport) and PCUSupport.HasReader then
+      Result:=PCUSupport.ReadContinue
     else
-    {$ENDIF}
-    begin
+      begin
       Parser.ParseContinue;
       Result:=Parser.CurModule=nil;
-    end;
+      end;
     {$IFDEF VerboseUnitQueue}
     writeln('TPas2jsCompilerFile.ReadContinue ',PasFilename,' finished=',Result);
     {$ENDIF}
@@ -1537,13 +1416,12 @@ begin
   Result:=FReaderState;
   if Result=prsWaitingForUsedUnits then
   begin
-    {$IFDEF HasPas2jsFiler}
-    if PCUReader<>nil then
+    if Assigned(PCUSupport) and PCUSupport.HasReader then
     begin
-      if PCUReader.ReadCanContinue then
+      If PCUSupport.ReadCanContinue then
         Result:=prsCanContinue;
-    end else
-    {$ENDIF}
+    end
+    else
     begin
       if Parser.CanParseContinue(Section) then
         Result:=prsCanContinue;
@@ -1555,7 +1433,7 @@ procedure TPas2jsCompilerFile.CreateJS;
 begin
   try
     // show hints only for units that are actually converted
-    if {$IFDEF HasPas2jsFiler}PCUReader=nil{$ELSE}true{$ENDIF} then
+    if Not (Assigned(PCUSupport) and Not PCUSupport.HasReader) then
       begin
       //writeln('TPas2jsCompilerFile.CreateJS ',PasFilename);
       UseAnalyzer.EmitModuleHints(PasModule);
@@ -1578,6 +1456,7 @@ begin
     {$ENDIF}
   end;
 end;
+
 
 function TPas2jsCompilerFile.GetPasFirstSection: TPasSection;
 var
@@ -1685,94 +1564,12 @@ begin
   end;
 end;
 
-{$IFDEF HasPas2jsFiler}
-procedure TPas2jsCompilerFile.CreatePCUReader;
-var
-  aFile: TPas2jsCachedFile;
-  s: String;
-begin
-  if PCUFilename='' then
-    RaiseInternalError(20180312144742,PCUFilename);
-  if PCUReader<>nil then
-    RaiseInternalError(20180312142938,GetObjName(PCUReader));
-  if PCUFormat=nil then
-    RaiseInternalError(20180312142954,'');
-  FPCUReader:=PCUFormat.ReaderClass.Create;
-  FPCUReader.SourceFilename:=ExtractFileName(PCUFilename);
-
-  if ShowDebug then
-    Log.LogMsg(nParsingFile,[QuoteStr(PCUFilename)]);
-  aFile:=Compiler.FileCache.LoadFile(PCUFilename,true);
-  if aFile=nil then
-    RaiseInternalError(20180312145941,PCUFilename);
-  FPCUReaderStream:=TMemoryStream.Create;
-  s:=aFile.Source;
-  //writeln('TPas2jsCompilerFile.CreatePCUReader ',PCUFilename,'-----START-----');
-  //writeln(s);
-  //writeln('TPas2jsCompilerFile.CreatePCUReader ',PCUFilename,'-----END-------');
-  if s<>'' then
-  begin
-    PCUReaderStream.Write(s[1],length(s));
-    PCUReaderStream.Position:=0;
-  end;
-end;
-
-function TPas2jsCompilerFile.FindPCU(const UseUnitName: string; out
-  aFormat: TPas2JSPrecompileFormat): string;
-
-  function SearchInDir(DirPath: string): boolean;
-  var
-    i: Integer;
-    CurFormat: TPas2JSPrecompileFormat;
-    Filename: String;
-  begin
-    if DirPath='' then exit(false);
-    DirPath:=IncludeTrailingPathDelimiter(DirPath);
-    for i:=0 to PrecompileFormats.Count-1 do
-    begin
-      CurFormat:=PrecompileFormats[i];
-      if not CurFormat.Enabled then continue;
-      Filename:=DirPath+UseUnitName+'.'+CurFormat.Ext;
-      if FileResolver.SearchLowUpCase(Filename) then
-      begin
-        FindPCU:=Filename;
-        aFormat:=CurFormat;
-        exit(true);
-      end;
-    end;
-    Result:=false;
-  end;
-
-var
-  Cache: TPas2jsFilesCache;
-  i: Integer;
-begin
-  Result:='';
-  aFormat:=nil;
-  Cache:=Compiler.FileCache;
-
-  // search in output directory
-  if Cache.UnitOutputPath<>'' then
-    if SearchInDir(Cache.UnitOutputPath) then exit;
-
-  // then in BaseDirectory
-  if SearchInDir(FileResolver.BaseDirectory) then exit;
-
-  // finally search in unit paths
-  for i:=0 to Cache.UnitPaths.Count-1 do
-    if SearchInDir(Cache.UnitPaths[i]) then exit;
-end;
-{$ENDIF}
-
 function TPas2jsCompilerFile.OnResolverFindModule(const UseUnitName,
   InFilename: String; NameExpr, InFileExpr: TPasExpr): TPasModule;
 var
   FoundPasFilename, FoundPasUnitName: string;
   FoundPasIsForeign: Boolean;
-  {$IFDEF HasPas2jsFiler}
   FoundPCUFilename, FoundPCUUnitName: string;
-  FoundPCUFormat: TPas2JSPrecompileFormat;
-  {$ENDIF}
 
   procedure TryUnitName(const TestUnitName: string);
   var
@@ -1781,26 +1578,24 @@ var
     if FoundPasFilename='' then
     begin
       // search loaded units
-      aFile:=Compiler.FindUnitWithName(TestUnitName);
+      aFile:=Compiler.FindLoadedUnit(TestUnitName);
       if aFile<>nil then
       begin
         FoundPasFilename:=aFile.PasFilename;
         FoundPasUnitName:=TestUnitName;
       end else begin
         // search pas in unit path
-        FoundPasFilename:=FileResolver.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
+        FoundPasFilename:=Compiler.FileCache.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
         if FoundPasFilename<>'' then
           FoundPasUnitName:=TestUnitName;
       end;
     end;
-    {$IFDEF HasPas2jsFiler}
-    if FoundPCUFilename='' then
+    if Assigned(PCUSupport) and (FoundPCUFilename='')  then
     begin
-      FoundPCUFilename:=FindPCU(TestUnitName,FoundPCUFormat);
+      FoundPCUFilename:=PCUSupport.FindPCU(TestUnitName);
       if FoundPCUFilename<>'' then
         FoundPCUUnitName:=TestUnitName;
     end;
-    {$ENDIF}
   end;
 
 var
@@ -1818,11 +1613,8 @@ begin
   FoundPasFilename:='';
   FoundPasIsForeign:=false;
   FoundPasUnitName:='';
-  {$IFDEF HasPas2jsFiler}
   FoundPCUFilename:='';
-  FoundPCUFormat:=nil;
   FoundPCUUnitName:='';
-  {$ENDIF}
   if (InFilename='') and (Pos('.',UseUnitname)<1) then
   begin
     // generic unit -> search with namespaces
@@ -1831,7 +1623,7 @@ begin
     if DefNameSpace<>'' then
       TryUnitName(DefNameSpace+'.'+UseUnitname);
 
-    if (FoundPasFilename='') {$IFDEF HasPas2jsFiler}or (FoundPCUFilename=''){$ENDIF} then
+    if (FoundPasFilename='') or (FoundPCUFilename='') then
     begin
       // then the cmdline namespaces
       for i:=0 to Compiler.FileCache.Namespaces.Count-1 do begin
@@ -1848,7 +1640,7 @@ begin
     if InFilename='' then
     begin
       // search unitname in loaded units
-      aFile:=Compiler.FindUnitWithName(UseUnitname);
+      aFile:=Compiler.FindLoadedUnit(UseUnitname);
       if aFile<>nil then
       begin
         FoundPasFilename:=aFile.PasFilename;
@@ -1858,7 +1650,7 @@ begin
     if FoundPasFilename='' then
     begin
       // search Pascal file
-      FoundPasFilename:=FileResolver.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
+      FoundPasFilename:=Compiler.FileCache.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
       if FoundPasFilename<>'' then
         begin
         if InFilename<>'' then
@@ -1871,36 +1663,86 @@ begin
     end;
   end;
 
-  {$IFDEF HasPas2jsFiler}
-  if FoundPCUFilename='' then
+  if Assigned(PCUSupport) and (FoundPCUFilename='')  then
   begin
-    FoundPCUFilename:=FindPCU(UseUnitName,FoundPCUFormat);
+    FoundPCUFilename:=PCUSupport.FindPCU(UseUnitName);
     FoundPCUUnitName:=UseUnitName;
   end;
 
   if (FoundPasFilename='') and (FoundPCUFilename<>'') then
   begin
-    aFile:=LoadUsedUnit(FoundPCUFilename,FoundPCUUnitName,'',NameExpr,nil,false,FoundPCUFormat);
+    aFile:=LoadUsedUnit(FoundPCUFilename,FoundPCUUnitName,'',NameExpr,nil,false,True);
     if aFile<>nil then
       Result:=aFile.PasModule;
     exit;
   end;
-  {$ENDIF}
 
   if FoundPasFilename<>'' then
   begin
     // load unit
     aFile:=LoadUsedUnit(FoundPasFilename,FoundPasUnitName,InFilename,
-                         NameExpr,InFileExpr,FoundPasIsForeign);
+                         NameExpr,InFileExpr,FoundPasIsForeign,False);
     if aFile<>nil then
       Result:=aFile.PasModule;
   end;
   // if Result=nil resolver will give a nice error position
 end;
 
+function TPas2jsCompiler.ResolvedMainJSFile: string;
+
+Var
+  OP,UP : String;
+
+begin
+  OP:=FileCache.MainOutputPath;
+  UP:=FileCache.UnitOutputPath;
+  if MainJSFile='.' then
+    Result:=''
+  else begin
+    Result:=MainJSFile;
+    if Result<>'' then
+    begin
+      // has option -o
+      if ExtractFilePath(Result)='' then
+      begin
+        // -o<FileWithoutPath>
+        if OP<>'' then
+          Result:=OP+Result
+        else if UP<>'' then
+          Result:=UP+Result;
+      end;
+    end else begin
+      // no option -o
+      Result:=ChangeFileExt(MainSrcFile,'.js');
+      if OP<>'' then
+      begin
+        // option -FE and no -o => put into MainOutputPath
+        Result:=OP+ExtractFilename(Result)
+      end else if UP<>'' then
+      begin
+        // option -FU and no -o => put into UnitOutputPath
+        Result:=UP+ExtractFilename(Result)
+      end else begin
+        // no -FU and no -o => put into source directory
+      end;
+    end;
+  end;
+end;
+
+function TPas2jsCompiler.GetResolvedMainJSFile: string;
+
+begin
+  if not FIsMainJSFileResolved then
+    begin
+    FMainJSFileResolved:=ResolvedMainJSFile;
+    FIsMainJSFileResolved:=True;
+  end;
+  Result:=FMainJSFileResolved;
+end;
+
+
 function TPas2jsCompilerFile.LoadUsedUnit(const UseFilename, UseUnitname,
-  InFilename: String; NameExpr, InFileExpr: TPasExpr; UseIsForeign: boolean
-  {$IFDEF HasPas2jsFiler}; aFormat: TPas2JSPrecompileFormat{$ENDIF}
+  InFilename: String; NameExpr, InFileExpr: TPasExpr; UseIsForeign: boolean; IsPCU : Boolean
   ): TPas2jsCompilerFile;
 
   function FindCycle(aFile, SearchFor: TPas2jsCompilerFile;
@@ -1989,7 +1831,7 @@ begin
 
     if InFilename<>'' then
     begin
-      aFile:=Compiler.FindUnitWithName(UseUnitname);
+      aFile:=Compiler.FindLoadedUnit(UseUnitname);
       if aFile<>nil then
       begin
         {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
@@ -2002,24 +1844,21 @@ begin
 
     UseJSFilename:='';
     if (not IsForeign) then
-      UseJSFilename:=FileResolver.FindUnitJSFileName(UseFilename);
+      UseJSFilename:=Compiler.FindUnitJSFileName(UseFilename);
     //  Log.LogPlain(['Debug: TPas2jsPasTree.FindUnit Self=',FileResolver.Cache.FormatPath(PasFilename),
     //    ' Uses=',ActualUnitname,' Found="',FileResolver.Cache.FormatPath(UseFilename),'"',
     //    ' IsForeign=',IsForeign,' JSFile="',FileResolver.Cache.FormatPath(useJSFilename),'"']);
-
     // load Pascal or PCU file
-    Compiler.LoadPasFile(UseFilename,UseUnitname,aFile{$IFDEF HasPas2jsFiler},aFormat{$ENDIF});
+    Compiler.LoadPasFile(UseFilename,UseUnitname,aFile,IsPCU);
 
     // consistency checks
     if aFile.PasUnitName<>UseUnitname then
       RaiseInternalError(20170922143329,'aFile.PasUnitName='+aFile.PasUnitName+' UseUnitname='+UseUnitname);
-    {$IFDEF HasPas2jsFiler}
-    if aFormat<>nil then
+    if isPCU then
     begin
       if CompareFilenames(aFile.PCUFilename,UseFilename)<>0 then
         RaiseInternalError(20180312122331,'aFile.PCUFilename='+aFile.PCUFilename+' UseFilename='+UseFilename);
     end else
-    {$ENDIF}
     begin
       if CompareFilenames(aFile.PasFilename,UseFilename)<>0 then
         RaiseInternalError(20170922143330,'aFile.PasFilename='+aFile.PasFilename+' UseFilename='+UseFilename);
@@ -2034,7 +1873,7 @@ begin
     // add file to trees
     Compiler.AddUsedUnit(aFile);
     // consistency checks
-    OtherFile:=Compiler.FindUnitWithName(UseUnitname);
+    OtherFile:=Compiler.FindLoadedUnit(UseUnitname);
     if aFile<>OtherFile then
     begin
       if OtherFile=nil then
@@ -2140,25 +1979,16 @@ begin
   CombinedFileWriter:=nil;
   SrcFileCount:=0;
 
-  {$IFDEF HasPas2jsFiler}
-  if FileCache.PrecompileFormat<>nil then
-    CreateGUID(FPrecompileGUID);
-  {$ENDIF}
+  CreateGUID(FPrecompileGUID);
 
   ok:=false;
   try
     // load main Pascal file
-    LoadPasFile(FileCache.MainSrcFile,'',FMainFile);
+    LoadPasFile(MainSrcFile,'',FMainFile,False);
     if MainFile=nil then exit;
     // parse and load Pascal files recursively
-    {$IFDEF HasPas2jsFiler}
-    PrecompileInitialFlags.ParserOptions:=FMainFile.Parser.Options;
-    PrecompileInitialFlags.ModeSwitches:=FMainFile.Scanner.CurrentModeSwitches;
-    PrecompileInitialFlags.BoolSwitches:=FMainFile.Scanner.CurrentBoolSwitches;
-    PrecompileInitialFlags.ConverterOptions:=FMainFile.GetInitialConverterOptions;
-    PrecompileInitialFlags.TargetPlatform:=TargetPlatform;
-    PrecompileInitialFlags.TargetProcessor:=TargetProcessor;
-    {$ENDIF}
+    if Assigned(FMainFile.PCUSupport) then
+       FMainFile.PCUSupport.SetInitialCompileFlags;
     FMainFile.ReadUnit;
     ProcessQueue;
 
@@ -2220,7 +2050,7 @@ begin
         {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
         writeln('TPas2jsCompiler.ProcessQueue aFile=',aFile.PasFilename,' NOT YET READY');
         {$ENDIF}
-        if {$IFDEF HasPas2jsFiler}(aFile.PCUReader=nil) and{$ENDIF} (aFile.Parser.CurModule=nil) then
+        if (not aFile.IsUnitReadFromPCU) and (aFile.Parser.CurModule=nil) then
           RaiseInternalError(20180306111410,'File='+aFile.PasFilename+' Parser.CurModule=nil');
         continue;
         end;
@@ -2249,7 +2079,7 @@ begin
     aFile:=TPas2jsCompilerFile(FReadingModules[i]);
     if aFile.PascalResolver=nil then
       RaiseInternalError(20180313124125,aFile.PasFilename);
-    if {$IFDEF HasPas2jsFiler}(aFile.PCUReader=nil) and{$ENDIF} (aFile.Parser.CurModule<>nil) then
+    if (Not aFile.IsUnitReadFromPCU) and (aFile.Parser.CurModule<>nil) then
       begin
       {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
       writeln('TPas2jsCompiler.ProcessQueue aFile=',aFile.PasFilename,' was not finished');
@@ -2305,10 +2135,10 @@ begin
     exit(aFile.NeedBuild);
   Checked.Add(aFile);
 
-  if FileCache.AllJSIntoMainJS and (WPOAnalyzer<>nil)
+  if AllJSIntoMainJS and (WPOAnalyzer<>nil)
   and not WPOAnalyzer.IsUsed(aFile.PasModule) then
   begin
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
+    {$IFDEF REALLYVERBOSE}
     writeln('TPas2jsCompiler.MarkNeedBuilding module not used by WPO: ',aFile.PasFilename);
     {$ENDIF}
     exit(false);
@@ -2325,14 +2155,14 @@ begin
       Mark(nUnitNeedsCompileDueToOption,[aFile.GetModuleName,'<main source file>'])
     else if coBuildAll in Options then
       Mark(nUnitNeedsCompileDueToOption,[aFile.GetModuleName,'-B'])
-    else if FileCache.AllJSIntoMainJS then
+    else if AllJSIntoMainJS then
       Mark(nUnitNeedsCompileDueToOption,[aFile.GetModuleName,'-Jc'])
-    else if (aFile.JSFilename<>'') and (not DirectoryCache.FileExists(aFile.JSFilename)) then
-      Mark(nUnitNeedsCompileJSMissing,[aFile.GetModuleName,FileCache.FormatPath(aFile.JSFilename)])
+    else if (aFile.JSFilename<>'') and (not FileCache.FileExists(aFile.JSFilename)) then
+      Mark(nUnitNeedsCompileJSMissing,[aFile.GetModuleName,FormatPath(aFile.JSFilename)])
     else if (aFile.JSFilename<>'')
-    and (DirectoryCache.FileAge(aFile.PasFilename)>DirectoryCache.FileAge(aFile.JSFilename))
+    and (FileCache.FileAge(aFile.PasFilename)>FileCache.FileAge(aFile.JSFilename))
     then begin
-      Mark(nUnitNeedsCompilePasHasChanged,[aFile.GetModuleName,QuoteStr(FileCache.FormatPath(aFile.JSFilename))])
+      Mark(nUnitNeedsCompilePasHasChanged,[aFile.GetModuleName,FullFormatPath(aFile.JSFilename)])
     end;
   end;
 
@@ -2352,7 +2182,7 @@ end;
 
 procedure TPas2jsCompiler.OptimizeProgram(aFile: TPas2jsCompilerFile);
 begin
-  if not FileCache.AllJSIntoMainJS then exit;
+  if not AllJSIntoMainJS then exit;
   if coKeepNotUsedDeclarationsWPO in Options then exit;
   if not (aFile.PasModule is TPasProgram) then exit;
   FWPOAnalyzer:=TPas2JSWPOptimizer.Create;
@@ -2360,18 +2190,6 @@ begin
   FWPOAnalyzer.Options:=FWPOAnalyzer.Options+[paoOnlyExports];
   FWPOAnalyzer.AnalyzeWholeProgram(TPasProgram(aFile.PasModule));
 end;
-
-{$IFDEF HasPas2jsFiler}
-function TPas2jsCompiler.CreatePrecompileFilename(aFile: TPas2jsCompilerFile
-  ): string;
-begin
-  Result:=ExtractFilenameOnly(aFile.PasFilename)+'.'+FileCache.PrecompileFormat.Ext;
-  if FileCache.UnitOutputPath<>'' then
-    Result:=FileCache.UnitOutputPath+Result
-  else
-    Result:=ExtractFilePath(aFile.PasFilename)+Result;
-end;
-{$ENDIF}
 
 procedure TPas2jsCompiler.CreateJavaScript(aFile: TPas2jsCompilerFile;
   Checked: TPasAnalyzerKeySet);
@@ -2398,7 +2216,7 @@ begin
   if Checked.FindItem(aFile)<>nil then exit;
   Checked.Add(aFile);
 
-  Log.LogMsg(nCompilingFile,[QuoteStr(FileCache.FormatPath(aFile.PasFilename))],'',0,0,
+  Log.LogMsg(nCompilingFile,[FullFormatPath(aFile.PasFilename)],'',0,0,
     not (coShowLineNumbers in Options));
 
   // convert dependencies
@@ -2421,7 +2239,7 @@ begin
   for i:=0 to SrcMap.SourceCount-1 do begin
     LocalFilename:=SrcMap.SourceFiles[i];
     if LocalFilename='' then continue;
-    if SrcMapInclude and DirectoryCache.FileExists(LocalFilename) then
+    if SrcMapInclude and FileCache.FileExists(LocalFilename) then
     begin
       // include source in SrcMap
       aFile:=FileCache.LoadFile(LocalFilename);
@@ -2520,13 +2338,13 @@ begin
   Checked.Add(aFile);
 
   FreeWriter:=false;
-  if FileCache.AllJSIntoMainJS and (CombinedFileWriter=nil) then
+  if AllJSIntoMainJS and (CombinedFileWriter=nil) then
   begin
     // create CombinedFileWriter
-    DestFilename:=FileCache.GetResolvedMainJSFile;
+    DestFilename:=GetResolvedMainJSFile;
     CreateFileWriter(DestFilename);
     CombinedFileWriter:=aFileWriter;
-    FileCache.InsertCustomJSFiles(CombinedFileWriter);
+    InsertCustomJSFiles(CombinedFileWriter);
   end else begin
     DestFilename:=aFile.JSFilename;
   end;
@@ -2542,8 +2360,8 @@ begin
     begin
       // create writer for this file
       CreateFileWriter(DestFilename);
-      if aFile.IsMainFile and not FileCache.AllJSIntoMainJS then
-        FileCache.InsertCustomJSFiles(aFileWriter);
+      if aFile.IsMainFile and not AllJSIntoMainJS then
+        InsertCustomJSFiles(aFileWriter);
     end;
 
     // write JavaScript
@@ -2556,7 +2374,7 @@ begin
       on E: Exception do begin
         if ShowDebug then
           Log.LogExceptionBackTrace(E);
-        Log.LogPlain('[20180204193420] Error while creating JavaScript "'+FileCache.FormatPath(DestFilename)+'": '+E.Message);
+        Log.LogPlain('[20180204193420] Error while creating JavaScript '+FullFormatPath(DestFilename)+': '+E.Message);
         Terminate(ExitCodeErrorInternal);
       end
       {$IFDEF Pas2js}
@@ -2575,7 +2393,7 @@ begin
       if DoWriteJSFile(aFile.JSFilename,aFileWriter) then
         exit;// descendant has written -> finished
 
-      if (aFile.JSFilename='') and (FileCache.MainJSFile='.') then
+      if (aFile.JSFilename='') and (MainJSFile='.') then
       begin
         // write to stdout
         if FreeWriter then
@@ -2596,19 +2414,19 @@ begin
         // write to file
 
         //writeln('TPas2jsCompiler.WriteJSFiles ',aFile.PasFilename,' ',aFile.JSFilename);
-        Log.LogMsg(nWritingFile,[QuoteStr(FileCache.FormatPath(DestFilename))],'',0,0,
+        Log.LogMsg(nWritingFile,[FullFormatPath(DestFilename)],'',0,0,
                    not (coShowLineNumbers in Options));
 
         // check output directory
         DestDir:=ChompPathDelim(ExtractFilePath(DestFilename));
         if (DestDir<>'') and not DirectoryExists(DestDir) then
         begin
-          Log.LogMsg(nOutputDirectoryNotFound,[QuoteStr(FileCache.FormatPath(DestDir))]);
+          Log.LogMsg(nOutputDirectoryNotFound,[FullFormatPath(DestDir)]);
           Terminate(ExitCodeFileNotFound);
         end;
         if DirectoryExists(DestFilename) then
         begin
-          Log.LogMsg(nFileIsFolder,[QuoteStr(FileCache.FormatPath(DestFilename))]);
+          Log.LogMsg(nFileIsFolder,[FullFormatPath(DestFilename)]);
           Terminate(ExitCodeWriteError);
         end;
 
@@ -2666,7 +2484,7 @@ begin
             if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
             {$ENDIF}
               Log.LogPlain('Error: '+E.Message);
-            Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(DestFilename))]);
+            Log.LogMsg(nUnableToWriteFile,[FullFormatPath(DestFilename)]);
             Terminate(ExitCodeWriteError);
           end
           {$IFDEF Pas2js}
@@ -2677,7 +2495,7 @@ begin
         // write source map
         if aFileWriter.SrcMap<>nil then
         begin
-          Log.LogMsg(nWritingFile,[QuoteStr(FileCache.FormatPath(MapFilename))],'',0,0,
+          Log.LogMsg(nWritingFile,[FullFormatPath(MapFilename)],'',0,0,
                      not (coShowLineNumbers in Options));
           FinishSrcMap(aFileWriter.SrcMap);
           try
@@ -2709,7 +2527,7 @@ begin
               if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
               {$ENDIF}
                 Log.LogPlain('Error: '+E.Message);
-              Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(MapFilename))]);
+              Log.LogMsg(nUnableToWriteFile,[FullFormatPath(MapFilename)]);
               Terminate(ExitCodeWriteError);
             end
             {$IFDEF Pas2js}
@@ -2864,11 +2682,6 @@ begin
   Result:=coSkipDefaultConfigs in FOptions;
 end;
 
-function TPas2jsCompiler.GetSrcMapBaseDir: string;
-begin
-  Result:=FileCache.SrcMapBaseDir;
-end;
-
 function TPas2jsCompiler.GetSrcMapEnable: boolean;
 begin
   Result:=coSourceMapCreate in FOptions;
@@ -2907,8 +2720,8 @@ begin
   if FMode=AValue then Exit;
   FMode:=AValue;
   case FMode of
-  p2jmObjFPC: Options:=Options-[coAllowCAssignments];
-  p2jmDelphi: Options:=Options-[coAllowCAssignments];
+    p2jmObjFPC: Options:=Options-[coAllowCAssignments];
+    p2jmDelphi: Options:=Options-[coAllowCAssignments];
   end;
 end;
 
@@ -2956,8 +2769,12 @@ begin
 end;
 
 procedure TPas2jsCompiler.SetSrcMapBaseDir(const AValue: string);
+var
+  NewValue: String;
 begin
-  FileCache.SrcMapBaseDir:=AValue;
+  NewValue:=FileCache.ExpandDirectory(AValue,FileCache.BaseDirectory);
+  if FSrcMapBaseDir=NewValue then Exit;
+  FSrcMapBaseDir:=NewValue;
 end;
 
 procedure TPas2jsCompiler.SetSrcMapEnable(const AValue: boolean);
@@ -2981,7 +2798,7 @@ begin
   RemoveDefine(PasToJsPlatformNames[TargetPlatform]);
   FTargetPlatform:=AValue;
   if FTargetPlatform=PlatformNodeJS then
-    FileCache.AllJSIntoMainJS:=true;
+    AllJSIntoMainJS:=true;
   AddDefinesForTargetPlatform;
 end;
 
@@ -3250,7 +3067,7 @@ procedure TPas2jsCompiler.LoadDefaultConfig;
     aFilename:=ExpandFileName(aFilename);
     if ShowDebug or ShowTriedUsedFiles then
       Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
-    if not DirectoryCache.FileExists(aFilename) then exit;
+    if not FileCache.FileExists(aFilename) then exit;
     Result:=true;
     LoadConfig(aFilename);
   end;
@@ -3292,6 +3109,331 @@ begin
   Terminate(ExitCodeErrorInParams);
 end;
 
+procedure TPas2jsCompiler.HandleOptionPCUFormat(aValue : String);
+
+begin
+  ParamFatal('No PCU support in this compiler for '+aValue);
+end;
+
+Function TPas2JSCompiler.HandleOptionPaths(C : Char; aValue : String; FromCmdLine : Boolean) : Boolean;
+
+Var
+  ErrorMsg : String;
+
+begin
+  Result:=True;
+  case c of
+    'e': Log.OutputFilename:=aValue;
+    'E': FileCache.MainOutputPath:=aValue;
+    'i': if not FileCache.AddIncludePaths(aValue,FromCmdLine,ErrorMsg) then
+           ParamFatal('invalid include path (-Fi) "'+ErrorMsg+'"');
+    'N': if not FileCache.AddNamespaces(aValue,FromCmdLine,ErrorMsg) then
+           ParamFatal('invalid namespace (-FN) "'+ErrorMsg+'"');
+    'r': Log.Log(mtNote,'-Fr not yet implemented');
+    'u': if not FileCache.AddUnitPaths(aValue,FromCmdLine,ErrorMsg) then
+           ParamFatal('invalid unit path (-Fu) "'+ErrorMsg+'"');
+    'U': FileCache.UnitOutputPath:=aValue;
+  else
+    Result:=False;
+  end;
+end;
+
+function TPas2jsCompiler.HandleOptionOptimization(C: Char; aValue: String): Boolean;
+
+Var
+  Enable : Boolean;
+
+begin
+  Result:=True;
+  case C of
+  '-': Options:=Options-coO1Enable+coO1Disable;
+  '1': Options:=Options+coO1Enable-coO1Disable;
+  'o':
+    begin
+    if aValue='' then
+      ParamFatal('missing -Oo option');
+    Enable:=true;
+    c:=aValue[length(aValue)];
+    if c in ['+','-'] then
+    begin
+      Enable:=c='+';
+      Delete(aValue,length(aValue),1);
+    end;
+    Case LowerCase(avalue) of
+     'enumnumbers': SetOption(coEnumValuesAsNumbers,Enable);
+     'emovenotusedprivates': SetOption(coKeepNotUsedPrivates,not Enable);
+     'removenotuseddeclarations': SetOption(coKeepNotUsedDeclarationsWPO,not Enable)
+    else
+      Result:=False;
+    end;
+    end;
+  else
+    Result:=False;
+  end;
+
+end;
+
+function TPas2jsCompiler.HandleOptionJS(C: Char; aValue: String; Quick, FromCmdLine: Boolean): Boolean;
+
+Var
+  S, ErrorMsg : String;
+  i : Integer;
+  enable : Boolean;
+  PostProc : TStringList;
+
+begin
+  Result:=True;
+  case c of
+  'c':
+    begin
+      if aValue='' then
+        AllJSIntoMainJS:=true
+      else if (AValue='-') then
+        AllJSIntoMainJS:=false
+      else
+        ParamFatal('invalid value (-Jc) "'+aValue+'"');
+    end;
+  'e':
+    begin
+    S:=NormalizeEncoding(aValue);
+    case S of
+    {$IFDEF FPC_HAS_CPSTRING}
+    'console','system',
+    {$ENDIF}
+    'utf8', 'json':
+      if Log.Encoding<>S then begin
+        Log.Encoding:=S;
+        if FHasShownEncoding then begin
+          FHasShownEncoding:=false;
+          WriteEncoding;
+        end;
+      end;
+    else ParamFatal('invalid encoding (-Je) "'+aValue+'"');
+    end;
+    end;
+  'i':
+    if aValue='' then
+      ParamFatal('missing insertion file "'+aValue+'"')
+    else if not Quick then
+    begin
+      if aValue='' then
+        Result:=false
+      else if aValue[length(aValue)]='-' then
+      begin
+        Delete(aValue,length(aValue),1);
+        if aValue='' then
+          Result:=False
+        else
+          RemoveInsertJSFilename(aValue);
+      end else
+        AddInsertJSFilename(aValue);
+    end;
+  'l': SetOption(coLowercase,aValue<>'-');
+  'm':
+    // source map options
+    if aValue='' then
+      SrcMapEnable:=true
+    else if aValue[1]='-' then
+    begin
+      if aValue<>'-' then
+        Result:=False
+      else
+        SrcMapEnable:=false;
+    end else
+    begin
+      case aValue of
+      'include':
+        SrcMapInclude:=true;
+      'include-':
+        SrcMapInclude:=false;
+      'xssiheader':
+        SrcMapXSSIHeader:=true;
+      'xssiheader-':
+        SrcMapXSSIHeader:=false;
+      else
+        begin
+        i:=Pos('=',aValue);
+        if i<1 then
+          result:=false
+        else
+          begin
+          S:=LeftStr(aValue,i-1);
+          Delete(aValue,1,i);
+          Case s of
+            'sourceroot': SrcMapSourceRoot:=aValue;
+            'basedir' : SrcMapBaseDir:=aValue;
+          else
+            Result:=False;
+          end;
+          end;
+        end;
+      end;
+      // enable source maps when setting any -Jm<x> option
+      SrcMapEnable:=true;
+    end;
+  'o':
+    begin
+      // -Jo<flag>
+      S:=aValue;
+      if S='' then
+        ParamFatal('missing value of -Jo option');
+      Enable:=true;
+      c:=S[length(S)];
+      if c in ['+','-'] then
+      begin
+        Enable:=c='+';
+        Delete(S,length(S),1);
+      end;
+      Case lowercase(S) of
+        'searchlikefpc' : FileCache.SearchLikeFPC:=Enable;
+        'usestrict' : SetOption(coUseStrict,Enable);
+        'checkversion=main' : RTLVersionCheck:=rvcMain;
+        'checkversion=system' : RTLVersionCheck:=rvcSystem;
+        'checkversion=unit' : RTLVersionCheck:=rvcUnit;
+      else
+        Result:=False;
+      end;
+    end;
+  'p':
+    // -Jp<...>
+    begin
+    Result:=copy(aValue,1,3)='cmd';
+    if Result then
+      begin
+      delete(aValue,1,3);
+      if not Quick then
+      begin
+        PostProc:=TStringList.Create;
+        PostProcs.Add(PostProc);
+        SplitCmdLineParams(aValue,PostProc);
+        if PostProc.Count<1 then
+          ParamFatal('-Jpcmd executable missing');
+        // check executable
+        S:=FileCache.ExpandExecutable(PostProc[0],'');
+        if (S='') then
+          ParamFatal('-Jpcmd executable "'+S+'" not found');
+        PostProc[0]:=S;
+      end;
+      end;
+    end;
+  'u':
+    if not Quick then
+      if not FileCache.AddSrcUnitPaths(aValue,FromCmdLine,ErrorMsg) then
+        ParamFatal('invalid foreign unit path (-Ju) "'+ErrorMsg+'"');
+  'U': HandleOptionPCUFormat(aValue);
+  else
+    Result:=False;
+  end;
+end;
+
+procedure TPas2jsCompiler.HandleOptionConfigFile(aPos : Integer; const aFileName : string);
+
+Var
+  FN : String;
+
+begin
+  // load extra config file
+  if aFilename='' then
+    ParamFatal('invalid config file at param position '+IntToStr(aPos));
+  FN:=ExpandFileName(aFilename);
+  if not FileCache.FileExists(FN) then
+    ParamFatal('config file not found: "'+aFileName+'"');
+  LoadConfig(FN);
+end;
+
+Procedure TPas2JSCompiler.HandleOptionInfo(aValue : string);
+
+Var
+  infoMsg : String;
+
+  procedure AppendInfo(Add: string);
+  begin
+    if InfoMsg<>'' then
+      InfoMsg:=InfoMsg+' ';
+    InfoMsg:=InfoMsg+Add;
+  end;
+
+Var
+  P,L : integer;
+  C,c2 : Char;
+  pr : TPasToJsProcessor;
+  pl : TPasToJsPlatform;
+
+begin
+  // write information and halt
+  InfoMsg:='';
+  if aValue='' then
+    begin
+    WriteInfo;
+    Terminate(0);
+    exit;
+    end;
+  P:=1;
+  L:=Length(aValue);
+  while p<=l do
+    begin
+    C:=aValue[P];
+    case C of
+    'D': // wite compiler date
+      AppendInfo(GetCompiledDate);
+    'V': // write short version
+      AppendInfo(GetVersion(true));
+    'W': // write long version
+      AppendInfo(GetVersion(false));
+    'S':
+      begin
+      inc(p);
+      if p>l then
+        ParamFatal('missing info option after S in "'+aValue+'".');
+      C2:=aValue[p];
+      case C2 of
+      'O': // write source OS
+        AppendInfo(GetCompiledTargetOS);
+      'P': // write source processor
+        AppendInfo(GetCompiledTargetCPU);
+      else
+        ParamFatal('unknown info option S"'+C2+'" in "'+aValue+'".');
+      end;
+      end;
+    'T':
+      begin
+      inc(p);
+      if p>l then
+        ParamFatal('missing info option after T in "'+aValue+'".');
+      C2:=aValue[p];
+      case C2 of
+      'O': // write target platform
+        AppendInfo(PasToJsPlatformNames[TargetPlatform]);
+      'P': // write target processor
+        AppendInfo(PasToJsProcessorNames[TargetProcessor]);
+      else
+        ParamFatal('unknown info option S"'+C2+'" in "'+aValue+'".');
+      end;
+      end;
+    'c':
+      // write list of supported JS processors
+      for pr  in TPasToJsProcessor do
+        Log.LogPlain(PasToJsProcessorNames[pr]);
+    'o':
+      begin
+      // write list of optimizations
+      Log.LogPlain('EnumNumbers');
+      Log.LogPlain('RemoveNotUsedPrivates');
+      Log.LogPlain('RemoveNotUsedDeclarations');
+      end;
+    't':
+      // write list of supported targets
+      for pl in TPasToJsPlatform do
+        Log.LogPlain(PasToJsPlatformNames[pl]);
+    else
+      ParamFatal('unknown info option "'+C+'" in "'+aValue+'".');
+    end;
+    inc(p);
+    end;
+  if infoMsg<>'' then
+    Log.LogPlain(infoMsg);
+end;
+
 procedure TPas2jsCompiler.ReadParam(Param: string; Quick, FromCmdLine: boolean);
 
   procedure UnknownParam;
@@ -3299,25 +3441,13 @@ procedure TPas2jsCompiler.ReadParam(Param: string; Quick, FromCmdLine: boolean);
     ParamFatal('unknown parameter "'+Param+'". Use -h for help.');
   end;
 
-  procedure AppendInfo(var Value: string; Add: string);
-  begin
-    if Value<>'' then
-      Value:=Value+' ';
-    Value:=Value+Add;
-  end;
-
 var
-  EnabledFlags, DisabledFlags, Identifier, Value, aFilename, ErrorMsg: string;
+  EnabledFlags, DisabledFlags, Identifier, aValue: string;
   p, l, i: Integer;
   c: Char;
-  aProc, pr: TPasToJsProcessor;
-  Enable: Boolean;
-  aPlatform, pl: TPasToJsPlatform;
-  PostProc: TStringList;
-  {$IFDEF HasPas2jsFiler}
-  Found: Boolean;
-  PF: TPas2JSPrecompileFormat;
-  {$ENDIF}
+  aProc: TPasToJsProcessor;
+  aPlatform: TPasToJsPlatform;
+
 begin
   //writeln('TPas2jsCompiler.ReadParam ',Param,' ',Quick,' ',FromCmdLine);
   if ShowDebug then
@@ -3343,78 +3473,12 @@ begin
       inc(p);
       if p>l then
         UnknownParam;
+      aValue:=Copy(Param,P+1,Length(Param));
       case Param[p] of
       'i':
         begin
-          // write information and halt
-          if Param='-i' then
-          begin
-            WriteInfo;
-            Terminate(0);
-            exit;
-          end;
-          inc(p);
-          Value:='';
-          while p<=l do
-          begin
-            case Param[p] of
-            'D': // wite compiler date
-              AppendInfo(Value,GetCompiledDate);
-            'V': // write short version
-              AppendInfo(Value,GetVersion(true));
-            'W': // write long version
-              AppendInfo(Value,GetVersion(false));
-            'S':
-              begin
-              inc(p);
-              if p>l then
-                ParamFatal('missing info option after S in "'+Param+'".');
-              case Param[p] of
-              'O': // write source OS
-                AppendInfo(Value,GetCompiledTargetOS);
-              'P': // write source processor
-                AppendInfo(Value,GetCompiledTargetCPU);
-              else
-                ParamFatal('unknown info option S"'+Param[p]+'" in "'+Param+'".');
-              end;
-              end;
-            'T':
-              begin
-              inc(p);
-              if p>l then
-                ParamFatal('missing info option after T in "'+Param+'".');
-              case Param[p] of
-              'O': // write target platform
-                AppendInfo(Value,PasToJsPlatformNames[TargetPlatform]);
-              'P': // write target processor
-                AppendInfo(Value,PasToJsProcessorNames[TargetProcessor]);
-              else
-                ParamFatal('unknown info option S"'+Param[p]+'" in "'+Param+'".');
-              end;
-              end;
-            'c':
-              // write list of supported JS processors
-              for pr in TPasToJsProcessor do
-                Log.LogPlain(PasToJsProcessorNames[pr]);
-            'o':
-              begin
-              // write list of optimizations
-              Log.LogPlain('EnumNumbers');
-              Log.LogPlain('RemoveNotUsedPrivates');
-              Log.LogPlain('RemoveNotUsedDeclarations');
-              end;
-            't':
-              // write list of supported targets
-              for pl in TPasToJsPlatform do
-                Log.LogPlain(PasToJsPlatformNames[pl]);
-            else
-              ParamFatal('unknown info option "'+Param[p]+'" in "'+Param+'".');
-            end;
-            inc(p);
-          end;
-          if Value<>'' then
-            Log.LogPlain(Value);
-          Terminate(0);
+        HandleOptionInfo(aValue);
+        Terminate(0);
         end;
       'B','l','n':
         begin
@@ -3435,22 +3499,19 @@ begin
           end;
         end;
       'C': // code generation
-        begin
-          inc(p);
-          ReadCodeGenerationFlags(Param,p);
-        end;
+          ReadCodeGenerationFlags(aValue,1);
       'd': // define
         if not Quick then
         begin
-          Identifier:=copy(Param,3,length(Param));
+          Identifier:=aValue;
           i:=Pos(':=',Identifier);
           if i>0 then
           begin
-            Value:=copy(Identifier,i+2,length(Identifier));
+            aValue:=copy(Identifier,i+2,length(Identifier));
             Identifier:=LeftStr(Identifier,i-1);
             if not IsValidIdent(Identifier) then
               ParamFatal('invalid define name (-d): "'+Param+'"');
-            AddDefine(Identifier,Value);
+            AddDefine(Identifier,aValue);
           end else begin
             if not IsValidIdent(Identifier) then
               ParamFatal('invalid define (-d): "'+Param+'"');
@@ -3459,290 +3520,83 @@ begin
         end;
       'F': // folders and search paths
         begin
-          inc(p);
-          if p>l then
+          if aValue='' then
             UnknownParam;
-          c:=Param[p];
-          inc(p);
-          case c of
-          'e': Log.OutputFilename:=copy(Param,p,length(Param));
-          'E': FileCache.MainOutputPath:=copy(Param,p,length(Param));
-          'i': if not FileCache.AddIncludePaths(copy(Param,p,length(Param)),FromCmdLine,ErrorMsg) then
-                 ParamFatal('invalid include path (-Fi) "'+ErrorMsg+'"');
-          'N': if not FileCache.AddNamespaces(copy(Param,p,length(Param)),FromCmdLine,ErrorMsg) then
-                 ParamFatal('invalid namespace (-FN) "'+ErrorMsg+'"');
-          'r': if not Quick then
-                 Log.Log(mtNote,'-Fr not yet implemented');
-          'u': if not FileCache.AddUnitPaths(copy(Param,p,length(Param)),FromCmdLine,ErrorMsg) then
-                 ParamFatal('invalid unit path (-Fu) "'+ErrorMsg+'"');
-          'U': FileCache.UnitOutputPath:=copy(Param,p,length(Param));
-          else UnknownParam;
-          end;
+          c:=aValue[1];
+          Delete(aValue,1,1);
+          if not HandleOptionPaths(c,aValue,fromCmdLine) then
+            UnknownParam;
         end;
       'I': // include path, same as -Fi
         if not Quick then
         begin
-          inc(p);
-          if not FileCache.AddIncludePaths(copy(Param,p,length(Param)),FromCmdLine,ErrorMsg) then
-            ParamFatal('invalid include path (-I) "'+ErrorMsg+'"');
+          if not HandleOptionPaths('i',aValue,fromCmdLine) then
+            UnknownParam;
         end;
       'J': // extra pas2js options
         begin
-          inc(p);
-          if p>l then
+          if aValue='' then
             UnknownParam;
-          c:=Param[p];
-          inc(p);
-          case c of
-          'c':
-            begin
-              if p>l then
-                FileCache.AllJSIntoMainJS:=true
-              else if (p=l) and (Param[p]='-') then
-                FileCache.AllJSIntoMainJS:=false
-              else
-                ParamFatal('invalid value (-Jc) "'+copy(Param,p,length(Param))+'"');
-            end;
-          'e':
-            begin
-            Identifier:=NormalizeEncoding(copy(Param,p,length(Param)));
-            case Identifier of
-            {$IFDEF FPC_HAS_CPSTRING}
-            'console','system',
-            {$ENDIF}
-            'utf8', 'json':
-              if Log.Encoding<>Identifier then begin
-                Log.Encoding:=Identifier;
-                if FHasShownEncoding then begin
-                  FHasShownEncoding:=false;
-                  WriteEncoding;
-                end;
-              end;
-            else ParamFatal('invalid encoding (-Je) "'+copy(Param,p,length(Param))+'"');
-            end;
-            end;
-          'i':
-            if p>l then
-              ParamFatal('missing insertion file "'+Param+'"')
-            else if not Quick then
-            begin
-              aFilename:=copy(Param,p,length(Param));
-              if aFilename='' then
-                UnknownParam;
-              if aFilename[length(aFilename)]='-' then
-              begin
-                Delete(aFilename,length(aFilename),1);
-                if aFilename='' then
-                  UnknownParam;
-                FileCache.RemoveInsertJSFilename(aFilename);
-              end else
-                FileCache.AddInsertJSFilename(aFilename);
-            end;
-          'l': SetOption(coLowerCase,(p>l) or (Param[p]<>'-'));
-          'm':
-            // source map options
-            if p>l then
-              SrcMapEnable:=true
-            else if Param[p]='-' then
-            begin
-              if p<l then
-                UnknownParam;
-              SrcMapEnable:=false;
-            end else
-            begin
-              Value:=copy(Param,p,length(Param));
-              case Value of
-              'include':
-                SrcMapInclude:=true;
-              'include-':
-                SrcMapInclude:=false;
-              'xssiheader':
-                SrcMapXSSIHeader:=true;
-              'xssiheader-':
-                SrcMapXSSIHeader:=false;
-              else
-                begin
-                i:=Pos('=',Value);
-                if i<1 then
-                  UnknownParam;
-                Identifier:=LeftStr(Value,i-1);
-                Delete(Value,1,i);
-                if Identifier='sourceroot' then
-                  SrcMapSourceRoot:=Value
-                else if Identifier='basedir' then
-                  SrcMapBaseDir:=Value
-                else
-                  UnknownParam;
-                end;
-              end;
-              // enable source maps when setting any -Jm<x> option
-              SrcMapEnable:=true;
-            end;
-          'o':
-            begin
-              // -Jo<flag>
-              Identifier:=copy(Param,p,length(Param));
-              if Identifier='' then
-                ParamFatal('missing value of -Jo option');
-              Enable:=true;
-              c:=Identifier[length(Identifier)];
-              if c in ['+','-'] then
-              begin
-                Enable:=c='+';
-                Delete(Identifier,length(Identifier),1);
-              end;
-              if SameText(Identifier,'SearchLikeFPC') then
-                FileCache.SearchLikeFPC:=Enable
-              else if SameText(Identifier,'UseStrict') then
-                SetOption(coUseStrict,Enable)
-              else if Enable and SameText(Identifier,'CheckVersion=main') then
-                RTLVersionCheck:=rvcMain
-              else if Enable and SameText(Identifier,'CheckVersion=system') then
-                RTLVersionCheck:=rvcSystem
-              else if Enable and SameText(Identifier,'CheckVersion=unit') then
-                RTLVersionCheck:=rvcUnit
-              else
-                UnknownParam;
-            end;
-          'p':
-            // -Jp<...>
-            if copy(Param,p,3)='cmd' then
-            begin
-              inc(p,3);
-              if not Quick then
-              begin
-                PostProc:=TStringList.Create;
-                PostProcs.Add(PostProc);
-                SplitCmdLineParams(copy(Param,p,length(Param)),PostProc);
-                if PostProc.Count<1 then
-                  ParamFatal('-Jpcmd executable missing');
-                // check executable
-                Value:=PostProc[0];
-                aFilename:=FileCache.ExpandExecutable(PostProc[0],'');
-                if aFilename='' then
-                  ParamFatal('-Jpcmd executable "'+Value+'" not found');
-                PostProc[0]:=aFilename;
-              end;
-            end else
-              UnknownParam;
-          'u':
-            if not Quick then
-              if not FileCache.AddSrcUnitPaths(copy(Param,p,length(Param)),FromCmdLine,ErrorMsg) then
-                ParamFatal('invalid foreign unit path (-Ju) "'+ErrorMsg+'"');
-          {$IFDEF HasPas2jsFiler}
-          'U':
-            begin
-              Value:=copy(Param,p,length(Param));
-              Found:=false;
-              for i:=0 to PrecompileFormats.Count-1 do
-              begin
-                PF:=PrecompileFormats[i];
-                if not SameText(Value,PF.Ext) then continue;
-                FileCache.PrecompileFormat:=PrecompileFormats[i];
-                Found:=true;
-              end;
-              if not Found then
-                ParamFatal('invalid precompile output format (-JU) "'+Value+'"');
-            end;
-          {$ENDIF}
-          else UnknownParam;
-          end;
+          c:=aValue[1];
+          Delete(aValue,1,1);
+          if not HandleOptionJS(c,aValue,Quick,FromCmdLine) then
+            UnknownParam;
         end;
       'M': // syntax mode
         begin
-          inc(p);
-          Identifier:=copy(Param,p,length(Param));
-          if SameText(Identifier,'delphi') then Mode:=p2jmDelphi
-          else if SameText(Identifier,'objfpc') then Mode:=p2jmObjFPC
-          else ParamFatal('invalid syntax mode  (-M) "'+Identifier+'"');
+          case lowerCase(aValue) of
+            'delphi' : Mode:=p2jmDelphi;
+            'objfpc' : Mode:=p2jmObjFPC;
+          else
+            ParamFatal('invalid syntax mode  (-M) "'+aValue+'"');
+          end;
         end;
       'N':
         begin
-          inc(p);
-          if p>l then
+          if aValue='' then
             UnknownParam;
-          case Param[p] of
+          case aValue[1] of
           'S':
             begin
             Log.Log(mtWarning,'obsolete option -NS, use -FN instead');
-            if not FileCache.AddNamespaces(copy(Param,p+1,length(Param)),FromCmdLine,ErrorMsg) then
-              ParamFatal('invalid namespace (-NS) "'+ErrorMsg+'"');
+            Delete(aValue,1,1);
+            HandleOptionPaths('N',aValue,FromCmdLine);
             end;
           else UnknownParam;
           end;
         end;
       'o': // output file, main JavaScript file
         begin
-          inc(p);
-          aFilename:=copy(Param,p,length(Param));
-          if aFilename='' then
+          if aValue='' then
             ParamFatal('invalid empty output file (-o)')
-          else if aFilename='..' then
-            ParamFatal('invalid output file (-o) "'+aFilename+'"')
-          else if aFilename='.' then
+          else if aValue='..' then
+            ParamFatal('invalid output file (-o) "'+aValue+'"')
+          else if aValue='.' then
             // ok, stdout
           else
-            aFilename:=ExpandFileName(aFilename);
-          FileCache.MainJSFile:=aFilename;
+            aValue:=ExpandFileName(aValue);
+          MainJSFile:=aValue;
         end;
       'O': // optimizations
         begin
-        inc(p);
-        if p>l then
+        if aValue='' then
           UnknownParam;
-        case Param[p] of
-        '-':
-          begin
-          inc(p);
-          Options:=Options-coO1Enable+coO1Disable;
-          end;
-        '1':
-          begin
-          inc(p);
-          Options:=Options+coO1Enable-coO1Disable;
-          end;
-        'o':
-          begin
-          inc(p);
-          Identifier:=copy(Param,p,length(Param));
-          if Identifier='' then
-            ParamFatal('missing -Oo option');
-          inc(p,length(Identifier));
-          Enable:=true;
-          c:=Identifier[length(Identifier)];
-          if c in ['+','-'] then
-          begin
-            Enable:=c='+';
-            Delete(Identifier,length(Identifier),1);
-          end;
-          if SameText(Identifier,'EnumNumbers') then
-            SetOption(coEnumValuesAsNumbers,Enable)
-          else if SameText(Identifier,'RemoveNotUsedPrivates') then
-            SetOption(coKeepNotUsedPrivates,not Enable)
-          else if SameText(Identifier,'RemoveNotUsedDeclarations') then
-            SetOption(coKeepNotUsedDeclarationsWPO,not Enable)
-          else
-            UnknownParam;
-          end;
-        else
-          UnknownParam;
-        end;
-        if p<=l then
+        C:=aValue[1];
+        Delete(aValue,1,1);
+        if not HandleOptionOptimization(C,aValue) then
           UnknownParam;
         end;
       'P': // target processor
         begin
-        inc(p);
-        Identifier:=copy(Param,p,length(Param));
         for aProc in TPasToJsProcessor do
-          if SameText(Identifier,PasToJsProcessorNames[aProc]) then
+          if SameText(aValue,PasToJsProcessorNames[aProc]) then
             begin
             TargetProcessor:=aProc;
-            Identifier:='';
+            aValue:='';
             break;
             end;
-        if Identifier<>'' then
-          ParamFatal('invalid target processor (-P) "'+Identifier+'"');
+        if aValue<>'' then
+          ParamFatal('invalid target processor (-P) "'+aValue+'"');
         end;
       'S': // Syntax
         begin
@@ -3777,11 +3631,9 @@ begin
       'u': // undefine
         if not Quick then
         begin
-          inc(p);
-          Identifier:=copy(Param,p,length(Param));
-          if not IsValidIdent(Identifier) then
-            ParamFatal('invalid undefine (-u): "'+Identifier+'"');
-          RemoveDefine(Identifier);
+          if not IsValidIdent(aValue) then
+            ParamFatal('invalid undefine (-u): "'+aValue+'"');
+          RemoveDefine(aValue);
         end;
       'v': // verbose
         begin
@@ -3794,26 +3646,16 @@ begin
     end;
   '@':
     if not Quick then
-    begin
-      // load extra config file
-      aFilename:=copy(Param,2,length(Param));
-      if aFilename='' then
-        ParamFatal('invalid config file at param position '+IntToStr(i));
-      aFilename:=ExpandFileName(aFilename);
-      if not DirectoryCache.FileExists(aFilename) then
-        ParamFatal('config file not found: "'+copy(Param,2,length(Param))+'"');
-      LoadConfig(aFilename);
-    end;
+      HandleOptionConfigFile(i,copy(Param,2,length(Param)));
   else
     // filename
     if (not Quick) then
     begin
       if not FromCmdLine then
         CfgSyntaxError('invalid parameter');
-      if FileCache.MainSrcFile<>'' then
-        ParamFatal('Only one Pascal file is supported, but got "'+FileCache.MainSrcFile+'" and "'+Param+'".');
-      aFilename:=ExpandFileName(Param);
-      FileCache.MainSrcFile:=aFilename;
+      if MainSrcFile<>'' then
+        ParamFatal('Only one Pascal file is supported, but got "'+MainSrcFile+'" and "'+Param+'".');
+      MainSrcFile:=ExpandFileName(Param);
     end;
   end;
 end;
@@ -4048,6 +3890,26 @@ begin
   Pas2jsPParser.RegisterMessages(Log);
 end;
 
+procedure TPas2jsCompiler.SetAllJSIntoMainJS(AValue: Boolean);
+begin
+  if FAllJSIntoMainJS=AValue then Exit;
+  if aValue then
+    FIsMainJSFileResolved:=False;
+  FAllJSIntoMainJS:=AValue;
+end;
+
+function TPas2jsCompiler.FormatPath(const aPath: String): String;
+begin
+  Result:=FileCache.FormatPath(aPath);
+end;
+
+function TPas2jsCompiler.FullFormatPath(const aPath: String): String;
+begin
+  Result:=QuoteStr(FormatPath(aPath));
+
+end;
+
+
 procedure TPas2jsCompiler.CallPostProcessors(const JSFilename: String;
   aWriter: TPas2JSMapper);
 var
@@ -4091,10 +3953,11 @@ var
   CurExitCode, i, InPos: Integer;
 begin
   Result:='';
+  Buf:='';
   Exe:=Cmd[0];
   if ShowDebug or ShowUsedTools then
     Log.LogMsgIgnoreFilter(nPostProcessorRunX,[QuoteStr(JSFilename)+' | '+CmdListAsStr(Cmd)]);
-  if DirectoryCache.DirectoryExists(Exe) then
+  if FileCache.DirectoryExists(Exe) then
     raise EFOpenError.Create('post processor "'+Exe+'" is a directory');
   if not FileIsExecutable(Exe) then
     raise EFOpenError.Create('post processor "'+Exe+'" is a not executable');
@@ -4210,20 +4073,17 @@ begin
   FLog:=TPas2jsLogger.Create;
   FParamMacros:=TPas2jsMacroEngine.Create;
   RegisterMessages;
+  FInsertFilenames:=TStringList.Create;
 
   FFileCache:=TPas2jsFilesCache.Create(Log);
   FFileCache.BaseDirectory:=GetCurrentDirPJ;
   FFileCacheAutoFree:=true;
-  FDirectoryCache:=FFileCache.DirectoryCache;
-  FLog.OnFormatPath:=@FileCache.FormatPath;
+  FLog.OnFormatPath:=@FormatPath;
   FPostProcs:=TObjectList.Create(true);
 
   FDefines:=TStringList.Create;
   // Done by Reset: TStringList(FDefines).Sorted:=True;
   // Done by Reset: TStringList(FDefines).Duplicates:=dupError;
-  {$IFDEF HasPas2jsFiler}
-  FPrecompileInitialFlags:=TPCUInitialFlags.Create;
-  {$ENDIF}
 
   FConditionEval:=TCondDirectiveEvaluator.Create;
   FConditionEval.OnLog:=@ConditionEvalLog;
@@ -4247,10 +4107,8 @@ destructor TPas2jsCompiler.Destroy;
 
   procedure FreeStuff;
   begin
-    {$IFDEF HasPas2jsFiler}
-    FreeAndNil(FPrecompileInitialFlags);
-    {$ENDIF}
     FreeAndNil(FWPOAnalyzer);
+    FreeAndNil(FInsertFilenames);
 
     FMainFile:=nil;
     FreeAndNil(FUnits);
@@ -4268,7 +4126,6 @@ destructor TPas2jsCompiler.Destroy;
       FreeAndNil(FFileCache)
     else
       FFileCache:=nil;
-    FDirectoryCache:=nil;
 
     FreeAndNil(FParamMacros);
   end;
@@ -4358,28 +4215,31 @@ begin
     Result+=VersionExtra;
 end;
 
+procedure TPas2jsCompiler.WritePrecompiledFormats;
+begin
+  WriteHelpLine('No support for PCU files in this class');
+end;
+
 procedure TPas2jsCompiler.Reset;
 begin
   FreeAndNil(FWPOAnalyzer);
-
-  {$IFDEF HasPas2jsFiler}
   FPrecompileGUID:=default(TGUID);
-  FPrecompileInitialFlags.Clear;
-  {$ENDIF}
 
   FMainFile:=nil;
   FUnits.Clear;
   FReadingModules.Clear;
   FFiles.FreeItems;
-
+  FInsertFilenames.Clear;
   FPostProcs.Clear;
   FCompilerExe:='';
+  FSrcMapBaseDir:='';
+
   FOptions:=DefaultP2jsCompilerOptions;
   FRTLVersionCheck:=DefaultP2jsRTLVersionCheck;
   FMode:=p2jmObjFPC;
   FTargetPlatform:=PlatformBrowser;
   FTargetProcessor:=ProcessorECMAScript5;
-
+  FIsMainJSFileResolved:=False;
   Log.Reset;
   Log.ShowMsgTypes:=GetShownMsgTypes;
 
@@ -4465,10 +4325,10 @@ begin
     if ShowDebug or ShowTriedUsedFiles then
       WriteFoldersAndSearchPaths;
 
-    if FileCache.MainSrcFile='' then
+    if MainSrcFile='' then
       ParamFatal('No source file name in command line');
-    if not DirectoryCache.FileExists(FileCache.MainSrcFile) then
-      ParamFatal('Pascal file not found: "'+FileCache.MainSrcFile+'"');
+    if not FileCache.FileExists(MainSrcFile) then
+      ParamFatal('Pascal file not found: "'+MainSrcFile+'"');
 
     // compile
     Compile(StartTime);
@@ -4491,70 +4351,80 @@ begin
   end;
 end;
 
-procedure TPas2jsCompiler.WriteHelp;
+procedure TPas2jsCompiler.WriteHelpLine(S : String);
+
+
 const
   MaxLineLen = 78;
   Indent = 12;
 
-  procedure w(s: string);
-  var
-    l, p, LastCharStart, WordBreak: integer;
-    Len: integer;
-    CodePointCount: Integer;
 
-    procedure InitLine;
-    begin
-      l:=length(s);
-      p:=1;
+var
+  l, p, LastCharStart, WordBreak: integer;
+  Len: integer;
+  CodePointCount: Integer;
+
+  procedure InitLine;
+  begin
+    l:=length(s);
+    p:=1;
+    LastCharStart:=p;
+    WordBreak:=0;
+    CodePointCount:=0;
+  end;
+
+begin
+  if length(s)<=MaxLineLen then
+  begin
+    Log.LogRaw(s);
+    exit;
+  end;
+  InitLine;
+  while p<=l do
+  begin
+    case s[p] of
+    'a'..'z','A'..'Z','0'..'9','_','-','.',',','"','''','`',
+    #128..high(char) :
+      begin
       LastCharStart:=p;
-      WordBreak:=0;
-      CodePointCount:=0;
+      {$IFDEF FPC_HAS_CPSTRING}
+      Len:=UTF8CharacterStrictLength(@s[p]);
+      if Len=0 then Len:=1;
+      inc(p,Len);
+      {$ELSE}
+      if (p<l) and (s[p] in [#$DC00..#$DFFF]) then
+        inc(p,2)
+      else
+        inc(p,1);
+      {$ENDIF}
+      end;
+    else
+      LastCharStart:=p;
+      WordBreak:=p;
+      inc(p);
     end;
+    inc(CodePointCount);
+    if CodePointCount>=MaxLineLen then
+    begin
+      if (WordBreak=0)
+          or (WordBreak<MaxLineLen div {$IFDEF FPC_HAS_CPSTRING}3{$ELSE}2{$ENDIF}) then
+        WordBreak:=LastCharStart;
+      Len:=WordBreak-1;
+      Log.LogRaw(LeftStr(s,Len));
+      Delete(s,1,len);
+      s:=StringOfChar(' ',Indent)+Trim(s);
+      InitLine;
+    end;
+  end;
+  Log.LogRaw(s);
+end;
+
+procedure TPas2jsCompiler.WriteHelp;
+
+  procedure w(s: string); inline;
 
   begin
-    if length(s)<=MaxLineLen then
-    begin
-      Log.LogRaw(s);
-      exit;
-    end;
-    InitLine;
-    while p<=l do
-    begin
-      case s[p] of
-      'a'..'z','A'..'Z','0'..'9','_','-','.',',','"','''','`',
-      #128..high(char) :
-        begin
-        LastCharStart:=p;
-        {$IFDEF FPC_HAS_CPSTRING}
-        Len:=UTF8CharacterStrictLength(@s[p]);
-        if Len=0 then Len:=1;
-        inc(p,Len);
-        {$ELSE}
-        if (p<l) and (s[p] in [#$DC00..#$DFFF]) then
-          inc(p,2)
-        else
-          inc(p,1);
-        {$ENDIF}
-        end;
-      else
-        LastCharStart:=p;
-        WordBreak:=p;
-        inc(p);
-      end;
-      inc(CodePointCount);
-      if CodePointCount>=MaxLineLen then
-      begin
-        if (WordBreak=0)
-            or (WordBreak<MaxLineLen div {$IFDEF FPC_HAS_CPSTRING}3{$ELSE}2{$ENDIF}) then
-          WordBreak:=LastCharStart;
-        Len:=WordBreak-1;
-        Log.LogRaw(LeftStr(s,Len));
-        Delete(s,1,len);
-        s:=StringOfChar(' ',Indent)+Trim(s);
-        InitLine;
-      end;
-    end;
-    Log.LogRaw(s);
+    WriteHelpLine(S);
   end;
 
 var
@@ -4626,16 +4496,7 @@ begin
   w('     -JoCheckVersion=unit : insert rtl version check into every unit init.');
   w('   -Jpcmd<command> : Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. This option can be added multiple times to call several postprocessors in succession.');
   w('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
-  {$IFDEF HasPas2jsFiler}
-  if PrecompileFormats.Count>0 then
-  begin
-    w('   -JU<x> : Create precompiled units in format x.');
-    for i:=0 to PrecompileFormats.Count-1 do
-      with PrecompileFormats[i] do
-        w('     -JU'+Ext+' : '+Description);
-    w('     -JU- : Disable prior -JU<x> option. Do not create precompiled units.');
-  end;
-  {$ENDIF}
+  WritePrecompiledFormats;
   w('  -l      : Write logo');
   w('  -MDelphi: Delphi 7 compatibility mode');
   w('  -MObjFPC: FPC''s Object Pascal compatibility mode (default)');
@@ -4783,28 +4644,9 @@ end;
 
 procedure TPas2jsCompiler.WriteFoldersAndSearchPaths;
 
-  procedure WriteFolder(aName, Folder: string);
-  begin
-    if Folder='' then exit;
-    Log.LogMsgIgnoreFilter(nUsingPath,[aName,Folder]);
-    if not DirectoryExists(ChompPathDelim(Folder)) then
-      Log.LogMsgIgnoreFilter(nFolderNotFound,[aName,QuoteStr(Folder)]);
-  end;
-
-var
-  i: Integer;
 begin
-  for i:=0 to FileCache.ForeignUnitPaths.Count-1 do
-    WriteFolder('foreign unit path',FileCache.ForeignUnitPaths[i]);
-  for i:=0 to FileCache.UnitPaths.Count-1 do
-    WriteFolder('unit path',FileCache.UnitPaths[i]);
-  for i:=0 to FileCache.Namespaces.Count-1 do
-    Log.LogMsgIgnoreFilter(nUsingPath,['unit scope',FileCache.Namespaces[i]]);
-  for i:=0 to FileCache.IncludePaths.Count-1 do
-    WriteFolder('include path',FileCache.IncludePaths[i]);
-  WriteFolder('unit output path',FileCache.UnitOutputPath);
-  WriteFolder('main output path',FileCache.MainOutputPath);
-  Log.LogMsgIgnoreFilter(nNameValue,['output file',QuoteStr(FileCache.MainJSFile)]);
+  FileCache.WriteFoldersAndSearchPaths;
+  Log.LogMsgIgnoreFilter(nNameValue,['output file',QuoteStr(MainJSFile)]);
 end;
 
 procedure TPas2jsCompiler.WriteInfo;
@@ -4881,37 +4723,39 @@ begin
   Result:=TPas2jsCompilerFile(FFiles.FindKey(Pointer(PasFilename)));
 end;
 
-procedure TPas2jsCompiler.LoadPasFile(UnitFilename, UseUnitName: string; out
-  aFile: TPas2jsCompilerFile
-  {$IFDEF HasPas2jsFiler}; aFormat: TPas2JSPrecompileFormat{$ENDIF});
+Function TPas2jsCompiler.CreateCompilerFile(Const UnitFileName : String) :TPas2jsCompilerFile;
+
+begin
+  Result:=TPas2jsCompilerFile.Create(Self,UnitFilename);
+end;
+
+procedure TPas2jsCompiler.LoadPasFile(UnitFilename, UseUnitName: string; out aFile: TPas2jsCompilerFile; IsPCU : Boolean);
 var
   aPasTree: TPas2jsCompilerResolver;
 begin
   aFile:=nil;
-  Log.LogMsg(nParsingFile,[FileCache.FormatPath(UnitFilename)],'',0,0,not (coShowLineNumbers in Options));
+  Log.LogMsg(nParsingFile,[FormatPath(UnitFilename)],'',0,0,not (coShowLineNumbers in Options));
 
   aFile:=FindUnitWithFile(UnitFilename);
   if aFile<>nil then exit;
 
-  if (UnitFilename='') or not DirectoryCache.FileExists(UnitFilename) then
+  if (UnitFilename='') or not FileCache.FileExists(UnitFilename) then
   begin
-    {$IFDEF HasPas2jsFiler}
-    if aFormat=nil then
+    if isPCU then
       Log.LogMsg(nSourceFileNotFound,[QuoteStr(UnitFilename)])
     else
-    {$ENDIF}
       Log.LogMsg(nUnitFileNotFound,[QuoteStr(UnitFilename)]);
     Terminate(ExitCodeFileNotFound);
   end;
 
   UnitFilename:=ExpandFileName(UnitFilename);
-  if DirectoryCache.DirectoryExists(UnitFilename) then
+  if FileCache.DirectoryExists(UnitFilename) then
   begin
     Log.LogMsg(nFileIsFolder,[QuoteStr(UnitFilename)]);
     Terminate(ExitCodeFileNotFound);
   end;
 
-  aFile:=TPas2jsCompilerFile.Create(Self,UnitFilename{$IFDEF HasPas2jsFiler},aFormat{$ENDIF});
+  aFile:=CreateCompilerFile(UnitFilename);
   if UseUnitName<>'' then
     begin
     {$IFDEF VerboseSetPasUnitName}
@@ -4925,7 +4769,7 @@ begin
   FFiles.Add(aFile);
   aFile.ShowDebug:=ShowDebug;
   if aFile.IsMainFile then
-    aFile.JSFilename:=FileCache.GetResolvedMainJSFile;
+    aFile.JSFilename:=GetResolvedMainJSFile;
 
   // pastree (engine)
   aPasTree:=aFile.PascalResolver;
@@ -4941,20 +4785,27 @@ begin
 
   if ShowDebug then
     Log.LogPlain(['Debug: Opening file "',UnitFilename,'"...']);
-  {$IFDEF HasPas2jsFiler}
-  if aFile.PCUFormat<>nil then
-  begin
+  if Assigned(aFile.PCUSupport) then
+    begin
     aFile.FileResolver.BaseDirectory:=ExtractFilePath(UnitFilename);
-    aFile.CreatePCUReader;
-  end else
-  {$ENDIF}
-  begin
+    aFile.PCUSupport.CreatePCUReader;
+    end
+  else
+    begin
     // open file (beware: this changes FileResolver.BaseDirectory)
     aFile.OpenFile(UnitFilename);
-  end;
+    end;
 end;
 
-function TPas2jsCompiler.FindUnitWithName(const TheUnitName: string
+function TPas2jsCompiler.FindUnitJSFileName(aFileName: String): String;
+begin
+  if AllJSIntoMainJS then
+    Result:=GetResolvedMainJSFile
+  else
+    Result:=FileCache.FindUnitJSFileName(aFilename);
+end;
+
+function TPas2jsCompiler.FindLoadedUnit(const TheUnitName: string
   ): TPas2jsCompilerFile;
 begin
   if not IsValidIdent(TheUnitName,true) then exit(nil);
@@ -4967,7 +4818,7 @@ var
 begin
   if aFile.PasUnitName='' then
     RaiseInternalError(20170504161347,'missing PasUnitName "'+aFile.PasFilename+'"');
-  OldFile:=FindUnitWithName(aFile.PasUnitName);
+  OldFile:=FindLoadedUnit(aFile.PasUnitName);
   if OldFile<>nil then
   begin
     if OldFile<>aFile then
@@ -4977,14 +4828,62 @@ begin
   end;
 end;
 
-function TPas2jsCompiler.DirectoryExists(const Filename: string): boolean;
-begin
-  Result:=FileCache.DirectoryCache.DirectoryExists(Filename);
-end;
-
 function TPas2jsCompiler.ExpandFileName(const Filename: string): string;
+
 begin
   Result:=ExpandFileNamePJ(Filename,FileCache.BaseDirectory);
+end;
+
+procedure TPas2jsCompiler.InsertCustomJSFiles(aWriter: TPas2JSMapper);
+var
+  i: Integer;
+  Filename: String;
+  FileResolver: TPas2jsFileResolver;
+  aFile: TPas2jsCachedFile;
+begin
+  if InsertFilenames.Count=0 then exit;
+  FileResolver:=FileCache.CreateResolver;
+  try
+    for i:=0 to InsertFilenames.Count-1 do begin
+      Filename:=FileCache.FindCustomJSFileName(ResolveDots(InsertFilenames[i]));
+      if Filename='' then
+      begin
+        Log.LogMsg(nCustomJSFileNotFound,[InsertFilenames[i]]);
+        raise EFileNotFoundError.Create('');
+      end;
+      aFile:=FileCache.LoadFile(Filename);
+      if aFile.Source='' then continue;
+      aWriter.WriteFile(aFile.Source,Filename);
+    end
+  finally
+    FileResolver.Free;
+  end;
+end;
+
+function TPas2jsCompiler.IndexOfInsertJSFilename(const aFilename: string
+  ): integer;
+var
+  i: Integer;
+begin
+  for i:=0 to FInsertFilenames.Count-1 do
+    if CompareFilenames(aFilename,InsertFilenames[i])=0 then
+      exit(i);
+  Result:=-1;
+end;
+
+procedure TPas2jsCompiler.AddInsertJSFilename(const aFilename: string);
+begin
+  if IndexOfInsertJSFilename(aFilename)<0 then
+    InsertFilenames.Add(aFilename);
+end;
+
+procedure TPas2jsCompiler.RemoveInsertJSFilename(const aFilename: string);
+var
+  i: Integer;
+begin
+  i:=IndexOfInsertJSFilename(aFilename);
+  if i>=0 then
+    InsertFilenames.Delete(i);
 end;
 
 end.
