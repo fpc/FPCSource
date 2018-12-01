@@ -112,7 +112,7 @@ implementation
       objcasm,
       aasmcnst,symconst,symdef,symtable,
       llvmbase,itllvm,llvmdef,
-      cgbase,cgutils,cpubase,llvminfo;
+      cgbase,cgutils,cpubase,cpuinfo,llvminfo;
 
     const
       line_length = 70;
@@ -1507,6 +1507,8 @@ implementation
          optstr:=optstr+' -stack-alignment='+tostr(target_info.stackalign*8);
          { force object output instead of textual assembler code }
          optstr:=optstr+' -filetype=obj';
+         if fputypestrllvm[current_settings.fputype]<>'' then
+           optstr:=optstr+' -mattr=+'+fputypestrllvm[current_settings.fputype];
          replace(result,'$OPT',optstr);
        end;
 
@@ -1566,6 +1568,9 @@ implementation
           begin
             optstr:=optstr+' --target='+llvm_target_name;
           end;
+
+        if fputypestrllvm[current_settings.fputype]<>'' then
+          optstr:=optstr+' -m'+fputypestrllvm[current_settings.fputype];
 
         replace(result,'$OPT',optstr);
       end;

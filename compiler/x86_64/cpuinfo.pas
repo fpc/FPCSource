@@ -130,6 +130,17 @@ Const
      'AVX2'
    );
 
+   fputypestrllvm : array[tfputype] of string[6] = ('',
+//     'SOFT',
+     '',
+     'sse3',
+     'ssse3',
+     'sse4.1',
+     'sse4.2',
+     'avx',
+     'avx2'
+   );
+
    sse_singlescalar = [fpu_sse64..fpu_avx2];
    sse_doublescalar = [fpu_sse64..fpu_avx2];
 
