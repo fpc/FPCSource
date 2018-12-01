@@ -917,9 +917,16 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
       end
     else if not ios and
        not osx_minor_two_digits then
-      compvarvalue:=compvarvalue+'0'
+      begin
+        compvarvalue:=compvarvalue+'0';
+        minstr:=minstr+'.0'
+      end
     else
-      compvarvalue:=compvarvalue+'00';
+      begin
+        compvarvalue:=compvarvalue+'00';
+        { command line versions still only use one 0 though }
+        minstr:=minstr+'.0'
+      end;
     set_system_compvar(compvarname,compvarvalue);
     MacVersionSet:=true;
     result:=true;
@@ -3972,8 +3979,11 @@ begin
   librarysearchpath.AddList(unitsearchpath,false);
 
 {$ifdef llvm}
-  { force llvm assembler writer }
-  option.paratargetasm:=as_llvm;
+  { default to clang }
+  if (option.paratargetasm=as_none) then
+    begin
+      option.paratargetasm:=as_llvm_clang;
+    end;
 {$endif llvm}
   { maybe override assembler }
   if (option.paratargetasm<>as_none) then
@@ -3999,8 +4009,8 @@ begin
         begin
           option.paratargetdbg:=dbg_dwarf2;
         end;
-
     end;
+
   {TOptionheck a second time as we might have changed assembler just above }
   option.checkoptionscompatibility;
 

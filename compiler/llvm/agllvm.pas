@@ -64,13 +64,22 @@ interface
         procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
        public
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
-        function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         procedure WriteFunctionInlineAsmList(list: tasmlist);
         destructor destroy; override;
        protected
         InstrWriter: TLLVMInstrWriter;
+      end;
+
+      TLLVMLLCAssember=class(TLLVMAssember)
+      public
+       function MakeCmdLine: TCmdStr; override;
+      end;
+
+      TLLVMClangAssember=class(TLLVMAssember)
+      public
+       function MakeCmdLine: TCmdStr; override;
       end;
 
 
@@ -151,6 +160,7 @@ implementation
           hs[1]:='+';
          extended2str:=hs
       end;
+
 
 {****************************************************************************}
 {               Decorator for module-level inline assembly                   }
@@ -766,47 +776,6 @@ implementation
         InstrWriter.free;
         ffuncinlasmdecorator.free;
         inherited destroy;
-      end;
-
-
-    function TLLVMAssember.MakeCmdLine: TCmdStr;
-      var
-        optstr: TCmdStr;
-      begin
-        result := inherited MakeCmdLine;
-        { standard optimization flags for llc -- todo: this needs to be split
-          into a call to opt and one to llc }
-        if cs_opt_level3 in current_settings.optimizerswitches then
-          optstr:='-O3'
-        else if cs_opt_level2 in current_settings.optimizerswitches then
-          optstr:='-O2'
-        else if cs_opt_level1 in current_settings.optimizerswitches then
-          optstr:='-O1'
-        else
-          optstr:='-O0';
-        { stack frame elimination }
-        if not(cs_opt_stackframe in current_settings.optimizerswitches) then
-          optstr:=optstr+' -disable-fp-elim';
-        { fast math }
-        if cs_opt_fastmath in current_settings.optimizerswitches then
-          optstr:=optstr+' -enable-unsafe-fp-math -fp-contract=fast'; { -enable-fp-mad support depends on version }
-        { smart linking }
-        if cs_create_smart in current_settings.moduleswitches then
-          optstr:=optstr+' -data-sections -function-sections';
-        { pic }
-        if cs_create_pic in current_settings.moduleswitches then
-          optstr:=optstr+' -relocation-model=pic'
-        else if not(target_info.system in systems_darwin) then
-          optstr:=optstr+' -relocation-model=static'
-        else
-          optstr:=optstr+' -relocation-model=dynamic-no-pic';
-        { our stack alignment is non-standard on some targets. The following
-          parameter is however ignored on some targets by llvm, so it may not
-          be enough }
-        optstr:=optstr+' -stack-alignment='+tostr(target_info.stackalign*8);
-        { force object output instead of textual assembler code }
-        optstr:=optstr+' -filetype=obj';
-        replace(result,'$OPT',optstr);
       end;
 
 
@@ -1497,22 +1466,141 @@ implementation
        end;
 
 
-   const
-     as_llvm_info : tasminfo =
-        (
-          id     : as_llvm;
+{****************************************************************************}
+{                               llc Assember                                 }
+{****************************************************************************}
 
-          idtxt  : 'LLVM-AS';
+     function TLLVMLLCAssember.MakeCmdLine: TCmdStr;
+       var
+         optstr: TCmdStr;
+       begin
+         result:=inherited;
+         { standard optimization flags for llc -- todo: this needs to be split
+           into a call to opt and one to llc }
+         if cs_opt_level3 in current_settings.optimizerswitches then
+           optstr:='-O3'
+         else if cs_opt_level2 in current_settings.optimizerswitches then
+           optstr:='-O2'
+         else if cs_opt_level1 in current_settings.optimizerswitches then
+           optstr:='-O1'
+         else
+           optstr:='-O0';
+         { stack frame elimination }
+         if not(cs_opt_stackframe in current_settings.optimizerswitches) then
+           optstr:=optstr+' -disable-fp-elim';
+         { fast math }
+         if cs_opt_fastmath in current_settings.optimizerswitches then
+           optstr:=optstr+' -enable-unsafe-fp-math -fp-contract=fast';  { -enable-fp-mad support depends on version }
+         { smart linking }
+         if cs_create_smart in current_settings.moduleswitches then
+           optstr:=optstr+' -data-sections -function-sections';
+         { pic }
+         if cs_create_pic in current_settings.moduleswitches then
+           optstr:=optstr+' -relocation-model=pic'
+         else if not(target_info.system in systems_darwin) then
+           optstr:=optstr+' -relocation-model=static'
+         else
+           optstr:=optstr+' -relocation-model=dynamic-no-pic';
+         { our stack alignment is non-standard on some targets. The following
+           parameter is however ignored on some targets by llvm, so it may not
+           be enough }
+         optstr:=optstr+' -stack-alignment='+tostr(target_info.stackalign*8);
+         { force object output instead of textual assembler code }
+         optstr:=optstr+' -filetype=obj';
+         replace(result,'$OPT',optstr);
+       end;
+
+
+{****************************************************************************}
+{                               clang Assember                               }
+{****************************************************************************}
+
+    function TLLVMClangAssember.MakeCmdLine: TCmdStr;
+      var
+        optstr: TCmdStr;
+      begin
+        result:=inherited;
+        { standard optimization flags for llc -- todo: this needs to be split
+          into a call to opt and one to llc }
+        if cs_opt_level3 in current_settings.optimizerswitches then
+          optstr:='-O3'
+        else if cs_opt_level2 in current_settings.optimizerswitches then
+          optstr:='-O2'
+        else if cs_opt_level1 in current_settings.optimizerswitches then
+          optstr:='-O1'
+        else
+          optstr:='-O0';
+        { stack frame elimination }
+        if not(cs_opt_stackframe in current_settings.optimizerswitches) then
+          optstr:=optstr+' -fno-omit-frame-pointer'
+        else
+          optstr:=optstr+' -fomit-frame-pointer';
+        { fast math }
+        if cs_opt_fastmath in current_settings.optimizerswitches then
+          optstr:=optstr+' -ffast-math';
+        { smart linking }
+        if cs_create_smart in current_settings.moduleswitches then
+          optstr:=optstr+' -fdata-sections -ffunction-sections';
+        { pic }
+        if cs_create_pic in current_settings.moduleswitches then
+          optstr:=optstr+' -fpic'
+        else if not(target_info.system in systems_darwin) then
+          optstr:=optstr+' -static'
+        else
+          optstr:=optstr+' -mdynamic-no-pic';
+        { our stack alignment is non-standard on some targets. The following
+          parameter is however ignored on some targets by llvm, so it may not
+          be enough }
+        optstr:=optstr+' -mstack-alignment='+tostr(target_info.stackalign*8);
+        if target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) then
+          begin
+            if MacOSXVersionMin<>'' then
+              optstr:=optstr+' -mmacosx-version-min='+MacOSXVersionMin
+          end
+        else if target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim] then
+          begin
+            if iPhoneOSVersionMin<>'' then
+              optstr:=optstr+' -mios-version-min='+iPhoneOSVersionMin;
+          end
+        else
+          begin
+            optstr:=optstr+' --target='+llvm_target_name;
+          end;
+
+        replace(result,'$OPT',optstr);
+      end;
+
+
+   const
+     as_llvm_llc_info : tasminfo =
+        (
+          id     : as_llvm_llc;
+
+          idtxt  : 'LLVM-LLC';
           asmbin : 'llc';
           asmcmd: '$OPT -o $OBJ $ASM';
-          supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_powerpc64_darwin];
+          supported_targets : [system_x86_64_linux,system_x86_64_darwin];
           flags : [af_smartlink_sections];
           labelprefix : 'L';
           comment : '; ';
           dollarsign: '$';
         );
 
+     as_llvm_clang_info : tasminfo =
+        (
+          id     : as_llvm_clang;
+
+          idtxt  : 'LLVM-CLANG';
+          asmbin : 'clang';
+          asmcmd: '$OPT -c -o $OBJ $ASM';
+          supported_targets : [system_x86_64_linux,system_x86_64_darwin];
+          flags : [af_smartlink_sections];
+          labelprefix : 'L';
+          comment : '; ';
+          dollarsign: '$';
+        );
 
 begin
-  RegisterAssembler(as_llvm_info,TLLVMAssember);
+  RegisterAssembler(as_llvm_llc_info,TLLVMLLCAssember);
+  RegisterAssembler(as_llvm_clang_info,TLLVMClangAssember);
 end.

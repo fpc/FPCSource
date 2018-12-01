@@ -154,7 +154,7 @@ implementation
             llvm_target_name:=llvm_target_name+'-ios'+iPhoneOSVersionMin;
         end
       else if target_info.system in (systems_linux+systems_android) then
-        llvm_target_name:=llvm_target_name+'-linux'
+        llvm_target_name:=llvm_target_name+'-unknown-linux-gnu'
       else if target_info.system in systems_windows then
         begin
           { WinCE isn't supported (yet) by llvm, but if/when added this is
