@@ -26,13 +26,22 @@ unit PScanner;
   {$IF FPC_FULLVERSION<30101}
     {$define EmulateArrayInsert}
   {$endif}
+  {$define HasFS}
 {$endif}
+
+{$IFDEF NODEJS}
+  {$define HasFS}
+{$ENDIF}
 
 interface
 
 uses
   {$ifdef pas2js}
-  js, NodeJSFS, Types,
+  js,
+  {$IFDEF NODEJS}
+  NodeJSFS,
+  {$ENDIF}
+  Types,
   {$endif}
   SysUtils, Classes;
 
@@ -479,7 +488,6 @@ type
   Protected
     procedure SetBaseDirectory(AValue: string); virtual;
     procedure SetStrictFileCase(AValue: Boolean); virtual;
-    Function FindIncludeFileName(const AName: string): String;
     Property IncludePaths: TStringList Read FIncludePaths;
   public
     constructor Create; virtual;
@@ -490,7 +498,9 @@ type
     Property StrictFileCase : Boolean Read FStrictFileCase Write SetStrictFileCase;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory;
   end;
+  TBaseFileResolverClass = Class of TBaseFileResolver;
 
+{$IFDEF HASFS}
   { TFileResolver }
 
   TFileResolver = class(TBaseFileResolver)
@@ -499,6 +509,7 @@ type
     FUseStreams: Boolean;
     {$endif}
   Protected
+    Function FindIncludeFileName(const AName: string): String;
     Function CreateFileReader(Const AFileName : String) : TLineReader; virtual;
   Public
     function FindSourceFile(const AName: string): TLineReader; override;
@@ -507,6 +518,7 @@ type
     Property UseStreams : Boolean Read FUseStreams Write FUseStreams;
     {$endif}
   end;
+{$ENDIF}
 
   {$ifdef fpc}
   { TStreamResolver }
@@ -1144,6 +1156,7 @@ function FilenameIsAbsolute(const TheFilename: string):boolean;
 function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
+Function ExtractFilenameOnly(Const AFileName : String) : String;
 
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
 function SafeFormat(const Fmt: string; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): string;
@@ -1158,6 +1171,13 @@ const
 Var
   SortedTokens : array of TToken;
   LowerCaseTokens  : Array[ttoken] of String;
+
+Function ExtractFilenameOnly(Const AFileName : String) : String;
+
+begin
+  Result:=ChangeFileExt(ExtractFileName(aFileName),'');
+end;
+
 
 Procedure SortTokenInfo;
 
@@ -2378,7 +2398,45 @@ begin
   FStrictFileCase:=AValue;
 end;
 
-function TBaseFileResolver.FindIncludeFileName(const AName: string): String;
+
+constructor TBaseFileResolver.Create;
+begin
+  inherited Create;
+  FIncludePaths := TStringList.Create;
+end;
+
+destructor TBaseFileResolver.Destroy;
+begin
+  FIncludePaths.Free;
+  inherited Destroy;
+end;
+
+procedure TBaseFileResolver.AddIncludePath(const APath: string);
+
+Var
+  FP : String;
+
+begin
+  if (APath='') then
+    FIncludePaths.Add('./')
+  else
+    begin
+{$IFDEF HASFS}
+    FP:=IncludeTrailingPathDelimiter(ExpandFileName(APath));
+{$ELSE}
+    FP:=APath;
+{$ENDIF}
+    FIncludePaths.Add(FP);
+    end;
+end;
+
+{$IFDEF HASFS}
+
+{ ---------------------------------------------------------------------
+  TFileResolver
+  ---------------------------------------------------------------------}
+
+function TFileResolver.FindIncludeFileName(const AName: string): String;
 
   function SearchLowUpCase(FN: string): string;
 
@@ -2432,30 +2490,6 @@ begin
     end;
 end;
 
-constructor TBaseFileResolver.Create;
-begin
-  inherited Create;
-  FIncludePaths := TStringList.Create;
-end;
-
-destructor TBaseFileResolver.Destroy;
-begin
-  FIncludePaths.Free;
-  inherited Destroy;
-end;
-
-procedure TBaseFileResolver.AddIncludePath(const APath: string);
-begin
-  if (APath='') then
-    FIncludePaths.Add('./')
-  else
-    FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
-end;
-
-{ ---------------------------------------------------------------------
-  TFileResolver
-  ---------------------------------------------------------------------}
-
 function TFileResolver.CreateFileReader(const AFileName: String): TLineReader;
 begin
   {$ifdef HasStreams}
@@ -2494,6 +2528,7 @@ begin
       Result:=Nil;
     end;
 end;
+{$ENDIF}
 
 {$ifdef fpc}
 { TStreamResolver }
@@ -2648,7 +2683,7 @@ begin
   // Dont' free the first element, because it is CurSourceFile
   while FIncludeStack.Count > 1 do
     begin
-    TFileResolver(FIncludeStack[1]).{$ifdef pas2js}Destroy{$else}Free{$endif};
+    TBaseFileResolver(FIncludeStack[1]).{$ifdef pas2js}Destroy{$else}Free{$endif};
     FIncludeStack.Delete(1);
     end;
   FIncludeStack.Clear;
@@ -2684,7 +2719,9 @@ begin
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   FCurFilename := AFilename;
   AddFile(FCurFilename);
+{$IFDEF HASFS}
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(FCurFilename));
+{$ENDIF}
   if LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(AFileName)],True);
 end;
