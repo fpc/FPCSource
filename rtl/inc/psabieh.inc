@@ -44,6 +44,11 @@
 
 {$packrecords c}
 
+{$ifdef linux}
+{$linklib c}
+{$linklib libgcc_s}
+{$endif}
+
 {$if (defined(CPUARMEL) or defined(CPUARMHF)) and not defined(darwin)}
 {$define __ARM_EABI_UNWINDER__}
 {$error add ARM EABI unwinder support}
