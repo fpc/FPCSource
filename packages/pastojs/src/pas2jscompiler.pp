@@ -412,6 +412,8 @@ type
     FInterfaceType: TPasClassInterfaceType;
     FRTLVersionCheck: TP2jsRTLVersionCheck;
     FPrecompileGUID: TGUID;
+    FInsertFilenames: TStringList;
+    procedure AddInsertJSFilename(const aFilename: string);
     procedure ConditionEvalLog(Sender: TCondDirectiveEvaluator;
       Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
     function ConditionEvalVariable(Sender: TCondDirectiveEvaluator;
@@ -431,10 +433,13 @@ type
     function GetWriteDebugLog: boolean;
     function GetWriteMsgToStdErr: boolean;
     function HandleOptionOptimization(C: Char; aValue: String): Boolean;
+    function IndexOfInsertJSFilename(const aFilename: string): integer;
+    procedure InsertCustomJSFiles(aWriter: TPas2JSMapper);
     function OnMacroCfgDir(Sender: TObject; var Params: string; Lvl: integer
       ): boolean;
     function OnMacroEnv(Sender: TObject; var Params: string; Lvl: integer
       ): boolean;
+    procedure RemoveInsertJSFilename(const aFilename: string);
     procedure SetCompilerExe(AValue: string);
     procedure SetFileCache(AValue: TPas2jsFilesCache);
     procedure SetMode(AValue: TP2jsMode);
@@ -580,6 +585,7 @@ type
     property WriteDebugLog: boolean read GetWriteDebugLog write SetWriteDebugLog;
     property WriteMsgToStdErr: boolean read GetWriteMsgToStdErr write SetWriteMsgToStdErr;
     property ExitCode: longint read GetExitCode write SetExitCode;
+    property InsertFilenames: TStringList read FInsertFilenames;
   end;
 
 
@@ -1566,7 +1572,7 @@ var
         FoundPasUnitName:=TestUnitName;
       end else begin
         // search pas in unit path
-        FoundPasFilename:=Compiler.FileCache.FindUnitFileName(TestUnitName,'',FoundPasIsForeign,FileResolver.StrictFileCase);
+        FoundPasFilename:=Compiler.FileCache.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
         if FoundPasFilename<>'' then
           FoundPasUnitName:=TestUnitName;
       end;
@@ -1631,7 +1637,7 @@ begin
     if FoundPasFilename='' then
     begin
       // search Pascal file
-      FoundPasFilename:=Compiler.FileCache.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign,FileResolver.StrictFileCase);
+      FoundPasFilename:=Compiler.FileCache.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
       if FoundPasFilename<>'' then
         begin
         if InFilename<>'' then
@@ -2273,7 +2279,7 @@ begin
     DestFilename:=FileCache.GetResolvedMainJSFile;
     CreateFileWriter(DestFilename);
     CombinedFileWriter:=aFileWriter;
-    FileCache.InsertCustomJSFiles(CombinedFileWriter);
+    InsertCustomJSFiles(CombinedFileWriter);
   end else begin
     DestFilename:=aFile.JSFilename;
   end;
@@ -2290,7 +2296,7 @@ begin
       // create writer for this file
       CreateFileWriter(DestFilename);
       if aFile.IsMainFile and not FileCache.AllJSIntoMainJS then
-        FileCache.InsertCustomJSFiles(aFileWriter);
+        InsertCustomJSFiles(aFileWriter);
     end;
 
     // write JavaScript
@@ -3154,9 +3160,9 @@ begin
         if aValue='' then
           Result:=False
         else
-          FileCache.RemoveInsertJSFilename(aValue);
+          RemoveInsertJSFilename(aValue);
       end else
-        FileCache.AddInsertJSFilename(aValue);
+        AddInsertJSFilename(aValue);
     end;
   'l': SetOption(coLowercase,aValue<>'-');
   'm':
@@ -3983,6 +3989,7 @@ begin
   FLog:=TPas2jsLogger.Create;
   FParamMacros:=TPas2jsMacroEngine.Create;
   RegisterMessages;
+  FInsertFilenames:=TStringList.Create;
 
   FFileCache:=TPas2jsFilesCache.Create(Log);
   FFileCache.BaseDirectory:=GetCurrentDirPJ;
@@ -4017,6 +4024,7 @@ destructor TPas2jsCompiler.Destroy;
   procedure FreeStuff;
   begin
     FreeAndNil(FWPOAnalyzer);
+    FreeAndNil(FInsertFilenames);
 
     FMainFile:=nil;
     FreeAndNil(FUnits);
@@ -4137,7 +4145,7 @@ begin
   FUnits.Clear;
   FReadingModules.Clear;
   FFiles.FreeItems;
-
+  FInsertFilenames.Clear;
   FPostProcs.Clear;
   FCompilerExe:='';
   FOptions:=DefaultP2jsCompilerOptions;
@@ -4749,6 +4757,58 @@ function TPas2jsCompiler.ExpandFileName(const Filename: string): string;
 
 begin
   Result:=ExpandFileNamePJ(Filename,FileCache.BaseDirectory);
+end;
+
+procedure TPas2jsCompiler.InsertCustomJSFiles(aWriter: TPas2JSMapper);
+var
+  i: Integer;
+  Filename: String;
+  FileResolver: TPas2jsFileResolver;
+  aFile: TPas2jsCachedFile;
+begin
+  if InsertFilenames.Count=0 then exit;
+  FileResolver:=FileCache.CreateResolver;
+  try
+    for i:=0 to InsertFilenames.Count-1 do begin
+      Filename:=FileCache.FindCustomJSFileName(ResolveDots(InsertFilenames[i]));
+      if Filename='' then
+      begin
+        Log.LogMsg(nCustomJSFileNotFound,[InsertFilenames[i]]);
+        raise EFileNotFoundError.Create('');
+      end;
+      aFile:=FileCache.LoadFile(Filename);
+      if aFile.Source='' then continue;
+      aWriter.WriteFile(aFile.Source,Filename);
+    end
+  finally
+    FileResolver.Free;
+  end;
+end;
+
+function TPas2jsCompiler.IndexOfInsertJSFilename(const aFilename: string
+  ): integer;
+var
+  i: Integer;
+begin
+  for i:=0 to FInsertFilenames.Count-1 do
+    if CompareFilenames(aFilename,InsertFilenames[i])=0 then
+      exit(i);
+  Result:=-1;
+end;
+
+procedure TPas2jsCompiler.AddInsertJSFilename(const aFilename: string);
+begin
+  if IndexOfInsertJSFilename(aFilename)<0 then
+    InsertFilenames.Add(aFilename);
+end;
+
+procedure TPas2jsCompiler.RemoveInsertJSFilename(const aFilename: string);
+var
+  i: Integer;
+begin
+  i:=IndexOfInsertJSFilename(aFilename);
+  if i>=0 then
+    InsertFilenames.Delete(i);
 end;
 
 end.

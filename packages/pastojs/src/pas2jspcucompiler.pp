@@ -35,7 +35,7 @@ Type
     Function Compiler : TPas2JSCompiler;
     Function HandleException(E: exception) : Boolean; override;
     function FindPCU(const UseUnitName: string): string;override;
-    function FindPCU(const UseUnitName: string; out  aFormat: TPas2JSPrecompileFormat): string;
+    function FindPCU(const UseUnitName: string; out aFormat: TPas2JSPrecompileFormat): string;
     Function HasReader : Boolean; override;
     Function ReadContinue: Boolean; override;
     Function ReadCanContinue : Boolean; override;
@@ -199,7 +199,7 @@ function TFilerPCUSupport.FindPCU(const UseUnitName: string; out  aFormat: TPas2
       CurFormat:=PrecompileFormats[i];
       if not CurFormat.Enabled then continue;
       Filename:=DirPath+UseUnitName+'.'+CurFormat.Ext;
-      if Compiler.FileCache.SearchLowUpCase(Filename,MyFile.FileResolver.StrictFileCase) then
+      if Compiler.FileCache.SearchLowUpCase(Filename) then
       begin
         FindPCU:=Filename;
         aFormat:=CurFormat;
