@@ -1501,10 +1501,6 @@ implementation
            optstr:=optstr+' -relocation-model=static'
          else
            optstr:=optstr+' -relocation-model=dynamic-no-pic';
-         { our stack alignment is non-standard on some targets. The following
-           parameter is however ignored on some targets by llvm, so it may not
-           be enough }
-         optstr:=optstr+' -stack-alignment='+tostr(target_info.stackalign*8);
          { force object output instead of textual assembler code }
          optstr:=optstr+' -filetype=obj';
          if fputypestrllvm[current_settings.fputype]<>'' then
@@ -1550,10 +1546,6 @@ implementation
           optstr:=optstr+' -static'
         else
           optstr:=optstr+' -mdynamic-no-pic';
-        { our stack alignment is non-standard on some targets. The following
-          parameter is however ignored on some targets by llvm, so it may not
-          be enough }
-        optstr:=optstr+' -mstack-alignment='+tostr(target_info.stackalign*8);
         if target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) then
           begin
             if MacOSXVersionMin<>'' then
