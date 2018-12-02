@@ -525,6 +525,8 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
     while assigned(auxp^) do
       inc(auxp);
     inc(auxp);
+    phdr:=nil;
+    phnum:=0;
     { now we are at the auxillary vector }
     while assigned(auxp^) do
       begin
