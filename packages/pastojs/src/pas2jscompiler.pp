@@ -288,6 +288,15 @@ type
     isForeign : Boolean;
   end;
 
+  TLoadInfo = Record
+    UseFilename,
+    UseUnitname,
+    InFilename: String;
+    NameExpr,
+    InFileExpr: TPasExpr;
+    UseIsForeign: boolean;
+    IsPCU : Boolean;
+  end;
   { TPas2jsCompilerFile }
 
   TPas2jsCompilerFile = class
@@ -345,7 +354,7 @@ type
     procedure CreateConverter;
     function OnResolverFindModule(const UseUnitName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule;
-    function LoadUsedUnit(const UseFilename, UseUnitname, InFilename: String; NameExpr, InFileExpr: TPasExpr; UseIsForeign: boolean; IsPCU : Boolean): TPas2jsCompilerFile;
+//    function LoadUsedUnit(Info : TLoadInfo): TPas2jsCompilerFile;
     procedure OnResolverCheckSrcName(const Element: TPasElement);
     procedure OpenFile(aFilename: string);// beware: this changes FileResolver.BaseDirectory
     procedure ReadUnit;
@@ -442,6 +451,7 @@ type
     function HandleOptionOptimization(C: Char; aValue: String): Boolean;
     function IndexOfInsertJSFilename(const aFilename: string): integer;
     procedure InsertCustomJSFiles(aWriter: TPas2JSMapper);
+    function LoadUsedUnit(Info: TLoadInfo; Context: TPas2jsCompilerFile): TPas2jsCompilerFile;
     function OnMacroCfgDir(Sender: TObject; var Params: string; Lvl: integer
       ): boolean;
     function OnMacroEnv(Sender: TObject; var Params: string; Lvl: integer
@@ -1578,7 +1588,7 @@ function TPas2jsCompilerFile.OnResolverFindModule(const UseUnitName,
 var
   aFile: TPas2jsCompilerFile;
   UnitInfo : TFindUnitInfo;
-
+  LoadInfo : TLoadInfo;
 begin
   Result:=nil;
   aFile:=Nil;
@@ -1588,10 +1598,23 @@ begin
   UnitInfo:=Compiler.GetUnitInfo(UseUnitName,InFileName,PCUSupport);
   if UnitInfo.FileName<>'' then
     begin
+    LoadInfo.UseFilename:=UnitInfo.FileName;
+    LoadInfo.UseUnitname:=UnitInfo.UnitName;
+    LoadInfo.NameExpr:=NameExpr;
+    LoadInfo.IsPCU:=UnitInfo.isPCU;
     if UnitInfo.isPCU then
-      aFile:=LoadUsedUnit(UnitInfo.FileName,UnitInfo.UnitName,'',NameExpr,nil,false,True)
+      begin
+      LoadInfo.InFilename:='';
+      LoadInfo.InFileExpr:=Nil;
+      LoadInfo.UseIsForeign:=False;
+      end
     else
-      aFile:=LoadUsedUnit(UnitInfo.FileName,UnitInfo.UnitName,InFilename,NameExpr,InFileExpr,UnitInfo.IsForeign,False);
+      begin
+      LoadInfo.InFilename:=InFileName;
+      LoadInfo.InFileExpr:=InFileExpr;
+      LoadInfo.UseIsForeign:=UnitInfo.isForeign;
+      end;
+    aFile:=Compiler.LoadUsedUnit(LoadInfo,Self);
     end;
   if aFile<>nil then
     Result:=aFile.PasModule;
@@ -1599,168 +1622,6 @@ begin
 end;
 
 
-
-function TPas2jsCompilerFile.LoadUsedUnit(const UseFilename, UseUnitname,
-  InFilename: String; NameExpr, InFileExpr: TPasExpr; UseIsForeign: boolean; IsPCU : Boolean
-  ): TPas2jsCompilerFile;
-
-  function FindCycle(aFile, SearchFor: TPas2jsCompilerFile;
-    var Cycle: TFPList): boolean;
-  var
-    i: Integer;
-    aParent: TPas2jsCompilerFile;
-  begin
-    for i:=0 to aFile.UsedByCount[ubMainSection]-1 do begin
-      aParent:=aFile.UsedBy[ubMainSection,i];
-      if aParent=SearchFor then
-      begin
-        // unit cycle found
-        Cycle:=TFPList.Create;
-        Cycle.Add(aParent);
-        Cycle.Add(aFile);
-        exit(true);
-      end;
-      if FindCycle(aParent,SearchFor,Cycle) then
-      begin
-        Cycle.Add(aFile);
-        exit(true);
-      end;
-    end;
-    Result:=false;
-  end;
-
-var
-  aFile: TPas2jsCompilerFile;
-
-  procedure CheckCycle;
-  var
-    i: Integer;
-    Cycle: TFPList;
-    CyclePath: String;
-  begin
-    if PasModule.ImplementationSection=nil then
-    begin
-      // main uses section (e.g. interface or program, not implementation)
-      // -> check for cycles
-
-      aFile.FUsedBy[ubMainSection].Add(Self);
-
-      Cycle:=nil;
-      try
-        if FindCycle(aFile,aFile,Cycle) then
-        begin
-          CyclePath:='';
-          for i:=0 to Cycle.Count-1 do begin
-            if i>0 then CyclePath+=',';
-            CyclePath+=TPas2jsCompilerFile(Cycle[i]).GetModuleName;
-          end;
-          PascalResolver.RaiseMsg(20180223141537,nUnitCycle,sUnitCycle,[CyclePath],NameExpr);
-        end;
-      finally
-        Cycle.Free;
-      end;
-    end else begin
-      // implementation uses section
-      aFile.FUsedBy[ubImplSection].Add(Self);
-    end;
-  end;
-
-var
-  UseJSFilename: String;
-  OtherFile: TPas2jsCompilerFile;
-begin
-  Result:=nil;
-
-  aFile:=Compiler.FindUnitWithFile(UseFilename);
-
-  if aFile<>nil then
-  begin
-    // known unit
-    if (aFile.PasUnitName<>'') and (CompareText(aFile.PasUnitName,UseUnitname)<>0) then
-    begin
-      Log.LogPlain(['Debug: TPas2jsPasTree.FindUnit unitname MISMATCH aFile.PasUnitname="',aFile.PasUnitName,'"',
-         ' Self=',FileResolver.Cache.FormatPath(PasFilename),
-         ' Uses=',UseUnitname,
-         ' IsForeign=',IsForeign]);
-      RaiseInternalError(20170504161412,'TPas2jsPasTree.FindUnit unit name mismatch');
-    end;
-    CheckCycle;
-  end else begin
-    // new unit
-
-    if InFilename<>'' then
-    begin
-      aFile:=Compiler.FindLoadedUnit(UseUnitname);
-      if aFile<>nil then
-      begin
-        {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
-        writeln('TPas2jsCompilerFile.FindUnit in-file unit name duplicate: New=',UseFilename,' Old=',aFile.PasFilename);
-        {$ENDIF}
-        PascalResolver.RaiseMsg(20180223141323,nDuplicateFileFound,sDuplicateFileFound,
-          [UseFilename,aFile.PasFilename],InFileExpr);
-      end;
-    end;
-
-    UseJSFilename:='';
-    if (not IsForeign) then
-      UseJSFilename:=Compiler.FindUnitJSFileName(UseFilename);
-    //  Log.LogPlain(['Debug: TPas2jsPasTree.FindUnit Self=',FileResolver.Cache.FormatPath(PasFilename),
-    //    ' Uses=',ActualUnitname,' Found="',FileResolver.Cache.FormatPath(UseFilename),'"',
-    //    ' IsForeign=',IsForeign,' JSFile="',FileResolver.Cache.FormatPath(useJSFilename),'"']);
-    // load Pascal or PCU file
-    Compiler.LoadPasFile(UseFilename,UseUnitname,aFile,IsPCU);
-
-    // consistency checks
-    if aFile.PasUnitName<>UseUnitname then
-      RaiseInternalError(20170922143329,'aFile.PasUnitName='+aFile.PasUnitName+' UseUnitname='+UseUnitname);
-    if isPCU then
-    begin
-      if CompareFilenames(aFile.PCUFilename,UseFilename)<>0 then
-        RaiseInternalError(20180312122331,'aFile.PCUFilename='+aFile.PCUFilename+' UseFilename='+UseFilename);
-    end else
-    begin
-      if CompareFilenames(aFile.PasFilename,UseFilename)<>0 then
-        RaiseInternalError(20170922143330,'aFile.PasFilename='+aFile.PasFilename+' UseFilename='+UseFilename);
-    end;
-
-    if aFile=Self then
-    begin
-      // unit uses itself -> cycle
-      Parser.RaiseParserError(nUnitCycle,[UseUnitname]);
-    end;
-
-    // add file to trees
-    Compiler.AddUsedUnit(aFile);
-    // consistency checks
-    OtherFile:=Compiler.FindLoadedUnit(UseUnitname);
-    if aFile<>OtherFile then
-    begin
-      if OtherFile=nil then
-        RaiseInternalError(20170922143405,'UseUnitname='+UseUnitname)
-      else
-        RaiseInternalError(20170922143511,'UseUnitname='+UseUnitname+' Found='+OtherFile.PasUnitName);
-    end;
-    OtherFile:=Compiler.FindUnitWithFile(UseFilename);
-    if aFile<>OtherFile then
-    begin
-      if OtherFile=nil then
-        RaiseInternalError(20180224094625,'UsePasFilename='+UseFilename)
-      else
-        RaiseInternalError(20180224094627,'UsePasFilename='+UseFilename+' Found='+OtherFile.PasFilename);
-    end;
-
-    CheckCycle;
-
-    aFile.JSFilename:=UseJSFilename;
-    aFile.IsForeign:=UseIsForeign;
-
-    // read
-    aFile.ReadUnit;
-    // beware: the parser may not yet have finished
-  end;
-
-  Result:=aFile;
-end;
 
 { TPas2jsCompiler }
 
@@ -4859,6 +4720,167 @@ begin
     Result.isPCU:=False;
     Result.isForeign:=FoundPasIsForeign;
     end;
+end;
+
+
+function TPas2JSCompiler.LoadUsedUnit(Info : TLoadInfo; Context : TPas2jsCompilerFile): TPas2jsCompilerFile;
+
+  function FindCycle(aFile, SearchFor: TPas2jsCompilerFile;
+    var Cycle: TFPList): boolean;
+  var
+    i: Integer;
+    aParent: TPas2jsCompilerFile;
+  begin
+    for i:=0 to aFile.UsedByCount[ubMainSection]-1 do begin
+      aParent:=aFile.UsedBy[ubMainSection,i];
+      if aParent=SearchFor then
+      begin
+        // unit cycle found
+        Cycle:=TFPList.Create;
+        Cycle.Add(aParent);
+        Cycle.Add(aFile);
+        exit(true);
+      end;
+      if FindCycle(aParent,SearchFor,Cycle) then
+      begin
+        Cycle.Add(aFile);
+        exit(true);
+      end;
+    end;
+    Result:=false;
+  end;
+
+var
+  aFile: TPas2jsCompilerFile;
+
+  procedure CheckCycle;
+  var
+    i: Integer;
+    Cycle: TFPList;
+    CyclePath: String;
+  begin
+    if Context.PasModule.ImplementationSection=nil then
+    begin
+      // main uses section (e.g. interface or program, not implementation)
+      // -> check for cycles
+
+      aFile.FUsedBy[ubMainSection].Add(Context);
+
+      Cycle:=nil;
+      try
+        if FindCycle(aFile,aFile,Cycle) then
+        begin
+          CyclePath:='';
+          for i:=0 to Cycle.Count-1 do begin
+            if i>0 then CyclePath+=',';
+            CyclePath+=TPas2jsCompilerFile(Cycle[i]).GetModuleName;
+          end;
+          Context.PascalResolver.RaiseMsg(20180223141537,nUnitCycle,sUnitCycle,[CyclePath],Info.NameExpr);
+        end;
+      finally
+        Cycle.Free;
+      end;
+    end else begin
+      // implementation uses section
+      aFile.FUsedBy[ubImplSection].Add(Context);
+    end;
+  end;
+
+var
+  UseJSFilename: String;
+  OtherFile: TPas2jsCompilerFile;
+begin
+  Result:=nil;
+
+  aFile:=FindUnitWithFile(Info.UseFilename);
+
+  if aFile<>nil then
+  begin
+    // known unit
+    if (aFile.PasUnitName<>'') and (CompareText(aFile.PasUnitName,Info.UseUnitname)<>0) then
+    begin
+      Log.LogPlain(['Debug: TPas2jsPasTree.FindUnit unitname MISMATCH aFile.PasUnitname="',aFile.PasUnitName,'"',
+         ' Self=',Context.FileResolver.Cache.FormatPath(Context.PasFilename),
+         ' Uses=',Info.UseUnitname,
+         ' IsForeign=',Context.IsForeign]);
+      RaiseInternalError(20170504161412,'TPas2jsPasTree.FindUnit unit name mismatch');
+    end;
+    CheckCycle;
+  end else begin
+    // new unit
+
+    if Info.InFilename<>'' then
+    begin
+      aFile:=FindLoadedUnit(Info.UseUnitname);
+      if aFile<>nil then
+      begin
+        {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
+        writeln('TPas2jsCompilerFile.FindUnit in-file unit name duplicate: New=',Info.UseFilename,' Old=',aFile.PasFilename);
+        {$ENDIF}
+        Context.PascalResolver.RaiseMsg(20180223141323,nDuplicateFileFound,sDuplicateFileFound,
+          [Info.UseFilename,aFile.PasFilename],Info.InFileExpr);
+      end;
+    end;
+
+    UseJSFilename:='';
+    if (not Context.IsForeign) then
+      UseJSFilename:=FindUnitJSFileName(Info.UseFilename);
+    //  Log.LogPlain(['Debug: TPas2jsPasTree.FindUnit Self=',FileResolver.Cache.FormatPath(PasFilename),
+    //    ' Uses=',ActualUnitname,' Found="',FileResolver.Cache.FormatPath(UseFilename),'"',
+    //    ' IsForeign=',IsForeign,' JSFile="',FileResolver.Cache.FormatPath(useJSFilename),'"']);
+    // load Pascal or PCU file
+    LoadPasFile(Info.UseFilename,Info.UseUnitname,aFile,Info.IsPCU);
+
+    // consistency checks
+    if aFile.PasUnitName<>Info.UseUnitname then
+      RaiseInternalError(20170922143329,'aFile.PasUnitName='+aFile.PasUnitName+' UseUnitname='+Info.UseUnitname);
+    if Info.isPCU then
+    begin
+      if CompareFilenames(aFile.PCUFilename,Info.UseFilename)<>0 then
+        RaiseInternalError(20180312122331,'aFile.PCUFilename='+aFile.PCUFilename+' UseFilename='+Info.UseFilename);
+    end else
+    begin
+      if CompareFilenames(aFile.PasFilename,Info.UseFilename)<>0 then
+        RaiseInternalError(20170922143330,'aFile.PasFilename='+aFile.PasFilename+' UseFilename='+Info.UseFilename);
+    end;
+
+    if aFile=Context then
+    begin
+      // unit uses itself -> cycle
+      Context.Parser.RaiseParserError(nUnitCycle,[Info.UseUnitname]);
+    end;
+
+    // add file to trees
+    AddUsedUnit(aFile);
+    // consistency checks
+    OtherFile:=FindLoadedUnit(Info.UseUnitname);
+    if aFile<>OtherFile then
+    begin
+      if OtherFile=nil then
+        RaiseInternalError(20170922143405,'UseUnitname='+Info.UseUnitname)
+      else
+        RaiseInternalError(20170922143511,'UseUnitname='+Info.UseUnitname+' Found='+OtherFile.PasUnitName);
+    end;
+    OtherFile:=FindUnitWithFile(Info.UseFilename);
+    if aFile<>OtherFile then
+    begin
+      if OtherFile=nil then
+        RaiseInternalError(20180224094625,'UsePasFilename='+Info.UseFilename)
+      else
+        RaiseInternalError(20180224094627,'UsePasFilename='+Info.UseFilename+' Found='+OtherFile.PasFilename);
+    end;
+
+    CheckCycle;
+
+    aFile.JSFilename:=UseJSFilename;
+    aFile.IsForeign:=Info.UseIsForeign;
+
+    // read
+    aFile.ReadUnit;
+    // beware: the parser may not yet have finished
+  end;
+
+  Result:=aFile;
 end;
 
 function TPas2jsCompiler.ResolvedMainJSFile: string;
