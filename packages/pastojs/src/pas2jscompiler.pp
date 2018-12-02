@@ -281,6 +281,13 @@ type
   end;
 
 
+  TFindUnitInfo = Record
+    FileName : String;
+    UnitName : String;
+    isPCU : Boolean;
+    isForeign : Boolean;
+  end;
+
   { TPas2jsCompilerFile }
 
   TPas2jsCompilerFile = class
@@ -551,6 +558,7 @@ type
     function IsDefined(const aName: String): boolean;
     procedure SetOption(Flag: TP2jsCompilerOption; Enable: boolean);
 
+    function GetUnitInfo(const UseUnitName, InFileName: String; PCUSupport: TPCUSupport): TFindUnitInfo;
     function FindUnitWithFile(PasFilename: string): TPas2jsCompilerFile;
     procedure LoadPasFile(UnitFilename, UseUnitName: string; out aFile: TPas2jsCompilerFile; isPCU : Boolean);
     Function FindUnitJSFileName(aFileName : String) : String;
@@ -1335,7 +1343,7 @@ begin
     Compiler.AddReadingModule(Self);
     PascalResolver.InterfaceOnly:=IsForeign;
 
-    if Assigned(PCUSupport) then
+    if IsUnitReadFromPCU then
       PCUSupport.ReadUnit
     else
     begin
@@ -1566,179 +1574,30 @@ end;
 
 function TPas2jsCompilerFile.OnResolverFindModule(const UseUnitName,
   InFilename: String; NameExpr, InFileExpr: TPasExpr): TPasModule;
-var
-  FoundPasFilename, FoundPasUnitName: string;
-  FoundPasIsForeign: Boolean;
-  FoundPCUFilename, FoundPCUUnitName: string;
-
-  procedure TryUnitName(const TestUnitName: string);
-  var
-    aFile: TPas2jsCompilerFile;
-  begin
-    if FoundPasFilename='' then
-    begin
-      // search loaded units
-      aFile:=Compiler.FindLoadedUnit(TestUnitName);
-      if aFile<>nil then
-      begin
-        FoundPasFilename:=aFile.PasFilename;
-        FoundPasUnitName:=TestUnitName;
-      end else begin
-        // search pas in unit path
-        FoundPasFilename:=Compiler.FileCache.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
-        if FoundPasFilename<>'' then
-          FoundPasUnitName:=TestUnitName;
-      end;
-    end;
-    if Assigned(PCUSupport) and (FoundPCUFilename='')  then
-    begin
-      FoundPCUFilename:=PCUSupport.FindPCU(TestUnitName);
-      if FoundPCUFilename<>'' then
-        FoundPCUUnitName:=TestUnitName;
-    end;
-  end;
 
 var
-  aNameSpace, DefNameSpace: String;
-  i: Integer;
   aFile: TPas2jsCompilerFile;
+  UnitInfo : TFindUnitInfo;
+
 begin
   Result:=nil;
+  aFile:=Nil;
+  // duplicate identifier or unit cycle
   if CompareText(ExtractFilenameOnly(PasFilename),UseUnitname)=0 then
-  begin
-    // duplicate identifier or unit cycle
     Parser.RaiseParserError(nUnitCycle,[UseUnitname]);
-  end;
-
-  FoundPasFilename:='';
-  FoundPasIsForeign:=false;
-  FoundPasUnitName:='';
-  FoundPCUFilename:='';
-  FoundPCUUnitName:='';
-  if (InFilename='') and (Pos('.',UseUnitname)<1) then
-  begin
-    // generic unit -> search with namespaces
-    // first the default program namespace
-    DefNameSpace:=Compiler.GetDefaultNamespace;
-    if DefNameSpace<>'' then
-      TryUnitName(DefNameSpace+'.'+UseUnitname);
-
-    if (FoundPasFilename='') or (FoundPCUFilename='') then
+  UnitInfo:=Compiler.GetUnitInfo(UseUnitName,InFileName,PCUSupport);
+  if UnitInfo.FileName<>'' then
     begin
-      // then the cmdline namespaces
-      for i:=0 to Compiler.FileCache.Namespaces.Count-1 do begin
-        aNameSpace:=Compiler.FileCache.Namespaces[i];
-        if aNameSpace='' then continue;
-        if SameText(aNameSpace,DefNameSpace) then continue;
-        TryUnitName(aNameSpace+'.'+UseUnitname);
-      end;
+    if UnitInfo.isPCU then
+      aFile:=LoadUsedUnit(UnitInfo.FileName,UnitInfo.UnitName,'',NameExpr,nil,false,True)
+    else
+      aFile:=LoadUsedUnit(UnitInfo.FileName,UnitInfo.UnitName,InFilename,NameExpr,InFileExpr,UnitInfo.IsForeign,False);
     end;
-  end;
-
-  if FoundPasFilename='' then
-  begin
-    if InFilename='' then
-    begin
-      // search unitname in loaded units
-      aFile:=Compiler.FindLoadedUnit(UseUnitname);
-      if aFile<>nil then
-      begin
-        FoundPasFilename:=aFile.PasFilename;
-        FoundPasUnitName:=UseUnitName;
-      end;
-    end;
-    if FoundPasFilename='' then
-    begin
-      // search Pascal file
-      FoundPasFilename:=Compiler.FileCache.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
-      if FoundPasFilename<>'' then
-        begin
-        if InFilename<>'' then
-          FoundPasUnitName:=ExtractFilenameOnly(InFilename)
-        else
-          FoundPasUnitName:=UseUnitName;
-        end
-      else if InFilename<>'' then
-        exit; // an in-filename unit source is missing -> stop
-    end;
-  end;
-
-  if Assigned(PCUSupport) and (FoundPCUFilename='')  then
-  begin
-    FoundPCUFilename:=PCUSupport.FindPCU(UseUnitName);
-    FoundPCUUnitName:=UseUnitName;
-  end;
-
-  if (FoundPasFilename='') and (FoundPCUFilename<>'') then
-  begin
-    aFile:=LoadUsedUnit(FoundPCUFilename,FoundPCUUnitName,'',NameExpr,nil,false,True);
-    if aFile<>nil then
-      Result:=aFile.PasModule;
-    exit;
-  end;
-
-  if FoundPasFilename<>'' then
-  begin
-    // load unit
-    aFile:=LoadUsedUnit(FoundPasFilename,FoundPasUnitName,InFilename,
-                         NameExpr,InFileExpr,FoundPasIsForeign,False);
-    if aFile<>nil then
-      Result:=aFile.PasModule;
-  end;
+  if aFile<>nil then
+    Result:=aFile.PasModule;
   // if Result=nil resolver will give a nice error position
 end;
 
-function TPas2jsCompiler.ResolvedMainJSFile: string;
-
-Var
-  OP,UP : String;
-
-begin
-  OP:=FileCache.MainOutputPath;
-  UP:=FileCache.UnitOutputPath;
-  if MainJSFile='.' then
-    Result:=''
-  else begin
-    Result:=MainJSFile;
-    if Result<>'' then
-    begin
-      // has option -o
-      if ExtractFilePath(Result)='' then
-      begin
-        // -o<FileWithoutPath>
-        if OP<>'' then
-          Result:=OP+Result
-        else if UP<>'' then
-          Result:=UP+Result;
-      end;
-    end else begin
-      // no option -o
-      Result:=ChangeFileExt(MainSrcFile,'.js');
-      if OP<>'' then
-      begin
-        // option -FE and no -o => put into MainOutputPath
-        Result:=OP+ExtractFilename(Result)
-      end else if UP<>'' then
-      begin
-        // option -FU and no -o => put into UnitOutputPath
-        Result:=UP+ExtractFilename(Result)
-      end else begin
-        // no -FU and no -o => put into source directory
-      end;
-    end;
-  end;
-end;
-
-function TPas2jsCompiler.GetResolvedMainJSFile: string;
-
-begin
-  if not FIsMainJSFileResolved then
-    begin
-    FMainJSFileResolved:=ResolvedMainJSFile;
-    FIsMainJSFileResolved:=True;
-  end;
-  Result:=FMainJSFileResolved;
-end;
 
 
 function TPas2jsCompilerFile.LoadUsedUnit(const UseFilename, UseUnitname,
@@ -4884,6 +4743,174 @@ begin
   i:=IndexOfInsertJSFilename(aFilename);
   if i>=0 then
     InsertFilenames.Delete(i);
+end;
+
+
+function TPas2jsCompiler.GetUnitInfo(const UseUnitName,InFileName : String; PCUSupport : TPCUSupport) : TFindUnitInfo;
+
+var
+  FoundPasFilename, FoundPasUnitName: string;
+  FoundPasIsForeign: Boolean;
+  FoundPCUFilename, FoundPCUUnitName: string;
+
+  procedure TryUnitName(const TestUnitName: string);
+  var
+    aFile: TPas2jsCompilerFile;
+  begin
+    if FoundPasFilename='' then
+    begin
+      // search loaded units
+      aFile:=FindLoadedUnit(TestUnitName);
+      if aFile<>nil then
+      begin
+        FoundPasFilename:=aFile.PasFilename;
+        FoundPasUnitName:=TestUnitName;
+      end else begin
+        // search pas in unit path
+        FoundPasFilename:=FileCache.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
+        if FoundPasFilename<>'' then
+          FoundPasUnitName:=TestUnitName;
+      end;
+    end;
+    if Assigned(PCUSupport) and (FoundPCUFilename='')  then
+    begin
+      FoundPCUFilename:=PCUSupport.FindPCU(TestUnitName);
+      if FoundPCUFilename<>'' then
+        FoundPCUUnitName:=TestUnitName;
+    end;
+  end;
+
+var
+  aFile : TPas2jsCompilerFile;
+  aNameSpace, DefNameSpace: String;
+  i: Integer;
+
+begin
+  Result:=Default(TFindUnitInfo);
+  FoundPasFilename:='';
+  FoundPasIsForeign:=false;
+  FoundPasUnitName:='';
+  FoundPCUFilename:='';
+  FoundPCUUnitName:='';
+  if (InFilename='') and (Pos('.',UseUnitname)<1) then
+  begin
+    // generic unit -> search with namespaces
+    // first the default program namespace
+    DefNameSpace:=GetDefaultNamespace;
+    if DefNameSpace<>'' then
+      TryUnitName(DefNameSpace+'.'+UseUnitname);
+
+    if (FoundPasFilename='') or (FoundPCUFilename='') then
+    begin
+      // then the cmdline namespaces
+      for i:=0 to FileCache.Namespaces.Count-1 do begin
+        aNameSpace:=FileCache.Namespaces[i];
+        if aNameSpace='' then continue;
+        if SameText(aNameSpace,DefNameSpace) then continue;
+        TryUnitName(aNameSpace+'.'+UseUnitname);
+      end;
+    end;
+  end;
+
+  if FoundPasFilename='' then
+  begin
+    if InFilename='' then
+    begin
+      // search unitname in loaded units
+      aFile:=FindLoadedUnit(UseUnitname);
+      if aFile<>nil then
+      begin
+        FoundPasFilename:=aFile.PasFilename;
+        FoundPasUnitName:=UseUnitName;
+      end;
+    end;
+    if FoundPasFilename='' then
+    begin
+      // search Pascal file
+      FoundPasFilename:=FileCache.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
+      if FoundPasFilename<>'' then
+        begin
+        if InFilename<>'' then
+          FoundPasUnitName:=ExtractFilenameOnly(InFilename)
+        else
+          FoundPasUnitName:=UseUnitName;
+        end
+      else if InFilename<>'' then
+        exit; // an in-filename unit source is missing -> stop
+    end;
+  end;
+
+  if Assigned(PCUSupport) and (FoundPCUFilename='')  then
+  begin
+    FoundPCUFilename:=PCUSupport.FindPCU(UseUnitName);
+    FoundPCUUnitName:=UseUnitName;
+  end;
+  if (FoundPasFilename='') and (FoundPCUFilename<>'') then
+    begin
+    Result.FileName:=FoundPCUFilename;
+    Result.UnitName:=FoundPCUUnitName;
+    Result.isPCU:=True;
+    Result.isForeign:=False;
+    end;
+  if (FoundPasFileName<>'') then
+    begin
+    Result.FileName:=FoundPasFilename;
+    Result.UnitName:=FoundPasUnitName;
+    Result.isPCU:=False;
+    Result.isForeign:=FoundPasIsForeign;
+    end;
+end;
+
+function TPas2jsCompiler.ResolvedMainJSFile: string;
+
+Var
+  OP,UP : String;
+
+begin
+  OP:=FileCache.MainOutputPath;
+  UP:=FileCache.UnitOutputPath;
+  if MainJSFile='.' then
+    Result:=''
+  else begin
+    Result:=MainJSFile;
+    if Result<>'' then
+    begin
+      // has option -o
+      if ExtractFilePath(Result)='' then
+      begin
+        // -o<FileWithoutPath>
+        if OP<>'' then
+          Result:=OP+Result
+        else if UP<>'' then
+          Result:=UP+Result;
+      end;
+    end else begin
+      // no option -o
+      Result:=ChangeFileExt(MainSrcFile,'.js');
+      if OP<>'' then
+      begin
+        // option -FE and no -o => put into MainOutputPath
+        Result:=OP+ExtractFilename(Result)
+      end else if UP<>'' then
+      begin
+        // option -FU and no -o => put into UnitOutputPath
+        Result:=UP+ExtractFilename(Result)
+      end else begin
+        // no -FU and no -o => put into source directory
+      end;
+    end;
+  end;
+end;
+
+function TPas2jsCompiler.GetResolvedMainJSFile: string;
+
+begin
+  if not FIsMainJSFileResolved then
+    begin
+    FMainJSFileResolved:=ResolvedMainJSFile;
+    FIsMainJSFileResolved:=True;
+  end;
+  Result:=FMainJSFileResolved;
 end;
 
 end.
