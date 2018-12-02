@@ -575,6 +575,12 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
 {$endif CPUARM}
 
 
+{$if FPC_FULLVERSION>30200}
+{$if defined(CPUI386) or defined(CPUARM)}
+{$I abitag.inc}
+{$endif defined(CPUI386) or defined(CPUARM)}
+{$endif FPC_FULLVERSION>30200}
+
 begin
 {$if defined(i386) and not defined(FPC_USE_LIBC)}
   InitSyscallIntf;
