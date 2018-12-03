@@ -22,6 +22,7 @@
 unit pas2jsfs;
 
 {$mode objfpc}{$H+}
+{$I pas2js_defines.inc}
 
 interface
 
@@ -153,7 +154,7 @@ Type
 
   { TPas2jsFSResolver }
 
-  TPas2jsFSResolver = class(TFileResolver)
+  TPas2jsFSResolver = class({$IFDEF HASFILESYSTEM}TFileResolver{$ELSE}TBaseFileResolver{$ENDIF})
   private
     FFS: TPas2jsFS;
   public

@@ -545,6 +545,14 @@ type
     procedure RegisterMessages;
     procedure SetAllJSIntoMainJS(AValue: Boolean);
   protected
+    // Create various other classes. Virtual so they can be overridden in descendents
+    function CreateJSMapper: TPas2JSMapper;virtual;
+    function CreateJSWriter(aFileWriter: TPas2JSMapper): TJSWriter; virtual;
+    function CreateLog: TPas2jsLogger; virtual;
+    function CreateMacroEngine: TPas2jsMacroEngine;virtual;
+    function CreateSrcMap(const aFileName: String): TPas2JSSrcMap; virtual;
+    function CreateOptimizer: TPas2JSWPOptimizer;
+    // These are mandatory !
     function CreateSetOfCompilerFiles(keyType: TKeyCompareType): TPasAnalyzerKeySet; virtual; abstract;
     function CreateFS : TPas2JSFS; virtual; abstract;
     Function FormatPath(Const aPath : String) : String;
@@ -1906,12 +1914,18 @@ begin
   Result:=aFile.NeedBuild;
 end;
 
+Function TPas2jsCompiler.CreateOptimizer : TPas2JSWPOptimizer;
+
+begin
+  Result:=TPas2JSWPOptimizer.Create;
+end;
+
 procedure TPas2jsCompiler.OptimizeProgram(aFile: TPas2jsCompilerFile);
 begin
   if not AllJSIntoMainJS then exit;
   if coKeepNotUsedDeclarationsWPO in Options then exit;
   if not (aFile.PasModule is TPasProgram) then exit;
-  FWPOAnalyzer:=TPas2JSWPOptimizer.Create;
+  FWPOAnalyzer:=CreateOptimizer;
   FWPOAnalyzer.Resolver:=aFile.PascalResolver;
   FWPOAnalyzer.Options:=FWPOAnalyzer.Options+[paoOnlyExports];
   FWPOAnalyzer.AnalyzeWholeProgram(TPasProgram(aFile.PasModule));
@@ -2004,6 +2018,24 @@ begin
   if aWriter=nil then ;
 end;
 
+Function TPas2jsCompiler.CreateJSWriter(aFileWriter: TPas2JSMapper): TJSWriter;
+
+begin
+  Result:=TJSWriter.Create(aFileWriter);
+end;
+
+Function TPas2JSCompiler.CreateJSMapper : TPas2JSMapper;
+
+begin
+  Result:=TPas2JSMapper.Create(4096);
+end;
+
+Function TPas2JSCompiler.CreateSrcMap(Const aFileName : String) : TPas2JSSrcMap;
+
+begin
+  Result:=TPas2JSSrcMap.Create(aFileName);
+end;
+
 procedure TPas2jsCompiler.WriteJSFiles(aFile: TPas2jsCompilerFile;
   var CombinedFileWriter: TPas2JSMapper; Checked: TPasAnalyzerKeySet);
 
@@ -2031,11 +2063,11 @@ var
   var
     SrcMap: TPas2JSSrcMap;
   begin
-    aFileWriter:=TPas2JSMapper.Create(4096);
+    aFileWriter:=CreateJSMapper;
     FreeWriter:=true;
     if SrcMapEnable then
     begin
-      SrcMap:=TPas2JSSrcMap.Create(ExtractFilename(aFilename));
+      SrcMap:=CreateSrcMap(ExtractFilename(aFilename));
       aFileWriter.SrcMap:=SrcMap;
       SrcMap.Release;// release the refcount from the Create
       SrcMap.SourceRoot:=SrcMapSourceRoot;
@@ -2091,7 +2123,7 @@ begin
     end;
 
     // write JavaScript
-    aJSWriter:=TJSWriter.Create(aFileWriter);
+    aJSWriter:=CreateJSWriter(aFileWriter);
     aJSWriter.Options:=DefaultJSWriterOptions;
     aJSWriter.IndentSize:=2;
     try
@@ -2146,12 +2178,12 @@ begin
 
         // check output directory
         DestDir:=ChompPathDelim(ExtractFilePath(DestFilename));
-        if (DestDir<>'') and not DirectoryExists(DestDir) then
+        if (DestDir<>'') and not FS.DirectoryExists(DestDir) then
         begin
           Log.LogMsg(nOutputDirectoryNotFound,[FullFormatPath(DestDir)]);
           Terminate(ExitCodeFileNotFound);
         end;
-        if DirectoryExists(DestFilename) then
+        if FS.DirectoryExists(DestFilename) then
         begin
           Log.LogMsg(nFileIsFolder,[FullFormatPath(DestFilename)]);
           Terminate(ExitCodeWriteError);
@@ -3593,28 +3625,39 @@ begin
   Result:=QuoteStr(FormatPath(aPath));
 end;
 
+Function TPas2jsCompiler.CreateMacroEngine : TPas2jsMacroEngine;
+
+begin
+  Result:=TPas2jsMacroEngine.Create;
+end;
+
+Function TPas2jsCompiler.CreateLog : TPas2jsLogger;
+
+begin
+  Result:=TPas2jsLogger.Create;
+end;
 
 constructor TPas2jsCompiler.Create;
+
 begin
   FOptions:=DefaultP2jsCompilerOptions;
   FNamespaces:=TStringList.Create;
-  FLog:=TPas2jsLogger.Create;
-  FParamMacros:=TPas2jsMacroEngine.Create;
-  RegisterMessages;
+  FDefines:=TStringList.Create;
   FInsertFilenames:=TStringList.Create;
+  FLog:=CreateLog;
+  FLog.OnFormatPath:=@FormatPath;
+  FParamMacros:=CreateMacroEngine;
+  RegisterMessages;
   FS:=CreateFS;
   FOwnsFS:=true;
-  FLog.OnFormatPath:=@FormatPath;
 
-  FDefines:=TStringList.Create;
   // Done by Reset: TStringList(FDefines).Sorted:=True;
   // Done by Reset: TStringList(FDefines).Duplicates:=dupError;
-
   //FConditionEval.OnEvalFunction:=@ConditionEvalFunction;
 
   FFiles:=CreateSetOfCompilerFiles(kcFilename);
-  FReadingModules:=TFPList.Create;
   FUnits:=CreateSetOfCompilerFiles(kcUnitName);
+  FReadingModules:=TFPList.Create;
   InitParamMacros;
   Reset;
 end;
