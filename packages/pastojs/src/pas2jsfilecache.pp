@@ -78,7 +78,7 @@ type
     function Count: integer;
     procedure Clear;
     property ChangeStamp: TChangeStamp read FChangeStamp write FChangeStamp;// set on Update to Pool.ChangeStamp
-    function NeedsUpdate: boolean; inline;
+    function NeedsUpdate: boolean;
     procedure Update;
     procedure Reference;
     procedure Release;
@@ -562,6 +562,7 @@ begin
   FPath:=IncludeTrailingPathDelimiter(aPath);
   FEntries:=TFPList.Create;
   FPool:=aPool;
+  FChangeStamp:=InvalidChangeStamp;
 end;
 
 destructor TPas2jsCachedDirectory.Destroy;
@@ -1791,10 +1792,7 @@ begin
     // no file path -> search
     {$IFDEF Windows}
     // search in BaseDir
-    if BaseDir<>'' then
-    begin
-      if TryFile(IncludeTrailingPathDelimiter(BaseDir)+Filename) then exit;
-    end else if BaseDirectory<>'' then
+    if BaseDirectory<>'' then
     begin
       if TryFile(IncludeTrailingPathDelimiter(BaseDirectory)+Filename) then exit;
     end;
