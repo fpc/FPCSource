@@ -486,6 +486,7 @@ type
     FIncludePaths: TStringList;
     FStrictFileCase : Boolean;
   Protected
+    Function FindIncludeFileName(const AName: string): String; virtual;
     procedure SetBaseDirectory(AValue: string); virtual;
     procedure SetStrictFileCase(AValue: Boolean); virtual;
     Property IncludePaths: TStringList Read FIncludePaths;
@@ -2385,6 +2386,11 @@ end;
 { ---------------------------------------------------------------------
   TBaseFileResolver
   ---------------------------------------------------------------------}
+
+function TBaseFileResolver.FindIncludeFileName(const AName: string): String;
+begin
+  Result:=aName;
+end;
 
 procedure TBaseFileResolver.SetBaseDirectory(AValue: string);
 begin
