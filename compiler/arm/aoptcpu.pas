@@ -117,7 +117,9 @@ Implementation
         (r1.signindex = r2.signindex) and
         (r1.shiftimm = r2.shiftimm) and
         (r1.addressmode = r2.addressmode) and
-        (r1.shiftmode = r2.shiftmode);
+        (r1.shiftmode = r2.shiftmode) and
+        (r1.volatility=[]) and
+        (r2.volatility=[]);
     end;
 
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;

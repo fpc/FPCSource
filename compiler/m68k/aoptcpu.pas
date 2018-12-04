@@ -65,7 +65,9 @@ unit aoptcpu;
           (r1.base = r2.base) and
           (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
           (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
-          (r1.relsymbol = r2.relsymbol);
+          (r1.relsymbol = r2.relsymbol) and
+          (r1.volatility=[]) and
+          (r2.volatility=[]);
       end;
 
     function MatchOperand(const oper1: TOper; const oper2: TOper): boolean;

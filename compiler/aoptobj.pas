@@ -1059,7 +1059,10 @@ Unit AoptObj;
             Top_Reg :
               OpsEqual:=o1.reg=o2.reg;
             Top_Ref :
-              OpsEqual := references_equal(o1.ref^, o2.ref^);
+              OpsEqual:=
+                references_equal(o1.ref^, o2.ref^) and
+                (o1.ref^.volatility=[]) and
+                (o2.ref^.volatility=[]);
             Top_Const :
               OpsEqual:=o1.val=o2.val;
             Top_None :
