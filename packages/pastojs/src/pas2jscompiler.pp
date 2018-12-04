@@ -2118,7 +2118,7 @@ begin
     begin
       // create writer for this file
       CreateFileWriter(DestFilename);
-      if aFile.IsMainFile and not AllJSIntoMainJS then
+      if aFile.IsMainFile and Not AllJSIntoMainJS then
         InsertCustomJSFiles(aFileWriter);
     end;
 
@@ -3865,7 +3865,7 @@ begin
     FPostProcessorSupport.Clear;
   FCompilerExe:='';
   FSrcMapBaseDir:='';
-
+  FMainSrcFile:='';
   FOptions:=DefaultP2jsCompilerOptions;
   FRTLVersionCheck:=DefaultP2jsRTLVersionCheck;
   FMode:=p2jmObjFPC;
