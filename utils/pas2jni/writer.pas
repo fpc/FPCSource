@@ -2075,7 +2075,7 @@ begin
     end;
 
     // Class ref helpers
-    if FClasses.IndexOf('system.TClass', nil) >= 0 then begin
+    if (u.Name = 'system') and (FClasses.IndexOf('system.TClass', nil) >= 0) then begin
       Fjs.WriteLn('native static long GetClassRef(int index);');
       AddNativeMethod(u, '_GetClassRef', 'GetClassRef', '(I)J');
       Fjs.WriteLn('static TClass GetTClass(int index) { TClass c = new TClass(null); c._pasobj=GetClassRef(index); return c; }');
