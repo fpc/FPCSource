@@ -103,6 +103,7 @@ implementation
 {$endif SUPPORT_GET_FRAME}
         systemunit.insert(csyssym.create('Unaligned',in_unaligned_x));
         systemunit.insert(csyssym.create('Aligned',in_aligned_x));
+        systemunit.insert(csyssym.create('Volatile',in_volatile_x));
         systemunit.insert(csyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
         systemunit.insert(csyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
         systemunit.insert(csyssym.create('Default',in_default_x));

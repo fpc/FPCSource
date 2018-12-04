@@ -381,7 +381,6 @@ type
     Procedure TestCaseOfRange;
     Procedure TestCaseOfString;
     Procedure TestCaseOfExternalClassConst;
-    Procedure TestDebugger;
 
     // arrays
     Procedure TestArray_Dynamic;
@@ -7080,30 +7079,6 @@ begin
     '  $mod.vI = 3}',
     ' else if ($tmp1 === Bird.e) ;'
     ]));
-end;
-
-procedure TTestModule.TestDebugger;
-begin
-  StartProgram(false);
-  Add([
-  'procedure DoIt;',
-  'begin',
-  '  deBugger;',
-  '  DeBugger();',
-  'end;',
-  'begin',
-  '  Debugger;']);
-  ConvertProgram;
-  CheckSource('TestDebugger',
-    LinesToStr([ // statements
-    'this.DoIt = function () {',
-    '  debugger;',
-    '  debugger;',
-    '};',
-    '']),
-    LinesToStr([ // $mod.$main
-    'debugger;',
-    '']));
 end;
 
 procedure TTestModule.TestArray_Dynamic;

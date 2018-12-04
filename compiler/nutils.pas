@@ -891,6 +891,7 @@ implementation
                     in_abs_real,
                     in_aligned_x,
                     in_unaligned_x,
+                    in_volatile_x,
                     in_prefetch_var:
                       begin
                         inc(result);

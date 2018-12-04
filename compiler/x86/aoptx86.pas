@@ -218,7 +218,9 @@ unit aoptx86;
           (r1.segment = r2.segment) and (r1.base = r2.base) and
           (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
           (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
-          (r1.relsymbol = r2.relsymbol);
+          (r1.relsymbol = r2.relsymbol) and
+          (r1.volatility=[]) and
+          (r2.volatility=[]);
       end;
 
 
@@ -232,7 +234,8 @@ unit aoptx86;
          ((base=NR_INVALID) or
           (ref.base=base)) and
          ((index=NR_INVALID) or
-          (ref.index=index));
+          (ref.index=index)) and
+         (ref.volatility=[]);
       end;
 
 
@@ -245,7 +248,8 @@ unit aoptx86;
          ((base=NR_INVALID) or
           (ref.base=base)) and
          ((index=NR_INVALID) or
-          (ref.index=index));
+          (ref.index=index)) and
+         (ref.volatility=[]);
       end;
 
 

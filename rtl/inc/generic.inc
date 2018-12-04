@@ -76,7 +76,7 @@ begin
         then
         begin
           { Align on native pointer size }
-          aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
+          aligncount:=(sizeof(PtrUInt)-PtrInt(pdest)) and (sizeof(PtrUInt)-1);
           dec(count,aligncount);
           pend:=psrc+aligncount;
           while psrc<pend do

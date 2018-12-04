@@ -168,18 +168,3 @@ __data_start:
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 
-/* We need this stuff to make gdb behave itself, otherwise
-   gdb will chokes with SIGILL when trying to debug apps.
-*/
-        .section ".note.ABI-tag", "a"
-        .align 4
-        .long 1f - 0f
-        .long 3f - 2f
-        .long  1
-0:      .asciz "GNU"
-1:      .align 4
-2:      .long 0
-        .long 2,0,0
-3:      .align 4
-
-.section .note.GNU-stack,"",%progbits

@@ -515,7 +515,8 @@ implementation
             end;
 
           in_aligned_x,
-          in_unaligned_x :
+          in_unaligned_x,
+          in_volatile_x:
             begin
               err:=false;
               consume(_LKLAMMER);

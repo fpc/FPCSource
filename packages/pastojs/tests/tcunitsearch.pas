@@ -29,14 +29,14 @@ uses
   fpcunit, testregistry,
   PScanner, PasTree,
   {$IFDEF CheckPasTreeRefCount}PasResolveEval,{$ENDIF}
-  Pas2jsFileUtils, Pas2jsCompiler, Pas2jsFileCache, Pas2jsLogger,
+  Pas2jsFileUtils, Pas2jsCompiler, Pas2jsfsCompiler, Pas2jsFileCache, Pas2jsLogger,
   tcmodules;
 
 type
 
   { TTestCompiler }
 
-  TTestCompiler = class(TPas2jsCompiler)
+  TTestCompiler = class(TPas2jsFSCompiler)
   private
     FExitCode: longint;
   protected
@@ -229,7 +229,7 @@ begin
   {$ENDIF}
   FCompiler:=TTestCompiler.Create;
   Compiler.Log.OnLog:=@DoLog;
-  Compiler.FileCache.DirectoryCache.OnReadDirectory:=@OnReadDirectory;
+  Compiler.FileCache.OnReadDirectory:=@OnReadDirectory;
   Compiler.FileCache.OnReadFile:=@OnReadFile;
   Compiler.FileCache.OnWriteFile:=@OnWriteFile;
 end;

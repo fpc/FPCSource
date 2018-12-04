@@ -3555,6 +3555,12 @@ implementation
                 begin
                   resultdef:=left.resultdef;
                 end;
+              in_volatile_x:
+                begin
+                  resultdef:=left.resultdef;
+                  { volatile only makes sense if the value is in memory }
+                  make_not_regable(left,[ra_addr_regable]);
+                end;
               in_assert_x_y :
                 begin
                   resultdef:=voidtype;
@@ -4044,7 +4050,8 @@ implementation
              expectloc:=LOC_VOID;
            end;
          in_aligned_x,
-         in_unaligned_x:
+         in_unaligned_x,
+         in_volatile_x:
            begin
              expectloc:=tcallparanode(left).left.expectloc;
            end;
