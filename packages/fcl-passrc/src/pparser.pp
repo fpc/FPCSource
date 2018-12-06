@@ -314,7 +314,7 @@ type
     function ReadDottedIdentifier(Parent: TPasElement; out Expr: TPasExpr; NeedAsString: boolean): String;
     function CheckProcedureArgs(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
-      Mandatory: Boolean): boolean;
+      ProcType: TProcType): boolean;
     function CheckVisibility(S: String; var AVisibility: TPasMemberVisibility): Boolean;
     procedure ParseExc(MsgNumber: integer; const Msg: String);
     procedure ParseExc(MsgNumber: integer; const Fmt: String; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif});
@@ -349,12 +349,15 @@ type
     function CreateRecordValues(AParent : TPasElement): TRecordValues;
     Function IsCurTokenHint(out AHint : TPasMemberHint) : Boolean; overload;
     Function IsCurTokenHint: Boolean; overload;
-    Function TokenIsCallingConvention(const S : String; out CC : TCallingConvention) : Boolean; virtual;
-    Function TokenIsProcedureModifier(Parent : TPasElement; const S : String; Out PM : TProcedureModifier) : Boolean; virtual;
+    Function TokenIsCallingConvention(const S: String; out CC : TCallingConvention) : Boolean; virtual;
+    Function TokenIsProcedureModifier(Parent: TPasElement; const S: String; Out PM : TProcedureModifier): Boolean; virtual;
+    Function TokenIsAnonymousProcedureModifier(Parent: TPasElement; S: String; Out PM: TProcedureModifier): Boolean; virtual;
     Function TokenIsProcedureTypeModifier(Parent : TPasElement; const S : String; Out PTM : TProcTypeModifier) : Boolean; virtual;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
+    function IsAnonymousProcAllowed(El: TPasElement): boolean; virtual;
     function ParseParams(AParent : TPasElement; ParamsKind: TPasExprKind; AllowFormatting : Boolean = False): TParamsExpr;
-    function ParseExpIdent(AParent : TPasElement): TPasExpr;
+    function ParseExprOperand(AParent : TPasElement): TPasExpr;
+    function ParseExpIdent(AParent : TPasElement): TPasExpr; deprecated 'use ParseExprOperand instead'; // since fpc 3.3.1
     procedure DoParseClassType(AType: TPasClassType);
     function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil; AllowEqual : Boolean = True): TPasExpr;
     function DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
@@ -1241,6 +1244,21 @@ begin
     end;
 end;
 
+function TPasParser.TokenIsAnonymousProcedureModifier(Parent: TPasElement;
+  S: String; out PM: TProcedureModifier): Boolean;
+begin
+  S:=LowerCase(S);
+  case S of
+  'assembler':
+    begin
+    PM:=pmAssembler;
+    exit(true);
+    end;
+  end;
+  Result:=false;
+  if Parent=nil then ;
+end;
+
 function TPasParser.TokenIsProcedureTypeModifier(Parent: TPasElement;
   const S: String; out PTM: TProcTypeModifier): Boolean;
 begin
@@ -1289,6 +1307,17 @@ begin
     Element.Hints:=Result;
   if ExpectSemiColon then
     ExpectToken(tkSemiColon);
+end;
+
+function TPasParser.IsAnonymousProcAllowed(El: TPasElement): boolean;
+begin
+  while El is TPasExpr do
+    El:=El.Parent;
+  if not (El is TPasImplBlock) then
+    exit(false); // only in statements
+  while El is TPasImplBlock do
+    El:=El.Parent;
+  Result:=El is TProcedureBody; // needs a parent procedure
 end;
 
 function TPasParser.CheckPackMode: TPackMode;
@@ -2007,6 +2036,7 @@ begin
       begin
       repeat
         Expr:=DoParseExpression(Params);
+        writeln('AAA1 TPasParser.ParseParams ',CurTokenString,' ',curtoken);
         if not Assigned(Expr) then
           ParseExcSyntaxError;
         Params.AddParam(Expr);
@@ -2081,7 +2111,7 @@ begin
   end;
 end;
 
-function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
+function TPasParser.ParseExprOperand(AParent: TPasElement): TPasExpr;
 
   Function IsWriteOrStr(P : TPasExpr) : boolean;
 
@@ -2109,7 +2139,7 @@ function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
       begin // self.Write(EscapeText(AText));
       optk:=CurToken;
       NextToken;
-      b:=CreateBinaryExpr(AParent,Last, ParseExpIdent(AParent), TokenToExprOp(optk));
+      b:=CreateBinaryExpr(AParent,Last, ParseExprOperand(AParent), TokenToExprOp(optk));
       if not Assigned(b.right) then
         begin
         b.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
@@ -2180,15 +2210,16 @@ var
   ISE: TInlineSpecializeExpr;
   ST: TPasSpecializeType;
   SrcPos, ScrPos: TPasSourcePos;
+  ProcType: TProcType;
 
 begin
   Result:=nil;
   CanSpecialize:=false;
   aName:='';
   case CurToken of
-    tkString:           Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
-    tkChar:             Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenText);
-    tkNumber:           Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
+    tkString: Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
+    tkChar:   Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenText);
+    tkNumber: Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
     tkIdentifier:
       begin
       CanSpecialize:=true;
@@ -2212,7 +2243,7 @@ begin
       if (CurToken=tkIdentifier) then
         begin
         SrcPos:=CurTokenPos;
-        Bin:=CreateBinaryExpr(AParent,Last,ParseExpIdent(AParent),eopNone,SrcPos);
+        Bin:=CreateBinaryExpr(AParent,Last,ParseExprOperand(AParent),eopNone,SrcPos);
         if not Assigned(Bin.right) then
           begin
           Bin.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
@@ -2229,6 +2260,27 @@ begin
       aName:=CurTokenText;
       Last:=CreateSelfExpr(AParent);
       HandleSelf(Last);
+      end;
+    tkprocedure,tkfunction:
+      begin
+      if CurToken=tkprocedure then
+        ProcType:=ptAnonymousProcedure
+      else
+        ProcType:=ptAnonymousFunction;
+      if not IsAnonymousProcAllowed(AParent) then
+        ParseExcExpectedIdentifier;
+      ok:=false;
+      try
+        Result:=TProcedureExpr(CreateElement(TProcedureExpr,'',AParent,visPublic));
+        TProcedureExpr(Result).Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(Result,ProcType));
+        if CurToken=tkSemicolon then
+          NextToken; // skip optional semicolon
+        ok:=true;
+      finally
+        if not ok then
+          Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      end;
+      exit; // do not allow postfix operators . ^. [] ()
       end;
     tkCaret:
       begin
@@ -2327,6 +2379,11 @@ begin
       ISE.Free;
       end;
   end;
+end;
+
+function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
+begin
+  Result:=ParseExprOperand(AParent);
 end;
 
 function TPasParser.OpLevel(t: TToken): Integer;
@@ -2491,12 +2548,12 @@ begin
           if (CurToken=tkDot) then
             begin
             NextToken;
-            x:=CreateBinaryExpr(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
+            x:=CreateBinaryExpr(AParent,x, ParseExprOperand(AParent), TokenToExprOp(tkDot));
             end;
           end
         else
           begin
-          x:=ParseExpIdent(AParent);
+          x:=ParseExprOperand(AParent);
           if not Assigned(x) then
             ParseExcSyntaxError;
           end;
@@ -4584,12 +4641,11 @@ end;
 
 
 function TPasParser.CheckProcedureArgs(Parent: TPasElement; Args: TFPList;
-  Mandatory: Boolean): boolean;
+  ProcType: TProcType): boolean;
 
 begin
   NextToken;
-  case CurToken of
-  tkBraceOpen:
+  if CurToken=tkBraceOpen then
     begin
     Result:=true;
     NextToken;
@@ -4598,18 +4654,34 @@ begin
       UngetToken;
       ParseArgList(Parent, Args, tkBraceClose);
       end;
-    end;
-  tkSemicolon,tkColon,tkof,tkis,tkIdentifier:
-    begin
-    Result:=false;
-    if Mandatory then
-      ParseExc(nParserExpectedLBracketColon,SParserExpectedLBracketColon)
-    else
-      UngetToken;
     end
   else
-    ParseExcTokenError(';');
-  end;
+    begin
+    Result:=false;
+    case ProcType of
+    ptOperator,ptClassOperator:
+      ParseExc(nParserExpectedLBracketColon,SParserExpectedLBracketColon);
+    ptAnonymousProcedure,ptAnonymousFunction:
+      case CurToken of
+      tkIdentifier, // e.g. procedure assembler
+      tkbegin,tkvar,tkconst,tktype,tkprocedure,tkfunction:
+        UngetToken;
+      else
+        ParseExcTokenError('begin');
+      end;
+    else
+      case CurToken of
+        tkSemicolon, // e.g. procedure;
+        tkColon, // e.g. function: id
+        tkof, // e.g. procedure of object
+        tkis, // e.g. procedure is nested
+        tkIdentifier: // e.g. procedure cdecl;
+          UngetToken;
+      else
+        ParseExcTokenError(';');
+      end;
+    end;
+    end;
 end;
 
 procedure TPasParser.HandleProcedureModifier(Parent: TPasElement; pm: TProcedureModifier);
@@ -4800,20 +4872,22 @@ Var
   Tok : String;
   CC : TCallingConvention;
   PM : TProcedureModifier;
-  Done: Boolean;
   ResultEl: TPasResultElement;
-  OK,IsProc : Boolean;
+  OK: Boolean;
+  IsProc: Boolean; // true = procedure, false = procedure type
+  IsAnonymProc: Boolean;
   PTM: TProcTypeModifier;
-  ModCount: Integer;
+  ModTokenCount: Integer;
   LastToken: TToken;
 
 begin
   // Element must be non-nil. Removed all checks for not-nil.
   // If it is nil, the following fails anyway.
-  CheckProcedureArgs(Element,Element.Args,ProcType in [ptOperator,ptClassOperator]);
+  CheckProcedureArgs(Element,Element.Args,ProcType);
   IsProc:=Parent is TPasProcedure;
+  IsAnonymProc:=IsProc and (ProcType in [ptAnonymousProcedure,ptAnonymousFunction]);
   case ProcType of
-    ptFunction,ptClassFunction:
+    ptFunction,ptClassFunction,ptAnonymousFunction:
       begin
       NextToken;
       if CurToken = tkColon then
@@ -4882,13 +4956,13 @@ begin
     else
       UnGetToken;
     end;
-  ModCount:=0;
+  ModTokenCount:=0;
   Repeat
-    inc(ModCount);
-    // Writeln(modcount, curtokentext);
+    inc(ModTokenCount);
+    // Writeln(ModTokenCount, curtokentext);
     LastToken:=CurToken;
     NextToken;
-    if (ModCount<=3) and (CurToken = tkEqual) and not (Parent is TPasProcedure) then
+    if (CurToken = tkEqual) and not IsProc and (ModTokenCount<=3) then
       begin
       // for example: const p: procedure = nil;
       UngetToken;
@@ -4899,6 +4973,7 @@ begin
       begin
       if LastToken=tkSemicolon then
         ParseExcSyntaxError;
+      continue;
       end
     else if TokenIsCallingConvention(CurTokenString,cc) then
       begin
@@ -4917,11 +4992,18 @@ begin
           NextToken; // remove offset
           end;
       end;
-      ExpectTokens([tkSemicolon,tkEqual]);
-      if CurToken=tkEqual then
-        UngetToken;
+      if IsProc then
+        ExpectTokens([tkSemicolon])
+      else
+        begin
+        ExpectTokens([tkSemicolon,tkEqual]);
+        if CurToken=tkEqual then
+          UngetToken;
+        end;
       end
-    else if IsProc and TokenIsProcedureModifier(Parent,CurTokenString,PM) then
+    else if IsAnonymProc and TokenIsAnonymousProcedureModifier(Parent,CurTokenString,PM) then
+      HandleProcedureModifier(Parent,PM)
+    else if IsProc and not IsAnonymProc and TokenIsProcedureModifier(Parent,CurTokenString,PM) then
       HandleProcedureModifier(Parent,PM)
     else if TokenIsProcedureTypeModifier(Parent,CurTokenString,PTM) then
       HandleProcedureTypeModifier(Element,PTM)
@@ -4930,16 +5012,22 @@ begin
       Tok:=UpperCase(CurTokenString);
       NextToken;
       If (tok<>'NAME') then
-        Element.Hints:=Element.Hints+[hLibrary]
+        begin
+        if hLibrary in Element.Hints then
+          ParseExcSyntaxError;
+        Element.Hints:=Element.Hints+[hLibrary];
+        end
       else
         begin
-        NextToken;  // Should be export name string.
+        NextToken;  // Should be "export name astring".
         ExpectToken(tkSemicolon);
         end;
       end
-    else if DoCheckHint(Element) then
+    else if (not IsAnonymProc) and DoCheckHint(Element) then
+      // deprecated,platform,experimental,library, unimplemented etc
       ConsumeSemi
-    else if (CurToken=tkIdentifier) and (CompareText(CurTokenText,'alias')=0) then
+    else if (CurToken=tkIdentifier) and (not IsAnonymProc)
+        and (CompareText(CurTokenText,'alias')=0) then
       begin
       ExpectToken(tkColon);
       ExpectToken(tkString);
@@ -4959,44 +5047,48 @@ begin
         begin
         // ToDo: read FPC's [] modifiers, e.g. [public,alias:'']
         repeat
-          NextToken
+          NextToken;
+          if CurToken in [tkSquaredBraceOpen,tkSemicolon] then
+            CheckToken(tkSquaredBraceClose);
         until CurToken = tkSquaredBraceClose;
         ExpectToken(tkSemicolon);
         end;
       end
     else
-      CheckToken(tkSemicolon);
-    Done:=(CurToken=tkSemiColon);
-    if Done then
       begin
-      NextToken;
-      Done:=Not ((Curtoken=tkSquaredBraceOpen) or
-                  TokenIsProcedureModifier(Parent,CurtokenString,PM) or
-                  TokenIsProcedureTypeModifier(Parent,CurtokenString,PTM) or
-                  IsCurTokenHint() or
-                  TokenIsCallingConvention(CurTokenString,cc) or
-                  (CurToken=tkIdentifier) and (CompareText(CurTokenText,'alias')=0));
-      {$ifdef VerbosePasParser}
-      DumpCurToken('Done '+IntToStr(Ord(Done)));
-      {$endif}
-      UngetToken;
+      // not a modifier/hint/calling convention
+      if LastToken=tkSemicolon then
+        begin
+        UngetToken;
+        if IsAnonymProc and (ModTokenCount<=1) then
+          ParseExcSyntaxError;
+        break;
+        end
+      else if IsAnonymProc then
+        begin
+        UngetToken;
+        break;
+        end
+      else
+        begin
+        CheckToken(tkSemicolon);
+        continue;
+        end;
       end;
-
-//    Writeln('Done: ',TokenInfos[Curtoken],' ',CurtokenString);
-  Until Done;
-  if DoCheckHint(Element) then  // deprecated,platform,experimental,library, unimplemented etc
-    ConsumeSemi;
+    // Writeln('Done: ',TokenInfos[Curtoken],' ',CurtokenString);
+  Until false;
   if (ProcType in [ptOperator,ptClassOperator]) and (Parent is TPasOperator) then
     TPasOperator(Parent).CorrectName;
   Engine.FinishScope(stProcedureHeader,Element);
-  if (Parent is TPasProcedure)
+  if IsProc
   and (not TPasProcedure(Parent).IsForward)
   and (not TPasProcedure(Parent).IsExternal)
   and ((Parent.Parent is TImplementationSection)
-     or (Parent.Parent is TProcedureBody))
+     or (Parent.Parent is TProcedureBody)
+     or IsAnonymProc)
   then
     ParseProcedureBody(Parent);
-  if Parent is TPasProcedure then
+  if IsProc then
     Engine.FinishScope(stProcedure,Parent);
 end;
 
@@ -5257,6 +5349,7 @@ procedure TPasParser.ParseProcBeginBlock(Parent: TProcedureBody);
 var
   BeginBlock: TPasImplBeginBlock;
   SubBlock: TPasImplElement;
+  Proc: TPasProcedure;
 begin
   BeginBlock := TPasImplBeginBlock(CreateElement(TPasImplBeginBlock, '', Parent));
   Parent.Body := BeginBlock;
@@ -5273,7 +5366,11 @@ begin
         ExpectToken(tkend);
     end;
   until false;
-  ExpectToken(tkSemicolon);
+  Proc:=Parent.Parent as TPasProcedure;
+  if Proc.GetProcTypeEnum in [ptAnonymousProcedure,ptAnonymousFunction] then
+    NextToken
+  else
+    ExpectToken(tkSemicolon);
 //  writeln('TPasParser.ParseProcBeginBlock ended ',curtokenstring);
 end;
 
@@ -5974,12 +6071,15 @@ begin
     ptDestructor     : Result:=TPasDestructor;
     ptOperator       : Result:=TPasOperator;
     ptClassOperator  : Result:=TPasClassOperator;
+    ptAnonymousProcedure: Result:=TPasAnonymousProcedure;
+    ptAnonymousFunction: Result:=TPasAnonymousFunction;
   else
     ParseExc(nParserUnknownProcedureType,SParserUnknownProcedureType,[Ord(ProcType)]);
   end;
 end;
 
-function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: TProcType;AVisibility : TPasMemberVisibility = VisDefault): TPasProcedure;
+function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
+  ProcType: TProcType; AVisibility: TPasMemberVisibility): TPasProcedure;
 
   function ExpectProcName: string;
 
@@ -6023,9 +6123,8 @@ var
   IsTokenBased , ok: Boolean;
 
 begin
-  If (Not (ProcType in [ptOperator,ptClassOperator])) then
-    Name:=ExpectProcName
-  else
+  case ProcType of
+  ptOperator,ptClassOperator:
     begin
     NextToken;
     IsTokenBased:=Curtoken<>tkIdentifier;
@@ -6037,14 +6136,19 @@ begin
       ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[CurTokenString]);
     Name:=OperatorNames[Ot];
     end;
+  ptAnonymousProcedure,ptAnonymousFunction:
+    Name:='';
+  else
+    Name:=ExpectProcName;
+  end;
   PC:=GetProcedureClass(ProcType);
-  Parent:=CheckIfOverLoaded(Parent,Name);
+  if Name<>'' then
+    Parent:=CheckIfOverLoaded(Parent,Name);
   Result:=TPasProcedure(CreateElement(PC,Name,Parent,AVisibility));
   ok:=false;
   try
-    if Not (ProcType in [ptFunction, ptClassFunction, ptOperator, ptClassOperator]) then
-      Result.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '', Result))
-    else
+    case ProcType of
+    ptFunction, ptClassFunction, ptOperator, ptClassOperator, ptAnonymousFunction:
       begin
       Result.ProcType := CreateFunctionType('', 'Result', Result, False, CurTokenPos);
       if (ProcType in [ptOperator, ptClassOperator]) then
@@ -6054,6 +6158,9 @@ begin
         TPasOperator(Result).CorrectName;
         end;
       end;
+    else
+      Result.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '', Result));
+    end;
     ParseProcedureOrFunctionHeader(Result, Result.ProcType, ProcType, False);
     Result.Hints:=Result.ProcType.Hints;
     Result.HintMessage:=Result.ProcType.HintMessage;

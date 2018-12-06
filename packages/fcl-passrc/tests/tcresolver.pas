@@ -32,7 +32,7 @@ type
   TSrcMarker = record
     Kind: TSrcMarkerKind;
     Filename: string;
-    Row: integer;
+    Row: cardinal;
     StartCol, EndCol: integer; // token start, end column
     Identifier: string;
     Next: PSrcMarker;
@@ -446,6 +446,25 @@ type
     Procedure TestProc_TypeCastFunctionResult;
     Procedure TestProc_ImplicitCalls;
     Procedure TestProc_Absolute;
+
+    // anonymous procs
+    // ToDo: fppas2js: check "is TPasFunction", ".FuncType", "parent is TPasProcedureBody"
+    Procedure TestAnonymousProc_Assign;
+    // ToDo: does Delphi allow/require semicolon in assign?
+    Procedure TestAnonymousProc_Arg;
+    // ToDo: does Delphi allow/require semicolon in arg?
+    // ToDo: does Delphi allow calling directly?: function(i: word):word begin end(3)
+    Procedure TestAnonymousProc_EqualFail;
+    // ToDo: does Delphi allow ano proc in const?
+    Procedure TestAnonymousProc_ConstFail;
+    // ToDo: does Delphi allow assembler or calling conventions?
+    Procedure TestAnonymousProc_Assembler;
+    Procedure TestAnonymousProc_NameFail;
+    Procedure TestAnonymousProc_StatementFail;
+    Procedure TestAnonymousProc_Typecast;// ToDo
+    // ToDo: ano in with
+    // ToDo: ano in nested
+    // ToDo: ano in ano
 
     // record
     Procedure TestRecord;
@@ -1411,7 +1430,7 @@ var
           DeclEl:=TPasAliasType(El).DestType;
           ResolverEngine.UnmangleSourceLineNumber(DeclEl.SourceLinenumber,LabelLine,LabelCol);
           if (aLabel^.Filename=DeclEl.SourceFilename)
-          and (aLabel^.Row=LabelLine)
+          and (integer(aLabel^.Row)=LabelLine)
           and (aLabel^.StartCol<=LabelCol)
           and (aLabel^.EndCol>=LabelCol) then
             exit; // success
@@ -1491,8 +1510,8 @@ begin
     if (Marker<>nil) then
       begin
       if Item.SourcePos.Row<>Marker^.Row then continue;
-      if (Item.SourcePos.Column<Marker^.StartCol)
-          or (Item.SourcePos.Column>Marker^.EndCol) then continue;
+      if (integer(Item.SourcePos.Column)<Marker^.StartCol)
+          or (integer(Item.SourcePos.Column)>Marker^.EndCol) then continue;
       end;
     // found
     FResolverGoodMsgs.Add(Item);
@@ -7133,6 +7152,137 @@ begin
   'begin',
   'end;',
   'begin']);
+end;
+
+procedure TTestResolver.TestAnonymousProc_Assign;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFunc = reference to function(x: word): word;',
+  'var Func: TFunc;',
+  'procedure DoIt(a: word);',
+  'begin',
+  '  Func:=function(b:word): word',
+  '  begin',
+  '    Result:=a+b;',
+  '    exit(b);',
+  '    exit(Result);',
+  '  end;',
+  '  a:=3;',// test semicolon
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_Arg;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TFunc = reference to function(x: word): word;',
+  'procedure DoMore(f,g: TProc);',
+  'begin',
+  'end;',
+  'procedure DoIt(f: TFunc);',
+  'begin',
+  '  DoIt(function(b:word): word',
+  '    begin',
+  '      Result:=1+b;',
+  '    end;);',
+  '  DoMore(procedure begin end;, procedure begin end);',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_EqualFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFunc = reference to function(x: word): word;',
+  'procedure DoIt(f: TFunc);',
+  'var w: word;',
+  'begin',
+  '  if w=function(b:word): word',
+  '    begin',
+  '      Result:=1+b;',
+  '    end; then ;',
+  'end;',
+  'begin']);
+  CheckResolverException('Incompatible types: got "Procedure/Function" expected "Word"',nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestAnonymousProc_ConstFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'const',
+  '  p: TProc = procedure begin end;',
+  'begin']);
+  CheckParserException('Identifier expected at token "procedure" in file afile.pp at line 5 column 14',nParserExpectedIdentifier);
+end;
+
+procedure TTestResolver.TestAnonymousProc_Assembler;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'procedure DoIt(p: TProc);',
+  'begin',
+  '  p:=procedure assembler; asm end;',
+  '  p:=procedure() assembler; asm end;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_NameFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'procedure DoIt(p: TProc);',
+  'begin',
+  '  p:=procedure Bla() begin end;',
+  'end;',
+  'begin']);
+  CheckParserException(SParserSyntaxError,nParserSyntaxError);
+end;
+
+procedure TTestResolver.TestAnonymousProc_StatementFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'begin',
+  '  procedure () begin end;',
+  'end;',
+  'begin']);
+  CheckParserException(SParserSyntaxError,nParserSyntaxError);
+end;
+
+procedure TTestResolver.TestAnonymousProc_Typecast;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure(w: word);',
+  'procedure DoIt(p: TProc);',
+  'begin',
+  '  p:=TProc(procedure(b: byte) begin end);',
+  '  p:=TProc(procedure(b: byte) begin end;);',
+  'end;',
+  'begin']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestRecord;

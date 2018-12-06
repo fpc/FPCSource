@@ -1824,6 +1824,7 @@ type
     function GetPasPropertyStoredExpr(El: TPasProperty): TPasExpr;
     function GetPasPropertyDefaultExpr(El: TPasProperty): TPasExpr;
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
+    function GetParentProcBody(El: TPasElement): TProcedureBody;
     function ProcHasImplElements(Proc: TPasProcedure): boolean; virtual;
     function IndexOfImplementedInterface(ClassEl: TPasClassType; aType: TPasType): integer;
     function GetLoop(El: TPasElement): TPasImplElement;
@@ -2072,8 +2073,8 @@ begin
       dec(Indent,2);
       end;
     Result:=Result+')';
-    if El is TPasFunction then
-      Result:=Result+':'+GetTreeDbg(TPasFunctionType(TPasFunction(El).ProcType).ResultEl,Indent);
+    if (El is TPasProcedure) and (TPasProcedure(El).ProcType is TPasFunctionType) then
+      Result:=Result+':'+GetTreeDbg(TPasFunctionType(TPasProcedure(El).ProcType).ResultEl,Indent);
     if TPasProcedureType(El).IsOfObject then
       Result:=Result+' '+ProcTypeModifiers[ptmOfObject];
     if TPasProcedureType(El).IsNested then
@@ -2273,6 +2274,10 @@ begin
     Result:='class procedure'
   else if C=TPasClassFunction then
     Result:='class function'
+  else if C=TPasAnonymousProcedure then
+    Result:='anonymous procedure'
+  else if C=TPasAnonymousFunction then
+    Result:='anonymous function'
   else if C=TPasMethodResolution then
     Result:='method resolution'
   else if C=TInterfaceSection then
@@ -5310,13 +5315,17 @@ var
   pm: TProcedureModifier;
   ptm: TProcTypeModifier;
   ObjKind: TPasObjKind;
+  ParentBody: TProcedureBody;
 begin
-  if (El.Parent is TPasProcedure) and (TPasProcedure(El.Parent).ProcType=El) then
+  if El.Parent is TPasProcedure then
+    Proc:=TPasProcedure(El.Parent)
+  else
+    Proc:=nil;
+  if (Proc<>nil) and (Proc.ProcType=El) then
     begin
     // finished header of a procedure declaration
     // -> search the best fitting proc
     CheckTopScope(FScopeClass_Proc);
-    Proc:=TPasProcedure(El.Parent);
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.FinishProcedureHeader El=',GetTreeDbg(El),' ',GetElementSourcePosStr(El),' IsForward=',Proc.IsForward,' Parent=',GetObjName(El.Parent));
     {$ENDIF}
@@ -5325,13 +5334,14 @@ begin
     if (proProcTypeWithoutIsNested in Options) and El.IsNested then
       RaiseInvalidProcTypeModifier(20170402120811,El,ptmIsNested,El);
 
-    if (Proc.Parent.ClassType=TProcedureBody) then
+    ParentBody:=GetParentProcBody(Proc.Parent);
+    if (ParentBody<>nil) then
       begin
       // nested sub proc
       if not (proProcTypeWithoutIsNested in Options) then
         El.IsNested:=true;
       // inherit 'of Object'
-      ParentProc:=Proc.Parent.Parent as TPasProcedure;
+      ParentProc:=ParentBody.Parent as TPasProcedure;
       if ParentProc.ProcType.IsOfObject then
         El.IsOfObject:=true;
       end;
@@ -5393,7 +5403,7 @@ begin
       end
     else
       begin
-      // intf proc, forward proc, proc body, method body
+      // intf proc, forward proc, proc body, method body, anonymous proc
       if Proc.IsAbstract then
         RaiseInvalidProcModifier(20170216151634,Proc,pmAbstract,Proc);
       if Proc.IsVirtual then
@@ -5405,8 +5415,12 @@ begin
       if Proc.IsStatic then
         RaiseInvalidProcTypeModifier(20170216151640,El,ptmStatic,El);
       if (not HasDots)
-          and (Proc.ClassType<>TPasProcedure)
-          and (Proc.ClassType<>TPasFunction) then
+          and (Proc.GetProcTypeEnum in [
+               ptClassOperator,
+               ptConstructor, ptDestructor,
+               ptClassProcedure, ptClassFunction,
+               ptClassConstructor, ptClassDestructor
+               ]) then
         RaiseXExpectedButYFound(20170419232724,'full method name','short name',El);
       end;
 
@@ -5418,7 +5432,8 @@ begin
 
     // finish interface/implementation/nested procedure/method declaration
 
-    if not IsValidIdent(ProcName) then
+    if not (Proc.GetProcTypeEnum in [ptAnonymousProcedure,ptAnonymousFunction])
+        and not IsValidIdent(ProcName) then
       RaiseNotYetImplemented(20160922163407,El);
 
     if El is TPasFunctionType then
@@ -5436,7 +5451,7 @@ begin
       end;
 
     // finish interface/implementation/nested procedure
-    if ProcNeedsBody(Proc) then
+    if (ProcName<>'') and ProcNeedsBody(Proc) then
       begin
       // check if there is a forward declaration
       ParentScope:=Scopes[ScopeCount-2];
@@ -5483,13 +5498,16 @@ begin
       StoreScannerFlagsInProc(ProcScope);
       end;
 
-    // check for invalid overloads
-    FindData:=Default(TFindOverloadProcData);
-    FindData.Proc:=Proc;
-    FindData.Args:=Proc.ProcType.Args;
-    FindData.Kind:=fopkProc;
-    Abort:=false;
-    IterateElements(ProcName,@OnFindOverloadProc,@FindData,Abort);
+    if ProcName<>'' then
+      begin
+      // check for invalid overloads
+      FindData:=Default(TFindOverloadProcData);
+      FindData.Proc:=Proc;
+      FindData.Args:=Proc.ProcType.Args;
+      FindData.Kind:=fopkProc;
+      Abort:=false;
+      IterateElements(ProcName,@OnFindOverloadProc,@FindData,Abort);
+      end;
     end
   else if El.Name<>'' then
     begin
@@ -6836,12 +6854,12 @@ begin
     else
       RaiseNotYetImplemented(20170203161826,ImplProc);
     end;
-  if DeclProc is TPasFunction then
+  if DeclProc.ProcType is TPasFunctionType then
     begin
     // redirect implementation 'Result' to declaration FuncType.ResultEl
     Identifier:=ImplProcScope.FindLocalIdentifier(ResolverResultVar);
     if Identifier.Element is TPasResultElement then
-      Identifier.Element:=TPasFunction(DeclProc).FuncType.ResultEl;
+      Identifier.Element:=TPasFunctionType(DeclProc.ProcType).ResultEl;
     end;
 end;
 
@@ -6899,11 +6917,11 @@ begin
     RaiseXExpectedButYFound(20170216151729,DeclProc.TypeName,ImplProc.TypeName,ImplProc);
   if ImplProc.CallingConvention<>DeclProc.CallingConvention then
     RaiseMsg(20170216151731,nCallingConventionMismatch,sCallingConventionMismatch,[],ImplProc);
-  if ImplProc is TPasFunction then
+  if ImplProc.ProcType is TPasFunctionType then
     begin
     // check result type
-    ImplResult:=TPasFunction(ImplProc).FuncType.ResultEl.ResultType;
-    DeclResult:=TPasFunction(DeclProc).FuncType.ResultEl.ResultType;
+    ImplResult:=TPasFunctionType(ImplProc.ProcType).ResultEl.ResultType;
+    DeclResult:=TPasFunctionType(DeclProc.ProcType).ResultEl.ResultType;
 
     if not CheckElTypeCompatibility(ImplResult,DeclResult,prraSimple) then
       RaiseIncompatibleType(20170216151734,nResultTypeMismatchExpectedButFound,
@@ -7827,6 +7845,7 @@ begin
         [],El);
     ResolveRecordValues(TRecordValues(El));
     end
+  else if ElClass=TProcedureExpr then
   else
     RaiseNotYetImplemented(20170222184329,El);
 
@@ -7882,7 +7901,7 @@ begin
       begin
       // examples: funca or @proca or a.funca or @a.funca ...
       Proc:=TPasProcedure(DeclEl);
-      if (Access=rraAssign) and (Proc is TPasFunction)
+      if (Access=rraAssign) and (Proc.ProcType is TPasFunctionType)
           and (El.ClassType=TPrimitiveExpr)
           and (El.Parent.ClassType=TPasImplAssign)
           and (TPasImplAssign(El.Parent).left=El) then
@@ -7895,7 +7914,7 @@ begin
         if El.HasParent(ImplProc) then
           begin
           // "FuncA:=" within FuncA  -> redirect to ResultEl
-          Ref.Declaration:=(Proc as TPasFunction).FuncType.ResultEl;
+          Ref.Declaration:=TPasFunctionType(Proc.ProcType).ResultEl;
           exit;
           end;
         end;
@@ -8499,7 +8518,7 @@ var
     if DeclEl is TPasProcedure then
       begin
       Proc:=TPasProcedure(DeclEl);
-      if (Access=rraAssign) and (Proc is TPasFunction)
+      if (Access=rraAssign) and (Proc.ProcType is TPasFunctionType)
           and (Value.ClassType=TPrimitiveExpr)
           and (Params.Parent.ClassType=TPasImplAssign)
           and (TPasImplAssign(Params.Parent).left=Params) then
@@ -8512,7 +8531,7 @@ var
         if Params.HasParent(ImplProc) then
           begin
           // "FuncA[]:=" within FuncA -> redirect to ResultEl
-          Ref.Declaration:=(Proc as TPasFunction).FuncType.ResultEl;
+          Ref.Declaration:=TPasFunctionType(Proc.ProcType).ResultEl;
           end;
         end;
       end;
@@ -8930,7 +8949,8 @@ begin
   else if (Access in [rraRead,rraParamToUnknownProc])
       and ((C=TPrimitiveExpr)
         or (C=TNilExpr)
-        or (C=TBoolConstExpr)) then
+        or (C=TBoolConstExpr)
+        or (C=TProcedureExpr)) then
     // ok
   else if C=TUnaryExpr then
     AccessExpr(TUnaryExpr(Expr).Operand,Access)
@@ -9350,10 +9370,10 @@ begin
   {$ENDIF}
   if not (TopScope is TPasIdentifierScope) then
     RaiseInvalidScopeForElement(20160922163522,El);
-  // Note: El.ProcType is nil !
+  // Note: El.ProcType is nil !  It is parsed later.
   ProcName:=El.Name;
   HasDot:=Pos('.',ProcName)>1;
-  if not HasDot then
+  if (not HasDot) and (ProcName<>'') then
     AddIdentifier(TPasIdentifierScope(TopScope),ProcName,El,pikProc);
   ProcScope:=TPasProcedureScope(PushScope(El,FScopeClass_Proc));
   ProcScope.ModeSwitches:=CurrentParser.CurrentModeswitches;
@@ -9420,7 +9440,7 @@ begin
 
     ProcScope.VisibilityContext:=CurClassType;
     ProcScope.ClassScope:=NoNil(CurClassType.CustomData) as TPasClassScope;
-    end;
+    end;// HasDot=true
 end;
 
 procedure TPasResolver.AddArgument(El: TPasArgument);
@@ -10500,9 +10520,9 @@ begin
         Proc:=TPasProcedure(ResolvedEl.IdentEl);
         if rcConstant in Flags then
           RaiseConstantExprExp(20170216152637,Params);
-        if Proc is TPasFunction then
+        if Proc.ProcType is TPasFunctionType then
           // function call => return result
-          ComputeElement(TPasFunction(Proc).FuncType.ResultEl,ResolvedEl,
+          ComputeElement(TPasFunctionType(Proc.ProcType).ResultEl,ResolvedEl,
             Flags+[rcNoImplicitProc],StartEl)
         else if (Proc.ClassType=TPasConstructor)
             and (rrfNewInstance in Ref.Flags) then
@@ -12498,6 +12518,7 @@ var
   ProcScope: TPasProcedureScope;
   ResultEl: TPasResultElement;
   Flags: TPasResolverComputeFlags;
+  CtxProc: TPasProcedure;
 begin
   if (not (Expr is TParamsExpr)) or (length(TParamsExpr(Expr).Params)=0) then
     exit(cExact);
@@ -12515,14 +12536,15 @@ begin
     begin
     // first param is function result
     ProcScope:=TPasProcedureScope(Scopes[i]);
-    if not (ProcScope.Element is TPasFunction) then
+    CtxProc:=TPasProcedure(ProcScope.Element);
+    if not (CtxProc.ProcType is TPasFunctionType) then
       begin
       if RaiseOnError then
         RaiseMsg(20170216152312,nWrongNumberOfParametersForCallTo,
           sWrongNumberOfParametersForCallTo,['procedure exit'],Params.Params[0]);
       exit(cIncompatible);
       end;
-    ResultEl:=(ProcScope.Element as TPasFunction).FuncType.ResultEl;
+    ResultEl:=TPasFunctionType(CtxProc.ProcType).ResultEl;
     ComputeElement(ResultEl,ResultResolved,[rcType]);
     end
   else
@@ -12937,9 +12959,9 @@ begin
           begin
           Expr:=TPasVariable(ParamResolved.IdentEl).Expr;
           if Expr is TArrayValues then
-            Evaluated:=TResEvalInt.CreateValue(length(TArrayValues(Expr).Values)-1)
+            Evaluated:=TResEvalInt.CreateValue(TMaxPrecInt(length(TArrayValues(Expr).Values))-1)
           else if (Expr is TParamsExpr) and (TParamsExpr(Expr).Kind=pekSet) then
-            Evaluated:=TResEvalInt.CreateValue(length(TParamsExpr(Expr).Params)-1);
+            Evaluated:=TResEvalInt.CreateValue(TMaxPrecInt(length(TParamsExpr(Expr).Params))-1);
           if Evaluated=nil then
             RaiseXExpectedButYFound(20170601191003,'array constant','expression',Params);
           end
@@ -13635,8 +13657,9 @@ begin
       aType:=TPasArgument(Decl).ArgType
     else if Decl.ClassType=TPasResultElement then
       aType:=TPasResultElement(Decl).ResultType
-    else if Decl is TPasFunction then
-      aType:=TPasFunction(Decl).FuncType.ResultEl.ResultType;
+    else if (Decl is TPasProcedure)
+        and (TPasProcedure(Decl).ProcType is TPasFunctionType) then
+      aType:=TPasFunctionType(TPasProcedure(Decl).ProcType).ResultEl.ResultType;
     {$IFDEF VerbosePasResolver}
     {AllowWriteln}
     if aType=nil then
@@ -16446,7 +16469,7 @@ begin
         begin
         EnumType:=TPasEnumType(LTypeEl);
         LRangeValue:=TResEvalRangeInt.CreateValue(revskEnum,EnumType,
-          0,EnumType.Values.Count-1);
+          0,TMaxPrecInt(EnumType.Values.Count)-1);
         end
       else if C=TPasUnresolvedSymbolRef then
         begin
@@ -17047,7 +17070,15 @@ begin
         if CheckProcTypeCompatibility(TPasProcedureType(LHS.LoTypeEl),
             TPasProcedure(RHS.IdentEl).ProcType,true,ErrorEl,RaiseOnIncompatible) then
           exit(cExact);
-        end;
+        end
+      else if (LHS.LoTypeEl is TPasProcedureType)
+          and (RHS.ExprEl is TProcedureExpr) then
+        begin
+        // for example  ProcVar:=anonymous-procedure...
+        if CheckProcTypeCompatibility(TPasProcedureType(LHS.LoTypeEl),
+            TProcedureExpr(RHS.ExprEl).Proc.ProcType,true,ErrorEl,RaiseOnIncompatible) then
+          exit(cExact);
+        end
       end
     else if LBT=btPointer then
       begin
@@ -19846,7 +19877,7 @@ begin
     begin
     TypeEl:=TPasProcedure(El).ProcType;
     SetResolverIdentifier(ResolvedEl,btProc,El,TypeEl,TypeEl,[rrfCanBeStatement]);
-    if El is TPasFunction then
+    if TPasProcedure(El).ProcType is TPasFunctionType then
       Include(ResolvedEl.Flags,rrfReadable);
     // Note: the readability of TPasConstructor depends on the context
     // Note: implicit calls are handled in TPrimitiveExpr
@@ -19856,6 +19887,11 @@ begin
     SetResolverIdentifier(ResolvedEl,btContext,El,
                TPasProcedureType(El),TPasProcedureType(El),[rrfCanBeStatement]);
     // Note: implicit calls are handled in TPrimitiveExpr
+    end
+  else if ElClass=TProcedureExpr then
+    begin
+    TypeEl:=TProcedureExpr(El).Proc.ProcType;
+    SetResolverValueExpr(ResolvedEl,btProc,TypeEl,TypeEl,TProcedureExpr(El),[rrfReadable]);
     end
   else if ElClass=TPasArrayType then
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasArrayType(El),TPasArrayType(El),[])
@@ -19999,6 +20035,17 @@ begin
     else
       Result:=ClassScope.DirectAncestor;
     end;
+end;
+
+function TPasResolver.GetParentProcBody(El: TPasElement): TProcedureBody;
+begin
+  while El<>nil do
+    begin
+    if El is TProcedureBody then
+      exit(TProcedureBody(El));
+    El:=El.Parent;
+    end;
+  Result:=nil;
 end;
 
 function TPasResolver.ProcHasImplElements(Proc: TPasProcedure): boolean;
@@ -20558,7 +20605,7 @@ begin
   else if C=TPasEnumType then
     begin
     Result:=TResEvalRangeInt.CreateValue(revskEnum,TPasEnumType(Decl),
-                                         0,TPasEnumType(Decl).Values.Count-1);
+                              0,TMaxPrecInt(TPasEnumType(Decl).Values.Count)-1);
     Result.IdentEl:=Decl;
     exit;
     end
