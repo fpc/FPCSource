@@ -290,8 +290,8 @@ Works:
   - for key in JSObject do
   - for value in JSArray do
 - Assert(bool[,string])
-  - without sysutils: if(bool) throw string
-  - with sysutils: if(bool) throw pas.sysutils.EAssertionFailed.$create("Create",[string])
+  - without sysutils: if(!bool) throw string
+  - with sysutils: if(!bool) throw pas.sysutils.EAssertionFailed.$create("Create",[string])
 - Object checks:
   - Method call EInvalidCast, rtl.checkMethodCall
   - type cast to class-type and class-of-type, rtl.asExt, EInvalidCast
@@ -1617,6 +1617,7 @@ type
     Function CreateLiteralUndefined(El: TPasElement): TJSLiteral; virtual;
     Function CreateLiteralCustomValue(El: TPasElement; const s: TJSString): TJSLiteral; virtual;
     Function CreateSetLiteralElement(Expr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function CreateUnaryNot(El: TJSElement; Src: TPasElement): TJSUnaryNotExpression; virtual;
     Procedure ConvertCharLiteralToInt(Lit: TJSLiteral; ErrorEl: TPasElement; AContext: TConvertContext); virtual;
     Function ClonePrimaryExpression(El: TJSPrimaryExpression; Src: TPasElement): TJSPrimaryExpression;
     // simple JS expressions
@@ -5822,10 +5823,12 @@ begin
         BitwiseNot:=ResolvedOp.BaseType in btAllJSInteger;
         end;
       if BitwiseNot then
-        U:=TJSUnaryInvExpression(CreateElement(TJSUnaryInvExpression,El))
+        begin
+        U:=TJSUnaryInvExpression(CreateElement(TJSUnaryInvExpression,El));
+        U.A:=E;
+        end
       else
-        U:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-      U.A:=E;
+        U:=CreateUnaryNot(E,El);
       end;
     eopAddress:
       begin
@@ -6294,7 +6297,6 @@ function TPasToJSConverter.ConvertBinaryExpressionRes(El: TBinaryExpr;
   function CreateEqualCallback: TJSElement;
   var
     Call: TJSCallExpression;
-    NotEl: TJSUnaryNotExpression;
   begin
     // convert "proctypeA = proctypeB" to "rtl.eqCallback(proctypeA,proctypeB)"
     Call:=CreateCallExpression(El);
@@ -6306,9 +6308,7 @@ function TPasToJSConverter.ConvertBinaryExpressionRes(El: TBinaryExpr;
     if El.OpCode=eopNotEqual then
       begin
       // convert "proctypeA <> proctypeB" to "!rtl.eqCallback(proctypeA,proctypeB)"
-      NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-      NotEl.A:=Call;
-      Result:=NotEl;
+      Result:=CreateUnaryNot(Call,El);
       end
     else
       Result:=Call;
@@ -6329,7 +6329,6 @@ var
   FunName: String;
   Call: TJSCallExpression;
   DotExpr: TJSDotMemberExpression;
-  NotEl: TJSUnaryNotExpression;
   InOp: TJSRelationalExpressionIn;
   TypeEl, LeftTypeEl, RightTypeEl: TPasType;
   SNE: TJSEqualityExpressionSNE;
@@ -6652,11 +6651,7 @@ begin
             Call.AddArg(A);
             A:=nil;
             if El.OpCode=eopNotEqual then
-              begin
-              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-              NotEl.A:=Call;
-              Result:=NotEl;
-              end
+              Result:=CreateUnaryNot(Call,El)
             else
               Result:=Call;
             exit;
@@ -6692,9 +6687,7 @@ begin
             if El.OpCode=eopNotEqual then
               begin
               // convert "recordA <> recordB" to "!recordA.$equal(recordB)"
-              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-              NotEl.A:=Call;
-              Result:=NotEl;
+              Result:=CreateUnaryNot(Call,El);
               end
             else
               Result:=Call;
@@ -6715,11 +6708,7 @@ begin
             Call.AddArg(B);
             B:=nil;
             if El.OpCode=eopNotEqual then
-              begin
-              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-              NotEl.A:=Call;
-              Result:=NotEl;
-              end
+              Result:=CreateUnaryNot(Call,El)
             else
               Result:=Call;
             exit;
@@ -6739,11 +6728,7 @@ begin
           Call.AddArg(B);
           B:=nil;
           if El.OpCode=eopNotEqual then
-            begin
-            NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-            NotEl.A:=Call;
-            Result:=NotEl;
-            end
+            Result:=CreateUnaryNot(Call,El)
           else
             Result:=Call;
           exit;
@@ -6778,11 +6763,7 @@ begin
               Call.AddArg(A);
               A:=nil;
               if El.OpCode=eopNotEqual then
-                begin
-                NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-                NotEl.A:=Call;
-                Result:=NotEl;
-                end
+                Result:=CreateUnaryNot(Call,El)
               else
                 Result:=Call;
               exit;
@@ -10702,7 +10683,8 @@ begin
   IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
   try
     PosEl:=El.Params[0];
-    IfSt.Cond:=ConvertExpression(El.Params[0],AContext);
+    IfSt.Cond:=CreateUnaryNot(ConvertExpression(PosEl,AContext),PosEl);
+
     ThrowSt:=TJSThrowStatement(CreateElement(TJSThrowStatement,PosEl));
     IfSt.BTrue:=ThrowSt;
 
@@ -11425,8 +11407,8 @@ Var
       IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,ProcBody));
       AddFunctionFinallySt(IfSt,ProcBody,FuncContext);
       // !$ok
-      IfSt.Cond:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,ProcBody));
-      TJSUnaryNotExpression(IfSt.Cond).A:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnProcOk],ProcBody);
+      IfSt.Cond:=CreateUnaryNot(
+          CreatePrimitiveDotExpr(FBuiltInNames[pbivnProcOk],ProcBody),ProcBody);
       // rtl._Release(Result)
       Call:=CreateCallExpression(ProcBody);
       IfSt.BTrue:=Call;
@@ -16057,7 +16039,6 @@ function TPasToJSConverter.ConvertRepeatStatement(El: TPasImplRepeatUntil;
 // do{implblock}while(!untilcondition);
 var
   C : TJSElement;
-  N : TJSUnaryNotExpression;
   W : TJSDoWhileStatement;
   B : TJSElement;
 begin
@@ -16077,11 +16058,7 @@ begin
       B:=nil;
       end
     else
-      begin
-      N:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El.ConditionExpr));
-      N.A:=C;
-      C:=N;
-      end;
+      C:=CreateUnaryNot(C,El.ConditionExpr);
     B:=ConvertImplBlockElements(El,AContext,false);
     W:=TJSDoWhileStatement(CreateElement(TJSDoWhileStatement,El));
     W.Cond:=C;
@@ -17597,6 +17574,13 @@ begin
       RaiseNotSupported(Expr,AContext,20170415191822);
       end;
     end;
+end;
+
+function TPasToJSConverter.CreateUnaryNot(El: TJSElement; Src: TPasElement
+  ): TJSUnaryNotExpression;
+begin
+  Result:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,Src));
+  Result.A:=El;
 end;
 
 procedure TPasToJSConverter.ConvertCharLiteralToInt(Lit: TJSLiteral;

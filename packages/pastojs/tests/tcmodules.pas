@@ -22253,7 +22253,7 @@ begin
     'this.DoIt = function () {',
     '  var b = false;',
     '  var s = "";',
-    '  if (b) throw "assert failed";',
+    '  if (!b) throw "assert failed";',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -22301,8 +22301,8 @@ begin
     'this.DoIt = function () {',
     '  var b = false;',
     '  var s = "";',
-    '  if (b) throw pas.SysUtils.EAssertionFailed.$create("Create");',
-    '  if (b) throw pas.SysUtils.EAssertionFailed.$create("Create$1", ["msg"]);',
+    '  if (!b) throw pas.SysUtils.EAssertionFailed.$create("Create");',
+    '  if (!b) throw pas.SysUtils.EAssertionFailed.$create("Create$1", ["msg"]);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
