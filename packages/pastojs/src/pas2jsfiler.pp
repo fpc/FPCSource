@@ -295,7 +295,8 @@ const
     'List',
     'Inherited',
     'Self',
-    'Specialize');
+    'Specialize',
+    'Procedure');
 
   PCUExprOpCodeNames: array[TExprOpCode] of string = (
     'None',

@@ -2406,6 +2406,7 @@ end;
 procedure TPas2jsCompiler.SetWorkingDir(const aDir: String);
 begin
   // Do nothing
+  if aDir='' then ;
 end;
 
 procedure TPas2jsCompiler.Terminate(TheExitCode: integer);

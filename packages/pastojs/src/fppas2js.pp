@@ -354,6 +354,7 @@ Works:
 - typecast byte(longword) -> value & $ff
 - typecast TJSFunction(func)
 - modeswitch OmitRTTI
+- debugger;
 
 ToDos:
 - do not rename property Date
@@ -1262,8 +1263,11 @@ type
     procedure ComputeBinaryExprRes(Bin: TBinaryExpr; out
       ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       var LeftResolved, RightResolved: TPasResolverResult); override;
+    // built-in functions
     procedure BI_TypeInfo_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); override;
+    function BI_Debugger_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
   public
     constructor Create; reintroduce;
     destructor Destroy; override;
@@ -1748,6 +1752,7 @@ type
     Function ConvertBuiltIn_New(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Default(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_Debugger(El: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -4231,6 +4236,16 @@ begin
   if Proc=nil then ;
 end;
 
+function TPas2JSResolver.BI_Debugger_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+// debugger;
+begin
+  if Expr is TParamsExpr then
+    Result:=CheckBuiltInMaxParamCount(Proc,TParamsExpr(Expr),0,RaiseOnError)
+  else
+    Result:=cExact;
+end;
+
 constructor TPas2JSResolver.Create;
 var
   bt: TPas2jsBaseType;
@@ -4321,6 +4336,9 @@ begin
     AddBaseType(Pas2JSBuiltInNames[pbitnUIntDouble],btUIntDouble);
   if btIntDouble in TheBaseTypes then
     AddBaseType(Pas2JSBuiltInNames[pbitnIntDouble],btIntDouble);
+  AddBuiltInProc('Debugger','procedure Debugger',
+      @BI_Debugger_OnGetCallCompatibility,nil,
+      nil,nil,bfCustom,[bipfCanBeStatement]);
 end;
 
 function TPas2JSResolver.CheckTypeCastRes(const FromResolved,
@@ -7284,6 +7302,12 @@ begin
       bfBreak: Result:=ConvertBuiltInBreak(El,AContext);
       bfContinue: Result:=ConvertBuiltInContinue(El,AContext);
       bfExit: Result:=ConvertBuiltIn_Exit(El,AContext);
+      bfCustom:
+        case BuiltInProc.Element.Name of
+        'Debugger': Result:=ConvertBuiltIn_Debugger(El,AContext);
+        else
+          RaiseNotSupported(El,AContext,20181126102554,'built in custom proc '+BuiltInProc.Element.Name);
+        end
     else
       RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
     end;
@@ -8383,6 +8407,12 @@ begin
             if Result=nil then exit;
             end;
           bfDefault: Result:=ConvertBuiltIn_Default(El,AContext);
+          bfCustom:
+            case BuiltInProc.Element.Name of
+            'Debugger': Result:=ConvertBuiltIn_Debugger(El,AContext);
+            else
+              RaiseNotSupported(El,AContext,20181126101801,'built in custom proc '+BuiltInProc.Element.Name);
+            end;
         else
           RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         end;
@@ -10971,6 +11001,13 @@ begin
   {$ENDIF}
   DoError(20180501011723,nXExpectedButYFound,sXExpectedButYFound,['record',
     AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_Debugger(El: TPasExpr;
+  AContext: TConvertContext): TJSElement;
+begin
+  Result:=CreateLiteralCustomValue(El,'debugger');
+  if AContext=nil then ;
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;

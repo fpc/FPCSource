@@ -224,6 +224,7 @@ end;
 function TPas2JSFS.File1IsNewer(const File1, File2: String): Boolean;
 begin
   Result:=False;
+  if File1=File2 then ;
 end;
 
 function TPas2JSFS.ExpandDirectory(const Filename : String): string;
@@ -248,7 +249,7 @@ end;
 
 function TPas2JSFS.DirectoryExists(const aDirectory: string): boolean;
 begin
-  Result:=False;
+  Result:=aDirectory='';
 end;
 
 function TPas2JSFS.TryCreateRelativePath(const Filename, BaseDirectory: String; UsePointDirectory: boolean; out RelPath: String
@@ -256,6 +257,7 @@ function TPas2JSFS.TryCreateRelativePath(const Filename, BaseDirectory: String; 
 begin
   Result:=True;
   RelPath:=FileName;
+  if (BaseDirectory='') or UsePointDirectory then ;
 end;
 
 procedure TPas2JSFS.WriteFoldersAndSearchPaths;
@@ -271,11 +273,13 @@ end;
 function TPas2JSFS.AddForeignUnitPath(const aValue: String; FromCmdLine: Boolean): String;
 begin
   Result:='';
+  if (aValue='') or FromCmdLine then ;
 end;
 
 function TPas2JSFS.HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String;
 begin
   Result:='Invalid parameter : -F'+C+aValue;
+  if FromCmdLine then ;
 end;
 
 constructor TPas2JSFS.Create;
