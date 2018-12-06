@@ -344,6 +344,7 @@ uses
     function std_regnum_search(const s:string):Tregister;
     function findreg_by_number(r:Tregister):tregisterindex;
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
 
 
 implementation
@@ -530,6 +531,10 @@ implementation
           internalerror(200603251);
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
 
     procedure TResFlags.Init(r : TRegister; f : TSparcFlags);
       begin

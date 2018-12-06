@@ -304,6 +304,7 @@ unit cpubase;
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function dwarf_reg(r:tregister):byte;
+    function dwarf_reg_no_error(r:tregister):shortint;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
 
@@ -426,6 +427,10 @@ unit cpubase;
         result:=reg;
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin

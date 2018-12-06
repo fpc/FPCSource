@@ -270,6 +270,7 @@ unit cpubase;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
 
   implementation
 
@@ -406,5 +407,15 @@ unit cpubase;
           internalerror(200603251);
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        case getsubreg(r) of
+          R_SUBFD:
+            setsubreg(r, R_SUBFS);
+          R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
+            setsubreg(r, R_SUBD);
+        end;
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
 begin
 end.

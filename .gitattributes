@@ -16260,6 +16260,7 @@ tests/webtbs/tw34287.pp svneol=native#text/pascal
 tests/webtbs/tw3429.pp svneol=native#text/plain
 tests/webtbs/tw3433.pp svneol=native#text/plain
 tests/webtbs/tw3435.pp svneol=native#text/plain
+tests/webtbs/tw34380.pp svneol=native#text/plain
 tests/webtbs/tw3441.pp svneol=native#text/plain
 tests/webtbs/tw3443.pp svneol=native#text/plain
 tests/webtbs/tw3444.pp svneol=native#text/plain

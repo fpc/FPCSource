@@ -369,6 +369,7 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
 
     function isvalue8bit(val: tcgint): boolean;
     function isvalue16bit(val: tcgint): boolean;
@@ -594,6 +595,10 @@ implementation
           internalerror(200603251);
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
 
     { returns true if given value fits to an 8bit signed integer }
     function isvalue8bit(val: tcgint): boolean;
