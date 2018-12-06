@@ -21,16 +21,9 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <CommandLineParams Value="ta.pp"/>
-      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
-        <Mode0 Name="default">
-          <local>
-            <CommandLineParams Value="ta.pp"/>
-          </local>
-        </Mode0>
+        <Mode0 Name="default"/>
       </Modes>
     </RunParams>
     <Units Count="6">
@@ -75,12 +68,6 @@
         <AllowLabel Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Other>
-      <CustomOptions Value="-dVerboseUnitQueue_
--dVerbosePCUFiler_
--dVerbosePasResolver_
--dVerbosePas2JS_"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
