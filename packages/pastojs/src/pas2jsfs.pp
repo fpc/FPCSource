@@ -19,7 +19,7 @@
     interacts with the filesystem.
     See Pas2JSFileCache for an actual implementation.
 }
-unit pas2jsfs;
+unit Pas2JSFS;
 
 {$mode objfpc}{$H+}
 {$I pas2js_defines.inc}
@@ -28,7 +28,7 @@ interface
 
 uses
   // No filesystem-dependent units here !
-  Classes, SysUtils, pscanner, fpjson;
+  Classes, SysUtils, PScanner, fpjson;
 
 const // Messages
   nIncludeSearch = 201; sIncludeSearch = 'Include file search: %s';

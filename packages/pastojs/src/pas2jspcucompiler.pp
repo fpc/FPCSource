@@ -16,7 +16,7 @@
   Abstract:
     FileSystem aware compiler descendent with support for PCU files.
 }
-unit pas2jspcucompiler;
+unit Pas2JSPCUCompiler;
 
 {$mode objfpc}{$H+}
 
@@ -29,17 +29,17 @@ unit pas2jspcucompiler;
 interface
 
 uses
-  SysUtils,Classes,
-  pastree,
-  pas2jscompiler, pas2jsfs, pas2jsfscompiler, Pas2JsFiler;
+  SysUtils, Classes,
+  jstree,
+  PasTree, PScanner, PasResolveEval,
+  FPPas2Js,
+  Pas2jsCompiler, Pas2JSFS, Pas2JSFSCompiler, Pas2JsFiler,
+  Pas2jsLogger, Pas2jsFileUtils;
 
 Type
   TFilerPCUSupport = Class(TPCUSupport)
   Private
-    // This is the format that will be written.
-    FPCUFormat : TPas2JSPrecompileFormat;
-    // This is the format that will be read.
-    FFoundFormat : TPas2JSPrecompileFormat;
+    FPCUFormat: TPas2JSPrecompileFormat;
     FPrecompileInitialFlags: TPCUInitialFlags;
     FPCUReader: TPCUCustomReader;
     FPCUReaderStream: TStream;
@@ -70,7 +70,6 @@ Type
     Function CreatePCUSupport: TPCUSupport; override;
   end;
 
-
   { TPas2jsPCUCompiler }
 
   TPas2jsPCUCompiler = Class(TPas2JSFSCompiler)
@@ -83,10 +82,6 @@ Type
   end;
 
 implementation
-
-uses fppas2js, pscanner, pas2jslogger, pasresolveeval, jstree, pas2jsfileutils;
-
-
 
 {$IFDEF HASPAS2JSFILER}
 
@@ -142,7 +137,7 @@ end;
 function TFilerPCUSupport.FindPCU(const UseUnitName: string): string;
 
 begin
-  Result:=FindPCU(UseUnitName,FFoundFormat);
+  Result:=FindPCU(UseUnitName,FPCUFormat);
 end;
 
 function TFilerPCUSupport.HasReader: Boolean;
@@ -179,9 +174,9 @@ begin
     RaiseInternalError(20180312144742,MyFile.PCUFilename);
   if FPCUReader<>nil then
     RaiseInternalError(20180312142938,GetObjName(FPCUReader));
-  if FFoundFormat=nil then
+  if FPCUFormat=nil then
     RaiseInternalError(20180312142954,'');
-  FPCUReader:=FFoundFormat.ReaderClass.Create;
+  FPCUReader:=FPCUFormat.ReaderClass.Create;
   FPCUReader.SourceFilename:=ExtractFileName(MyFile.PCUFilename);
 
   if MyFile.ShowDebug then
@@ -208,7 +203,8 @@ begin
   SetReaderState(prsCanContinue);
 end;
 
-function TFilerPCUSupport.FindPCU(const UseUnitName: string; out  aFormat: TPas2JSPrecompileFormat): string;
+function TFilerPCUSupport.FindPCU(const UseUnitName: string;
+  out aFormat: TPas2JSPrecompileFormat): string;
 
   function SearchInDir(DirPath: string): boolean;
   var
@@ -240,7 +236,7 @@ var
 begin
   Result:='';
   aFormat:=nil;
-  L:=TstringList.Create;
+  L:=TStringList.Create;
   try
     Compiler.FS.GetPCUDirs(L,MyFile.FileResolver.BaseDirectory);
     for i:=0 to L.Count-1 do
@@ -432,8 +428,6 @@ begin
   if not Found then
     ParamFatal('invalid precompile output format (-JU) "'+Value+'"');
 end;
-
-
 
 { TPas2jsPCUCompilerFile }
 

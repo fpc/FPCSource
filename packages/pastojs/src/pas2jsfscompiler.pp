@@ -16,15 +16,17 @@
   Abstract:
     FileSystem aware compiler descendent. No support for PCU.
 }
-unit pas2jsfscompiler;
+unit Pas2JSFSCompiler;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, pastree, pas2jscompiler,
-  pas2jsfs, pas2jsfilecache, pasuseanalyzer;
+  Classes, SysUtils, pastree, PScanner, PasUseAnalyzer,
+  Pas2jsFileCache, Pas2jsCompiler,
+  Pas2JSFS,
+  FPPas2Js, Pas2jsFileUtils;
 
 Type
   TPas2jsFSCompiler = Class(TPas2JSCompiler)
@@ -40,8 +42,6 @@ Type
   end;
 
 implementation
-
-uses fppas2js, pscanner, pas2jsfileutils;
 
 {$IFDEF PAS2JS}
 function Pas2jsCompilerFile_FilenameToKeyName(Item: Pointer): String;

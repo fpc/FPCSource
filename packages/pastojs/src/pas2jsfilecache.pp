@@ -32,7 +32,8 @@ uses
   {$ENDIF}
   Classes, SysUtils,
   fpjson,
-  PScanner, PasUseAnalyzer, PasResolver, Pas2jsLogger, Pas2jsFileUtils, pas2jsfs;
+  PScanner, PasResolver, PasUseAnalyzer,
+  Pas2jsLogger, Pas2jsFileUtils, Pas2JSFS;
 
 
 type
