@@ -4081,9 +4081,9 @@ begin
           begin
           c:=S[p];
           case c of
-          '0'..'9': u:=u*16+ord(c)-ord('0');
-          'a'..'f': u:=u*16+ord(c)-ord('a')+10;
-          'A'..'F': u:=u*16+ord(c)-ord('A')+10;
+          '0'..'9': u:=u*16+longword(ord(c)-ord('0'));
+          'a'..'f': u:=u*16+longword(ord(c)-ord('a'))+10;
+          'A'..'F': u:=u*16+longword(ord(c)-ord('A'))+10;
           else break;
           end;
           if u>$10FFFF then
@@ -4111,7 +4111,7 @@ begin
           begin
           c:=S[p];
           case c of
-          '0'..'9': u:=u*10+ord(c)-ord('0');
+          '0'..'9': u:=u*10+longword(ord(c)-ord('0'));
           else break;
           end;
           if u>$ffff then
