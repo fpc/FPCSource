@@ -2060,6 +2060,12 @@ function TPas2jsPasScanner.HandleInclude(const Param: String): TToken;
     SetCurTokenString(''''+s+'''');
   end;
 
+  procedure SetInteger(const i: TMaxPrecInt);
+  begin
+    Result:=tkNumber;
+    SetCurTokenString(IntToStr(i));
+  end;
+
 var
   Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
   i: Integer;
@@ -2099,6 +2105,11 @@ begin
     '%line%':
       begin
         SetStr(IntToStr(CurRow));
+        exit;
+      end;
+    '%linenum%':
+      begin
+        SetInteger(CurRow);
         exit;
       end;
     '%currentroutine%':

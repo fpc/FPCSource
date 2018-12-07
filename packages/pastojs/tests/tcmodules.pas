@@ -2263,9 +2263,12 @@ procedure TTestModule.TestIncludeVersion;
 begin
   StartProgram(false);
   Add([
-  'var s: string;',
+  'var',
+  '  s: string;',
+  '  i: word;',
   'begin',
   '  s:={$I %line%};',
+  '  i:={$I %linenum%};',
   '  s:={$I %currentroutine%};',
   '  s:={$I %pas2jsversion%};',
   '  s:={$I %pas2jstarget%};',
@@ -2274,9 +2277,12 @@ begin
   '']);
   ConvertProgram;
   CheckSource('TestIncludeVersion',
-    'this.s="";',
     LinesToStr([
-    '$mod.s = "5";',
+    'this.s="";',
+    'this.i = 0;']),
+    LinesToStr([
+    '$mod.s = "7";',
+    '$mod.i = 8;',
     '$mod.s = "<anonymous>";',
     '$mod.s = "Comp.Ver.tcmodules";',
     '$mod.s = "Browser";',
