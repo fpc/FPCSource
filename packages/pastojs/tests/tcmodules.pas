@@ -2274,6 +2274,7 @@ begin
   '  s:={$I %pas2jstarget%};',
   '  s:={$I %pas2jstargetos%};',
   '  s:={$I %pas2jstargetcpu%};',
+  '  s:={$I %file%};',
   '']);
   ConvertProgram;
   CheckSource('TestIncludeVersion',
@@ -2288,6 +2289,7 @@ begin
     '$mod.s = "Browser";',
     '$mod.s = "Browser";',
     '$mod.s = "ECMAScript5";',
+    '$mod.s = "test1.pp";',
     '']));
 end;
 

@@ -2054,10 +2054,34 @@ end;
 
 function TPas2jsPasScanner.HandleInclude(const Param: String): TToken;
 
-  procedure SetStr(const s: string);
+  procedure SetStr(s: string);
+  var
+    i: Integer;
+    h: String;
   begin
     Result:=tkString;
-    SetCurTokenString(''''+s+'''');
+    if s='' then
+      s:=''''''
+    else
+      for i:=length(s) downto 1 do
+        case s[i] of
+        #0..#31,#127:
+          begin
+          h:='#'+IntToStr(ord(s[i]));
+          if i>1 then h:=''''+h;
+          if (i<length(s)) and (s[i+1]<>'#') then
+            h:=h+'''';
+          s:=LeftStr(s,i-1)+h+copy(s,i+1,length(s));
+          end;
+        else
+          if i=length(s) then
+            s:=s+'''';
+          if s[i]='''' then
+            Insert('''',s,i);
+          if i=1 then
+            s:=''''+s;
+        end;
+    SetCurTokenString(s);
   end;
 
   procedure SetInteger(const i: TMaxPrecInt);
@@ -2076,12 +2100,14 @@ begin
     case lowercase(Param) of
     '%date%':
       begin
+        // 'Y/M/D'
         DecodeDate(Now,Year,Month,Day);
         SetStr(IntToStr(Year)+'/'+IntToStr(Month)+'/'+IntToStr(Day));
         exit;
       end;
     '%time%':
       begin
+        // 'hh:mm:ss'
         DecodeTime(Now,Hour,Minute,Second,MilliSecond);
         SetStr(Format('%2d:%2d:%2d',[Hour,Minute,Second]));
         exit;
@@ -2100,6 +2126,11 @@ begin
     '%pas2jsversion%','%fpcversion%':
       begin
         SetStr(CompilerVersion);
+        exit;
+      end;
+    '%file%':
+      begin
+        SetStr(CurFilename);
         exit;
       end;
     '%line%':
