@@ -2097,6 +2097,20 @@ var
 begin
   if (Param<>'') and (Param[1]='%') then
   begin
+    if (length(Param)<3) or (Param[length(Param)]<>'%') then
+      begin
+      SetStr('');
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
+        ['$i '+Param]);
+      exit;
+      end;
+    if length(Param)>255 then
+      begin
+      SetStr('');
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
+        ['$i '+copy(Param,1,255)+'...']);
+      exit;
+      end;
     case lowercase(Param) of
     '%date%':
       begin
@@ -2160,8 +2174,8 @@ begin
         exit;
       end;
     else
-      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
-        ['$i '+Param]);
+      SetStr(GetEnvironmentVariable(copy(Param,2,length(Param)-2)));
+      exit;
     end;
   end;
   Result:=inherited HandleInclude(Param);

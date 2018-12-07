@@ -2803,7 +2803,10 @@ End.
     <li>{$I %param%}:
       <ul>
         <li>%date%: current date as string literal, '[yyyy/mm/dd]'</li>
-        <li>%time%: current time as string literal, 'hh:mm:ss'</li>
+        <li>%time%: current time as string literal, 'hh:mm:ss'. Note that the
+          inclusion of %date% and %time% will not cause the compiler to
+          recompile the unit every time it is used:
+          the date and time will be the date and time when the unit was last compiled.</li>
         <li>%file%: current source filename as string literal, e.g. <i>'unit1.pas'</i></li>
         <li>%line%: current source line number as string literal, e.g. <i>'123'</i></li>
         <li>%linenum%: current source line number as integer, e.g. <i>123</i></li>
@@ -2811,6 +2814,9 @@ End.
         <li>%pas2jstarget%, %pas2jstargetos%, %fpctarget%, %fpctargetos%: target os as string literal, e.g. 'Browser'</li>
         <li>%pas2jstargetcpu%, %fpctargetcpu%: target cpu as string literal, e.g. 'ECMAScript5'</li>
         <li>%pas2jsversion%, %fpcversion%: compiler version as strnig literal, e.g. '1.0.2'</li>
+        <li>If param is none of the above it will use the environment variable.
+        Keep in mind that depending on the platform the name may be case sensitive.
+        If there is no such variable an empty string <i>''</i> is inserted.</li>
       </ul>
     </li>
     <li>{$Warnings on|off}</li>
