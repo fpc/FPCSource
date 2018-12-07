@@ -2080,6 +2080,14 @@ unit cgx86;
             reference_reset_base(href,src,al,ctempposinvalid,0,[]);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
+        else if (op=OP_SHL) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
+          (int64(a)>=1) and (int64(a)<=3) then
+          begin
+            reference_reset_base(href,NR_NO,0,ctempposinvalid,0,[]);
+            href.index:=src;
+            href.scalefactor:=1 shl longint(a);
+            list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
+          end
         else if (op=OP_SUB) and
           ((size in [OS_32,OS_S32]) or
            { lea supports only 32 bit signed displacments }

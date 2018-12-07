@@ -1,8 +1,13 @@
 #
 #   Makefile.fpc for running fpmake
 #
+[package]
+name=ide
+version=3.3.1
+
 [require]
-packages=rtl fpmkunit
+packages=rtl fpmkunit rtl-extra fv chm regexpr
+packages_go32v2=graph
 
 [install]
 fpcpackage=y
@@ -67,7 +72,7 @@ ifdef GDBMI
 FPMAKE_OPT+=--GDBMI=1
 # If the rtl does not require libc, then
 # IDE compiled with GDBMI should be a static executable
-# and can thus be cross-compiled 
+# and can thus be cross-compiled
 ifeq ($(findstring $(OS_TARGET),aix beos darwin haiku solaris),)
 GDBMI_IS_STATIC=1
 endif

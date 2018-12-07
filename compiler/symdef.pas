@@ -158,6 +158,7 @@ interface
           function  getmangledparaname:TSymStr;override;
           function  size:asizeint;override;
           procedure setsize;
+          function alignment: shortint; override;
        end;
        tfiledefclass = class of tfiledef;
 
@@ -956,6 +957,7 @@ interface
           procedure deref;override;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
+          function alignment: shortint; override;
        end;
        tsetdefclass = class of tsetdef;
 
@@ -1055,8 +1057,16 @@ interface
        s8inttype,                 { 8-Bit signed integer }
        u16inttype,                { 16-Bit unsigned integer }
        s16inttype,                { 16-Bit signed integer }
+       u24inttype,                { 24-Bit unsigned integer }
+       s24inttype,                { 24-Bit signed integer }
        u32inttype,                { 32-Bit unsigned integer }
        s32inttype,                { 32-Bit signed integer }
+       u40inttype,                { 40-Bit unsigned integer }
+       s40inttype,                { 40-Bit signed integer }
+       u48inttype,                { 48-Bit unsigned integer }
+       s48inttype,                { 48-Bit signed integer }
+       u56inttype,                { 56-Bit unsigned integer }
+       s56inttype,                { 56-Bit signed integer }
        u64inttype,                { 64-bit unsigned integer }
        s64inttype,                { 64-bit signed integer }
        u128inttype,               { 128-bit unsigned integer }
@@ -2887,10 +2897,12 @@ implementation
           1,2,4,8,16,
           1,1,2,4,8,
           1,2,4,8,
-          1,2,8
+          1,2,8,system.high(longint)
         );
       begin
         savesize:=sizetbl[ordtype];
+        if savesize=system.high(longint) then
+          savesize:=packedbitsize div 8;
       end;
 
 
@@ -2941,9 +2953,11 @@ implementation
           varshortint,varsmallint,varinteger,varint64,varUndefined,
           varboolean,varboolean,varboolean,varboolean,varboolean,
           varboolean,varboolean,varUndefined,varUndefined,
-          varUndefined,varUndefined,varCurrency);
+          varUndefined,varUndefined,varCurrency,varEmpty);
       begin
         result:=basetype2vardef[ordtype];
+        if result=varEmpty then
+          result:=basetype2vardef[range_to_basetype(low,high)];
       end;
 
 
@@ -2971,7 +2985,7 @@ implementation
           'ShortInt','SmallInt','LongInt','Int64','Int128',
           'Boolean','Boolean8','Boolean16','Boolean32','Boolean64',
           'ByteBool','WordBool','LongBool','QWordBool',
-          'Char','WideChar','Currency');
+          'Char','WideChar','Currency','CustomRange');
 
       begin
          GetTypeName:=names[ordtype];
@@ -3197,6 +3211,20 @@ implementation
          else
            internalerror(2013113001);
          end;
+      end;
+
+
+    function tfiledef.alignment: shortint;
+      begin
+        case filetyp of
+          ft_text:
+            result:=search_system_type('TEXTREC').typedef.alignment;
+          ft_typed,
+          ft_untyped:
+            result:=search_system_type('FILEREC').typedef.alignment;
+          else
+            internalerror(2018120101);
+          end;
       end;
 
 
@@ -3651,6 +3679,13 @@ implementation
     function tsetdef.is_publishable : boolean;
       begin
          is_publishable:=savesize in [1,2,4];
+      end;
+
+    function tsetdef.alignment: shortint;
+      begin
+        Result:=inherited;
+        if result>sizeof(aint) then
+          result:=sizeof(aint);
       end;
 
 
@@ -6239,7 +6274,7 @@ implementation
              'a','s','i','x','',
              'b','b','b','b','b',
              'b','b','b','b',
-             'c','w','x');
+             'c','w','x','C');
 
            floattype2str : array[tfloattype] of string[1] = (
              'f','d','e','e',
@@ -6252,7 +6287,11 @@ implementation
         begin
            case p.typ of
               orddef:
-                s:=ordtype2str[torddef(p).ordtype];
+                begin
+                  s:=ordtype2str[torddef(p).ordtype];
+                  if s='C' then
+                    s:=ordtype2str[range_to_basetype(torddef(p).low,torddef(p).high)];
+                end;
               pointerdef:
                 s:='P'+getcppparaname(tpointerdef(p).pointeddef);
 {$ifndef NAMEMANGLING_GCC2}

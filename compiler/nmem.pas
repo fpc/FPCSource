@@ -1176,7 +1176,7 @@ implementation
       begin
         include(flags,nf_write);
         { see comment in tsubscriptnode.mark_write }
-        if not(is_implicit_pointer_object_type(left.resultdef)) then
+        if not(is_implicit_array_pointer(left.resultdef)) then
           left.mark_write;
       end;
 

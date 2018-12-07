@@ -39,6 +39,9 @@ interface
 
         constructor create_llvm(op: tllvmop);
 
+        { e.g. unreachable }
+        constructor op_none(op : tllvmop);
+
         { e.g. ret void }
         constructor op_size(op : tllvmop; size: tdef);
 
@@ -677,6 +680,13 @@ uses
           else
             internalerror(2013103101)
         end;
+      end;
+
+
+    constructor taillvm.op_none(op: tllvmop);
+      begin
+        create_llvm(op);
+        ops:=0;
       end;
 
 

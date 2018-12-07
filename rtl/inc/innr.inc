@@ -62,8 +62,7 @@ const
    fpc_in_leave             = 51; {macpas}
    fpc_in_cycle             = 52; {macpas}
    fpc_in_slice             = 53;
-   fpc_in_move_x            = 54;
-   fpc_in_fillchar_x        = 55;
+   fpc_in_unaligned_x       = 54;
    fpc_in_get_frame         = 56;
    fpc_in_get_caller_addr   = 57;
    fpc_in_get_caller_frame  = 58;
@@ -105,6 +104,7 @@ const
    fpc_in_neg_assign_x      = 94;
    fpc_in_not_assign_x      = 95;
    fpc_in_faraddr_x         = 97;
+   fpc_in_volatile_x        = 98;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

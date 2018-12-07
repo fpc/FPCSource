@@ -36,6 +36,7 @@ begin
     T:=P.Targets.AddUnit('pscanner.pp');
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('pparser.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('pastree');

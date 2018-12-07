@@ -26,6 +26,10 @@ begin
     P.Description := 'Free Pascal documentation generation utility.';
     P.NeedLibC:= false;
 
+    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macos,palmos,atari];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
@@ -56,7 +60,9 @@ begin
     T.Dependencies.AddUnit('dglobals');
 
     T:=P.Targets.AddProgram('unitdiff.pp');
+    T.ResourceStrings:=true;
     T:=P.Targets.AddProgram('fpclasschart.pp');
+    T.ResourceStrings:=true;
 
     T := P.Targets.AddUnit('dglobals.pp');
     T.install:=false;
@@ -73,13 +79,16 @@ begin
     P.Targets.AddUnit('dw_xml.pp').install:=false;
     P.Targets.AddUnit('sh_pas.pp').install:=false;
     P.Targets.AddUnit('dw_html.pp').install:=false;
-    P.Targets.AddUnit('dw_latex.pp').install:=false;
+    T:=P.Targets.AddUnit('dw_latex.pp');
+    T.install:=false;
+    T.ResourceStrings:=true;
     P.Targets.AddUnit('dw_txt.pp').install:=false;
     P.Targets.AddUnit('dw_man.pp').install:=false;
     P.Targets.AddUnit('dwlinear.pp').install:=false;
     P.Targets.AddUnit('dw_linrtf.pp').install:=false;
     P.Targets.AddUnit('dw_dxml.pp').install:=false;
     P.Targets.AddUnit('fpdocproj.pas').install:=false;
+    P.Targets.AddUnit('fpdocclasstree.pp').install:=false;
     P.Targets.AddUnit('mkfpdoc.pp').install:=false;
     P.Targets.AddUnit('dw_ipflin.pas').install:=false;
 

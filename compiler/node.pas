@@ -110,7 +110,8 @@ interface
           loadparentfpn,    { Load the framepointer of the parent for nested procedures }
           objcselectorn,    { node for an Objective-C message selector }
           objcprotocoln,    { node for an Objective-C @protocol() expression (returns metaclass associated with protocol) }
-          specializen       { parser-only node to handle Delphi-mode inline specializations }
+          specializen,      { parser-only node to handle Delphi-mode inline specializations }
+          finalizetempsn        { Internal node used to clean up code generator temps (warning: must NOT create additional tepms that may need to be finalised!) }
        );
 
        tnodetypeset = set of tnodetype;
@@ -194,7 +195,8 @@ interface
           'loadparentfpn',
           'objcselectorn',
           'objcprotocoln',
-          'specializen');
+          'specializen',
+          'finalizetempsn');
 
       { a set containing all const nodes }
       nodetype_const = [niln,

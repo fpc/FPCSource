@@ -749,6 +749,7 @@ begin
           AddUnit('bufdataset');
         end;
     T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes);
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -780,6 +781,7 @@ begin
           AddUnit('sqltypes');
         end;
     T:=P.Targets.AddUnit('sqldblib.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('sqldb');

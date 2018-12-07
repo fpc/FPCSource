@@ -26,7 +26,7 @@ unit ncginl;
 interface
 
     uses
-       node,ninl;
+       node,ninl,symtype;
 
     type
        tcginlinenode = class(tinlinenode)
@@ -66,6 +66,8 @@ interface
           procedure second_seg; virtual; abstract;
           procedure second_fma; virtual;
           procedure second_frac_real; virtual;
+       protected
+          function  second_incdec_tempregdef: tdef;virtual;
        end;
 
 implementation
@@ -73,7 +75,7 @@ implementation
     uses
       globtype,constexp,
       verbose,globals,compinnr,
-      symconst,symtype,symdef,defutil,
+      symconst,symdef,defutil,
       aasmbase,aasmdata,
       cgbase,pass_2,
       cpubase,procinfo,
@@ -161,6 +163,13 @@ implementation
                 location:=tcallparanode(left).left.location;
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   location.reference.alignment:=resultdef.alignment;
+              end;
+            in_volatile_x:
+              begin
+                secondpass(tcallparanode(left).left);
+                location:=tcallparanode(left).left.location;
+                if location.loc in [LOC_CREFERENCE,LOC_REFERENCE,LOC_SUBSETREF,LOC_CSUBSETREF] then
+                  location.reference.volatility:=[vol_read,vol_write];
               end;
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
@@ -332,6 +341,11 @@ implementation
 {*****************************************************************************
                          INC/DEC GENERIC HANDLING
 *****************************************************************************}
+      function tcginlinenode.second_incdec_tempregdef: tdef;
+        begin
+          second_incdec_tempregdef:=left.resultdef;
+        end;
+
       procedure tcginlinenode.second_IncDec;
        const
          addsubop:array[in_inc_x..in_dec_x] of TOpCG=(OP_ADD,OP_SUB);
@@ -382,7 +396,7 @@ implementation
                  addvalue:=addvalue*tpointerconstnode(tcallparanode(tcallparanode(left).right).left).value
               else
                 begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,cgsize_orddef(def_cgsize(left.resultdef)),addvalue<=1);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,second_incdec_tempregdef,addvalue<=1);
                   hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
 {$ifndef cpu64bitalu}
                   hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.register64.reghi;
@@ -684,7 +698,7 @@ implementation
 
         tempreg1:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
         tempreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
-	
+
         hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,left.resultdef,left.resultdef.size*8-1,left.location.register,tempreg1);
         hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.resultdef,left.location.register,tempreg1,tempreg2);
         hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist,OP_SUB,left.resultdef,tempreg1,tempreg2,location.register);
@@ -910,4 +924,4 @@ implementation
 
 begin
    cinlinenode:=tcginlinenode;
-end.  s
+end.

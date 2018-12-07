@@ -37,17 +37,21 @@ begin
     P.Version:='3.3.1';
     T:=P.Targets.AddUnit('src/fpttfencodings.pp');
     T:=P.Targets.AddUnit('src/fpparsettf.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('src/fpfonttextmapping.pp');
     With T do
       Dependencies.AddUnit('fpttfencodings');
     T:=P.Targets.AddUnit('src/fpttfsubsetter.pp');
+      T.ResourceStrings:=true;
     With T do
       begin
       Dependencies.AddUnit('fpparsettf');
       Dependencies.AddUnit('fpfonttextmapping');
       end;
     T:=P.Targets.AddUnit('src/fpttf.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('src/fppdf.pp');
+      T.ResourceStrings:=true;
     With T do
       begin
       Dependencies.AddUnit('fpparsettf');

@@ -525,6 +525,8 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
     while assigned(auxp^) do
       inc(auxp);
     inc(auxp);
+    phdr:=nil;
+    phnum:=0;
     { now we are at the auxillary vector }
     while assigned(auxp^) do
       begin
@@ -572,6 +574,12 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
   end;
 {$endif CPUARM}
 
+
+{$if FPC_FULLVERSION>30200}
+{$if defined(CPUI386) or defined(CPUARM)}
+{$I abitag.inc}
+{$endif defined(CPUI386) or defined(CPUARM)}
+{$endif FPC_FULLVERSION>30200}
 
 begin
 {$if defined(i386) and not defined(FPC_USE_LIBC)}

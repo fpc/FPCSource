@@ -156,7 +156,8 @@ implementation
              'loadparentfpn',
              'objselectorn',
              'objcprotocoln',
-             'specializen'
+             'specializen',
+             'finalizetemps'
              );
       var
         p: pchar;

@@ -164,6 +164,10 @@ Put + after a boolean switch option to enable it, - to disable it
    -Jo&lt;x&gt; : Enable or disable extra option. The x is case insensitive:
      -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.
      -JoUseStrict : add "use strict" to modules, default.
+   -Jpcmd&lt;command&gt; : Run postprocessor. For each generated js execute
+                  command passing the js as stdin and read the new js from stdout.
+                  This option can be added multiple times to call several
+                  postprocessors in succession.
    -Ju&lt;x&gt; : Add &lt;x&gt; to foreign unit paths. Foreign units are not compiled.
   -l      : Write logo
   -MDelphi: Delphi 7 compatibility mode
@@ -2799,12 +2803,20 @@ End.
     <li>{$I %param%}:
       <ul>
         <li>%date%: current date as string literal, '[yyyy/mm/dd]'</li>
-        <li>%time%: current time as string literal, 'hh:mm:ss'</li>
-        <li>%line%: current source line number as string literal, e.g. '123'</li>
+        <li>%time%: current time as string literal, 'hh:mm:ss'. Note that the
+          inclusion of %date% and %time% will not cause the compiler to
+          recompile the unit every time it is used:
+          the date and time will be the date and time when the unit was last compiled.</li>
+        <li>%file%: current source filename as string literal, e.g. <i>'unit1.pas'</i></li>
+        <li>%line%: current source line number as string literal, e.g. <i>'123'</i></li>
+        <li>%linenum%: current source line number as integer, e.g. <i>123</i></li>
         <li>%currentroutine%: name of current routine as string literal</li>
         <li>%pas2jstarget%, %pas2jstargetos%, %fpctarget%, %fpctargetos%: target os as string literal, e.g. 'Browser'</li>
         <li>%pas2jstargetcpu%, %fpctargetcpu%: target cpu as string literal, e.g. 'ECMAScript5'</li>
         <li>%pas2jsversion%, %fpcversion%: compiler version as strnig literal, e.g. '1.0.2'</li>
+        <li>If param is none of the above it will use the environment variable.
+        Keep in mind that depending on the platform the name may be case sensitive.
+        If there is no such variable an empty string <i>''</i> is inserted.</li>
       </ul>
     </li>
     <li>{$Warnings on|off}</li>
@@ -2919,6 +2931,8 @@ End.
     Width and precision is supported. str(i:10) will add spaces to the left to fill up to 10 characters.</b>
     str(aDouble:1:5) returns a string in decimal format with 5 digits for the fraction.</li>
     <li>Intrinsic procedure WriteStr(out s: string; params...)</li>
+    <li><i>Debugger;</i> converts to <i>debugger;</i>. If a debugger is running
+      it will break on this line just like a break point.</li>
     </ul>
     </div>
 

@@ -381,6 +381,7 @@ type
     Procedure TestCaseOfRange;
     Procedure TestCaseOfString;
     Procedure TestCaseOfExternalClassConst;
+    Procedure TestDebugger;
 
     // arrays
     Procedure TestArray_Dynamic;
@@ -678,6 +679,7 @@ type
     Procedure TestRTTI_Class_Property;
     Procedure TestRTTI_Class_PropertyParams;
     Procedure TestRTTI_Class_OtherUnit_TypeAlias;
+    Procedure TestRTTI_Class_OmitRTTI;
     Procedure TestRTTI_IndexModifier;
     Procedure TestRTTI_StoredModifier;
     Procedure TestRTTI_DefaultValue;
@@ -2261,25 +2263,33 @@ procedure TTestModule.TestIncludeVersion;
 begin
   StartProgram(false);
   Add([
-  'var s: string;',
+  'var',
+  '  s: string;',
+  '  i: word;',
   'begin',
   '  s:={$I %line%};',
+  '  i:={$I %linenum%};',
   '  s:={$I %currentroutine%};',
   '  s:={$I %pas2jsversion%};',
   '  s:={$I %pas2jstarget%};',
   '  s:={$I %pas2jstargetos%};',
   '  s:={$I %pas2jstargetcpu%};',
+  '  s:={$I %file%};',
   '']);
   ConvertProgram;
   CheckSource('TestIncludeVersion',
-    'this.s="";',
     LinesToStr([
-    '$mod.s = "5";',
+    'this.s="";',
+    'this.i = 0;']),
+    LinesToStr([
+    '$mod.s = "7";',
+    '$mod.i = 8;',
     '$mod.s = "<anonymous>";',
     '$mod.s = "Comp.Ver.tcmodules";',
     '$mod.s = "Browser";',
     '$mod.s = "Browser";',
     '$mod.s = "ECMAScript5";',
+    '$mod.s = "test1.pp";',
     '']));
 end;
 
@@ -7078,6 +7088,30 @@ begin
     '  $mod.vI = 3}',
     ' else if ($tmp1 === Bird.e) ;'
     ]));
+end;
+
+procedure TTestModule.TestDebugger;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'begin',
+  '  deBugger;',
+  '  DeBugger();',
+  'end;',
+  'begin',
+  '  Debugger;']);
+  ConvertProgram;
+  CheckSource('TestDebugger',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  debugger;',
+    '  debugger;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    'debugger;',
+    '']));
 end;
 
 procedure TTestModule.TestArray_Dynamic;
@@ -20594,6 +20628,35 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestRTTI_Class_OmitRTTI;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$modeswitch omitrtti}',
+  'type',
+  '  TObject = class',
+  '  private',
+  '    FA: byte;',
+  '  published',
+  '    property A: byte read FA write FA;',
+  '  end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_OmitRTTI',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FA = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestRTTI_IndexModifier;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
@@ -21339,15 +21402,16 @@ procedure TTestModule.TestRTTI_LocalTypes;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartProgram(false);
-  Add('procedure DoIt;');
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TPoint = record');
-  Add('    x,y: integer;');
-  Add('  end;');
-  Add('begin');
-  Add('end;');
-  Add('begin');
+  Add([
+  'procedure DoIt;',
+  'type',
+  '  integer = longint;',
+  '  TPoint = record',
+  '    x,y: integer;',
+  '  end;',
+  'begin',
+  'end;',
+  'begin']);
   ConvertProgram;
   CheckSource('TestRTTI_LocalTypes',
     LinesToStr([ // statements
@@ -22197,7 +22261,7 @@ begin
     'this.DoIt = function () {',
     '  var b = false;',
     '  var s = "";',
-    '  if (b) throw "assert failed";',
+    '  if (!b) throw "assert failed";',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -22245,8 +22309,8 @@ begin
     'this.DoIt = function () {',
     '  var b = false;',
     '  var s = "";',
-    '  if (b) throw pas.SysUtils.EAssertionFailed.$create("Create");',
-    '  if (b) throw pas.SysUtils.EAssertionFailed.$create("Create$1", ["msg"]);',
+    '  if (!b) throw pas.SysUtils.EAssertionFailed.$create("Create");',
+    '  if (!b) throw pas.SysUtils.EAssertionFailed.$create("Create$1", ["msg"]);',
     '};',
     '']),
     LinesToStr([ // $mod.$main

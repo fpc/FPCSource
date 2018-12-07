@@ -68,6 +68,10 @@ interface
           procedure pass_generate_code;override;
        end;
 
+       tcgfinalizetempsnode = class(tfinalizetempsnode)
+          procedure pass_generate_code; override;
+       end;
+
   implementation
 
     uses
@@ -714,6 +718,17 @@ interface
       end;
 
 
+{*****************************************************************************
+                         TCGFINALIZETEMPSNODE
+*****************************************************************************}
+
+    procedure tcgfinalizetempsnode.pass_generate_code;
+      begin
+        hlcg.gen_finalize_code(current_asmdata.CurrAsmList);
+        location.loc:=LOC_VOID;
+      end;
+
+
 begin
    cnothingnode:=tcgnothingnode;
    casmnode:=tcgasmnode;
@@ -722,4 +737,5 @@ begin
    ctempcreatenode:=tcgtempcreatenode;
    ctemprefnode:=tcgtemprefnode;
    ctempdeletenode:=tcgtempdeletenode;
+   cfinalizetempsnode:=tcgfinalizetempsnode;
 end.

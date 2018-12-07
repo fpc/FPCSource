@@ -50,6 +50,7 @@ begin
     T.Dependencies.AddUnit('httpprotocol');
 
     T:=P.Targets.AddUnit('httproute.pp');
+      T.ResourceStrings:=true;
     T.Dependencies.AddUnit('httpdefs');
 
     T:=P.Targets.AddUnit('cgiapp.pp');
@@ -182,6 +183,11 @@ begin
         OSes:=[Win32,Win64];
         Dependencies.AddUnit('custhttpsys');
       end;
+    with P.Targets.AddUnit('fphttpstatus.pas') do
+      begin
+        Dependencies.AddUnit('fphttpserver');
+        Dependencies.AddUnit('HTTPDefs');
+      end;
     T:=P.Targets.AddUnit('fcgigate.pp');
     T.ResourceStrings:=true;
     With T.Dependencies do
@@ -264,6 +270,7 @@ begin
     T:=P.Targets.AddUnit('fpwebclient.pp');
     T:=P.Targets.AddUnit('fpjwt.pp');
     T:=P.Targets.AddUnit('fpoauth2.pp');
+      T.ResourceStrings:=true;
     T.Dependencies.AddUnit('fpwebclient');
     T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fpoauth2ini.pp');

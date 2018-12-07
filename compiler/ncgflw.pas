@@ -196,8 +196,9 @@ implementation
            hlcg.a_jmp_always(current_asmdata.CurrAsmList,lcont);
 
          if not(cs_opt_size in current_settings.optimizerswitches) then
-            { align loop target }
-            current_asmdata.CurrAsmList.concat(Tai_align.Create(current_settings.alignment.loopalign));
+            { align loop target, as an unconditional jump is done before,
+              use jump align which assume that the instructions inserted as alignment are never executed }
+            current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignmax));
 
          hlcg.a_label(current_asmdata.CurrAsmList,lloop);
 

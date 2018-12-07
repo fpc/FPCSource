@@ -39,6 +39,7 @@ begin
     p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s default.cft default.inc fppkg_default','default.inc','default.cft');
 
     T:=P.Targets.AddProgram('fpcmkcfg.pp');
+    T.ResourceStrings:=true;
     T.Dependencies.AddInclude('fpccfg.inc');
     T.Dependencies.AddInclude('fpcfg.inc');
     T.Dependencies.AddInclude('fpini.inc');

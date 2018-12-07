@@ -187,7 +187,7 @@ implementation
            u8bit,u16bit,u32bit,u64bit,
            s8bit,s16bit,s32bit,s64bit,
            pasbool, bool8bit,bool16bit,bool32bit,bool64bit,
-           uchar,uwidechar,scurrency }
+           uchar,uwidechar,scurrency,customint }
 
       type
         tbasedef=(bvoid,bchar,bint,bbool);
@@ -198,7 +198,7 @@ implementation
            bint,bint,bint,bint,bint,
            bbool,bbool,bbool,bbool,bbool,
            bbool,bbool,bbool,bbool,
-           bchar,bchar,bint);
+           bchar,bchar,bint,bint);
 
         basedefconvertsimplicit : array[tbasedef,tbasedef] of tconverttype =
           { void, char, int, bool }
@@ -1969,6 +1969,8 @@ implementation
                   is_subequal:=(torddef(def2).ordtype=uchar);
                 uwidechar :
                   is_subequal:=(torddef(def2).ordtype=uwidechar);
+                customint:
+                  is_subequal:=(torddef(def2).low=torddef(def1).low) and (torddef(def2).high=torddef(def1).high);
               end;
             end
            else

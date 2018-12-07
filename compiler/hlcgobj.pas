@@ -429,6 +429,11 @@ unit hlcgobj;
           }
           procedure g_exception_reason_discard(list : TAsmList; size: tdef; href: treference); virtual;
 
+          {#
+              Call when the current location should never be reached
+          }
+          procedure g_unreachable(list: TAsmList); virtual;
+
           procedure g_maybe_testself(list : TAsmList; selftype: tdef; reg:tregister);
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
@@ -3159,6 +3164,12 @@ implementation
     end;
 
 
+  procedure thlcgobj.g_unreachable(list: TAsmList);
+    begin
+      { nothing }
+    end;
+
+
   procedure thlcgobj.g_maybe_testself(list: TAsmList; selftype: tdef; reg: tregister);
     var
       OKLabel : tasmlabel;
@@ -4567,13 +4578,14 @@ implementation
       cleanup_regvars(list);
 {$endif OLDREGVARS}
 
-      { finalize temporary data }
-      finalizetempvariables(list);
-
       { finalize paras data }
       if assigned(current_procinfo.procdef.parast) and
          not(po_assembler in current_procinfo.procdef.procoptions) then
         current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
+
+      { finalize temporary data }
+      finalizetempvariables(list);
+
       current_procinfo:=old_current_procinfo;
     end;
 
@@ -4983,8 +4995,6 @@ implementation
                 end
               else
                 begin
-                  { pass proper alignment info }
-                  localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
                   g_concatcopy(list,tparavarsym(p).vardef,href,localcopyloc.reference);
                 end;
               { update localloc of varsym }

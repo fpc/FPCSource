@@ -290,8 +290,8 @@ Works:
   - for key in JSObject do
   - for value in JSArray do
 - Assert(bool[,string])
-  - without sysutils: if(bool) throw string
-  - with sysutils: if(bool) throw pas.sysutils.EAssertionFailed.$create("Create",[string])
+  - without sysutils: if(!bool) throw string
+  - with sysutils: if(!bool) throw pas.sysutils.EAssertionFailed.$create("Create",[string])
 - Object checks:
   - Method call EInvalidCast, rtl.checkMethodCall
   - type cast to class-type and class-of-type, rtl.asExt, EInvalidCast
@@ -353,9 +353,12 @@ Works:
   - dispose, new
 - typecast byte(longword) -> value & $ff
 - typecast TJSFunction(func)
+- modeswitch OmitRTTI
+- debugger;
 
 ToDos:
 - do not rename property Date
+- cmd line param to set modeswitch
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - bug:
   v:=a[0]  gives Local variable "a" is assigned but never used
@@ -1090,7 +1093,8 @@ const
     msNestedComment,
     msExternalClass,
     msArrayOperators,
-    msIgnoreAttributes];
+    msIgnoreAttributes,
+    msOmitRTTI];
 
   msAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings
@@ -1259,8 +1263,11 @@ type
     procedure ComputeBinaryExprRes(Bin: TBinaryExpr; out
       ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       var LeftResolved, RightResolved: TPasResolverResult); override;
+    // built-in functions
     procedure BI_TypeInfo_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); override;
+    function BI_Debugger_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
   public
     constructor Create; reintroduce;
     destructor Destroy; override;
@@ -1610,6 +1617,7 @@ type
     Function CreateLiteralUndefined(El: TPasElement): TJSLiteral; virtual;
     Function CreateLiteralCustomValue(El: TPasElement; const s: TJSString): TJSLiteral; virtual;
     Function CreateSetLiteralElement(Expr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function CreateUnaryNot(El: TJSElement; Src: TPasElement): TJSUnaryNotExpression; virtual;
     Procedure ConvertCharLiteralToInt(Lit: TJSLiteral; ErrorEl: TPasElement; AContext: TConvertContext); virtual;
     Function ClonePrimaryExpression(El: TJSPrimaryExpression; Src: TPasElement): TJSPrimaryExpression;
     // simple JS expressions
@@ -1745,6 +1753,7 @@ type
     Function ConvertBuiltIn_New(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Default(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_Debugger(El: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -2045,10 +2054,40 @@ end;
 
 function TPas2jsPasScanner.HandleInclude(const Param: String): TToken;
 
-  procedure SetStr(const s: string);
+  procedure SetStr(s: string);
+  var
+    i: Integer;
+    h: String;
   begin
     Result:=tkString;
-    SetCurTokenString(''''+s+'''');
+    if s='' then
+      s:=''''''
+    else
+      for i:=length(s) downto 1 do
+        case s[i] of
+        #0..#31,#127:
+          begin
+          h:='#'+IntToStr(ord(s[i]));
+          if i>1 then h:=''''+h;
+          if (i<length(s)) and (s[i+1]<>'#') then
+            h:=h+'''';
+          s:=LeftStr(s,i-1)+h+copy(s,i+1,length(s));
+          end;
+        else
+          if i=length(s) then
+            s:=s+'''';
+          if s[i]='''' then
+            Insert('''',s,i);
+          if i=1 then
+            s:=''''+s;
+        end;
+    SetCurTokenString(s);
+  end;
+
+  procedure SetInteger(const i: TMaxPrecInt);
+  begin
+    Result:=tkNumber;
+    SetCurTokenString(IntToStr(i));
   end;
 
 var
@@ -2058,15 +2097,31 @@ var
 begin
   if (Param<>'') and (Param[1]='%') then
   begin
+    if (length(Param)<3) or (Param[length(Param)]<>'%') then
+      begin
+      SetStr('');
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
+        ['$i '+Param]);
+      exit;
+      end;
+    if length(Param)>255 then
+      begin
+      SetStr('');
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
+        ['$i '+copy(Param,1,255)+'...']);
+      exit;
+      end;
     case lowercase(Param) of
     '%date%':
       begin
+        // 'Y/M/D'
         DecodeDate(Now,Year,Month,Day);
         SetStr(IntToStr(Year)+'/'+IntToStr(Month)+'/'+IntToStr(Day));
         exit;
       end;
     '%time%':
       begin
+        // 'hh:mm:ss'
         DecodeTime(Now,Hour,Minute,Second,MilliSecond);
         SetStr(Format('%2d:%2d:%2d',[Hour,Minute,Second]));
         exit;
@@ -2087,9 +2142,19 @@ begin
         SetStr(CompilerVersion);
         exit;
       end;
+    '%file%':
+      begin
+        SetStr(CurFilename);
+        exit;
+      end;
     '%line%':
       begin
         SetStr(IntToStr(CurRow));
+        exit;
+      end;
+    '%linenum%':
+      begin
+        SetInteger(CurRow);
         exit;
       end;
     '%currentroutine%':
@@ -2109,8 +2174,8 @@ begin
         exit;
       end;
     else
-      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
-        ['$i '+Param]);
+      SetStr(GetEnvironmentVariable(copy(Param,2,length(Param)-2)));
+      exit;
     end;
   end;
   Result:=inherited HandleInclude(Param);
@@ -4228,6 +4293,16 @@ begin
   if Proc=nil then ;
 end;
 
+function TPas2JSResolver.BI_Debugger_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+// debugger;
+begin
+  if Expr is TParamsExpr then
+    Result:=CheckBuiltInMaxParamCount(Proc,TParamsExpr(Expr),0,RaiseOnError)
+  else
+    Result:=cExact;
+end;
+
 constructor TPas2JSResolver.Create;
 var
   bt: TPas2jsBaseType;
@@ -4318,6 +4393,9 @@ begin
     AddBaseType(Pas2JSBuiltInNames[pbitnUIntDouble],btUIntDouble);
   if btIntDouble in TheBaseTypes then
     AddBaseType(Pas2JSBuiltInNames[pbitnIntDouble],btIntDouble);
+  AddBuiltInProc('Debugger','procedure Debugger',
+      @BI_Debugger_OnGetCallCompatibility,nil,
+      nil,nil,bfCustom,[bipfCanBeStatement]);
 end;
 
 function TPas2JSResolver.CheckTypeCastRes(const FromResolved,
@@ -5801,10 +5879,12 @@ begin
         BitwiseNot:=ResolvedOp.BaseType in btAllJSInteger;
         end;
       if BitwiseNot then
-        U:=TJSUnaryInvExpression(CreateElement(TJSUnaryInvExpression,El))
+        begin
+        U:=TJSUnaryInvExpression(CreateElement(TJSUnaryInvExpression,El));
+        U.A:=E;
+        end
       else
-        U:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-      U.A:=E;
+        U:=CreateUnaryNot(E,El);
       end;
     eopAddress:
       begin
@@ -6273,7 +6353,6 @@ function TPasToJSConverter.ConvertBinaryExpressionRes(El: TBinaryExpr;
   function CreateEqualCallback: TJSElement;
   var
     Call: TJSCallExpression;
-    NotEl: TJSUnaryNotExpression;
   begin
     // convert "proctypeA = proctypeB" to "rtl.eqCallback(proctypeA,proctypeB)"
     Call:=CreateCallExpression(El);
@@ -6285,9 +6364,7 @@ function TPasToJSConverter.ConvertBinaryExpressionRes(El: TBinaryExpr;
     if El.OpCode=eopNotEqual then
       begin
       // convert "proctypeA <> proctypeB" to "!rtl.eqCallback(proctypeA,proctypeB)"
-      NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-      NotEl.A:=Call;
-      Result:=NotEl;
+      Result:=CreateUnaryNot(Call,El);
       end
     else
       Result:=Call;
@@ -6308,7 +6385,6 @@ var
   FunName: String;
   Call: TJSCallExpression;
   DotExpr: TJSDotMemberExpression;
-  NotEl: TJSUnaryNotExpression;
   InOp: TJSRelationalExpressionIn;
   TypeEl, LeftTypeEl, RightTypeEl: TPasType;
   SNE: TJSEqualityExpressionSNE;
@@ -6631,11 +6707,7 @@ begin
             Call.AddArg(A);
             A:=nil;
             if El.OpCode=eopNotEqual then
-              begin
-              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-              NotEl.A:=Call;
-              Result:=NotEl;
-              end
+              Result:=CreateUnaryNot(Call,El)
             else
               Result:=Call;
             exit;
@@ -6671,9 +6743,7 @@ begin
             if El.OpCode=eopNotEqual then
               begin
               // convert "recordA <> recordB" to "!recordA.$equal(recordB)"
-              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-              NotEl.A:=Call;
-              Result:=NotEl;
+              Result:=CreateUnaryNot(Call,El);
               end
             else
               Result:=Call;
@@ -6694,11 +6764,7 @@ begin
             Call.AddArg(B);
             B:=nil;
             if El.OpCode=eopNotEqual then
-              begin
-              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-              NotEl.A:=Call;
-              Result:=NotEl;
-              end
+              Result:=CreateUnaryNot(Call,El)
             else
               Result:=Call;
             exit;
@@ -6718,11 +6784,7 @@ begin
           Call.AddArg(B);
           B:=nil;
           if El.OpCode=eopNotEqual then
-            begin
-            NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-            NotEl.A:=Call;
-            Result:=NotEl;
-            end
+            Result:=CreateUnaryNot(Call,El)
           else
             Result:=Call;
           exit;
@@ -6757,11 +6819,7 @@ begin
               Call.AddArg(A);
               A:=nil;
               if El.OpCode=eopNotEqual then
-                begin
-                NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-                NotEl.A:=Call;
-                Result:=NotEl;
-                end
+                Result:=CreateUnaryNot(Call,El)
               else
                 Result:=Call;
               exit;
@@ -7281,6 +7339,12 @@ begin
       bfBreak: Result:=ConvertBuiltInBreak(El,AContext);
       bfContinue: Result:=ConvertBuiltInContinue(El,AContext);
       bfExit: Result:=ConvertBuiltIn_Exit(El,AContext);
+      bfCustom:
+        case BuiltInProc.Element.Name of
+        'Debugger': Result:=ConvertBuiltIn_Debugger(El,AContext);
+        else
+          RaiseNotSupported(El,AContext,20181126102554,'built in custom proc '+BuiltInProc.Element.Name);
+        end
     else
       RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
     end;
@@ -8380,6 +8444,12 @@ begin
             if Result=nil then exit;
             end;
           bfDefault: Result:=ConvertBuiltIn_Default(El,AContext);
+          bfCustom:
+            case BuiltInProc.Element.Name of
+            'Debugger': Result:=ConvertBuiltIn_Debugger(El,AContext);
+            else
+              RaiseNotSupported(El,AContext,20181126101801,'built in custom proc '+BuiltInProc.Element.Name);
+            end;
         else
           RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         end;
@@ -10669,7 +10739,8 @@ begin
   IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
   try
     PosEl:=El.Params[0];
-    IfSt.Cond:=ConvertExpression(El.Params[0],AContext);
+    IfSt.Cond:=CreateUnaryNot(ConvertExpression(PosEl,AContext),PosEl);
+
     ThrowSt:=TJSThrowStatement(CreateElement(TJSThrowStatement,PosEl));
     IfSt.BTrue:=ThrowSt;
 
@@ -10968,6 +11039,13 @@ begin
   {$ENDIF}
   DoError(20180501011723,nXExpectedButYFound,sXExpectedButYFound,['record',
     AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_Debugger(El: TPasExpr;
+  AContext: TConvertContext): TJSElement;
+begin
+  Result:=CreateLiteralCustomValue(El,'debugger');
+  if AContext=nil then ;
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
@@ -11385,8 +11463,8 @@ Var
       IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,ProcBody));
       AddFunctionFinallySt(IfSt,ProcBody,FuncContext);
       // !$ok
-      IfSt.Cond:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,ProcBody));
-      TJSUnaryNotExpression(IfSt.Cond).A:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnProcOk],ProcBody);
+      IfSt.Cond:=CreateUnaryNot(
+          CreatePrimitiveDotExpr(FBuiltInNames[pbivnProcOk],ProcBody),ProcBody);
       // rtl._Release(Result)
       Call:=CreateCallExpression(ProcBody);
       IfSt.BTrue:=Call;
@@ -16017,7 +16095,6 @@ function TPasToJSConverter.ConvertRepeatStatement(El: TPasImplRepeatUntil;
 // do{implblock}while(!untilcondition);
 var
   C : TJSElement;
-  N : TJSUnaryNotExpression;
   W : TJSDoWhileStatement;
   B : TJSElement;
 begin
@@ -16037,11 +16114,7 @@ begin
       B:=nil;
       end
     else
-      begin
-      N:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El.ConditionExpr));
-      N.A:=C;
-      C:=N;
-      end;
+      C:=CreateUnaryNot(C,El.ConditionExpr);
     B:=ConvertImplBlockElements(El,AContext,false);
     W:=TJSDoWhileStatement(CreateElement(TJSDoWhileStatement,El));
     W.Cond:=C;
@@ -17557,6 +17630,13 @@ begin
       RaiseNotSupported(Expr,AContext,20170415191822);
       end;
     end;
+end;
+
+function TPasToJSConverter.CreateUnaryNot(El: TJSElement; Src: TPasElement
+  ): TJSUnaryNotExpression;
+begin
+  Result:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,Src));
+  Result.A:=El;
 end;
 
 procedure TPasToJSConverter.ConvertCharLiteralToInt(Lit: TJSLiteral;

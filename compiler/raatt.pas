@@ -1340,9 +1340,9 @@ unit raatt;
                        if actasmtoken=AS_COMMA then
                          begin
                            Consume(AS_COMMA);
-                           if actasmtoken=AS_MOD then
+                           if (actasmtoken=AS_MOD) or (actasmtoken=AS_AT) then
                              begin
-                               Consume(AS_MOD);
+                               Consume(actasmtoken);
                                if actasmtoken=AS_ID then
                                  begin
                                    case actasmpattern of

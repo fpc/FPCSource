@@ -87,6 +87,8 @@ uses
 
       procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
 
+      procedure g_unreachable(list: TAsmList); override;
+
       procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference);override;
 
       procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister); override;
@@ -230,7 +232,7 @@ implementation
                    construction (the record is build from the paraloc
                    types) }
                  else if userecord then
-                   a_load_ref_reg(list,location^.def,location^.def,tmpref,location^.register)
+                   a_load_ref_reg(list,fielddef,location^.def,tmpref,location^.register)
                  { if the parameter is passed in a single paraloc, the
                    paraloc's type may be different from the declared type
                    -> use the original complete parameter size as source so
@@ -1095,6 +1097,11 @@ implementation
       cg.a_jmp_always(list,l);
     end;
 
+  procedure thlcgllvm.g_unreachable(list: TAsmList);
+    begin
+      list.Concat(taillvm.op_none(la_unreachable));
+    end;
+
 
   procedure thlcgllvm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
     var
@@ -1128,9 +1135,7 @@ implementation
       a_load_const_cgpara(list,u64inttype,size.size,sizepara);
       maxalign:=newalignment(max(source.alignment,dest.alignment),min(source.alignment,dest.alignment));
       a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
-      { we don't know anything about volatility here, should become an extra
-        parameter to g_concatcopy }
-      a_load_const_cgpara(list,llvmbool1type,0,volatilepara);
+      a_load_const_cgpara(list,llvmbool1type,ord((vol_read in source.volatility) or (vol_write in dest.volatility)),volatilepara);
       g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
       sourcepara.done;
       destpara.done;

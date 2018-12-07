@@ -75,7 +75,9 @@ Implementation
         (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
         (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
         (r1.relsymbol = r2.relsymbol) and
-        (r1.addressmode = r2.addressmode);
+        (r1.addressmode = r2.addressmode) and
+        (r1.volatility=[]) and
+        (r2.volatility=[]);
     end;
 
 
