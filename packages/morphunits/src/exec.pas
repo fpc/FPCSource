@@ -2342,6 +2342,9 @@ function AddExecNode(InNode: APTR; const Tags: array of PtrUInt): APTR; inline;
 function NewGetTaskPIDAttrs(PID: LongWord; Data: APTR; DataSize, Type_: LongWord; const Tags: array of PtrUInt): LongWord; inline;
 function NewSetTaskPIDAttrs(PID: LongWord; Data: APTR; DataSize, Type_: LongWord; const Tags: array of PtrUInt): LongWord; inline;
 
+function CreateExtIO(const Mp: PMsgPort; Size: Integer): PIORequest;
+procedure DeleteExtIO(ioReq: PIORequest);
+
 implementation
 
 function NewGetTaskAttrs(Task: PTask; Data: APTR; DataSize, TType: LongWord; const Tags: array of PtrUInt): LongWord; Inline;
@@ -2486,6 +2489,30 @@ asm
   lwz r3,68(r2)
 end;
 
+function CreateExtIO(const Mp: PMsgPort; Size: Integer): PIORequest;
+begin
+  CreateExtIO := nil;
+  if not Assigned(mp) then
+    Exit;
+  CreateExtIO := System.AllocMem(Size);
+  if Assigned(CreateExtIO) then
+  begin
+    CreateExtIO^.io_Message.mn_Node.ln_Type := NT_REPLYMSG;
+    CreateExtIO^.io_Message.mn_ReplyPort := Mp;
+    CreateExtIO^.io_Message.mn_Length := Size;
+  end;
+end;
+
+procedure DeleteExtIO(ioReq: PIORequest);
+begin
+  if Assigned(ioReq) then
+  begin
+    ioReq^.io_Message.mn_Node.ln_Type := Byte(-1);
+    ioReq^.io_Device := Pointer(-1);
+    ioReq^.io_Unit := Pointer(-1);
+    System.FreeMem(ioReq);
+  end;
+end;
 
 begin
   ExecBase:=MOS_ExecBase;
