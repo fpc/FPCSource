@@ -1322,7 +1322,7 @@ begin
       Log.DebugLogWriteLn(PasModule.GetDeclaration(true));
     end;
 
-    if IsUnitReadFromPCU then
+    if Assigned(PCUSupport) and not PCUSupport.HasReader then
       UseAnalyzer.Options:=UseAnalyzer.Options+[paoImplReferences];
 
     {$IFDEF VerboseUnitQueue}
@@ -1476,7 +1476,7 @@ begin
   //writeln('TPas2jsCompilerFile.CreateJS START ',UnitFilename,' JS=',GetObjName(FJSModule));
   try
     // show hints only for units that are actually converted
-    if Not (Assigned(PCUSupport) and Not PCUSupport.HasReader) then
+    if (PCUSupport=nil) or not PCUSupport.HasReader then
       begin
       //writeln('TPas2jsCompilerFile.CreateJS ',UnitFilename);
       UseAnalyzer.EmitModuleHints(PasModule);
@@ -1870,13 +1870,14 @@ function TPas2jsCompiler.MarkNeedBuilding(aFile: TPas2jsCompilerFile;
       begin
         if not aFile.NeedBuild then
           Mark(nUnitNeedsCompileDueToUsedUnit,
-                                   [aFile.GetModuleName,UsedFile.GetModuleName]);
+                                  [aFile.GetModuleName,UsedFile.GetModuleName]);
       end;
     end;
   end;
 
 begin
   Result:=false;
+  //writeln('TPas2jsCompiler.MarkNeedBuilding ',aFile.UnitFilename);
   // check each file only once
   if Checked.FindItem(aFile)<>nil then
     exit(aFile.NeedBuild);
@@ -1892,7 +1893,9 @@ begin
   end;
 
   // check dependencies
+  //writeln('TPas2jsCompiler.MarkNeedBuilding CheckUsesClause ',aFile.UnitFilename,' MainUses');
   CheckUsesClause(aFile.GetPasMainUsesClause);
+  //writeln('TPas2jsCompiler.MarkNeedBuilding CheckUsesClause ',aFile.UnitFilename,' ImplUses');
   CheckUsesClause(aFile.GetPasImplUsesClause);
 
   if (not aFile.NeedBuild) and (not aFile.IsForeign) then

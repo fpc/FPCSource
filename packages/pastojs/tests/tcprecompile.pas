@@ -94,7 +94,6 @@ procedure TCustomTestCLI_Precompile.CheckPrecompile(MainFile,
 var
   JSFilename, OrigSrc, NewSrc, s: String;
   JSFile: TCLIFile;
-  i: Integer;
 begin
   try
     AddDir(UnitOutputDir);
@@ -116,8 +115,8 @@ begin
     JSFile:=FindFile(JSFilename);
     OrigSrc:=JSFile.Source;
     // compile, using .pcu files
-    for i:=0 to FileCount-1 do
-      writeln('AAA1 TCustomTestCLI_Precompile.CheckPrecompile ',i,' ',Files[i].Filename);
+    //for i:=0 to FileCount-1 do
+    //  writeln('AAA1 TCustomTestCLI_Precompile.CheckPrecompile ',i,' ',Files[i].Filename);
 
     {$IFDEF VerbosePCUFiler}
     writeln('TTestCLI_Precompile.CheckPrecompile compile using pcu files==================');
@@ -289,7 +288,7 @@ begin
    'end;']);
   AddUnit('src/unit2.pp',
   ['uses unit1;',
-  'procedure Do2(j: integer);'],
+   'procedure Do2(j: integer);'],
   ['procedure Do2(j: integer);',
    'begin',
    '  unit1.i:=j;',
