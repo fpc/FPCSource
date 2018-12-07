@@ -1223,8 +1223,6 @@ begin
   Compiler.Terminate(ExitCodeConverterError);
 end;
 
-
-
 procedure TPas2jsCompilerFile.HandleUnknownException(E: Exception);
 begin
   if not (E is ECompilerTerminate) then
@@ -4417,7 +4415,6 @@ begin
   if Assigned(aFile.PCUSupport) then
     begin
     aFile.FileResolver.BaseDirectory:=ExtractFilePath(UnitFilename);
-    writeln('AAA1 TPas2jsCompiler.LoadPasFile ',GetObjName(aFile.PCUSupport));
     aFile.PCUSupport.CreatePCUReader;
     end
   else

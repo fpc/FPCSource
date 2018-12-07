@@ -2036,7 +2036,6 @@ begin
       begin
       repeat
         Expr:=DoParseExpression(Params);
-        writeln('AAA1 TPasParser.ParseParams ',CurTokenString,' ',curtoken);
         if not Assigned(Expr) then
           ParseExcSyntaxError;
         Params.AddParam(Expr);
