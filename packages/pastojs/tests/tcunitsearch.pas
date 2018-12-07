@@ -29,14 +29,14 @@ uses
   fpcunit, testregistry,
   PScanner, PasTree,
   {$IFDEF CheckPasTreeRefCount}PasResolveEval,{$ENDIF}
-  Pas2jsFileUtils, Pas2jsCompiler, Pas2JSFSCompiler, Pas2jsFileCache, Pas2jsLogger,
+  Pas2jsFileUtils, Pas2jsCompiler, Pas2JSPCUCompiler, Pas2jsFileCache, Pas2jsLogger,
   tcmodules;
 
 type
 
   { TTestCompiler }
 
-  TTestCompiler = class(TPas2jsFSCompiler)
+  TTestCompiler = class(TPas2jsPCUCompiler)
   private
     FExitCode: longint;
   protected

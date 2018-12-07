@@ -230,6 +230,7 @@ type
     FResetStamp: TChangeStamp;
     FUnitPaths: TStringList;
     FUnitPathsFromCmdLine: integer;
+    FPCUPaths: TStringList;
     function FileExistsILogged(var Filename: string): integer;
     function FileExistsLogged(const Filename: string): boolean;
     function GetOnReadDirectory: TReadDirectoryEvent;
@@ -257,6 +258,7 @@ type
     procedure Reset; override;
     procedure WriteFoldersAndSearchPaths; override;
     procedure GetPCUDirs(aList: TStrings; const aBaseDir: String); override;
+    function PCUExists(var aFileName: string): Boolean; override;
     Function SameFileName(Const File1,File2 : String) : Boolean;  override;
     Function File1IsNewer(const File1, File2: String): Boolean; override;
     function SearchLowUpCase(var Filename: string): boolean;
@@ -302,7 +304,6 @@ type
     property OnReadFile: TPas2jsReadFileEvent read FOnReadFile write FOnReadFile;
     property OnWriteFile: TPas2jsWriteFileEvent read FOnWriteFile write FOnWriteFile;
   end;
-
 
 {$IFDEF Pas2js}
 function PtrStrToStr(StrAsPtr: Pointer): string;
@@ -1203,7 +1204,6 @@ begin
   inherited Create(aCache);
 end;
 
-
 { TPas2jsFilesCache }
 
 procedure TPas2jsFilesCache.RegisterMessages;
@@ -1222,7 +1222,6 @@ begin
 end;
 
 function TPas2jsFilesCache.GetStrictFileCase : Boolean;
-
 begin
   Result:=caoStrictFileCase in Options;
 end;
@@ -1241,7 +1240,6 @@ function TPas2jsFilesCache.GetShowTriedUsedFiles: boolean;
 begin
   Result:=caoShowTriedUsedFiles in Options;
 end;
-
 
 procedure TPas2jsFilesCache.SetBaseDirectory(AValue: string);
 begin
@@ -1509,6 +1507,7 @@ begin
   FreeAndNil(FIncludePaths);
   FreeAndNil(FForeignUnitPaths);
   FreeAndNil(FUnitPaths);
+  FreeAndNil(FPCUPaths);
   inherited Destroy;
 end;
 
@@ -1525,6 +1524,7 @@ begin
   FUnitPathsFromCmdLine:=0;
   FIncludePaths.Clear;
   FIncludePathsFromCmdLine:=0;
+  FreeAndNil(FPCUPaths);
   // FOnReadFile: TPas2jsReadFileEvent; keep
   // FOnWriteFile: TPas2jsWriteFileEvent; keep
 end;
@@ -1553,9 +1553,24 @@ begin
 end;
 
 procedure TPas2jsFilesCache.GetPCUDirs(aList: TStrings; const aBaseDir: String);
+var
+  i: Integer;
 begin
-  inherited GetPCUDirs(aList, aBaseDir);
-  aList.AddStrings(UnitPaths);
+  if FPCUPaths=nil then
+    begin
+    FPCUPaths:=TStringList.Create;
+    inherited GetPCUDirs(FPCUPaths, aBaseDir);
+    FPCUPaths.AddStrings(UnitPaths);
+    for i:=0 to FPCUPaths.Count-1 do
+      FPCUPaths[i]:=IncludeTrailingPathDelimiter(FPCUPaths[i]);
+    DeleteDuplicateFiles(FPCUPaths);
+    end;
+  aList.Assign(FPCUPaths);
+end;
+
+function TPas2jsFilesCache.PCUExists(var aFileName: string): Boolean;
+begin
+  Result:=SearchLowUpCase(aFileName);
 end;
 
 function TPas2jsFilesCache.SameFileName(const File1, File2: String): Boolean;
@@ -1574,7 +1589,6 @@ begin
   ErrorMsg:=AddSearchPaths(Paths,spkPath,FromCmdLine,FIncludePaths,FIncludePathsFromCmdLine);
   Result:=ErrorMsg='';
 end;
-
 
 function TPas2jsFilesCache.AddUnitPaths(const Paths: string;
   FromCmdLine: boolean; out ErrorMsg: string): boolean;
@@ -1619,7 +1633,7 @@ end;
 
 
 
-function TPas2jsFilesCache.DirectoryExists(Const Filename: string): boolean;
+function TPas2jsFilesCache.DirectoryExists(const Filename: string): boolean;
 begin
   Result:=DirectoryCache.DirectoryExists(FileName);
 end;
@@ -1670,7 +1684,6 @@ begin
     if RaiseOnError then
       raise EFileNotFoundError.Create('invalid file name "'+Filename+'"');
 end;
-
 
 procedure TPas2jsFilesCache.GetListing(const aDirectory: string;
   var Files: TStrings; FullPaths: boolean);
@@ -1924,11 +1937,15 @@ end;
 
 
 function TPas2jsFilesCache.FindUnitFileName(const aUnitname, InFilename: string; out IsForeign: boolean): String;
+var
+  SearchedDirs: TStringList;
 
   function SearchInDir(Dir: string; var Filename: string): boolean;
   // search in Dir for pp, pas, p times given case, lower case, upper case
   begin
     Dir:=IncludeTrailingPathDelimiter(Dir);
+    if IndexOfFile(SearchedDirs,Dir)>=0 then exit;
+    SearchedDirs.Add(Dir);
     Filename:=Dir+aUnitname+'.pp';
     if SearchLowUpCase(Filename) then exit(true);
     Filename:=Dir+aUnitname+'.pas';
@@ -1944,38 +1961,42 @@ var
 begin
   Result:='';
   IsForeign:=false;
-
-  if InFilename<>'' then
-  begin
-    aFilename:=SetDirSeparators(InFilename);
-    Result:=ResolveDots(aFilename);
-    if FilenameIsAbsolute(Result) then
+  SearchedDirs:=TStringList.Create;
+  try
+    if InFilename<>'' then
     begin
-      if SearchLowUpCase(Result) then exit;
-    end else
-    begin
-      Result:=ResolveDots(BaseDirectory+Result);
-      if SearchLowUpCase(Result) then exit;
+      aFilename:=SetDirSeparators(InFilename);
+      Result:=ResolveDots(aFilename);
+      if FilenameIsAbsolute(Result) then
+      begin
+        if SearchLowUpCase(Result) then exit;
+      end else
+      begin
+        Result:=ResolveDots(BaseDirectory+Result);
+        if SearchLowUpCase(Result) then exit;
+      end;
+      exit('');
     end;
-    exit('');
+
+    // first search in foreign unit paths
+    IsForeign:=true;
+    for i:=0 to ForeignUnitPaths.Count-1 do
+      if SearchInDir(ForeignUnitPaths[i],Result) then
+      begin
+        IsForeign:=true;
+        exit;
+      end;
+
+    // then in BaseDirectory
+    IsForeign:=false;
+    if SearchInDir(BaseDirectory,Result) then exit;
+
+    // finally search in unit paths
+    for i:=0 to UnitPaths.Count-1 do
+      if SearchInDir(UnitPaths[i],Result) then exit;
+  finally
+    SearchedDirs.Free;
   end;
-
-  // first search in foreign unit paths
-  IsForeign:=true;
-  for i:=0 to ForeignUnitPaths.Count-1 do
-    if SearchInDir(ForeignUnitPaths[i],Result) then
-    begin
-      IsForeign:=true;
-      exit;
-    end;
-
-  // then in BaseDirectory
-  IsForeign:=false;
-  if SearchInDir(BaseDirectory,Result) then exit;
-
-  // finally search in unit paths
-  for i:=0 to UnitPaths.Count-1 do
-    if SearchInDir(UnitPaths[i],Result) then exit;
 
   Result:='';
 end;

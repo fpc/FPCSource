@@ -61,7 +61,7 @@ Type
     property Source: string read FSource;
     property SrcPos: integer read FSrcPos;
   public
-    Constructor Create(Const aFileName, aSource : String); overload;
+    Constructor Create(Const aFileName, aSource: String); overload;
     function IsEOF: Boolean; override;
     function ReadLine: string; override;
     property LineNumber: integer read FLineNumber;
@@ -90,7 +90,7 @@ Type
   Protected
     // Not to be overridden
     procedure SetOption(Flag: TP2jsFSOption; Enable: boolean);
-    Function OptionIsSet(Index : Integer) :  Boolean;
+    Function OptionIsSet(Index: Integer):  Boolean;
   Protected
     // Protected Abstract. Must be overridden
     function FindSourceFileName(const aFilename: string): String; virtual; abstract;
@@ -98,28 +98,30 @@ Type
     // Public Abstract. Must be overridden
     function FindIncludeFileName(const aFilename: string): String; virtual; abstract;
     function LoadFile(Filename: string; Binary: boolean = false): TPas2jsFile; virtual; abstract;
-    Function FileExists(Const aFileName : String) : Boolean; virtual; abstract;
+    Function FileExists(Const aFileName: String): Boolean; virtual; abstract;
     function FindUnitJSFileName(const aUnitFilename: string): String; virtual; abstract;
     function FindCustomJSFileName(const aFilename: string): String; virtual; abstract;
     function FindUnitFileName(const aUnitname, InFilename: string; out IsForeign: boolean): String; virtual; abstract;
     procedure SaveToFile(ms: TFPJSStream; Filename: string); virtual; abstract;
-    Function PCUExists(var aFileName : string) : Boolean; virtual;
+    function PCUExists(var aFileName: string): Boolean; virtual;
     procedure GetPCUDirs(aList: TStrings; const aBaseDir: String); virtual;
   Public
     // Public, may be overridden
-    Function SameFileName(Const File1,File2 : String) : Boolean; virtual;
-    Function File1IsNewer(Const File1,File2 : String) : Boolean; virtual;
+    Function SameFileName(Const File1,File2: String): Boolean; virtual;
+    Function File1IsNewer(Const File1,File2: String): Boolean; virtual;
     function ExpandDirectory(const Filename: string): string; virtual;
     function ExpandFileName(const Filename: string): string; virtual;
     function ExpandExecutable(const Filename: string): string; virtual;
-    Function FormatPath(Const aFileName : string) : String; virtual;
-    Function DirectoryExists(Const aDirectory : string) : boolean; virtual;
+    Function FormatPath(Const aFileName: string): String; virtual;
+    Function DirectoryExists(Const aDirectory: string): boolean; virtual;
     function TryCreateRelativePath(const Filename, BaseDirectory: String; UsePointDirectory: boolean; out RelPath: String): Boolean; virtual;
+    procedure DeleteDuplicateFiles(List: TStrings); virtual;
+    function IndexOfFile(FileList: TStrings; aFilename: string; Start: integer = 0): integer; virtual;// -1 if not found
     Procedure WriteFoldersAndSearchPaths; virtual;
     function CreateResolver: TPas2jsFSResolver; virtual;
     // On success, return '', On error, return error message.
-    Function AddForeignUnitPath(Const aValue : String; FromCmdLine : Boolean) : String; virtual;
-    Function HandleOptionPaths(C : Char; aValue : String; FromCmdLine : Boolean) : String; virtual;
+    Function AddForeignUnitPath(Const aValue: String; FromCmdLine: Boolean): String; virtual;
+    Function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String; virtual;
   Public
     Constructor Create; virtual;
     Procedure Reset; virtual;
@@ -129,7 +131,7 @@ Type
     property ShowFullPaths: boolean Index 0 Read OptionIsSet Write SetOptionFromIndex;
     property ShowTriedUsedFiles: boolean Index 1 read OptionIsSet Write SetOptionFromIndex;
     property SearchLikeFPC: boolean index 2 read OptionIsSet Write SetOptionFromIndex;
-    Property StrictFileCase : Boolean Index 3 Read OptionIsSet Write SetOptionFromIndex;
+    Property StrictFileCase: Boolean Index 3 Read OptionIsSet Write SetOptionFromIndex;
     property MainOutputPath: string read FDefaultOutputPath write SetDefaultOutputPath; // includes trailing pathdelim
     property UnitOutputPath: string read FUnitOutputPath write SetUnitOutputPath; // includes trailing pathdelim
   end;
@@ -142,13 +144,13 @@ Type
     FFS: TPas2JSFS;
     FSource: string;
   Protected
-    Procedure SetSource(aSource : String);
+    Procedure SetSource(aSource: String);
   public
     constructor Create(aFS: TPas2jsFS; const aFilename: string);
     function CreateLineReader(RaiseOnError: boolean): TSourceLineReader; virtual; abstract;
     function Load(RaiseOnError: boolean; Binary: boolean): boolean; virtual; abstract;
     property Source: string read FSource; // UTF-8 without BOM or Binary
-    Property FS : TPas2JSFS Read FFS;
+    Property FS: TPas2JSFS Read FFS;
     property Filename: string read FFilename;
   end;
 
@@ -158,7 +160,7 @@ Type
   private
     FFS: TPas2jsFS;
   public
-    constructor Create(aFS : TPas2jsFS); reintroduce;
+    constructor Create(aFS: TPas2jsFS); reintroduce;
     // Redirect all calls to FS.
     function FindIncludeFileName(const aFilename: string): String; override;
     function FindIncludeFile(const aFilename: string): TLineReader; override;
@@ -199,7 +201,7 @@ begin
     Exclude(FOptions,Flag);
 end;
 
-function TPas2JSFS.OPtionIsSet(Index: Integer): Boolean;
+function TPas2JSFS.OptionIsSet(Index: Integer): Boolean;
 begin
   Result:=TP2jsFSOption(Index) in FOptions;
 end;
@@ -209,11 +211,11 @@ begin
   Result:=Self.FileExists(aFileName);
 end;
 
-procedure TPas2JSFS.GetPCUDirs(aList: TStrings; Const aBaseDir : String);
+procedure TPas2JSFS.GetPCUDirs(aList: TStrings; const aBaseDir: String);
 begin
   if UnitOutputPath<>'' then
-    Alist.Add(UnitOutputPath);
-  Alist.Add(aBaseDir);
+    aList.Add(UnitOutputPath);
+  aList.Add(aBaseDir);
 end;
 
 function TPas2JSFS.SameFileName(const File1, File2: String): Boolean;
@@ -227,7 +229,7 @@ begin
   if File1=File2 then ;
 end;
 
-function TPas2JSFS.ExpandDirectory(const Filename : String): string;
+function TPas2JSFS.ExpandDirectory(const Filename: string): string;
 begin
   Result:=FileName;
 end;
@@ -237,7 +239,7 @@ begin
   Result:=FileName;
 end;
 
-function TPas2JSFS.ExpandExecutable(const Filename : string): string;
+function TPas2JSFS.ExpandExecutable(const Filename: string): string;
 begin
   Result:=FileName
 end;
@@ -260,6 +262,27 @@ begin
   if (BaseDirectory='') or UsePointDirectory then ;
 end;
 
+procedure TPas2JSFS.DeleteDuplicateFiles(List: TStrings);
+var
+  i, j: Integer;
+begin
+  for i:=0 to List.Count-2 do
+    for j:=List.Count-1 downto i+1 do
+      if SameFileName(List[i],List[j]) then
+        List.Delete(j);
+end;
+
+function TPas2JSFS.IndexOfFile(FileList: TStrings; aFilename: string;
+  Start: integer): integer;
+var
+  i: Integer;
+begin
+  if FileList<>nil then
+    for i:=Start to FileList.Count-1 do
+      if SameFileName(FileList[i],aFilename) then exit(i);
+  Result:=-1;
+end;
+
 procedure TPas2JSFS.WriteFoldersAndSearchPaths;
 begin
   // Do nothing
@@ -278,7 +301,7 @@ end;
 
 function TPas2JSFS.HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String;
 begin
-  Result:='Invalid parameter : -F'+C+aValue;
+  Result:='Invalid parameter: -F'+C+aValue;
   if FromCmdLine then ;
 end;
 
@@ -299,14 +322,14 @@ begin
   Inc(FReadLineCounter);
 end;
 
-procedure TPas2jsFS.SetDefaultOutputPath(AValue: string);
+procedure TPas2JSFS.SetDefaultOutputPath(AValue: string);
 begin
   AValue:=ExpandDirectory(AValue);
   if FDefaultOutputPath=AValue then Exit;
   FDefaultOutputPath:=AValue;
 end;
 
-procedure TPas2jsFS.SetUnitOutputPath(AValue: string);
+procedure TPas2JSFS.SetUnitOutputPath(AValue: string);
 
 begin
   AValue:=ExpandDirectory(AValue);
@@ -333,8 +356,7 @@ begin
   inc(FLineNumber);
 end;
 
-Constructor TSourceLineReader.Create(Const aFileName, aSource : String);
-
+Constructor TSourceLineReader.Create(Const aFileName, aSource: String);
 begin
   Inherited Create(aFileName);
   FSource:=aSource;

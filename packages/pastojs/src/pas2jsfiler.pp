@@ -7853,9 +7853,7 @@ end;
 
 initialization
   PrecompileFormats:=TPas2JSPrecompileFormats.Create;
-  {$IFDEF EnablePas2jsPrecompiled}
-  PrecompileFormats.Add('pcu','all used units must be pcu too',TPCUReader,TPCUWriter);
-  {$ENDIF}
+  PrecompileFormats.Add('pcu','all used pcu must match exactly',TPCUReader,TPCUWriter);
 finalization
   PrecompileFormats.Free;
   PrecompileFormats:=nil;
