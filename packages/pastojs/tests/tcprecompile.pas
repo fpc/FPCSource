@@ -558,8 +558,6 @@ begin
 end;
 
 Initialization
-  {$IFDEF EnablePas2jsPrecompiled}
   RegisterTests([TTestCLI_Precompile]);
-  {$ENDIF}
 end.
 

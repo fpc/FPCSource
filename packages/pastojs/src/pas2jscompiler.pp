@@ -4563,7 +4563,7 @@ begin
   FoundPCUUnitName:='';
   if (InFilename='') and (Pos('.',UseUnitname)<1) then
   begin
-    // generic unit -> search with namespaces
+    // generic unit name -> search with namespaces
     // first the default program namespace
     DefNameSpace:=GetDefaultNamespace;
     if DefNameSpace<>'' then
@@ -4609,6 +4609,8 @@ begin
     end;
   end;
 
+  // Note: at the moment if there is a source do not search for pcu
+  // Eventually search for both, load pcu and if that fails unload pcu and load source
   if (FoundPasFilename='') and Assigned(PCUSupport) and (FoundPCUFilename='')  then
   begin
     // no pas file -> search pcu
