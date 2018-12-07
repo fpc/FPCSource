@@ -4303,6 +4303,13 @@ implementation
         end;
 
       begin
+        if (ds_dwarf_cpp in current_settings.debugswitches) then
+          begin
+            // At least LLDB 6.0.0 does not like this implementation of string types.
+            // Call the inherited DWARF 2 implementation, which works fine.
+            inherited;
+            exit;
+          end;
         case def.stringtype of
           st_shortstring:
             begin
