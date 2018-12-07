@@ -1734,8 +1734,6 @@ begin
     LoadModuleFile(MainSrcFile,'',FMainFile,False);
     if MainFile=nil then exit;
     // parse and load Pascal files recursively
-    if Assigned(FMainFile.PCUSupport) then
-      FMainFile.PCUSupport.SetInitialCompileFlags;
     FMainFile.ReadUnit;
     ProcessQueue;
 

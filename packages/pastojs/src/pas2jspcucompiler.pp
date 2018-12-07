@@ -318,10 +318,12 @@ begin
     MyFile.Converter.OnIsTypeInfoUsed:=@OnPCUConverterIsTypeInfoUsed;
     JS:=MyFile.Converter.ConvertPasElement(MyFile.PasModule,MyFile.PascalResolver);
     MyFile.Converter.Options:=MyFile.Converter.Options-[coStoreImplJS];
+    MyFile.PCUSupport.SetInitialCompileFlags;
     {$IFDEF REALLYVERBOSE}
     writeln('TPas2jsCompilerFile.WritePCU create pcu ... ',MyFile.PCUFilename);
     {$ENDIF}
-    Writer.WritePCU(MyFile.PascalResolver,MyFile.Converter,PrecompileInitialFlags,ms,AllowCompressed);
+    Writer.WritePCU(MyFile.PascalResolver,MyFile.Converter,
+                    PrecompileInitialFlags,ms,AllowCompressed);
     {$IFDEF REALLYVERBOSE}
     writeln('TPas2jsCompilerFile.WritePCU precompiled ',MyFile.PCUFilename);
     {$ENDIF}

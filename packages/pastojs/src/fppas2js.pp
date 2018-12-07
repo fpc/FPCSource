@@ -1869,6 +1869,8 @@ function PosLast(c: char; const s: string): integer;
 
 function JSEquals(A, B: TJSElement): boolean;
 
+function dbgs(opts: TPasToJsConverterOptions): string; overload;
+
 implementation
 
 const
@@ -1911,6 +1913,21 @@ begin
         and (TJSBracketMemberExpression(A).Name=TJSBracketMemberExpression(B).Name)
   else
     exit(false);
+end;
+
+function dbgs(opts: TPasToJsConverterOptions): string;
+var
+  o: TPasToJsConverterOption;
+  h: string;
+begin
+  Result:='';
+  for o in opts do
+    begin
+    if Result<>'' then Result:=Result+',';
+    str(o,h);
+    Result:=Result+h;
+    end;
+  Result:='['+Result+']';
 end;
 
 { TPas2JSSectionScope }
