@@ -47,6 +47,7 @@ uses
       procedure getcpuregister(list: TAsmList; r: Tregister); override;
       procedure ungetcpuregister(list: TAsmList; r: Tregister); override;
       procedure alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset); override;
+      procedure allocallcpuregisters(list: TAsmList); override;
       procedure deallocallcpuregisters(list: TAsmList); override;
 
       procedure a_bit_test_reg_reg_reg(list: TAsmList; bitnumbersize, valuesize, destsize: tdef; bitnumber, value, destreg: tregister); override;
@@ -330,6 +331,12 @@ implementation
 
 
   procedure thlcgllvm.alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset);
+    begin
+      { don't do anything }
+    end;
+
+
+  procedure thlcgllvm.allocallcpuregisters(list: TAsmList);
     begin
       { don't do anything }
     end;
