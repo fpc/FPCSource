@@ -234,19 +234,11 @@ type
     function FileExistsILogged(var Filename: string): integer;
     function FileExistsLogged(const Filename: string): boolean;
     function GetOnReadDirectory: TReadDirectoryEvent;
-    function GetSearchLikeFPC: boolean;
-    function GetShowFullFilenames: boolean;
-    function GetShowTriedUsedFiles: boolean;
-    function GetStrictFileCase: Boolean;
     procedure RegisterMessages;
     procedure SetBaseDirectory(AValue: string);
     function AddSearchPaths(const Paths: string; Kind: TPas2jsSearchPathKind;
       FromCmdLine: boolean; var List: TStringList; var CmdLineCount: integer): string;
     procedure SetOnReadDirectory(AValue: TReadDirectoryEvent);
-    procedure SetSearchLikeFPC(const AValue: boolean);
-    procedure SetShowFullFilenames(const AValue: boolean);
-    procedure SetShowTriedUsedFiles(const AValue: boolean);
-    procedure SetStrictFileCase(AValue: Boolean);
   protected
     function FindSourceFileName(const aFilename: string): String; override;
     function GetHasPCUSupport: Boolean; virtual;
@@ -1221,26 +1213,6 @@ begin
   Result:=False;
 end;
 
-function TPas2jsFilesCache.GetStrictFileCase : Boolean;
-begin
-  Result:=caoStrictFileCase in Options;
-end;
-
-function TPas2jsFilesCache.GetSearchLikeFPC: boolean;
-begin
-  Result:=caoSearchLikeFPC in Options;
-end;
-
-function TPas2jsFilesCache.GetShowFullFilenames: boolean;
-begin
-  Result:=caoShowFullFilenames in Options;
-end;
-
-function TPas2jsFilesCache.GetShowTriedUsedFiles: boolean;
-begin
-  Result:=caoShowTriedUsedFiles in Options;
-end;
-
 procedure TPas2jsFilesCache.SetBaseDirectory(AValue: string);
 begin
   AValue:=Pas2jsFileUtils.ExpandDirectory(AValue);
@@ -1359,26 +1331,6 @@ end;
 procedure TPas2jsFilesCache.SetOnReadDirectory(AValue: TReadDirectoryEvent);
 begin
   DirectoryCache.OnReadDirectory:=AValue;
-end;
-
-procedure TPas2jsFilesCache.SetSearchLikeFPC(const AValue: boolean);
-begin
-  SetOption(caoSearchLikeFPC,AValue);
-end;
-
-procedure TPas2jsFilesCache.SetShowFullFilenames(const AValue: boolean);
-begin
-  SetOption(caoShowFullFilenames,AValue);
-end;
-
-procedure TPas2jsFilesCache.SetShowTriedUsedFiles(const AValue: boolean);
-begin
-  SetOption(caoShowTriedUsedFiles,AValue);
-end;
-
-procedure TPas2jsFilesCache.SetStrictFileCase(AValue: Boolean);
-begin
-  SetOption(caoStrictFileCase,aValue)
 end;
 
 function TPas2jsFilesCache.ReadFile(Filename: string; var Source: string

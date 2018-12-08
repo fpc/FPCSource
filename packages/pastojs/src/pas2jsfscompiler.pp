@@ -23,7 +23,8 @@ unit Pas2JSFSCompiler;
 interface
 
 uses
-  Classes, SysUtils, pastree, PScanner, PasUseAnalyzer,
+  Classes, SysUtils,
+  PasUseAnalyzer,
   Pas2jsFileCache, Pas2jsCompiler,
   Pas2JSFS,
   FPPas2Js, Pas2jsFileUtils;

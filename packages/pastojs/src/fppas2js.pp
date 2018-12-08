@@ -16043,10 +16043,9 @@ end;
 
 function TPasToJSConverter.ConvertIfStatement(El: TPasImplIfElse;
   AContext: TConvertContext): TJSElement;
-
 Var
-  C,BThen,BElse : TJSElement;
-  T : TJSIfStatement;
+  C, BThen, BElse: TJSElement;
+  T: TJSIfStatement;
 begin
   Result:=nil;
   if AContext=nil then ;
