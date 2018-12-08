@@ -486,6 +486,7 @@ type
     FIncludePaths: TStringList;
     FStrictFileCase : Boolean;
   Protected
+    function FindIncludeFileName(const aFilename: string): String; virtual; abstract;
     procedure SetBaseDirectory(AValue: string); virtual;
     procedure SetStrictFileCase(AValue: Boolean); virtual;
     Property IncludePaths: TStringList Read FIncludePaths;
@@ -509,7 +510,7 @@ type
     FUseStreams: Boolean;
     {$endif}
   Protected
-    Function FindIncludeFileName(const AName: string): String; virtual;
+    Function FindIncludeFileName(const AName: string): String; override;
     Function CreateFileReader(Const AFileName : String) : TLineReader; virtual;
   Public
     function FindSourceFile(const AName: string): TLineReader; override;

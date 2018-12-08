@@ -4497,7 +4497,7 @@ begin
       S.Add(T);
       end;
     ProcType.GetArguments(S);
-    If ProcType is TPasFunctionType
+    If (ProcType is TPasFunctionType)
         and Assigned(TPasFunctionType(Proctype).ResultEl) then
       With TPasFunctionType(ProcType).ResultEl.ResultType do
         begin
