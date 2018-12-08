@@ -64,6 +64,7 @@ unit tgobj;
           procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); virtual;
           procedure freetemp(list: TAsmList; pos: treftemppos; temptypes: ttemptypeset);virtual;
           procedure gettempinternal(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
+          procedure freetemphook(list: TAsmList; temp: ptemprecord); virtual;
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -502,7 +503,7 @@ implementation
 {$endif}
                   exit;
                 end;
-               list.concat(tai_tempalloc.dealloc(hp^.pos,hp^.size));
+               freetemphook(list,hp);
                { set this block to free }
                hp^.temptype:=Used2Free[hp^.temptype];
                { Update tempfreelist }
@@ -573,7 +574,6 @@ implementation
       end;
 
 
-
     procedure ttgobj.gettemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; out ref : treference);
       begin
         gettempinternal(list,size,alignment,temptype,nil,false,ref);
@@ -586,6 +586,12 @@ implementation
       begin
         varalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         alloctemp(list,size,varalign,temptype,def,fini,ref);
+      end;
+
+
+    procedure ttgobj.freetemphook(list: TAsmList; temp: ptemprecord);
+      begin
+        list.concat(tai_tempalloc.dealloc(temp^.pos,temp^.size));
       end;
 
 
