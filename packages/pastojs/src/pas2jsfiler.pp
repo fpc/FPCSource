@@ -295,7 +295,8 @@ const
     'List',
     'Inherited',
     'Self',
-    'Specialize');
+    'Specialize',
+    'Procedure');
 
   PCUExprOpCodeNames: array[TExprOpCode] of string = (
     'None',
@@ -2129,7 +2130,7 @@ begin
   WriteModeSwitches(Obj,'FinalModeSwitches',Scanner.CurrentModeSwitches,InitialFlags.Modeswitches);
   WriteBoolSwitches(Obj,'FinalBoolSwitches',Scanner.CurrentBoolSwitches,InitialFlags.BoolSwitches);
   if InitialFlags.ConverterOptions<>Converter.Options then
-    RaiseMsg(20180314185555);
+    RaiseMsg(20180314185555,'InitialFlags='+dbgs(InitialFlags.ConverterOptions)+' Converter='+dbgs(Converter.Options));
   // ToDo: write final flags: used defines, used macros
 end;
 
@@ -7852,9 +7853,7 @@ end;
 
 initialization
   PrecompileFormats:=TPas2JSPrecompileFormats.Create;
-  {$IFDEF EnablePas2jsPrecompiled}
-  PrecompileFormats.Add('pcu','all used units must be pcu too',TPCUReader,TPCUWriter);
-  {$ENDIF}
+  PrecompileFormats.Add('pcu','all used pcu must match exactly',TPCUReader,TPCUWriter);
 finalization
   PrecompileFormats.Free;
   PrecompileFormats:=nil;

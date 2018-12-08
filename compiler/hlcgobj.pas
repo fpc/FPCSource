@@ -5216,7 +5216,9 @@ implementation
             gen_load_loc_function_result(list,retdef,ressym.localloc);
         end
       else
-        gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside])
+        gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside]);
+      if ressym.localloc.loc=LOC_REFERENCE then
+        tg.UnGetLocal(list,ressym.localloc.reference);
     end;
 
   procedure thlcgobj.gen_stack_check_size_para(list: TAsmList);

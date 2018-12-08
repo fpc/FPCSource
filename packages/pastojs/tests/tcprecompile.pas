@@ -115,6 +115,9 @@ begin
     JSFile:=FindFile(JSFilename);
     OrigSrc:=JSFile.Source;
     // compile, using .pcu files
+    //for i:=0 to FileCount-1 do
+    //  writeln('AAA1 TCustomTestCLI_Precompile.CheckPrecompile ',i,' ',Files[i].Filename);
+
     {$IFDEF VerbosePCUFiler}
     writeln('TTestCLI_Precompile.CheckPrecompile compile using pcu files==================');
     {$ENDIF}
@@ -285,7 +288,7 @@ begin
    'end;']);
   AddUnit('src/unit2.pp',
   ['uses unit1;',
-  'procedure Do2(j: integer);'],
+   'procedure Do2(j: integer);'],
   ['procedure Do2(j: integer);',
    'begin',
    '  unit1.i:=j;',
@@ -558,8 +561,6 @@ begin
 end;
 
 Initialization
-  {$IFDEF EnablePas2jsPrecompiled}
   RegisterTests([TTestCLI_Precompile]);
-  {$ENDIF}
 end.
 

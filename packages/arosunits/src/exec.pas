@@ -1416,6 +1416,8 @@ type
 procedure ForEachNode(List:PList; NodeProc: TNodeProcedure);
 procedure ForEachNodeSafe(List:PList; NodeProc: TNodeProcedure);
 
+function CreateExtIO(const Mp: PMsgPort; Size: Integer): PIORequest;
+procedure DeleteExtIO(ioReq: PIORequest);
 
 implementation
 
@@ -1563,7 +1565,32 @@ begin
    BitMask := 1 shl no;
 end;
 
-end. (* UNIT EXEC *)
+function CreateExtIO(const Mp: PMsgPort; Size: Integer): PIORequest;
+begin
+  CreateExtIO := nil;
+  if not Assigned(mp) then
+    Exit;
+  CreateExtIO := System.AllocMem(Size);
+  if Assigned(CreateExtIO) then
+  begin
+    CreateExtIO^.io_Message.mn_Node.ln_Type := NT_REPLYMSG;
+    CreateExtIO^.io_Message.mn_ReplyPort := Mp;
+    CreateExtIO^.io_Message.mn_Length := Size;
+  end;
+end;
+
+procedure DeleteExtIO(ioReq: PIORequest);
+begin
+  if Assigned(ioReq) then
+  begin
+    ioReq^.io_Message.mn_Node.ln_Type := Byte(-1);
+    ioReq^.io_Device := Pointer(-1);
+    ioReq^.io_Unit := Pointer(-1);
+    System.FreeMem(ioReq);
+  end;
+end;
+
+end.
 
 
 

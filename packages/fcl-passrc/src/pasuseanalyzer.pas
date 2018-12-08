@@ -390,9 +390,7 @@ begin
   aModule:=El.GetModule;
   if aModule=El then exit;
   if aModule=nil then
-    Result:='NilModule.'+Result
-  else
-    Result:=aModule.Name+'.'+Result;
+    Result:='NilModule.'+Result;
 end;
 
 function dbgs(a: TPAIdentifierAccess): string;
@@ -2335,6 +2333,7 @@ var
   UsedModule, aModule: TPasModule;
   UsesClause: TPasUsesClause;
   Use: TPasUsesUnit;
+  PosEl: TPasElement;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitSectionHints ',GetElModName(Section));
@@ -2350,8 +2349,12 @@ begin
       UsedModule:=TPasModule(Use.Module);
       if CompareText(UsedModule.Name,'system')=0 then continue;
       if not PAElementExists(UsedModule) then
+        begin
+        PosEl:=Use.Expr;
+        if PosEl=nil then PosEl:=Use;
         EmitMessage(20170311191725,mtHint,nPAUnitNotUsed,sPAUnitNotUsed,
-          [UsedModule.Name,aModule.Name],Use.Expr);
+          [UsedModule.Name,aModule.Name],PosEl);
+        end;
       end;
     end;
 

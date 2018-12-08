@@ -47,7 +47,6 @@ end;
 
 Function TPas2JSFileConfigSupport.FindDefaultConfig : String;
 
-
   function TryConfig(aFilename: string): boolean;
   begin
     Result:=false;
@@ -56,6 +55,7 @@ Function TPas2JSFileConfigSupport.FindDefaultConfig : String;
     if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
       Compiler.Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
     if not Compiler.FS.FileExists(aFilename) then exit;
+    FindDefaultConfig:=aFilename;
     Result:=true;
   end;
 
@@ -63,13 +63,14 @@ var
   aFilename: String;
 
 begin
+  Result:='';
   // first try HOME directory
   aFilename:=ChompPathDelim(GetEnvironmentVariablePJ('HOME'));
   if aFilename<>'' then
     begin
     aFilename:=aFilename+PathDelim{$IFDEF UNIX}+'.'{$ENDIF}+DefaultConfigFile;
     if TryConfig(aFileName) then
-      exit(aFileName);
+      exit;
     end;
 
   // then try compiler directory
@@ -80,14 +81,14 @@ begin
     begin
       aFilename:=IncludeTrailingPathDelimiter(aFilename)+DefaultConfigFile;
       if TryConfig(aFilename) then
-        exit(aFileName);
+        exit;
     end;
   end;
 
   // finally try global directory
   {$IFDEF Unix}
   if TryConfig('/etc/'+DefaultConfigFile) then
-    exit(aFileName);
+    exit;
   {$ENDIF}
 end;
 

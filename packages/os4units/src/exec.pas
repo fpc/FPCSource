@@ -1987,6 +1987,9 @@ function IsMinListEmpty(List: PMinList): Boolean; inline;
 function IsMsgPortEmpty(mp: PMsgPort): Boolean; inline;
 procedure NewListType(var List: PList; NType: Byte); inline;
 
+function CreateExtIO(const Mp: PMsgPort; Size: Integer): PIORequest;
+procedure DeleteExtIO(ioReq: PIORequest);
+
 implementation
 
 function BitMask(No: ShortInt): LongInt; inline;
@@ -2014,6 +2017,31 @@ procedure NewListType(var List: PList; NType: Byte); inline;
 begin
   NewList(List);
   List^.lh_Type := NType;
+end;
+
+function CreateExtIO(const Mp: PMsgPort; Size: Integer): PIORequest;
+begin
+  CreateExtIO := nil;
+  if not Assigned(mp) then
+    Exit;
+  CreateExtIO := System.AllocMem(Size);
+  if Assigned(CreateExtIO) then
+  begin
+    CreateExtIO^.io_Message.mn_Node.ln_Type := NT_REPLYMSG;
+    CreateExtIO^.io_Message.mn_ReplyPort := Mp;
+    CreateExtIO^.io_Message.mn_Length := Size;
+  end;
+end;
+
+procedure DeleteExtIO(ioReq: PIORequest);
+begin
+  if Assigned(ioReq) then
+  begin
+    ioReq^.io_Message.mn_Node.ln_Type := Byte(-1);
+    ioReq^.io_Device := Pointer(-1);
+    ioReq^.io_Unit := Pointer(-1);
+    System.FreeMem(ioReq);
+  end;
 end;
 
 end.

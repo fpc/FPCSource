@@ -102,7 +102,9 @@ asm
   	movl    %esp,initialstkptr
   {$endif FPC_PIC}
 
+{$if FPC_FULLVERSION>30200}
   call    InitTLS
+{$endif FPC_FULLVERSION>30200}
 
   xorl    %ebp,%ebp
   call    PASCALMAIN

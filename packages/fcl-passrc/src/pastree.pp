@@ -82,6 +82,8 @@ resourcestring
   SPasTreeClassDestructor = 'class destructor';
   SPasTreeConstructor = 'constructor';
   SPasTreeDestructor = 'destructor';
+  SPasTreeAnonymousProcedure = 'anonymous procedure';
+  SPasTreeAnonymousFunction = 'anonymous function';
   SPasTreeProcedureImpl = 'procedure/function implementation';
   SPasTreeConstructorImpl = 'constructor implementation';
   SPasTreeDestructorImpl = 'destructor implementation';
@@ -192,7 +194,7 @@ type
 
   TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst,
      pekRange, pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp,
-     pekInherited, pekSelf, pekSpecialize);
+     pekInherited, pekSelf, pekSpecialize, pekProcedure);
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
@@ -969,7 +971,8 @@ type
                ptOperator, ptClassOperator,
                ptConstructor, ptDestructor,
                ptClassProcedure, ptClassFunction,
-               ptClassConstructor, ptClassDestructor);
+               ptClassConstructor, ptClassDestructor,
+               ptAnonymousProcedure, ptAnonymousFunction);
 
   { TPasProcedureBase }
 
@@ -1004,6 +1007,8 @@ type
                         
   TProcedureBody = class;
 
+  { TPasProcedure - named procedure, not anonymous }
+
   TPasProcedure = class(TPasProcedureBase)
   Private
     FModifiers : TProcedureModifiers;
@@ -1020,13 +1025,13 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    ProcType : TPasProcedureType;
-    Body : TProcedureBody;
     PublicName, // e.g. public PublicName;
     LibrarySymbolName,
     LibraryExpr : TPasExpr; // e.g. external LibraryExpr name LibrarySymbolName;
     DispIDExpr :  TPasExpr;
     AliasName : String;
+    ProcType : TPasProcedureType;
+    Body : TProcedureBody;
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function IsVirtual : Boolean;
     Function IsDynamic : Boolean;
@@ -1039,6 +1044,7 @@ type
     Function IsReintroduced : Boolean;
     Function IsStatic : Boolean;
     Function IsForward: Boolean;
+    Function GetProcTypeEnum: TProcType; virtual;
     Property Modifiers : TProcedureModifiers Read FModifiers Write FModifiers;
     Property CallingConvention : TCallingConvention Read GetCallingConvention Write SetCallingConvention;
     Property MessageName : String Read FMessageName Write FMessageName;
@@ -1048,14 +1054,16 @@ type
 
   TArrayOfPasProcedure = array of TPasProcedure;
 
+  { TPasFunction - named function, not anonymous function}
+
   TPasFunction = class(TPasProcedure)
   private
     function GetFT: TPasFunctionType; inline;
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
-    function GetDeclaration (full : boolean) : string; override;
     Property FuncType : TPasFunctionType Read GetFT;
+    function GetProcTypeEnum: TProcType; override;
   end;
 
   { TPasOperator }
@@ -1082,17 +1090,18 @@ type
     Function OldName(WithPath : Boolean) : String;
     function ElementTypeName: string; override;
     function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
     function GetDeclaration (full : boolean) : string; override;
     Property OperatorType : TOperatorType Read FOperatorType Write FOperatorType;
     // True if the declaration was using a token instead of an identifier
     Property TokenBased : Boolean Read FTokenBased Write FTokenBased;
   end;
 
-Type
   { TPasClassOperator }
 
   TPasClassOperator = class(TPasOperator)
     function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
   end;
 
 
@@ -1102,6 +1111,7 @@ Type
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
   end;
 
   { TPasClassConstructor }
@@ -1110,6 +1120,7 @@ Type
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
   end;
 
   { TPasDestructor }
@@ -1118,6 +1129,7 @@ Type
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
   end;
 
   { TPasClassDestructor }
@@ -1126,6 +1138,7 @@ Type
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
   end;
 
   { TPasClassProcedure }
@@ -1134,6 +1147,7 @@ Type
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
   end;
 
   { TPasClassFunction }
@@ -1142,7 +1156,42 @@ Type
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
   end;
+
+  { TPasAnonymousProcedure - parent is TProcedureExpr }
+
+  TPasAnonymousProcedure = class(TPasProcedure)
+  public
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
+    function GetProcTypeEnum: TProcType; override;
+  end;
+
+  { TPasAnonymousFunction - parent is TProcedureExpr and ProcType is TPasFunctionType}
+
+  TPasAnonymousFunction = class(TPasAnonymousProcedure)
+  private
+    function GetFT: TPasFunctionType; inline;
+  public
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
+    Property FuncType : TPasFunctionType Read GetFT;
+    function GetProcTypeEnum: TProcType; override;
+  end;
+
+  { TProcedureExpr }
+
+  TProcedureExpr = class(TPasExpr)
+  public
+    Proc: TPasAnonymousProcedure;
+    constructor Create(AParent: TPasElement); overload;
+    destructor Destroy; override;
+    function GetDeclaration(full: Boolean): string; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+  end;
+
 
   TPasImplBlock = class;
 
@@ -1577,7 +1626,8 @@ const
       'ListOfExp',
       'Inherited',
       'Self',
-      'Specialize');
+      'Specialize',
+      'Procedure');
 
   OpcodeStrings : Array[TExprOpCode] of string = (
         '','+','-','*','/','div','mod','**',
@@ -1641,6 +1691,26 @@ begin
   {$IFDEF VerbosePasTreeMem}writeln('ReleaseAndNil ',El.Name,' ',El.ClassName);{$ENDIF}
   El.Release{$IFDEF CheckPasTreeRefCount}(Id){$ENDIF};
   El:=nil;
+end;
+
+Function IndentStrings(S : TStrings; indent : Integer) : string;
+Var
+  I,CurrLen,CurrPos : Integer;
+begin
+  Result:='';
+  CurrLen:=0;
+  CurrPos:=0;
+  For I:=0 to S.Count-1 do
+    begin
+    CurrLen:=Length(S[i]);
+    If (CurrLen+CurrPos)>72 then
+      begin
+      Result:=Result+LineEnding+StringOfChar(' ',Indent);
+      CurrPos:=Indent;
+      end;
+    Result:=Result+S[i];
+    CurrPos:=CurrPos+CurrLen;
+    end;
 end;
 
 {$IFDEF HasPTDumpStack}
@@ -1843,6 +1913,11 @@ begin
   Result:='class operator';
 end;
 
+function TPasClassOperator.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptClassOperator;
+end;
+
 { TPasImplAsmStatement }
 
 constructor TPasImplAsmStatement.Create(const AName: string;
@@ -1863,6 +1938,79 @@ end;
 function TPasClassConstructor.TypeName: string;
 begin
   Result:='class '+ inherited TypeName;
+end;
+
+function TPasClassConstructor.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptClassConstructor;
+end;
+
+{ TPasAnonymousProcedure }
+
+function TPasAnonymousProcedure.ElementTypeName: string;
+begin
+  Result:=SPasTreeAnonymousProcedure;
+end;
+
+function TPasAnonymousProcedure.TypeName: string;
+begin
+  Result:='anonymous procedure';
+end;
+
+function TPasAnonymousProcedure.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptAnonymousProcedure;
+end;
+
+{ TPasAnonymousFunction }
+
+function TPasAnonymousFunction.GetFT: TPasFunctionType;
+begin
+  Result:=ProcType as TPasFunctionType;
+end;
+
+function TPasAnonymousFunction.ElementTypeName: string;
+begin
+  Result := SPasTreeAnonymousFunction;
+end;
+
+function TPasAnonymousFunction.TypeName: string;
+begin
+  Result:='anonymous function';
+end;
+
+function TPasAnonymousFunction.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptAnonymousFunction;
+end;
+
+{ TProcedureExpr }
+
+constructor TProcedureExpr.Create(AParent: TPasElement);
+begin
+  inherited Create(AParent,pekProcedure, eopNone);
+end;
+
+destructor TProcedureExpr.Destroy;
+begin
+  ReleaseAndNil(TPasElement(Proc){$IFDEF CheckPasTreeRefCount},'TProcedureExpr.Proc'{$ENDIF});
+  inherited Destroy;
+end;
+
+function TProcedureExpr.GetDeclaration(full: Boolean): string;
+begin
+  if Proc<>nil then
+    Result:=Proc.GetDeclaration(full)
+  else
+    Result:='procedure-expr';
+end;
+
+procedure TProcedureExpr.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  if Proc<>nil then
+    Proc.ForEachCall(aMethodCall,Arg);
 end;
 
 { TPasImplRaise }
@@ -2157,7 +2305,7 @@ begin
   Result:=ProcType as TPasFunctionType;
 end;
 
-function TPasFunction.ElementTypeName: string; begin Result := SPasTreeFunction end;
+function TPasFunction.ElementTypeName: string; begin Result := SPasTreeFunction; end;
 function TPasClassProcedure.ElementTypeName: string; begin Result := SPasTreeClassProcedure; end;
 function TPasClassConstructor.ElementTypeName: string; begin Result := SPasTreeClassConstructor; end;
 function TPasClassDestructor.ElementTypeName: string; begin Result := SPasTreeClassDestructor; end;
@@ -2165,6 +2313,11 @@ function TPasClassDestructor.ElementTypeName: string; begin Result := SPasTreeCl
 function TPasClassDestructor.TypeName: string;
 begin
   Result:='destructor';
+end;
+
+function TPasClassDestructor.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptClassDestructor;
 end;
 
 function TPasClassFunction.ElementTypeName: string; begin Result := SPasTreeClassFunction; end;
@@ -3229,12 +3382,12 @@ end;
 
 destructor TPasProcedure.Destroy;
 begin
-  ReleaseAndNil(TPasElement(ProcType){$IFDEF CheckPasTreeRefCount},'TPasProcedure.ProcType'{$ENDIF});
-  ReleaseAndNil(TPasElement(Body){$IFDEF CheckPasTreeRefCount},'TPasProcedure.Body'{$ENDIF});
   ReleaseAndNil(TPasElement(PublicName){$IFDEF CheckPasTreeRefCount},'TPasProcedure.PublicName'{$ENDIF});
   ReleaseAndNil(TPasElement(LibraryExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.LibraryExpr'{$ENDIF});
   ReleaseAndNil(TPasElement(LibrarySymbolName){$IFDEF CheckPasTreeRefCount},'TPasProcedure.LibrarySymbolName'{$ENDIF});
   ReleaseAndNil(TPasElement(DispIDExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.DispIDExpr'{$ENDIF});
+  ReleaseAndNil(TPasElement(ProcType){$IFDEF CheckPasTreeRefCount},'TPasProcedure.ProcType'{$ENDIF});
+  ReleaseAndNil(TPasElement(Body){$IFDEF CheckPasTreeRefCount},'TPasProcedure.Body'{$ENDIF});
   inherited Destroy;
 end;
 
@@ -3764,29 +3917,6 @@ begin
   ForEachChildCall(aMethodCall,Arg,ElType,true);
 end;
 
-Function IndentStrings(S : TStrings; indent : Integer) : string;
-
-Var
-  I,CurrLen,CurrPos : Integer;
-
-
-begin
-  Result:='';
-  CurrLen:=0;
-  CurrPos:=0;
-  For I:=0 to S.Count-1 do
-    begin
-    CurrLen:=Length(S[i]);
-    If (CurrLen+CurrPos)>72 then
-      begin
-      Result:=Result+LineEnding+StringOfChar(' ',Indent);
-      CurrPos:=Indent;
-      end;
-    Result:=Result+S[i];
-    CurrPos:=CurrPos+CurrLen;
-    end;
-end;
-
 function TPasEnumType.GetDeclaration (full : boolean) : string;
 
 Var
@@ -4278,8 +4408,8 @@ procedure TPasProcedure.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  ForEachChildCall(aMethodCall,Arg,PublicName,false);
   ForEachChildCall(aMethodCall,Arg,ProcType,false);
+  ForEachChildCall(aMethodCall,Arg,PublicName,false);
   ForEachChildCall(aMethodCall,Arg,LibraryExpr,false);
   ForEachChildCall(aMethodCall,Arg,LibrarySymbolName,false);
   ForEachChildCall(aMethodCall,Arg,Body,false);
@@ -4347,36 +4477,28 @@ begin
   Result:=pmForward in FModifiers;
 end;
 
-function TPasProcedure.GetDeclaration(full: Boolean): string;
-
-Var
-  S : TStringList;
+function TPasProcedure.GetProcTypeEnum: TProcType;
 begin
-  S:=TStringList.Create;
-  try
-    If Full then
-      S.Add(TypeName+' '+Name);
-    ProcType.GetArguments(S);
-    GetModifiers(S);
-    Result:=IndentStrings(S,Length(S[0]));
-  finally
-    S.Free;
-  end;
+  Result:=ptProcedure;
 end;
 
-function TPasFunction.GetDeclaration (full : boolean) : string;
-
+function TPasProcedure.GetDeclaration(full: Boolean): string;
 Var
   S : TStringList;
-  T : string;
-
+  T: String;
 begin
   S:=TStringList.Create;
   try
     If Full then
-      S.Add(TypeName+' '+Name);
+      begin
+      T:=TypeName;
+      if Name<>'' then
+        T:=T+' '+Name;
+      S.Add(T);
+      end;
     ProcType.GetArguments(S);
-    If Assigned((Proctype as TPasFunctionType).ResultEl) then
+    If ProcType is TPasFunctionType
+        and Assigned(TPasFunctionType(Proctype).ResultEl) then
       With TPasFunctionType(ProcType).ResultEl.ResultType do
         begin
         T:=' : ';
@@ -4396,6 +4518,11 @@ end;
 function TPasFunction.TypeName: string;
 begin
   Result:='function';
+end;
+
+function TPasFunction.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptFunction;
 end;
 
 function TPasOperator.GetOperatorDeclaration(Full : Boolean) : string;
@@ -4450,9 +4577,19 @@ begin
   Result:='operator';
 end;
 
+function TPasOperator.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptOperator;
+end;
+
 function TPasClassProcedure.TypeName: string;
 begin
   Result:='class procedure';
+end;
+
+function TPasClassProcedure.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptClassProcedure;
 end;
 
 function TPasClassFunction.TypeName: string;
@@ -4460,14 +4597,29 @@ begin
   Result:='class function';
 end;
 
+function TPasClassFunction.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptClassFunction;
+end;
+
 function TPasConstructor.TypeName: string;
 begin
   Result:='constructor';
 end;
 
+function TPasConstructor.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptConstructor;
+end;
+
 function TPasDestructor.TypeName: string;
 begin
   Result:='destructor';
+end;
+
+function TPasDestructor.GetProcTypeEnum: TProcType;
+begin
+  Result:=ptDestructor;
 end;
 
 function TPasArgument.GetDeclaration (full : boolean) : string;

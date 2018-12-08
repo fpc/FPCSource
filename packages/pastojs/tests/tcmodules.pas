@@ -381,6 +381,7 @@ type
     Procedure TestCaseOfRange;
     Procedure TestCaseOfString;
     Procedure TestCaseOfExternalClassConst;
+    Procedure TestDebugger;
 
     // arrays
     Procedure TestArray_Dynamic;
@@ -2262,25 +2263,33 @@ procedure TTestModule.TestIncludeVersion;
 begin
   StartProgram(false);
   Add([
-  'var s: string;',
+  'var',
+  '  s: string;',
+  '  i: word;',
   'begin',
   '  s:={$I %line%};',
+  '  i:={$I %linenum%};',
   '  s:={$I %currentroutine%};',
   '  s:={$I %pas2jsversion%};',
   '  s:={$I %pas2jstarget%};',
   '  s:={$I %pas2jstargetos%};',
   '  s:={$I %pas2jstargetcpu%};',
+  '  s:={$I %file%};',
   '']);
   ConvertProgram;
   CheckSource('TestIncludeVersion',
-    'this.s="";',
     LinesToStr([
-    '$mod.s = "5";',
+    'this.s="";',
+    'this.i = 0;']),
+    LinesToStr([
+    '$mod.s = "7";',
+    '$mod.i = 8;',
     '$mod.s = "<anonymous>";',
     '$mod.s = "Comp.Ver.tcmodules";',
     '$mod.s = "Browser";',
     '$mod.s = "Browser";',
     '$mod.s = "ECMAScript5";',
+    '$mod.s = "test1.pp";',
     '']));
 end;
 
@@ -7079,6 +7088,30 @@ begin
     '  $mod.vI = 3}',
     ' else if ($tmp1 === Bird.e) ;'
     ]));
+end;
+
+procedure TTestModule.TestDebugger;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'begin',
+  '  deBugger;',
+  '  DeBugger();',
+  'end;',
+  'begin',
+  '  Debugger;']);
+  ConvertProgram;
+  CheckSource('TestDebugger',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  debugger;',
+    '  debugger;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    'debugger;',
+    '']));
 end;
 
 procedure TTestModule.TestArray_Dynamic;
@@ -22228,7 +22261,7 @@ begin
     'this.DoIt = function () {',
     '  var b = false;',
     '  var s = "";',
-    '  if (b) throw "assert failed";',
+    '  if (!b) throw "assert failed";',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -22276,8 +22309,8 @@ begin
     'this.DoIt = function () {',
     '  var b = false;',
     '  var s = "";',
-    '  if (b) throw pas.SysUtils.EAssertionFailed.$create("Create");',
-    '  if (b) throw pas.SysUtils.EAssertionFailed.$create("Create$1", ["msg"]);',
+    '  if (!b) throw pas.SysUtils.EAssertionFailed.$create("Create");',
+    '  if (!b) throw pas.SysUtils.EAssertionFailed.$create("Create$1", ["msg"]);',
     '};',
     '']),
     LinesToStr([ // $mod.$main

@@ -19,3 +19,6 @@ procedure llvm_memcpy64(dest, source: pointer; len: qword; align: cardinal; isvo
 function llvm_frameaddress(level: longint): pointer; compilerproc; external name 'llvm.frameaddress';
 
 function llvm_eh_typeid_for(sym: pointer): longint; compilerproc; external name 'llvm.eh.typeid.for';
+
+procedure llvm_lifetime_start(size: int64; ptr: pointer); compilerproc; external name 'llvm.lifetime.start';
+procedure llvm_lifetime_end(size: int64; ptr: pointer); compilerproc; external name 'llvm.lifetime.end';

@@ -148,15 +148,23 @@ procedure v_gtext(handle: smallint; x: smallint; y: smallint; _string: pchar);
 procedure v_bar(handle: smallint; pxyarray: psmallint);
 procedure v_circle (handle: smallint; x: smallint; y: smallint; radius: smallint);
 
+procedure vs_color(handle: smallint; index: smallint; rgb_in: psmallint);
+
 function vsl_color(handle: smallint; color_index: smallint): smallint;
 function vst_color(handle: smallint; color_index: smallint): smallint;
 function vsf_color(handle: smallint; color_index: smallint): smallint;
+
+function vswr_mode(handle: smallint; mode: smallint): smallint;
 
 procedure v_opnvwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
 procedure v_clsvwk(handle: smallint);
 
 procedure v_get_pixel(handle: smallint; x: smallint; y: smallint;
                       pel: psmallint; index: psmallint);
+
+procedure vro_cpyfm(handle: smallint; vr_mode: smallint; pxyarray: psmallint; psrcMFDB: PMFDB; pdesMFDB: PMFDB);
+
+procedure vrt_cpyfm(handle: smallint; vr_mode: smallint; pxyarray: psmallint; psrcMFDB: PMFDB; pdesMFDB: PMFDB; color_index: psmallint);
 
 procedure v_show_c(handle: smallint; reset: smallint);
 procedure v_hide_c(handle: smallint);
@@ -309,6 +317,21 @@ begin
   vdi;
 end;
 
+procedure vs_color(handle: smallint; index: smallint; rgb_in: psmallint);
+begin
+  _intin[0]:=index;
+  _intin[1]:=rgb_in[0];
+  _intin[2]:=rgb_in[1];
+  _intin[3]:=rgb_in[2];
+
+  _contrl[0]:=14;
+  _contrl[1]:=0;
+  _contrl[3]:=4;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
 function vsl_color(handle: smallint; color_index: smallint): smallint;
 begin
   _intin[0]:=color_index;
@@ -351,6 +374,19 @@ begin
   vsf_color:=_intout[0];
 end;
 
+function vswr_mode(handle: smallint; mode: smallint): smallint;
+begin
+  _intin[0]:=mode;
+
+  _contrl[0]:=32;
+  _contrl[1]:=0;
+  _contrl[3]:=1;
+  _contrl[6]:=handle;
+
+  vdi;
+
+  vswr_mode:=_intout[0];
+end;
 
 procedure v_opnvwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
 begin
@@ -396,6 +432,42 @@ begin
 
   pel^:=_intout[0];
   index^:=_intout[1];
+end;
+
+procedure vro_cpyfm(handle: smallint; vr_mode: smallint; pxyarray: psmallint; psrcMFDB: PMFDB; pdesMFDB: PMFDB);
+begin
+  _intin[0]:=vr_mode;
+  // ptsin[0..7] = pxyarray[0..7];
+  move(pxyarray[0],_ptsin[0],8*sizeof(smallint));
+
+  PPointer(@_contrl[7])^:=psrcMFDB;
+  PPointer(@_contrl[9])^:=pdesMFDB;
+
+  _contrl[0]:=109;
+  _contrl[1]:=4;
+  _contrl[3]:=1;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
+procedure vrt_cpyfm(handle: smallint; vr_mode: smallint; pxyarray: psmallint; psrcMFDB: PMFDB; pdesMFDB: PMFDB; color_index: psmallint);
+begin
+  _intin[0]:=vr_mode;
+  _intin[1]:=color_index[0];
+  _intin[2]:=color_index[1];
+  // ptsin[0..7] = pxyarray[0..7];
+  move(pxyarray[0],_ptsin[0],8*sizeof(smallint));
+
+  PPointer(@_contrl[7])^:=psrcMFDB;
+  PPointer(@_contrl[9])^:=pdesMFDB;
+
+  _contrl[0]:=121;
+  _contrl[1]:=4;
+  _contrl[3]:=3;
+  _contrl[6]:=handle;
+
+  vdi;
 end;
 
 procedure v_show_c(handle: smallint; reset: smallint);

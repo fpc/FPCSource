@@ -512,7 +512,9 @@ Function TConsoleFileWriter.DoWrite(Const S : TJSWriterString) : Integer;
 
 begin
   Result:=Length(S);
+  {AllowWriteln}
   Writeln(S);
+  {AllowWriteln-}
 end;
 
 procedure TConsoleFileWriter.FLush;
