@@ -12,7 +12,8 @@ uses
   cthreads, cwstring,
   {$ENDIF}
   Classes, SysUtils, CustApp,
-  Pas2jsFileUtils, Pas2jsLogger, Pas2jsCompiler, pas2jspcucompiler, pas2jscompilerpp, pas2JScompilercfg;
+  Pas2jsFileUtils, Pas2jsLogger, Pas2jsCompiler,
+  Pas2JSPCUCompiler, Pas2JSCompilerPP, Pas2JSCompilerCfg;
 
 Type
 

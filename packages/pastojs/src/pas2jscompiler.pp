@@ -713,7 +713,6 @@ end;
 
 { TPas2JSCompilerSupport }
 
-
 constructor TPas2JSCompilerSupport.Create(aCompiler: TPas2JSCompiler);
 begin
   FCompiler:=aCompiler;
@@ -734,8 +733,6 @@ begin
   FreeAndNil(FConditionEval);
   inherited Destroy;
 end;
-
-
 
 { TPCUSupport }
 
@@ -2641,11 +2638,9 @@ begin
 end;
 
 procedure TPas2jsCompiler.LoadConfig(CfgFilename: string);
-
 begin
   ConfigSupport.LoadConfig(CfgFileName);
 end;
-
 
 procedure TPas2JSConfigSupport.LoadConfig(Const aFileName: String);
 type
@@ -2836,7 +2831,6 @@ begin
   if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
     Compiler.Log.LogMsgIgnoreFilter(nEndOfReadingConfigFile,[QuoteStr(aFilename)]);
 end;
-
 
 procedure TPas2JSConfigSupport.LoadDefaultConfig;
 
@@ -3082,7 +3076,7 @@ end;
 procedure TPas2jsCompiler.HandleOptionInfo(aValue: string);
 
 Var
-  infoMsg: String;
+  InfoMsg: String;
 
   procedure AppendInfo(Add: string);
   begin
@@ -3150,7 +3144,7 @@ begin
       end;
     'c':
       // write list of supported JS processors
-      for pr  in TPasToJsProcessor do
+      for pr in TPasToJsProcessor do
         Log.LogPlain(PasToJsProcessorNames[pr]);
     'o':
       begin
@@ -3168,8 +3162,8 @@ begin
     end;
     inc(p);
     end;
-  if infoMsg<>'' then
-    Log.LogPlain(infoMsg);
+  if InfoMsg<>'' then
+    Log.LogPlain(InfoMsg);
 end;
 
 procedure TPas2jsCompiler.ReadParam(Param: string; Quick, FromCmdLine: boolean);
