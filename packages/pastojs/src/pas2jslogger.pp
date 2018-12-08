@@ -29,6 +29,9 @@ interface
 uses
   {$IFDEF Pas2JS}
   JS,
+  {$IFDEF NodeJS}
+  NodeJSFS,
+  {$ENDIF}
   {$ENDIF}
   pas2jsutils,
   {$IFDEF HASFILESYSTEM}
@@ -1072,7 +1075,7 @@ begin
   if FOutputFile<>nil then exit;
   if OutputFilename='' then
     raise Exception.Create('Log has empty OutputFilename');
-   if DirectoryExists(OutputFilename) then
+  if DirectoryExists(OutputFilename) then
     raise Exception.Create('Log is directory: "'+OutputFilename+'"');
 {$ENDIF}
   FOutputFile:=CreateTextWriter(OutputFileName);
