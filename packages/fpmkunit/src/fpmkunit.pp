@@ -890,6 +890,7 @@ Type
     Property SupportBuildModes: TBuildModes read FSupportBuildModes write FSupportBuildModes;
     Property BuildMode: TBuildMode read FBuildMode;
     Property Flags: TStrings read FFlags;
+    Property PackageVersion: TFPVersion read FVersion;
     // Options which are passed to the compiler for packages which depend on
     // this package.
     Property TransmitOptions: TStrings Read GetTransmitOptions Write SetTransmitOptions;
