@@ -531,6 +531,8 @@ type
     function FindStream(const AName: string; ScanIncludes: Boolean): TStream;
     function FindStreamReader(const AName: string; ScanIncludes: Boolean): TLineReader;
     procedure SetOwnsStreams(AValue: Boolean);
+  Protected
+    function FindIncludeFileName(const aFilename: string): String; override;
   Public
     constructor Create; override;
     destructor Destroy; override;
@@ -2538,6 +2540,12 @@ procedure TStreamResolver.SetOwnsStreams(AValue: Boolean);
 begin
   if FOwnsStreams=AValue then Exit;
   FOwnsStreams:=AValue;
+end;
+
+function TStreamResolver.FindIncludeFileName(const aFilename: string): String;
+begin
+  raise EFileNotFoundError.Create('TStreamResolver.FindIncludeFileName not supported '+aFilename);
+  Result:='';
 end;
 
 constructor TStreamResolver.Create;

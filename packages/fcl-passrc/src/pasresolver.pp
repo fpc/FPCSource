@@ -210,8 +210,16 @@ Works:
 - type alias type overloads
 - $writeableconst off $J-
 - $warn identifier ON|off|error|default
+- anonymous methods:
+  - assign in proc and program begin and initialization   p:=procedure begin end
+  - pass as arg  doit(procedure begin end)
+  - modifiers  assembler varargs cdecl
 
 ToDo:
+- anonymous methods:
+  - with
+  - typecast
+  - self
 - Include/Exclude for set of int/char/bool
 - set of CharRange
 - error if property method resolution is not used
@@ -224,7 +232,6 @@ ToDo:
   - CharSet:=[#13]
 - proc: check if forward and impl default values match
 - call array of proc without ()
-- anonymous functions
 - attributes
 - object
 - type helpers
@@ -811,7 +818,7 @@ type
 
   { TPasInitialFinalizationScope - e.g. TInitializationSection, TFinalizationSection }
 
-  TPasInitialFinalizationScope = Class(TPasScope)
+  TPasInitialFinalizationScope = Class(TPasIdentifierScope)
   public
     References: TPasScopeReferences; // created by TPasAnalyzer, not used by resolver
     function AddReference(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;

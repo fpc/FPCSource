@@ -448,23 +448,23 @@ type
     Procedure TestProc_Absolute;
 
     // anonymous procs
-    // ToDo: fppas2js: check "is TPasFunction", ".FuncType", "parent is TPasProcedureBody"
     Procedure TestAnonymousProc_Assign;
-    // ToDo: does Delphi allow/require semicolon in assign?
+    Procedure TestAnonymousProc_AssignSemicolonFail;
     Procedure TestAnonymousProc_Arg;
-    // ToDo: does Delphi allow/require semicolon in arg?
-    // ToDo: does Delphi allow calling directly?: function(i: word):word begin end(3)
+    Procedure TestAnonymousProc_ArgSemicolonFail;
     Procedure TestAnonymousProc_EqualFail;
-    // ToDo: does Delphi allow ano proc in const?
     Procedure TestAnonymousProc_ConstFail;
-    // ToDo: does Delphi allow assembler or calling conventions?
     Procedure TestAnonymousProc_Assembler;
     Procedure TestAnonymousProc_NameFail;
     Procedure TestAnonymousProc_StatementFail;
+    // ToDo: Delphi does not support calling directly: function(i: word):word begin end(3)
+    // ToDo: Delphi does support calling with typecast: TFunc(function(i: word):word begin end)(3)
     Procedure TestAnonymousProc_Typecast;// ToDo
-    // ToDo: ano in with
+    // ToDo: ano in with (ano proc can access with scope)
     // ToDo: ano in nested
     // ToDo: ano in ano
+    // ToDo: ano in except E: Exception do ..
+    // ToDo: fppas2js: check "is TPasFunction", ".FuncType", "is TPasProcedureBody"
 
     // record
     Procedure TestRecord;
@@ -7168,11 +7168,33 @@ begin
   '    Result:=a+b;',
   '    exit(b);',
   '    exit(Result);',
-  '  end;',
-  '  a:=3;',// test semicolon
+  '  end;',// test semicolon
+  '  a:=3;',
+  'end;',
+  'begin',
+  '  Func:=function(c:word):word begin',
+  '    Result:=3+c;',
+  '    exit(c);',
+  '    exit(Result);',
+  '  end;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_AssignSemicolonFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'procedure DoIt(a: word);',
+  'var p: TProc;',
+  'begin',
+  '  p:=procedure; begin end;',
+  '  a:=3;',
   'end;',
   'begin']);
-  ParseProgram;
+  CheckParserException('Expected "begin" at token ";" in file afile.pp at line 7 column 15',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestAnonymousProc_Arg;
@@ -7190,11 +7212,28 @@ begin
   '  DoIt(function(b:word): word',
   '    begin',
   '      Result:=1+b;',
-  '    end;);',
-  '  DoMore(procedure begin end;, procedure begin end);',
+  '    end);',
+  '  DoMore(procedure begin end, procedure begin end);',
   'end;',
-  'begin']);
+  'begin',
+  '  DoMore(procedure begin end, procedure begin end);',
+  '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_ArgSemicolonFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'procedure DoIt(p: TProc);',
+  'begin',
+  'end;',
+  'begin',
+  '  DoIt(procedure begin end;);']);
+  CheckParserException('Expected "," at token ";" in file afile.pp at line 8 column 27',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestAnonymousProc_EqualFail;
@@ -7209,7 +7248,7 @@ begin
   '  if w=function(b:word): word',
   '    begin',
   '      Result:=1+b;',
-  '    end; then ;',
+  '    end then ;',
   'end;',
   'begin']);
   CheckResolverException('Incompatible types: got "Procedure/Function" expected "Word"',nIncompatibleTypesGotExpected);
@@ -7233,10 +7272,13 @@ begin
   Add([
   'type',
   '  TProc = reference to procedure;',
+  '  TProcB = reference to procedure cdecl;',
   'procedure DoIt(p: TProc);',
+  'var b: TProcB;',
   'begin',
-  '  p:=procedure assembler; asm end;',
-  '  p:=procedure() assembler; asm end;',
+  '  p:=procedure assembler asm end;',
+  '  p:=procedure() assembler asm end;',
+  '  b:=procedure() cdecl assembler asm end;',
   'end;',
   'begin']);
   ParseProgram;
