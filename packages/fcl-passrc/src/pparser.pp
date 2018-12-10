@@ -2385,11 +2385,13 @@ begin
   //    Result:=5;
     tknot,tkAt,tkAtAt:
       Result:=4;
-    tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkPower :
+    tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkPower, tkis:
+      // Note that "is" has same precedence as "and" in Delphi and fpc, even though
+      // some docs say otherwise. e.g. "Obj is TObj and aBool"
       Result:=3;
     tkPlus, tkMinus, tkor, tkxor:
       Result:=2;
-    tkEqual, tkNotEqual, tkLessThan, tkLessEqualThan, tkGreaterThan, tkGreaterEqualThan, tkin, tkis:
+    tkEqual, tkNotEqual, tkLessThan, tkLessEqualThan, tkGreaterThan, tkGreaterEqualThan, tkin:
       Result:=1;
   else
     Result:=0;
