@@ -459,11 +459,13 @@ type
     Procedure TestAnonymousProc_StatementFail;
     // ToDo: Delphi does not support calling directly: function(i: word):word begin end(3)
     // ToDo: Delphi does support calling with typecast: TFunc(function(i: word):word begin end)(3)
-    Procedure TestAnonymousProc_Typecast;// ToDo
+    Procedure TestAnonymousProc_Typecast;
+    Procedure TestAnonymousProc_TypecastToResultFail;
+    Procedure TestAnonymousProc_With; // ToDo
     // ToDo: ano in with (ano proc can access with scope)
+    // ToDo: ano in except E: Exception do ..
     // ToDo: ano in nested
     // ToDo: ano in ano
-    // ToDo: ano in except E: Exception do ..
     // ToDo: fppas2js: check "is TPasFunction", ".FuncType", "is TPasProcedureBody"
 
     // record
@@ -7312,16 +7314,55 @@ end;
 
 procedure TTestResolver.TestAnonymousProc_Typecast;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   'type',
   '  TProc = reference to procedure(w: word);',
   'procedure DoIt(p: TProc);',
   'begin',
-  '  p:=TProc(procedure(b: byte) begin end);',
-  '  p:=TProc(procedure(b: byte) begin end;);',
+  '  p:=TProc(procedure(b: smallint) begin end);',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_TypecastToResultFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'var i: longint;',
+  'begin',
+  '  i:=longint(function(b: byte): byte begin end);',
+  'end;',
+  'begin']);
+  CheckResolverException('Illegal type conversion: "Procedure/Function" to "Longint"',
+    nIllegalTypeConversionTo);
+end;
+
+procedure TTestResolver.TestAnonymousProc_With;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure(w: word);',
+  '  TObject = class end;',
+  '  TBird = class',
+  '    {#b_bool}b: boolean;',
+  '  end;',
+  'procedure DoIt({#i}i: longint);',
+  'var',
+  '  {#p}p: TProc;',
+  '  {#b_bird}bi: TBird;',
+  'begin',
+  '  with {@b_bird}bi do begin',
+  '    {@p}p:=procedure({#w}w: word)',
+  '      begin',
+  '        {@b_bool}b:=true;',
+ // '        {@b_bool}b:=({@w}w+{@i}i)>2;',
+  '      end; end;',
   'end;',
   'begin']);
   ParseProgram;

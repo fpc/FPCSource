@@ -214,11 +214,11 @@ Works:
   - assign in proc and program begin and initialization   p:=procedure begin end
   - pass as arg  doit(procedure begin end)
   - modifiers  assembler varargs cdecl
+  - typecast
 
 ToDo:
 - anonymous methods:
   - with
-  - typecast
   - self
 - Include/Exclude for set of int/char/bool
 - set of CharRange
@@ -1853,6 +1853,7 @@ type
     function IsEmptyArrayExpr(const ResolvedEl: TPasResolverResult): boolean;
     function IsClassMethod(El: TPasElement): boolean;
     function IsClassField(El: TPasElement): boolean;
+    function IsMethod(El: TPasProcedure): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
@@ -19276,6 +19277,41 @@ begin
           else
             Result:=cCompatible;
           end
+        end
+      else if FromResolved.BaseType=btProc then
+        begin
+        FromTypeEl:=FromResolved.LoTypeEl;
+        if FromTypeEl is TPasProcedureType then
+          begin
+          // typecast procedure (or anonymous procedure) to proctype
+          FromProcType:=TPasProcedureType(FromTypeEl);
+          if (msDelphi in CurrentParser.CurrentModeswitches)
+              and (FromResolved.IdentEl=nil) then
+            // Delphi forbids typecast procedure to proctype
+          else if ToProcType.IsReferenceTo then
+            Result:=cCompatible
+          else if FromResolved.IdentEl=nil then
+            // anonymous proc to proctype
+            Result:=cCompatible
+          else if (FromProcType.IsOfObject<>ToProcType.IsOfObject)
+              and not (proMethodAddrAsPointer in Options) then
+            begin
+            // e.g. TProcedure(Obj.DoIt)
+            if RaiseOnError then
+              RaiseMsg(20181210151058,nIllegalTypeConversionTo,sIllegalTypeConversionTo,
+                [GetElementTypeName(FromProcType)+BoolToStr(FromProcType.IsOfObject,' '+ProcTypeModifiers[ptmOfObject],''),
+                 ToProcType.ElementTypeName+BoolToStr(ToProcType.IsOfObject,' '+ProcTypeModifiers[ptmOfObject],'')],ErrorEl);
+            end
+          else if FromProcType.IsNested<>ToProcType.IsNested then
+            begin
+            if RaiseOnError then
+              RaiseMsg(20181210151102,nIllegalTypeConversionTo,sIllegalTypeConversionTo,
+                [GetElementTypeName(FromProcType)+BoolToStr(FromProcType.IsNested,' '+ProcTypeModifiers[ptmIsNested],''),
+                 ToProcType.ElementTypeName+BoolToStr(ToProcType.IsNested,' '+ProcTypeModifiers[ptmIsNested],'')],ErrorEl);
+            end
+          else
+            Result:=cCompatible;
+          end;
         end;
       end
     else if C=TPasPointerType then
@@ -20296,6 +20332,18 @@ begin
   Result:=((El.ClassType=TPasVariable) or (El.ClassType=TPasConst))
     and ([vmClass,vmStatic]*TPasVariable(El).VarModifiers<>[])
     and (El.Parent is TPasClassType);
+end;
+
+function TPasResolver.IsMethod(El: TPasProcedure): boolean;
+var
+  ProcScope: TPasProcedureScope;
+begin
+  Result:=false;
+  if El=nil then exit;
+  if El.Parent is TPasClassType then exit(true);
+  if not (El.CustomData is TPasProcedureScope) then exit;
+  ProcScope:=TPasProcedureScope(El.CustomData);
+  Result:=IsMethod(ProcScope.DeclarationProc);
 end;
 
 function TPasResolver.IsExternalClass_Name(aClass: TPasClassType;
