@@ -537,10 +537,10 @@ begin
 end;
 
 
-function PPUFlags2Str(flags:longint):string;
+function PPUFlags2Str(flags:dword):string;
 type
   tflagopt=record
-    mask : longint;
+    mask : dword;
     str  : string[30];
   end;
 const
@@ -578,10 +578,11 @@ const
     (mask: $10000000;str:'i8086_cs_equals_ds'),
     (mask: $20000000;str:'package_deny'),
     (mask: $40000000;str:'package_weak'),
-    (mask: longint($80000000);str:'i8086_ss_equals_ds')
+    (mask: dword($80000000);str:'i8086_ss_equals_ds')
   );
 var
-  i,ntflags : longint;
+  i : longint;
+  ntflags : dword;
   first  : boolean;
   s : string;
 begin
@@ -1051,7 +1052,7 @@ begin
      Writeln([fileindex,' (',line,',',column,')']);
      if Def <> nil then
        begin
-         Def.FilePos.FileIndex:=fileindex - 1;
+         Def.FilePos.FileIndex:=fileindex;
          Def.FilePos.Line:=line;
          Def.FilePos.Col:=column;
        end;
@@ -1812,7 +1813,8 @@ begin
               begin
                 len:=gettokenbufsizeint;
                 setlength(astring,len);
-                move(tokenbuf[tbi],astring[1],len);
+                if len>0 then
+                  move(tokenbuf[tbi],astring[1],len);
                 write([' ',astring]);
                 inc(tbi,len);
               end;
@@ -2595,7 +2597,7 @@ begin
                    write  ([space,'  PointerType : ']);
                    readderef('',constdef.TypeRef);
                    constdef.ConstType:=ctInt;
-                   constdef.VInt:=getptruint;
+                   constdef.VInt:=int64(getptruint);
                    writeln([space,'        Value : ',constdef.VInt])
                  end;
                conststring,
@@ -3306,7 +3308,7 @@ begin
              strdef:=TPpuStringDef.Create(ParentDef);
              strdef.StrType:=stWide;
              readcommondef('WideString definition',defoptions,strdef);
-             strdef.Len:=getaint;
+             strdef.Len:=getasizeint;
              writeln([space,'           Length : ',strdef.Len]);
            end;
 
@@ -3315,7 +3317,7 @@ begin
              strdef:=TPpuStringDef.Create(ParentDef);
              strdef.StrType:=stUnicode;
              readcommondef('UnicodeString definition',defoptions,strdef);
-             strdef.Len:=getaint;
+             strdef.Len:=getasizeint;
              writeln([space,'           Length : ',strdef.Len]);
              writeln([space,'         Encoding : ',getword]);
            end;
@@ -3325,7 +3327,7 @@ begin
              strdef:=TPpuStringDef.Create(ParentDef);
              strdef.StrType:=stAnsi;
              readcommondef('AnsiString definition',defoptions,strdef);
-             strdef.Len:=getaint;
+             strdef.Len:=getasizeint;
              writeln([space,'           Length : ',strdef.Len]);
              writeln([space,'         Encoding : ',getword]);
            end;
@@ -3335,7 +3337,7 @@ begin
              strdef:=TPpuStringDef.Create(ParentDef);
              strdef.StrType:=stLong;
              readcommondef('Longstring definition',defoptions,strdef);
-             strdef.Len:=getaint;
+             strdef.Len:=getasizeint;
              writeln([space,'           Length : ',strdef.Len]);
            end;
 

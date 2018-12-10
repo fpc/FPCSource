@@ -421,6 +421,9 @@ implementation
             repeat
               pb:=@blocks[h.block_x];
               success:=false;
+	      {$push}
+	      { Disable range check in that part of code }
+	      {$R-}
               repeat
                 if pb^[h.bucket_x]=0 then
                   begin
@@ -440,6 +443,7 @@ implementation
                   end;
                 h.bucket_x:=(h.bucket_x+h.bucket_d) mod nbuckets;
               until h.bucket_x=start_bucket;
+	      {$pop}
               if not success then
                 begin
                   h.block_x:=(h.block_x+h.block_d) mod nblocks;
