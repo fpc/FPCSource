@@ -1552,6 +1552,8 @@ begin
     end
   else if C=TInheritedExpr then
     UseInheritedExpr(TInheritedExpr(El))
+  else if C=TProcedureExpr then
+    UseProcedure(TProcedureExpr(El).Proc)
   else
     RaiseNotSupported(20170307085444,El);
 end;

@@ -72,6 +72,7 @@ type
     procedure TestM_NestedFuncResult;
     procedure TestM_Enums;
     procedure TestM_ProcedureType;
+    procedure TestM_AnonymousProc;
     procedure TestM_Params;
     procedure TestM_Class;
     procedure TestM_ClassForward;
@@ -996,6 +997,27 @@ begin
   Add('end;');
   Add('begin');
   Add('  DoIt;');
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_AnonymousProc;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#TProc_used}TProc = reference to procedure;',
+  'procedure {#DoIt_used}DoIt;',
+  'var',
+  '  {#p_used}p: TProc;',
+  '  {#i_used}i: longint;',
+  'begin',
+  '  p:=procedure',
+  '    begin',
+  '      i:=3;',
+  '    end;',
+  'end;',
+  'begin',
+  '  DoIt;']);
   AnalyzeProgram;
 end;
 

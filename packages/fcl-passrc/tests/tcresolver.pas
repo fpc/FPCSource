@@ -457,15 +457,12 @@ type
     Procedure TestAnonymousProc_Assembler;
     Procedure TestAnonymousProc_NameFail;
     Procedure TestAnonymousProc_StatementFail;
-    // ToDo: Delphi does not support calling directly: function(i: word):word begin end(3)
-    // ToDo: Delphi does support calling with typecast: TFunc(function(i: word):word begin end)(3)
     Procedure TestAnonymousProc_Typecast;
     Procedure TestAnonymousProc_TypecastToResultFail;
-    Procedure TestAnonymousProc_With; // ToDo
-    // ToDo: ano in with (ano proc can access with scope)
-    // ToDo: ano in except E: Exception do ..
-    // ToDo: ano in nested
-    // ToDo: ano in ano
+    Procedure TestAnonymousProc_With;
+    Procedure TestAnonymousProc_ExceptOn;
+    Procedure TestAnonymousProc_Nested;
+    // analyzer
     // ToDo: fppas2js: check "is TPasFunction", ".FuncType", "is TPasProcedureBody"
 
     // record
@@ -7318,9 +7315,16 @@ begin
   Add([
   'type',
   '  TProc = reference to procedure(w: word);',
+  '  TArr = array of word;',
+  '  TFuncArr = reference to function: TArr;',
   'procedure DoIt(p: TProc);',
+  'var',
+  '  w: word;',
+  '  a: TArr;',
   'begin',
   '  p:=TProc(procedure(b: smallint) begin end);',
+  '  a:=TFuncArr(function: TArr begin end)();',
+  '  w:=TFuncArr(function: TArr begin end)()[3];',
   'end;',
   'begin']);
   ParseProgram;
@@ -7342,27 +7346,89 @@ end;
 
 procedure TTestResolver.TestAnonymousProc_With;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   'type',
   '  TProc = reference to procedure(w: word);',
   '  TObject = class end;',
   '  TBird = class',
-  '    {#b_bool}b: boolean;',
+  '    {#bool}b: boolean;',
   '  end;',
   'procedure DoIt({#i}i: longint);',
   'var',
   '  {#p}p: TProc;',
-  '  {#b_bird}bi: TBird;',
+  '  {#bird}bird: TBird;',
   'begin',
-  '  with {@b_bird}bi do begin',
+  '  with {@bird}bird do',
   '    {@p}p:=procedure({#w}w: word)',
   '      begin',
-  '        {@b_bool}b:=true;',
- // '        {@b_bool}b:=({@w}w+{@i}i)>2;',
-  '      end; end;',
+  '        {@bool}b:=true;',
+  '        {@bool}b:=({@w}w+{@i}i)>2;',
+  '      end;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_ExceptOn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TObject = class end;',
+  '  Exception = class',
+  '    {#bool}b: boolean;',
+  '  end;',
+  'procedure DoIt;',
+  'var',
+  '  {#p}p: TProc;',
+  'begin',
+  '  try',
+  '  except',
+  '    on {#E}E: Exception do',
+  '    {@p}p:=procedure',
+  '      begin',
+  '        {@E}E.{@bool}b:=true;',
+  '      end;',
+  '  end;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_Nested;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TObject = class',
+  '    i: byte;',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TObject.DoIt;',
+  'var',
+  '  {#p}p: TProc;',
+  '  procedure Sub;',
+  '  begin',
+  '    p:=procedure',
+  '      begin',
+  '        i:=3;',
+  '        Self.i:=4;',
+  '        p:=procedure',
+  '            procedure SubSub;',
+  '            begin',
+  '              i:=13;',
+  '              Self.i:=14;',
+  '            end;',
+  '          begin',
+  '            i:=13;',
+  '            Self.i:=14;',
+  '          end;',
+  '      end;',
+  '  end;',
+  'begin',
   'end;',
   'begin']);
   ParseProgram;

@@ -171,6 +171,7 @@ type
     stResourceString, // e.g. TPasResString
     stProcedure, // also method, procedure, constructor, destructor, ...
     stProcedureHeader,
+    stWithExpr, // calls BeginScope after parsing every WITH-expression
     stExceptOnExpr,
     stExceptOnStatement,
     stDeclaration, // e.g. a TPasProperty, TPasVariable, TPasArgument
@@ -212,6 +213,7 @@ type
     function CreateFunctionType(const AName, AResultName: String; AParent: TPasElement;
       UseParentAsResultParent: Boolean; const ASrcPos: TPasSourcePos): TPasFunctionType;
     function FindElement(const AName: String): TPasElement; virtual; abstract;
+    procedure BeginScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     procedure FinishTypeAlias(var aType: TPasType); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
@@ -807,6 +809,13 @@ begin
   TPasFunctionType(Result).ResultEl :=
     TPasResultElement(CreateElement(TPasResultElement, AResultName, ResultParent,
     visDefault, ASrcPos));
+end;
+
+procedure TPasTreeContainer.BeginScope(ScopeType: TPasScopeType; El: TPasElement
+  );
+begin
+  if ScopeType=stModule then ; // avoid compiler warning
+  if El=nil then ;
 end;
 
 procedure TPasTreeContainer.FinishScope(ScopeType: TPasScopeType;
@@ -4660,6 +4669,11 @@ begin
       tkIdentifier, // e.g. procedure assembler
       tkbegin,tkvar,tkconst,tktype,tkprocedure,tkfunction:
         UngetToken;
+      tkColon:
+        if ProcType=ptAnonymousFunction then
+          UngetToken
+        else
+          ParseExcTokenError('begin');
       else
         ParseExcTokenError('begin');
       end;
@@ -5465,9 +5479,13 @@ var
   {$ENDIF}
 
   function CloseBlock: boolean; // true if parent reached
+  var C: TPasImplBlockClass;
   begin
-    if CurBlock.ClassType=TPasImplExceptOn then
-      Engine.FinishScope(stExceptOnStatement,CurBlock);
+    C:=TPasImplBlockClass(CurBlock.ClassType);
+    if C=TPasImplExceptOn then
+      Engine.FinishScope(stExceptOnStatement,CurBlock)
+    else if C=TPasImplWithDo then
+      Engine.FinishScope(stWithExpr,CurBlock);
     CurBlock:=CurBlock.Parent as TPasImplBlock;
     Result:=CurBlock=Parent;
   end;
@@ -5719,11 +5737,12 @@ begin
           CheckSemicolon;
           SrcPos:=CurTokenPos;
           NextToken;
+          El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
           Left:=DoParseExpression(CurBlock);
           //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
-          El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
           TPasImplWithDo(El).AddExpression(Left);
           Left.Parent:=El;
+          Engine.BeginScope(stWithExpr,Left);
           Left:=nil;
           CreateBlock(TPasImplWithDo(El));
           El:=nil;
@@ -5735,6 +5754,7 @@ begin
             Left:=DoParseExpression(CurBlock);
             //writeln(i,'WITH ...,Expr="',Expr,'" Token=',CurTokenText);
             TPasImplWithDo(CurBlock).AddExpression(Left);
+            Engine.BeginScope(stWithExpr,Left);
             Left:=nil;
           until false;
         end;

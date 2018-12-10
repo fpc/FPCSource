@@ -116,8 +116,7 @@ begin
     OrigSrc:=JSFile.Source;
     // compile, using .pcu files
     //for i:=0 to FileCount-1 do
-    //  writeln('AAA1 TCustomTestCLI_Precompile.CheckPrecompile ',i,' ',Files[i].Filename);
-
+    //  writeln('TCustomTestCLI_Precompile.CheckPrecompile ',i,' ',Files[i].Filename);
     {$IFDEF VerbosePCUFiler}
     writeln('TTestCLI_Precompile.CheckPrecompile compile using pcu files==================');
     {$ENDIF}
