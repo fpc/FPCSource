@@ -49,6 +49,7 @@
       <Unit3>
         <Filename Value="tcmodules.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCModules"/>
       </Unit3>
       <Unit4>
         <Filename Value="tcoptimizations.pas"/>
@@ -79,6 +80,7 @@
       <Unit10>
         <Filename Value="tcprecompile.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCPrecompile"/>
       </Unit10>
     </Units>
   </ProjectOptions>

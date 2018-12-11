@@ -355,6 +355,7 @@ Works:
 - typecast TJSFunction(func)
 - modeswitch OmitRTTI
 - debugger;
+- anonymous functions
 
 ToDos:
 - do not rename property Date
@@ -1717,9 +1718,9 @@ type
     // Expressions
     Function ConvertConstValue(Value: TResEvalValue; AContext: TConvertContext; El: TPasElement): TJSElement; virtual;
     Function ConvertArrayValues(El: TArrayValues; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertInheritedExpression(El: TInheritedExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertInheritedExpr(El: TInheritedExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertNilExpr(El: TNilExpr; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertParamsExpression(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertParamsExpr(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertArrayParams(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertFuncParams(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertExternalConstructor(Left: TPasElement; Ref: TResolvedReference;
@@ -2906,11 +2907,12 @@ procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
   end;
 
   procedure CheckResultEl(Ref: TResolvedReference);
+  // Ref.Declaration is TPasResultElement
   var
-    Func: TPasFunction;
     CurEl: TPasElement;
     Lvl: Integer;
     ProcScope, CurProcScope: TPas2JSProcedureScope;
+    FuncType: TPasFunctionType;
   begin
     // result refers to a function result
     // -> check if it is referring to a parent function result
@@ -2919,19 +2921,24 @@ procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
     CurProcScope:=nil;
     while CurEl<>nil do
       begin
-      if CurEl is TPasFunction then
+      if (CurEl is TPasProcedure)
+          and (TPasProcedure(CurEl).ProcType is TPasFunctionType) then
         begin
         inc(Lvl);
-        ProcScope:=CurEl.CustomData as TPas2JSProcedureScope;
-        Func:=ProcScope.DeclarationProc as TPasFunction;
-        if Func=nil then
-          Func:=TPasFunction(CurEl);
+        if not (CurEl.CustomData is TPas2JSProcedureScope) then
+          RaiseInternalError(20181210231858);
+        ProcScope:=TPas2JSProcedureScope(CurEl.CustomData);
+        if ProcScope.DeclarationProc is TPasFunction then
+          FuncType:=TPasFunctionType(ProcScope.DeclarationProc.ProcType)
+        else
+          FuncType:=TPasFunctionType(TPasProcedure(CurEl).ProcType);
         if Lvl=1 then
           begin
           // current function (where the statement of El is)
-          if (Func.FuncType.ResultEl=Ref.Declaration) then
+          if (FuncType.ResultEl=Ref.Declaration) then
             exit; // accessing current function -> ok
           // accessing Result variable of higher function -> need rename
+          // Note: ProcScope.ResultVarName only valid in implementation ProcScope
           if ProcScope.ResultVarName<>'' then
             exit; // is already renamed
           CurProcScope:=ProcScope;
@@ -6170,7 +6177,7 @@ begin
   eopNone:
     if El.left is TInheritedExpr then
       begin
-      Result:=ConvertInheritedExpression(TInheritedExpr(El.left),AContext);
+      Result:=ConvertInheritedExpr(TInheritedExpr(El.left),AContext);
       exit;
       end;
   end;
@@ -6910,7 +6917,7 @@ begin
       if ParamsExpr<>nil then
         begin
         // left side is done in ConvertFuncParams
-        Result:=ConvertParamsExpression(El.right as TParamsExpr,AContext);
+        Result:=ConvertParamsExpr(El.right as TParamsExpr,AContext);
         end
       else
         // e.g. ExtClass.new;
@@ -7189,12 +7196,12 @@ var
   TargetProcType: TPasProcedureType;
   ArrLit: TJSArrayLiteral;
   IndexExpr: TPasExpr;
-  Func: TPasFunction;
   FuncScope: TPas2JSProcedureScope;
   Value: TResEvalValue;
   aResolver: TPas2JSResolver;
   BracketExpr: TJSBracketMemberExpression;
   PathExpr: TJSElement;
+  Proc: TPasProcedure;
 begin
   Result:=nil;
   if not (El.CustomData is TResolvedReference) then
@@ -7350,7 +7357,7 @@ begin
     begin
     BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
     {$IFDEF VerbosePas2JS}
-    writeln('TPasToJSConverter.ConvertPrimitiveExpression ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
+    writeln('TPasToJSConverter.ConvertIdentifierExpr ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
     {$ENDIF}
     case BuiltInProc.BuiltIn of
       bfBreak: Result:=ConvertBuiltInBreak(El,AContext);
@@ -7384,8 +7391,8 @@ begin
   else if (Decl is TPasResultElement) then
     begin
     Name:=ResolverResultVar;
-    Func:=Decl.Parent.Parent as TPasFunction;
-    FuncScope:=Func.CustomData as TPas2JSProcedureScope;
+    Proc:=Decl.Parent.Parent as TPasProcedure;
+    FuncScope:=Proc.CustomData as TPas2JSProcedureScope;
     if FuncScope.ImplProc<>nil then
       FuncScope:=FuncScope.ImplProc.CustomData as TPas2JSProcedureScope;
     if FuncScope.ResultVarName<>'' then
@@ -7450,7 +7457,7 @@ begin
   Result:=CreateLiteralNull(El);
 end;
 
-function TPasToJSConverter.ConvertInheritedExpression(El: TInheritedExpr;
+function TPasToJSConverter.ConvertInheritedExpr(El: TInheritedExpr;
   AContext: TConvertContext): TJSElement;
 
   function CreateAncestorCall(ParentEl: TPasElement; Apply: boolean;
@@ -7615,7 +7622,7 @@ begin
   Result:=ConvertIdentifierExpr(El,'Self',AContext);
 end;
 
-function TPasToJSConverter.ConvertParamsExpression(El: TParamsExpr;
+function TPasToJSConverter.ConvertParamsExpr(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 begin
   Result:=Nil;
@@ -9621,10 +9628,16 @@ var
   FuncContext: TFunctionContext;
   AssignSt: TJSSimpleAssignStatement;
   St: TJSStatementList;
+  Proc: TPasProcedure;
 begin
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.ConvertBuiltIn_Exit ',GetObjName(El));
+  {$ENDIF}
   ProcEl:=El.Parent;
   while (ProcEl<>nil) and not (ProcEl is TPasProcedure) do
     ProcEl:=ProcEl.Parent;
+  // ProcEl can be nil, when exit is in program begin block
+  Proc:=TPasProcedure(ProcEl);
   Result:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
   if (El is TParamsExpr) and (length(TParamsExpr(El).Params)>0) then
     begin
@@ -9634,10 +9647,10 @@ begin
   else
     begin
     // without parameter
-    if ProcEl is TPasFunction then
+    if (Proc<>nil) and (Proc.ProcType is TPasFunctionType) then
       begin
       // in a function, "return result;"
-      Scope:=ProcEl.CustomData as TPas2JSProcedureScope;
+      Scope:=Proc.CustomData as TPas2JSProcedureScope;
       VarName:=Scope.ResultVarName;
       if VarName='' then
         VarName:=ResolverResultVar;
@@ -11154,11 +11167,13 @@ begin
   else if (El.ClassType=TNilExpr) then
     Result:=ConvertNilExpr(TNilExpr(El),AContext)
   else if (El.ClassType=TInheritedExpr) then
-    Result:=ConvertInheritedExpression(TInheritedExpr(El),AContext)
+    Result:=ConvertInheritedExpr(TInheritedExpr(El),AContext)
   else if (El.ClassType=TSelfExpr) then
     Result:=ConvertSelfExpression(TSelfExpr(El),AContext)
   else if (El.ClassType=TParamsExpr) then
-    Result:=ConvertParamsExpression(TParamsExpr(El),AContext)
+    Result:=ConvertParamsExpr(TParamsExpr(El),AContext)
+  else if (El.ClassType=TProcedureExpr) then
+    Result:=ConvertProcedure(TProcedureExpr(El).Proc,AContext)
   else if (El.ClassType=TRecordValues) then
     Result:=ConvertRecordValues(TRecordValues(El),AContext)
   else if (El.ClassType=TArrayValues) then
@@ -11383,16 +11398,16 @@ Var
 
   Procedure AddFunctionResultInit;
   var
-    VarSt: TJSVariableStatement;
-    PasFun: TPasFunction;
+    Proc: TPasProcedure;
     FunType: TPasFunctionType;
+    VarSt: TJSVariableStatement;
     SrcEl: TPasElement;
     Scope: TPas2JSProcedureScope;
   begin
-    PasFun:=El.Parent as TPasFunction;
-    FunType:=PasFun.FuncType;
+    Proc:=El.Parent as TPasProcedure;
+    FunType:=Proc.ProcType as TPasFunctionType;
     ResultEl:=FunType.ResultEl;
-    Scope:=PasFun.CustomData as TPas2JSProcedureScope;
+    Scope:=Proc.CustomData as TPas2JSProcedureScope;
     if Scope.ResultVarName<>'' then
       ResultVarName:=Scope.ResultVarName
     else
@@ -11509,7 +11524,8 @@ begin
   }
 
   IsProcBody:=(El is TProcedureBody) and (TProcedureBody(El).Body<>nil);
-  IsFunction:=IsProcBody and (El.Parent is TPasFunction);
+  IsFunction:=IsProcBody and (El.Parent is TPasProcedure)
+                    and (TPasProcedure(El.Parent).ProcType is TPasFunctionType);
   IsAssembler:=IsProcBody and (TProcedureBody(El).Body is TPasImplAsmStatement);
   HasResult:=IsFunction and not IsAssembler;
 
@@ -13059,9 +13075,10 @@ begin
     AssignSt.Expr:=FS
   else
     begin
-    // local/nested function
+    // local/nested or anonymous function
     Result:=FS;
-    FD.Name:=TJSString(TransformVariableName(El,AContext));
+    if El.Name<>'' then
+      FD.Name:=TJSString(TransformVariableName(El,AContext));
     end;
 
   for n := 0 to El.ProcType.Args.Count - 1 do
@@ -13128,7 +13145,7 @@ begin
       if ProcScope.ClassScope<>nil then
         begin
         // method or class method
-        if El.Parent is TProcedureBody then
+        if not AContext.IsGlobal then
           begin
           // nested sub procedure  ->  no 'this'
           FuncContext.ThisPas:=nil;

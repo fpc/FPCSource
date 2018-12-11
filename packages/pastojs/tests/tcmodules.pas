@@ -17,7 +17,7 @@
     ./testpas2js --suite=TTestModule.TestEmptyProgram
     ./testpas2js --suite=TTestModule.TestEmptyUnit
 }
-unit tcmodules;
+unit TCModules;
 
 {$mode objfpc}{$H+}
 
@@ -326,6 +326,14 @@ type
     Procedure TestProc_DuplicateConst;
     Procedure TestProc_LocalVarAbsolute;
     Procedure TestProc_ReservedWords;
+
+    Procedure TestAnonymousProc_Assign;
+    Procedure TestAnonymousProc_Arg;
+    Procedure TestAnonymousProc_Typecast;
+    Procedure TestAnonymousProc_With;
+    Procedure TestAnonymousProc_ExceptOn;
+    Procedure TestAnonymousProc_Nested;
+    Procedure TestAnonymousProc_NestedAssignResult;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -3964,6 +3972,355 @@ begin
     LinesToStr([
     '  $mod.Date(1);'
     ]));
+end;
+
+procedure TTestModule.TestAnonymousProc_Assign;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFunc = reference to function(x: word): word;',
+  'var Func: TFunc;',
+  'procedure DoIt(a: word);',
+  'begin',
+  '  Func:=function(b:word): word',
+  '  begin',
+  '    Result:=a+b;',
+  '    exit(b);',
+  '    exit(Result);',
+  '  end;',// test semicolon
+  '  a:=3;',
+  'end;',
+  'begin',
+  '  Func:=function(c:word):word begin',
+  '    Result:=3+c;',
+  '    exit(c);',
+  '    exit(Result);',
+  '  end;']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_Assign',
+    LinesToStr([ // statements
+    'this.Func = null;',
+    'this.DoIt = function (a) {',
+    '  $mod.Func = function (b) {',
+    '    var Result = 0;',
+    '    Result = a + b;',
+    '    return b;',
+    '    return Result;',
+    '    return Result;',
+    '  };',
+    '  a = 3;',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Func = function (c) {',
+    '  var Result = 0;',
+    '  Result = 3 + c;',
+    '  return c;',
+    '  return Result;',
+    '  return Result;',
+    '};',
+    '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_Arg;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TFunc = reference to function(x: word): word;',
+  'procedure DoMore(f,g: TProc);',
+  'begin',
+  'end;',
+  'procedure DoIt(f: TFunc);',
+  'begin',
+  '  DoIt(function(b:word): word',
+  '    begin',
+  '      Result:=1+b;',
+  '    end);',
+  '  DoMore(procedure begin end, procedure begin end);',
+  'end;',
+  'begin',
+  '  DoMore(procedure begin end,',
+  '    procedure assembler asm',
+  '      console.log("c");',
+  '    end);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_Arg',
+    LinesToStr([ // statements
+    'this.DoMore = function (f, g) {',
+    '};',
+    'this.DoIt = function (f) {',
+    '  $mod.DoIt(function (b) {',
+    '    var Result = 0;',
+    '    Result = 1 + b;',
+    '    return Result;',
+    '  });',
+    '  $mod.DoMore(function () {',
+    '  }, function () {',
+    '  });',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.DoMore(function () {',
+    '}, function () {',
+    '  console.log("c");',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_Typecast;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure(w: word);',
+  '  TArr = array of word;',
+  '  TFuncArr = reference to function: TArr;',
+  'procedure DoIt(p: TProc);',
+  'var',
+  '  w: word;',
+  '  a: TArr;',
+  'begin',
+  '  p:=TProc(procedure(b: smallint) begin end);',
+  '  a:=TFuncArr(function: TArr begin end)();',
+  '  w:=TFuncArr(function: TArr begin end)()[3];',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_Typecast',
+    LinesToStr([ // statements
+    'this.DoIt = function (p) {',
+    '  var w = 0;',
+    '  var a = [];',
+    '  p = function (b) {',
+    '  };',
+    '  a = function () {',
+    '    var Result = [];',
+    '    return Result;',
+    '  }();',
+    '  w = function () {',
+    '    var Result = [];',
+    '    return Result;',
+    '  }()[3];',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_With;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure(w: word);',
+  '  TObject = class',
+  '    b: boolean;',
+  '  end;',
+  'var',
+  '  p: TProc;',
+  '  bird: TObject;',
+  'begin',
+  '  with bird do',
+  '    p:=procedure(w: word)',
+  '      begin',
+  '        b:=w>2;',
+  '      end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_With',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.b = false;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.p = null;',
+    'this.bird = null;',
+    '']),
+    LinesToStr([
+    'var $with1 = $mod.bird;',
+    '$mod.p = function (w) {',
+    '  $with1.b = w > 2;',
+    '};',
+    '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_ExceptOn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TObject = class',
+  '    b: boolean;',
+  '  end;',
+  'procedure DoIt;',
+  'var',
+  '  p: TProc;',
+  'begin',
+  '  try',
+  '  except',
+  '    on E: TObject do',
+  '    p:=procedure',
+  '      begin',
+  '        E.b:=true;',
+  '      end;',
+  '  end;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_ExceptOn',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.b = false;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function () {',
+    '  var p = null;',
+    '  try {} catch ($e) {',
+    '    if ($mod.TObject.isPrototypeOf($e)) {',
+    '      var E = $e;',
+    '      p = function () {',
+    '        E.b = true;',
+    '      };',
+    '    } else throw $e',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_Nested;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TObject = class',
+  '    i: byte;',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TObject.DoIt;',
+  'var',
+  '  p: TProc;',
+  '  procedure Sub;',
+  '  begin',
+  '    p:=procedure',
+  '      begin',
+  '        i:=3;',
+  '        Self.i:=4;',
+  '        p:=procedure',
+  '            procedure SubSub;',
+  '            begin',
+  '              i:=13;',
+  '              Self.i:=14;',
+  '            end;',
+  '          begin',
+  '            i:=13;',
+  '            Self.i:=14;',
+  '          end;',
+  '      end;',
+  '  end;',
+  'begin',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_Nested',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    var Self = this;',
+    '    var p = null;',
+    '    function Sub() {',
+    '      p = function () {',
+    '        Self.i = 3;',
+    '        Self.i = 4;',
+    '        p = function () {',
+    '          function SubSub() {',
+    '            Self.i = 13;',
+    '            Self.i = 14;',
+    '          };',
+    '          Self.i = 13;',
+    '          Self.i = 14;',
+    '        };',
+    '      };',
+    '    };',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_NestedAssignResult;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'function DoIt: TProc;',
+  '  function Sub: TProc;',
+  '  begin',
+  '    Result:=procedure',
+  '      begin',
+  '        Sub:=procedure',
+  '            procedure SubSub;',
+  '            begin',
+  '              Result:=nil;',
+  '              Sub:=nil;',
+  '              DoIt:=nil;',
+  '            end;',
+  '          begin',
+  '            Result:=nil;',
+  '            Sub:=nil;',
+  '            DoIt:=nil;',
+  '          end;',
+  '      end;',
+  '  end;',
+  'begin',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_NestedAssignResult',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var Result = null;',
+    '  function Sub() {',
+    '    var Result$1 = null;',
+    '    Result$1 = function () {',
+    '      Result$1 = function () {',
+    '        function SubSub() {',
+    '          Result$1 = null;',
+    '          Result$1 = null;',
+    '          Result = null;',
+    '        };',
+    '        Result$1 = null;',
+    '        Result$1 = null;',
+    '        Result = null;',
+    '      };',
+    '    };',
+    '    return Result$1;',
+    '  };',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
 end;
 
 procedure TTestModule.TestEnum_Name;

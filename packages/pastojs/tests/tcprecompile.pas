@@ -17,7 +17,7 @@
     ./testpas2js --suite=TTestCLI_Precompile
     ./testpas2js --suite=TTestModule.TestEmptyUnit
 }
-unit tcprecompile;
+unit TCPrecompile;
 
 {$mode objfpc}{$H+}
 
@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils,
   fpcunit, testregistry, Pas2jsFileUtils, Pas2JsFiler, Pas2jsCompiler,
-  tcunitsearch, tcmodules;
+  TCUnitSearch, TCModules;
 
 type
 
