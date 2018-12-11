@@ -165,6 +165,8 @@ function Max(a, b: Cardinal): Cardinal; overload;
 }
 function Min(a, b: Int64): Int64;inline; overload;
 function Max(a, b: Int64): Int64;inline; overload;
+function Min(a, b: QWord): QWord;inline; overload;
+function Max(a, b: QWord): QWord;inline; overload;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;inline; overload;
 function Max(a, b: Single): Single;inline; overload;
@@ -2049,6 +2051,22 @@ begin
 end;
 
 function Max(a, b: Int64): Int64;inline;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Min(a, b: QWord): QWord; inline;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Max(a, b: QWord): Qword;inline;
 begin
   if a > b then
     Result := a
