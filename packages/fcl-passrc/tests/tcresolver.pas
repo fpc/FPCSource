@@ -462,8 +462,6 @@ type
     Procedure TestAnonymousProc_With;
     Procedure TestAnonymousProc_ExceptOn;
     Procedure TestAnonymousProc_Nested;
-    // analyzer
-    // ToDo: fppas2js: check "is TPasFunction", ".FuncType", "is TPasProcedureBody"
 
     // record
     Procedure TestRecord;
@@ -7409,7 +7407,7 @@ begin
   '  end;',
   'procedure TObject.DoIt;',
   'var',
-  '  {#p}p: TProc;',
+  '  p: TProc;',
   '  procedure Sub;',
   '  begin',
   '    p:=procedure',

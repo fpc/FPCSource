@@ -5396,7 +5396,9 @@ begin
   AsmBlock:=TPasImplAsmStatement(CreateElement(TPasImplAsmStatement,'',Parent));
   Parent.Body:=AsmBlock;
   ParseAsmBlock(AsmBlock);
-  ExpectToken(tkSemicolon);
+  NextToken;
+  if not (Parent.Parent is TPasAnonymousProcedure) then
+    CheckToken(tkSemicolon);
 end;
 
 procedure TPasParser.ParseAsmBlock(AsmBlock: TPasImplAsmStatement);

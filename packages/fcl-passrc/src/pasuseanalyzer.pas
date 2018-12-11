@@ -2493,6 +2493,7 @@ var
   ProcScope: TPasProcedureScope;
   PosEl: TPasElement;
   DeclProc, ImplProc: TPasProcedure;
+  FuncType: TPasFunctionType;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitProcedureHints ',GetElModName(El));
@@ -2558,12 +2559,14 @@ begin
         end;
       end;
     // check result
-    if (El is TPasFunction) then
+    if (El.ProcType is TPasFunctionType) then
       begin
-      PosEl:=TPasFunction(El).FuncType.ResultEl;
-      if (ProcScope.ImplProc<>nil) and (TPasFunction(ProcScope.ImplProc).FuncType.ResultEl<>nil) then
+      FuncType:=TPasFunctionType(TPasProcedure(El).ProcType);
+      PosEl:=FuncType.ResultEl;
+      if (ProcScope.ImplProc<>nil)
+          and (TPasFunction(ProcScope.ImplProc).FuncType.ResultEl<>nil) then
         PosEl:=TPasFunction(ProcScope.ImplProc).FuncType.ResultEl;
-      Usage:=FindElement(TPasFunction(El).FuncType.ResultEl);
+      Usage:=FindElement(FuncType.ResultEl);
       if (Usage=nil) or (Usage.Access in [paiaNone,paiaRead]) then
         // result was never used
         EmitMessage(20170313214038,mtHint,nPAFunctionResultDoesNotSeemToBeSet,

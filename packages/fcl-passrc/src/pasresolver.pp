@@ -1858,6 +1858,7 @@ type
     function IsEmptyArrayExpr(const ResolvedEl: TPasResolverResult): boolean;
     function IsClassMethod(El: TPasElement): boolean;
     function IsClassField(El: TPasElement): boolean;
+    function GetFunctionType(El: TPasElement): TPasFunctionType;
     function IsMethod(El: TPasProcedure): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
@@ -20421,6 +20422,18 @@ begin
     and (El.Parent is TPasClassType);
 end;
 
+function TPasResolver.GetFunctionType(El: TPasElement): TPasFunctionType;
+var
+  ProcType: TPasProcedureType;
+begin
+  if not (El is TPasProcedure) then exit(nil);
+  ProcType:=TPasProcedure(El).ProcType;
+  if ProcType is TPasFunctionType then
+    Result:=TPasFunctionType(ProcType)
+  else
+    Result:=nil;
+end;
+
 function TPasResolver.IsMethod(El: TPasProcedure): boolean;
 var
   ProcScope: TPasProcedureScope;
@@ -20814,9 +20827,10 @@ begin
     if not HasTypeInfo(TPasType(El.Parent)) then
       exit;
     end
-  else
-    if ElHasModeSwitch(El,msOmitRTTI) then
-      exit;
+  else if ElHasModeSwitch(El,msOmitRTTI) then
+    exit
+  else if El.Parent is TPasAnonymousProcedure then
+    exit;
   Result:=true;
 end;
 
