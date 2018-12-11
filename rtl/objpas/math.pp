@@ -141,6 +141,9 @@ Const
        EqualsValue = 0;
        LessThanValue = Low(TValueRelationship);
        GreaterThanValue = High(TValueRelationship);
+       
+
+       
 {$push}
 {$R-}
 {$Q-}
