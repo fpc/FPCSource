@@ -1304,7 +1304,7 @@ begin
     LastSep:=Sep+System.Length(Separators[Match]);
     Sep:=NextSep(LastSep,Match);
     end;
-  if (LastSep<Length-1) and ((ACount=0) or (Len<ACount)) then
+  if (LastSep<Length) and ((ACount=0) or (Len<ACount)) then
     begin
     T:=SubString(LastSep);
 //    Writeln('Examining >',T,'< at pos,',LastSep,' till pos ',Sep);

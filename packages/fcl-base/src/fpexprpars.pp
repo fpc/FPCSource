@@ -1967,7 +1967,7 @@ begin
     else
       begin
       Val(CurrentToken,X,C);
-      If (I=0) then
+      If (C=0) then
         Result:=TFPConstExpression.CreateFloat(X)
       else
         ParserError(Format(SErrInvalidFloat,[CurrentToken]));
