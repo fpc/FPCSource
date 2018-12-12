@@ -19374,8 +19374,9 @@ begin
           // typecast procedure (or anonymous procedure) to proctype
           FromProcType:=TPasProcedureType(FromTypeEl);
           if (msDelphi in CurrentParser.CurrentModeswitches)
-              and (FromResolved.IdentEl=nil) then
-            // Delphi forbids typecast procedure to proctype
+              and (FromResolved.IdentEl=nil)
+              and (FromResolved.LoTypeEl.Name<>'') then
+            // Delphi forbids typecast (non anonymous) procedure to proctype
           else if ToProcType.IsReferenceTo then
             Result:=cCompatible
           else if FromResolved.IdentEl=nil then

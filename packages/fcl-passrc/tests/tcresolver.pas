@@ -457,7 +457,8 @@ type
     Procedure TestAnonymousProc_Assembler;
     Procedure TestAnonymousProc_NameFail;
     Procedure TestAnonymousProc_StatementFail;
-    Procedure TestAnonymousProc_Typecast;
+    Procedure TestAnonymousProc_Typecast_ObjFPC;
+    Procedure TestAnonymousProc_Typecast_Delphi;
     Procedure TestAnonymousProc_TypecastToResultFail;
     Procedure TestAnonymousProc_With;
     Procedure TestAnonymousProc_ExceptOn;
@@ -7307,10 +7308,33 @@ begin
   CheckParserException(SParserSyntaxError,nParserSyntaxError);
 end;
 
-procedure TTestResolver.TestAnonymousProc_Typecast;
+procedure TTestResolver.TestAnonymousProc_Typecast_ObjFPC;
 begin
   StartProgram(false);
   Add([
+  '{$mode ObjFPC}',
+  'type',
+  '  TProc = reference to procedure(w: word);',
+  '  TArr = array of word;',
+  '  TFuncArr = reference to function: TArr;',
+  'procedure DoIt(p: TProc);',
+  'var',
+  '  w: word;',
+  '  a: TArr;',
+  'begin',
+  '  p:=TProc(procedure(b: smallint) begin end);',
+  '  a:=TFuncArr(function: TArr begin end)();',
+  '  w:=TFuncArr(function: TArr begin end)()[3];',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_Typecast_Delphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode Delphi}',
   'type',
   '  TProc = reference to procedure(w: word);',
   '  TArr = array of word;',
