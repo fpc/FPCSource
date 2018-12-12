@@ -7442,7 +7442,6 @@ packages/rtl-extra/src/amiga/printer.pp svneol=native#text/plain
 packages/rtl-extra/src/amiga/sockets.pp svneol=native#text/plain
 packages/rtl-extra/src/android/clocale.pp svneol=native#text/plain
 packages/rtl-extra/src/android/osdefs.inc svneol=native#text/plain
-packages/rtl-extra/src/android/unixsock.inc svneol=native#text/plain
 packages/rtl-extra/src/android/unxsockh.inc svneol=native#text/plain
 packages/rtl-extra/src/aros/sockets.pp svneol=native#text/plain
 packages/rtl-extra/src/beos/osdefs.inc svneol=native#text/plain
