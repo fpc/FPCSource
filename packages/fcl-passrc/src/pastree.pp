@@ -1988,7 +1988,7 @@ end;
 
 constructor TProcedureExpr.Create(AParent: TPasElement);
 begin
-  inherited Create(AParent,pekProcedure, eopNone);
+  inherited Create(AParent,pekProcedure,eopNone);
 end;
 
 destructor TProcedureExpr.Destroy;
@@ -2009,8 +2009,7 @@ procedure TProcedureExpr.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  if Proc<>nil then
-    Proc.ForEachCall(aMethodCall,Arg);
+  ForEachChildCall(aMethodCall,Arg,Proc,false);
 end;
 
 { TPasImplRaise }

@@ -450,6 +450,8 @@ type
     // anonymous procs
     Procedure TestAnonymousProc_Assign;
     Procedure TestAnonymousProc_AssignSemicolonFail;
+    Procedure TestAnonymousProc_Assign_ReferenceToMissingFail;
+    Procedure TestAnonymousProc_Assign_WrongParamListFail;
     Procedure TestAnonymousProc_Arg;
     Procedure TestAnonymousProc_ArgSemicolonFail;
     Procedure TestAnonymousProc_EqualFail;
@@ -2230,6 +2232,11 @@ begin
     for i:=0 to length(TParamsExpr(El).Params)-1 do
       if TParamsExpr(El).Params[i].Parent<>El then
         E('TParamsExpr(El).Params[i].Parent='+GetObjName(TParamsExpr(El).Params[i].Parent)+'<>El');
+    end
+  else if El is TProcedureExpr then
+    begin
+    if (TProcedureExpr(El).Proc<>nil) and (TProcedureExpr(El).Proc.Parent<>El) then
+      E('TProcedureExpr(El).Proc.Parent='+GetObjName(TProcedureExpr(El).Proc.Parent)+'<>El');
     end
   else if El is TPasDeclarations then
     begin
@@ -7193,6 +7200,38 @@ begin
   'begin']);
   CheckParserException('Expected "begin" at token ";" in file afile.pp at line 7 column 15',
     nParserExpectTokenError);
+end;
+
+procedure TTestResolver.TestAnonymousProc_Assign_ReferenceToMissingFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = procedure;',
+  'procedure DoIt;',
+  'var p: TProc;',
+  'begin',
+  '  p:=procedure(w: word) begin end;',
+  'end;',
+  'begin']);
+  CheckResolverException('procedural type modifier "reference to" mismatch',
+    nXModifierMismatchY);
+end;
+
+procedure TTestResolver.TestAnonymousProc_Assign_WrongParamListFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'procedure DoIt;',
+  'var p: TProc;',
+  'begin',
+  '  p:=procedure(w: word) begin end;',
+  'end;',
+  'begin']);
+  CheckResolverException('Incompatible types, got 0 parameters, expected 1',
+    nIncompatibleTypesGotParametersExpected);
 end;
 
 procedure TTestResolver.TestAnonymousProc_Arg;

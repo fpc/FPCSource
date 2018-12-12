@@ -16320,6 +16320,14 @@ begin
     else
       ; // AnyProc = aRefTo -> ok
     end
+  else if Proc2.Parent is TPasAnonymousProcedure then
+    begin
+    if IsAssign then
+      // NonRefTo := AnonymousProc  -> not possible
+      exit(ModifierError(ptmReferenceTo))
+    else
+      ; // AnyProc = AnonymousProc -> ok
+    end
   else
     begin
     // neither Proc1 nor Proc2 is a reference-to  -> check isNested and OfObject

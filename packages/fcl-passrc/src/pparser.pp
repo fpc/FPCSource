@@ -456,7 +456,7 @@ type
     procedure ParseArgList(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       EndToken: TToken);
-    procedure ParseProcedureOrFunctionHeader(Parent: TPasElement; Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
+    procedure ParseProcedureOrFunction(Parent: TPasElement; Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
     procedure ParseProcedureBody(Parent: TPasElement);
     function ParseMethodResolution(Parent: TPasElement): TPasMethodResolution;
     // Properties for external access
@@ -1818,14 +1818,14 @@ begin
     tkProcedure:
       begin
         Result := TPasProcedureType(CreateElement(TPasProcedureType, '', Parent));
-        ParseProcedureOrFunctionHeader(Result, TPasProcedureType(Result), ptProcedure, True);
+        ParseProcedureOrFunction(Result, TPasProcedureType(Result), ptProcedure, True);
         if CurToken = tkSemicolon then
           UngetToken;        // Unget semicolon
       end;
     tkFunction:
       begin
         Result := CreateFunctionType('', 'Result', Parent, False, CurSourcePos);
-        ParseProcedureOrFunctionHeader(Result, TPasFunctionType(Result), ptFunction, True);
+        ParseProcedureOrFunction(Result, TPasFunctionType(Result), ptFunction, True);
         if CurToken = tkSemicolon then
           UngetToken;        // Unget semicolon
       end;
@@ -2214,6 +2214,7 @@ var
   ST: TPasSpecializeType;
   SrcPos, ScrPos: TPasSourcePos;
   ProcType: TProcType;
+  ProcExpr: TProcedureExpr;
 
 begin
   Result:=nil;
@@ -2272,14 +2273,13 @@ begin
         ProcType:=ptAnonymousProcedure
       else
         ProcType:=ptAnonymousFunction;
-      ok:=false;
       try
-        Result:=TProcedureExpr(CreateElement(TProcedureExpr,'',AParent,visPublic));
-        TProcedureExpr(Result).Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(Result,ProcType));
-        ok:=true;
+        ProcExpr:=TProcedureExpr(CreateElement(TProcedureExpr,'',AParent,visPublic));
+        ProcExpr.Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(ProcExpr,ProcType));
+        Result:=ProcExpr;
       finally
-        if not ok then
-          Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+        if Result=nil then
+          ProcExpr.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       end;
       exit; // do not allow postfix operators . ^. [] ()
       end;
@@ -4144,7 +4144,7 @@ begin
     Result := TPasProcedureType(CreateElement(TPasProcedureType, TypeName, Parent, NamePos));
   ok:=false;
   try
-    ParseProcedureOrFunctionHeader(Result, TPasProcedureType(Result), PT, True);
+    ParseProcedureOrFunction(Result, TPasProcedureType(Result), PT, True);
     ok:=true;
   finally
     if not ok then
@@ -4837,7 +4837,7 @@ begin
     end;
 end;
 
-procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
+procedure TPasParser.ParseProcedureOrFunction(Parent: TPasElement;
   Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
 
   Function FindInSection(AName : String;ASection : TPasSection) : Boolean;
@@ -4966,10 +4966,10 @@ begin
       UnGetToken;
     end;
   ModTokenCount:=0;
-  //writeln('TPasParser.ParseProcedureOrFunctionHeader IsProcType=',IsProcType,' IsAnonymous=',IsAnonymous);
+  //writeln('TPasParser.ParseProcedureOrFunction IsProcType=',IsProcType,' IsAnonymous=',IsAnonymous);
   Repeat
     inc(ModTokenCount);
-    //writeln('TPasParser.ParseProcedureOrFunctionHeader ',ModTokenCount,' ',CurToken,' ',CurTokenText);
+    //writeln('TPasParser.ParseProcedureOrFunction ',ModTokenCount,' ',CurToken,' ',CurTokenText);
     LastToken:=CurToken;
     NextToken;
     if (CurToken = tkEqual) and IsProcType and (ModTokenCount<=3) then
@@ -6184,7 +6184,7 @@ begin
     else
       Result.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '', Result));
     end;
-    ParseProcedureOrFunctionHeader(Result, Result.ProcType, ProcType, False);
+    ParseProcedureOrFunction(Result, Result.ProcType, ProcType, False);
     Result.Hints:=Result.ProcType.Hints;
     Result.HintMessage:=Result.ProcType.HintMessage;
     // + is detected as 'positive', but is in fact Add if there are 2 arguments.
