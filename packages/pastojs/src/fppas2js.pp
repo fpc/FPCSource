@@ -15780,7 +15780,8 @@ begin
       writeln('TPasToJSConverter.ConvertAssignStatement Left={',GetResolverResultDbg(AssignContext.LeftResolved),'} Right={',GetResolverResultDbg(AssignContext.RightResolved),'}');
       {$ENDIF}
       if LeftIsProcType and (msDelphi in AContext.CurrentModeSwitches)
-          and (AssignContext.RightResolved.BaseType=btProc) then
+          and (AssignContext.RightResolved.BaseType=btProc)
+          and (AssignContext.RightResolved.IdentEl is TPasProcedure) then
         begin
         // Delphi allows assigning a proc without @: proctype:=proc
         AssignContext.RightSide:=CreateCallback(El.right,AssignContext.RightResolved,AContext);

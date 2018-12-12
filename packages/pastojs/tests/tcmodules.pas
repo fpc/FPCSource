@@ -327,7 +327,9 @@ type
     Procedure TestProc_LocalVarAbsolute;
     Procedure TestProc_ReservedWords;
 
-    Procedure TestAnonymousProc_Assign;
+    // anonymous functions
+    Procedure TestAnonymousProc_Assign_ObjFPC;
+    Procedure TestAnonymousProc_Assign_Delphi;
     Procedure TestAnonymousProc_Arg;
     Procedure TestAnonymousProc_Typecast;
     Procedure TestAnonymousProc_With;
@@ -3974,10 +3976,11 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestAnonymousProc_Assign;
+procedure TTestModule.TestAnonymousProc_Assign_ObjFPC;
 begin
   StartProgram(false);
   Add([
+  '{$mode objfpc}',
   'type',
   '  TFunc = reference to function(x: word): word;',
   'var Func: TFunc;',
@@ -3998,7 +4001,7 @@ begin
   '    exit(Result);',
   '  end;']);
   ConvertProgram;
-  CheckSource('TestAnonymousProc_Assign',
+  CheckSource('TestAnonymousProc_Assign_ObjFPC',
     LinesToStr([ // statements
     'this.Func = null;',
     'this.DoIt = function (a) {',
@@ -4019,6 +4022,38 @@ begin
     '  return c;',
     '  return Result;',
     '  return Result;',
+    '};',
+    '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_Assign_Delphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TProc = reference to procedure(x: word);',
+  'procedure DoIt(a: word);',
+  'var Proc: TProc;',
+  'begin',
+  '  Proc:=procedure(b:word) begin end;',
+  'end;',
+  'var Proc: TProc;',
+  'begin',
+  '  Proc:=procedure(c:word) begin end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_Assign_Delphi',
+    LinesToStr([ // statements
+    'this.DoIt = function (a) {',
+    '  var Proc = null;',
+    '  Proc = function (b) {',
+    '  };',
+    '};',
+    'this.Proc = null;',
+    '']),
+    LinesToStr([
+    '$mod.Proc = function (c) {',
     '};',
     '']));
 end;
