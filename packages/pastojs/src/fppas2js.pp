@@ -356,6 +356,8 @@ Works:
 - modeswitch OmitRTTI
 - debugger;
 - anonymous functions
+  - assign
+  - pass as argument
 
 ToDos:
 - do not rename property Date
