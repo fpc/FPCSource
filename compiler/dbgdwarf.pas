@@ -2252,7 +2252,7 @@ implementation
 
       var
         procendlabel   : tasmlabel;
-        procentry      : string;
+        procentry,s    : string;
         cc             : Tdwarf_calling_convention;
         st             : tsymtable;
         vmtoffset      : pint;
@@ -2304,6 +2304,19 @@ implementation
         else
           append_entry(DW_TAG_subprogram,true,
             [DW_AT_name,DW_FORM_string,def.mangledname+#0]);
+
+        if (ds_dwarf_cpp in current_settings.debugswitches) and (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
+          begin
+            { If C++ emulation is enabled, add DW_AT_linkage_name attribute for methods.
+              LLDB uses it to display fully qualified method names.
+              Add a simple C++ mangled name without params to achieve at least "Class::Method()"
+              instead of just "Method" in LLDB. }
+            s:=tabstractrecorddef(def.owner.defowner).objrealname^;
+            procentry:=Format('_ZN%d%s', [Length(s), s]);
+            s:=symname(def.procsym, false);
+            procentry:=Format('%s%d%sEv'#0, [procentry, Length(s), s]);
+            append_attribute(DW_AT_linkage_name,DW_FORM_string, [procentry]);
+          end;
 
         append_proc_frame_base(list,def);
 
@@ -4288,6 +4301,13 @@ implementation
         end;
 
       begin
+        if (ds_dwarf_cpp in current_settings.debugswitches) then
+          begin
+            // At least LLDB 6.0.0 does not like this implementation of string types.
+            // Call the inherited DWARF 2 implementation, which works fine.
+            inherited;
+            exit;
+          end;
         case def.stringtype of
           st_shortstring:
             begin
