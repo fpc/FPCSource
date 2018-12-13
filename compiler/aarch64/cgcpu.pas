@@ -1040,13 +1040,19 @@ implementation
 
 
      procedure tcgaarch64.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle);
+       var
+         r : tregister;
        begin
          if not shufflescalar(shuffle) then
            internalerror(2014122802);
          if not(tcgsize2size[fromsize] in [4,8]) or
-            (tcgsize2size[fromsize]<>tcgsize2size[tosize]) then
+            (tcgsize2size[fromsize]>tcgsize2size[tosize]) then
            internalerror(2014122804);
-         list.concat(taicpu.op_reg_reg(A_UMOV,intreg,mmreg));
+         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+           r:=makeregsize(intreg,fromsize)
+         else
+           r:=intreg;
+         list.concat(taicpu.op_reg_reg(A_UMOV,r,mmreg));
        end;
 
 

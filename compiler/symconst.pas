@@ -124,18 +124,17 @@ const
   paranr_blockselfpara = 1;
   paranr_parentfp = 2;
   paranr_parentfp_delphi_cc_leftright = 2;
-{$ifndef aarch64}
-  paranr_self = 3;
-  paranr_result = 4;
-{$else aarch64}
-  { on AArch64, the result parameter is passed in a special register, so its
-    order doesn't really matter -- except for LLVM, where the "sret" parameter
+{$if defined(aarch64) and defined(llvm)}
+  { for AArch64 on LLVM, the "sret" parameter
     must always be the first -> give it a higher number; can't do it for other
     platforms, because that would change the register assignment/parameter order
     and the current one is presumably Delphi-compatible }
   paranr_result = 3;
   paranr_self = 4;
-{$endif aarch64}
+{$else}
+  paranr_self = 3;
+  paranr_result = 4;
+{$endif}
   paranr_vmt = 5;
 
   { the implicit parameters for Objective-C methods need to come

@@ -704,11 +704,11 @@ implementation
         sizeleft  : aint;
         tempref   : treference;
         loadsize  : tcgint;
+        tempreg  : tregister;
 {$ifdef mips}
         //tmpreg   : tregister;
 {$endif mips}
 {$ifndef cpu64bitalu}
-        tempreg  : tregister;
         reg64    : tregister64;
 {$if defined(cpu8bitalu)}
         curparaloc : PCGParaLocation;
@@ -780,27 +780,68 @@ implementation
                       begin
                         if not assigned(paraloc^.next) then
                           internalerror(200410104);
-                        if (target_info.endian=ENDIAN_BIG) then
-                          begin
-                            { paraloc^ -> high
-                              paraloc^.next -> low }
-                            unget_para(paraloc^);
-                            gen_alloc_regloc(list,destloc,vardef);
-                            { reg->reg, alignment is irrelevant }
-                            cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reghi,8);
-                            unget_para(paraloc^.next^);
-                            cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^.next^,destloc.register128.reglo,8);
-                          end
-                        else
-                          begin
-                            { paraloc^ -> low
-                              paraloc^.next -> high }
-                            unget_para(paraloc^);
-                            gen_alloc_regloc(list,destloc,vardef);
-                            cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reglo,8);
-                            unget_para(paraloc^.next^);
-                            cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^.next^,destloc.register128.reghi,8);
-                          end;
+                        case tcgsize2size[paraloc^.size] of
+                          8:
+                            begin
+                              if (target_info.endian=ENDIAN_BIG) then
+                                begin
+                                  { paraloc^ -> high
+                                    paraloc^.next -> low }
+                                  unget_para(paraloc^);
+                                  gen_alloc_regloc(list,destloc,vardef);
+                                  { reg->reg, alignment is irrelevant }
+                                  cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reghi,8);
+                                  unget_para(paraloc^.next^);
+                                  cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^.next^,destloc.register128.reglo,8);
+                                end
+                              else
+                                begin
+                                  { paraloc^ -> low
+                                    paraloc^.next -> high }
+                                  unget_para(paraloc^);
+                                  gen_alloc_regloc(list,destloc,vardef);
+                                  cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reglo,8);
+                                  unget_para(paraloc^.next^);
+                                  cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^.next^,destloc.register128.reghi,8);
+                                end;
+                            end;
+                          4:
+                            begin
+                              { The 128-bit parameter is located in 4 32-bit MM registers.
+                                It is needed to copy them to 2 64-bit int registers.
+                                A code generator or a target cpu must support loading of a 32-bit MM register to
+                                a 64-bit int register, zero extending it. }
+                              if target_info.endian=ENDIAN_BIG then
+                                internalerror(2018101702);  // Big endian support not implemented yet
+                              gen_alloc_regloc(list,destloc,vardef);
+                              tempreg:=cg.getintregister(list,OS_64);
+                              // Low part of the 128-bit param
+                              unget_para(paraloc^);
+                              cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,tempreg,4);
+                              paraloc:=paraloc^.next;
+                              if paraloc=nil then
+                                internalerror(2018101703);
+                              unget_para(paraloc^);
+                              cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reglo,4);
+                              cg.a_op_const_reg(list,OP_SHL,OS_64,32,destloc.register128.reglo);
+                              cg.a_op_reg_reg(list,OP_OR,OS_64,tempreg,destloc.register128.reglo);
+                              // High part of the 128-bit param
+                              paraloc:=paraloc^.next;
+                              if paraloc=nil then
+                                internalerror(2018101704);
+                              unget_para(paraloc^);
+                              cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,tempreg,4);
+                              paraloc:=paraloc^.next;
+                              if paraloc=nil then
+                                internalerror(2018101705);
+                              unget_para(paraloc^);
+                              cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reghi,4);
+                              cg.a_op_const_reg(list,OP_SHL,OS_64,32,destloc.register128.reghi);
+                              cg.a_op_reg_reg(list,OP_OR,OS_64,tempreg,destloc.register128.reghi);
+                            end
+                          else
+                            internalerror(2018101701);
+                        end;
                       end;
                     LOC_REFERENCE:
                       begin

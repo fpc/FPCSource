@@ -112,7 +112,9 @@ implementation
                  { ... at the place we are looking for }
                  references_equal(tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.reference,rr^.old^) and
                  { its address cannot have escaped the current routine }
-                 not(tabstractvarsym(tloadnode(n).symtableentry).addr_taken) then
+                 not(tabstractvarsym(tloadnode(n).symtableentry).addr_taken) and
+                 { it is not accessed in nested procedures }
+                 not(tabstractvarsym(tloadnode(n).symtableentry).different_scope) then
                 begin
                   { relocate variable }
                   tcgloadnode(n).changereflocation(rr^.new^);
