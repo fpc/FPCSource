@@ -274,7 +274,7 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
                 fillchar(act,sizeof(act),0);
                 pointer(act.sa_handler):=pointer(SIG_DFL);
               end;
-            if (fpsigaction(rtlsig2ossig[RtlSigNum],@act,nil)=0) then
+            if (fpsigaction(rtlsig2ossig[i],@act,nil)=0) then
               siginfo[i].hooked:=false;
           end;
       end;

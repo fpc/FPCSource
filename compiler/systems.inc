@@ -179,7 +179,13 @@
              system_wasm_wasm32,        { 92 }
              system_sparc64_linux,      { 93 }
              system_sparc64_solaris,    { 94 }
-             system_arm_netbsd          { 95 }
+             system_arm_netbsd,         { 95 }
+             system_riscv32_linux,      { 96 }
+             system_riscv64_linux,      { 97 }
+             system_riscv64_embedded,   { 98 }
+             system_riscv32_embedded,   { 99 }
+             system_aarch64_android,    { 100 }
+             system_x86_64_android      { 101 }
        );
 
      type

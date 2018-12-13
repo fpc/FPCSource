@@ -50,12 +50,14 @@ var
   u_strToLower: function (dest: PUnicodeChar; destCapacity: int32_t; src: PUnicodeChar; srcLength: int32_t; locale: PAnsiChar; var pErrorCode: UErrorCode): int32_t; cdecl;
   u_strCompare: function (s1: PUnicodeChar; length1: int32_t; s2: PUnicodeChar; length2: int32_t; codePointOrder: UBool): int32_t; cdecl;
   u_strCaseCompare: function (s1: PUnicodeChar; length1: int32_t; s2: PUnicodeChar; length2: int32_t; options: uint32_t; var pErrorCode: UErrorCode): int32_t; cdecl;
+  u_getDataDirectory: function(): PAnsiChar; cdecl;
+  u_setDataDirectory: procedure(directory: PAnsiChar); cdecl;
+  u_init: procedure(var status: UErrorCode); cdecl;
 
   ucol_open: function(loc: PAnsiChar; var status: UErrorCode): PUCollator; cdecl;
   ucol_close: procedure (coll: PUCollator); cdecl;
   ucol_strcoll: function (coll: PUCollator; source: PUnicodeChar; sourceLength: int32_t; target: PUnicodeChar; targetLength: int32_t): int32_t; cdecl;
 	ucol_setStrength: procedure (coll: PUCollator; strength: int32_t); cdecl;
-  u_errorName: function (code: UErrorCode): PAnsiChar; cdecl;
 
 threadvar
   ThreadDataInited: boolean;
@@ -63,16 +65,37 @@ threadvar
   LastCP: TSystemCodePage;
   DefColl: PUCollator;
 
+function MaskExceptions: dword;
+begin
+{$ifdef cpux86_64}
+  Result:=GetMXCSR;
+  SetMXCSR(Result or %0000000010000000 {MM_MaskInvalidOp} or %0001000000000000 {MM_MaskPrecision});
+{$else}
+  Result:=0;
+{$endif cpux86_64}
+end;
+
+procedure UnmaskExceptions(oldmask: dword);
+begin
+{$ifdef cpux86_64}
+  SetMXCSR(oldmask);
+{$endif cpux86_64}
+end;
+
 function OpenConverter(const name: ansistring): PUConverter;
 var
   err: UErrorCode;
+  oldmask: dword;
 begin
+  { ucnv_open() must be called with some SSE exception masked on x86_64-android. }
+  oldmask:=MaskExceptions;
   err:=0;
   Result:=ucnv_open(PAnsiChar(name), err);
   if Result <> nil then begin
     ucnv_setSubstChars(Result, '?', 1, err);
     ucnv_setFallback(Result, True);
   end;
+  UnmaskExceptions(oldmask);
 end;
 
 procedure InitThreadData;
@@ -465,6 +488,9 @@ begin
   if LastConv <> nil then
     ucnv_close(LastConv);
 
+  if LibVer = '_3_8' then
+    exit;  // ICU v3.8 on Android 1.5-2.1 is buggy and can't be unloaded properly
+
   if hlibICU <> 0 then begin
     UnloadLibrary(hlibICU);
     hlibICU:=0;
@@ -475,7 +501,7 @@ begin
   end;
 end;
 
-function GetIcuProc(const Name: AnsiString; out ProcPtr; libId: longint = 0): boolean; [public, alias: 'CWSTRING_GET_ICU_PROC'];
+function GetIcuProc(const Name: AnsiString; out ProcPtr; libId: longint = 0): boolean;
 var
   p: pointer;
   hLib: TLibHandle;
@@ -496,12 +522,14 @@ end;
 
 function LoadICU: boolean;
 const
-  ICUver: array [1..9] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55');
+  ICUver: array [1..12] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55', '56', '58', '60');
   TestProcName = 'ucnv_open';
 
 var
   i: longint;
   s: ansistring;
+  dir: PAnsiChar;
+  err: UErrorCode;
 begin
   Result:=False;
 {$ifdef android}
@@ -543,6 +571,7 @@ begin
     // Trying versionless name
     if GetProcedureAddress(hlibICU, TestProcName) = nil then begin
       // Unable to get ICU version
+      SysLogWrite(ANDROID_LOG_ERROR, 'cwstring: Unable to get ICU version.');
       UnloadICU;
       exit;
     end;
@@ -558,18 +587,31 @@ begin
   if not GetIcuProc('u_strToLower', u_strToLower) then exit;
   if not GetIcuProc('u_strCompare', u_strCompare) then exit;
   if not GetIcuProc('u_strCaseCompare', u_strCaseCompare) then exit;
-
-  if not GetIcuProc('u_errorName', u_errorName) then exit;
+  if not GetIcuProc('u_getDataDirectory', u_getDataDirectory) then exit;
+  if not GetIcuProc('u_setDataDirectory', u_setDataDirectory) then exit;
+  if not GetIcuProc('u_init', u_init) then exit;
 
   if not GetIcuProc('ucol_open', ucol_open, 1) then exit;
   if not GetIcuProc('ucol_close', ucol_close, 1) then exit;
   if not GetIcuProc('ucol_strcoll', ucol_strcoll, 1) then exit;
   if not GetIcuProc('ucol_setStrength', ucol_setStrength, 1) then exit;
+
+  // Checking if ICU data dir is set
+  dir:=u_getDataDirectory();
+  if (dir = nil) or (dir^ = #0) then
+    u_setDataDirectory('/system/usr/icu');
+
+  err:=0;
+  u_init(err);
+
   Result:=True;
 end;
 
 var
   oldm: TUnicodeStringManager;
+{$ifdef android}
+  SysGetIcuProc: pointer; external name 'ANDROID_GET_ICU_PROC';
+{$endif android}
 
 initialization
   GetUnicodeStringManager(oldm);
@@ -578,6 +620,7 @@ initialization
   if LoadICU then begin
     SetCWideStringManager;
     {$ifdef android}
+    SysGetIcuProc:=@GetIcuProc;
     SetStdIOCodePages;
     {$endif android}
   end;

@@ -478,6 +478,17 @@ var
   s: string;
   H : THostAddr;
 begin
+  if SystemApiLevel >= 26 then
+    begin
+      // Since Android 8 the net.dnsX properties can't be read.
+      // Use Google Public DNS servers
+      Result:=2;
+      SetLength(DNSServers, Result);
+      DNSServers[0]:=StrToNetAddr('8.8.8.8');
+      DNSServers[1]:=StrToNetAddr('8.8.4.4');
+      exit;
+    end;
+
   Result:=0;
   SetLength(DNSServers, 9);
   for i:=1 to 9 do
@@ -504,6 +515,13 @@ var
 begin
   if not CheckResolveFileAge then
     exit;
+
+  if (Length(DNSServers) = 0) and (SystemApiLevel >= 26) then
+    begin
+      GetDNSServers;
+      exit;
+    end;
+
   n:=GetSystemProperty('net.change');
   if n <> '' then
     v:=GetSystemProperty(PAnsiChar(n))

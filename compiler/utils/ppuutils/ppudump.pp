@@ -181,7 +181,13 @@ const
   { 92 }  'WebAssembly-wasm',
   { 93 }  'Linux-sparc64',
   { 94 }  'Solaris-sparc64',
-  { 95 }  'NetBSD-arm'
+  { 95 }  'NetBSD-arm',
+  { 96 }  'Linux-RiscV32',
+  { 97 }  'Linux-RiscV64',
+  { 98 }  'Embedded-RiscV32',
+  { 99 }  'Embedded-RiscV64',
+  { 100 } 'Android-AArch64',
+  { 101 } 'Android-x86-64'
   );
 
 const
