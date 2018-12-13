@@ -23,7 +23,8 @@ unit Pas2JSFSCompiler;
 interface
 
 uses
-  Classes, SysUtils, pastree, PScanner, PasUseAnalyzer,
+  Classes, SysUtils,
+  PasUseAnalyzer,
   Pas2jsFileCache, Pas2jsCompiler,
   Pas2JSFS,
   FPPas2Js, Pas2jsFileUtils;
@@ -65,21 +66,21 @@ begin
   Result:=LowerCase(aFile.PasUnitName);
 end;
 {$ELSE}
-function CompareCompilerFilesPasFile(Item1, Item2: Pointer): integer;
+function CompareCompilerFiles_UnitFilename(Item1, Item2: Pointer): integer;
 var
   File1: TPas2JSCompilerFile absolute Item1;
   File2: TPas2JSCompilerFile absolute Item2;
 begin
-  Result:=CompareFilenames(File1.PasFilename,File2.PasFilename);
+  Result:=CompareFilenames(File1.UnitFilename,File2.UnitFilename);
 end;
 
-function CompareFileAndCompilerFilePasFile(Filename, Item: Pointer): integer;
+function CompareFileAndCompilerFile_UnitFilename(Filename, Item: Pointer): integer;
 var
   aFile: TPas2JSCompilerFile absolute Item;
   aFilename: String;
 begin
   aFilename:=AnsiString(Filename);
-  Result:=CompareFilenames(aFilename,aFile.PasFilename);
+  Result:=CompareFilenames(aFilename,aFile.UnitFilename);
 end;
 
 function CompareCompilerFilesPasUnitname(Item1, Item2: Pointer): integer;
@@ -90,7 +91,7 @@ begin
   Result:=CompareText(File1.PasUnitName,File2.PasUnitName);
 end;
 
-function CompareUnitnameAndCompilerFile(TheUnitname, Item: Pointer): integer;
+function CompareUnitnameAndCompilerFile_PasUnitName(TheUnitname, Item: Pointer): integer;
 var
   aFile: TPas2JSCompilerFile absolute Item;
   anUnitname: String;
@@ -116,8 +117,8 @@ begin
   Result:=FS as TPas2jsFilesCache;
 end;
 
-function TPas2jsFSCompiler.OnMacroEnv(Sender: TObject; var Params: string; Lvl: integer): boolean;
-
+function TPas2jsFSCompiler.OnMacroEnv(Sender: TObject; var Params: string;
+  Lvl: integer): boolean;
 begin
   if Lvl=0 then ;
   Params:=GetEnvironmentVariablePJ(Params);
@@ -138,14 +139,14 @@ begin
           {$IFDEF Pas2js}
           @Pas2jsCompilerFile_FilenameToKeyName,@PtrFilenameToKeyName
           {$ELSE}
-          @CompareCompilerFilesPasFile,@CompareFileAndCompilerFilePasFile
+          @CompareCompilerFiles_UnitFilename,@CompareFileAndCompilerFile_UnitFilename
           {$ENDIF});
     kcUnitName:
       Result:=TPasAnalyzerKeySet.Create(
         {$IFDEF Pas2js}
         @Pas2jsCompilerFile_UnitnameToKeyName,@PtrUnitnameToKeyName
         {$ELSE}
-        @CompareCompilerFilesPasUnitname,@CompareUnitnameAndCompilerFile
+        @CompareCompilerFilesPasUnitname,@CompareUnitnameAndCompilerFile_PasUnitName
         {$ENDIF});
   else
     Raise EPas2jsFileCache.CreateFmt('Internal Unknown key type: %d',[Ord(KeyType)]);

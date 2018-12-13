@@ -460,7 +460,7 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
 }
-{$if defined(generic_linux_syscalls)}
+{$if defined(generic_linux_syscalls) and not defined(NO_SYSCALL_PSELECT6)}
 
 var ts : timespec;
     pts : PTimeSpec;
@@ -495,7 +495,7 @@ end;
 {$endif}
 
 function fpPoll(fds: ppollfd; nfds: cuint; timeout: clong): cint;
-{$if defined(generic_linux_syscalls)}
+{$if defined(generic_linux_syscalls) and not defined(NO_SYSCALL_PPOLL)}
 var ts : timespec;
 begin
   if timeout<0 then

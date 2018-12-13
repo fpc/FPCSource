@@ -726,6 +726,41 @@ implementation
                 encodedstr:=encodedstr+'* byval'
               else
                 encodedstr:=encodedstr+'*';
+            end
+          else if withattributes and
+             paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) then
+            begin
+              { it's not valid to take the address of a parameter and store it for
+                use past the end of the function call (since the address can always
+                be on the stack and become invalid later) }
+              encodedstr:=encodedstr+' nocapture';
+              { open array/array of const/variant array may be a valid pointer but empty }
+              if not is_special_array(hp.vardef) and
+                 { e.g. empty records }
+                 (hp.vardef.size<>0) then
+                begin
+                  case hp.varspez of
+                    vs_value,
+                    vs_const:
+                      begin
+                        encodedstr:=encodedstr+' nocapture dereferenceable('
+                      end;
+                    vs_var,
+                    vs_out,
+                    vs_constref:
+                      begin
+                        { while normally these are not nil, it is technically possible
+                          to pass nil via ptrtype(nil)^ }
+                        encodedstr:=encodedstr+' nocapture dereferenceable_or_null('
+                      end;
+                    else
+                      internalerror(2018120801);
+                  end;
+                  if hp.vardef.typ<>formaldef then
+                    encodedstr:=encodedstr+tostr(hp.vardef.size)+')'
+                  else
+                    encodedstr:=encodedstr+'1)';
+                end;
             end;
           if withparaname then
             begin

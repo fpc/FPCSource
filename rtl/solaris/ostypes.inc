@@ -170,15 +170,21 @@ CONST
     { File access modes for `open' and `fcntl'.    }
     O_RDONLY    = 0;    { Open read-only.  }
     O_WRONLY    = 1;    { Open write-only. }
-    O_RDWR      = 2;    { Open read/write. }
+    O_RDWR      = 2;    { Open read/write. }    
+    O_NDELAY    = 4;
     { Bits OR'd into the second argument to open.  }
     O_CREAT     = $100; { Create file if it doesn't exist.  }
     O_EXCL      = $400; { Fail if file already ??????.      }
     O_TRUNC     = $200; { Truncate file to zero length.     }
     O_NOCTTY    = $800; { Don't assign a controlling terminal. }
+    O_XATTR     = $4000;
+    O_NOFOLLOW  = $20000;
+    O_NOLINKS   = $40000;
     { File status flags for `open' and `fcntl'.  }
     O_APPEND    =  $08; { Writes append to the file.        }
+    O_SYNC      =  $10;
     O_NONBLOCK  =  $80; { Non-blocking I/O.                 }
+    O_LARGEFILE =  $2000;
 
 
     { mode_t possible values                                 }

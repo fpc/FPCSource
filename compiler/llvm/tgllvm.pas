@@ -57,6 +57,9 @@ unit tgllvm;
        protected
         procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
         procedure gethltempintern(list: TAsmList; def: tdef; alignment: shortint; forcesize: asizeint; temptype: ttemptype; out ref: treference);
+        procedure freetemphook(list: TAsmList; temp: ptemprecord); override;
+
+        procedure emit_lifetime(list: TAsmList; const procname: string; temp: ptemprecord);
        public
         alloclist: tasmlist;
 
@@ -79,8 +82,8 @@ implementation
        systems,verbose,
        procinfo,
        llvmbase,aasmllvm,
-       symconst,symdef,
-       cgobj
+       symconst,symtable,symdef,defutil,
+       paramgr,parabase,cgobj,hlcgobj
        ;
 
 
@@ -106,8 +109,8 @@ implementation
         templist:=tl;
         temp_to_ref(tl,ref);
         list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
-        { TODO: add llvm.lifetime.start() for this allocation and afterwards
-            llvm.lifetime.end() for freetemp (if the llvm version supports it) }
+
+        emit_lifetime(list,'llvm_lifetime_start',tl);
         inc(lasttemp);
         { allocation for the temp -- should have lineinfo of the start of the
           routine }
@@ -133,6 +136,37 @@ implementation
           alloctemp(list,0,alignment,temptype,def,false,ref)
         else
           alloctemp(list,def.size,alignment,temptype,def,false,ref);
+      end;
+
+
+    procedure ttgllvm.freetemphook(list: TAsmList; temp: ptemprecord);
+      begin
+        inherited;
+        emit_lifetime(list,'llvm_lifetime_end',temp);
+      end;
+
+
+    procedure ttgllvm.emit_lifetime(list: TAsmList; const procname: string; temp: ptemprecord);
+      var
+        sizepara, ptrpara: tcgpara;
+        pd: tprocdef;
+        ref: treference;
+      begin
+        if (temp^.size<>0) and
+           not is_managed_type(temp^.def) then
+          begin
+            temp_to_ref(temp,ref);
+            sizepara.init;
+            ptrpara.init;
+            pd:=search_system_proc(procname);
+            paramanager.getintparaloc(list,pd,1,sizepara);
+            paramanager.getintparaloc(list,pd,2,ptrpara);
+            hlcg.a_load_const_cgpara(list,sizepara.def,temp^.size,sizepara);
+            hlcg.a_loadaddr_ref_cgpara(list,temp^.def,ref,ptrpara);
+            hlcg.g_call_system_proc(list,pd,[@sizepara,@ptrpara],nil).resetiftemp;
+            sizepara.reset;
+            ptrpara.reset;
+          end;
       end;
 
 
@@ -178,7 +212,7 @@ implementation
 
     procedure ttgllvm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
       begin
-        gethltempintern(list,def,def.alignment,forcesize,tt_persistent,ref);
+        gethltempintern(list,def,def.alignment,forcesize,temptype,ref);
       end;
 
 

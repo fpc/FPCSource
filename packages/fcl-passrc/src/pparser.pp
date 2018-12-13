@@ -24,7 +24,13 @@
   {$IF FPC_FULLVERSION<30101}
     {$define EmulateArrayInsert}
   {$endif}
+  {$define HasFS}
 {$endif}
+
+{$IFDEF NODEJS}
+  {$define HasFS}
+{$ENDIF}
+
 
 unit PParser;
 
@@ -165,6 +171,7 @@ type
     stResourceString, // e.g. TPasResString
     stProcedure, // also method, procedure, constructor, destructor, ...
     stProcedureHeader,
+    stWithExpr, // calls BeginScope after parsing every WITH-expression
     stExceptOnExpr,
     stExceptOnStatement,
     stDeclaration, // e.g. a TPasProperty, TPasVariable, TPasArgument
@@ -206,6 +213,7 @@ type
     function CreateFunctionType(const AName, AResultName: String; AParent: TPasElement;
       UseParentAsResultParent: Boolean; const ASrcPos: TPasSourcePos): TPasFunctionType;
     function FindElement(const AName: String): TPasElement; virtual; abstract;
+    procedure BeginScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     procedure FinishTypeAlias(var aType: TPasType); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
@@ -448,7 +456,7 @@ type
     procedure ParseArgList(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       EndToken: TToken);
-    procedure ParseProcedureOrFunctionHeader(Parent: TPasElement; Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
+    procedure ParseProcedureOrFunction(Parent: TPasElement; Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
     procedure ParseProcedureBody(Parent: TPasElement);
     function ParseMethodResolution(Parent: TPasElement): TPasMethodResolution;
     // Properties for external access
@@ -803,6 +811,13 @@ begin
     visDefault, ASrcPos));
 end;
 
+procedure TPasTreeContainer.BeginScope(ScopeType: TPasScopeType; El: TPasElement
+  );
+begin
+  if ScopeType=stModule then ; // avoid compiler warning
+  if El=nil then ;
+end;
+
 procedure TPasTreeContainer.FinishScope(ScopeType: TPasScopeType;
   El: TPasElement);
 begin
@@ -1155,7 +1170,6 @@ begin
         end;
     ParseExcTokenError(S);
     end;
-
 end;
 
 
@@ -1247,15 +1261,9 @@ end;
 function TPasParser.TokenIsAnonymousProcedureModifier(Parent: TPasElement;
   S: String; out PM: TProcedureModifier): Boolean;
 begin
-  S:=LowerCase(S);
-  case S of
-  'assembler':
-    begin
-    PM:=pmAssembler;
-    exit(true);
-    end;
-  end;
-  Result:=false;
+  Result:=IsProcModifier(S,PM);
+  if not Result then exit;
+  Result:=PM in [pmAssembler];
   if Parent=nil then ;
 end;
 
@@ -1313,11 +1321,7 @@ function TPasParser.IsAnonymousProcAllowed(El: TPasElement): boolean;
 begin
   while El is TPasExpr do
     El:=El.Parent;
-  if not (El is TPasImplBlock) then
-    exit(false); // only in statements
-  while El is TPasImplBlock do
-    El:=El.Parent;
-  Result:=El is TProcedureBody; // needs a parent procedure
+  Result:=El is TPasImplBlock; // only in statements
 end;
 
 function TPasParser.CheckPackMode: TPackMode;
@@ -1814,14 +1818,14 @@ begin
     tkProcedure:
       begin
         Result := TPasProcedureType(CreateElement(TPasProcedureType, '', Parent));
-        ParseProcedureOrFunctionHeader(Result, TPasProcedureType(Result), ptProcedure, True);
+        ParseProcedureOrFunction(Result, TPasProcedureType(Result), ptProcedure, True);
         if CurToken = tkSemicolon then
           UngetToken;        // Unget semicolon
       end;
     tkFunction:
       begin
         Result := CreateFunctionType('', 'Result', Parent, False, CurSourcePos);
-        ParseProcedureOrFunctionHeader(Result, TPasFunctionType(Result), ptFunction, True);
+        ParseProcedureOrFunction(Result, TPasFunctionType(Result), ptFunction, True);
         if CurToken = tkSemicolon then
           UngetToken;        // Unget semicolon
       end;
@@ -2210,6 +2214,7 @@ var
   ST: TPasSpecializeType;
   SrcPos, ScrPos: TPasSourcePos;
   ProcType: TProcType;
+  ProcExpr: TProcedureExpr;
 
 begin
   Result:=nil;
@@ -2262,22 +2267,19 @@ begin
       end;
     tkprocedure,tkfunction:
       begin
+      if not IsAnonymousProcAllowed(AParent) then
+        ParseExcExpectedIdentifier;
       if CurToken=tkprocedure then
         ProcType:=ptAnonymousProcedure
       else
         ProcType:=ptAnonymousFunction;
-      if not IsAnonymousProcAllowed(AParent) then
-        ParseExcExpectedIdentifier;
-      ok:=false;
       try
-        Result:=TProcedureExpr(CreateElement(TProcedureExpr,'',AParent,visPublic));
-        TProcedureExpr(Result).Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(Result,ProcType));
-        if CurToken=tkSemicolon then
-          NextToken; // skip optional semicolon
-        ok:=true;
+        ProcExpr:=TProcedureExpr(CreateElement(TProcedureExpr,'',AParent,visPublic));
+        ProcExpr.Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(ProcExpr,ProcType));
+        Result:=ProcExpr;
       finally
-        if not ok then
-          Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+        if Result=nil then
+          ProcExpr.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       end;
       exit; // do not allow postfix operators . ^. [] ()
       end;
@@ -2392,11 +2394,13 @@ begin
   //    Result:=5;
     tknot,tkAt,tkAtAt:
       Result:=4;
-    tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkPower :
+    tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkPower, tkis:
+      // Note that "is" has same precedence as "and" in Delphi and fpc, even though
+      // some docs say otherwise. e.g. "Obj is TObj and aBool"
       Result:=3;
     tkPlus, tkMinus, tkor, tkxor:
       Result:=2;
-    tkEqual, tkNotEqual, tkLessThan, tkLessEqualThan, tkGreaterThan, tkGreaterEqualThan, tkin, tkis:
+    tkEqual, tkNotEqual, tkLessThan, tkLessEqualThan, tkGreaterThan, tkGreaterEqualThan, tkin:
       Result:=1;
   else
     Result:=0;
@@ -4140,7 +4144,7 @@ begin
     Result := TPasProcedureType(CreateElement(TPasProcedureType, TypeName, Parent, NamePos));
   ok:=false;
   try
-    ParseProcedureOrFunctionHeader(Result, TPasProcedureType(Result), PT, True);
+    ParseProcedureOrFunction(Result, TPasProcedureType(Result), PT, True);
     ok:=true;
   finally
     if not ok then
@@ -4665,6 +4669,11 @@ begin
       tkIdentifier, // e.g. procedure assembler
       tkbegin,tkvar,tkconst,tktype,tkprocedure,tkfunction:
         UngetToken;
+      tkColon:
+        if ProcType=ptAnonymousFunction then
+          UngetToken
+        else
+          ParseExcTokenError('begin');
       else
         ParseExcTokenError('begin');
       end;
@@ -4828,7 +4837,7 @@ begin
     end;
 end;
 
-procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
+procedure TPasParser.ParseProcedureOrFunction(Parent: TPasElement;
   Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
 
   Function FindInSection(AName : String;ASection : TPasSection) : Boolean;
@@ -4873,8 +4882,8 @@ Var
   PM : TProcedureModifier;
   ResultEl: TPasResultElement;
   OK: Boolean;
-  IsProc: Boolean; // true = procedure, false = procedure type
-  IsAnonymProc: Boolean;
+  IsProcType: Boolean; // false = procedure, true = procedure type
+  IsAnonymous: Boolean;
   PTM: TProcTypeModifier;
   ModTokenCount: Integer;
   LastToken: TToken;
@@ -4883,8 +4892,8 @@ begin
   // Element must be non-nil. Removed all checks for not-nil.
   // If it is nil, the following fails anyway.
   CheckProcedureArgs(Element,Element.Args,ProcType);
-  IsProc:=Parent is TPasProcedure;
-  IsAnonymProc:=IsProc and (ProcType in [ptAnonymousProcedure,ptAnonymousFunction]);
+  IsProcType:=not (Parent is TPasProcedure);
+  IsAnonymous:=(not IsProcType) and (ProcType in [ptAnonymousProcedure,ptAnonymousFunction]);
   case ProcType of
     ptFunction,ptClassFunction,ptAnonymousFunction:
       begin
@@ -4897,7 +4906,8 @@ begin
       // In Delphi mode, the implementation in the implementation section can be
       // without result as it was declared
       // We actually check if the function exists in the interface section.
-      else if (msDelphi in CurrentModeswitches)
+      else if (not IsAnonymous)
+          and (msDelphi in CurrentModeswitches)
           and (Assigned(CurModule.ImplementationSection)
             or (CurModule is TPasProgram))
           then
@@ -4956,12 +4966,13 @@ begin
       UnGetToken;
     end;
   ModTokenCount:=0;
+  //writeln('TPasParser.ParseProcedureOrFunction IsProcType=',IsProcType,' IsAnonymous=',IsAnonymous);
   Repeat
     inc(ModTokenCount);
-    // Writeln(ModTokenCount, curtokentext);
+    //writeln('TPasParser.ParseProcedureOrFunction ',ModTokenCount,' ',CurToken,' ',CurTokenText);
     LastToken:=CurToken;
     NextToken;
-    if (CurToken = tkEqual) and not IsProc and (ModTokenCount<=3) then
+    if (CurToken = tkEqual) and IsProcType and (ModTokenCount<=3) then
       begin
       // for example: const p: procedure = nil;
       UngetToken;
@@ -4970,6 +4981,8 @@ begin
       end;
     If CurToken=tkSemicolon then
       begin
+      if IsAnonymous then
+        CheckToken(tkbegin); // begin expected, but ; found
       if LastToken=tkSemicolon then
         ParseExcSyntaxError;
       continue;
@@ -4991,22 +5004,25 @@ begin
           NextToken; // remove offset
           end;
       end;
-      if IsProc then
-        ExpectTokens([tkSemicolon])
-      else
+      if IsProcType then
         begin
         ExpectTokens([tkSemicolon,tkEqual]);
         if CurToken=tkEqual then
           UngetToken;
-        end;
+        end
+      else if IsAnonymous then
+      else
+        ExpectTokens([tkSemicolon]);
       end
-    else if IsAnonymProc and TokenIsAnonymousProcedureModifier(Parent,CurTokenString,PM) then
-      HandleProcedureModifier(Parent,PM)
-    else if IsProc and not IsAnonymProc and TokenIsProcedureModifier(Parent,CurTokenString,PM) then
+    else if IsAnonymous and TokenIsAnonymousProcedureModifier(Parent,CurTokenString,PM) then
       HandleProcedureModifier(Parent,PM)
     else if TokenIsProcedureTypeModifier(Parent,CurTokenString,PTM) then
       HandleProcedureTypeModifier(Element,PTM)
-    else if (CurToken=tklibrary) then // library is a token and a directive.
+    else if (not IsProcType) and (not IsAnonymous)
+        and TokenIsProcedureModifier(Parent,CurTokenString,PM) then
+      HandleProcedureModifier(Parent,PM)
+    else if (CurToken=tklibrary) and not IsProcType and not IsAnonymous then
+      // library is a token and a directive.
       begin
       Tok:=UpperCase(CurTokenString);
       NextToken;
@@ -5022,10 +5038,10 @@ begin
         ExpectToken(tkSemicolon);
         end;
       end
-    else if (not IsAnonymProc) and DoCheckHint(Element) then
+    else if (not IsAnonymous) and DoCheckHint(Element) then
       // deprecated,platform,experimental,library, unimplemented etc
       ConsumeSemi
-    else if (CurToken=tkIdentifier) and (not IsAnonymProc)
+    else if (CurToken=tkIdentifier) and (not IsAnonymous)
         and (CompareText(CurTokenText,'alias')=0) then
       begin
       ExpectToken(tkColon);
@@ -5059,11 +5075,11 @@ begin
       if LastToken=tkSemicolon then
         begin
         UngetToken;
-        if IsAnonymProc and (ModTokenCount<=1) then
+        if IsAnonymous then
           ParseExcSyntaxError;
         break;
         end
-      else if IsAnonymProc then
+      else if IsAnonymous then
         begin
         UngetToken;
         break;
@@ -5079,15 +5095,15 @@ begin
   if (ProcType in [ptOperator,ptClassOperator]) and (Parent is TPasOperator) then
     TPasOperator(Parent).CorrectName;
   Engine.FinishScope(stProcedureHeader,Element);
-  if IsProc
+  if (not IsProcType)
   and (not TPasProcedure(Parent).IsForward)
   and (not TPasProcedure(Parent).IsExternal)
   and ((Parent.Parent is TImplementationSection)
      or (Parent.Parent is TProcedureBody)
-     or IsAnonymProc)
+     or IsAnonymous)
   then
     ParseProcedureBody(Parent);
-  if IsProc then
+  if not IsProcType then
     Engine.FinishScope(stProcedure,Parent);
 end;
 
@@ -5380,7 +5396,9 @@ begin
   AsmBlock:=TPasImplAsmStatement(CreateElement(TPasImplAsmStatement,'',Parent));
   Parent.Body:=AsmBlock;
   ParseAsmBlock(AsmBlock);
-  ExpectToken(tkSemicolon);
+  NextToken;
+  if not (Parent.Parent is TPasAnonymousProcedure) then
+    CheckToken(tkSemicolon);
 end;
 
 procedure TPasParser.ParseAsmBlock(AsmBlock: TPasImplAsmStatement);
@@ -5463,9 +5481,13 @@ var
   {$ENDIF}
 
   function CloseBlock: boolean; // true if parent reached
+  var C: TPasImplBlockClass;
   begin
-    if CurBlock.ClassType=TPasImplExceptOn then
-      Engine.FinishScope(stExceptOnStatement,CurBlock);
+    C:=TPasImplBlockClass(CurBlock.ClassType);
+    if C=TPasImplExceptOn then
+      Engine.FinishScope(stExceptOnStatement,CurBlock)
+    else if C=TPasImplWithDo then
+      Engine.FinishScope(stWithExpr,CurBlock);
     CurBlock:=CurBlock.Parent as TPasImplBlock;
     Result:=CurBlock=Parent;
   end;
@@ -5717,11 +5739,12 @@ begin
           CheckSemicolon;
           SrcPos:=CurTokenPos;
           NextToken;
+          El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
           Left:=DoParseExpression(CurBlock);
           //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
-          El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
           TPasImplWithDo(El).AddExpression(Left);
           Left.Parent:=El;
+          Engine.BeginScope(stWithExpr,Left);
           Left:=nil;
           CreateBlock(TPasImplWithDo(El));
           El:=nil;
@@ -5733,6 +5756,7 @@ begin
             Left:=DoParseExpression(CurBlock);
             //writeln(i,'WITH ...,Expr="',Expr,'" Token=',CurTokenText);
             TPasImplWithDo(CurBlock).AddExpression(Left);
+            Engine.BeginScope(stWithExpr,Left);
             Left:=nil;
           until false;
         end;
@@ -6160,7 +6184,7 @@ begin
     else
       Result.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '', Result));
     end;
-    ParseProcedureOrFunctionHeader(Result, Result.ProcType, ProcType, False);
+    ParseProcedureOrFunction(Result, Result.ProcType, ProcType, False);
     Result.Hints:=Result.ProcType.Hints;
     Result.HintMessage:=Result.ProcType.HintMessage;
     // + is detected as 'positive', but is in fact Add if there are 2 arguments.

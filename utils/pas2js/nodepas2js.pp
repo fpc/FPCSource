@@ -6,7 +6,8 @@ program nodepas2js;
 uses
   JS, NodeJSApp,
   Classes, SysUtils,
-  Pas2jsFileUtils, Pas2jsLogger, pas2jscompiler, Pas2jsfscompiler;
+  Pas2jsFileUtils, Pas2jsLogger,
+  Pas2jsCompiler, Pas2JSFSCompiler, Pas2JSCompilerCfg;
 
 type
 
@@ -66,6 +67,7 @@ begin
   inherited Create(TheOwner);
   StopOnException:=True;
   FCompiler:=TPas2jsFSCompiler.Create;
+  FCompiler.ConfigSupport:=TPas2JSFileConfigSupport.Create(FCompiler);
 end;
 
 destructor TPas2jsCLI.Destroy;

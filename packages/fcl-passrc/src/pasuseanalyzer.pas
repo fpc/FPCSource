@@ -390,9 +390,7 @@ begin
   aModule:=El.GetModule;
   if aModule=El then exit;
   if aModule=nil then
-    Result:='NilModule.'+Result
-  else
-    Result:=aModule.Name+'.'+Result;
+    Result:='NilModule.'+Result;
 end;
 
 function dbgs(a: TPAIdentifierAccess): string;
@@ -1554,6 +1552,8 @@ begin
     end
   else if C=TInheritedExpr then
     UseInheritedExpr(TInheritedExpr(El))
+  else if C=TProcedureExpr then
+    UseProcedure(TProcedureExpr(El).Proc)
   else
     RaiseNotSupported(20170307085444,El);
 end;
@@ -2335,6 +2335,7 @@ var
   UsedModule, aModule: TPasModule;
   UsesClause: TPasUsesClause;
   Use: TPasUsesUnit;
+  PosEl: TPasElement;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitSectionHints ',GetElModName(Section));
@@ -2350,8 +2351,12 @@ begin
       UsedModule:=TPasModule(Use.Module);
       if CompareText(UsedModule.Name,'system')=0 then continue;
       if not PAElementExists(UsedModule) then
+        begin
+        PosEl:=Use.Expr;
+        if PosEl=nil then PosEl:=Use;
         EmitMessage(20170311191725,mtHint,nPAUnitNotUsed,sPAUnitNotUsed,
-          [UsedModule.Name,aModule.Name],Use.Expr);
+          [UsedModule.Name,aModule.Name],PosEl);
+        end;
       end;
     end;
 
@@ -2488,6 +2493,7 @@ var
   ProcScope: TPasProcedureScope;
   PosEl: TPasElement;
   DeclProc, ImplProc: TPasProcedure;
+  FuncType: TPasFunctionType;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitProcedureHints ',GetElModName(El));
@@ -2553,12 +2559,14 @@ begin
         end;
       end;
     // check result
-    if (El is TPasFunction) then
+    if (El.ProcType is TPasFunctionType) then
       begin
-      PosEl:=TPasFunction(El).FuncType.ResultEl;
-      if (ProcScope.ImplProc<>nil) and (TPasFunction(ProcScope.ImplProc).FuncType.ResultEl<>nil) then
+      FuncType:=TPasFunctionType(TPasProcedure(El).ProcType);
+      PosEl:=FuncType.ResultEl;
+      if (ProcScope.ImplProc<>nil)
+          and (TPasFunction(ProcScope.ImplProc).FuncType.ResultEl<>nil) then
         PosEl:=TPasFunction(ProcScope.ImplProc).FuncType.ResultEl;
-      Usage:=FindElement(TPasFunction(El).FuncType.ResultEl);
+      Usage:=FindElement(FuncType.ResultEl);
       if (Usage=nil) or (Usage.Access in [paiaNone,paiaRead]) then
         // result was never used
         EmitMessage(20170313214038,mtHint,nPAFunctionResultDoesNotSeemToBeSet,

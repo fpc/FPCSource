@@ -211,8 +211,7 @@ begin
     if RaiseOnError then
       Raise EFileNotFoundError.Create('File not loaded '+FileName)
 {$IFDEF VERBOSEWEBCACHE}
-    else
-      Writeln('File not loaded '+FileName);
+    else Writeln('File not loaded '+FileName);
 {$ENDIF}
 end;
 
@@ -451,7 +450,9 @@ begin
   for I:=0 to MS.Length-1 do
     begin
     v:=MS[i];
+    {AllowWriteln}
     Writeln('Char ',i,'(',v,') : ',TJSString.fromCharCode(v));
+    {AllowWriteln-}
     aContent:=aContent+TJSString.fromCharCode(MS[i]);
     end;
   SetFileContent(FileName,aContent);

@@ -14,9 +14,9 @@
  **********************************************************************
 
   Abstract:
-    Pas2JS compiler Preprocessor support. Can depend on filesystem.
+    Pas2JS compiler Postprocessor support. Can depend on filesystem.
 }
-unit pas2jscompilerpp;
+unit Pas2JSCompilerPP;
 
 {$mode objfpc}{$H+}
 

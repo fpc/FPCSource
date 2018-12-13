@@ -1,9 +1,22 @@
 program fppkg;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$macro on}
 
 {$if defined(VER2_2) and (FPC_PATCH<1)}
   {$fatal At least FPC 2.2.1 is required to compile fppkg}
+{$endif}
+
+{$ifndef package_version_major}
+  {$define package_version_major:=0}
+{$endif}
+{$ifndef package_version_minor}
+  {$define package_version_minor:=0}
+{$endif}
+{$ifndef package_version_micro}
+  {$define package_version_micro:=0}
+{$endif}
+{$ifndef package_version_build}
+  {$define package_version_build:=0}
 {$endif}
 
 uses
@@ -28,6 +41,12 @@ uses
 {$endif}
   ;
 
+const
+  version_major = package_version_major;
+  version_minor = package_version_minor;
+  version_micro = package_version_micro;
+  version_build = package_version_build;
+
 Type
   { TMakeTool }
 
@@ -37,6 +56,7 @@ Type
     ParaPackages : TStringList;
     procedure MaybeCreateLocalDirs;
     procedure ShowUsage;
+    procedure ShowVersion;
   Public
     Constructor Create;
     Destructor Destroy;override;
@@ -94,6 +114,7 @@ begin
   Writeln('  -C --config-file   Specify the configuration file to use');
   Writeln('  -c --config        Set compiler configuration to use');
   Writeln('  -h --help          This help');
+  Writeln('  -V --version       Show version and exit');
   Writeln('  -v --verbose       Show more information');
   Writeln('  -d --debug         Show debugging information');
   Writeln('  -f --force         Force installation also if the package is already installed');
@@ -254,6 +275,11 @@ begin
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
+          halt(0);
+        end
+      else if CheckOption(I,'V','version') then
+        begin
+          ShowVersion;
           halt(0);
         end
       else if (Length(Paramstr(i))>0) and (Paramstr(I)[1]='-') then
@@ -424,6 +450,11 @@ begin
       end;
   end;
   SetCurrentDir(OldCurrDir);
+end;
+
+procedure TMakeTool.ShowVersion;
+begin
+  Writeln('Version: ', version_major, '.', version_minor, '.', version_micro, '-', version_build);
 end;
 
 

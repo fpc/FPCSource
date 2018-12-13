@@ -16,14 +16,17 @@
   Abstract:
     Config file handling for compiler, depends on filesystem.
 }
-unit pas2jscompilercfg;
+unit Pas2JSCompilerCfg;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, pas2JSCompiler, pas2jsfs;
+  {$IFDEF NodeJS}
+  NodeJSFS,
+  {$ENDIF}
+  Classes, SysUtils, Pas2jsFileUtils, Pas2JSFS, Pas2jsCompiler;
 
 Type
   TPas2JSFileConfigSupport = Class(TPas2JSConfigSupport)
@@ -32,8 +35,6 @@ Type
   end;
 
 implementation
-
-uses pas2jsfileutils;
 
 function TPas2JSFileConfigSupport.GetReader(aFileName: string): TSourceLineReader;
 
