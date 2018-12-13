@@ -2427,7 +2427,12 @@ begin
       Result := True;
     Exit;
   end;
-  if (Len = 0) then Exit;
+  if (Len = 0) then
+  begin
+    Result:=true;
+    N:=0;
+    Exit;
+  end;
   i := 1;
   N := 0;
   Terminated := False;
