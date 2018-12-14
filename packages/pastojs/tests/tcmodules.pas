@@ -4437,6 +4437,14 @@ begin
   StartProgram(false);
   Add([
   'type TMyEnum = (Red, Green);',
+  'procedure DoIt(var e: TMyEnum; var i: word);',
+  'var',
+  '  v: longint;',
+  '  s: string;',
+  'begin',
+  '  val(s,e,v);',
+  '  val(s,e,i);',
+  'end;',
   'var',
   '  e: TMyEnum;',
   '  i: longint;',
@@ -4466,6 +4474,7 @@ begin
   '  str(red,s);',
   '  s:=str(e:3);',
   '  writestr(s,e:3,red);',
+  '  val(s,e,i);',
   '  e:=TMyEnum(i);',
   '  i:=longint(e);']);
   ConvertProgram;
@@ -4477,6 +4486,14 @@ begin
     '  "1":"Green",',
     '  Green:1',
     '  };',
+    'this.DoIt = function (e, i) {',
+    '  var v = 0;',
+    '  var s = "";',
+    '  e.set(rtl.valEnum(s, $mod.TMyEnum, function (w) {',
+    '    v = w;',
+    '  }));',
+    '  e.set(rtl.valEnum(s, $mod.TMyEnum, i.set));',
+    '};',
     'this.e = 0;',
     'this.i = 0;',
     'this.s = "";',
@@ -4506,6 +4523,9 @@ begin
     '$mod.s = $mod.TMyEnum[$mod.TMyEnum.Red];',
     '$mod.s = rtl.spaceLeft($mod.TMyEnum[$mod.e], 3);',
     '$mod.s = rtl.spaceLeft($mod.TMyEnum[$mod.e], 3)+$mod.TMyEnum[$mod.TMyEnum.Red];',
+    '$mod.e = rtl.valEnum($mod.s, $mod.TMyEnum, function (v) {',
+    '  $mod.i = v;',
+    '});',
     '$mod.e=$mod.i;',
     '$mod.i=$mod.e;',
     '']));

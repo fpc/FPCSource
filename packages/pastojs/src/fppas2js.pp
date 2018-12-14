@@ -358,6 +358,7 @@ Works:
 - anonymous functions
   - assign
   - pass as argument
+- procedure val(const string; var enumtype; out int)
 
 ToDos:
 - do not rename property Date
@@ -564,6 +565,7 @@ type
     pbifnIs,
     pbifnIsExt,
     pbifnFloatToStr,
+    pbifnValEnum,
     pbifnFreeLocalVar,
     pbifnFreeVar,
     pbifnProcType_Create,
@@ -710,6 +712,7 @@ const
     'is', // rtl.is
     'isExt', // rtl.isExt
     'floatToStr', // rtl.floatToStr
+    'valEnum', // rtl.valEnum
     'freeLoc', // rtl.freeLoc
     'free', // rtl.free
     'createCallback', // rtl.createCallback
@@ -1267,6 +1270,8 @@ type
       ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       var LeftResolved, RightResolved: TPasResolverResult); override;
     // built-in functions
+    function BI_Val_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; override;
     procedure BI_TypeInfo_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); override;
     function BI_Debugger_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
@@ -1747,6 +1752,7 @@ type
     Function ConvertBuiltIn_StrFunc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltInStrParam(El: TPasExpr; AContext: TConvertContext; IsStrFunc, IsFirst: boolean): TJSElement; virtual;
     Function ConvertBuiltIn_WriteStr(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_Val(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_ConcatArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_CopyArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_InsertArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -4149,6 +4155,28 @@ begin
 
   inherited ComputeBinaryExprRes(Bin, ResolvedEl, Flags, LeftResolved,
     RightResolved);
+end;
+
+function TPas2JSResolver.BI_Val_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  Result:=inherited;
+  Params:=TParamsExpr(Expr);
+  Param:=Params.Params[1];
+  ComputeElement(Param,ParamResolved,[]);
+  Result:=cIncompatible;
+  if ParamResolved.BaseType=btContext then
+    begin
+    if ParamResolved.LoTypeEl is TPasEnumType then
+      Result:=cExact
+    end;
+  if Result=cIncompatible then
+    exit(CheckRaiseTypeArgNo(20181214142349,2,Param,ParamResolved,
+         'enum variable',RaiseOnError));
 end;
 
 procedure TPas2JSResolver.BI_TypeInfo_OnGetCallResult(
@@ -8453,6 +8481,7 @@ begin
           bfStrProc: Result:=ConvertBuiltIn_StrProc(El,AContext);
           bfStrFunc: Result:=ConvertBuiltIn_StrFunc(El,AContext);
           bfWriteStr: Result:=ConvertBuiltIn_WriteStr(El,AContext);
+          bfVal: Result:=ConvertBuiltIn_Val(El,AContext);
           bfConcatArray: Result:=ConvertBuiltIn_ConcatArray(El,AContext);
           bfCopyArray: Result:=ConvertBuiltIn_CopyArray(El,AContext);
           bfInsertArray: Result:=ConvertBuiltIn_InsertArray(El,AContext);
@@ -10518,6 +10547,96 @@ begin
   finally
     AssignContext.RightSide.Free;
     AssignContext.Free;
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_Val(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// val(const s: string; out value: valuetype; out Code: integertype)
+// for enum it is converted to
+//   value = rtl.valEnum(s,enumTupe,function(c){ Code=c; })
+var
+  AssignContext: TAssignContext;
+  ValueExpr, CodeExpr: TPasExpr;
+  Call: TJSCallExpression;
+  Params: TPasExprArray;
+  EnumType: TPasEnumType;
+  Fun: TJSFunctionDeclarationStatement;
+  ExprResolved: TPasResolverResult;
+  ExprArg: TPasArgument;
+  AssignSt: TJSSimpleAssignStatement;
+  SetterArgName: String;
+  ArgJS, SetExpr: TJSElement;
+begin
+  Result:=nil;
+  Params:=El.Params;
+  Call:=nil;
+  AssignContext:=TAssignContext.Create(El,nil,AContext);
+  try
+    //
+    ValueExpr:=Params[1];
+    AContext.Resolver.ComputeElement(ValueExpr,AssignContext.LeftResolved,[rcNoImplicitProc]);
+
+    // rtl.valEnum()
+    Call:=CreateCallExpression(El);
+    AssignContext.RightSide:=Call;
+    Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnValEnum]]);
+    // add arg string
+    Call.AddArg(ConvertElement(Params[0],AContext));
+    // add arg enumtype
+    if AssignContext.LeftResolved.BaseType=btContext then
+      begin
+      if AssignContext.LeftResolved.LoTypeEl is TPasEnumType then
+        begin
+        EnumType:=TPasEnumType(AssignContext.LeftResolved.LoTypeEl);
+        Call.AddArg(CreateReferencePathExpr(EnumType,AContext));
+        end else
+          RaiseNotSupported(Params[1],AContext,20181214145226,GetResolverResultDbg(AssignContext.LeftResolved));
+      end
+    else
+      RaiseNotSupported(Params[1],AContext,20181214145125,GetResolverResultDbg(AssignContext.LeftResolved));
+    // add arg setter for Code
+    CodeExpr:=Params[2];
+    AContext.Resolver.ComputeElement(CodeExpr,ExprResolved,[rcNoImplicitProc]);
+    ArgJS:=nil;
+    if ExprResolved.IdentEl is TPasArgument then
+      begin
+      ExprArg:=TPasArgument(ExprResolved.IdentEl);
+      if ExprArg.Access in [argVar,argOut] then
+        begin
+        // add arg setter for Code: Code.set
+        ArgJS:=CreateDotExpression(CodeExpr,
+          CreateIdentifierExpr(ExprResolved.IdentEl,AContext),
+          CreatePrimitiveDotExpr(TempRefObjSetterName,CodeExpr));
+        Call.AddArg(ArgJS);
+        end;
+      end;
+    if ArgJS=nil then
+      begin
+      // add arg setter for Code: function(v){ Code=v; }
+      if (ExprResolved.IdentEl=nil) or (ExprResolved.IdentEl is TPasProperty) then
+        RaiseNotSupported(CodeExpr,AContext,20181214154031,'property');
+      Fun:=CreateFunctionSt(CodeExpr);
+      ArgJS:=Fun;
+      Call.AddArg(ArgJS);
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,CodeExpr));
+      Fun.AFunction.Body.A:=AssignSt;
+      SetExpr:=ConvertElement(CodeExpr,AContext);
+      AssignSt.LHS:=SetExpr;
+      SetterArgName:=TempRefObjSetterArgName;
+      FindAvailableLocalName(SetterArgName,SetExpr);
+      Fun.AFunction.Params.Add(SetterArgName);
+      AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,CodeExpr);
+      end;
+
+    // create 'ValueVar = rightside'
+    Result:=CreateAssignStatement(ValueExpr,AssignContext);
+  finally
+    if TAssignContext<>nil then
+      begin
+      AssignContext.RightSide.Free;
+      AssignContext.Free;
+      end;
   end;
 end;
 
