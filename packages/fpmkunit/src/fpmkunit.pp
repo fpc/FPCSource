@@ -4370,7 +4370,7 @@ begin
   else If UnixPaths then
     Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'
   else
-    Result:=BaseInstallDir+'docs'+PathDelim+'$(PackageName)';
+    Result:=BaseInstallDir+'doc'+PathDelim+'$(PackageName)';
 end;
 
 
