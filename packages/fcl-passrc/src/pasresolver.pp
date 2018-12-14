@@ -144,6 +144,7 @@ Works:
 - built-in functions pred, succ for range type and enums
 - untyped parameters
 - built-in procedure str(const boolean|integer|enumvalue|classinstance,var s: string)
+- built-in procedure writestr(var s: string; Args: arguments...); varargs
 - pointer TPasPointerType
   - nil, assigned(), typecast, class, classref, dynarray, procvar
   - forward declaration
@@ -215,6 +216,7 @@ Works:
   - pass as arg  doit(procedure begin end)
   - modifiers  assembler varargs cdecl
   - typecast
+- built-in procedure Val(const s: string; var e: enumtype; out Code: integertype);
 
 ToDo:
 - anonymous methods:
@@ -525,6 +527,7 @@ type
     bfStrProc,
     bfStrFunc,
     bfWriteStr,
+    bfVal,
     bfConcatArray,
     bfCopyArray,
     bfInsertArray,
@@ -558,6 +561,7 @@ const
     'Str',
     'Str',
     'WriteStr',
+    'Val',
     'Concat',
     'Copy',
     'Insert',
@@ -1589,6 +1593,10 @@ type
     function BI_WriteStrProc_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_WriteStrProc_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
+    function BI_Val_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_Val_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
     function BI_ConcatArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
@@ -13369,6 +13377,73 @@ begin
     FinishCallArgAccess(P[i],rraRead);
 end;
 
+function TPasResolver.BI_Val_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+// check params of built-in procedure 'Val(const s: string; out v: valtype; out code: integer)'
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  if not CheckBuiltInMinParamCount(Proc,Expr,3,RaiseOnError) then
+    exit(cIncompatible);
+  Params:=TParamsExpr(Expr);
+
+  // first parameter: string
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  Result:=cIncompatible;
+  if ParamResolved.BaseType in btAllStrings then
+    Result:=cExact;
+  if Result=cIncompatible then
+    exit(CheckRaiseTypeArgNo(20181214141250,1,Param,ParamResolved,'string',RaiseOnError));
+
+  // second parameter: var value
+  Param:=Params.Params[1];
+  ComputeElement(Param,ParamResolved,[]);
+  Result:=cIncompatible;
+  if ResolvedElCanBeVarParam(ParamResolved,Expr) then
+    begin
+    if ParamResolved.BaseType in (btAllInteger+btAllBooleans+btAllFloats) then
+      Result:=cExact
+    else if ParamResolved.BaseType=btContext then
+      begin
+      if ParamResolved.LoTypeEl is TPasEnumType then
+        Result:=cExact;
+      end;
+    end;
+  if Result=cIncompatible then
+    exit(CheckRaiseTypeArgNo(20181214141704,2,Param,ParamResolved,
+         'boolean/integer/float/enum variable',RaiseOnError));
+
+  // third parameter: out Code: integer
+  Param:=Params.Params[2];
+  ComputeElement(Param,ParamResolved,[]);
+  Result:=cIncompatible;
+  if ResolvedElCanBeVarParam(ParamResolved,Expr) then
+    begin
+    if ParamResolved.BaseType in btAllInteger then
+      Result:=cExact;
+    end;
+  if Result=cIncompatible then
+    exit(CheckRaiseTypeArgNo(20181214141511,3,Param,ParamResolved,'integer variable',RaiseOnError));
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,3,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_Val_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr);
+var
+  P: TPasExprArray;
+begin
+  if Proc=nil then ;
+  P:=Params.Params;
+  if P=nil then ;
+  FinishCallArgAccess(P[0],rraRead);
+  FinishCallArgAccess(P[1],rraOutParam);
+  FinishCallArgAccess(P[2],rraOutParam);
+end;
+
 function TPasResolver.BI_ConcatArray_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
 var
@@ -15139,6 +15214,10 @@ begin
     AddBuiltInProc('WriteStr','procedure WriteStr(out String; params...)',
         @BI_WriteStrProc_OnGetCallCompatibility,nil,nil,
         @BI_WriteStrProc_OnFinishParamsExpr,bfWriteStr,[bipfCanBeStatement]);
+  if bfVal in TheBaseProcs then
+    AddBuiltInProc('Val','procedure Val(const String; var Value: bool|int|float|enum; out Int)',
+        @BI_Val_OnGetCallCompatibility,nil,nil,
+        @BI_Val_OnFinishParamsExpr,bfVal,[bipfCanBeStatement]);
   if bfConcatArray in TheBaseProcs then
     AddBuiltInProc('Concat','function Concat(const Array1, Array2, ...): Array',
         @BI_ConcatArray_OnGetCallCompatibility,@BI_ConcatArray_OnGetCallResult,

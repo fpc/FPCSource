@@ -3734,7 +3734,8 @@ begin
   '  aString:=str(f);',
   '  aString:=str(f:3);',
   '  str(f,aString);',
-  '  writestr(astring,f,i);']);
+  '  writestr(astring,f,i);',
+  '  val(aString,f,i);']);
   ParseProgram;
 end;
 
