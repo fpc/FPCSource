@@ -950,7 +950,7 @@ var rtl = {
     };
   },
 
-  floatToStr : function(d,w,p){
+  floatToStr: function(d,w,p){
     // input 1-3 arguments: double, width, precision
     if (arguments.length>2){
       return rtl.spaceLeft(d.toFixed(p),w);
@@ -973,6 +973,18 @@ var rtl = {
       s=s.replace(/e(.)/,'E$1'+pad);
       return rtl.spaceLeft(s,w);
     }
+  },
+
+  valEnum: function(s, enumType, setCodeFn){
+    s = s.toLowerCase();
+    for (var key in enumType){
+      if((typeof(key)==='string') && (key.toLowerCase()===s)){
+        setCodeFn(0);
+        return enumType[key];
+      }
+    }
+    setCodeFn(1);
+    return 0;
   },
 
   initRTTI: function(){
