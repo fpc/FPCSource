@@ -1,5 +1,7 @@
 program tutf32convert;
 
+{$mode objfpc}
+
 {$apptype console}
 
 uses
