@@ -3844,7 +3844,7 @@ end;
 
 procedure TPas2jsCompiler.WritePrecompiledFormats;
 begin
-  WriteHelpLine('No support for PCU files in this class');
+  WriteHelpLine('   -JU: This pas2js does not support PCU files');
 end;
 
 procedure TPas2jsCompiler.AddNamespaces(const Paths: string;
@@ -4204,7 +4204,7 @@ begin
   w('     -JoCheckVersion=main: insert rtl version check into main.');
   w('     -JoCheckVersion=system: insert rtl version check into system unit init.');
   w('     -JoCheckVersion=unit: insert rtl version check into every unit init.');
-  w('     -JoRTL-<x>=<y>: set RTL identifier x to value y.');
+  w('     -JoRTL-<y>=<z>: set RTL identifier y to value z.');
   w('   -Jpcmd<command>: Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. This option can be added multiple times to call several postprocessors in succession.');
   w('   -Ju<x>: Add <x> to foreign unit paths. Foreign units are not compiled.');
   WritePrecompiledFormats;
