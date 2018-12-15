@@ -12,7 +12,7 @@ program ttoupper3;
   
 uses     
   SysUtils,
-  character;
+  unicodedata,character;
     
 {$ifndef FPC}
   type UnicodeChar = WideChar;   

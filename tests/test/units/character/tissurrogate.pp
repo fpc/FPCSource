@@ -12,7 +12,7 @@ program tissurrogate;
   
 uses     
   SysUtils,
-  character;
+  unicodedata,character;
     
 {$ifndef FPC}
   type UnicodeChar = WideChar;   
