@@ -3202,7 +3202,8 @@ Var
   C,c2: Char;
   pr: TPasToJsProcessor;
   pl: TPasToJsPlatform;
-
+  s: string;
+  pbi: TPas2JSBuiltInName;
 begin
   // write information and halt
   InfoMsg:='';
@@ -3215,7 +3216,7 @@ begin
   P:=1;
   L:=Length(aValue);
   while p<=l do
-    begin
+  begin
     C:=aValue[P];
     case C of
     'D': // wite compiler date
@@ -3226,33 +3227,33 @@ begin
       AppendInfo(GetVersion(false));
     'S':
       begin
-      inc(p);
-      if p>l then
-        ParamFatal('missing info option after S in "'+aValue+'".');
-      C2:=aValue[p];
-      case C2 of
-      'O': // write source OS
-        AppendInfo(GetCompiledTargetOS);
-      'P': // write source processor
-        AppendInfo(GetCompiledTargetCPU);
-      else
-        ParamFatal('unknown info option S"'+C2+'" in "'+aValue+'".');
-      end;
+        inc(p);
+        if p>l then
+          ParamFatal('missing info option after S in "'+aValue+'".');
+        C2:=aValue[p];
+        case C2 of
+        'O': // write source OS
+          AppendInfo(GetCompiledTargetOS);
+        'P': // write source processor
+          AppendInfo(GetCompiledTargetCPU);
+        else
+          ParamFatal('unknown info option S"'+C2+'" in "'+aValue+'".');
+        end;
       end;
     'T':
       begin
-      inc(p);
-      if p>l then
-        ParamFatal('missing info option after T in "'+aValue+'".');
-      C2:=aValue[p];
-      case C2 of
-      'O': // write target platform
-        AppendInfo(PasToJsPlatformNames[TargetPlatform]);
-      'P': // write target processor
-        AppendInfo(PasToJsProcessorNames[TargetProcessor]);
-      else
-        ParamFatal('unknown info option S"'+C2+'" in "'+aValue+'".');
-      end;
+        inc(p);
+        if p>l then
+          ParamFatal('missing info option after T in "'+aValue+'".');
+        C2:=aValue[p];
+        case C2 of
+        'O': // write target platform
+          AppendInfo(PasToJsPlatformNames[TargetPlatform]);
+        'P': // write target processor
+          AppendInfo(PasToJsProcessorNames[TargetProcessor]);
+        else
+          ParamFatal('unknown info option S"'+C2+'" in "'+aValue+'".');
+        end;
       end;
     'c':
       // write list of supported JS processors
@@ -3260,20 +3261,31 @@ begin
         Log.LogPlain(PasToJsProcessorNames[pr]);
     'o':
       begin
-      // write list of optimizations
-      Log.LogPlain('EnumNumbers');
-      Log.LogPlain('RemoveNotUsedPrivates');
-      Log.LogPlain('RemoveNotUsedDeclarations');
+        // write list of optimizations
+        Log.LogPlain('EnumNumbers');
+        Log.LogPlain('RemoveNotUsedPrivates');
+        Log.LogPlain('RemoveNotUsedDeclarations');
       end;
     't':
       // write list of supported targets
       for pl in TPasToJsPlatform do
         Log.LogPlain(PasToJsPlatformNames[pl]);
+    'J':
+      // write list of RTL identifiers
+      begin
+        Log.LogPlain('-JoRTL-<x> identifiers:');
+        for pbi in TPas2JSBuiltInName do
+        begin
+          str(pbi,s);
+          Delete(s,1,3);
+          Log.LogPlain('-JoRTL-'+s+'='+Pas2JSBuiltInNames[pbi]);
+        end;
+      end
     else
       ParamFatal('unknown info option "'+C+'" in "'+aValue+'".');
     end;
     inc(p);
-    end;
+  end;
   if InfoMsg<>'' then
     Log.LogPlain(InfoMsg);
 end;
@@ -4166,6 +4178,7 @@ begin
   w('    -ic  : Write list of supported JS processors usable by -P<x>');
   w('    -io  : Write list of supported optimizations usable by -Oo<x>');
   w('    -it  : Write list of supported targets usable by -T<x>');
+  w('    -iJ  : Write list of supported JavaScript identifiers -JoRTL-<x>');
   w('  -C<x>  : Code generation options. <x> is a combination of the following letters:');
   // -C3        Turn on ieee error checking for constants
   w('    o    : Overflow checking of integer operations');
@@ -4204,7 +4217,7 @@ begin
   w('     -JoCheckVersion=main: insert rtl version check into main.');
   w('     -JoCheckVersion=system: insert rtl version check into system unit init.');
   w('     -JoCheckVersion=unit: insert rtl version check into every unit init.');
-  w('     -JoRTL-<y>=<z>: set RTL identifier y to value z.');
+  w('     -JoRTL-<y>=<z>: set RTL identifier y to value z. See -iJ.');
   w('   -Jpcmd<command>: Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. This option can be added multiple times to call several postprocessors in succession.');
   w('   -Ju<x>: Add <x> to foreign unit paths. Foreign units are not compiled.');
   WritePrecompiledFormats;
@@ -4372,7 +4385,7 @@ procedure TPas2jsCompiler.WriteInfo;
 begin
   WriteVersionLine;
   Log.LogLn;
-  Log.LogPlain('Compiler date     : '+GetCompiledDate);
+  Log.LogPlain('Compiler date      : '+GetCompiledDate);
   Log.LogPlain('Compiler CPU target: '+GetCompiledTargetCPU);
   Log.LogLn;
   Log.LogPlain('Supported targets (targets marked with ''{*}'' are under development):');
