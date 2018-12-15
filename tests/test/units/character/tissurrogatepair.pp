@@ -12,7 +12,7 @@ program tissurrogatepair;
   
 uses     
   SysUtils,
-  character;
+  unicodedata,character;
     
 {$ifndef FPC}
   type UnicodeChar = WideChar;   
@@ -27,13 +27,6 @@ begin
   );
   Halt(Acode);
 end;
-
-const
-  LOW_SURROGATE_BEGIN  = Word($DC00);
-  LOW_SURROGATE_END    = Word($DFFF);
-
-  HIGH_SURROGATE_BEGIN = Word($D800);
-  HIGH_SURROGATE_END   = Word($DBFF);
 
 var
   e, i , j: Integer;
