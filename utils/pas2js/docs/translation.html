@@ -133,6 +133,7 @@ Put + after a boolean switch option to enable it, - to disable it
     -ic   : Write list of supported JS processors usable by -P&lt;x&gt;
     -io   : Write list of supported optimizations usable by -Oo&lt;x&gt;
     -it   : Write list of supported targets usable by -T&lt;x&gt;
+    -iJ  : Write list of supported JavaScript identifiers -JoRTL-&lt;x&gt;
   -C&lt;x&gt;   : Code generation options. &lt;x&gt; is a combination of the following letters:
     o     : Overflow checking
     r     : Range checking
@@ -168,7 +169,7 @@ Put + after a boolean switch option to enable it, - to disable it
      -JoCheckVersion=main: insert rtl version check into main. (since 1.1)
      -JoCheckVersion=system: insert rtl version check into system unit init. (since 1.1)
      -JoCheckVersion=unit: insert rtl version check into every unit init. (since 1.1)
-     -JoRTL-&lt;x&gt;=&lt;y&gt;: set RTL identifier x to value y. (since 1.1)
+     -JoRTL-&lt;x&gt;=&lt;y&gt;: set RTL identifier x to value y. See -iJ. (since 1.1)
    -Jpcmd&lt;command&gt; : Run postprocessor. For each generated js execute
                   command passing the js as stdin and read the new js from stdout.
                   This option can be added multiple times to call several
