@@ -340,8 +340,8 @@ const
   MinSafeIntSingle = -16777216;
   MaxSafeIntSingle =  16777216;
   MaskUIntSingle = $3fffff;
-  MinSafeIntDouble = -$10000000000000; // -4503599627370496
-  MaxSafeIntDouble =   $fffffffffffff; //  4503599627370495
+  MinSafeIntDouble = -$fffffffffffff-1; // -4503599627370496
+  MaxSafeIntDouble =  $fffffffffffff; //  4503599627370495
   MaskUIntDouble = $fffffffffffff;
 
 type
@@ -1249,7 +1249,7 @@ begin
           reitLongWord: TResEvalInt(Result).Int:=not longword(TResEvalInt(Result).Int);
           reitLongInt: TResEvalInt(Result).Int:=not longint(TResEvalInt(Result).Int);
           reitUIntDouble: TResEvalInt(Result).Int:=(not TResEvalInt(Result).Int) and $fffffffffffff;
-          reitIntDouble: TResEvalInt(Result).Int:=(not TResEvalInt(Result).Int) and $1fffffffffffff;
+          reitIntDouble: {$ifdef fpc}TResEvalInt(Result).Int:=(not TResEvalInt(Result).Int) and $1fffffffffffff{$endif};
           else TResEvalInt(Result).Int:=not TResEvalInt(Result).Int;
         end;
         end;
