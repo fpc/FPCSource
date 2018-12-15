@@ -164,6 +164,11 @@ Put + after a boolean switch option to enable it, - to disable it
    -Jo&lt;x&gt; : Enable or disable extra option. The x is case insensitive:
      -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.
      -JoUseStrict : add "use strict" to modules, default.
+     -JoCheckVersion-: do not add rtl version check, default. (since 1.1)
+     -JoCheckVersion=main: insert rtl version check into main. (since 1.1)
+     -JoCheckVersion=system: insert rtl version check into system unit init. (since 1.1)
+     -JoCheckVersion=unit: insert rtl version check into every unit init. (since 1.1)
+     -JoRTL-&lt;x&gt;=&lt;y&gt;: set RTL identifier x to value y. (since 1.1)
    -Jpcmd&lt;command&gt; : Run postprocessor. For each generated js execute
                   command passing the js as stdin and read the new js from stdout.
                   This option can be added multiple times to call several
