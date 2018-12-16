@@ -1508,7 +1508,7 @@ implementation
                     exit;
                 end;
               if fromsize<>tosize then
-                g_ptrtypecast_ref(list,cpointerdef.create(fromsize),cpointerdef.create(tosize),href);
+                g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),href);
               { %reg = load size* %ref }
               list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(tosize),href));
             end;
@@ -1800,7 +1800,7 @@ implementation
 
   function thlcgllvm.make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
     begin
-      result:=make_simple_ref_ptr(list,ref,cpointerdef.create(def));
+      result:=make_simple_ref_ptr(list,ref,cpointerdef.getreusable(def));
     end;
 
 
