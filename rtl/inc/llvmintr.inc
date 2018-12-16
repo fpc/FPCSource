@@ -20,3 +20,12 @@ function llvm_frameaddress(level: longint): pointer; compilerproc; external name
 
 procedure llvm_lifetime_start(size: int64; ptr: pointer); compilerproc; external name 'llvm.lifetime.start';
 procedure llvm_lifetime_end(size: int64; ptr: pointer); compilerproc; external name 'llvm.lifetime.end';
+
+function llvm_sqrt_f32(val: single): single; compilerproc; external name 'llvm.sqrt.f32';
+function llvm_sqrt_f64(val: double): double; compilerproc; external name 'llvm.sqrt.f64';
+{$ifdef SUPPORT_EXTENDED}
+function llvm_sqrt_f80(val: extended): extended; compilerproc; external name 'llvm.sqrt.f80';
+{$endif}
+{$ifdef SUPPORT_FLOAT128}
+function llvm_sqrt_f128(val: float128): float128; compilerproc; external name 'llvm.sqrt.f128';
+{$endif}
