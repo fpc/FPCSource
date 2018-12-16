@@ -400,11 +400,16 @@ unit cpupara;
         if (p.proccalloption in cstylearrayofconst) and
            is_array_of_const(paradef) then
           begin
+            result.size:=OS_NO;
+            result.def:=paradef;
+            result.alignment:=std_param_align;
+            result.intsize:=0;
             paraloc:=result.add_location;
             { hack: the paraloc must be valid, but is not actually used }
             paraloc^.loc:=LOC_REGISTER;
             paraloc^.register:=NR_X0;
             paraloc^.size:=OS_ADDR;
+            paraloc^.def:=paradef;
             exit;
           end;
 
