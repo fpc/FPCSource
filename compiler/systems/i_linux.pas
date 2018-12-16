@@ -880,7 +880,11 @@ unit i_linux;
                             tf_files_case_sensitive,
                             tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_pic_uses_got,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources
+{$ifdef llvm}
+                            ,tf_use_psabieh
+{$endif llvm}
+                            ];
             cpu          : cpu_aarch64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';

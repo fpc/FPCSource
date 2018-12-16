@@ -122,16 +122,17 @@ const
     and will increase with 10 for each parameter. The high parameters
     will be inserted with n+1 }
   paranr_blockselfpara = 1;
-  paranr_parentfp = 2;
   paranr_parentfp_delphi_cc_leftright = 2;
 {$if defined(aarch64) and defined(llvm)}
   { for AArch64 on LLVM, the "sret" parameter
     must always be the first -> give it a higher number; can't do it for other
     platforms, because that would change the register assignment/parameter order
     and the current one is presumably Delphi-compatible }
-  paranr_result = 3;
+  paranr_result = 2;
+  paranr_parentfp = 3;
   paranr_self = 4;
 {$else}
+  paranr_parentfp = 2;
   paranr_self = 3;
   paranr_result = 4;
 {$endif}
