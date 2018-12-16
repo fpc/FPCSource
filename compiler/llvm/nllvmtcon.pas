@@ -117,6 +117,7 @@ interface
       function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
 
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
+      class function get_dynarray_symofs: pint; override;
 
       property appendingdef: boolean write fappendingdef;
     end;
@@ -847,6 +848,13 @@ implementation
     begin
       { LLVM does not support labels in the middle of a declaration }
       result:=get_string_header_size(typ,winlikewidestring);
+    end;
+
+
+  class function tllvmtai_typedconstbuilder.get_dynarray_symofs: pint;
+    begin
+      { LLVM does not support labels in the middle of a declaration }
+      result:=get_dynarray_header_size;
     end;
 
 
