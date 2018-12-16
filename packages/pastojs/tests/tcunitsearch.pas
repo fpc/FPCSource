@@ -18,7 +18,7 @@
     ./testpas2js --suite=TestUS_Program
     ./testpas2js --suite=TestUS_UsesEmptyFileFail
 }
-unit tcunitsearch;
+unit TCUnitSearch;
 
 {$mode objfpc}{$H+}
 

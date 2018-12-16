@@ -850,6 +850,17 @@ begin
  System.Str(Value, result);
 end ;
 
+function UIntToStr(Value: QWord): string;
+
+begin
+  result:=IntTostr(Value);
+end;
+
+function UIntToStr(Value: Cardinal): string; 
+
+begin
+  System.Str(Value, result);
+end;
 
 {   IntToHex returns a string representing the hexadecimal value of Value   }
 

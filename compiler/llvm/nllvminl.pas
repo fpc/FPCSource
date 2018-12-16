@@ -37,6 +37,7 @@ interface
         function first_get_frame: tnode; override;
         function first_abs_real: tnode; override;
         function first_sqr_real: tnode; override;
+        function first_sqrt_real: tnode; override;
         function first_trunc_real: tnode; override;
        public
         procedure second_length; override;
@@ -153,6 +154,29 @@ implementation
           expectloc:=LOC_MMREGISTER
         else
           expectloc:=LOC_FPUREGISTER;
+      end;
+
+
+    function tllvminlinenode.first_sqrt_real: tnode;
+      var
+        intrinsic: string[20];
+      begin
+        if left.resultdef.typ<>floatdef then
+          internalerror(2018121601);
+        case tfloatdef(left.resultdef).floattype of
+          s32real:
+            intrinsic:='llvm_sqrt_f32';
+          s64real:
+            intrinsic:='llvm_sqrt_f64';
+          s80real,sc80real:
+            intrinsic:='llvm_sqrt_f80';
+          s128real:
+            intrinsic:='llvm_sqrt_f128';
+          else
+            internalerror(2018121602);
+        end;
+        result:=ccallnode.createinternfromunit('SYSTEM',intrinsic, ccallparanode.create(left,nil));
+        left:=nil;
       end;
 
 

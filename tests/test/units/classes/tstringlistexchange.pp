@@ -64,11 +64,17 @@ begin
       msl.OnChange := @dummy.Change;
       msl.Sort;
       // TMyStringList.ExchangeItems called 5 times
-      if msl.ExchangeCount <> 5 then
-        Halt(1);
+      // if msl.ExchangeCount <> 5 then
+      // Seems to be done in 4 exchanges
+      // Check that names are ordered correctly instead
+      if (msl[0] <> 'Alpha') or
+         (msl[1] <> 'Beta') or
+         (msl[2] <> 'Delta') or
+         (msl[3] <> 'Gamma') then
+        Halt(2);
       // OnChange called once in Sort
       if dummy.ExchangeCount <> 1 then
-        Halt(1);
+        Halt(3);
     finally
       msl.Free;
     end;

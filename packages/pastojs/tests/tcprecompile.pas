@@ -17,7 +17,7 @@
     ./testpas2js --suite=TTestCLI_Precompile
     ./testpas2js --suite=TTestModule.TestEmptyUnit
 }
-unit tcprecompile;
+unit TCPrecompile;
 
 {$mode objfpc}{$H+}
 
@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils,
   fpcunit, testregistry, Pas2jsFileUtils, Pas2JsFiler, Pas2jsCompiler,
-  tcunitsearch, tcmodules;
+  TCUnitSearch, TCModules;
 
 type
 
@@ -116,8 +116,7 @@ begin
     OrigSrc:=JSFile.Source;
     // compile, using .pcu files
     //for i:=0 to FileCount-1 do
-    //  writeln('AAA1 TCustomTestCLI_Precompile.CheckPrecompile ',i,' ',Files[i].Filename);
-
+    //  writeln('TCustomTestCLI_Precompile.CheckPrecompile ',i,' ',Files[i].Filename);
     {$IFDEF VerbosePCUFiler}
     writeln('TTestCLI_Precompile.CheckPrecompile compile using pcu files==================');
     {$ENDIF}

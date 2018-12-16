@@ -72,27 +72,18 @@ const
   syscall_nr_times = 5098;
   syscall_nr_ptrace = 5099;
   syscall_nr_getuid = 5100;
-  syscall_nr_syslog = 5101; // Blacklisted. Do not use.
-  syscall_nr_klogctl = syscall_nr_syslog; // Blacklisted. Do not use.
   syscall_nr_getgid = 5102;
-  syscall_nr_setuid = 5103; // Blacklisted. Do not use.
-  syscall_nr_setgid = 5104; // Blacklisted. Do not use.
   syscall_nr_geteuid = 5105;
   syscall_nr_getegid = 5106;
   syscall_nr_setpgid = 5107;
   syscall_nr_getppid = 5108;
   syscall_nr_setsid = 5110;
-  syscall_nr_setreuid = 5111; // Blacklisted. Do not use.
   syscall_nr_setregid = 5112;
   syscall_nr_getgroups = 5113;
-  syscall_nr_setgroups = 5114; // Blacklisted. Do not use.
   syscall_nr_setresuid = 5115;
   syscall_nr_getresuid = 5116;
-  syscall_nr_setresgid = 5117; // Blacklisted. Do not use.
   syscall_nr_getresgid = 5118;
   syscall_nr_getpgid = 5119;
-  syscall_nr_setfsuid = 5120; // Blacklisted. Do not use.
-  syscall_nr_setfsgid = 5121; // Blacklisted. Do not use.
   syscall_nr_getsid = 5122;
   syscall_nr_capget = 5123;
   syscall_nr_capset = 5124;
@@ -119,21 +110,8 @@ const
   syscall_nr_munlockall = 5149;
   syscall_nr_pivot_root = 5151;
   syscall_nr_prctl = 5153;
-  syscall_nr_adjtimex = 5154; // Blacklisted. Do not use.
   syscall_nr_setrlimit = 5155;
-  syscall_nr_chroot = 5156; // Blacklisted. Do not use.
   syscall_nr_sync = 5157;
-  syscall_nr_acct = 5158; // Blacklisted. Do not use.
-  syscall_nr_settimeofday = 5159; // Blacklisted. Do not use.
-  syscall_nr_mount = 5160; // Blacklisted. Do not use.
-  syscall_nr_umount2 = 5161; // Blacklisted. Do not use.
-  syscall_nr_swapon = 5162; // Blacklisted. Do not use.
-  syscall_nr_swapoff = 5163; // Blacklisted. Do not use.
-  syscall_nr_reboot = 5164; // Blacklisted. Do not use.
-  syscall_nr_sethostname = 5165; // Blacklisted. Do not use.
-  syscall_nr_setdomainname = 5166; // Blacklisted. Do not use.
-  syscall_nr_init_module = 5168; // Blacklisted. Do not use.
-  syscall_nr_delete_module = 5169; // Blacklisted. Do not use.
   syscall_nr_quotactl = 5172;
   syscall_nr_gettid = 5178;
   syscall_nr_readahead = 5179;
@@ -170,7 +148,6 @@ const
   syscall_nr_timer_gettime = 5218;
   syscall_nr_timer_getoverrun = 5219;
   syscall_nr_timer_delete = 5220;
-  syscall_nr_clock_settime = 5221; // Blacklisted. Do not use.
   syscall_nr_clock_gettime = 5222;
   syscall_nr_clock_getres = 5223;
   syscall_nr_clock_nanosleep = 5224;
@@ -225,7 +202,6 @@ const
   syscall_nr_recvmmsg = 5294;
   syscall_nr_prlimit64 = 5297;
   syscall_nr_prlimit = syscall_nr_prlimit64;
-  syscall_nr_clock_adjtime = 5300; // Blacklisted. Do not use.
   syscall_nr_syncfs = 5301;
   syscall_nr_sendmmsg = 5302;
   syscall_nr_setns = 5303;
@@ -243,3 +219,31 @@ const
   syscall_nr_copy_file_range = 5320;
   syscall_nr_preadv2 = 5321;
   syscall_nr_pwritev2 = 5322;
+
+// The following syscalls are blocked by SECCOMP starting from Android 8.
+// Do not use them, unless you know what you are doing.
+const
+  syscall_nr_syslog = 5101 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_klogctl = 5101 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_setuid = 5103 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_setgid = 5104 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_setreuid = 5111 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_setgroups = 5114 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_setresgid = 5117 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_setfsuid = 5120 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_setfsgid = 5121 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_adjtimex = 5154 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_chroot = 5156 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_acct = 5158 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_settimeofday = 5159 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_mount = 5160 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_umount2 = 5161 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_swapon = 5162 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_swapoff = 5163 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_reboot = 5164 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_sethostname = 5165 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_setdomainname = 5166 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_init_module = 5168 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_delete_module = 5169 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_clock_settime = 5221 deprecated 'This syscall is blocked on Android 8+';
+  syscall_nr_clock_adjtime = 5300 deprecated 'This syscall is blocked on Android 8+';

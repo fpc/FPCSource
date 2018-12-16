@@ -21,7 +21,9 @@ unit pas2jslibcompiler;
 interface
 
 uses
-  SysUtils, Classes, FPPJsSrcMap, Pas2jsFileCache, Pas2JSCompiler, Pas2jsPCUCompiler, pas2jscompilercfg, pas2jscompilerpp;
+  SysUtils, Classes,
+  FPPJsSrcMap, Pas2jsFileCache, Pas2JSCompiler, Pas2jsPCUCompiler,
+  Pas2JSCompilerCfg, Pas2JSCompilerPP;
 
 { ---------------------------------------------------------------------
   Compiler descendant, usable in library

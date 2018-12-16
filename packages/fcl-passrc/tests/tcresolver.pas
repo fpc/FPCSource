@@ -448,23 +448,23 @@ type
     Procedure TestProc_Absolute;
 
     // anonymous procs
-    // ToDo: fppas2js: check "is TPasFunction", ".FuncType", "parent is TPasProcedureBody"
     Procedure TestAnonymousProc_Assign;
-    // ToDo: does Delphi allow/require semicolon in assign?
+    Procedure TestAnonymousProc_AssignSemicolonFail;
+    Procedure TestAnonymousProc_Assign_ReferenceToMissingFail;
+    Procedure TestAnonymousProc_Assign_WrongParamListFail;
     Procedure TestAnonymousProc_Arg;
-    // ToDo: does Delphi allow/require semicolon in arg?
-    // ToDo: does Delphi allow calling directly?: function(i: word):word begin end(3)
+    Procedure TestAnonymousProc_ArgSemicolonFail;
     Procedure TestAnonymousProc_EqualFail;
-    // ToDo: does Delphi allow ano proc in const?
     Procedure TestAnonymousProc_ConstFail;
-    // ToDo: does Delphi allow assembler or calling conventions?
     Procedure TestAnonymousProc_Assembler;
     Procedure TestAnonymousProc_NameFail;
     Procedure TestAnonymousProc_StatementFail;
-    Procedure TestAnonymousProc_Typecast;// ToDo
-    // ToDo: ano in with
-    // ToDo: ano in nested
-    // ToDo: ano in ano
+    Procedure TestAnonymousProc_Typecast_ObjFPC;
+    Procedure TestAnonymousProc_Typecast_Delphi;
+    Procedure TestAnonymousProc_TypecastToResultFail;
+    Procedure TestAnonymousProc_With;
+    Procedure TestAnonymousProc_ExceptOn;
+    Procedure TestAnonymousProc_Nested;
 
     // record
     Procedure TestRecord;
@@ -2233,6 +2233,11 @@ begin
       if TParamsExpr(El).Params[i].Parent<>El then
         E('TParamsExpr(El).Params[i].Parent='+GetObjName(TParamsExpr(El).Params[i].Parent)+'<>El');
     end
+  else if El is TProcedureExpr then
+    begin
+    if (TProcedureExpr(El).Proc<>nil) and (TProcedureExpr(El).Proc.Parent<>El) then
+      E('TProcedureExpr(El).Proc.Parent='+GetObjName(TProcedureExpr(El).Proc.Parent)+'<>El');
+    end
   else if El is TPasDeclarations then
     begin
     for i:=0 to TPasDeclarations(El).Declarations.Count-1 do
@@ -3729,7 +3734,8 @@ begin
   '  aString:=str(f);',
   '  aString:=str(f:3);',
   '  str(f,aString);',
-  '  writestr(astring,f,i);']);
+  '  writestr(astring,f,i);',
+  '  val(aString,f,i);']);
   ParseProgram;
 end;
 
@@ -7168,11 +7174,65 @@ begin
   '    Result:=a+b;',
   '    exit(b);',
   '    exit(Result);',
-  '  end;',
-  '  a:=3;',// test semicolon
+  '  end;',// test semicolon
+  '  a:=3;',
+  'end;',
+  'begin',
+  '  Func:=function(c:word):word begin',
+  '    Result:=3+c;',
+  '    exit(c);',
+  '    exit(Result);',
+  '  end;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_AssignSemicolonFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'procedure DoIt(a: word);',
+  'var p: TProc;',
+  'begin',
+  '  p:=procedure; begin end;',
+  '  a:=3;',
   'end;',
   'begin']);
-  ParseProgram;
+  CheckParserException('Expected "begin" at token ";" in file afile.pp at line 7 column 15',
+    nParserExpectTokenError);
+end;
+
+procedure TTestResolver.TestAnonymousProc_Assign_ReferenceToMissingFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = procedure;',
+  'procedure DoIt;',
+  'var p: TProc;',
+  'begin',
+  '  p:=procedure(w: word) begin end;',
+  'end;',
+  'begin']);
+  CheckResolverException('procedural type modifier "reference to" mismatch',
+    nXModifierMismatchY);
+end;
+
+procedure TTestResolver.TestAnonymousProc_Assign_WrongParamListFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'procedure DoIt;',
+  'var p: TProc;',
+  'begin',
+  '  p:=procedure(w: word) begin end;',
+  'end;',
+  'begin']);
+  CheckResolverException('Incompatible types, got 0 parameters, expected 1',
+    nIncompatibleTypesGotParametersExpected);
 end;
 
 procedure TTestResolver.TestAnonymousProc_Arg;
@@ -7190,11 +7250,28 @@ begin
   '  DoIt(function(b:word): word',
   '    begin',
   '      Result:=1+b;',
-  '    end;);',
-  '  DoMore(procedure begin end;, procedure begin end);',
+  '    end);',
+  '  DoMore(procedure begin end, procedure begin end);',
   'end;',
-  'begin']);
+  'begin',
+  '  DoMore(procedure begin end, procedure begin end);',
+  '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_ArgSemicolonFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  'procedure DoIt(p: TProc);',
+  'begin',
+  'end;',
+  'begin',
+  '  DoIt(procedure begin end;);']);
+  CheckParserException('Expected "," at token ";" in file afile.pp at line 8 column 27',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestAnonymousProc_EqualFail;
@@ -7209,7 +7286,7 @@ begin
   '  if w=function(b:word): word',
   '    begin',
   '      Result:=1+b;',
-  '    end; then ;',
+  '    end then ;',
   'end;',
   'begin']);
   CheckResolverException('Incompatible types: got "Procedure/Function" expected "Word"',nIncompatibleTypesGotExpected);
@@ -7233,10 +7310,13 @@ begin
   Add([
   'type',
   '  TProc = reference to procedure;',
+  '  TProcB = reference to procedure cdecl;',
   'procedure DoIt(p: TProc);',
+  'var b: TProcB;',
   'begin',
-  '  p:=procedure assembler; asm end;',
-  '  p:=procedure() assembler; asm end;',
+  '  p:=procedure assembler asm end;',
+  '  p:=procedure() assembler asm end;',
+  '  b:=procedure() cdecl assembler asm end;',
   'end;',
   'begin']);
   ParseProgram;
@@ -7268,18 +7348,149 @@ begin
   CheckParserException(SParserSyntaxError,nParserSyntaxError);
 end;
 
-procedure TTestResolver.TestAnonymousProc_Typecast;
+procedure TTestResolver.TestAnonymousProc_Typecast_ObjFPC;
 begin
-  exit;
+  StartProgram(false);
+  Add([
+  '{$mode ObjFPC}',
+  'type',
+  '  TProc = reference to procedure(w: word);',
+  '  TArr = array of word;',
+  '  TFuncArr = reference to function: TArr;',
+  'procedure DoIt(p: TProc);',
+  'var',
+  '  w: word;',
+  '  a: TArr;',
+  'begin',
+  '  p:=TProc(procedure(b: smallint) begin end);',
+  '  a:=TFuncArr(function: TArr begin end)();',
+  '  w:=TFuncArr(function: TArr begin end)()[3];',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
 
+procedure TTestResolver.TestAnonymousProc_Typecast_Delphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode Delphi}',
+  'type',
+  '  TProc = reference to procedure(w: word);',
+  '  TArr = array of word;',
+  '  TFuncArr = reference to function: TArr;',
+  'procedure DoIt(p: TProc);',
+  'var',
+  '  w: word;',
+  '  a: TArr;',
+  'begin',
+  '  p:=TProc(procedure(b: smallint) begin end);',
+  '  a:=TFuncArr(function: TArr begin end)();',
+  '  w:=TFuncArr(function: TArr begin end)()[3];',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_TypecastToResultFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'var i: longint;',
+  'begin',
+  '  i:=longint(function(b: byte): byte begin end);',
+  'end;',
+  'begin']);
+  CheckResolverException('Illegal type conversion: "Procedure/Function" to "Longint"',
+    nIllegalTypeConversionTo);
+end;
+
+procedure TTestResolver.TestAnonymousProc_With;
+begin
   StartProgram(false);
   Add([
   'type',
   '  TProc = reference to procedure(w: word);',
-  'procedure DoIt(p: TProc);',
+  '  TObject = class end;',
+  '  TBird = class',
+  '    {#bool}b: boolean;',
+  '  end;',
+  'procedure DoIt({#i}i: longint);',
+  'var',
+  '  {#p}p: TProc;',
+  '  {#bird}bird: TBird;',
   'begin',
-  '  p:=TProc(procedure(b: byte) begin end);',
-  '  p:=TProc(procedure(b: byte) begin end;);',
+  '  with {@bird}bird do',
+  '    {@p}p:=procedure({#w}w: word)',
+  '      begin',
+  '        {@bool}b:=true;',
+  '        {@bool}b:=({@w}w+{@i}i)>2;',
+  '      end;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_ExceptOn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TObject = class end;',
+  '  Exception = class',
+  '    {#bool}b: boolean;',
+  '  end;',
+  'procedure DoIt;',
+  'var',
+  '  {#p}p: TProc;',
+  'begin',
+  '  try',
+  '  except',
+  '    on {#E}E: Exception do',
+  '    {@p}p:=procedure',
+  '      begin',
+  '        {@E}E.{@bool}b:=true;',
+  '      end;',
+  '  end;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_Nested;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TObject = class',
+  '    i: byte;',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TObject.DoIt;',
+  'var',
+  '  p: TProc;',
+  '  procedure Sub;',
+  '  begin',
+  '    p:=procedure',
+  '      begin',
+  '        i:=3;',
+  '        Self.i:=4;',
+  '        p:=procedure',
+  '            procedure SubSub;',
+  '            begin',
+  '              i:=13;',
+  '              Self.i:=14;',
+  '            end;',
+  '          begin',
+  '            i:=13;',
+  '            Self.i:=14;',
+  '          end;',
+  '      end;',
+  '  end;',
+  'begin',
   'end;',
   'begin']);
   ParseProgram;

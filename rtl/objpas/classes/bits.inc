@@ -173,6 +173,12 @@ begin
       result := (FBits^[n] and (longint(1) shl (bit and MASK))) <> 0;
 end;
 
+procedure TBits.CopyBits(BitSet : TBits);
+begin
+  setSize(bitset.Size);
+  Move(bitset.FBits^,FBits^,FSize*SizeOf(cardinal));
+end;
+
 procedure TBits.andbits(bitset : TBits);
 var
    n : longint;
