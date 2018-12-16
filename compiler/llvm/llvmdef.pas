@@ -951,7 +951,7 @@ implementation
               retdeflist[i]:=retloc^.def;
               dec(sizeleft,retloc^.def.size);
             end
-          else
+          else if retloc^.def.size<>sizeleft then
             begin
               case sizeleft of
                 1:
@@ -970,8 +970,10 @@ implementation
                   retdeflist[i]:=u56inttype;
                 else
                   retdeflist[i]:=retloc^.def;
-              end;
-            end;
+              end
+            end
+          else
+            retdeflist[i]:=retloc^.def;
           inc(i);
           retloc:=retloc^.next;
         until not assigned(retloc);
