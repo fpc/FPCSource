@@ -556,7 +556,10 @@ unit cpupara;
                     (side=callerside) and
                     is_ordinal(paradef) and
                     (paradef.size<4) then
-                   paraloc^.size:=OS_32;
+                   begin
+                     paraloc^.size:=OS_32;
+                     paraloc^.def:=u32inttype;
+                   end;
 
                  { in case it's a composite, "The argument is passed as though
                    it had been loaded into the registers from a double-word-
