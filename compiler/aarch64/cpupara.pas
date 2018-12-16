@@ -270,7 +270,8 @@ unit cpupara;
               then indexed beyond its bounds) }
           arraydef:
             result:=
-              (calloption in cdecl_pocalls) or
+              ((calloption in cdecl_pocalls) and
+               not is_dynamic_array(def)) or
               is_open_array(def) or
               is_array_of_const(def) or
               is_array_constructor(def) or
