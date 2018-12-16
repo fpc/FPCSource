@@ -690,9 +690,7 @@ implementation
           llvmextractvalueextinfo(hp.vardef,usedef,signext);
           { implicit zero/sign extension for ABI compliance? }
           if not first then
-             encodedstr:=encodedstr+', '
-          else
-            first:=false;
+             encodedstr:=encodedstr+', ';
           llvmaddencodedtype_intern(usedef,[],encodedstr);
           { in case signextstr<>'', there should be only one paraloc -> no need
             to clear (reason: it means that the paraloc is larger than the
@@ -769,6 +767,7 @@ implementation
               encodedstr:=encodedstr+' '+llvmasmsymname(paraloc^.llvmloc.sym);
             end;
           paraloc:=paraloc^.next;
+          first:=false;
         until not assigned(paraloc);
       end;
 
