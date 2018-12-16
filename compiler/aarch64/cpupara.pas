@@ -570,7 +570,7 @@ unit cpupara;
                  if (target_info.endian=endian_big) and
                     not(paraloc^.size in [OS_64,OS_S64]) and
                     (paradef.typ in [setdef,recorddef,arraydef,objectdef]) then
-                   paraloc^.shiftval:=-(8-tcgsize2size[paraloc^.size]);
+                   paraloc^.shiftval:=-(8-tcgsize2size[paraloc^.size])*8;
                end;
              LOC_MMREGISTER:
                begin
@@ -584,7 +584,7 @@ unit cpupara;
                   paraloc^.loc:=LOC_REFERENCE;
 
                   { the current stack offset may not be properly aligned in
-                    case we're on Darwin have allocated a non-variadic argument
+                    case we're on Darwin and have allocated a non-variadic argument
                     < 8 bytes previously }
                   if target_info.abi=abi_aarch64_darwin then
                     curstackoffset:=align(curstackoffset,paraloc^.def.alignment);
