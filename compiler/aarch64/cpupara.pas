@@ -532,8 +532,48 @@ unit cpupara;
              end
            else
              begin
+{$ifndef llvm}
                paraloc^.size:=locsize;
                paraloc^.def:=locdef;
+{$else llvm}
+               case locsize of
+                 OS_8,OS_16,OS_32:
+                   begin
+                     paraloc^.size:=OS_64;
+                     paraloc^.def:=u64inttype;
+                   end;
+                 OS_S8,OS_S16,OS_S32:
+                   begin
+                     paraloc^.size:=OS_S64;
+                     paraloc^.def:=s64inttype;
+                   end;
+                 OS_F32:
+                   begin
+                     paraloc^.size:=OS_F32;
+                     paraloc^.def:=s32floattype;
+                   end;
+                 OS_F64:
+                   begin
+                     paraloc^.size:=OS_F64;
+                     paraloc^.def:=s64floattype;
+                   end;
+                 else
+                   begin
+                     if is_record(locdef) or
+                        ((locdef.typ=arraydef) and
+                         not is_special_array(locdef)) then
+                       begin
+                         paraloc^.size:=OS_64;
+                         paraloc^.def:=u64inttype;
+                       end
+                     else
+                       begin
+                         paraloc^.size:=locsize;
+                         paraloc^.def:=locdef;
+                       end;
+                   end;
+               end;
+{$endif llvm}
              end;
 
            { paraloc loc }
