@@ -768,7 +768,7 @@ implementation
                         as a dynamic array here }
                      { first restore the actual resultdef of left }
                      temparraydef:=left.resultdef;
-                     left.resultdef:=parasym.vardef;
+                     left.resultdef:=resultdef;
                      { get its address }
                      lefttemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
                      addstatement(initstat,lefttemp);
@@ -779,21 +779,19 @@ implementation
                          caddrnode.create_internal(left)
                        )
                      );
-                     { restore the resultdef }
-                     left.resultdef:=temparraydef;
                      { now treat that address (correctly) as the original
                        dynamic array to get its start and length }
                      arraybegin:=cvecnode.create(
                        ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp),
-                         left.resultdef),
+                         temparraydef),
                        genintconstnode(0)
                      );
                      arraysize:=caddnode.create(muln,
                        geninlinenode(in_length_x,false,
                          ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp),
-                           left.resultdef)
+                           temparraydef)
                        ),
-                       genintconstnode(tarraydef(left.resultdef).elementdef.size)
+                       genintconstnode(tarraydef(temparraydef).elementdef.size)
                      );
                    end
                  else
