@@ -1084,8 +1084,8 @@ procedure TPas2jsCompilerFile.CreateConverter;
 begin
   if FConverter<>nil then exit;
   FConverter:=TPasToJSConverter.Create;
-  FConverter.Options:=GetInitialConverterOptions;
   FConverter.Globals:=Compiler.ConverterGlobals;
+  FConverter.Options:=GetInitialConverterOptions;
 end;
 
 procedure TPas2jsCompilerFile.OnResolverCheckSrcName(const Element: TPasElement);

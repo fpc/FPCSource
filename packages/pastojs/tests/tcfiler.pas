@@ -444,8 +444,8 @@ begin
   FInitialFlags.ModeSwitches:=Scanner.CurrentModeSwitches;
   FInitialFlags.BoolSwitches:=Scanner.CurrentBoolSwitches;
   FInitialFlags.ConverterOptions:=Converter.Options;
-  FInitialFlags.TargetPlatform:=Converter.TargetPlatform;
-  FInitialFlags.TargetProcessor:=Converter.TargetProcessor;
+  FInitialFlags.TargetPlatform:=Converter.Globals.TargetPlatform;
+  FInitialFlags.TargetProcessor:=Converter.Globals.TargetProcessor;
   // ToDo: defines
 end;
 

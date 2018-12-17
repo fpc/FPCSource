@@ -1197,6 +1197,7 @@ function TCustomTestModule.CreateConverter: TPasToJSConverter;
 begin
   Result:=TPasToJSConverter.Create;
   Result.Options:=co_tcmodules;
+  Result.Globals:=TPasToJSConverterGlobals.Create(Result);
 end;
 
 procedure TCustomTestModule.InitScanner(aScanner: TPas2jsPasScanner);

@@ -76,6 +76,7 @@
       <Unit9>
         <Filename Value="tcunitsearch.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCUnitSearch"/>
       </Unit9>
       <Unit10>
         <Filename Value="tcprecompile.pas"/>
