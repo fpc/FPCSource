@@ -168,6 +168,7 @@ Works:
   - low(), high()
   - when passing as argument set state referenced
   - set of (enum,enum2)  - anonymous enumtype
+  - set of char, boolean, integer range, char range, enum range
 - with-do  using local var
   - with record do i:=v;
   - with classinstance do begin create; i:=v; f(); i:=a[]; end;
@@ -361,15 +362,16 @@ Works:
 - procedure val(const string; var enumtype; out int)
 
 ToDos:
-- do not rename property Date
+- records:
+  - move local types to global
+  - use rtl.createRecord to create a record type
+  - use Object.create to instantiate simple records
+  - use TRec.$create to instantiate complex records
+  - advanced records:
+    - functions
+    - rtti
 - cmd line param to set modeswitch
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
-- bug:
-  v:=a[0]  gives Local variable "a" is assigned but never used
-- bug:
-  exit(something) gives function result not set
-- constructor does not need reintroduce
-- double utf8bom at start must give error  pscanner 4259
 - setlength(dynarray)  modeswitch to not create a copy
 - 'new', 'Function' -> class var use .prototype
 - static arrays
@@ -382,7 +384,6 @@ ToDos:
   - record member interface
 - range check o.arr[i]  o.astring[i]
 - record field external name
-- make records more lightweight
 - 1 as TEnum, ERangeError
 - ifthen<T>
 - stdcall of methods: pass original 'this' as first parameter
@@ -391,8 +392,6 @@ ToDos:
 - write, writeln
 - array of const
 - Result:=inherited;
-- sets
-  - set of char, boolean, integer range, char range, enum range
 - call array of proc element without ()
 - enums with custom values
 - library
@@ -1238,7 +1237,7 @@ type
     procedure FinishVariable(El: TPasVariable); override;
     procedure FinishArgument(El: TPasArgument); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
-    procedure FinishPropertyOfClass(PropEl: TPasProperty); override;
+    procedure FinishProperty(PropEl: TPasProperty); override;
     procedure CheckExternalClassConstructor(Ref: TResolvedReference); virtual;
     procedure CheckConditionExpr(El: TPasExpr;
       const ResolvedEl: TPasResolverResult); override;
@@ -3660,7 +3659,7 @@ begin
     end;
 end;
 
-procedure TPas2JSResolver.FinishPropertyOfClass(PropEl: TPasProperty);
+procedure TPas2JSResolver.FinishProperty(PropEl: TPasProperty);
 var
   Getter, Setter: TPasElement;
   GetterIsBracketAccessor, SetterIsBracketAccessor: Boolean;
@@ -3670,7 +3669,7 @@ var
   IndexExpr: TPasExpr;
   PropArgs: TFPList;
 begin
-  inherited FinishPropertyOfClass(PropEl);
+  inherited FinishProperty(PropEl);
 
   ParentC:=PropEl.Parent.ClassType;
   if (ParentC=TPasClassType) then
@@ -3898,7 +3897,7 @@ begin
     // read 16-bit
     v:=(Bytes[BytePos] shl 8)+Bytes[(BytePos+1) and 15];
     // change some bits
-    v:=v+(ord(Name[i]) shl (11-BitPos));
+    v:=v+integer((ord(Name[i]) shl (11-BitPos)));
     // write 16 bit
     Bytes[BytePos]:=(v shr 8) and $ff;
     Bytes[(BytePos+1) and 15]:=v and $ff;
@@ -5848,7 +5847,7 @@ var
   C: TJSCallExpression;
   Proc: TPasProcedure;
   ProcScope: TPasProcedureScope;
-  ClassScope: TPasClassScope;
+  ClassScope: TPasClassOrRecordScope;
   aClass: TPasElement;
   ArgEx: TJSLiteral;
   FunName: String;
@@ -12548,7 +12547,7 @@ begin
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
       List.A:=Result;
       Result:=List;
-      OrdType:=GetOrdType(0,El.Values.Count-1,El);
+      OrdType:=GetOrdType(0,TMaxPrecInt(El.Values.Count)-1,El);
       // module.$rtti.$TIEnum("TMyEnum",{...});
       Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewEnum),false,AContext,TIObj);
       List.B:=Call;
@@ -16484,10 +16483,10 @@ var
           StartInt:=0;
           {$IFDEF FPC_HAS_CPSTRING}
           if InValue.Kind=revkString then
-            EndInt:=length(UTF8Decode(TResEvalString(InValue).S))-1
+            EndInt:=TMaxPrecInt(length(UTF8Decode(TResEvalString(InValue).S)))-1
           else
           {$ENDIF}
-            EndInt:=length(TResEvalUTF16(InValue).S)-1;
+            EndInt:=TMaxPrecInt(length(TResEvalUTF16(InValue).S))-1;
           ReleaseEvalValue(InValue);
           end;
         revkRangeInt,revkSetOfInt:
