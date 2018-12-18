@@ -355,8 +355,8 @@ Var
 begin
   Result:=Length(S)*SizeOf(TJSWriterChar);
   if Result=0 then exit;
-  MinLen:=Result+FBufPos;
-  If (MinLen>Capacity) then
+  MinLen:=Result+integer(FBufPos);
+  If (MinLen>integer(Capacity)) then
     begin
     DesLen:=(FCapacity*3) div 2;
     if DesLen>MinLen then
@@ -364,7 +364,7 @@ begin
     Capacity:=MinLen;
     end;
   Move(S[1],FBuffer[FBufPos],Result);
-  FBufPos:=FBufPos+Result;
+  FBufPos:=integer(FBufPos)+Result;
 end;
 {$endif}
 
@@ -377,8 +377,8 @@ Var
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
   if Result=0 then exit;
-  MinLen:=Result+FBufPos;
-  If (MinLen>Capacity) then
+  MinLen:=Result+integer(FBufPos);
+  If (MinLen>integer(Capacity)) then
     begin
     DesLen:=(FCapacity*3) div 2;
     if DesLen>MinLen then
@@ -386,7 +386,7 @@ begin
     Capacity:=MinLen;
     end;
   Move(S[1],FBuffer[FBufPos],Result);
-  FBufPos:=FBufPos+Result;
+  FBufPos:=integer(FBufPos)+Result;
 end;
 {$endif}
 
