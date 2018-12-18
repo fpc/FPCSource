@@ -134,7 +134,7 @@ const
   nFoundCallCandidateX = 3057;
   nTextAfterFinalIgnored = 3058;
   nNoMemberIsProvidedToAccessProperty = 3059;
-  // free 3060
+  nTheUseOfXisNotAllowedInARecord = 3060;
   // free 3061
   // free 3062
   // free 3063
@@ -251,6 +251,7 @@ resourcestring
   sFoundCallCandidateX = 'Found call candidate %s';
   sTextAfterFinalIgnored = 'Text after final ''end.''. ignored by compiler';
   sNoMemberIsProvidedToAccessProperty = 'No member is provided to access property';
+  sTheUseOfXisNotAllowedInARecord = 'The use of "%s" is not allowed in a record';
   sSymbolXIsNotPortable = 'Symbol "%s" is not portable';
   sSymbolXIsExperimental = 'Symbol "%s" is experimental';
   sSymbolXIsNotImplemented = 'Symbol "%s" is not implemented';

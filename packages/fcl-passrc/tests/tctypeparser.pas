@@ -2043,6 +2043,7 @@ Var
   P : TPasFunction;
 
 begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
   TestFields(['x : integer;','class operator assign(a : ta; b : Cardinal) : boolean;','function dosomething3 : Integer;'],'',False);
   AssertEquals('Member count',3,TheRecord.Members.Count);
   AssertField1([]);
@@ -2057,6 +2058,7 @@ end;
 
 procedure TTestRecordTypeParser.TestFieldAndClassVar;
 begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
   TestFields(['x : integer;','class var y : integer;'],'',False);
   AssertField1([]);
   AssertTrue('Second field is class var',vmClass in Field2.VarModifiers);
@@ -2064,6 +2066,7 @@ end;
 
 procedure TTestRecordTypeParser.TestFieldAndVar;
 begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
   TestFields(['x : integer;','var y : integer;'],'',False);
   AssertField1([]);
   AssertTrue('Second field is regular var',not (vmClass in Field2.VarModifiers));
