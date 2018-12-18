@@ -443,11 +443,11 @@ Implementation
                 For example:
                   ldr	reg2,[reg1, xxx]!
                   mov reg1,reg2
-                is translated to:
+                must be translated to:
                   ldr	reg1,[reg1, xxx]
 
                 Preindexing must be removed there, since the same register is used as the base and as the target.
-                It is not allowed for ARM CPU and produces wrong results. }
+                Such case is not allowed for ARM CPU and produces crash. }
               if (taicpu(p).opcode = A_LDR) and (taicpu(p).oper[1]^.typ = top_ref)
                 and (taicpu(movp).oper[0]^.reg = taicpu(p).oper[1]^.ref^.base)
               then
