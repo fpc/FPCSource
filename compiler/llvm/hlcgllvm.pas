@@ -217,6 +217,7 @@ implementation
         (orgsize<>size) and
         assigned(cgpara.location^.next);
       paralocidx:=0;
+      fielddef:=nil;
       while assigned(location) do
         begin
           if userecord then
