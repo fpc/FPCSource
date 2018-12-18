@@ -439,6 +439,19 @@ Implementation
 
               { finally get rid of the mov }
               taicpu(p).loadreg(0,taicpu(movp).oper[0]^.reg);
+              { Remove preindexing and postindexing for LDR in some cases.
+                For example:
+                  ldr	reg2,[reg1, xxx]!
+                  mov reg1,reg2
+                is translated to:
+                  ldr	reg1,[reg1, xxx]
+
+                Preindexing must be removed there, since the same register is used as the base and as the target.
+                It is not allowed for ARM CPU and produces wrong results. }
+              if (taicpu(p).opcode = A_LDR) and (taicpu(p).oper[1]^.typ = top_ref)
+                and (taicpu(movp).oper[0]^.reg = taicpu(p).oper[1]^.ref^.base)
+              then
+                taicpu(p).oper[1]^.ref^.addressmode:=AM_OFFSET;
               asml.remove(movp);
               movp.free;
             end;
