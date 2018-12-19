@@ -1765,6 +1765,7 @@ type
     Function ConvertBuiltIn_WriteStr(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Val(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_ConcatArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_ConcatString(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_CopyArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_InsertArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_DeleteArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -3989,7 +3990,7 @@ begin
           if RHS.IdentEl.ClassType=TPasClassType then
             Result:=cJSValueConversion; // RHS is a class type
           end;
-        end
+        end;
       end;
     end
   else if (LHS.BaseType=btContext) then
@@ -8522,6 +8523,7 @@ begin
           bfWriteStr: Result:=ConvertBuiltIn_WriteStr(El,AContext);
           bfVal: Result:=ConvertBuiltIn_Val(El,AContext);
           bfConcatArray: Result:=ConvertBuiltIn_ConcatArray(El,AContext);
+          bfConcatString: Result:=ConvertBuiltIn_ConcatString(El,AContext);
           bfCopyArray: Result:=ConvertBuiltIn_CopyArray(El,AContext);
           bfInsertArray: Result:=ConvertBuiltIn_InsertArray(El,AContext);
           bfDeleteArray: Result:=ConvertBuiltIn_DeleteArray(El,AContext);
@@ -10735,6 +10737,40 @@ begin
         JS:=CreateArrayEl(Param,JS,AContext);
         Call.AddArg(JS);
         end;
+      Result:=Call;
+    finally
+      if Result=nil then
+        Call.Free;
+    end;
+    end;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_ConcatString(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+var
+  Params: TPasExprArray;
+  A: TJSElement;
+  Call: TJSCallExpression;
+  i: Integer;
+  DotEx: TJSDotMemberExpression;
+begin
+  Params:=El.Params;
+  if Length(Params)=1 then
+    // concat(a) -> a
+    Result:=ConvertElement(Params[0],AContext)
+  else
+    begin
+    // concat(a,b,c) -> a.concat(b,c)
+    Result:=nil;
+    A:=ConvertElement(Params[0],AContext); // beware: might fail
+    Call:=CreateCallExpression(El);
+    try
+      DotEx:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,Params[0]));
+      DotEx.MExpr:=A;
+      DotEx.Name:='concat';
+      Call.Expr:=DotEx;
+      for i:=1 to length(Params)-1 do
+        Call.AddArg(ConvertElement(Params[i],AContext));
       Result:=Call;
     finally
       if Result=nil then

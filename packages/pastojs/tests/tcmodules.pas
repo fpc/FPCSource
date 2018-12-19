@@ -6379,6 +6379,8 @@ begin
   '  s:=#$20AC;', // euro
   '  s:=#$10437;', // outside BMP
   '  s:=default(string);',
+  '  s:=concat(s);',
+  '  s:=concat(s,''a'',s)',
   '']);
   ConvertProgram;
   CheckSource('TestStringConst',
@@ -6395,8 +6397,10 @@ begin
     '$mod.s=''"\''"'';',
     '$mod.s="€";',
     '$mod.s="'#$F0#$90#$90#$B7'";',
-    '$mod.s="";'
-    ]));
+    '$mod.s="";',
+    '$mod.s = $mod.s;',
+    '$mod.s = $mod.s.concat("a", $mod.s);',
+    '']));
 end;
 
 procedure TTestModule.TestStringConstSurrogate;
