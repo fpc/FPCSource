@@ -698,6 +698,8 @@ type
     procedure PredValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     procedure SuccValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     function EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
+    function EvalStringAddExpr(Expr, LeftExpr, RightExpr: TPasExpr;
+      LeftValue, RightValue: TResEvalValue): TResEvalValue; virtual;
     function EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
       Flags: TResEvalFlags): TResEvalEnum; virtual;
     {$ifdef FPC_HAS_CPSTRING}
@@ -1535,9 +1537,6 @@ var
   UInt: TMaxPrecUInt;
   Flo: TMaxPrecFloat;
   aCurrency: TMaxPrecCurrency;
-  {$ifdef FPC_HAS_CPSTRING}
-  LeftCP, RightCP: TSystemCodePage;
-  {$endif}
   LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
@@ -1635,58 +1634,10 @@ begin
       end;
       end;
     {$ifdef FPC_HAS_CPSTRING}
-    revkString:
-      case RightValue.Kind of
-      revkString:
-        begin
-        LeftCP:=GetCodePage(TResEvalString(LeftValue).S);
-        RightCP:=GetCodePage(TResEvalString(RightValue).S);
-        if (LeftCP=RightCP) then
-          begin
-          Result:=TResEvalString.Create;
-          TResEvalString(Result).S:=TResEvalString(LeftValue).S+TResEvalString(RightValue).S;
-          end
-        else
-          begin
-          Result:=TResEvalUTF16.Create;
-          TResEvalUTF16(Result).S:=GetUnicodeStr(TResEvalString(LeftValue).S,Expr.left)
-                                  +GetUnicodeStr(TResEvalString(RightValue).S,Expr.right);
-          end;
-        end;
-      revkUnicodeString:
-        begin
-        Result:=TResEvalUTF16.Create;
-        TResEvalUTF16(Result).S:=GetUnicodeStr(TResEvalString(LeftValue).S,Expr.left)
-                                +TResEvalUTF16(RightValue).S;
-        end;
-      else
-        {$IFDEF VerbosePasResolver}
-        writeln('TResExprEvaluator.EvalBinaryAddExpr string+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
-        {$ENDIF}
-        RaiseNotYetImplemented(20170601141834,Expr);
-      end;
+    revkString,
     {$endif}
     revkUnicodeString:
-      case RightValue.Kind of
-      {$ifdef FPC_HAS_CPSTRING}
-      revkString:
-        begin
-        Result:=TResEvalUTF16.Create;
-        TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S
-                                +GetUnicodeStr(TResEvalString(RightValue).S,Expr.right);
-        end;
-      {$endif}
-      revkUnicodeString:
-        begin
-        Result:=TResEvalUTF16.Create;
-        TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S+TResEvalUTF16(RightValue).S;
-        end;
-      else
-        {$IFDEF VerbosePasResolver}
-        writeln('TResExprEvaluator.EvalBinaryAddExpr utf16+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
-        {$ENDIF}
-        RaiseNotYetImplemented(20170601141811,Expr);
-      end;
+      Result:=EvalStringAddExpr(Expr,Expr.left,Expr.right,LeftValue,RightValue);
     revkSetOfInt:
       case RightValue.Kind of
       revkSetOfInt:
@@ -4791,6 +4742,72 @@ begin
     {$else}
     Result:=TResEvalUTF16.CreateValue(S);
     {$endif}
+end;
+
+function TResExprEvaluator.EvalStringAddExpr(Expr, LeftExpr,
+  RightExpr: TPasExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+{$ifdef FPC_HAS_CPSTRING}
+var
+  LeftCP, RightCP: TSystemCodePage;
+{$endif}
+begin
+  case LeftValue.Kind of
+  {$ifdef FPC_HAS_CPSTRING}
+  revkString:
+    case RightValue.Kind of
+    revkString:
+      begin
+      LeftCP:=GetCodePage(TResEvalString(LeftValue).S);
+      RightCP:=GetCodePage(TResEvalString(RightValue).S);
+      if (LeftCP=RightCP) then
+        begin
+        Result:=TResEvalString.Create;
+        TResEvalString(Result).S:=TResEvalString(LeftValue).S+TResEvalString(RightValue).S;
+        end
+      else
+        begin
+        Result:=TResEvalUTF16.Create;
+        TResEvalUTF16(Result).S:=GetUnicodeStr(TResEvalString(LeftValue).S,LeftExpr)
+                                +GetUnicodeStr(TResEvalString(RightValue).S,RightExpr);
+        end;
+      end;
+    revkUnicodeString:
+      begin
+      Result:=TResEvalUTF16.Create;
+      TResEvalUTF16(Result).S:=GetUnicodeStr(TResEvalString(LeftValue).S,LeftExpr)
+                              +TResEvalUTF16(RightValue).S;
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryAddExpr string+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170601141834,Expr);
+    end;
+  {$endif}
+  revkUnicodeString:
+    case RightValue.Kind of
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString:
+      begin
+      Result:=TResEvalUTF16.Create;
+      TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S
+                              +GetUnicodeStr(TResEvalString(RightValue).S,RightExpr);
+      end;
+    {$endif}
+    revkUnicodeString:
+      begin
+      Result:=TResEvalUTF16.Create;
+      TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S+TResEvalUTF16(RightValue).S;
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryAddExpr utf16+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170601141811,Expr);
+    end;
+  else
+    RaiseNotYetImplemented(20181219233139,Expr);
+  end;
 end;
 
 function TResExprEvaluator.EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;

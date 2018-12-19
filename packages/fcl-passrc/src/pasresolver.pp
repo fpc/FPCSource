@@ -538,6 +538,7 @@ type
     bfWriteStr,
     bfVal,
     bfConcatArray,
+    bfConcatString,
     bfCopyArray,
     bfInsertArray,
     bfDeleteArray,
@@ -571,6 +572,7 @@ const
     'Str',
     'WriteStr',
     'Val',
+    'Concat',
     'Concat',
     'Copy',
     'Insert',
@@ -1464,6 +1466,9 @@ type
     procedure ComputeBinaryExprRes(Bin: TBinaryExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       var LeftResolved, RightResolved: TPasResolverResult); virtual;
+    function ComputeAddStringRes(
+      const LeftResolved, RightResolved: TPasResolverResult; ExprEl: TPasExpr;
+      out ResolvedEl: TPasResolverResult): boolean; virtual;
     procedure ComputeArrayParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -1617,6 +1622,12 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_ConcatArray_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    function BI_ConcatString_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_ConcatString_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
+      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_ConcatString_OnEval({%H-}Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_CopyArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_CopyArray_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
@@ -9776,90 +9787,9 @@ begin
             exit;
             end;
         eopAdd:
-          case LeftResolved.BaseType of
-          btChar:
-            begin
-            case RightResolved.BaseType of
-            btChar: SetBaseType(btString);
-            {$ifdef FPC_HAS_CPSTRING}
-            btAnsiChar:
-              if BaseTypeChar=btAnsiChar then
-                SetBaseType(btString)
-              else
-                SetBaseType(btUnicodeString);
-            {$endif}
-            btWideChar:
-              if BaseTypeChar=btWideChar then
-                SetBaseType(btString)
-              else
-                SetBaseType(btUnicodeString);
-            else
-              // use right type for result
-              SetRightValueExpr([rrfReadable]);
-            end;
-            exit;
-            end;
-          {$ifdef FPC_HAS_CPSTRING}
-          btAnsiChar:
-            begin
-            case RightResolved.BaseType of
-            btChar:
-              if BaseTypeChar=btAnsiChar then
-                SetBaseType(btString)
-              else
-                SetBaseType(btUnicodeString);
-            btAnsiChar:
-              if BaseTypeChar=btAnsiChar then
-                SetBaseType(btString)
-              else
-                SetBaseType(btAnsiString);
-            btWideChar:
-              if BaseTypeChar=btWideChar then
-                SetBaseType(btString)
-              else
-                SetBaseType(btUnicodeString);
-            else
-              // use right type for result
-              SetRightValueExpr([rrfReadable]);
-            end;
-            exit;
-            end;
-          {$endif}
-          btWideChar:
-            begin
-              case RightResolved.BaseType of
-              btChar,{$ifdef FPC_HAS_CPSTRING}btAnsiChar,{$endif}btWideChar:
-                if BaseTypeChar=btWideChar then
-                  SetBaseType(btString)
-                else
-                  SetBaseType(btUnicodeString);
-              else
-                // use right type for result
-                SetRightValueExpr([rrfReadable]);
-              end;
+          if RightResolved.BaseType in btAllStringAndChars then
+            if ComputeAddStringRes(LeftResolved,RightResolved,Bin,ResolvedEl) then
               exit;
-            end;
-          {$ifdef FPC_HAS_CPSTRING}
-          btShortString:
-            begin
-              case RightResolved.BaseType of
-              btChar,btAnsiChar,btShortString,btWideChar:
-                // use left type for result
-                SetLeftValueExpr([rrfReadable]);
-              else
-                // shortstring + string => string
-                SetRightValueExpr([rrfReadable]);
-              end;
-              exit;
-            end;
-          {$endif}
-          btString,{$ifdef FPC_HAS_CPSTRING}btAnsiString,{$endif}btUnicodeString:
-            begin
-              // string + x => string
-              SetLeftValueExpr([rrfReadable]);
-              exit;
-            end;
-          end;
         eopLessThan,
         eopGreaterThan,
         eopLessthanEqual,
@@ -10346,6 +10276,117 @@ begin
   RaiseIncompatibleTypeRes(20180204114631,nOperatorIsNotOverloadedAOpB,
     [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
   if Flags=[] then ;
+end;
+
+function TPasResolver.ComputeAddStringRes(const LeftResolved,
+  RightResolved: TPasResolverResult; ExprEl: TPasExpr; out
+  ResolvedEl: TPasResolverResult): boolean;
+
+  procedure SetBaseType(BaseType: TResolverBaseType);
+  begin
+    SetResolverValueExpr(ResolvedEl,BaseType,FBaseTypes[BaseType],FBaseTypes[BaseType],
+                         ExprEl,[rrfReadable]);
+  end;
+
+  procedure SetLeftValueExpr(Flags: TPasResolverResultFlags);
+  begin
+    SetResolverValueExpr(ResolvedEl,LeftResolved.BaseType,
+      LeftResolved.LoTypeEl,LeftResolved.HiTypeEl,ExprEl,Flags);
+  end;
+
+  procedure SetRightValueExpr(Flags: TPasResolverResultFlags);
+  begin
+    SetResolverValueExpr(ResolvedEl,RightResolved.BaseType,
+      RightResolved.LoTypeEl,RightResolved.HiTypeEl,ExprEl,Flags);
+  end;
+
+begin
+  Result:=true;
+  case LeftResolved.BaseType of
+  btChar:
+    begin
+    case RightResolved.BaseType of
+    btChar: SetBaseType(btString);
+    {$ifdef FPC_HAS_CPSTRING}
+    btAnsiChar:
+      if BaseTypeChar=btAnsiChar then
+        SetBaseType(btString)
+      else
+        SetBaseType(btUnicodeString);
+    {$endif}
+    btWideChar:
+      if BaseTypeChar=btWideChar then
+        SetBaseType(btString)
+      else
+        SetBaseType(btUnicodeString);
+    else
+      // use right type for result
+      SetRightValueExpr([rrfReadable]);
+    end;
+    exit;
+    end;
+  {$ifdef FPC_HAS_CPSTRING}
+  btAnsiChar:
+    begin
+    case RightResolved.BaseType of
+    btChar:
+      if BaseTypeChar=btAnsiChar then
+        SetBaseType(btString)
+      else
+        SetBaseType(btUnicodeString);
+    btAnsiChar:
+      if BaseTypeChar=btAnsiChar then
+        SetBaseType(btString)
+      else
+        SetBaseType(btAnsiString);
+    btWideChar:
+      if BaseTypeChar=btWideChar then
+        SetBaseType(btString)
+      else
+        SetBaseType(btUnicodeString);
+    else
+      // use right type for result
+      SetRightValueExpr([rrfReadable]);
+    end;
+    exit;
+    end;
+  {$endif}
+  btWideChar:
+    begin
+      case RightResolved.BaseType of
+      btChar,{$ifdef FPC_HAS_CPSTRING}btAnsiChar,{$endif}btWideChar:
+        if BaseTypeChar=btWideChar then
+          SetBaseType(btString)
+        else
+          SetBaseType(btUnicodeString);
+      else
+        // use right type for result
+        SetRightValueExpr([rrfReadable]);
+      end;
+      exit;
+    end;
+  {$ifdef FPC_HAS_CPSTRING}
+  btShortString:
+    begin
+      case RightResolved.BaseType of
+      btChar,btAnsiChar,btShortString,btWideChar:
+        // use left type for result
+        SetLeftValueExpr([rrfReadable]);
+      else
+        // shortstring + string => string
+        SetRightValueExpr([rrfReadable]);
+      end;
+      exit;
+    end;
+  {$endif}
+  btString,{$ifdef FPC_HAS_CPSTRING}btAnsiString,{$endif}btUnicodeString:
+    begin
+      // string + x => string
+      SetLeftValueExpr([rrfReadable]);
+      exit;
+    end;
+  end;
+  Result:=false;
 end;
 
 procedure TPasResolver.ComputeArrayParams(Params: TParamsExpr; out
@@ -11906,24 +11947,20 @@ begin
           {$IFDEF VerbosePasResEval}
           writeln('TPasResolver.OnExprEvalParams Calling BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
           {$ENDIF}
-          case BuiltInProc.BuiltIn of
-            bfLength: BI_Length_OnEval(BuiltInProc,Params,Flags,Result);
-            bfAssigned: Result:=nil;
-            bfChr: BI_Chr_OnEval(BuiltInProc,Params,Flags,Result);
-            bfOrd: BI_Ord_OnEval(BuiltInProc,Params,Flags,Result);
-            bfLow,bfHigh: BI_LowHigh_OnEval(BuiltInProc,Params,Flags,Result);
-            bfPred,bfSucc: BI_PredSucc_OnEval(BuiltInProc,Params,Flags,Result);
-            bfStrFunc: BI_StrFunc_OnEval(BuiltInProc,Params,Flags,Result);
-            bfConcatArray: Result:=nil;
-            bfCopyArray: Result:=nil;
-            bfTypeInfo: Result:=nil;
-            bfDefault: BI_Default_OnEval(BuiltInProc,Params,Flags,Result);
+          if BuiltInProc.Eval<>nil then
+            BuiltInProc.Eval(BuiltInProc,Params,Flags,Result)
           else
-            {$IFDEF VerbosePasResEval}
-            writeln('TPasResolver.OnExprEvalParams Unhandled BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
-            {$ENDIF}
-            RaiseNotYetImplemented(20170624192324,Params);
-          end;
+            case BuiltInProc.BuiltIn of
+              bfAssigned: Result:=nil;
+              bfConcatArray: Result:=nil;
+              bfCopyArray: Result:=nil;
+              bfTypeInfo: Result:=nil;
+            else
+              {$IFDEF VerbosePasResEval}
+              writeln('TPasResolver.OnExprEvalParams Unhandled BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
+              {$ENDIF}
+              RaiseNotYetImplemented(20170624192324,Params);
+            end;
           {$IFDEF VerbosePasResEval}
           {AllowWriteln}
           if Result<>nil then
@@ -13561,6 +13598,95 @@ begin
   ResolvedEl.IdentEl:=nil;
   if ResolvedEl.BaseType=btArrayOrSet then
     ResolvedEl.BaseType:=btArrayLit;
+end;
+
+function TPasResolver.BI_ConcatString_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  i: Integer;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+
+  for i:=0 to length(Params.Params)-1 do
+    begin
+    // all params: char or string
+    Param:=Params.Params[i];
+    ComputeElement(Param,ParamResolved,[]);
+    if not (rrfReadable in ParamResolved.Flags)
+        or not (ParamResolved.BaseType in btAllStringAndChars) then
+      exit(CheckRaiseTypeArgNo(20181219230329,i+1,Param,ParamResolved,'string',RaiseOnError));
+    end;
+  Result:=cExact;
+end;
+
+procedure TPasResolver.BI_ConcatString_OnGetCallResult(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr; out
+  ResolvedEl: TPasResolverResult);
+var
+  i: Integer;
+  Param: TPasExpr;
+  ParamResolved, CombinedResolved: TPasResolverResult;
+begin
+  for i:=0 to length(Params.Params)-1 do
+    begin
+    // all params: char or string
+    Param:=Params.Params[i];
+    ComputeElement(Param,ParamResolved,[]);
+    if i=0 then
+      ResolvedEl:=ParamResolved
+    else
+      begin
+      ComputeAddStringRes(ResolvedEl,ParamResolved,Params,CombinedResolved);
+      ResolvedEl:=CombinedResolved;
+      end;
+    end;
+end;
+
+procedure TPasResolver.BI_ConcatString_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+var
+  i: Integer;
+  Param: TPasExpr;
+  Value, NewValue: TResEvalValue;
+  ok: Boolean;
+begin
+  Value:=nil;
+  Evaluated:=nil;
+  ok:=false;
+  try
+    for i:=0 to length(Params.Params)-1 do
+      begin
+      // all params: char or string
+      Param:=Params.Params[i];
+      Value:=Eval(Param,Flags);
+      if Value=nil then
+        exit;
+      if i=0 then
+        begin
+        Evaluated:=Value;
+        Value:=nil;
+        end
+      else
+        begin
+        NewValue:=ExprEvaluator.EvalStringAddExpr(Param,Params.Params[i-1],Param,
+          Evaluated,Value);
+        ReleaseEvalValue(Evaluated);
+        Evaluated:=NewValue;
+        ReleaseEvalValue(Value);
+        end;
+      end;
+    ok:=true;
+  finally
+    ReleaseEvalValue(Value);
+    if not ok then
+      ReleaseEvalValue(Evaluated);
+  end;
 end;
 
 function TPasResolver.BI_CopyArray_OnGetCallCompatibility(
@@ -15248,7 +15374,8 @@ begin
         nil,@BI_Assigned_OnFinishParamsExpr,bfAssigned);
   if bfChr in TheBaseProcs then
     AddBuiltInProc('Chr','function Chr(const Integer): char',
-        @BI_Chr_OnGetCallCompatibility,@BI_Chr_OnGetCallResult,nil,nil,bfChr);
+        @BI_Chr_OnGetCallCompatibility,@BI_Chr_OnGetCallResult,
+        @BI_Chr_OnEval,nil,bfChr);
   if bfOrd in TheBaseProcs then
     AddBuiltInProc('Ord','function Ord(const Enum or Char): integer',
         @BI_Ord_OnGetCallCompatibility,@BI_Ord_OnGetCallResult,
@@ -15289,6 +15416,10 @@ begin
     AddBuiltInProc('Concat','function Concat(const Array1, Array2, ...): Array',
         @BI_ConcatArray_OnGetCallCompatibility,@BI_ConcatArray_OnGetCallResult,
         nil,nil,bfConcatArray);
+  if bfConcatString in TheBaseProcs then
+    AddBuiltInProc('Concat','function Concat(const String1, String2, ...): String',
+        @BI_ConcatString_OnGetCallCompatibility,@BI_ConcatString_OnGetCallResult,
+        @BI_ConcatString_OnEval,nil,bfConcatString);
   if bfCopyArray in TheBaseProcs then
     AddBuiltInProc('Copy','function Copy(const Array; Start: integer = 0; Count: integer = all): Array',
         @BI_CopyArray_OnGetCallCompatibility,@BI_CopyArray_OnGetCallResult,

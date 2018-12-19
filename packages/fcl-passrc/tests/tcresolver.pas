@@ -239,7 +239,7 @@ type
 
     // strings
     Procedure TestChar_BuiltInProcs;
-    Procedure TestString_SetLength;
+    Procedure TestString_BuiltInProcs;
     Procedure TestString_Element;
     Procedure TestStringElement_MissingArgFail;
     Procedure TestStringElement_IndexNonIntFail;
@@ -3220,14 +3220,17 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestString_SetLength;
+procedure TTestResolver.TestString_BuiltInProcs;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  s: string;');
-  Add('begin');
-  Add('  SetLength({#a_var}s,3);');
-  Add('  SetLength({#b_var}s,length({#c_read}s));');
+  Add([
+  'var',
+  '  s: string;',
+  'begin',
+  '  SetLength({#a_var}s,3);',
+  '  SetLength({#b_var}s,length({#c_read}s));',
+  '  s:=concat(''a'',s);',
+  '']);
   ParseProgram;
   CheckAccessMarkers;
 end;
