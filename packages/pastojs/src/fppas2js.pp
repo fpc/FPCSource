@@ -362,6 +362,9 @@ Works:
 - procedure val(const string; var enumtype; out int)
 
 ToDos:
+- cmd line param to set modeswitch
+- Result:=inherited;
+- move local types to unit scope
 - records:
   - move local types to global
   - use rtl.createRecord to create a record type
@@ -370,7 +373,6 @@ ToDos:
   - advanced records:
     - functions
     - rtti
-- cmd line param to set modeswitch
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - setlength(dynarray)  modeswitch to not create a copy
 - 'new', 'Function' -> class var use .prototype
@@ -387,11 +389,9 @@ ToDos:
 - 1 as TEnum, ERangeError
 - ifthen<T>
 - stdcall of methods: pass original 'this' as first parameter
-- move local types to unit scope
 - property read Arr[0]  https://bugs.freepascal.org/view.php?id=33416
 - write, writeln
 - array of const
-- Result:=inherited;
 - call array of proc element without ()
 - enums with custom values
 - library
@@ -428,14 +428,11 @@ ToDos:
   -O2 CSE
   -O3 DFA
 - objects
-- advanced records
-  - TPasClassRecordType as ancestor
 - class helpers, type helpers, record helpers, array helpers
 - generics
 - operator overloading
   - operator enumerator
 - inline
-- anonymous functions
 - extended RTTI
 - attributes
 
@@ -3949,7 +3946,7 @@ var
   TIName: String;
 begin
   Result:=cIncompatible;
-  //writeln('TPas2JSResolver.CheckAssignCompatibilityCustom ',GetResolverResultDbg(LHS));
+  //writeln('TPas2JSResolver.CheckAssignCompatibilityCustom LHS=',GetResolverResultDbg(LHS),' RHS=',GetResolverResultDbg(RHS));
   if LHS.BaseType=btCustom then
     begin
     if not (LHS.LoTypeEl is TPasUnresolvedSymbolRef) then
@@ -3977,7 +3974,12 @@ begin
             Result:=cExact;
           end
         else if RHS.BaseType=btContext then
-          Result:=cJSValueConversion;
+          Result:=cJSValueConversion
+        else if (RHS.BaseType=btProc) and (RHS.IdentEl=nil) then
+          begin
+          // JSValue:=anonymousproc
+          Result:=cExact;
+          end;
         end
       else if RHS.BaseType=btContext then
         begin
@@ -3987,7 +3989,7 @@ begin
           if RHS.IdentEl.ClassType=TPasClassType then
             Result:=cJSValueConversion; // RHS is a class type
           end;
-        end;
+        end
       end;
     end
   else if (LHS.BaseType=btContext) then
