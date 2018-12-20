@@ -1,5 +1,7 @@
 Unit tccompstreaming;
 
+{$mode objfpc}
+
 interface
 
 Uses

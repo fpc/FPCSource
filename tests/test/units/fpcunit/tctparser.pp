@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
   { TTestToString }
-
+type
   TTestToString= class(TTestCase)
   private
     fStream : TMemoryStream;
