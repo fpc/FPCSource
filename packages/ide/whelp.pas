@@ -15,6 +15,10 @@
 {$R-}
 unit WHelp;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+
 interface
 
 uses
@@ -384,7 +388,7 @@ begin
   if Assigned(T^.NamedMarks) then
   begin
     New(NT^.NamedMarks, Init(T^.NamedMarks^.Count,10));
-    T^.NamedMarks^.ForEach(@CloneMark);
+    T^.NamedMarks^.ForEach(TCallbackProcParam(@CloneMark));
   end;
   NT^.ExtDataSize:=T^.ExtDataSize;
   if Assigned(T^.ExtData) and (T^.ExtDataSize>0) then
@@ -686,10 +690,10 @@ procedure SearchLRU(P: PTopic);
 begin if P^.LastAccess<MinLRU then begin MinLRU:=P^.LastAccess; end; end;
 var P: PTopic;
 begin
-  Count:=0; Topics^.ForEach(@CountThem);
+  Count:=0; Topics^.ForEach(TCallbackProcParam(@CountThem));
   if (Count>=TopicCacheSize) then
   begin
-    MinLRU:=MaxLongint; P:=nil; Topics^.ForEach(@SearchLRU);
+    MinLRU:=MaxLongint; P:=nil; Topics^.ForEach(TCallbackProcParam(@SearchLRU));
     if P<>nil then
     begin
       FreeMem(P^.Text,P^.TextSize); P^.TextSize:=0; P^.Text:=nil;
@@ -758,7 +762,7 @@ begin
        HelpFile:=SearchFile(SourceFileID);
        P:=SearchTopicInHelpFile(HelpFile,Context);
      end;
-  if P=nil then HelpFiles^.FirstThat(@Search);
+  if P=nil then HelpFiles^.FirstThat(TCallbackFunBoolParam(@Search));
   if P=nil then HelpFile:=nil;
   SearchTopicOwner:=HelpFile;
 end;
@@ -808,7 +812,7 @@ end;
 var P: PIndexEntry;
 begin
   H^.LoadIndex;
-  P:=H^.IndexEntries^.FirstThat(@SearchExact);
+  P:=H^.IndexEntries^.FirstThat(TCallbackFunBoolParam(@SearchExact));
   if P<>nil then begin FileID:=H^.ID; Context:=P^.HelpCtx; end;
   ScanHelpFileExact:=P<>nil;
 end;
@@ -820,7 +824,7 @@ end;
 var P: PIndexEntry;
 begin
   H^.LoadIndex;
-  P:=H^.IndexEntries^.FirstThat(@Search);
+  P:=H^.IndexEntries^.FirstThat(TCallbackFunBoolParam(@Search));
   if P<>nil then begin FileID:=H^.ID; Context:=P^.HelpCtx; end;
   ScanHelpFile:=P<>nil;
 end;
@@ -828,9 +832,9 @@ var
   PH : PHelpFile;
 begin
   Keyword:=UpcaseStr(Keyword);
-  PH:=HelpFiles^.FirstThat(@ScanHelpFileExact);
+  PH:=HelpFiles^.FirstThat(TCallbackFunBoolParam(@ScanHelpFileExact));
   if not assigned(PH) then
-    PH:=HelpFiles^.FirstThat(@ScanHelpFile);
+    PH:=HelpFiles^.FirstThat(TCallbackFunBoolParam(@ScanHelpFile));
   TopicSearch:=PH<>nil;
 end;
 
@@ -847,7 +851,7 @@ end;
 begin
   H^.LoadIndex;
   if Keywords^.Count<MaxCollectionSize then
-  H^.IndexEntries^.FirstThat(@InsertKeywords);
+  H^.IndexEntries^.FirstThat(TCallbackFunBoolParam(@InsertKeywords));
 end;
 procedure AddLine(S: string);
 begin
@@ -912,7 +916,7 @@ var KW: PIndexEntry;
     St,LastTag : String;
 begin
   New(Keywords, Init(5000,5000));
-  HelpFiles^.ForEach(@InsertKeywordsOfFile);
+  HelpFiles^.ForEach(TCallbackProcParam(@InsertKeywordsOfFile));
   New(Lines, Init((Keywords^.Count div 2)+100,1000));
   T:=NewTopic(0,0,0,'',nil,0);
   if HelpFiles^.Count=0 then
@@ -978,7 +982,7 @@ begin
   Match:=(P^.ID=ID);
 end;
 begin
-  SearchFile:=HelpFiles^.FirstThat(@Match);
+  SearchFile:=HelpFiles^.FirstThat(TCallbackFunBoolParam(@Match));
 end;
 
 function THelpFacility.SearchTopicInHelpFile(F: PHelpFile; Context: THelpCtx): PTopic;

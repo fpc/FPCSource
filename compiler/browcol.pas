@@ -23,11 +23,16 @@
 {$ifdef TP}
   {$N+,E+}
 {$endif}
+
 unit browcol;
 
 {$i fpcdefs.inc}
 { $define use_refs}
 {$H-}
+
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
 
 interface
 
@@ -1745,7 +1750,7 @@ var P: PModuleSymbol;
 begin
   P:=nil;
   if Assigned(Modules) then
-    P:=Modules^.FirstThat(@Match);
+    P:=Modules^.FirstThat(TCallbackFunBoolParam(@Match));
   SearchModule:=P;
 end;
 
@@ -2198,7 +2203,7 @@ begin
        FixupSymbol(At(I));
 end;
 begin
-  Modules^.ForEach(@FixupSymbol);
+  Modules^.ForEach(TCallbackProcParam(@FixupSymbol));
 end;
 procedure ReadSymbolPointers(P: PSymbol);
 var I: sw_integer;
@@ -2222,7 +2227,7 @@ begin
   ReadPointers(S,ModuleNames,PD);
   ReadPointers(S,TypeNames,PD);
   ReadPointers(S,Modules,PD);
-  Modules^.ForEach(@ReadSymbolPointers);
+  Modules^.ForEach(TCallbackProcParam(@ReadSymbolPointers));
   FixupPointers;
   Dispose(PD, Done);
 
@@ -2261,7 +2266,7 @@ begin
   StorePointers(S,ModuleNames);
   StorePointers(S,TypeNames);
   StorePointers(S,Modules);
-  Modules^.ForEach(@WriteSymbolPointers);
+  Modules^.ForEach(TCallbackProcParam(@WriteSymbolPointers));
   StoreBrowserCol:=(S^.Status=stOK);
 end;
 
