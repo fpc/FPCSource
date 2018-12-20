@@ -109,6 +109,7 @@ interface
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
       procedure queue_typeconvn(fromdef, todef: tdef); override;
       procedure queue_emit_staticvar(vs: tstaticvarsym); override;
+      procedure queue_emit_label(l: tlabelsym); override;
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
       procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
@@ -128,6 +129,7 @@ implementation
   uses
     verbose,systems,fmodule,
     aasmdata,
+    procinfo,
     cpubase,cpuinfo,llvmbase,
     symtable,llvmdef,defutil,defcmp;
 
@@ -779,6 +781,24 @@ implementation
         the tasmsymbol }
       fqueue_offset:=0;
       inherited;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.queue_emit_label(l: tlabelsym);
+    var
+      ai: taillvm;
+      typedai: tai;
+      tmpintdef: tdef;
+      op,
+      firstop,
+      secondop: tllvmop;
+    begin
+      ai:=taillvm.blockaddress(voidcodepointertype,
+          current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION),
+          current_asmdata.RefAsmSymbol(l.mangledname,AT_LABEL)
+        );
+      emit_tai(ai,voidcodepointertype);
+      fqueue_offset:=low(fqueue_offset);
     end;
 
 
