@@ -77,7 +77,13 @@ var
   uc : UnicodeChar;
 begin  
   e := 1;
-  CheckItems([$0020,$1680,$180E],True,e);
+  { According to:
+    https://en.wikipedia.org/wiki/Unicode_character_property
+    Unicode char $180E, Mongolian Vowel Separator
+    was considered as a space separator but is
+    in the Other,Format category since Unicode version 6.3.0
+    thus $180E is removed here. }
+  CheckItems([$0020,$1680],True,e);
   CheckItems($2000,$200A,True,e);
   CheckItems([$202F,$205F,$3000],True,e);
   CheckItems([$2028,$2029],True,e);
