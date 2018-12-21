@@ -749,6 +749,7 @@ type
     procedure SetReadOnlyModeSwitches(const AValue: TModeSwitches);
     procedure SetReadOnlyValueSwitches(const AValue: TValueSwitches);
   protected
+    function ReadIdentifier(const AParam: string): string;
     function FetchLine: boolean;
     procedure AddFile(aFilename: string); virtual;
     function GetMacroName(const Param: String): String;
@@ -3457,13 +3458,16 @@ begin
 end;
 
 procedure TPascalScanner.HandleIFDEF(const AParam: String);
+var
+  aName: String;
 begin
   PushSkipMode;
   if PPIsSkipping then
     PPSkipMode := ppSkipAll
   else
     begin
-    if IsDefined(AParam) then
+    aName:=ReadIdentifier(AParam);
+    if IsDefined(aName) then
       PPSkipMode := ppSkipElseBranch
     else
       begin
@@ -3472,20 +3476,23 @@ begin
       end;
     If LogEvent(sleConditionals) then
       if PPSkipMode=ppSkipElseBranch then
-        DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[AParam])
+        DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[aName])
       else
-        DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[AParam]);
+        DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[aName]);
     end;
 end;
 
 procedure TPascalScanner.HandleIFNDEF(const AParam: String);
+var
+  aName: String;
 begin
   PushSkipMode;
   if PPIsSkipping then
     PPSkipMode := ppSkipAll
   else
     begin
-    if IsDefined(AParam) then
+    aName:=ReadIdentifier(AParam);
+    if IsDefined(aName) then
       begin
       PPSkipMode := ppSkipIfBranch;
       PPIsSkipping := true;
@@ -3494,9 +3501,9 @@ begin
       PPSkipMode := ppSkipElseBranch;
     If LogEvent(sleConditionals) then
       if PPSkipMode=ppSkipElseBranch then
-        DoLog(mtInfo,nLogIFNDefAccepted,sLogIFNDefAccepted,[AParam])
+        DoLog(mtInfo,nLogIFNDefAccepted,sLogIFNDefAccepted,[aName])
       else
-        DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[AParam]);
+        DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[aName]);
     end;
 end;
 
@@ -4680,6 +4687,16 @@ procedure TPascalScanner.SetReadOnlyValueSwitches(const AValue: TValueSwitches);
 begin
   if FReadOnlyValueSwitches=AValue then Exit;
   FReadOnlyValueSwitches:=AValue;
+end;
+
+function TPascalScanner.ReadIdentifier(const AParam: string): string;
+var
+  p, l: Integer;
+begin
+  p:=1;
+  l:=length(AParam);
+  while (p<=l) and (AParam[p] in IdentChars) do inc(p);
+  Result:=LeftStr(AParam,p-1);
 end;
 
 function TPascalScanner.FetchLine: boolean;

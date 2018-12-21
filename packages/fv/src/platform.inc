@@ -279,6 +279,18 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
+{  FPC high level COMPILER needs nested procvars                                  }
+{---------------------------------------------------------------------------}
+
+{$IFDEF CPULLVM}
+  {$DEFINE TYPED_LOCAL_CALLBACKS}
+{$ENDIF}
+
+{$IFDEF TYPED_LOCAL_CALLBACKS}
+  {$MODESWITCH NESTEDPROCVARS}
+{$ENDIF}
+
+{---------------------------------------------------------------------------}
 {  32 BIT WINDOWS COMPILERS changes bit size - Updated 27Aug98 LdB          }
 {---------------------------------------------------------------------------}
 {$IFDEF WIN32}

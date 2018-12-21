@@ -239,7 +239,7 @@ type
 
     // strings
     Procedure TestChar_BuiltInProcs;
-    Procedure TestString_SetLength;
+    Procedure TestString_BuiltInProcs;
     Procedure TestString_Element;
     Procedure TestStringElement_MissingArgFail;
     Procedure TestStringElement_IndexNonIntFail;
@@ -483,7 +483,27 @@ type
     Procedure TestRecord_Const_UntypedFail;
     Procedure TestRecord_Const_NestedRecord;
     Procedure TestRecord_Const_Variant;
-    Procedure TestRecord_VarExternal; // ToDo
+    Procedure TestRecord_VarExternal;
+    Procedure TestRecord_VarSelfFail;
+
+    // advanced record
+    Procedure TestAdvRecord;
+    Procedure TestAdvRecord_Private; // ToDo
+    // Todo: Procedure TestAdvRecord_ForwardFail
+    // ToDo: public, private, strict private
+    // ToDo: TestAdvRecordPublsihedFail
+    // ToDo: TestAdvRecord_VirtualFail
+    // ToDo: TestAdvRecord_OverrideFail
+    // ToDo: constructor, destructor
+    // ToDo: class function/procedure
+    // ToDo: nested record type
+    // ToDo: const
+    // todo: var
+    // todo: class var
+    // todo: property
+    // todo: class property
+    // todo: TestRecordAsFuncResult
+    // todo: for in record
 
     // class
     Procedure TestClass;
@@ -1579,7 +1599,7 @@ begin
       if (Msg<>E.Message) and (Msg<>E.MsgPattern) and (Msg<>Full) then
         begin
         {$IFDEF VerbosePasResolver}
-        writeln('TCustomTestResolver.CheckResolverException E.MsgPattern={',E.MsgPattern,'}');
+        writeln('TCustomTestResolver.CheckResolverException E.MsgPattern={',E.MsgPattern,'} E.Message={',E.Message,'} Full={',Full,'}');
         {$ENDIF}
         AssertEquals('Expected message ('+IntToStr(MsgNumber)+')',
           '{'+Msg+'}','{'+E.Message+'} OR {'+E.MsgPattern+'} OR {'+Full+'}');
@@ -3200,14 +3220,17 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestString_SetLength;
+procedure TTestResolver.TestString_BuiltInProcs;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  s: string;');
-  Add('begin');
-  Add('  SetLength({#a_var}s,3);');
-  Add('  SetLength({#b_var}s,length({#c_read}s));');
+  Add([
+  'var',
+  '  s: string;',
+  'begin',
+  '  SetLength({#a_var}s,3);',
+  '  SetLength({#b_var}s,length({#c_read}s));',
+  '  s:=concat(''a'',s);',
+  '']);
   ParseProgram;
   CheckAccessMarkers;
 end;
@@ -7784,6 +7807,55 @@ begin
   '    Id: longint external name ''$Id'';',
   '  end;',
   'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecord_VarSelfFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record',
+  '    r: Trec;',
+  '  end;',
+  'begin']);
+  CheckResolverException('type "TRec" is not yet completely defined',nTypeXIsNotYetCompletelyDefined);
+end;
+
+procedure TTestResolver.TestAdvRecord;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TRec.DoIt;',
+  'begin',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_Private;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    a: byte;',
+  '  public',
+  '    b: byte;',
+  '  end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  r.a:=r.b;']);
   ParseProgram;
 end;
 

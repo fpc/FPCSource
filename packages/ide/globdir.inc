@@ -221,3 +221,11 @@
     {$define GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
   {$endif Windows}
 {$endif GDBMI}
+
+{$ifdef cpullvm}
+{$define TYPED_LOCAL_CALLBACKS}
+{$endif}
+
+{$ifdef TYPED_LOCAL_CALLBACKS}
+{$modeswitch nestedprocvars}
+{$endif}

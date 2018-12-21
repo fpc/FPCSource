@@ -269,6 +269,8 @@ type
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
      procedure finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     { prepare finalization (common for the default and overridden versions }
+     procedure finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
 
      { functionality of the above for vectorized dead strippable sections }
      procedure finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
@@ -928,9 +930,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
-     var
-       prelist: tasmlist;
+   procedure ttai_typedconstbuilder.finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
      begin
        if tcalo_apply_constalign in options then
          alignment:=const_align(alignment);
@@ -946,7 +946,14 @@ implementation
              tcalo_vectorized_dead_strip_end]*options)<>[]) and
           not fvectorized_finalize_called then
          internalerror(2015110602);
+     end;
 
+
+   procedure ttai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+     var
+       prelist: tasmlist;
+     begin
+       finalize_asmlist_prepare(options, alignment);
        prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }

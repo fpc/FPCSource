@@ -14,6 +14,10 @@
  **********************************************************************}
 unit FPSwitch;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+
 interface
 
 uses
@@ -804,7 +808,7 @@ function  TSwitches.SetCurrSelParam(const s : String) : boolean;
 var
   FoundP : PSwitchItem;
 begin
-  FoundP:=Items^.FirstThat(@CheckItem);
+  FoundP:=Items^.FirstThat(TCallbackFunBoolParam(@CheckItem));
   if Assigned(FoundP) then
     begin
       SetCurrSelParam:=true;
@@ -867,7 +871,7 @@ begin
         end;
     end
   else
-    Items^.ForEach(@writeitem);
+    Items^.ForEach(TCallbackProcParam(@writeitem));
 end;
 
 procedure WriteCustom;
@@ -906,7 +910,7 @@ var
   FoundP : PSwitchItem;
   code : integer;
 begin
-  FoundP:=Items^.FirstThat(@checkitem);
+  FoundP:=Items^.FirstThat(TCallbackFunBoolParam(@checkitem));
   if assigned(FoundP) then
    begin
      case FoundP^.Typ of
@@ -1074,12 +1078,12 @@ var
 begin
   GetSourceDirectories:='';
   c:='u';
-  P:=DirectorySwitches^.Items^.FirstThat(@CheckItem);
+  P:=DirectorySwitches^.Items^.FirstThat(TCallbackFunBoolParam(@CheckItem));
   S:='';
   if assigned(P) then
     S:=P^.Str[SwitchesMode];
   c:='i';
-  P:=DirectorySwitches^.Items^.FirstThat(@CheckItem);
+  P:=DirectorySwitches^.Items^.FirstThat(TCallbackFunBoolParam(@CheckItem));
   if assigned(P) then
     S:=P^.Str[SwitchesMode]+';'+S;
   if S='' then
@@ -1549,7 +1553,7 @@ begin
    end;
 end;
 begin
-  P^.Items^.ForEach(@HandleSwitch);
+  P^.Items^.ForEach(TCallbackProcParam(@HandleSwitch));
 end;
 var I: integer;
     S: string;
