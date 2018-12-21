@@ -175,7 +175,7 @@ implementation
           else
             internalerror(2018121602);
         end;
-        result:=ccallnode.createinternfromunit('SYSTEM',intrinsic, ccallparanode.create(left,nil));
+        result:=ccallnode.createintern(intrinsic, ccallparanode.create(left,nil));
         left:=nil;
       end;
 
