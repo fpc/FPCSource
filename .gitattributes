@@ -7667,6 +7667,7 @@ packages/sqlite/src/sqlite3.inc svneol=native#text/plain
 packages/sqlite/src/sqlite3.pp svneol=native#text/plain
 packages/sqlite/src/sqlite3db.pas svneol=native#text/x-pascal
 packages/sqlite/src/sqlite3dyn.pp svneol=native#text/plain
+packages/sqlite/src/sqlite3ext.pp svneol=native#text/plain
 packages/sqlite/src/sqlitedb.pas svneol=native#text/plain
 packages/sqlite/tests/test.pas svneol=native#text/plain
 packages/sqlite/tests/testapiv3x.README svneol=native#text/plain
