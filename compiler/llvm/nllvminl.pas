@@ -36,6 +36,7 @@ interface
 
         function first_get_frame: tnode; override;
         function first_abs_real: tnode; override;
+        function first_fma: tnode; override;
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
         function first_trunc_real: tnode; override;
@@ -52,6 +53,7 @@ implementation
        verbose,globals,globtype,constexp,
        aasmbase, aasmdata,
        symconst,symtype,symdef,defutil,
+       compinnr,
        nutils,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,
        pass_2,
        cgbase,cgutils,tgobj,hlcgobj,
@@ -143,6 +145,26 @@ implementation
         { return resulttemp }
         addstatement(stat,ctemprefnode.create(resulttemp));
         { reused }
+        left:=nil;
+      end;
+
+    function tllvminlinenode.first_fma: tnode;
+      var
+        procname: string[15];
+      begin
+        case inlinenumber of
+          in_fma_single:
+            procname:='llvm_fma_f32';
+          in_fma_double:
+            procname:='llvm_fma_f64';
+          in_fma_extended:
+            procname:='llvm_fma_f80';
+          in_fma_float128:
+            procname:='llvm_fma_f128';
+          else
+            internalerror(2018122101);
+        end;
+        result:=ccallnode.createintern(procname,left);
         left:=nil;
       end;
 

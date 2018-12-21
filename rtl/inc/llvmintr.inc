@@ -29,3 +29,12 @@ function llvm_sqrt_f80(val: extended): extended; compilerproc; external name 'll
 {$ifdef SUPPORT_FLOAT128}
 function llvm_sqrt_f128(val: float128): float128; compilerproc; external name 'llvm.sqrt.f128';
 {$endif}
+
+function llvm_fma_f32(a, b, c: single): single; compilerproc; external name 'llvm.fma.f32';
+function llvm_fma_f64(a, b, c: double): double; compilerproc; external name 'llvm.fma.f64';
+{$ifdef SUPPORT_EXTENDED}
+function llvm_fma_f80(a, b, c: extended): extended; compilerproc; external name 'llvm.fma.f80';
+{$endif}
+{$ifdef SUPPORT_FLOAT128}
+function llvm_fma_f128(a, b, c: float128): float128; compilerproc; external name 'llvm.fma.f128';
+{$endif}
