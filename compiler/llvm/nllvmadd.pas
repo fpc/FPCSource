@@ -261,7 +261,7 @@ implementation
               equaln:
                 llvmfpcmp:=lfc_oeq;
               unequaln:
-                llvmfpcmp:=lfc_one;
+                llvmfpcmp:=lfc_une;
               else
                 internalerror(2015031506);
             end;
