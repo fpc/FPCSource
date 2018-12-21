@@ -188,6 +188,7 @@ implementation
       newasmlist: tasmlist;
       decl: taillvmdecl;
     begin
+      finalize_asmlist_prepare(options,alignment);
       newasmlist:=tasmlist.create;
       if assigned(foverriding_def) then
         def:=foverriding_def;
