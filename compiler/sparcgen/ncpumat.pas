@@ -94,6 +94,7 @@ implementation
          resultreg  : tregister;
          overflowlabel : tasmlabel;
          ai : taicpu;
+         no_overflow : boolean;
       begin
          secondpass(left);
          secondpass(right);
@@ -140,6 +141,14 @@ implementation
 
                  op := divops[true, is_signed(right.resultdef),
                               cs_check_overflow in current_settings.localswitches];
+                 if op=A_NOP then
+                   { current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('Wrong code generated here'))); }
+                   begin
+                     no_overflow:=true;
+                     op:=divops[true,is_signed(right.resultdef),false];
+                   end
+                 else
+                   no_overflow:=false;
                  if (divider<>NR_NO) then
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg))
                  else
@@ -147,12 +156,16 @@ implementation
 
                  if (nodetype = modn) then
                    begin
-                     current_asmdata.getjumplabel(overflowlabel);
-                     ai:=taicpu.op_cond_sym(A_Bxx,C_VS,overflowlabel);
-                     ai.delayslot_annulled:=true;
-                     current_asmdata.CurrAsmList.concat(ai);
+                     if not no_overflow then
+                       begin
+                         current_asmdata.getjumplabel(overflowlabel);
+                         ai:=taicpu.op_cond_sym(A_Bxx,C_VS,overflowlabel);
+                         ai.delayslot_annulled:=true;
+                         current_asmdata.CurrAsmList.concat(ai);
+                       end;
                      current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));
-                     cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
+                     if not no_overflow then
+                       cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
                      if (divider<>NR_NO) then
                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULX,resultreg,divider,resultreg))
                      else

@@ -6,7 +6,7 @@
 main=ide
 
 [require]
-packages=rtl-extra
+packages=rtl rtl-extra
 
 [target]
 units=compunit
@@ -20,7 +20,7 @@ includedir=$(COMPILERDIR) $(COMPILERDIR)/$(PPC_TARGET)
 fpcpackage=y
 
 [default]
-fpcdir=../..
+fpcdir=../../..
 
 [prerules]
 COMPILERDIR=$(FPCDIR)/compiler

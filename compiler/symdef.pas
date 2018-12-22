@@ -4561,7 +4561,6 @@ implementation
            end
          else
            begin
-             ppuload_platform(ppufile);
              symtable:=trecordsymtable.create(objrealname^,0,0,0);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
@@ -4571,6 +4570,9 @@ implementation
              trecordsymtable(symtable).datasize:=ppufile.getasizeint;
              trecordsymtable(symtable).paddingsize:=ppufile.getword;
              ppufile.getsmallset(trecordsymtable(symtable).managementoperators);
+             { position of ppuload_platform call must correspond
+               to position of writeentry in ppuwrite method }
+             ppuload_platform(ppufile);
              trecordsymtable(symtable).ppuload(ppufile);
              { the variantrecdesc is needed only for iso-like new statements new(prec,1,2,3 ...);
                but because iso mode supports no units, there is no need to store the variantrecdesc
