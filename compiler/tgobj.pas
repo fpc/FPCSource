@@ -266,7 +266,7 @@ implementation
          if size=0 then
           begin
 {$ifdef EXTDEBUG}
-            Comment(V_Warning,'tgobj: (AllocTemp) temp of size 0 requested, allocating 4 bytes');
+            Comment(V_Note,'tgobj: (AllocTemp) temp of size 0 requested, allocating 4 bytes');
 {$endif}
             size:=4;
           end;

@@ -20,6 +20,8 @@ begin
     P.Version:='3.2.0-beta';
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes-[qnx]+AllWindowsOSes;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.IncludePath.Add('src');
 

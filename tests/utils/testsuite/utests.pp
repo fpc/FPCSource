@@ -256,7 +256,10 @@ const
    '3.0.3',
    '3.0.4',
    '3.0.5',
-   '3.1.1'
+   '3.1.1',
+   '3.2.0',
+   '3.2.1',
+   '3.3.1'
   );
 
   ver_branch : array [known_versions] of string =
@@ -291,13 +294,16 @@ const
    'tags/release_2_6_4',
    'tags/release_2_6_4',
    'branches/fixes_2_6',
-   'trunk',
+   'branches/release_3_0_0',
    'branches/release_3_0_0',
    'branches/release_3_0_2',
    'branches/release_3_0_2',
    'branches/release_3_0_4',
    'branches/release_3_0_4',
    'branches/fixes_3_0',
+   'branches/fixes_3_2',
+   'branches/fixes_3_2',
+   'branches/fixes_3_2',
    'trunk'
   );
 

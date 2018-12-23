@@ -20,6 +20,9 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.2.0-beta';
     P.OSes:=P.OSes-[embedded,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('rtl-objpas');
     P.SourcePath.Add('src');
 

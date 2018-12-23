@@ -62,4 +62,4 @@ Data retrieved from Dwarf producer information:
 darwin-x86_64 : GNU C 4.0.1 (Apple Inc. build 5465)
 
 linux-aarch64 : gcc (Ubuntu/Linaro 4.8.4-2ubuntu1~14.04) 4.8.4
-
+linux-sparc64 : GCC: (Debian 7.3.0-10) 7.3.0

@@ -26,6 +26,8 @@ begin
     P.Description := 'Basic library of the fpmake/fppkg build system.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc?
     P.OSes := P.OSes - [embedded,nativent,msdos,win16,atari,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     // All dependencies (including implicit) are listed
     // here to be able to update all requirements to

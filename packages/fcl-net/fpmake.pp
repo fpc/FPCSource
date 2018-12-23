@@ -32,6 +32,8 @@ begin
     P.Description := 'Network related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=P.OSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);

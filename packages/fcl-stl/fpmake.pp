@@ -26,6 +26,8 @@ begin
     P.Description := 'Generic container library of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=AllOSes-[embedded];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Options.Add('-S2h');
     P.SourcePath.Add('src');

@@ -19,6 +19,9 @@ begin
     P.Version:='3.2.0-beta';
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes+[win32]-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('rtl-extra');
 
     T:=P.Targets.AddUnit('pcap.pp');

@@ -48,6 +48,9 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=AllTargetsextra;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Email := '';
     P.Description := 'Rtl-extra, RTL not needed for bootstrapping';
     P.NeedLibC:= false;

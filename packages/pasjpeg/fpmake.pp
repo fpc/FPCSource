@@ -20,6 +20,8 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.2.0-beta';
     P.OSes:=P.OSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

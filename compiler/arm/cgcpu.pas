@@ -241,6 +241,10 @@ unit cgcpu;
        procinfo,cpupi,
        paramgr;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
+
 
     function get_fpu_postfix(def : tdef) : toppostfix;
       begin

@@ -26,6 +26,8 @@ begin
     P.Email := 'inoussa12@gmail.com';
     P.Description := 'Free Pascal implementation of Service Data Objects';
     P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     // P.NeedLibC:= false;
     P.SourcePath.Add('src/base');

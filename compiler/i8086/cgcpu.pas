@@ -121,6 +121,10 @@ unit cgcpu;
        tgobj,
        hlcgobj;
 
+{ Range check must be disabled explicitly as the code uses
+  implicit typecast to aint troughout }
+{$R-}
+
     function use_push(const cgpara:tcgpara):boolean;
       begin
         result:=(not paramanager.use_fixed_stack) and

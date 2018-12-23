@@ -79,6 +79,9 @@ unit nx86add;
       ncon,nset,ninl,
       defutil;
 
+{ Range check must be disabled explicitly as the code serves
+  on three different architecture sizes }
+{$R-}
 
 {*****************************************************************************
                                   Helpers

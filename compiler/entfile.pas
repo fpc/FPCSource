@@ -664,7 +664,7 @@ begin
    end;
   if bufsize-bufidx>=sizeof(dword) then
     begin
-      result:=Unaligned(plongint(@buf[bufidx])^);
+      result:=Unaligned(pdword(@buf[bufidx])^);
       inc(bufidx,sizeof(longint));
     end
   else

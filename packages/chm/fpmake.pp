@@ -26,6 +26,8 @@ begin
     P.Description := 'Standalone CHM reader and writer library';
     P.NeedLibC:= false;
     P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos,atari];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     D:=P.Dependencies.Add('fcl-xml');
     D:=P.Dependencies.Add('fcl-base');

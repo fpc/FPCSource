@@ -25,6 +25,9 @@ begin
     P.Description := 'Headers for the Apache 2.2 series www server';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('rtl-extra');
 
     P.SourcePath.Add('src');

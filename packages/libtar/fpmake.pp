@@ -25,6 +25,8 @@ begin
     P.Description := 'Library for handling tar-files.';
 
     P.OSes:=AllOSes-[embedded,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     T:=P.Targets.AddUnit('libtar.pp');
