@@ -389,15 +389,7 @@ unit optutils;
               Result:=fen_norecurse_false;
             end;
           else
-{$push}
-{ The code below emits two warnings if ptruint and aword are the same type }
-{$warn 4044 off}
-{$warn 6018 off}
-            if PAWord(arg)^ > high(aword) then
-              n.optinfo^.executionweight:=high(AWord)
-            else
-              n.optinfo^.executionweight:=PAWord(arg)^;
-{$pop}
+            n.optinfo^.executionweight:=weight;
         end;
       end;
 
