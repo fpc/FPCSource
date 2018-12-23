@@ -134,11 +134,16 @@ end;
 procedure AfterCompile_gdbint(Sender: TObject);
 var
   L : TStrings;
+  P : TPackage;
 begin
   // Remove the generated gdbver.inc
   L := TStringList.Create;
+  P := Sender as TPackage;
   try
-    L.add(IncludeTrailingPathDelimiter(Installer.BuildEngine.StartDir)+'src/gdbver.inc');
+    if P.Directory<>'' then
+      L.add(IncludeTrailingPathDelimiter(P.Directory)+'src'+DirectorySeparator+'gdbver.inc')
+    else
+      L.add(IncludeTrailingPathDelimiter(Installer.BuildEngine.StartDir)+'src'+DirectorySeparator+'gdbver.inc');
     Installer.BuildEngine.CmdDeleteFiles(L);
   finally
     L.Free;

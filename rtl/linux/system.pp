@@ -46,12 +46,24 @@ function get_cmdline:Pchar; deprecated 'use paramstr' ;
 property cmdline:Pchar read get_cmdline;
 
 {$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$define FPC_LOAD_SOFTFPU}
+{$endif}
 
+{$ifdef FPC_SOFT_FPUX80}
+{$define FPC_SOFTFLOAT_FLOATX80}
+{$define LOAD_SOFTFPU}
+{$endif}
+
+{$ifdef FPC_SOFT_FPU128}
+{$define FPC_SOFTFLOAT_FLOAT128}
+{$define FPC_LOAD_SOFTFPU}
+{$endif}
+
+{$ifdef FPC_LOAD_SOFTFPU}
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
-
-{$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$endif FPC_LOAD_SOFTFPU}
 
 {$ifdef android}
   {$I sysandroidh.inc}
@@ -73,7 +85,7 @@ const
 procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
-{$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$ifdef FPC_LOAD_SOFTFPU}
 
 {$define fpc_softfpu_implementation}
 {$if defined(CPUM68K)}
@@ -95,7 +107,7 @@ procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$endif FPC_LOAD_SOFTFPU}
 
 {$I system.inc}
 
@@ -399,6 +411,15 @@ function FpUGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external c
 {$endif}
 {$endif}
 
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+const
+  page_size = $10000;
+  {$define LAST_PAGE_GENERATES_SIGNAL}
+{$else}
+const
+  page_size = $1000;
+{$endif}
+
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 var
   limits : TRLimit;
@@ -433,7 +454,10 @@ begin
 {$endif}
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(initialStkLen);
-  StackBottom := initialstkptr - StackLength;
+  StackBottom := pointer((ptruint(initialstkptr) or (page_size - 1)) + 1 - StackLength);
+{$ifdef LAST_PAGE_GENERATES_SIGNAL}
+  StackBottom:=StackBottom + page_size;
+{$endif}
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 {$if defined(cpui386) or defined(cpuarm)}

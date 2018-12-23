@@ -68,7 +68,7 @@ end;
 
 Function TCSetPGrp(fd,id:cint):cint;  inline;
 begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(ptrint(id)));
+  TCSetPGrp:=fpIOCtl(fd,TIOCtlRequest(TIOCSPGRP),pointer(ptrint(id)));
 end;
 
 
