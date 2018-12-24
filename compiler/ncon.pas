@@ -982,6 +982,7 @@ implementation
                             Message1(option_code_page_not_available,IntToStr(cp1));
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
+                          { returns room for terminating 0 }
                           l:=Utf8ToUnicode(PUnicodeChar(pw^.data),len,value_str,len);
                           if (l<>getlengthwidestring(pw)) then
                             begin
@@ -989,6 +990,7 @@ implementation
                               ReAllocMem(value_str,l);
                             end;
                           unicode2ascii(pw,value_str,cp1);
+                          len:=l-1;
                           donewidestring(pw);
                         end
                       else
@@ -1000,6 +1002,7 @@ implementation
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           ascii2unicode(value_str,len,cp2,pw);
+                          { returns room for terminating 0 }
                           l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),len);
                           if l<>len then
                             ReAllocMem(value_str,l);
