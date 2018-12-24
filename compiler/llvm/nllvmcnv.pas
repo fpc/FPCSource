@@ -180,7 +180,7 @@ procedure tllvmtypeconvnode.second_proc_to_procvar;
         if location.loc<>LOC_REFERENCE then
           internalerror(2015111902);
         hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-          cpointerdef.getreusable(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal)),
+          cpointerdef.getreusable(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal,'')),
           cpointerdef.getreusable(resultdef),
           location.reference);
       end;

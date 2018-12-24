@@ -515,7 +515,7 @@ implementation
     end;
 
 
-  procedure addvisibibleparameters(var str: ansistring; pd: tprocdef);
+  procedure addvisibleparameters(var str: ansistring; pd: tprocdef);
     var
       currpara: tparavarsym;
       i: longint;
@@ -530,7 +530,7 @@ implementation
               if not firstpara then
                 str:=str+',';
               firstpara:=false;
-              str:=str+currpara.realname;
+              str:=str+'&'+currpara.realname;
             end;
         end;
     end;
@@ -554,7 +554,7 @@ implementation
         mnetion this program/unit name to avoid accidentally calling other
         same-named routines that may be in scope }
       str:=str+def_unit_name_prefix_if_toplevel(callpd)+callpd.procsym.realname+'(';
-      addvisibibleparameters(str,pd);
+      addvisibleparameters(str,pd);
       str:=str+') end;';
       str_parse_method_impl(str,pd,isclassmethod);
     end;
@@ -862,7 +862,7 @@ implementation
          not is_void(pd.returndef) then
         str:=str+'result:=';
       str:=str+'pv(';
-      addvisibibleparameters(str,pd);
+      addvisibleparameters(str,pd);
       str:=str+') end;';
       str_parse_method_impl(str,pd,true)
     end;
@@ -964,7 +964,7 @@ implementation
       if pd.returndef<>voidtype then
         str:=str+'result:=';
       str:=str+'__FPC_BLOCK_INVOKE_PV_TYPE(PFPC_Block_literal_complex_procvar(FPC_Block_Self)^.pv)(';
-      addvisibibleparameters(str,pd);
+      addvisibleparameters(str,pd);
       str:=str+') end;';
       str_parse_method_impl(str,pd,false);
     end;
@@ -988,8 +988,8 @@ implementation
       { now call through to the actual method }
       if pd.returndef<>voidtype then
         str:=str+'result:=';
-      str:=str+callthroughpd.procsym.realname+'(';
-      addvisibibleparameters(str,callthroughpd);
+      str:=str+'&'+callthroughpd.procsym.realname+'(';
+      addvisibleparameters(str,pd);
       str:=str+') end;';
       { add dummy file info so we can step in/through it }
       if pd.owner.iscurrentunit then
@@ -1147,8 +1147,11 @@ implementation
   function create_procdef_alias(pd: tprocdef; const newrealname: string; const newmangledname: TSymStr; newparentst: tsymtable; newstruct: tabstractrecorddef;
       sk: tsynthetickind; skpara: pointer): tprocdef;
     begin
-      { bare copy so we don't copy the aliasnames }
-      result:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+      { bare copy so we don't copy the aliasnames (specify prefix for
+        parameter names so we don't get issues in the body in case
+        we e.g. reference system.initialize and one of the parameters
+        is called "system") }
+      result:=tprocdef(pd.getcopyas(procdef,pc_bareproc,'__FPCW_'));
       { set the mangled name to the wrapper name }
       result.setmangledname(newmangledname);
       { finish creating the copy }
@@ -1481,7 +1484,10 @@ implementation
         because there may already be references to the mangled name for the
         non-external "test".
       }
-      newpd:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc));
+
+      { prefixing the parameters here is useless, because the new procdef will
+        just be an external declaration without a body }
+      newpd:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc,''));
       insert_funcret_para(newpd);
       newpd.procoptions:=newpd.procoptions+orgpd.procoptions*[po_external,po_has_importname,po_has_importdll];
       newpd.import_name:=orgpd.import_name;
@@ -1493,6 +1499,9 @@ implementation
       newpd.setmangledname(newname);
       finish_copied_procdef(newpd,'__FPC_IMPL_EXTERNAL_REDIRECT_'+newname,current_module.localsymtable,nil);
       newpd.forwarddef:=false;
+      { ideally we would prefix the parameters of the original routine here, but since it
+        can be an interface definition, we cannot do that without risking to change the
+        interface crc }
       orgpd.skpara:=newpd;
       orgpd.synthetickind:=tsk_callthrough;
       orgpd.procoptions:=orgpd.procoptions-[po_external,po_has_importname,po_has_importdll];

@@ -207,7 +207,7 @@ implementation
           exit;
         end;
       { bare copy, so that self etc are not inserted }
-      result:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc));
+      result:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc,''));
       { will be called accoding to the ABI conventions }
       result.proccalloption:=pocall_cdecl;
       { add po_is_block so that a block "self" pointer gets added (of the type
