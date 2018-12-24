@@ -108,6 +108,7 @@ interface
             it's not strictly necessary) for speed and code size reasons.
             Returns true if the temp creation has been handled, false otherwise
           }
+          function paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean; virtual;
           function maybecreateinlineparatemp(para: tcallparanode; out complexpara: boolean): boolean;
           procedure createinlineparas;
           procedure wrapcomplexinlinepara(para: tcallparanode); virtual;
@@ -4624,98 +4625,98 @@ implementation
       end;
 
 
+    function tcallnode.paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean;
+      begin
+        { We need a temp if the passed value will not be in memory, while
+          the parameter inside the routine must be in memory }
+        if (tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
+           not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+          exit(true);
+
+        { We cannot create a formaldef temp and assign something to it }
+        if para.parasym.vardef.typ=formaldef then
+          exit(false);
+
+        { We try to handle complex expressions later by taking their address
+          and storing this address in a temp (which is then dereferenced when
+          the value is used; that doesn't work if we cannot take the address
+          of the expression though, in which case we store the result of the
+          expression in a temp }
+        if (complexpara and not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) or
+           (complexpara and
+            (not valid_for_addr(para.left,false) or
+             (para.left.nodetype=calln) or
+             is_constnode(para.left)))) then
+          exit(true);
+
+        { Normally, we do not need to create a temp for value parameters that
+          are not modified in the inlined function, and neither for const
+          parameters that are passed by value.
+
+          However, if we pass a global variable, an object field, a variable
+          whose address has been taken, or an expression containing a pointer
+          dereference as parameter, this value could be modified in other ways
+          as well (even inside the callee) and in such cases we still create a
+          temp to be on the safe side.
+
+          We *must not* create a temp for global variables passed by
+          reference to a const parameter, because if not inlined then any
+          changes to the original value will also be visible in the callee
+          (although this is technically undefined behaviour, since with
+           "const" the programmer tells the compiler this argument will not
+           change). }
+        if (((para.parasym.varspez=vs_value) and
+             (para.parasym.varstate in [vs_initialised,vs_declared,vs_read])) or
+            ((para.parasym.varspez=vs_const) and
+             not pushconstaddr)) and
+           foreachnodestatic(para.left,@nonlocalvars,pointer(symtableproc)) then
+          exit(true);
+
+        { Value parameters of which we know they are modified by definition
+          have to be copied to a temp }
+        if (para.parasym.varspez=vs_value) and
+           not(para.parasym.varstate in [vs_initialised,vs_declared,vs_read]) then
+          exit(true);
+
+        { the compiler expects that it can take the address of parameters passed by reference in
+          the case of const so we can't replace the node simply by a constant node
+          When playing with this code, ensure that
+          function f(const a,b  : longint) : longint;inline;
+            begin
+              result:=a*b;
+            end;
+
+          [...]
+          ...:=f(10,20));
+          [...]
+
+          is still folded. (FK)
+          }
+        if (para.parasym.varspez=vs_const) and
+           { const para's can get vs_readwritten if their address is taken ->
+             in case they are not passed by reference, to keep the same
+             behaviour as without inlining we have to make a copy in case the
+             originally passed parameter value gets changed inside the callee
+           }
+           (not pushconstaddr and
+            (para.parasym.varstate=vs_readwritten)
+           ) or
+           { call-by-reference const's may need to be passed by reference to
+             function called in the inlined code }
+           (pushconstaddr and
+            not valid_for_addr(para.left,false)) then
+          exit(true);
+
+        result:=false;
+      end;
+
+
     function tcallnode.maybecreateinlineparatemp(para: tcallparanode; out complexpara: boolean): boolean;
       var
         tempnode: ttempcreatenode;
         realtarget: tnode;
         paracomplexity: longint;
         pushconstaddr: boolean;
-
-      function needtemp: boolean;
-        begin
-          { We need a temp if the passed value will not be in memory, while
-            the parameter inside the routine must be in memory }
-          if (tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
-             not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-            exit(true);
-
-          { We cannot create a formaldef temp and assign something to it }
-          if para.parasym.vardef.typ=formaldef then
-            exit(false);
-
-          { We try to handle complex expressions later by taking their address
-            and storing this address in a temp (which is then dereferenced when
-            the value is used; that doesn't work if we cannot take the address
-            of the expression though, in which case we store the result of the
-            expression in a temp }
-          if (complexpara and not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) or
-             (complexpara and
-              (not valid_for_addr(para.left,false) or
-               (para.left.nodetype=calln) or
-               is_constnode(para.left)))) then
-            exit(true);
-
-          { Normally, we do not need to create a temp for value parameters that
-            are not modified in the inlined function, and neither for const
-            parameters that are passed by value.
-
-            However, if we pass a global variable, an object field, a variable
-            whose address has been taken, or an expression containing a pointer
-            dereference as parameter, this value could be modified in other ways
-            as well (even inside the callee) and in such cases we still create a
-            temp to be on the safe side.
-
-            We *must not* create a temp for global variables passed by
-            reference to a const parameter, because if not inlined then any
-            changes to the original value will also be visible in the callee
-            (although this is technically undefined behaviour, since with
-             "const" the programmer tells the compiler this argument will not
-             change). }
-          if (((para.parasym.varspez=vs_value) and
-               (para.parasym.varstate in [vs_initialised,vs_declared,vs_read])) or
-              ((para.parasym.varspez=vs_const) and
-               not pushconstaddr)) and
-             foreachnodestatic(para.left,@nonlocalvars,pointer(symtableproc)) then
-            exit(true);
-
-          { Value parameters of which we know they are modified by definition
-            have to be copied to a temp }
-          if (para.parasym.varspez=vs_value) and
-             not(para.parasym.varstate in [vs_initialised,vs_declared,vs_read]) then
-            exit(true);
-
-          { the compiler expects that it can take the address of parameters passed by reference in
-            the case of const so we can't replace the node simply by a constant node
-            When playing with this code, ensure that
-            function f(const a,b  : longint) : longint;inline;
-              begin
-                result:=a*b;
-              end;
-
-            [...]
-            ...:=f(10,20));
-            [...]
-
-            is still folded. (FK)
-            }
-          if (para.parasym.varspez=vs_const) and
-             { const para's can get vs_readwritten if their address is taken ->
-               in case they are not passed by reference, to keep the same
-               behaviour as without inlining we have to make a copy in case the
-               originally passed parameter value gets changed inside the callee
-             }
-             (not pushconstaddr and
-              (para.parasym.varstate=vs_readwritten)
-             ) or
-             { call-by-reference const's may need to be passed by reference to
-               function called in the inlined code }
-             (pushconstaddr and
-              not valid_for_addr(para.left,false)) then
-            exit(true);
-
-          result:=false;
-        end;
-
       begin
         result:=false;
         { determine how a parameter is passed to the inlined body
@@ -4773,7 +4774,7 @@ implementation
         { check if we have to create a temp, assign the parameter's
           contents to that temp and then substitute the parameter
           with the temp everywhere in the function                  }
-        if needtemp then
+        if paraneedsinlinetemp(para,pushconstaddr,complexpara) then
           begin
             tempnode:=ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
               tt_persistent,tparavarsym(para.parasym).is_regvar(false));
