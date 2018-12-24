@@ -575,7 +575,7 @@ unit hlcgobj;
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);virtual;
           procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);virtual;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);virtual;
-          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;
+          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;var size:tdef;maybeconst:boolean);virtual;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 
           { Retrieve the location of the data pointed to in location l, when the location is
@@ -4100,7 +4100,7 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.location_force_mmregscalar(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
+  procedure thlcgobj.location_force_mmregscalar(list: TAsmList; var l: tlocation; var size: tdef; maybeconst: boolean);
     var
       reg : tregister;
       href : treference;
@@ -4145,6 +4145,7 @@ implementation
           l.size:=def_cgsize(newsize);
           location_freetemp(list,l);
           location_reset(l,LOC_MMREGISTER,l.size);
+          size:=newsize;
           l.register:=reg;
         end;
     end;

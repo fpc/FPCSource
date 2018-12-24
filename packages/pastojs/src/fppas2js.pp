@@ -374,6 +374,9 @@ ToDos:
     - functions
     - rtti
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
+- $OPTIMIZATION ON|OFF
+- $optimization REMOVEEMPTYPROCS
+- $optimization REMOVEEMPTYPROCS,RemoveNotUsedDeclarations-
 - setlength(dynarray)  modeswitch to not create a copy
 - 'new', 'Function' -> class var use .prototype
 - static arrays

@@ -505,7 +505,7 @@ implementation
 
         { add a method to call the procvar using unwrapped arguments, which
           then wraps them and calls through to JLRMethod.invoke }
-        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
+        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
         finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
         insert_self_and_vmt_para(methoddef);
         insert_funcret_para(methoddef);
@@ -540,7 +540,7 @@ implementation
             { add a method prototype matching the procvar (like the invoke
               in the procvarclass itself) }
             symtablestack.push(pvintf.symtable);
-            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
+            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
             finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
             insert_self_and_vmt_para(methoddef);
             insert_funcret_para(methoddef);
@@ -639,7 +639,7 @@ implementation
         wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
-        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal));
+        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal,''));
         wrapperpv.calcparas;
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }
@@ -667,7 +667,7 @@ implementation
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the constructor }
-        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc,''));
         { this one is a class method rather than a constructor }
         include(wrapperpd.procoptions,po_classmethod);
         wrapperpd.proctypeoption:=potype_function;

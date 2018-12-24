@@ -27,7 +27,7 @@ interface
 
     uses
       parabase,
-      ncgcal,
+      ncal,ncgcal,
       cgutils;
 
     type
@@ -38,6 +38,7 @@ interface
 
       tllvmcallnode = class(tcgcallnode)
        protected
+        function paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean; override;
         function can_call_ref(var ref: treference): boolean; override;
         procedure pushparas; override;
       end;
@@ -47,7 +48,7 @@ implementation
 
      uses
        verbose,
-       ncal;
+       symconst,symdef;
 
 {*****************************************************************************
                           TLLVMCALLPARANODE
@@ -63,6 +64,25 @@ implementation
 {*****************************************************************************
                            TLLVMCALLNODE
  *****************************************************************************}
+
+    function tllvmcallnode.paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean;
+      begin
+        { We don't insert type conversions for self node trees to the type of
+          the self parameter (and doing so is quite hard due to all kinds of
+          ugly hacks with this parameter). This means that if we pass on a
+          self parameter through multiple levels of inlining, it may no
+          longer match the actual type of the parameter it has been passed to
+          -> always store in a temp which by definition will have the right
+          type (if it's a pointer-like type) }
+        if (vo_is_self in para.parasym.varoptions) and
+           (is_class_or_interface_or_dispinterface(para.parasym.vardef) or
+            is_classhelper(para.parasym.vardef) or
+            ((para.parasym.vardef.typ=classrefdef) and
+             is_class(tclassrefdef(para.parasym.vardef).pointeddef))) then
+          result:=true
+        else
+          result:=inherited;
+      end;
 
     function tllvmcallnode.can_call_ref(var ref: treference): boolean;
       begin

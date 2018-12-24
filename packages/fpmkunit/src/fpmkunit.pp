@@ -1683,7 +1683,7 @@ ResourceString
   SWarngcclibpath         = 'Warning: Unable to determine the libgcc path.';
   SWarnNoFCLProcessSupport= 'No FCL-Process support';
   SWarnRetryRemDirectory     = 'Failed to remove directory "%s". Retry after a short delay';
-  SWarnRetryDeleteFile       = 'Failed to remove file "%f". Retry after a short delay';
+  SWarnRetryDeleteFile       = 'Failed to remove file "%s". Retry after a short delay';
   SWarnCombinedPathAndUDir= 'Warning: Better do not combine the SearchPath and Global/Local-UnitDir parameters';
   SWarnRemovedNonEmptyDirectory = 'Warning: Removed non empty directory "%s"';
 

@@ -630,7 +630,7 @@ interface
           function  is_addressonly:boolean;virtual;
           function  no_self_node:boolean;
           { get either a copy as a procdef or procvardef }
-          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; virtual;
+          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp; const paraprefix: string): tstoreddef; virtual;
           function  compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
@@ -668,7 +668,7 @@ interface
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           function  getmangledparaname:TSymStr;override;
-          function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef; override;
+          function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef; override;
        end;
        tprocvardefclass = class of tprocvardef;
 
@@ -813,7 +813,7 @@ interface
                 needs to be finalised afterwards by calling
                 symcreat.finish_copied_procdef() afterwards
           }
-          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; override;
+          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp; const paraprefix: string): tstoreddef; override;
           function  getcopy: tstoreddef; override;
           function  GetTypeName : string;override;
           function  mangledname : TSymStr; virtual;
@@ -5154,7 +5154,7 @@ implementation
       end;
 
 
-    function tabstractprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef;
+    function tabstractprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp; const paraprefix: string): tstoreddef;
       var
         j, nestinglevel: longint;
         pvs, npvs: tparavarsym;
@@ -5187,8 +5187,15 @@ implementation
                   if (copytyp=pc_bareproc) and
                      (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret]*pvs.varoptions)<>[]) then
                     continue;
-                  npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
-                    pvs.vardef,pvs.varoptions);
+                  if paraprefix='' then
+                    npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
+                      pvs.vardef,pvs.varoptions)
+                  else if not(vo_is_high_para in pvs.varoptions) then
+                    npvs:=cparavarsym.create(paraprefix+pvs.realname,pvs.paranr,pvs.varspez,
+                      pvs.vardef,pvs.varoptions)
+                  else
+                    npvs:=cparavarsym.create('$high'+paraprefix+copy(pvs.name,5,length(pvs.name)),pvs.paranr,pvs.varspez,
+                      pvs.vardef,pvs.varoptions);
                   npvs.defaultconstsym:=pvs.defaultconstsym;
                   tabstractprocdef(result).parast.insert(npvs);
                 end;
@@ -6070,11 +6077,11 @@ implementation
       end;
 
 
-    function tprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+    function tprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef;
       var
         j : longint;
       begin
-        result:=inherited getcopyas(newtyp,copytyp);
+        result:=inherited;
         if newtyp=procvardef then
           begin
             { create new paralist }
@@ -6141,7 +6148,7 @@ implementation
 
     function tprocdef.getcopy: tstoreddef;
       begin
-        result:=getcopyas(procdef,pc_normal);
+        result:=getcopyas(procdef,pc_normal,'');
       end;
 
 
@@ -6504,7 +6511,7 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            result:=tprocvardef(def.getcopyas(procvardef,pc_address_only));
+            result:=tprocvardef(def.getcopyas(procvardef,pc_address_only,''));
             setup_reusable_def(def,result,res,oldsymtablestack);
             { res^.Data may still be nil -> don't overwrite result }
             exit;
@@ -6643,7 +6650,7 @@ implementation
       end;
 
 
-    function tprocvardef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+    function tprocvardef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef;
       begin
         result:=inherited;
         tabstractprocdef(result).calcparas;

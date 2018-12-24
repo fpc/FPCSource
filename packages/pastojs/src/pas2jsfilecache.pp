@@ -1896,7 +1896,7 @@ var
   // search in Dir for pp, pas, p times given case, lower case, upper case
   begin
     Dir:=IncludeTrailingPathDelimiter(Dir);
-    if IndexOfFile(SearchedDirs,Dir)>=0 then exit;
+    if IndexOfFile(SearchedDirs,Dir)>=0 then exit(false);
     SearchedDirs.Add(Dir);
     Filename:=Dir+aUnitname+'.pp';
     if SearchLowUpCase(Filename) then exit(true);

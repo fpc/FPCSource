@@ -80,7 +80,7 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
     result:=
       (fromdef<>todef) and
       { two procdefs that are structurally the same but semantically different
-        still need a convertion }
+        still need a conversion }
       (
        ((fromdef.typ=procvardef) and
         (todef.typ=procvardef))
@@ -180,7 +180,7 @@ procedure tllvmtypeconvnode.second_proc_to_procvar;
         if location.loc<>LOC_REFERENCE then
           internalerror(2015111902);
         hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-          cpointerdef.getreusable(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal)),
+          cpointerdef.getreusable(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal,'')),
           cpointerdef.getreusable(resultdef),
           location.reference);
       end;
@@ -283,7 +283,7 @@ procedure tllvmtypeconvnode.second_nothing;
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hreg);
-        location_reset_ref(location,left.location.loc,left.location.size,left.location.reference.alignment,left.location.reference.volatility);
+        location_reset_ref(location,left.location.loc,def_cgsize(resultdef),left.location.reference.alignment,left.location.reference.volatility);
         reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
       end
     else
