@@ -462,7 +462,7 @@ function CheckSynchronize(timeout : longint=0) : boolean;
 
 { assumes being called from GUI thread }
 var
-  ExceptObj: Exception;
+  ExceptObj: TObject;
   tmpentry: TThread.PThreadQueueEntry;
 
 begin
@@ -486,7 +486,7 @@ begin
     try
       ExecuteThreadQueueEntry(tmpentry);
     except
-      exceptobj := Exception(AcquireExceptionObject);
+      exceptobj := TObject(AcquireExceptionObject);
     end;
     { step 3: error handling and cleanup }
     if Assigned(tmpentry^.SyncEvent) then
