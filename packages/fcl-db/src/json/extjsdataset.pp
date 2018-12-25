@@ -367,7 +367,6 @@ begin
          FF:=FindField(F.Strings['name']);
          if (FF<>Nil) and (FF.DataType in [ftDate,ftTime,ftDateTime]) and (FF.FieldKind=fkData) then
            begin
-
            if FF is TJSONDateField then
              TJSONDateField(FF).DateFormat:=Fmt
            else if FF is TJSONTimeField then

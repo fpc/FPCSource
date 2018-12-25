@@ -12847,6 +12847,7 @@ tests/test/tasmpublic3.pp svneol=native#text/pascal
 tests/test/tasmread.pp svneol=native#text/plain
 tests/test/tasout.pp svneol=native#text/plain
 tests/test/tassignmentoperator1.pp svneol=native#text/pascal
+tests/test/tb0266.pp svneol=native#text/plain
 tests/test/tblock1.pp svneol=native#text/plain
 tests/test/tblock1a.pp svneol=native#text/plain
 tests/test/tblock1c.pp svneol=native#text/plain
