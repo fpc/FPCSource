@@ -5182,7 +5182,7 @@ implementation
 
   procedure thlcgobj.gen_load_return_value(list: TAsmList);
     var
-      ressym : tabstractnormalvarsym;
+      ressym : tsym;
       retdef : tdef;
     begin
       { Is the loading needed? }
@@ -5196,30 +5196,19 @@ implementation
         exit;
 
       { constructors return self }
-      if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-        begin
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'));
-          retdef:=ressym.vardef;
-          { and TP-style constructors return a pointer to self }
-          if is_object(ressym.vardef) then
-            retdef:=cpointerdef.getreusable(retdef);
-        end
-      else
-        begin
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
-          retdef:=ressym.vardef;
-        end;
+      if not current_procinfo.procdef.getfuncretsyminfo(ressym,retdef) then
+        internalerror(2018122501);
       if (ressym.refs>0) or
          is_managed_type(retdef) then
         begin
           { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
           if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
-            gen_load_loc_function_result(list,retdef,ressym.localloc);
+            gen_load_loc_function_result(list,retdef,tabstractnormalvarsym(ressym).localloc);
         end
       else
         gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside]);
-      if ressym.localloc.loc=LOC_REFERENCE then
-        tg.UnGetLocal(list,ressym.localloc.reference);
+      if tabstractnormalvarsym(ressym).localloc.loc=LOC_REFERENCE then
+        tg.UnGetLocal(list,tabstractnormalvarsym(ressym).localloc.reference);
     end;
 
   procedure thlcgobj.gen_stack_check_size_para(list: TAsmList);

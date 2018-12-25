@@ -5904,6 +5904,7 @@ end;
 procedure TPasResolver.FinishProperty(PropEl: TPasProperty);
 var
   PropType: TPasType;
+  ClassOrRecScope: TPasClassOrRecordScope;
   ClassScope: TPasClassScope;
   AncestorProp: TPasProperty;
   IndexExpr: TPasExpr;
@@ -5914,7 +5915,7 @@ var
   begin
     if PropType<>nil then exit;
     AncEl:=nil;
-    if ClassScope.AncestorScope<>nil then
+    if (ClassScope<>nil) and (ClassScope.AncestorScope<>nil) then
       AncEl:=ClassScope.AncestorScope.FindElement(PropEl.Name);
     if AncEl is TPasProperty then
       begin
@@ -5943,7 +5944,7 @@ var
       // get inherited type
       PropType:=GetPasPropertyType(AncestorProp);
       // update DefaultProperty
-      if (ClassScope.DefaultProperty=AncestorProp) then
+      if ClassScope.DefaultProperty=AncestorProp then
         ClassScope.DefaultProperty:=PropEl;
       end;
   end;
@@ -6232,7 +6233,7 @@ var
 
 var
   ResultType: TPasType;
-  CurClassType: TPasClassType;
+  MembersType: TPasMembersType;
   AccEl: TPasElement;
   Proc: TPasProcedure;
   Arg: TPasArgument;
@@ -6253,8 +6254,12 @@ begin
           ['published property','"'+VariableModifierNames[m]+'"'],PropEl);
 
   PropType:=nil;
-  CurClassType:=PropEl.Parent as TPasClassType;
-  ClassScope:=NoNil(CurClassType.CustomData) as TPasClassScope;
+  MembersType:=PropEl.Parent as TPasMembersType;
+  ClassOrRecScope:=NoNil(MembersType.CustomData) as TPasClassOrRecordScope;
+  if ClassOrRecScope is TPasClassScope then
+    ClassScope:=TPasClassScope(ClassOrRecScope)
+  else
+    ClassScope:=nil;
   AncestorProp:=nil;
   GetPropType;
   IndexVal:=nil;
@@ -6461,10 +6466,10 @@ begin
     if PropEl.IsDefault then
       begin
       // set default array property
-      if (ClassScope.DefaultProperty<>nil)
-          and (ClassScope.DefaultProperty.Parent=PropEl.Parent) then
+      if (ClassOrRecScope.DefaultProperty<>nil)
+          and (ClassOrRecScope.DefaultProperty.Parent=PropEl.Parent) then
         RaiseMsg(20170216151938,nOnlyOneDefaultPropertyIsAllowed,sOnlyOneDefaultPropertyIsAllowed,[],PropEl);
-      ClassScope.DefaultProperty:=PropEl;
+      ClassOrRecScope.DefaultProperty:=PropEl;
       end;
     EmitTypeHints(PropEl,PropEl.VarType);
   finally
@@ -14759,7 +14764,7 @@ procedure TPasResolver.CheckFoundElement(
 var
   Proc: TPasProcedure;
   Context: TPasElement;
-  FoundContext: TPasClassType;
+  FoundContext: TPasMembersType;
   StartScope: TPasScope;
   OnlyTypeMembers, IsClassOf: Boolean;
   TypeEl: TPasType;
@@ -14956,7 +14961,7 @@ begin
   if FindData.Found.Visibility in [visPrivate,visProtected,visStrictPrivate,visStrictProtected] then
     begin
     Context:=GetVisibilityContext;
-    FoundContext:=FindData.Found.Parent as TPasClassType;
+    FoundContext:=FindData.Found.Parent as TPasMembersType;
     case FindData.Found.Visibility of
       visPrivate:
         // private members can only be accessed in same module

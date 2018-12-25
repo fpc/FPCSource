@@ -488,10 +488,11 @@ type
 
     // advanced record
     Procedure TestAdvRecord;
-    Procedure TestAdvRecord_Private; // ToDo
+    Procedure TestAdvRecord_Private;
+    // ToDO: Procedure TestAdvRecord_PropertyWithoutTypeFail;
     // Todo: Procedure TestAdvRecord_ForwardFail
     // ToDo: public, private, strict private
-    // ToDo: TestAdvRecordPublsihedFail
+    // ToDo: TestAdvRecordPublishedFail
     // ToDo: TestAdvRecord_VirtualFail
     // ToDo: TestAdvRecord_OverrideFail
     // ToDo: constructor, destructor
@@ -7840,8 +7841,6 @@ end;
 
 procedure TTestResolver.TestAdvRecord_Private;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   '{$modeswitch advancedrecords}',

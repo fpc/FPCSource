@@ -5233,13 +5233,14 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
   end;
 
 var
-  isArray , ok: Boolean;
+  isArray , ok, IsClass: Boolean;
   ObjKind: TPasObjKind;
 begin
   Result:=TPasProperty(CreateElement(TPasProperty,AName,Parent,AVisibility));
   if IsClassField then
     Include(Result.VarModifiers,vmClass);
-  if (Parent<>nil) and (Parent.ClassType=TPasClassType) then
+  IsClass:=(Parent<>nil) and (Parent.ClassType=TPasClassType);
+  if IsClass then
     ObjKind:=TPasClassType(Parent).ObjKind
   else
     ObjKind:=okClass;
@@ -5272,17 +5273,20 @@ begin
       Result.WriteAccessorName := GetAccessorName(Result,Result.WriteAccessor);
       NextToken;
       end;
-    if CurTokenIsIdentifier('READONLY') then
+    if IsClass and (ObjKind=okDispInterface) then
       begin
-      Result.DispIDReadOnly:=True;
-      NextToken;
+      if CurTokenIsIdentifier('READONLY') then
+        begin
+        Result.DispIDReadOnly:=True;
+        NextToken;
+        end;
+      if CurTokenIsIdentifier('DISPID') then
+        begin
+        NextToken;
+        Result.DispIDExpr := DoParseExpression(Result,Nil);
+        end;
       end;
-    if CurTokenIsIdentifier('DISPID') then
-      begin
-      NextToken;
-      Result.DispIDExpr := DoParseExpression(Result,Nil);
-      end;
-    if (ObjKind in [okClass]) and CurTokenIsIdentifier('IMPLEMENTS') then
+    if IsClass and (ObjKind=okClass) and CurTokenIsIdentifier('IMPLEMENTS') then
       ParseImplements;
     if CurTokenIsIdentifier('STORED') then
       begin

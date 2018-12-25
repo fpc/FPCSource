@@ -109,6 +109,7 @@ type
     exprasmlist      : TAsmList;
     function  jvmmangledbasename(signature: boolean): TSymStr;
     function mangledname: TSymStr; override;
+    function getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean; override;
     destructor destroy; override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
@@ -749,6 +750,15 @@ implementation
         end
       else
         result:=_mangledname;
+    end;
+
+  function tcpuprocdef.getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean;
+    begin
+      { constructors don't have a result on the JVM platform }
+      if proctypeoption<>potype_constructor then
+        result:=inherited
+      else
+        result:=false;
     end;
 
 
