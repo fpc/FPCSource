@@ -519,7 +519,9 @@ implementation
           begin
             srsym:=tsym(hclass.symtable.FindWithHash(hashedid));
             if assigned(srsym) and
-               (srsym.typ=procsym) then
+               (srsym.typ=procsym) and
+               ((hclass=_class) or
+                is_visible_for_object(srsym,_class)) then
               begin
                 for i:=0 to Tprocsym(srsym).ProcdefList.Count-1 do
                   begin
