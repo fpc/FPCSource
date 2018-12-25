@@ -604,12 +604,18 @@ implementation
           end;
         la_blockaddress:
           begin
-            owner.writer.AsmWrite('i8* blockaddress(');
-            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false));
+            { nested -> no type }
+            if owner.fdecllevel = 0 then
+              begin
+                owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false));
+                owner.writer.AsmWrite(' ');
+              end;
+            owner.writer.AsmWrite('blockaddress(');
+            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
             { getopstr would add a "label" qualifier, which blockaddress does
               not want }
             owner.writer.AsmWrite(',%');
-            with taillvm(hp).oper[1]^ do
+            with taillvm(hp).oper[2]^ do
               begin
                 if (typ<>top_ref) or
                    (ref^.refaddr<>addr_full) then

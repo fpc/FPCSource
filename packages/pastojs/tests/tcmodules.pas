@@ -533,6 +533,7 @@ type
     Procedure TestExternalClass_OverloadHint;
     Procedure TestExternalClass_SameNamePublishedProperty;
     Procedure TestExternalClass_Property;
+    Procedure TestExternalClass_PropertyDate;
     Procedure TestExternalClass_ClassProperty;
     Procedure TestExternalClass_ClassOf;
     Procedure TestExternalClass_ClassOtherUnit;
@@ -1197,6 +1198,7 @@ function TCustomTestModule.CreateConverter: TPasToJSConverter;
 begin
   Result:=TPasToJSConverter.Create;
   Result.Options:=co_tcmodules;
+  Result.Globals:=TPasToJSConverterGlobals.Create(Result);
 end;
 
 procedure TCustomTestModule.InitScanner(aScanner: TPas2jsPasScanner);
@@ -1769,9 +1771,9 @@ begin
     if (Item.MsgNumber<>MsgNumber) or (Item.Msg<>Msg) then continue;
     if (Marker<>nil) then
       begin
-      if Item.SourcePos.Row<>Marker^.Row then continue;
-      if (Item.SourcePos.Column<Marker^.StartCol)
-          or (Item.SourcePos.Column>Marker^.EndCol) then continue;
+      if Item.SourcePos.Row<>cardinal(Marker^.Row) then continue;
+      if (Item.SourcePos.Column<cardinal(Marker^.StartCol))
+          or (Item.SourcePos.Column>cardinal(Marker^.EndCol)) then continue;
       end;
     // found
     FHintMsgsGood.Add(Item);
@@ -4068,6 +4070,9 @@ begin
   'procedure DoMore(f,g: TProc);',
   'begin',
   'end;',
+  'procedure DoOdd(v: jsvalue);',
+  'begin',
+  'end;',
   'procedure DoIt(f: TFunc);',
   'begin',
   '  DoIt(function(b:word): word',
@@ -4075,6 +4080,7 @@ begin
   '      Result:=1+b;',
   '    end);',
   '  DoMore(procedure begin end, procedure begin end);',
+  '  DoOdd(procedure begin end);',
   'end;',
   'begin',
   '  DoMore(procedure begin end,',
@@ -4087,6 +4093,8 @@ begin
     LinesToStr([ // statements
     'this.DoMore = function (f, g) {',
     '};',
+    'this.DoOdd = function (v) {',
+    '};',
     'this.DoIt = function (f) {',
     '  $mod.DoIt(function (b) {',
     '    var Result = 0;',
@@ -4095,6 +4103,8 @@ begin
     '  });',
     '  $mod.DoMore(function () {',
     '  }, function () {',
+    '  });',
+    '  $mod.DoOdd(function () {',
     '  });',
     '};',
     '']),
@@ -4437,6 +4447,14 @@ begin
   StartProgram(false);
   Add([
   'type TMyEnum = (Red, Green);',
+  'procedure DoIt(var e: TMyEnum; var i: word);',
+  'var',
+  '  v: longint;',
+  '  s: string;',
+  'begin',
+  '  val(s,e,v);',
+  '  val(s,e,i);',
+  'end;',
   'var',
   '  e: TMyEnum;',
   '  i: longint;',
@@ -4466,6 +4484,7 @@ begin
   '  str(red,s);',
   '  s:=str(e:3);',
   '  writestr(s,e:3,red);',
+  '  val(s,e,i);',
   '  e:=TMyEnum(i);',
   '  i:=longint(e);']);
   ConvertProgram;
@@ -4477,6 +4496,14 @@ begin
     '  "1":"Green",',
     '  Green:1',
     '  };',
+    'this.DoIt = function (e, i) {',
+    '  var v = 0;',
+    '  var s = "";',
+    '  e.set(rtl.valEnum(s, $mod.TMyEnum, function (w) {',
+    '    v = w;',
+    '  }));',
+    '  e.set(rtl.valEnum(s, $mod.TMyEnum, i.set));',
+    '};',
     'this.e = 0;',
     'this.i = 0;',
     'this.s = "";',
@@ -4506,6 +4533,9 @@ begin
     '$mod.s = $mod.TMyEnum[$mod.TMyEnum.Red];',
     '$mod.s = rtl.spaceLeft($mod.TMyEnum[$mod.e], 3);',
     '$mod.s = rtl.spaceLeft($mod.TMyEnum[$mod.e], 3)+$mod.TMyEnum[$mod.TMyEnum.Red];',
+    '$mod.e = rtl.valEnum($mod.s, $mod.TMyEnum, function (v) {',
+    '  $mod.i = v;',
+    '});',
     '$mod.e=$mod.i;',
     '$mod.i=$mod.e;',
     '']));
@@ -6349,6 +6379,8 @@ begin
   '  s:=#$20AC;', // euro
   '  s:=#$10437;', // outside BMP
   '  s:=default(string);',
+  '  s:=concat(s);',
+  '  s:=concat(s,''a'',s)',
   '']);
   ConvertProgram;
   CheckSource('TestStringConst',
@@ -6365,8 +6397,10 @@ begin
     '$mod.s=''"\''"'';',
     '$mod.s="€";',
     '$mod.s="'#$F0#$90#$90#$B7'";',
-    '$mod.s="";'
-    ]));
+    '$mod.s="";',
+    '$mod.s = $mod.s;',
+    '$mod.s = $mod.s.concat("a", $mod.s);',
+    '']));
 end;
 
 procedure TTestModule.TestStringConstSurrogate;
@@ -13828,27 +13862,28 @@ end;
 procedure TTestModule.TestExternalClass_Property;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TExtA = class external name ''ExtA''');
-  Add('    function getYear: longint;');
-  Add('    procedure setYear(Value: longint);');
-  Add('    property Year: longint read getyear write setyear;');
-  Add('  end;');
-  Add('  TExtB = class (TExtA)');
-  Add('    procedure OtherSetYear(Value: longint);');
-  Add('    property year write othersetyear;');
-  Add('  end;');
-  Add('procedure textb.othersetyear(value: longint);');
-  Add('begin');
-  Add('  setYear(Value+4);');
-  Add('end;');
-  Add('var');
-  Add('  A: texta;');
-  Add('  B: textb;');
-  Add('begin');
-  Add('  a.year:=a.year+1;');
-  Add('  b.year:=b.year+2;');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtA''',
+  '    function getYear: longint;',
+  '    procedure setYear(Value: longint);',
+  '    property Year: longint read getyear write setyear;',
+  '  end;',
+  '  TExtB = class (TExtA)',
+  '    procedure OtherSetYear(Value: longint);',
+  '    property year write othersetyear;',
+  '  end;',
+  'procedure textb.othersetyear(value: longint);',
+  'begin',
+  '  setYear(Value+4);',
+  'end;',
+  'var',
+  '  A: texta;',
+  '  B: textb;',
+  'begin',
+  '  a.year:=a.year+1;',
+  '  b.year:=b.year+2;']);
   ConvertProgram;
   CheckSource('TestExternalClass_NonExternalOverride',
     LinesToStr([ // statements
@@ -13867,6 +13902,62 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.A.setYear($mod.A.getYear()+1);',
     '$mod.B.OtherSetYear($mod.B.getYear()+2);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_PropertyDate;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtA''',
+  '  end;',
+  '  TExtB = class (TExtA)',
+  '    FDate: string;',
+  '    property Date: string read FDate write FDate;',
+  '    property ExtA: string read FDate write FDate;',
+  '  end;',
+  '  {$M+}',
+  '  TObject = class',
+  '    FDate: string;',
+  '  published',
+  '    property Date: string read FDate write FDate;',
+  '    property ExtA: string read FDate write FDate;',
+  '  end;',
+  'var',
+  '  B: textb;',
+  '  o: TObject;',
+  'begin',
+  '  b.date:=b.exta;',
+  '  o.date:=o.exta;']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_PropertyDate',
+    LinesToStr([ // statements
+    'rtl.createClassExt($mod, "TExtB", ExtA, "", function () {',
+    '  this.$init = function () {',
+    '    this.FDate = "";',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FDate = "";',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("FDate", rtl.string);',
+    '  $r.addProperty("Date", 0, rtl.string, "FDate", "FDate");',
+    '  $r.addProperty("ExtA", 0, rtl.string, "FDate", "FDate");',
+    '});',
+    'this.B = null;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.B.FDate = $mod.B.FDate;',
+    '$mod.o.FDate = $mod.o.FDate;',
     '']));
 end;
 

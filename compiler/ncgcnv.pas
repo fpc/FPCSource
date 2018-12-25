@@ -423,10 +423,10 @@ interface
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
+               tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                tmpref:=location.reference;
                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-                 cpointerdef.getreusable(cshortstringtype),
+                 cpointerdef.getreusable(resultdef),
                  cpointerdef.getreusable(left.resultdef),tmpref);
                hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                  tmpref);
@@ -574,7 +574,7 @@ interface
                     begin
                       location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                       { code field is the first one }
-                      hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(tprocvardef(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal))),cpointerdef.getreusable(resultdef),left.location.reference);
+                      hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(tprocvardef(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal,''))),cpointerdef.getreusable(resultdef),left.location.reference);
                       hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,left.location.reference,location.register);
                     end;
                   LOC_REGISTER,LOC_CREGISTER:

@@ -270,7 +270,8 @@ unit cpupara;
               then indexed beyond its bounds) }
           arraydef:
             result:=
-              (calloption in cdecl_pocalls) or
+              ((calloption in cdecl_pocalls) and
+               not is_dynamic_array(def)) or
               is_open_array(def) or
               is_array_of_const(def) or
               is_array_constructor(def) or
@@ -400,11 +401,16 @@ unit cpupara;
         if (p.proccalloption in cstylearrayofconst) and
            is_array_of_const(paradef) then
           begin
+            result.size:=OS_NO;
+            result.def:=paradef;
+            result.alignment:=std_param_align;
+            result.intsize:=0;
             paraloc:=result.add_location;
             { hack: the paraloc must be valid, but is not actually used }
             paraloc^.loc:=LOC_REGISTER;
             paraloc^.register:=NR_X0;
             paraloc^.size:=OS_ADDR;
+            paraloc^.def:=paradef;
             exit;
           end;
 
@@ -532,8 +538,48 @@ unit cpupara;
              end
            else
              begin
+{$ifndef llvm}
                paraloc^.size:=locsize;
                paraloc^.def:=locdef;
+{$else llvm}
+               case locsize of
+                 OS_8,OS_16,OS_32:
+                   begin
+                     paraloc^.size:=OS_64;
+                     paraloc^.def:=u64inttype;
+                   end;
+                 OS_S8,OS_S16,OS_S32:
+                   begin
+                     paraloc^.size:=OS_S64;
+                     paraloc^.def:=s64inttype;
+                   end;
+                 OS_F32:
+                   begin
+                     paraloc^.size:=OS_F32;
+                     paraloc^.def:=s32floattype;
+                   end;
+                 OS_F64:
+                   begin
+                     paraloc^.size:=OS_F64;
+                     paraloc^.def:=s64floattype;
+                   end;
+                 else
+                   begin
+                     if is_record(locdef) or
+                        ((locdef.typ=arraydef) and
+                         not is_special_array(locdef)) then
+                       begin
+                         paraloc^.size:=OS_64;
+                         paraloc^.def:=u64inttype;
+                       end
+                     else
+                       begin
+                         paraloc^.size:=locsize;
+                         paraloc^.def:=locdef;
+                       end;
+                   end;
+               end;
+{$endif llvm}
              end;
 
            { paraloc loc }
@@ -556,7 +602,10 @@ unit cpupara;
                     (side=callerside) and
                     is_ordinal(paradef) and
                     (paradef.size<4) then
-                   paraloc^.size:=OS_32;
+                   begin
+                     paraloc^.size:=OS_32;
+                     paraloc^.def:=u32inttype;
+                   end;
 
                  { in case it's a composite, "The argument is passed as though
                    it had been loaded into the registers from a double-word-
@@ -567,7 +616,7 @@ unit cpupara;
                  if (target_info.endian=endian_big) and
                     not(paraloc^.size in [OS_64,OS_S64]) and
                     (paradef.typ in [setdef,recorddef,arraydef,objectdef]) then
-                   paraloc^.shiftval:=-(8-tcgsize2size[paraloc^.size]);
+                   paraloc^.shiftval:=-(8-tcgsize2size[paraloc^.size])*8;
                end;
              LOC_MMREGISTER:
                begin
@@ -581,7 +630,7 @@ unit cpupara;
                   paraloc^.loc:=LOC_REFERENCE;
 
                   { the current stack offset may not be properly aligned in
-                    case we're on Darwin have allocated a non-variadic argument
+                    case we're on Darwin and have allocated a non-variadic argument
                     < 8 bytes previously }
                   if target_info.abi=abi_aarch64_darwin then
                     curstackoffset:=align(curstackoffset,paraloc^.def.alignment);

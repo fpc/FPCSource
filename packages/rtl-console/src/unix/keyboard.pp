@@ -96,6 +96,12 @@ const KbShiftUp    = $f0;
       KbShiftDown  = $f3;
       KbShiftHome  = $f4;
       KbShiftEnd   = $f5;
+      KbCtrlShiftUp    = $f6;
+      KbCtrlShiftDown  = $f7;
+      KbCtrlShiftRight = $f8;
+      KbCtrlShiftLeft  = $f9;
+      KbCtrlShiftHome  = $fa;
+      KbCtrlShiftEnd   = $fb;
 
       double_esc_hack_enabled : boolean = false;
 
@@ -494,7 +500,7 @@ const
     MouseEvent.buttons := 0;
     PutMouseEvent(MouseEvent);
   end;
-  
+
   procedure GenMouseEvent;
   var MouseEvent: TMouseEvent;
       ch : char;
@@ -869,7 +875,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..289] of key_sequence=(
+const key_sequences:array[0..297] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
@@ -1136,6 +1142,15 @@ const key_sequences:array[0..289] of key_sequence=(
        (char:0;scan:kbShiftHome;st:#27'[1;2H'),  {xterm}
        (char:0;scan:kbShiftHome;st:#27'[7$'),    {rxvt}
 
+       (char:0;scan:KbCtrlShiftUp;st:#27'[1;6A'),    {xterm}
+       (char:0;scan:KbCtrlShiftDown;st:#27'[1;6B'),  {xterm}
+       (char:0;scan:KbCtrlShiftRight;st:#27'[1;6C'), {xterm, xfce4}
+       (char:0;scan:KbCtrlShiftLeft;st:#27'[1;6D'),  {xterm, xfce4}
+       (char:0;scan:KbCtrlShiftHome;st:#27'[1;6H'),  {xterm}
+       (char:0;scan:KbCtrlShiftEnd;st:#27'[1;6F'),   {xterm}
+
+       (char:0;scan:kbCtrlPgDn;st:#27'[6;5~'),   {xterm}
+       (char:0;scan:kbCtrlPgUp;st:#27'[5;5~'),   {xterm}
        (char:0;scan:kbCtrlUp;st:#27'[1;5A'),     {xterm}
        (char:0;scan:kbCtrlDown;st:#27'[1;5B'),   {xterm}
        (char:0;scan:kbCtrlRight;st:#27'[1;5C'),  {xterm}
@@ -1304,7 +1319,7 @@ begin
               {This is the same hack as in findsequence; see findsequence for
                explanation.}
               ch:=ttyrecvchar;
-              {Alt+O cannot be used in this situation, it can be a function key.} 
+              {Alt+O cannot be used in this situation, it can be a function key.}
               if not(ch in ['a'..'z','A'..'N','P'..'Z','0'..'9','-','+','_','=']) then
                 begin
                   if intail=0 then
@@ -1361,11 +1376,11 @@ begin
         end
       else
         RestoreArray;
-   end
+   end;
 {$ifdef logging}
        writeln(f);
 {$endif logging}
-    ;
+
   ReadKey:=PopKey;
 End;
 
@@ -1541,6 +1556,8 @@ const
     kbAltDown,kbAltPgDn,kbAltIns,kbAltDel);
   ShiftArrow : array [kbShiftUp..kbShiftEnd] of byte =
    (kbUp,kbLeft,kbRight,kbDown,kbHome,kbEnd);
+  CtrlShiftArrow : array [kbCtrlShiftUp..kbCtrlShiftEnd] of byte =
+   (kbCtrlUp,kbCtrlDown,kbCtrlRight,kbCtrlLeft,kbCtrlHome,kbCtrlEnd);
 
 var
   MyScan:byte;
@@ -1601,10 +1618,17 @@ begin {main}
             kbF11..KbF12 : { sF11-sF12 }
               MyScan:=MyScan+kbShiftF11-kbF11;
           end;
-        if myscan in [kbShiftUp..kbShiftEnd] then
+        if myscan in [kbShiftUp..kbCtrlShiftEnd] then
           begin
-            myscan:=ShiftArrow[myscan];
-            sstate:=sstate or kbshift;
+            if myscan <= kbShiftEnd then
+            begin
+               myscan:=ShiftArrow[myscan];
+               sstate:=sstate or kbshift;
+            end else
+            begin
+               myscan:=CtrlShiftArrow[myscan];
+               sstate:=sstate or kbshift or kbCtrl;
+            end;
           end;
         if myscan=kbAltBack then
           sstate:=sstate or kbalt;

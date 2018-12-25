@@ -128,6 +128,7 @@ type
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
     procedure TestM_Hint_FunctionResultAssembler;
+    procedure TestM_Hint_FunctionResultExit;
     procedure TestM_Hint_AbsoluteVar;
 
     // whole program optimization
@@ -2151,6 +2152,20 @@ begin
   Add([
   'function GetIt: longint; assembler;',
   'asm',
+  'end;',
+  'begin',
+  '  GetIt;']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_FunctionResultExit;
+begin
+  StartProgram(false);
+  Add([
+  'function GetIt: longint;',
+  'begin',
+  '  exit(3);',
   'end;',
   'begin',
   '  GetIt;']);

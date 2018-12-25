@@ -81,7 +81,7 @@ const
   nErrRecordConstantsNotAllowed = 2035;
   nErrRecordMethodsNotAllowed = 2036;
   nErrRecordPropertiesNotAllowed = 2037;
-  nErrRecordVisibilityNotAllowed = 2038;
+  // free , was nErrRecordVisibilityNotAllowed = 2038;
   nParserTypeNotAllowedHere = 2039;
   nParserNotAnOperand = 2040;
   nParserArrayPropertiesCannotHaveDefaultValue = 2041;
@@ -142,7 +142,7 @@ resourcestring
   SErrRecordVariablesNotAllowed = 'Record variables not allowed at this location.';
   SErrRecordMethodsNotAllowed = 'Record methods not allowed at this location.';
   SErrRecordPropertiesNotAllowed = 'Record properties not allowed at this location.';
-  SErrRecordVisibilityNotAllowed = 'Record visibilities not allowed at this location.';
+  // free, was SErrRecordVisibilityNotAllowed = 'Record visibilities not allowed at this location.';
   SParserTypeNotAllowedHere = 'Type "%s" not allowed here';
   SParserNotAnOperand = 'Not an operand: (%d : %s)';
   SParserArrayPropertiesCannotHaveDefaultValue = 'Array properties cannot have default value';
@@ -4504,7 +4504,7 @@ begin
   ParseVarList(Parent,List,AVisibility,False);
   tt:=[tkEnd,tkSemicolon];
   if ClosingBrace then
-   include(tt,tkBraceClose);
+    Include(tt,tkBraceClose);
   if not (CurToken in tt) then
     ParseExc(nParserExpectedSemiColonEnd,SParserExpectedSemiColonEnd);
 end;
@@ -5233,13 +5233,14 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
   end;
 
 var
-  isArray , ok: Boolean;
+  isArray , ok, IsClass: Boolean;
   ObjKind: TPasObjKind;
 begin
   Result:=TPasProperty(CreateElement(TPasProperty,AName,Parent,AVisibility));
   if IsClassField then
     Include(Result.VarModifiers,vmClass);
-  if (Parent<>nil) and (Parent.ClassType=TPasClassType) then
+  IsClass:=(Parent<>nil) and (Parent.ClassType=TPasClassType);
+  if IsClass then
     ObjKind:=TPasClassType(Parent).ObjKind
   else
     ObjKind:=okClass;
@@ -5272,17 +5273,20 @@ begin
       Result.WriteAccessorName := GetAccessorName(Result,Result.WriteAccessor);
       NextToken;
       end;
-    if CurTokenIsIdentifier('READONLY') then
+    if IsClass and (ObjKind=okDispInterface) then
       begin
-      Result.DispIDReadOnly:=True;
-      NextToken;
+      if CurTokenIsIdentifier('READONLY') then
+        begin
+        Result.DispIDReadOnly:=True;
+        NextToken;
+        end;
+      if CurTokenIsIdentifier('DISPID') then
+        begin
+        NextToken;
+        Result.DispIDExpr := DoParseExpression(Result,Nil);
+        end;
       end;
-    if CurTokenIsIdentifier('DISPID') then
-      begin
-      NextToken;
-      Result.DispIDExpr := DoParseExpression(Result,Nil);
-      end;
-    if (ObjKind in [okClass]) and CurTokenIsIdentifier('IMPLEMENTS') then
+    if IsClass and (ObjKind=okClass) and CurTokenIsIdentifier('IMPLEMENTS') then
       ParseImplements;
     if CurTokenIsIdentifier('STORED') then
       begin
@@ -6362,15 +6366,13 @@ begin
       tkGeneric, // Counts as field name
       tkIdentifier :
         begin
-          if CheckVisibility(CurtokenString,v) then
-            begin
-            If not (msAdvancedRecords in Scanner.CurrentModeSwitches) then
-              ParseExc(nErrRecordVisibilityNotAllowed,SErrRecordVisibilityNotAllowed);
-            if not (v in [visPrivate,visPublic,visStrictPrivate]) then
-              ParseExc(nParserInvalidRecordVisibility,SParserInvalidRecordVisibility);
-            NextToken;
-            Continue;
-            end;
+        If AllowMethods and CheckVisibility(CurTokenString,v) then
+          begin
+          if not (v in [visPrivate,visPublic,visStrictPrivate]) then
+            ParseExc(nParserInvalidRecordVisibility,SParserInvalidRecordVisibility);
+          NextToken;
+          Continue;
+          end;
         OldCount:=ARec.Members.Count;
         ParseInlineVarDecl(ARec, ARec.Members, v, AEndToken=tkBraceClose);
         for i:=OldCount to ARec.Members.Count-1 do
@@ -6423,12 +6425,15 @@ begin
   try
     Result.PackMode:=PackMode;
     NextToken;
-    ParseRecordFieldList(Result,tkEnd,true);
+    ParseRecordFieldList(Result,tkEnd,msAdvancedRecords in Scanner.CurrentModeSwitches);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
     if not ok then
+      begin
+      Result.Parent:=nil; // clear references from members to Result
       Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      end;
   end;
 end;
 
@@ -6826,7 +6831,8 @@ begin
     end;
     exit;
     end;
-  if ((AobjKind in [okClass,OKInterface]) and (msExternalClass in CurrentModeswitches) and  CurTokenIsIdentifier('external')) then
+  if ((AObjKind in [okClass,OKInterface]) and (msExternalClass in CurrentModeswitches)
+      and CurTokenIsIdentifier('external')) then
     begin
     NextToken;
     if CurToken<>tkString then

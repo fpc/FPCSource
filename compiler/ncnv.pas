@@ -350,7 +350,8 @@ implementation
         if equal_defs(p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
            not is_bitpacked_access(p) and
-           not ctypeconvnode.target_specific_need_equal_typeconv(p.resultdef,def) then
+           ((p.blocktype=bt_const) or
+            not ctypeconvnode.target_specific_need_equal_typeconv(p.resultdef,def)) then
           begin
             { don't replace encoded string constants to rawbytestring encoding.
               preserve the codepage }
@@ -2268,7 +2269,7 @@ implementation
              copytype:=pc_address_only
            else
              copytype:=pc_normal;
-           resultdef:=pd.getcopyas(procvardef,copytype);
+           resultdef:=pd.getcopyas(procvardef,copytype,'');
          end;
       end;
 
@@ -2434,7 +2435,8 @@ implementation
 {$ifdef llvm}
                      { we still may have to insert a type conversion at the
                        llvm level }
-                     if (left.resultdef<>resultdef) and
+                     if (blocktype<>bt_const) and
+                        (left.resultdef<>resultdef) and
                         { if unspecialised generic -> we won't generate any code
                           for this, and keeping the type conversion node will
                           cause valid_for_assign to fail because the typecast will be from/to something of 0

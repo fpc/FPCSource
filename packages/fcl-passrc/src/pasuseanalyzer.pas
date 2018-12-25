@@ -1479,6 +1479,25 @@ begin
         begin
         BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
         case BuiltInProc.BuiltIn of
+        bfExit:
+          begin
+          if El.Parent is TParamsExpr then
+            begin
+            Params:=(El.Parent as TParamsExpr).Params;
+            if length(Params)=1 then
+              begin
+              SubEl:=El.Parent;
+              while (SubEl<>nil) and not (SubEl is TPasProcedure) do
+                SubEl:=SubEl.Parent;
+              if (SubEl is TPasProcedure)
+                  and (TPasProcedure(SubEl).ProcType is TPasFunctionType) then
+                begin
+                SubEl:=TPasFunctionType(TPasProcedure(SubEl).ProcType).ResultEl;
+                UseElement(SubEl,rraAssign,false);
+                end;
+              end;
+            end;
+          end;
         bfTypeInfo:
           begin
           Params:=(El.Parent as TParamsExpr).Params;
@@ -1490,9 +1509,10 @@ begin
           {$ENDIF}
           if ParamResolved.IdentEl=nil then
             RaiseNotSupported(20180628155107,Params[0]);
-          if ParamResolved.IdentEl is TPasFunction then
+          if (ParamResolved.IdentEl is TPasProcedure)
+              and (TPasProcedure(ParamResolved.IdentEl).ProcType is TPasFunctionType) then
             begin
-            SubEl:=TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl.ResultType;
+            SubEl:=TPasFunctionType(TPasProcedure(ParamResolved.IdentEl).ProcType).ResultEl.ResultType;
             MarkImplScopeRef(El,SubEl,psraTypeInfo);
             UseTypeInfo(SubEl);
             end

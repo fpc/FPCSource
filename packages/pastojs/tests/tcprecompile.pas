@@ -552,7 +552,7 @@ begin
   ExpectedSrc:=LinesToStr([
     UTF8BOM+'rtl.module("system",[],function () {',
     '  "use strict";',
-    '  rtl.checkVersion(10101);',
+    '  rtl.checkVersion(10301);',
     '  var $mod = this;',
     '});']);
   if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then

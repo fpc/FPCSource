@@ -5,6 +5,10 @@
   Self is not reloaded in %esi register
   at entry in local procedure inside method }
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+
 uses
   objects;
 

@@ -692,14 +692,31 @@ type
     Members: TPasRecordType;
   end;
 
-  { TPasRecordType }
+  { TPasMembersType - base type for TPasRecordType and TPasClassType }
 
-  TPasRecordType = class(TPasType)
+  TPasMembersType = class(TPasType)
   private
     procedure ClearChildReferences(El: TPasElement; arg: pointer);
-    procedure GetMembers(S: TStrings);
   protected
     procedure SetParent(const AValue: TPasElement); override;
+  public
+    PackMode: TPackMode;
+    Members: TFPList;
+    GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
+    Constructor Create(const AName: string; AParent: TPasElement); override;
+    Destructor Destroy; override;
+    Function IsPacked: Boolean;
+    Function IsBitPacked : Boolean;
+    Procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+    Procedure SetGenericTemplates(AList: TFPList); virtual;
+  end;
+
+  { TPasRecordType }
+
+  TPasRecordType = class(TPasMembersType)
+  private
+    procedure GetMembers(S: TStrings);
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
@@ -708,15 +725,9 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    PackMode: TPackMode;
-    Members: TFPList;     // list of TPasVariable elements
     VariantEl: TPasElement; // nil or TPasVariable or TPasType
     Variants: TFPList;	// list of TPasVariant elements, may be nil!
-    GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
-    Function IsPacked: Boolean;
-    Function IsBitPacked : Boolean;
     Function IsAdvancedRecord : Boolean;
-    Procedure SetGenericTemplates(AList : TFPList);
   end;
 
   TPasGenericTemplateType = Class(TPasType);
@@ -734,9 +745,7 @@ type
 
   { TPasClassType }
 
-  TPasClassType = class(TPasType)
-  private
-    procedure ClearChildReferences(El: TPasElement; arg: pointer);
+  TPasClassType = class(TPasMembersType)
   protected
     procedure SetParent(const AValue: TPasElement); override;
   public
@@ -746,7 +755,6 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    PackMode: TPackMode;
     ObjKind: TPasObjKind;
     AncestorType: TPasType;   // TPasClassType or TPasUnresolvedTypeRef or TPasAliasType or TPasTypeAliasType
                               // Note: AncestorType can be nil even though it has a default ancestor
@@ -755,24 +763,19 @@ type
     IsExternal : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
     GUIDExpr : TPasExpr;
-    Members: TFPList;     // list of TPasElement
     Modifiers: TStringList;
     Interfaces : TFPList; // list of TPasType
-    GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
     ExternalNameSpace : String;
     ExternalName : String;
     InterfaceType: TPasClassInterfaceType;
-    Procedure SetGenericTemplates(AList : TFPList);
+    Procedure SetGenericTemplates(AList : TFPList); override;
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
-    Function IsPacked : Boolean;
     Function InterfaceGUID : string;
     Function IsSealed : Boolean;
     Function IsAbstract : Boolean;
     Function HasModifier(const aModifier: String): Boolean;
   end;
-
-
 
   TArgumentAccess = (argDefault, argConst, argVar, argOut, argConstRef);
 
@@ -2948,22 +2951,12 @@ end;
 constructor TPasRecordType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Members := TFPList.Create;
-  GenericTemplateTypes:=TFPList.Create;
 end;
 
 destructor TPasRecordType.Destroy;
 var
   i: Integer;
 begin
-  for i := 0 to GenericTemplateTypes.Count - 1 do
-    TPasElement(GenericTemplateTypes[i]).Release{$IFDEF CheckPasTreeRefCount}('TPasRecordType.GenericTemplateTypes'){$ENDIF};
-  FreeAndNil(GenericTemplateTypes);
-
-  for i := 0 to Members.Count - 1 do
-    TPasVariable(Members[i]).Release{$IFDEF CheckPasTreeRefCount}('TPasRecordType.Members'){$ENDIF};
-  FreeAndNil(Members);
-
   ReleaseAndNil(TPasElement(VariantEl){$IFDEF CheckPasTreeRefCount},'TPasRecordType.VariantEl'{$ENDIF});
 
   if Assigned(Variants) then
@@ -2978,19 +2971,12 @@ end;
 
 { TPasClassType }
 
-procedure TPasClassType.ClearChildReferences(El: TPasElement; arg: pointer);
-begin
-  El.ClearTypeReferences(Self);
-  if arg=nil then ;
-end;
-
 procedure TPasClassType.SetParent(const AValue: TPasElement);
 begin
   if (AValue=nil) and (Parent<>nil) then
     begin
     // parent is cleared
-    // -> clear all child references to this class (releasing loops)
-    ForEachCall(@ClearChildReferences,nil);
+    // -> clear all references to this class (releasing loops)
     if AncestorType=Self then
       ReleaseAndNil(TPasElement(AncestorType){$IFDEF CheckPasTreeRefCount},'TPasClassType.AncestorType'{$ENDIF});
     if HelperForType=Self then
@@ -3002,27 +2988,15 @@ end;
 constructor TPasClassType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  PackMode:=pmNone;                     // 12/04/04 - Dave - Added
   IsShortDefinition := False;
-  Members := TFPList.Create;
   Modifiers := TStringList.Create;
   Interfaces:= TFPList.Create;
-  GenericTemplateTypes:=TFPList.Create;
 end;
 
 destructor TPasClassType.Destroy;
 var
   i: Integer;
-  El: TPasElement;
 begin
-  for i := 0 to Members.Count - 1 do
-    begin
-    El:=TPasElement(Members[i]);
-    El.Parent:=nil;
-    El.Release{$IFDEF CheckPasTreeRefCount}('TPasClassType.Members'){$ENDIF};
-    end;
-  FreeAndNil(Members);
-
   for i := 0 to Interfaces.Count - 1 do
     TPasElement(Interfaces[i]).Release{$IFDEF CheckPasTreeRefCount}('TPasClassType.Interfaces'){$ENDIF};
   FreeAndNil(Interfaces);
@@ -3030,9 +3004,6 @@ begin
   ReleaseAndNil(TPasElement(HelperForType){$IFDEF CheckPasTreeRefCount},'TPasClassType.HelperForType'{$ENDIF});
   ReleaseAndNil(TPasElement(GUIDExpr){$IFDEF CheckPasTreeRefCount},'TPasClassType.GUIDExpr'{$ENDIF});
   FreeAndNil(Modifiers);
-  for i := 0 to GenericTemplateTypes.Count - 1 do
-    TPasElement(GenericTemplateTypes[i]).Release{$IFDEF CheckPasTreeRefCount}('TPasClassType.GenericTemplateTypes'){$ENDIF};
-  FreeAndNil(GenericTemplateTypes);
   inherited Destroy;
 end;
 
@@ -3062,26 +3033,12 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasElement(Interfaces[i]),true);
   ForEachChildCall(aMethodCall,Arg,HelperForType,true);
   ForEachChildCall(aMethodCall,Arg,GUIDExpr,false);
-  for i:=0 to Members.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
-  for i:=0 to GenericTemplateTypes.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
 end;
 
 procedure TPasClassType.SetGenericTemplates(AList: TFPList);
-
-Var
-  I : Integer;
-
 begin
   ObjKind:=okGeneric;
-  For I:=0 to AList.Count-1 do
-    begin
-    TPasElement(AList[i]).Parent:=Self;
-    GenericTemplateTypes.Add(AList[i]);
-    end;
-  AList.Clear;
-  ObjKind:=okGeneric;
+  inherited SetGenericTemplates(AList);
 end;
 
 function TPasClassType.FindMember(MemberClass: TPTreeElement; const MemberName: String): TPasElement;
@@ -3154,12 +3111,6 @@ begin
       exit(true);
   Result:=false;
 end;
-
-function TPasClassType.IsPacked: Boolean;
-begin
-  Result:=PackMode<>pmNone;
-end;
-
 
 { TPasArgument }
 
@@ -3987,11 +3938,94 @@ begin
   ForEachChildCall(aMethodCall,Arg,EnumType,true);
 end;
 
-procedure TPasRecordType.ClearChildReferences(El: TPasElement; arg: pointer);
+{ TPasMembersType }
+
+procedure TPasMembersType.ClearChildReferences(El: TPasElement; arg: pointer);
 begin
   El.ClearTypeReferences(Self);
   if arg=nil then ;
 end;
+
+procedure TPasMembersType.SetParent(const AValue: TPasElement);
+begin
+  if (AValue=nil) and (Parent<>nil) then
+    begin
+    // parent is cleared
+    // -> clear all child references to this class/record (releasing loops)
+    ForEachCall(@ClearChildReferences,nil);
+    end;
+  inherited SetParent(AValue);
+end;
+
+constructor TPasMembersType.Create(const AName: string; AParent: TPasElement);
+begin
+  inherited Create(AName, AParent);
+  PackMode:=pmNone;
+  Members := TFPList.Create;
+  GenericTemplateTypes:=TFPList.Create;
+end;
+
+destructor TPasMembersType.Destroy;
+var
+  i: Integer;
+  El: TPasElement;
+begin
+  for i := 0 to Members.Count - 1 do
+    begin
+    El:=TPasElement(Members[i]);
+    El.Parent:=nil;
+    El.Release{$IFDEF CheckPasTreeRefCount}('TPasMembersType.Members'){$ENDIF};
+    end;
+  FreeAndNil(Members);
+
+  for i := 0 to GenericTemplateTypes.Count - 1 do
+    begin
+    El:=TPasElement(GenericTemplateTypes[i]);
+    El.Parent:=nil;
+    El.Release{$IFDEF CheckPasTreeRefCount}('TPasMembersType.GenericTemplateTypes'){$ENDIF};
+    end;
+  FreeAndNil(GenericTemplateTypes);
+
+  inherited Destroy;
+end;
+
+function TPasMembersType.IsPacked: Boolean;
+begin
+  Result:=(PackMode <> pmNone);
+end;
+
+function TPasMembersType.IsBitPacked: Boolean;
+begin
+  Result:=(PackMode=pmBitPacked)
+end;
+
+procedure TPasMembersType.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+var
+  i: Integer;
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  for i:=0 to GenericTemplateTypes.Count-1 do
+    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),true);
+  for i:=0 to Members.Count-1 do
+    ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
+end;
+
+procedure TPasMembersType.SetGenericTemplates(AList: TFPList);
+var
+  I: Integer;
+  El: TPasElement;
+begin
+  For I:=0 to AList.Count-1 do
+    begin
+    El:=TPasElement(AList[i]);
+    El.Parent:=Self;
+    GenericTemplateTypes.Add(El);
+    end;
+  AList.Clear;
+end;
+
+{ TPasRecordType }
 
 procedure TPasRecordType.GetMembers(S: TStrings);
 
@@ -4049,17 +4083,6 @@ begin
   end;
 end;
 
-procedure TPasRecordType.SetParent(const AValue: TPasElement);
-begin
-  if (AValue=nil) and (Parent<>nil) then
-    begin
-    // parent is cleared
-    // -> clear all child references to this class (releasing loops)
-    ForEachCall(@ClearChildReferences,nil);
-    end;
-  inherited SetParent(AValue);
-end;
-
 function TPasRecordType.GetDeclaration (full : boolean) : string;
 
 Var
@@ -4093,52 +4116,28 @@ var
   i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  for i:=0 to GenericTemplateTypes.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),true);
-  for i:=0 to Members.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
   ForEachChildCall(aMethodCall,Arg,VariantEl,true);
   if Variants<>nil then
     for i:=0 to Variants.Count-1 do
       ForEachChildCall(aMethodCall,Arg,TPasElement(Variants[i]),false);
 end;
 
-function TPasRecordType.IsPacked: Boolean;
-begin
-  Result:=(PackMode <> pmNone);
-end;
-
-function TPasRecordType.IsBitPacked: Boolean;
-begin
-  Result:=(PackMode=pmBitPacked)
-end;
-
 function TPasRecordType.IsAdvancedRecord: Boolean;
 
 Var
   I : Integer;
+  Member: TPasElement;
 
 begin
   Result:=False;
   I:=0;
   While (Not Result) and (I<Members.Count) do
     begin
-    Result:=TPasElement(Members[i]).InheritsFrom(TPasProcedureBase) or
-            TPasElement(Members[i]).InheritsFrom(TPasProperty);
+    Member:=TPasElement(Members[i]);
+    if (Member.Visibility<>visPublic) then exit(true);
+    if (Member.ClassType<>TPasVariable) then exit(true);
     Inc(I);
     end;
-end;
-
-procedure TPasRecordType.SetGenericTemplates(AList: TFPList);
-var
-  I: Integer;
-begin
-  For I:=0 to AList.Count-1 do
-    begin
-    TPasElement(AList[i]).Parent:=Self;
-    GenericTemplateTypes.Add(AList[i]);
-    end;
-  AList.Clear;
 end;
 
 procedure TPasProcedureType.GetArguments(List : TStrings);

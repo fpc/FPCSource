@@ -119,7 +119,7 @@ Type
     // Warning: UTF8CompareCallback needs a wide string manager on Linux such as cwstring
     // Warning: CollationName has to be a UTF-8 string
     procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
-    procedure LoadExtension(LibraryFile: string);
+    procedure LoadExtension(const LibraryFile: string);
   Published
     Property OpenFlags : TSQLiteOpenFlags Read FOpenFlags Write SetOpenFlags default DefaultOpenFlags;
   end;
@@ -1107,7 +1107,7 @@ begin
   CheckError(sqlite3_create_collation(fhandle, PChar(CollationName), eTextRep, Arg, Compare));
 end;
 
-procedure TSQLite3Connection.LoadExtension(LibraryFile: string);
+procedure TSQLite3Connection.LoadExtension(const LibraryFile: string);
 var
   LoadResult: integer;
 begin

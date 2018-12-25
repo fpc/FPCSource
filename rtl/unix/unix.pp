@@ -914,6 +914,8 @@ var
   pl   : ^cint;
 begin
   AssignStream:=-1;
+  if fpAccess(prog,X_OK)<>0 then
+    exit(-1);
   if AssignPipe(streamin,pipo)=-1 Then
    exit(-1);
   if AssignPipe(pipi,streamout)=-1 Then
@@ -985,7 +987,8 @@ var
   pl: ^cint;
 begin
   AssignStream := -1;
-
+  if fpAccess(prog,X_OK)<>0 then
+    exit(-1);
   // Assign pipes
   if AssignPipe(StreamIn, PipeOut)=-1 Then
    Exit(-1);

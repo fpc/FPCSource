@@ -80,7 +80,7 @@ Type
     Function  GetExitCode : Integer;
     Function  GetRunning : Boolean;
     Function  GetWindowRect : TRect;
-    procedure SetCommandLine(const AValue: TProcessString);
+    procedure SetCommandLine(const AValue: TProcessString); deprecated;
     procedure SetParameters(const AValue: TProcessStrings);
     Procedure SetWindowRect (Value : TRect);
     Procedure SetShowWindow (Value : TShowWindowOptions);

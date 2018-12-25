@@ -14,6 +14,10 @@
  **********************************************************************}
 unit WINI;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+
 interface
 
 uses Objects;
@@ -49,7 +53,7 @@ type
       function    AddEntry(const Tag,Value,Comment: string): PINIEntry;
       function    SearchEntry(Tag: string): PINIEntry; virtual;
       procedure   DeleteEntry(Tag: string);
-      procedure   ForEachEntry(EnumProc: pointer); virtual;
+      procedure   ForEachEntry(EnumProc: TCallbackProcParam); virtual;
       destructor  Done; virtual;
     private
       NameHash : Cardinal;
@@ -67,8 +71,8 @@ type
       function    IsModified: boolean; virtual;
       function    SearchSection(Section: string): PINISection; virtual;
       function    SearchEntry(const Section, Tag: string): PINIEntry; virtual;
-      procedure   ForEachSection(EnumProc: pointer); virtual;
-      procedure   ForEachEntry(const Section: string; EnumProc: pointer); virtual;
+      procedure   ForEachSection(EnumProc: TCallbackProcParam); virtual;
+      procedure   ForEachEntry(const Section: string; EnumProc: TCallbackProcParam); virtual;
       function    GetEntry(const Section, Tag, Default: string): string; virtual;
       procedure   SetEntry(const Section, Tag, Value: string); virtual;
       procedure   SetEntry(const Section, Tag, Value,Comment: string); virtual;
@@ -354,7 +358,7 @@ begin
   AddEntry:=E;
 end;
 
-procedure TINIFile.ForEachSection(EnumProc: pointer);
+procedure TINIFile.ForEachSection(EnumProc: TCallbackProcParam);
 var I: Sw_integer;
    S: PINISection;
 begin
@@ -365,7 +369,7 @@ begin
     end;
 end;
 
-procedure TINISection.ForEachEntry(EnumProc: pointer);
+procedure TINISection.ForEachEntry(EnumProc: TCallbackProcParam);
 var I: integer;
     E: PINIEntry;
 begin
@@ -472,11 +476,11 @@ function TINIFile.IsModified: boolean;
     end;
 
   begin
-    SectionModified:=(P^.Entries^.FirstThat(@EntryModified)<>nil);
+    SectionModified:=(P^.Entries^.FirstThat(TCallbackFunBoolParam(@EntryModified))<>nil);
   end;
 
 begin
-  IsModified:=(Sections^.FirstThat(@SectionModified)<>nil);
+  IsModified:=(Sections^.FirstThat(TCallbackFunBoolParam(@SectionModified))<>nil);
 end;
 
 
@@ -554,7 +558,7 @@ begin
   SearchEntry:=E;
 end;
 
-procedure TINIFile.ForEachEntry(const Section: string; EnumProc: pointer);
+procedure TINIFile.ForEachEntry(const Section: string; EnumProc: TCallbackProcParam);
 var P: PINISection;
     E: PINIEntry;
     I: integer;

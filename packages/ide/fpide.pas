@@ -14,15 +14,10 @@
  **********************************************************************}
 unit fpide;
 
-{2.0 compatibility}
-{$ifdef VER2_0}
-  {$macro on}
-  {$define resourcestring := const}
-{$endif}
+{$i globdir.inc}
 
 interface
 
-{$i globdir.inc}
 
 uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,Tabs,

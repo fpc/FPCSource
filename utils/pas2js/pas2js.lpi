@@ -34,6 +34,7 @@
       <Unit1>
         <Filename Value="../../packages/pastojs/src/pas2jspcucompiler.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JSPCUCompiler"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../packages/pastojs/src/pas2jscompilercfg.pp"/>
@@ -42,6 +43,7 @@
       <Unit3>
         <Filename Value="../../packages/pastojs/src/pas2jsfs.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JSFS"/>
       </Unit3>
       <Unit4>
         <Filename Value="../../packages/pastojs/src/pas2jscompilerpp.pp"/>
@@ -50,6 +52,7 @@
       <Unit5>
         <Filename Value="../../packages/pastojs/src/pas2jsfscompiler.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JSFSCompiler"/>
       </Unit5>
     </Units>
   </ProjectOptions>

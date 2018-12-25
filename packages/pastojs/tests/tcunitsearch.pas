@@ -209,7 +209,7 @@ procedure TCustomTestCLI.SetWorkDir(const AValue: string);
 var
   NewValue: String;
 begin
-  NewValue:=IncludeTrailingPathDelimiter(ResolveDots(AValue));
+  NewValue:=IncludeTrailingPathDelimiter(ExpandFileNamePJ(ResolveDots(AValue)));
   if FWorkDir=NewValue then Exit;
   FWorkDir:=NewValue;
 end;
@@ -228,6 +228,7 @@ begin
   CompilerExe:='/usr/bin/pas2js';
   {$ENDIF}
   FCompiler:=TTestCompiler.Create;
+  //FCompiler.ConfigSupport:=TPas2JSFileConfigSupport.Create(FCompiler);
   Compiler.Log.OnLog:=@DoLog;
   Compiler.FileCache.OnReadDirectory:=@OnReadDirectory;
   Compiler.FileCache.OnReadFile:=@OnReadFile;

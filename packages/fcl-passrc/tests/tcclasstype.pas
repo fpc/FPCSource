@@ -253,6 +253,8 @@ procedure TTestClassType.StartClass(AncestorName: String; InterfaceList: String)
 Var
   S : String;
 begin
+  if FStarted then
+    Fail('TTestClassType.StartClass already started');
   FStarted:=True;
   S:='TMyClass = Class';
   if (AncestorName<>'') then
@@ -426,7 +428,7 @@ end;
 procedure TTestClassType.SetUp;
 begin
   inherited SetUp;
-  FDecl:=TstringList.Create;
+  FDecl:=TStringList.Create;
   FClass:=Nil;
   FParent:='';
   FStarted:=False;

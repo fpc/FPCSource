@@ -4371,7 +4371,7 @@ implementation
 
          addstatement(newstatement,cassignmentnode.create(resultnode,hpp));
 
-         { force pass 1, so copied tries get first pass'ed as well and flags like nf_write, nf_call_unique
+         { force pass 1, so copied trees get first pass'ed as well and flags like nf_write, nf_call_unique
            get set right }
          node_reset_flags(newstatement.statement,[nf_pass1_done]);
          { firstpass it }

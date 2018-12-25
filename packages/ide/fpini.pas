@@ -681,7 +681,7 @@ begin
   INIFile^.SetEntry(secCompile,ieCompileMode,SwitchesModeStr[SwitchesMode]);
   { Help }
   S:='';
-  HelpFiles^.ForEach(@ConcatName);
+  HelpFiles^.ForEach(TCallbackProcParam(@ConcatName));
   INIFile^.SetEntry(secHelp,ieHelpFiles,EscapeIniText(S));
   { Editor }
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
