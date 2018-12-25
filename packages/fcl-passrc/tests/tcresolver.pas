@@ -489,8 +489,7 @@ type
     // advanced record
     Procedure TestAdvRecord;
     Procedure TestAdvRecord_Private;
-    // ToDO: Procedure TestAdvRecord_PropertyWithoutTypeFail;
-    // Todo: Procedure TestAdvRecord_ForwardFail
+    Procedure TestAdvRecord_StrictPrivate; // ToDo
     // ToDo: public, private, strict private
     // ToDo: TestAdvRecordPublishedFail
     // ToDo: TestAdvRecord_VirtualFail
@@ -7856,6 +7855,24 @@ begin
   'begin',
   '  r.a:=r.b;']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_StrictPrivate;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  strict private',
+  '    A: word;',
+  '  end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  r.a:=r.a;']);
+  CheckResolverException('aaa',123);
 end;
 
 procedure TTestResolver.TestClass;

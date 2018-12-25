@@ -353,6 +353,8 @@ type
     Procedure TestPropertyFail;
     Procedure TestAdvRec_Property;
     Procedure TestAdvRec_PropertyImplementsFail;
+    Procedure TestAdvRec_PropertyNoTypeFail;
+    Procedure TestAdvRec_ForwardFail;
   end;
 
   { TTestProcedureTypeParser }
@@ -1283,7 +1285,8 @@ begin
   except
     on E: EParserError do
       begin
-      AssertEquals('Expected {'+Msg+'}, but got msg {'+Parser.LastMsg+'}',MsgNumber,Parser.LastMsgNumber);
+      AssertEquals('Expected {'+Msg+'} '+IntToStr(MsgNumber)+', but got msg {'+Parser.LastMsg+'} '+IntToStr(Parser.LastMsgNumber),MsgNumber,Parser.LastMsgNumber);
+      AssertEquals('Expected {'+Msg+'}, but got msg {'+Parser.LastMsg+'}',Msg,Parser.LastMsg);
       ok:=true;
       end;
   end;
@@ -2541,6 +2544,20 @@ begin
   StartRecord(true);
   AddMember('Property Something: word implements ISome;');
   ParseRecordFail('Expected ";"',nParserExpectTokenError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_PropertyNoTypeFail;
+begin
+  StartRecord(true);
+  AddMember('Property Something;');
+  ParseRecordFail('Expected ":"',nParserExpectTokenError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ForwardFail;
+begin
+  StartRecord(true);
+  FDecl.Add(';TMyRecord = record');
+  ParseRecordFail('Syntax error in type',nParserTypeSyntaxError);
 end;
 
 { TBaseTestTypeParser }

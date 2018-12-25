@@ -5257,7 +5257,9 @@ begin
       begin
       Result.VarType := ParseType(Result,CurSourcePos);
       NextToken;
-      end;
+      end
+    else if not IsClass then
+      ParseExcTokenError(':');
     if CurTokenIsIdentifier('INDEX') then
       begin
       NextToken;
