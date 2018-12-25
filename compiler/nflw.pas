@@ -1773,8 +1773,9 @@ implementation
 
     function texitnode.pass_typecheck:tnode;
       var
-        pd: tprocdef;
         newstatement : tstatementnode;
+        ressym: tsym;
+        resdef: tdef;
       begin
         result:=nil;
         newstatement:=nil;
@@ -1790,16 +1791,13 @@ implementation
           because the code to this that we add in tnodeutils.wrap_proc_body()
           gets inserted before the exit label to which this node will jump }
         if (target_info.system in systems_fpnestedstruct) and
-           not(nf_internal in flags) then
+           not(nf_internal in flags) and
+           current_procinfo.procdef.getfuncretsyminfo(ressym,resdef) and
+           (tabstractnormalvarsym(ressym).inparentfpstruct) then
           begin
-            pd:=current_procinfo.procdef;
-            if assigned(pd.funcretsym) and
-               tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
-              begin
-                if not assigned(result) then
-                  result:=internalstatements(newstatement);
-                cnodeutils.load_parentfpstruct_nested_funcret(current_procinfo.procdef,newstatement);
-              end;
+            if not assigned(result) then
+              result:=internalstatements(newstatement);
+            cnodeutils.load_parentfpstruct_nested_funcret(ressym,newstatement);
           end;
         if assigned(result) then
           begin

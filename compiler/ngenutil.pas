@@ -74,7 +74,7 @@ interface
         the value to be returned; replacing it with an absolutevarsym that
         redirects to the field in the parentfpstruct doesn't work, as the code
         generator cannot deal with such symbols }
-       class procedure load_parentfpstruct_nested_funcret(pd: tprocdef; var stat: tstatementnode);
+       class procedure load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
       { called after parsing a routine with the code of the entire routine
         as argument; can be used to modify the node tree. By default handles
         insertion of code for systems that perform the typed constant
@@ -579,17 +579,17 @@ implementation
     end;
 
 
-  class procedure tnodeutils.load_parentfpstruct_nested_funcret(pd: tprocdef; var stat: tstatementnode);
+  class procedure tnodeutils.load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
     var
       target: tnode;
     begin
-      target:=cloadnode.create(pd.funcretsym, pd.funcretsym.owner);
+      target:=cloadnode.create(ressym, ressym.owner);
       { ensure the target of this assignment doesn't translate the
         funcretsym also to its alias in the parentfpstruct }
       include(target.flags, nf_internal);
       addstatement(stat,
         cassignmentnode.create(
-          target, cloadnode.create(pd.funcretsym, pd.funcretsym.owner)
+          target, cloadnode.create(ressym, ressym.owner)
         )
       );
     end;
@@ -599,7 +599,9 @@ implementation
     var
       stat: tstatementnode;
       block: tnode;
+      ressym,
       psym: tsym;
+      resdef: tdef;
     begin
       result:=maybe_insert_trashing(pd,n);
 
@@ -669,16 +671,14 @@ implementation
             end;
           end;
         end;
-      if target_info.system in systems_fpnestedstruct then
+      if (target_info.system in systems_fpnestedstruct) and
+         pd.getfuncretsyminfo(ressym,resdef) and
+         (tabstractnormalvarsym(ressym).inparentfpstruct) then
         begin
-          if assigned(pd.funcretsym) and
-             tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
-            begin
-              block:=internalstatements(stat);
-              addstatement(stat,result);
-              load_parentfpstruct_nested_funcret(pd,stat);
-              result:=block;
-            end;
+          block:=internalstatements(stat);
+          addstatement(stat,result);
+          load_parentfpstruct_nested_funcret(ressym,stat);
+          result:=block;
         end;
     end;
 
