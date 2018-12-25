@@ -1263,6 +1263,7 @@ implementation
       if not(po_assembler in pd.procoptions) then
         begin
           nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
+          include(nestedvars.symoptions,sp_internal);
           pd.localst.insert(nestedvars);
           pd.parentfpstruct:=nestedvars;
           pd.parentfpinitblock:=cblocknode.create(nil);
