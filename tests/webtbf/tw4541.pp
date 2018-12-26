@@ -1,3 +1,5 @@
+{ %FAIL }
+
 { Source provided for Free Pascal Bug Report 4541 }
 { Submitted by "Vincent Snijders" on  2005-11-23 }
 { e-mail: vsnijders@quicknet.nl }
