@@ -1707,7 +1707,7 @@ FUNCTION SetComment(const name : pCHAR location 'd1';const comment : pCHAR locat
 FUNCTION SetConsoleTask(const task : pMsgPort location 'd1') : pMsgPort; syscall _DOSBase 516;
 FUNCTION SetCurrentDirName(const name : pCHAR location 'd1') : LongBool; syscall _DOSBase 558;
 FUNCTION SetFileDate(const name : pCHAR location 'd1'; date : pDateStamp location 'd2') : LongBool; syscall _DOSBase 396;
-FUNCTION SetFileSize(fh : BPTR location 'd1'; pos : LONGINT location 'd2'; mode : LONGINT location 'd3') : LongBool; syscall _DOSBase 456;
+FUNCTION SetFileSize(fh : BPTR location 'd1'; pos : LONGINT location 'd2'; mode : LONGINT location 'd3') : LongInt; syscall _DOSBase 456;
 FUNCTION SetFileSysTask(const task : pMsgPort location 'd1') : pMsgPort; syscall _DOSBase 528;
 FUNCTION SetIoErr(result : LONGINT location 'd1') : LONGINT; syscall _DOSBase 462;
 FUNCTION SetMode(fh : BPTR location 'd1'; mode : LONGINT location 'd2') : LongBool; syscall _DOSBase 426;
