@@ -36,9 +36,8 @@ asm
 .seh_endprologue
 
   { align stack size to 16 Byte }
-  add $15, aArgsStackSize
-  and $-16, aArgsStackSize
   sub aArgsStackSize, %rsp
+  and $-16, %rsp
 
   movq aArgsStackSize, %rax
 
