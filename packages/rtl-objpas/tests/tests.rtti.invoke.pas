@@ -656,6 +656,18 @@ const
   SingleArg3Out: Single = 9.87;
   SingleArg4: Single = 7.89;
   SingleRes: Single = 4.32;
+  SingleAddArg1 = Single(1.23);
+  SingleAddArg2 = Single(2.34);
+  SingleAddArg3 = Single(3.45);
+  SingleAddArg4 = Single(4.56);
+  SingleAddArg5 = Single(5.67);
+  SingleAddArg6 = Single(9.87);
+  SingleAddArg7 = Single(8.76);
+  SingleAddArg8 = Single(7.65);
+  SingleAddArg9 = Single(6.54);
+  SingleAddArg10 = Single(5.43);
+  SingleAddRes = SingleAddArg1 + SingleAddArg2 + SingleAddArg3 + SingleAddArg4 + SingleAddArg5 +
+                 SingleAddArg6 + SingleAddArg7 + SingleAddArg8 + SingleAddArg9 + SingleAddArg10;
 
   DoubleArg1: Double = 1.23;
   DoubleArg2In: Double = 3.21;
@@ -663,6 +675,18 @@ const
   DoubleArg3Out: Double = 9.87;
   DoubleArg4: Double = 7.89;
   DoubleRes: Double = 4.32;
+  DoubleAddArg1 = Double(1.23);
+  DoubleAddArg2 = Double(2.34);
+  DoubleAddArg3 = Double(3.45);
+  DoubleAddArg4 = Double(4.56);
+  DoubleAddArg5 = Double(5.67);
+  DoubleAddArg6 = Double(9.87);
+  DoubleAddArg7 = Double(8.76);
+  DoubleAddArg8 = Double(7.65);
+  DoubleAddArg9 = Double(6.54);
+  DoubleAddArg10 = Double(5.43);
+  DoubleAddRes = DoubleAddArg1 + DoubleAddArg2 + DoubleAddArg3 + DoubleAddArg4 + DoubleAddArg5 +
+                 DoubleAddArg6 + DoubleAddArg7 + DoubleAddArg8 + DoubleAddArg9 + DoubleAddArg10;
 
   ExtendedArg1: Extended = 1.23;
   ExtendedArg2In: Extended = 3.21;
@@ -670,6 +694,18 @@ const
   ExtendedArg3Out: Extended = 9.87;
   ExtendedArg4: Extended = 7.89;
   ExtendedRes: Extended = 4.32;
+  ExtendedAddArg1 = Extended(1.23);
+  ExtendedAddArg2 = Extended(2.34);
+  ExtendedAddArg3 = Extended(3.45);
+  ExtendedAddArg4 = Extended(4.56);
+  ExtendedAddArg5 = Extended(5.67);
+  ExtendedAddArg6 = Extended(9.87);
+  ExtendedAddArg7 = Extended(8.76);
+  ExtendedAddArg8 = Extended(7.65);
+  ExtendedAddArg9 = Extended(6.54);
+  ExtendedAddArg10 = Extended(5.43);
+  ExtendedAddRes = ExtendedAddArg1 + ExtendedAddArg2 + ExtendedAddArg3 + ExtendedAddArg4 + ExtendedAddArg5 +
+                 ExtendedAddArg6 + ExtendedAddArg7 + ExtendedAddArg8 + ExtendedAddArg9 + ExtendedAddArg10;
 
   CurrencyArg1: Currency = 1.23;
   CurrencyArg2In: Currency = 3.21;
@@ -677,6 +713,18 @@ const
   CurrencyArg3Out: Currency = 9.87;
   CurrencyArg4: Currency = 7.89;
   CurrencyRes: Currency = 4.32;
+  CurrencyAddArg1 = Currency(1.23);
+  CurrencyAddArg2 = Currency(2.34);
+  CurrencyAddArg3 = Currency(3.45);
+  CurrencyAddArg4 = Currency(4.56);
+  CurrencyAddArg5 = Currency(5.67);
+  CurrencyAddArg6 = Currency(9.87);
+  CurrencyAddArg7 = Currency(8.76);
+  CurrencyAddArg8 = Currency(7.65);
+  CurrencyAddArg9 = Currency(6.54);
+  CurrencyAddArg10 = Currency(5.43);
+  CurrencyAddRes = CurrencyAddArg1 + CurrencyAddArg2 + CurrencyAddArg3 + CurrencyAddArg4 + CurrencyAddArg5 +
+                 CurrencyAddArg6 + CurrencyAddArg7 + CurrencyAddArg8 + CurrencyAddArg9 + CurrencyAddArg10;
 
   CompArg1: Comp = 123;
   CompArg2In: Comp = 321;
@@ -684,6 +732,18 @@ const
   CompArg3Out: Comp = 987;
   CompArg4: Comp = 789;
   CompRes: Comp = 432;
+  CompAddArg1 = Comp(123);
+  CompAddArg2 = Comp(234);
+  CompAddArg3 = Comp(345);
+  CompAddArg4 = Comp(456);
+  CompAddArg5 = Comp(567);
+  CompAddArg6 = Comp(987);
+  CompAddArg7 = Comp(876);
+  CompAddArg8 = Comp(765);
+  CompAddArg9 = Comp(654);
+  CompAddArg10 = Comp(543);
+  CompAddRes = CompAddArg1 + CompAddArg2 + CompAddArg3 + CompAddArg4 + CompAddArg5 +
+                 CompAddArg6 + CompAddArg7 + CompAddArg8 + CompAddArg9 + CompAddArg10;
 
 type
   TTestRecord1 = packed record
@@ -745,6 +805,11 @@ type
     function Test15(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended;
     function Test16(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp;
     function Test17(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
+    function Test18(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Single): Single;
+    function Test19(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Double): Double;
+    function Test20(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended;
+    function Test21(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
+    function Test22(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
 
     function TestRecSize1(aArg1: TTestRecord1): TTestRecord1;
     function TestRecSize2(aArg1: TTestRecord2): TTestRecord2;
@@ -778,6 +843,11 @@ type
     function Test15(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended;
     function Test16(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp;
     function Test17(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
+    function Test18(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Single): Single;
+    function Test19(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Double): Double;
+    function Test20(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended;
+    function Test21(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
+    function Test22(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
 
     function TestRecSize1(aArg1: TTestRecord1): TTestRecord1;
     function TestRecSize2(aArg1: TTestRecord2): TTestRecord2;
@@ -820,6 +890,11 @@ type
   TMethodTest15 = function(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended of object;
   TMethodTest16 = function(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp of object;
   TMethodTest17 = function(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency of object;
+  TMethodTest18 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Single): Single of object;
+  TMethodTest19 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Double): Double of object;
+  TMethodTest20 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended of object;
+  TMethodTest21 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp of object;
+  TMethodTest22 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency of object;
 
   TMethodTestRecSize1 = function(aArg1: TTestRecord1): TTestRecord1 of object;
   TMethodTestRecSize2 = function(aArg1: TTestRecord2): TTestRecord2 of object;
@@ -849,6 +924,11 @@ type
   TProcVarTest15 = function(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended;
   TProcVarTest16 = function(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp;
   TProcVarTest17 = function(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
+  TProcVarTest18 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Single): Single;
+  TProcVarTest19 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Double): Double;
+  TProcVarTest20 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended;
+  TProcVarTest21 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
+  TProcVarTest22 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
 
   TProcVarTestRecSize1 = function(aArg1: TTestRecord1): TTestRecord1;
   TProcVarTestRecSize2 = function(aArg1: TTestRecord2): TTestRecord2;
@@ -1132,6 +1212,106 @@ begin
   CalledMethod := 17;
 end;
 
+function TTestInterfaceClass.Test18(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Single): Single;
+begin
+  SetLength(InputArgs, 10);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  TValue.Make(@aArg5, TypeInfo(aArg5), InputArgs[4]);
+  TValue.Make(@aArg6, TypeInfo(aArg6), InputArgs[5]);
+  TValue.Make(@aArg7, TypeInfo(aArg7), InputArgs[6]);
+  TValue.Make(@aArg8, TypeInfo(aArg8), InputArgs[7]);
+  TValue.Make(@aArg9, TypeInfo(aArg9), InputArgs[8]);
+  TValue.Make(@aArg10, TypeInfo(aArg10), InputArgs[9]);
+  SetLength(OutputArgs, 0);
+  SetLength(InOutMapping, 0);
+  Result := aArg1 + aArg2 + aArg3 + aArg4 + aArg5 + aArg6 + aArg7 + aArg8 + aArg9 + aArg10;
+  TValue.Make(@Result ,TypeInfo(Result), ResultValue);
+  CalledMethod := 18;
+end;
+
+function TTestInterfaceClass.Test19(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Double): Double;
+begin
+  SetLength(InputArgs, 10);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  TValue.Make(@aArg5, TypeInfo(aArg5), InputArgs[4]);
+  TValue.Make(@aArg6, TypeInfo(aArg6), InputArgs[5]);
+  TValue.Make(@aArg7, TypeInfo(aArg7), InputArgs[6]);
+  TValue.Make(@aArg8, TypeInfo(aArg8), InputArgs[7]);
+  TValue.Make(@aArg9, TypeInfo(aArg9), InputArgs[8]);
+  TValue.Make(@aArg10, TypeInfo(aArg10), InputArgs[9]);
+  SetLength(OutputArgs, 0);
+  SetLength(InOutMapping, 0);
+  Result := aArg1 + aArg2 + aArg3 + aArg4 + aArg5 + aArg6 + aArg7 + aArg8 + aArg9 + aArg10;
+  TValue.Make(@Result ,TypeInfo(Result), ResultValue);
+  CalledMethod := 19;
+end;
+
+function TTestInterfaceClass.Test20(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended;
+begin
+  SetLength(InputArgs, 10);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  TValue.Make(@aArg5, TypeInfo(aArg5), InputArgs[4]);
+  TValue.Make(@aArg6, TypeInfo(aArg6), InputArgs[5]);
+  TValue.Make(@aArg7, TypeInfo(aArg7), InputArgs[6]);
+  TValue.Make(@aArg8, TypeInfo(aArg8), InputArgs[7]);
+  TValue.Make(@aArg9, TypeInfo(aArg9), InputArgs[8]);
+  TValue.Make(@aArg10, TypeInfo(aArg10), InputArgs[9]);
+  SetLength(OutputArgs, 0);
+  SetLength(InOutMapping, 0);
+  Result := aArg1 + aArg2 + aArg3 + aArg4 + aArg5 + aArg6 + aArg7 + aArg8 + aArg9 + aArg10;
+  TValue.Make(@Result ,TypeInfo(Result), ResultValue);
+  CalledMethod := 20;
+end;
+
+function TTestInterfaceClass.Test21(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
+begin
+  SetLength(InputArgs, 10);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  TValue.Make(@aArg5, TypeInfo(aArg5), InputArgs[4]);
+  TValue.Make(@aArg6, TypeInfo(aArg6), InputArgs[5]);
+  TValue.Make(@aArg7, TypeInfo(aArg7), InputArgs[6]);
+  TValue.Make(@aArg8, TypeInfo(aArg8), InputArgs[7]);
+  TValue.Make(@aArg9, TypeInfo(aArg9), InputArgs[8]);
+  TValue.Make(@aArg10, TypeInfo(aArg10), InputArgs[9]);
+  SetLength(OutputArgs, 0);
+  SetLength(InOutMapping, 0);
+  Result := aArg1 + aArg2 + aArg3 + aArg4 + aArg5 + aArg6 + aArg7 + aArg8 + aArg9 + aArg10;
+  TValue.Make(@Result ,TypeInfo(Result), ResultValue);
+  CalledMethod := 21;
+end;
+
+function TTestInterfaceClass.Test22(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
+begin
+  SetLength(InputArgs, 10);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  TValue.Make(@aArg5, TypeInfo(aArg5), InputArgs[4]);
+  TValue.Make(@aArg6, TypeInfo(aArg6), InputArgs[5]);
+  TValue.Make(@aArg7, TypeInfo(aArg7), InputArgs[6]);
+  TValue.Make(@aArg8, TypeInfo(aArg8), InputArgs[7]);
+  TValue.Make(@aArg9, TypeInfo(aArg9), InputArgs[8]);
+  TValue.Make(@aArg10, TypeInfo(aArg10), InputArgs[9]);
+  SetLength(OutputArgs, 0);
+  SetLength(InOutMapping, 0);
+  Result := aArg1 + aArg2 + aArg3 + aArg4 + aArg5 + aArg6 + aArg7 + aArg8 + aArg9 + aArg10;
+  TValue.Make(@Result ,TypeInfo(Result), ResultValue);
+  CalledMethod := 22;
+end;
+
 function TTestInterfaceClass.TestRecSize1(aArg1: TTestRecord1): TTestRecord1;
 var
   i: LongInt;
@@ -1354,6 +1534,31 @@ end;
 function ProcTest17(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
 begin
   Result := TTestInterfaceClass.ProcVarInst.Test17(aArg1, aArg2, aArg3, aArg4);
+end;
+
+function ProcTest18(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Single): Single;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test18(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10);
+end;
+
+function ProcTest19(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Double): Double;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test19(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10);
+end;
+
+function ProcTest20(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test20(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10);
+end;
+
+function ProcTest21(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test21(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10);
+end;
+
+function ProcTest22(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test22(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10);
 end;
 
 function ProcTestRecSize1(aArg1: TTestRecord1): TTestRecord1;
@@ -1745,6 +1950,31 @@ begin
     ], [
     GetCurrencyValue(CurrencyArg2Out), GetCurrencyValue(CurrencyArg3Out)
     ], GetCurrencyValue(CurrencyRes));
+
+  DoIntfInvoke(18, [
+    GetSingleValue(SingleAddArg1), GetSingleValue(SingleAddArg2), GetSingleValue(SingleAddArg3), GetSingleValue(SingleAddArg4), GetSingleValue(SingleAddArg5),
+    GetSingleValue(SingleAddArg6), GetSingleValue(SingleAddArg7), GetSingleValue(SingleAddArg8), GetSingleValue(SingleAddArg9), GetSingleValue(SingleAddArg10)
+    ], [], GetSingleValue(SingleAddRes));
+
+  DoIntfInvoke(19, [
+    GetDoubleValue(DoubleAddArg1), GetDoubleValue(DoubleAddArg2), GetDoubleValue(DoubleAddArg3), GetDoubleValue(DoubleAddArg4), GetDoubleValue(DoubleAddArg5),
+    GetDoubleValue(DoubleAddArg6), GetDoubleValue(DoubleAddArg7), GetDoubleValue(DoubleAddArg8), GetDoubleValue(DoubleAddArg9), GetDoubleValue(DoubleAddArg10)
+    ], [], GetDoubleValue(DoubleAddRes));
+
+  DoIntfInvoke(20, [
+    GetExtendedValue(ExtendedAddArg1), GetExtendedValue(ExtendedAddArg2), GetExtendedValue(ExtendedAddArg3), GetExtendedValue(ExtendedAddArg4), GetExtendedValue(ExtendedAddArg5),
+    GetExtendedValue(ExtendedAddArg6), GetExtendedValue(ExtendedAddArg7), GetExtendedValue(ExtendedAddArg8), GetExtendedValue(ExtendedAddArg9), GetExtendedValue(ExtendedAddArg10)
+    ], [], GetExtendedValue(ExtendedAddRes));
+
+  DoIntfInvoke(21, [
+    GetCompValue(CompAddArg1), GetCompValue(CompAddArg2), GetCompValue(CompAddArg3), GetCompValue(CompAddArg4), GetCompValue(CompAddArg5),
+    GetCompValue(CompAddArg6), GetCompValue(CompAddArg7), GetCompValue(CompAddArg8), GetCompValue(CompAddArg9), GetCompValue(CompAddArg10)
+    ], [], GetCompValue(CompAddRes));
+
+  DoIntfInvoke(22, [
+    GetCurrencyValue(CurrencyAddArg1), GetCurrencyValue(CurrencyAddArg2), GetCurrencyValue(CurrencyAddArg3), GetCurrencyValue(CurrencyAddArg4), GetCurrencyValue(CurrencyAddArg5),
+    GetCurrencyValue(CurrencyAddArg6), GetCurrencyValue(CurrencyAddArg7), GetCurrencyValue(CurrencyAddArg8), GetCurrencyValue(CurrencyAddArg9), GetCurrencyValue(CurrencyAddArg10)
+    ], [], GetCurrencyValue(CurrencyAddRes));
 end;
 
 procedure TTestInvoke.TestIntfMethodsRecs;
@@ -1870,6 +2100,31 @@ begin
       ], [
       GetCurrencyValue(CurrencyArg2Out), GetCurrencyValue(CurrencyArg3Out)
       ], GetCurrencyValue(CurrencyRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest18>(cls, {$ifdef fpc}@{$endif}cls.Test18, 18, [
+      GetSingleValue(SingleAddArg1), GetSingleValue(SingleAddArg2), GetSingleValue(SingleAddArg3), GetSingleValue(SingleAddArg4), GetSingleValue(SingleAddArg5),
+      GetSingleValue(SingleAddArg6), GetSingleValue(SingleAddArg7), GetSingleValue(SingleAddArg8), GetSingleValue(SingleAddArg9), GetSingleValue(SingleAddArg10)
+      ], [], GetSingleValue(SingleAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest19>(cls, {$ifdef fpc}@{$endif}cls.Test19, 19, [
+      GetDoubleValue(DoubleAddArg1), GetDoubleValue(DoubleAddArg2), GetDoubleValue(DoubleAddArg3), GetDoubleValue(DoubleAddArg4), GetDoubleValue(DoubleAddArg5),
+      GetDoubleValue(DoubleAddArg6), GetDoubleValue(DoubleAddArg7), GetDoubleValue(DoubleAddArg8), GetDoubleValue(DoubleAddArg9), GetDoubleValue(DoubleAddArg10)
+      ], [], GetDoubleValue(DoubleAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest20>(cls, {$ifdef fpc}@{$endif}cls.Test20, 20, [
+      GetExtendedValue(ExtendedAddArg1), GetExtendedValue(ExtendedAddArg2), GetExtendedValue(ExtendedAddArg3), GetExtendedValue(ExtendedAddArg4), GetExtendedValue(ExtendedAddArg5),
+      GetExtendedValue(ExtendedAddArg6), GetExtendedValue(ExtendedAddArg7), GetExtendedValue(ExtendedAddArg8), GetExtendedValue(ExtendedAddArg9), GetExtendedValue(ExtendedAddArg10)
+      ], [], GetExtendedValue(ExtendedAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest21>(cls, {$ifdef fpc}@{$endif}cls.Test21, 21, [
+      GetCompValue(CompAddArg1), GetCompValue(CompAddArg2), GetCompValue(CompAddArg3), GetCompValue(CompAddArg4), GetCompValue(CompAddArg5),
+      GetCompValue(CompAddArg6), GetCompValue(CompAddArg7), GetCompValue(CompAddArg8), GetCompValue(CompAddArg9), GetCompValue(CompAddArg10)
+      ], [], GetCompValue(CompAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest22>(cls, {$ifdef fpc}@{$endif}cls.Test22, 22, [
+      GetCurrencyValue(CurrencyAddArg1), GetCurrencyValue(CurrencyAddArg2), GetCurrencyValue(CurrencyAddArg3), GetCurrencyValue(CurrencyAddArg4), GetCurrencyValue(CurrencyAddArg5),
+      GetCurrencyValue(CurrencyAddArg6), GetCurrencyValue(CurrencyAddArg7), GetCurrencyValue(CurrencyAddArg8), GetCurrencyValue(CurrencyAddArg9), GetCurrencyValue(CurrencyAddArg10)
+      ], [], GetCurrencyValue(CurrencyAddRes));
   finally
     cls.Free;
   end;
@@ -2005,6 +2260,31 @@ begin
       ], [
       GetCurrencyValue(CurrencyArg2Out), GetCurrencyValue(CurrencyArg3Out)
       ], GetCurrencyValue(CurrencyRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest18>(cls, {$ifdef fpc}@{$endif}ProcTest18, 18, [
+      GetSingleValue(SingleAddArg1), GetSingleValue(SingleAddArg2), GetSingleValue(SingleAddArg3), GetSingleValue(SingleAddArg4), GetSingleValue(SingleAddArg5),
+      GetSingleValue(SingleAddArg6), GetSingleValue(SingleAddArg7), GetSingleValue(SingleAddArg8), GetSingleValue(SingleAddArg9), GetSingleValue(SingleAddArg10)
+      ], [], GetSingleValue(SingleAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest19>(cls, {$ifdef fpc}@{$endif}ProcTest19, 19, [
+      GetDoubleValue(DoubleAddArg1), GetDoubleValue(DoubleAddArg2), GetDoubleValue(DoubleAddArg3), GetDoubleValue(DoubleAddArg4), GetDoubleValue(DoubleAddArg5),
+      GetDoubleValue(DoubleAddArg6), GetDoubleValue(DoubleAddArg7), GetDoubleValue(DoubleAddArg8), GetDoubleValue(DoubleAddArg9), GetDoubleValue(DoubleAddArg10)
+      ], [], GetDoubleValue(DoubleAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest20>(cls, {$ifdef fpc}@{$endif}ProcTest20, 20, [
+      GetExtendedValue(ExtendedAddArg1), GetExtendedValue(ExtendedAddArg2), GetExtendedValue(ExtendedAddArg3), GetExtendedValue(ExtendedAddArg4), GetExtendedValue(ExtendedAddArg5),
+      GetExtendedValue(ExtendedAddArg6), GetExtendedValue(ExtendedAddArg7), GetExtendedValue(ExtendedAddArg8), GetExtendedValue(ExtendedAddArg9), GetExtendedValue(ExtendedAddArg10)
+      ], [], GetExtendedValue(ExtendedAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest21>(cls, {$ifdef fpc}@{$endif}ProcTest21, 21, [
+      GetCompValue(CompAddArg1), GetCompValue(CompAddArg2), GetCompValue(CompAddArg3), GetCompValue(CompAddArg4), GetCompValue(CompAddArg5),
+      GetCompValue(CompAddArg6), GetCompValue(CompAddArg7), GetCompValue(CompAddArg8), GetCompValue(CompAddArg9), GetCompValue(CompAddArg10)
+      ], [], GetCompValue(CompAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest22>(cls, {$ifdef fpc}@{$endif}ProcTest22, 22, [
+      GetCurrencyValue(CurrencyAddArg1), GetCurrencyValue(CurrencyAddArg2), GetCurrencyValue(CurrencyAddArg3), GetCurrencyValue(CurrencyAddArg4), GetCurrencyValue(CurrencyAddArg5),
+      GetCurrencyValue(CurrencyAddArg6), GetCurrencyValue(CurrencyAddArg7), GetCurrencyValue(CurrencyAddArg8), GetCurrencyValue(CurrencyAddArg9), GetCurrencyValue(CurrencyAddArg10)
+      ], [], GetCurrencyValue(CurrencyAddRes));
   finally
     cls.Free;
   end;
