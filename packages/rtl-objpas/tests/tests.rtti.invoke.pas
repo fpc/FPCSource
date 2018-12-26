@@ -649,6 +649,42 @@ begin
   DoStaticInvokeTestClassCompare('TTestClass Pascal', @TestTTestClassPascal, ccPascal, values, TypeInfo(TTestClass), rescls);
 end;
 
+const
+  SingleArg1: Single = 1.23;
+  SingleArg2In: Single = 3.21;
+  SingleArg2Out: Single = 2.34;
+  SingleArg3Out: Single = 9.87;
+  SingleArg4: Single = 7.89;
+  SingleRes: Single = 4.32;
+
+  DoubleArg1: Double = 1.23;
+  DoubleArg2In: Double = 3.21;
+  DoubleArg2Out: Double = 2.34;
+  DoubleArg3Out: Double = 9.87;
+  DoubleArg4: Double = 7.89;
+  DoubleRes: Double = 4.32;
+
+  ExtendedArg1: Extended = 1.23;
+  ExtendedArg2In: Extended = 3.21;
+  ExtendedArg2Out: Extended = 2.34;
+  ExtendedArg3Out: Extended = 9.87;
+  ExtendedArg4: Extended = 7.89;
+  ExtendedRes: Extended = 4.32;
+
+  CurrencyArg1: Currency = 1.23;
+  CurrencyArg2In: Currency = 3.21;
+  CurrencyArg2Out: Currency = 2.34;
+  CurrencyArg3Out: Currency = 9.87;
+  CurrencyArg4: Currency = 7.89;
+  CurrencyRes: Currency = 4.32;
+
+  CompArg1: Comp = 123;
+  CompArg2In: Comp = 321;
+  CompArg2Out: Comp = 234;
+  CompArg3Out: Comp = 987;
+  CompArg4: Comp = 789;
+  CompRes: Comp = 432;
+
 type
   TTestRecord1 = packed record
     b: array[0..0] of Byte;
@@ -704,6 +740,11 @@ type
     procedure Test10(aArg1: AnsiString; var aArg2: AnsiString; out aArg3: AnsiString; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: AnsiString);
     procedure Test11(aArg1: ShortString; var aArg2: ShortString; out aArg3: ShortString; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: ShortString);
     procedure Test12(aArg1: array of SizeInt; var aArg2: array of SizeInt; out aArg3: array of SizeInt; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: array of SizeInt);
+    function Test13(aArg1: Single; var aArg2: Single; out aArg3: Single; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Single): Single;
+    function Test14(aArg1: Double; var aArg2: Double; out aArg3: Double; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Double): Double;
+    function Test15(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended;
+    function Test16(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp;
+    function Test17(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
 
     function TestRecSize1(aArg1: TTestRecord1): TTestRecord1;
     function TestRecSize2(aArg1: TTestRecord2): TTestRecord2;
@@ -732,6 +773,11 @@ type
     procedure Test10(aArg1: AnsiString; var aArg2: AnsiString; out aArg3: AnsiString; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: AnsiString);
     procedure Test11(aArg1: ShortString; var aArg2: ShortString; out aArg3: ShortString; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: ShortString);
     procedure Test12(aArg1: array of SizeInt; var aArg2: array of SizeInt; out aArg3: array of SizeInt; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: array of SizeInt);
+    function Test13(aArg1: Single; var aArg2: Single; out aArg3: Single; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Single): Single;
+    function Test14(aArg1: Double; var aArg2: Double; out aArg3: Double; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Double): Double;
+    function Test15(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended;
+    function Test16(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp;
+    function Test17(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
 
     function TestRecSize1(aArg1: TTestRecord1): TTestRecord1;
     function TestRecSize2(aArg1: TTestRecord2): TTestRecord2;
@@ -769,6 +815,11 @@ type
   TMethodTest10 = procedure(aArg1: AnsiString; var aArg2: AnsiString; out aArg3: AnsiString; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: AnsiString) of object;
   TMethodTest11 = procedure(aArg1: ShortString; var aArg2: ShortString; out aArg3: ShortString; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: ShortString) of object;
   TMethodTest12 = procedure(aArg1: array of SizeInt; var aArg2: array of SizeInt; out aArg3: array of SizeInt; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: array of SizeInt) of object;
+  TMethodTest13 = function(aArg1: Single; var aArg2: Single; out aArg3: Single; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Single): Single of object;
+  TMethodTest14 = function(aArg1: Double; var aArg2: Double; out aArg3: Double; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Double): Double of object;
+  TMethodTest15 = function(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended of object;
+  TMethodTest16 = function(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp of object;
+  TMethodTest17 = function(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency of object;
 
   TMethodTestRecSize1 = function(aArg1: TTestRecord1): TTestRecord1 of object;
   TMethodTestRecSize2 = function(aArg1: TTestRecord2): TTestRecord2 of object;
@@ -793,6 +844,11 @@ type
   TProcVarTest10 = procedure(aArg1: AnsiString; var aArg2: AnsiString; out aArg3: AnsiString; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: AnsiString);
   TProcVarTest11 = procedure(aArg1: ShortString; var aArg2: ShortString; out aArg3: ShortString; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: ShortString);
   TProcVarTest12 = procedure(aArg1: array of SizeInt; var aArg2: array of SizeInt; out aArg3: array of SizeInt; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: array of SizeInt);
+  TProcVarTest13 = function(aArg1: Single; var aArg2: Single; out aArg3: Single; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Single): Single;
+  TProcVarTest14 = function(aArg1: Double; var aArg2: Double; out aArg3: Double; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Double): Double;
+  TProcVarTest15 = function(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended;
+  TProcVarTest16 = function(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp;
+  TProcVarTest17 = function(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
 
   TProcVarTestRecSize1 = function(aArg1: TTestRecord1): TTestRecord1;
   TProcVarTestRecSize2 = function(aArg1: TTestRecord2): TTestRecord2;
@@ -974,6 +1030,106 @@ begin
   ResultValue := TValue.Empty;
   CalledMethod := 12;
 {$endif}
+end;
+
+function TTestInterfaceClass.Test13(aArg1: Single; var aArg2: Single; out aArg3: Single; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Single): Single;
+begin
+  SetLength(InputArgs, 4);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  aArg2 := SingleArg2Out;
+  aArg3 := SingleArg3Out;
+  SetLength(OutputArgs, 2);
+  TValue.Make(@aArg2, TypeInfo(aArg2), OutputArgs[0]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), OutputArgs[1]);
+  SetLength(InOutMapping, 2);
+  InOutMapping[0] := 1;
+  InOutMapping[1] := 2;
+  Result := SingleRes;
+  TValue.Make(@Result, TypeInfo(Result), ResultValue);
+  CalledMethod := 13;
+end;
+
+function TTestInterfaceClass.Test14(aArg1: Double; var aArg2: Double; out aArg3: Double; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Double): Double;
+begin
+  SetLength(InputArgs, 4);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  aArg2 := DoubleArg2Out;
+  aArg3 := DoubleArg3Out;
+  SetLength(OutputArgs, 2);
+  TValue.Make(@aArg2, TypeInfo(aArg2), OutputArgs[0]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), OutputArgs[1]);
+  SetLength(InOutMapping, 2);
+  InOutMapping[0] := 1;
+  InOutMapping[1] := 2;
+  Result := DoubleRes;
+  TValue.Make(@Result, TypeInfo(Result), ResultValue);
+  CalledMethod := 14;
+end;
+
+function TTestInterfaceClass.Test15(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended;
+begin
+  SetLength(InputArgs, 4);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  aArg2 := ExtendedArg2Out;
+  aArg3 := ExtendedArg3Out;
+  SetLength(OutputArgs, 2);
+  TValue.Make(@aArg2, TypeInfo(aArg2), OutputArgs[0]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), OutputArgs[1]);
+  SetLength(InOutMapping, 2);
+  InOutMapping[0] := 1;
+  InOutMapping[1] := 2;
+  Result := ExtendedRes;
+  TValue.Make(@Result, TypeInfo(Result), ResultValue);
+  CalledMethod := 15;
+end;
+
+function TTestInterfaceClass.Test16(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp;
+begin
+  SetLength(InputArgs, 4);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  aArg2 := CompArg2Out;
+  aArg3 := CompArg3Out;
+  SetLength(OutputArgs, 2);
+  TValue.Make(@aArg2, TypeInfo(aArg2), OutputArgs[0]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), OutputArgs[1]);
+  SetLength(InOutMapping, 2);
+  InOutMapping[0] := 1;
+  InOutMapping[1] := 2;
+  Result := CompRes;
+  TValue.Make(@Result, TypeInfo(Result), ResultValue);
+  CalledMethod := 16;
+end;
+
+function TTestInterfaceClass.Test17(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
+begin
+  SetLength(InputArgs, 4);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  TValue.Make(@aArg2, TypeInfo(aArg2), InputArgs[1]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), InputArgs[2]);
+  TValue.Make(@aArg4, TypeInfo(aArg4), InputArgs[3]);
+  aArg2 := CurrencyArg2Out;
+  aArg3 := CurrencyArg3Out;
+  SetLength(OutputArgs, 2);
+  TValue.Make(@aArg2, TypeInfo(aArg2), OutputArgs[0]);
+  TValue.Make(@aArg3, TypeInfo(aArg3), OutputArgs[1]);
+  SetLength(InOutMapping, 2);
+  InOutMapping[0] := 1;
+  InOutMapping[1] := 2;
+  Result := CurrencyRes;
+  TValue.Make(@Result, TypeInfo(Result), ResultValue);
+  CalledMethod := 17;
 end;
 
 function TTestInterfaceClass.TestRecSize1(aArg1: TTestRecord1): TTestRecord1;
@@ -1173,6 +1329,31 @@ end;
 procedure ProcTest12(aArg1: array of SizeInt; var aArg2: array of SizeInt; out aArg3: array of SizeInt; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: array of SizeInt);
 begin
   TTestInterfaceClass.ProcVarInst.Test12(aArg1, aArg2, aArg3, aArg4);
+end;
+
+function ProcTest13(aArg1: Single; var aArg2: Single; out aArg3: Single; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Single): Single;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test13(aArg1, aArg2, aArg3, aArg4);
+end;
+
+function ProcTest14(aArg1: Double; var aArg2: Double; out aArg3: Double; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Double): Double;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test14(aArg1, aArg2, aArg3, aArg4);
+end;
+
+function ProcTest15(aArg1: Extended; var aArg2: Extended; out aArg3: Extended; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Extended): Extended;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test15(aArg1, aArg2, aArg3, aArg4);
+end;
+
+function ProcTest16(aArg1: Comp; var aArg2: Comp; out aArg3: Comp; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Comp): Comp;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test16(aArg1, aArg2, aArg3, aArg4);
+end;
+
+function ProcTest17(aArg1: Currency; var aArg2: Currency; out aArg3: Currency; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4: Currency): Currency;
+begin
+  Result := TTestInterfaceClass.ProcVarInst.Test17(aArg1, aArg2, aArg3, aArg4);
 end;
 
 function ProcTestRecSize1(aArg1: TTestRecord1): TTestRecord1;
@@ -1534,6 +1715,36 @@ begin
     GetArray([$4321, $4322, $4323, $4324]), GetArray([$9876, $9877, $9878, $9879])
     ], TValue.Empty);
 {$endif}
+
+  DoIntfInvoke(13, [
+    GetSingleValue(SingleArg1), GetSingleValue(SingleArg2In), GetSingleValue(0), GetSingleValue(SingleArg4)
+    ], [
+    GetSingleValue(SingleArg2Out), GetSingleValue(SingleArg3Out)
+    ], GetSingleValue(SingleRes));
+
+  DoIntfInvoke(14, [
+    GetDoubleValue(DoubleArg1), GetDoubleValue(DoubleArg2In), GetDoubleValue(0), GetDoubleValue(DoubleArg4)
+    ], [
+    GetDoubleValue(DoubleArg2Out), GetDoubleValue(DoubleArg3Out)
+    ], GetDoubleValue(DoubleRes));
+
+  DoIntfInvoke(15, [
+    GetExtendedValue(ExtendedArg1), GetExtendedValue(ExtendedArg2In), GetExtendedValue(0), GetExtendedValue(ExtendedArg4)
+    ], [
+    GetExtendedValue(ExtendedArg2Out), GetExtendedValue(ExtendedArg3Out)
+    ], GetExtendedValue(ExtendedRes));
+
+  DoIntfInvoke(16, [
+    GetCompValue(CompArg1), GetCompValue(CompArg2In), GetCompValue(0), GetCompValue(CompArg4)
+    ], [
+    GetCompValue(CompArg2Out), GetCompValue(CompArg3Out)
+    ], GetCompValue(CompRes));
+
+  DoIntfInvoke(17, [
+    GetCurrencyValue(CurrencyArg1), GetCurrencyValue(CurrencyArg2In), GetCurrencyValue(0), GetCurrencyValue(CurrencyArg4)
+    ], [
+    GetCurrencyValue(CurrencyArg2Out), GetCurrencyValue(CurrencyArg3Out)
+    ], GetCurrencyValue(CurrencyRes));
 end;
 
 procedure TTestInvoke.TestIntfMethodsRecs;
@@ -1629,6 +1840,36 @@ begin
       GetArray([$4321, $4322, $4323, $4324]), GetArray([$9876, $9877, $9878, $9879])
       ], TValue.Empty);
   {$endif}
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest13>(cls, {$ifdef fpc}@{$endif}cls.Test13, 13, [
+      GetSingleValue(SingleArg1), GetSingleValue(SingleArg2In), GetSingleValue(0), GetSingleValue(SingleArg4)
+      ], [
+      GetSingleValue(SingleArg2Out), GetSingleValue(SingleArg3Out)
+      ], GetSingleValue(SingleRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest14>(cls, {$ifdef fpc}@{$endif}cls.Test14, 14, [
+      GetDoubleValue(DoubleArg1), GetDoubleValue(DoubleArg2In), GetDoubleValue(0), GetDoubleValue(DoubleArg4)
+      ], [
+      GetDoubleValue(DoubleArg2Out), GetDoubleValue(DoubleArg3Out)
+      ], GetDoubleValue(DoubleRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest15>(cls, {$ifdef fpc}@{$endif}cls.Test15, 15, [
+      GetExtendedValue(ExtendedArg1), GetExtendedValue(ExtendedArg2In), GetExtendedValue(0), GetExtendedValue(ExtendedArg4)
+      ], [
+      GetExtendedValue(ExtendedArg2Out), GetExtendedValue(ExtendedArg3Out)
+      ], GetExtendedValue(ExtendedRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest16>(cls, {$ifdef fpc}@{$endif}cls.Test16, 16, [
+      GetCompValue(CompArg1), GetCompValue(CompArg2In), GetCompValue(0), GetCompValue(CompArg4)
+      ], [
+      GetCompValue(CompArg2Out), GetCompValue(CompArg3Out)
+      ], GetCompValue(CompRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoMethodInvoke<TMethodTest17>(cls, {$ifdef fpc}@{$endif}cls.Test17, 17, [
+      GetCurrencyValue(CurrencyArg1), GetCurrencyValue(CurrencyArg2In), GetCurrencyValue(0), GetCurrencyValue(CurrencyArg4)
+      ], [
+      GetCurrencyValue(CurrencyArg2Out), GetCurrencyValue(CurrencyArg3Out)
+      ], GetCurrencyValue(CurrencyRes));
   finally
     cls.Free;
   end;
@@ -1734,6 +1975,36 @@ begin
       GetArray([$4321, $4322, $4323, $4324]), GetArray([$9876, $9877, $9878, $9879])
       ], TValue.Empty);
   {$endif}
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest13>(cls, {$ifdef fpc}@{$endif}ProcTest13, 13, [
+      GetSingleValue(SingleArg1), GetSingleValue(SingleArg2In), GetSingleValue(0), GetSingleValue(SingleArg4)
+      ], [
+      GetSingleValue(SingleArg2Out), GetSingleValue(SingleArg3Out)
+      ], GetSingleValue(SingleRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest14>(cls, {$ifdef fpc}@{$endif}ProcTest14, 14, [
+      GetDoubleValue(DoubleArg1), GetDoubleValue(DoubleArg2In), GetDoubleValue(0), GetDoubleValue(DoubleArg4)
+      ], [
+      GetDoubleValue(DoubleArg2Out), GetDoubleValue(DoubleArg3Out)
+      ], GetDoubleValue(DoubleRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest15>(cls, {$ifdef fpc}@{$endif}ProcTest15, 15, [
+      GetExtendedValue(ExtendedArg1), GetExtendedValue(ExtendedArg2In), GetExtendedValue(0), GetExtendedValue(ExtendedArg4)
+      ], [
+      GetExtendedValue(ExtendedArg2Out), GetExtendedValue(ExtendedArg3Out)
+      ], GetExtendedValue(ExtendedRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest16>(cls, {$ifdef fpc}@{$endif}ProcTest16, 16, [
+      GetCompValue(CompArg1), GetCompValue(CompArg2In), GetCompValue(0), GetCompValue(CompArg4)
+      ], [
+      GetCompValue(CompArg2Out), GetCompValue(CompArg3Out)
+      ], GetCompValue(CompRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcvarInvoke<TProcVarTest17>(cls, {$ifdef fpc}@{$endif}ProcTest17, 17, [
+      GetCurrencyValue(CurrencyArg1), GetCurrencyValue(CurrencyArg2In), GetCurrencyValue(0), GetCurrencyValue(CurrencyArg4)
+      ], [
+      GetCurrencyValue(CurrencyArg2Out), GetCurrencyValue(CurrencyArg3Out)
+      ], GetCurrencyValue(CurrencyRes));
   finally
     cls.Free;
   end;
