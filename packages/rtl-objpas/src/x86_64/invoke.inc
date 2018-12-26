@@ -28,6 +28,8 @@ asm
 .seh_savereg %rsi, 16
   movq %rdi, 24(%rsp)
 .seh_savereg %rdi, 24
+  movq %r8, 32(%rsp)
+.seh_savereg %r8, 32
 
   movq %rsp, %rbp
 .seh_setframe %rbp, 0
@@ -70,6 +72,10 @@ asm
 
   { restore non-volatile registers }
   movq %rbp, %rsp
+
+  { we abuse the register area pointer for an eventual SSE2 result }
+  movq 32(%rsp), %rdi
+  movq %xmm0, (%rdi)
 
   movq 24(%rsp), %rdi
   movq 16(%rsp), %rsi
@@ -249,6 +255,11 @@ begin
 
   if Assigned(aResultType) and not retinparam then begin
     PPtrUInt(aResultValue)^ := val;
+    if aResultType^.Kind = tkFloat then begin
+      td := GetTypeData(aResultType);
+      if td^.FloatType in [ftSingle, ftDouble] then
+        PPtrUInt(aResultValue)^ := regs[0];
+    end;
   end;
 {$else}
   raise EInvocationError.Create(SErrPlatformNotSupported);
