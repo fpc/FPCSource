@@ -100,6 +100,24 @@ begin
       tkInterface,
       tkDynArray:
         Result := True;
+      tkArray: begin
+        td := GetTypeData(aType);
+        Result := not (td^.ArrayData.Size in [1, 2, 4, 8]);
+      end;
+      tkRecord: begin
+        td := GetTypeData(aType);
+        Result := not (td^.RecSize in [1, 2, 4, 8]);
+      end;
+      tkSet: begin
+        td := GetTypeData(aType);
+        case td^.OrdType of
+          otUByte:
+            Result := not (td^.SetSize in [1, 2, 4, 8]);
+          otUWord,
+          otULong:
+            Result := False;
+        end;
+      end;
     end;
   end;
 end;
