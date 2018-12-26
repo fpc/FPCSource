@@ -197,7 +197,7 @@ type
     Procedure DoParseRecord;
     Procedure TestFields(Const Fields : Array of string; AHint : String; HaveVariant : Boolean = False);
     procedure AssertVariantSelector(AName, AType: string);
-    procedure AssertConst1(Hints: TPasMemberHints);
+    procedure AssertConst1(Hints: TPasMemberHints; Index: integer = 1);
     procedure AssertField1(Hints: TPasMemberHints);
     procedure AssertField2(Hints: TPasMemberHints);
     procedure AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
@@ -257,7 +257,6 @@ type
     Procedure TestOnePlatformField;
     Procedure TestOnePlatformFieldDeprecated;
     Procedure TestOnePlatformFieldPlatform;
-    Procedure TestOneConstOneField;
     Procedure TestOneGenericField;
     Procedure TestTwoFields;
     procedure TestTwoFieldProtected;
@@ -351,10 +350,16 @@ type
     Procedure TestVariantNestedVariantBothDeprecatedPlatform;
     Procedure TestOperatorField;
     Procedure TestPropertyFail;
+    Procedure TestAdvRec_TwoConst;
     Procedure TestAdvRec_Property;
     Procedure TestAdvRec_PropertyImplementsFail;
     Procedure TestAdvRec_PropertyNoTypeFail;
     Procedure TestAdvRec_ForwardFail;
+    Procedure TestAdvRec_PublishedFail;
+    Procedure TestAdvRec_ProcVirtualFail;
+    Procedure TestAdvRec_ProcOverrideFail;
+    Procedure TestAdvRec_ProcMessageFail;
+    Procedure TestAdvRec_DestructorFail;
   end;
 
   { TTestProcedureTypeParser }
@@ -1365,14 +1370,14 @@ begin
     end;
 end;
 
-procedure TTestRecordTypeParser.AssertConst1(Hints: TPasMemberHints);
+procedure TTestRecordTypeParser.AssertConst1(Hints: TPasMemberHints;
+  Index: integer);
 begin
   if Hints=[] then ;
-  AssertEquals('Member 1 type',TPasConst,TObject(TheRecord.Members[0]).ClassType);
-  AssertEquals('Const 1 name','x',Const1.Name);
-  AssertNotNull('Have 1 const expr',Const1.Expr);
+  AssertEquals('Member '+IntToStr(Index+1)+' type',TPasConst,TObject(TheRecord.Members[Index]).ClassType);
+  AssertEquals('Const '+IntToStr(Index+1)+' name','x',Const1.Name);
+  AssertNotNull('Have '+IntToStr(Index+1)+' const expr',Const1.Expr);
 end;
-
 
 procedure TTestRecordTypeParser.DoTestEmpty(const AHint: String);
 begin
@@ -1385,7 +1390,6 @@ procedure TTestRecordTypeParser.AssertVariant1(Hints: TPasMemberHints);
 begin
   AssertVariant1(Hints,['0']);
 end;
-
 
 procedure TTestRecordTypeParser.AssertVariant1(Hints: TPasMemberHints;
   VariantLabels: array of string);
@@ -1900,15 +1904,6 @@ procedure TTestRecordTypeParser.TestOnePlatformFieldPlatform;
 begin
   TestFields(['x : integer platform;'],'Platform',False);
   AssertOneIntegerField([hplatform]);
-end;
-
-procedure TTestRecordTypeParser.TestOneConstOneField;
-begin
-  Scanner.Options:=[po_Delphi];
-  TestFields(['public','Const x =123;','y : integer'],'',False);
-  AssertConst1([]);
-  AssertEquals('Correct visibility',visPublic,TPasConst(TheRecord.Members[0]).Visibility);
-  AssertField2([]);
 end;
 
 procedure TTestRecordTypeParser.TestOneGenericField;
@@ -2532,6 +2527,21 @@ begin
   ParseRecordFail(SErrRecordPropertiesNotAllowed,nErrRecordPropertiesNotAllowed);
 end;
 
+procedure TTestRecordTypeParser.TestAdvRec_TwoConst;
+var
+  aConst: TPasConst;
+begin
+  Scanner.Options:=[po_Delphi];
+  TestFields(['public','Const x =123;','y : integer = 456'],'',False);
+  AssertEquals('Two Const',2,TheRecord.Members.Count);
+  AssertConst1([]);
+  AssertEquals('Correct visibility',visPublic,TPasConst(TheRecord.Members[0]).Visibility);
+  AssertEquals('Member 2 type',TPasConst,TObject(TheRecord.Members[1]).ClassType);
+  aConst:=TPasConst(TheRecord.Members[1]);
+  AssertEquals('Const 2 name','y',aConst.Name);
+  AssertNotNull('Have 2 const expr',aConst.Expr);
+end;
+
 procedure TTestRecordTypeParser.TestAdvRec_Property;
 begin
   StartRecord(true);
@@ -2558,6 +2568,42 @@ begin
   StartRecord(true);
   FDecl.Add(';TMyRecord = record');
   ParseRecordFail('Syntax error in type',nParserTypeSyntaxError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_PublishedFail;
+begin
+  StartRecord(true);
+  AddMember('published');
+  AddMember('A: word;');
+  ParseRecordFail(SParserInvalidRecordVisibility,nParserInvalidRecordVisibility);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcVirtualFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; virtual;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcOverrideFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; override;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcMessageFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; message 2;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_DestructorFail;
+begin
+  StartRecord(true);
+  AddMember('destructor Free;');
+  ParseRecordFail(SParserNoConstructorAllowed,nParserNoConstructorAllowed);
 end;
 
 { TBaseTestTypeParser }

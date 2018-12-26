@@ -1041,19 +1041,28 @@ type
     procedure WriteIdentifiers(Prefix: string); override;
   end;
 
-  { TPasDotRecordScope - used for aRecord.subidentifier }
-
-  TPasDotRecordScope = Class(TPasDotIdentifierScope)
-  end;
-
   { TPasDotEnumTypeScope - used for EnumType.EnumValue }
 
   TPasDotEnumTypeScope = Class(TPasDotIdentifierScope)
   end;
 
+  { TPasDotClassOrRecordScope }
+
+  TPasDotClassOrRecordScope = Class(TPasDotIdentifierScope)
+  end;
+
+  { TPasDotRecordScope - used for aRecord.subidentifier }
+
+  TPasDotRecordScope = Class(TPasDotClassOrRecordScope)
+  private
+    function GetRecordScope: TPasRecordScope;
+  public
+    property RecordScope: TPasRecordScope read GetRecordScope;
+  end;
+
   { TPasDotClassScope - used for aClass.subidentifier }
 
-  TPasDotClassScope = Class(TPasDotIdentifierScope)
+  TPasDotClassScope = Class(TPasDotClassOrRecordScope)
   private
     FClassScope: TPasClassScope;
     procedure SetClassScope(AValue: TPasClassScope);
@@ -1418,7 +1427,8 @@ type
     procedure FinishUsesClause; virtual;
     procedure FinishSection(Section: TPasSection); virtual;
     procedure FinishInterfaceSection(Section: TPasSection); virtual;
-    procedure FinishTypeSection(El: TPasDeclarations); virtual;
+    procedure FinishTypeSection(El: TPasElement); virtual;
+    procedure FinishTypeSectionEl(El: TPasType); virtual;
     procedure FinishTypeDef(El: TPasType); virtual;
     procedure FinishEnumType(El: TPasEnumType); virtual;
     procedure FinishSetType(El: TPasSetType); virtual;
@@ -3105,6 +3115,13 @@ begin
   inherited WriteIdentifiers(Prefix);
   if AncestorScope<>nil then
     AncestorScope.WriteIdentifiers(Prefix+'AS  ');
+end;
+
+{ TPasDotRecordScope }
+
+function TPasDotRecordScope.GetRecordScope: TPasRecordScope;
+begin
+  Result:=TPasRecordScope(IdentifierScope);
 end;
 
 { TPasDotClassScope }
@@ -4794,7 +4811,35 @@ begin
   if Section=nil then ;
 end;
 
-procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);
+procedure TPasResolver.FinishTypeSection(El: TPasElement);
+var
+  i: Integer;
+  Decl: TPasElement;
+begin
+  // resolve pending forwards
+  if El is TPasDeclarations then
+    begin
+    for i:=0 to TPasDeclarations(El).Declarations.Count-1 do
+      begin
+      Decl:=TPasElement(TPasDeclarations(El).Declarations[i]);
+      if Decl is TPasType then
+        FinishTypeSectionEl(TPasType(Decl));
+      end;
+    end
+  else if El is TPasMembersType then
+    begin
+    for i:=0 to TPasMembersType(El).Members.Count-1 do
+      begin
+      Decl:=TPasElement(TPasMembersType(El).Members[i]);
+      if Decl is TPasType then
+        FinishTypeSectionEl(TPasType(Decl));
+      end;
+    end
+  else
+    RaiseNotYetImplemented(20181226105933,El);
+end;
+
+procedure TPasResolver.FinishTypeSectionEl(El: TPasType);
 
   function ReplaceDestType(Decl: TPasType; var DestType: TPasType;
     const DestName: string; MustExist: boolean; ErrorEl: TPasElement
@@ -4839,81 +4884,74 @@ procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);
   end;
 
 var
-  i: Integer;
-  Decl: TPasElement;
+  C: TClass;
   ClassOfEl: TPasClassOfType;
+  TypeEl: TPasType;
   UnresolvedEl: TUnresolvedPendingRef;
   OldClassType: TPasClassType;
-  TypeEl: TPasType;
-  C: TClass;
   PtrType: TPasPointerType;
 begin
-  // resolve pending forwards
-  for i:=0 to El.Declarations.Count-1 do
+  C:=El.ClassType;
+  if C.InheritsFrom(TPasClassType) then
     begin
-    Decl:=TPasElement(El.Declarations[i]);
-    C:=Decl.ClassType;
-    if C.InheritsFrom(TPasClassType) then
+    if TPasClassType(El).IsForward and (TPasClassType(El).CustomData=nil) then
+      RaiseMsg(20170216151534,nForwardTypeNotResolved,sForwardTypeNotResolved,[El.Name],El);
+    end
+  else if (C=TPasClassOfType) then
+    begin
+    ClassOfEl:=TPasClassOfType(El);
+    TypeEl:=ResolveAliasType(ClassOfEl.DestType);
+    if (TypeEl.ClassType=TUnresolvedPendingRef) then
       begin
-      if TPasClassType(Decl).IsForward and (TPasClassType(Decl).CustomData=nil) then
-        RaiseMsg(20170216151534,nForwardTypeNotResolved,sForwardTypeNotResolved,[Decl.Name],Decl);
+      // forward class-of -> resolve now
+      UnresolvedEl:=TUnresolvedPendingRef(TypeEl);
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.FinishTypeSection resolving "',ClassOfEl.Name,'" = class of unresolved "',TypeEl.Name,'"');
+      {$ENDIF}
+      ReplaceDestType(ClassOfEl,ClassOfEl.DestType,TypeEl.Name,true,UnresolvedEl
+        {$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
       end
-    else if (C=TPasClassOfType) then
+    else if TypeEl.ClassType=TPasClassType then
       begin
-      ClassOfEl:=TPasClassOfType(Decl);
-      TypeEl:=ResolveAliasType(ClassOfEl.DestType);
-      if (TypeEl.ClassType=TUnresolvedPendingRef) then
-        begin
-        // forward class-of -> resolve now
-        UnresolvedEl:=TUnresolvedPendingRef(TypeEl);
-        {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.FinishTypeSection resolving "',ClassOfEl.Name,'" = class of unresolved "',TypeEl.Name,'"');
-        {$ENDIF}
-        ReplaceDestType(ClassOfEl,ClassOfEl.DestType,TypeEl.Name,true,UnresolvedEl
-          {$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
-        end
-      else if TypeEl.ClassType=TPasClassType then
-        begin
-        // class-of has found a type
-        // another later in the same type section has priority -> check
-        OldClassType:=TypeEl as TPasClassType;
-        if OldClassType.Parent=ClassOfEl.Parent then
-          continue; // class in same type section -> ok
-        // class not in same type section -> check
-        {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.FinishTypeSection improving "',ClassOfEl.Name,'" = class of resolved "',TypeEl.Name,'"');
-        {$ENDIF}
-        ReplaceDestType(ClassOfEl,ClassOfEl.DestType,ClassOfEl.DestType.Name,false,ClassOfEl
-          {$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
-        end;
+      // class-of has found a type
+      // another later in the same type section has priority -> check
+      OldClassType:=TypeEl as TPasClassType;
+      if OldClassType.Parent=ClassOfEl.Parent then
+        exit; // class in same type section -> ok
+      // class not in same type section -> check
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.FinishTypeSection improving "',ClassOfEl.Name,'" = class of resolved "',TypeEl.Name,'"');
+      {$ENDIF}
+      ReplaceDestType(ClassOfEl,ClassOfEl.DestType,ClassOfEl.DestType.Name,false,ClassOfEl
+        {$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
+      end;
+    end
+  else if C=TPasPointerType then
+    begin
+    PtrType:=TPasPointerType(El);
+    TypeEl:=ResolveAliasType(PtrType.DestType);
+    if (TypeEl.ClassType=TUnresolvedPendingRef) then
+      begin
+      // forward pointer -> resolve now
+      UnresolvedEl:=TUnresolvedPendingRef(TypeEl);
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.FinishTypeSection resolving "',PtrType.Name,'" = pointer of unresolved "',TypeEl.Name,'"');
+      {$ENDIF}
+      ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,true,UnresolvedEl
+        {$IFDEF CheckPasTreeRefCount},'TPasPointerType.DestType'{$ENDIF});
       end
-    else if C=TPasPointerType then
+    else
       begin
-      PtrType:=TPasPointerType(Decl);
-      TypeEl:=ResolveAliasType(PtrType.DestType);
-      if (TypeEl.ClassType=TUnresolvedPendingRef) then
-        begin
-        // forward pointer -> resolve now
-        UnresolvedEl:=TUnresolvedPendingRef(TypeEl);
-        {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.FinishTypeSection resolving "',PtrType.Name,'" = pointer of unresolved "',TypeEl.Name,'"');
-        {$ENDIF}
-        ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,true,UnresolvedEl
-          {$IFDEF CheckPasTreeRefCount},'TPasPointerType.DestType'{$ENDIF});
-        end
-      else
-        begin
-        // pointer-of has found a type
-        // another later in the same type section has priority -> check
-        if TypeEl.Parent=Decl.Parent then
-          continue; // class in same type section -> ok
-        // dest not in same type section -> check
-        {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.FinishTypeSection improving "',PtrType.Name,'" = pointer of resolved "',TypeEl.Name,'"');
-        {$ENDIF}
-        ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,false,PtrType
-          {$IFDEF CheckPasTreeRefCount},'TPasPointerType.DestType'{$ENDIF});
-        end;
+      // pointer-of has found a type
+      // another later in the same type section has priority -> check
+      if TypeEl.Parent=PtrType.Parent then
+        exit; // class in same type section -> ok
+      // dest not in same type section -> check
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.FinishTypeSection improving "',PtrType.Name,'" = pointer of resolved "',TypeEl.Name,'"');
+      {$ENDIF}
+      ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,false,PtrType
+        {$IFDEF CheckPasTreeRefCount},'TPasPointerType.DestType'{$ENDIF});
       end;
     end;
 end;
@@ -5782,8 +5820,11 @@ begin
       SelfArg:=TPasArgument.Create('Self',DeclProc);
       ImplProcScope.SelfArg:=SelfArg;
       {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
-      SelfArg.Access:=argConst;
       SelfArg.ArgType:=ClassRecType;
+      if ClassRecType is TPasRecordType then
+        SelfArg.Access:=argDefault
+      else
+        SelfArg.Access:=argConst;
       ClassRecType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArgument.ArgType'){$ENDIF};
       AddIdentifier(ImplProcScope,'Self',SelfArg,pikSimple);
       end;
@@ -14761,6 +14802,25 @@ procedure TPasResolver.CheckFoundElement(
   const FindData: TPRFindData; Ref: TResolvedReference);
 // check visibility rules
 // Call this method after finding an element by searching the scopes.
+
+  function IsFieldInheritingConst(aRef: TResolvedReference): boolean;
+  // returns true of aRef is a TPasVariable that inherits its const from parent.
+  // For example
+  //  type TRecord = record
+  //    a: word; // inherits const
+  //    const b: word = 3; // does not inherit const
+  //    class var c: word; // does not inherit const
+  //  end;
+  //  procedure DoIt(const r:TRecord)
+  var
+    El: TPasElement;
+  begin
+    El:=aRef.Declaration;
+    Result:=(El.ClassType=TPasVariable)
+        and (TPasVariable(El).VarModifiers*[vmClass, vmStatic]=[]);
+    //writeln('IsFieldInheritingConst ',GetObjName(El),' ',Result,' vmClass=',vmClass in TPasVariable(El).VarModifiers);
+  end;
+
 var
   Proc: TPasProcedure;
   Context: TPasElement;
@@ -14784,7 +14844,8 @@ begin
     if Ref<>nil then
       begin
       Include(Ref.Flags,rrfDotScope);
-      if TPasDotIdentifierScope(StartScope).ConstParent then
+      if TPasDotIdentifierScope(StartScope).ConstParent
+          and IsFieldInheritingConst(Ref) then
         Include(Ref.Flags,rrfConstInherited);
       end;
     end
@@ -14795,7 +14856,8 @@ begin
     if Ref<>nil then
       begin
       Include(Ref.Flags,rrfDotScope);
-      if wesfConstParent in TPasWithExprScope(StartScope).Flags then
+      if (wesfConstParent in TPasWithExprScope(StartScope).Flags)
+          and IsFieldInheritingConst(Ref) then
         Include(Ref.Flags,rrfConstInherited);
       end;
     end
@@ -14838,21 +14900,21 @@ begin
       and TPasClassType(TPasDotClassScope(StartScope).ClassScope.Element).IsExternal then
     begin
     // found member in external class instance
-      C:=FindData.Found.ClassType;
-      if (C=TPasProcedure) or (C=TPasFunction) then
-        // ok
-      else if (C=TPasConst) then
-        // ok
-      else if C.InheritsFrom(TPasVariable)
-          and (not (vmClass in TPasVariable(FindData.Found).VarModifiers)) then
-        // ok
-      else
-        begin
-        RaiseMsg(20170331184224,nExternalClassInstanceCannotAccessStaticX,
-          sExternalClassInstanceCannotAccessStaticX,
-          [GetElementTypeName(FindData.Found)+' '+FindData.Found.Name],
-          FindData.ErrorPosEl);
-        end;
+    C:=FindData.Found.ClassType;
+    if (C=TPasProcedure) or (C=TPasFunction) then
+      // ok
+    else if (C=TPasConst) then
+      // ok
+    else if C.InheritsFrom(TPasVariable)
+        and (not (vmClass in TPasVariable(FindData.Found).VarModifiers)) then
+      // ok
+    else
+      begin
+      RaiseMsg(20170331184224,nExternalClassInstanceCannotAccessStaticX,
+        sExternalClassInstanceCannotAccessStaticX,
+        [GetElementTypeName(FindData.Found)+' '+FindData.Found.Name],
+        FindData.ErrorPosEl);
+      end;
     end;
 
   if (FindData.Found is TPasProcedure) then
@@ -14877,7 +14939,7 @@ begin
       end;
 
     // constructor: NewInstance or normal call
-    //  it is a NewInstance iff the scope is a class, e.g. TObject.Create
+    //  it is a NewInstance iff the scope is a class/record, e.g. TObject.Create
     if (Proc.ClassType=TPasConstructor)
         and OnlyTypeMembers
         and (Ref<>nil) then
@@ -14887,8 +14949,8 @@ begin
       if Ref.Context<>nil then
         RaiseInternalError(20170131141936);
       Ref.Context:=TResolvedRefCtxConstructor.Create;
-      if StartScope is TPasDotClassScope then
-        ClassRecScope:=TPasDotClassScope(StartScope).ClassScope
+      if StartScope is TPasDotClassOrRecordScope then
+        ClassRecScope:=TPasClassOrRecordScope(TPasDotClassOrRecordScope(StartScope).IdentifierScope)
       else if (StartScope is TPasWithExprScope)
           and (TPasWithExprScope(StartScope).Scope is TPasClassOrRecordScope) then
         ClassRecScope:=TPasClassOrRecordScope(TPasWithExprScope(StartScope).Scope)
@@ -15030,7 +15092,7 @@ begin
   case ScopeType of
   stModule: FinishModule(El as TPasModule);
   stUsesClause: FinishUsesClause;
-  stTypeSection: FinishTypeSection(El as TPasDeclarations);
+  stTypeSection: FinishTypeSection(El);
   stTypeDef: FinishTypeDef(El as TPasType);
   stResourceString: FinishResourcestring(El as TPasResString);
   stProcedure: FinishProcedure(El as TPasProcedure);

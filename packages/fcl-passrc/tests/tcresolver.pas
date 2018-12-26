@@ -489,17 +489,12 @@ type
     // advanced record
     Procedure TestAdvRecord;
     Procedure TestAdvRecord_Private;
-    Procedure TestAdvRecord_StrictPrivate; // ToDo
-    // ToDo: public, private, strict private
-    // ToDo: TestAdvRecordPublishedFail
-    // ToDo: TestAdvRecord_VirtualFail
-    // ToDo: TestAdvRecord_OverrideFail
-    // ToDo: constructor, destructor
+    Procedure TestAdvRecord_StrictPrivate;
+    Procedure TestAdvRecord_VarConst;
+    Procedure TestAdvRecord_LocalForwardType;
+    // ToDo: constructor
     // ToDo: class function/procedure
     // ToDo: nested record type
-    // ToDo: const
-    // todo: var
-    // todo: class var
     // todo: property
     // todo: class property
     // todo: TestRecordAsFuncResult
@@ -515,6 +510,7 @@ type
     Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
     Procedure TestClassForwardDuplicateFail;
+    // ToDo: local forward sub class
     Procedure TestClass_Method;
     Procedure TestClass_ConstructorMissingDotFail;
     Procedure TestClass_MethodImplDuplicateFail;
@@ -7859,7 +7855,6 @@ end;
 
 procedure TTestResolver.TestAdvRecord_StrictPrivate;
 begin
-  exit;
   StartProgram(false);
   Add([
   '{$modeswitch advancedrecords}',
@@ -7872,7 +7867,65 @@ begin
   '  r: TRec;',
   'begin',
   '  r.a:=r.a;']);
-  CheckResolverException('aaa',123);
+  CheckResolverException('Can''t access strict private member A',nCantAccessPrivateMember);
+end;
+
+procedure TTestResolver.TestAdvRecord_VarConst;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  type TInt = word;',
+  '  const',
+  '    C1 = 3;',
+  '    C2: TInt = 4;',
+  '  var',
+  '    V1: TInt;',
+  '    V2: TInt;',
+  '  class var',
+  '    VC: TInt;',
+  '    CA: array[1..C1] of TInt;',
+  '  procedure DoIt;',
+  '  end;',
+  'procedure TRec.DoIt;',
+  'begin',
+  '  C2:=Self.C2;',
+  '  V1:=VC;',
+  '  Self.V1:=Self.VC;',
+  '  VC:=V1;',
+  '  Self.VC:=Self.V1;',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  trec.C2:=trec.C2;',
+  '  r.V1:=r.VC;',
+  '  r.V1:=trec.VC;',
+  '  r.VC:=r.V1;',
+  '  trec.VC:=trec.c1;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_LocalForwardType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  type',
+  '    PInt = ^TInt;',
+  '    TInt = word;',
+  '  var i: PInt;',
+  '  end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass;

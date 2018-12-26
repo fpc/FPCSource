@@ -81,7 +81,7 @@ const
   nErrRecordConstantsNotAllowed = 2035;
   nErrRecordMethodsNotAllowed = 2036;
   nErrRecordPropertiesNotAllowed = 2037;
-  // free , was nErrRecordVisibilityNotAllowed = 2038;
+  nErrRecordTypesNotAllowed = 2038;
   nParserTypeNotAllowedHere = 2039;
   nParserNotAnOperand = 2040;
   nParserArrayPropertiesCannotHaveDefaultValue = 2041;
@@ -142,7 +142,7 @@ resourcestring
   SErrRecordVariablesNotAllowed = 'Record variables not allowed at this location.';
   SErrRecordMethodsNotAllowed = 'Record methods not allowed at this location.';
   SErrRecordPropertiesNotAllowed = 'Record properties not allowed at this location.';
-  // free, was SErrRecordVisibilityNotAllowed = 'Record visibilities not allowed at this location.';
+  SErrRecordTypesNotAllowed = 'Record types not allowed at this location.';
   SParserTypeNotAllowedHere = 'Type "%s" not allowed here';
   SParserNotAnOperand = 'Not an operand: (%d : %s)';
   SParserArrayPropertiesCannotHaveDefaultValue = 'Array properties cannot have default value';
@@ -297,8 +297,8 @@ type
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value: TPasExpr; Out AbsoluteExpr: TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
     procedure HandleProcedureTypeModifier(ProcType: TPasProcedureType; ptm : TProcTypeModifier);
-    procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
-    procedure ParseClassLocalTypes(AType: TPasClassType; AVisibility: TPasMemberVisibility);
+    procedure ParseMembersLocalConsts(AType: TPasMembersType; AVisibility: TPasMemberVisibility);
+    procedure ParseMembersLocalTypes(AType: TPasMembersType; AVisibility: TPasMemberVisibility);
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
     procedure SetOptions(AValue: TPOptions);
     procedure OnScannerModeChanged(Sender: TObject; NewMode: TModeSwitch;
@@ -1252,7 +1252,10 @@ begin
       end
     else if Parent is TPasRecordType then
       begin
-      if PM in [pmVirtual,pmPublic,pmForward] then exit(false);
+      if not (PM in [pmOverload,
+                     pmInline, pmAssembler, pmPublic,
+                     pmExternal,
+                     pmNoReturn, pmFar, pmFinal]) then exit(false);
       end;
     Parent:=Parent.Parent;
     end;
@@ -1310,7 +1313,7 @@ begin
         end;
       end;
   Until Not Found;
-  UnGetToken;
+  UngetToken;
   If Assigned(Element) then
     Element.Hints:=Result;
   if ExpectSemiColon then
@@ -2829,7 +2832,7 @@ begin
 end;
 
 // Return the parent of a function declaration. This is AParent,
-// except when AParent is a class, and the function is overloaded.
+// except when AParent is a class/record and the function is overloaded.
 // Then the parent is the overload object.
 function TPasParser.CheckIfOverloaded(AParent: TPasElement; const AName: String): TPasElement;
 var
@@ -2838,14 +2841,13 @@ var
 
 begin
   Result:=AParent;
-  If (not (po_nooverloadedprocs in Options)) and (AParent is TPasClassType) then
+  If (not (po_nooverloadedprocs in Options)) and (AParent is TPasMembersType) then
     begin
-    OverloadedProc:=CheckOverLoadList(TPasClassType(AParent).Members,AName,Member);
+    OverloadedProc:=CheckOverLoadList(TPasMembersType(AParent).Members,AName,Member);
     If (OverloadedProc<>Nil) then
       Result:=OverloadedProc;
     end;
 end;
-
 
 procedure TPasParser.ParseMain(var Module: TPasModule);
 begin
@@ -3397,7 +3399,7 @@ begin
       SetBlock(declThreadVar);
     tkProperty:
       SetBlock(declProperty);
-    tkProcedure, tkFunction, tkConstructor, tkDestructor,tkOperator:
+    tkProcedure, tkFunction, tkConstructor, tkDestructor, tkOperator:
       begin
       SetBlock(declNone);
       SaveComments;
@@ -3409,7 +3411,7 @@ begin
         SetBlock(declNone);
         SaveComments;
         NextToken;
-        If CurToken in [tkprocedure,tkFunction,tkConstructor, tkDestructor] then
+        If CurToken in [tkprocedure,tkFunction,tkConstructor,tkDestructor] then
           begin
           pt:=GetProcTypeFromToken(CurToken,True);
           AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt));
@@ -3554,7 +3556,8 @@ begin
              Declarations.Classes.Add(RecordEl);
              RecordEl.SetGenericTemplates(List);
              NextToken;
-             ParseRecordFieldList(RecordEl,tkend,true);
+             ParseRecordFieldList(RecordEl,tkend,
+                              msAdvancedRecords in Scanner.CurrentModeSwitches);
              CheckHint(RecordEl,True);
              Engine.FinishScope(stTypeDef,RecordEl);
              end;
@@ -3794,7 +3797,7 @@ var
 begin
   SaveComments;
   Result := TPasConst(CreateElement(TPasConst, CurTokenString, Parent));
-  if Parent is TPasClassType then
+  if Parent is TPasMembersType then
     Include(Result.VarModifiers,vmClass);
   ok:=false;
   try
@@ -3874,7 +3877,7 @@ begin
     else
       CheckToken(tkEqual);
     UngetToken;
-    CheckHint(Result,True);
+    CheckHint(Result,not (Parent is TPasMembersType));
     ok:=true;
   finally
     if not ok then
@@ -4355,7 +4358,7 @@ begin
 
     // Note: external members are allowed for non external classes too
     ExternalStruct:=(msExternalClass in CurrentModeSwitches)
-                    and ((Parent is TPasClassType) or (Parent is TPasRecordType));
+                    and (Parent is TPasMembersType);
 
     H:=H+CheckHint(Nil,False);
     if Full or ExternalStruct then
@@ -4750,7 +4753,7 @@ begin
     NextToken;
     If not CurTokenIsIdentifier('name') then
       begin
-      if P.Parent is TPasClassType then
+      if P.Parent is TPasMembersType then
         begin
         // public section starts
         UngetToken;
@@ -4903,7 +4906,7 @@ begin
         ResultEl:=TPasFunctionType(Element).ResultEl;
         ResultEl.ResultType := ParseType(ResultEl,CurSourcePos);
         end
-      // In Delphi mode, the implementation in the implementation section can be
+      // In Delphi mode, the signature in the implementation section can be
       // without result as it was declared
       // We actually check if the function exists in the interface section.
       else if (not IsAnonymous)
@@ -6150,7 +6153,6 @@ var
   PC : TPTreeElement;
   Ot : TOperatorType;
   IsTokenBased , ok: Boolean;
-
 begin
   case ProcType of
   ptOperator,ptClassOperator:
@@ -6293,11 +6295,10 @@ procedure TPasParser.ParseRecordFieldList(ARec: TPasRecordType;
 
 Var
   VariantName : String;
-  v : TPasmemberVisibility;
+  v : TPasMemberVisibility;
   Proc: TPasProcedure;
   ProcType: TProcType;
   Prop : TPasProperty;
-  Cons : TPasConst;
   isClass : Boolean;
   NamePos: TPasSourcePos;
   OldCount, i: Integer;
@@ -6308,15 +6309,19 @@ begin
     begin
     SaveComments;
     Case CurToken of
+      tkType:
+        begin
+        if Not AllowMethods then
+          ParseExc(nErrRecordTypesNotAllowed,SErrRecordTypesNotAllowed);
+        ExpectToken(tkIdentifier);
+        ParseMembersLocalTypes(ARec,v);
+        end;
       tkConst:
         begin
         if Not AllowMethods then
           ParseExc(nErrRecordConstantsNotAllowed,SErrRecordConstantsNotAllowed);
         ExpectToken(tkIdentifier);
-        Cons:=ParseConstDecl(ARec);
-        Cons.Visibility:=v;
-        ARec.members.Add(Cons);
-        Engine.FinishScope(stDeclaration,Cons);
+        ParseMembersLocalConsts(ARec,v);
         end;
       tkVar:
         begin
@@ -6365,6 +6370,8 @@ begin
         else
           ARec.Members.Add(Proc);
         end;
+      tkDestructor:
+        ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
       tkGeneric, // Counts as field name
       tkIdentifier :
         begin
@@ -6549,40 +6556,46 @@ begin
   end;
 end;
 
-procedure TPasParser.ParseClassLocalTypes(AType: TPasClassType; AVisibility : TPasMemberVisibility);
+procedure TPasParser.ParseMembersLocalTypes(AType: TPasMembersType;
+  AVisibility: TPasMemberVisibility);
 
 Var
   T : TPasType;
   Done : Boolean;
 begin
-//  Writeln('Parsing local types');
+  // Writeln('Parsing local types');
   Repeat
     T:=ParseTypeDecl(AType);
     T.Visibility:=AVisibility;
     AType.Members.Add(t);
-//    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
+    // Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
     NextToken;
-    Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);
+    Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurTokenString,AVisibility);
     if Done then
       UngetToken;
   Until Done;
+  Engine.FinishScope(stTypeSection,AType);
 end;
 
-procedure TPasParser.ParseClassLocalConsts(AType: TPasClassType; AVisibility : TPasMemberVisibility);
+procedure TPasParser.ParseMembersLocalConsts(AType: TPasMembersType;
+  AVisibility: TPasMemberVisibility);
 
 Var
   C : TPasConst;
   Done : Boolean;
 begin
-//  Writeln('Parsing local consts');
+  // Writeln('Parsing local consts');
   Repeat
     C:=ParseConstDecl(AType);
     C.Visibility:=AVisibility;
     AType.Members.Add(C);
     Engine.FinishScope(stDeclaration,C);
-//    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
+    //Writeln('TPasParser.ParseMembersLocalConsts ',CurtokenString,' ',TokenInfos[CurToken]);
     NextToken;
-    Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);
+    if CurToken<>tkSemicolon then
+      exit;
+    NextToken;
+    Done:=(CurToken<>tkIdentifier) or CheckVisibility(CurTokenString,AVisibility);
     if Done then
       UngetToken;
   Until Done;
@@ -6658,9 +6671,9 @@ begin
             SaveComments;
           Case CurSection of
           stType:
-            ParseClassLocalTypes(AType,CurVisibility);
+            ParseMembersLocalTypes(AType,CurVisibility);
           stConst :
-            ParseClassLocalConsts(AType,CurVisibility);
+            ParseMembersLocalConsts(AType,CurVisibility);
           stNone,
           stVar,
           stClassVar:
