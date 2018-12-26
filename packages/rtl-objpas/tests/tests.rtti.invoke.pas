@@ -138,6 +138,21 @@ begin
         Result := aValue1.AsOrdinal = aValue2.AsOrdinal;
       tkQWord:
         Result := aValue1.AsUInt64 = aValue2.AsUInt64;
+      tkFloat:
+        if td1^.FloatType <> td2^.FloatType then
+          Result := False
+        else begin
+          case td1^.FloatType of
+            ftSingle,
+            ftDouble,
+            ftExtended:
+              Result := aValue1.AsExtended = aValue2.AsExtended;
+            ftComp:
+              Result := aValue1.AsInt64 = aValue2.AsInt64;
+            ftCurr:
+              Result := aValue1.AsCurrency = aValue2.AsCurrency;
+          end;
+        end;
       tkSString,
       tkUString,
       tkAString,
