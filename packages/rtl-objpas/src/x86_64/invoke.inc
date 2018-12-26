@@ -86,6 +86,24 @@ resourcestring
   SErrFailedToConvertArg = 'Failed to convert argument %d of type %s';
   SErrFailedToConvertRes = 'Failed to convert result of type %s';
 
+function ReturnResultInParam(aType: PTypeInfo): Boolean;
+var
+  td: PTypeData;
+begin
+  Result := False;
+  if Assigned(aType) then begin
+    case aType^.Kind of
+      tkSString,
+      tkAString,
+      tkUString,
+      tkWString,
+      tkInterface,
+      tkDynArray:
+        Result := True;
+    end;
+  end;
+end;
+
 procedure SystemInvoke(aCodeAddress: CodePointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
             aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
 type
@@ -107,18 +125,7 @@ begin
   if Assigned(aResultType) and not Assigned(aResultValue) then
     raise EInvocationError.Create(SErrInvokeResultTypeNoValue);
 {$ifdef windows}
-  retinparam := False;
-  if Assigned(aResultType) then begin
-    case aResultType^.Kind of
-      tkSString,
-      tkAString,
-      tkUString,
-      tkWString,
-      tkInterface,
-      tkDynArray:
-        retinparam := True;
-    end;
-  end;
+  retinparam := ReturnResultInParam(aResultType);
 
   stackidx := 0;
   regidx := 0;
