@@ -38,9 +38,11 @@ type
     procedure DoIntfInvoke(aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     procedure DoMethodInvoke(aInst: TObject; aMethod: TMethod; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     procedure DoProcVarInvoke(aInst: TObject; aProc: CodePointer; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
+    procedure DoProcInvoke(aInst: TObject; aProc: CodePointer; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
 {$ifndef InLazIDE}
     {$ifdef fpc}generic{$endif} procedure GenDoMethodInvoke<T>(aInst: TObject; aMethod: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     {$ifdef fpc}generic{$endif} procedure GenDoProcvarInvoke<T>(aInst: TObject; aProc: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
+    {$ifdef fpc}generic{$endif} procedure GenDoProcInvoke<T>(aInst: TObject; aProc: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     {$ifdef fpc}generic{$endif} function GetRecValue<T>(aReverse: Boolean): TValue;
 {$endif}
 {$ifdef fpc}
@@ -65,6 +67,9 @@ type
 
     procedure TestProcVars;
     procedure TestProcVarsRecs;
+
+    procedure TestProc;
+    procedure TestProcRecs;
   end;
 
 {$ifndef fpc}
@@ -1797,6 +1802,69 @@ begin
   end;
 end;
 
+procedure TTestInvoke.DoProcInvoke(aInst: TObject; aProc: CodePointer;
+  aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray;
+  aResult: TValue);
+var
+  cls: TTestInterfaceClass;
+  name: String;
+  context: TRttiContext;
+  t: TRttiType;
+  callable, res: TValue;
+  proc: TRttiProcedureType;
+  i: SizeInt;
+  input: array of TValue;
+  restype: PTypeInfo;
+begin
+  cls := aInst as TTestInterfaceClass;
+  cls.Reset;
+
+  if aIndex and TTestInterfaceClass.RecSizeMarker <> 0 then begin
+    name := 'TestRecSize' + IntToStr(aIndex and not TTestInterfaceClass.RecSizeMarker);
+    TTestInterfaceClass.ProcVarRecInst := cls;
+  end else begin
+    name := 'Test' + IntToStr(aIndex);
+    TTestInterfaceClass.ProcVarInst := cls;
+  end;
+
+  TValue.Make(@aProc, aTypeInfo, callable);
+
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(aTypeInfo);
+    Check(t is TRttiProcedureType, 'Not a procedure variable: ' + aTypeInfo^.Name);
+    proc := t as TRttiProcedureType;
+
+    { arguments might be modified by Invoke (Note: Copy() does not uniquify the
+      IValueData of managed types) }
+    SetLength(input, Length(aInputArgs));
+    for i := 0 to High(input) do
+      input[i] := CopyValue(aInputArgs[i]);
+
+    if Assigned(proc.ReturnType) then
+      restype := PTypeInfo(proc.ReturnType.Handle)
+    else
+      restype := Nil;
+
+    res := Rtti.Invoke(aProc, aInputArgs, proc.CallingConvention, restype, True, False);
+    CheckEquals(aIndex, cls.CalledMethod, 'Wrong method called for ' + name);
+    Check(EqualValues(cls.ResultValue, res), 'Reported result value differs from returned for ' + name);
+    Check(EqualValues(aResult, res), 'Expected result value differs from returned for ' + name);
+    CheckEquals(Length(aInputArgs), Length(cls.InputArgs), 'Count of input args differs for ' + name);
+    CheckEquals(Length(cls.OutputArgs), Length(cls.InOutMapping), 'Count of output args and in-out-mapping differs for ' + name);
+    CheckEquals(Length(aOutputArgs), Length(cls.OutputArgs), 'Count of output args differs for ' + name);
+    for i := 0 to High(aInputArgs) do begin
+      Check(EqualValues(input[i], cls.InputArgs[i]), Format('Input argument %d differs for %s', [i + 1, name]));
+    end;
+    for i := 0 to High(aOutputArgs) do begin
+      Check(EqualValues(aOutputArgs[i], cls.OutputArgs[i]), Format('Output argument %d differs for %s', [i + 1, name]));
+      Check(EqualValues(aOutputArgs[i], aInputArgs[cls.InOutMapping[i]]), Format('New output argument %d differs from expected output for %s', [i + 1, name]));
+    end;
+  finally
+    context.Free;
+  end;
+end;
+
 {$ifndef InLazIDE}
 {$ifdef fpc}generic{$endif} procedure TTestInvoke.GenDoMethodInvoke<T>(aInst: TObject; aMethod: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
 begin
@@ -1806,6 +1874,11 @@ end;
 {$ifdef fpc}generic{$endif} procedure TTestInvoke.GenDoProcVarInvoke<T>(aInst: TObject; aProc: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
 begin
   DoProcVarInvoke(aInst, CodePointer(aProc), TypeInfo(T), aIndex, aInputArgs, aOutputArgs, aResult);
+end;
+
+{$ifdef fpc}generic{$endif} procedure TTestInvoke.GenDoProcInvoke<T>(aInst: TObject; aProc: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
+begin
+  DoProcInvoke(aInst, CodePointer(aProc), TypeInfo(T), aIndex, aInputArgs, aOutputArgs, aResult);
 end;
 
 {$ifdef fpc}generic{$endif} function TTestInvoke.GetRecValue<T>(aReverse: Boolean): TValue;
@@ -2333,6 +2406,168 @@ begin
       {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord9>(True));
 
     {$ifdef fpc}specialize{$endif} GenDoProcVarInvoke<TProcVarTestRecSize10>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize10, 10 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord10>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord10>(True));
+  finally
+    cls.Free;
+  end;
+end;
+
+procedure TTestInvoke.TestProc;
+var
+  cls: TTestInterfaceClass;
+begin
+  cls := TTestInterfaceClass.Create;
+  try
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest1>(cls, {$ifdef fpc}@{$endif}ProcTest1, 1, [], [], TValue.Empty);
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest2>(cls, {$ifdef fpc}@{$endif}ProcTest2, 2, [], [], TValue.{$ifdef fpc}{$ifdef fpc}specialize{$endif}{$endif}From<SizeInt>(42));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest3>(cls, {$ifdef fpc}@{$endif}ProcTest3, 3, [
+      GetIntValue(7), GetIntValue(2), GetIntValue(5), GetIntValue(1), GetIntValue(10), GetIntValue(8), GetIntValue(6), GetIntValue(3), GetIntValue(9), GetIntValue(3)
+      ], [], GetIntValue(42));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest4>(cls, {$ifdef fpc}@{$endif}ProcTest4, 4, [
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Alpha'),
+      TValue.{$ifdef fpc}specialize{$endif}From<UnicodeString>('Beta'),
+      TValue.{$ifdef fpc}specialize{$endif}From<WideString>('Gamma'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Delta')
+      ], [], TValue.Empty);
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest5>(cls, {$ifdef fpc}@{$endif}ProcTest5, 5, [], [], TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Hello World'));
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest6>(cls, {$ifdef fpc}@{$endif}ProcTest6, 6, [], [], TValue.{$ifdef fpc}specialize{$endif}From<UnicodeString>('Hello World'));
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest7>(cls, {$ifdef fpc}@{$endif}ProcTest7, 7, [], [], TValue.{$ifdef fpc}specialize{$endif}From<WideString>('Hello World'));
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest8>(cls, {$ifdef fpc}@{$endif}ProcTest8, 8, [], [], TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Hello World'));
+
+{$ifdef NEEDS_POINTER_HELPER}
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest9>(cls, {$ifdef fpc}@{$endif}ProcTest9, 9, [
+      GetIntValue($1234), GetIntValue($4321), GetIntValue($8765), GetIntValue($5678)
+      ], [
+      GetIntValue($1234), GetIntValue($5678)
+      ], TValue.Empty);
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest10>(cls, {$ifdef fpc}@{$endif}ProcTest10, 10, [
+      GetAnsiString('Alpha'), GetAnsiString('Beta'), GetAnsiString(''), GetAnsiString('Delta')
+      ], [
+      GetAnsiString('Foo'), GetAnsiString('Bar')
+      ], TValue.Empty);
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest11>(cls, {$ifdef fpc}@{$endif}ProcTest11, 11, [
+      GetShortString('Alpha'), GetShortString('Beta'), GetShortString(''), GetShortString('Delta')
+      ], [
+      GetShortString('Foo'), GetShortString('Bar')
+      ], TValue.Empty);
+
+  {$ifdef fpc}
+    specialize GenDoProcInvoke<TProcVarTest12>(cls, {$ifdef fpc}@{$endif}ProcTest12, 12, [
+      GetArray([$1234, $2345, $3456, $4567]), GetArray([$4321, $5431, $6543, $7654]), GetArray([$5678, $6789, $7890, $8901]), GetArray([$8765, $7654, $6543, $5432])
+      ], [
+      GetArray([$4321, $4322, $4323, $4324]), GetArray([$9876, $9877, $9878, $9879])
+      ], TValue.Empty);
+  {$endif}
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest13>(cls, {$ifdef fpc}@{$endif}ProcTest13, 13, [
+      GetSingleValue(SingleArg1), GetSingleValue(SingleArg2In), GetSingleValue(0), GetSingleValue(SingleArg4)
+      ], [
+      GetSingleValue(SingleArg2Out), GetSingleValue(SingleArg3Out)
+      ], GetSingleValue(SingleRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest14>(cls, {$ifdef fpc}@{$endif}ProcTest14, 14, [
+      GetDoubleValue(DoubleArg1), GetDoubleValue(DoubleArg2In), GetDoubleValue(0), GetDoubleValue(DoubleArg4)
+      ], [
+      GetDoubleValue(DoubleArg2Out), GetDoubleValue(DoubleArg3Out)
+      ], GetDoubleValue(DoubleRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest15>(cls, {$ifdef fpc}@{$endif}ProcTest15, 15, [
+      GetExtendedValue(ExtendedArg1), GetExtendedValue(ExtendedArg2In), GetExtendedValue(0), GetExtendedValue(ExtendedArg4)
+      ], [
+      GetExtendedValue(ExtendedArg2Out), GetExtendedValue(ExtendedArg3Out)
+      ], GetExtendedValue(ExtendedRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest16>(cls, {$ifdef fpc}@{$endif}ProcTest16, 16, [
+      GetCompValue(CompArg1), GetCompValue(CompArg2In), GetCompValue(0), GetCompValue(CompArg4)
+      ], [
+      GetCompValue(CompArg2Out), GetCompValue(CompArg3Out)
+      ], GetCompValue(CompRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest17>(cls, {$ifdef fpc}@{$endif}ProcTest17, 17, [
+      GetCurrencyValue(CurrencyArg1), GetCurrencyValue(CurrencyArg2In), GetCurrencyValue(0), GetCurrencyValue(CurrencyArg4)
+      ], [
+      GetCurrencyValue(CurrencyArg2Out), GetCurrencyValue(CurrencyArg3Out)
+      ], GetCurrencyValue(CurrencyRes));
+{$endif NEEDS_POINTER_HELPER}
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest18>(cls, {$ifdef fpc}@{$endif}ProcTest18, 18, [
+      GetSingleValue(SingleAddArg1), GetSingleValue(SingleAddArg2), GetSingleValue(SingleAddArg3), GetSingleValue(SingleAddArg4), GetSingleValue(SingleAddArg5),
+      GetSingleValue(SingleAddArg6), GetSingleValue(SingleAddArg7), GetSingleValue(SingleAddArg8), GetSingleValue(SingleAddArg9), GetSingleValue(SingleAddArg10)
+      ], [], GetSingleValue(SingleAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest19>(cls, {$ifdef fpc}@{$endif}ProcTest19, 19, [
+      GetDoubleValue(DoubleAddArg1), GetDoubleValue(DoubleAddArg2), GetDoubleValue(DoubleAddArg3), GetDoubleValue(DoubleAddArg4), GetDoubleValue(DoubleAddArg5),
+      GetDoubleValue(DoubleAddArg6), GetDoubleValue(DoubleAddArg7), GetDoubleValue(DoubleAddArg8), GetDoubleValue(DoubleAddArg9), GetDoubleValue(DoubleAddArg10)
+      ], [], GetDoubleValue(DoubleAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest20>(cls, {$ifdef fpc}@{$endif}ProcTest20, 20, [
+      GetExtendedValue(ExtendedAddArg1), GetExtendedValue(ExtendedAddArg2), GetExtendedValue(ExtendedAddArg3), GetExtendedValue(ExtendedAddArg4), GetExtendedValue(ExtendedAddArg5),
+      GetExtendedValue(ExtendedAddArg6), GetExtendedValue(ExtendedAddArg7), GetExtendedValue(ExtendedAddArg8), GetExtendedValue(ExtendedAddArg9), GetExtendedValue(ExtendedAddArg10)
+      ], [], GetExtendedValue(ExtendedAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest21>(cls, {$ifdef fpc}@{$endif}ProcTest21, 21, [
+      GetCompValue(CompAddArg1), GetCompValue(CompAddArg2), GetCompValue(CompAddArg3), GetCompValue(CompAddArg4), GetCompValue(CompAddArg5),
+      GetCompValue(CompAddArg6), GetCompValue(CompAddArg7), GetCompValue(CompAddArg8), GetCompValue(CompAddArg9), GetCompValue(CompAddArg10)
+      ], [], GetCompValue(CompAddRes));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTest22>(cls, {$ifdef fpc}@{$endif}ProcTest22, 22, [
+      GetCurrencyValue(CurrencyAddArg1), GetCurrencyValue(CurrencyAddArg2), GetCurrencyValue(CurrencyAddArg3), GetCurrencyValue(CurrencyAddArg4), GetCurrencyValue(CurrencyAddArg5),
+      GetCurrencyValue(CurrencyAddArg6), GetCurrencyValue(CurrencyAddArg7), GetCurrencyValue(CurrencyAddArg8), GetCurrencyValue(CurrencyAddArg9), GetCurrencyValue(CurrencyAddArg10)
+      ], [], GetCurrencyValue(CurrencyAddRes));
+  finally
+    cls.Free;
+  end;
+end;
+
+procedure TTestInvoke.TestProcRecs;
+var
+  cls: TTestInterfaceClass;
+begin
+  cls := TTestInterfaceClass.Create;
+  try
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize1>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize1, 1 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord1>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord1>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize2>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize2, 2 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord2>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord2>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize3>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize3, 3 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord3>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord3>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize4>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize4, 4 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord4>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord4>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize5>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize5, 5 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord5>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord5>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize6>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize6, 6 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord6>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord6>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize7>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize7, 7 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord7>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord7>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize8>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize8, 8 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord8>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord8>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize9>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize9, 9 or TTestInterfaceClass.RecSizeMarker,
+      [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord9>(False)], [],
+      {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord9>(True));
+
+    {$ifdef fpc}specialize{$endif} GenDoProcInvoke<TProcVarTestRecSize10>(cls, {$ifdef fpc}@{$endif}ProcTestRecSize10, 10 or TTestInterfaceClass.RecSizeMarker,
       [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord10>(False)], [],
       {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord10>(True));
   finally
