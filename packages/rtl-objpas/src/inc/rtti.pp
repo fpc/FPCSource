@@ -1932,6 +1932,8 @@ begin
       ftSingle   : result := FData.FAsSingle;
       ftDouble   : result := FData.FAsDouble;
       ftExtended : result := FData.FAsExtended;
+      ftCurr     : result := FData.FAsCurr;
+      ftComp     : result := FData.FAsComp;
     else
       raise EInvalidCast.Create(SErrInvalidTypecast);
     end;
@@ -2046,7 +2048,11 @@ begin
       otULong:  Result := FData.FAsULong;
       otSQWord: Result := FData.FAsSInt64;
       otUQWord: Result := FData.FAsUInt64;
-    end;
+    end
+  else if (Kind = tkFloat) and (TypeData^.FloatType = ftComp) then
+    Result := FData.FAsComp
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
 function TValue.AsUInt64: QWord;
@@ -2061,7 +2067,11 @@ begin
       otULong:  Result := FData.FAsULong;
       otSQWord: Result := FData.FAsSInt64;
       otUQWord: Result := FData.FAsUInt64;
-    end;
+    end
+  else if (Kind = tkFloat) and (TypeData^.FloatType = ftComp) then
+    Result := FData.FAsComp
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
 function TValue.AsInterface: IInterface;
