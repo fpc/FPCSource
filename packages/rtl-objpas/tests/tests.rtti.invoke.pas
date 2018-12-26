@@ -1455,6 +1455,32 @@ begin
   Result := TValue.{$ifdef fpc}specialize{$endif}From<ShortString>(aValue);
 end;
 
+function GetSingleValue(aValue: Single): TValue;
+begin
+  Result := TValue.{$ifdef fpc}specialize{$endif}From<Single>(aValue);
+end;
+
+function GetDoubleValue(aValue: Double): TValue;
+begin
+  Result := TValue.{$ifdef fpc}specialize{$endif}From<Double>(aValue);
+end;
+
+function GetExtendedValue(aValue: Extended): TValue;
+begin
+  Result := TValue.{$ifdef fpc}specialize{$endif}From<Extended>(aValue);
+end;
+
+function GetCompValue(aValue: Comp): TValue;
+begin
+  Result := TValue.{$ifdef fpc}specialize{$endif}From<Comp>(aValue);
+end;
+
+function GetCurrencyValue(aValue: Currency): TValue;
+begin
+  Result := TValue.{$ifdef fpc}specialize{$endif}From<Currency>(aValue);
+end;
+
+
 {$ifdef fpc}
 function GetArray(const aArg: array of SizeInt): TValue;
 begin
