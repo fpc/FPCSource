@@ -492,12 +492,16 @@ type
     Procedure TestAdvRecord_StrictPrivate;
     Procedure TestAdvRecord_VarConst;
     Procedure TestAdvRecord_LocalForwardType;
-    // ToDo: constructor
-    // ToDo: class function/procedure
-    // ToDo: nested record type
-    // todo: property
-    // todo: class property
-    // todo: TestRecordAsFuncResult
+    Procedure TestAdvRecord_Constructor_NewInstance;
+    Procedure TestAdvRecord_ConstructorNoParamsFail;
+    // ToDo: Procedure TestAdvRecord_ClassConstructor;
+    // ToDo: Procedure TestAdvRecord_ClassConstructorParamsFail;
+    // ToDo: Procedure TestAdvRecord_ClassDestructorParamsFail;
+    Procedure TestAdvRecord_NestedRecordType;
+    Procedure TestAdvRecord_Property;
+    Procedure TestAdvRecord_ClassProperty;
+    Procedure TestAdvRecord_RecordAsFuncResult;
+    // ToDo: inheritedexpr fail
     // todo: for in record
 
     // class
@@ -510,7 +514,6 @@ type
     Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
     Procedure TestClassForwardDuplicateFail;
-    // ToDo: local forward sub class
     Procedure TestClass_Method;
     Procedure TestClass_ConstructorMissingDotFail;
     Procedure TestClass_MethodImplDuplicateFail;
@@ -7928,6 +7931,230 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestAdvRecord_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualNewInstance: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    constructor Create(w: word);',
+  '    class function DoSome: TRec;',
+  '  end;',
+  'constructor TRec.Create(w: word);',
+  'begin',
+  '  {#a}Create(1); // normal call',
+  '  TRec.{#b}Create(2); // new instance',
+  'end;',
+  'class function TRec.DoSome: TRec;',
+  'begin',
+  '  Result:={#c}Create(3); // new instance',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  TRec.{#p}Create(4); // new object',
+  '  r:=TRec.{#q}Create(5); // new object',
+  '  r.{#r}Create(6); // normal call',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        if rrfImplicitCallWithoutParams in Ref.Flags then
+          RaiseErrorAtSrcMarker('unexpected implicit call at "#'+aMarker^.Identifier+' ref"',aMarker);
+        break;
+        end;
+      case aMarker^.Identifier of
+      'a','r':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestAdvRecord_ConstructorNoParamsFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    constructor Create(w: word = 3);',
+  '  end;',
+  'constructor TRec.Create(w: word);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sParameterlessConstructorsNotAllowedInRecords,
+    nParameterlessConstructorsNotAllowedInRecords);
+end;
+
+procedure TTestResolver.TestAdvRecord_NestedRecordType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  type',
+  '    TSub = record',
+  '      x: word;',
+  '      procedure DoSub;',
+  '    end;',
+  '  var',
+  '    Sub: TSub;',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TRec.TSub.DoSub;',
+  'begin',
+  '  x:=3;',
+  'end;',
+  'procedure TRec.DoIt;',
+  'begin',
+  '  Sub.x:=4;',
+  'end;',
+  'var r: TRec;',
+  'begin',
+  '  r.sub.x:=4;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_Property;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    FSize: word;',
+  '    function SizeStored: boolean;',
+  '    function GetWidth: word;',
+  '    procedure SetWidth(Value: word);',
+  '  public',
+  '    property Size: word read FSize write FSize stored SizeStored default 3;',
+  '    property Width: word read GetWidth write SetWidth;',
+  '  end;',
+  'function TRec.SizeStored: boolean;',
+  'begin',
+  'end;',
+  'function TRec.GetWidth: word;',
+  'begin',
+  '  Result:=FSize;',
+  'end;',
+  'procedure TRec.SetWidth(Value: word);',
+  'begin',
+  '  FSize:=Value;',
+  'end;',
+  'var r: TRec;',
+  'begin',
+  '  r.Size:=r.Size;',
+  '  r.Width:=r.Width;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassProperty;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    class var FSize: word;',
+  '    class function GetWidth: word; static;',
+  '    class procedure SetWidth(Value: word); static;',
+  '  public',
+  '    class property Size: word read FSize write FSize;',
+  '    class property Width: word read GetWidth write SetWidth;',
+  '  end;',
+  'class function TRec.GetWidth: word;',
+  'begin',
+  '  Result:=FSize;',
+  'end;',
+  'class procedure TRec.SetWidth(Value: word);',
+  'begin',
+  '  FSize:=Value;',
+  'end;',
+  'begin',
+  '  TRec.Size:=TRec.Size;',
+  '  TRec.Width:=TRec.Width;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_RecordAsFuncResult;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  {#A}TRec = record',
+  '     {#A_i}i: longint;',
+  '     class function {#A_CreateA}Create: TRec;',
+  '     class function {#A_CreateB}Create(i: longint): TRec;',
+  '  end;',
+  'function {#F}F: TRec;',
+  'begin',
+  '  Result:=default(TRec);',
+  'end;',
+  'class function TRec.Create: TRec;',
+  'begin',
+  '  Result:=default(TRec);',
+  'end;',
+  'class function TRec.Create(i: longint): TRec;',
+  'begin',
+  '  Result:=default(TRec);',
+  '  Result.i:=i;',
+  'end;',
+  'var',
+  '  {#v}{=A}v: TRec;',
+  'begin',
+  '  {@v}v:={@F}F;',
+  '  {@v}v:={@F}F();',
+  '  if {@v}v={@F}F then ;',
+  '  if {@v}v={@F}F() then ;',
+  '  {@v}v:={@A}TRec.{@A_CreateA}Create;',
+  '  {@v}v:={@A}TRec.{@A_CreateA}Create();',
+  '  {@v}v:={@A}TRec.{@A_CreateB}Create(3);',
+  '  {@A}TRec.{@A_CreateA}Create.{@A_i}i:=4;',
+  '  {@A}TRec.{@A_CreateA}Create().{@A_i}i:=5;',
+  '  {@A}TRec.{@A_CreateB}Create(3).{@A_i}i:=6;']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClass;
 begin
   StartProgram(false);
@@ -9146,42 +9373,43 @@ end;
 procedure TTestResolver.TestClassAsFuncResult;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#TOBJ}TObject = class');
-  Add('  end;');
-  Add('  {#A}TClassA = class');
-  Add('     {#A_i}i: longint;');
-  Add('     constructor {#A_CreateA}Create;');
-  Add('     constructor {#A_CreateB}Create(i: longint);');
-  Add('  end;');
-  Add('function {#F}F: TClassA;');
-  Add('begin');
-  Add('  Result:=nil;');
-  Add('end;');
-  Add('constructor TClassA.Create;');
-  Add('begin');
-  Add('end;');
-  Add('constructor TClassA.Create(i: longint);');
-  Add('begin');
-  Add('end;');
-  Add('var');
-  Add('  {#o}{=TOBJ}o: TObject;');
-  Add('  {#v}{=A}v: TClassA;');
-  Add('begin');
-  Add('  {@o}o:={@F}F;');
-  Add('  {@o}o:={@F}F();');
-  Add('  {@v}v:={@F}F;');
-  Add('  {@v}v:={@F}F();');
-  Add('  if {@o}o={@F}F then ;');
-  Add('  if {@o}o={@F}F() then ;');
-  Add('  if {@v}v={@F}F then ;');
-  Add('  if {@v}v={@F}F() then ;');
-  Add('  {@v}v:={@A}TClassA.{@A_CreateA}Create;');
-  Add('  {@v}v:={@A}TClassA.{@A_CreateA}Create();');
-  Add('  {@v}v:={@A}TClassA.{@A_CreateB}Create(3);');
-  Add('  {@A}TClassA.{@A_CreateA}Create.{@A_i}i:=3;');
-  Add('  {@A}TClassA.{@A_CreateA}Create().{@A_i}i:=3;');
-  Add('  {@A}TClassA.{@A_CreateB}Create(3).{@A_i}i:=3;');
+  Add([
+  'type',
+  '  {#TOBJ}TObject = class',
+  '  end;',
+  '  {#A}TClassA = class',
+  '     {#A_i}i: longint;',
+  '     constructor {#A_CreateA}Create;',
+  '     constructor {#A_CreateB}Create(i: longint);',
+  '  end;',
+  'function {#F}F: TClassA;',
+  'begin',
+  '  Result:=nil;',
+  'end;',
+  'constructor TClassA.Create;',
+  'begin',
+  'end;',
+  'constructor TClassA.Create(i: longint);',
+  'begin',
+  'end;',
+  'var',
+  '  {#o}{=TOBJ}o: TObject;',
+  '  {#v}{=A}v: TClassA;',
+  'begin',
+  '  {@o}o:={@F}F;',
+  '  {@o}o:={@F}F();',
+  '  {@v}v:={@F}F;',
+  '  {@v}v:={@F}F();',
+  '  if {@o}o={@F}F then ;',
+  '  if {@o}o={@F}F() then ;',
+  '  if {@v}v={@F}F then ;',
+  '  if {@v}v={@F}F() then ;',
+  '  {@v}v:={@A}TClassA.{@A_CreateA}Create;',
+  '  {@v}v:={@A}TClassA.{@A_CreateA}Create();',
+  '  {@v}v:={@A}TClassA.{@A_CreateB}Create(3);',
+  '  {@A}TClassA.{@A_CreateA}Create.{@A_i}i:=3;',
+  '  {@A}TClassA.{@A_CreateA}Create().{@A_i}i:=3;',
+  '  {@A}TClassA.{@A_CreateB}Create(3).{@A_i}i:=3;']);
   ParseProgram;
 end;
 
@@ -9529,26 +9757,27 @@ var
   ActualNewInstance, ActualImplicitCallWithoutParams: Boolean;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    constructor Create;');
-  Add('    class function DoSome: TObject;');
-  Add('  end;');
-  Add('constructor TObject.Create;');
-  Add('begin');
-  Add('  {#a}Create; // normal call');
-  Add('  TObject.{#b}Create; // new instance');
-  Add('end;');
-  Add('class function TObject.DoSome: TObject;');
-  Add('begin');
-  Add('  Result:={#c}Create; // new instance');
-  Add('end;');
-  Add('var');
-  Add('  o: TObject;');
-  Add('begin');
-  Add('  TObject.{#p}Create; // new object');
-  Add('  o:=TObject.{#q}Create; // new object');
-  Add('  o.{#r}Create; // normal call');
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '    class function DoSome: TObject;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  '  {#a}Create; // normal call',
+  '  TObject.{#b}Create; // new instance',
+  'end;',
+  'class function TObject.DoSome: TObject;',
+  'begin',
+  '  Result:={#c}Create; // new instance',
+  'end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  TObject.{#p}Create; // new object',
+  '  o:=TObject.{#q}Create; // new object',
+  '  o.{#r}Create; // normal call']);
   ParseProgram;
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do

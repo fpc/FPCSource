@@ -135,7 +135,7 @@ const
   nTextAfterFinalIgnored = 3058;
   nNoMemberIsProvidedToAccessProperty = 3059;
   nTheUseOfXisNotAllowedInARecord = 3060;
-  // free 3061
+  nParameterlessConstructorsNotAllowedInRecords = 3061;
   // free 3062
   // free 3063
   nRangeCheckError = 3064;
@@ -252,6 +252,7 @@ resourcestring
   sTextAfterFinalIgnored = 'Text after final ''end.''. ignored by compiler';
   sNoMemberIsProvidedToAccessProperty = 'No member is provided to access property';
   sTheUseOfXisNotAllowedInARecord = 'The use of "%s" is not allowed in a record';
+  sParameterlessConstructorsNotAllowedInRecords = 'Parameterless constructors are not allowed in records or record/type helpers';
   sSymbolXIsNotPortable = 'Symbol "%s" is not portable';
   sSymbolXIsExperimental = 'Symbol "%s" is experimental';
   sSymbolXIsNotImplemented = 'Symbol "%s" is not implemented';

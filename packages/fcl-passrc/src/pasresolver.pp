@@ -1132,11 +1132,11 @@ type
     property Declaration: TPasElement read FDeclaration write SetDeclaration;
   end;
 
-  { TResolvedRefCtxConstructor - constructed class of a newinstance reference }
+  { TResolvedRefCtxConstructor - constructed class/record of a newinstance reference }
 
   TResolvedRefCtxConstructor = Class(TResolvedRefContext)
   public
-    Typ: TPasType; // e.g. TPasClassType
+    Typ: TPasType; // e.g. TPasMembersType
   end;
 
   TPasResolverResultFlag = (
@@ -1894,7 +1894,7 @@ type
     function GetPathStart(El: TPasExpr): TPasExpr;
     function GetNewInstanceExpr(El: TPasExpr): TPasExpr;
     function ParentNeedsExprResult(El: TPasExpr): boolean;
-    function GetReference_NewInstanceClass(Ref: TResolvedReference): TPasClassType;
+    function GetReference_NewInstance_Type(Ref: TResolvedReference): TPasMembersType;
     function IsDynArray(TypeEl: TPasType; OptionalOpenArray: boolean = true): boolean;
     function IsOpenArray(TypeEl: TPasType): boolean;
     function IsDynOrOpenArray(TypeEl: TPasType): boolean;
@@ -5489,6 +5489,11 @@ begin
       end
     else if Proc.Parent is TPasRecordType then
       begin
+      if (Proc.ClassType=TPasConstructor)
+          and ((El.Args.Count=0)
+            or (TPasArgument(El.Args[0]).ValueExpr<>nil)) then
+        RaiseMsg(20181226231333,nParameterlessConstructorsNotAllowedInRecords,
+          sParameterlessConstructorsNotAllowedInRecords,[],El);
       if Proc.IsReintroduced then
         RaiseMsg(20181218195735,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'reintroduce'],Proc);
       if Proc.IsVirtual then
@@ -9431,7 +9436,7 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddProperty ',GetObjName(El));
   {$ENDIF}
-  if not (TopScope is TPasClassScope) then
+  if not (TopScope is TPasClassOrRecordScope) then
     RaiseInvalidScopeForElement(20160922163520,El);
   AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
   PushScope(El,TPasPropertyScope);
@@ -10611,11 +10616,11 @@ var
   DeclEl: TPasElement;
   BuiltInProc: TResElDataBuiltInProc;
   Proc: TPasProcedure;
-  aClass: TPasClassType;
   ParamResolved: TPasResolverResult;
   Ref: TResolvedReference;
   DeclType: TPasType;
   Param0: TPasExpr;
+  ClassOrRec: TPasMembersType;
 begin
   if Params.Value.CustomData is TResolvedReference then
     begin
@@ -10674,8 +10679,8 @@ begin
             and (rrfNewInstance in Ref.Flags) then
           begin
           // new instance call -> return value of type class
-          aClass:=GetReference_NewInstanceClass(Ref);
-          SetResolverValueExpr(ResolvedEl,btContext,aClass,aClass,Params.Value,[rrfReadable]);
+          ClassOrRec:=GetReference_NewInstance_Type(Ref);
+          SetResolverValueExpr(ResolvedEl,btContext,ClassOrRec,ClassOrRec,Params.Value,[rrfReadable]);
           end
         else
           // procedure call, result is neither readable nor writable
@@ -19904,7 +19909,7 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
     Ref: TResolvedReference;
     Proc: TPasProcedure;
     ProcType: TPasProcedureType;
-    aClass: TPasClassType;
+    ClassOrRec: TPasMembersType;
   begin
     Ref:=TResolvedReference(Expr.CustomData);
     ComputeElement(Ref.Declaration,ResolvedEl,Flags+[rcNoImplicitProc],StartEl);
@@ -19951,8 +19956,8 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
               and (rrfNewInstance in Ref.Flags) then
             begin
             // new instance constructor -> return value of type class
-            aClass:=GetReference_NewInstanceClass(Ref);
-            SetResolverValueExpr(ResolvedEl,btContext,aClass,aClass,
+            ClassOrRec:=GetReference_NewInstance_Type(Ref);
+            SetResolverValueExpr(ResolvedEl,btContext,ClassOrRec,ClassOrRec,
                                  TPrimitiveExpr(Expr),[rrfReadable]);
             end
           else if ParentNeedsExprResult(Expr) then
@@ -20003,8 +20008,8 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
     Ref: TResolvedReference;
     Proc: TPasProcedure;
     TypeEl: TPasProcedureType;
-    aClass: TPasClassType;
     HasName: Boolean;
+    ClassOrRec: TPasMembersType;
   begin
     // "inherited;"
     Ref:=TResolvedReference(El.CustomData);
@@ -20029,8 +20034,8 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
         and (rrfNewInstance in Ref.Flags) then
       begin
       // new instance constructor -> return value of type class
-      aClass:=GetReference_NewInstanceClass(Ref);
-      SetResolverValueExpr(ResolvedEl,btContext,aClass,aClass,Expr,[rrfReadable]);
+      ClassOrRec:=GetReference_NewInstance_Type(Ref);
+      SetResolverValueExpr(ResolvedEl,btContext,ClassOrRec,ClassOrRec,Expr,[rrfReadable]);
       end
     else if ParentNeedsExprResult(Expr) then
       begin
@@ -20699,10 +20704,10 @@ begin
     Result:=(TPasImplRaise(P).ExceptAddr=El);
 end;
 
-function TPasResolver.GetReference_NewInstanceClass(Ref: TResolvedReference
-  ): TPasClassType;
+function TPasResolver.GetReference_NewInstance_Type(Ref: TResolvedReference
+  ): TPasMembersType;
 begin
-  Result:=(Ref.Context as TResolvedRefCtxConstructor).Typ as TPasClassType;
+  Result:=(Ref.Context as TResolvedRefCtxConstructor).Typ as TPasMembersType;
 end;
 
 function TPasResolver.IsDynArray(TypeEl: TPasType; OptionalOpenArray: boolean

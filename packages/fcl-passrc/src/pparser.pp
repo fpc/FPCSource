@@ -1253,7 +1253,7 @@ begin
     else if Parent is TPasRecordType then
       begin
       if not (PM in [pmOverload,
-                     pmInline, pmAssembler, pmPublic,
+                     pmInline, pmAssembler,
                      pmExternal,
                      pmNoReturn, pmFar, pmFinal]) then exit(false);
       end;
