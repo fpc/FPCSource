@@ -421,8 +421,8 @@ unit i_linux;
               (
                 procalign       : 16;
                 loopalign       : 8;
-                jumpalign       : 0;
-                jumpalignmax    : 0;
+                jumpalign       : 16;
+                jumpalignmax    : 10;
                 coalescealign   : 0;
                 coalescealignmax: 0;
                 constalignmin   : 0;

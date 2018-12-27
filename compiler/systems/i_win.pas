@@ -150,8 +150,8 @@ unit i_win;
               (
                 procalign       : 16;
                 loopalign       : 8;
-                jumpalign       : 4;
-                jumpalignmax    : 0;
+                jumpalign       : 16;
+                jumpalignmax    : 10;
                 coalescealign   : 0;
                 coalescealignmax: 0;
                 constalignmin   : 0;
