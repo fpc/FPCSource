@@ -62,6 +62,12 @@ interface
           { label (only used in pass_generate_code) }
           blocklabel : tasmlabel;
 
+          { shortcut - set to true if blocklabel isn't actually unique to the
+            case block due to one of the following conditions:
+            - if the node contains a jump, then the label is set to that jump's destination,
+            - if the node is empty, the label is set to the end label. }
+          shortcut: Boolean;
+
           statementlabel : tlabelnode;
           { instructions }
           statement  : tnode;
@@ -121,6 +127,9 @@ interface
 
     { counts the labels }
     function case_count_labels(root : pcaselabel) : longint;
+    { Returns the true count in a case block, which includes each individual
+      value in a range (e.g. "0..2" counts as 3) }
+    function case_true_count(root : pcaselabel) : longint;
     { searches the highest label }
     function case_get_max(root : pcaselabel) : tconstexprint;
     { searches the lowest label }
@@ -437,6 +446,29 @@ implementation
          count(root);
          case_count_labels:=_l;
       end;
+
+
+    { Returns the true count in a case block, which includes each individual
+      value in a range (e.g. "0..2" counts as 3) }
+    function case_true_count(root : pcaselabel) : longint;
+      var
+         _l : longint;
+
+      procedure count(p : pcaselabel);
+        begin
+           inc(_l, (p^._high.svalue - p^._low.svalue) + 1);
+           if assigned(p^.less) then
+             count(p^.less);
+           if assigned(p^.greater) then
+             count(p^.greater);
+        end;
+
+      begin
+        _l:=0;
+        count(root);
+        case_true_count:=_l;
+      end;
+
 
 
     function case_get_max(root : pcaselabel) : tconstexprint;
