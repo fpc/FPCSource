@@ -2883,6 +2883,7 @@ procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
   Access: TResolvedRefAccess);
 
   procedure CheckTObjectFree(Ref: TResolvedReference);
+  // Ref is the ComputeElement of El
   var
     Bin: TBinaryExpr;
     Left: TPasExpr;
@@ -2891,20 +2892,21 @@ procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
     C: TClass;
   begin
     if not IsTObjectFreeMethod(El) then exit;
+    // El is the TPrimitiveExpr of "Free"
     if Ref.WithExprScope<>nil then
       begin
       // with expr do free
       if GetNewInstanceExpr(Ref.WithExprScope.Expr)<>nil then
-        exit; // with TSomeClass.Free do Free  -> ok
+        exit; // with TSomeClass.Create do Free  -> ok
       RaiseMsg(20170517092407,nFreeNeedsVar,sFreeNeedsVar,[],El);
       end;
     C:=El.Parent.ClassType;
     if (C=TBinaryExpr) then
       begin
-      // expr.Free
       Bin:=TBinaryExpr(El.Parent);
       if (Bin.right<>El) or (Bin.OpCode<>eopSubIdent) then
         RaiseMsg(20170516151950,nFreeNeedsVar,sFreeNeedsVar,[],El);
+      // expr.Free
       if rrfImplicitCallWithoutParams in Ref.Flags then
         // ".Free;" -> ok
       else if Bin.Parent is TParamsExpr then
@@ -2937,8 +2939,15 @@ procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
       if (IdentEl.ClassType=TPasVariable)
          or (IdentEl.ClassType=TPasConst) then
         exit; // readable and writable variable -> ok
-      if IdentEl.ClassType=TPasResultElement then
-        exit; // readable and writable function result -> ok
+      if (IdentEl.ClassType=TPasResultElement)
+          and (Left is TPrimitiveExpr) then
+        begin
+        // "Result.Free" -> ok
+        exit;
+        end;
+      {$IFDEF VerbosePas2JS}
+      writeln('CheckTObjectFree LeftResolved=',GetResolverResultDbg(LeftResolved));
+      {$ENDIF}
       RaiseMsg(20170516152455,nFreeNeedsVar,sFreeNeedsVar,[],El);
       end
     else if C.InheritsFrom(TPasImplBlock) then
@@ -9002,7 +9011,12 @@ begin
       Result:=CreateCallRTLFree(Obj,Prop);
       end
     else
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.ConvertTObjectFree_Bin ',GetObjName(LeftJS));
+      {$ENDIF}
       RaiseNotSupported(Bin.left,AContext,20170516164659,'invalid scope for Free');
+      end;
   finally
     if Result=nil then
       LeftJS.Free;
