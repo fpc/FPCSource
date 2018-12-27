@@ -1226,7 +1226,7 @@ type
     procedure ResolveFuncParamsExpr(Params: TParamsExpr;
       Access: TResolvedRefAccess); override;
     procedure FinishInterfaceSection(Section: TPasSection); override;
-    procedure FinishTypeSection(El: TPasDeclarations); override;
+    procedure FinishTypeSectionEl(El: TPasType); override;
     procedure FinishModule(CurModule: TPasModule); override;
     procedure FinishEnumType(El: TPasEnumType); override;
     procedure FinishSetType(El: TPasSetType); override;
@@ -3038,26 +3038,21 @@ begin
     end;
 end;
 
-procedure TPas2JSResolver.FinishTypeSection(El: TPasDeclarations);
+procedure TPas2JSResolver.FinishTypeSectionEl(El: TPasType);
 var
-  i: Integer;
-  Decl: TPasElement;
   C: TClass;
   TypeEl: TPasType;
 begin
-  inherited FinishTypeSection(El);
-  for i:=0 to El.Declarations.Count-1 do
+  inherited FinishTypeSectionEl(El);
+
+  C:=El.ClassType;
+  if C=TPasPointerType then
     begin
-    Decl:=TPasElement(El.Declarations[i]);
-    C:=Decl.ClassType;
-    if C=TPasPointerType then
-      begin
-      TypeEl:=ResolveAliasType(TPasPointerType(Decl).DestType);
-      if TypeEl.ClassType=TPasRecordType then
-        // ^record
-      else
-        RaiseMsg(20180423105726,nNotSupportedX,sNotSupportedX,['pointer of '+TPasPointerType(Decl).DestType.Name],Decl);
-      end;
+    TypeEl:=ResolveAliasType(TPasPointerType(El).DestType);
+    if TypeEl.ClassType=TPasRecordType then
+      // ^record
+    else
+      RaiseMsg(20180423105726,nNotSupportedX,sNotSupportedX,['pointer of '+TPasPointerType(El).DestType.Name],El);
     end;
 end;
 
