@@ -498,10 +498,11 @@ type
     // ToDo: Procedure TestAdvRecord_ClassConstructorParamsFail;
     // ToDo: Procedure TestAdvRecord_ClassDestructorParamsFail;
     Procedure TestAdvRecord_NestedRecordType;
+    Procedure TestAdvRecord_NestedArgConstFail;
     Procedure TestAdvRecord_Property;
     Procedure TestAdvRecord_ClassProperty;
     Procedure TestAdvRecord_RecordAsFuncResult;
-    // ToDo: inheritedexpr fail
+    Procedure TestAdvRecord_InheritedFail;
     // todo: for in record
 
     // class
@@ -8029,25 +8030,51 @@ begin
   '  type',
   '    TSub = record',
   '      x: word;',
+  '      class var y: word;',
   '      procedure DoSub;',
   '    end;',
   '  var',
   '    Sub: TSub;',
-  '    procedure DoIt;',
+  '    procedure DoIt(const r: TRec);',
   '  end;',
   'procedure TRec.TSub.DoSub;',
   'begin',
   '  x:=3;',
   'end;',
-  'procedure TRec.DoIt;',
+  'procedure TRec.DoIt(const r: TRec);',
   'begin',
   '  Sub.x:=4;',
+  '  r.Sub.y:=Sub.x;', // class var y is writable, even though r.Sub is not
   'end;',
   'var r: TRec;',
   'begin',
   '  r.sub.x:=4;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_NestedArgConstFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  type',
+  '    TSub = record',
+  '      x: word;',
+  '    end;',
+  '  var',
+  '    Sub: TSub;',
+  '    procedure DoIt(const r: TRec);',
+  '  end;',
+  'procedure TRec.DoIt(const r: TRec);',
+  'begin',
+  '  r.Sub.x:=4;',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
 end;
 
 procedure TTestResolver.TestAdvRecord_Property;
@@ -8149,10 +8176,29 @@ begin
   '  {@v}v:={@A}TRec.{@A_CreateA}Create;',
   '  {@v}v:={@A}TRec.{@A_CreateA}Create();',
   '  {@v}v:={@A}TRec.{@A_CreateB}Create(3);',
-  '  {@A}TRec.{@A_CreateA}Create.{@A_i}i:=4;',
+  '  {@A}TRec.{@A_CreateA}Create . {@A_i}i:=4;',
   '  {@A}TRec.{@A_CreateA}Create().{@A_i}i:=5;',
   '  {@A}TRec.{@A_CreateB}Create(3).{@A_i}i:=6;']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_InheritedFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TRec.DoIt;',
+  'begin',
+  '  inherited;',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('The use of "inherited" is not allowed in a record',
+    nTheUseOfXisNotAllowedInARecord);
 end;
 
 procedure TTestResolver.TestClass;
