@@ -101,7 +101,9 @@ unit agarmgas;
 
     function TArmGNUAssembler.MakeCmdLine: TCmdStr;
       begin
-        result:='-mtls-dialect=gnu '+inherited MakeCmdLine;
+        result:=inherited MakeCmdLine;
+        if tf_section_threadvars in target_info.flags then
+          result:='-mtls-dialect=gnu '+result;
         if (current_settings.fputype = fpu_soft) then
           result:='-mfpu=softvfp '+result;
         if (current_settings.fputype = fpu_vfpv2) then
