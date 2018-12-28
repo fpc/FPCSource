@@ -1514,7 +1514,7 @@ type
     function IsCharLiteral(const Value: string; ErrorPos: TPasElement): TResolverBaseType; virtual;
     function CheckForIn(Loop: TPasImplForLoop;
       const VarResolved, InResolved: TPasResolverResult): boolean; virtual;
-    function CheckForInClass(Loop: TPasImplForLoop;
+    function CheckForInClassOrRec(Loop: TPasImplForLoop;
       const VarResolved, InResolved: TPasResolverResult): boolean; virtual;
     function CheckBuiltInMinParamCount(Proc: TResElDataBuiltInProc; Expr: TPasExpr;
       MinCount: integer; RaiseOnError: boolean): boolean;
@@ -7551,9 +7551,8 @@ begin
     if (not EnumeratorFound) and (StartResolved.BaseType=btContext) then
       begin
       TypeEl:=StartResolved.LoTypeEl;
-      C:=TypeEl.ClassType;
-      if C=TPasClassType then
-        EnumeratorFound:=CheckForInClass(Loop,VarResolved,StartResolved);
+      if TypeEl is TPasMembersType then
+        EnumeratorFound:=CheckForInClassOrRec(Loop,VarResolved,StartResolved);
       end;
 
     if not EnumeratorFound then
@@ -11580,12 +11579,14 @@ begin
   if InResolved.BaseType=btCustom then ;
 end;
 
-function TPasResolver.CheckForInClass(Loop: TPasImplForLoop; const VarResolved,
+function TPasResolver.CheckForInClassOrRec(Loop: TPasImplForLoop; const VarResolved,
   InResolved: TPasResolverResult): boolean;
 var
   TypeEl: TPasType;
-  aClass: TPasClassType;
-  ClassScope: TPasDotClassScope;
+  aClass, EnumeratorClass: TPasClassType;
+  aRecord: TPasRecordType;
+  ClassOrRecScope: TPasDotClassOrRecordScope;
+  EnumeratorScope: TPasDotClassScope;
   Getter, MoveNext, Current: TPasIdentifier;
   GetterFunc, MoveNextFunc: TPasFunction;
   ptm: TProcTypeModifier;
@@ -11595,17 +11596,27 @@ var
 begin
   Result:=false;
   TypeEl:=InResolved.LoTypeEl;
-  if TypeEl is TPasClassType then
+  if TypeEl is TPasMembersType then
     begin
     if not (rrfReadable in InResolved.Flags) then
       RaiseMsg(20171221195421,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
         [GetBaseDescription(InResolved)],Loop.StartExpr);
 
-    // check function GetEnumerator: class
-    aClass:=TPasClassType(TypeEl);
-    // find aClass.GetEnumerator
-    ClassScope:=PushClassDotScope(aClass);
-    Getter:=ClassScope.FindIdentifier('GetEnumerator');
+    // check function GetEnumerator: class/record
+    if TypeEl is TPasClassType then
+      begin
+      aClass:=TPasClassType(TypeEl);
+      ClassOrRecScope:=PushClassDotScope(aClass);
+      end
+    else if TypeEl is TPasRecordType then
+      begin
+      aRecord:=TPasRecordType(TypeEl);
+      ClassOrRecScope:=PushRecordDotScope(aRecord);
+      end
+    else
+      RaiseNotYetImplemented(20181228201853,Loop,GetObjName(TypeEl));
+    // find aRecord.GetEnumerator
+    Getter:=ClassOrRecScope.FindIdentifier('GetEnumerator');
     PopScope;
     if Getter=nil then
       RaiseIdentifierNotFound(20171221191511,'GetEnumerator',Loop.StartExpr);
@@ -11633,10 +11644,10 @@ begin
     if not (rrfReadable in ResultResolved.Flags) then
       RaiseContextXExpectedButYFound(20171221195506,'function GetEnumerator','result class instance',GetTypeDescription(ResultResolved.LoTypeEl),Loop.StartExpr);
 
-    // check function MoveNext: boolean
-    aClass:=TPasClassType(TypeEl);
-    ClassScope:=PushClassDotScope(aClass);
-    MoveNext:=ClassScope.FindIdentifier('MoveNext');
+    // find function MoveNext: boolean in Enumerator class
+    EnumeratorClass:=TPasClassType(TypeEl);
+    EnumeratorScope:=PushClassDotScope(EnumeratorClass);
+    MoveNext:=EnumeratorScope.FindIdentifier('MoveNext');
     if MoveNext=nil then
       RaiseIdentifierNotFound(20171221195632,'MoveNext',Loop.StartExpr);
     // check is function
@@ -11659,7 +11670,7 @@ begin
       RaiseContextXExpectedButYFound(20171221200337,'function MoveNext','result boolean',GetTypeDescription(MoveNextResolved),Loop.StartExpr);
 
     // check property Current
-    Current:=ClassScope.FindIdentifier('Current');
+    Current:=EnumeratorScope.FindIdentifier('Current');
     if Current=nil then
       RaiseIdentifierNotFound(20171221200433,'Current',Loop.StartExpr);
     // check is property
@@ -11680,7 +11691,7 @@ begin
     if CheckAssignResCompatibility(VarResolved,CurrentResolved,Loop.VariableName,false)=cIncompatible then
       RaiseIncompatibleTypeRes(20171221200018,nIncompatibleTypesGotExpected,[],VarResolved,CurrentResolved,Loop.VariableName);
 
-    PopScope;
+    PopScope; // pop EnumeratorScope
 
     ForScope:=Loop.CustomData as TPasForLoopScope;
     ForScope.GetEnumerator:=GetterFunc;

@@ -503,7 +503,7 @@ type
     Procedure TestAdvRecord_ClassProperty;
     Procedure TestAdvRecord_RecordAsFuncResult;
     Procedure TestAdvRecord_InheritedFail;
-    // todo: for in record
+    Procedure TestAdvRecord_ForInEnumerator;
 
     // class
     Procedure TestClass;
@@ -8199,6 +8199,37 @@ begin
   '']);
   CheckResolverException('The use of "inherited" is not allowed in a record',
     nTheUseOfXisNotAllowedInARecord);
+end;
+
+procedure TTestResolver.TestAdvRecord_ForInEnumerator;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TObject = class end;',
+  '  TItem = TObject;',
+  '  TEnumerator = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  TBird = record',
+  '    function GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TBird.GetEnumerator: TEnumerator;',
+  'begin',
+  'end;',
+  'var',
+  '  b: TBird;',
+  '  i: TItem;',
+  '  {#i2}i2: TItem;',
+  'begin',
+  '  for i in b do {@i2}i2:=i;']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass;

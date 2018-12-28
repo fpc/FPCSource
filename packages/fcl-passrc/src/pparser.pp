@@ -6303,7 +6303,10 @@ Var
   NamePos: TPasSourcePos;
   OldCount, i: Integer;
 begin
-  v:=visDefault;
+  if AllowMethods then
+    v:=visPublic
+  else
+    v:=visDefault;
   isClass:=False;
   while CurToken<>AEndToken do
     begin
