@@ -850,9 +850,9 @@ unit i_bsd;
             alignment    :
               (
                 procalign       : 16;
-                loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignskipmax    : 0;
+                loopalign       : 8;
+                jumpalign       : 16;
+                jumpalignskipmax    : 10;
                 coalescealign   : 0;
                 coalescealignskipmax: 0;
                 constalignmin   : 0;
@@ -918,9 +918,9 @@ unit i_bsd;
             alignment    :
               (
                 procalign       : 16;
-                loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignskipmax    : 0;
+                loopalign       : 8;
+                jumpalign       : 16;
+                jumpalignskipmax    : 10;
                 coalescealign   : 0;
                 coalescealignskipmax: 0;
                 constalignmin   : 0;
@@ -1053,8 +1053,8 @@ unit i_bsd;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 8;
-                loopalign       : 4;
+                procalign       : 16;
+                loopalign       : 8;
                 jumpalign       : 16;
                 jumpalignskipmax    : 10;
                 coalescealign   : 0;
@@ -1120,8 +1120,8 @@ unit i_bsd;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 8;
-                loopalign       : 4;
+                procalign       : 16;
+                loopalign       : 8;
                 jumpalign       : 16;
                 jumpalignskipmax    : 10;
                 coalescealign   : 0;
@@ -1187,7 +1187,7 @@ unit i_bsd;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 4;
+                procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
                 jumpalignskipmax    : 0;
@@ -1255,7 +1255,7 @@ unit i_bsd;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 8;
+                procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
                 jumpalignskipmax    : 0;
