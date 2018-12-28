@@ -311,10 +311,24 @@ implementation
              genlinearcmplist(hp)
            else
              begin
-                last:=0;
-                lastrange:=false;
-                first:=(labelcnt > 1); { Can greatly simplify the range checks if there's only one label }
-                genitem(hp);
+                if labelcnt>1 then
+                  begin
+                    last:=0;
+                    lastrange:=false;
+                    first:=true;
+                    genitem(hp);
+                  end
+                else
+                  begin
+                    { If only one label exists, we can greatly simplify the checks to a simple comparison }
+                    if hp^._low=hp^._high then
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ, tcgint(hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                    else
+                      begin
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, tcgint(hp^._low.svalue), hregister);
+                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_BE, tcgint(hp^._high.svalue - hp^._low.svalue), hregister,blocklabel(hp^.blockid));
+                      end;
+                  end;
                 cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
              end;
         end;

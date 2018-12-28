@@ -641,17 +641,18 @@ implementation
          newsize: tcgsize;
          newdef: tdef;
 
-      procedure genitem(t : pcaselabel);
+      procedure gensub(value:tcgint);
+        begin
+          { here, since the sub and cmp are separate we need
+            to move the result before subtract to help
+            the register allocator
+          }
+          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, hregister, scratch_reg);
+          hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, value, hregister);
+        end;
 
-          procedure gensub(value:tcgint);
-            begin
-              { here, since the sub and cmp are separate we need
-                to move the result before subtract to help
-                the register allocator
-              }
-              hlcg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, hregister, scratch_reg);
-              hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, value, hregister);
-            end;
+
+      procedure genitem(t : pcaselabel);
 
         begin
            if assigned(t^.less) then
@@ -722,10 +723,25 @@ implementation
                   hregister:=scratch_reg;
                   opsize:=newdef;
                 end;
-              last:=0;
-              first:=(labelcnt > 1); { Can greatly simplify the range checks if there's only one label }
-              scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
-              genitem(hp);
+              if labelcnt>1 then
+                begin
+                  last:=0;
+                  first:=true;
+                  scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
+                  genitem(hp);
+                end
+              else
+                begin
+                  { If only one label exists, we can greatly simplify the checks to a simple comparison }
+                  if hp^._low=hp^._high then
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                  else
+                    begin
+                      scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
+                      gensub(tcgint(hp^._low.svalue));
+                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                    end;
+                end;
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
            end;
       end;
