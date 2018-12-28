@@ -1055,8 +1055,8 @@ unit i_bsd;
               (
                 procalign       : 8;
                 loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignmax    : 0;
+                jumpalign       : 16;
+                jumpalignmax    : 16;
                 coalescealign   : 0;
                 coalescealignmax: 0;
                 constalignmin   : 0;
@@ -1122,8 +1122,8 @@ unit i_bsd;
               (
                 procalign       : 8;
                 loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignmax    : 0;
+                jumpalign       : 16;
+                jumpalignmax    : 16;
                 coalescealign   : 0;
                 coalescealignmax: 0;
                 constalignmin   : 0;
