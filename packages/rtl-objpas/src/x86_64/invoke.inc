@@ -93,6 +93,7 @@ begin
   Result := False;
   if Assigned(aType) then begin
     case aType^.Kind of
+      tkMethod,
       tkSString,
       tkAString,
       tkUString,
