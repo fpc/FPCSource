@@ -223,6 +223,8 @@ implementation
         opcgsize: tcgsize;
 
         procedure genitem(t : pcaselabel);
+          var
+             range, gap: aint;
           begin
              if assigned(t^.less) then
                genitem(t^.less);
@@ -245,6 +247,7 @@ implementation
                end
              else
                begin
+                  range := aint(t^._high.svalue - t^._low.svalue);
                   { it begins with the smallest label, if the value }
                   { is even smaller then jump immediately to the    }
                   { ELSE-label                                }
@@ -256,6 +259,7 @@ implementation
                     end
                   else
                     begin
+                      gap := aint(t^._low.svalue - last.svalue);
                       { if there is no unused label between the last and the }
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
@@ -263,23 +267,23 @@ implementation
                       { we need to use A_SUB, if cond_lt uses the carry flags
                         because A_DEC does not set the correct flags, therefor
                         using a_op_const_reg(OP_SUB) is not possible }
-                      if (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (aint(t^._low.svalue-last.svalue)=1) then
-                        emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._low.svalue-last.svalue),hregister)
+                      if (gap = 1) and (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) then
+                        emit_const_reg(A_SUB, TCGSize2OpSize[opcgsize], gap, hregister)
                       else
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, gap, hregister);
                       { no jump necessary here if the new range starts at
                         at the value following the previous one           }
-                      if ((t^._low-last) <> 1) or
+                      if (gap <> 1) or
                          (not lastrange) then
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
                   { we need to use A_SUB, if cond_le uses the carry flags
                     because A_DEC does not set the correct flags, therefor
                     using a_op_const_reg(OP_SUB) is not possible }
-                  if (cond_le in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (aint(t^._high.svalue-t^._low.svalue)=1) then
-                    emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._high.svalue-t^._low.svalue),hregister)
+                  if (cond_le in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (range = 1) then
+                    emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize], range, hregister)
                   else
-                    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._high.svalue-t^._low.svalue), hregister);
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, range, hregister);
 
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
                   last:=t^._high;
@@ -311,7 +315,7 @@ implementation
              genlinearcmplist(hp)
            else
              begin
-                if labelcnt>1 then
+                if (labelcnt>1) or not(cs_opt_level1 in current_settings.optimizerswitches) then
                   begin
                     last:=0;
                     lastrange:=false;
@@ -326,7 +330,7 @@ implementation
                     else
                       begin
                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, tcgint(hp^._low.svalue), hregister);
-                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_BE, tcgint(hp^._high.svalue - hp^._low.svalue), hregister,blocklabel(hp^.blockid));
+                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, jmp_le, tcgint(hp^._high.svalue - hp^._low.svalue), hregister,blocklabel(hp^.blockid));
                       end;
                   end;
                 cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);

@@ -723,7 +723,7 @@ implementation
                   hregister:=scratch_reg;
                   opsize:=newdef;
                 end;
-              if labelcnt>1 then
+              if (labelcnt>1) or not(cs_opt_level1 in current_settings.optimizerswitches) then
                 begin
                   last:=0;
                   first:=true;
@@ -739,7 +739,7 @@ implementation
                     begin
                       scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
                       gensub(tcgint(hp^._low.svalue));
-                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
                     end;
                 end;
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
@@ -1224,6 +1224,9 @@ implementation
          else
 {$endif not cpu64bitalu}
            begin
+              labelcnt := 0;
+              TrueCount := 0;
+
               if cs_opt_level1 in current_settings.optimizerswitches then
                 begin
                    { procedures are empirically passed on }
@@ -1233,8 +1236,6 @@ implementation
                    { moreover can the size only be appro- }
                    { ximated as it is not known if rel8,  }
                    { rel16 or rel32 jumps are used   }
-                   labelcnt := 0;
-                   TrueCount := 0;
 
                    CountBoth(labels);
 
