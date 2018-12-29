@@ -525,6 +525,7 @@ begin
   FreeAndNil(FDependencies);
   FreeAndNil(FVersion);
   FreeAndNil(FUnusedVersion);
+  FreeAndNil(FPackageVariants);
   inherited Destroy;
 end;
 
