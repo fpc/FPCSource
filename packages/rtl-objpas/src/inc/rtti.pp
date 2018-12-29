@@ -16,6 +16,7 @@ unit Rtti experimental;
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
+{$goto on}
 {$Assertions on}
 
 { Note: since the Lazarus IDE is not yet capable of correctly handling generic

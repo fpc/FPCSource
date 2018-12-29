@@ -291,11 +291,423 @@ begin
 {$endif}
 end;
 
+{$ifdef windows}
+const
+  PlaceholderContext = QWord($1234567812345678);
+  PlaceholderAddress = QWord($8765432187654321);
+
+label
+  CallbackContext,
+  CallbackAddress,
+  CallbackCall,
+  CallbackEnd;
+
+const
+  CallbackContextPtr: Pointer = @CallbackContext;
+  CallbackAddressPtr: Pointer = @CallbackAddress;
+  CallbackCallPtr: Pointer = @CallbackCall;
+  CallbackEndPtr: Pointer = @CallbackEnd;
+
+procedure Callback; assembler; nostackframe;
+asm
+  { store integer registers }
+
+  movq %rcx, 8(%rsp)
+.seh_savereg %rcx, 8
+  movq %rdx, 16(%rsp)
+.seh_savereg %rdx, 16
+  movq %r8,  24(%rsp)
+.seh_savereg %r8, 24
+  movq %r9,  32(%rsp)
+.seh_savereg %r9, 32
+
+  { establish frame }
+  pushq %rbp
+.seh_pushreg %rbp
+  movq %rsp, %rbp
+.seh_setframe %rbp, 0
+.seh_endprologue
+
+  { store pointer to stack area (including GP registers) }
+  lea 16(%rsp), %rdx
+
+  sub $32, %rsp
+  movq %xmm0, (%rsp)
+  movq %xmm1, 8(%rsp)
+  movq %xmm2, 16(%rsp)
+  movq %xmm3, 24(%rsp)
+
+  { store pointer to FP registers }
+  movq %rsp, %r8
+
+  sub $32, %rsp
+
+  { call function with context }
+CallbackContext:
+  movq $0x1234567812345678, %rcx
+CallbackAddress:
+  movq $0x8765432187654321, %rax
+CallbackCall:
+
+  call *%rax
+
+  { duplicate result to SSE result register }
+  movq %rax, %xmm0
+
+  { restore stack }
+  movq %rbp, %rsp
+  popq %rbp
+
+  ret
+CallbackEnd:
+end;
+{$endif}
+
+type
+  TSystemFunctionCallback = class(TFunctionCallCallback)
+  {$ifdef windows}
+  private type
+    {$ScopedEnums On}
+    TArgType = (
+      GenReg,
+      FPReg,
+      Stack
+    );
+    {$ScopedEnums Off}
+
+    TArgInfo = record
+      ArgType: TArgType;
+      Offset: SizeInt;
+      Deref: Boolean;
+    end;
+  private
+    fData: Pointer;
+    fSize: PtrUInt;
+    fFlags: TFunctionCallFlags;
+    fContext: Pointer;
+    fArgs: specialize TArray<TFunctionCallParameterInfo>;
+    fArgInfos: specialize TArray<TArgInfo>;
+    fRefArgs: specialize TArray<SizeInt>;
+    fResultType: PTypeInfo;
+    fResultIdx: SizeInt;
+    fResultInParam: Boolean;
+  private
+    function Handler(aStack, aFP: Pointer): PtrUInt;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); virtual; abstract;
+    procedure CreateCallback;
+    procedure CreateArgInfos;
+    function GetCodeAddress: CodePointer; override;
+  {$endif}
+  public
+    constructor Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+    destructor Destroy; override;
+  end;
+
+  TSystemFunctionCallbackMethod = class(TSystemFunctionCallback)
+  private
+    fHandler: TFunctionCallMethod;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); override;
+  public
+    constructor Create(aHandler: TFunctionCallMethod; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+  end;
+
+  TSystemFunctionCallbackProc = class(TSystemFunctionCallback)
+  private
+    fHandler: TFunctionCallProc;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); override;
+  public
+    constructor Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+  end;
+
+{$ifdef windows}
+function TSystemFunctionCallback.Handler(aStack, aFP: Pointer): PtrUInt;
+var
+  args: specialize TArray<Pointer>;
+  i, len: SizeInt;
+  val: PPtrUInt;
+  resptr: Pointer;
+begin
+  len := Length(fArgInfos);
+  if fResultInParam then
+    Dec(len);
+  SetLength(args, len);
+  for i := 0 to High(fArgInfos) do begin
+    if i = fResultIdx then
+      Continue;
+    case fArgInfos[i].ArgType of
+      TArgType.GenReg,
+      TArgType.Stack:
+        val := @PPtrUInt(aStack)[fArgInfos[i].Offset];
+      TArgType.FPReg:
+        val := @PPtrUInt(aFP)[fArgInfos[i].Offset];
+    end;
+    if fArgInfos[i].Deref then
+      args[i] := PPtrUInt(val^)
+    else
+      args[i] := val;
+  end;
+
+  if fResultInParam then begin
+    case fArgInfos[fResultIdx].ArgType of
+      TArgType.GenReg,
+      TArgType.Stack:
+        resptr := @PPtrUInt(aStack)[fArgInfos[fResultIdx].Offset];
+      TArgType.FPReg:
+        resptr := @PPtrUInt(aFP)[fArgInfos[fResultIdx].Offset];
+    end;
+    if fArgInfos[fResultIdx].Deref then
+      resptr := PPointer(resptr)^;
+  end else
+    resptr := @Result;
+
+  CallHandler(args, resptr, fContext);
+end;
+
+procedure TSystemFunctionCallback.CreateCallback;
+
+  procedure ReplacePlaceholder(aPlaceholder: PtrUInt; aValue: PtrUInt; aOfs, aSize: PtrUInt);
+  var
+    found: Boolean;
+    i: PtrUInt;
+  begin
+    found := False;
+    for i := aOfs to aOfs + aSize - 1 do begin
+      if PPtrUInt(@PByte(fData)[i])^ = PtrUInt(aPlaceholder) then begin
+        PPtrUInt(@(PByte(fData)[i]))^ := PtrUInt(aValue);
+        found := True;
+        Break;
+      end;
+    end;
+
+    if not found then
+      raise Exception.Create(SErrMethodImplCreateFailed);
+  end;
+
+var
+  src: Pointer;
+  ofs, size: PtrUInt;
+  method: TMethod;
+begin
+  fSize := PtrUInt(CallbackEndPtr) - PtrUInt(@Callback) + 1;
+  fData := AllocateMemory(fSize);
+  if not Assigned(fData) then
+    raise Exception.Create(SErrMethodImplCreateFailed);
+
+  src := @Callback;
+  Move(src^, fData^, fSize);
+
+  ofs := PtrUInt(CallbackContextPtr) - PtrUInt(@Callback);
+  size := PtrUInt(CallbackAddressPtr) - PtrUInt(CallbackContextPtr);
+
+  method := TMethod(@Handler);
+
+  ReplacePlaceholder(PlaceholderContext, PtrUInt(method.Data), ofs, size);
+
+  ofs := PtrUInt(CallbackAddressPtr) - PtrUInt(@Callback);
+  size := PtrUInt(CallbackCallPtr) - PtrUInt(CallbackAddressPtr);
+
+  ReplacePlaceholder(PlaceholderAddress, PtrUInt(method.Code), ofs, size);
+
+  if not ProtectMemory(fData, fSize, True) then
+    raise Exception.Create(SErrMethodImplCreateFailed);
+end;
+
+procedure TSystemFunctionCallback.CreateArgInfos;
+type
+  PBoolean16 = ^Boolean16;
+  PBoolean32 = ^Boolean32;
+  PBoolean64 = ^Boolean64;
+  PByteBool = ^ByteBool;
+  PQWordBool = ^QWordBool;
+var
+  stackarea: array of PtrUInt;
+  stackptr: Pointer;
+  regs: array[0..3] of PtrUInt;
+  i, argidx, ofs: LongInt;
+  val: PtrUInt;
+  td: PTypeData;
+  argcount, resreg, refargs: SizeInt;
+begin
+  fResultInParam := ReturnResultInParam(fResultType);
+
+  ofs := 0;
+  argidx := 0;
+  refargs := 0;
+  argcount := Length(fArgs);
+  if fResultInParam then begin
+    if fcfStatic in fFlags then
+      fResultIdx := 0
+    else
+      fResultIdx := 1;
+    Inc(argcount);
+  end else
+    fResultIdx := -1;
+  SetLength(fArgInfos, argcount);
+  SetLength(fRefArgs, argcount);
+  if fResultIdx >= 0 then begin
+    fArgInfos[fResultIdx].ArgType := TArgType.GenReg;
+    fArgInfos[fResultIdx].Offset := fResultIdx;
+  end;
+  for i := 0 to High(fArgs) do begin
+    if argidx = fResultIdx then
+      Inc(argidx);
+    if pfResult in fArgs[i].ParamFlags then begin
+      fResultIdx := argidx;
+      fResultInParam := True;
+    end;
+    fArgInfos[argidx].ArgType := TArgType.GenReg;
+    fArgInfos[argidx].Deref := False;
+    if pfArray in fArgs[i].ParamFlags then
+      fArgInfos[argidx].Deref := True
+    else if fArgs[i].ParamFlags * [pfOut, pfVar, pfConstRef] <> [] then
+      fArgInfos[argidx].Deref := True
+    else begin
+      td := GetTypeData(fArgs[i].ParamType);
+      case fArgs[i].ParamType^.Kind of
+        tkSString,
+        tkMethod:
+          fArgInfos[argidx].Deref := True;
+        tkArray:
+          if not (td^.ArrayData.Size in [1, 2, 4, 8]) then
+            fArgInfos[argidx].Deref := True;
+        tkRecord:
+          if not (td^.RecSize in [1, 2, 4, 8]) then
+            fArgInfos[argidx].Deref := True;
+        { ToDo: handle object like record? }
+        tkObject,
+        tkWString,
+        tkUString,
+        tkAString,
+        tkDynArray,
+        tkClass,
+        tkClassRef,
+        tkInterface,
+        tkInterfaceRaw,
+        tkProcVar,
+        tkPointer:
+          ;
+        tkInt64,
+        tkQWord:
+          ;
+        tkSet: begin
+          case td^.OrdType of
+            otUByte: begin
+              case td^.SetSize of
+                0, 1, 2, 4, 8:
+                  ;
+                else
+                  fArgInfos[argidx].Deref := True;
+              end;
+            end;
+            otUWord,
+            otULong:
+              ;
+          end;
+        end;
+        tkEnumeration,
+        tkInteger,
+        tkBool:
+          ;
+        tkFloat: begin
+          case td^.FloatType of
+            ftCurr,
+            ftComp:
+              ;
+            ftSingle,
+            ftDouble : fArgInfos[argidx].ArgType := TArgType.FPReg;
+            ftExtended: {val := PInt64(PExtended(aArgs[i].ValueRef))^};
+          end;
+        end;
+      else
+        raise EInvocationError.CreateFmt(SErrFailedToConvertArg, [i, fArgs[i].ParamType^.Name]);
+      end;
+    end;
+
+    if (fArgInfos[argidx].ArgType = TArgType.FPReg) and (ofs >= 4) then
+      fArgInfos[argidx].ArgType := TArgType.Stack;
+    if (fArgInfos[argidx].ArgType = TArgType.GenReg) and (ofs >= 4) then
+      fArgInfos[argidx].ArgType := TArgType.Stack;
+
+    fArgInfos[argidx].Offset := ofs;
+    Inc(ofs);
+    Inc(argidx);
+  end;
+end;
+
+function TSystemFunctionCallback.GetCodeAddress: CodePointer;
+begin
+  Result := fData;
+end;
+{$endif}
+
+constructor TSystemFunctionCallback.Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+{$ifdef windows}
+var
+  i: SizeInt;
+{$endif}
+begin
+{$ifdef windows}
+  fContext := aContext;
+  SetLength(fArgs, Length(aArgs));
+  for i := 0 to High(aArgs) do
+    fArgs[i] := aArgs[i];
+  fResultType := aResultType;
+  fFlags := aFlags;
+  CreateCallback;
+  CreateArgInfos;
+{$else}
+  raise EInvocationError.Create(SErrPlatformNotSupported);
+{$endif}
+end;
+
+destructor TSystemFunctionCallback.Destroy;
+begin
+{$ifdef windows}
+  if Assigned(fData) then
+    FreeMemory(fData);
+{$endif}
+end;
+
+constructor TSystemFunctionCallbackProc.Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+begin
+  inherited Create(aContext, aCallConv, aArgs, aResultType, aFlags);
+  fHandler := aHandler;
+end;
+
+procedure TSystemFunctionCallbackProc.CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+begin
+  fHandler(aArgs, aResult, aContext);
+end;
+
+constructor TSystemFunctionCallbackMethod.Create(aHandler: TFunctionCallMethod; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+begin
+  inherited Create(aContext, aCallConv, aArgs, aResultType, aFlags);
+  fHandler := aHandler;
+end;
+
+procedure TSystemFunctionCallbackMethod.CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+begin
+  fHandler(aArgs, aResult, aContext);
+end;
+
+function SystemCreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := TSystemFunctionCallbackProc.Create(aHandler, aContext, aCallConv, aArgs, aResultType, aFlags);
+end;
+
+function SystemCreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := TSystemFunctionCallbackMethod.Create(aHandler, aContext, aCallConv, aArgs, aResultType, aFlags);
+end;
+
 const
   SystemFunctionCallManager: TFunctionCallManager = (
     Invoke: @SystemInvoke;
-    CreateCallbackProc: Nil;
-    CreateCallbackMethod: Nil;
+    CreateCallbackProc: @SystemCreateCallbackProc;
+    CreateCallbackMethod: @SystemCreateCallbackMethod;
   );
 
 procedure InitSystemFunctionCallManager;
