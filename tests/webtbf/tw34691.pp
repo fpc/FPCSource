@@ -10,11 +10,12 @@ uses
   Classes, SysUtils;
 
 type
+  {$M+}
   TObjA = class
+  public
     Icon: String;
   end;
 
-  {$M+}
   TObjB = class
     FObjA: TObjA;
 
