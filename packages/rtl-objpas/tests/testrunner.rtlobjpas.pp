@@ -22,6 +22,9 @@ uses
 {$ifdef testinvoke}
   tests.rtti.invoke,
 {$endif}
+{$ifdef testimpl}
+  tests.rtti.impl,
+{$endif}
   tests.rtti;
 
 var

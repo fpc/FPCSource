@@ -20,6 +20,10 @@ type
 function CopyValue({$ifdef fpc}constref{$else}const [ref]{$endif} aValue: TValue): TValue;
 function EqualValues({$ifdef fpc}constref{$else}const [ref]{$endif} aValue1, aValue2: TValue): Boolean;
 
+function TypeKindToStr(aTypeKind: TTypeKind): String; inline;
+
+function GetInstValue(aValue: TObject): TValue;
+function GetPointerValue(aValue: Pointer): TValue;
 function GetIntValue(aValue: SizeInt): TValue;
 function GetAnsiString(const aValue: AnsiString): TValue;
 function GetShortString(const aValue: ShortString): TValue;
@@ -168,6 +172,25 @@ begin
     end;
   end else
     Result := False;
+end;
+
+function TypeKindToStr(aTypeKind: TTypeKind): String;
+begin
+{$ifdef fpc}
+  Str(aTypeKind, Result);
+{$else}
+  Result := GetEnumName(TypeInfo(TTypeKind), Ord(aTypeKind));
+{$endif}
+end;
+
+function GetInstValue(aValue: TObject): TValue;
+begin
+  Result := TValue.{$ifdef fpc}specialize{$endif}From<TObject>(aValue);
+end;
+
+function GetPointerValue(aValue: Pointer): TValue;
+begin
+  Result := TValue.{$ifdef fpc}specialize{$endif}From<Pointer>(aValue);
 end;
 
 function GetIntValue(aValue: SizeInt): TValue;
