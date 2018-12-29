@@ -16,6 +16,7 @@ unit Rtti experimental;
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
+{$Assertions on}
 
 { Note: since the Lazarus IDE is not yet capable of correctly handling generic
   functions it is best to define a InLazIDE define inside the IDE that disables
@@ -312,6 +313,31 @@ type
     property ParamType: TRttiType read GetParamType;
     property Flags: TParamFlags read GetFlags;
     function ToString: String; override;
+  end;
+
+  TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object;
+  TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+
+  TMethodImplementation = class
+  private
+    fLowLevelCallback: TFunctionCallCallback;
+    fCallbackProc: TMethodImplementationCallbackProc;
+    fCallbackMethod: TMethodImplementationCallbackMethod;
+    fArgs: specialize TArray<TFunctionCallParameterInfo>;
+    fArgLen: SizeInt;
+    fRefArgs: specialize TArray<SizeInt>;
+    fFlags: TFunctionCallFlags;
+    fResult: PTypeInfo;
+    fCC: TCallConv;
+    function GetCodeAddress: CodePointer;
+    procedure InitArgs;
+    procedure HandleCallback(const aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+    constructor Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod);
+    constructor Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackProc);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property CodeAddress: CodePointer read GetCodeAddress;
   end;
 
   TRttiInvokableType = class(TRttiType)
@@ -656,6 +682,10 @@ resourcestring
   SErrInvokeRttiDataError     = 'The RTTI data is inconsistent for method: %s';
   SErrInvokeCallableNotProc   = 'The callable value is not a procedure variable for: %s';
   SErrInvokeCallableNotMethod = 'The callable value is not a method variable for: %s';
+  SErrMethodImplNoCallback    = 'No callback specified for method implementation';
+  SErrMethodImplInsufficientRtti = 'Insufficient RTTI to create method implementation';
+  SErrMethodImplCreateFailed  = 'Failed to create method implementation';
+  SErrMethodImplCreateNoArg   = 'TMethodImplementation can not be created this way';
 
 var
   PoolRefCount : integer;
@@ -2403,6 +2433,116 @@ begin
   end;
 
   Result := FString;
+end;
+
+{ TMethodImplementation }
+
+function TMethodImplementation.GetCodeAddress: CodePointer;
+begin
+  Result := fLowLevelCallback.CodeAddress;
+end;
+
+procedure TMethodImplementation.InitArgs;
+var
+  i, refargs: SizeInt;
+begin
+  i := 0;
+  refargs := 0;
+  SetLength(fRefArgs, Length(fArgs));
+  while i < Length(fArgs) do begin
+    if (fArgs[i].ParamFlags * [pfVar, pfOut] <> []) and not (pfHidden in fArgs[i].ParamFlags) then begin
+      fRefArgs[refargs] := fArgLen;
+      Inc(refargs);
+    end;
+
+    if pfArray in fArgs[i].ParamFlags then begin
+      Inc(i);
+      if (i = Length(fArgs)) or not (pfHigh in fArgs[i].ParamFlags) then
+        raise EInsufficientRtti.Create(SErrMethodImplCreateFailed);
+      Inc(fArgLen);
+    end else if not (pfHidden in fArgs[i].ParamFlags) or (pfSelf in fArgs[i].ParamFlags) then
+      Inc(fArgLen)
+    else if (pfResult in fArgs[i].ParamFlags) then
+      fResult := fArgs[i].ParamType;
+
+    Inc(i);
+  end;
+
+  SetLength(fRefArgs, refargs);
+end;
+
+procedure TMethodImplementation.HandleCallback(const aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+var
+  i, argidx: SizeInt;
+  args: TValueArray;
+  res: TValue;
+begin
+  Assert(fArgLen = Length(aArgs), 'Length of arguments does not match');
+  SetLength(args, fArgLen);
+  argidx := 0;
+  i := 0;
+  while i < Length(fArgs) do begin
+    if pfArray in fArgs[i].ParamFlags then begin
+      Inc(i);
+      Assert((i < Length(fArgs)) and (pfHigh in fArgs[i].ParamFlags), 'Expected high parameter after open array parameter');
+      TValue.MakeOpenArray(aArgs[i - 1], SizeInt(aArgs[i]), fArgs[i].ParamType, args[argidx]);
+    end else if not (pfHidden in fArgs[i].ParamFlags) or (pfSelf in fArgs[i].ParamFlags) then begin
+      TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx]);
+    end;
+
+    Inc(i);
+    Inc(argidx);
+  end;
+
+  if Assigned(fCallbackMethod) then
+    fCallbackMethod(aContext, args, res)
+  else
+    fCallbackProc(aContext, args, res);
+
+  { copy back var/out parameters }
+  for i := 0 to High(fRefArgs) do begin
+    args[fRefArgs[i]].ExtractRawData(aArgs[fRefArgs[i]]);
+  end;
+
+  if Assigned(fResult) then
+    res.ExtractRawData(aResult);
+end;
+
+constructor TMethodImplementation.Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod);
+begin
+  fCC := aCC;
+  fArgs := aArgs;
+  fResult := aResult;
+  fFlags := aFlags;
+  fCallbackMethod := aCallback;
+  InitArgs;
+  fLowLevelCallback := CreateCallbackMethod(@HandleCallback, fCC, aArgs, aResult, aFlags, aUserData);
+  if not Assigned(fLowLevelCallback) then
+    raise EInsufficientRtti.Create(SErrMethodImplCreateFailed);
+end;
+
+constructor TMethodImplementation.Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackProc);
+begin
+  fCC := aCC;
+  fArgs := aArgs;
+  fResult := aResult;
+  fFlags := aFlags;
+  fCallbackProc := aCallback;
+  InitArgs;
+  fLowLevelCallback := CreateCallbackMethod(@HandleCallback, fCC, aArgs, aResult, aFlags, aUserData);
+  if not Assigned(fLowLevelCallback) then
+    raise EInsufficientRtti.Create(SErrMethodImplCreateFailed);
+end;
+
+constructor TMethodImplementation.Create;
+begin
+  raise EInvalidOpException.Create(SErrMethodImplCreateNoArg);
+end;
+
+destructor TMethodImplementation.Destroy;
+begin
+  fLowLevelCallback.Free;
+  inherited Destroy;
 end;
 
 { TRttiMethod }
