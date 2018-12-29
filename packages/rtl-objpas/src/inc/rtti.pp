@@ -345,11 +345,18 @@ type
     function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; virtual; abstract;
     function GetCallingConvention: TCallConv; virtual; abstract;
     function GetReturnType: TRttiType; virtual; abstract;
+    function GetFlags: TFunctionCallFlags; virtual; abstract;
+  public type
+    TCallbackMethod = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue) of object;
+    TCallbackProc = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
   public
     function GetParameters: specialize TArray<TRttiParameter>; inline;
     property CallingConvention: TCallConv read GetCallingConvention;
     property ReturnType: TRttiType read GetReturnType;
     function Invoke(const aProcOrMeth: TValue; const aArgs: array of TValue): TValue; virtual; abstract;
+    { Note: once "reference to" is supported these will be replaced by a single method }
+    function CreateImplementation(aCallback: TCallbackMethod): TMethodImplementation;
+    function CreateImplementation(aCallback: TCallbackProc): TMethodImplementation;
   end;
 
   TRttiMethodType = class(TRttiInvokableType)
@@ -361,6 +368,7 @@ type
     function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
     function GetCallingConvention: TCallConv; override;
     function GetReturnType: TRttiType; override;
+    function GetFlags: TFunctionCallFlags; override;
   public
     function Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue; override;
   end;
@@ -372,6 +380,7 @@ type
     function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
     function GetCallingConvention: TCallConv; override;
     function GetReturnType: TRttiType; override;
+    function GetFlags: TFunctionCallFlags; override;
   public
     function Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue; override;
   end;
@@ -2663,6 +2672,70 @@ begin
   Result := GetParameters(False);
 end;
 
+function TRttiInvokableType.CreateImplementation(aCallback: TCallbackMethod): TMethodImplementation;
+var
+  params: specialize TArray<TRttiParameter>;
+  args: specialize TArray<TFunctionCallParameterInfo>;
+  res: PTypeInfo;
+  restype: TRttiType;
+  resinparam: Boolean;
+  i: SizeInt;
+begin
+  if not Assigned(aCallback) then
+    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
+
+  resinparam := False;
+  params := GetParameters(True);
+  SetLength(args, Length(params));
+  for i := 0 to High(params) do begin
+    args[i].ParamType := params[i].ParamType.FTypeInfo;
+    args[i].ParamFlags := params[i].Flags;
+    args[i].ParaLocs := Nil;
+    if pfResult in params[i].Flags then
+      resinparam := True;
+  end;
+
+  restype := GetReturnType;
+  if Assigned(restype) and not resinparam then
+    res := restype.FTypeInfo
+  else
+    res := Nil;
+
+  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, Self, TMethodImplementationCallbackMethod(aCallback));
+end;
+
+function TRttiInvokableType.CreateImplementation(aCallback: TCallbackProc): TMethodImplementation;
+var
+  params: specialize TArray<TRttiParameter>;
+  args: specialize TArray<TFunctionCallParameterInfo>;
+  res: PTypeInfo;
+  restype: TRttiType;
+  resinparam: Boolean;
+  i: SizeInt;
+begin
+  if not Assigned(aCallback) then
+    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
+
+  resinparam := False;
+  params := GetParameters(True);
+  SetLength(args, Length(params));
+  for i := 0 to High(params) do begin
+    args[i].ParamType := params[i].ParamType.FTypeInfo;
+    args[i].ParamFlags := params[i].Flags;
+    args[i].ParaLocs := Nil;
+    if pfResult in params[i].Flags then
+      resinparam := True;
+  end;
+
+  restype := GetReturnType;
+  if Assigned(restype) and not resinparam then
+    res := restype.FTypeInfo
+  else
+    res := Nil;
+
+  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, Self, TMethodImplementationCallbackProc(aCallback));
+end;
+
 { TRttiMethodType }
 
 function TRttiMethodType.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
@@ -2777,6 +2850,11 @@ begin
     Result := Nil;
 end;
 
+function TRttiMethodType.GetFlags: TFunctionCallFlags;
+begin
+  Result := [];
+end;
+
 function TRttiMethodType.Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue;
 var
   method: PMethod;
@@ -2863,6 +2941,11 @@ begin
   finally
     context.Free;
   end;
+end;
+
+function TRttiProcedureType.GetFlags: TFunctionCallFlags;
+begin
+  Result := [fcfStatic];
 end;
 
 function TRttiProcedureType.Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue;
