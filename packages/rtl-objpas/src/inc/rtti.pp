@@ -2049,7 +2049,7 @@ begin
       otUQWord: Result := FData.FAsUInt64;
     end
   else if (Kind = tkFloat) and (TypeData^.FloatType = ftComp) then
-    Result := QWord(FData.FAsComp)
+    Result := Int64(FData.FAsComp)
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
@@ -2068,7 +2068,7 @@ begin
       otUQWord: Result := FData.FAsUInt64;
     end
   else if (Kind = tkFloat) and (TypeData^.FloatType = ftComp) then
-    Result := Int64(FData.FAsComp)
+    Result := QWord(FData.FAsComp)
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
