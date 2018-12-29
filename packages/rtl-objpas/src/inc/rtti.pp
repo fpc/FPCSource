@@ -125,6 +125,8 @@ type
     function IsType(ATypeInfo: PTypeInfo): boolean; inline;
     function TryAsOrdinal(out AResult: int64): boolean;
     function GetReferenceToRawData: Pointer;
+    procedure ExtractRawData(ABuffer: Pointer);
+    procedure ExtractRawDataNoCopy(ABuffer: Pointer);
     class operator := (const AValue: String): TValue; inline;
     class operator := (AValue: LongInt): TValue; inline;
     class operator := (AValue: Single): TValue; inline;
@@ -2301,6 +2303,22 @@ begin
         Assert(false, 'Managed/complex type not handled through IValueData');
     end;
   end;
+end;
+
+procedure TValue.ExtractRawData(ABuffer: Pointer);
+begin
+  if Assigned(FData.FValueData) then
+    FData.FValueData.ExtractRawData(ABuffer)
+  else if Assigned(FData.FTypeInfo) then
+    Move((@FData.FAsPointer)^, ABuffer^, DataSize);
+end;
+
+procedure TValue.ExtractRawDataNoCopy(ABuffer: Pointer);
+begin
+  if Assigned(FData.FValueData) then
+    FData.FValueData.ExtractRawDataNoCopy(ABuffer)
+  else if Assigned(FData.FTypeInfo) then
+    Move((@FData.FAsPointer)^, ABuffer^, DataSize);
 end;
 
 class operator TValue.:=(const AValue: String): TValue;
