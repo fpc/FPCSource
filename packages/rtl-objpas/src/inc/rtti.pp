@@ -542,6 +542,9 @@ resourcestring
 implementation
 
 uses
+{$ifdef windows}
+  Windows,
+{$endif}
   fgl;
 
 type
@@ -700,6 +703,40 @@ var
   PoolRefCount : integer;
   GRttiPool    : TRttiPool;
   FuncCallMgr: TFunctionCallManagerArray;
+
+function AllocateMemory(aSize: PtrUInt): Pointer;
+begin
+{$IF DEFINED(WINDOWS)}
+  Result := VirtualAlloc(Nil, aSize, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);
+{$ELSE}
+  Result := GetMem(aSize);
+{$ENDIF}
+end;
+
+function ProtectMemory(aPtr: Pointer; aSize: PtrUInt; aExecutable: Boolean): Boolean;
+{$IF DEFINED(WINDOWS)}
+var
+  oldprot: DWORD;
+{$ENDIF}
+begin
+{$IF DEFINED(WINDOWS)}
+  if aExecutable then
+    Result := VirtualProtect(aPtr, aSize, PAGE_EXECUTE_READ, oldprot)
+  else
+    Result := VirtualProtect(aPtr, aSize, PAGE_READWRITE, oldprot);
+{$ELSE}
+  Result := True;
+{$ENDIF}
+end;
+
+procedure FreeMemory(aPtr: Pointer);
+begin
+{$IF DEFINED(WINDOWS)}
+  VirtualFree(aPtr, 0, MEM_RELEASE);
+{$ELSE}
+  FreeMem(aPtr);
+{$ENDIF}
+end;
 
 function CCToStr(aCC: TCallConv): String; inline;
 begin
@@ -1719,7 +1756,7 @@ begin
                  end;
     tkBool     : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
-                     otUByte: result.FData.FAsSByte := ShortInt(PBoolean(ABuffer)^);
+                     otUByte: result.FData.FAsSByte := ShortInt(System.PBoolean(ABuffer)^);
                      otUWord: result.FData.FAsUWord := Byte(PBoolean16(ABuffer)^);
                      otULong: result.FData.FAsULong := SmallInt(PBoolean32(ABuffer)^);
                      otUQWord: result.FData.FAsUInt64 := QWord(PBoolean64(ABuffer)^);
