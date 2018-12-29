@@ -7587,6 +7587,7 @@ packages/rtl-objpas/src/x86_64/invoke.inc svneol=native#text/plain
 packages/rtl-objpas/tests/testrunner.rtlobjpas.pp svneol=native#text/pascal
 packages/rtl-objpas/tests/tests.rtti.invoke.pas svneol=native#text/pascal
 packages/rtl-objpas/tests/tests.rtti.pas svneol=native#text/plain
+packages/rtl-objpas/tests/tests.rtti.util.pas svneol=native#text/pascal
 packages/rtl-unicode/Makefile svneol=native#text/plain
 packages/rtl-unicode/Makefile.fpc svneol=native#text/plain
 packages/rtl-unicode/fpmake.pp svneol=native#text/plain
