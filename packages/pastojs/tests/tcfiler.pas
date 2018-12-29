@@ -90,6 +90,7 @@ type
     procedure CheckRestoredPrimitiveExpr(const Path: string; Orig, Rest: TPrimitiveExpr); virtual;
     procedure CheckRestoredBoolConstExpr(const Path: string; Orig, Rest: TBoolConstExpr); virtual;
     procedure CheckRestoredParamsExpr(const Path: string; Orig, Rest: TParamsExpr); virtual;
+    procedure CheckRestoredProcedureExpr(const Path: string; Orig, Rest: TProcedureExpr); virtual;
     procedure CheckRestoredRecordValues(const Path: string; Orig, Rest: TRecordValues); virtual;
     procedure CheckRestoredPasExprArray(const Path: string; Orig, Rest: TPasExprArray); virtual;
     procedure CheckRestoredArrayValues(const Path: string; Orig, Rest: TArrayValues); virtual;
@@ -140,6 +141,7 @@ type
     procedure TestPC_Set;
     procedure TestPC_SetOfAnonymousEnumType;
     procedure TestPC_Record;
+    procedure TestPC_Record_Local;
     procedure TestPC_JSValue;
     procedure TestPC_Array;
     procedure TestPC_ArrayOfAnonymous;
@@ -149,6 +151,7 @@ type
     procedure TestPC_Proc_UTF8;
     procedure TestPC_Proc_Arg;
     procedure TestPC_ProcType;
+    procedure TestPC_Proc_Anonymous;
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
     procedure TestPC_ClassConstructor;
@@ -1078,6 +1081,8 @@ begin
     CheckRestoredPasExpr(Path,TPasExpr(Orig),TPasExpr(Rest))
   else if C=TParamsExpr then
     CheckRestoredParamsExpr(Path,TParamsExpr(Orig),TParamsExpr(Rest))
+  else if C=TProcedureExpr then
+    CheckRestoredProcedureExpr(Path,TProcedureExpr(Orig),TProcedureExpr(Rest))
   else if C=TRecordValues then
     CheckRestoredRecordValues(Path,TRecordValues(Orig),TRecordValues(Rest))
   else if C=TArrayValues then
@@ -1256,6 +1261,13 @@ procedure TCustomTestPrecompile.CheckRestoredParamsExpr(const Path: string;
 begin
   CheckRestoredElement(Path+'.Value',Orig.Value,Rest.Value);
   CheckRestoredPasExprArray(Path+'.Params',Orig.Params,Rest.Params);
+  CheckRestoredPasExpr(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredProcedureExpr(const Path: string;
+  Orig, Rest: TProcedureExpr);
+begin
+  CheckRestoredProcedure(Path+'$Ano',Orig.Proc,Rest.Proc);
   CheckRestoredPasExpr(Path,Orig,Rest);
 end;
 
@@ -1691,6 +1703,28 @@ begin
   WriteReadUnit;
 end;
 
+procedure TTestPrecompile.TestPC_Record_Local;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'procedure DoIt;',
+  'implementation',
+  'procedure DoIt;',
+  'type',
+  '  TRec = record',
+  '    i: longint;',
+  '    s: string;',
+  '  end;',
+  '  P = ^TRec;',
+  '  TArrOfRec = array of TRec;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  'end;']);
+  WriteReadUnit;
+end;
+
 procedure TTestPrecompile.TestPC_JSValue;
 begin
   StartUnit(false);
@@ -1861,6 +1895,32 @@ begin
   'end;',
   'procedure DoIt(const a: TArrProc);',
   'begin',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Proc_Anonymous;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TFunc = reference to function(w: word): word;',
+  '  function GetIt(f: TFunc): longint;',
+  'implementation',
+  'var k: byte;',
+  'function GetIt(f: TFunc): longint;',
+  'begin',
+  '  f:=function(w: word): word',
+  '    var j: byte;',
+  '      function GetMul(a,b: longint): longint; ',
+  '      begin',
+  '        Result:=a*b;',
+  '      end;',
+  '    begin',
+  '      Result:=j*GetMul(1,2)*k;',
+  '    end;',
   'end;',
   '']);
   WriteReadUnit;

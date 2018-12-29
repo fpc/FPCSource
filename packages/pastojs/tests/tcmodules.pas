@@ -431,7 +431,7 @@ type
     Procedure TestRecord_Empty;
     Procedure TestRecord_Var;
     Procedure TestRecord_VarExternal;
-    Procedure TestWithRecordDo;
+    Procedure TestRecord_WithDo;
     Procedure TestRecord_Assign;
     Procedure TestRecord_PassAsArgClone;
     Procedure TestRecord_AsParams;
@@ -445,6 +445,12 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
+    // Test name clash const and local record
+    // Test RTTI of local record
+    // Test pcu local record, name clash and rtti
+
+    // advanced record
+    // ToDo: TestRecord_InFunction;
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -9127,7 +9133,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestWithRecordDo;
+procedure TTestModule.TestRecord_WithDo;
 begin
   StartProgram(false);
   Add('type');
@@ -9760,6 +9766,7 @@ procedure TTestModule.TestRecord_InFunction;
 begin
   StartProgram(false);
   Add([
+  'var TPoint: longint = 3;',
   'procedure DoIt;',
   'type',
   '  TPoint = record x,y: longint; end;',
@@ -9774,22 +9781,23 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_InFunction',
     LinesToStr([ // statements
-    'this.DoIt = function () {',
-    '  function TPoint(s) {',
-    '    if (s) {',
-    '      this.x = s.x;',
-    '      this.y = s.y;',
-    '    } else {',
-    '      this.x = 0;',
-    '      this.y = 0;',
-    '    };',
-    '    this.$equal = function (b) {',
-    '      return (this.x === b.x) && (this.y === b.y);',
-    '    };',
+    'this.TPoint = 3;',
+    'this.TPoint$1 = function (s) {',
+    '  if (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '  } else {',
+    '    this.x = 0;',
+    '    this.y = 0;',
     '  };',
-    '  var r = new TPoint();',
+    '  this.$equal = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '};',
+    'this.DoIt = function () {',
+    '  var r = new TPoint$1();',
     '  var p = [];',
-    '  p = rtl.arraySetLength(p, TPoint, 2);',
+    '  p = rtl.arraySetLength(p, TPoint$1, 2);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -21857,6 +21865,9 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Record',
     LinesToStr([ // statements
+    '$mod.$rtti.$DynArray("TFloatRec.d$a", {',
+    '  eltype: rtl.char',
+    '});',
     'this.TFloatRec = function (s) {',
     '  if (s) {',
     '    this.d = s.d;',
@@ -21867,9 +21878,6 @@ begin
     '    return this.d === b.d;',
     '  };',
     '};',
-    '$mod.$rtti.$DynArray("TFloatRec.d$a", {',
-    '  eltype: rtl.char',
-    '});',
     '$mod.$rtti.$Record("TFloatRec", {}).addFields("d", $mod.$rtti["TFloatRec.d$a"]);',
     'this.p = null;',
     'this.r = new $mod.TFloatRec();',
@@ -21898,19 +21906,19 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_LocalTypes',
     LinesToStr([ // statements
-    'this.DoIt = function () {',
-    '  function TPoint(s) {',
-    '    if (s) {',
-    '      this.x = s.x;',
-    '      this.y = s.y;',
-    '    } else {',
-    '      this.x = 0;',
-    '      this.y = 0;',
-    '    };',
-    '    this.$equal = function (b) {',
-    '      return (this.x === b.x) && (this.y === b.y);',
-    '    };',
+    'this.TPoint = function(s) {',
+    '  if (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '  } else {',
+    '    this.x = 0;',
+    '    this.y = 0;',
     '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '};',
+    'this.DoIt = function () {',
     '};',
     '']),
     LinesToStr([ // $mod.$main
