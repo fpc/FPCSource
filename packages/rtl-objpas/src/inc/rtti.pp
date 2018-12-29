@@ -1609,11 +1609,8 @@ begin
   { first handle those types that need a TValueData implementation }
   case ATypeInfo^.Kind of
     tkSString  : begin
-                   if Assigned(ABuffer) then
-                     size := Length(PShortString(ABuffer)^) + 1
-                   else
-                     size := 256;
-                   result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, size, ATypeInfo, True);
+                   td := GetTypeData(ATypeInfo);
+                   result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, td^.MaxLength + 1, ATypeInfo, True);
                  end;
     tkWString,
     tkUString,
