@@ -47,7 +47,12 @@ type
   TRttiProperty = class;
   TRttiInstanceType = class;
 
-  TFunctionCallCallback = Pointer;
+  TFunctionCallCallback = class
+  protected
+    function GetCodeAddress: CodePointer; virtual; abstract;
+  public
+    property CodeAddress: CodePointer read GetCodeAddress;
+  end;
 
   TFunctionCallFlag = (
     fcfStatic
@@ -451,15 +456,14 @@ type
   end;
   TFunctionCallParameterArray = specialize TArray<TFunctionCallParameter>;
 
-  TFunctionCallProc = procedure(const aArgs: TValueArray; out aResult: TValue; aContext: Pointer);
-  TFunctionCallMethod = procedure(const aArgs: TValueArray; out aResult: TValue; aContext: Pointer) of object;
+  TFunctionCallProc = procedure(const aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+  TFunctionCallMethod = procedure(const aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer) of object;
 
   TFunctionCallManager = record
     Invoke: procedure(CodeAddress: CodePointer; const Args: TFunctionCallParameterArray; CallingConvention: TCallConv;
               ResultType: PTypeInfo; ResultValue: Pointer; Flags: TFunctionCallFlags);
-    CreateCallbackProc: function(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
-    CreateCallbackMethod: function(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
-    FreeCallback: procedure(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
+    CreateCallbackProc: function(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+    CreateCallbackMethod: function(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
   end;
   TFunctionCallManagerArray = array[TCallConv] of TFunctionCallManager;
 
@@ -480,9 +484,8 @@ procedure GetFunctionCallManagers(out aFuncCallMgrs: TFunctionCallManagerArray);
 function Invoke(aCodeAddress: CodePointer; const aArgs: TValueArray; aCallConv: TCallConv;
   aResultType: PTypeInfo; aIsStatic: Boolean; aIsConstructor: Boolean): TValue;
 
-function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
-function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
-procedure FreeCallback(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
+function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
 
@@ -670,20 +673,15 @@ begin
   raise ENotImplemented.Create(SErrInvokeNotImplemented);
 end;
 
-function NoCreateCallbackProc(aFunc: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+function NoCreateCallbackProc(aFunc: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   Result := Nil;
   raise ENotImplemented.Create(SErrCallbackNotImplented);
 end;
 
-function NoCreateCallbackMethod(aFunc: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+function NoCreateCallbackMethod(aFunc: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   Result := Nil;
-  raise ENotImplemented.Create(SErrCallbackNotImplented);
-end;
-
-procedure NoFreeCallback(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
-begin
   raise ENotImplemented.Create(SErrCallbackNotImplented);
 end;
 
@@ -692,7 +690,6 @@ const
     Invoke: @NoInvoke;
     CreateCallbackProc: @NoCreateCallbackProc;
     CreateCallbackMethod: @NoCreateCallbackMethod;
-    FreeCallback: @NoFreeCallback
   );
 
 procedure SetFunctionCallManager(aCallConv: TCallConv; constref aFuncCallMgr: TFunctionCallManager;
@@ -931,7 +928,7 @@ begin
   mgr.Invoke(aCodeAddress, args, aCallConv, restype, resptr, flags);
 end;
 
-function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   if not Assigned(FuncCallMgr[aCallConv].CreateCallbackProc) then
     raise ENotImplemented.Create(SErrCallbackNotImplented);
@@ -942,7 +939,7 @@ begin
   Result := FuncCallMgr[aCallConv].CreateCallbackProc(aHandler, aCallConv, aArgs, aResultType, aFlags, aContext);
 end;
 
-function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   if not Assigned(FuncCallMgr[aCallConv].CreateCallbackMethod) then
     raise ENotImplemented.Create(SErrCallbackNotImplented);
@@ -951,12 +948,6 @@ begin
     raise EArgumentNilException.Create(SErrCallbackHandlerNil);
 
   Result := FuncCallMgr[aCallConv].CreateCallbackMethod(aHandler, aCallConv, aArgs, aResultType, aFlags, aContext);
-end;
-
-procedure FreeCallback(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
-begin
-  if Assigned(FuncCallMgr[aCallConv].FreeCallback) then
-    FuncCallMgr[aCallConv].FreeCallback(aCallback, aCallConv);
 end;
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
