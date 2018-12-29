@@ -47,6 +47,19 @@ type
   TRttiProperty = class;
   TRttiInstanceType = class;
 
+  TFunctionCallCallback = Pointer;
+
+  TFunctionCallFlag = (
+    fcfStatic
+  );
+  TFunctionCallFlags = set of TFunctionCallFlag;
+
+  TFunctionCallParameterInfo = record
+    ParamType: PTypeInfo;
+    ParamFlags: TParamFlags;
+    ParaLocs: PParameterLocations;
+  end;
+
   IValueData = interface
   ['{1338B2F3-2C21-4798-A641-CA2BC5BF2396}']
     procedure ExtractRawData(ABuffer: pointer);
@@ -431,25 +444,12 @@ type
   EInvocationError = class(Exception);
   ENonPublicType = class(Exception);
 
-  TFunctionCallParameterInfo = record
-    ParamType: PTypeInfo;
-    ParamFlags: TParamFlags;
-    ParaLocs: PParameterLocations;
-  end;
-
   TFunctionCallParameter = record
     ValueRef: Pointer;
     ValueSize: SizeInt;
     Info: TFunctionCallParameterInfo;
   end;
   TFunctionCallParameterArray = specialize TArray<TFunctionCallParameter>;
-
-  TFunctionCallFlag = (
-    fcfStatic
-  );
-  TFunctionCallFlags = set of TFunctionCallFlag;
-
-  TFunctionCallCallback = Pointer;
 
   TFunctionCallProc = procedure(const aArgs: TValueArray; out aResult: TValue; aContext: Pointer);
   TFunctionCallMethod = procedure(const aArgs: TValueArray; out aResult: TValue; aContext: Pointer) of object;
