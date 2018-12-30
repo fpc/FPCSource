@@ -1,4 +1,5 @@
-program CaseBranchTest;
+{$goto on}
+program bcase;
 
 {$mode objfpc}{$H+}
 
@@ -181,7 +182,7 @@ type
     A_MOVDDUP, A_MOVSHDUP, A_MOVSLDUP, A_VMREAD, A_VMWRITE, A_VMCALL, A_VMLAUNCH,
     A_VMRESUME, A_VMXOFF, A_VMXON, A_VMCLEAR, A_VMPTRLD, A_VMPTRST, A_VMRUN,
     A_VMMCALL, A_VMLOAD, A_VMSAVE, A_STGI, A_CLGI, A_SKINIT, A_INVLPGA, A_MONTMUL,
-    A_XSHA1, A_XSHA256, A_DMINT, A_RDM, A_MOVABS, A_MOVSXD, A_CQO, A_CDQE, 
+    A_XSHA1, A_XSHA256, A_DMINT, A_RDM, A_MOVABS, A_MOVSXD, A_CQO, A_CDQE,
     A_CMPXCHG16B, A_MOVNTSS, A_MOVNTSD, A_INSERTQ, A_EXTRQ, A_LZCNT, A_PABSB,
     A_PABSW, A_PABSD, A_PALIGNR, A_PHADDW, A_PHADDD, A_PHADDSW, A_PHSUBW, A_PHSUBD,
     A_PHSUBSW, A_PMADDUBSW, A_PMULHRSW, A_PSHUFB, A_PSIGNB, A_PSIGNW, A_PSIGND,
@@ -583,6 +584,78 @@ type
       function TestTitle: shortstring; override;
   end;
 
+  TSingleEntryAtZeroWithElse = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TSingleEntryAtMinus1WithDefault = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TSingleEntryAtMinus4WithElse = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TSingleEntryWith0To5RangeWithElse = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TSingleEntryWith0To50RangeWithElse = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TSingleEntryWith1To5RangeWithElse = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TSingleEntryWith1To50RangeWithElse = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TSingleEntryWithMinus1To5RangeWithElse = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TSingleEntryWithMinus1To50RangeWithElse = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
   TExtremeRange1 = class(TWordTest)
     protected
       procedure DoTestIteration(Iteration: Integer); override;
@@ -673,7 +746,6 @@ type
       function WriteResults: Boolean; override;
   end;
 
-  
   TSparseDataTest3 = class(TWordTest)
     protected
       procedure DoCaseBlock(Index: Integer; Input: TInstructionSet); inline;
@@ -696,6 +768,22 @@ type
   end;
 
   TSparseDataMidpointWeighted3 = class(TSparseDataTest3)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TLinearListDependsOnInput = class(TByteTest)
+    protected
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+      function WriteResults: Boolean; override;
+  end;
+
+  TCStyleCascade = class(TByteTest)
     protected
       procedure DoTestIteration(Iteration: Integer); override;
     public
@@ -1111,6 +1199,8 @@ procedure TSingleEntryWithElse.DoTestIteration(Iteration: Integer);
     Index: Byte;
   begin
     Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
     case Index of
       71: FResultStorage[Index] := 1;
       else FResultStorage[Index] := 0;
@@ -1128,6 +1218,8 @@ procedure TSingleEntryWithElseUnlikely.DoTestIteration(Iteration: Integer);
     Index: Byte;
   begin
     Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
     case ((Index and $2) shr 1) or (Index and $1) of
       1: FResultStorage[Index] := 1;
       else FResultStorage[Index] := 0;
@@ -1146,8 +1238,424 @@ procedure TSingleEntryWithElseWeighted.DoTestIteration(Iteration: Integer);
     Index: Byte;
   begin
     Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
     case ((Index and $2) shr 1) and (Index and $1) of
       1: FResultStorage[Index] := 1;
+      else FResultStorage[Index] := 0;
+    end;
+  end;
+
+{ TSingleEntryAtZeroWithElse }
+
+function TSingleEntryAtZeroWithElse.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "0:" and else block';
+  end;
+
+function TSingleEntryAtZeroWithElse.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+
+    if FResultStorage[0] <> 1 then
+      begin
+        WriteLn('FAIL - Index 0; expected $01 got $', hexstr(FResultStorage[0], 2));
+        Result := False;
+        Exit;
+      end;
+
+    for X := 1 to $FF do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+  end;
+
+procedure TSingleEntryAtZeroWithElse.DoTestIteration(Iteration: Integer);
+  var
+    Index: Byte;
+  begin
+    Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
+    case Index of
+      0: FResultStorage[Index] := 1;
+      else FResultStorage[Index] := 0;
+    end;
+  end;
+
+{ TSingleEntryAtMinus1WithDefault }
+
+function TSingleEntryAtMinus1WithDefault.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "-1:" with default value';
+  end;
+
+function TSingleEntryAtMinus1WithDefault.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+
+    for X := 0 to $FE do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    if FResultStorage[255] <> 1 then
+      begin
+        WriteLn('FAIL - Index 255; expected $01 got $', hexstr(FResultStorage[0], 2));
+        Result := False;
+        Exit;
+      end;
+  end;
+
+procedure TSingleEntryAtMinus1WithDefault.DoTestIteration(Iteration: Integer);
+  var
+    Index: ShortInt;
+  begin
+    Index := ShortInt(Iteration and $FF);
+    FResultStorage[Byte(Index)] := 0;
+    case Index of
+      -1: FResultStorage[255] := 1;
+    end;
+  end;
+
+{ TSingleEntryAtMinus4WithElse }
+
+function TSingleEntryAtMinus4WithElse.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "-4:" and else block';
+  end;
+
+function TSingleEntryAtMinus4WithElse.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+    for X := 0 to 251 do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    if FResultStorage[252] <> 1 then
+      begin
+        WriteLn('FAIL - Index 0; expected $01 got $', hexstr(FResultStorage[252], 2));
+        Result := False;
+        Exit;
+      end;
+
+    for X := 253 to 255 do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+  end;
+
+procedure TSingleEntryAtMinus4WithElse.DoTestIteration(Iteration: Integer);
+  var
+    Index: ShortInt;
+  begin
+    Index := ShortInt(Iteration and $FF);
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Byte(Index)] := $FF;
+    case Index of
+      -4: FResultStorage[Index] := 1;
+      else FResultStorage[Index] := 0;
+    end;
+  end;
+
+{ TSingleEntryWith0To5RangeWithElse }
+
+function TSingleEntryWith0To5RangeWithElse.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "0..5" and else block';
+  end;
+
+function TSingleEntryWith0To5RangeWithElse.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+
+    for X := 0 to 5 do
+      if FResultStorage[X] <> 1 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $01 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    for X := 6 to $FF do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+  end;
+
+procedure TSingleEntryWith0To5RangeWithElse.DoTestIteration(Iteration: Integer);
+  var
+    Index: Byte;
+  begin
+    Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
+    case Index of
+      0..5: FResultStorage[Index] := 1;
+      else FResultStorage[Index] := 0;
+    end;
+  end;
+
+{ TSingleEntryWith0To50RangeWithElse }
+
+function TSingleEntryWith0To50RangeWithElse.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "0..50" and else block';
+  end;
+
+function TSingleEntryWith0To50RangeWithElse.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+
+    for X := 0 to 50 do
+      if FResultStorage[X] <> 1 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $01 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    for X := 51 to $FF do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+  end;
+
+procedure TSingleEntryWith0To50RangeWithElse.DoTestIteration(Iteration: Integer);
+  var
+    Index: Byte;
+  begin
+    Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
+    case Index of
+      0..50: FResultStorage[Index] := 1;
+      else FResultStorage[Index] := 0;
+    end;
+  end;
+
+{ TSingleEntryWith1To5RangeWithElse }
+
+function TSingleEntryWith1To5RangeWithElse.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "1..5" and else block';
+  end;
+
+function TSingleEntryWith1To5RangeWithElse.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+    if FResultStorage[0] <> 0 then
+      begin
+        WriteLn('FAIL - Index 0; expected $00 got $', hexstr(FResultStorage[0], 2));
+        Result := False;
+        Exit;
+      end;
+
+    for X := 1 to 5 do
+      if FResultStorage[X] <> 1 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $01 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    for X := 6 to $FF do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+  end;
+
+procedure TSingleEntryWith1To5RangeWithElse.DoTestIteration(Iteration: Integer);
+  var
+    Index: Byte;
+  begin
+    Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
+    case Index of
+      1..5: FResultStorage[Index] := 1;
+      else FResultStorage[Index] := 0;
+    end;
+  end;
+
+{ TSingleEntryWith1To50RangeWithElse }
+
+function TSingleEntryWith1To50RangeWithElse.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "1..50" and else block';
+  end;
+
+function TSingleEntryWith1To50RangeWithElse.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+    if FResultStorage[0] <> 0 then
+      begin
+        WriteLn('FAIL - Index 0; expected $00 got $', hexstr(FResultStorage[0], 2));
+        Result := False;
+        Exit;
+      end;
+
+    for X := 1 to 50 do
+      if FResultStorage[X] <> 1 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $01 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    for X := 51 to $FF do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+  end;
+
+procedure TSingleEntryWith1To50RangeWithElse.DoTestIteration(Iteration: Integer);
+  var
+    Index: Byte;
+  begin
+    Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
+    case Index of
+      1..50: FResultStorage[Index] := 1;
+      else FResultStorage[Index] := 0;
+    end;
+  end;
+
+
+{ TSingleEntryWithMinus1To5RangeWithElse }
+
+function TSingleEntryWithMinus1To5RangeWithElse.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "-1..5" and else block';
+  end;
+
+function TSingleEntryWithMinus1To5RangeWithElse.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+    for X := 0 to 5 do
+      if FResultStorage[X] <> 1 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $01 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    for X := 6 to $FE do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    if FResultStorage[$FF] <> 1 then
+      begin
+        WriteLn('FAIL - Index 255; expected $00 got $', hexstr(FResultStorage[0], 2));
+        Result := False;
+        Exit;
+      end;
+  end;
+
+procedure TSingleEntryWithMinus1To5RangeWithElse.DoTestIteration(Iteration: Integer);
+  var
+    Index: ShortInt;
+  begin
+    Index := ShortInt(Iteration and $FF);
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Byte(Index)] := $FF;
+    case Index of
+      -1..5: FResultStorage[Index] := 1;
+      else FResultStorage[Index] := 0;
+    end;
+  end;
+
+{ TSingleEntryWithMinus1To50RangeWithElse }
+
+function TSingleEntryWithMinus1To50RangeWithElse.TestTitle: shortstring;
+  begin
+    Result := 'Single entry of "-1..50" and else block';
+  end;
+
+function TSingleEntryWithMinus1To50RangeWithElse.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+    for X := 0 to 50 do
+      if FResultStorage[X] <> 1 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $01 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    for X := 51 to $FE do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    if FResultStorage[$FF] <> 1 then
+      begin
+        WriteLn('FAIL - Index 255; expected $00 got $', hexstr(FResultStorage[0], 2));
+        Result := False;
+        Exit;
+      end;
+  end;
+
+procedure TSingleEntryWithMinus1To50RangeWithElse.DoTestIteration(Iteration: Integer);
+  var
+    Index: ShortInt;
+  begin
+    Index := ShortInt(Iteration and $FF);
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Byte(Index)] := $FF;
+    case Index of
+      -1..50: FResultStorage[Index] := 1;
       else FResultStorage[Index] := 0;
     end;
   end;
@@ -1179,7 +1687,7 @@ function TExtremeRange1.WriteResults: Boolean;
           Result := False;
           Exit;
         end;
-    
+
     if FResultStorage[65535] <> 0 then
       begin
         WriteLn('FAIL - Index 65535; expected $02 got $', hexstr(FResultStorage[65535], 2));
@@ -1920,6 +2428,133 @@ procedure TSparseDataMidpointWeighted3.DoTestIteration(Iteration: Integer);
     DoCaseBlock(X, P);
   end;
 
+
+{ TLinearListDependsOnInput }
+
+function TLinearListDependsOnInput.TestTitle: shortstring;
+  begin
+    Result := 'Linear list depends on input';
+  end;
+
+function TLinearListDependsOnInput.WriteResults: Boolean;
+  var
+    X: Word;
+  begin
+    Result := True;
+    if FResultStorage[0] <> 0 then
+      begin
+        WriteLn('FAIL - Index 0; expected $00 got $', hexstr(FResultStorage[0], 2));
+        Result := False;
+        Exit;
+      end;
+
+    for X := 1 to 7 do
+      if FResultStorage[X] <> (X and $3) then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $', hexstr(X and $3, 2), ' got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    for X := 8 to 11 do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    if FResultStorage[12] <> $10 then
+      begin
+        WriteLn('FAIL - Index 12; expected $10 got $', hexstr(FResultStorage[12], 2));
+        Result := False;
+        Exit;
+      end;
+
+    for X := 13 to $FF do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+  end;
+
+procedure TLinearListDependsOnInput.DoTestIteration(Iteration: Integer);
+  var
+    Index: Byte;
+  begin
+    Index := Iteration and $FF;
+    { This helps catch errors where all branches, including else, are skipped }
+    FResultStorage[Index] := $FF;
+    case Index of
+      1..3: FResultStorage[Index] := Index;
+      4..7: FResultStorage[Index] := Index - 4;
+      12:   FResultStorage[Index] := $10;
+      else  FResultStorage[Index] := 0;
+    end;
+  end;
+
+
+{ TCStyleCascade }
+
+function TCStyleCascade.TestTitle: shortstring;
+  begin
+    Result := 'C-style cascade using ''goto''';
+  end;
+
+function TCStyleCascade.WriteResults: Boolean;
+  var
+    X: Byte;
+  begin
+    Result := True;
+    for X := 0 to 5 do
+      if FResultStorage[X] <> ((1 shl X) - 1) then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $', hexstr((1 shl X) - 1, 2), ' got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+
+    for X := 6 to $FF do
+      if FResultStorage[X] <> 0 then
+        begin
+          WriteLn('FAIL - Index ', X, '; expected $00 got $', hexstr(FResultStorage[X], 2));
+          Result := False;
+          Exit;
+        end;
+  end;
+
+procedure TCStyleCascade.DoTestIteration(Iteration: Integer);
+  var
+    X, Tmp: Byte; P: TInstructionSet;
+  label
+    Set1, Set2, Set3, Set4, Default;
+  begin
+    X := Iteration and $FF;
+    Tmp := 0;
+    case X of
+      $1: goto Set1;
+      $2: goto Set2;
+      $3: goto Set3;
+      $4: goto Set4;
+      $5: Tmp := 16;
+    else
+      goto Default;
+    end;
+  Set4:
+    Tmp := Tmp or $8;
+  Set3:
+    Tmp := Tmp or $4;
+  Set2:
+    Tmp := Tmp or $2;
+  Set1:
+    Tmp := Tmp or $1;
+  Default:
+    FResultStorage[X] := Tmp;
+  end;
+
+
 { Main function }
 const
   { TCompleteByteRange and descendants
@@ -1935,7 +2570,7 @@ const
         - LastWeighted: last branch is polled 3 times as often
   }
 
-  TestClasses: array[0..24] of TTestClass = (
+  TestClasses: array[0..35] of TTestClass = (
     TCompleteByteRange,
     TCompleteByteRangeFirstWeighted,
     TCompleteByteRangeLastWeighted,
@@ -1948,6 +2583,15 @@ const
     TSingleEntryWithElse,
     TSingleEntryWithElseUnlikely,
     TSingleEntryWithElseWeighted,
+    TSingleEntryAtZeroWithElse,
+    TSingleEntryAtMinus1WithDefault,
+    TSingleEntryAtMinus4WithElse,
+    TSingleEntryWith0To5RangeWithElse,
+    TSingleEntryWith0To50RangeWithElse,
+    TSingleEntryWith1To5RangeWithElse,
+    TSingleEntryWith1To50RangeWithElse,
+    TSingleEntryWithMinus1To5RangeWithElse,
+    TSingleEntryWithMinus1To50RangeWithElse,
     TExtremeRange1,
     TExtremeRange2,
     TExtremeRange3,
@@ -1960,15 +2604,18 @@ const
     TSparseDataMidpointWeighted2,
     TSparseDataEqual3,
     TSparseDataMOVWeighted3,
-    TSparseDataMidpointWeighted3
+    TSparseDataMidpointWeighted3,
+    TLinearListDependsOnInput,
+    TCStyleCascade
   );
 
 var
   CurrentObject: TTestAncestor;
   Failed: Boolean;
   X: Integer;
-  SummedUpAverageDuration,AverageDuration : Double;
+  SummedUpAverageDuration, AverageDuration : Double;
 begin
+  SummedUpAverageDuration := 0.0;
   Failed := False;
   WriteLn('Case node compilation and timing test');
   WriteLn('-------------------------------------');
@@ -1979,27 +2626,33 @@ begin
         try
           Write(CurrentObject.TestTitle:56, ' - ');
           CurrentObject.Run;
-          AverageDuration:=((CurrentObject.RunTime * 1000000000.0) / ITERATIONS);
 
           if CurrentObject.WriteResults then
-            WriteLn('Pass - average iteration duration: ', AverageDuration:1:3, ' ns')
+            begin
+              AverageDuration := ((CurrentObject.RunTime * 1000000000.0) / ITERATIONS);
+              WriteLn('Pass - average iteration duration: ', AverageDuration:1:3, ' ns');
+              SummedUpAverageDuration := SummedUpAverageDuration + AverageDuration;
+            end
           else
+            { Final average isn't processed if a test failed, so there's no need
+              to calculate and add the average duration to it }
             Failed := True;
 
         finally
           CurrentObject.Free;
-          SummedUpAverageDuration:=SummedUpAverageDuration+AverageDuration;
         end;
       except on E: Exception do
         begin
-          WriteLn('Exception ', E.ClassName, ' raised while running test object of class ', TestClasses[X].ClassName);
+          WriteLn('Exception "', E.ClassName, '" raised while running test object of class "', TestClasses[X].ClassName, '"');
           Failed := True;
         end;
       end;
     end;
 
   if Failed then
-    Halt(1)
-  else
-    Writeln('ok, summed up average duration: ',SummedUpAverageDuration:1:3,' ns');
+    Halt(1);
+
+  WriteLn(#10'ok');
+  WriteLn('- Sum of average durations: ', SummedUpAverageDuration:1:3, ' ns');
+  WriteLn('- Overall average duration: ', (SummedUpAverageDuration / Length(TestClasses)):1:3, ' ns');
 end.
