@@ -406,7 +406,6 @@ ToDos:
 -C3 : Turn on ieee error checking for constants
 - optimizations:
   - move rtl.js functions to system.pp
-  - less brackets on logical and/or/xor, add
   - add $mod only if needed
   - add Self only if needed
   - use a number for small sets
@@ -414,20 +413,22 @@ ToDos:
   - shortcut for test set is empty  a=[]  a<>[]
   - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
   - combine multiple var a=0,b=0
+  - init a local var with the first assignment
   - skip clone array for new array and arraysetlength
   - SetLength(scope.a,l) -> read scope only once, same for
     Include, Exclude, Inc, Dec, +=, -=, *=, /=
   - inline  -Si
   - autoinline
-  -O1 insert local/unit vars for global type references:
-      at start of intf var $r1=null;
-      at end of impl: $r1=path;
   -O1 insert unit vars for complex literals
   -O1 no function Result var when assigned only once
   -O1 replace constant expression with result
   -O1 pass array element by ref: when index is constant, use that directly
   -O1 case-of with 6+ elements as binary tree
+  -O2 insert local/unit vars for global type references:
+      at start of intf var $r1=null;
+      at end of impl: $r1=path;
   -O2 removeemptyprocs
+  -O2 skip dead code If(false){...}
   -O2 CSE
   -O3 DFA
 - objects
