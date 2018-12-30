@@ -254,7 +254,7 @@ type
     Procedure TestCharAssignStringFail;
     Procedure TestChar_ForIn;
 
-    // enums
+    // enums and sets
     Procedure TestEnums;
     Procedure TestEnumRangeFail;
     Procedure TestSets;
@@ -340,6 +340,7 @@ type
     Procedure TestStatementsRefs;
     Procedure TestRepeatUntilNonBoolFail;
     Procedure TestWhileDoNonBoolFail;
+    Procedure TestIfThen;
     Procedure TestIfThenNonBoolFail;
     Procedure TestIfAssignMissingSemicolonFail;
     Procedure TestForLoopVarNonVarFail;
@@ -391,6 +392,7 @@ type
     Procedure TestProcOverloadWithBaseTypes2;
     Procedure TestProcOverloadWithDefaultArgs;
     Procedure TestProcOverloadNearestHigherPrecision;
+    Procedure TestProcOverloadForLoopIntDouble;
     Procedure TestProcOverloadStringArgCount;
     Procedure TestProcCallLowPrecision;
     Procedure TestProcOverloadUntyped;
@@ -637,6 +639,7 @@ type
     Procedure TestPropertyArgs1;
     Procedure TestPropertyArgs2;
     Procedure TestPropertyArgsWithDefaultsFail;
+    Procedure TestPropertyArgs_StringConstDefault;
     Procedure TestProperty_Index;
     Procedure TestProperty_WrongTypeAsIndexFail;
     Procedure TestProperty_Option_ClassPropertyNonStatic;
@@ -916,9 +919,7 @@ procedure TCustomTestResolver.TearDown;
 {$IFDEF CheckPasTreeRefCount}
 var El: TPasElement;
 {$ENDIF}
-{$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
 var i: Integer;
-{$ENDIF}
 begin
   FResolverMsgs.Clear;
   FResolverGoodMsgs.Clear;
@@ -2725,9 +2726,18 @@ procedure TTestResolver.TestConstExternal;
 begin
   Parser.Options:=Parser.Options+[po_ExtConstWithoutExpr];
   StartProgram(false);
-  Add('const NaN: double; external name ''Global.Nan'';');
-  Add('begin');
+  Add([
+  'const',
+  '  PI: double; external name ''Global.PI'';',
+  '  Tau = 2*PI;',
+  '  TauD: double = 2*PI;',
+  'var',
+  '  d: double = PI;',
+  '  e: double = PI+Tau;',
+  'begin',
+  '  d:=pi+tau;']);
   ParseProgram;
+  // ToDo: fail on const Tau = 2*Var
 end;
 
 procedure TTestResolver.TestIntegerTypeCast;
@@ -2791,7 +2801,10 @@ begin
   '  c=double(currency(-123456890123456));',
   '  d=currency(-1);',
   '  e=currency(word(-1));',
+  'var',
   '  i: longint = 1;',
+  '  i64: int64;',
+  '  f: double;',
   'begin',
   '  a:=i;',
   '  a:=i+a;',
@@ -2807,6 +2820,14 @@ begin
   '  a:=i*a;',
   '  a:=a/i;',
   '  a:=i/a;',
+  '  a:=i64;',
+  '  a:=currency(i64);',
+  //'  i64:=a;', not allowed
+  '  i64:=int64(a);', // truncates a
+  '  a:=f;',
+  '  a:=currency(f);',
+  '  f:=a;',
+  '  f:=double(a);',
   '']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -3017,8 +3038,12 @@ begin
   '  MaxInt = +10;',
   'type',
   '  {#TMyInt}TMyInt = MinInt..MaxInt;',
-  'const a = low(TMyInt)+High(TMyInt);',
-  'begin']);
+  'const',
+  '  a = low(TMyInt)+High(TMyInt);',
+  'var',
+  '  i: TMyInt;',
+  'begin',
+  '  i:=low(i)+high(i);']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;
@@ -3170,18 +3195,22 @@ end;
 procedure TTestResolver.TestString_Element;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  s: string;');
-  Add('  c: char;');
-  Add('begin');
-  Add('  if s[1]=s then ;');
-  Add('  if s=s[2] then ;');
-  Add('  if s[3+4]=c then ;');
-  Add('  if c=s[5] then ;');
-  Add('  c:=s[6];');
-  Add('  s[7]:=c;');
-  Add('  s[8]:=''a'';');
-  Add('  s[9+1]:=''b'';');
+  Add([
+  'var',
+  '  s: string;',
+  '  c: char;',
+  'begin',
+  '  if s[1]=s then ;',
+  '  if s=s[2] then ;',
+  '  if s[3+4]=c then ;',
+  '  if c=s[5] then ;',
+  '  c:=s[6];',
+  '  s[7]:=c;',
+  '  s[8]:=''a'';',
+  '  s[9+1]:=''b'';',
+  '  s[10]:='''''''';',
+  '  s[11]:=^g;',
+  '  s[12]:=^H;']);
   ParseProgram;
 end;
 
@@ -3565,9 +3594,12 @@ begin
   Add('function {#A1}FuncA: TFlags;');
   Add('begin');
   Add('  Result:=[red];');
+  Add('  Include(Result,green);');
+  Add('  Exclude(Result,blue);');
   Add('end;');
   Add('function {#A2}FuncA(f: TFlags): TFlags;');
   Add('begin');
+  Add('  Include(f,green);');
   Add('  Result:=f;');
   Add('end;');
   Add('var');
@@ -4272,9 +4304,12 @@ begin
   '  k:=''a'';',
   '  k:='''''''';',
   '  k:=j[1];',
+  '  k:=char(#10);',
   '  w:=k;',
   '  w:=#66;',
   '  w:=#6666;',
+  '  w:=widechar(#10);',
+  '  w:=widechar(#$E0000);',
   '']);
   ParseProgram;
 end;
@@ -5071,6 +5106,17 @@ begin
   Add('begin');
   Add('  while 3 do ;');
   CheckResolverException('Boolean expected, but Longint found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestIfThen;
+begin
+  StartProgram(false);
+  Add([
+  'var b: boolean;',
+  'begin',
+  '  if b then ;',
+  '  if b then else ;']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestIfThenNonBoolFail;
@@ -5992,6 +6038,21 @@ begin
   'var w: word;',
   'begin',
   '  {@longint}DoIt(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadForLoopIntDouble;
+begin
+  StartProgram(false);
+  Add([
+  'function {#int}Max(a,b: longint): longint; external; overload;',
+  'function {#double}Max(a,b: double): double; external; overload;',
+  'var',
+  '  i: longint;',
+  '  S: string;',
+  'begin',
+  '  for i:=0 to Max(length(s),1) do ;',
   '']);
   ParseProgram;
 end;
@@ -7238,6 +7299,13 @@ begin
   'type',
   '  TPoint = record x, y: longint; end;',
   'const r: TPoint = (x:1; y:2);',
+  'type',
+  '  TPasSourcePos = Record',
+  '    FileName: String;',
+  '    Row, Column: LongWord;',
+  '  end;',
+  'const',
+  '  DefPasSourcePos: TPasSourcePos = (Filename:''''; Row:0; Column:0);',
   'begin',
   '']);
   ParseProgram;
@@ -10869,6 +10937,20 @@ begin
     PParser.nParserPropertyArgumentsCanNotHaveDefaultValues);
 end;
 
+procedure TTestResolver.TestPropertyArgs_StringConstDefault;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetItems(const s: string): byte; virtual; abstract;',
+  '    procedure SetItems(const s: string; b: byte); virtual; abstract;',
+  '    property Items[s: string]: byte read GetItems write SetItems;',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestProperty_Index;
 begin
   StartProgram(false);
@@ -12323,11 +12405,11 @@ begin
   '  TArrStr = array of string;',
   'const',
   '  Ints: TArrInt = (1,2,3);',
-  '  Names: array of string = (''a'',''foo'');',
   '  Aliases: TarrStr = (''foo'',''b'');',
   '  OneInt: TArrInt = (7);',
   '  OneInt2: array of integer = (7);',
   '  Chars: array of char = ''aoc'';',
+  '  Names: array of string = (''a'',''foo'');',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'procedure DoIt(Ints: TArrInt);',
   'begin',
@@ -12365,11 +12447,11 @@ begin
   '  TArrOfSet = array of TSetOfEnum;',
   'const',
   '  Ints: TArrInt = {#ints_array}[1,2,1];',
-  '  Names: array of string = {#names_array}[''a'',''a''];',
   '  Aliases: TarrStr = {#aliases_array}[''foo'',''b'',''b''];',
   '  OneInt: TArrInt = {#oneint_array}[7];',
   '  TwoInt: array of integer = {#twoint1_array}[7]+{#twoint2_array}[8];',
   '  Chars: array of char = ''aoc'';',
+  '  Names: array of string = {#names_array}[''a'',''a''];',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'procedure {#DoArrOfSet}DoIt(const s: TArrOfSet); overload; begin end;',
   'procedure {#DoArrOfArrInt}DoIt(const a: TArrInt2); overload; begin end;',
@@ -13906,34 +13988,41 @@ end;
 procedure TTestResolver.TestPointer;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class end;');
-  Add('  TClass = class of TObject;');
-  Add('  TMyPtr = pointer;');
-  Add('  TArrInt = array of longint;');
-  Add('  TFunc = function: longint;');
-  Add('procedure DoIt; begin end;');
-  Add('var');
-  Add('  p: TMyPtr;');
-  Add('  Obj: TObject;');
-  Add('  Cl: TClass;');
-  Add('  a: tarrint;');
-  Add('  f: TFunc;');
-  Add('begin');
-  Add('  p:=nil;');
-  Add('  if p=nil then;');
-  Add('  if nil=p then;');
-  Add('  if Assigned(p) then;');
-  Add('  p:=obj;');
-  Add('  p:=cl;');
-  Add('  p:=a;');
-  Add('  p:=Pointer(f);');
-  Add('  p:=@DoIt;');
-  Add('  p:=Pointer(@DoIt);');
-  Add('  obj:=TObject(p);');
-  Add('  cl:=TClass(p);');
-  Add('  a:=TArrInt(p);');
-  Add('  p:=Pointer(a);');
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TClass = class of TObject;',
+  '  TMyPtr = pointer;',
+  '  TArrInt = array of longint;',
+  '  TFunc = function: longint;',
+  'procedure DoIt; begin end;',
+  'var',
+  '  p: TMyPtr;',
+  '  Obj: TObject;',
+  '  Cl: TClass;',
+  '  a: tarrint;',
+  '  f: TFunc;',
+  '  s: string;',
+  '  u: unicodestring;',
+  'begin',
+  '  p:=nil;',
+  '  if p=nil then;',
+  '  if nil=p then;',
+  '  if Assigned(p) then;',
+  '  p:=obj;',
+  '  p:=cl;',
+  '  p:=a;',
+  '  p:=Pointer(f);',
+  '  p:=@DoIt;',
+  '  p:=Pointer(@DoIt);',
+  '  obj:=TObject(p);',
+  '  cl:=TClass(p);',
+  '  a:=TArrInt(p);',
+  '  p:=Pointer(a);',
+  '  p:=Pointer(s);',
+  '  s:=String(p);',
+  '  p:=pointer(u);',
+  '  u:=UnicodeString(p);']);
   ParseProgram;
 end;
 
@@ -14170,12 +14259,15 @@ begin
   '  r: TRec;',
   '  p: PRec;',
   '  i: longint;',
+  '  Ptr: pointer;',
   'begin',
   '  p:=@r;',
   '  i:=p^.x;',
   '  p^.x:=i;',
   '  if i=p^.x then;',
   '  if p^.x=i then;',
+  '  ptr:=p;',
+  '  p:=PRec(ptr);',
   '']);
   ParseProgram;
 end;

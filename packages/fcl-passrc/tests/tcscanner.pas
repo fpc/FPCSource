@@ -244,6 +244,7 @@ type
     procedure TestIfError;
     Procedure TestModeSwitch;
     Procedure TestOperatorIdentifier;
+    Procedure TestUTF8BOM;
   end;
 
 implementation
@@ -1742,6 +1743,12 @@ procedure TTestScanner.TestOperatorIdentifier;
 begin
   Scanner.SetNonToken(tkoperator);
   TestToken(tkidentifier,'operator',True);
+end;
+
+procedure TTestScanner.TestUTF8BOM;
+
+begin
+  DoTestToken(tkLineEnding,#$EF+#$BB+#$BF);
 end;
 
 initialization

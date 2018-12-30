@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, fpcunit, testregistry, contnrs,
   jstree, jswriter, jsbase,
   PasTree, PScanner, PasResolver, PParser, PasResolveEval,
-  FPPas2Js;
+  Pas2jsPParser, FPPas2Js;
 
 const
   // default parser+scanner options
@@ -76,7 +76,7 @@ type
     FOnFindUnit: TOnFindUnit;
     FParser: TTestPasParser;
     FStreamResolver: TStreamResolver;
-    FScanner: TPascalScanner;
+    FScanner: TPas2jsPasScanner;
     FSource: string;
   public
     destructor Destroy; override;
@@ -86,7 +86,7 @@ type
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
     property Filename: string read FFilename write FFilename;
     property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
-    property Scanner: TPascalScanner read FScanner write FScanner;
+    property Scanner: TPas2jsPasScanner read FScanner write FScanner;
     property Parser: TTestPasParser read FParser write FParser;
     property Source: string read FSource write FSource;
     property Module: TPasModule read FModule;
@@ -119,7 +119,7 @@ type
     FHintMsgs: TObjectList; // list of TTestHintMessage
     FHintMsgsGood: TFPList; // list of TTestHintMessage marked as expected
     FJSRegModuleCall: TJSCallExpression;
-    FScanner: TPascalScanner;
+    FScanner: TPas2jsPasScanner;
     FSkipTests: boolean;
     FSource: TStringList;
     FFirstPasStatement: TPasImplBlock;
@@ -138,7 +138,7 @@ type
     procedure SetUp; override;
     function CreateConverter: TPasToJSConverter; virtual;
     function LoadUnit(const aUnitName: String): TPasModule;
-    procedure InitScanner(aScanner: TPascalScanner); virtual;
+    procedure InitScanner(aScanner: TPas2jsPasScanner); virtual;
     procedure TearDown; override;
     Procedure Add(Line: string); virtual;
     Procedure Add(const Lines: array of string);
@@ -210,7 +210,7 @@ type
     destructor Destroy; override;
     property Source: TStringList read FSource;
     property FileResolver: TStreamResolver read FFileResolver;
-    property Scanner: TPascalScanner read FScanner;
+    property Scanner: TPas2jsPasScanner read FScanner;
     property Parser: TTestPasParser read FParser;
     property MsgCount: integer read GetMsgCount;
     property Msgs[Index: integer]: TTestHintMessage read GetMsgs;
@@ -232,6 +232,7 @@ type
     Procedure Test_ModeSwitchCBlocksFail;
     Procedure TestUnit_UseSystem;
     Procedure TestUnit_Intf1Impl2Intf1;
+    Procedure TestIncludeVersion;
 
     // vars/const
     Procedure TestVarInt;
@@ -361,6 +362,7 @@ type
     Procedure TestBitwiseOperators;
     Procedure TestFunctionInt;
     Procedure TestFunctionString;
+    Procedure TestIfThen;
     Procedure TestForLoop;
     Procedure TestForLoopInsideFunction;
     Procedure TestForLoop_ReadVarAfter;
@@ -371,6 +373,7 @@ type
     Procedure TestTryFinally;
     Procedure TestTryExcept;
     Procedure TestTryExcept_ReservedWords;
+    Procedure TestIfThenRaiseElse;
     Procedure TestCaseOf;
     Procedure TestCaseOf_UseSwitch;
     Procedure TestCaseOfNoElse;
@@ -774,7 +777,7 @@ begin
     aJSWriter:=TJSWriter.Create(aWriter);
     aJSWriter.IndentSize:=2;
     aJSWriter.WriteJS(El);
-    Result:=aWriter.AsAnsistring;
+    Result:=aWriter.AsString;
   finally
     aJSWriter.Free;
     aWriter.Free;
@@ -1071,9 +1074,9 @@ end;
 procedure TCustomTestModule.OnScannerLog(Sender: TObject; const Msg: String);
 var
   Item: TTestHintMessage;
-  aScanner: TPascalScanner;
+  aScanner: TPas2jsPasScanner;
 begin
-  aScanner:=Sender as TPascalScanner;
+  aScanner:=Sender as TPas2jsPasScanner;
   Item:=TTestHintMessage.Create;
   Item.Id:=aScanner.LastMsgNumber;
   Item.MsgType:=aScanner.LastMsgType;
@@ -1114,7 +1117,7 @@ begin
       CurEngine.StreamResolver.OwnsStreams:=True;
       //writeln('TTestModule.FindUnit SOURCE=',CurEngine.Source);
       CurEngine.StreamResolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
-      CurEngine.Scanner:=TPascalScanner.Create(CurEngine.StreamResolver);
+      CurEngine.Scanner:=TPas2jsPasScanner.Create(CurEngine.StreamResolver);
       InitScanner(CurEngine.Scanner);
       CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.StreamResolver,CurEngine);
       CurEngine.Parser.Options:=po_tcmodules;
@@ -1156,11 +1159,12 @@ begin
   FFileResolver:=TStreamResolver.Create;
   FFileResolver.OwnsStreams:=True;
 
-  FScanner:=TPascalScanner.Create(FFileResolver);
+  FScanner:=TPas2jsPasScanner.Create(FFileResolver);
   InitScanner(FScanner);
 
   FEngine:=AddModule(Filename);
   FEngine.Scanner:=FScanner;
+  FScanner.Resolver:=FEngine;
 
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
   FParser.OnLog:=@OnParserLog;
@@ -1179,7 +1183,7 @@ begin
   Result.Options:=co_tcmodules;
 end;
 
-procedure TCustomTestModule.InitScanner(aScanner: TPascalScanner);
+procedure TCustomTestModule.InitScanner(aScanner: TPas2jsPasScanner);
 begin
   aScanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
   aScanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
@@ -1190,6 +1194,8 @@ begin
   aScanner.CurrentBoolSwitches:=msAllPas2jsBoolSwitchesReadOnly+[bsHints,bsNotes,bsWarnings,bsWriteableConst];
 
   aScanner.OnLog:=@OnScannerLog;
+
+  aScanner.CompilerVersion:='Comp.Ver.tcmodules';
 end;
 
 procedure TCustomTestModule.TearDown;
@@ -2247,6 +2253,32 @@ begin
     '']) );
 end;
 
+procedure TTestModule.TestIncludeVersion;
+begin
+  StartProgram(false);
+  Add([
+  'var s: string;',
+  'begin',
+  '  s:={$I %line%};',
+  '  s:={$I %currentroutine%};',
+  '  s:={$I %pas2jsversion%};',
+  '  s:={$I %pas2jstarget%};',
+  '  s:={$I %pas2jstargetos%};',
+  '  s:={$I %pas2jstargetcpu%};',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIncludeVersion',
+    'this.s="";',
+    LinesToStr([
+    '$mod.s = "5";',
+    '$mod.s = "<anonymous>";',
+    '$mod.s = "Comp.Ver.tcmodules";',
+    '$mod.s = "Browser";',
+    '$mod.s = "Browser";',
+    '$mod.s = "ECMAScript5";',
+    '']));
+end;
+
 procedure TTestModule.TestVarInt;
 begin
   StartProgram(false);
@@ -2391,6 +2423,8 @@ begin
   '  c:=char(c);',
   '  c:=char(i);',
   '  c:=char(65);',
+  '  c:=char(#10);',
+  '  c:=char(#$E000);',
   '']);
   ConvertProgram;
   CheckSource('TestAliasTypeRef',
@@ -2413,6 +2447,8 @@ begin
     '$mod.c = $mod.c;',
     '$mod.c = String.fromCharCode($mod.i);',
     '$mod.c = "A";',
+    '$mod.c = "\n";',
+    '$mod.c = "";',
     '']));
 end;
 
@@ -3824,16 +3860,25 @@ begin
   'type',
   '  TObject = class',
   '    Index: longint;',
+  '    procedure DoAbs(Item: pointer);',
   '  end;',
-  'procedure DoIt(i: longint);',
+  'procedure TObject.DoAbs(Item: pointer);',
+  'var',
+  '  o: TObject absolute Item;',
+  'begin',
+  '  if o.Index<o.Index then o.Index:=o.Index;',
+  'end;',
+  'procedure DoIt(i: longint; p: pointer);',
   'var',
   '  d: double absolute i;',
   '  s: string absolute d;',
-  '  o: TObject absolute i;',
+  '  oi: TObject absolute i;',
+  '  op: TObject absolute p;',
   'begin',
   '  if d=d then d:=d;',
   '  if s=s then s:=s;',
-  '  if o.Index<o.Index then o.Index:=o.Index;',
+  '  if oi.Index<oi.Index then oi.Index:=oi.Index;',
+  '  if op.Index=op.Index then op.Index:=op.Index;',
   'end;',
   'begin']);
   ConvertProgram;
@@ -3845,11 +3890,15 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
+    '  this.DoAbs = function (Item) {',
+    '    if (Item.Index < Item.Index) Item.Index = Item.Index;',
+    '  };',
     '});',
-    'this.DoIt = function (i) {',
+    'this.DoIt = function (i, p) {',
     '  if (i === i) i = i;',
     '  if (i === i) i = i;',
     '  if (i.Index < i.Index) i.Index = i.Index;',
+    '  if (p.Index === p.Index) p.Index = p.Index;',
     '};'
     ]),
     LinesToStr([
@@ -4499,22 +4548,25 @@ end;
 procedure TTestModule.TestSet_AsParams;
 begin
   StartProgram(false);
-  Add('type TEnum = (Red,Blue);');
-  Add('type TEnums = set of TEnum;');
-  Add('procedure DoIt(vG: TEnums; const vH: TEnums; var vI: TEnums);');
-  Add('var vJ: TEnums;');
-  Add('begin');
-  Add('  vg:=vg;');
-  Add('  vj:=vh;');
-  Add('  vi:=vi;');
-  Add('  doit(vg,vg,vg);');
-  Add('  doit(vh,vh,vj);');
-  Add('  doit(vi,vi,vi);');
-  Add('  doit(vj,vj,vj);');
-  Add('end;');
-  Add('var i: TEnums;');
-  Add('begin');
-  Add('  doit(i,i,i);');
+  Add([
+  'type TEnum = (Red,Blue);',
+  'type TEnums = set of TEnum;',
+  'function DoIt(vG: TEnums; const vH: TEnums; var vI: TEnums): TEnums;',
+  'var vJ: TEnums;',
+  'begin',
+  '  Include(vg,red);',
+  '  Include(result,blue);',
+  '  vg:=vg;',
+  '  vj:=vh;',
+  '  vi:=vi;',
+  '  doit(vg,vg,vg);',
+  '  doit(vh,vh,vj);',
+  '  doit(vi,vi,vi);',
+  '  doit(vj,vj,vj);',
+  'end;',
+  'var i: TEnums;',
+  'begin',
+  '  doit(i,i,i);']);
   ConvertProgram;
   CheckSource('TestSet_AsParams',
     LinesToStr([ // statements
@@ -4525,7 +4577,10 @@ begin
     '  Blue: 1',
     '};',
     'this.DoIt = function (vG,vH,vI) {',
+    '  var Result = {};',
     '  var vJ = {};',
+    '  vG = rtl.includeSet(vG, $mod.TEnum.Red);',
+    '  Result = rtl.includeSet(Result, $mod.TEnum.Blue);',
     '  vG = rtl.refSet(vG);',
     '  vJ = rtl.refSet(vH);',
     '  vI.set(rtl.refSet(vI.get()));',
@@ -4554,6 +4609,7 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
+    '  return Result;',
     '};',
     'this.i = {};'
     ]),
@@ -5165,17 +5221,21 @@ begin
   StartProgram(false);
   Add([
   'const',
-  '  NaN: double; external name ''Global.NaN'';',
+  '  PI: double; external name ''Global.PI'';',
+  '  Tau = 2*pi;',
   'var d: double;',
   'begin',
-  '  d:=NaN;']);
+  '  d:=pi;',
+  '  d:=tau+pi;']);
   ConvertProgram;
   CheckSource('TestConstExternal',
     LinesToStr([
+    'this.Tau = 2*Global.PI;',
     'this.d = 0.0;'
     ]),
     LinesToStr([
-    '$mod.d = Global.NaN;'
+    '$mod.d = Global.PI;',
+    '$mod.d = $mod.Tau + Global.PI;'
     ]));
 end;
 
@@ -5312,7 +5372,9 @@ begin
   '  i: TMyInt;',
   'begin',
   '  i:=-MinInt;',
-  '  i:=default(TMyInt);']);
+  '  i:=default(TMyInt);',
+  '  i:=low(i)+high(i);',
+  '']);
   ConvertProgram;
   CheckSource('TestIntegerRange',
     LinesToStr([
@@ -5324,6 +5386,7 @@ begin
     LinesToStr([
     '$mod.i = - -4503599627370496;',
     '$mod.i = -4503599627370496;',
+    '$mod.i = -4503599627370496 + 4503599627370495;',
     '']));
 end;
 
@@ -5444,8 +5507,13 @@ begin
   '  c:=a;',
   '  d:=c;',
   '  c:=d;',
+  '  c:=currency(c);',
   '  c:=currency(d);',
   '  d:=double(c);',
+  '  c:=i;',
+  '  c:=currency(i);',
+  //'  i:=c;', not allowed
+  '  i:=nativeint(c);',
   '  c:=c+a;',
   '  c:=-c-a;',
   '  c:=d+c;',
@@ -5507,8 +5575,12 @@ begin
     '$mod.c = $mod.a;',
     '$mod.d = $mod.c / 10000;',
     '$mod.c = Math.floor($mod.d * 10000);',
+    '$mod.c = $mod.c;',
     '$mod.c = $mod.d * 10000;',
     '$mod.d = $mod.c / 10000;',
+    '$mod.c = $mod.i * 10000;',
+    '$mod.c = $mod.i * 10000;',
+    '$mod.i = Math.floor($mod.c / 10000);',
     '$mod.c = $mod.c + $mod.a;',
     '$mod.c = -$mod.c - $mod.a;',
     '$mod.c = ($mod.d * 10000) + $mod.c;',
@@ -6298,6 +6370,25 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestIfThen;
+begin
+  StartProgram(false);
+  Add([
+  'var b: boolean;',
+  'begin',
+  '  if b then ;',
+  '  if b then else ;']);
+  ConvertProgram;
+  CheckSource('TestIfThen',
+    LinesToStr([ // statements
+    'this.b = false;',
+    '']),
+    LinesToStr([ // this.$main
+    'if ($mod.b) ;',
+    'if ($mod.b) ;',
+    '']));
+end;
+
 procedure TTestModule.TestForLoop;
 begin
   StartProgram(false);
@@ -6679,6 +6770,44 @@ begin
     '    if (error.Symbol === "") throw error;',
     '  } else throw $e',
     '};',
+    '']));
+end;
+
+procedure TTestModule.TestIfThenRaiseElse;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'var b: boolean;',
+  'begin',
+  '  if b then',
+  '    raise TObject.Create',
+  '  else',
+  '    b:=false;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIfThenRaiseElse',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '  };',
+    '});',
+    'this.b = false;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if ($mod.b) {',
+    '  throw $mod.TObject.$create("Create")}',
+    ' else $mod.b = false;',
     '']));
 end;
 
@@ -7943,11 +8072,11 @@ begin
   '  TArrStr = array of string;',
   'const',
   '  Ints: TArrInt = (1,2,3);',
-  '  Names: array of string = (''a'',''foo'');',
   '  Aliases: TarrStr = (''foo'',''b'');',
   '  OneInt: TArrInt = (7);',
   '  OneStr: array of integer = (7);',
   '  Chars: array of char = ''aoc'';',
+  '  Names: array of string = (''a'',''foo'');',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'var i: integer;',
   'begin',
@@ -7966,11 +8095,11 @@ begin
   CheckSource('TestArray_DynArrayConstObjFPC',
     LinesToStr([ // statements
     'this.Ints = [1, 2, 3];',
-    'this.Names = ["a", "foo"];',
     'this.Aliases = ["foo", "b"];',
     'this.OneInt = [7];',
     'this.OneStr = [7];',
     'this.Chars = ["a", "o", "c"];',
+    'this.Names = ["a", "foo"];',
     'this.NameCount = (0 + (rtl.length($mod.Names) - 1)) + rtl.length($mod.Names);',
     'this.i = 0;',
     '']),
@@ -8000,11 +8129,11 @@ begin
   '  TArrStr = array of string;',
   'const',
   '  Ints: TArrInt = [1,1,2];',
-  '  Names: array of string = [''a'',''a''];',
   '  Aliases: TarrStr = [''foo'',''b''];',
   '  OneInt: TArrInt = [7];',
   '  OneStr: array of integer = [7]+[8];',
   '  Chars: array of char = ''aoc'';',
+  '  Names: array of string = [''a'',''a''];',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'begin',
   '']);
@@ -8012,11 +8141,11 @@ begin
   CheckSource('TestArray_DynArrayConstDelphi',
     LinesToStr([ // statements
     'this.Ints = [1, 1, 2];',
-    'this.Names = ["a", "a"];',
     'this.Aliases = ["foo", "b"];',
     'this.OneInt = [7];',
     'this.OneStr = rtl.arrayConcatN([7],[8]);',
     'this.Chars = ["a", "o", "c"];',
+    'this.Names = ["a", "a"];',
     'this.NameCount = (0 + (rtl.length($mod.Names) - 1)) + rtl.length($mod.Names);',
     '']),
     LinesToStr([ // $mod.$main
@@ -11733,9 +11862,15 @@ begin
   '  TObject = class',
   '    Obj: tobject;',
   '    procedure Free;',
+  '    procedure Release;',
   '  end;',
   'procedure tobject.free;',
   'begin',
+  'end;',
+  'procedure tobject.release;',
+  'begin',
+  '  free;',
+  '  if true then free;',
   'end;',
   'function DoIt(o: tobject): tobject;',
   'var l: tobject;',
@@ -11769,6 +11904,10 @@ begin
     '    this.Obj = undefined;',
     '  };',
     '  this.Free = function () {',
+    '  };',
+    '  this.Release = function () {',
+    '    this.Free();',
+    '    if (true) this.Free();',
     '  };',
     '});',
     'this.DoIt = function (o) {',
@@ -14488,7 +14627,6 @@ begin
     '  };',
     '});',
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird);',
     '});',
     'this.BirdIntf = null;',
@@ -14567,7 +14705,6 @@ begin
     '  };',
     '  this.DoIt$3 = function (b) {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird, {',
     '    DoIt$2: "DoIt$3",',
     '    DoIt: "DoIt$2"',
@@ -14657,7 +14794,6 @@ begin
     '  };',
     '  this.DoIt = function (i) {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
@@ -14706,7 +14842,6 @@ begin
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
     '  this.DoIt$1 = function (i) {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird, {',
     '    DoIt: "DoIt$1"',
     '  });',
@@ -14766,7 +14901,6 @@ begin
     '  };',
     '  this.Hop$1 = function (b) {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird, {',
     '    Walk$1: "Hop$1",',
     '    Fly: "Move",',
@@ -14813,7 +14947,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird);',
     '  rtl.addIntf(this, $mod.IDog);',
     '});',
@@ -14863,7 +14996,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
@@ -14935,7 +15067,6 @@ begin
     '  };',
     '});',
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird);',
     '  rtl.addIntf(this, $mod.IEagle);',
     '  rtl.addIntf(this, $mod.IDove);',
@@ -15023,7 +15154,6 @@ begin
     '  };',
     '});',
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird);',
     '  rtl.addIntf(this, $mod.IEagle);',
     '  rtl.addIntf(this, $mod.IDove);',
@@ -15111,7 +15241,6 @@ begin
     '  };',
     '});',
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird);',
     '});',
     'this.IntfVar = null;',
@@ -15187,7 +15316,6 @@ begin
     '  };',
     '});',
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird);',
     '});',
     'this.DoIt = function (u, i, j) {',
@@ -15340,7 +15468,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.i = null;',
@@ -15399,7 +15526,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.DoDefault = function (i, j) {',
@@ -15446,7 +15572,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.DoDefault = function (i) {',
@@ -15514,7 +15639,6 @@ begin
     '    var Result = null;',
     '    return Result;',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'rtl.createClass($mod, "TMouse", $mod.TObject, function () {',
@@ -15583,7 +15707,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.DoDefault = function (i, j, o) {',
@@ -15645,7 +15768,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.DoIt = function (v, j, k, l) {',
@@ -15757,7 +15879,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.DoIt = function (i) {',
@@ -15857,7 +15978,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.GetIt = function () {',
@@ -15947,7 +16067,6 @@ begin
     '  this.$final = function () {',
     '    this.FAnt = undefined;',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.DoIt = function () {',
@@ -16034,7 +16153,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.DoIt = function () {',
@@ -16113,7 +16231,6 @@ begin
     '  };',
     '});',
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IBird);',
     '  rtl.addIntf(this, $mod.IEagle);',
     '  rtl.addIntf(this, $mod.IDove);',
@@ -16188,7 +16305,6 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     'this.DoIt = function () {',
@@ -16349,7 +16465,6 @@ begin
     '    var Result = 0;',
     '    return Result;',
     '  };',
-    '  this.$intfmaps = {};',
     '  rtl.addIntf(this, $impl.IUnknown);',
     '});',
     '$impl.i = null;',
@@ -17919,6 +18034,7 @@ begin
   '  C: tclass;',
   '  a: tarrint;',
   '  p: Pointer = nil;',
+  '  s: string;',
   'begin',
   '  p:=p;',
   '  p:=nil;',
@@ -17935,6 +18051,8 @@ begin
   '  a:=TArrInt(p);',
   '  p:=n;',
   '  p:=Pointer(a);',
+  '  p:=pointer(s);',
+  '  s:=string(p);',
   '']);
   ConvertProgram;
   CheckSource('TestPointer',
@@ -17951,6 +18069,7 @@ begin
     'this.C = null;',
     'this.a = [];',
     'this.p = null;',
+    'this.s = "";',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.p;',
@@ -17968,6 +18087,8 @@ begin
     '$mod.a = $mod.p;',
     '$mod.p = null;',
     '$mod.p = $mod.a;',
+    '$mod.p = $mod.s;',
+    '$mod.s = $mod.p;',
     '']));
 end;
 
@@ -19240,15 +19361,15 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.DoIt($mod.d);',
     '$mod.DoIt($mod.dt);',
-    '$mod.DoIt($mod.i);',
-    '$mod.DoIt($mod.b);',
-    '$mod.DoIt($mod.shi);',
-    '$mod.DoIt($mod.w);',
-    '$mod.DoIt($mod.smi);',
-    '$mod.DoIt($mod.lw);',
-    '$mod.DoIt($mod.li);',
-    '$mod.DoIt($mod.ni);',
-    '$mod.DoIt($mod.nu);',
+    '$mod.DoIt$1($mod.i);',
+    '$mod.DoIt$1($mod.b);',
+    '$mod.DoIt$1($mod.shi);',
+    '$mod.DoIt$1($mod.w);',
+    '$mod.DoIt$1($mod.smi);',
+    '$mod.DoIt$1($mod.lw);',
+    '$mod.DoIt$1($mod.li);',
+    '$mod.DoIt$1($mod.ni);',
+    '$mod.DoIt$1($mod.nu);',
     '']));
 end;
 

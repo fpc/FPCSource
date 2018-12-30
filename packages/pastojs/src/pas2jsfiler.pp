@@ -60,7 +60,11 @@ unit Pas2JsFiler;
 interface
 
 uses
-  Classes, Types, SysUtils, contnrs, zstream, AVL_Tree,
+  Classes, Types, SysUtils, contnrs,
+  {$ifdef pas2js}
+  {$else}
+  zstream, AVL_Tree,
+  {$endif}
   fpjson, jsonparser, jsonscanner,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver,
   Pas2jsFileUtils, FPPas2Js;
@@ -211,7 +215,10 @@ const
     'UseStrict',
     'NoTypeInfo',
     'EliminateDeadCode',
-    'StoreImplJS'
+    'StoreImplJS',
+    'RTLVersionCheckMain',
+    'RTLVersionCheckSystem',
+    'RTLVersionCheckUnit'
     );
 
   PCUDefaultTargetPlatform = PlatformBrowser;
@@ -1032,10 +1039,10 @@ function ComparePCUSrcFiles(File1, File2: Pointer): integer;
 function ComparePCUFilerElementRef(Ref1, Ref2: Pointer): integer;
 function CompareElWithPCUFilerElementRef(El, Ref: Pointer): integer;
 
-function EncodeVLQ(i: MaxPrecInt): string; overload;
-function EncodeVLQ(i: MaxPrecUInt): string; overload;
-function DecodeVLQ(const s: string): MaxPrecInt; // base256 Variable Length Quantity
-function DecodeVLQ(var p: PByte): MaxPrecInt; // base256 Variable Length Quantity
+function EncodeVLQ(i: TMaxPrecInt): string; overload;
+function EncodeVLQ(i: TMaxPrecUInt): string; overload;
+function DecodeVLQ(const s: string): TMaxPrecInt; // base256 Variable Length Quantity
+function DecodeVLQ(var p: PByte): TMaxPrecInt; // base256 Variable Length Quantity
 
 function ComputeChecksum(p: PChar; Cnt: integer): TPCUSourceFileChecksum;
 function crc32(crc: cardinal; buf: Pbyte; len: cardinal): cardinal;
@@ -1083,7 +1090,7 @@ begin
   Result:=ComparePointer(Element,Reference.Element);
 end;
 
-function EncodeVLQ(i: MaxPrecInt): string;
+function EncodeVLQ(i: TMaxPrecInt): string;
 { Convert signed number to base256-VLQ:
   Each byte has 8bit, where the least significant bit is the continuation bit
   (1=there is a next byte).
@@ -1101,9 +1108,9 @@ begin
   digits:=0;
   if i<0 then
     begin
-    if i=Low(MaxPrecInt) then
+    if i=Low(TMaxPrecInt) then
       begin
-      Result:=EncodeVLQ(High(MaxPrecInt)+1);
+      Result:=EncodeVLQ(High(TMaxPrecInt)+1);
       Result[1]:=chr(ord(Result[1]) or 1);
       exit;
       end;
@@ -1125,7 +1132,7 @@ begin
     end;
 end;
 
-function EncodeVLQ(i: MaxPrecUInt): string;
+function EncodeVLQ(i: TMaxPrecUInt): string;
 var
   digits: integer;
 begin
@@ -1144,7 +1151,7 @@ begin
     end;
 end;
 
-function DecodeVLQ(const s: string): MaxPrecInt;
+function DecodeVLQ(const s: string): TMaxPrecInt;
 var
   p: PByte;
 begin
@@ -1156,7 +1163,7 @@ begin
     raise EConvertError.Create('DecodeVLQ waste');
 end;
 
-function DecodeVLQ(var p: PByte): MaxPrecInt;
+function DecodeVLQ(var p: PByte): TMaxPrecInt;
 { Convert base256-VLQ to signed number,
   For the fomat see EncodeVLQ
 }
@@ -1167,7 +1174,7 @@ function DecodeVLQ(var p: PByte): MaxPrecInt;
   end;
 
 const
-  MaxShift = 63; // actually log2(High(MaxPrecInt))
+  MaxShift = 63; // actually log2(High(TMaxPrecInt))
 var
   digit, Shift: Integer;
   Negated: Boolean;
@@ -1183,7 +1190,7 @@ begin
     inc(p);
     if Shift>MaxShift then
       RaiseInvalid;
-    inc(Result,MaxPrecInt(digit and %1111111) shl Shift);
+    inc(Result,TMaxPrecInt(digit and %1111111) shl Shift);
     inc(Shift,7);
     end;
   if Negated then

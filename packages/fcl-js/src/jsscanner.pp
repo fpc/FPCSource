@@ -498,7 +498,7 @@ begin
   TokenStart := TokenStr;
   repeat
     Inc(TokenStr);
-    If (TokenStr[0]='\') and (TokenStr[1]='u') then
+    //If (TokenStr[0]='\') and (TokenStr[1]='u') then
   until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_','$']);
   Len:=(TokenStr-TokenStart);
   SetLength(FCurTokenString,Len);

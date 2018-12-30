@@ -19,7 +19,8 @@
 unit Pas2jsPParser;
 
 {$mode objfpc}{$H+}
-{$inline on}
+
+{$i pas2js_defines.inc}
 
 interface
 
@@ -33,6 +34,23 @@ const // Messages
 
 type
 
+  { TPas2jsPasScanner }
+
+  TPas2jsPasScanner = class(TPascalScanner)
+  private
+    FCompilerVersion: string;
+    FResolver: TPas2JSResolver;
+    FTargetPlatform: TPasToJsPlatform;
+    FTargetProcessor: TPasToJsProcessor;
+  protected
+    function HandleInclude(const Param: String): TToken; override;
+  public
+    property CompilerVersion: string read FCompilerVersion write FCompilerVersion;
+    property Resolver: TPas2JSResolver read FResolver write FResolver;
+    property TargetPlatform: TPasToJsPlatform read FTargetPlatform write FTargetPlatform;
+    property TargetProcessor: TPasToJsProcessor read FTargetProcessor write FTargetProcessor;
+  end;
+
   { TPas2jsPasParser }
 
   TPas2jsPasParser = class(TPasParser)
@@ -40,10 +58,9 @@ type
     FLog: TPas2jsLogger;
   public
     constructor Create(AScanner: TPascalScanner;
-      AFileResolver: TBaseFileResolver; AEngine: TPasTreeContainer);
-    procedure SetLastMsg(MsgType: TMessageType; MsgNumber: integer;
-      Const Fmt : String; Args : Array of const);
-    procedure RaiseParserError(MsgNumber: integer; Args: array of const);
+      AFileResolver: TBaseFileResolver; AEngine: TPasTreeContainer); reintroduce;
+    procedure RaiseParserError(MsgNumber: integer;
+      Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
     procedure ParseSubModule(var Module: TPasModule);
     property Log: TPas2jsLogger read FLog write FLog;
   end;
@@ -106,6 +123,81 @@ begin
   r(mtError,nFinalizationNotSupported,sFinalizationNotSupported);
 end;
 
+{ TPas2jsPasScanner }
+
+function TPas2jsPasScanner.HandleInclude(const Param: String): TToken;
+
+  procedure SetStr(const s: string);
+  begin
+    Result:=tkString;
+    SetCurTokenString(''''+s+'''');
+  end;
+
+var
+  Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
+  i: Integer;
+  Scope: TPasScope;
+begin
+  if (Param<>'') and (Param[1]='%') then
+  begin
+    case lowercase(Param) of
+    '%date%':
+      begin
+        DecodeDate(Now,Year,Month,Day);
+        SetStr('['+IntToStr(Year)+'/'+IntToStr(Month)+'/'+IntToStr(Day)+']');
+        exit;
+      end;
+    '%time%':
+      begin
+        DecodeTime(Now,Hour,Minute,Second,MilliSecond);
+        SetStr(Format('%2d:%2d:%2d',[Hour,Minute,Second]));
+        exit;
+      end;
+    '%pas2jstarget%','%fpctarget%',
+    '%pas2jstargetos%','%fpctargetos%':
+      begin
+        SetStr(PasToJsPlatformNames[TargetPlatform]);
+        exit;
+      end;
+    '%pas2jstargetcpu%','%fpctargetcpu%':
+      begin
+        SetStr(PasToJsProcessorNames[TargetProcessor]);
+        exit;
+      end;
+    '%pas2jsversion%','%fpcversion%':
+      begin
+        SetStr(CompilerVersion);
+        exit;
+      end;
+    '%line%':
+      begin
+        SetStr(IntToStr(CurRow));
+        exit;
+      end;
+    '%currentroutine%':
+      begin
+        if Resolver<>nil then
+          for i:=Resolver.ScopeCount-1 downto 0 do
+          begin
+            Scope:=Resolver.Scopes[i];
+            if (Scope.Element is TPasProcedure)
+                and (Scope.Element.Name<>'') then
+            begin
+              SetStr(Scope.Element.Name);
+              exit;
+            end;
+          end;
+        SetStr('<anonymous>');
+        exit;
+      end;
+    else
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,SWarnIllegalCompilerDirectiveX,
+        ['$i '+Param]);
+    end;
+  end;
+  Result:=inherited HandleInclude(Param);
+end;
+
 { TPas2jsPasParser }
 
 constructor TPas2jsPasParser.Create(AScanner: TPascalScanner;
@@ -115,13 +207,8 @@ begin
   Options:=Options+po_pas2js;
 end;
 
-procedure TPas2jsPasParser.SetLastMsg(MsgType: TMessageType;
-  MsgNumber: integer; const Fmt: String; Args: array of const);
-begin
-  inherited SetLastMsg(MsgType,MsgNumber,Fmt,Args);
-end;
-
-procedure TPas2jsPasParser.RaiseParserError(MsgNumber: integer; Args: array of const);
+procedure TPas2jsPasParser.RaiseParserError(MsgNumber: integer;
+  Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF});
 var
   Msg: TPas2jsMessage;
 begin
@@ -154,7 +241,7 @@ function TPas2jsCompilerResolver.CreateElement(AClass: TPTreeElement;
 begin
   if AClass=TFinalizationSection then
     (CurrentParser as TPas2jsPasParser).RaiseParserError(nFinalizationNotSupported,[]);
-  Result:=inherited;
+  Result:=inherited CreateElement(AClass,AName,AParent,AVisibility,ASrcPos);
   if (Result is TPasModule) then
     OnCheckSrcName(Result);
 end;

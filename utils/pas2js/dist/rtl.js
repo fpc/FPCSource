@@ -2,6 +2,8 @@
 
 var rtl = {
 
+  version: 10101,
+
   quiet: false,
   debug_load_units: false,
   debug_rtti: false,
@@ -18,6 +20,10 @@ var rtl = {
 
   warn: function(s){
     rtl.debug('Warn: ',s);
+  },
+
+  checkVersion: function(v){
+    if (rtl.version != v) throw "expected rtl version "+v+", but found "+rtl.version;
   },
 
   hasString: function(s){
@@ -229,6 +235,7 @@ var rtl = {
 
   initClass: function(c,parent,name,initfn){
     parent[name] = c;
+    c.$class = c; // Note: o.$class === Object.getPrototypeOf(o)
     c.$classname = name;
     if ((parent.$module) && (parent.$module.$impl===parent)) parent=parent.$module;
     c.$parent = parent;
@@ -266,21 +273,22 @@ var rtl = {
       c.$create = function(fnname,args){
         if (args == undefined) args = [];
         var o = Object.create(this);
-        o.$class = this; // Note: o.$class === Object.getPrototypeOf(o)
         o.$init();
         try{
           o[fnname].apply(o,args);
           o.AfterConstruction();
         } catch($e){
-          o.$destroy;
+          // do not call BeforeDestruction
+          if (this.Destroy) this.Destroy();
+          this.$final();
           throw $e;
         }
         return o;
       };
       c.$destroy = function(fnname){
         this.BeforeDestruction();
-        this[fnname]();
-        this.$final;
+        if (this[fnname]) this[fnname]();
+        this.$final();
       };
     };
     rtl.initClass(c,parent,name,initfn);
@@ -300,21 +308,22 @@ var rtl = {
       } else {
         o = Object.create(this);
       }
-      o.$class = this; // Note: o.$class === Object.getPrototypeOf(o)
-      o.$init();
+      if (o.$init) o.$init();
       try{
         o[fnname].apply(o,args);
         if (o.AfterConstruction) o.AfterConstruction();
       } catch($e){
-        o.$destroy;
+        // do not call BeforeDestruction
+        if (this.Destroy) this.Destroy();
+        if (this.$final) this.$final();
         throw $e;
       }
       return o;
     };
     c.$destroy = function(fnname){
       if (this.BeforeDestruction) this.BeforeDestruction();
-      this[fnname]();
-      this.$final;
+      if (this[fnname]) this[fnname]();
+      if (this.$final) this.$final();
     };
     rtl.initClass(c,parent,name,initfn);
   },
@@ -482,6 +491,7 @@ var rtl = {
     if(!map) map = {};
     var t = intf;
     var item = Object.create(t);
+    if (!aclass.hasOwnProperty('$intfmaps')) aclass.$intfmaps = {};
     aclass.$intfmaps[intf.$guid] = item;
     do{
       var names = t.$names;

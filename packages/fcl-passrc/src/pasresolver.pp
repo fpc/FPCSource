@@ -212,6 +212,8 @@ Works:
 - $warn identifier ON|off|error|default
 
 ToDo:
+- Include/Exclude for set of int/char/bool
+- set of CharRange
 - error if property method resolution is not used
 - $H-hintpos$H+
 - $pop, $push
@@ -220,21 +222,17 @@ ToDo:
   - property defaultvalue
   - IntSet:=[-1]
   - CharSet:=[#13]
-- Include/Exclude for set of int/char/bool
 - proc: check if forward and impl default values match
 - call array of proc without ()
-- array+array
-- set of CharRange
+- anonymous functions
+- attributes
 - object
-- generics, nested param lists
 - type helpers
 - record/class helpers
-- generics
+- generics, nested param lists
 - futures
 - operator overload
    - operator enumerator
-- attributes
-- anonymous functions
 - TPasFileType
 - labels
 - $zerobasedstrings on|off
@@ -275,12 +273,20 @@ unit PasResolver;
 {$mode objfpc}{$H+}
 {$inline on}
 
+{$ifdef fpc}
+  {$define UsePChar}
+  {$define HasInt64}
+{$endif}
+
 {$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
 {$IFOPT R+}{$DEFINE RangeCheckOn}{$ENDIF}
 
 interface
 
 uses
+  {$ifdef pas2js}
+  js, NodeJSFS,
+  {$endif}
   Classes, SysUtils, Math, Types, contnrs,
   PasTree, PScanner, PParser, PasResolveEval;
 
@@ -303,14 +309,18 @@ type
     btModule,
     btUntyped,     // TPasArgument without ArgType
     btChar,        // char
+    {$ifdef FPC_HAS_CPSTRING}
     btAnsiChar,    // ansichar
+    {$endif}
     btWideChar,    // widechar
     btString,      // string
+    {$ifdef FPC_HAS_CPSTRING}
     btAnsiString,  // ansistring
     btShortString, // shortstring
+    btRawByteString, // rawbytestring
+    {$endif}
     btWideString,  // widestring
     btUnicodeString,// unicodestring
-    btRawByteString, // rawbytestring
     btSingle,      // single  1.5E-45..3.4E38, digits 7-8, bytes 4
     btDouble,      // double  5.0E-324..1.7E308, digits 15-16, bytes 8
     btExtended,    // extended  platform, double or 1.9E-4932..1.1E4932, digits 19-20, bytes 10
@@ -320,7 +330,9 @@ type
     btByteBool,    // bytebool  true=not zero
     btWordBool,    // wordbool  true=not zero
     btLongBool,    // longbool  true=not zero
+    {$ifdef HasInt64}
     btQWordBool,   // qwordbool true=not zero
+    {$endif}
     btByte,        // byte  0..255
     btShortInt,    // shortint -128..127
     btWord,        // word  unsigned 2 bytes
@@ -331,13 +343,17 @@ type
     btLongint,     // longint  signed 4 bytes
     btUIntDouble,  // unsigned integer range of double 52bit
     btIntDouble,   // integer range of double  53bit
+    {$ifdef HasInt64}
     btQWord,       // qword   0..18446744073709551615, bytes 8
     btInt64,       // int64   -9223372036854775808..9223372036854775807, bytes 8
     btComp,        // as Int64, not ordinal
+    {$endif}
     btPointer,     // pointer  or canonical pointer (e.g. @something)
+    {$ifdef fpc}
     btFile,        // file
     btText,        // text
     btVariant,     // variant
+    {$endif}
     btNil,         // nil = pointer, class, procedure, method, ...
     btProc,        // TPasProcedure
     btBuiltInProc, // TPasUnresolvedSymbolRef with CustomData is TResElDataBuiltInProc
@@ -349,26 +365,41 @@ type
     );
   TResolveBaseTypes = set of TResolverBaseType;
 const
+  btIntMax = {$ifdef HasInt64}btInt64{$else}btIntDouble{$endif};
   btAllInteger = [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,
-    btLongWord,btLongint,btIntDouble,btUIntDouble,btQWord,btInt64,btComp];
-  btAllChars = [btChar,btAnsiChar,btWideChar];
-  btAllStrings = [btString,btAnsiString,btShortString,
-    btWideString,btUnicodeString,btRawByteString];
+    btLongWord,btLongint,btIntDouble,btUIntDouble
+    {$ifdef HasInt64}
+    ,btQWord,btInt64,btComp
+    {$endif}];
+  btAllIntegerNoQWord = btAllInteger{$ifdef HasInt64}-[btQWord]{$endif};
+  btAllChars = [btChar,{$ifdef FPC_HAS_CPSTRING}btAnsiChar,{$endif}btWideChar];
+  btAllStrings = [btString,
+    {$ifdef FPC_HAS_CPSTRING}btAnsiString,btShortString,btRawByteString,{$endif}
+    btWideString,btUnicodeString];
   btAllStringAndChars = btAllStrings+btAllChars;
-  btAllFloats = [btSingle,btDouble,btExtended,btCExtended,btCurrency];
-  btAllBooleans = [btBoolean,btByteBool,btWordBool,btLongBool,btQWordBool];
+  btAllStringPointer = [btString,
+    {$ifdef FPC_HAS_CPSTRING}btAnsiString,btRawByteString,{$endif}
+    btWideString,btUnicodeString];
+  btAllFloats = [btSingle,btDouble,
+    btExtended,btCExtended,btCurrency];
+  btAllBooleans = [btBoolean,btByteBool,btWordBool,btLongBool
+    {$ifdef HasInt64},btQWordBool{$endif}];
   btArrayRangeTypes = btAllChars+btAllBooleans+btAllInteger;
   btAllRanges = btArrayRangeTypes+[btRange];
   btAllStandardTypes = [
     btChar,
+    {$ifdef FPC_HAS_CPSTRING}
     btAnsiChar,
+    {$endif}
     btWideChar,
     btString,
+    {$ifdef FPC_HAS_CPSTRING}
     btAnsiString,
     btShortString,
+    btRawByteString,
+    {$endif}
     btWideString,
     btUnicodeString,
-    btRawByteString,
     btSingle,
     btDouble,
     btExtended,
@@ -378,20 +409,26 @@ const
     btByteBool,
     btWordBool,
     btLongBool,
+    {$ifdef HasInt64}
     btQWordBool,
+    {$endif}
     btByte,
     btShortInt,
     btWord,
     btSmallInt,
     btLongWord,
     btLongint,
+    {$ifdef HasInt64}
     btQWord,
     btInt64,
     btComp,
-    btPointer,
-    btFile,
+    {$endif}
+    btPointer
+    {$ifdef fpc}
+    ,btFile,
     btText,
     btVariant
+    {$endif}
     ];
 
   ResBaseTypeNames: array[TResolverBaseType] of string =(
@@ -401,14 +438,18 @@ const
     'Module',
     'Untyped',
     'Char',
+    {$ifdef FPC_HAS_CPSTRING}
     'AnsiChar',
+    {$endif}
     'WideChar',
     'String',
+    {$ifdef FPC_HAS_CPSTRING}
     'AnsiString',
     'ShortString',
+    'RawByteString',
+    {$endif}
     'WideString',
     'UnicodeString',
-    'RawByteString',
     'Single',
     'Double',
     'Extended',
@@ -418,7 +459,9 @@ const
     'ByteBool',
     'WordBool',
     'LongBool',
+    {$ifdef HasInt64}
     'QWordBool',
+    {$endif}
     'Byte',
     'ShortInt',
     'Word',
@@ -429,13 +472,17 @@ const
     'Longint',
     'UIntDouble',
     'IntDouble',
+    {$ifdef HasInt64}
     'QWord',
     'Int64',
     'Comp',
+    {$endif}
     'Pointer',
+    {$ifdef fpc}
     'File',
     'Text',
     'Variant',
+    {$endif}
     'Nil',
     'Procedure/Function',
     'BuiltInProc',
@@ -517,6 +564,27 @@ const
   ResolverResultVar = 'Result';
 
 type
+  {$ifdef pas2js}
+  TPasResIterate = procedure(Item, Arg: pointer) of object;
+
+  { TPasResHashList }
+
+  TPasResHashList = class
+  private
+    FItems: TJSObject;
+  public
+    constructor Create; reintroduce;
+    procedure Add(const aName: string; Item: Pointer);
+    function Find(const aName: string): Pointer;
+    procedure ForEachCall(const Proc: TPasResIterate; Arg: Pointer);
+    procedure Clear;
+    procedure Remove(const aName: string);
+  end;
+  {$else}
+  TPasResHashList = TFPHashList;
+  {$endif}
+
+type
 
   { EPasResolve }
 
@@ -525,7 +593,7 @@ type
     FPasElement: TPasElement;
     procedure SetPasElement(AValue: TPasElement);
   public
-    Id: int64;
+    Id: TMaxPrecInt;
     MsgType: TMessageType;
     MsgNumber: integer;
     MsgPattern: String;
@@ -579,7 +647,7 @@ type
     procedure OnClearItem(Item, Dummy: pointer);
     procedure OnCollectItem(Item, aList: pointer);
   public
-    References: TFPHashList; // hash list of TPasScopeReference
+    References: TPasResHashList; // hash list of TPasScopeReference
     constructor Create(aScope: TPasScope);
     destructor Destroy; override;
     procedure Clear;
@@ -683,7 +751,7 @@ type
 
   TPasIdentifierScope = Class(TPasScope)
   private
-    FItems: TFPHashList;
+    FItems: TPasResHashList; // hashlist of TPasIdentifier
     procedure InternalAdd(Item: TPasIdentifier);
     procedure OnClearItem(Item, Dummy: pointer);
     procedure OnCollectItem(Item, List: pointer);
@@ -742,7 +810,7 @@ type
 
   TPasInitialFinalizationScope = Class(TPasScope)
   public
-    References: TPasScopeReferences; // created by TPasAnalyzer
+    References: TPasScopeReferences; // created by TPasAnalyzer, not used by resolver
     function AddReference(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;
     destructor Destroy; override;
   end;
@@ -995,6 +1063,8 @@ type
   TPRResolveVarAccesses = set of TResolvedRefAccess;
 
 const
+  rraAllWrite = [rraAssign,rraReadAndAssign,rraVarParam,rraOutParam];
+
   ResolvedToPSRefAccess: array[TResolvedRefAccess] of TPSRefAccess = (
     psraNone, // rraNone
     psraRead,  // rraRead
@@ -1056,7 +1126,7 @@ type
     rcSetReferenceFlags,  // set flags of references while computing type, used by Resolve* methods
     rcNoImplicitProc,    // do not call a function without params, includes rcNoImplicitProcType
     rcNoImplicitProcType, // do not call a proc type without params
-    rcConstant,  // resolve a constant expresson
+    rcConstant,  // resolve a constant expression, error if not computable
     rcType       // resolve a type expression
     );
   TPasResolverComputeFlags = set of TPasResolverComputeFlag;
@@ -1167,14 +1237,14 @@ type
     FBuiltInProcs: array[TResolverBuiltInProc] of TResElDataBuiltInProc;
     FDefaultNameSpace: String;
     FDefaultScope: TPasDefaultScope;
-    FDynArrayMaxIndex: int64;
-    FDynArrayMinIndex: int64;
+    FDynArrayMaxIndex: TMaxPrecInt;
+    FDynArrayMinIndex: TMaxPrecInt;
     FLastCreatedData: array[TResolveDataListKind] of TResolveData;
     FLastElement: TPasElement;
     FLastMsg: string;
     FLastMsgArgs: TMessageArgs;
     FLastMsgElement: TPasElement;
-    FLastMsgId: int64;
+    FLastMsgId: TMaxPrecInt;
     FLastMsgNumber: integer;
     FLastMsgPattern: string;
     FLastMsgType: TMessageType;
@@ -1204,9 +1274,10 @@ type
       cAliasExact = cExact+1;
       cCompatible = cAliasExact+1;
       cIntToIntConversion = ord(High(TResolverBaseType));
-      cToFloatConversion = 2*cIntToIntConversion;
+      cFloatToFloatConversion = 2*cIntToIntConversion;
       cTypeConversion = cExact+10000; // e.g. TObject to Pointer
       cLossyConversion = cExact+100000;
+      cIntToFloatConversion = cExact+400000; // int to float is worse than bigint to smallint
       cIncompatible = High(integer);
     var
       cTGUIDToString: integer;
@@ -1246,7 +1317,7 @@ type
     procedure OnFindFirstElement(El: TPasElement; ElScope, StartScope: TPasScope;
       FindFirstElementData: Pointer; var Abort: boolean); virtual;
     procedure OnFindCallElements(El: TPasElement; ElScope, StartScope: TPasScope;
-      FindProcsData: Pointer; var Abort: boolean); virtual;
+      FindProcsData: Pointer; var Abort: boolean); virtual; // find candidates for Name(params)
     procedure OnFindOverloadProc(El: TPasElement; ElScope, StartScope: TPasScope;
       FindOverloadData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
@@ -1403,7 +1474,7 @@ type
       MinCount: integer; RaiseOnError: boolean): boolean;
     function CheckBuiltInMaxParamCount(Proc: TResElDataBuiltInProc; Params: TParamsExpr;
       MaxCount: integer; RaiseOnError: boolean): integer;
-    function CheckRaiseTypeArgNo(id: int64; ArgNo: integer; Param: TPasExpr;
+    function CheckRaiseTypeArgNo(id: TMaxPrecInt; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
     function FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
     function FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
@@ -1416,9 +1487,9 @@ type
     procedure FindRangeErrorConstructors(ErrorEl: TPasElement); virtual;
   protected
     fExprEvaluator: TResExprEvaluator;
-    procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: int64;
+    procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: TMaxPrecInt;
       MsgType: TMessageType; MsgNumber: integer; const Fmt: String;
-      Args: array of const; PosEl: TPasElement); virtual;
+      Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}; PosEl: TPasElement); virtual;
     function OnExprEvalIdentifier(Sender: TResExprEvaluator;
       Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function OnExprEvalParams(Sender: TResExprEvaluator;
@@ -1624,38 +1695,44 @@ type
       out Line, Column: integer);
     class function GetDbgSourcePosStr(El: TPasElement): string;
     function GetElementSourcePosStr(El: TPasElement): string;
-    procedure SetLastMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
-      Const Fmt : String; Args : Array of const; PosEl: TPasElement);
-    procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
-      const Fmt: String; Args: Array of const; PosEl: TPasElement); overload;
+    procedure SetLastMsg(const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
+      Const Fmt : String; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      PosEl: TPasElement);
+    procedure LogMsg(const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
+      const Fmt: String; Args: Array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      PosEl: TPasElement); overload;
     class function GetWarnIdentifierNumbers(Identifier: string;
       out MsgNumbers: TIntegerDynArray): boolean; virtual;
     procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasResolverResult;
       out GotDesc, ExpDesc: String); overload;
     procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasType;
       out GotDesc, ExpDesc: String); overload;
-    procedure RaiseMsg(const Id: int64; MsgNumber: integer; const Fmt: String;
-      Args: Array of const; ErrorPosEl: TPasElement); virtual;
-    procedure RaiseNotYetImplemented(id: int64; El: TPasElement; Msg: string = ''); virtual;
-    procedure RaiseInternalError(id: int64; const Msg: string = '');
-    procedure RaiseInvalidScopeForElement(id: int64; El: TPasElement; const Msg: string = '');
-    procedure RaiseIdentifierNotFound(id: int64; Identifier: string; El: TPasElement);
-    procedure RaiseXExpectedButYFound(id: int64; const X,Y: string; El: TPasElement);
-    procedure RaiseContextXExpectedButYFound(id: int64; const C,X,Y: string; El: TPasElement);
-    procedure RaiseContextXInvalidY(id: int64; const X,Y: string; El: TPasElement);
-    procedure RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
-    procedure RaiseVarExpected(id: int64; ErrorEl: TPasElement; IdentEl: TPasElement);
-    procedure RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
-    procedure RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
-      const Args: array of const; const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
-    procedure RaiseIncompatibleType(id: int64; MsgNumber: integer;
-      const Args: array of const; GotType, ExpType: TPasType; ErrorEl: TPasElement);
-    procedure RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
-      const Args: array of const; const GotType, ExpType: TPasResolverResult;
+    procedure RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer; const Fmt: String;
+      Args: Array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      ErrorPosEl: TPasElement); virtual;
+    procedure RaiseNotYetImplemented(id: TMaxPrecInt; El: TPasElement; Msg: string = ''); virtual;
+    procedure RaiseInternalError(id: TMaxPrecInt; const Msg: string = '');
+    procedure RaiseInvalidScopeForElement(id: TMaxPrecInt; El: TPasElement; const Msg: string = '');
+    procedure RaiseIdentifierNotFound(id: TMaxPrecInt; Identifier: string; El: TPasElement);
+    procedure RaiseXExpectedButYFound(id: TMaxPrecInt; const X,Y: string; El: TPasElement);
+    procedure RaiseContextXExpectedButYFound(id: TMaxPrecInt; const C,X,Y: string; El: TPasElement);
+    procedure RaiseContextXInvalidY(id: TMaxPrecInt; const X,Y: string; El: TPasElement);
+    procedure RaiseConstantExprExp(id: TMaxPrecInt; ErrorEl: TPasElement);
+    procedure RaiseVarExpected(id: TMaxPrecInt; ErrorEl: TPasElement; IdentEl: TPasElement);
+    procedure RaiseRangeCheck(id: TMaxPrecInt; ErrorEl: TPasElement);
+    procedure RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: integer;
+      const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
+    procedure RaiseIncompatibleType(id: TMaxPrecInt; MsgNumber: integer;
+      const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      GotType, ExpType: TPasType; ErrorEl: TPasElement);
+    procedure RaiseIncompatibleTypeRes(id: TMaxPrecInt; MsgNumber: integer;
+      const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      const GotType, ExpType: TPasResolverResult;
       ErrorEl: TPasElement);
-    procedure RaiseInvalidProcTypeModifier(id: int64; ProcType: TPasProcedureType;
+    procedure RaiseInvalidProcTypeModifier(id: TMaxPrecInt; ProcType: TPasProcedureType;
       ptm: TProcTypeModifier; ErrorEl: TPasElement);
-    procedure RaiseInvalidProcModifier(id: int64; Proc: TPasProcedure;
+    procedure RaiseInvalidProcModifier(id: TMaxPrecInt; Proc: TPasProcedure;
       pm: TProcedureModifier; ErrorEl: TPasElement);
     procedure WriteScopes;
     // find value and type of an element
@@ -1762,6 +1839,7 @@ type
     function IsVarInit(Expr: TPasExpr): boolean;
     function IsEmptyArrayExpr(const ResolvedEl: TPasResolverResult): boolean;
     function IsClassMethod(El: TPasElement): boolean;
+    function IsClassField(El: TPasElement): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
@@ -1776,7 +1854,7 @@ type
     function ProcNeedsParams(El: TPasProcedureType): boolean;
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
-    function GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
+    function GetRangeLength(RangeExpr: TPasExpr): TMaxPrecInt;
     function EvalRangeLimit(RangeExpr: TPasExpr; Flags: TResEvalFlags;
       EvalLow: boolean; ErrorEl: TPasElement): TResEvalValue; virtual; // compute low() or high()
     function EvalTypeRange(Decl: TPasType; Flags: TResEvalFlags): TResEvalValue; virtual; // compute low() and high()
@@ -1785,9 +1863,9 @@ type
     function GetCombinedBoolean(Bool1, Bool2: TResolverBaseType; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedInt(const Int1, Int2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     procedure GetIntegerProps(bt: TResolverBaseType; out Precision: word; out Signed: boolean);
-    function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: MaxPrecInt): boolean;
+    function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: TMaxPrecInt): boolean;
     function GetIntegerBaseType(Precision: word; Signed: boolean; ErrorEl: TPasElement): TResolverBaseType;
-    function GetSmallestIntegerBaseType(MinVal, MaxVal: MaxPrecInt): TResolverBaseType;
+    function GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt): TResolverBaseType;
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function IsElementSkipped(El: TPasElement): boolean; virtual;
@@ -1806,8 +1884,8 @@ type
     property BaseTypeLength: TResolverBaseType read FBaseTypeLength write FBaseTypeLength;
     property BuiltInProcs[bp: TResolverBuiltInProc]: TResElDataBuiltInProc read GetBuiltInProcs;
     property ExprEvaluator: TResExprEvaluator read fExprEvaluator;
-    property DynArrayMinIndex: int64 read FDynArrayMinIndex write FDynArrayMinIndex;
-    property DynArrayMaxIndex: int64 read FDynArrayMaxIndex write FDynArrayMaxIndex;
+    property DynArrayMinIndex: TMaxPrecInt read FDynArrayMinIndex write FDynArrayMinIndex;
+    property DynArrayMaxIndex: TMaxPrecInt read FDynArrayMaxIndex write FDynArrayMaxIndex;
     // parsed values
     property DefaultNameSpace: String read FDefaultNameSpace;
     property RootElement: TPasModule read FRootElement write SetRootElement;
@@ -1831,7 +1909,7 @@ type
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
     property LastMsgElement: TPasElement read FLastMsgElement write FLastMsgElement;
-    property LastMsgId: int64 read FLastMsgId write FLastMsgId;
+    property LastMsgId: TMaxPrecInt read FLastMsgId write FLastMsgId;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
@@ -1881,7 +1959,7 @@ function GetTreeDbg(El: TPasElement; Indent: integer): string;
   procedure LineBreak(SubIndent: integer);
   begin
     Inc(Indent,SubIndent);
-    Result:=Result+LineEnding+Space(Indent);
+    Result:=Result+LineEnding+StringOfChar(' ',Indent);
   end;
 
 var
@@ -2471,6 +2549,48 @@ begin
   str(a,Result);
 end;
 
+{$ifdef pas2js}
+{ TPasResHashList }
+
+constructor TPasResHashList.Create;
+begin
+  FItems:=TJSObject.new;
+end;
+
+procedure TPasResHashList.Add(const aName: string; Item: Pointer);
+begin
+  FItems['%'+aName]:=Item;
+end;
+
+function TPasResHashList.Find(const aName: string): Pointer;
+begin
+  if FItems.hasOwnProperty('%'+aName) then
+    Result:=Pointer(FItems['%'+aName])
+  else
+    Result:=nil;
+end;
+
+procedure TPasResHashList.ForEachCall(const Proc: TPasResIterate; Arg: Pointer);
+var
+  key: string;
+begin
+  for key in FItems do
+    if FItems.hasOwnProperty(key) then
+      Proc(Pointer(FItems[key]),Arg);
+end;
+
+procedure TPasResHashList.Clear;
+begin
+  FItems:=TJSObject.new;
+end;
+
+procedure TPasResHashList.Remove(const aName: string);
+begin
+  if FItems.hasOwnProperty('%'+aName) then
+    JSDelete(FItems,'%'+aName);
+end;
+{$endif}
+
 { TResElDataBuiltInProc }
 
 destructor TResElDataBuiltInProc.Destroy;
@@ -2561,14 +2681,18 @@ end;
 
 constructor TPasScopeReferences.Create(aScope: TPasScope);
 begin
-  References:=TFPHashList.Create;
+  References:=TPasResHashList.Create;
   FScope:=aScope;
 end;
 
 destructor TPasScopeReferences.Destroy;
 begin
   Clear;
+  {$ifdef pas2js}
+  References:=nil;
+  {$else}
   FreeAndNil(References);
+  {$endif}
   inherited Destroy;
 end;
 
@@ -3356,7 +3480,7 @@ var
   Prefix: String;
 begin
   {AllowWriteln}
-  Prefix:=AnsiString(Dummy);
+  Prefix:=String(Dummy);
   while PasIdentifier<>nil do
     begin
     writeln(Prefix,'Identifier="',PasIdentifier.Identifier,'" Element=',GetObjName(PasIdentifier.Element));
@@ -3367,11 +3491,32 @@ end;
 
 procedure TPasIdentifierScope.InternalAdd(Item: TPasIdentifier);
 var
-  Index: Integer;
   OldItem: TPasIdentifier;
   LoName: string;
+  {$ifdef pas2js}
+  {$ELSE}
+  Index: Integer;
+  {$ENDIF}
 begin
   LoName:=lowercase(Item.Identifier);
+  {$ifdef pas2js}
+  OldItem:=TPasIdentifier(FItems.Find(LoName));
+  if OldItem<>nil then
+    begin
+    // insert LIFO - last in, first out
+    Item.NextSameIdentifier:=OldItem;
+    end;
+  FItems.Add(LoName,Item);
+  {$IFDEF VerbosePasResolver}
+  if Item.Owner<>nil then
+    raise Exception.Create('20160925184110');
+  Item.Owner:=Self;
+  {$ENDIF}
+  {$IFDEF VerbosePasResolver}
+  if FindIdentifier(Item.Identifier)<>Item then
+    raise Exception.Create('20181018173201');
+  {$ENDIF}
+  {$else}
   Index:=FItems.FindIndexOf(LoName);
   {$IFDEF VerbosePasResolver}
   if Item.Owner<>nil then
@@ -3398,11 +3543,12 @@ begin
       raise Exception.Create('20160925183849');
     {$ENDIF}
     end;
+  {$endif}
 end;
 
 constructor TPasIdentifierScope.Create;
 begin
-  FItems:=TFPHashList.Create;
+  FItems:=TPasResHashList.Create;
 end;
 
 destructor TPasIdentifierScope.Destroy;
@@ -3411,8 +3557,12 @@ begin
   writeln('TPasIdentifierScope.Destroy START ',ClassName);
   {$ENDIF}
   FItems.ForEachCall(@OnClearItem,nil);
+  {$ifdef pas2js}
+  FItems:=nil;
+  {$else}
   FItems.Clear;
   FreeAndNil(FItems);
+  {$endif}
   inherited Destroy;
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasIdentifierScope.Destroy END ',ClassName);
@@ -3460,13 +3610,13 @@ begin
         end
       else
         begin
-        FItems.Remove(Identifier);
+        FItems.Remove({$ifdef pas2js}LoName{$else}Identifier{$endif});
         PrevIdentifier:=Identifier;
         Identifier:=Identifier.NextSameIdentifier;
         PrevIdentifier.Free;
         PrevIdentifier:=nil;
         if Identifier<>nil then
-          FItems.Add(Loname,Identifier);
+          FItems.Add(LoName,Identifier);
         end;
       Result:=true;
       continue;
@@ -3651,10 +3801,15 @@ begin
     if (Value=nil) then
       RaiseXExpectedButYFound(20180222000004,'string literal',GetElementTypeName(InFileExpr),InFileExpr);
     case Value.Kind of
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       Result:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,InFileExpr);
     revkUnicodeString:
       Result:=UTF8Encode(TResEvalUTF16(Value).S);
+    {$else}
+    revkUnicodeString:
+      Result:=TResEvalUTF16(Value).S;
+    {$endif}
     else
       RaiseXExpectedButYFound(20180222000122,'string literal',Value.AsDebugString,InFileExpr);
     end;
@@ -3870,7 +4025,7 @@ begin
 
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Proc Distance=',Distance,
-      ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',ord(Data^.Distance),
+      ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',Data^.Distance,
       ' Signature={',GetProcTypeDescription(Proc.ProcType,[prptdUseName,prptdAddPaths]),'}',
       ' Abort=',Abort);
     {$ENDIF}
@@ -4001,9 +4156,11 @@ begin
     writeln('TPasResolver.OnFindCallElements Found another candidate, but it is incompatible -> ignore')
     {$ENDIF}
   else if (Data^.Distance=Distance)
-      or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)) then
+      or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)
+          and ((Distance>=cIntToFloatConversion)=(Data^.Distance>=cIntToFloatConversion))) then
     begin
-    // found another compatible one -> collect
+    // found another similar compatible one -> collect
+    // Note: cLossyConversion is better than cIntToFloatConversion, not similar
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Found another candidate Distance=',Distance,' OldDistance=',Data^.Distance);
     {$ENDIF}
@@ -4030,13 +4187,13 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Found a better candidate Distance=',Distance,' Data^.Distance=',Data^.Distance);
     {$ENDIF}
-    Data^.Found:=El;
-    Data^.ElScope:=ElScope;
-    Data^.StartScope:=StartScope;
-    Data^.Distance:=Distance;
-    if (Distance<cLossyConversion) then
+    if (Distance<cLossyConversion)
+        or ((Distance>=cIntToFloatConversion)<>(Data^.Distance>=cIntToFloatConversion)) then
       begin
       // found a good one
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.OnFindCallElements Found a good candidate Distance=',Distance,' Data^.Distance=',Data^.Distance);
+      {$ENDIF}
       Data^.Count:=1;
       if Data^.List<>nil then
         Data^.List.Clear;
@@ -4045,10 +4202,21 @@ begin
       begin
       // found another lossy one
       // -> collect them
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.OnFindCallElements Found another lossy candidate Distance=',Distance,' Data^.Distance=',Data^.Distance);
+      {$ENDIF}
       inc(Data^.Count);
       end;
+    Data^.Found:=El;
+    Data^.ElScope:=ElScope;
+    Data^.StartScope:=StartScope;
+    Data^.Distance:=Distance;
     if Data^.List<>nil then
       Data^.List.Add(El);
+    end
+  else
+    begin
+    // found a worse one
     end;
 end;
 
@@ -5334,7 +5502,7 @@ procedure TPasResolver.FinishMethodDeclHeader(Proc: TPasProcedure);
     Proc.Visibility:=OverloadProc.Visibility;
   end;
 
-  {$IF FPC_FULLVERSION<30101}
+  {$IF defined(fpc) and (FPC_FULLVERSION<30101)}
   procedure Delete(var A: TArrayOfPasProcedure; Index, Count: integer); overload;
   var
     i: Integer;
@@ -5596,7 +5764,8 @@ begin
     end
   else if El.Expr<>nil then
     begin
-    Value:=Eval(El.Expr,[refConst]);
+    // no VarType, has Expr, e.g. const a = Expr
+    Value:=Eval(El.Expr,[refConstExt]); // e.g. const Tau = 2*PI
     ReleaseEvalValue(Value);
     end;
   if El.AbsoluteExpr<>nil then
@@ -5711,6 +5880,7 @@ var
     ArgNo: Integer;
     PropArg, ProcArg: TPasArgument;
     PropArgResolved, ProcArgResolved: TPasResolverResult;
+    NeedCheckingAccess: Boolean;
   begin
     ArgNo:=0;
     while ArgNo<PropEl.Args.Count do
@@ -5723,10 +5893,23 @@ var
       inc(ArgNo);
 
       // check access: var, const, ...
+      NeedCheckingAccess:=false;
       if PropArg.Access<>ProcArg.Access then
-        RaiseMsg(20170216151808,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-          [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
-           AccessDescriptions[PropArg.Access]],ErrorEl);
+        begin
+
+        if (PropArg.Access in [argDefault, argConst])
+            and (ProcArg.Access in [argDefault, argConst]) then
+          begin
+          // passing an arg as default to const or const to default
+          if (PropArg.ArgType<>nil)
+              and (ProcArg.ArgType<>nil) then
+            NeedCheckingAccess:=true;
+          end;
+        if not NeedCheckingAccess then
+          RaiseMsg(20170216151808,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+            [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
+             AccessDescriptions[PropArg.Access]],ErrorEl);
+        end;
 
       // check argument type
       if PropArg.ArgType=nil then
@@ -5754,6 +5937,19 @@ var
           RaiseIncompatibleType(20170216151819,nIncompatibleTypeArgNo,
             [IntToStr(ArgNo)],ProcArgResolved.HiTypeEl,PropArgResolved.HiTypeEl,ErrorEl);
         end;
+
+        if NeedCheckingAccess then
+          begin
+          // passing an arg as default to const or const to default
+          // e.g.
+          //   function GetItems(const i: integer): byte;
+          //   property Items[i: integer]: byte read GetItems;
+          // => allowed for simple types
+          if not (PropArgResolved.BaseType in (btAllBooleans+btAllInteger+btAllStringAndChars+btAllFloats)) then
+            RaiseMsg(20181007181647,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+              [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
+               AccessDescriptions[PropArg.Access]],ErrorEl);
+          end;
       end;
 
     if IndexVal<>nil then
@@ -5982,7 +6178,10 @@ begin
       revkInt, revkUInt,
       revkFloat,
       revkCurrency,
-      revkString, revkUnicodeString,
+      {$ifdef FPC_HAS_CPSTRING}
+      revkString,
+      {$endif}
+      revkUnicodeString,
       revkEnum: ; // ok
       else
         RaiseXExpectedButYFound(20170924202837,'ordinal',GetTypeDescription(IndexResolved),PropEl.IndexExpr);
@@ -6791,7 +6990,7 @@ end;
 procedure TPasResolver.ResolveImplCaseOf(CaseOf: TPasImplCaseOf);
 type
   TRangeItem = record
-    RangeStart, RangeEnd: MaxPrecInt;
+    RangeStart, RangeEnd: TMaxPrecInt;
     Expr: TPasExpr;
     aString: UnicodeString;
     // Note: for case-of-string:
@@ -6861,7 +7060,7 @@ type
       end;
   end;
 
-  function AddRangeItem(Values: TFPList; const RangeStart, RangeEnd: MaxPrecInt;
+  function AddRangeItem(Values: TFPList; const RangeStart, RangeEnd: TMaxPrecInt;
     Expr: TPasExpr): PRangeItem;
   begin
     New(Result);
@@ -6900,7 +7099,7 @@ type
       Result:=true;
     end;
 
-    function AddStringRange(CharStart, CharEnd: MaxPrecInt): boolean;
+    function AddStringRange(CharStart, CharEnd: TMaxPrecInt): boolean;
     var
       i, o: Integer;
       s: UnicodeString;
@@ -6930,7 +7129,7 @@ type
     end;
 
   var
-    RangeStart, RangeEnd: MaxPrecInt;
+    RangeStart, RangeEnd: TMaxPrecInt;
     i: Integer;
     Item: PRangeItem;
   begin
@@ -6954,10 +7153,11 @@ type
       // Note: when FPC compares int64 with qword it converts the qword to an int64
       if TResEvalUInt(Value).UInt>HighIntAsUInt then
         ExprEvaluator.EmitRangeCheckConst(20180424212414,Value.AsString,
-          '0',IntToStr(High(MaxPrecInt)),Expr,mtError);
+          '0',IntToStr(High(TMaxPrecInt)),Expr,mtError);
       RangeStart:=TResEvalUInt(Value).UInt;
       RangeEnd:=RangeStart;
       end;
+    {$ifdef FPC_HAS_CPSTRING}
     revkString:
       if ValueSet=nil then
         exit(AddString(ExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,Expr)))
@@ -6968,6 +7168,7 @@ type
         RangeStart:=ord(TResEvalString(Value).S[1]);
         RangeEnd:=RangeStart;
         end;
+    {$endif}
     revkUnicodeString:
       if ValueSet=nil then
         exit(AddString(TResEvalUTF16(Value).S))
@@ -6996,7 +7197,7 @@ type
       // Note: when FPC compares int64 with qword it converts the qword to an int64
       if TResEvalRangeUInt(Value).RangeEnd>HighIntAsUInt then
         ExprEvaluator.EmitRangeCheckConst(20180424212648,Value.AsString,
-          '0',IntToStr(High(MaxPrecInt)),Expr,mtError);
+          '0',IntToStr(High(TMaxPrecInt)),Expr,mtError);
       RangeStart:=TResEvalRangeUInt(Value).RangeStart;
       RangeEnd:=TResEvalRangeUInt(Value).RangeEnd;
       end;
@@ -7065,17 +7266,18 @@ begin
             ConvertRangeToElement(OfExprResolved);
           CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
 
-          Value:=Eval(OfExpr,[]); // allow external const, no refConst
+          Value:=Eval(OfExpr,[refConstExt]);
           if Value<>nil then
             begin
-            if not AddValue(Value,Values,ValueSet,OfExpr) then
+            if Value.Kind=revkExternal then
+              begin
+              // external const
+              end
+            else if not AddValue(Value,Values,ValueSet,OfExpr) then
               RaiseIncompatibleTypeRes(20180424210815,nIncompatibleTypesGotExpected,
                 [],OfExprResolved,CaseExprResolved,OfExpr);
             ReleaseEvalValue(Value);
             end
-          else if (OfExprResolved.IdentEl is TPasConst)
-              and (TPasConst(OfExprResolved.IdentEl).Expr=nil) then
-            // externl const
           else
             RaiseMsg(20180518102047,nConstantExpressionExpected,sConstantExpressionExpected,[],OfExpr);
           end;
@@ -7189,7 +7391,7 @@ begin
           if bt in [btSet,btArrayOrSet] then
             begin
             if (StartResolved.IdentEl=nil) and (StartResolved.ExprEl<>nil) then
-              InRange:=Eval(StartResolved.ExprEl,[refAutoConst]);
+              InRange:=Eval(StartResolved.ExprEl,[]);
             if InRange=nil then
               InRange:=EvalTypeRange(StartResolved.LoTypeEl,[]);
             end
@@ -7210,10 +7412,14 @@ begin
           else
             begin
             bt:=GetActualBaseType(bt);
-            if bt=btAnsiString then
-              InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff)
-            else if bt=btUnicodeString then
+            case bt of
+            {$ifdef FPC_HAS_CPSTRING}
+            btAnsiString:
+              InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
+            {$endif}
+            btUnicodeString:
               InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
+            end;
             end;
           end;
         if (not EnumeratorFound) and (InRange<>nil) then
@@ -9488,11 +9694,13 @@ begin
             begin
             case RightResolved.BaseType of
             btChar: SetBaseType(btString);
+            {$ifdef FPC_HAS_CPSTRING}
             btAnsiChar:
               if BaseTypeChar=btAnsiChar then
                 SetBaseType(btString)
               else
                 SetBaseType(btUnicodeString);
+            {$endif}
             btWideChar:
               if BaseTypeChar=btWideChar then
                 SetBaseType(btString)
@@ -9504,6 +9712,7 @@ begin
             end;
             exit;
             end;
+          {$ifdef FPC_HAS_CPSTRING}
           btAnsiChar:
             begin
             case RightResolved.BaseType of
@@ -9528,10 +9737,11 @@ begin
             end;
             exit;
             end;
+          {$endif}
           btWideChar:
             begin
               case RightResolved.BaseType of
-              btChar,btAnsiChar,btWideChar:
+              btChar,{$ifdef FPC_HAS_CPSTRING}btAnsiChar,{$endif}btWideChar:
                 if BaseTypeChar=btWideChar then
                   SetBaseType(btString)
                 else
@@ -9542,6 +9752,7 @@ begin
               end;
               exit;
             end;
+          {$ifdef FPC_HAS_CPSTRING}
           btShortString:
             begin
               case RightResolved.BaseType of
@@ -9554,7 +9765,8 @@ begin
               end;
               exit;
             end;
-          btString,btAnsiString,btUnicodeString:
+          {$endif}
+          btString,{$ifdef FPC_HAS_CPSTRING}btAnsiString,{$endif}btUnicodeString:
             begin
               // string + x => string
               SetLeftValueExpr([rrfReadable]);
@@ -10117,16 +10329,18 @@ begin
     begin
     // stringvar[] => char
     case GetActualBaseType(ResolvedEl.BaseType) of
-    btWideString,btUnicodeString:
-      if BaseTypeChar=btWideChar then
-        ResolvedEl.BaseType:=btChar
-      else
-        ResolvedEl.BaseType:=btWideChar;
+    {$ifdef FPC_HAS_CPSTRING}
     btAnsiString,btRawByteString,btShortString:
       if BaseTypeChar=btAnsiChar then
         ResolvedEl.BaseType:=btChar
       else
         ResolvedEl.BaseType:=btAnsiChar;
+    {$endif}
+    btWideString,btUnicodeString:
+      if BaseTypeChar=btWideChar then
+        ResolvedEl.BaseType:=btChar
+      else
+        ResolvedEl.BaseType:=btWideChar;
     else
       RaiseNotYetImplemented(20170417202354,Params);
     end;
@@ -11030,43 +11244,58 @@ function TPasResolver.IsCharLiteral(const Value: string; ErrorPos: TPasElement
 // btAnsiChar: #65, #$50, ^G, 'a'
 // btWideChar: #10000, 'ä'
 var
-  p: PChar;
   i: SizeInt;
-  base: Integer;
+  p, base, l: Integer;
 begin
   Result:=btNone;
   //writeln('TPasResolver.IsCharLiteral ',BaseTypeChar,' "',Value,'" l=',length(Value));
-  p:=PChar(Value);
-  case p^ of
+  l:=length(Value);
+  if l=0 then exit;
+  p:=1;
+  case Value[1] of
   '''':
     begin
     inc(p);
-    case p^ of
+    if p>l then exit;
+    {$ifdef FPC_HAS_CPSTRING}
+    case Value[2] of
     '''':
-      if (p[1]='''') and (p[2]='''') and (p[3]=#0) then
-        Result:=btAnsiChar;
+      if Value='''''''''' then
+        Result:=btAnsiChar; // ''''
     #32..#38,#40..#191:
-      if (p[1]='''') and (p[2]=#0) then
-        Result:=btAnsiChar;
+      if (l=3) and (Value[3]='''') then
+        Result:=btAnsiChar; // e.g. 'a'
     #192..#255:
       if BaseTypeChar=btWideChar then
         begin
         // default char is widechar: UTF-8 'ä' is a widechar
-        i:=Utf8CodePointLen(p,4,false);
+        i:=Utf8CodePointLen(@Value[2],4,false);
         //writeln('TPasResolver.IsCharLiteral "',Value,'" ',length(Value),' i=',i);
         if i<2 then
           exit;
-        inc(p,i);
-        if (p^='''') and (p[1]=#0) then
+        p:=2+i;
+        if (p=l) and (Value[p]='''') then
           // single UTF-8 codepoint
           Result:=btWideChar;
         end;
     end;
+    {$else}
+    case Value[p] of
+    '''':
+      if (p+2=l) and (Value[p+1]='''') and (Value[p+2]='''') then
+        Result:=btWideChar; // ''''
+    #$DC00..#$DFFF: ;
+    else
+      if (l=3) and (Value[3]='''') then
+        Result:=btWideChar; // e.g. 'a'
+    end;
+    {$endif}
     end;
   '#':
     begin
     inc(p);
-    case p^ of
+    if p>l then exit;
+    case Value[p] of
     '$': begin base:=16; inc(p); end;
     '&': begin base:=8; inc(p); end;
     '%': begin base:=2; inc(p); end;
@@ -11074,36 +11303,40 @@ begin
     else RaiseNotYetImplemented(20170728142709,ErrorPos);
     end;
     i:=0;
-    repeat
-      case p^ of
-      '0'..'9': i:=i*base+ord(p^)-ord('0');
-      'A'..'Z': i:=i*base+ord(p^)-ord('A')+10;
-      'a'..'z': i:=i*base+ord(p^)-ord('a')+10;
-      else
-        break;
+    while p<=l do
+      begin
+      case Value[p] of
+      '0'..'9': i:=i*base+ord(Value[p])-ord('0');
+      'A'..'Z': i:=i*base+ord(Value[p])-ord('A')+10;
+      'a'..'z': i:=i*base+ord(Value[p])-ord('a')+10;
       end;
       inc(p);
-    until false;
-    if p^=#0 then
+      end;
+    if p>l then
+      begin
+      {$ifdef FPC_HAS_CPSTRING}
       if i<256 then
         Result:=btAnsiChar
       else
+      {$endif}
         Result:=btWideChar;
+      end;
     end;
   '^':
     begin
-    inc(p);
-    if (p^ in ['a'..'z','A'..'Z']) and (p[1]=#0) then
-      Result:=btAnsiChar;
+    if (l=2) and (Value[2] in ['a'..'z','A'..'Z']) then
+      Result:={$ifdef FPC_HAS_CPSTRING}btAnsiChar{$else}btWideChar{$endif};
     end;
   end;
-  if Result in [btAnsiChar,btWideChar] then
+  if Result in [{$ifdef FPC_HAS_CPSTRING}btAnsiChar,{$endif}btWideChar] then
     begin
     if FBaseTypes[Result]=nil then
       begin
+      {$ifdef FPC_HAS_CPSTRING}
       if Result=btAnsiChar then
         Result:=btWideChar
       else
+      {$endif}
         Result:=btChar;
       end;
     if Result=BaseTypeChar then
@@ -11261,7 +11494,7 @@ begin
   Result:=cExact;
 end;
 
-function TPasResolver.CheckRaiseTypeArgNo(id: int64; ArgNo: integer;
+function TPasResolver.CheckRaiseTypeArgNo(id: TMaxPrecInt; ArgNo: integer;
   Param: TPasExpr; const ParamResolved: TPasResolverResult; Expected: string;
   RaiseOnError: boolean): integer;
 begin
@@ -11447,8 +11680,9 @@ begin
 end;
 
 procedure TPasResolver.OnExprEvalLog(Sender: TResExprEvaluator;
-  const id: int64; MsgType: TMessageType; MsgNumber: integer;
-  const Fmt: String; Args: array of const; PosEl: TPasElement);
+  const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
+  const Fmt: String; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  PosEl: TPasElement);
 begin
   if MsgType<=mtError then
     RaiseMsg(id,MsgNumber,Fmt,Args,PosEl)
@@ -11466,6 +11700,7 @@ var
   ResolvedType: TPasResolverResult;
   EnumValue: TPasEnumValue;
   EnumType: TPasEnumType;
+  EvalFlags: TResEvalFlags;
 begin
   Result:=nil;
   if not (Expr.CustomData is TResolvedReference) then
@@ -11488,7 +11723,10 @@ begin
         end
       else
         ResolvedType.BaseType:=btNone;
-      Result:=fExprEvaluator.Eval(TPasConst(Decl).Expr,Flags+[refConst]);
+      EvalFlags:=Flags;
+      if not (refConstExt in EvalFlags) then
+        Include(EvalFlags,refConst);
+      Result:=fExprEvaluator.Eval(TPasConst(Decl).Expr,EvalFlags);
       if Result<>nil then
         begin
         if (Result.Element<>nil) and (Result.Element<>TPasConst(Decl).Expr) then
@@ -11508,8 +11746,12 @@ begin
             btLongWord: TResEvalInt(Result).Typed:=reitLongWord;
             btLongint: TResEvalInt(Result).Typed:=reitLongInt;
             btUIntDouble: TResEvalInt(Result).Typed:=reitUIntDouble;
+            {$ifdef HasInt64}
             btIntDouble: TResEvalInt(Result).Typed:=reitIntDouble;
             btInt64: TResEvalInt(Result).Typed:=reitNone; // default
+            {$else}
+            btIntDouble: TResEvalInt(Result).Typed:=reitNone; // default
+            {$endif}
             else
               ReleaseEvalValue(Result);
               RaiseNotYetImplemented(20170624181050,TPasConst(Decl).VarType);
@@ -11517,9 +11759,18 @@ begin
           end;
         exit;
         end;
+      end
+    else if vmExternal in TPasConst(Decl).VarModifiers then
+      begin
+      Result:=TResEvalExternal.Create;
+      Result.IdentEl:=Decl;
+      exit;
       end;
     if refConst in Flags then
+      begin
+      ReleaseEvalValue(Result);
       RaiseConstantExprExp(20170518214928,Expr);
+      end;
     end
   else if C=TPasEnumValue then
     begin
@@ -11531,9 +11782,9 @@ begin
   else if C.InheritsFrom(TPasType) then
     Result:=EvalTypeRange(TPasType(Decl),Flags);
   {$IFDEF VerbosePasResEval}
-  writeln('TPasResolver.OnExprEvalIdentifier END Result=',dbgs(Result),' refConst=',refConst in Flags);
+  writeln('TPasResolver.OnExprEvalIdentifier END Result=',dbgs(Result),' refConst=',refConst in Flags,' refConstExt=',refConstExt in Flags);
   {$ENDIF}
-  if (Result=nil) and (refConst in Flags) then
+  if (Result=nil) and ([refConst,refConstExt]*Flags<>[]) then
     RaiseConstantExprExp(20170518213616,Expr);
 end;
 
@@ -11647,11 +11898,11 @@ end;
 function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
   bt: TResolverBaseType): TResEvalvalue;
 
-  procedure TCFloatToInt(Value: TResEvalValue; Flo: MaxPrecFloat);
+  procedure TCFloatToInt(Value: TResEvalValue; Flo: TMaxPrecFloat);
   var
-    Int, MinIntVal, MaxIntVal: MaxPrecInt;
+    Int, MinIntVal, MaxIntVal: TMaxPrecInt;
   begin
-    if bt in (btAllInteger-[btQWord]) then
+    if bt in btAllIntegerNoQWord then
       begin
       // float to int
       GetIntegerRange(bt,MinIntVal,MaxIntVal);
@@ -11674,8 +11925,12 @@ function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
         btLongWord: Result:=TResEvalInt.CreateValue(Int,reitLongWord);
         btLongint: Result:=TResEvalInt.CreateValue(Int,reitLongInt);
         btUIntDouble: Result:=TResEvalInt.CreateValue(Int,reitUIntDouble);
+        {$ifdef HasInt64}
         btIntDouble: Result:=TResEvalInt.CreateValue(Int,reitIntDouble);
-        btInt64: Result:=TResEvalInt.CreateValue(Int);
+        btInt64: Result:=TResEvalInt.CreateValue(Int); // default
+        {$else}
+        btIntDouble: Result:=TResEvalInt.CreateValue(Int); // default
+        {$endif}
       else
         RaiseNotYetImplemented(20170711001513,Params);
       end;
@@ -11686,7 +11941,7 @@ function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
       begin
       // float to single
       try
-        Result:=TResEvalFloat.CreateValue(single(Flo));
+        Result:=TResEvalFloat.CreateValue({$ifdef pas2js}double{$else}single{$endif}(Flo));
       except
         RaiseMsg(20170711002315,nRangeCheckError,sRangeCheckError,[],Params);
       end;
@@ -11720,31 +11975,32 @@ function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
 
 var
   Value: TResEvalValue;
-  Int: MaxPrecInt;
-  MinIntVal, MaxIntVal: int64;
-  Flo: MaxPrecFloat;
-  c: Char;
+  Int, MinIntVal, MaxIntVal: TMaxPrecInt;
+  Flo: TMaxPrecFloat;
   w: WideChar;
 begin
   Result:=nil;
   {$IFDEF VerbosePasResEval}
   writeln('TPasResolver.EvalBaseTypeCast bt=',bt);
   {$ENDIF}
-  Value:=Eval(Params.Params[0],[refAutoConst]);
+  Value:=Eval(Params.Params[0],[refAutoConstExt]);
   if Value=nil then exit;
   try
     case Value.Kind of
     revkInt:
       begin
       Int:=TResEvalInt(Value).Int;
+      {$ifdef HasInt64}
       if bt=btQWord then
         begin
         // int to qword
         {$R-}
-        Result:=TResEvalUInt.CreateValue(MaxPrecUInt(Int));
+        Result:=TResEvalUInt.CreateValue(TMaxPrecUInt(Int));
         {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
         end
-      else if bt in (btAllInteger-[btQWord]) then
+      else
+      {$endif}
+      if bt in btAllIntegerNoQWord then
         begin
         // int to int
         GetIntegerRange(bt,MinIntVal,MaxIntVal);
@@ -11758,7 +12014,9 @@ begin
             btSmallInt: Result:=TResEvalInt.CreateValue(smallint(Int),reitSmallInt);
             btLongWord: Result:=TResEvalInt.CreateValue(longword(Int),reitLongWord);
             btLongint: Result:=TResEvalInt.CreateValue(longint(Int),reitLongInt);
+            {$ifdef HasInt64}
             btInt64: Result:=TResEvalInt.CreateValue(Int);
+            {$endif}
             btUIntSingle,
             btIntSingle,
             btUIntDouble,
@@ -11783,8 +12041,12 @@ begin
             btLongWord: Result:=TResEvalInt.CreateValue(Int,reitLongWord);
             btLongint: Result:=TResEvalInt.CreateValue(Int,reitLongInt);
             btUIntDouble: Result:=TResEvalInt.CreateValue(Int,reitUIntDouble);
+            {$ifdef HasInt64}
             btIntDouble: Result:=TResEvalInt.CreateValue(Int,reitIntDouble);
-            btInt64: Result:=TResEvalInt.CreateValue(Int);
+            btInt64: Result:=TResEvalInt.CreateValue(Int); // default
+            {$else}
+            btIntDouble: Result:=TResEvalInt.CreateValue(Int); // default
+            {$endif}
           else
             RaiseNotYetImplemented(20170624200109,Params);
           end;
@@ -11800,13 +12062,14 @@ begin
           fExprEvaluator.EmitRangeCheckConst(20170710203254,
             Value.AsString,0,1,Params,mtError);
         end
+      {$ifdef FPC_HAS_CPSTRING}
       else if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
         try
-          c:=Char(Int);
-          Result:=TResEvalString.CreateValue(c);
+          Result:=TResEvalString.CreateValue(Char(Int));
         except
           RaiseMsg(20180125112510,nRangeCheckError,sRangeCheckError,[],Params);
         end
+      {$endif}
       else if (bt=btWideChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
         try
           w:=WideChar(Int);
@@ -11816,7 +12079,7 @@ begin
         end
       else if bt=btSingle then
         try
-          Result:=TResEvalFloat.CreateValue(Single(Int));
+          Result:=TResEvalFloat.CreateValue({$ifdef pas2js}double{$else}single{$endif}(Int));
         except
           RaiseMsg(20170711002015,nRangeCheckError,sRangeCheckError,[],Params);
         end
@@ -11858,6 +12121,53 @@ begin
         TCFloatToInt(Value,Flo);
         end;
       end;
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString:
+      begin
+      if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
+        begin
+        if length(TResEvalString(Value).S)<>1 then
+          RaiseXExpectedButYFound(20181005141025,'char','string',Params);
+        Result:=Value;
+        Value:=nil;
+        end
+      else if (bt=btWideChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
+        begin
+        if fExprEvaluator.GetWideChar(TResEvalString(Value).S,w) then
+          begin
+          Result:=Value;
+          Value:=nil;
+          end
+        else
+          RaiseXExpectedButYFound(20181005141058,'char','string',Params);
+        end;
+      end;
+    {$endif}
+    revkUnicodeString:
+      if length(TResEvalUTF16(Value).S)=1 then
+        begin
+        w:=TResEvalUTF16(Value).S[1];
+        {$ifdef FPC_HAS_CPSTRING}
+        if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
+          begin
+          if ord(w)<=255 then
+            begin
+            Result:=Value;
+            Value:=nil;
+            end
+          else
+            RaiseMsg(20181005141632,nRangeCheckError,sRangeCheckError,[],Params);
+          end
+        else
+        {$endif}
+        if (bt=btWideChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
+          begin
+          Result:=Value;
+          Value:=nil;
+          end;
+        end;
+    revkExternal:
+      exit;
     else
       {$IFDEF VerbosePasResEval}
       writeln('TPasResolver.OnExprEvalParams typecast to ',bt);
@@ -11952,6 +12262,7 @@ var
   ParamResolved: TPasResolverResult;
   Value: TResEvalValue;
   Ranges: TPasExprArray;
+  IdentEl: TPasElement;
 begin
   Evaluated:=nil;
   // first param: string or dynamic array or type/const of static array
@@ -11964,8 +12275,10 @@ begin
       Value:=Eval(Param,Flags);
       if Value=nil then exit;
       case Value.Kind of
+      {$ifdef FPC_HAS_CPSTRING}
       revkString:
         Evaluated:=TResEvalInt.CreateValue(length(TResEvalString(Value).S));
+      {$endif}
       revkUnicodeString:
         Evaluated:=TResEvalInt.CreateValue(length(TResEvalUTF16(Value).S));
       end;
@@ -11980,10 +12293,11 @@ begin
       if length(Ranges)=0 then
         begin
         // open or dynamic array
-        if (ParamResolved.IdentEl is TPasVariable)
-            and (TPasVariable(ParamResolved.IdentEl).Expr is TPasExpr) then
+        IdentEl:=ParamResolved.IdentEl;
+        if (IdentEl is TPasVariable)
+            and (TPasVariable(IdentEl).Expr is TPasExpr) then
           begin
-          Expr:=TPasVariable(ParamResolved.IdentEl).Expr;
+          Expr:=TPasVariable(IdentEl).Expr;
           if Expr is TArrayValues then
             Evaluated:=TResEvalInt.CreateValue(length(TArrayValues(Expr).Values))
           else if (Expr is TParamsExpr) and (TParamsExpr(Expr).Kind=pekSet) then
@@ -12066,6 +12380,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
 end;
@@ -12090,7 +12405,8 @@ begin
   EnumType:=nil;
   if ([rrfReadable,rrfWritable]*ParamResolved.Flags=[rrfReadable,rrfWritable])
       and ((ParamResolved.IdentEl is TPasVariable)
-        or (ParamResolved.IdentEl is TPasArgument)) then
+        or (ParamResolved.IdentEl is TPasArgument)
+        or (ParamResolved.IdentEl is TPasResultElement)) then
     begin
     if (ParamResolved.BaseType=btSet)
         and (ParamResolved.LoTypeEl is TPasEnumType) then
@@ -12127,6 +12443,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
 end;
@@ -12510,9 +12827,8 @@ begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
-  if not (rrfReadable in ParamResolved.Flags)
-      and (ParamResolved.BaseType in btAllRanges) then
-    // built-in range e.g. high(char)
+  if ParamResolved.BaseType in btAllRanges then
+    // e.g. high(char)
     Result:=cExact
   else if ParamResolved.BaseType=btSet then
     Result:=cExact
@@ -12525,7 +12841,12 @@ begin
       Result:=cExact;
     end;
   if Result=cIncompatible then
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.BI_LowHigh_OnGetCallCompatibility ParamResolved=',GetResolverResultDbg(ParamResolved));
+    {$ENDIF}
     exit(CheckRaiseTypeArgNo(20170216152338,1,Param,ParamResolved,'ordinal type, array or set',RaiseOnError));
+    end;
 
   Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
@@ -12583,9 +12904,8 @@ var
   Value: TResEvalValue;
   EnumType: TPasEnumType;
   aSet: TResEvalSet;
-  Int: MaxPrecInt;
   bt: TResolverBaseType;
-  MinInt, MaxInt: int64;
+  Int, MinInt, MaxInt: TMaxPrecInt;
   i: Integer;
   Expr: TPasExpr;
 begin
@@ -12678,9 +12998,11 @@ begin
         revskInt:
           Evaluated:=TResEvalInt.CreateValue(Int);
         revskChar:
+          {$ifdef FPC_HAS_CPSTRING}
           if Int<256 then
             Evaluated:=TResEvalString.CreateValue(chr(Int))
           else
+          {$endif}
             Evaluated:=TResEvalUTF16.CreateValue(widechar(Int));
         revskBool:
           if Int=0 then
@@ -12701,6 +13023,7 @@ begin
     bt:=GetActualBaseType(bt);
     if bt in btAllBooleans then
       Evaluated:=TResEvalBool.CreateValue(Proc.BuiltIn=bfHigh)
+    {$ifdef HasInt64}
     else if bt=btQWord then
       begin
       if Proc.BuiltIn=bfLow then
@@ -12708,20 +13031,23 @@ begin
       else
         Evaluated:=TResEvalUInt.CreateValue(High(QWord));
       end
-    else if (bt in (btAllInteger-[btQWord])) and GetIntegerRange(bt,MinInt,MaxInt) then
+    {$endif}
+    else if (bt in btAllIntegerNoQWord) and GetIntegerRange(bt,MinInt,MaxInt) then
       begin
       if Proc.BuiltIn=bfLow then
         Evaluated:=TResEvalInt.CreateValue(MinInt)
       else
         Evaluated:=TResEvalInt.CreateValue(MaxInt);
       end
-    else if bt in [btChar,btAnsiChar] then
+    {$ifdef FPC_HAS_CPSTRING}
+    else if bt=btAnsiChar then
       begin
       if Proc.BuiltIn=bfLow then
         Evaluated:=TResEvalString.CreateValue(#0)
       else
         Evaluated:=TResEvalString.CreateValue(#255);
       end
+    {$endif}
     else if bt=btWideChar then
       begin
       if Proc.BuiltIn=bfLow then
@@ -12922,6 +13248,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraRead);
   FinishCallArgAccess(P[1],rraVarParam);
 end;
@@ -13017,6 +13344,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraOutParam);
   for i:=0 to length(Params.Params)-1 do
     FinishCallArgAccess(P[i],rraRead);
@@ -13264,6 +13592,7 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
+  if P=nil then ;
   FinishCallArgAccess(P[0],rraVarParam);
   FinishCallArgAccess(P[1],rraRead);
   FinishCallArgAccess(P[2],rraRead);
@@ -13528,7 +13857,7 @@ var
   i: Integer;
   ArrayEl: TPasArrayType;
   bt: TResolverBaseType;
-  MinInt, MaxInt: MaxPrecInt;
+  MinInt, MaxInt: TMaxPrecInt;
 begin
   Evaluated:=nil;
   Param:=Params.Params[0];
@@ -13582,16 +13911,22 @@ begin
     bt:=GetActualBaseType(bt);
     if bt in btAllBooleans then
       Evaluated:=TResEvalBool.CreateValue(false)
+    {$ifdef HasInt64}
     else if bt=btQWord then
       Evaluated:=TResEvalInt.CreateValue(0)
-    else if (bt in (btAllInteger-[btQWord])) and GetIntegerRange(bt,MinInt,MaxInt) then
+    {$endif}
+    else if (bt in btAllIntegerNoQWord) and GetIntegerRange(bt,MinInt,MaxInt) then
       Evaluated:=TResEvalInt.CreateValue(MinInt)
+    {$ifdef FPC_HAS_CPSTRING}
     else if bt in [btAnsiString,btShortString] then
       Evaluated:=TResEvalString.CreateValue('')
+    {$endif}
     else if bt in [btUnicodeString,btWideString] then
       Evaluated:=TResEvalUTF16.CreateValue('')
-    else if bt in [btChar,btAnsiChar] then
+    {$ifdef FPC_HAS_CPSTRING}
+    else if bt=btAnsiChar then
       Evaluated:=TResEvalString.CreateValue(#0)
+    {$endif}
     else if bt=btWideChar then
       Evaluated:=TResEvalUTF16.CreateValue(#0)
     else if bt in btAllFloats then
@@ -13645,12 +13980,12 @@ begin
   inherited Create;
   FDefaultScope:=TPasDefaultScope.Create;
   FPendingForwardProcs:=TFPList.Create;
-  FBaseTypeChar:=btAnsiChar;
-  FBaseTypeString:=btAnsiString;
+  FBaseTypeChar:={$ifdef FPC_HAS_CPSTRING}btAnsiChar{$else}btWideChar{$endif};
+  FBaseTypeString:={$ifdef FPC_HAS_CPSTRING}btAnsiString{$else}btUnicodeString{$endif};
   FBaseTypeExtended:=btDouble;
-  FBaseTypeLength:=btInt64;
+  FBaseTypeLength:={$ifdef HasInt64}btInt64{$else}btIntDouble{$endif};
   FDynArrayMinIndex:=0;
-  FDynArrayMaxIndex:=High(int64);
+  FDynArrayMaxIndex:=High(TMaxPrecInt);
 
   cTGUIDToString:=cTypeConversion+1;
   cStringToTGUID:=cTypeConversion+1;
@@ -13773,7 +14108,9 @@ begin
     else if AClass=TPasStringType then
       begin
       AddType(TPasType(El));
+      {$ifdef FPC_HAS_CPSTRING}
       if BaseTypes[btShortString]=nil then
+      {$endif}
         RaiseMsg(20170419203043,nIllegalQualifier,sIllegalQualifier,['['],El);
       end
     else if AClass=TPasRecordType then
@@ -13810,6 +14147,7 @@ begin
       AddInitialFinalizationSection(TFinalizationSection(El))
     else if AClass.InheritsFrom(TPasImplBlock) then
       // resolved when finished
+    else if AClass=TPasImplCommand then
     else if AClass=TPasUnresolvedUnitRef then
       RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
     else
@@ -13861,6 +14199,7 @@ var
   i: Integer;
   UsesUnit: TPasUsesUnit;
 begin
+  Result:=nil;
   //writeln('TPasResolver.FindElement Name="',aName,'"');
   ErrorEl:=nil; // use nil to use scanner position as error position
 
@@ -15131,6 +15470,7 @@ begin
     if Scope is TPasProcedureScope then
       exit(TPasProcedureScope(Scope));
   until false;
+  Result:=nil;
 end;
 
 class function TPasResolver.MangleSourceLineNumber(Line, Column: integer
@@ -15143,8 +15483,9 @@ begin
     Result:=Line;
 end;
 
-procedure TPasResolver.SetLastMsg(const id: int64; MsgType: TMessageType;
-  MsgNumber: integer; const Fmt: String; Args: array of const;
+procedure TPasResolver.SetLastMsg(const id: TMaxPrecInt; MsgType: TMessageType;
+  MsgNumber: integer; const Fmt: String;
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
   PosEl: TPasElement);
 var
 {$IFDEF VerbosePasResolver}
@@ -15185,8 +15526,9 @@ begin
   {$ENDIF}
 end;
 
-procedure TPasResolver.RaiseMsg(const Id: int64; MsgNumber: integer;
-  const Fmt: String; Args: array of const; ErrorPosEl: TPasElement);
+procedure TPasResolver.RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer;
+  const Fmt: String; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  ErrorPosEl: TPasElement);
 var
   E: EPasResolve;
 begin
@@ -15202,7 +15544,7 @@ begin
   raise E;
 end;
 
-procedure TPasResolver.RaiseNotYetImplemented(id: int64; El: TPasElement;
+procedure TPasResolver.RaiseNotYetImplemented(id: TMaxPrecInt; El: TPasElement;
   Msg: string);
 var
   s: String;
@@ -15216,12 +15558,12 @@ begin
   RaiseMsg(id,nNotYetImplemented,s,[GetObjName(El)],El);
 end;
 
-procedure TPasResolver.RaiseInternalError(id: int64; const Msg: string);
+procedure TPasResolver.RaiseInternalError(id: TMaxPrecInt; const Msg: string);
 begin
   raise Exception.Create('Internal error: ['+IntToStr(id)+'] '+Msg);
 end;
 
-procedure TPasResolver.RaiseInvalidScopeForElement(id: int64; El: TPasElement;
+procedure TPasResolver.RaiseInvalidScopeForElement(id: TMaxPrecInt; El: TPasElement;
   const Msg: string);
 var
   i: Integer;
@@ -15238,7 +15580,7 @@ begin
   RaiseInternalError(id,s);
 end;
 
-procedure TPasResolver.RaiseIdentifierNotFound(id: int64; Identifier: string;
+procedure TPasResolver.RaiseIdentifierNotFound(id: TMaxPrecInt; Identifier: string;
   El: TPasElement);
 begin
   {$IFDEF VerbosePasResolver}
@@ -15248,30 +15590,30 @@ begin
   RaiseMsg(id,nIdentifierNotFound,sIdentifierNotFound,[Identifier],El);
 end;
 
-procedure TPasResolver.RaiseXExpectedButYFound(id: int64; const X, Y: string;
+procedure TPasResolver.RaiseXExpectedButYFound(id: TMaxPrecInt; const X, Y: string;
   El: TPasElement);
 begin
   RaiseMsg(id,nXExpectedButYFound,sXExpectedButYFound,[X,Y],El);
 end;
 
-procedure TPasResolver.RaiseContextXExpectedButYFound(id: int64; const C, X,
+procedure TPasResolver.RaiseContextXExpectedButYFound(id: TMaxPrecInt; const C, X,
   Y: string; El: TPasElement);
 begin
   RaiseMsg(id,nContextExpectedXButFoundY,sContextExpectedXButFoundY,[C,X,Y],El);
 end;
 
-procedure TPasResolver.RaiseContextXInvalidY(id: int64; const X, Y: string;
+procedure TPasResolver.RaiseContextXInvalidY(id: TMaxPrecInt; const X, Y: string;
   El: TPasElement);
 begin
   RaiseMsg(id,nContextXInvalidY,sContextXInvalidY,[X,Y],El);
 end;
 
-procedure TPasResolver.RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
+procedure TPasResolver.RaiseConstantExprExp(id: TMaxPrecInt; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nConstantExpressionExpected,sConstantExpressionExpected,[],ErrorEl);
 end;
 
-procedure TPasResolver.RaiseVarExpected(id: int64; ErrorEl: TPasElement;
+procedure TPasResolver.RaiseVarExpected(id: TMaxPrecInt; ErrorEl: TPasElement;
   IdentEl: TPasElement);
 begin
   if IdentEl is TPasProperty then
@@ -15281,23 +15623,31 @@ begin
     RaiseMsg(id,nVariableIdentifierExpected,sVariableIdentifierExpected,[],ErrorEl);
 end;
 
-procedure TPasResolver.RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
+procedure TPasResolver.RaiseRangeCheck(id: TMaxPrecInt; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nRangeCheckError,sRangeCheckError,[],ErrorEl);
 end;
 
-procedure TPasResolver.RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
-  const Args: array of const; const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
+procedure TPasResolver.RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: integer;
+  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
 
   function GetString(ArgNo: integer): string;
   begin
     if ArgNo>High(Args) then
       exit('invalid param '+IntToStr(ArgNo));
+    {$ifdef pas2js}
+    if isString(Args[ArgNo]) then
+      Result:=String(Args[ArgNo])
+    else
+      Result:='invalid param '+jsTypeOf(Args[ArgNo]);
+    {$else}
     case Args[ArgNo].VType of
     vtAnsiString: Result:=AnsiString(Args[ArgNo].VAnsiString);
     else
       Result:='invalid param '+IntToStr(Ord(Args[ArgNo].VType));
     end;
+    {$endif}
   end;
 
 begin
@@ -15324,8 +15674,9 @@ begin
   end;
 end;
 
-procedure TPasResolver.RaiseIncompatibleType(id: int64; MsgNumber: integer;
-  const Args: array of const; GotType, ExpType: TPasType; ErrorEl: TPasElement);
+procedure TPasResolver.RaiseIncompatibleType(id: TMaxPrecInt; MsgNumber: integer;
+  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  GotType, ExpType: TPasType; ErrorEl: TPasElement);
 var
   DescA, DescB: String;
 begin
@@ -15339,8 +15690,9 @@ begin
   RaiseIncompatibleTypeDesc(id,MsgNumber,Args,DescA,DescB,ErrorEl);
 end;
 
-procedure TPasResolver.RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
-  const Args: array of const; const GotType, ExpType: TPasResolverResult;
+procedure TPasResolver.RaiseIncompatibleTypeRes(id: TMaxPrecInt; MsgNumber: integer;
+  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  const GotType, ExpType: TPasResolverResult;
   ErrorEl: TPasElement);
 var
   GotDesc, ExpDesc: String;
@@ -15352,22 +15704,23 @@ begin
   RaiseIncompatibleTypeDesc(id,MsgNumber,Args,GotDesc,ExpDesc,ErrorEl);
 end;
 
-procedure TPasResolver.RaiseInvalidProcTypeModifier(id: int64;
+procedure TPasResolver.RaiseInvalidProcTypeModifier(id: TMaxPrecInt;
   ProcType: TPasProcedureType; ptm: TProcTypeModifier; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(ProcType),
     ProcTypeModifiers[ptm]],ErrorEl);
 end;
 
-procedure TPasResolver.RaiseInvalidProcModifier(id: int64; Proc: TPasProcedure;
+procedure TPasResolver.RaiseInvalidProcModifier(id: TMaxPrecInt; Proc: TPasProcedure;
   pm: TProcedureModifier; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(Proc),
     ModifierNames[pm]],ErrorEl);
 end;
 
-procedure TPasResolver.LogMsg(const id: int64; MsgType: TMessageType;
-  MsgNumber: integer; const Fmt: String; Args: array of const;
+procedure TPasResolver.LogMsg(const id: TMaxPrecInt; MsgType: TMessageType;
+  MsgNumber: integer; const Fmt: String;
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
   PosEl: TPasElement);
 var
   Scanner: TPascalScanner;
@@ -15586,7 +15939,10 @@ begin
         exit(cIncompatible);
         end;
       end;
-    inc(Result,ParamCompatibility);
+    if Result<cTypeConversion then
+      inc(Result,ParamCompatibility)
+    else
+      Result:=Max(Result,ParamCompatibility);
     inc(i);
     end;
   if (i<ProcArgs.Count) then
@@ -15675,10 +16031,12 @@ begin
         exit(CheckRaiseTypeArgNo(20170216152417,ArgNo,Param,ParamResolved,'integer',RaiseOnError));
       if EmitHints then
         begin
-        ParamValue:=Eval(Param,[refAutoConst]);
+        ParamValue:=Eval(Param,[refAutoConstExt]);
         if ParamValue<>nil then
           try // has const value -> check range
-            if (ParamValue.Kind<>revkInt)
+            if ParamValue.Kind=revkExternal then
+              // ignore
+            else if (ParamValue.Kind<>revkInt)
                 or (TResEvalInt(ParamValue).Int<DynArrayMinIndex)
                 or (TResEvalInt(ParamValue).Int>DynArrayMaxIndex) then
               fExprEvaluator.EmitRangeCheckConst(20170520202212,ParamValue.AsString,
@@ -15762,6 +16120,7 @@ begin
         [],Params);
     ArrayEl:=TPasArrayType(NextType);
   until false;
+  Result:=cIncompatible;
 end;
 
 function TPasResolver.CheckOverloadProcCompatibility(Proc1, Proc2: TPasProcedure
@@ -15786,7 +16145,8 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.CheckOverloadProcCompatibility ',i,'/',ProcArgs1.Count);
     {$ENDIF}
-    if not CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i])) then
+    if not CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),
+                                     TPasArgument(ProcArgs2[i])) then
       exit;
     end;
   Result:=true;
@@ -16036,14 +16396,15 @@ procedure TPasResolver.CheckAssignExprRange(
 // if RHS is a constant check if it fits into range LeftResolved
 var
   LRangeValue, RValue: TResEvalValue;
-  MinVal, MaxVal: int64;
+  Int, MinVal, MaxVal: TMaxPrecInt;
   RangeExpr: TBinaryExpr;
-  Int: MaxPrecInt;
   C: TClass;
   EnumType: TPasEnumType;
   bt: TResolverBaseType;
-  w: WideChar;
   LTypeEl: TPasType;
+  {$ifdef FPC_HAS_CPSTRING}
+  w: WideChar;
+  {$endif}
 begin
   LTypeEl:=LeftResolved.LoTypeEl;
   if (LTypeEl<>nil)
@@ -16052,7 +16413,7 @@ begin
     exit; // arrays and records are checked by element, not by the whole value
   if LTypeEl is TPasClassOfType then
     exit; // class-of are checked only by type, not by value
-  RValue:=Eval(RHS,[refAutoConst]);
+  RValue:=Eval(RHS,[refAutoConstExt]);
   if RValue=nil then
     exit; // not a const expression
   {$IFDEF VerbosePasResEval}
@@ -16060,7 +16421,9 @@ begin
   {$ENDIF}
   LRangeValue:=nil;
   try
-    if LeftResolved.BaseType=btCustom then
+    if RValue.Kind=revkExternal then
+      // skip
+    else if LeftResolved.BaseType=btCustom then
       CheckAssignExprRangeToCustom(LeftResolved,RValue,RHS)
     else if LeftResolved.BaseType=btSet then
       begin
@@ -16083,13 +16446,14 @@ begin
         if LTypeEl.CustomData is TResElDataBaseType then
           begin
           bt:=GetActualBaseType(TResElDataBaseType(LTypeEl.CustomData).BaseType);
-          if (bt in (btAllInteger-[btQWord]))
-              and GetIntegerRange(bt,MinVal,MaxVal) then
+          if (bt in btAllIntegerNoQWord) and GetIntegerRange(bt,MinVal,MaxVal) then
             LRangeValue:=TResEvalRangeInt.CreateValue(revskInt,nil,MinVal,MaxVal)
           else if bt=btBoolean then
             LRangeValue:=TResEvalRangeInt.CreateValue(revskBool,nil,0,1)
+          {$ifdef FPC_HAS_CPSTRING}
           else if bt=btAnsiChar then
             LRangeValue:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff)
+          {$endif}
           else if bt=btWideChar then
             LRangeValue:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff)
           else
@@ -16111,7 +16475,7 @@ begin
       else
         fExprEvaluator.IsInRange(RValue,RHS,LRangeValue,RangeExpr,true);
       end
-    else if (LeftResolved.BaseType in (btAllInteger-[btQWord]))
+    else if (LeftResolved.BaseType in btAllIntegerNoQWord)
         and GetIntegerRange(LeftResolved.BaseType,MinVal,MaxVal) then
       case RValue.Kind of
       revkInt:
@@ -16120,9 +16484,9 @@ begin
           fExprEvaluator.EmitRangeCheckConst(20170530093126,
             IntToStr(TResEvalInt(RValue).Int),MinVal,MaxVal,RHS);
       revkUInt:
-        if (TResEvalUInt(RValue).UInt>High(MaxPrecInt))
-            or (MinVal>MaxPrecInt(TResEvalUInt(RValue).UInt))
-            or (MaxVal<MaxPrecInt(TResEvalUInt(RValue).UInt)) then
+        if (TResEvalUInt(RValue).UInt>High(TMaxPrecInt))
+            or (MinVal>TMaxPrecInt(TResEvalUInt(RValue).UInt))
+            or (MaxVal<TMaxPrecInt(TResEvalUInt(RValue).UInt)) then
           fExprEvaluator.EmitRangeCheckConst(20170530093616,
             IntToStr(TResEvalUInt(RValue).UInt),IntToStr(MinVal),IntToStr(MaxVal),RHS);
       revkFloat:
@@ -16135,7 +16499,7 @@ begin
         else
           begin
           {$IFDEF VerbosePasResEval}
-          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalFloat(RValue).FloatValue),' ',TResEvalFloat(RValue).FloatValue<MaxPrecFloat(low(MaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue>MaxPrecFloat(high(MaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue,' ',high(MaxPrecInt));
+          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalFloat(RValue).FloatValue),' ',TResEvalFloat(RValue).FloatValue<TMaxPrecFloat(low(TMaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue>TMaxPrecFloat(high(TMaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue,' ',high(TMaxPrecInt));
           {$ENDIF}
           RaiseRangeCheck(20170802133750,RHS);
           end;
@@ -16149,7 +16513,7 @@ begin
         else
           begin
           {$IFDEF VerbosePasResEval}
-          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalCurrency(RValue).Value),' ',TResEvalCurrency(RValue).Value,' ',high(MaxPrecInt));
+          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalCurrency(RValue).Value),' ',TResEvalCurrency(RValue).Value,' ',high(TMaxPrecInt));
           {$ENDIF}
           RaiseRangeCheck(20180421171438,RHS);
           end;
@@ -16159,6 +16523,7 @@ begin
         {$ENDIF}
         RaiseNotYetImplemented(20170530092731,RHS);
       end
+    {$ifdef HasInt64}
     else if LeftResolved.BaseType=btQWord then
       case RValue.Kind of
       revkInt:
@@ -16169,6 +16534,7 @@ begin
       else
         RaiseNotYetImplemented(20170530094311,RHS);
       end
+    {$endif}
     else if RValue.Kind in [revkNil,revkBool] then
       // simple type check is enough
     else if LeftResolved.BaseType in [btSingle,btDouble,btCurrency] then
@@ -16177,6 +16543,7 @@ begin
     else if LeftResolved.BaseType in btAllChars then
       begin
       case RValue.Kind of
+      {$ifdef FPC_HAS_CPSTRING}
       revkString:
         if length(TResEvalString(RValue).S)<>1 then
           begin
@@ -16187,6 +16554,7 @@ begin
           end
         else
           Int:=ord(TResEvalString(RValue).S[1]);
+      {$endif}
       revkUnicodeString:
         if length(TResEvalUTF16(RValue).S)<>1 then
           RaiseXExpectedButYFound(20170714171534,'char','string',RHS)
@@ -16196,7 +16564,9 @@ begin
         RaiseNotYetImplemented(20170714171218,RHS);
       end;
       case GetActualBaseType(LeftResolved.BaseType) of
+      {$ifdef FPC_HAS_CPSTRING}
       btAnsiChar: MaxVal:=$ff;
+      {$endif}
       btWideChar: MaxVal:=$ffff;
       end;
       if (Int>MaxVal) then
@@ -16320,12 +16690,16 @@ begin
       begin
       if (RBT in btAllChars) then
         case LBT of
+        {$ifdef FPC_HAS_CPSTRING}
         btAnsiChar:
           Result:=cLossyConversion;
+        {$endif}
         btWideChar:
+          {$ifdef FPC_HAS_CPSTRING}
           if RBT=btAnsiChar then
             Result:=cCompatible
           else
+          {$endif}
             Result:=cLossyConversion;
         else
           RaiseNotYetImplemented(20170728132440,ErrorEl,BaseTypeNames[LBT]);
@@ -16334,10 +16708,11 @@ begin
         begin
         if LBT=btWideChar then
           exit(cCompatible);
+        {$ifdef FPC_HAS_CPSTRING}
         // LHS is ansichar
         if GetActualBaseType(RHS.SubType)=btAnsiChar then
           exit(cExact);
-        RValue:=Eval(RHS,[refAutoConst]);
+        RValue:=Eval(RHS,[refAutoConstExt]);
         if RValue<>nil then
           try
             // ansichar:=constvalue
@@ -16351,6 +16726,8 @@ begin
                 exit(cIncompatible);
               wc:=TResEvalUTF16(RValue).S[1];
               end;
+            revkExternal:
+              exit(cCompatible);
             else
               RaiseNotYetImplemented(20171108194650,ErrorEl);
             end;
@@ -16376,6 +16753,7 @@ begin
             ReleaseEvalValue(RValue);
           end;
           end;
+        {$endif}
         RaiseNotYetImplemented(20171108195216,ErrorEl);
         end;
       end
@@ -16383,6 +16761,7 @@ begin
       begin
       if (RBT in btAllStringAndChars) then
         case LBT of
+        {$ifdef FPC_HAS_CPSTRING}
         btAnsiString:
           if RBT in [btAnsiChar,btShortString,btRawByteString] then
             Result:=cCompatible
@@ -16393,14 +16772,18 @@ begin
             Result:=cCompatible
           else
             Result:=cLossyConversion;
-        btWideString,btUnicodeString:
-          Result:=cCompatible;
         btRawByteString:
           if RBT in [btAnsiChar,btAnsiString,btShortString] then
             Result:=cCompatible
           else
             Result:=cLossyConversion;
+        {$endif}
+        btWideString,btUnicodeString:
+          Result:=cCompatible;
         else
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.CheckAssignResCompatibility ',{$ifdef pas2js}str(LBT){$else}LBT{$ENDIF});
+          {$ENDIF}
           RaiseNotYetImplemented(20170417195208,ErrorEl,BaseTypeNames[LBT]);
         end
       else if RBT=btContext then
@@ -16448,36 +16831,50 @@ begin
       btIntDouble:
         if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint,btUIntDouble]) then
           inc(Result,cLossyConversion);
+      {$ifdef HasInt64}
       btQWord,
       btInt64,btComp:
         if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btUIntSingle,btIntSingle,
             btLongWord,btLongint,btUIntDouble,btIntDouble]) then
           inc(Result,cLossyConversion);
+      {$endif}
       else
         RaiseNotYetImplemented(20170417205301,ErrorEl,BaseTypeNames[LBT]);
       end;
       end
     else if (LBT in btAllFloats)
-        and (RBT in (btAllFloats+btAllInteger)) then
+        and (RBT in btAllFloats) then
       begin
-      Result:=cToFloatConversion+ord(LBT)-ord(RBT);
+      Result:=cFloatToFloatConversion+ord(LBT)-ord(RBT);
       case LBT of
       btSingle:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
-            btIntSingle,btUIntSingle]) then
+        if RBT>btSingle then
           inc(Result,cLossyConversion);
       btDouble:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
-            btIntSingle,btUIntSingle,btSingle,
-            btLongWord,btLongint,
-            btIntDouble,btUIntDouble]) then
+        if RBT>btDouble then
           inc(Result,cLossyConversion);
       btExtended,btCExtended:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
-            btIntSingle,btUIntSingle,btSingle,
-            btLongWord,btLongint,
-            btInt64,btComp,
-            btIntDouble,btUIntDouble,btDouble]) then
+        if RBT>btCExtended then
+          inc(Result,cLossyConversion);
+      btCurrency:
+        inc(Result,cLossyConversion);
+      else
+        RaiseNotYetImplemented(20170417205910,ErrorEl,BaseTypeNames[LBT]);
+      end;
+      end
+    else if (LBT in btAllFloats)
+        and (RBT in btAllInteger) then
+      begin
+      Result:=cIntToFloatConversion+ord(LBT)-ord(RBT);
+      case LBT of
+      btSingle:
+        if RBT>btUIntSingle then
+          inc(Result,cLossyConversion);
+      btDouble:
+        if RBT>btUIntDouble then
+          inc(Result,cLossyConversion);
+      btExtended,btCExtended:
+        if RBT>btCExtended then
           inc(Result,cLossyConversion);
       btCurrency:
         if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
@@ -16485,7 +16882,7 @@ begin
             btLongWord,btLongint]) then
           inc(Result,cLossyConversion);
       else
-        RaiseNotYetImplemented(20170417205910,ErrorEl,BaseTypeNames[LBT]);
+        RaiseNotYetImplemented(20170417205911,ErrorEl,BaseTypeNames[LBT]);
       end;
       end
     else if LBT=btNil then
@@ -16524,7 +16921,7 @@ begin
             revskInt:
               if RHS.BaseType in btAllInteger then
                 begin
-                RValue:=Eval(RHS,[refAutoConst]);
+                RValue:=Eval(RHS,[refAutoConstExt]);
                 if RValue<>nil then
                   begin
                   // ToDo: check range
@@ -16534,19 +16931,23 @@ begin
             revskChar:
               if RHS.BaseType in btAllStringAndChars then
                 begin
-                RValue:=Eval(RHS,[refAutoConst]);
+                RValue:=Eval(RHS,[refAutoConstExt]);
                 if RValue<>nil then
                   begin
                   case RValue.Kind of
+                  {$ifdef FPC_HAS_CPSTRING}
                   revkString:
                     if not fExprEvaluator.GetWideChar(TResEvalString(RValue).S,wc) then
                       exit(cIncompatible);
+                  {$endif}
                   revkUnicodeString:
                     begin
                     if length(TResEvalUTF16(RValue).S)<>1 then
                       exit(cIncompatible);
                     wc:=TResEvalUTF16(RValue).S[1];
                     end;
+                  revkExternal:
+                    exit(cCompatible);
                   else
                     RaiseNotYetImplemented(20171108192232,ErrorEl);
                   end;
@@ -16559,7 +16960,7 @@ begin
             revskBool:
               if RHS.BaseType=btBoolean then
                 begin
-                RValue:=Eval(RHS,[refAutoConst]);
+                RValue:=Eval(RHS,[refAutoConstExt]);
                 if RValue<>nil then
                   begin
                   // ToDo: check range
@@ -16678,7 +17079,10 @@ begin
             end
           else if (C=TPasProcedureType) or (C=TPasFunctionType) then
             // UntypedPointer:=procvar
-            Result:=cLossyConversion;
+            Result:=cLossyConversion
+          else if C=TPasPointerType then
+            // UntypedPointer:=TypedPointer
+            Result:=cExact;
           end;
         end;
       end
@@ -16710,7 +17114,7 @@ begin
             and (rrfReadable in RHS.Flags) then
           begin
           // GUIDVar := string, e.g. IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}'
-          Value:=Eval(RHS,[refConst]);
+          Value:=Eval(RHS,[refConstExt]);
           try
             if Value=nil then
               if RaiseOnIncompatible then
@@ -17724,7 +18128,8 @@ var
 
   function RaiseIncompatType: integer;
   begin
-    if not RaiseOnIncompatible then exit(cIncompatible);
+    Result:=cIncompatible;
+    if not RaiseOnIncompatible then exit;
     RaiseIncompatibleTypeRes(20170216152505,nIncompatibleTypesGotExpected,
       [],RHS,LHS,ErrorEl);
   end;
@@ -17976,8 +18381,10 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
     Value: TResEvalValue;
     ElBT: TResolverBaseType;
     l: Integer;
-    US: UnicodeString;
     S: String;
+    {$ifdef FPC_HAS_CPSTRING}
+    US: UnicodeString;
+    {$endif}
   begin
     if Expr=nil then exit;
     ElBT:=GetActualBaseType(ElTypeResolved.BaseType);
@@ -17989,9 +18396,10 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
       exit;
       end;
     // static array -> check length of string
-    Value:=Eval(Expr,[refAutoConst]);
+    Value:=Eval(Expr,[refAutoConst]); // no external const allowed
     try
       case Value.Kind of
+      {$ifdef FPC_HAS_CPSTRING}
       revkString:
         if ElBT=btAnsiChar then
           l:=length(TResEvalString(Value).S)
@@ -18000,6 +18408,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
           US:=fExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,ErrorEl);
           l:=length(US);
           end;
+      {$endif}
       revkUnicodeString:
         begin
         if ElBT=btWideChar then
@@ -18555,7 +18964,7 @@ begin
           Result:=cExact
         else if ToTypeBaseType in btAllInteger then
           begin
-          if FromResolved.BaseType in (btArrayRangeTypes+[btRange]) then
+          if FromResolved.BaseType in (btArrayRangeTypes+[btRange,btCurrency]) then
             Result:=cCompatible
           else if FromResolved.BaseType=btContext then
             begin
@@ -18594,11 +19003,14 @@ begin
         else if ToTypeBaseType in btAllStrings then
           begin
           if FromResolved.BaseType in btAllStringAndChars then
-            Result:=cCompatible;
+            Result:=cCompatible
+          else if (FromResolved.BaseType=btPointer)
+              and (ToTypeBaseType in btAllStringPointer) then
+            Result:=cExact;
           end
         else if ToTypeBaseType=btPointer then
           begin
-          if FromResolved.BaseType=btPointer then
+          if FromResolved.BaseType in ([btPointer]+btAllStringPointer) then
             Result:=cExact
           else if FromResolved.BaseType=btContext then
             begin
@@ -19395,9 +19807,11 @@ begin
     ComputeRecordValues(TRecordValues(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TPasStringType then
     begin
+    {$ifdef FPC_HAS_CPSTRING}
     SetResolverTypeExpr(ResolvedEl,btShortString,
                BaseTypes[btShortString],BaseTypes[btShortString],[rrfReadable]);
     if BaseTypes[btShortString]=nil then
+    {$endif}
       RaiseMsg(20170419203146,nIllegalQualifier,sIllegalQualifier,['['],El);
     end
   else if ElClass=TPasResString then
@@ -19405,6 +19819,15 @@ begin
                         FBaseTypes[btString],FBaseTypes[btString],[rrfReadable])
   else
     RaiseNotYetImplemented(20160922163705,El);
+  {$IF defined(nodejs) and defined(VerbosePasResolver)}
+  if not isNumber(ResolvedEl.BaseType) then
+    begin
+    {AllowWriteln}
+    writeln('TPasResolver.ComputeElement ',GetObjName(El),' typeof ResolvedEl.BaseType=',jsTypeOf(ResolvedEl.BaseType),' ResolvedEl=',GetResolverResultDbg(ResolvedEl));
+    RaiseInternalError(20181101123527,jsTypeOf(ResolvedEl.LoTypeEl));
+    {AllowWriteln-}
+    end;
+  {$ENDIF}
 end;
 
 function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
@@ -19756,6 +20179,13 @@ begin
        or (C=TPasClassOperator);
 end;
 
+function TPasResolver.IsClassField(El: TPasElement): boolean;
+begin
+  Result:=((El.ClassType=TPasVariable) or (El.ClassType=TPasConst))
+    and ([vmClass,vmStatic]*TPasVariable(El).VarModifiers<>[])
+    and (El.Parent is TPasClassType);
+end;
+
 function TPasResolver.IsExternalClass_Name(aClass: TPasClassType;
   const ExtName: string): boolean;
 var
@@ -19954,7 +20384,7 @@ begin
     end;
 end;
 
-function TPasResolver.GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
+function TPasResolver.GetRangeLength(RangeExpr: TPasExpr): TMaxPrecInt;
 var
   Range: TResEvalValue;
 begin
@@ -20012,12 +20442,22 @@ begin
         else
           Result:=TResEvalInt.CreateValue(TResEvalRangeInt(Range).RangeEnd);
       revskChar:
-        if EvalLow then
-          Result:=TResEvalString.CreateValue(chr(TResEvalRangeInt(Range).RangeStart))
-        else if TResEvalRangeInt(Range).RangeEnd<256 then
-          Result:=TResEvalString.CreateValue(chr(TResEvalRangeInt(Range).RangeEnd))
+        {$ifdef FPC_HAS_CPSTRING}
+        if TResEvalRangeInt(Range).RangeEnd<256 then
+          begin
+          if EvalLow then
+            Result:=TResEvalString.CreateValue(chr(TResEvalRangeInt(Range).RangeStart))
+          else
+            Result:=TResEvalString.CreateValue(chr(TResEvalRangeInt(Range).RangeEnd));
+          end
         else
-          Result:=TResEvalUTF16.CreateValue(widechar(TResEvalRangeInt(Range).RangeEnd));
+        {$endif}
+          begin
+          if EvalLow then
+            Result:=TResEvalUTF16.CreateValue(widechar(TResEvalRangeInt(Range).RangeStart))
+          else
+            Result:=TResEvalUTF16.CreateValue(widechar(TResEvalRangeInt(Range).RangeEnd));
+          end;
       revskBool:
         if EvalLow then
           Result:=TResEvalBool.CreateValue(TResEvalRangeInt(Range).RangeStart<>0)
@@ -20075,16 +20515,20 @@ begin
         Result:=TResEvalRangeInt.Create;
         TResEvalRangeInt(Result).ElKind:=revskChar;
         TResEvalRangeInt(Result).RangeStart:=0;
+        {$ifdef FPC_HAS_CPSTRING}
         if BaseTypeChar in [btChar,btAnsiChar] then
           TResEvalRangeInt(Result).RangeEnd:=$ff
         else
+        {$endif}
           TResEvalRangeInt(Result).RangeEnd:=$ffff;
         end;
+      {$ifdef FPC_HAS_CPSTRING}
       btAnsiChar:
         Result:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
+      {$endif}
       btWideChar:
         Result:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
-      btBoolean,btByteBool,btWordBool,btQWordBool:
+      btBoolean,btByteBool,btWordBool{$ifdef HasInt64},btQWordBool{$endif}:
         Result:=TResEvalRangeInt.CreateValue(revskBool,nil,0,1);
       btByte,
       btShortInt,
@@ -20092,8 +20536,10 @@ begin
       btSmallInt,
       btLongWord,
       btLongint,
+      {$ifdef HasInt64}
       btInt64,
       btComp,
+      {$endif}
       btIntSingle,
       btUIntSingle,
       btIntDouble,
@@ -20141,7 +20587,9 @@ begin
   btByteBool: if Bool2<>btBoolean then Result:=Bool2;
   btWordBool: if not (Bool2 in [btBoolean,btByteBool]) then Result:=Bool2;
   btLongBool: if not (Bool2 in [btBoolean,btByteBool,btWordBool]) then Result:=Bool2;
+  {$ifdef HasInt64}
   btQWordBool: if not (Bool2 in [btBoolean,btByteBool,btWordBool,btLongBool]) then Result:=Bool2;
+  {$endif}
   else
     RaiseNotYetImplemented(20170420093805,ErrorEl);
   end;
@@ -20178,15 +20626,17 @@ begin
   btLongint: begin Precision:=32; Signed:=true; end;
   btIntDouble: begin Precision:=53; Signed:=true; end;
   btUIntDouble: begin Precision:=52; Signed:=false; end;
+  {$ifdef HasInt64}
   btQWord: begin Precision:=64; Signed:=false; end;
   btInt64,btComp: begin Precision:=64; Signed:=true; end;
+  {$endif}
   else
     RaiseInternalError(20170420095727);
   end;
 end;
 
 function TPasResolver.GetIntegerRange(bt: TResolverBaseType; out MinVal,
-  MaxVal: MaxPrecInt): boolean;
+  MaxVal: TMaxPrecInt): boolean;
 begin
   Result:=true;
   if bt=btExtended then bt:=BaseTypeExtended;
@@ -20197,7 +20647,10 @@ begin
   btSmallInt: begin MinVal:=low(SmallInt); MaxVal:=high(SmallInt); end;
   btLongWord: begin MinVal:=low(LongWord); MaxVal:=high(LongWord); end;
   btLongint: begin MinVal:=low(LongInt); MaxVal:=high(LongInt); end;
-  btInt64,btComp: begin MinVal:=low(int64); MaxVal:=high(int64); end;
+  {$ifdef HasInt64}
+  btInt64,
+  btComp: begin MinVal:=low(int64); MaxVal:=high(int64); end;
+  {$endif}
   btSingle,btIntSingle: begin MinVal:=MinSafeIntSingle; MaxVal:=MaxSafeIntSingle; end;
   btUIntSingle: begin MinVal:=0; MaxVal:=MaxSafeIntSingle; end;
   btDouble,btIntDouble: begin MinVal:=MinSafeIntDouble; MaxVal:=MaxSafeIntDouble; end;
@@ -20243,6 +20696,7 @@ begin
     exit(btUIntDouble);
   if (Precision<=53) and Signed and (BaseTypes[btIntDouble]<>nil) then
     exit(btIntDouble);
+  {$ifdef HasInt64}
   if Precision<=64 then
     begin
     if Signed then
@@ -20251,13 +20705,14 @@ begin
       Result:=btQWord;
     if BaseTypes[Result]<>nil then exit;
     end;
+  {$endif}
   RaiseRangeCheck(20170420100336,ErrorEl);
 end;
 
-function TPasResolver.GetSmallestIntegerBaseType(MinVal, MaxVal: MaxPrecInt
+function TPasResolver.GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt
   ): TResolverBaseType;
 var
-  V: MaxPrecInt;
+  V: TMaxPrecInt;
 begin
   if MinVal>MaxVal then
     MinVal:=MaxVal;
@@ -20278,7 +20733,7 @@ begin
     else if (BaseTypes[btIntDouble]<>nil) and (V<MaxSafeIntDouble) then
       Result:=btIntDouble
     else
-      Result:=btInt64;
+      Result:=btIntMax;
     end
   else
     begin
@@ -20294,7 +20749,7 @@ begin
     else if (BaseTypes[btUIntDouble]<>nil) and (V<MaxSafeIntDouble) then
       Result:=btUIntDouble
     else
-      Result:=btInt64;
+      Result:=btIntMax;
     end;
 end;
 
@@ -20323,19 +20778,26 @@ begin
   bt2:=GetActualBaseType(Str2.BaseType);
   if bt1=bt2 then exit(bt1);
   case bt1 of
-  btChar,btAnsiChar:
+  {$ifdef FPC_HAS_CPSTRING}
+  btAnsiChar:
     case bt2 of
     btChar: Result:=btChar;
     btWideChar: Result:=btWideChar;
     else Result:=bt2;
     end;
+  {$endif}
   btWideChar:
     case bt2 of
+    {$ifdef FPC_HAS_CPSTRING}
     btAnsiChar: Result:=btWideChar;
+    {$endif}
     btWideString: Result:=btWideString;
-    btString,btShortString,btAnsiString,btRawByteString,btUnicodeString: Result:=btUnicodeString;
+    btString,btUnicodeString
+    {$ifdef FPC_HAS_CPSTRING},btShortString,btAnsiString,btRawByteString{$endif}:
+        Result:=btUnicodeString;
     else RaiseNotYetImplemented(20170420103808,ErrorEl);
     end;
+  {$ifdef FPC_HAS_CPSTRING}
   btShortString:
     case bt2 of
     btChar,btAnsiChar: Result:=btShortString;
@@ -20345,13 +20807,17 @@ begin
     btWideString: Result:=btWideString;
     else RaiseNotYetImplemented(20170420120937,ErrorEl);
     end;
-  btString,btAnsiString:
+  {$endif}
+  btString{$ifdef FPC_HAS_CPSTRING},btAnsiString{$endif}:
     case bt2 of
+    {$ifdef FPC_HAS_CPSTRING}
     btChar,btAnsiChar,btString,btShortString,btRawByteString: Result:=btAnsiString;
+    {$endif}
     btWideChar,btUnicodeString: Result:=btUnicodeString;
     btWideString: Result:=btWideString;
     else RaiseNotYetImplemented(20170420121201,ErrorEl);
     end;
+  {$ifdef FPC_HAS_CPSTRING}
   btRawByteString:
     case bt2 of
     btChar,btAnsiChar,btRawByteString,btShortString: Result:=btRawByteString;
@@ -20360,10 +20826,13 @@ begin
     btWideString: Result:=btWideString;
     else RaiseNotYetImplemented(20170420121352,ErrorEl);
     end;
+  {$endif}
   btWideString:
     case bt2 of
-    btChar,btAnsiChar,btWideChar,btShortString,btWideString: Result:=btWideString;
-    btString,btAnsiString,btUnicodeString: Result:=btUnicodeString;
+    btChar,btWideChar,{$ifdef FPC_HAS_CPSTRING}btAnsiChar,btShortString,{$endif}btWideString:
+      Result:=btWideString;
+    btString,{$ifdef FPC_HAS_CPSTRING}btAnsiString,{$endif}btUnicodeString:
+      Result:=btUnicodeString;
     else RaiseNotYetImplemented(20170420121532,ErrorEl);
     end;
   btUnicodeString:

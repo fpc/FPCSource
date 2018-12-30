@@ -135,8 +135,12 @@ type
     FParent: TPasElement;
     FHints : TPasMemberHints;
     FHintMessage : String;
+    {$ifdef pas2js}
+    FPasElementId: NativeInt;
+    class var FLastPasElementId: NativeInt;
+    {$endif}
     {$ifdef EnablePasTreeGlobalRefCount}
-    class var FGlobalRefCount: int64;
+    class var FGlobalRefCount: NativeInt;
     {$endif}
   protected
     procedure ProcessHints(const ASemiColonPrefix: boolean; var AResult: string); virtual;
@@ -175,11 +179,14 @@ type
     property RefCount: LongWord read FRefCount;
     property Name: string read FName write FName;
     property Parent: TPasElement read FParent Write SetParent;
-    Property Hints : TPasMemberHints Read FHints Write FHints;
-    Property HintMessage : String Read FHintMessage Write FHintMessage;
-    Property DocComment : String Read FDocComment Write FDocComment;
+    property Hints : TPasMemberHints Read FHints Write FHints;
+    property HintMessage : String Read FHintMessage Write FHintMessage;
+    property DocComment : String Read FDocComment Write FDocComment;
+    {$ifdef pas2js}
+    property PasElementId: NativeInt read FPasElementId; // global unique id
+    {$endif}
     {$ifdef EnablePasTreeGlobalRefCount}
-    class property GlobalRefCount: int64 read FGlobalRefCount write FGlobalRefCount;
+    class property GlobalRefCount: NativeInt read FGlobalRefCount write FGlobalRefCount;
     {$endif}
   end;
 
@@ -234,8 +241,8 @@ type
   { TPrimitiveExpr }
 
   TPrimitiveExpr = class(TPasExpr)
-    Value     : AnsiString;
-    constructor Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : Ansistring); overload;
+    Value     : String;
+    constructor Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : string); overload;
     function GetDeclaration(full : Boolean) : string; override;
   end;
   
@@ -1524,7 +1531,7 @@ Type
 
   TPasImplLabelMark = class(TPasImplElement)
   public
-    LabelId: AnsiString;
+    LabelId: String;
   end;
 
   { TPassTreeVisitor }
@@ -1535,8 +1542,8 @@ Type
   end;
 
 const
-  AccessNames: array[TArgumentAccess] of string[9] = ('', 'const ', 'var ', 'out ','constref ');
-  AccessDescriptions: array[TArgumentAccess] of string[9] = ('default', 'const', 'var', 'out','constref');
+  AccessNames: array[TArgumentAccess] of string{$ifdef fpc}[9]{$endif} = ('', 'const ', 'var ', 'out ','constref ');
+  AccessDescriptions: array[TArgumentAccess] of string{$ifdef fpc}[9]{$endif} = ('default', 'const', 'var', 'out','constref');
   AllVisibilities: TPasMemberVisibilities =
      [visDefault, visPrivate, visProtected, visPublic,
       visPublished, visAutomated];
@@ -2031,16 +2038,7 @@ begin
   Result:=SPasTreeUnit;
 end;
 
-{ TPasStringType }
-
-
-{$IFNDEF FPC}
-  const
-    LineEnding = sLineBreak;
-{$ENDIF}
-
 { Parse tree element type name functions }
-
 function TPasElement.ElementTypeName: string; begin Result := SPasTreeElement end;
 
 function TPasElement.HintsString: String;
@@ -2308,6 +2306,11 @@ begin
   inherited Create;
   FName := AName;
   FParent := AParent;
+  {$ifdef pas2js}
+  inc(FLastPasElementId);
+  FPasElementId:=FLastPasElementId;
+  //writeln('TPasElement.Create ',Name,':',ClassName,' ID=[',FPasElementId,']');
+  {$endif}
   {$ifdef EnablePasTreeGlobalRefCount}
   Inc(FGlobalRefCount);
   {$endif}
@@ -2407,7 +2410,11 @@ begin
   if FRefCount = 0 then
     begin
     FRefCount:=High(FRefCount);
+    {$ifdef pas2js}
+    Destroy;
+    {$else}
     Free;
+    {$endif}
     end
   else if FRefCount=High(FRefCount) then
     begin
@@ -4912,7 +4919,7 @@ begin
   if full then ;
 end;
 
-constructor TPrimitiveExpr.Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : Ansistring);
+constructor TPrimitiveExpr.Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : string);
 begin
   inherited Create(AParent,AKind, eopNone);
   Value:=AValue;

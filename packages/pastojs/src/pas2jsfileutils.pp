@@ -28,6 +28,9 @@ uses
   {$IFDEF Unix}
   BaseUnix,
   {$ENDIF}
+  {$IFDEF Pas2JS}
+  NodeJSFS,
+  {$ENDIF}
   SysUtils, Classes;
 
 function FilenameIsAbsolute(const aFilename: string):boolean;
@@ -35,7 +38,7 @@ function FilenameIsWinAbsolute(const aFilename: string):boolean;
 function FilenameIsUnixAbsolute(const aFilename: string):boolean;
 function FileIsInPath(const Filename, Path: string): boolean;
 function ChompPathDelim(const Path: string): string;
-function ExpandFileNameUTF8(const FileName: string; {const} BaseDir: string = ''): string;
+function ExpandFileNamePJ(const FileName: string; {const} BaseDir: string = ''): string;
 function ExpandDirectory(const aDirectory: string): string;
 function TryCreateRelativePath(const Filename, BaseDirectory: String;
   UsePointDirectory: boolean; out RelPath: String): Boolean;
@@ -43,8 +46,11 @@ function ResolveDots(const AFilename: string): string;
 procedure ForcePathDelims(Var FileName: string);
 function GetForcedPathDelims(Const FileName: string): String;
 function ExtractFilenameOnly(const aFilename: string): string;
-function GetCurrentDirUTF8: String;
+function GetCurrentDirPJ: String;
 function CompareFilenames(const File1, File2: string): integer;
+{$IFDEF Pas2js}
+function FilenameToKey(const Filename: string): string;
+{$ENDIF}
 
 function GetPhysicalFilename(const Filename: string;
         ExceptionOnError: boolean): string;
@@ -53,9 +59,9 @@ function ResolveSymLinks(const Filename: string;
 function MatchGlobbing(Mask, Name: string): boolean;
 function FileIsWritable(const AFilename: string): boolean;
 
-function GetEnvironmentVariableCountUTF8: Integer;
-function GetEnvironmentStringUTF8(Index: Integer): string;
-function GetEnvironmentVariableUTF8(const EnvVar: string): String;
+function GetEnvironmentVariableCountPJ: Integer;
+function GetEnvironmentStringPJ(Index: Integer): string;
+function GetEnvironmentVariablePJ(const EnvVar: string): String;
 
 function GetNextDelimitedItem(const List: string; Delimiter: char;
                               var Position: integer): string;
@@ -65,12 +71,10 @@ const InvalidChangeStamp = low(TChangeStamp);
 procedure IncreaseChangeStamp(var Stamp: TChangeStamp);
 
 const
-  UTF8BOM = #$EF#$BB#$BF;
   EncodingUTF8 = 'UTF-8';
   EncodingSystem = 'System';
 function NormalizeEncoding(const Encoding: string): string;
 function IsNonUTF8System: boolean;// true if system encoding is not UTF-8
-function UTF8CharacterStrictLength(P: PChar): integer;
 function GetDefaultTextEncoding: string;
 function GetConsoleTextEncoding: string;
 {$IFDEF Windows}
@@ -83,6 +87,11 @@ function GetUnixEncoding: string;
 {$ENDIF}
 function IsASCII(const s: string): boolean; inline;
 
+{$IFDEF FPC_HAS_CPSTRING}
+const
+  UTF8BOM = #$EF#$BB#$BF;
+function UTF8CharacterStrictLength(P: PChar): integer;
+
 function UTF8ToUTF16(const s: string): UnicodeString;
 function UTF16ToUTF8(const s: UnicodeString): string;
 
@@ -92,6 +101,7 @@ function SystemCPToUTF8(const s: string): string;
 function ConsoleToUTF8(const s: string): string;
 // converts UTF8 string to console encoding (used by Write, WriteLn)
 function UTF8ToConsole(const s: string): string;
+{$ENDIF FPC_HAS_CPSTRING}
 
 implementation
 
@@ -107,12 +117,12 @@ var
   Lang: string = '';
   {$ENDIF}
   {$ENDIF}
-  NonUTF8System: boolean = false;
+  NonUTF8System: boolean = {$IFDEF FPC_HAS_CPSTRING}false{$ELSE}true{$ENDIF};
 
 function FilenameIsWinAbsolute(const aFilename: string): boolean;
 begin
   Result:=((length(aFilename)>=3) and
-           (aFilename[1] in ['A'..'Z','a'..'z']) and (aFilename[2]=':')  and (aFilename[3]in AllowDirectorySeparators))
+           (aFilename[1] in ['A'..'Z','a'..'z']) and (aFilename[2]=':') and (aFilename[3]in AllowDirectorySeparators))
       or ((length(aFilename)>=2) and (aFilename[1] in AllowDirectorySeparators) and (aFilename[2] in AllowDirectorySeparators));
 end;
 
@@ -136,7 +146,7 @@ begin
   ExpPath:=IncludeTrailingPathDelimiter(Path);
   l:=length(ExpPath);
   Result:=(l>0) and (length(ExpFile)>l) and (ExpFile[l]=PathDelim)
-          and (AnsiCompareFileName(ExpPath,LeftStr(ExpFile,l))=0);
+          and (CompareFileNames(ExpPath,LeftStr(ExpFile,l))=0);
 end;
 
 function ChompPathDelim(const Path: string): string;
@@ -174,7 +184,7 @@ function ExpandDirectory(const aDirectory: string): string;
 begin
   Result:=aDirectory;
   if Result='' then exit;
-  Result:=ExpandFileNameUTF8(Result);
+  Result:=ExpandFileNamePJ(Result);
   if Result='' then exit;
   Result:=IncludeTrailingPathDelimiter(Result);
 end;
@@ -207,7 +217,16 @@ function TryCreateRelativePath(const Filename, BaseDirectory: String;
   - Filename = foo/bar BaseDirectory = bar/foo Result = False (no shared base directory)
   - Filename = /foo BaseDirectory = bar Result = False (mixed absolute and relative)
 }
-
+{$IFDEF Pas2js}
+begin
+  Result:=false;
+  RelPath:=Filename;
+  if (BaseDirectory='') or (Filename='') then exit;
+  {AllowWriteln}
+  writeln('TryCreateRelativePath ToDo: ',Filename,' Base=',BaseDirectory,' UsePointDirectory=',UsePointDirectory);
+  {AllowWriteln-}
+end;
+{$ELSE}
   function IsNameChar(c: char): boolean; inline;
   begin
     Result:=(c<>#0) and not (c in AllowDirectorySeparators);
@@ -296,10 +315,23 @@ begin
     Move(FileP^,RelPath[ResultPos],FileNameRestLen);
   Result:=true;
 end;
+{$ENDIF}
 
 function ResolveDots(const AFilename: string): string;
 //trim double path delims and expand special dirs like .. and .
 //on Windows change also '/' to '\' except for filenames starting with '\\?\'
+{$IFDEF Pas2js}
+var
+  Len: Integer;
+begin
+  Len:=length(AFilename);
+  if Len=0 then exit('');
+  Result:=AFilename;
+  {AllowWriteln}
+  writeln('ResolveDots ToDo ',AFilename);
+  {AllowWriteln-}
+end;
+{$ELSE}
 
   {$ifdef windows}
   function IsDriveDelim(const Path: string; p: integer): boolean; inline;
@@ -511,25 +543,34 @@ begin
     else
       SetLength(Result,DestPos-1);
 end;
+{$ENDIF}
 
 procedure ForcePathDelims(Var FileName: string);
-var
-  i: Integer;
 begin
-  for i:=1 to length(FileName) do
-    {$IFDEF Windows}
-    if Filename[i]='/' then
-      Filename[i]:='\';
-    {$ELSE}
-    if Filename[i]='\' then
-      Filename[i]:='/';
-    {$ENDIF}
+  Filename:=GetForcedPathDelims(Filename);
 end;
 
 function GetForcedPathDelims(const FileName: string): String;
+var
+  i: Integer;
+  c: Char;
 begin
-  Result:=FileName;
-  ForcePathDelims(Result);
+  Result:=Filename;
+  {$IFDEF Pas2js}
+  if PathDelim='/' then
+    c:='\'
+  else
+    c:='/';
+  {$ELSE}
+  {$IFDEF Windows}
+  c:='/';
+  {$ELSE}
+  c:='/';
+  {$ENDIF}
+  {$ENDIF}
+  for i:=1 to length(Result) do
+    if Result[i]=c then
+      Result[i]:=PathDelim;
 end;
 
 function ExtractFilenameOnly(const aFilename: string): string;
@@ -552,11 +593,49 @@ end;
 
 function CompareFilenames(const File1, File2: string): integer;
 begin
+  {$IFDEF Pas2js}
+  {AllowWriteln}
+  writeln('CompareFilenames ToDo ',File1,' ',File2);
+  {AllowWriteln-}
+  raise Exception.Create('CompareFilenames ToDo');
+  Result:=0;
+  {$ELSE}
   Result:=AnsiCompareFileName(File1,File2);
+  {$ENDIF}
 end;
+
+{$IFDEF Pas2js}
+function FilenameToKey(const Filename: string): string;
+begin
+  {$IFDEF Pas2js}
+  Result:=Filename;
+  // ToDo lowercase on windows, normalize on darwin
+  {$ELSE}
+    {$IFDEF Windows}
+    Result:=AnsiLowerCase(Filename);
+    {$ELSE}
+      {$IFDEF Darwin}
+      todo
+      {$ELSE}
+      Result:=Filename;
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF}
+end;
+{$ENDIF}
 
 function MatchGlobbing(Mask, Name: string): boolean;
 // match * and ?
+{$IFDEF Pas2js}
+begin
+  if Mask='' then exit(Name='');
+  {AllowWriteln}
+  writeln('MatchGlobbing ToDo ',Mask,' Name=',Name);
+  {AllowWriteln-}
+  raise Exception.Create('MatchGlobbing ToDo');
+  Result:=false;
+end;
+{$ELSE}
 
   function IsNameEnd(NameP: PChar): boolean; inline;
   begin
@@ -620,6 +699,7 @@ begin
     exit(false);
   Result:=Check(MaskP,PChar(Name));
 end;
+{$ENDIF}
 
 function GetNextDelimitedItem(const List: string; Delimiter: char;
   var Position: integer): string;
@@ -646,6 +726,76 @@ begin
   Result:=NonUTF8System;
 end;
 
+function GetDefaultTextEncoding: string;
+begin
+  if EncodingValid then
+  begin
+    Result:=DefaultTextEncoding;
+    exit;
+  end;
+
+  {$IFDEF Pas2js}
+  Result:=EncodingUTF8;
+  {$ELSE}
+    {$IFDEF Windows}
+    Result:=GetWindowsEncoding;
+    {$ELSE}
+      {$IFDEF Darwin}
+      Result:=EncodingUTF8;
+      {$ELSE}
+      // unix
+      Lang := GetEnvironmentVariable('LC_ALL');
+      if Lang='' then
+      begin
+        Lang := GetEnvironmentVariable('LC_MESSAGES');
+        if Lang='' then
+          Lang := GetEnvironmentVariable('LANG');
+      end;
+      Result:=GetUnixEncoding;
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF}
+  Result:=NormalizeEncoding(Result);
+
+  DefaultTextEncoding:=Result;
+  EncodingValid:=true;
+end;
+
+function NormalizeEncoding(const Encoding: string): string;
+var
+  i: Integer;
+begin
+  Result:=LowerCase(Encoding);
+  for i:=length(Result) downto 1 do
+    if Result[i]='-' then Delete(Result,i,1);
+end;
+
+function IsASCII(const s: string): boolean; inline;
+{$IFDEF Pas2js}
+var
+  i: Integer;
+begin
+  for i:=1 to length(s) do
+    if s[i]>#127 then exit(false);
+  Result:=true;
+end;
+{$ELSE}
+var
+  p: PChar;
+begin
+  if s='' then exit(true);
+  p:=PChar(s);
+  repeat
+    case p^ of
+    #0: if p-PChar(s)=length(s) then exit(true);
+    #128..#255: exit(false);
+    end;
+    inc(p);
+  until false;
+end;
+{$ENDIF}
+
+{$IFDEF FPC_HAS_CPSTRING}
 function UTF8CharacterStrictLength(P: PChar): integer;
 begin
   if p=nil then exit(0);
@@ -689,60 +839,6 @@ begin
     exit(0);
 end;
 
-function GetDefaultTextEncoding: string;
-begin
-  if EncodingValid then
-  begin
-    Result:=DefaultTextEncoding;
-    exit;
-  end;
-
-  {$IFDEF Windows}
-  Result:=GetWindowsEncoding;
-  {$ELSE}
-  {$IFDEF Darwin}
-  Result:=EncodingUTF8;
-  {$ELSE}
-  Lang := GetEnvironmentVariable('LC_ALL');
-  if Lang='' then
-  begin
-    Lang := GetEnvironmentVariable('LC_MESSAGES');
-    if Lang='' then
-      Lang := GetEnvironmentVariable('LANG');
-  end;
-  Result:=GetUnixEncoding;
-  {$ENDIF}
-  {$ENDIF}
-  Result:=NormalizeEncoding(Result);
-
-  DefaultTextEncoding:=Result;
-  EncodingValid:=true;
-end;
-
-function NormalizeEncoding(const Encoding: string): string;
-var
-  i: Integer;
-begin
-  Result:=LowerCase(Encoding);
-  for i:=length(Result) downto 1 do
-    if Result[i]='-' then Delete(Result,i,1);
-end;
-
-function IsASCII(const s: string): boolean; inline;
-var
-  p: PChar;
-begin
-  if s='' then exit(true);
-  p:=PChar(s);
-  repeat
-    case p^ of
-    #0: if p-PChar(s)=length(s) then exit(true);
-    #128..#255: exit(false);
-    end;
-    inc(p);
-  until false;
-end;
-
 function UTF8ToUTF16(const s: string): UnicodeString;
 begin
   Result:=UTF8Decode(s);
@@ -756,6 +852,7 @@ begin
   // conversion magic
   SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
+{$ENDIF}
 
 {$IFDEF Unix}
   {$I pas2jsfileutilsunix.inc}
@@ -763,9 +860,13 @@ end;
 {$IFDEF Windows}
   {$I pas2jsfileutilswin.inc}
 {$ENDIF}
+{$IFDEF NodeJS}
+  {$I pas2jsfileutilsnodejs.inc}
+{$ENDIF}
 
 procedure InternalInit;
 begin
+  {$IFDEF FPC_HAS_CPSTRING}
   SetMultiByteConversionCodePage(CP_UTF8);
   // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
@@ -776,12 +877,16 @@ begin
   {$ELSE}
   NonUTF8System:=SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
   {$ENDIF}
+  {$ENDIF}
+
   InitPlatform;
 end;
 
 initialization
   InternalInit;
+{$IFDEF FPC}
 finalization
   FinalizePlatform;
+{$ENDIF}
 end.
 

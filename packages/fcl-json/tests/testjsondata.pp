@@ -3412,12 +3412,13 @@ begin
     TestJSON(O,'{ "x" : 1, "y" : 2 }');
     AssertEquals('Format equals JSON',O.AsJSON,O.FormatJSON([foSingleLineObject]));
     AssertEquals('Format using SkipWhiteSpace','{"x":1,"y":2}',O.FormatJSON([foSingleLineObject,foSkipWhiteSpace]));
+    AssertEquals('Format using SkipWhiteSpace,foSkipWhiteSpaceOnlyLeading','{"x": 1,"y": 2}',O.FormatJSON([foSingleLineObject,foSkipWhiteSpace,foSkipWhiteSpaceOnlyLeading]));
     AssertEquals('Format using SkipWhiteSpace,unquotednames','{x:1,y:2}',O.FormatJSON([foSingleLineObject,foSkipWhiteSpace,foDoNotQuoteMembers]));
-    AssertEquals('Format 1','{'+sLineBreak+'  "x" : 1,'+sLineBreak+'  "y" : 2'+sLineBreak+'}',O.FormatJSON([]));
-    AssertEquals('Format 1','{'+sLineBreak+'  x : 1,'+sLineBreak+'  y : 2'+sLineBreak+'}',O.FormatJSON([foDoNotQuoteMembers]));
-    AssertEquals('Format 1','{'+sLineBreak+#9'x : 1,'+sLineBreak+#9'y : 2'+sLineBreak+'}',O.FormatJSON([foUseTabChar,foDoNotQuoteMembers],1));
+    AssertEquals('Format []','{'+sLineBreak+'  "x" : 1,'+sLineBreak+'  "y" : 2'+sLineBreak+'}',O.FormatJSON([]));
+    AssertEquals('Format [foDoNotQuoteMembers]','{'+sLineBreak+'  x : 1,'+sLineBreak+'  y : 2'+sLineBreak+'}',O.FormatJSON([foDoNotQuoteMembers]));
+    AssertEquals('Format [foUseTabChar,foDoNotQuoteMembers]','{'+sLineBreak+#9'x : 1,'+sLineBreak+#9'y : 2'+sLineBreak+'}',O.FormatJSON([foUseTabChar,foDoNotQuoteMembers],1));
     O.Add('s',TJSONObject.Create(['w',10,'h',20]));
-    AssertEquals('Format 1','{'+sLineBreak+#9'x : 1,'+sLineBreak+#9'y : 2,'+sLineBreak+#9's : {'+sLineBreak+#9#9'w : 10,'+sLineBreak+#9#9'h : 20'+sLineBreak+#9'}'+sLineBreak+'}',O.FormatJSON([foUseTabChar,foDoNotQuoteMembers],1));
+    AssertEquals('Format [foUseTabChar,foDoNotQuoteMembers] 2','{'+sLineBreak+#9'x : 1,'+sLineBreak+#9'y : 2,'+sLineBreak+#9's : {'+sLineBreak+#9#9'w : 10,'+sLineBreak+#9#9'h : 20'+sLineBreak+#9'}'+sLineBreak+'}',O.FormatJSON([foUseTabChar,foDoNotQuoteMembers],1));
   finally
     O.Free;
   end;
@@ -3992,6 +3993,11 @@ begin
 end;
 
 procedure TTestJSONString.TestJSONStringToString;
+
+Const
+  // Glowing star in UTF8
+  GlowingStar = #$F0#$9F#$8C#$9F;
+
 begin
   TestFrom('','');
   TestFrom('A','A');
@@ -4028,6 +4034,9 @@ begin
   TestFrom('\n\n',#10#10);
   TestFrom('\f\f',#12#12);
   TestFrom('\r\r',#13#13);
+  TestFrom('\u00f8','ø'); // this is ø
+  TestFrom('\u00f8\"','ø"'); // this is ø"
+  TestFrom('\ud83c\udf1f',GlowingStar);
 end;
 
 procedure TTestJSONString.TestStringToJSONString;

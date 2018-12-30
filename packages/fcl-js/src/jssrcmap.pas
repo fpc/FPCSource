@@ -19,14 +19,38 @@ unit JSSrcMap;
 
 {$mode objfpc}{$H+}
 
+{$ifdef fpc}
+  {$define UsePChar}
+  {$define HasJsonParser}
+  {$define HasStreams}
+  {$define HasFS}
+{$endif}
+
+{$ifdef pas2js}
+  {$ifdef nodejs}
+    {$define HasFS}
+  {$endif}
+{$endif}
+
 interface
 
 uses
-  Classes, SysUtils, contnrs, fpjson, jsonparser, jsonscanner;
+  {$ifdef pas2js}
+  JS,
+    {$ifdef nodejs}
+    NodeJSFS,
+    {$endif}
+  {$else}
+  contnrs,
+  {$endif}
+  Classes, SysUtils, fpjson
+  {$ifdef HasJsonParser}
+  , jsonparser, jsonscanner
+  {$endif}
+  ;
 
 const
   Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  DefaultSrcMapHeader = ')]}'''+LineEnding;
 
 type
   EJSSourceMap = class(Exception);
@@ -54,7 +78,8 @@ type
   TSourceMapOption = (
     smoAddMonotonous, // true = AddMapping GeneratedLine/Col must be behind last add, false = check all adds for duplicate
     smoAutoLineStart, // automatically add a first column mapping, repeating last mapping
-    smoSafetyHeader // insert ')]}' at start
+    smoSafetyHeader, // insert ')]}' at start
+    smoAllowSrcLine0 // don't bark on SrcLine=0
     );
   TSourceMapOptions = set of TSourceMapOption;
 const
@@ -71,7 +96,7 @@ type
 
       TStringToIndex = class
       private
-        FItems: TFPHashList;
+        FItems: {$ifdef pas2js}TJSObject{$else}TFPHashList{$endif};
       public
         constructor Create;
         destructor Destroy; override;
@@ -116,10 +141,12 @@ type
     function ToJSON: TJSONObject; virtual;
     function ToString: string; override;
     procedure LoadFromJSON(Obj: TJSONObject); virtual;
-    procedure SaveToStream(aStream: TStream); virtual;
+    procedure SaveToStream(aStream: TFPJSStream); virtual;
+    {$ifdef HasStreams}
     procedure LoadFromStream(aStream: TStream); virtual;
     procedure SaveToFile(Filename: string); virtual;
     procedure LoadFromFile(Filename: string); virtual;
+    {$endif}
     property GeneratedFilename: string read FGeneratedFilename write SetGeneratedFilename;
     function IndexOfName(const Name: string; AddIfNotExists: boolean = false): integer;
     function IndexOfSourceFile(const SrcFile: string; AddIfNotExists: boolean = false): integer;
@@ -139,16 +166,25 @@ type
     property Sorted: boolean read FSorted write SetSorted; // Segments are sorted for GeneratedLine/Col
   end;
 
+function DefaultSrcMapHeader: string;
+
 function EncodeBase64VLQ(i: NativeInt): String; // base64 Variable Length Quantity
 function DecodeBase64VLQ(const s: string): NativeInt; // base64 Variable Length Quantity
-function DecodeBase64VLQ(var p: PChar): NativeInt; // base64 Variable Length Quantity
+function DecodeBase64VLQ(
+  {$ifdef UsePChar}var p: PChar{$else}const s: string; var p: integer{$endif}): NativeInt; // base64 Variable Length Quantity
 
-function CompareSegmentWithGeneratedLineCol(Item1, Item2: Pointer): Integer;
+function CompareSegmentWithGeneratedLineCol(
+  Item1, Item2: {$ifdef pas2js}jsvalue{$else}Pointer{$endif}): Integer;
 
 procedure DebugSrcMapLine(GeneratedLine: integer; var GeneratedLineSrc: String;
   SrcMap: TSourceMap; out InfoLine: String);
 
 implementation
+
+function DefaultSrcMapHeader: string;
+begin
+  Result:=')]}'''+LineEnding;
+end;
 
 function EncodeBase64VLQ(i: NativeInt): String;
 { Convert signed number to base64-VLQ:
@@ -196,36 +232,64 @@ end;
 
 function DecodeBase64VLQ(const s: string): NativeInt;
 var
+  {$ifdef UsePChar}
   p: PChar;
+  {$else}
+  p: integer;
+  {$endif}
 begin
   if s='' then
     raise EConvertError.Create('DecodeBase64VLQ empty');
+  {$ifdef UsePChar}
   p:=PChar(s);
   Result:=DecodeBase64VLQ(p);
   if p-PChar(s)<>length(s) then
     raise EConvertError.Create('DecodeBase64VLQ waste');
+  {$else}
+  p:=1;
+  Result:=DecodeBase64VLQ(s,p);
+  {$endif}
 end;
 
-function DecodeBase64VLQ(var p: PChar): NativeInt;
+function DecodeBase64VLQ(
+  {$ifdef UsePChar}var p: PChar{$else}const s: string; var p: integer{$endif}): NativeInt;
 { Convert base64-VLQ to signed number,
   For the fomat see EncodeBase64VLQ
 }
+var
+  {$ifdef UsePChar}
+  run: PChar;
+  {$else}
+  run, l: integer;
+  {$endif}
 
   procedure RaiseInvalid;
   begin
+    p:=run;
     raise ERangeError.Create('DecodeBase64VLQ');
   end;
 
 const
-  MaxShift = 63-5; // actually log2(High(NativeInt))-5
+  MaxShift = {$ifdef pas2js}32{$else}63{$endif}-5; // actually log2(High(NativeInt))-5
 var
   c: Char;
   digit, Shift: Integer;
 begin
   Result:=0;
   Shift:=0;
+  run:=p;
+  {$ifdef UsePChar}
+  {$else}
+  l:=length(s);
+  {$endif}
   repeat
-    c:=p^;
+    {$ifdef UsePChar}
+    c:=run^;
+    {$else}
+    if run>l then
+      RaiseInvalid;
+    c:=s[run];
+    {$endif}
     case c of
     'A'..'Z': digit:=ord(c)-ord('A');
     'a'..'z': digit:=ord(c)-ord('a')+26;
@@ -234,7 +298,7 @@ begin
     '/': digit:=63;
     else RaiseInvalid;
     end;
-    inc(p);
+    inc(run);
     if Shift>MaxShift then
       RaiseInvalid;
     inc(Result,(digit and %11111) shl Shift);
@@ -244,9 +308,11 @@ begin
     Result:=-(Result shr 1)
   else
     Result:=Result shr 1;
+  p:=run;
 end;
 
-function CompareSegmentWithGeneratedLineCol(Item1, Item2: Pointer): Integer;
+function CompareSegmentWithGeneratedLineCol(
+    Item1, Item2: {$ifdef pas2js}jsvalue{$else}Pointer{$endif}): Integer;
 var
   Seg1: TSourceMapSegment absolute Item1;
   Seg2: TSourceMapSegment absolute Item2;
@@ -321,7 +387,7 @@ begin
       Addition:='|';
       if LastSrcFile<>aSeg.SrcFileIndex then
         begin
-        Addition:=Addition+ExtractFileName(SrcMap.SourceFiles[aSeg.SrcFileIndex])+',';
+        Addition:=Addition+{$ifdef HasFS}ExtractFileName{$endif}(SrcMap.SourceFiles[aSeg.SrcFileIndex])+',';
         LastSrcFile:=aSeg.SrcFileIndex;
         end;
       if LastSrcLine<>aSeg.SrcLine then
@@ -378,32 +444,55 @@ end;
 
 constructor TSourceMap.TStringToIndex.Create;
 begin
+  {$ifdef pas2js}
+  FItems:=TJSObject.new;
+  {$else}
   FItems:=TFPHashList.Create;
+  {$endif}
 end;
 
 destructor TSourceMap.TStringToIndex.Destroy;
 begin
+  {$ifdef pas2js}
+  FItems:=nil;
+  {$else}
   FItems.Clear;
   FreeAndNil(FItems);
+  {$endif}
   inherited Destroy;
 end;
 
 procedure TSourceMap.TStringToIndex.Clear;
 begin
+  {$ifdef pas2js}
+  FItems:=TJSObject.new;
+  {$else}
   FItems.Clear;
+  {$endif}
 end;
 
 procedure TSourceMap.TStringToIndex.Add(const Value: String; Index: integer);
 begin
+  {$ifdef pas2js}
+  FItems[Value]:=Index;
+  {$else}
   // Note: nil=0 means not found in TFPHashList
   FItems.Add(Value,{%H-}Pointer(PtrInt(Index+1)));
+  {$endif}
 end;
 
 function TSourceMap.TStringToIndex.FindValue(const Value: String
   ): integer;
 begin
+  {$ifdef pas2js}
+  if FItems.hasOwnProperty(Value) then
+    Result:=integer(FItems[Value])
+  else
+    Result:=-1;
+  {$else}
   // Note: nil=0 means not found in TFPHashList
   Result:=integer({%H-}PtrInt(FItems.Find(Value))){%H-}-1;
+  {$endif}
 end;
 
 { TSourceMap }
@@ -501,10 +590,10 @@ begin
   FGeneratedFilename:='';
   FSourceToIndex.Clear;
   for i:=0 to FSources.Count-1 do
-    TObject(FSources[i]).Free;
+    TObject(FSources[i]).{$ifdef pas2js}Destroy{$else}Free{$endif};
   FSources.Clear;
   for i:=0 to FItems.Count-1 do
-    TObject(FItems[i]).Free;
+    TObject(FItems[i]).{$ifdef pas2js}Destroy{$else}Free{$endif};
   FItems.Clear;
   FNameToIndex.Clear;
   FNames.Clear;
@@ -548,7 +637,10 @@ begin
   else
     begin
     if SrcLine<1 then
-      RaiseInvalid('invalid SrcLine');
+    begin
+      if (SrcLine<0) or not (smoAllowSrcLine0 in Options) then
+        RaiseInvalid('invalid SrcLine');
+    end;
     if SrcCol<0 then
       RaiseInvalid('invalid SrcCol');
     end;
@@ -589,14 +681,36 @@ end;
 
 function TSourceMap.CreateMappings: String;
 
-  procedure Add(ms: TMemoryStream; const s: string);
+{$ifdef pas2js}
+var
+  buf: TJSArray;
+
+  procedure AddStr(const s: string); inline;
   begin
-    if s<>'' then
-      ms.Write(s[1],length(s));
+    buf.push(s);
   end;
 
+  procedure AddChar(c: char); inline;
+  begin
+    buf.push(c);
+  end;
+{$else}
 var
-  ms: TMemoryStream;
+  buf: TMemoryStream;
+
+  procedure AddStr(const s: string);
+  begin
+    if s<>'' then
+      buf.Write(s[1],length(s)*sizeof(char));
+  end;
+
+  procedure AddChar(c: char);
+  begin
+    buf.Write(c,sizeof(char));
+  end;
+{$endif}
+
+var
   i, LastGeneratedLine, LastGeneratedColumn, j, LastSrcFileIndex, LastSrcLine,
     LastSrcColumn, SrcLine, LastNameIndex: Integer;
   Item: TSourceMapSegment;
@@ -608,7 +722,11 @@ begin
   LastSrcLine:=0;
   LastSrcColumn:=0;
   LastNameIndex:=0;
-  ms:=TMemoryStream.Create;
+  {$ifdef pas2js}
+  buf:=TJSArray.new;
+  {$else}
+  buf:=TMemoryStream.Create;
+  {$endif}
   try
     for i:=0 to Count-1 do
       begin
@@ -619,22 +737,22 @@ begin
         //LastGeneratedColumn:=0;
         for j:=LastGeneratedLine+1 to Item.GeneratedLine do
           begin
-          ms.WriteByte(ord(';'));
+          AddChar(';');
           if (smoAutoLineStart in FOptions)
               and ((j<Item.GeneratedLine) or (Item.GeneratedColumn>0)) then
             begin
             // repeat mapping at start of line
             // column 0
-            Add(ms,EncodeBase64VLQ(0-LastGeneratedColumn));
+            AddStr(EncodeBase64VLQ(0-LastGeneratedColumn));
             LastGeneratedColumn:=0;
             // same src file index
-            Add(ms,EncodeBase64VLQ(0));
+            AddStr(EncodeBase64VLQ(0));
             // same src line
-            Add(ms,EncodeBase64VLQ(0));
+            AddStr(EncodeBase64VLQ(0));
             // same src column
-            Add(ms,EncodeBase64VLQ(0));
+            AddStr(EncodeBase64VLQ(0));
             if j=Item.GeneratedLine then
-              ms.WriteByte(ord(','));
+              AddChar(',');
             end;
           end;
         LastGeneratedLine:=Item.GeneratedLine;
@@ -645,67 +763,103 @@ begin
         if (LastGeneratedLine=Item.GeneratedLine)
             and (LastGeneratedColumn=Item.GeneratedColumn) then
           continue;
-        ms.WriteByte(ord(','));
+        AddChar(',');
         end;
       // column diff
       //writeln('TSourceMap.CreateMappings Seg=',i,' Gen:Line=',LastGeneratedLine,',Col=',Item.GeneratedColumn,' Src:File=',Item.SrcFileIndex,',Line=',Item.SrcLine,',Col=',Item.SrcColumn,' Name=',Item.NameIndex);
-      Add(ms,EncodeBase64VLQ(Item.GeneratedColumn-LastGeneratedColumn));
+      AddStr(EncodeBase64VLQ(Item.GeneratedColumn-LastGeneratedColumn));
       LastGeneratedColumn:=Item.GeneratedColumn;
 
       if Item.SrcFileIndex<0 then
         continue; // no source -> segment length 1
       // src file index diff
-      Add(ms,EncodeBase64VLQ(Item.SrcFileIndex-LastSrcFileIndex));
+      AddStr(EncodeBase64VLQ(Item.SrcFileIndex-LastSrcFileIndex));
       LastSrcFileIndex:=Item.SrcFileIndex;
       // src line diff
       SrcLine:=Item.SrcLine-1; // 0 based in version 3
-      Add(ms,EncodeBase64VLQ(SrcLine-LastSrcLine));
+      AddStr(EncodeBase64VLQ(SrcLine-LastSrcLine));
       LastSrcLine:=SrcLine;
       // src column diff
-      Add(ms,EncodeBase64VLQ(Item.SrcColumn-LastSrcColumn));
+      AddStr(EncodeBase64VLQ(Item.SrcColumn-LastSrcColumn));
       LastSrcColumn:=Item.SrcColumn;
       // name index
       if Item.NameIndex<0 then
         continue; // no name -> segment length 4
-      Add(ms,EncodeBase64VLQ(Item.NameIndex-LastNameIndex));
+      AddStr(EncodeBase64VLQ(Item.NameIndex-LastNameIndex));
       LastNameIndex:=Item.NameIndex;
       end;
-    SetLength(Result,ms.Size);
+    {$ifdef pas2js}
+    Result:=buf.join('');
+    {$else}
+    SetLength(Result,buf.Size);
     if Result<>'' then
-      Move(ms.Memory^,Result[1],ms.Size);
+      Move(buf.Memory^,Result[1],buf.Size);
+    {$endif}
   finally
-    ms.Free;
+    {$ifdef pas2js}
+    {$else}
+    buf.Free;
+    {$endif}
   end;
 end;
 
 procedure TSourceMap.ParseMappings(const Mapping: String);
 const
   MaxInt = High(integer) div 2;
+{$ifdef UsePChar}
 var
   p: PChar;
+
+  function Decode: NativeInt; inline;
+  begin
+    Result:=DecodeBase64VLQ(p);
+  end;
+
+  procedure E(const Msg: string);
+  begin
+    raise EJSSourceMap.CreateFmt(Msg,[PtrUInt(p-PChar(Mapping))+1]);
+  end;
+{$else}
+var
+  p: integer;
+
+  function Decode: NativeInt; inline;
+  begin
+    Result:=DecodeBase64VLQ(Mapping,p);
+  end;
+
+  procedure E(const Msg: string);
+  begin
+    raise EJSSourceMap.CreateFmt(Msg,[p]);
+  end;
+{$endif}
+var
   GeneratedLine, LastColumn, Column, LastSrcFileIndex, LastSrcLine,
     LastSrcColumn, LastNameIndex, SrcFileIndex, SrcLine, SrcColumn,
-    NameIndex: Integer;
+    NameIndex, l: Integer;
   ColDiff, SrcFileIndexDiff, SrcLineDiff, SrcColumnDiff,
     NameIndexDiff: NativeInt;
   Segment: TSourceMapSegment;
 begin
-  if Mapping='' then exit;
-  p:=PChar(Mapping);
+  l:=length(Mapping);
+  if l=0 then exit;
+  p:={$ifdef UsePChar}PChar(Mapping){$else}1{$endif};
   GeneratedLine:=1;
   LastColumn:=0;
   LastSrcFileIndex:=0;
   LastSrcLine:=0;
   LastSrcColumn:=0;
   LastNameIndex:=0;
-  while p^<>#0 do
+  while {$ifdef UsePChar}true{$else}p<=l{$endif} do
     begin
-    case p^ of
+    case {$ifdef UsePChar}p^{$else}Mapping[p]{$endif} of
+    {$ifdef UsePChar}
     #0:
       if p-PChar(Mapping)=length(Mapping) then
         exit
       else
-        raise EJSSourceMap.CreateFmt('unexpected #0 at %d',[PtrUInt(p-PChar(Mapping))]);
+        E('unexpected #0 at %d');
+    {$endif}
     ',':
       begin
       // next segment
@@ -719,12 +873,12 @@ begin
       end;
     else
       begin
-      ColDiff:=DecodeBase64VLQ(p);
+      ColDiff:=Decode;
       if (ColDiff>MaxInt) or (ColDiff<-MaxInt) then
-        raise EJSSourceMap.CreateFmt('column out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+        E('column out of range at %d');
       Column:=LastColumn+integer(ColDiff);
       if (Column>MaxInt) or (Column<-MaxInt) then
-        raise EJSSourceMap.CreateFmt('column out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+        E('column out of range at %d');
       LastColumn:=Column;
 
       Segment:=TSourceMapSegment.Create;
@@ -734,44 +888,44 @@ begin
       Segment.GeneratedColumn:=Column;
       Segment.SrcFileIndex:=-1;
       Segment.NameIndex:=-1;
-      if not (p^ in [',',';',#0]) then
+      if {$ifdef UsePChar}not (p^ in [',',';',#0]){$else}(p<=l) and not (Mapping[p] in [',',';']){$endif} then
         begin
         // src file index
-        SrcFileIndexDiff:=DecodeBase64VLQ(p);
+        SrcFileIndexDiff:=Decode;
         if (SrcFileIndexDiff>MaxInt) or (SrcFileIndexDiff<-MaxInt) then
-          raise EJSSourceMap.CreateFmt('src file index out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+          E('src file index out of range at %d');
         SrcFileIndex:=LastSrcFileIndex+integer(SrcFileIndexDiff);
         if (SrcFileIndex<0) or (SrcFileIndex>=SourceCount) then
-          raise EJSSourceMap.CreateFmt('src file index out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+          E('src file index out of range at %d');
         LastSrcFileIndex:=SrcFileIndex;
         Segment.SrcFileIndex:=SrcFileIndex;
         // src line
-        SrcLineDiff:=DecodeBase64VLQ(p);
+        SrcLineDiff:=Decode;
         if (SrcLineDiff>MaxInt) or (SrcLineDiff<-MaxInt) then
-          raise EJSSourceMap.CreateFmt('src line out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+          E('src line out of range at %d');
         SrcLine:=LastSrcLine+integer(SrcLineDiff);
         if (SrcLine>MaxInt) or (SrcLine<-MaxInt) then
-          raise EJSSourceMap.CreateFmt('src line out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+          E('src line out of range at %d');
         LastSrcLine:=SrcLine;
         Segment.SrcLine:=SrcLine+1; // lines are stored 0-based
         // src column
-        SrcColumnDiff:=DecodeBase64VLQ(p);
+        SrcColumnDiff:=Decode;
         if (SrcColumnDiff>MaxInt) or (SrcColumnDiff<-MaxInt) then
-          raise EJSSourceMap.CreateFmt('src column out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+          E('src column out of range at %d');
         SrcColumn:=LastSrcColumn+integer(SrcColumnDiff);
         if (SrcColumn>MaxInt) or (SrcColumn<-MaxInt) then
-          raise EJSSourceMap.CreateFmt('src column out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+          E('src column out of range at %d');
         LastSrcColumn:=SrcColumn;
         Segment.SrcColumn:=SrcColumn;
-        if not (p^ in [',',';',#0]) then
+        if {$ifdef UsePChar}not (p^ in [',',';',#0]){$else}(p<=l) and not (Mapping[p] in [',',';']){$endif} then
           begin
           // name index
-          NameIndexDiff:=DecodeBase64VLQ(p);
+          NameIndexDiff:=Decode;
           if (NameIndexDiff>MaxInt) or (NameIndexDiff<-MaxInt) then
-            raise EJSSourceMap.CreateFmt('name index out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+            E('name index out of range at %d');
           NameIndex:=LastNameIndex+integer(NameIndexDiff);
           if (NameIndex<0) or (NameIndex>=NameCount) then
-            raise EJSSourceMap.CreateFmt('name index out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+            E('name index out of range at %d');
           LastNameIndex:=NameIndex;
           Segment.NameIndex:=NameIndex;
           end;
@@ -933,20 +1087,27 @@ begin
   ParseMappings(aMappings);
 end;
 
-procedure TSourceMap.SaveToStream(aStream: TStream);
+procedure TSourceMap.SaveToStream(aStream: TFPJSStream);
 var
   Obj: TJSONObject;
 begin
   Obj:=ToJSON;
   try
     if smoSafetyHeader in Options then
+      begin
+      {$ifdef pas2js}
+      aStream.push(DefaultSrcMapHeader);
+      {$else}
       aStream.Write(DefaultSrcMapHeader[1],length(DefaultSrcMapHeader));
+      {$endif}
+      end;
     Obj.DumpJSON(aStream);
   finally
     Obj.Free;
   end;
 end;
 
+{$ifdef HasStreams}
 procedure TSourceMap.LoadFromStream(aStream: TStream);
 var
   s: string;
@@ -997,6 +1158,7 @@ begin
     TheStream.Free;
   end;
 end;
+{$endif}
 
 function TSourceMap.IndexOfName(const Name: string; AddIfNotExists: boolean
   ): integer;

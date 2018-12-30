@@ -1,34 +1,26 @@
-{ Author: Mattias Gaertner  2018  mattias@freepascal.org
+program nodepas2js;
 
-  Abstract:
-    Command line interface for the pas2js compiler.
-}
-program pas2js;
-
-{$mode objfpc}{$H+}
+{$mode objfpc}
+{$I pas2js_defines.inc}
 
 uses
-  {$IFDEF UNIX}
-  cthreads, cwstring,
-  {$ENDIF}
-  Classes, SysUtils, CustApp,
+  JS, NodeJSApp,
+  Classes, SysUtils,
   Pas2jsFileUtils, Pas2jsLogger, Pas2jsCompiler;
 
-Type
+type
 
   { TPas2jsCLI }
 
-  TPas2jsCLI = class(TCustomApplication)
+  TPas2jsCLI = class(TNodeJSApplication)
   private
     FCompiler: TPas2jsCompiler;
-    FWriteOutputToStdErr: Boolean;
   protected
     procedure DoRun; override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     property Compiler: TPas2jsCompiler read FCompiler;
-    property WriteOutputToStdErr: Boolean read FWriteOutputToStdErr write FWriteOutputToStdErr;
   end;
 
 procedure TPas2jsCLI.DoRun;
@@ -48,6 +40,13 @@ begin
       begin
         {AllowWriteln}
         writeln(E.Message);
+        {AllowWriteln-}
+        if ExitCode=0 then
+          ExitCode:=ExitCodeErrorInternal;
+      end
+      else begin
+        {AllowWriteln}
+        writeln('ERROR value: ',JSExceptValue);
         {AllowWriteln-}
         if ExitCode=0 then
           ExitCode:=ExitCodeErrorInternal;
@@ -82,4 +81,3 @@ begin
   Application.Run;
   Application.Free;
 end.
-
