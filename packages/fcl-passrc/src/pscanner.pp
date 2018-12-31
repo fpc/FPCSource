@@ -26,13 +26,22 @@ unit PScanner;
   {$IF FPC_FULLVERSION<30101}
     {$define EmulateArrayInsert}
   {$endif}
+  {$define HasFS}
 {$endif}
+
+{$IFDEF NODEJS}
+  {$define HasFS}
+{$ENDIF}
 
 interface
 
 uses
   {$ifdef pas2js}
-  js, NodeJSFS, Types,
+  js,
+  {$IFDEF NODEJS}
+  NodeJSFS,
+  {$ENDIF}
+  Types,
   {$endif}
   SysUtils, Classes;
 
@@ -284,7 +293,8 @@ type
     msArrayOperators,      { use Delphi compatible array operators instead of custom ones ("+") }
     msExternalClass,       { Allow external class definitions }
     msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
-    msIgnoreAttributes     { workaround til resolver/converter supports attributes }
+    msIgnoreAttributes,    { workaround til resolver/converter supports attributes }
+    msOmitRTTI             { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
   );
   TModeSwitches = Set of TModeSwitch;
 
@@ -478,7 +488,6 @@ type
   Protected
     procedure SetBaseDirectory(AValue: string); virtual;
     procedure SetStrictFileCase(AValue: Boolean); virtual;
-    Function FindIncludeFileName(const AName: string): String;
     Property IncludePaths: TStringList Read FIncludePaths;
   public
     constructor Create; virtual;
@@ -489,7 +498,9 @@ type
     Property StrictFileCase : Boolean Read FStrictFileCase Write SetStrictFileCase;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory;
   end;
+  TBaseFileResolverClass = Class of TBaseFileResolver;
 
+{$IFDEF HASFS}
   { TFileResolver }
 
   TFileResolver = class(TBaseFileResolver)
@@ -498,6 +509,7 @@ type
     FUseStreams: Boolean;
     {$endif}
   Protected
+    Function FindIncludeFileName(const AName: string): String; virtual;
     Function CreateFileReader(Const AFileName : String) : TLineReader; virtual;
   Public
     function FindSourceFile(const AName: string): TLineReader; override;
@@ -506,6 +518,7 @@ type
     Property UseStreams : Boolean Read FUseStreams Write FUseStreams;
     {$endif}
   end;
+{$ENDIF}
 
   {$ifdef fpc}
   { TStreamResolver }
@@ -648,6 +661,8 @@ type
   TPScannerWarnEvent = procedure(Sender: TObject; Identifier: string; State: TWarnMsgState; var Handled: boolean) of object;
   TPScannerModeDirective = procedure(Sender: TObject; NewMode: TModeSwitch; Before: boolean; var Handled: boolean) of object;
 
+  TPasScannerTokenPos = {$ifdef UsePChar}PChar{$else}integer{$endif};
+
   TPascalScanner = class
   private
     type
@@ -700,7 +715,7 @@ type
     FSkipGlobalSwitches: boolean;
     FSkipWhiteSpace: Boolean;
     FTokenOptions: TTokenOptions;
-    FTokenPos: {$ifdef UsePChar}PChar;{$else}integer; { position in FCurLine }{$endif}
+    FTokenPos: TPasScannerTokenPos; // position in FCurLine }
     FIncludeStack: TFPList;
     FFiles: TStrings;
     FWarnMsgStates: TWarnMsgNumberStateArr;
@@ -767,13 +782,15 @@ type
     function DoFetchToken: TToken;
     procedure ClearFiles;
     Procedure ClearMacros;
-    Procedure SetCurTokenString(AValue: string);
+    Procedure SetCurToken(const AValue: TToken);
+    Procedure SetCurTokenString(const AValue: string);
     procedure SetCurrentBoolSwitches(const AValue: TBoolSwitches); virtual;
     procedure SetCurrentModeSwitches(AValue: TModeSwitches); virtual;
     procedure SetCurrentValueSwitch(V: TValueSwitch; const AValue: string);
     procedure SetWarnMsgState(Number: integer; State: TWarnMsgState); virtual;
     function GetWarnMsgState(Number: integer): TWarnMsgState; virtual;
     function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
+    property TokenPos: TPasScannerTokenPos read FTokenPos write FTokenPos;
   public
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
@@ -786,7 +803,7 @@ type
     procedure UnSetTokenOption(aOption : TTokenoption);
     function CheckToken(aToken : TToken; const ATokenString : String) : TToken;
     function FetchToken: TToken;
-    function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
+    function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken; virtual;
     function AddDefine(const aName: String; Quiet: boolean = false): boolean;
     function RemoveDefine(const aName: String; Quiet: boolean = false): boolean;
     function UnDefine(const aName: String; Quiet: boolean = false): boolean; // check defines and macros
@@ -1015,7 +1032,8 @@ const
     'ARRAYOPERATORS',
     'EXTERNALCLASS',
     'PREFIXEDATTRIBUTES',
-    'IGNOREATTRIBUTES'
+    'IGNOREATTRIBUTES',
+    'OMITRTTI'
     );
 
   LetterSwitchNames: array['A'..'Z'] of string=(
@@ -1138,6 +1156,7 @@ function FilenameIsAbsolute(const TheFilename: string):boolean;
 function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
+Function ExtractFilenameOnly(Const AFileName : String) : String;
 
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
 function SafeFormat(const Fmt: string; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): string;
@@ -1152,6 +1171,13 @@ const
 Var
   SortedTokens : array of TToken;
   LowerCaseTokens  : Array[ttoken] of String;
+
+Function ExtractFilenameOnly(Const AFileName : String) : String;
+
+begin
+  Result:=ChangeFileExt(ExtractFileName(aFileName),'');
+end;
+
 
 Procedure SortTokenInfo;
 
@@ -2372,7 +2398,45 @@ begin
   FStrictFileCase:=AValue;
 end;
 
-function TBaseFileResolver.FindIncludeFileName(const AName: string): String;
+
+constructor TBaseFileResolver.Create;
+begin
+  inherited Create;
+  FIncludePaths := TStringList.Create;
+end;
+
+destructor TBaseFileResolver.Destroy;
+begin
+  FIncludePaths.Free;
+  inherited Destroy;
+end;
+
+procedure TBaseFileResolver.AddIncludePath(const APath: string);
+
+Var
+  FP : String;
+
+begin
+  if (APath='') then
+    FIncludePaths.Add('./')
+  else
+    begin
+{$IFDEF HASFS}
+    FP:=IncludeTrailingPathDelimiter(ExpandFileName(APath));
+{$ELSE}
+    FP:=APath;
+{$ENDIF}
+    FIncludePaths.Add(FP);
+    end;
+end;
+
+{$IFDEF HASFS}
+
+{ ---------------------------------------------------------------------
+  TFileResolver
+  ---------------------------------------------------------------------}
+
+function TFileResolver.FindIncludeFileName(const AName: string): String;
 
   function SearchLowUpCase(FN: string): string;
 
@@ -2426,30 +2490,6 @@ begin
     end;
 end;
 
-constructor TBaseFileResolver.Create;
-begin
-  inherited Create;
-  FIncludePaths := TStringList.Create;
-end;
-
-destructor TBaseFileResolver.Destroy;
-begin
-  FIncludePaths.Free;
-  inherited Destroy;
-end;
-
-procedure TBaseFileResolver.AddIncludePath(const APath: string);
-begin
-  if (APath='') then
-    FIncludePaths.Add('./')
-  else
-    FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
-end;
-
-{ ---------------------------------------------------------------------
-  TFileResolver
-  ---------------------------------------------------------------------}
-
 function TFileResolver.CreateFileReader(const AFileName: String): TLineReader;
 begin
   {$ifdef HasStreams}
@@ -2488,6 +2528,7 @@ begin
       Result:=Nil;
     end;
 end;
+{$ENDIF}
 
 {$ifdef fpc}
 { TStreamResolver }
@@ -2642,7 +2683,7 @@ begin
   // Dont' free the first element, because it is CurSourceFile
   while FIncludeStack.Count > 1 do
     begin
-    TFileResolver(FIncludeStack[1]).{$ifdef pas2js}Destroy{$else}Free{$endif};
+    TBaseFileResolver(FIncludeStack[1]).{$ifdef pas2js}Destroy{$else}Free{$endif};
     FIncludeStack.Delete(1);
     end;
   FIncludeStack.Clear;
@@ -2662,9 +2703,14 @@ begin
   FMacros.Clear;
 end;
 
-procedure TPascalScanner.SetCurTokenString(AValue: string);
+procedure TPascalScanner.SetCurToken(const AValue: TToken);
 begin
-  FCurtokenString:=AValue;
+  FCurToken:=AValue;
+end;
+
+procedure TPascalScanner.SetCurTokenString(const AValue: string);
+begin
+  FCurTokenString:=AValue;
 end;
 
 procedure TPascalScanner.OpenFile(AFilename: string);
@@ -2673,7 +2719,9 @@ begin
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   FCurFilename := AFilename;
   AddFile(FCurFilename);
+{$IFDEF HASFS}
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(FCurFilename));
+{$ENDIF}
   if LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(AFileName)],True);
 end;
@@ -2865,9 +2913,10 @@ begin
       {$endif}
       '''':
         begin
-        // Note: Eventually there should be a mechanism to override parsing non-pascal
-        // By default skip Pascal string literals, as this is more intuitive in
-        // IDEs with Pascal highlighters
+        // Notes:
+        // 1. Eventually there should be a mechanism to override parsing non-pascal
+        // 2. By default skip Pascal string literals, as this is more intuitive
+        //    in IDEs with Pascal highlighters
         inc(FTokenPos);
         repeat
           {$ifndef UsePChar}

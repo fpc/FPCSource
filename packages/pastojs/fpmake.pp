@@ -27,6 +27,7 @@ begin
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-passrc');
+    P.Dependencies.Add('fcl-process');
     Defaults.Options.Add('-Sc');
 
     P.Author := 'Free Pascal development team';
@@ -44,13 +45,16 @@ begin
     T:=P.Targets.AddUnit('fppjssrcmap.pp');
     T:=P.Targets.AddUnit('pas2jsfilecache.pp');
     T:=P.Targets.AddUnit('pas2jsfileutils.pp');
-    T.Dependencies.AddInclude('pas2js_defines.inc');
-    T.Dependencies.AddInclude('pas2jsfileutilsunix.inc',AllUnixOSes);
-    T.Dependencies.AddInclude('pas2jsfileutilswin.inc',AllWindowsOSes);
+      T.Dependencies.AddInclude('pas2js_defines.inc');
+      T.Dependencies.AddInclude('pas2jsfileutilsunix.inc',AllUnixOSes);
+      T.Dependencies.AddInclude('pas2jsfileutilswin.inc',AllWindowsOSes);
     T:=P.Targets.AddUnit('pas2jslogger.pp');
     T:=P.Targets.AddUnit('pas2jspparser.pp');
     T:=P.Targets.AddUnit('pas2jscompiler.pp');
+    T:=P.Targets.AddUnit('pas2jspcucompiler.pp');
+      T.Dependencies.AddUnit('pas2jscompiler');
     T:=P.Targets.AddUnit('pas2jslibcompiler.pp');
+      T.Dependencies.AddUnit('pas2jscompiler');
 {$ifndef ALLPACKAGES}
     Run;
     end;

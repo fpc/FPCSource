@@ -109,7 +109,7 @@ Type
   private
     FBufPos,
     FCapacity: Cardinal;
-    FBuffer : TBuffer;
+    FBuffer: TBuffer;
     function GetAsString: TJSWriterString;
     {$ifdef fpc}
     function GetBuffer: Pointer;
@@ -119,6 +119,7 @@ Type
     {$ifdef FPC_HAS_CPSTRING}
     function GetUnicodeString: UnicodeString;
     {$endif}
+    procedure SetAsString(const AValue: TJSWriterString);
     procedure SetCapacity(AValue: Cardinal);
   Protected
     Function DoWrite(Const S : TJSWriterString) : integer; override;
@@ -136,7 +137,7 @@ Type
     {$endif}
     Property BufferLength : Integer Read GetBufferLength;
     Property Capacity : Cardinal Read GetCapacity Write SetCapacity;
-    Property AsString : TJSWriterString Read GetAsString;
+    Property AsString : TJSWriterString Read GetAsString Write SetAsString;
     {$ifdef FPC_HAS_CPSTRING}
     Property AsAnsiString : AnsiString Read GetAsString; deprecated 'use AsString instead, fpc 3.3.1';
     Property AsUnicodeString : UnicodeString Read GetUnicodeString;
@@ -320,6 +321,16 @@ begin
 end;
 {$endif}
 
+procedure TBufferWriter.SetAsString(const AValue: TJSWriterString);
+begin
+  {$ifdef pas2js}
+  SetLength(FBuffer,0);
+  FCapacity:=0;
+  {$endif}
+  FBufPos:=0;
+  DoWrite(AValue);
+end;
+
 procedure TBufferWriter.SetCapacity(AValue: Cardinal);
 begin
   if FCapacity=AValue then Exit;
@@ -328,7 +339,7 @@ begin
     FBufPos:=Capacity;
 end;
 
-Function TBufferWriter.DoWrite(Const S: TJSWriterString): integer;
+function TBufferWriter.DoWrite(const S: TJSWriterString): integer;
 {$ifdef pas2js}
 begin
   Result:=Length(S)*2;
@@ -358,7 +369,7 @@ end;
 {$endif}
 
 {$ifdef FPC_HAS_CPSTRING}
-Function TBufferWriter.DoWrite(Const S: UnicodeString): integer;
+function TBufferWriter.DoWrite(const S: UnicodeString): integer;
 
 Var
   DesLen,MinLen : Integer;
@@ -379,14 +390,14 @@ begin
 end;
 {$endif}
 
-Constructor TBufferWriter.Create(Const ACapacity: Cardinal);
+constructor TBufferWriter.Create(const ACapacity: Cardinal);
 begin
   inherited Create;
   Capacity:=ACapacity;
 end;
 
 {$ifdef fpc}
-Procedure TBufferWriter.SaveToFile(Const AFileName: String);
+procedure TBufferWriter.SaveToFile(const AFileName: String);
 Var
   F : File;
 

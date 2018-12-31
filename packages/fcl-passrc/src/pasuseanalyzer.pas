@@ -881,7 +881,7 @@ begin
   Result.Element:=El;
   FUsedElements.Add(Result);
   {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.Add END ',GetElModName(El),' Success=',PAElementExists(El),' ',{$Ifdef pas2js}El.PasElementId{$else}ptruint(pointer(El)){$endif});
+  writeln('TPasAnalyzer.Add END ',GetElModName(El),' Success=',PAElementExists(El),' '{$Ifdef pas2js},El.PasElementId{$endif});
   {$ENDIF}
 end;
 

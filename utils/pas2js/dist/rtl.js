@@ -279,8 +279,8 @@ var rtl = {
           o.AfterConstruction();
         } catch($e){
           // do not call BeforeDestruction
-          if (this.Destroy) this.Destroy();
-          this.$final();
+          if (o.Destroy) o.Destroy();
+          o.$final();
           throw $e;
         }
         return o;
@@ -314,8 +314,8 @@ var rtl = {
         if (o.AfterConstruction) o.AfterConstruction();
       } catch($e){
         // do not call BeforeDestruction
-        if (this.Destroy) this.Destroy();
-        if (this.$final) this.$final();
+        if (o.Destroy) o.Destroy();
+        if (o.$final) this.$final();
         throw $e;
       }
       return o;
@@ -853,7 +853,12 @@ var rtl = {
   },
 
   refSet: function(s){
-    s.$shared = true;
+    Object.defineProperty(s, '$shared', {
+      enumerable: false,
+      configurable: true,
+      writable: true,
+      value: true
+    });
     return s;
   },
 
@@ -872,7 +877,6 @@ var rtl = {
   diffSet: function(s,t){
     var r = {};
     for (var key in s) if (!t[key]) r[key]=true;
-    delete r.$shared;
     return r;
   },
 
@@ -880,14 +884,12 @@ var rtl = {
     var r = {};
     for (var key in s) r[key]=true;
     for (var key in t) r[key]=true;
-    delete r.$shared;
     return r;
   },
 
   intersectSet: function(s,t){
     var r = {};
     for (var key in s) if (t[key]) r[key]=true;
-    delete r.$shared;
     return r;
   },
 
@@ -895,13 +897,12 @@ var rtl = {
     var r = {};
     for (var key in s) if (!t[key]) r[key]=true;
     for (var key in t) if (!s[key]) r[key]=true;
-    delete r.$shared;
     return r;
   },
 
   eqSet: function(s,t){
-    for (var key in s) if (!t[key] && (key!='$shared')) return false;
-    for (var key in t) if (!s[key] && (key!='$shared')) return false;
+    for (var key in s) if (!t[key]) return false;
+    for (var key in t) if (!s[key]) return false;
     return true;
   },
 
@@ -910,12 +911,12 @@ var rtl = {
   },
 
   leSet: function(s,t){
-    for (var key in s) if (!t[key] && (key!='$shared')) return false;
+    for (var key in s) if (!t[key]) return false;
     return true;
   },
 
   geSet: function(s,t){
-    for (var key in t) if (!s[key] && (key!='$shared')) return false;
+    for (var key in t) if (!s[key]) return false;
     return true;
   },
 

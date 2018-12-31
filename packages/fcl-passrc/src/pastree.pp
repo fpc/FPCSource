@@ -236,6 +236,7 @@ type
     destructor Destroy; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
+    class function IsRightSubIdent(El: TPasElement): boolean;
   end;
 
   { TPrimitiveExpr }
@@ -5060,6 +5061,15 @@ begin
   inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,left,false);
   ForEachChildCall(aMethodCall,Arg,right,false);
+end;
+
+class function TBinaryExpr.IsRightSubIdent(El: TPasElement): boolean;
+var
+  Bin: TBinaryExpr;
+begin
+  if (El=nil) or not (El.Parent is TBinaryExpr) then exit(false);
+  Bin:=TBinaryExpr(El.Parent);
+  Result:=(Bin.right=El) and (Bin.OpCode=eopSubIdent);
 end;
 
 { TParamsExpr }

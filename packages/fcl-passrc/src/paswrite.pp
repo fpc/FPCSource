@@ -94,7 +94,7 @@ type
     procedure WriteUsesList(ASection: TPasSection); virtual;
     procedure WriteClass(AClass: TPasClassType); virtual;
     procedure WriteConst(AConst: TPasConst); virtual;
-    procedure WriteVariable(AVar: TPasVariable); virtual;
+    procedure WriteVariable(aVar: TPasVariable); virtual;
     procedure WriteArgument(aArg: TPasArgument); virtual;
     procedure WriteDummyExternalFunctions(aSection: TPasSection); virtual;
     procedure WriteOverloadedProc(aProc : TPasOverloadedProc; ForceBody: Boolean = False; NamePrefix : String = ''); virtual;
@@ -680,27 +680,27 @@ begin
   AddLn(AConst.GetDeclaration(True)+';');
 end;
 
-procedure TPasWriter.WriteVariable(AVar: TPasVariable);
+procedure TPasWriter.WriteVariable(aVar: TPasVariable);
 
 var
   LParentIsClassOrRecord: boolean;
 
 begin
-  LParentIsClassOrRecord:= (AVar.Parent.ClassType = TPasClassType) or
-    (AVar.Parent.ClassType = TPasRecordType);
+  LParentIsClassOrRecord:= (aVar.Parent.ClassType = TPasClassType) or
+    (aVar.Parent.ClassType = TPasRecordType);
   if not LParentIsClassOrRecord then
     PrepareDeclSection('var')
   // handle variables in classes/records
-  else if vmClass in AVar.VarModifiers then
+  else if vmClass in aVar.VarModifiers then
     PrepareDeclSectionInStruct('class var')
   else if CurDeclSection<>'' then
     PrepareDeclSectionInStruct('var');
-  Add(AVar.Name + ': ');
-  if Not Assigned(AVar.VarType) then
-    Raise EWriteError.CreateFmt('No type for variable %s',[AVar.Name]);
-  WriteType(AVar.VarType,False);
-  if (AVar.AbsoluteLocation<>'') then
-    Add(' absolute %s',[AVar.AbsoluteLocation])
+  Add(aVar.Name + ': ');
+  if Not Assigned(aVar.VarType) then
+    Raise EWriteError.CreateFmt('No type for variable %s',[aVar.Name]);
+  WriteType(aVar.VarType,False);
+  if (aVar.AbsoluteExpr<>nil) then
+    Add(' absolute %s',[aVar.AbsoluteExpr.ClassName])
   else if (aVar.LibraryName<>Nil) or Assigned (aVar.ExportName) then
     begin
     if LParentIsClassOrRecord then
@@ -711,8 +711,8 @@ begin
     else if NotOption(woNoExternalVar) then
       begin
       Add('; external ');
-      if (AVar.LibraryName<>Nil) then
-        Add('%s ',[AVar.LibraryName.GetDeclaration(true)]);
+      if (aVar.LibraryName<>Nil) then
+        Add('%s ',[aVar.LibraryName.GetDeclaration(true)]);
       Add('name %s',[aVar.ExportName.GetDeclaration(true)]);
       end;
     end;
@@ -913,6 +913,7 @@ begin
   end;
   AddLn(';');
   IncDeclSectionLevel;
+  PE:=nil;
   for i := 0 to AProc.Locals.Count - 1 do
     begin
     E:=TPasElement(AProc.Locals[i]);

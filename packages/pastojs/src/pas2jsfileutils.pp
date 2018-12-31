@@ -29,7 +29,7 @@ uses
   BaseUnix,
   {$ENDIF}
   {$IFDEF Pas2JS}
-  NodeJSFS,
+  JS, NodeJS, NodeJSFS,
   {$ENDIF}
   SysUtils, Classes;
 
@@ -58,6 +58,7 @@ function ResolveSymLinks(const Filename: string;
                  {%H-}ExceptionOnError: boolean): string; // if a link is broken returns ''
 function MatchGlobbing(Mask, Name: string): boolean;
 function FileIsWritable(const AFilename: string): boolean;
+function FileIsExecutable(const AFilename: string): boolean;
 
 function GetEnvironmentVariableCountPJ: Integer;
 function GetEnvironmentStringPJ(Index: Integer): string;
@@ -65,6 +66,8 @@ function GetEnvironmentVariablePJ(const EnvVar: string): String;
 
 function GetNextDelimitedItem(const List: string; Delimiter: char;
                               var Position: integer): string;
+procedure SplitCmdLineParams(const Params: string; ParamList: TStrings;
+                             ReadBackslash: boolean = false);
 
 type TChangeStamp = SizeInt;
 const InvalidChangeStamp = low(TChangeStamp);
@@ -164,12 +167,23 @@ begin
     if (Len >= 2) and (Result[2] in AllowDirectorySeparators) then
       MinLen := 2; // keep UNC '\\', chomp 'a\' to 'a'
     {$ENDIF}
+    {$IFDEF Pas2js}
+    if (Len >= 2) and (Result[2]=Result[1]) and (PathDelim='\') then
+      MinLen := 2; // keep UNC '\\', chomp 'a\' to 'a'
+    {$ENDIF}
   end
   else begin
     MinLen := 0;
     {$IFdef MSWindows}
     if (Len >= 3) and (Result[1] in ['a'..'z', 'A'..'Z'])  and
        (Result[2] = ':') and (Result[3] in AllowDirectorySeparators)
+    then
+      MinLen := 3;
+    {$ENDIF}
+    {$IFdef Pas2js}
+    if (PathDelim='\')
+        and (Len >= 3) and (Result[1] in ['a'..'z', 'A'..'Z'])
+        and (Result[2] = ':') and (Result[3] in AllowDirectorySeparators)
     then
       MinLen := 3;
     {$ENDIF}
@@ -217,16 +231,6 @@ function TryCreateRelativePath(const Filename, BaseDirectory: String;
   - Filename = foo/bar BaseDirectory = bar/foo Result = False (no shared base directory)
   - Filename = /foo BaseDirectory = bar Result = False (mixed absolute and relative)
 }
-{$IFDEF Pas2js}
-begin
-  Result:=false;
-  RelPath:=Filename;
-  if (BaseDirectory='') or (Filename='') then exit;
-  {AllowWriteln}
-  writeln('TryCreateRelativePath ToDo: ',Filename,' Base=',BaseDirectory,' UsePointDirectory=',UsePointDirectory);
-  {AllowWriteln-}
-end;
-{$ELSE}
   function IsNameChar(c: char): boolean; inline;
   begin
     Result:=(c<>#0) and not (c in AllowDirectorySeparators);
@@ -234,65 +238,71 @@ end;
 
 var
   UpDirCount: Integer;
-  ResultPos: Integer;
   i: Integer;
-  FileNameRestLen, SharedDirs: Integer;
-  FileP, BaseP, FileEndP, BaseEndP: PChar;
+  s: string;
+  SharedDirs: Integer;
+  FileP, BaseP, FileEndP, BaseEndP, FileL, BaseL: integer;
 begin
   Result:=false;
   RelPath:=Filename;
   if (BaseDirectory='') or (Filename='') then exit;
+  {$IFDEF Windows}
   // check for different windows file drives
   if (CompareText(ExtractFileDrive(Filename),
                      ExtractFileDrive(BaseDirectory))<>0)
   then
     exit;
+  {$ENDIF}
 
-  FileP:=PChar(Filename);
-  BaseP:=PChar(BaseDirectory);
-
-  //writeln('TryCreateRelativePath START File="',FileP,'" Base="',BaseP,'"');
+  FileP:=1;
+  FileL:=length(Filename);
+  BaseP:=1;
+  BaseL:=length(BaseDirectory);
 
   // skip matching directories
   SharedDirs:=0;
-  if FileP^ in AllowDirectorySeparators then
+  if Filename[FileP] in AllowDirectorySeparators then
   begin
-    if not (BaseP^ in AllowDirectorySeparators) then exit;
+    if not (BaseDirectory[BaseP] in AllowDirectorySeparators) then exit;
     repeat
-      while FileP^ in AllowDirectorySeparators do inc(FileP);
-      while BaseP^ in AllowDirectorySeparators do inc(BaseP);
-      if (FileP^=#0) or (BaseP^=#0) then break;
-      //writeln('TryCreateRelativePath check match .. File="',FileP,'" Base="',BaseP,'"');
+      while (FileP<=FileL) and (Filename[FileP] in AllowDirectorySeparators) do
+        inc(FileP);
+      while (BaseP<=BaseL) and (BaseDirectory[BaseP] in AllowDirectorySeparators) do
+        inc(BaseP);
+      if (FileP>FileL) or (BaseP>BaseL) then break;
+      //writeln('TryCreateRelativePath check match .. File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
       FileEndP:=FileP;
       BaseEndP:=BaseP;
-      while IsNameChar(FileEndP^) do inc(FileEndP);
-      while IsNameChar(BaseEndP^) do inc(BaseEndP);
-      if CompareFilenames(copy(Filename,FileP-PChar(Filename)+1,FileEndP-FileP),
-        copy(BaseDirectory,BaseP-PChar(BaseDirectory)+1,BaseEndP-BaseP))<>0
+      while (FileEndP<=FileL) and IsNameChar(Filename[FileEndP]) do inc(FileEndP);
+      while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do inc(BaseEndP);
+      if CompareFilenames(copy(Filename,FileP,FileEndP-FileP),
+        copy(BaseDirectory,BaseP,BaseEndP-BaseP))<>0
       then
         break;
       FileP:=FileEndP;
       BaseP:=BaseEndP;
       inc(SharedDirs);
     until false;
-  end else if (BaseP^ in AllowDirectorySeparators) then
+  end else if (BaseDirectory[BaseP] in AllowDirectorySeparators) then
     exit;
 
-  //writeln('TryCreateRelativePath skipped matches File="',FileP,'" Base="',BaseP,'"');
+  //writeln('TryCreateRelativePath skipped matches SharedDirs=',SharedDirs,' File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
   if SharedDirs=0 then exit;
 
   // calculate needed '../'
   UpDirCount:=0;
   BaseEndP:=BaseP;
-  while IsNameChar(BaseEndP^) do begin
+  while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do begin
     inc(UpDirCount);
-    while IsNameChar(BaseEndP^) do inc(BaseEndP);
-    while BaseEndP^ in AllowDirectorySeparators do inc(BaseEndP);
+    while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do
+      inc(BaseEndP);
+    while (BaseEndP<=BaseL) and (BaseDirectory[BaseEndP] in AllowDirectorySeparators) do
+      inc(BaseEndP);
   end;
 
-  //writeln('TryCreateRelativePath UpDirCount=',UpDirCount,' File="',FileP,'" Base="',BaseP,'"');
+  //writeln('TryCreateRelativePath UpDirCount=',UpDirCount,' File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
   // create relative filename
-  if (FileP^=#0) and (UpDirCount=0) then
+  if (FileP>FileL) and (UpDirCount=0) then
   begin
     // Filename is the BaseDirectory
     if UsePointDirectory then
@@ -302,34 +312,23 @@ begin
     exit(true);
   end;
 
-  FileNameRestLen:=length(Filename)-(FileP-PChar(Filename));
-  SetLength(RelPath,3*UpDirCount+FileNameRestLen);
-  ResultPos:=1;
-  for i:=1 to UpDirCount do begin
-    RelPath[ResultPos]:='.';
-    RelPath[ResultPos+1]:='.';
-    RelPath[ResultPos+2]:=PathDelim;
-    inc(ResultPos,3);
-  end;
-  if FileNameRestLen>0 then
-    Move(FileP^,RelPath[ResultPos],FileNameRestLen);
+  s:='';
+  for i:=1 to UpDirCount do
+    s+='..'+PathDelim;
+  if (FileP>FileL) and (UpDirCount>0) then
+    s:=LeftStr(s,length(s)-1)
+  else
+    s+=copy(Filename,FileP);
+  RelPath:=s;
   Result:=true;
 end;
-{$ENDIF}
 
 function ResolveDots(const AFilename: string): string;
 //trim double path delims and expand special dirs like .. and .
 //on Windows change also '/' to '\' except for filenames starting with '\\?\'
 {$IFDEF Pas2js}
-var
-  Len: Integer;
 begin
-  Len:=length(AFilename);
-  if Len=0 then exit('');
-  Result:=AFilename;
-  {AllowWriteln}
-  writeln('ResolveDots ToDo ',AFilename);
-  {AllowWriteln-}
+  Result:=NJS_Path.resolve(AFilename);
 end;
 {$ELSE}
 
@@ -592,12 +591,20 @@ begin
 end;
 
 function CompareFilenames(const File1, File2: string): integer;
+{$IFDEF Pas2js}
+var
+  a, b: string;
+{$ENDIF}
 begin
   {$IFDEF Pas2js}
-  {AllowWriteln}
-  writeln('CompareFilenames ToDo ',File1,' ',File2);
-  {AllowWriteln-}
-  raise Exception.Create('CompareFilenames ToDo');
+  a:=FilenameToKey(File1);
+  b:=FilenameToKey(File2);
+  if a<b then
+    exit(-1)
+  else if a>b then
+    exit(1)
+  else
+    exit(0);
   Result:=0;
   {$ELSE}
   Result:=AnsiCompareFileName(File1,File2);
@@ -608,8 +615,19 @@ end;
 function FilenameToKey(const Filename: string): string;
 begin
   {$IFDEF Pas2js}
-  Result:=Filename;
-  // ToDo lowercase on windows, normalize on darwin
+  case NJS_OS.platform of
+  'darwin':
+    {$IF ECMAScript>5}
+    Result:=TJSString(Filename).normalize('NFD');
+    {$ELSE}
+    begin
+    Result:=Filename;
+    raise Exception.Create('pas2jsfileutils FilenameToKey requires ECMAScript6 "normalize" under darwin');
+    end;
+    {$ENDIF}
+  'win32': Result:=lowercase(Filename);
+  else Result:=Filename;
+  end;
   {$ELSE}
     {$IFDEF Windows}
     Result:=AnsiLowerCase(Filename);
@@ -629,6 +647,7 @@ function MatchGlobbing(Mask, Name: string): boolean;
 {$IFDEF Pas2js}
 begin
   if Mask='' then exit(Name='');
+  if Mask='*' then exit(true);
   {AllowWriteln}
   writeln('MatchGlobbing ToDo ',Mask,' Name=',Name);
   {AllowWriteln-}
@@ -711,6 +730,93 @@ begin
     inc(Position);
   Result:=copy(List,StartPos,Position-StartPos);
   if Position<=length(List) then inc(Position); // skip Delimiter
+end;
+
+procedure SplitCmdLineParams(const Params: string; ParamList: TStrings;
+                             ReadBackslash: boolean = false);
+// split spaces, quotes are parsed as single parameter
+// if ReadBackslash=true then \" is replaced to " and not treated as quote
+// #0 is always end
+type
+  TMode = (mNormal,mApostrophe,mQuote);
+var
+  p: Integer;
+  Mode: TMode;
+  Param: String;
+begin
+  p:=1;
+  while p<=length(Params) do
+  begin
+    // skip whitespace
+    while (p<=length(Params)) and (Params[p] in [' ',#9,#10,#13]) do inc(p);
+    if (p>length(Params)) or (Params[p]=#0) then
+      break;
+    // read param
+    Param:='';
+    Mode:=mNormal;
+    while p<=length(Params) do
+    begin
+      case Params[p] of
+      #0:
+        break;
+      '\':
+        begin
+          inc(p);
+          if ReadBackslash then
+            begin
+            // treat next character as normal character
+            if (p>length(Params)) or (Params[p]=#0) then
+              break;
+            if ord(Params[p])<128 then
+            begin
+              Param+=Params[p];
+              inc(p);
+            end else begin
+              // next character is already a normal character
+            end;
+          end else begin
+            // treat backslash as normal character
+            Param+='\';
+          end;
+        end;
+      '''':
+        begin
+          inc(p);
+          case Mode of
+          mNormal:
+            Mode:=mApostrophe;
+          mApostrophe:
+            Mode:=mNormal;
+          mQuote:
+            Param+='''';
+          end;
+        end;
+      '"':
+        begin
+          inc(p);
+          case Mode of
+          mNormal:
+            Mode:=mQuote;
+          mApostrophe:
+            Param+='"';
+          mQuote:
+            Mode:=mNormal;
+          end;
+        end;
+      ' ',#9,#10,#13:
+        begin
+          if Mode=mNormal then break;
+          Param+=Params[p];
+          inc(p);
+        end;
+      else
+        Param+=Params[p];
+        inc(p);
+      end;
+    end;
+    //writeln('SplitCmdLineParams Param=#'+Param+'#');
+    ParamList.Add(Param);
+  end;
 end;
 
 procedure IncreaseChangeStamp(var Stamp: TChangeStamp);

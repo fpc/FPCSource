@@ -27,16 +27,12 @@ interface
 uses
   {$IFDEF Pas2js}
     {$IFDEF NodeJS}
-    NodeJSFS,
+    JS, NodeJSFS,
     {$ENDIF}
   {$ENDIF}
   Classes, SysUtils,
   fpjson,
-  PScanner, PasUseAnalyzer, PasResolver, FPPJsSrcMap,
-  {$IFDEF HasPas2jsFiler}
-  Pas2JsFiler,
-  {$ENDIF}
-  Pas2jsLogger, Pas2jsFileUtils;
+  PScanner, PasUseAnalyzer, PasResolver, Pas2jsLogger, Pas2jsFileUtils;
 
 const // Messages
   nIncludeSearch = 201; sIncludeSearch = 'Include file search: %s';
@@ -45,6 +41,8 @@ const // Messages
   nSearchingFileNotFound = 204; sSearchingFileNotFound = 'Searching file: %s... not found';
   nDuplicateFileFound = 205; sDuplicateFileFound = 'Duplicate file found: "%s" and "%s"';
   nCustomJSFileNotFound = 206; sCustomJSFileNotFound = 'custom JS file not found: "%s"';
+  nUsingPath = 104; sUsingPath = 'Using %s: "%s"';
+  nFolderNotFound = 105; sFolderNotFound = '%s not found: %s';
 
 type
   EPas2jsFileCache = class(Exception);
@@ -165,19 +163,22 @@ type
   TP2jsFileCacheOption = (
     caoShowFullFilenames,
     caoShowTriedUsedFiles,
-    caoAllJSIntoMainJS,
-    caoSearchLikeFPC
+    caoSearchLikeFPC,
+    caoStrictFileCase
     );
   TP2jsFileCacheOptions = set of TP2jsFileCacheOption;
+
 const
   DefaultPas2jsFileCacheOptions = [];
+
   p2jsfcoCaption: array[TP2jsFileCacheOption] of string = (
     // only used by experts, no need for resourcestrings
     'Show full filenames',
     'Show tried/used files',
-    'Combine all JavaScript into main file',
-    'Search files like FPC'
+    'Search files like FPC',
+    'Strict file case'
     );
+  // 'Combine all JavaScript into main file',
 
   EncodingBinary = 'Binary';
 type
@@ -191,15 +192,10 @@ type
     FCache: TPas2jsFilesCache;
   public
     constructor Create(aCache: TPas2jsFilesCache); reintroduce;
+    // Redirect all calls to cache.
+    function FindIncludeFileName(const aFilename: string): String; override;
     function FindIncludeFile(const aFilename: string): TLineReader; override;
-    function FindIncludeFileName(const aFilename: string): String; reintroduce;
     function FindSourceFile(const aFilename: string): TLineReader; override;
-    function FindUnitFileName(const aUnitname, InFilename: string; out IsForeign: boolean): String;
-    function FindUnitJSFileName(const aUnitFilename: string): String;
-    function FindCustomJSFileName(const aFilename: string): String;
-    function FileExistsLogged(const Filename: string): boolean;
-    function FileExistsILogged(var Filename: string): integer;
-    function SearchLowUpCase(var Filename: string): boolean; virtual;
     property Cache: TPas2jsFilesCache read FCache;
   end;
 
@@ -255,11 +251,6 @@ type
   TPas2jsReadFileEvent = function(aFilename: string; var aSource: string): boolean of object;
   TPas2jsWriteFileEvent = procedure(aFilename: string; Source: string) of object;
 
-  TPas2jsCachedFilesState = (
-    cfsMainJSFileResolved
-    );
-  TPas2jsFileCacheStates = set of TPas2jsCachedFilesState;
-
   TPas2jsSearchPathKind = (
     spkPath,      // e.g. unitpaths, includepaths
     spkIdentifier // e.g. namespaces, trailing - means remove
@@ -277,73 +268,70 @@ type
     FForeignUnitPathsFromCmdLine: integer;
     FIncludePaths: TStringList;
     FIncludePathsFromCmdLine: integer;
-    FInsertFilenames: TStringList;
     FLog: TPas2jsLogger;
-    FMainJSFile: string;
-    FMainJSFileResolved: string; // only valid if cfsMainJSFileResolved in FStates
-    FMainSrcFile: string;
-    FMainSrcFileShort: string;
     FNamespaces: TStringList;
     FNamespacesFromCmdLine: integer;
     FOnReadFile: TPas2jsReadFileEvent;
     FOnWriteFile: TPas2jsWriteFileEvent;
     FOptions: TP2jsFileCacheOptions;
-    {$IFDEF HasPas2jsFiler}
-    FPrecompileFormat: TPas2JSPrecompileFormat;
-    {$ENDIF}
     FReadLineCounter: SizeInt;
     FResetStamp: TChangeStamp;
-    FSrcMapBaseDir: string;
-    FStates: TPas2jsFileCacheStates;
     FUnitOutputPath: string;
     FUnitPaths: TStringList;
     FUnitPathsFromCmdLine: integer;
-    function GetAllJSIntoMainJS: Boolean;
+    function FileExistsILogged(var Filename: string): integer;
+    function FileExistsLogged(const Filename: string): boolean;
+    function FindSourceFileName(const aFilename: string): String;
     function GetSearchLikeFPC: boolean;
     function GetShowFullFilenames: boolean;
     function GetShowTriedUsedFiles: boolean;
+    function GetStrictFileCase: Boolean;
     procedure RegisterMessages;
-    procedure SetAllJSIntoMainJS(AValue: Boolean);
     procedure SetBaseDirectory(AValue: string);
     function AddSearchPaths(const Paths: string; Kind: TPas2jsSearchPathKind;
       FromCmdLine: boolean; var List: TStringList; var CmdLineCount: integer): string;
     procedure SetDefaultOutputPath(AValue: string);
-    procedure SetMainJSFile(AValue: string);
     procedure SetOptions(AValue: TP2jsFileCacheOptions);
     procedure SetSearchLikeFPC(const AValue: boolean);
     procedure SetShowFullFilenames(const AValue: boolean);
     procedure SetShowTriedUsedFiles(const AValue: boolean);
-    procedure SetSrcMapBaseDir(const AValue: string);
+    procedure SetStrictFileCase(AValue: Boolean);
     procedure SetUnitOutputPath(AValue: string);
     procedure SetOption(Flag: TP2jsFileCacheOption; Enable: boolean);
   protected
+    function GetHasPCUSupport: Boolean; virtual;
     function ReadFile(Filename: string; var Source: string): boolean; virtual;
     procedure FindMatchingFiles(Mask: string; MaxCount: integer; Files: TStrings);// find files, matching * and ?
   public
     constructor Create(aLog: TPas2jsLogger);
     destructor Destroy; override;
-    procedure Reset;
+    procedure Reset; virtual;
+    procedure WriteFoldersAndSearchPaths; virtual;
+    function SearchLowUpCase(var Filename: string): boolean;
+    function FindCustomJSFileName(const aFilename: string): String;
+    function FindUnitJSFileName(const aUnitFilename: string): String;
+    function FindUnitFileName(const aUnitname, InFilename: string; out IsForeign: boolean): String; virtual;
+    function FindIncludeFileName(const aFilename: string): String; virtual;
     function AddIncludePaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function AddNamespaces(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function AddUnitPaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function AddSrcUnitPaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function CreateResolver: TPas2jsFileResolver;
     function FormatPath(const aPath: string): string;
-    function GetResolvedMainJSFile: string;
+    Function DirectoryExists(Filename: string): boolean; virtual;
+    function FileExists(Filename: string): boolean; virtual;
+    function FileExistsI(var Filename: string): integer; // returns number of found files
+    function FileAge(const Filename: string): TPas2jsFileAgeTime; virtual;
     function FindFile(Filename: string): TPas2jsCachedFile;
     function LoadFile(Filename: string; Binary: boolean = false): TPas2jsCachedFile;
     function NormalizeFilename(const Filename: string; RaiseOnError: boolean): string;
-    procedure InsertCustomJSFiles(aWriter: TPas2JSMapper);
-    function IndexOfInsertJSFilename(const aFilename: string): integer;
-    procedure AddInsertJSFilename(const aFilename: string);
-    procedure RemoveInsertJSFilename(const aFilename: string);
     procedure GetListing(const aDirectory: string; var Files: TStrings;
                          FullPaths: boolean = true);
     procedure RaiseDuplicateFile(aFilename: string);
     procedure SaveToFile(ms: TFPJSStream; Filename: string);
     function ExpandDirectory(const Filename, BaseDir: string): string;
+    function ExpandExecutable(const Filename, BaseDir: string): string;
   public
-    property AllJSIntoMainJS: Boolean read GetAllJSIntoMainJS write SetAllJSIntoMainJS;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
     property MainOutputPath: string read FDefaultOutputPath write SetDefaultOutputPath; // includes trailing pathdelim
     property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
@@ -351,29 +339,23 @@ type
     property ForeignUnitPathsFromCmdLine: integer read FForeignUnitPathsFromCmdLine;
     property IncludePaths: TStringList read FIncludePaths;
     property IncludePathsFromCmdLine: integer read FIncludePathsFromCmdLine;
-    property InsertFilenames: TStringList read FInsertFilenames;
     property Log: TPas2jsLogger read FLog;
-    property MainJSFile: string read FMainJSFile write SetMainJSFile;
-    property MainSrcFileShort: string read FMainSrcFileShort write FMainSrcFileShort;
-    property MainSrcFile: string read FMainSrcFile write FMainSrcFile;
     property Namespaces: TStringList read FNamespaces;
     property NamespacesFromCmdLine: integer read FNamespacesFromCmdLine;
     property Options: TP2jsFileCacheOptions read FOptions write SetOptions default DefaultPas2jsFileCacheOptions;
-    {$IFDEF HasPas2jsFiler}
-    property PrecompileFormat: TPas2JSPrecompileFormat read FPrecompileFormat write FPrecompileFormat;
-    {$ENDIF}
     property ReadLineCounter: SizeInt read FReadLineCounter write FReadLineCounter;
     property ResetStamp: TChangeStamp read FResetStamp;
     property SearchLikeFPC: boolean read GetSearchLikeFPC write SetSearchLikeFPC;
     property ShowFullPaths: boolean read GetShowFullFilenames write SetShowFullFilenames;
     property ShowTriedUsedFiles: boolean read GetShowTriedUsedFiles write SetShowTriedUsedFiles;
-    property SrcMapBaseDir: string read FSrcMapBaseDir write SetSrcMapBaseDir; // includes trailing pathdelim
     property UnitOutputPath: string read FUnitOutputPath write SetUnitOutputPath; // includes trailing pathdelim
     property UnitPaths: TStringList read FUnitPaths;
     property UnitPathsFromCmdLine: integer read FUnitPathsFromCmdLine;
     property OnReadFile: TPas2jsReadFileEvent read FOnReadFile write FOnReadFile;
     property OnWriteFile: TPas2jsWriteFileEvent read FOnWriteFile write FOnWriteFile;
+    Property StrictFileCase : Boolean Read GetStrictFileCase Write SetStrictFileCase;
   end;
+
 
 {$IFDEF Pas2js}
 function PtrStrToStr(StrAsPtr: Pointer): string;
@@ -567,6 +549,7 @@ begin
 end;
 {$ENDIF}
 
+
 { TPas2jsCachedDirectory }
 
 // inline
@@ -602,18 +585,12 @@ begin
 end;
 
 procedure TPas2jsCachedDirectory.DoReadDir;
-{$IFDEF Pas2js}
-{$ELSE}
 var
   Info: TUnicodeSearchRec;
-{$ENDIF}
 begin
   if Assigned(Pool.OnReadDirectory) then
     if Pool.OnReadDirectory(Self) then exit;
 
-  {$IFDEF Pas2js}
-  raise Exception.Create('TPas2jsCachedDirectory.DoReadDir TODO');
-  {$ELSE}
   // Note: do not add a 'if not DirectoryExists then exit'.
   // This will not work on automounted directories. You must use FindFirst.
   if FindFirst(UnicodeString(Path+AllFilesMask),faAnyFile,Info)=0 then
@@ -628,7 +605,6 @@ begin
     until FindNext(Info)<>0;
   end;
   FindClose(Info);
-  {$ENDIF}
 end;
 
 constructor TPas2jsCachedDirectory.Create(aPath: string;
@@ -689,7 +665,7 @@ begin
 end;
 
 function TPas2jsCachedDirectory.Add(const Name: string;
-  Time: TPas2jsFileAgeTime; Attr: TPas2jsFileAttr; Size: TPas2jsFileSize
+Time: TPas2jsFileAgeTime; Attr: TPas2jsFileAttr; Size: TPas2jsFileSize
   ): TPas2jsCachedDirectoryEntry;
 begin
   Result:=TPas2jsCachedDirectoryEntry.Create;
@@ -909,12 +885,7 @@ begin
   writeln('TPas2jsCachedDirectory.WriteDebugReport Count=',Count,' Path="',Path,'"');
   for i:=0 to Count-1 do begin
     Entry:=Entries[i];
-    {$IFDEF Pas2js}
-    writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',Entry.Time,' Dir=',faDirectory and Entry.Attr>0);
-    raise Exception.Create('TPas2jsCachedDirectory.WriteDebugReport TODO FileDateToDateTime');
-    {$ELSE}
     writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',DateTimeToStr(FileDateToDateTime(Entry.Time)),' Dir=',faDirectory and Entry.Attr>0);
-    {$ENDIF}
   end;
   {AllowWriteln-}
 end;
@@ -1255,12 +1226,12 @@ begin
   {$ENDIF}
   // needs (re)load
   Result:=false;
-  if not Cache.DirectoryCache.FileExists(Filename) then
+  if not Cache.FileExists(Filename) then
   begin
     Err('File not found "'+Filename+'"');
     exit;
   end;
-  if Cache.DirectoryCache.DirectoryExists(Filename) then
+  if Cache.DirectoryExists(Filename) then
   begin
     Err('File is a directory "'+Filename+'"');
     exit;
@@ -1322,7 +1293,7 @@ var
   Filename: String;
 begin
   Result:=nil;
-  Filename:=FindIncludeFileName(aFilename);
+  Filename:=Cache.FindIncludeFileName(aFilename);
   if Filename='' then exit;
   try
     Result:=FindSourceFile(Filename);
@@ -1333,265 +1304,21 @@ end;
 
 function TPas2jsFileResolver.FindIncludeFileName(const aFilename: string): String;
 
-  function SearchCasedInIncPath(const Filename: string): string;
-  var
-    i: Integer;
-  begin
-    // file name is relative
-    // first search in the same directory as the unit
-    if BaseDirectory<>'' then
-      begin
-      Result:=BaseDirectory+Filename;
-      if SearchLowUpCase(Result) then exit;
-      end;
-    // then search in include path
-    for i:=0 to Cache.IncludePaths.Count-1 do begin
-      Result:=Cache.IncludePaths[i]+Filename;
-      if SearchLowUpCase(Result) then exit;
-    end;
-    Result:='';
-  end;
-
-var
-  Filename : string;
 begin
-  Result := '';
-
-  // convert pathdelims to system
-  Filename:=SetDirSeparators(aFilename);
-  if Cache.ShowTriedUsedFiles then
-    Cache.Log.LogMsgIgnoreFilter(nIncludeSearch,[Filename]);
-
-  if FilenameIsAbsolute(Filename) then
-  begin
-    Result:=Filename;
-    if not SearchLowUpCase(Result) then
-      Result:='';
-    exit;
-  end;
-
-  // search with the given file extension (even if no ext)
-  Result:=SearchCasedInIncPath(Filename);
-  if Result<>'' then exit;
-
-  if ExtractFileExt(Filename)='' then
-  begin
-    // search with the default file extensions
-    Result:=SearchCasedInIncPath(Filename+'.inc');
-    if Result<>'' then exit;
-    Result:=SearchCasedInIncPath(Filename+'.pp');
-    if Result<>'' then exit;
-    Result:=SearchCasedInIncPath(Filename+'.pas');
-    if Result<>'' then exit;
-  end;
+  Result:=Cache.FindIncludeFileName(aFilename);
 end;
+
 
 function TPas2jsFileResolver.FindSourceFile(const aFilename: string): TLineReader;
+
 var
   CurFilename: String;
-  Found: Boolean;
-  i: Integer;
+
 begin
-  Result:=nil;
-  CurFilename:=aFilename;
-  if StrictFileCase or Cache.SearchLikeFPC then
-    Found:=Cache.DirectoryCache.FileExists(CurFilename)
-  else
-  begin
-    i:=Cache.DirectoryCache.FileExistsI(CurFilename);
-    Found:=i=1;
-    if i>1 then
-      Cache.RaiseDuplicateFile(CurFilename);
-  end;
-  if not Found then
-    raise EFileNotFoundError.Create(aFilename)
-  else
-    Result:=Cache.LoadFile(CurFilename).CreateLineReader(false);
+  CurFilename:=Cache.FindSourceFileName(aFileName);
+  Result:=Cache.LoadFile(CurFilename).CreateLineReader(false);
 end;
 
-function TPas2jsFileResolver.FindUnitFileName(const aUnitname,
-  InFilename: string; out IsForeign: boolean): String;
-
-  function SearchInDir(Dir: string; var Filename: string): boolean;
-  // search in Dir for pp, pas, p times given case, lower case, upper case
-  begin
-    Filename:=Dir+aUnitname+'.pp';
-    if SearchLowUpCase(Filename) then exit(true);
-    Filename:=Dir+aUnitname+'.pas';
-    if SearchLowUpCase(Filename) then exit(true);
-    Filename:=Dir+aUnitname+'.p';
-    if SearchLowUpCase(Filename) then exit(true);
-    Result:=false;
-  end;
-
-var
-  i: Integer;
-  aFilename: String;
-begin
-  Result:='';
-  IsForeign:=false;
-
-  if InFilename<>'' then
-  begin
-    aFilename:=SetDirSeparators(InFilename);
-    Result:=ResolveDots(aFilename);
-    if FilenameIsAbsolute(Result) then
-    begin
-      if SearchLowUpCase(Result) then exit;
-    end else
-    begin
-      Result:=ResolveDots(BaseDirectory+Result);
-      if SearchLowUpCase(Result) then exit;
-    end;
-    exit('');
-  end;
-
-  // first search in foreign unit paths
-  IsForeign:=true;
-  for i:=0 to Cache.ForeignUnitPaths.Count-1 do
-    if SearchInDir(Cache.ForeignUnitPaths[i],Result) then
-    begin
-      IsForeign:=true;
-      exit;
-    end;
-
-  // then in BaseDirectory
-  IsForeign:=false;
-  if SearchInDir(BaseDirectory,Result) then exit;
-
-  // finally search in unit paths
-  for i:=0 to Cache.UnitPaths.Count-1 do
-    if SearchInDir(Cache.UnitPaths[i],Result) then exit;
-
-  Result:='';
-end;
-
-function TPas2jsFileResolver.FindUnitJSFileName(const aUnitFilename: string
-  ): String;
-begin
-  Result:='';
-  if aUnitFilename='' then exit;
-  if Cache.AllJSIntoMainJS then
-  begin
-    Result:=Cache.GetResolvedMainJSFile;
-  end else begin
-    if Cache.UnitOutputPath<>'' then
-      Result:=Cache.UnitOutputPath+ChangeFileExt(ExtractFileName(aUnitFilename),'.js')
-    else if Cache.MainOutputPath<>'' then
-      Result:=Cache.MainOutputPath+ChangeFileExt(ExtractFileName(aUnitFilename),'.js')
-    else
-      Result:=ChangeFileExt(aUnitFilename,'.js');
-  end;
-end;
-
-function TPas2jsFileResolver.FindCustomJSFileName(const aFilename: string
-  ): String;
-
-  function SearchInDir(const Dir: string): boolean;
-  var
-    CurFilename: String;
-  begin
-    CurFilename:=Dir+aFilename;
-    Result:=FileExistsLogged(CurFilename);
-    if Result then
-      FindCustomJSFileName:=CurFilename;
-  end;
-
-var
-  i: Integer;
-begin
-  Result:='';
-
-  if FilenameIsAbsolute(aFilename) then
-    begin
-    Result:=aFilename;
-    if not FileExistsLogged(Result) then
-      Result:='';
-    exit;
-    end;
-
-  if ExtractFilePath(aFilename)<>'' then
-    begin
-    Result:=ExpandFileNamePJ(aFilename,BaseDirectory);
-    if not FileExistsLogged(Result) then
-      Result:='';
-    exit;
-    end;
-
-  // first search in foreign unit paths
-  for i:=0 to Cache.ForeignUnitPaths.Count-1 do
-    if SearchInDir(Cache.ForeignUnitPaths[i]) then
-      exit;
-
-  // then in BaseDirectory
-  if SearchInDir(BaseDirectory) then exit;
-
-  // finally search in unit paths
-  for i:=0 to Cache.UnitPaths.Count-1 do
-    if SearchInDir(Cache.UnitPaths[i]) then exit;
-
-  Result:='';
-end;
-
-function TPas2jsFileResolver.FileExistsLogged(const Filename: string): boolean;
-begin
-  Result:=Cache.DirectoryCache.FileExists(Filename);
-  if Cache.ShowTriedUsedFiles then
-    if Result then
-      Cache.Log.LogMsgIgnoreFilter(nSearchingFileFound,[Cache.FormatPath(Filename)])
-    else
-      Cache.Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[Cache.FormatPath(Filename)]);
-end;
-
-function TPas2jsFileResolver.FileExistsILogged(var Filename: string): integer;
-begin
-  Result:=Cache.DirectoryCache.FileExistsI(Filename);
-  if Cache.ShowTriedUsedFiles then
-    if Result>0 then
-      Cache.Log.LogMsgIgnoreFilter(nSearchingFileFound,[Cache.FormatPath(Filename)])
-    else
-      Cache.Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[Cache.FormatPath(Filename)]);
-end;
-
-function TPas2jsFileResolver.SearchLowUpCase(var Filename: string): boolean;
-var
-  i: Integer;
-{$IFNDEF CaseInsensitiveFilenames}
-  CasedFilename: String;
-{$ENDIF}
-begin
-  if StrictFileCase or Cache.SearchLikeFPC then
-  begin
-    if FileExistsLogged(Filename) then
-      exit(true);
-    if StrictFileCase then
-      exit(false);
-    {$IFNDEF CaseInsensitiveFilenames}
-    // FPC like search:
-    // first as written, then lowercase, then uppercase
-    CasedFilename:=ExtractFilePath(Filename)+LowerCase(ExtractFileName(Filename));
-    if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
-    begin
-      Filename:=CasedFilename;
-      exit(true);
-    end;
-    CasedFilename:=ExtractFilePath(Filename)+UpperCase(ExtractFileName(Filename));
-    if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
-    begin
-      Filename:=CasedFilename;
-      exit(true);
-    end;
-    {$ENDIF}
-  end else
-  begin
-    // search case insensitive
-    i:=FileExistsILogged(Filename);
-    if i=1 then exit(true);
-    if i>1 then
-      Cache.RaiseDuplicateFile(Filename);
-  end;
-  Result:=false;
-end;
 
 { TPas2jsFilesCache }
 
@@ -1605,9 +1332,15 @@ begin
   Log.RegisterMsg(mtFatal,nCustomJSFileNotFound,sCustomJSFileNotFound);
 end;
 
-function TPas2jsFilesCache.GetAllJSIntoMainJS: Boolean;
+function TPas2jsFilesCache.GetHasPCUSupport: Boolean;
 begin
-  Result:=caoAllJSIntoMainJS in FOptions;
+  Result:=False;
+end;
+
+function TPas2jsFilesCache.GetStrictFileCase : Boolean;
+
+begin
+  Result:=caoStrictFileCase in FOptions;
 end;
 
 function TPas2jsFilesCache.GetSearchLikeFPC: boolean;
@@ -1625,10 +1358,6 @@ begin
   Result:=caoShowTriedUsedFiles in FOptions;
 end;
 
-procedure TPas2jsFilesCache.SetAllJSIntoMainJS(AValue: Boolean);
-begin
-  SetOption(caoAllJSIntoMainJS,AValue);
-end;
 
 procedure TPas2jsFilesCache.SetBaseDirectory(AValue: string);
 begin
@@ -1752,11 +1481,6 @@ begin
   FDefaultOutputPath:=AValue;
 end;
 
-procedure TPas2jsFilesCache.SetMainJSFile(AValue: string);
-begin
-  if FMainJSFile=AValue then Exit;
-  FMainJSFile:=AValue;
-end;
 
 procedure TPas2jsFilesCache.SetOptions(AValue: TP2jsFileCacheOptions);
 begin
@@ -1779,14 +1503,11 @@ begin
   SetOption(caoShowTriedUsedFiles,AValue);
 end;
 
-procedure TPas2jsFilesCache.SetSrcMapBaseDir(const AValue: string);
-var
-  NewValue: String;
+procedure TPas2jsFilesCache.SetStrictFileCase(AValue: Boolean);
 begin
-  NewValue:=ExpandDirectory(AValue,BaseDirectory);
-  if FSrcMapBaseDir=NewValue then Exit;
-  FSrcMapBaseDir:=NewValue;
+  SetOption(caoStrictFileCase,aValue)
 end;
+
 
 procedure TPas2jsFilesCache.SetUnitOutputPath(AValue: string);
 begin
@@ -1802,8 +1523,6 @@ begin
     Include(FOptions,Flag)
   else
     Exclude(FOptions,Flag);
-  if Flag in [caoAllJSIntoMainJS] then
-    Exclude(FStates,cfsMainJSFileResolved);
 end;
 
 function TPas2jsFilesCache.ReadFile(Filename: string; var Source: string
@@ -1821,7 +1540,11 @@ begin
     if Result then
       Exit;
     {$IFDEF Pas2js}
-    raise Exception.Create('TPas2jsFilesCache.ReadFile TODO');
+    try
+      Source:=NJS_FS.readFileSync(Filename,new(['encoding','utf8']));
+    except
+      raise EReadError.Create(String(JSExceptValue));
+    end;
     Result:=true;
     {$ELSE}
     ms:=TMemoryStream.Create;
@@ -1888,7 +1611,7 @@ procedure TPas2jsFilesCache.FindMatchingFiles(Mask: string; MaxCount: integer;
       inc(p);
     end;
     // mask has no placeholder -> search directly
-    if DirectoryCache.FileExists(aMask) then
+    if FileExists(aMask) then
     begin
       if Files.Count>=MaxCount then
         TooMany(20180126091913);
@@ -1908,7 +1631,6 @@ begin
   FLog:=aLog;
   FOptions:=DefaultPas2jsFileCacheOptions;
   FIncludePaths:=TStringList.Create;
-  FInsertFilenames:=TStringList.Create;
   FForeignUnitPaths:=TStringList.Create;
   FNamespaces:=TStringList.Create;
   FUnitPaths:=TStringList.Create;
@@ -1928,7 +1650,6 @@ begin
   FFiles.FreeItems;
   FreeAndNil(FDirectoryCache);
   FreeAndNil(FFiles);
-  FreeAndNil(FInsertFilenames);
   FreeAndNil(FIncludePaths);
   FreeAndNil(FForeignUnitPaths);
   FreeAndNil(FNamespaces);
@@ -1942,11 +1663,7 @@ begin
   FDirectoryCache.Invalidate;
   // FFiles: keep data, files are checked against LoadedFileAge
   FOptions:=DefaultPas2jsFileCacheOptions;
-  FMainJSFile:='';
-  FMainJSFileResolved:='';
-  FMainSrcFile:='';
   FBaseDirectory:='';
-  FSrcMapBaseDir:='';
   FUnitOutputPath:='';
   FReadLineCounter:=0;
   FForeignUnitPaths.Clear;
@@ -1955,16 +1672,35 @@ begin
   FUnitPathsFromCmdLine:=0;
   FIncludePaths.Clear;
   FIncludePathsFromCmdLine:=0;
-  FInsertFilenames.Clear;
-  FStates:=FStates-[cfsMainJSFileResolved];
   FNamespaces.Clear;
   FNamespacesFromCmdLine:=0;
-  {$IFDEF HasPas2jsFiler}
-  FPrecompileFormat:=nil;
-  {$ENDIF}
-  FSrcMapBaseDir:='';
   // FOnReadFile: TPas2jsReadFileEvent; keep
   // FOnWriteFile: TPas2jsWriteFileEvent; keep
+end;
+
+procedure TPas2jsFilesCache.WriteFoldersAndSearchPaths;
+
+  procedure WriteFolder(aName, Folder: string);
+  begin
+    if Folder='' then exit;
+    Log.LogMsgIgnoreFilter(nUsingPath,[aName,Folder]);
+    if not DirectoryExists(ChompPathDelim(Folder)) then
+      Log.LogMsgIgnoreFilter(nFolderNotFound,[aName,QuoteStr(Folder)]);
+  end;
+
+var
+  i: Integer;
+begin
+  for i:=0 to ForeignUnitPaths.Count-1 do
+    WriteFolder('foreign unit path',ForeignUnitPaths[i]);
+  for i:=0 to UnitPaths.Count-1 do
+    WriteFolder('unit path',UnitPaths[i]);
+  for i:=0 to Namespaces.Count-1 do
+    Log.LogMsgIgnoreFilter(nUsingPath,['unit scope',Namespaces[i]]);
+  for i:=0 to IncludePaths.Count-1 do
+    WriteFolder('include path',IncludePaths[i]);
+  WriteFolder('unit output path',UnitOutputPath);
+  WriteFolder('main output path',MainOutputPath);
 end;
 
 function TPas2jsFilesCache.AddIncludePaths(const Paths: string;
@@ -2021,44 +1757,26 @@ begin
   end;
 end;
 
-function TPas2jsFilesCache.GetResolvedMainJSFile: string;
+
+
+function TPas2jsFilesCache.DirectoryExists(Filename: string): boolean;
 begin
-  if not (cfsMainJSFileResolved in FStates) then
-  begin
-    if MainJSFile='.' then
-      FMainJSFileResolved:=''
-    else begin
-      FMainJSFileResolved:=MainJSFile;
-      if FMainJSFileResolved<>'' then
-      begin
-        // has option -o
-        if ExtractFilePath(FMainJSFileResolved)='' then
-        begin
-          // -o<FileWithoutPath>
-          if MainOutputPath<>'' then
-            FMainJSFileResolved:=MainOutputPath+FMainJSFileResolved
-          else if UnitOutputPath<>'' then
-            FMainJSFileResolved:=UnitOutputPath+FMainJSFileResolved;
-        end;
-      end else begin
-        // no option -o
-        FMainJSFileResolved:=ChangeFileExt(MainSrcFile,'.js');
-        if MainOutputPath<>'' then
-        begin
-          // option -FE and no -o => put into MainOutputPath
-          FMainJSFileResolved:=MainOutputPath+ExtractFilename(FMainJSFileResolved)
-        end else if UnitOutputPath<>'' then
-        begin
-          // option -FU and no -o => put into UnitOutputPath
-          FMainJSFileResolved:=UnitOutputPath+ExtractFilename(FMainJSFileResolved)
-        end else begin
-          // no -FU and no -o => put into source directory
-        end;
-      end;
-    end;
-    Include(FStates,cfsMainJSFileResolved);
-  end;
-  Result:=FMainJSFileResolved;
+  Result:=DirectoryCache.DirectoryExists(FileName);
+end;
+
+function TPas2jsFilesCache.FileExists(Filename: string): boolean;
+begin
+  Result:=DirectoryCache.FileExists(FileName);
+end;
+
+function TPas2jsFilesCache.FileExistsI(var Filename: string): integer;
+begin
+  Result:=DirectoryCache.FileExistsI(FileName);
+end;
+
+function TPas2jsFilesCache.FileAge(const Filename: string): TPas2jsFileAgeTime;
+begin
+  Result:=DirectoryCache.FileAge(FileName);
 end;
 
 function TPas2jsFilesCache.FindFile(Filename: string): TPas2jsCachedFile;
@@ -2070,8 +1788,7 @@ end;
 function TPas2jsFilesCache.LoadFile(Filename: string; Binary: boolean
   ): TPas2jsCachedFile;
 begin
-  Filename:=NormalizeFilename(Filename,true);
-  Result:=TPas2jsCachedFile(FFiles.FindKey(Pointer(Filename)));
+  Result:=FindFile(FileName);
   if Result=nil then
   begin
     // new file
@@ -2094,57 +1811,6 @@ begin
       raise EFileNotFoundError.Create('invalid file name "'+Filename+'"');
 end;
 
-procedure TPas2jsFilesCache.InsertCustomJSFiles(aWriter: TPas2JSMapper);
-var
-  i: Integer;
-  Filename: String;
-  FileResolver: TPas2jsFileResolver;
-  aFile: TPas2jsCachedFile;
-begin
-  if InsertFilenames.Count=0 then exit;
-  FileResolver:=CreateResolver;
-  try
-    for i:=0 to InsertFilenames.Count-1 do begin
-      Filename:=FileResolver.FindCustomJSFileName(ResolveDots(InsertFilenames[i]));
-      if Filename='' then
-      begin
-        Log.LogMsg(nCustomJSFileNotFound,[InsertFilenames[i]]);
-        raise EFileNotFoundError.Create('');
-      end;
-      aFile:=LoadFile(Filename);
-      if aFile.Source='' then continue;
-      aWriter.WriteFile(aFile.Source,Filename);
-    end
-  finally
-    FileResolver.Free;
-  end;
-end;
-
-function TPas2jsFilesCache.IndexOfInsertJSFilename(const aFilename: string
-  ): integer;
-var
-  i: Integer;
-begin
-  for i:=0 to FInsertFilenames.Count-1 do
-    if CompareFilenames(aFilename,InsertFilenames[i])=0 then
-      exit(i);
-  Result:=-1;
-end;
-
-procedure TPas2jsFilesCache.AddInsertJSFilename(const aFilename: string);
-begin
-  if IndexOfInsertJSFilename(aFilename)<0 then
-    InsertFilenames.Add(aFilename);
-end;
-
-procedure TPas2jsFilesCache.RemoveInsertJSFilename(const aFilename: string);
-var
-  i: Integer;
-begin
-  i:=IndexOfInsertJSFilename(aFilename);
-  if i>=0 then
-    InsertFilenames.Delete(i);
-end;
 
 procedure TPas2jsFilesCache.GetListing(const aDirectory: string;
   var Files: TStrings; FullPaths: boolean);
@@ -2184,8 +1850,8 @@ end;
 procedure TPas2jsFilesCache.SaveToFile(ms: TFPJSStream; Filename: string);
 var
   s: string;
-  i: Integer;
   {$IFDEF FPC}
+  i: Integer;
   l: TMaxPrecInt;
   {$ENDIF}
 begin
@@ -2208,7 +1874,12 @@ begin
   end else
   begin
     {$IFDEF Pas2js}
-    raise Exception.Create('TPas2jsFilesCache.SaveToFile TODO '+Filename);
+    try
+      s:=ms.join('');
+      NJS_FS.writeFileSync(Filename,s,new(['encoding','utf8']));
+    except
+      raise EWriteError.Create(String(JSExceptValue));
+    end;
     {$ELSE}
     try
       ms.SaveToFile(Filename);
@@ -2217,9 +1888,9 @@ begin
         i:=GetLastOSError;
         if i<>0 then
           Log.LogPlain('Note: '+SysErrorMessage(i));
-        if not SysUtils.DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
+        if not DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
           Log.LogPlain('Note: file cache inconsistency: folder does not exist "'+ChompPathDelim(ExtractFilePath(Filename))+'"');
-        if SysUtils.FileExists(Filename) and not FileIsWritable(Filename) then
+        if FileExists(Filename) and not FileIsWritable(Filename) then
           Log.LogPlain('Note: file is not writable "'+Filename+'"');
         raise;
       end;
@@ -2238,6 +1909,314 @@ begin
     Result:=ExpandFileNamePJ(Filename,BaseDirectory);
   if Result='' then exit;
   Result:=IncludeTrailingPathDelimiter(Result);
+end;
+
+function TPas2jsFilesCache.ExpandExecutable(const Filename, BaseDir: string
+  ): string;
+
+  function TryFile(CurFilename: string): boolean;
+  begin
+    Result:=false;
+    CurFilename:=ResolveDots(CurFilename);
+    if not FileExists(CurFilename) then exit;
+    ExpandExecutable:=CurFilename;
+    Result:=true;
+  end;
+
+var
+  PathVar, CurPath: String;
+  p, StartPos: Integer;
+begin
+  if Filename='' then exit('');
+  if ExtractFilePath(Filename)='' then
+  begin
+    // no file path -> search
+    {$IFDEF Windows}
+    // search in BaseDir
+    if BaseDir<>'' then
+    begin
+      if TryFile(IncludeTrailingPathDelimiter(BaseDir)+Filename) then exit;
+    end else if BaseDirectory<>'' then
+    begin
+      if TryFile(IncludeTrailingPathDelimiter(BaseDirectory)+Filename) then exit;
+    end;
+    {$ENDIF}
+    // search in PATH
+    PathVar:=GetEnvironmentVariablePJ('PATH');
+    p:=1;
+    while p<=length(PathVar) do
+    begin
+      while (p<=length(PathVar)) and (PathVar[p]=PathSeparator) do inc(p);
+      StartPos:=p;
+      while (p<=length(PathVar)) and (PathVar[p]<>PathSeparator) do inc(p);
+      CurPath:=copy(PathVar,StartPos,p-StartPos);
+      if CurPath='' then continue;
+      CurPath:=ExpandFileNamePJ(CurPath);
+      if CurPath='' then continue;
+      if TryFile(IncludeTrailingPathDelimiter(CurPath)+Filename) then exit;
+    end;
+  end else if BaseDir<>'' then
+    Result:=ExpandFileNamePJ(Filename,BaseDir)
+  else
+    Result:=ExpandFileNamePJ(Filename,BaseDirectory);
+end;
+
+function TPas2jsFilesCache.FindIncludeFileName(const aFilename: string): String;
+
+  function SearchCasedInIncPath(const Filename: string): string;
+  var
+    i: Integer;
+  begin
+    // file name is relative
+    // first search in the same directory as the unit
+    if BaseDirectory<>'' then
+      begin
+      Result:=BaseDirectory+Filename;
+      if SearchLowUpCase(Result) then exit;
+      end;
+    // then search in include path
+    for i:=0 to IncludePaths.Count-1 do begin
+      Result:=IncludeTrailingPathDelimiter(IncludePaths[i])+Filename;
+      if SearchLowUpCase(Result) then exit;
+    end;
+    Result:='';
+  end;
+
+var
+  Filename : string;
+begin
+  Result := '';
+
+  // convert pathdelims to system
+  Filename:=SetDirSeparators(aFilename);
+  if ShowTriedUsedFiles then
+    Log.LogMsgIgnoreFilter(nIncludeSearch,[Filename]);
+
+  if FilenameIsAbsolute(Filename) then
+  begin
+    Result:=Filename;
+    if not SearchLowUpCase(Result) then
+      Result:='';
+    exit;
+  end;
+
+  // search with the given file extension (even if no ext)
+  Result:=SearchCasedInIncPath(Filename);
+  if Result<>'' then exit;
+
+  if ExtractFileExt(Filename)='' then
+  begin
+    // search with the default file extensions
+    Result:=SearchCasedInIncPath(Filename+'.inc');
+    if Result<>'' then exit;
+    Result:=SearchCasedInIncPath(Filename+'.pp');
+    if Result<>'' then exit;
+    Result:=SearchCasedInIncPath(Filename+'.pas');
+    if Result<>'' then exit;
+  end;
+end;
+
+function TPas2jsFilesCache.FindSourceFileName(const aFilename: string): String;
+
+Var
+  Found: Boolean;
+  i: Integer;
+
+begin
+  Result:=aFilename;
+  if StrictFileCase or SearchLikeFPC then
+    Found:=FileExists(Result)
+  else
+    begin
+    i:=FileExistsI(Result);
+    Found:=i=1;
+    if i>1 then
+      RaiseDuplicateFile(Result);
+    end;
+  if not Found then
+    raise EFileNotFoundError.Create(aFilename)
+end;
+
+
+function TPas2jsFilesCache.FindUnitFileName(const aUnitname, InFilename: string; out IsForeign: boolean): String;
+
+  function SearchInDir(Dir: string; var Filename: string): boolean;
+  // search in Dir for pp, pas, p times given case, lower case, upper case
+  begin
+    Dir:=IncludeTrailingPathDelimiter(Dir);
+    Filename:=Dir+aUnitname+'.pp';
+    if SearchLowUpCase(Filename) then exit(true);
+    Filename:=Dir+aUnitname+'.pas';
+    if SearchLowUpCase(Filename) then exit(true);
+    Filename:=Dir+aUnitname+'.p';
+    if SearchLowUpCase(Filename) then exit(true);
+    Result:=false;
+  end;
+
+var
+  i: Integer;
+  aFilename: String;
+begin
+  Result:='';
+  IsForeign:=false;
+
+  if InFilename<>'' then
+  begin
+    aFilename:=SetDirSeparators(InFilename);
+    Result:=ResolveDots(aFilename);
+    if FilenameIsAbsolute(Result) then
+    begin
+      if SearchLowUpCase(Result) then exit;
+    end else
+    begin
+      Result:=ResolveDots(BaseDirectory+Result);
+      if SearchLowUpCase(Result) then exit;
+    end;
+    exit('');
+  end;
+
+  // first search in foreign unit paths
+  IsForeign:=true;
+  for i:=0 to ForeignUnitPaths.Count-1 do
+    if SearchInDir(ForeignUnitPaths[i],Result) then
+    begin
+      IsForeign:=true;
+      exit;
+    end;
+
+  // then in BaseDirectory
+  IsForeign:=false;
+  if SearchInDir(BaseDirectory,Result) then exit;
+
+  // finally search in unit paths
+  for i:=0 to UnitPaths.Count-1 do
+    if SearchInDir(UnitPaths[i],Result) then exit;
+
+  Result:='';
+end;
+
+function TPas2jsFilesCache.FindUnitJSFileName(const aUnitFilename: string): String;
+
+begin
+  Result:='';
+  if aUnitFilename='' then exit;
+    begin
+    if UnitOutputPath<>'' then
+      Result:=UnitOutputPath+ChangeFileExt(ExtractFileName(aUnitFilename),'.js')
+    else if MainOutputPath<>'' then
+      Result:=MainOutputPath+ChangeFileExt(ExtractFileName(aUnitFilename),'.js')
+    else
+      Result:=ChangeFileExt(aUnitFilename,'.js');
+    end;
+end;
+
+function TPas2jsFilesCache.FindCustomJSFileName(const aFilename: string): String;
+
+  function SearchInDir(Dir: string): boolean;
+  var
+    CurFilename: String;
+  begin
+    Dir:=IncludeTrailingPathDelimiter(Dir);
+    CurFilename:=Dir+aFilename;
+    Result:=FileExistsLogged(CurFilename);
+    if Result then
+      FindCustomJSFileName:=CurFilename;
+  end;
+
+var
+  i: Integer;
+begin
+  Result:='';
+
+  if FilenameIsAbsolute(aFilename) then
+    begin
+    Result:=aFilename;
+    if not FileExistsLogged(Result) then
+      Result:='';
+    exit;
+    end;
+
+  if ExtractFilePath(aFilename)<>'' then
+    begin
+    Result:=ExpandFileNamePJ(aFilename,BaseDirectory);
+    if not FileExistsLogged(Result) then
+      Result:='';
+    exit;
+    end;
+
+  // first search in foreign unit paths
+  for i:=0 to ForeignUnitPaths.Count-1 do
+    if SearchInDir(ForeignUnitPaths[i]) then
+      exit;
+
+  // then in BaseDirectory
+  if SearchInDir(BaseDirectory) then exit;
+
+  // finally search in unit paths
+  for i:=0 to UnitPaths.Count-1 do
+    if SearchInDir(UnitPaths[i]) then exit;
+
+  Result:='';
+end;
+
+function TPas2jsFilesCache.FileExistsLogged(const Filename: string): boolean;
+begin
+  Result:=FileExists(Filename);
+  if ShowTriedUsedFiles then
+    if Result then
+      Log.LogMsgIgnoreFilter(nSearchingFileFound,[FormatPath(Filename)])
+    else
+      Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[FormatPath(Filename)]);
+end;
+
+function TPas2jsFilesCache.FileExistsILogged(var Filename: string): integer;
+begin
+  Result:=DirectoryCache.FileExistsI(Filename);
+  if ShowTriedUsedFiles then
+    if Result>0 then
+      Log.LogMsgIgnoreFilter(nSearchingFileFound,[FormatPath(Filename)])
+    else
+      Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[FormatPath(Filename)]);
+end;
+
+function TPas2jsFilesCache.SearchLowUpCase(var Filename: string): boolean;
+var
+  i: Integer;
+{$IFNDEF CaseInsensitiveFilenames}
+  CasedFilename: String;
+{$ENDIF}
+begin
+  if StrictFileCase or SearchLikeFPC then
+  begin
+    if FileExistsLogged(Filename) then
+      exit(true);
+    if StrictFileCase then
+      exit(false);
+    {$IFNDEF CaseInsensitiveFilenames}
+    // FPC like search:
+    // first as written, then lowercase, then uppercase
+    CasedFilename:=ExtractFilePath(Filename)+LowerCase(ExtractFileName(Filename));
+    if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
+    begin
+      Filename:=CasedFilename;
+      exit(true);
+    end;
+    CasedFilename:=ExtractFilePath(Filename)+UpperCase(ExtractFileName(Filename));
+    if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
+    begin
+      Filename:=CasedFilename;
+      exit(true);
+    end;
+    {$ENDIF}
+  end else
+  begin
+    // search case insensitive
+    i:=FileExistsILogged(Filename);
+    if i=1 then exit(true);
+    if i>1 then
+      RaiseDuplicateFile(Filename);
+  end;
+  Result:=false;
 end;
 
 end.

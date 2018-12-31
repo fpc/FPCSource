@@ -167,7 +167,8 @@ const
     'ArrayOperators',
     'ExternalClass',
     'PrefixedAttributes',
-    'IgnoreAttributes'
+    'IgnoreAttributes',
+    'OmitRTTI'
     );
 
   PCUDefaultBoolSwitches: TBoolSwitches = [
