@@ -1183,11 +1183,6 @@ implementation
              { finally code only needed to be executed on exception (-> in
                if-branch -> fc_inflowcontrol) }
              flowcontrol:=[fc_inflowcontrol];
-             secondpass(t1);
-             if flowcontrol<>[fc_inflowcontrol] then
-               CGMessage(cg_e_control_flow_outside_finally);
-             if codegenerror then
-               exit;
              if (tf_safecall_exceptions in target_info.flags) and
                 (current_procinfo.procdef.proccalloption=pocall_safecall) then
                handle_safecall_exception

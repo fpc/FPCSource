@@ -919,10 +919,7 @@ implementation
             final_used:=true;
 
             current_filepos:=entrypos;
-            wrappedbody:=ctryfinallynode.create_implicit(
-               code,
-               finalcode,
-               cnothingnode.create);
+            wrappedbody:=ctryfinallynode.create_implicit(code,finalcode);
             { afterconstruction must be called after final_asmnode, because it
                has to execute after the temps have been finalised in case of a
                refcounted class (afterconstruction decreases the refcount

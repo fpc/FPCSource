@@ -189,10 +189,10 @@ interface
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
-       ttryfinallynode = class(tloopnode)
+       ttryfinallynode = class(tbinarynode)
           implicitframe : boolean;
           constructor create(l,r:tnode);virtual;reintroduce;
-          constructor create_implicit(l,r,_t1:tnode);virtual;
+          constructor create_implicit(l,r:tnode);virtual;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline:boolean): tnode;override;
@@ -2299,14 +2299,14 @@ implementation
 
     constructor ttryfinallynode.create(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r,nil,nil);
+        inherited create(tryfinallyn,l,r);
         implicitframe:=false;
       end;
 
 
-    constructor ttryfinallynode.create_implicit(l,r,_t1:tnode);
+    constructor ttryfinallynode.create_implicit(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r,_t1,nil);
+        inherited create(tryfinallyn,l,r);
         implicitframe:=true;
       end;
 
@@ -2323,14 +2323,6 @@ implementation
         typecheckpass(right);
         // "except block" is "used"? (JM)
         set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
-
-        { special finally block only executed when there was an exception }
-        if assigned(t1) then
-          begin
-            typecheckpass(t1);
-            // "finally block" is "used"? (JM)
-            set_varstate(t1,vs_readwritten,[vsf_must_be_valid]);
-          end;
       end;
 
 
@@ -2341,9 +2333,6 @@ implementation
         firstpass(left);
 
         firstpass(right);
-
-        if assigned(t1) then
-          firstpass(t1);
 
         include(current_procinfo.flags,pi_do_call);
 

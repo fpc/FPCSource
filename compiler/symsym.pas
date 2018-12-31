@@ -1753,7 +1753,7 @@ implementation
     constructor tfieldvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(fieldvarsym,ppufile);
-         fieldoffset:=ppufile.getaint;
+         fieldoffset:=ppufile.getasizeint;
          if (vo_has_mangledname in varoptions) then
            externalname:=ppufile.getpshortstring
          else
@@ -1765,7 +1765,7 @@ implementation
     procedure tfieldvarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putaint(fieldoffset);
+         ppufile.putasizeint(fieldoffset);
          if (vo_has_mangledname in varoptions) then
            ppufile.putstring(externalname^);
          writeentry(ppufile,ibfieldvarsym);
