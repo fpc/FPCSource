@@ -447,11 +447,15 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
-    // Test RTTI of local record
-    // Test pcu local record, name clash and rtti
+    // ToDo: RTTI of local record
+    // ToDo: pcu local record, name clash and rtti
 
     // advanced record
-    // ToDo: TestRecord_InFunction;
+    // ToDo: TestAdvRecord_Function;
+    // ToDo: TestAdvRecord_Property;
+    // ToDo: TestAdvRecord_PropertyDefault;
+    // ToDo: TestAdvRecord_InFunction;
+    // ToDo: pcu: record default property
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;

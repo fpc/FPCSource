@@ -139,12 +139,14 @@ type
     procedure TestPC_Var;
     procedure TestPC_Enum;
     procedure TestPC_Set;
+    procedure TestPC_Set_InFunction;
     procedure TestPC_SetOfAnonymousEnumType;
     procedure TestPC_Record;
-    procedure TestPC_Record_Local;
+    procedure TestPC_Record_InFunction;
     procedure TestPC_JSValue;
     procedure TestPC_Array;
     procedure TestPC_ArrayOfAnonymous;
+    procedure TestPC_Array_InFunction;
     procedure TestPC_Proc;
     procedure TestPC_Proc_Nested;
     procedure TestPC_Proc_LocalConst;
@@ -1674,6 +1676,32 @@ begin
   WriteReadUnit;
 end;
 
+procedure TTestPrecompile.TestPC_Set_InFunction;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'procedure DoIt;',
+  'implementation',
+  'procedure DoIt;',
+  'type',
+  '  TEnum = (red,green,blue);',
+  '  TEnumRg = green..blue;',
+  '  TEnumAlias = TEnum;', // alias
+  '  TSetOfEnum = set of TEnum;',
+  '  TSetOfEnumRg = set of TEnumRg;',
+  '  TSetOfDir = set of (west,east);',
+  'var',
+  '  Empty: TSetOfEnum = [];', // empty set lit
+  '  All: TSetOfEnum = [low(TEnum)..pred(high(TEnum)),high(TEnum)];', // full set lit, range in set
+  '  Dirs: TSetOfDir;',
+  'begin',
+  '  Dirs:=[east];',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
 procedure TTestPrecompile.TestPC_SetOfAnonymousEnumType;
 begin
   StartUnit(false);
@@ -1703,7 +1731,7 @@ begin
   WriteReadUnit;
 end;
 
-procedure TTestPrecompile.TestPC_Record_Local;
+procedure TTestPrecompile.TestPC_Record_InFunction;
 begin
   StartUnit(false);
   Add([
@@ -1760,6 +1788,25 @@ begin
   'var',
   '  a: array of pointer;',
   'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Array_InFunction;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'procedure DoIt;',
+  'implementation',
+  'procedure DoIt;',
+  'type',
+  '  TArr = array[1..2] of word;',
+  'var',
+  '  arr: TArr;',
+  'begin',
+  '  arr[2]:=arr[1];',
+  'end;',
+  '']);
   WriteReadUnit;
 end;
 
