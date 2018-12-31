@@ -862,7 +862,7 @@ implementation
 
       var
          offsetdec,
-         extraoffset : aint;
+         extraoffset : ASizeInt;
          rightp      : pnode;
          newsize  : tcgsize;
          mulsize,

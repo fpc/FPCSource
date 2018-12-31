@@ -83,6 +83,10 @@ Implementation
     cgobj,procinfo,
     aasmbase,aasmdata;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
+
   function CanBeCond(p : tai) : boolean;
     begin
       result:=
