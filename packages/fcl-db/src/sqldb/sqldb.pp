@@ -1518,9 +1518,10 @@ end;
 
 function TSQLConnection.GetStatementInfo(const ASQL: string): TSQLStatementInfo;
 
-type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
-     TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
-     TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
+type
+  TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
+  TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
+  TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
 
 const
   KeywordNames: array[TKeyword] of string =
@@ -1536,7 +1537,7 @@ var
   Keyword, K              : TKeyword;
 
 begin
-  PSQL:=Pchar(ASQL);
+  PSQL:=PChar(ASQL);
   ParsePart := ppStart;
 
   CurrentP := PSQL-1;
@@ -1548,7 +1549,6 @@ begin
   Result.WhereStopPos := 0;
 
   repeat
-    begin
     inc(CurrentP);
     SavedP := CurrentP;
 
@@ -1582,12 +1582,12 @@ begin
           Separator := sepNone;
     end;
 
-    if (CurrentP > SavedP) and (SavedP > PhraseP) then
-      CurrentP := SavedP;  // there is something before comment or left parenthesis
-
     if Separator <> sepNone then
       begin
-      if ((Separator in [sepWhitespace,sepComment]) and (PhraseP = SavedP)) then
+      if (CurrentP > SavedP) and (SavedP > PhraseP) then
+        CurrentP := SavedP;  // there is something before comment or left parenthesis or double quote
+
+      if (Separator in [sepWhitespace,sepComment]) and (SavedP = PhraseP) then
         PhraseP := CurrentP;  // skip comments (but not parentheses) and white spaces
 
       if (CurrentP-PhraseP > 0) or (Separator = sepEnd) then
@@ -1633,10 +1633,12 @@ begin
                      //  and/or derived tables are also not updateable
                      if Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd] then
                        begin
-                       Result.TableName := s;
+                       Result.TableName := Result.TableName + s;
                        Result.Updateable := True;
                        end;
-                     ParsePart := ppFrom;
+                     // compound delimited classifier like: "schema name"."table name"
+                     if not (CurrentP^ in ['.','"']) then
+                       ParsePart := ppFrom;
                      end;
           ppFrom   : begin
                      if (Keyword in [kwWHERE, kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
@@ -1683,7 +1685,6 @@ begin
         dec(CurrentP);
       PhraseP := CurrentP+1;
       end
-    end;
   until CurrentP^=#0;
 end;
 
