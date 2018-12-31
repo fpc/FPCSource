@@ -171,13 +171,13 @@ begin
       HTTPEncode(ARequest.Connection.Server.AdminMail) +
       '">' +
       HTTPEncode(name) +
-      '</a> Port ' + ARequest.ServerPort +
+      '</a> Port ' + IntToStr(ARequest.ServerPort) +
       '</address>'
   else
     Result := prefix + '<address>' + ARequest.Connection.Server.ServerBanner +
       ' Server at ' +
       ARequest.Connection.Server.AdminMail +
-      ' Port ' + ARequest.ServerPort +
+      ' Port ' + IntToStr(ARequest.ServerPort) +
       '</address>';
 end;
 

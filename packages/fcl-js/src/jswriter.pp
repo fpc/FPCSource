@@ -355,8 +355,8 @@ Var
 begin
   Result:=Length(S)*SizeOf(TJSWriterChar);
   if Result=0 then exit;
-  MinLen:=Result+FBufPos;
-  If (MinLen>Capacity) then
+  MinLen:=Result+integer(FBufPos);
+  If (MinLen>integer(Capacity)) then
     begin
     DesLen:=(FCapacity*3) div 2;
     if DesLen>MinLen then
@@ -364,7 +364,7 @@ begin
     Capacity:=MinLen;
     end;
   Move(S[1],FBuffer[FBufPos],Result);
-  FBufPos:=FBufPos+Result;
+  FBufPos:=integer(FBufPos)+Result;
 end;
 {$endif}
 
@@ -377,8 +377,8 @@ Var
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
   if Result=0 then exit;
-  MinLen:=Result+FBufPos;
-  If (MinLen>Capacity) then
+  MinLen:=Result+integer(FBufPos);
+  If (MinLen>integer(Capacity)) then
     begin
     DesLen:=(FCapacity*3) div 2;
     if DesLen>MinLen then
@@ -386,7 +386,7 @@ begin
     Capacity:=MinLen;
     end;
   Move(S[1],FBuffer[FBufPos],Result);
-  FBufPos:=FBufPos+Result;
+  FBufPos:=integer(FBufPos)+Result;
 end;
 {$endif}
 
@@ -545,8 +545,8 @@ Var
   I,J,L : Integer;
   R: TJSString;
   c: WideChar;
-
 begin
+  //system.writeln('TJSWriter.EscapeString "',S,'"');
   I:=1;
   J:=1;
   R:='';
@@ -554,7 +554,8 @@ begin
   While I<=L do
     begin
     c:=S[I];
-    if (c in [#0..#31,'"','''','/','\']) or (c>=#$ff00) then
+    if (c in [#0..#31,'"','''','/','\'])
+        or (c>=#$ff00) or ((c>=#$D800) and (c<=#$DFFF)) then
       begin
       R:=R+Copy(S,J,I-J);
       Case c of
@@ -568,7 +569,25 @@ begin
         #10 : R:=R+'\n';
         #12 : R:=R+'\f';
         #13 : R:=R+'\r';
-        #$ff00..#$ffff: R:=R+'\u'+TJSString(HexStr(ord(c),4));
+        #$D800..#$DFFF:
+          begin
+          if (I<L) then
+            begin
+            c:=S[I+1];
+            if (c>=#$D000) and (c<=#$DFFF) then
+              begin
+              inc(I,2); // surrogate, two char codepoint
+              continue;
+              end
+            else
+              // invalid UTF-16, cannot be encoded as UTF-8 -> encode as hex
+              R:=R+'\u'+TJSString(HexStr(ord(c),4));
+            end
+          else
+            // invalid UTF-16 at end of string, cannot be encoded as UTF-8 -> encode as hex
+            R:=R+'\u'+TJSString(HexStr(ord(c),4));
+          end;
+        #$FF00..#$FFFF: R:=R+'\u'+TJSString(HexStr(ord(c),4));
       end;
       J:=I+1;
       end;
@@ -576,6 +595,7 @@ begin
     end;
   R:=R+Copy(S,J,I-1);
   Result:=R;
+  //system.writeln('TJSWriter.EscapeString Result="',Result,'"');
 end;
 
 procedure TJSWriter.WriteValue(V: TJSValue);
@@ -1235,6 +1255,7 @@ procedure TJSWriter.WriteBinary(El: TJSBinary);
 Var
   S : String;
   AllowCompact, WithBrackets: Boolean;
+  ElC: TClass;
 begin
   {$IFDEF VerboseJSWriter}
   System.writeln('TJSWriter.WriteBinary SkipRoundBrackets=',FSkipRoundBrackets);
@@ -1243,6 +1264,18 @@ begin
   if WithBrackets then
     Write('(');
   FSkipRoundBrackets:=false;
+  ElC:=El.ClassType;
+  if El.A is TJSBinaryExpression then
+    if (El.A.ClassType=ElC)
+        and ((ElC=TJSLogicalOrExpression)
+        or (ElC=TJSLogicalAndExpression)
+        or (ElC=TJSBitwiseAndExpression)
+        or (ElC=TJSBitwiseOrExpression)
+        or (ElC=TJSBitwiseXOrExpression)
+        or (ElC=TJSAdditiveExpressionPlus)
+        or (ElC=TJSAdditiveExpressionMinus)
+        or (ElC=TJSMultiplicativeExpressionMul)) then
+      FSkipRoundBrackets:=true;
   WriteJS(El.A);
   Writer.CurElement:=El;
   AllowCompact:=False;
@@ -1259,6 +1292,13 @@ begin
       S:=' '+S+' ';
     end;
   FSkipRoundBrackets:=false;
+  ElC:=El.ClassType;
+  if El.B is TJSBinaryExpression then
+    if (El.B.ClassType=ElC)
+        and ((ElC=TJSLogicalOrExpression)
+        or (ElC=TJSLogicalAndExpression)) then
+      FSkipRoundBrackets:=true;
+  // Note: a+(b+c) <> a+b+c  e.g. floats, 0+string
   Write(S);
   WriteJS(El.B);
   Writer.CurElement:=El;
