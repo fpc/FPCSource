@@ -163,6 +163,7 @@ Resourcestring
   SDbgPackageInstallRequired = 'Installation of package "%s" required for repository "%s"';
 
   SWarnBrokenAfterReinstall  = 'Package %s is still broken, even after re-installation. (%s)';
+  SWarnFailedToWriteCompConf = 'Failed to write compiler-configuration file "%s": %s';
 
   SProgrReinstallDependent   = 'Re-install packages which are dependent on just installed packages';
   SProgrInstallDependencies  = 'Install dependencies';
