@@ -361,6 +361,7 @@ type
     Procedure TestSet_ConstEnum;
     Procedure TestSet_ConstChar;
     Procedure TestSet_ConstInt;
+    Procedure TestSet_InFunction;
     Procedure TestSet_ForIn;
 
     // statements
@@ -401,6 +402,7 @@ type
     Procedure TestArray_StaticBool;
     Procedure TestArray_StaticChar;
     Procedure TestArray_StaticMultiDim;
+    Procedure TestArray_StaticInFunction;
     Procedure TestArrayOfRecord;
     Procedure TestArray_StaticRecord;
     Procedure TestArrayOfSet;
@@ -445,7 +447,6 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
-    // Test name clash const and local record
     // Test RTTI of local record
     // Test pcu local record, name clash and rtti
 
@@ -4737,6 +4738,7 @@ procedure TTestModule.TestEnum_InFunction;
 begin
   StartProgram(false);
   Add([
+  'const TEnum = 3;',
   'procedure DoIt;',
   'type',
   '  TEnum = (Red, Green, Blue);',
@@ -4757,28 +4759,29 @@ begin
   ConvertProgram;
   CheckSource('TestEnum_InFunction',
     LinesToStr([ // statements
+    'this.TEnum = 3;',
+    'this.TEnum$1 = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.TEnumSub = {',
+    '  "0": "Left",',
+    '  Left: 0,',
+    '  "1": "Right",',
+    '  Right: 1',
+    '};',
     'this.DoIt = function () {',
-    '  var TEnum = {',
-    '    "0":"Red",',
-    '    Red:0,',
-    '    "1":"Green",',
-    '    Green:1,',
-    '    "2":"Blue",',
-    '    Blue:2',
-    '    };',
     '  function Sub() {',
-    '    var TEnumSub = {',
-    '      "0": "Left",',
-    '      Left: 0,',
-    '      "1": "Right",',
-    '      Right: 1',
-    '    };',
     '    var es = 0;',
     '    es = TEnumSub.Left;',
     '  };',
     '  var e = 0;',
     '  var e2 = 0;',
-    '  if (e in rtl.createSet(TEnum.Red, TEnum.Blue)) e2 = e;',
+    '  if (e in rtl.createSet(TEnum$1.Red, TEnum$1.Blue)) e2 = e;',
     '};',
     '']),
     LinesToStr([
@@ -5448,6 +5451,59 @@ begin
     'if ($mod.i in rtl.unionSet($mod.Months, rtl.createSet($mod.i))) ;',
     'if ($mod.i in rtl.unionSet($mod.Months, $mod.Mirror)) ;',
     'if ($mod.i in rtl.createSet(null, 4, 6, 8)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestSet_InFunction;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  TEnum = 3;',
+  '  TSetOfEnum = 4;',
+  '  TSetOfAno = 5;',
+  'procedure DoIt;',
+  'type',
+  '  TEnum = (red, blue);',
+  '  TSetOfEnum = set of TEnum;',
+  '  TSetOfAno = set of (up,down);',
+  'var',
+  '  e: TEnum;',
+  '  se: TSetOfEnum;',
+  '  sa: TSetOfAno;',
+  'begin',
+  '  se:=[e];',
+  '  sa:=[up];',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestSet_InFunction',
+    LinesToStr([ // statements
+    'this.TEnum = 3;',
+    'this.TSetOfEnum = 4;',
+    'this.TSetOfAno = 5;',
+    'this.TEnum$1 = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'this.TSetOfAno$a = {',
+    '  "0": "up",',
+    '  up: 0,',
+    '  "1": "down",',
+    '  down: 1',
+    '};',
+    'this.DoIt = function () {',
+    '  var e = 0;',
+    '  var se = {};',
+    '  var sa = {};',
+    '  se = rtl.createSet(e);',
+    '  sa = rtl.createSet(TSetOfAno$a.up);',
+    '};',
+    '']),
+    LinesToStr([
     '']));
 end;
 
@@ -7864,6 +7920,50 @@ begin
     '$mod.Arr2[1][2] = $mod.i;',
     '$mod.i = $mod.Arr2[0][1];',
     '$mod.Arr2 = $mod.TArrayArrayInt$clone($mod.Arr2);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_StaticInFunction;
+begin
+  StartProgram(false);
+  Add([
+  'const TArrayInt = 3;',
+  'const TArrayArrayInt = 4;',
+  'procedure DoIt;',
+  'type',
+  '  TArrayInt = array[1..3] of longint;',
+  '  TArrayArrayInt = array[5..6] of TArrayInt;',
+  'var',
+  '  Arr: TArrayInt;',
+  '  Arr2: TArrayArrayInt;',
+  '  Arr3: array[boolean] of TArrayInt = ((11,12,13),(21,22,23));',
+  '  i: longint;',
+  'begin',
+  '  arr2[5]:=arr;',
+  '  arr2:=arr2;',// clone multi dim static array
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_StaticInFunction',
+    LinesToStr([ // statements
+    'this.TArrayInt = 3;',
+    'this.TArrayArrayInt = 4;',
+    'this.TArrayArrayInt$1$clone = function (a) {',
+    '  var r = [];',
+    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
+    '  return r;',
+    '};',
+    'this.DoIt = function () {',
+    '  var Arr = rtl.arraySetLength(null, 0, 3);',
+    '  var Arr2 = rtl.arraySetLength(null, 0, 2, 3);',
+    '  var Arr3 = [[11, 12, 13], [21, 22, 23]];',
+    '  var i = 0;',
+    '  Arr2[0] = Arr.slice(0);',
+    '  Arr2 = TArrayArrayInt$1$clone(Arr2);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

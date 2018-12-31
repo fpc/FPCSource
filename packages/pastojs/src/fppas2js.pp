@@ -366,12 +366,17 @@ ToDos:
 - Result:=inherited;
 - move local types to unit scope
 - records:
-  - move local types to global
+  - move all local types to global
   - use rtl.createRecord to create a record type
   - use Object.create to instantiate simple records
-  - use TRec.$create to instantiate complex records
+  - use TRec.$new to instantiate complex records
+  - assign: copy values, do not create new JS object, needed by ^record
   - advanced records:
     - functions
+    - properties
+    - class properties
+    - default property
+    - constructor
     - rtti
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - $OPTIMIZATION ON|OFF
@@ -1222,7 +1227,9 @@ type
     procedure PushOverloadScope(Scope: TPasIdentifierScope);
     procedure PopOverloadScope;
   protected
+    procedure AddType(El: TPasType); override;
     procedure AddRecordType(El: TPasRecordType); override;
+    procedure AddEnumType(El: TPasEnumType); override;
     procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
     procedure ResolveNameExpr(El: TPasExpr; const aName: string;
       Access: TResolvedRefAccess); override;
@@ -1319,6 +1326,7 @@ type
       false): string; override;
     function HasTypeInfo(El: TPasType): boolean; override;
     function ProcHasImplElements(Proc: TPasProcedure): boolean; override;
+    function GetTopLvlProcScope(El: TPasElement): TPas2JSProcedureScope;
     function IsTObjectFreeMethod(El: TPasExpr): boolean; virtual;
     function IsExternalBracketAccessor(El: TPasElement): boolean;
     function IsExternalClassConstructor(El: TPasElement): boolean;
@@ -1596,6 +1604,8 @@ type
     Function HasTypeInfo(El: TPasType; AContext: TConvertContext): boolean; virtual;
     Function IsClassRTTICreatedBefore(aClass: TPasClassType; Before: TPasElement; AConText: TConvertContext): boolean;
     Procedure FindAvailableLocalName(var aName: string; JSExpr: TJSElement);
+    Function GetImplJSProcScope(El: TPasElement; Src: TJSSourceElements;
+      AContext: TConvertContext): TPas2JSProcedureScope;
     // Never create an element manually, always use the below functions
     Function CreateElement(C: TJSElementClass; Src: TPasElement): TJSElement; virtual;
     Function CreateFreeOrNewInstanceExpr(Ref: TResolvedReference;
@@ -2492,20 +2502,13 @@ begin
   C:=El.ClassType;
   if C=TPasProperty then
     exit(false)
-  else if C=TPasConst then
+  else if (C=TPasConst)
+      or C.InheritsFrom(TPasType) then
     begin
     if (not WithElevatedLocal) and (El.Parent is TProcedureBody) then
-      exit(false); // local const counted via TPas2JSSectionScope.FElevatedLocals
-    end
-  else if C=TPasClassType then
-    begin
-    if TPasClassType(El).IsForward then
+      exit(false); // local const/type counted via TPas2JSSectionScope.FElevatedLocals
+    if (C=TPasClassType) and TPasClassType(El).IsForward then
       exit(false);
-    end
-  else if C=TPasRecordType then
-    begin
-    if (not WithElevatedLocal) and (El.Parent is TProcedureBody) then
-      exit(false); // local record counted via TPas2JSSectionScope.FElevatedLocals
     end
   else if C.InheritsFrom(TPasProcedure) then
     begin
@@ -2782,15 +2785,19 @@ begin
       // proc declaration (header, not body)
       RenameOverload(Proc);
       end
-    else if (C=TPasClassType) or (C=TPasRecordType) then
+    else if C.InheritsFrom(TPasType) then
       begin
       if El.Parent is TProcedureBody then
         RenameOverload(El);
       end
     else if C=TPasConst then
       RenameOverload(El)
-    else if C.InheritsFrom(TPasVariable) and (El.Parent.ClassType=TPasClassType) then
-      RenameOverload(El);
+    else if C.InheritsFrom(TPasVariable) then
+      begin
+      // class fields can have name clashes, record fields cannot
+      if El.Parent.ClassType=TPasClassType then
+        RenameOverload(El);
+      end;
     end;
   {$IFDEF VerbosePas2JS}
   //writeln('TPas2JSResolver.RenameOverloads END ',GetObjName(DeclEl));
@@ -2874,11 +2881,27 @@ begin
   FOverloadScopes.Delete(FOverloadScopes.Count-1);
 end;
 
+procedure TPas2JSResolver.AddType(El: TPasType);
+begin
+  inherited AddType(El);
+  if El.Parent is TProcedureBody then
+    // local type
+    AddElevatedLocal(El);
+end;
+
 procedure TPas2JSResolver.AddRecordType(El: TPasRecordType);
 begin
   inherited;
   if El.Parent is TProcedureBody then
     // local record
+    AddElevatedLocal(El);
+end;
+
+procedure TPas2JSResolver.AddEnumType(El: TPasEnumType);
+begin
+  inherited AddEnumType(El);
+  if El.Parent is TProcedureBody then
+    // local enum type
     AddElevatedLocal(El);
 end;
 
@@ -5086,6 +5109,25 @@ begin
     Scope:=Scope.ImplProc.CustomData as TPas2JSProcedureScope;
   if Scope.BodyJS<>'' then
     Result:=not Scope.EmptyJS;
+end;
+
+function TPas2JSResolver.GetTopLvlProcScope(El: TPasElement
+  ): TPas2JSProcedureScope;
+var
+  Proc: TPasProcedure;
+begin
+  Result:=nil;
+  while El<>nil do
+    begin
+    if El is TPasProcedure then
+      begin
+      Proc:=TPasProcedure(El);
+      if Proc.CustomData is TPas2JSProcedureScope then
+        Result:=TPas2JSProcedureScope(Proc.CustomData);
+      exit;
+      end;
+    El:=El.Parent;
+    end;
 end;
 
 function TPas2JSResolver.IsTObjectFreeMethod(El: TPasExpr): boolean;
@@ -11457,31 +11499,36 @@ function TPasToJSConverter.CreateTypeDecl(El: TPasType;
 
 var
   C: TClass;
+  GlobalCtx: TConvertContext;
 begin
   Result:=Nil;
+  GlobalCtx:=AContext;
+  if El.Parent is TProcedureBody then
+    GlobalCtx:=AContext.GetGlobalFunc;
+
   C:=El.ClassType;
   if C=TPasClassType then
-    Result := ConvertClassType(TPasClassType(El), AContext)
+    Result := ConvertClassType(TPasClassType(El), GlobalCtx)
   else if (C=TPasClassOfType) then
-    Result := ConvertClassOfType(TPasClassOfType(El), AContext)
+    Result := ConvertClassOfType(TPasClassOfType(El), GlobalCtx)
   else if C=TPasRecordType then
-    Result := ConvertRecordType(TPasRecordType(El), AContext)
+    Result := ConvertRecordType(TPasRecordType(El), GlobalCtx)
   else if C=TPasEnumType then
-    Result := ConvertEnumType(TPasEnumType(El), AContext)
+    Result := ConvertEnumType(TPasEnumType(El), GlobalCtx)
   else if (C=TPasSetType) then
-    Result := ConvertSetType(TPasSetType(El), AContext)
+    Result := ConvertSetType(TPasSetType(El), GlobalCtx)
   else if (C=TPasRangeType) then
-    Result:=ConvertRangeType(TPasRangeType(El),AContext)
+    Result:=ConvertRangeType(TPasRangeType(El),GlobalCtx)
   else if (C=TPasAliasType) then
   else if (C=TPasTypeAliasType) then
-    Result:=ConvertTypeAliasType(TPasTypeAliasType(El),AContext)
+    Result:=ConvertTypeAliasType(TPasTypeAliasType(El),GlobalCtx)
   else if (C=TPasPointerType) then
-    Result:=ConvertPointerType(TPasPointerType(El),AContext)
+    Result:=ConvertPointerType(TPasPointerType(El),GlobalCtx)
   else if (C=TPasProcedureType)
        or (C=TPasFunctionType) then
-    Result:=ConvertProcedureType(TPasProcedureType(El),AContext)
+    Result:=ConvertProcedureType(TPasProcedureType(El),GlobalCtx)
   else if (C=TPasArrayType) then
-    Result:=ConvertArrayType(TPasArrayType(El),AContext)
+    Result:=ConvertArrayType(TPasArrayType(El),GlobalCtx)
   else
     begin
     {$IFDEF VerbosePas2JS}
@@ -12211,6 +12258,8 @@ begin
   {$ENDIF}
   if not (El.ObjKind in [okClass,okInterface]) then
     RaiseNotSupported(El,AContext,20170927183645);
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231004355);
   if El.IsForward then
     begin
     Result:=ConvertClassForwardType(El,AContext);
@@ -12434,6 +12483,8 @@ var
   Creator: String;
 begin
   Result:=nil;
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231004420);
   if (AContext.Resolver=nil) or not (El.CustomData is TResolvedReference) then exit;
   Ref:=TResolvedReference(El.CustomData);
   aClass:=Ref.Declaration as TPasClassType;
@@ -12465,6 +12516,8 @@ var
 begin
   Result:=nil;
   if El.IsForward then exit;
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231004428);
 
   // add class members: types and class vars
   For i:=0 to El.Members.Count-1 do
@@ -12510,6 +12563,8 @@ var
 begin
   Result:=nil;
   if not HasTypeInfo(El,AContext) then exit;
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231004435);
 
   ok:=false;
   Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewClassRef),false,AContext,ObjLit);
@@ -12568,6 +12623,8 @@ var
   List: TJSStatementList;
   ok: Boolean;
   OrdType: TOrdType;
+  Src: TJSSourceElements;
+  ProcScope: TPas2JSProcedureScope;
 begin
   Result:=nil;
   for i:=0 to El.Values.Count-1 do
@@ -12579,6 +12636,7 @@ begin
 
   ok:=false;
   ObjectContect:=nil;
+  Src:=nil;
   try
     Obj:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
     if AContext is TObjectContext then
@@ -12593,15 +12651,21 @@ begin
     else if El.Parent is TProcedureBody then
       begin
       // add 'var TypeName = {}'
-      Result:=CreateVarStatement(TransformVariableName(El,AContext),Obj,El);
-      end
-    else
+      if (AContext<>nil) and (AContext.JSElement is TJSSourceElements) then
+        Src:=TJSSourceElements(AContext.JSElement)
+      else
+        Result:=CreateVarStatement(TransformVariableName(El,AContext),Obj,El);
+      end;
+    if Result=nil then
       begin
       // add 'this.TypeName = {}'
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
       AssignSt.Expr:=Obj;
-      Result:=AssignSt;
+      if Src<>nil then
+        AddToSourceElements(Src,AssignSt) // keep Result=nil
+      else
+        Result:=AssignSt;
       end;
 
     ObjectContect:=TObjectContext.Create(El,Obj,AContext);
@@ -12624,6 +12688,8 @@ begin
       // create typeinfo
       if not (AContext is TFunctionContext) then
         RaiseNotSupported(El,AContext,20170411210045,'typeinfo');
+      if Src<>nil then
+        RaiseNotSupported(El,AContext,20181231005005);
       // create statement list
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
       List.A:=Result;
@@ -12650,6 +12716,11 @@ begin
       TIProp.Expr:=CreateSubDeclNameExpr(El,AContext);
       end;
 
+    // store precompiled enum type in proc
+    ProcScope:=GetImplJSProcScope(El,Src,AContext);
+    if ProcScope<>nil then
+      ProcScope.AddGlobalJS(CreatePrecompiledJS(AssignSt));
+
     ok:=true;
   finally
     ObjectContect.Free;
@@ -12674,6 +12745,9 @@ begin
     DoError(20170222231613,nPasElementNotSupported,sPasElementNotSupported,
       ['packed'],El);
   if not HasTypeInfo(El,AContext) then exit;
+
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231112029);
 
   // module.$rtti.$Set("name",{...})
   Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewSet),false,AContext,Obj);
@@ -12708,6 +12782,9 @@ var
 begin
   Result:=nil;
   if not HasTypeInfo(El,AContext) then exit;
+
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231112029);
 
   // module.$rtti.$Int("name",{...})
   MinVal:=nil;
@@ -12775,6 +12852,9 @@ begin
   Result:=nil;
   if not HasTypeInfo(El,AContext) then exit;
 
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231112029);
+
   Result:=CreateRTTINewType(El,GetBIName(pbifnRTTIInherited),false,AContext,Obj);
 end;
 
@@ -12791,6 +12871,9 @@ var
 begin
   Result:=nil;
   if not HasTypeInfo(El,AContext) then exit;
+
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231112029);
 
   // module.$rtti.$Pointer("name",{...})
   Call:=CreateRTTINewType(El,GetBIName(pbifnRTTIInherited),false,AContext,Obj);
@@ -12834,6 +12917,9 @@ begin
     DoError(20170222231532,nPasElementNotSupported,sPasElementNotSupported,
         ['calling convention '+cCallingConventions[El.CallingConvention]],El);
   if not HasTypeInfo(El,AContext) then exit;
+
+  if El.Parent is TProcedureBody then
+    RaiseNotSupported(El,AContext,20181231112029);
 
   // module.$rtti.$ProcVar("name",function(){})
   if El.IsReferenceTo then
@@ -12924,7 +13010,7 @@ var
   RgLen, RangeEnd: TMaxPrecInt;
   List: TJSStatementList;
   Func: TJSFunctionDeclarationStatement;
-  Src: TJSSourceElements;
+  BodySrc, Src: TJSSourceElements;
   VarSt: TJSVariableStatement;
   ForLoop: TJSForStatement;
   ExprLT: TJSRelationalExpressionLT;
@@ -12932,6 +13018,7 @@ var
   BracketEx: TJSBracketMemberExpression;
   CloneEl: TJSElement;
   ReturnSt: TJSReturnStatement;
+  ProcScope: TPas2JSProcedureScope;
 begin
   Result:=nil;
   if El.PackMode<>pmNone then
@@ -12940,6 +13027,10 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertArrayType ',GetObjName(El));
   {$ENDIF}
+
+  Src:=nil;
+  if (AContext<>nil) and (AContext.JSElement is TJSSourceElements) then
+    Src:=TJSSourceElements(AContext.JSElement);
 
   if AContext.Resolver.HasStaticArrayCloneFunc(El) then
     begin
@@ -12962,13 +13053,13 @@ begin
       Func:=CreateFunctionSt(El,true,true);
       AssignSt.Expr:=Func;
       Func.AFunction.Params.Add(CloneArrName);
-      Src:=Func.AFunction.Body.A as TJSSourceElements;
+      BodySrc:=Func.AFunction.Body.A as TJSSourceElements;
       // var r = [];
       VarSt:=CreateVarStatement(CloneResultName,TJSArrayLiteral(CreateElement(TJSArrayLiteral,El)),El);
-      AddToSourceElements(Src,VarSt);
+      AddToSourceElements(BodySrc,VarSt);
       // for (
       ForLoop:=TJSForStatement(CreateElement(TJSForStatement,El));
-      AddToSourceElements(Src,ForLoop);
+      AddToSourceElements(BodySrc,ForLoop);
       // var i=0;
       ForLoop.Init:=CreateVarStatement(CloneRunName,CreateLiteralNumber(El,0),El);
       // i<high(a)
@@ -13008,10 +13099,19 @@ begin
       BracketEx:=nil;
       // return r;
       ReturnSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
-      AddToSourceElements(Src,ReturnSt);
+      AddToSourceElements(BodySrc,ReturnSt);
       ReturnSt.Expr:=CreatePrimitiveDotExpr(CloneResultName,El);
 
-      Result:=AssignSt;
+      if Src<>nil then
+        AddToSourceElements(Src,AssignSt)
+      else
+        Result:=AssignSt;
+
+      // store precompiled enum type in proc
+      ProcScope:=GetImplJSProcScope(El,Src,AContext);
+      if ProcScope<>nil then
+        ProcScope.AddGlobalJS(CreatePrecompiledJS(AssignSt));
+
       AssignSt:=nil;
     finally
       BracketEx.Free;
@@ -13021,6 +13121,10 @@ begin
 
   if HasTypeInfo(El,AContext) then
     begin
+
+    if El.Parent is TProcedureBody then
+      RaiseNotSupported(El,AContext,20181231113427);
+
     // module.$rtti.$DynArray("name",{...})
     if length(El.Ranges)>0 then
       CallName:=GetBIName(pbifnRTTINewStaticArray)
@@ -17411,6 +17515,14 @@ begin
   aName:=JSStringToString(JSName);
 end;
 
+function TPasToJSConverter.GetImplJSProcScope(El: TPasElement;
+  Src: TJSSourceElements; AContext: TConvertContext): TPas2JSProcedureScope;
+begin
+  if (Src=nil) or not (coStoreImplJS in Options) or (AContext.Resolver=nil) then
+    exit(nil);
+  Result:=AContext.Resolver.GetTopLvlProcScope(El);
+end;
+
 function TPasToJSConverter.CreateUnary(Members: array of string; E: TJSElement): TJSUnary;
 var
   unary: TJSUnary;
@@ -19641,13 +19753,11 @@ var
   FD: TJSFuncDef;
   BodyFirst, BodyLast, ListFirst: TJSStatementList;
   FuncContext: TFunctionContext;
-  GlobalCtx: TConvertContext;
   ObjLit: TJSObjectLiteral;
   IfSt: TJSIfStatement;
   Call, Call2: TJSCallExpression;
   ok: Boolean;
   Src: TJSSourceElements;
-  Proc: TPasProcedure;
   ProcScope: TPas2JSProcedureScope;
 begin
   if El.Name='' then
@@ -19660,33 +19770,23 @@ begin
   try
     FDS:=CreateFunctionSt(El);
     FD:=FDS.AFunction;
-    // records are stored in interface/implementation
-    GlobalCtx:=AContext;
-    if El.Parent is TProcedureBody then
-      begin
-      GlobalCtx:=AContext.GetGlobalFunc;
-      if not (GlobalCtx.JSElement is TJSSourceElements) then
-        begin
-        {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.ConvertRecordType GlobalCtx=',GetObjName(GlobalCtx),' JSElement=',GetObjName(GlobalCtx.JSElement));
-        {$ENDIF}
-        RaiseNotSupported(El,AContext,20181229142440);
-        end;
-      Src:=TJSSourceElements(GlobalCtx.JSElement);
-      end;
+    // types are stored in interface/implementation
+    if (El.Parent is TProcedureBody)
+        and (AContext.JSElement is TJSSourceElements) then
+      Src:=TJSSourceElements(AContext.JSElement);
     // add 'this.TypeName = function(){}'
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-    AssignSt.LHS:=CreateSubDeclNameExpr(El,GlobalCtx);
+    AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
     AssignSt.Expr:=FDS;
     if Src<>nil then
-      AddToSourceElements(Src,AssignSt)
+      AddToSourceElements(Src,AssignSt) // keep Result=nil
     else
       Result:=AssignSt;
 
     // add param s
     FD.Params.Add(SrcParamName);
     // create function body
-    FuncContext:=TFunctionContext.Create(El,FD.Body,GlobalCtx);
+    FuncContext:=TFunctionContext.Create(El,FD.Body,AContext);
     FuncContext.ThisPas:=El;
     FuncContext.IsGlobal:=true;
     BodyFirst:=nil;
@@ -19708,14 +19808,16 @@ begin
     if FD.Body.A=nil then
       FD.Body.A:=BodyFirst;
 
-    if HasTypeInfo(El,GlobalCtx) then
+    if HasTypeInfo(El,AContext) then
       begin
       // add $rtti as second statement
-      if not (GlobalCtx is TFunctionContext) then
-        RaiseNotSupported(El,GlobalCtx,20170412120012);
+      if not (AContext is TFunctionContext) then
+        RaiseNotSupported(El,AContext,20170412120012);
+      if Src<>nil then
+        RaiseNotSupported(El,AContext,20181231005023);
 
       // module.$rtti.$Record("typename",{});
-      Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewRecord),false,GlobalCtx,ObjLit);
+      Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewRecord),false,AContext,ObjLit);
       if ObjLit=nil then
         RaiseInconsistency(20170412124804,El);
       if El.Members.Count>0 then
@@ -19742,18 +19844,12 @@ begin
         ListFirst:=nil;
         end;
 
-      if (GlobalCtx<>AContext) and (coStoreImplJS in Options)
-          and (AContext.Resolver<>nil) then
-        begin
-        // store precompiled record type in proc
-        Proc:=AContext.Resolver.GetTopLvlProc(AContext.PasElement);
-        if Proc<>nil then
-          begin
-          ProcScope:=TPas2JSProcedureScope(Proc.CustomData);
-          ProcScope.AddGlobalJS(CreatePrecompiledJS(AssignSt));
-          end;
-        end;
       end;
+
+    // store precompiled record type in proc
+    ProcScope:=GetImplJSProcScope(El,Src,AContext);
+    if ProcScope<>nil then
+      ProcScope.AddGlobalJS(CreatePrecompiledJS(Result));
     ok:=true;
   finally
     FuncContext.Free;
