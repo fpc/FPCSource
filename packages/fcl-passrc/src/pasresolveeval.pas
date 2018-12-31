@@ -136,8 +136,8 @@ const
   nNoMemberIsProvidedToAccessProperty = 3059;
   nTheUseOfXisNotAllowedInARecord = 3060;
   nParameterlessConstructorsNotAllowedInRecords = 3061;
-  // free 3062
-  // free 3063
+  nMultipleXinTypeYNameZCAandB = 3062;
+  nXCannotHaveParameters = 3063;
   nRangeCheckError = 3064;
   nHighRangeLimitLTLowRangeLimit = 3065;
   nRangeCheckEvaluatingConstantsVMinMax = 3066;
@@ -253,6 +253,8 @@ resourcestring
   sNoMemberIsProvidedToAccessProperty = 'No member is provided to access property';
   sTheUseOfXisNotAllowedInARecord = 'The use of "%s" is not allowed in a record';
   sParameterlessConstructorsNotAllowedInRecords = 'Parameterless constructors are not allowed in records or record/type helpers';
+  sMultipleXinTypeYNameZCAandB = 'Multiple %s in %s %s: %s and %s';
+  sXCannotHaveParameters = '%s cannot have parameters';
   sSymbolXIsNotPortable = 'Symbol "%s" is not portable';
   sSymbolXIsExperimental = 'Symbol "%s" is experimental';
   sSymbolXIsNotImplemented = 'Symbol "%s" is not implemented';

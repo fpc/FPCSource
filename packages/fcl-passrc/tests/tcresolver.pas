@@ -494,13 +494,13 @@ type
     Procedure TestAdvRecord_LocalForwardType;
     Procedure TestAdvRecord_Constructor_NewInstance;
     Procedure TestAdvRecord_ConstructorNoParamsFail;
-    // ToDo: Procedure TestAdvRecord_ClassConstructor;
-    // ToDo: Procedure TestAdvRecord_ClassConstructorParamsFail;
-    // ToDo: Procedure TestAdvRecord_ClassDestructorParamsFail;
+    Procedure TestAdvRecord_ClassConstructor;
+    Procedure TestAdvRecord_ClassConstructorParamsFail;
     Procedure TestAdvRecord_NestedRecordType;
     Procedure TestAdvRecord_NestedArgConstFail;
     Procedure TestAdvRecord_Property;
     Procedure TestAdvRecord_ClassProperty;
+    Procedure TestAdvRecord_PropertyDefault;
     Procedure TestAdvRecord_RecordAsFuncResult;
     Procedure TestAdvRecord_InheritedFail;
     Procedure TestAdvRecord_ForInEnumerator;
@@ -8020,6 +8020,45 @@ begin
     nParameterlessConstructorsNotAllowedInRecords);
 end;
 
+procedure TTestResolver.TestAdvRecord_ClassConstructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    class procedure {#a}Create;',
+  '    class constructor Create;',
+  '  end;',
+  'class constructor TRec.Create;',
+  'begin',
+  'end;',
+  'class procedure TRec.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '  TRec.{@a}Create;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassConstructorParamsFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    class constructor Create(w: word);',
+  '  end;',
+  'class constructor TRec.Create(w: word);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('class constructor cannot have parameters',nXCannotHaveParameters);
+end;
+
 procedure TTestResolver.TestAdvRecord_NestedRecordType;
 begin
   StartProgram(false);
@@ -8138,6 +8177,48 @@ begin
   'begin',
   '  TRec.Size:=TRec.Size;',
   '  TRec.Width:=TRec.Width;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_PropertyDefault;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    function GetItems(Index: word): word;',
+  '    procedure SetItems(Index: word; Value: word);',
+  '  public',
+  '    property Items[Index: word]: word read GetItems write SetItems; default;',
+  '  end;',
+  '  TGlob = record',
+  '  private',
+  '    class function GetSizes(Index: word): word; static;',
+  '    class procedure SetSizes(Index: word; Value: word); static;',
+  '  public',
+  '    class property Sizes[Index: word]: word read GetSizes write SetSizes; default;',
+  '  end;',
+  'function TRec.GetItems(Index: word): word;',
+  'begin',
+  'end;',
+  'procedure TRec.SetItems(Index: word; Value: word);',
+  'begin',
+  'end;',
+  'class function TGlob.GetSizes(Index: word): word;',
+  'begin',
+  'end;',
+  'class procedure TGlob.SetSizes(Index: word; Value: word);',
+  'begin',
+  'end;',
+  'var',
+  '  r: TRec;',
+  '  g: TGlob;',
+  'begin',
+  '  r[1]:=r[2];',
+  '  TGlob[1]:=TGlob[2];',
   '']);
   ParseProgram;
 end;
