@@ -456,6 +456,7 @@ type
     // ToDo: TestAdvRecord_PropertyDefault;
     // ToDo: TestAdvRecord_InFunction;
     // ToDo: pcu: record default property
+    // ToDo: class constructor
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -4764,7 +4765,7 @@ begin
   CheckSource('TestEnum_InFunction',
     LinesToStr([ // statements
     'this.TEnum = 3;',
-    'this.TEnum$1 = {',
+    'var TEnum$1 = {',
     '  "0":"Red",',
     '  Red:0,',
     '  "1":"Green",',
@@ -4772,7 +4773,7 @@ begin
     '  "2":"Blue",',
     '  Blue:2',
     '  };',
-    'this.TEnumSub = {',
+    'var TEnumSub = {',
     '  "0": "Left",',
     '  Left: 0,',
     '  "1": "Right",',
@@ -5487,13 +5488,13 @@ begin
     'this.TEnum = 3;',
     'this.TSetOfEnum = 4;',
     'this.TSetOfAno = 5;',
-    'this.TEnum$1 = {',
+    'var TEnum$1 = {',
     '  "0": "red",',
     '  red: 0,',
     '  "1": "blue",',
     '  blue: 1',
     '};',
-    'this.TSetOfAno$a = {',
+    'var TSetOfAno$a = {',
     '  "0": "up",',
     '  up: 0,',
     '  "1": "down",',
@@ -7953,7 +7954,7 @@ begin
     LinesToStr([ // statements
     'this.TArrayInt = 3;',
     'this.TArrayArrayInt = 4;',
-    'this.TArrayArrayInt$1$clone = function (a) {',
+    'var TArrayArrayInt$1$clone = function (a) {',
     '  var r = [];',
     '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
     '  return r;',
@@ -9886,7 +9887,7 @@ begin
   CheckSource('TestRecord_InFunction',
     LinesToStr([ // statements
     'this.TPoint = 3;',
-    'this.TPoint$1 = function (s) {',
+    'var TPoint$1 = function (s) {',
     '  if (s) {',
     '    this.x = s.x;',
     '    this.y = s.y;',
@@ -22004,13 +22005,14 @@ begin
   '  TPoint = record',
   '    x,y: integer;',
   '  end;',
+  'var p: TPoint;',
   'begin',
   'end;',
   'begin']);
   ConvertProgram;
   CheckSource('TestRTTI_LocalTypes',
     LinesToStr([ // statements
-    'this.TPoint = function(s) {',
+    'var TPoint = function(s) {',
     '  if (s) {',
     '    this.x = s.x;',
     '    this.y = s.y;',
@@ -22023,6 +22025,7 @@ begin
     '  };',
     '};',
     'this.DoIt = function () {',
+    '  var p = new TPoint();',
     '};',
     '']),
     LinesToStr([ // $mod.$main

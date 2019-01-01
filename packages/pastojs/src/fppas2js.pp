@@ -12625,6 +12625,7 @@ var
   OrdType: TOrdType;
   Src: TJSSourceElements;
   ProcScope: TPas2JSProcedureScope;
+  VarSt: TJSVariableStatement;
 begin
   Result:=nil;
   for i:=0 to El.Values.Count-1 do
@@ -12637,6 +12638,9 @@ begin
   ok:=false;
   ObjectContect:=nil;
   Src:=nil;
+  Call:=nil;
+  VarSt:=nil;
+  ProcScope:=nil;
   try
     Obj:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
     if AContext is TObjectContext then
@@ -12651,21 +12655,22 @@ begin
     else if El.Parent is TProcedureBody then
       begin
       // add 'var TypeName = {}'
-      if (AContext<>nil) and (AContext.JSElement is TJSSourceElements) then
-        Src:=TJSSourceElements(AContext.JSElement)
+      VarSt:=CreateVarStatement(TransformVariableName(El,AContext),Obj,El);
+      if AContext.JSElement is TJSSourceElements then
+        begin
+        Src:=TJSSourceElements(AContext.JSElement);
+        AddToSourceElements(Src,VarSt); // keep Result=nil
+        end
       else
-        Result:=CreateVarStatement(TransformVariableName(El,AContext),Obj,El);
-      end;
-    if Result=nil then
+        Result:=VarSt;
+      end
+    else
       begin
       // add 'this.TypeName = {}'
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
       AssignSt.Expr:=Obj;
-      if Src<>nil then
-        AddToSourceElements(Src,AssignSt) // keep Result=nil
-      else
-        Result:=AssignSt;
+      Result:=AssignSt;
       end;
 
     ObjectContect:=TObjectContext.Create(El,Obj,AContext);
@@ -12683,21 +12688,22 @@ begin
       ObjLit.Expr:=CreateLiteralNumber(El,i);
       end;
 
+    if Src<>nil then
+      begin
+      // store precompiled enum type in proc
+      ProcScope:=GetImplJSProcScope(El,Src,AContext);
+      if ProcScope<>nil then
+        ProcScope.AddGlobalJS(CreatePrecompiledJS(VarSt));
+      end;
+
     if HasTypeInfo(El,AContext) then
       begin
       // create typeinfo
       if not (AContext is TFunctionContext) then
         RaiseNotSupported(El,AContext,20170411210045,'typeinfo');
-      if Src<>nil then
-        RaiseNotSupported(El,AContext,20181231005005);
-      // create statement list
-      List:=TJSStatementList(CreateElement(TJSStatementList,El));
-      List.A:=Result;
-      Result:=List;
       OrdType:=GetOrdType(0,TMaxPrecInt(El.Values.Count)-1,El);
       // module.$rtti.$TIEnum("TMyEnum",{...});
       Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewEnum),false,AContext,TIObj);
-      List.B:=Call;
       // add  minvalue: number
       TIProp:=TIObj.Elements.AddElement;
       TIProp.Name:=TJSString(GetBIName(pbivnRTTIInt_MinValue));
@@ -12714,15 +12720,30 @@ begin
       TIProp:=TIObj.Elements.AddElement;
       TIProp.Name:=TJSString(GetBIName(pbivnRTTIEnum_EnumType));
       TIProp.Expr:=CreateSubDeclNameExpr(El,AContext);
-      end;
 
-    // store precompiled enum type in proc
-    ProcScope:=GetImplJSProcScope(El,Src,AContext);
-    if ProcScope<>nil then
-      ProcScope.AddGlobalJS(CreatePrecompiledJS(AssignSt));
+      if Src<>nil then
+        begin
+        // add to source elements
+        AddToSourceElements(Src,Call);
+        if ProcScope<>nil then
+          ProcScope.AddGlobalJS(CreatePrecompiledJS(Call));
+        end
+      else if Result=nil then
+        RaiseNotSupported(El,AContext,20190101130432)
+      else
+        begin
+        // create statement list
+        List:=TJSStatementList(CreateElement(TJSStatementList,El));
+        List.A:=Result;
+        Result:=List;
+        List.B:=Call;
+        end;
+      Call:=nil;
+      end;
 
     ok:=true;
   finally
+    Call.Free;
     ObjectContect.Free;
     if not ok then
       FreeAndNil(Result);
@@ -12997,8 +13018,21 @@ const
   CloneResultName = 'r';
   CloneRunName = 'i';
 var
+  ProcScope: TPas2JSProcedureScope;
+  Src: TJSSourceElements;
+
+  procedure StorePrecompiledJS(JS: TJSElement);
+  begin
+    // store precompiled enum type in proc
+    if ProcScope=nil then
+      ProcScope:=GetImplJSProcScope(El,Src,AContext);
+    if ProcScope<>nil then
+      ProcScope.AddGlobalJS(CreatePrecompiledJS(JS));
+  end;
+
+var
   AssignSt: TJSSimpleAssignStatement;
-  CallName: String;
+  CallName, ArrName: String;
   Obj: TJSObjectLiteral;
   Prop: TJSObjectLiteralElement;
   ArrLit: TJSArrayLiteral;
@@ -13010,15 +13044,14 @@ var
   RgLen, RangeEnd: TMaxPrecInt;
   List: TJSStatementList;
   Func: TJSFunctionDeclarationStatement;
-  BodySrc, Src: TJSSourceElements;
+  BodySrc: TJSSourceElements;
   VarSt: TJSVariableStatement;
   ForLoop: TJSForStatement;
   ExprLT: TJSRelationalExpressionLT;
   PlusPlus: TJSUnaryPostPlusPlusExpression;
   BracketEx: TJSBracketMemberExpression;
-  CloneEl: TJSElement;
+  ArraySt, CloneEl: TJSElement;
   ReturnSt: TJSReturnStatement;
-  ProcScope: TPas2JSProcedureScope;
 begin
   Result:=nil;
   if El.PackMode<>pmNone then
@@ -13028,8 +13061,9 @@ begin
   writeln('TPasToJSConverter.ConvertArrayType ',GetObjName(El));
   {$ENDIF}
 
+  ProcScope:=nil;
   Src:=nil;
-  if (AContext<>nil) and (AContext.JSElement is TJSSourceElements) then
+  if AContext.JSElement is TJSSourceElements then
     Src:=TJSSourceElements(AContext.JSElement);
 
   if AContext.Resolver.HasStaticArrayCloneFunc(El) then
@@ -13041,17 +13075,13 @@ begin
     //    return r;
     //  };
     BracketEx:=nil;
-    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+    AssignSt:=nil;
+    Func:=nil;
     try
-      // add 'this.TypeName = function(){}'
-      AssignSt.LHS:=CreateSubDeclNameExpr(El,
-                       El.Name+GetBIName(pbifnArray_Static_Clone),AContext);
-
       Index:=0;
       RangeEl:=El.Ranges[Index];
       // function(a){...
       Func:=CreateFunctionSt(El,true,true);
-      AssignSt.Expr:=Func;
       Func.AFunction.Params.Add(CloneArrName);
       BodySrc:=Func.AFunction.Body.A as TJSSourceElements;
       // var r = [];
@@ -13102,28 +13132,42 @@ begin
       AddToSourceElements(BodySrc,ReturnSt);
       ReturnSt.Expr:=CreatePrimitiveDotExpr(CloneResultName,El);
 
-      if Src<>nil then
-        AddToSourceElements(Src,AssignSt)
+      ArrName:=El.Name+GetBIName(pbifnArray_Static_Clone);
+      if El.Parent is TProcedureBody then
+        begin
+        // local array type (elevated to global)
+        // -> add 'var TypeName = function(){}'
+        ArraySt:=CreateVarStatement(ArrName,Func,El);
+        end
       else
-        Result:=AssignSt;
+        begin
+        // global array type
+        // -> add 'this.TypeName = function(){}'
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        ArraySt:=AssignSt;
+        AssignSt.LHS:=CreateSubDeclNameExpr(El,ArrName,AContext);
+        AssignSt.Expr:=Func;
+        end;
+      Func:=nil;
+
+      if Src<>nil then
+        AddToSourceElements(Src,ArraySt)
+      else
+        Result:=ArraySt;
 
       // store precompiled enum type in proc
-      ProcScope:=GetImplJSProcScope(El,Src,AContext);
-      if ProcScope<>nil then
-        ProcScope.AddGlobalJS(CreatePrecompiledJS(AssignSt));
+      StorePrecompiledJS(ArraySt);
 
-      AssignSt:=nil;
+      ArraySt:=nil;
     finally
       BracketEx.Free;
-      AssignSt.Free;
+      Func.Free;
+      ArraySt.Free;
     end;
     end;
 
   if HasTypeInfo(El,AContext) then
     begin
-
-    if El.Parent is TProcedureBody then
-      RaiseNotSupported(El,AContext,20181231113427);
 
     // module.$rtti.$DynArray("name",{...})
     if length(El.Ranges)>0 then
@@ -13164,7 +13208,14 @@ begin
       Prop:=Obj.Elements.AddElement;
       Prop.Name:=TJSString(GetBIName(pbivnRTTIArray_ElType));
       Prop.Expr:=CreateTypeInfoRef(ElType,AContext,El);
-      if Result=nil then
+
+      if Src<>nil then
+        begin
+        AddToSourceElements(Src,Call);
+        // store precompiled rtti call in proc
+        StorePrecompiledJS(Call);
+        end
+      else if Result=nil then
         Result:=Call
       else
         begin
@@ -19754,6 +19805,7 @@ var
   BodyFirst, BodyLast, ListFirst: TJSStatementList;
   FuncContext: TFunctionContext;
   ObjLit: TJSObjectLiteral;
+  VarSt: TJSVariableStatement;
   IfSt: TJSIfStatement;
   Call, Call2: TJSCallExpression;
   ok: Boolean;
@@ -19765,23 +19817,33 @@ begin
   Result:=nil;
   FuncContext:=nil;
   ListFirst:=nil;
+  VarSt:=nil;
   Src:=nil;
+  ProcScope:=nil;
   ok:=false;
   try
     FDS:=CreateFunctionSt(El);
     FD:=FDS.AFunction;
     // types are stored in interface/implementation
-    if (El.Parent is TProcedureBody)
-        and (AContext.JSElement is TJSSourceElements) then
-      Src:=TJSSourceElements(AContext.JSElement);
-    // add 'this.TypeName = function(){}'
-    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-    AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
-    AssignSt.Expr:=FDS;
-    if Src<>nil then
-      AddToSourceElements(Src,AssignSt) // keep Result=nil
+    if El.Parent is TProcedureBody then
+      begin
+      // add 'var TypeName = function(){}'
+      if AContext.JSElement is TJSSourceElements then
+        Src:=TJSSourceElements(AContext.JSElement);
+      VarSt:=CreateVarStatement(TransformVariableName(El,AContext),FDS,El);
+      if Src<>nil then
+        AddToSourceElements(Src,VarSt) // keep Result=nil
+      else
+        Result:=VarSt;
+      end
     else
+      begin
+      // add 'this.TypeName = function(){}'
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
+      AssignSt.Expr:=FDS;
       Result:=AssignSt;
+      end;
 
     // add param s
     FD.Params.Add(SrcParamName);
@@ -19808,13 +19870,19 @@ begin
     if FD.Body.A=nil then
       FD.Body.A:=BodyFirst;
 
+    if Src<>nil then
+      begin
+      // store precompiled record type in proc
+      ProcScope:=GetImplJSProcScope(El,Src,AContext);
+      if ProcScope<>nil then
+        ProcScope.AddGlobalJS(CreatePrecompiledJS(VarSt));
+      end;
+
     if HasTypeInfo(El,AContext) then
       begin
       // add $rtti as second statement
       if not (AContext is TFunctionContext) then
         RaiseNotSupported(El,AContext,20170412120012);
-      if Src<>nil then
-        RaiseNotSupported(El,AContext,20181231005023);
 
       // module.$rtti.$Record("typename",{});
       Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewRecord),false,AContext,ObjLit);
@@ -19831,9 +19899,16 @@ begin
         Call:=Call2;
         AddRTTIFields(Call.Args);
         end;
+
       if Src<>nil then
+        begin
         // add Call to global statements
-        AddToSourceElements(Src,Call)
+        AddToSourceElements(Src,Call);
+        if ProcScope<>nil then
+          ProcScope.AddGlobalJS(CreatePrecompiledJS(VarSt));
+        end
+      else if Result=nil then
+        RaiseNotSupported(El,AContext,20190101130409)
       else
         begin
         // combine Result and Call into a statement list
@@ -19846,10 +19921,6 @@ begin
 
       end;
 
-    // store precompiled record type in proc
-    ProcScope:=GetImplJSProcScope(El,Src,AContext);
-    if ProcScope<>nil then
-      ProcScope.AddGlobalJS(CreatePrecompiledJS(Result));
     ok:=true;
   finally
     FuncContext.Free;
