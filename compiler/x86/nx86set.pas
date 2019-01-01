@@ -330,7 +330,7 @@ implementation
                     else
                       begin
                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, tcgint(hp^._low.svalue), hregister);
-                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, jmp_le, tcgint(hp^._high.svalue - hp^._low.svalue), hregister,blocklabel(hp^.blockid));
+                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_BE, tcgint(hp^._high.svalue - hp^._low.svalue), hregister,blocklabel(hp^.blockid));
                       end;
                   end;
                 cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);

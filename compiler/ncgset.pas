@@ -739,7 +739,7 @@ implementation
                     begin
                       scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
                       gensub(tcgint(hp^._low.svalue));
-                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
                     end;
                 end;
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
