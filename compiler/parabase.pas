@@ -118,6 +118,7 @@ unit parabase;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
           function    locations_count:integer;
+          function    isempty: boolean; { no data, and not varargs para }
 
           procedure   buildderef;
           procedure   deref;
@@ -161,7 +162,7 @@ implementation
 
     uses
       systems,verbose,
-      symsym;
+      symsym,defutil;
 
 
 {****************************************************************************
@@ -316,6 +317,25 @@ implementation
           end;
       end;
 
+
+    function TCGPara.isempty: boolean;
+      var
+        hlocation: pcgparalocation;
+      begin
+        { can happen if e.g. [] is passed to a cdecl varargs para }
+        if not assigned(def) then
+          exit(true);
+        if is_array_of_const(def) then
+          exit(false);
+        hlocation:=location;
+        while assigned(hlocation) do
+          begin
+            if hlocation^.Loc<>LOC_VOID then
+              exit(false);
+            hlocation:=hlocation^.next;
+          end;
+        result:=true;
+      end;
 
     procedure TCGPara.buildderef;
       begin

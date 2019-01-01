@@ -434,6 +434,9 @@ implementation
     callparas:=tfplist.Create;
     for i:=0 to high(paras) do
       begin
+        { skip parameters without data }
+        if paras[i]^.isempty then
+          continue;
         paraloc:=paras[i]^.location;
         while assigned(paraloc) do
           begin

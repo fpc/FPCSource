@@ -682,9 +682,19 @@ implementation
             exit
           end;
         if withparaname then
-          paraloc:=hp.paraloc[calleeside].location
+          begin
+            { don't add parameters that don't take up registers or stack space;
+              clang doesn't either and some LLVM backends don't support them }
+            if hp.paraloc[calleeside].isempty then
+              exit;
+            paraloc:=hp.paraloc[calleeside].location
+          end
         else
-          paraloc:=hp.paraloc[callerside].location;
+          begin
+            if hp.paraloc[callerside].isempty then
+              exit;
+            paraloc:=hp.paraloc[callerside].location;
+          end;
         repeat
           usedef:=paraloc^.def;
           llvmextractvalueextinfo(hp.vardef,usedef,signext);
