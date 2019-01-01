@@ -1491,11 +1491,8 @@ implementation
       newpd:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc,''));
       insert_funcret_para(newpd);
       newpd.procoptions:=newpd.procoptions+orgpd.procoptions*[po_external,po_has_importname,po_has_importdll];
-      newpd.import_name:=orgpd.import_name;
-      orgpd.import_name:=nil;
-      newpd.import_dll:=orgpd.import_dll;
-      orgpd.import_dll:=nil;
-      newpd.import_nr:=orgpd.import_nr;
+      stringdispose(orgpd.import_name);
+      stringdispose(orgpd.import_dll);
       orgpd.import_nr:=0;
       newpd.setmangledname(newname);
       finish_copied_procdef(newpd,'__FPC_IMPL_EXTERNAL_REDIRECT_'+newname,current_module.localsymtable,nil);

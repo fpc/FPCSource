@@ -58,6 +58,7 @@ type
      fval: tai;
     public
      constructor create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+     destructor destroy; override;
      property val: tai read fval write setval;
    end;
 
@@ -646,6 +647,13 @@ implementation
      end;
 
 
+   destructor tai_simpletypedconst.destroy;
+     begin
+       fval.free;
+       inherited destroy;
+     end;
+
+
 {****************************************************************************
               tai_aggregatetypedconst.tadeenumerator
  ****************************************************************************}
@@ -820,7 +828,11 @@ implementation
 
 
    destructor tai_aggregatetypedconst.destroy;
+     var
+       ai: tai_abstracttypedconst;
      begin
+       for ai in self do
+          ai.free;
        fvalues.free;
        inherited destroy;
      end;
