@@ -290,7 +290,7 @@ interface
          dct_propput
        );
 
-    function reverseparameters(p: tcallparanode): tcallparanode;
+    procedure reverseparameters(var p: tcallparanode);
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
       dispid : longint;resultdef : tdef) : tnode;
 
@@ -331,21 +331,23 @@ implementation
                              HELPERS
  ****************************************************************************}
 
-    function reverseparameters(p: tcallparanode): tcallparanode;
+    procedure reverseparameters(var p: tcallparanode);
       var
+        tmpp,
         hp1, hp2: tcallparanode;
       begin
         hp1:=nil;
-        while assigned(p) do
+        tmpp:=p;
+        while assigned(tmpp) do
           begin
              { pull out }
-             hp2:=p;
-             p:=tcallparanode(p.right);
+             hp2:=tmpp;
+             tmpp:=tcallparanode(tmpp.right);
              { pull in }
              hp2.right:=hp1;
              hp1:=hp2;
           end;
-        reverseparameters:=hp1;
+        p:=hp1;
       end;
 
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;

@@ -270,7 +270,8 @@ unit cpupara;
               then indexed beyond its bounds) }
           arraydef:
             result:=
-              (calloption in cdecl_pocalls) or
+              ((calloption in cdecl_pocalls) and
+               not is_dynamic_array(def)) or
               is_open_array(def) or
               is_array_of_const(def) or
               is_array_constructor(def) or
@@ -556,7 +557,10 @@ unit cpupara;
                     (side=callerside) and
                     is_ordinal(paradef) and
                     (paradef.size<4) then
-                   paraloc^.size:=OS_32;
+                   begin
+                     paraloc^.size:=OS_32;
+                     paraloc^.def:=u32inttype;
+                   end;
 
                  { in case it's a composite, "The argument is passed as though
                    it had been loaded into the registers from a double-word-
@@ -567,7 +571,7 @@ unit cpupara;
                  if (target_info.endian=endian_big) and
                     not(paraloc^.size in [OS_64,OS_S64]) and
                     (paradef.typ in [setdef,recorddef,arraydef,objectdef]) then
-                   paraloc^.shiftval:=-(8-tcgsize2size[paraloc^.size]);
+                   paraloc^.shiftval:=-(8-tcgsize2size[paraloc^.size])*8;
                end;
              LOC_MMREGISTER:
                begin
@@ -581,7 +585,7 @@ unit cpupara;
                   paraloc^.loc:=LOC_REFERENCE;
 
                   { the current stack offset may not be properly aligned in
-                    case we're on Darwin have allocated a non-variadic argument
+                    case we're on Darwin and have allocated a non-variadic argument
                     < 8 bytes previously }
                   if target_info.abi=abi_aarch64_darwin then
                     curstackoffset:=align(curstackoffset,paraloc^.def.alignment);

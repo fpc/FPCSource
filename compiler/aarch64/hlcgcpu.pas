@@ -64,7 +64,10 @@ implementation
     begin
       tocgsize:=def_cgsize(tosize);
       if (sreg.startbit<>0) or
-         not(sreg.bitlen in [32,64]) then
+         not((sreg.subsetregsize in [OS_32,OS_S32]) and
+             (sreg.bitlen=32)) or
+         not((sreg.subsetregsize in [OS_64,OS_S64]) and
+             (sreg.bitlen=64)) then
         begin
           if is_signed(subsetsize) then
             op:=A_SBFX

@@ -1239,7 +1239,7 @@ implementation
 
         { reverse the parameters (needed to get the colon parameters in the }
         { correct order when processing write(ln)                           }
-        left := reverseparameters(tcallparanode(left));
+        reverseparameters(tcallparanode(left));
 
         if is_rwstr then
           begin
@@ -1525,7 +1525,7 @@ implementation
         valsinttype:=search_system_type('VALSINT').typedef;
 
         { reverse parameters for easier processing }
-        left := reverseparameters(tcallparanode(left));
+        reverseparameters(tcallparanode(left));
 
         { get the parameters }
         tempcode := nil;

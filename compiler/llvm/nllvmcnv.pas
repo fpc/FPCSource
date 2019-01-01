@@ -80,7 +80,7 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
     result:=
       (fromdef<>todef) and
       { two procdefs that are structurally the same but semantically different
-        still need a convertion }
+        still need a conversion }
       (
        ((fromdef.typ=procvardef) and
         (todef.typ=procvardef))
