@@ -697,7 +697,7 @@ implementation
     { in the except block                                    }
     class procedure tcgexceptionstatehandler.cleanupobjectstack(list: TAsmList);
       begin
-         hlcg.g_call_system_proc(list,'fpc_doneexception',[],nil);
+         hlcg.g_call_system_proc(list,'fpc_doneexception',[],nil).resetiftemp;
       end;
 
 
@@ -715,7 +715,7 @@ implementation
          free_exception(list,t,entrystate,0,exitlabel,false);
          { we don't need to save/restore registers here because reraise never }
          { returns                                                            }
-         hlcg.g_call_system_proc(list,'fpc_raise_nested',[],nil);
+         hlcg.g_call_system_proc(list,'fpc_raise_nested',[],nil).resetiftemp;
          hlcg.a_label(list,exitlabel);
          cleanupobjectstack(list);
       end;
@@ -723,7 +723,7 @@ implementation
 
     class procedure tcgexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
       begin
-         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil);
+         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
       end;
 
 
@@ -786,7 +786,7 @@ implementation
 
     class procedure tcgexceptionstatehandler.popaddrstack(list: TAsmList);
       begin
-        hlcg.g_call_system_proc(list,'fpc_popaddrstack',[],nil);
+        hlcg.g_call_system_proc(list,'fpc_popaddrstack',[],nil).resetiftemp;
       end;
 
 {*****************************************************************************

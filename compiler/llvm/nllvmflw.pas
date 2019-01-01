@@ -164,7 +164,7 @@ implementation
           We cheat for now by adding an invoke to a dummy routine at the start and at
           the end of the try-block. That will not magically fix the state
           of all variables when the exception gets caught though. }
-        hlcg.g_call_system_proc(list,'FPC_DUMMYPOTENTIALRAISE',[],nil);
+        hlcg.g_call_system_proc(list,'FPC_DUMMYPOTENTIALRAISE',[],nil).resetiftemp;
       end;
 
 
@@ -212,7 +212,7 @@ implementation
           be combined with marking stores inside try blocks as volatile and the
           loads afterwards as well in order to guarantee correct optimizations
           in case an exception gets triggered inside a try-block though }
-        hlcg.g_call_system_proc(list,'FPC_DUMMYPOTENTIALRAISE',[],nil);
+        hlcg.g_call_system_proc(list,'FPC_DUMMYPOTENTIALRAISE',[],nil).resetiftemp;
 
         { record that no exception happened in the reason buf }
         reg:=hlcg.getintregister(list,ossinttype);
@@ -284,7 +284,7 @@ implementation
 
     class procedure tllvmexceptionstatehandler.end_catch(list: TAsmList);
       begin
-        hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil);
+        hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
         inherited;
       end;
 
@@ -297,7 +297,7 @@ implementation
 
     class procedure tllvmexceptionstatehandler.catch_all_end(list: TAsmList);
       begin
-        hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil);
+        hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
       end;
 
 
@@ -367,6 +367,7 @@ implementation
             hlcg.a_cmp_reg_loc_label(list,typeidres.Def,OC_EQ,exceptiontypeidreg,exceptloc,catchstartlab);
             hlcg.a_jmp_always(list,nextonlabel);
             hlcg.a_label(list,catchstartlab);
+            typeidres.resetiftemp;
           end;
 
         wrappedexception:=hlcg.getaddressregister(list,voidpointertype);
