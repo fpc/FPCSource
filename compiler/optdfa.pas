@@ -383,6 +383,7 @@ unit optdfa;
             temprefn,
             loadn,
             typeconvn,
+            derefn,
             assignn:
               begin
                 if not(assigned(node.optinfo^.def)) and
