@@ -618,7 +618,7 @@ TYPE
       MaxY: word;                { Max. column.                    }
       DirectColor: boolean;         { Is this a direct color mode??   }
       Hardwarepages: byte;          { total number of image pages - 1 }
-      ModeName: String[18];
+      ModeName: String[32];
       { necessary hooks ... }
       DirectPutPixel : DefPixelProc;
       GetPixel       : GetPixelProc;
