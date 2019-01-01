@@ -521,7 +521,7 @@ implementation
     function tjvminlinenode.first_setlength: tnode;
       begin
         { reverse the parameter order so we can process them more easily }
-        left:=reverseparameters(tcallparanode(left));
+        reverseparameters(tcallparanode(left));
         { treat setlength(x,0) specially: used to init uninitialised locations }
         if not is_shortstring(left.resultdef) and
            not assigned(tcallparanode(tcallparanode(left).right).right) and
@@ -535,7 +535,7 @@ implementation
         { strings are handled the same as on other platforms }
         if left.resultdef.typ=stringdef then
           begin
-            left:=reverseparameters(tcallparanode(left));
+            reverseparameters(tcallparanode(left));
             result:=inherited first_setlength;
             exit;
           end;

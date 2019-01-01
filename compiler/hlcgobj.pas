@@ -3186,7 +3186,7 @@ implementation
          paramanager.getintparaloc(list,pd,1,cgpara1);
          a_load_const_cgpara(list,s32inttype,aint(210),cgpara1);
          paramanager.freecgpara(list,cgpara1);
-         g_call_system_proc(list,pd,[@cgpara1],nil);
+         g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
          cgpara1.done;
          a_label(list,oklabel);
        end;
@@ -3234,7 +3234,7 @@ implementation
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil).resetiftemp;
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
@@ -3262,7 +3262,7 @@ implementation
         end;
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil).resetiftemp;
       cgpara2.done;
       cgpara1.done;
     end;
@@ -3301,7 +3301,7 @@ implementation
             { these functions get the pointer by value }
             a_load_ref_cgpara(list,t,ref,cgpara1);
           paramanager.freecgpara(list,cgpara1);
-          g_call_system_proc(list,pd,[@cgpara1],nil);
+          g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
         end
        else
         begin
@@ -3323,7 +3323,7 @@ implementation
             end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
-          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil).resetiftemp;
         end;
        cgpara2.done;
        cgpara1.done;
@@ -3349,7 +3349,7 @@ implementation
            paramanager.getintparaloc(list,pd,1,cgpara1);
            a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
            paramanager.freecgpara(list,cgpara1);
-          g_call_system_proc(list,pd,[@cgpara1],nil);
+          g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
          end
        else
          begin
@@ -3371,7 +3371,7 @@ implementation
               end;
             paramanager.freecgpara(list,cgpara1);
             paramanager.freecgpara(list,cgpara2);
-            g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
+            g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil).resetiftemp;
          end;
        cgpara1.done;
        cgpara2.done;
@@ -3421,7 +3421,7 @@ implementation
             end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
-          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil).resetiftemp;
           cgpara1.done;
           cgpara2.done;
           exit;
@@ -3431,7 +3431,7 @@ implementation
       paramanager.getintparaloc(list,pd,1,cgpara1);
       a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1],nil);
+      g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
       cgpara1.done;
     end;
 
@@ -3485,7 +3485,7 @@ implementation
       paramanager.freecgpara(list,cgpara1);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara3);
-      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil).resetiftemp;
 
       cgpara3.done;
       cgpara2.done;
@@ -3664,7 +3664,7 @@ implementation
                   { if low(to) > maxlongint also range error }
                   (lto > aintmax) then
                  begin
-                   g_call_system_proc(list,'fpc_rangeerror',[],nil);
+                   g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
                    exit
                  end;
                { from is signed and to is unsigned -> when looking at to }
@@ -3679,7 +3679,7 @@ implementation
                if (lfrom > aintmax) or
                   (hto < 0) then
                  begin
-                   g_call_system_proc(list,'fpc_rangeerror',[],nil);
+                   g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
                    exit
                  end;
                { from is unsigned and to is signed -> when looking at to }
@@ -3702,7 +3702,7 @@ implementation
         a_cmp_const_reg_label(list,maxdef,OC_BE,aintmax,hreg,neglabel)
       else
         a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint(int64(hto-lto)),hreg,neglabel);
-      g_call_system_proc(list,'fpc_rangeerror',[],nil);
+      g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
       a_label(list,neglabel);
     end;
 
@@ -3781,7 +3781,7 @@ implementation
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil).resetiftemp;
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
@@ -3800,7 +3800,7 @@ implementation
       { load source }
       a_load_loc_cgpara(list,cpointerdef.getreusable(arrdef),l,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1],nil);
+      g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
       cgpara1.done;
     end;
 
@@ -4639,10 +4639,10 @@ implementation
 {$ifdef AVR}
            cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false)
 {$else AVR}
-           g_call_system_proc(list,'fpc_initializeunits',[],nil)
+           g_call_system_proc(list,'fpc_initializeunits',[],nil).resetiftemp
 {$endif AVR}
          else
-           g_call_system_proc(list,'fpc_libinitializeunits',[],nil);
+           g_call_system_proc(list,'fpc_libinitializeunits',[],nil).resetiftemp;
        end;
 
       list.concat(Tai_force_line.Create);
@@ -4660,7 +4660,7 @@ implementation
       { call __EXIT for main program }
       if (not current_module.islibrary) and
          (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        g_call_system_proc(list,'fpc_do_exit',[],nil);
+        g_call_system_proc(list,'fpc_do_exit',[],nil).resetiftemp;
     end;
 
   procedure thlcgobj.inittempvariables(list: TAsmList);
@@ -5236,7 +5236,7 @@ implementation
       paramanager.getintparaloc(list,pd,1,paraloc1);
       paramanager.freecgpara(list,paraloc1);
       { Call the helper }
-      hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+      g_call_system_proc(list,pd,[@paraloc1],nil).resetiftemp;
       paraloc1.done;
     end;
 
