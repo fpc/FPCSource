@@ -631,6 +631,7 @@ type
     FCreationDate: TDateTime;
     FProducer: String;
     FTitle: String;
+    FKeywords: String;
   public
     constructor Create; virtual;
     Property Author : String Read FAuthor Write FAuthor;
@@ -638,6 +639,7 @@ type
     Property ApplicationName : String Read FApplicationName Write FApplicationName;
     Property Producer : String Read FProducer Write FProducer;
     Property CreationDate : TDateTime Read FCreationDate Write FCreationDate;
+    Property Keywords : String read FKeywords write FKeywords;
   end;
 
 
@@ -1386,6 +1388,33 @@ begin
   Result := APixels / cDefaultDPI;
 end;
 
+function XMLEscape(const Data: string): string;
+var
+  iPos, i: Integer;
+
+  procedure Encode(const AStr: string);
+  begin
+    Move(AStr[1], result[iPos], Length(AStr) * SizeOf(Char));
+    Inc(iPos, Length(AStr));
+  end;
+
+begin
+  SetLength(result, Length(Data) * 6);
+  iPos := 1;
+  for i := 1 to length(Data) do
+    case Data[i] of
+      '<': Encode('&lt;');
+      '>': Encode('&gt;');
+      '&': Encode('&amp;');
+      '"': Encode('&quot;');
+    else
+      result[iPos] := Data[i];
+      Inc(iPos);
+    end;
+  SetLength(result, iPos - 1);
+end;
+
+
 { TPDFMemoryStream }
 
 procedure TPDFMemoryStream.Write(const AStream: TStream);
@@ -1428,36 +1457,52 @@ const
     NBSP: UnicodeChar = UnicodeChar($FEFF);
 begin
   WriteString('<?xpacket begin="'+UnicodeCharToString(@NBSP)+'" id="W5M0MpCehiHzreSzNTczkc9d"?>'+CRLF, AStream);
+  WriteString('<x:xmpmeta xmlns:x="adobe:ns:meta/">'+CRLF, AStream);
   WriteString('<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'+CRLF, AStream);
+
   WriteString('<rdf:Description rdf:about=""', AStream);
-  WriteString(' xmlns:dc="http://purl.org/dc/elements/1.1/"', AStream);
-  WriteString(' xmlns:xmp="http://ns.adobe.com/xap/1.0/"', AStream);
-  WriteString(' xmlns:pdf="http://ns.adobe.com/pdf/1.3/"', AStream);
   WriteString(' xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/"', AStream);
   WriteString('>'+CRLF, AStream);
-
-  //Native metadata
-  if (Document.Infos.Title <> '') or (Document.Infos.Author <> '') then begin
-    if Document.Infos.Title <> '' then
-      Add('dc:title', '<rdf:Alt><rdf:li xml:lang="x-default">'+Document.Infos.Title+'</rdf:li></rdf:Alt>');
-    if Document.Infos.Author <> '' then
-      Add('dc:creator', Document.Infos.Author);
-  end;
-  if Document.Infos.ApplicationName <> '' then
-    Add('xmp:CreatorTool', Document.Infos.ApplicationName);
-  if Document.Infos.CreationDate <> 0 then
-    Add('xmp:CreateDate', DateToISO8601Date(Document.Infos.CreationDate));
-  Add('pdf:Producer', Document.Infos.Producer);
   //PDF/A
   Add('pdfaid:part', '1');
   Add('pdfaid:conformance', 'B');
-
-
   WriteString('</rdf:Description>'+CRLF, AStream);
+
+  WriteString('<rdf:Description rdf:about=""', AStream);
+  WriteString(' xmlns:pdf="http://ns.adobe.com/pdf/1.3/"', AStream);
+  WriteString('>'+CRLF, AStream);
+  Add('pdf:Producer', XMLEscape(Document.Infos.Producer));
+  if Document.Infos.Keywords <> '' then
+    Add('pdf:Keywords', XMLEscape(Document.Infos.Keywords));
+  WriteString('</rdf:Description>'+CRLF, AStream);
+
+  WriteString('<rdf:Description rdf:about=""', AStream);
+  WriteString(' xmlns:xmp="http://ns.adobe.com/xap/1.0/"', AStream);
+  WriteString('>'+CRLF, AStream);
+  if Document.Infos.ApplicationName <> '' then
+    Add('xmp:CreatorTool', XMLEscape(Document.Infos.ApplicationName));
+  if Document.Infos.CreationDate <> 0 then
+    Add('xmp:CreateDate', DateToISO8601Date(Document.Infos.CreationDate));
+  WriteString('</rdf:Description>'+CRLF, AStream);
+
+  if (Document.Infos.Title <> '') or (Document.Infos.Author <> '') then
+  begin
+    WriteString('<rdf:Description rdf:about=""', AStream);
+    WriteString(' xmlns:dc="http://purl.org/dc/elements/1.1/"', AStream);
+    WriteString('>'+CRLF, AStream);
+
+    if Document.Infos.Title <> '' then
+      Add('dc:title', '<rdf:Alt><rdf:li xml:lang="x-default">'+XMLEscape(Document.Infos.Title)+'</rdf:li></rdf:Alt>');
+    if Document.Infos.Author <> '' then
+      Add('dc:creator', '<rdf:Seq><rdf:li>'+ XMLEscape(Document.Infos.Author) + '</rdf:li></rdf:Seq>');
+  WriteString('</rdf:Description>'+CRLF, AStream);
+  end;
+
   WriteString('</rdf:RDF>'+CRLF, AStream);
+  WriteString('</x:xmpmeta>'+CRLF, AStream);
 
   //Recomended whitespace padding for inplace editing
-  for i := 1 to 5 do
+  for i := 1 to 21 do
     WriteString('                                                                                                   '+CRLF, AStream);
   WriteString('<?xpacket end="w"?>', AStream);
 end;
@@ -4180,6 +4225,7 @@ constructor TPDFInfos.Create;
 begin
   inherited Create;
   FProducer := 'fpGUI Toolkit 1.4';
+  FKeywords:= '';
 end;
 
 { TPDFFontNumBaseObject }
@@ -4530,6 +4576,8 @@ begin
   IDict.AddString('Producer',Infos.Producer);
   if Infos.CreationDate <> 0 then
     IDict.AddString('CreationDate',DateToPdfDate(Infos.CreationDate));
+  if Infos.Keywords <> '' then
+    IDict.AddString('Keywords', Infos.Keywords);
 end;
 
 procedure TPDFDocument.CreateMetadataEntry;
@@ -4537,8 +4585,8 @@ var
   lXRef: TPDFXRef;
 begin
   lXRef := CreateGlobalXRef;
-  lXRef.Dict.AddName('Subtype', 'XML');
   lXRef.Dict.AddName('Type','Metadata');
+  lXRef.Dict.AddName('Subtype', 'XML');
   lXRef.FStream := CreateStream(True);
   lXRef.FStream.AddItem(TXMPStream.Create(self));
   lXRef.FStream.CompressionProhibited := True;

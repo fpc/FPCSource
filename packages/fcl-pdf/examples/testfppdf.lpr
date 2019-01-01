@@ -77,6 +77,7 @@ begin
   Result.Infos.Producer := 'fpGUI Toolkit 1.4.1';
   Result.Infos.ApplicationName := ApplicationName;
   Result.Infos.CreationDate := Now;
+  Result.Infos.KeyWords:='fcl-pdf demo PDF support Free Pascal';
 
   lOpts := [poPageOriginAtTop];
   if FSubsetFontEmbedding then
