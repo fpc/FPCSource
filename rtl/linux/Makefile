@@ -3857,6 +3857,7 @@ ifeq ($(ARCH),arm)
     ASTARGET+=-mthumb --def __thumb__=1
     ARMTHUMB=1
   endif
+  ASTARGET+= -meabi=5
 endif
 prt0$(OEXT) : $(ARCH)/prt0.as
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
