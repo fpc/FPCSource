@@ -158,7 +158,7 @@ Type
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
   TNotifyProcEvent = procedure(Sender: TObject);
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmBuildInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo);
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
@@ -1289,7 +1289,7 @@ Type
     Procedure Usage(const FMT : String; Args : Array of const);
     Procedure Compile(Force : Boolean); virtual;
     Procedure Clean(AllTargets: boolean); virtual;
-    Procedure Install; virtual;
+    Procedure Install(ForceBuild : Boolean); virtual;
     Procedure UnInstall; virtual;
     Procedure ZipInstall; virtual;
     Procedure Archive; virtual;
@@ -1763,6 +1763,7 @@ ResourceString
   SHelpCompile        = 'Compile all units in the package(s).';
   SHelpBuild          = 'Build all units in the package(s).';
   SHelpInstall        = 'Install all units in the package(s).';
+  SHelpBuildInstall   = 'Build and install all units in the package(s).';
   SHelpUnInstall      = 'Uninstall the package(s).';
   SHelpClean          = 'Clean (remove) all generated files in the package(s) for current CPU-OS target.';
   SHelpDistclean      = 'Clean (remove) all generated files in the package(s) for all targets.';
@@ -5197,6 +5198,8 @@ begin
       FRunMode:=rmBuild
     else if CheckCommand(I,'i','install') then
       FRunMode:=rmInstall
+    else if CheckCommand(I,'bi','buildinstall') then
+      FRunMode:=rmBuildInstall
     else if CheckCommand(I,'zi','zipinstall') then
       FRunMode:=rmZipInstall
     else if CheckCommand(I,'c','clean') then
@@ -5347,6 +5350,7 @@ begin
   LogCmd('compile',SHelpCompile);
   LogCmd('build',SHelpBuild);
   LogCmd('install',SHelpInstall);
+  LogCmd('buildinstall',SHelpBuildInstall);
   LogCmd('uninstall',SHelpUnInstall);
   LogCmd('clean',SHelpClean);
   LogCmd('distclean',SHelpDistclean);
@@ -5444,9 +5448,10 @@ begin
 end;
 
 
-procedure TCustomInstaller.Install;
+procedure TCustomInstaller.Install(ForceBuild : Boolean);
 begin
   NotifyEventCollection.CallEvents(neaBeforeInstall, self);
+  BuildEngine.ForceCompile := ForceBuild;
   BuildEngine.Install(Packages);
   NotifyEventCollection.CallEvents(neaAfterInstall, self);
 end;
@@ -5520,7 +5525,8 @@ begin
     Case RunMode of
       rmCompile : Compile(False);
       rmBuild   : Compile(True);
-      rmInstall : Install;
+      rmInstall : Install(False);
+      rmBuildInstall: Install(True);
       rmZipInstall : ZipInstall;
       rmArchive : Archive;
       rmClean    : Clean(False);

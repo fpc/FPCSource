@@ -299,6 +299,9 @@ end;
 
 
 procedure ThreadQueueAppend(aEntry: TThread.PThreadQueueEntry; aQueueIfMain: Boolean);
+var
+  thd: TThread;
+  issync: Boolean;
 begin
   { do we really need a synchronized call? }
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -310,6 +313,14 @@ begin
       Dispose(aEntry);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   end else begin
+    { store thread and whether we're dealing with a synchronized event; the
+      event record itself might already be freed after the ThreadQueueLock is
+      released (in case of a Queue() call; for a Synchronize() call the record
+      will stay valid, thus accessing SyncEvent later on (if issync is true) is
+      okay) }
+    thd := aEntry^.Thread;
+    issync := Assigned(aEntry^.SyncEvent);
+
     System.EnterCriticalSection(ThreadQueueLock);
     try
       { add the entry to the thread queue }
@@ -325,10 +336,10 @@ begin
     { ensure that the main thread knows that something awaits }
     RtlEventSetEvent(SynchronizeTimeoutEvent);
     if assigned(WakeMainThread) then
-      WakeMainThread(aEntry^.Thread);
+      WakeMainThread(thd);
 
     { is this a Synchronize or Queue entry? }
-    if Assigned(aEntry^.SyncEvent) then begin
+    if issync then begin
       RtlEventWaitFor(aEntry^.SyncEvent);
       if Assigned(aEntry^.Exception) then
         raise aEntry^.Exception;
@@ -451,7 +462,7 @@ function CheckSynchronize(timeout : longint=0) : boolean;
 
 { assumes being called from GUI thread }
 var
-  ExceptObj: Exception;
+  ExceptObj: TObject;
   tmpentry: TThread.PThreadQueueEntry;
 
 begin
@@ -475,7 +486,7 @@ begin
     try
       ExecuteThreadQueueEntry(tmpentry);
     except
-      exceptobj := Exception(AcquireExceptionObject);
+      exceptobj := TObject(AcquireExceptionObject);
     end;
     { step 3: error handling and cleanup }
     if Assigned(tmpentry^.SyncEvent) then

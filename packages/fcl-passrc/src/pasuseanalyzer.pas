@@ -262,8 +262,7 @@ type
     procedure UseProcedure(Proc: TPasProcedure); virtual;
     procedure UseProcedureType(ProcType: TPasProcedureType; Mark: boolean); virtual;
     procedure UseType(El: TPasType; Mode: TPAUseMode); virtual;
-    procedure UseRecordType(El: TPasRecordType; Mode: TPAUseMode); virtual;
-    procedure UseClassType(El: TPasClassType; Mode: TPAUseMode); virtual;
+    procedure UseClassOrRecType(El: TPasMembersType; Mode: TPAUseMode); virtual;
     procedure UseVariable(El: TPasVariable; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseResourcestring(El: TPasResString); virtual;
@@ -1178,7 +1177,7 @@ begin
   UseInitFinal(aModule.FinalizationSection);
   ModScope:=aModule.CustomData as TPasModuleScope;
   if ModScope.RangeErrorClass<>nil then
-    UseClassType(ModScope.RangeErrorClass,paumElement);
+    UseClassOrRecType(ModScope.RangeErrorClass,paumElement);
   if ModScope.RangeErrorConstructor<>nil then
     UseProcedure(ModScope.RangeErrorConstructor);
 
@@ -1815,10 +1814,8 @@ begin
     {$IFDEF VerbosePasAnalyzer}
     writeln('TPasAnalyzer.UseType searching exports in ',GetElModName(El),' ...');
     {$ENDIF}
-    if C=TPasRecordType then
-      UseRecordType(TPasRecordType(El),Mode)
-    else if C=TPasClassType then
-      UseClassType(TPasClassType(El),Mode);
+    if (C=TPasRecordType) or (C=TPasClassType) then
+      UseClassOrRecType(TPasMembersType(El),Mode);
     end
   else
     begin
@@ -1848,10 +1845,8 @@ begin
         UseExpr(TPasArrayType(El).Ranges[i]);
       UseElType(El,TPasArrayType(El).ElType,Mode);
       end
-    else if C=TPasRecordType then
-      UseRecordType(TPasRecordType(El),Mode)
-    else if C=TPasClassType then
-      UseClassType(TPasClassType(El),Mode)
+    else if (C=TPasRecordType) or (C=TPasClassType) then
+      UseClassOrRecType(TPasMembersType(El),Mode)
     else if C=TPasEnumType then
       begin
       if not MarkElementAsUsed(El) then exit;
@@ -1883,22 +1878,7 @@ begin
     end;
 end;
 
-procedure TPasAnalyzer.UseRecordType(El: TPasRecordType; Mode: TPAUseMode);
-// called by UseType
-var
-  i: Integer;
-begin
-  if Mode=paumAllExports then exit;
-  MarkElementAsUsed(El);
-  if not ElementVisited(El,Mode) then
-    begin
-    if (Mode=paumAllPasUsable) or Resolver.IsTGUID(El) then
-      for i:=0 to El.Members.Count-1 do
-        UseVariable(TObject(El.Members[i]) as TPasVariable,rraNone,true);
-    end;
-end;
-
-procedure TPasAnalyzer.UseClassType(El: TPasClassType; Mode: TPAUseMode);
+procedure TPasAnalyzer.UseClassOrRecType(El: TPasMembersType; Mode: TPAUseMode);
 // called by UseType
 
   procedure UseDelegations;
@@ -1936,7 +1916,7 @@ procedure TPasAnalyzer.UseClassType(El: TPasClassType; Mode: TPAUseMode);
         Map:=TPasClassIntfMap(o);
         repeat
           if Map.Intf<>nil then
-            UseClassType(TPasClassType(Map.Intf),paumElement);
+            UseClassOrRecType(TPasClassType(Map.Intf),paumElement);
           if Map.Procs<>nil then
             for j:=0 to Map.Procs.Count-1 do
               UseProcedure(TPasProcedure(Map.Procs[j]));
@@ -1960,6 +1940,7 @@ var
   o: TObject;
   Map: TPasClassIntfMap;
   ImplProc, IntfProc: TPasProcedure;
+  aClass: TPasClassType;
 begin
   FirstTime:=true;
   case Mode of
@@ -1982,35 +1963,54 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseClassType ',GetElModName(El),' ',Mode,' First=',FirstTime);
   {$ENDIF}
-  if El.IsForward then
-    begin
-    Ref:=El.CustomData as TResolvedReference;
-    UseClassType(Ref.Declaration as TPasClassType,Mode);
-    exit;
-    end;
-
-  ClassScope:=El.CustomData as TPasClassScope;
-  if ClassScope=nil then
-    exit; // ClassScope can be nil if msIgnoreInterfaces
-
+  aClass:=nil;
+  ClassScope:=nil;
   IsCOMInterfaceRoot:=false;
-  if FirstTime then
+
+  if El is TPasClassType then
     begin
-    UseElType(El,ClassScope.DirectAncestor,paumElement);
-    UseElType(El,El.HelperForType,paumElement);
-    UseExpr(El.GUIDExpr);
-    // El.Interfaces: using a class does not use automatically the interfaces
-    if El.ObjKind=okInterface then
+    aClass:=TPasClassType(El);
+    if aClass.IsForward then
       begin
-      UseDelegations;
-      if (El.InterfaceType=citCom) and (El.AncestorType=nil) then
-        IsCOMInterfaceRoot:=true;
+      Ref:=aClass.CustomData as TResolvedReference;
+      UseClassOrRecType(Ref.Declaration as TPasClassType,Mode);
+      exit;
       end;
-    if (El.ObjKind=okClass) and (ScopeModule<>nil)
-        and (ClassScope.Interfaces<>nil) then
-      // when checking a single unit, mark all method+properties implementing the interfaces
-      MarkAllInterfaceImplementations(ClassScope);
-    end;
+
+    ClassScope:=aClass.CustomData as TPasClassScope;
+    if ClassScope=nil then
+      exit; // ClassScope can be nil if msIgnoreInterfaces
+
+    if FirstTime then
+      begin
+      UseElType(El,ClassScope.DirectAncestor,paumElement);
+      UseElType(El,aClass.HelperForType,paumElement);
+      UseExpr(aClass.GUIDExpr);
+      // aClass.Interfaces: using a class does not use automatically the interfaces
+      if aClass.ObjKind=okInterface then
+        begin
+        UseDelegations;
+        if (aClass.InterfaceType=citCom) and (aClass.AncestorType=nil) then
+          IsCOMInterfaceRoot:=true;
+        end;
+      if (aClass.ObjKind=okClass) and (ScopeModule<>nil)
+          and (ClassScope.Interfaces<>nil) then
+        // when checking a single unit, mark all method+properties implementing the interfaces
+        MarkAllInterfaceImplementations(ClassScope);
+      end;
+    end
+  else if El is TPasRecordType then
+    begin
+    if (Mode<>paumAllPasUsable) and Resolver.IsTGUID(TPasRecordType(El)) then
+      for i:=0 to El.Members.Count-1 do
+        begin
+        Member:=TPasElement(El.Members[i]);
+        if Member is TPasVariable then
+          UseVariable(TPasVariable(Member),rraNone,true);
+        end;
+    end
+  else
+    RaiseNotSupported(20181229103139,El);
 
   // members
   AllPublished:=(Mode<>paumAllExports);
@@ -2074,11 +2074,11 @@ begin
       UseTypeInfo(Member);
       end
     else
-      ; // else: class is in unit interface, mark all non private members
+      ; // else: class/record is in unit interface, mark all non private members
     UseElement(Member,rraNone,true);
     end;
 
-  if FirstTime then
+  if FirstTime and (ClassScope<>nil) then
     begin
     // method resolution
     List:=ClassScope.Interfaces;
@@ -2090,7 +2090,7 @@ begin
           begin
           // interface delegation
           // Note: This class is used. When the intftype is used, this delegation is used.
-          AddOverride(TPasType(El.Interfaces[i]),TPasProperty(o));
+          AddOverride(TPasType(aClass.Interfaces[i]),TPasProperty(o));
           end
         else if o is TPasClassIntfMap then
           begin
@@ -2111,7 +2111,7 @@ begin
             end;
           end
         else
-          RaiseNotSupported(20180328224632,El,GetObjName(o));
+          RaiseNotSupported(20180328224632,aClass,GetObjName(o));
         end;
     end;
 end;

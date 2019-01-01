@@ -361,6 +361,7 @@ type
     Procedure TestSet_ConstEnum;
     Procedure TestSet_ConstChar;
     Procedure TestSet_ConstInt;
+    Procedure TestSet_InFunction;
     Procedure TestSet_ForIn;
 
     // statements
@@ -401,6 +402,7 @@ type
     Procedure TestArray_StaticBool;
     Procedure TestArray_StaticChar;
     Procedure TestArray_StaticMultiDim;
+    Procedure TestArray_StaticInFunction;
     Procedure TestArrayOfRecord;
     Procedure TestArray_StaticRecord;
     Procedure TestArrayOfSet;
@@ -431,7 +433,7 @@ type
     Procedure TestRecord_Empty;
     Procedure TestRecord_Var;
     Procedure TestRecord_VarExternal;
-    Procedure TestWithRecordDo;
+    Procedure TestRecord_WithDo;
     Procedure TestRecord_Assign;
     Procedure TestRecord_PassAsArgClone;
     Procedure TestRecord_AsParams;
@@ -445,6 +447,16 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
+    // ToDo: RTTI of local record
+    // ToDo: pcu local record, name clash and rtti
+
+    // advanced record
+    // ToDo: TestAdvRecord_Function;
+    // ToDo: TestAdvRecord_Property;
+    // ToDo: TestAdvRecord_PropertyDefault;
+    // ToDo: TestAdvRecord_InFunction;
+    // ToDo: pcu: record default property
+    // ToDo: class constructor
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -2697,7 +2709,7 @@ begin
     '$mod.vB = $mod.vA + $mod.vA;',
     '$mod.vB = Math.floor($mod.vA / $mod.vB);',
     '$mod.vB = $mod.vA % $mod.vB;',
-    '$mod.vB = ($mod.vA + ($mod.vA * $mod.vB)) + Math.floor($mod.vA / $mod.vB);',
+    '$mod.vB = $mod.vA + ($mod.vA * $mod.vB) + Math.floor($mod.vA / $mod.vB);',
     '$mod.vC = -$mod.vA;',
     '$mod.vA = $mod.vA - $mod.vB;',
     '$mod.vB = $mod.vA;',
@@ -2910,13 +2922,13 @@ begin
     '  function Nesty(pA) {',
     '    var Result$1 = 0;',
     '    var vB = 0;',
-    '    Result$1 = (((pA + vB) + vC) + pD) + $mod.vInUnit;',
+    '    Result$1 = pA + vB + vC + pD + $mod.vInUnit;',
     '    Result$1 = 3;',
     '    Result = 4;',
     '    return Result$1;',
     '    return Result$1;',
     '  };',
-    '  Result = (pA + vB) + vC;',
+    '  Result = pA + vB + vC;',
     '  Result = 6;',
     '  return Result;',
     '  return Result;',
@@ -3846,7 +3858,7 @@ begin
     'this.B = 3 + 1;',
     'var C = 3 + 1;',
     'var D = 4 + 1;',
-    'var E = ((5 + 4) + 4) + 3;',
+    'var E = 5 + 4 + 4 + 3;',
     'this.DoIt = function () {',
     '};',
     '']),
@@ -4731,6 +4743,7 @@ procedure TTestModule.TestEnum_InFunction;
 begin
   StartProgram(false);
   Add([
+  'const TEnum = 3;',
   'procedure DoIt;',
   'type',
   '  TEnum = (Red, Green, Blue);',
@@ -4751,28 +4764,29 @@ begin
   ConvertProgram;
   CheckSource('TestEnum_InFunction',
     LinesToStr([ // statements
+    'this.TEnum = 3;',
+    'var TEnum$1 = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'var TEnumSub = {',
+    '  "0": "Left",',
+    '  Left: 0,',
+    '  "1": "Right",',
+    '  Right: 1',
+    '};',
     'this.DoIt = function () {',
-    '  var TEnum = {',
-    '    "0":"Red",',
-    '    Red:0,',
-    '    "1":"Green",',
-    '    Green:1,',
-    '    "2":"Blue",',
-    '    Blue:2',
-    '    };',
     '  function Sub() {',
-    '    var TEnumSub = {',
-    '      "0": "Left",',
-    '      Left: 0,',
-    '      "1": "Right",',
-    '      Right: 1',
-    '    };',
     '    var es = 0;',
     '    es = TEnumSub.Left;',
     '  };',
     '  var e = 0;',
     '  var e2 = 0;',
-    '  if (e in rtl.createSet(TEnum.Red, TEnum.Blue)) e2 = e;',
+    '  if (e in rtl.createSet(TEnum$1.Red, TEnum$1.Blue)) e2 = e;',
     '};',
     '']),
     LinesToStr([
@@ -5445,6 +5459,59 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestSet_InFunction;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  TEnum = 3;',
+  '  TSetOfEnum = 4;',
+  '  TSetOfAno = 5;',
+  'procedure DoIt;',
+  'type',
+  '  TEnum = (red, blue);',
+  '  TSetOfEnum = set of TEnum;',
+  '  TSetOfAno = set of (up,down);',
+  'var',
+  '  e: TEnum;',
+  '  se: TSetOfEnum;',
+  '  sa: TSetOfAno;',
+  'begin',
+  '  se:=[e];',
+  '  sa:=[up];',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestSet_InFunction',
+    LinesToStr([ // statements
+    'this.TEnum = 3;',
+    'this.TSetOfEnum = 4;',
+    'this.TSetOfAno = 5;',
+    'var TEnum$1 = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'var TSetOfAno$a = {',
+    '  "0": "up",',
+    '  up: 0,',
+    '  "1": "down",',
+    '  down: 1',
+    '};',
+    'this.DoIt = function () {',
+    '  var e = 0;',
+    '  var se = {};',
+    '  var sa = {};',
+    '  se = rtl.createSet(e);',
+    '  sa = rtl.createSet(TSetOfAno$a.up);',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
+end;
+
 procedure TTestModule.TestSet_ForIn;
 begin
   StartProgram(false);
@@ -5641,9 +5708,9 @@ begin
     'this.DoIt = function () {',
     '  function Sub() {',
     '    cB$1 = cB$1 + 3;',
-    '    cA = (cA + 3) + 5;',
+    '    cA = cA + 3 + 5;',
     '  };',
-    '  cA = (cA + 2) + 6;',
+    '  cA = cA + 2 + 6;',
     '};'
     ]),
     LinesToStr([
@@ -6599,11 +6666,11 @@ begin
     '$mod.s = ""+$mod.b;',
     '$mod.s = ""+$mod.i;',
     '$mod.s = rtl.floatToStr($mod.d);',
-    '$mod.s = (""+$mod.i)+$mod.i;',
+    '$mod.s = ""+$mod.i+$mod.i;',
     '$mod.s = rtl.spaceLeft(""+$mod.i,3);',
     '$mod.s = rtl.floatToStr($mod.d,3,2);',
     '$mod.s = rtl.spaceLeft("" + $mod.i, 4) + $mod.i;',
-    '$mod.s = ("" + $mod.i) + rtl.spaceLeft("" + $mod.i, 5);',
+    '$mod.s = "" + $mod.i + rtl.spaceLeft("" + $mod.i, 5);',
     '$mod.s = rtl.spaceLeft("" + $mod.i, 4) + rtl.spaceLeft("" + $mod.i, 5);',
     '$mod.s = $mod.s + $mod.s;',
     '$mod.s = $mod.s + "foo";',
@@ -7484,7 +7551,7 @@ begin
     'var $tmp1 = $mod.s;',
     'if ($tmp1 === "foo") {',
     '  $mod.s = $mod.h}',
-    ' else if (($tmp1.length === 1) && (($tmp1 >= "a") && ($tmp1 <= "z"))) $mod.h = $mod.s;',
+    ' else if (($tmp1.length === 1) && ($tmp1 >= "a") && ($tmp1 <= "z")) $mod.h = $mod.s;',
     '']));
 end;
 
@@ -7861,6 +7928,50 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArray_StaticInFunction;
+begin
+  StartProgram(false);
+  Add([
+  'const TArrayInt = 3;',
+  'const TArrayArrayInt = 4;',
+  'procedure DoIt;',
+  'type',
+  '  TArrayInt = array[1..3] of longint;',
+  '  TArrayArrayInt = array[5..6] of TArrayInt;',
+  'var',
+  '  Arr: TArrayInt;',
+  '  Arr2: TArrayArrayInt;',
+  '  Arr3: array[boolean] of TArrayInt = ((11,12,13),(21,22,23));',
+  '  i: longint;',
+  'begin',
+  '  arr2[5]:=arr;',
+  '  arr2:=arr2;',// clone multi dim static array
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_StaticInFunction',
+    LinesToStr([ // statements
+    'this.TArrayInt = 3;',
+    'this.TArrayArrayInt = 4;',
+    'var TArrayArrayInt$1$clone = function (a) {',
+    '  var r = [];',
+    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
+    '  return r;',
+    '};',
+    'this.DoIt = function () {',
+    '  var Arr = rtl.arraySetLength(null, 0, 3);',
+    '  var Arr2 = rtl.arraySetLength(null, 0, 2, 3);',
+    '  var Arr3 = [[11, 12, 13], [21, 22, 23]];',
+    '  var i = 0;',
+    '  Arr2[0] = Arr.slice(0);',
+    '  Arr2 = TArrayArrayInt$1$clone(Arr2);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestArrayOfRecord;
 begin
   StartProgram(false);
@@ -7947,7 +8058,7 @@ begin
     'this.Arr = rtl.arraySetLength(null, $mod.TRec, 2);',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.Arr[0].Int = (2 + 1) + 2;']));
+    '$mod.Arr[0].Int = 2 + 1 + 2;']));
 end;
 
 procedure TTestModule.TestArrayOfSet;
@@ -8396,7 +8507,7 @@ begin
     '  var s = "";',
     '  for (var $l1 = 0, $end2 = rtl.length(a) - 1; $l1 <= $end2; $l1++) {',
     '    i = $l1;',
-    '    s = a[(rtl.length(a) - i) - 1];',
+    '    s = a[rtl.length(a) - i - 1];',
     '  };',
     '};',
     'this.s = "";',
@@ -8681,7 +8792,7 @@ begin
     'this.OneStr = [7];',
     'this.Chars = ["a", "o", "c"];',
     'this.Names = ["a", "foo"];',
-    'this.NameCount = (0 + (rtl.length($mod.Names) - 1)) + rtl.length($mod.Names);',
+    'this.NameCount = 0 + (rtl.length($mod.Names) - 1) + rtl.length($mod.Names);',
     'this.i = 0;',
     '']),
     LinesToStr([ // $mod.$main
@@ -8727,7 +8838,7 @@ begin
     'this.OneStr = rtl.arrayConcatN([7],[8]);',
     'this.Chars = ["a", "o", "c"];',
     'this.Names = ["a", "a"];',
-    'this.NameCount = (0 + (rtl.length($mod.Names) - 1)) + rtl.length($mod.Names);',
+    'this.NameCount = 0 + (rtl.length($mod.Names) - 1) + rtl.length($mod.Names);',
     '']),
     LinesToStr([ // $mod.$main
     '']));
@@ -9127,7 +9238,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestWithRecordDo;
+procedure TTestModule.TestRecord_WithDo;
 begin
   StartProgram(false);
   Add('type');
@@ -9228,9 +9339,9 @@ begin
     '    this.Enums = {};',
     '  };',
     '  this.$equal = function (b) {',
-    '    return (this.Int === b.Int) && ((this.D === b.D) && ((this.Arr === b.Arr)',
-    ' && (rtl.arrayEq(this.Arr2, b.Arr2)',
-    ' && (this.Small.$equal(b.Small) && rtl.eqSet(this.Enums, b.Enums)))));',
+    '    return (this.Int === b.Int) && (this.D === b.D) && (this.Arr === b.Arr)',
+    ' && rtl.arrayEq(this.Arr2, b.Arr2)',
+    ' && this.Small.$equal(b.Small) && rtl.eqSet(this.Enums, b.Enums);',
     '  };',
     '};',
     'this.r = new $mod.TBigRec();',
@@ -9551,7 +9662,7 @@ begin
     '    this.f = {};',
     '  };',
     '  this.$equal = function (b) {',
-    '    return (this.i === b.i) && (rtl.eqCallback(this.Event, b.Event) && rtl.eqSet(this.f, b.f));',
+    '    return (this.i === b.i) && rtl.eqCallback(this.Event, b.Event) && rtl.eqSet(this.f, b.f);',
     '  };',
     '};',
     'this.TNested = function (s) {',
@@ -9653,7 +9764,7 @@ begin
     '    this.o = rtl.arraySetLength(null, 0, 2);',
     '  };',
     '  this.$equal = function (b) {',
-    '    return (this.a === b.a) && (rtl.arrayEq(this.s, b.s) && (rtl.arrayEq(this.m, b.m) && rtl.arrayEq(this.o, b.o)));',
+    '    return (this.a === b.a) && rtl.arrayEq(this.s, b.s) && rtl.arrayEq(this.m, b.m) && rtl.arrayEq(this.o, b.o);',
     '  };',
     '};',
     '']),
@@ -9716,7 +9827,7 @@ begin
     '    this.p = new $mod.TPoint();',
     '  };',
     '  this.$equal = function (b) {',
-    '    return (this.i === b.i) && ((this.a === b.a) && (rtl.arrayEq(this.s, b.s) && (rtl.arrayEq(this.m, b.m) && this.p.$equal(b.p))));',
+    '    return (this.i === b.i) && (this.a === b.a) && rtl.arrayEq(this.s, b.s) && rtl.arrayEq(this.m, b.m) && this.p.$equal(b.p);',
     '  };',
     '};',
     'this.r = new $mod.TRec({',
@@ -9760,6 +9871,7 @@ procedure TTestModule.TestRecord_InFunction;
 begin
   StartProgram(false);
   Add([
+  'var TPoint: longint = 3;',
   'procedure DoIt;',
   'type',
   '  TPoint = record x,y: longint; end;',
@@ -9774,22 +9886,23 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_InFunction',
     LinesToStr([ // statements
-    'this.DoIt = function () {',
-    '  function TPoint(s) {',
-    '    if (s) {',
-    '      this.x = s.x;',
-    '      this.y = s.y;',
-    '    } else {',
-    '      this.x = 0;',
-    '      this.y = 0;',
-    '    };',
-    '    this.$equal = function (b) {',
-    '      return (this.x === b.x) && (this.y === b.y);',
-    '    };',
+    'this.TPoint = 3;',
+    'var TPoint$1 = function (s) {',
+    '  if (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '  } else {',
+    '    this.x = 0;',
+    '    this.y = 0;',
     '  };',
-    '  var r = new TPoint();',
+    '  this.$equal = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '};',
+    'this.DoIt = function () {',
+    '  var r = new TPoint$1();',
     '  var p = [];',
-    '  p = rtl.arraySetLength(p, TPoint, 2);',
+    '  p = rtl.arraySetLength(p, TPoint$1, 2);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -17287,7 +17400,7 @@ begin
     '    this.D4 = 0;',
     '  };',
     '  this.$equal = function (b) {',
-    '    return (this.D1 === b.D1) && ((this.D2 === b.D2) && ((this.D3 === b.D3) && (this.D4 === b.D4)));',
+    '    return (this.D1 === b.D1) && (this.D2 === b.D2) && (this.D3 === b.D3) && (this.D4 === b.D4);',
     '  };',
     '};',
     'this.DoConstGUIDIt = function (g) {',
@@ -17402,7 +17515,7 @@ begin
     '    this.D4 = 0;',
     '  };',
     '  this.$equal = function (b) {',
-    '    return (this.D1 === b.D1) && ((this.D2 === b.D2) && ((this.D3 === b.D3) && (this.D4 === b.D4)));',
+    '    return (this.D1 === b.D1) && (this.D2 === b.D2) && (this.D3 === b.D3) && (this.D4 === b.D4);',
     '  };',
     '};',
     'rtl.createClass($mod, "TObject", null, function () {',
@@ -21857,6 +21970,9 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Record',
     LinesToStr([ // statements
+    '$mod.$rtti.$DynArray("TFloatRec.d$a", {',
+    '  eltype: rtl.char',
+    '});',
     'this.TFloatRec = function (s) {',
     '  if (s) {',
     '    this.d = s.d;',
@@ -21867,9 +21983,6 @@ begin
     '    return this.d === b.d;',
     '  };',
     '};',
-    '$mod.$rtti.$DynArray("TFloatRec.d$a", {',
-    '  eltype: rtl.char',
-    '});',
     '$mod.$rtti.$Record("TFloatRec", {}).addFields("d", $mod.$rtti["TFloatRec.d$a"]);',
     'this.p = null;',
     'this.r = new $mod.TFloatRec();',
@@ -21892,25 +22005,27 @@ begin
   '  TPoint = record',
   '    x,y: integer;',
   '  end;',
+  'var p: TPoint;',
   'begin',
   'end;',
   'begin']);
   ConvertProgram;
   CheckSource('TestRTTI_LocalTypes',
     LinesToStr([ // statements
-    'this.DoIt = function () {',
-    '  function TPoint(s) {',
-    '    if (s) {',
-    '      this.x = s.x;',
-    '      this.y = s.y;',
-    '    } else {',
-    '      this.x = 0;',
-    '      this.y = 0;',
-    '    };',
-    '    this.$equal = function (b) {',
-    '      return (this.x === b.x) && (this.y === b.y);',
-    '    };',
+    'var TPoint = function(s) {',
+    '  if (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '  } else {',
+    '    this.x = 0;',
+    '    this.y = 0;',
     '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '};',
+    'this.DoIt = function () {',
+    '  var p = new TPoint();',
     '};',
     '']),
     LinesToStr([ // $mod.$main

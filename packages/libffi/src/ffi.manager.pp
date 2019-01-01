@@ -500,7 +500,6 @@ const
     Invoke: @FFIInvoke;
     CreateCallbackProc: Nil;
     CreateCallbackMethod: Nil;
-    FreeCallback: Nil
   );
 
 var

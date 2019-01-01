@@ -2028,7 +2028,7 @@ type_w_empty_constant_range_set=04125_W_The first value of a set constructur ran
 #
 # Symtable
 #
-# 05097 is the last used one
+# 05098 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2344,6 +2344,8 @@ sym_e_generic_type_param_mismatch=05096_E_Generic type parameter "$1" does not m
 sym_e_generic_type_param_decl=05097_E_Generic type parameter declared as "$1"
 % Shows what the generic type parameter was originally declared as if a mismatch
 % is found between a declaration and the definition.
+sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
+% The variable or expression isn't of the type \var{record} or \var{object}.
 % \end{description}
 #
 # Codegenerator

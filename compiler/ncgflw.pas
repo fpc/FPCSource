@@ -225,7 +225,7 @@ implementation
          if not(cs_opt_size in current_settings.optimizerswitches) then
             { align loop target, as an unconditional jump is done before,
               use jump align which assume that the instructions inserted as alignment are never executed }
-            current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignmax));
+            current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
 
          hlcg.a_label(current_asmdata.CurrAsmList,lloop);
 
@@ -348,7 +348,7 @@ implementation
                    ;
                    hlcg.a_jmp_always(current_asmdata.CurrAsmList,hl);
                    if not(cs_opt_size in current_settings.optimizerswitches) then
-                     current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignmax));
+                     current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
                 end;
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
               secondpass(t1);
@@ -378,13 +378,13 @@ implementation
                 end;
 *)
               if not(cs_opt_size in current_settings.optimizerswitches) then
-                current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.coalescealign,current_settings.alignment.coalescealignmax));
+                current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.coalescealign,current_settings.alignment.coalescealignskipmax));
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
            end;
          if not(assigned(right)) then
            begin
              if not(cs_opt_size in current_settings.optimizerswitches) then
-               current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.coalescealign,current_settings.alignment.coalescealignmax));
+               current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.coalescealign,current_settings.alignment.coalescealignskipmax));
              hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
            end;
 

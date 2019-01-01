@@ -1635,7 +1635,7 @@ type
       //ThreadProc: TThreadProcedure;
       Thread: TThread;
       ThreadID: TThreadID;
-      Exception: Exception;
+      Exception: TObject;
       SyncEvent: PRtlEvent;
       Next: PThreadQueueEntry;
     end;
