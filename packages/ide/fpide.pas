@@ -681,7 +681,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 msg_errorsavingconfigfile = 'Error saving config file.';
 
                 {Save options dialog.}
-                dialog_saveoptions = 'Save Options';
+                dialog_saveoptions = 'Save Options As';
                 dialog_ini_filename = 'Name of INI file';
 
                 {Window list dialog.}
