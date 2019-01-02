@@ -1077,6 +1077,10 @@ var
 begin
   if Compiler='' then
     Exit;
+  // This is not the place to complain when the compiler does
+  // not exist at all.
+  if not FileExists(Compiler) then
+    Exit;
   if (CompilerCPU=cpuNone) or
    (CompilerOS=osNone) or
    (CompilerVersion='') then
