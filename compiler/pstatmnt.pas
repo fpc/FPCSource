@@ -1217,6 +1217,11 @@ implementation
                  Message(parser_e_no_assembler_in_generic);
                code:=_asm_statement;
              end;
+           _PLUS:
+             begin
+               Message(parser_e_syntax_error);
+               consume(_PLUS);
+             end;
            _EOF :
              Message(scan_f_end_of_file);
          else
