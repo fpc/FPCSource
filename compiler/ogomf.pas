@@ -2684,7 +2684,7 @@ implementation
             ObjSec:=TOmfObjSection(ExeSec.ObjSectionList[i]);
             if ObjSec.MemPos<Header.LoadableImageSize then
               begin
-                FWriter.WriteZeros(max(0,ObjSec.MemPos-ComFileOffset-FWriter.Size));
+                FWriter.WriteZeros(max(0,int64(ObjSec.MemPos)-ComFileOffset-int64(FWriter.Size)));
                 if assigned(ObjSec.Data) then
                   begin
                     if ObjSec.MemPos<ComFileOffset then
