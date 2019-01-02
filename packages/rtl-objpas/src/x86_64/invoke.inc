@@ -394,11 +394,11 @@ type
   private
     function Handler(aStack, aFP: Pointer): PtrUInt;
   protected
-    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); virtual; abstract;
     procedure CreateCallback;
     procedure CreateArgInfos;
     function GetCodeAddress: CodePointer; override;
   {$endif}
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); virtual; abstract;
   public
     constructor Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
     destructor Destroy; override;
