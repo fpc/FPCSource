@@ -3009,6 +3009,9 @@ exec_n_backquote_cat_file_not_found=09033_N_File "$1" not found for backquoted c
 exec_w_init_file_not_found=09034_W_"$1" not found, this will probably cause a linking failure
 % The compiler adds certain startup code files to the linker only when they are found.
 % If they are not found, they are not added and this might cause a linking failure.
+% If the system has gcc installed, running \var{gcc --print-file-name <filename>} might return the path to the file.
+% Add this path in your \var{fpc.cfg} using the switch \var{-Fl} to fix this error. This requires though,
+% that gcc targets the same target as FPC.
 %
 %\end{description}
 # EndOfTeX
