@@ -441,9 +441,16 @@ begin
   {$ELSE}
   fDataAlignment:=4;
   {$ENDIF}
-  if aMachineType=EM_IA_64 then fMachineFlags:=EF_IA_64_ABI64
-  else if aMachineType=EM_RISCV then fMachineFlags:=EF_RISCV_FLOAT_ABI_DOUBLE or EF_RISCV_RVC // This is the default class for now
-  else fMachineFlags:=0;
+  case aMachineType of
+    EM_IA_64:
+      fMachineFlags:=EF_IA_64_ABI64;
+    EM_RISCV:
+      fMachineFlags:=EF_RISCV_FLOAT_ABI_DOUBLE or EF_RISCV_RVC; // This is the default class for now;
+    EM_ARM:
+      fMachineFlags:=EF_ARM_ABI5;
+    else
+      fMachineFlags:=0;
+  end;
 end;
 
 destructor _TElfSubWriter_.Destroy;
