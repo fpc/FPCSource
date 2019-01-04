@@ -317,7 +317,7 @@ type
   PSigSet = ^SigSet;
   psigset_t=psigset;
 
-  SigActionRec = packed record
+  SigActionRec = record
 //    Handler  : record
     sa_handler : sigActionHandler;
 //      case byte of
@@ -331,16 +331,15 @@ type
 
   PSigActionRec = ^SigActionRec;
 
-  {$PACKRECORDS C}
   pstack_t = ^stack_t;
-  stack_t = packed record
+  stack_t = record
     ss_sp: pChar;                       {* signal stack base *}
     ss_size: size_t;                    {* signal stack length *}
     ss_flags: cInt;                     {* SS_DISABLE and/or SS_ONSTACK *}
   end;
   TStack = stack_t;
   PStack = pstack_t;
-  
+
 {
   Change action of process upon receipt of a signal.
   Signum specifies the signal (all except SigKill and SigStop).
