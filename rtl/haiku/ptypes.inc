@@ -75,13 +75,23 @@ type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
-    wint_t	 = cint32;
+{$ifdef cpu64}
+    size_t   = cuint64;         { as definied in the C standard}
+    ssize_t  = cint64;          { used by function for returning number of bytes }
+    clock_t  = cuint64;
+    time_t   = cint64;           { used for returning the time  }
+{$else}
     size_t   = cuint32;         { as definied in the C standard}
+    ssize_t  = cint32;          { used by function for returning number of bytes }
+    clock_t  = culong;
+    time_t   = clong;           { used for returning the time  }
+{$endif}
+
+    wint_t	 = cint32;
     TSize    = size_t;
     pSize    = ^size_t;
     psize_t   = pSize;		
 
-    ssize_t  = cint32;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
     psSize   = ^ssize_t;		
 
@@ -89,11 +99,9 @@ type
     TUid     = Uid_t;
     pUid     = ^Uid_t;
 
-    clock_t  = culong;
     TClock   = clock_t;
     pClock   = ^clock_t;
 
-    time_t   = clong;           { used for returning the time  }
     // TTime    = time_t;    // Not allowed in system unit, -> unixtype
     pTime    = ^time_t;
     ptime_t =  ^time_t;
