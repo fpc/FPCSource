@@ -271,7 +271,11 @@ begin
    LinkRes.Add('ld -o $1 -e 0 $2 $3 $4 $5 $6 $7 $8 $9\');
   }
   LinkRes.Add('-m');
+{$ifdef i386}
   LinkRes.Add('elf_i386_haiku');
+{$else i386}
+  LinkRes.Add('elf_x86_64_haiku');
+{$endif i386}
   LinkRes.Add('-shared');
   LinkRes.Add('-Bsymbolic');
 
@@ -519,4 +523,9 @@ initialization
   RegisterExport(system_i386_haiku,texportlibhaiku);
   RegisterTarget(system_i386_haiku_info);
 {$endif i386}
+{$ifdef x86_64}
+  RegisterImport(system_x86_64_haiku,timportlibhaiku);
+  RegisterExport(system_x86_64_haiku,texportlibhaiku);
+  RegisterTarget(system_x86_64_haiku_info);
+{$endif x86_64}
 end.
