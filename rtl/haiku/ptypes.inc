@@ -46,16 +46,16 @@ type
   end;
   pmbstate_t = ^mbstate_t;
 
-    dev_t    = cuint32;         { used for device numbers      }
+    dev_t    = cint32;         { used for device numbers      }
     TDev     = dev_t;
     pDev     = ^dev_t;
 
-    gid_t    = cuint32;         { used for group IDs           }
+    gid_t    = cint32;         { used for group IDs           }
     TGid     = gid_t;
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-    ino_t    = clonglong;           { used for file serial numbers }
+    ino_t    = cint64;           { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -78,26 +78,28 @@ type
 {$ifdef cpu64}
     size_t   = cuint64;         { as definied in the C standard}
     ssize_t  = cint64;          { used by function for returning number of bytes }
-    clock_t  = cuint64;
     time_t   = cint64;           { used for returning the time  }
 {$else}
     size_t   = cuint32;         { as definied in the C standard}
     ssize_t  = cint32;          { used by function for returning number of bytes }
-    clock_t  = culong;
     time_t   = clong;           { used for returning the time  }
 {$endif}
 
-    wint_t	 = cint32;
+    wint_t   = cint32;
     TSize    = size_t;
     pSize    = ^size_t;
-    psize_t   = pSize;		
+    psize_t  = pSize;
 
     TsSize   = ssize_t;
-    psSize   = ^ssize_t;		
+    psSize   = ^ssize_t;
 
     uid_t    = cuint32;         { used for user ID type        }
     TUid     = Uid_t;
     pUid     = ^Uid_t;
+
+    clock_t  = cint32;
+    suseconds_t = cint32;
+    useconds_t = cuint32;
 
     TClock   = clock_t;
     pClock   = ^clock_t;
@@ -105,7 +107,7 @@ type
     // TTime    = time_t;    // Not allowed in system unit, -> unixtype
     pTime    = ^time_t;
     ptime_t =  ^time_t;
-    
+
     wchar_t   = cint32;
     pwchar_t  = ^wchar_t;
 
@@ -113,21 +115,23 @@ type
     TSocklen = socklen_t;
     pSocklen = ^socklen_t;
 
-  timeval  = packed record
-    tv_sec,tv_usec:clong;
-  end;
-  ptimeval = ^timeval;
-  TTimeVal = timeval;
+    timeval  = record
+      tv_sec: time_t;
+      tv_usec: suseconds_t;
+    end;
+    ptimeval = ^timeval;
+    TTimeVal = timeval;
 
-  timespec = packed record
-    tv_sec   : time_t;
-    tv_nsec  : clong;
-  end;
-  ptimespec= ^timespec;
-  Ttimespec= timespec;
-  
+    timespec = record
+      tv_sec   : time_t;
+      tv_nsec  : clong;
+    end;
+
+    ptimespec= ^timespec;
+    Ttimespec= timespec;
+
   pthread_t = culong;
-  
+
   sched_param = record
     __sched_priority: cint;
   end;

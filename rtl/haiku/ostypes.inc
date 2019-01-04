@@ -101,7 +101,7 @@ TYPE
   pUtsName= ^utsname;
 
   { file characteristics services }
-   stat    = packed record { the types are real}
+   stat    = record { the types are real}
         st_dev        : dev_t;             // inode's device
         st_ino        : ino_t;             // inode's number
         st_mode       : mode_t;            // inode protection mode
@@ -119,7 +119,7 @@ TYPE
         st_ctimensec  : clong;             // nsec of last file status change
         st_crtime     : time_t;            // time of creation file
         st_crtimensec : clong;             // nsec of creation file
-		st_type       : cint;              // attribute/index type
+        st_type       : cint;              // attribute/index type
         st_blocks     : fsblkcnt_t;        // blocks allocated for file
    end;
    
@@ -127,12 +127,12 @@ TYPE
    pStat = ^stat;
 
   { directory services }
-   dirent = packed record
-        d_dev:longint;
-        d_pdev:longint;
-        d_ino:int64;
-        d_pino:int64;
-        d_reclen:word;
+   dirent = record
+        d_dev : dev_t;
+        d_pdev : dev_t;
+        d_ino : ino_t;
+        d_pino : ino_t;
+        d_reclen : cushort;
         d_name:array[0..255] of char;
    end;
 (*   dirent  = record
