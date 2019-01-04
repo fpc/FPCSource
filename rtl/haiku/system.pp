@@ -335,12 +335,12 @@ function sigaltstack(const stack : pstack_t; oldStack : pstack_t) : integer; cde
 
 type
   {$PACKRECORDS C}
-  TAlternateSignalStack = packed record
-  	case Integer of
-  	  0 : (buffer : array[0..SIGSTKSZ * 4] of Char);
-  	  1 : (ld : clonglong);
-  	  2 : (l : integer);
-  	  3 : (p : pointer);
+  TAlternateSignalStack = record
+    case Integer of
+      0 : (buffer : array[0..(SIGSTKSZ * 4)-1] of Char);
+      1 : (ld : clonglong);
+      2 : (l : integer);
+      3 : (p : pointer);
   end;
 
 var
