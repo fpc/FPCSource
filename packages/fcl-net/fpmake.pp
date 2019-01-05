@@ -19,7 +19,6 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd,dragonfly]);
@@ -44,6 +43,7 @@ begin
 
     // IP and Sockets
     T:=P.Targets.AddUnit('netdb.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('sslbase.pp');
     T:=P.Targets.AddUnit('resolve.pp',AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes+[OS2,EMX]);
       with T.Dependencies do
         begin
@@ -57,10 +57,11 @@ begin
           AddUnit('resolve');
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('sslsockets.pp',AllUnixOSes+AllWindowsOSes);
+    T:=P.Targets.AddUnit('sslsockets.pp',AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes+[OS2,EMX]);
       with T.Dependencies do
         begin
           AddUnit('ssockets');
+          Addunit('sslbase');
         end;
     T.ResourceStrings := True;
 

@@ -359,6 +359,13 @@ begin
       ct_stm32f051r6,
       ct_stm32f051r8,
 
+      ct_stm32f091cc,
+      ct_stm32f091cb,
+      ct_stm32f091rc,
+      ct_stm32f091rb,
+      ct_stm32f091vc,
+      ct_stm32f091vb,
+
       ct_stm32f100x4,
       ct_stm32f100x6,
       ct_stm32f100x8,

@@ -212,6 +212,7 @@ ifeq ($(ARCH),arm)
     ASTARGET+=-mthumb --def __thumb__=1
     ARMTHUMB=1
   endif
+  ASTARGET+= -meabi=5
 endif
 
 

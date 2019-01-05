@@ -26,6 +26,7 @@ begin
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fcl-fpcunit');
+    P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);

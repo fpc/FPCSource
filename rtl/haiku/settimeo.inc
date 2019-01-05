@@ -12,7 +12,7 @@
 
 **********************************************************************}
 {$ifdef beos}
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
   {$define usestime}
 {$endif}
 {$endif}

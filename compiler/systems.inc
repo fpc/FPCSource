@@ -187,7 +187,8 @@
              system_riscv64_embedded,   { 98 }
              system_riscv32_embedded,   { 99 }
              system_aarch64_android,    { 100 }
-             system_x86_64_android      { 101 }
+             system_x86_64_android,     { 101 }
+             system_x86_64_haiku        { 102 }
        );
 
      type

@@ -189,7 +189,8 @@ const
   { 98 }  'Embedded-RiscV32',
   { 99 }  'Embedded-RiscV64',
   { 100 } 'Android-AArch64',
-  { 101 } 'Android-x86-64'
+  { 101 } 'Android-x86-64',
+  { 102 } 'Haiku-x86-64'
   );
 
 const

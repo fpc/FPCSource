@@ -1588,7 +1588,7 @@ var D: PFileDialog;
     FileName: string;
     CanWrite: boolean;
 begin
-  New(D, Init('*'+ExtOf(INIFileName),dialog_saveoptions,dialog_ini_filename,fdOpenButton,hidSaveIniFile));
+  New(D, Init('*'+ExtOf(INIFileName),dialog_saveoptions,dialog_ini_filename,fdOkButton,hidSaveIniFile));
   D^.HelpCtx:=hcSaveAsINI;
   if Desktop^.ExecView(D)<>cmCancel then
     begin

@@ -818,6 +818,7 @@ interface
           function  GetTypeName : string;override;
           function  mangledname : TSymStr; virtual;
           procedure setmangledname(const s : TSymStr);
+          procedure setcompilerprocname;
           function  fullprocname(showhidden:boolean):string;
           function  customprocname(pno: tprocnameoptions):ansistring;
           function  defaultmangledname: TSymStr;
@@ -6502,6 +6503,12 @@ implementation
   {$endif symansistr}
 {$endif jvm}
         include(procoptions,po_has_mangledname);
+      end;
+
+
+    procedure tprocdef.setcompilerprocname;
+      begin
+        procsym.realname:='$'+lower(procsym.name);
       end;
 
 

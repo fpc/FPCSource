@@ -215,7 +215,7 @@ Const
     { nds    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
     { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, true,  false, true , false, false,  true ,  true ),
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
+    { haiku }   ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
     { iphonesim}( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false, false, false,  false,  false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false, false, false,  false,  false),

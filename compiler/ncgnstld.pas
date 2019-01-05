@@ -59,7 +59,7 @@ implementation
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       cpuinfo,
-      symconst,symbase,symsym,symdef,symtable,symcreat,
+      symconst,symbase,symsym,symdef,symtable,pparautl,symcreat,
       ncon,ninl,ncnv,nmem,ncal,nutils,nbas,
       pass_2,cgbase
       ;

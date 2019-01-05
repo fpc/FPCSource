@@ -49,6 +49,7 @@ interface
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
+      procedure InitSysInitUnitName;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
     end;
@@ -224,6 +225,14 @@ begin
 end;
 
 
+procedure TLinkerHaiku.InitSysInitUnitName;
+const
+  SysInitUnitNames: array[boolean] of string[15] = ( 'si_c', 'si_dllc' );
+begin
+  sysinitunit:=SysInitUnitNames[current_module.islibrary];
+end;
+
+
 function TLinkerHaiku.WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
@@ -238,8 +247,6 @@ begin
 { set special options for some targets }
   linklibc:=(SharedLibFiles.Find('root')<>nil);
 
-  prtobj:='prt0';
-  cprtobj:='cprt0';
   if (cs_profile in current_settings.moduleswitches) or
      (not SharedLibFiles.Empty) then
    begin
@@ -247,20 +254,27 @@ begin
      linklibc:=true;
    end;
 
-  if (not linklibc) and makelib then
-   begin
-     linklibc:=true;
-     cprtobj:='dllprt.o';
-   end
-  else if makelib then
-   begin
-     // Making a dll with libc linking. Should be always the case under Haiku.
-     cprtobj:='dllcprt0';
-   end;
-   
+  prtobj:='';
+  cprtobj:='';
+  if not (target_info.system in systems_internal_sysinit) then
+    begin
+      prtobj:='prt0';
+      cprtobj:='cprt0';
+
+      if (not linklibc) and makelib then
+        begin
+          linklibc:=true;
+          cprtobj:='dllprt.o';
+        end
+      else if makelib then
+        begin
+          // Making a dll with libc linking. Should be always the case under Haiku.
+          cprtobj:='dllcprt0';
+        end;
+    end;
 
   if linklibc then
-   prtobj:=cprtobj;
+    prtobj:=cprtobj;
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,false);
@@ -271,7 +285,11 @@ begin
    LinkRes.Add('ld -o $1 -e 0 $2 $3 $4 $5 $6 $7 $8 $9\');
   }
   LinkRes.Add('-m');
+{$ifdef i386}
   LinkRes.Add('elf_i386_haiku');
+{$else i386}
+  LinkRes.Add('elf_x86_64_haiku');
+{$endif i386}
   LinkRes.Add('-shared');
   LinkRes.Add('-Bsymbolic');
 
@@ -519,4 +537,9 @@ initialization
   RegisterExport(system_i386_haiku,texportlibhaiku);
   RegisterTarget(system_i386_haiku_info);
 {$endif i386}
+{$ifdef x86_64}
+  RegisterImport(system_x86_64_haiku,timportlibhaiku);
+  RegisterExport(system_x86_64_haiku,texportlibhaiku);
+  RegisterTarget(system_x86_64_haiku_info);
+{$endif x86_64}
 end.

@@ -34,6 +34,7 @@ function disable_debugger(state : integer): integer; cdecl; external 'root' name
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
+{$ifdef i386}
 procedure prthaltproc;external name '_haltproc';
 
 procedure system_exit;
@@ -42,6 +43,14 @@ begin
     jmp prthaltproc
   end;
 End;
+{$else i386}
+procedure haltproc(exitcode: longint); cdecl; external name '_haltproc';
+
+procedure system_exit;
+begin
+  haltproc(ExitCode);
+end;
+{$endif i386}
 
 
 { OS dependant parts  }
@@ -326,12 +335,12 @@ function sigaltstack(const stack : pstack_t; oldStack : pstack_t) : integer; cde
 
 type
   {$PACKRECORDS C}
-  TAlternateSignalStack = packed record
-  	case Integer of
-  	  0 : (buffer : array[0..SIGSTKSZ * 4] of Char);
-  	  1 : (ld : clonglong);
-  	  2 : (l : integer);
-  	  3 : (p : pointer);
+  TAlternateSignalStack = record
+    case Integer of
+      0 : (buffer : array[0..(SIGSTKSZ * 4)-1] of Char);
+      1 : (ld : clonglong);
+      2 : (l : integer);
+      3 : (p : pointer);
   end;
 
 var

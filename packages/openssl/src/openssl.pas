@@ -254,6 +254,10 @@ type
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
   PCallbackCb = SslPtr;
+
+  PX509_STORE_CTX = SslPtr;
+  TSSLCTXVerifyCallback = function (ok : cInt; ctx : PX509_STORE_CTX) : Cint; cdecl;
+
   PFunction = procedure;
   DES_cblock = array[0..7] of Byte;
   PDES_cblock = ^DES_cblock;
@@ -833,6 +837,35 @@ const
   RSA_NO_PADDING         = 3;
   RSA_PKCS1_OAEP_PADDING = 4;
 
+  // ASN1 values
+  V_ASN1_EOC                     = 0;
+  V_ASN1_BOOLEAN                 = 1;
+  V_ASN1_INTEGER                 = 2;
+  V_ASN1_BIT_STRING              = 3;
+  V_ASN1_OCTET_STRING            = 4;
+  V_ASN1_NULL                    = 5;
+  V_ASN1_OBJECT                  = 6;
+  V_ASN1_OBJECT_DESCRIPTOR       = 7;
+  V_ASN1_EXTERNAL                = 8;
+  V_ASN1_REAL                    = 9;
+  V_ASN1_ENUMERATED              = 10;
+  V_ASN1_UTF8STRING              = 12;
+  V_ASN1_SEQUENCE                = 16;
+  V_ASN1_SET                     = 17;
+  V_ASN1_NUMERICSTRING           = 18;
+  V_ASN1_PRINTABLESTRING         = 19;
+  V_ASN1_T61STRING               = 20;
+  V_ASN1_TELETEXSTRING           = 20;
+  V_ASN1_VIDEOTEXSTRING          = 21;
+  V_ASN1_IA5STRING               = 22;
+  V_ASN1_UTCTIME                 = 23;
+  V_ASN1_GENERALIZEDTIME         = 24;
+  V_ASN1_GRAPHICSTRING           = 25;
+  V_ASN1_ISO64STRING             = 26;
+  V_ASN1_VISIBLESTRING           = 26;
+  V_ASN1_GENERALSTRING           = 27;
+  V_ASN1_UNIVERSALSTRING         = 28;
+  V_ASN1_BMPSTRING               = 30;
 
   // BN
 {$ifdef cpu64}
@@ -1016,11 +1049,13 @@ var
   function SslMethodV23:PSSL_METHOD;
   function SslTLSMethod:PSSL_METHOD;
   function SslCtxUsePrivateKey(ctx: PSSL_CTX; pkey: SslPtr):cInt;
-  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
+  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;overload;
+  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; b: TBytes; len: cLong):cInt;overload;
 //  function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: PChar; _type: cInt):cInt;
   function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
   function SslCtxUseCertificate(ctx: PSSL_CTX; x: SslPtr):cInt;
-  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
+  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt; overload;
+  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; Buf: TBytes):cInt; overload;
   function SslCtxUseCertificateFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
 //  function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: PChar):cInt;
   function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: String):cInt;
@@ -1040,7 +1075,7 @@ var
   function SslPending(ssl: PSSL):cInt;
   function SslGetVersion(ssl: PSSL):String;
   function SslGetPeerCertificate(ssl: PSSL):PX509;
-  procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: PFunction);
+  procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback);
   function SSLGetCurrentCipher(s: PSSL):SslPtr;
   function SSLCipherGetName(c: SslPtr): String;
   function SSLCipherGetBits(c: SslPtr; var alg_bits: cInt):cInt;
@@ -1086,6 +1121,9 @@ var
   function d2iPKCS12bio(b:PBIO; Pkcs12: SslPtr): SslPtr;
   function PKCS12parse(p12: SslPtr; pass: string; var pkey, cert, ca: SslPtr): cInt;
   procedure PKCS12free(p12: SslPtr);
+  function Asn1StringTypeNew(aType : cint): PASN1_STRING;
+  Function Asn1UtctimePrint(b : PBio; a: PASN1_UTCTIME) : integer;
+  Function ASN1UtcTimeSetString(t : PASN1_UTCTIME; s : PAnsichar) : cint;
   function Asn1UtctimeNew: PASN1_UTCTIME;
   procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
   function Asn1IntegerSet(a: PASN1_INTEGER; v: integer): integer;
@@ -1243,14 +1281,17 @@ var
                u: pointer): integer;	
   function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
   function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
-  
+  function PEM_write_bio_X509(bp: pBIO;  x: px509): integer;
+
   // BIO Functions - bio.h
   function BioNew(b: PBIO_METHOD): PBIO;
   procedure BioFreeAll(b: PBIO);
   function BioSMem: PBIO_METHOD;
   function BioCtrlPending(b: PBIO): cInt;
   function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
-  function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt;
+  function BioRead(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+  function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt; overload;
+  function BioWrite(b: PBIO; Buf: TBytes; Len: cInt): cInt; overload;
   function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
   function BIO_read_filename(b: PBIO; const name: PChar): cint;
   
@@ -1558,7 +1599,9 @@ type
   Td2iPKCS12bio = function(b:PBIO; Pkcs12: SslPtr): SslPtr; cdecl;
   TPKCS12parse = function(p12: SslPtr; pass: PChar; var pkey, cert, ca: SslPtr): cInt; cdecl;
   TPKCS12free = procedure(p12: SslPtr); cdecl;
-  TAsn1UtctimeNew = function: PASN1_UTCTIME; cdecl;
+  TAsn1StringTypeNew = function(aype : cint): SSlPtr; cdecl;
+  TAsn1UtcTimeSetString = function(t : PASN1_UTCTIME; S : PAnsiChar): cint; cdecl;
+  TAsn1UtctimePrint = Function(b : PBio;a: PASN1_UTCTIME) : cint; cdecl;
   TAsn1UtctimeFree = procedure(a: PASN1_UTCTIME); cdecl;
   TAsn1IntegerSet = function(a: PASN1_INTEGER; v: integer): integer; cdecl;
   TAsn1IntegerGet = function(a: PASN1_INTEGER): integer; cdecl;
@@ -1684,6 +1727,7 @@ type
                u: pointer): integer; cdecl;	
   TPEM_write_bio_PUBKEY = function(bp: pBIO; x: pEVP_PKEY): integer; cdecl;
   TPEM_read_bio_X509 = function(bp: pBIO; x: PPX509; cb: Ppem_password_cb; u: pointer): px509; cdecl;
+  TPEM_write_bio_X509 = function(bp: pBIO; x: PX509): integer; cdecl;
 
   // BIO Functions
 
@@ -1783,7 +1827,9 @@ var
   _d2iPKCS12bio: Td2iPKCS12bio = nil;
   _PKCS12parse: TPKCS12parse = nil;
   _PKCS12free: TPKCS12free = nil;
-  _Asn1UtctimeNew: TAsn1UtctimeNew = nil;
+  _Asn1StringTypeNew: TAsn1StringTypeNew = nil;
+  _Asn1UtctimeSetString : TAsn1UtctimeSetString = Nil;
+  _Asn1UtctimePrint: TAsn1UtctimePrint = nil;
   _Asn1UtctimeFree: TAsn1UtctimeFree = nil;
   _Asn1IntegerSet: TAsn1IntegerSet = nil;
   _Asn1IntegerGet: TAsn1IntegerGet = nil;
@@ -1916,6 +1962,7 @@ var
   _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;	
   _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
   _PEM_read_bio_X509: TPEM_read_bio_X509 = nil;
+  _PEM_write_bio_X509: TPEM_write_bio_X509 = nil;
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
@@ -2200,10 +2247,18 @@ begin
     Result := 0;
 end;
 
-function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
+function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt; overload;
 begin
   if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
     Result := _SslCtxUsePrivateKeyASN1(pk, ctx, Sslptr(d), len)
+  else
+    Result := 0;
+end;
+
+function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; b: TBytes; len: cLong): cInt;overload;
+begin
+  if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
+    Result := _SslCtxUsePrivateKeyASN1(pk, ctx, Sslptr(b), len)
   else
     Result := 0;
 end;
@@ -2228,6 +2283,14 @@ function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
 begin
   if InitSSLInterface and Assigned(_SslCtxUseCertificateASN1) then
     Result := _SslCtxUseCertificateASN1(ctx, len, SslPtr(d))
+  else
+    Result := 0;
+end;
+
+function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; Buf: TBytes): cInt;
+begin
+  if InitSSLInterface and Assigned(_SslCtxUseCertificateASN1) then
+    Result := _SslCtxUseCertificateASN1(ctx, len, SslPtr(Buf))
   else
     Result := 0;
 end;
@@ -2363,7 +2426,7 @@ begin
     Result := nil;
 end;
 
-procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: PFunction);
+procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback);
 begin
   if InitSSLInterface and Assigned(_SslCtxSetVerify) then
     _SslCtxSetVerify(ctx, mode, @arg2);
@@ -2587,6 +2650,14 @@ begin
     Result := 0;
 end;
 
+function BioRead(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+begin
+  if InitSSLInterface and Assigned(_BioRead) then
+    Result := _BioRead(b, PChar(Buf), Len)
+  else
+    Result := -2;
+end;
+
 function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
 begin
   if InitSSLInterface and Assigned(_BioRead) then
@@ -2603,6 +2674,16 @@ begin
   else
     Result := -2;
 end;
+
+function BioWrite(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+
+begin
+  if InitSSLInterface and Assigned(_BioWrite) then
+    Result := _BioWrite(b, PChar(Buf), Len)
+  else
+    Result := -2;
+end;
+
 
 function X509print(b: PBIO; a: PX509): cInt;
 begin
@@ -2694,8 +2775,14 @@ end;
 
 function Asn1UtctimeNew: PASN1_UTCTIME;
 begin
-  if InitSSLInterface and Assigned(_Asn1UtctimeNew) then
-    Result := _Asn1UtctimeNew
+  Result:=PASN1_UTCTIME(Asn1StringTypeNew(V_ASN1_UTCTIME));
+end;
+
+function Asn1StringTypeNew(aType : cint): PASN1_STRING;
+
+begin
+  if InitSSLInterface and Assigned(_Asn1StringTypeNew) then
+    Result := _Asn1StringTypeNew(aType)
   else
     Result := nil;
 end;
@@ -2704,6 +2791,22 @@ procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
 begin
   if InitSSLInterface and Assigned(_Asn1UtctimeFree) then
     _Asn1UtctimeFree(a);
+end;
+
+function Asn1UtctimePrint(b: PBio; a: PASN1_UTCTIME): integer;
+begin
+  if InitSSLInterface and Assigned(_Asn1UtctimePrint) then
+    Result:=_Asn1UtctimePrint(b,a)
+  else
+    Result:=0;
+end;
+
+function ASN1UtcTimeSetString(t: PASN1_UTCTIME; s: PAnsichar): cint;
+begin
+  if InitSSLInterface and Assigned(_Asn1UtctimeSetString) then
+    Result:=_Asn1UtctimeSetString(t,s)
+  else
+    Result:=0;
 end;
 
 function Asn1IntegerSet(a: PASN1_INTEGER; v: integer): integer;
@@ -3558,12 +3661,20 @@ Begin
     Result := -1;
 end; 
 
-function PEM_read_bio_X509(bp: pBIO;  x: ppx509; cb: Ppem_password_cb; u: pointer): px509;
+function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
 begin
   if InitSSLInterface and Assigned(_PEM_read_bio_X509) then
     Result := _PEM_read_bio_X509(bp, x, cb, u)
   else
     Result := nil;
+end;
+
+function PEM_write_bio_X509(bp: pBIO;  x: px509): integer;
+begin
+  if InitSSLInterface and Assigned(_PEM_write_bio_X509) then
+    Result := _PEM_write_bio_X509(bp, x)
+  else
+    Result := 0;
 end;
 
 
@@ -3582,7 +3693,7 @@ begin
   Result := BIO_ctrl(b, BIO_C_SET_FILENAME, BIO_CLOSE or BIO_FP_READ, name);
 end;
 
-function BIO_s_file: PBIO_METHOD;
+function BIO_s_file: pBIO_METHOD;
 begin
   if InitSSLInterface and Assigned(_BIO_s_file) then
     Result := _BIO_s_file
@@ -4643,7 +4754,9 @@ begin
   _d2iPKCS12bio := GetProcAddr(SSLUtilHandle, 'd2i_PKCS12_bio');
   _PKCS12parse := GetProcAddr(SSLUtilHandle, 'PKCS12_parse');
   _PKCS12free := GetProcAddr(SSLUtilHandle, 'PKCS12_free');
-  _Asn1UtctimeNew := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_new');
+  _Asn1UtctimeSetString := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_set_string');
+  _Asn1StringTypeNew := GetProcAddr(SSLUtilHandle, 'ASN1_STRING_type_new');
+  _Asn1UtctimePrint := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_print');
   _Asn1UtctimeFree := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_free');
   _Asn1IntegerSet := GetProcAddr(SSLUtilHandle, 'ASN1_INTEGER_set');
   _Asn1IntegerGet := GetProcAddr(SSLUtilHandle, 'ASN1_INTEGER_get');
@@ -4755,7 +4868,8 @@ begin
   _PEM_write_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PrivateKey');
   _PEM_write_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PUBKEY');
   _PEM_read_bio_X509 := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_X509');
-  
+  _PEM_write_bio_X509 := GetProcAddr(SSLUtilHandle,'PEM_write_bio_X509');
+
   // BIO
   _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl');
   _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file');
@@ -5105,7 +5219,9 @@ begin
   _d2iPKCS12bio := nil;
   _PKCS12parse := nil;
   _PKCS12free := nil;
-  _Asn1UtctimeNew := nil;
+  _Asn1UtctimeSetString := nil;
+  _Asn1StringTypeNew := nil;
+  _Asn1UtctimePrint := nil;
   _Asn1UtctimeFree := nil;
   _Asn1IntegerSet:= nil;
   _Asn1IntegerGet:= nil;
@@ -5216,6 +5332,7 @@ begin
   _PEM_read_bio_PUBKEY := nil;
   _PEM_write_bio_PrivateKey := nil;
   _PEM_read_bio_X509 := nil;
+  _PEM_write_bio_X509 := nil;
 
   // BIO
 
