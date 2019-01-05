@@ -86,7 +86,6 @@ interface
           whilerepeatn,     {A while or repeat statement}
           forn,             {A for loop}
           exitn,            {An exit statement}
-          withn,            {A with statement}
           casen,            {A case statement}
           labeln,           {A label}
           goton,            {A goto statement}
@@ -171,7 +170,6 @@ interface
           'whilerepeatn',
           'forn',
           'exitn',
-          'withn',
           'casen',
           'labeln',
           'goton',

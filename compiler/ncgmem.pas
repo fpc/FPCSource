@@ -55,10 +55,6 @@ interface
           procedure pass_generate_code;override;
        end;
 
-       tcgwithnode = class(twithnode)
-          procedure pass_generate_code;override;
-       end;
-
        tcgvecnode = class(tvecnode)
          function get_mul_size : asizeint;
        private
@@ -608,19 +604,6 @@ implementation
 
 
 {*****************************************************************************
-                            TCGWITHNODE
-*****************************************************************************}
-
-    procedure tcgwithnode.pass_generate_code;
-      begin
-        location_reset(location,LOC_VOID,OS_NO);
-
-        if assigned(left) then
-          secondpass(left);
-       end;
-
-
-{*****************************************************************************
                             TCGVECNODE
 *****************************************************************************}
 
@@ -1109,6 +1092,5 @@ begin
    caddrnode:=tcgaddrnode;
    cderefnode:=tcgderefnode;
    csubscriptnode:=tcgsubscriptnode;
-   cwithnode:=tcgwithnode;
    cvecnode:=tcgvecnode;
 end.

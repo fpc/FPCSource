@@ -776,8 +776,6 @@ implementation
               symtablestack.pop(TSymtable(withsymtablelist[i]));
             withsymtablelist.free;
 
-//            p:=cwithnode.create(right,twithsymtable(withsymtable),levelcount,refnode);
-
             { Finalize complex withnode with destroy of temp }
             if assigned(newblock) then
              begin

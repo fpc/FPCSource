@@ -318,7 +318,6 @@ unit optutils;
                 { raise never returns }
                 p.successor:=nil;
               end;
-            withn,
             tryexceptn,
             tryfinallyn,
             onn:
