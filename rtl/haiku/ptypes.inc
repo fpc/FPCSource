@@ -21,6 +21,8 @@
 
 {$i ctypes.inc}
 
+{$packrecords c}
+
 type
   fsblkcnt_t = clonglong;
   TStatfs = packed record

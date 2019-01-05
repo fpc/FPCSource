@@ -100,6 +100,8 @@ TYPE
   TUtsName= utsname;
   pUtsName= ^utsname;
 
+{$packrecords c}
+
   { file characteristics services }
    stat    = record { the types are real}
         st_dev        : dev_t;             // inode's device
