@@ -222,7 +222,7 @@ implementation
   uses
     verbose,cutils,cclasses,globals,
     symconst,symbase,symtable,symcreat,jvmdef,
-    pdecsub,pjvm,
+    pdecsub,pparautl,pjvm,
     paramgr;
 
 

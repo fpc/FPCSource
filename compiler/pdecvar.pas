@@ -68,7 +68,7 @@ implementation
        ngenutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub;
+       pbase,pexpr,ptype,ptconst,pdecsub,pparautl;
 
 
     function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;

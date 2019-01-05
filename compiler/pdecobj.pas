@@ -49,7 +49,7 @@ implementation
       symbase,symsym,symtable,symcreat,defcmp,
       node,ncon,
       fmodule,scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,ppu
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,pparautl,ppu
 {$ifdef jvm}
       ,pjvm;
 {$else}

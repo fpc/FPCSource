@@ -61,7 +61,7 @@ implementation
        ninl,ncon,nobj,ngenutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,
+       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,pparautl,
 {$ifdef jvm}
        pjvm,
 {$endif}

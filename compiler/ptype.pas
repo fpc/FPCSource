@@ -82,7 +82,7 @@ implementation
        nset,ncnv,ncon,nld,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil,pparautl
 {$ifdef jvm}
        ,pjvm
 {$endif}

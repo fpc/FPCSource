@@ -245,7 +245,7 @@ implementation
       cutils,verbose,globals,
       symconst,symtable,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,nutils,ninl,nset,ngenutil,
-      pdecsub,
+      pdecsub,pparautl,
     {$ifdef state_tracking}
       nstate,
     {$endif}

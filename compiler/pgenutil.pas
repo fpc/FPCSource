@@ -73,7 +73,7 @@ uses
   node,nobj,
   { parser }
   scanner,
-  pbase,pexpr,pdecsub,ptype,psub;
+  pbase,pexpr,pdecsub,ptype,psub,pparautl;
 
 
     procedure maybe_add_waiting_unit(tt:tdef);

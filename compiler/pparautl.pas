@@ -35,12 +35,24 @@ interface
     procedure insert_hidden_para(p:TObject;arg:pointer);
     procedure check_c_para(pd:Tabstractprocdef);
 
+  type
+    // flags of handle_calling_convention routine
+    thccflag=(
+      hcc_check,                // perform checks and outup errors if found
+      hcc_insert_hidden_paras   // insert hidden parameters
+    );
+    thccflags=set of thccflag;
+  const
+    hcc_all=[hcc_check,hcc_insert_hidden_paras];
+
+    procedure handle_calling_convention(pd:tabstractprocdef;flags:thccflags=hcc_all);
+
 implementation
 
     uses
       globals,globtype,verbose,systems,
       symconst,symtype,symbase,symsym,symtable,symcreat,defutil,blockutl,
-      paramgr;
+      pbase,paramgr;
 
 
     procedure insert_funcret_para(pd:tabstractprocdef);
@@ -415,6 +427,130 @@ implementation
                   MessagePos(tparavarsym(sym).fileinfo,parser_e_C_array_of_const_must_be_last);
               end;
           end;
+      end;
+
+
+    procedure set_addr_param_regable(p:TObject;arg:pointer);
+      begin
+        if (tsym(p).typ<>paravarsym) then
+         exit;
+        with tparavarsym(p) do
+         begin
+           if (not needs_finalization) and
+              paramanager.push_addr_param(varspez,vardef,tprocdef(arg).proccalloption) then
+             varregable:=vr_addr;
+         end;
+      end;
+
+
+    procedure handle_calling_convention(pd:tabstractprocdef;flags:thccflags=hcc_all);
+      begin
+        if hcc_check in flags then
+          begin
+            { set the default calling convention if none provided }
+            if (pd.typ=procdef) and
+               (is_objc_class_or_protocol(tprocdef(pd).struct) or
+                is_cppclass(tprocdef(pd).struct)) then
+              begin
+                { none of the explicit calling conventions should be allowed }
+                if (po_hascallingconvention in pd.procoptions) then
+                  internalerror(2009032501);
+                if is_cppclass(tprocdef(pd).struct) then
+                  pd.proccalloption:=pocall_cppdecl
+                else
+                  pd.proccalloption:=pocall_cdecl;
+              end
+            else if not(po_hascallingconvention in pd.procoptions) then
+              pd.proccalloption:=current_settings.defproccall
+            else
+              begin
+                if pd.proccalloption=pocall_none then
+                  internalerror(200309081);
+              end;
+
+            { handle proccall specific settings }
+            case pd.proccalloption of
+              pocall_cdecl,
+              pocall_cppdecl,
+              pocall_sysv_abi_cdecl,
+              pocall_ms_abi_cdecl:
+                begin
+                  { check C cdecl para types }
+                  check_c_para(pd);
+                end;
+              pocall_far16 :
+                begin
+                  { Temporary stub, must be rewritten to support OS/2 far16 }
+                  Message1(parser_w_proc_directive_ignored,'FAR16');
+                end;
+            end;
+
+            { Inlining is enabled and supported? }
+            if (po_inline in pd.procoptions) and
+               not(cs_do_inline in current_settings.localswitches) then
+              begin
+                { Give an error if inline is not supported by the compiler mode,
+                  otherwise only give a hint that this procedure will not be inlined }
+                if not(m_default_inline in current_settings.modeswitches) then
+                  Message(parser_e_proc_inline_not_supported)
+                else
+                  Message(parser_h_inlining_disabled);
+                exclude(pd.procoptions,po_inline);
+              end;
+
+            { For varargs directive also cdecl and external must be defined }
+            if (po_varargs in pd.procoptions) then
+             begin
+               { check first for external in the interface, if available there
+                 then the cdecl must also be there since there is no implementation
+                 available to contain it }
+               if parse_only then
+                begin
+                  { if external is available, then cdecl must also be available,
+                    procvars don't need external }
+                  if not((po_external in pd.procoptions) or
+                         (pd.typ=procvardef) or
+                         { for objcclasses this is checked later, because the entire
+                           class may be external.  }
+                         is_objc_class_or_protocol(tprocdef(pd).struct)) and
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_stdcall])) then
+                    Message(parser_e_varargs_need_cdecl_and_external);
+                end
+               else
+                begin
+                  { both must be defined now }
+                  if not((po_external in pd.procoptions) or
+                         (pd.typ=procvardef)) or
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_stdcall])) then
+                    Message(parser_e_varargs_need_cdecl_and_external);
+                end;
+             end;
+          end;
+
+        if hcc_insert_hidden_paras in flags then
+          begin
+            { insert hidden high parameters }
+            pd.parast.SymList.ForEachCall(@insert_hidden_para,pd);
+
+            { insert hidden self parameter }
+            insert_self_and_vmt_para(pd);
+
+            { insert funcret parameter if required }
+            insert_funcret_para(pd);
+
+            { Make var parameters regable, this must be done after the calling
+              convention is set. }
+            { this must be done before parentfp is insert, because getting all cases
+              where parentfp must be in a memory location isn't catched properly so
+              we put parentfp never in a register }
+            pd.parast.SymList.ForEachCall(@set_addr_param_regable,pd);
+
+            { insert parentfp parameter if required }
+            insert_parentfp_para(pd);
+          end;
+
+        { Calculate parameter tlist }
+        pd.calcparas;
       end;
 
 
