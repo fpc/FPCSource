@@ -41,6 +41,7 @@ Type
   TDataEvent   = Procedure (Sender : TObject; Const ContentLength, CurrentPos : Int64) of object;
   // Use this to set up a socket handler. UseSSL is true if protocol was https
   TGetSocketHandlerEvent = Procedure (Sender : TObject; Const UseSSL : Boolean; Out AHandler : TSocketHandler) of object;
+  TSocketHandlerCreatedEvent = Procedure (Sender : TObject; AHandler : TSocketHandler) of object;
 
   TFPCustomHTTPClient = Class;
 
@@ -95,6 +96,7 @@ Type
     FTerminated: Boolean;
     FUserName: String;
     FOnGetSocketHandler : TGetSocketHandlerEvent;
+    FAfterSocketHandlerCreated : TSocketHandlerCreatedEvent;
     FProxy : TProxyData;
     function CheckContentLength: Int64;
     function CheckTransferEncoding: string;
@@ -326,7 +328,8 @@ Type
     Property OnHeaders : TNotifyEvent Read FOnHeaders Write FOnHeaders;
     // Called to create socket handler. If not set, or Nil is returned, a standard socket handler is created.
     Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
-
+    // Called after create socket handler was created, with the created socket handler.
+    Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
   end;
 
 
@@ -587,12 +590,12 @@ begin
   if Assigned(FonGetSocketHandler) then
     FOnGetSocketHandler(Self,UseSSL,Result);
   if (Result=Nil) then
-  {$if not defined(HASAMIGA)}
     If UseSSL then
-      Result:=TSSLSocketHandler.Create
+      Result:=TSSLSocketHandler.GetDefaultHandler
     else
-  {$endif}  
       Result:=TSocketHandler.Create;
+  if Assigned(AfterSocketHandlerCreate) then
+    AfterSocketHandlerCreate(Self,Result);
 end;
 
 procedure TFPCustomHTTPClient.ConnectToServer(const AHost: String;

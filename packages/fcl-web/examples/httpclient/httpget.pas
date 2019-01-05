@@ -3,7 +3,7 @@ program httpget;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Classes, fphttpclient, sslsockets, fpopenssl;
+  SysUtils, Classes, fphttpclient, sslsockets, fpopenssl, opensslsockets;
 
 Type
 
