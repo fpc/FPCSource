@@ -535,6 +535,12 @@ begin
 {$include openssl/fpmake.pp}
 end;
 
+procedure add_gnutls(const ADirectory: string);
+begin
+  with Installer do
+{$include gnutls/fpmake.pp}
+end;
+
 procedure add_oracle(const ADirectory: string);
 begin
   with Installer do
