@@ -57,10 +57,11 @@ begin
           AddUnit('resolve');
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('sslsockets.pp',AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes);
+    T:=P.Targets.AddUnit('sslsockets.pp',AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes+[OS2,EMX]);
       with T.Dependencies do
         begin
           AddUnit('ssockets');
+          Addunit('sslbase');
         end;
     T.ResourceStrings := True;
 
