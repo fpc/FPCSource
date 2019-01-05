@@ -2260,7 +2260,10 @@ implementation
               Consume(_SEMICOLON);
 
              { Set calling convention }
-             handle_calling_convention(pd);
+             if parse_only then
+               handle_calling_convention(pd,hcc_default_actions_intf)
+             else
+               handle_calling_convention(pd,hcc_default_actions_impl)
            end;
 
          { search for forward declarations }

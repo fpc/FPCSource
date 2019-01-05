@@ -29,7 +29,7 @@ interface
     uses
       cclasses,
       node,cpubase,
-      symtype,symbase,symdef,symsym,
+      symconst,symtype,symbase,symdef,symsym,
       optloop;
 
     type
@@ -197,7 +197,6 @@ interface
           function pass_1 : tnode;override;
           function simplify(forinline:boolean): tnode;override;
        protected
-          function create_finalizer_procdef: tprocdef;
           procedure adjust_estimated_stack_size; virtual;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
@@ -243,9 +242,8 @@ implementation
     uses
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,
-      symconst,symtable,paramgr,defcmp,defutil,htypechk,pass_1,
+      symtable,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,nutils,ninl,nset,ngenutil,
-      pdecsub,pparautl,
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -2356,53 +2354,6 @@ implementation
            right:=nil;
          end;
      end;
-
-
-    var
-      seq: longint=0;
-
-    function ttryfinallynode.create_finalizer_procdef: tprocdef;
-      var
-        st:TSymTable;
-        checkstack: psymtablestackitem;
-        oldsymtablestack: tsymtablestack;
-        sym:tprocsym;
-      begin
-        { get actual procedure symtable (skip withsymtables, etc.) }
-        st:=nil;
-        checkstack:=symtablestack.stack;
-        while assigned(checkstack) do
-          begin
-            st:=checkstack^.symtable;
-            if st.symtabletype in [staticsymtable,globalsymtable,localsymtable] then
-              break;
-            checkstack:=checkstack^.next;
-          end;
-        { Create a nested procedure, even from main_program_level.
-          Furthermore, force procdef and procsym into the same symtable
-          (by default, defs are registered with symtablestack.top which may be
-          something temporary like exceptsymtable - in that case, procdef can be
-          destroyed before procsym, leaving invalid pointers). }
-        oldsymtablestack:=symtablestack;
-        symtablestack:=nil;
-        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true);
-        symtablestack:=oldsymtablestack;
-        st.insertdef(result);
-        result.struct:=current_procinfo.procdef.struct;
-        { tabstractprocdef constructor sets po_delphi_nested_cc whenever
-          nested procvars modeswitch is active. We must be independent of this switch. }
-        exclude(result.procoptions,po_delphi_nested_cc);
-        result.proctypeoption:=potype_exceptfilter;
-        handle_calling_convention(result);
-        sym:=cprocsym.create('$fin$'+tostr(seq));
-        st.insert(sym);
-        inc(seq);
-
-        result.procsym:=sym;
-        proc_add_definition(result);
-        result.forwarddef:=false;
-        result.aliasnames.insert(result.mangledname);
-      end;
 
 
     procedure ttryfinallynode.adjust_estimated_stack_size;

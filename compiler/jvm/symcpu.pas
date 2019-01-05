@@ -490,9 +490,9 @@ implementation
           begin
             { calling convention, self, ... }
             if obj.typ=recorddef then
-              handle_calling_convention(pd,[hcc_check])
+              handle_calling_convention(pd,[hcc_declaration,hcc_check])
             else
-              handle_calling_convention(pd,hcc_all);
+              handle_calling_convention(pd,hcc_default_actions_intf);
             { register forward declaration with procsym }
             proc_add_definition(pd);
           end;

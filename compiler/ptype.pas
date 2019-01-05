@@ -1596,7 +1596,7 @@ implementation
                     newtype.free;
                   end;
                 { Add implicit hidden parameters and function result }
-                handle_calling_convention(pd);
+                handle_calling_convention(pd,hcc_default_actions_intf);
               end;
             { restore old state }
             parse_generic:=old_parse_generic;

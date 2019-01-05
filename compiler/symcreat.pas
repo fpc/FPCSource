@@ -97,10 +97,6 @@ interface
     tprocdef.getcopyas(procdef,pc_bareproc) }
   procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
 
-  { create "parent frame pointer" record skeleton for procdef, in which local
-    variables and parameters from pd accessed from nested routines can be
-    stored }
-  procedure build_parentfpstruct(pd: tprocdef);
   { checks whether sym (a local or para of pd) already has a counterpart in
     pd's parentfpstruct, and if not adds a new field to the struct with type
     "vardef" (can be different from sym's type in case it's a call-by-reference
@@ -118,8 +114,6 @@ interface
   { finalises the parentfpstruct (alignment padding, ...) }
   procedure finish_parentfpstruct(pd: tprocdef);
 
-  procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
-
   { turns a fieldvarsym into a class/static field definition, and returns the
     created staticvarsym that is responsible for allocating the global storage }
   function make_field_static(recst: tsymtable; fieldvs: tfieldvarsym): tstaticvarsym;
@@ -131,11 +125,13 @@ interface
 
   function generate_pkg_stub(pd:tprocdef):tnode;
 
+
+
 implementation
 
   uses
     cutils,cclasses,globals,verbose,systems,comphook,fmodule,constexp,
-    symtable,defutil,
+    symtable,defutil,symutil,
     pbase,pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
     pjvm,jvmdef,
@@ -1228,53 +1224,6 @@ implementation
     end;
 
 
-  procedure build_parentfpstruct(pd: tprocdef);
-    var
-      nestedvars: tsym;
-      nestedvarsst: tsymtable;
-      pnestedvarsdef,
-      nestedvarsdef: tdef;
-      old_symtablestack: tsymtablestack;
-    begin
-      { make sure the defs are not registered in the current symtablestack,
-        because they may be for a parent procdef (changeowner does remove a def
-        from the symtable in which it was originally created, so that by itself
-        is not enough) }
-      old_symtablestack:=symtablestack;
-      symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
-      { create struct to hold local variables and parameters that are
-        accessed from within nested routines (start with extra dollar to prevent
-        the JVM from thinking this is a nested class in the unit) }
-      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
-        current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,current_settings.alignment.maxCrecordalign);
-      nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
-{$ifdef jvm}
-      maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
-      { don't add clone/FpcDeepCopy, because the field names are not all
-        representable in source form and we don't need them anyway }
-      symtablestack.push(trecorddef(nestedvarsdef).symtable);
-      maybe_add_public_default_java_constructor(trecorddef(nestedvarsdef));
-      insert_record_hidden_paras(trecorddef(nestedvarsdef));
-      symtablestack.pop(trecorddef(nestedvarsdef).symtable);
-{$endif}
-      symtablestack.free;
-      symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
-      pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
-      if not(po_assembler in pd.procoptions) then
-        begin
-          nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
-          include(nestedvars.symoptions,sp_internal);
-          pd.localst.insert(nestedvars);
-          pd.parentfpstruct:=nestedvars;
-          pd.parentfpinitblock:=cblocknode.create(nil);
-        end;
-      symtablestack.free;
-      pd.parentfpstructptrtype:=pnestedvarsdef;
-
-      symtablestack:=old_symtablestack;
-    end;
-
-
   function maybe_add_sym_to_parentfpstruct(pd: tprocdef; sym: tsym; vardef: tdef; addrparam: boolean): tsym;
     var
       fieldvardef,
@@ -1400,26 +1349,6 @@ implementation
     end;
 
 
-  procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
-    var
-      ts: ttypesym;
-    begin
-      { create a dummy typesym for the JVM target, because the record
-        has to be wrapped by a class }
-      if (target_info.system in systems_jvm) and
-         (def.typ=recorddef) and
-         not assigned(def.typesym) then
-        begin
-          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def,true);
-          st.insert(ts);
-          ts.visibility:=vis_strictprivate;
-          { this typesym can't be used by any Pascal code, so make sure we don't
-            print a hint about it being unused }
-          addsymref(ts);
-        end;
-    end;
-
-
   function make_field_static(recst: tsymtable; fieldvs: tfieldvarsym): tstaticvarsym;
     var
       static_name: string;
@@ -1520,7 +1449,6 @@ implementation
       else
         result:=cnothingnode.create;
     end;
-
 
 end.
 
