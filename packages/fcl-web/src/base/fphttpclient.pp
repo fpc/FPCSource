@@ -365,9 +365,8 @@ Function EncodeURLElement(S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
 
 implementation
-{$if not defined(hasamiga)}
+
 uses sslsockets;
-{$endif}
 
 resourcestring
   SErrInvalidProtocol = 'Invalid protocol : "%s"';
