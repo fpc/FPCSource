@@ -14760,6 +14760,7 @@ tests/webtbf/tw34691.pp svneol=native#text/pascal
 tests/webtbf/tw3473.pp svneol=native#text/plain
 tests/webtbf/tw3480.pp svneol=native#text/plain
 tests/webtbf/tw3480a.pp svneol=native#text/plain
+tests/webtbf/tw34821.pp svneol=native#text/plain
 tests/webtbf/tw3488.pp svneol=native#text/plain
 tests/webtbf/tw3495.pp svneol=native#text/plain
 tests/webtbf/tw3502.pp svneol=native#text/plain

@@ -1281,6 +1281,7 @@ implementation
       var
         isclassref:boolean;
         isrecordtype:boolean;
+        isobjecttype:boolean;
       begin
          if sym=nil then
            begin
@@ -1301,11 +1302,13 @@ implementation
                    do_typecheckpass(p1);
                  isclassref:=(p1.resultdef.typ=classrefdef);
                  isrecordtype:=(p1.nodetype=typen) and (p1.resultdef.typ=recorddef);
+                 isobjecttype:=(p1.nodetype=typen) and is_object(p1.resultdef);
                end
               else
                 begin
                   isclassref:=false;
                   isrecordtype:=false;
+                  isobjecttype:=false;
                 end;
 
               if assigned(spezcontext) and not (sym.typ=procsym) then
@@ -1325,16 +1328,47 @@ implementation
                       if (
                             isclassref or
                             (
-                              isrecordtype and
+                              (isobjecttype or
+                               isrecordtype) and
                               not (cnf_inherited in callflags)
                             )
                           ) and
                          (p1.nodetype=calln) and
                          assigned(tcallnode(p1).procdefinition) then
                         begin
-                          if not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
-                             not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
-                            Message(parser_e_only_class_members_via_class_ref);
+                          if not isobjecttype then
+                            begin
+                              if not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
+                                 not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
+                                Message(parser_e_only_class_members_via_class_ref);
+                            end
+                          else
+                            begin
+                              { with objects, you can also do this:
+                                  type
+                                    tparent = object
+                                      procedure test;
+                                    end;
+
+                                    tchild = object(tchild)
+                                      procedure test;
+                                    end;
+
+                                    procedure tparent.test;
+                                      begin
+                                      end;
+
+                                    procedure tchild.test;
+                                      begin
+                                        tparent.test;
+                                      end;
+                              }
+                              if (tcallnode(p1).procdefinition.proctypeoption<>potype_constructor) and
+                                 not(po_staticmethod in tcallnode(p1).procdefinition.procoptions) and
+                                 (not assigned(current_structdef) or
+                                  not def_is_related(current_structdef,structh)) then
+                                Message(parser_e_only_static_members_via_object_type);
+                            end;
                           { in Java, constructors are not automatically inherited
                             -> calling a constructor from a parent type will create
                                an instance of that parent type! }
@@ -1352,7 +1386,7 @@ implementation
                               assigned(tcallnode(p1).methodpointer) and
                               (tcallnode(p1).methodpointer.nodetype=loadvmtaddrn) then
                             Message1(type_w_instance_abstract_class,structh.RttiName);
-                        end;
+                        end
                    end;
                  fieldvarsym:
                    begin
@@ -1366,7 +1400,9 @@ implementation
                                 (current_procinfo.procdef.struct=structh))) then
                               Message(parser_e_only_class_members)
                             else
-                              Message(parser_e_only_class_members_via_class_ref);
+                              Message(parser_e_only_class_members_via_class_ref)
+                          else if isobjecttype then
+                            Message(parser_e_only_static_members_via_object_type);
                           p1:=csubscriptnode.create(sym,p1);
                         end;
                    end;
