@@ -252,6 +252,12 @@ begin
   Sock:=TINetSocket.Create('www.freepascal.org',443);
   gnutls_transport_set_int(session, Sock.Handle);
   gnutls_handshake_set_timeout(session,GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
+  ret := gnutls_server_name_set(session, GNUTLS_NAME_DNS,pchar('www.freepascal.org'), length('www.freepascal.org'));
+  if (ret <> GNUTLS_E_SUCCESS) then
+    begin
+    writeln(stderr, 'error: gnutls_server_name_set: ', gnutls_strerror(ret));
+    halt(1);
+    end;
 
   Repeat
     ret:=gnutls_handshake(session);
