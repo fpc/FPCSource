@@ -1665,7 +1665,7 @@ Begin
           begin
             Tlabelsym(sym).nonlocal:=true;
             if emit then
-              exclude(current_procinfo.procdef.procoptions,po_inline);
+              include(current_procinfo.flags,pi_has_interproclabel);
           end;
         if not(assigned(tlabelsym(sym).asmblocklabel)) then
           if Tlabelsym(sym).nonlocal then

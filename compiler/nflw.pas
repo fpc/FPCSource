@@ -1969,7 +1969,6 @@ implementation
                     if assigned(labelsym.jumpbuf) then
                       begin
                         labelsym.nonlocal:=true;
-                        exclude(current_procinfo.procdef.procoptions,po_inline);
                         result:=ccallnode.createintern('fpc_longjmp',
                           ccallparanode.create(cordconstnode.create(1,sinttype,true),
                           ccallparanode.create(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner),
@@ -2103,12 +2102,6 @@ implementation
         expectloc:=LOC_VOID;
 
         include(current_procinfo.flags,pi_has_label);
-
-        if assigned(labsym) and labsym.nonlocal then
-          begin
-            include(current_procinfo.flags,pi_has_interproclabel);
-            exclude(current_procinfo.procdef.procoptions,po_inline);
-          end;
 
         if assigned(left) then
           firstpass(left);

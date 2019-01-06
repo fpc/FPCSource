@@ -3282,7 +3282,7 @@ implementation
                         if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                           begin
                             tlabelsym(srsym).nonlocal:=true;
-                            exclude(current_procinfo.procdef.procoptions,po_inline);
+                            include(current_procinfo.flags,pi_has_interproclabel);
                           end;
                         if tlabelsym(srsym).nonlocal and
                           (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then

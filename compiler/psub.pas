@@ -160,7 +160,8 @@ implementation
             _no_inline('assembler');
             exit;
           end;
-        if pi_has_global_goto in current_procinfo.flags then
+        if (pi_has_global_goto in current_procinfo.flags) or
+           (pi_has_interproclabel in current_procinfo.flags) then
           begin
             _no_inline('global goto');
             exit;
@@ -183,6 +184,20 @@ implementation
             _no_inline('inherited');
             exit;
           end;
+        if pio_nested_access in procdef.implprocoptions then
+         begin
+           _no_inline('access to local from nested scope');
+           exit;
+         end;
+        { We can't support inlining for procedures that have nested
+          procedures because the nested procedures use a fixed offset
+          for accessing locals in the parent procedure (PFV) }
+        if current_procinfo.has_nestedprocs then
+          begin
+            _no_inline('nested procedures');
+            exit;
+          end;
+
         for i:=0 to procdef.paras.count-1 do
           begin
             currpara:=tparavarsym(procdef.paras[i]);
@@ -2122,19 +2137,6 @@ implementation
         { reset _FAIL as _SELF normal }
         if (pd.proctypeoption=potype_constructor) then
           tokeninfo^[_FAIL].keyword:=oldfailtokenmode;
-
-        { We can't support inlining for procedures that have nested
-          procedures because the nested procedures use a fixed offset
-          for accessing locals in the parent procedure (PFV) }
-        if current_procinfo.has_nestedprocs then
-          begin
-            if (po_inline in current_procinfo.procdef.procoptions) then
-              begin
-                Message1(parser_n_not_supported_for_inline,'nested procedures');
-                Message(parser_h_inlining_disabled);
-                exclude(current_procinfo.procdef.procoptions,po_inline);
-              end;
-          end;
 
         { When it's a nested procedure then defer the code generation,
           when back at normal function level then generate the code

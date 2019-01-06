@@ -425,7 +425,9 @@ type
     { the inline body of this routine is available }
     pio_has_inlininginfo,
     { inline is not possible (has assembler block, etc) }
-    pio_inline_not_possible
+    pio_inline_not_possible,
+    { a nested routine accesses a local variable from this routine }
+    pio_nested_access
   );
   timplprocoptions = set of timplprocoption;
 
