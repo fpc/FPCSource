@@ -1191,6 +1191,8 @@ const
   GNUTLS_TL_NO_DUPLICATE_KEY = 1 shl 3;  
   GNUTLS_TL_GET_COPY = 1 shl 4;  
 
+procedure gnutls_transport_set_int(s : tgnutls_session_t; r : cint);
+
 procedure LoadGnuTLS(alib : String = '');
 procedure FreeGnuTLS;
 Function GnuTLSloaded : Boolean;
@@ -1200,6 +1202,12 @@ implementation
 
 uses
   SysUtils, dynlibs;
+
+procedure gnutls_transport_set_int(s : tgnutls_session_t; r : cint);
+
+begin
+  gnutls_transport_set_int2(s,r,r);
+end;
 
 var
   hlib : tlibhandle;
