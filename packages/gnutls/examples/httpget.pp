@@ -135,16 +135,17 @@ begin
       writeln(StdErr,'- Peer has closed the TLS connection\n')
     else if ((ret < 0) and (gnutls_error_is_fatal(ret) = 0)) then
       writeln(stderr, '*** Warning: ', gnutls_strerror(ret))
-    else if (ret < 0) then
-      Writeln(stderr, '*** Error: ', ret, ' : ',gnutls_strerror(ret), ' ',(ret=GNUTLS_E_INTERRUPTED) or (Ret=GNUTLS_E_AGAIN))
+    else if (ret < 0) and (ret<>GNUTLS_E_PREMATURE_TERMINATION) then
+      Writeln(stderr, '*** Error: ', ret, ' : ',gnutls_strerror(ret))
     else if (ret > 0) then
         begin
         writeln(StdErr,'- Received ',ret,' bytes: ');
         SetLength(S,Ret);
         Move(Buf[0],S[1],Ret);
-        Writeln(S);
+        Write(S);
         end;
   until (ret<=0) and Not ((ret=GNUTLS_E_INTERRUPTED) or (Ret=GNUTLS_E_AGAIN));
+  Writeln;
   gnutls_bye(session, GNUTLS_SHUT_RDWR);
   Sock.Free;
   gnutls_deinit(session);
