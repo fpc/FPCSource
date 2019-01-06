@@ -76,8 +76,8 @@ begin
     gnutls_global_set_log_level(logLevel);
     end;
   gnutls_init(@session, GNUTLS_CLIENT);
-//  gnutls_priority_set_direct(session,'PERFORMANCE:+ANON-ECDH:+ANON-DH',Nil);
-//  ret:=gnutls_set_default_priority(session);
+  // We can also use
+  //  ret:=gnutls_set_default_priority(session);
   ret := gnutls_priority_set_direct(session, 'NORMAL', @errptr);
   if (ret <> GNUTLS_E_SUCCESS) then
     begin
