@@ -3832,6 +3832,7 @@ packages/gnome1/src/zvt/libzvt.pp svneol=native#text/plain
 packages/gnome1/src/zvt/lists.inc svneol=native#text/plain
 packages/gnome1/src/zvt/vt.inc svneol=native#text/plain
 packages/gnome1/src/zvt/vtx.inc svneol=native#text/plain
+packages/gnutls/examples/httpget.pp svneol=native#text/plain
 packages/gnutls/examples/testgnutls.pp svneol=native#text/plain
 packages/gnutls/fpmake.pp svneol=native#text/plain
 packages/gnutls/src/gnutls.pp svneol=native#text/plain
