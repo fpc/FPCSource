@@ -1138,6 +1138,7 @@ begin
     Result:=UseAnalyzer.IsUsed(El)
   else
     Result:=true;
+  if Sender=nil then ;
 end;
 
 function TPas2jsCompilerFile.OnConverterIsTypeInfoUsed(Sender: TObject;
@@ -1150,6 +1151,7 @@ begin
     Result:=UseAnalyzer.IsTypeInfoUsed(El)
   else
     Result:=true;
+  if Sender=nil then ;
 end;
 
 procedure TPas2jsCompilerFile.OnPasResolverLog(Sender: TObject; const Msg: String);
@@ -1160,6 +1162,7 @@ begin
   aResolver:=TPasResolver(Sender);
   DoLogMsgAtEl(aResolver.LastMsgType,aResolver.LastMsg,aResolver.LastMsgNumber,
           aResolver.LastElement);
+  if Sender=nil then ;
 end;
 
 procedure TPas2jsCompilerFile.OnParserLog(Sender: TObject; const Msg: String);
@@ -1172,6 +1175,7 @@ begin
   aScanner:=aParser.Scanner;
   Log.Log(aParser.LastMsgType,aParser.LastMsg,aParser.LastMsgNumber,
           aScanner.CurFilename,aScanner.CurRow,aScanner.CurColumn);
+  if Sender=nil then ;
 end;
 
 procedure TPas2jsCompilerFile.OnScannerLog(Sender: TObject; const Msg: String);
@@ -1182,12 +1186,14 @@ begin
   aScanner:=TPas2jsPasScanner(Sender);
   Log.Log(aScanner.LastMsgType,aScanner.LastMsg,aScanner.LastMsgNumber,
           aScanner.CurFilename,aScanner.CurRow,aScanner.CurColumn);
+  if Sender=nil then ;
 end;
 
 procedure TPas2jsCompilerFile.OnUseAnalyzerMessage(Sender: TObject;
   Msg: TPAMessage);
 begin
   Log.Log(Msg.MsgType,Msg.MsgText,Msg.MsgNumber,Msg.Filename,Msg.Row,Msg.Col);
+  if Sender=nil then ;
 end;
 
 procedure TPas2jsCompilerFile.HandleEParserError(E: EParserError);
@@ -1710,6 +1716,7 @@ begin
     exit(true);
   end;
 
+  if Sender=nil then ;
   Result:=false;
 end;
 
@@ -3801,6 +3808,7 @@ function TPas2jsCompiler.OnMacroCfgDir(Sender: TObject; var Params: string;
   Lvl: integer): boolean;
 begin
   if Lvl=0 then ;
+  if Sender=nil then ;
   Params:=ExtractFilePath(ConfigSupport.CurrentCfgFilename);
   Result:=true;
 end;

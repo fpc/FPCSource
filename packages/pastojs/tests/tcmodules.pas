@@ -220,6 +220,8 @@ type
 
   TTestModule = class(TCustomTestModule)
   Published
+    Procedure TestReservedWords;
+
     // program/units
     Procedure TestEmptyProgram;
     Procedure TestEmptyProgramUseStrict;
@@ -435,7 +437,6 @@ type
     Procedure TestRecord_VarExternal;
     Procedure TestRecord_WithDo;
     Procedure TestRecord_Assign;
-    Procedure TestRecord_PassAsArgClone;
     Procedure TestRecord_AsParams;
     Procedure TestRecordElement_AsParams;
     Procedure TestRecordElementFromFuncResult_AsParams;
@@ -451,11 +452,16 @@ type
     // ToDo: pcu local record, name clash and rtti
 
     // advanced record
-    // ToDo: TestAdvRecord_Function;
-    // ToDo: TestAdvRecord_Property;
-    // ToDo: TestAdvRecord_PropertyDefault;
-    // ToDo: TestAdvRecord_InFunction;
+    Procedure TestAdvRecord_Function;
+    Procedure TestAdvRecord_Property;
+    Procedure TestAdvRecord_PropertyDefault;
+    Procedure TestAdvRecord_Property_ClassMethod;
+    Procedure TestAdvRecord_Const;
+    Procedure TestAdvRecord_SubRecord;
+    Procedure TestAdvRecord_SubClass;
+    Procedure TestAdvRecord_SubInterfaceFail;
     // ToDo: pcu: record default property
+    // ToDo: constructor
     // ToDo: class constructor
 
     // classes
@@ -472,7 +478,6 @@ type
     Procedure TestClass_CallInherited_WithParams;
     Procedure TestClasS_CallInheritedConstructor;
     Procedure TestClass_ClassVar_Assign;
-    //ToDo Procedure TestClass_ClassVar_Arg;
     Procedure TestClass_CallClassMethod;
     Procedure TestClass_Property;
     Procedure TestClass_Property_ClassMethod;
@@ -747,6 +752,7 @@ type
     procedure TestRangeChecks_AssignChar;
     procedure TestRangeChecks_AssignCharRange;
     procedure TestRangeChecks_ArrayIndex;
+    procedure TestRangeChecks_ArrayOfRecIndex;
     procedure TestRangeChecks_StringIndex;
     procedure TestRangeChecks_TypecastInt;
   end;
@@ -2069,6 +2075,18 @@ begin
 end;
 
 { TTestModule }
+
+procedure TTestModule.TestReservedWords;
+var
+  i: integer;
+begin
+  for i:=low(JSReservedWords) to High(JSReservedWords)-1 do
+    if CompareStr(JSReservedWords[i],JSReservedWords[i+1])>=0 then
+      Fail('20170203135442 '+JSReservedWords[i]+' >= '+JSReservedWords[i+1]);
+  for i:=low(JSReservedGlobalWords) to High(JSReservedGlobalWords)-1 do
+    if CompareStr(JSReservedGlobalWords[i],JSReservedGlobalWords[i+1])>=0 then
+      Fail('20170203135443 '+JSReservedGlobalWords[i]+' >= '+JSReservedGlobalWords[i+1]);
+end;
 
 procedure TTestModule.TestEmptyProgram;
 begin
@@ -5646,17 +5664,17 @@ begin
     // this.$init
     '$impl.aRec.i = 3;',
     LinesToStr([ // implementation
-    '$impl.TMyRecord = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($impl, "TMyRecord", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
-    '};',
-    '$impl.aRec = new $impl.TMyRecord();',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
+    '$impl.aRec = $impl.TMyRecord.$new();',
     '']) );
 end;
 
@@ -7981,6 +7999,9 @@ begin
   '    Int: longint;',
   '  end;',
   '  TArrayRec = array of TRec;',
+  'procedure DoIt(vd: TRec; const vc: TRec; var vv: TRec);',
+  'begin',
+  'end;',
   'var',
   '  Arr: TArrayRec;',
   '  r: TRec;',
@@ -7993,22 +8014,25 @@ begin
   '  arr[7]:=r;',
   '  r:=arr[8];',
   '  i:=low(arr);',
-  '  i:=high(arr);']);
+  '  i:=high(arr);',
+  '  DoIt(Arr[9],Arr[10],Arr[11]);']);
   ConvertProgram;
   CheckSource('TestArrayOfRecord',
     LinesToStr([ // statements
-    'this.TRec = function (s) {',
-    '  if (s) {',
-    '    this.Int = s.Int;',
-    '  } else {',
-    '    this.Int = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.Int = 0;',
+    '  this.$eq = function (b) {',
     '    return this.Int === b.Int;',
     '  };',
+    '  this.$assign = function (s) {',
+    '    this.Int = s.Int;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.DoIt = function (vd, vc, vv) {',
     '};',
     'this.Arr = [];',
-    'this.r = new $mod.TRec();',
+    'this.r = $mod.TRec.$new();',
     'this.i = 0;'
     ]),
     LinesToStr([ // $mod.$main
@@ -8016,10 +8040,11 @@ begin
     '$mod.Arr[0].Int = 4;',
     '$mod.Arr[1].Int = rtl.length($mod.Arr)+$mod.Arr[2].Int;',
     '$mod.Arr[$mod.Arr[$mod.i].Int].Int = $mod.Arr[5].Int;',
-    '$mod.Arr[7] = new $mod.TRec($mod.r);',
-    '$mod.r = new $mod.TRec($mod.Arr[8]);',
+    '$mod.Arr[7].$assign($mod.r);',
+    '$mod.r.$assign($mod.Arr[8]);',
     '$mod.i = 0;',
     '$mod.i = rtl.length($mod.Arr)-1;',
+    '$mod.DoIt($mod.TRec.$clone($mod.Arr[9]), $mod.Arr[10], $mod.Arr[11]);',
     '']));
 end;
 
@@ -8040,19 +8065,19 @@ begin
   ConvertProgram;
   CheckSource('TestArray_StaticRecord',
     LinesToStr([ // statements
-    'this.TRec = function (s) {',
-    '  if (s) {',
-    '    this.Int = s.Int;',
-    '  } else {',
-    '    this.Int = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.Int = 0;',
+    '  this.$eq = function (b) {',
     '    return this.Int === b.Int;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.Int = s.Int;',
+    '    return this;',
+    '  };',
+    '});',
     'this.TArrayRec$clone = function (a) {',
     '  var r = [];',
-    '  for (var i = 0; i < 2; i++) r.push(new $mod.TRec(a[i]));',
+    '  for (var i = 0; i < 2; i++) r.push($mod.TRec.$clone(a[i]));',
     '  return r;',
     '};',
     'this.Arr = rtl.arraySetLength(null, $mod.TRec, 2);',
@@ -8567,16 +8592,16 @@ begin
     '  "1": "small",',
     '  small: 1',
     '};',
-    'this.TRec = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
     'this.ArrInt = [];',
     'this.ArrRec = [];',
     'this.ArrFlag = [];',
@@ -8647,16 +8672,16 @@ begin
     '  "1": "small",',
     '  small: 1',
     '};',
-    'this.TRec = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
     'this.ArrInt = [];',
     'this.ArrRec = [];',
     'this.ArrSet = [];',
@@ -8722,16 +8747,16 @@ begin
     '  "1": "small",',
     '  small: 1',
     '};',
-    'this.TRec = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
     'this.ArrInt = [];',
     'this.ArrRec = [];',
     'this.ArrSet = [];',
@@ -9160,16 +9185,19 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_Empty',
     LinesToStr([ // statements
-    'this.TRecA = function (s) {',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRecA", function () {',
+    '  this.$eq = function (b) {',
     '    return true;',
     '  };',
-    '};',
-    'this.a = new $mod.TRecA();',
-    'this.b = new $mod.TRecA();'
-    ]),
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '});',
+    'this.a = $mod.TRecA.$new();',
+    'this.b = $mod.TRecA.$new();',
+    '']),
     LinesToStr([ // $mod.$main
-    'if ($mod.a.$equal($mod.b)) ;'
+    'if ($mod.a.$eq($mod.b)) ;'
     ]));
 end;
 
@@ -9186,18 +9214,18 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_Var',
     LinesToStr([ // statements
-    'this.TRecA = function (s) {',
-    '  if (s) {',
-    '    this.Bold = s.Bold;',
-    '  } else {',
-    '    this.Bold = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRecA", function () {',
+    '  this.Bold = 0;',
+    '  this.$eq = function (b) {',
     '    return this.Bold === b.Bold;',
     '  };',
-    '};',
-    'this.Rec = new $mod.TRecA();'
-    ]),
+    '  this.$assign = function (s) {',
+    '    this.Bold = s.Bold;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.Rec = $mod.TRecA.$new();',
+    '']),
     LinesToStr([ // $mod.$main
     '$mod.Rec.Bold = 123;'
     ]));
@@ -9220,18 +9248,18 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_VarExternal',
     LinesToStr([ // statements
-    'this.TRecA = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '    this.length = s.length;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRecA", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return (this.i === b.i) && (this.length === b.length);',
     '  };',
-    '};',
-    'this.Rec = new $mod.TRecA();',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    this.length = s.length;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.Rec = $mod.TRecA.$new();',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.Rec.length = $mod.Rec.length;'
@@ -9258,19 +9286,19 @@ begin
   ConvertProgram;
   CheckSource('TestWithRecordDo',
     LinesToStr([ // statements
-    'this.TRec = function (s) {',
-    '  if (s) {',
-    '    this.vI = s.vI;',
-    '  } else {',
-    '    this.vI = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.vI = 0;',
+    '  this.$eq = function (b) {',
     '    return this.vI === b.vI;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.vI = s.vI;',
+    '    return this;',
+    '  };',
+    '});',
     'this.Int = 0;',
-    'this.r = new $mod.TRec();'
-    ]),
+    'this.r = $mod.TRec.$new();',
+    '']),
     LinesToStr([ // $mod.$main
     'var $with1 = $mod.r;',
     '$mod.Int = $with1.vI;',
@@ -9312,165 +9340,149 @@ begin
     '  "1": "green",',
     '  green: 1',
     '};',
-    'this.TSmallRec = function (s) {',
-    '  if(s){',
-    '    this.N = s.N;',
-    '  } else {',
-    '    this.N = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TSmallRec", function () {',
+    '  this.N = 0;',
+    '  this.$eq = function (b) {',
     '    return this.N === b.N;',
     '  };',
-    '};',
-    'this.TBigRec = function (s) {',
-    '  if(s){',
+    '  this.$assign = function (s) {',
+    '    this.N = s.N;',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createTRecord($mod, "TBigRec", function () {',
+    '  this.Int = 0;',
+    '  this.D = 0.0;',
+    '  this.Arr = [];',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.Arr2 = rtl.arraySetLength(null, 0, 2);',
+    '    r.Small = $mod.TSmallRec.$new();',
+    '    r.Enums = {};',
+    '    return r;',
+    '  };',
+    '  this.$eq = function (b) {',
+    '    return (this.Int === b.Int) && (this.D === b.D) && (this.Arr === b.Arr) && rtl.arrayEq(this.Arr2, b.Arr2) && this.Small.$eq(b.Small) && rtl.eqSet(this.Enums, b.Enums);',
+    '  };',
+    '  this.$assign = function (s) {',
     '    this.Int = s.Int;',
     '    this.D = s.D;',
     '    this.Arr = s.Arr;',
     '    this.Arr2 = s.Arr2.slice(0);',
-    '    this.Small = new $mod.TSmallRec(s.Small);',
+    '    this.Small.$assign(s.Small);',
     '    this.Enums = rtl.refSet(s.Enums);',
-    '  } else {',
-    '    this.Int = 0;',
-    '    this.D = 0.0;',
-    '    this.Arr = [];',
-    '    this.Arr2 = rtl.arraySetLength(null, 0, 2);',
-    '    this.Small = new $mod.TSmallRec();',
-    '    this.Enums = {};',
+    '    return this;',
     '  };',
-    '  this.$equal = function (b) {',
-    '    return (this.Int === b.Int) && (this.D === b.D) && (this.Arr === b.Arr)',
-    ' && rtl.arrayEq(this.Arr2, b.Arr2)',
-    ' && this.Small.$equal(b.Small) && rtl.eqSet(this.Enums, b.Enums);',
-    '  };',
-    '};',
-    'this.r = new $mod.TBigRec();',
-    'this.s = new $mod.TBigRec();'
-    ]),
+    '});',
+    'this.r = $mod.TBigRec.$new();',
+    'this.s = $mod.TBigRec.$new();',
+    '']),
     LinesToStr([ // $mod.$main
-    '$mod.r = new $mod.TBigRec($mod.s);',
-    '$mod.r = new $mod.TBigRec();',
-    '$mod.r = new $mod.TBigRec();',
-    '']));
-end;
-
-procedure TTestModule.TestRecord_PassAsArgClone;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  TRecA = record');
-  Add('    Bold: longint;');
-  Add('  end;');
-  Add('procedure DoDefault(r: treca); begin end;');
-  Add('procedure DoConst(const r: treca); begin end;');
-  Add('var Rec: treca;');
-  Add('begin');
-  Add('  dodefault(rec);');
-  Add('  doconst(rec);');
-  ConvertProgram;
-  CheckSource('TestRecord_PassAsArgClone',
-    LinesToStr([ // statements
-    'this.TRecA = function (s) {',
-    '  if (s) {',
-    '    this.Bold = s.Bold;',
-    '  } else {',
-    '    this.Bold = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
-    '    return this.Bold === b.Bold;',
-    '  };',
-    '};',
-    'this.DoDefault = function (r) {',
-    '};',
-    'this.DoConst = function (r) {',
-    '};',
-    'this.Rec = new $mod.TRecA();'
-    ]),
-    LinesToStr([ // $mod.$main
-    '$mod.DoDefault(new $mod.TRecA($mod.Rec));',
-    '$mod.DoConst($mod.Rec);',
+    '$mod.r.$assign($mod.s);',
+    '$mod.r.$assign($mod.TBigRec.$new());',
+    '$mod.r.$assign($mod.TBigRec.$new());',
     '']));
 end;
 
 procedure TTestModule.TestRecord_AsParams;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TRecord = record');
-  Add('    i: integer;');
-  Add('  end;');
-  Add('procedure DoIt(vG: TRecord; const vH: TRecord; var vI: TRecord);');
-  Add('var vJ: TRecord;');
-  Add('begin');
-  Add('  vg:=vg;');
-  Add('  vj:=vh;');
-  Add('  vi:=vi;');
-  Add('  doit(vg,vg,vg);');
-  Add('  doit(vh,vh,vj);');
-  Add('  doit(vi,vi,vi);');
-  Add('  doit(vj,vj,vj);');
-  Add('end;');
-  Add('var i: TRecord;');
-  Add('begin');
-  Add('  doit(i,i,i);');
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TRecord = record',
+  '    i: integer;',
+  '  end;',
+  'procedure DoIt(vD: TRecord; const vC: TRecord; var vV: TRecord; var U);',
+  'var vL: TRecord;',
+  'begin',
+  '  vd:=vd;',
+  '  vd.i:=vd.i;',
+  '  vl:=vc;',
+  '  vv:=vv;',
+  '  vv.i:=vv.i;',
+  '  U:=vl;',
+  '  U:=vd;',
+  '  U:=vc;',
+  '  U:=vv;',
+  '  doit(vd,vd,vd,vd);',
+  '  doit(vc,vc,vl,vl);',
+  '  doit(vv,vv,vv,vv);',
+  '  doit(vl,vl,vl,vl);',
+  'end;',
+  'var i: TRecord;',
+  'begin',
+  '  doit(i,i,i,i);']);
   ConvertProgram;
   CheckSource('TestRecord_AsParams',
     LinesToStr([ // statements
-    'this.TRecord = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRecord", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.DoIt = function (vD, vC, vV, U) {',
+    '  var vL = $mod.TRecord.$new();',
+    '  vD.$assign(vD);',
+    '  vD.i = vD.i;',
+    '  vL.$assign(vC);',
+    '  vV.$assign(vV);',
+    '  vV.i = vV.i;',
+    '  U.set(vL);',
+    '  U.set(vD);',
+    '  U.set(vC);',
+    '  U.set(vV);',
+    '  $mod.DoIt($mod.TRecord.$clone(vD), vD, vD, {',
+    '    get: function () {',
+    '        return vD;',
+    '      },',
+    '    set: function (v) {',
+    '        vD.$assign(v);',
+    '      }',
+    '  });',
+    '  $mod.DoIt($mod.TRecord.$clone(vC), vC, vL, {',
+    '    get: function () {',
+    '        return vL;',
+    '      },',
+    '    set: function (v) {',
+    '        vL.$assign(v);',
+    '      }',
+    '  });',
+    '  $mod.DoIt($mod.TRecord.$clone(vV), vV, vV, {',
+    '    get: function () {',
+    '        return vV;',
+    '      },',
+    '    set: function (v) {',
+    '        vV.$assign(v);',
+    '      }',
+    '  });',
+    '  $mod.DoIt($mod.TRecord.$clone(vL), vL, vL, {',
+    '    get: function () {',
+    '        return vL;',
+    '      },',
+    '    set: function (v) {',
+    '        vL.$assign(v);',
+    '      }',
+    '  });',
     '};',
-    'this.DoIt = function (vG,vH,vI) {',
-    '  var vJ = new $mod.TRecord();',
-    '  vG = new $mod.TRecord(vG);',
-    '  vJ = new $mod.TRecord(vH);',
-    '  vI.set(new $mod.TRecord(vI.get()));',
-    '  $mod.DoIt(new $mod.TRecord(vG), vG, {',
-    '    get: function () {',
-    '      return vG;',
-    '    },',
-    '    set: function (v) {',
-    '      vG = v;',
-    '    }',
-    '  });',
-    '  $mod.DoIt(new $mod.TRecord(vH), vH, {',
-    '    get: function () {',
-    '      return vJ;',
-    '    },',
-    '    set: function (v) {',
-    '      vJ = v;',
-    '    }',
-    '  });',
-    '  $mod.DoIt(new $mod.TRecord(vI.get()), vI.get(), vI);',
-    '  $mod.DoIt(new $mod.TRecord(vJ), vJ, {',
-    '    get: function () {',
-    '      return vJ;',
-    '    },',
-    '    set: function (v) {',
-    '      vJ = v;',
-    '    }',
-    '  });',
-    '};',
-    'this.i = new $mod.TRecord();'
+    'this.i = $mod.TRecord.$new();'
     ]),
     LinesToStr([
-    '$mod.DoIt(new $mod.TRecord($mod.i),$mod.i,{',
+    '$mod.DoIt($mod.TRecord.$clone($mod.i), $mod.i, $mod.i, {',
     '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
     '  set: function (v) {',
-    '      this.p.i = v;',
+    '      this.p.i.$assign(v);',
     '    }',
-    '});'
-    ]));
+    '});',
+    '']));
 end;
 
 procedure TTestModule.TestRecordElement_AsParams;
@@ -9492,18 +9504,18 @@ begin
   ConvertProgram;
   CheckSource('TestRecordElement_AsParams',
     LinesToStr([ // statements
-    'this.TRecord = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRecord", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
     'this.DoIt = function (vG,vH,vI) {',
-    '  var vJ = new $mod.TRecord();',
+    '  var vJ = $mod.TRecord.$new();',
     '  $mod.DoIt(vJ.i, vJ.i, {',
     '    p: vJ,',
     '    get: function () {',
@@ -9514,7 +9526,7 @@ begin
     '    }',
     '  });',
     '};',
-    'this.r = new $mod.TRecord();'
+    'this.r = $mod.TRecord.$new();'
     ]),
     LinesToStr([
     '$mod.DoIt($mod.r.i,$mod.r.i,{',
@@ -9550,23 +9562,23 @@ begin
   ConvertProgram;
   CheckSource('TestRecordElementFromFuncResult_AsParams',
     LinesToStr([ // statements
-    'this.TRecord = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRecord", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
     'this.GetRec = function (vB) {',
-    '  var Result = new $mod.TRecord();',
+    '  var Result = $mod.TRecord.$new();',
     '  return Result;',
     '};',
-    'this.DoIt = function (vG,vH) {',
-    '};'
-    ]),
+    'this.DoIt = function (vG, vH) {',
+    '};',
+    '']),
     LinesToStr([
     '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i);',
     '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i);',
@@ -9592,19 +9604,19 @@ begin
   ConvertProgram;
   CheckSource('TestRecordElementFromWith_AsParams',
     LinesToStr([ // statements
-    'this.TRecord = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRecord", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
     'this.DoIt = function (vG,vH,vI) {',
     '};',
-    'this.r = new $mod.TRecord();'
+    'this.r = $mod.TRecord.$new();'
     ]),
     LinesToStr([
     'var $with1 = $mod.r;',
@@ -9651,37 +9663,45 @@ begin
     '  "1": "blue",',
     '  blue: 1',
     '};',
-    'this.TRecord = function (s) {',
-    '  if (s) {',
+    'rtl.createTRecord($mod, "TRecord", function () {',
+    '  this.i = 0;',
+    '  this.Event = null;',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.f = {};',
+    '    return r;',
+    '  };',
+    '  this.$eq = function (b) {',
+    '    return (this.i === b.i) && rtl.eqCallback(this.Event, b.Event) && rtl.eqSet(this.f, b.f);',
+    '  };',
+    '  this.$assign = function (s) {',
     '    this.i = s.i;',
     '    this.Event = s.Event;',
     '    this.f = rtl.refSet(s.f);',
-    '  } else {',
-    '    this.i = 0;',
-    '    this.Event = null;',
-    '    this.f = {};',
+    '    return this;',
     '  };',
-    '  this.$equal = function (b) {',
-    '    return (this.i === b.i) && rtl.eqCallback(this.Event, b.Event) && rtl.eqSet(this.f, b.f);',
+    '});',
+    'rtl.createTRecord($mod, "TNested", function () {',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.r = $mod.TRecord.$new();',
+    '    return r;',
     '  };',
-    '};',
-    'this.TNested = function (s) {',
-    '  if (s) {',
-    '    this.r = new $mod.TRecord(s.r);',
-    '  } else {',
-    '    this.r = new $mod.TRecord();',
+    '  this.$eq = function (b) {',
+    '    return this.r.$eq(b.r);',
     '  };',
-    '  this.$equal = function (b) {',
-    '    return this.r.$equal(b.r);',
+    '  this.$assign = function (s) {',
+    '    this.r.$assign(s.r);',
+    '    return this;',
     '  };',
-    '};',
+    '});',
     'this.b = false;',
-    'this.r = new $mod.TRecord();',
-    'this.s = new $mod.TRecord();'
-    ]),
+    'this.r = $mod.TRecord.$new();',
+    'this.s = $mod.TRecord.$new();',
+    '']),
     LinesToStr([
-    '$mod.b = $mod.r.$equal($mod.s);',
-    '$mod.b = !$mod.r.$equal($mod.s);',
+    '$mod.b = $mod.r.$eq($mod.s);',
+    '$mod.b = !$mod.r.$eq($mod.s);',
     '']));
 end;
 
@@ -9700,21 +9720,21 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_TypeCastJSValueToRecord',
     LinesToStr([ // statements
-    'this.TRecord = function (s) {',
-    '  if (s) {',
-    '    this.i = s.i;',
-    '  } else {',
-    '    this.i = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRecord", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
     '    return this.i === b.i;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
     'this.Jv = undefined;',
-    'this.Rec = new $mod.TRecord();'
-    ]),
+    'this.Rec = $mod.TRecord.$new();',
+    '']),
     LinesToStr([
-    '$mod.Rec = new $mod.TRecord(rtl.getObject($mod.Jv));',
+    '$mod.Rec.$assign(rtl.getObject($mod.Jv));',
     '']));
 end;
 
@@ -9751,22 +9771,26 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_FieldArray',
     LinesToStr([ // statements
-    'this.TRec = function (s) {',
-    '  if (s) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.a = [];',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.s = rtl.arraySetLength(null, 0, 2);',
+    '    r.m = rtl.arraySetLength(null, 0, 2, 2);',
+    '    r.o = rtl.arraySetLength(null, 0, 2);',
+    '    return r;',
+    '  };',
+    '  this.$eq = function (b) {',
+    '    return (this.a === b.a) && rtl.arrayEq(this.s, b.s) && rtl.arrayEq(this.m, b.m) && rtl.arrayEq(this.o, b.o);',
+    '  };',
+    '  this.$assign = function (s) {',
     '    this.a = s.a;',
     '    this.s = s.s.slice(0);',
     '    this.m = s.m.slice(0);',
     '    this.o = s.o.slice(0);',
-    '  } else {',
-    '    this.a = [];',
-    '    this.s = rtl.arraySetLength(null, 0, 2);',
-    '    this.m = rtl.arraySetLength(null, 0, 2, 2);',
-    '    this.o = rtl.arraySetLength(null, 0, 2);',
+    '    return this;',
     '  };',
-    '  this.$equal = function (b) {',
-    '    return (this.a === b.a) && rtl.arrayEq(this.s, b.s) && rtl.arrayEq(this.m, b.m) && rtl.arrayEq(this.o, b.o);',
-    '  };',
-    '};',
+    '});',
     '']),
     LinesToStr([ // $mod.$main
     '']));
@@ -9800,50 +9824,54 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_Const',
     LinesToStr([ // statements
-    'this.TPoint = function (s) {',
-    '  if (s) {',
-    '    this.x = s.x;',
-    '    this.y = s.y;',
-    '  } else {',
-    '    this.x = 0;',
-    '    this.y = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.y = 0;',
+    '  this.$eq = function (b) {',
     '    return (this.x === b.x) && (this.y === b.y);',
     '  };',
-    '};',
-    'this.TRec = function (s) {',
-    '  if (s) {',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.i = 0;',
+    '  this.a = [];',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.s = rtl.arraySetLength(null, 0, 2);',
+    '    r.m = rtl.arraySetLength(null, 0, 2, 2);',
+    '    r.p = $mod.TPoint.$new();',
+    '    return r;',
+    '  };',
+    '  this.$eq = function (b) {',
+    '    return (this.i === b.i) && (this.a === b.a) && rtl.arrayEq(this.s, b.s) && rtl.arrayEq(this.m, b.m) && this.p.$eq(b.p);',
+    '  };',
+    '  this.$assign = function (s) {',
     '    this.i = s.i;',
     '    this.a = s.a;',
     '    this.s = s.s.slice(0);',
     '    this.m = s.m.slice(0);',
-    '    this.p = new $mod.TPoint(s.p);',
-    '  } else {',
-    '    this.i = 0;',
-    '    this.a = [];',
-    '    this.s = rtl.arraySetLength(null, 0, 2);',
-    '    this.m = rtl.arraySetLength(null, 0, 2, 2);',
-    '    this.p = new $mod.TPoint();',
+    '    this.p.$assign(s.p);',
+    '    return this;',
     '  };',
-    '  this.$equal = function (b) {',
-    '    return (this.i === b.i) && (this.a === b.a) && rtl.arrayEq(this.s, b.s) && rtl.arrayEq(this.m, b.m) && this.p.$equal(b.p);',
-    '  };',
-    '};',
-    'this.r = new $mod.TRec({',
+    '});',
+    'this.r = $mod.TRec.$clone({',
     '  i: 1,',
     '  a: [2, 3],',
     '  s: [4, 5],',
     '  m: [[11, 12], [13, 14]],',
-    '  p: new $mod.TPoint({',
+    '  p: $mod.TPoint.$clone({',
     '      x: 21,',
     '      y: 22',
     '    })',
     '});',
-    'this.p = [new $mod.TPoint({',
+    'this.p = [$mod.TPoint.$clone({',
     '  x: 1,',
     '  y: 2',
-    '}), new $mod.TPoint({',
+    '}), $mod.TPoint.$clone({',
     '  x: 3,',
     '  y: 4',
     '})];',
@@ -9887,26 +9915,548 @@ begin
   CheckSource('TestRecord_InFunction',
     LinesToStr([ // statements
     'this.TPoint = 3;',
-    'var TPoint$1 = function (s) {',
-    '  if (s) {',
-    '    this.x = s.x;',
-    '    this.y = s.y;',
-    '  } else {',
-    '    this.x = 0;',
-    '    this.y = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'var TPoint$1 = rtl.createTRecord(null, "", function () {',
+    '  this.x = 0;',
+    '  this.y = 0;',
+    '  this.$eq = function (b) {',
     '    return (this.x === b.x) && (this.y === b.y);',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '    return this;',
+    '  };',
+    '});',
     'this.DoIt = function () {',
-    '  var r = new TPoint$1();',
+    '  var r = TPoint$1.$new();',
     '  var p = [];',
     '  p = rtl.arraySetLength(p, TPoint$1, 2);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
     '']));
+end;
+
+procedure TTestModule.TestAdvRecord_Function;
+begin
+  StartProgram(false);
+  Parser.Options:=Parser.Options+[po_cassignments];
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TPoint = record',
+  '    x,y: word;',
+  '    function Add(const apt: TPoint): TPoint;',
+  '  end;',
+  'function TPoint.Add(const apt: TPoint): TPoint;',
+  'begin',
+  '  Result:=Self;',
+  '  Result.x+=apt.x;',
+  '  Result.y:=Result.y+apt.y;',
+  '  Self:=apt;',
+  'end;',
+  'var p,q: TPoint;',
+  'begin',
+  '  p.add(q);',
+  '  p:=default(TPoint);',
+  '  p:=q;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_Function',
+    LinesToStr([ // statements
+    'rtl.createTRecord($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.y = 0;',
+    '  this.$eq = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '    return this;',
+    '  };',
+    '  this.Add = function (apt) {',
+    '    var Result = $mod.TPoint.$new();',
+    '    Result.$assign(this);',
+    '    Result.x += apt.x;',
+    '    Result.y = Result.y + apt.y;',
+    '    this.$assign(apt);',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.p = $mod.TPoint.$new();',
+    'this.q = $mod.TPoint.$new();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p.Add($mod.q);',
+    '$mod.p.$assign($mod.TPoint.$new());',
+    '$mod.p.$assign($mod.q);',
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_Property;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TPoint = record',
+  '    x,y: word;',
+  '  strict private',
+  '    function GetSize: longword;',
+  '    procedure SetSize(Value: longword);',
+  '  public',
+  '    property Size: longword read GetSize write SetSize;',
+  '    property Left: word read x write y;',
+  '  end;',
+  'procedure SetSize(Value: longword); begin end;',// check auto rename
+  'function TPoint.GetSize: longword;',
+  'begin',
+  '  x:=y;',
+  '  Size:=Size;',
+  '  Left:=Left;',
+  'end;',
+  'procedure TPoint.SetSize(Value: longword);',
+  'begin',
+  'end;',
+  'var p,q: TPoint;',
+  'begin',
+  '  p.Size:=q.Size;',
+  '  p.Left:=q.Left;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_Property',
+    LinesToStr([ // statements
+    'rtl.createTRecord($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.y = 0;',
+    '  this.$eq = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '    return this;',
+    '  };',
+    '  this.GetSize = function () {',
+    '    var Result = 0;',
+    '    this.x = this.y;',
+    '    this.SetSize(this.GetSize());',
+    '    this.y = this.x;',
+    '    return Result;',
+    '  };',
+    '  this.SetSize = function (Value) {',
+    '  };',
+    '});',
+    'this.SetSize = function (Value) {',
+    '};',
+    'this.p = $mod.TPoint.$new();',
+    'this.q = $mod.TPoint.$new();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p.SetSize($mod.q.GetSize());',
+    '$mod.p.y = $mod.q.x;',
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_PropertyDefault;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TPoint = record',
+  '  strict private',
+  '    function GetItems(Index: word): word;',
+  '    procedure SetItems(Index: word; Value: word);',
+  '  public',
+  '    property Items[Index: word]: word read GetItems write SetItems; default;',
+  '  end;',
+  'function TPoint.GetItems(Index: word): word;',
+  'begin',
+  '  Items[index]:=Items[index];',
+  '  self.Items[index]:=self.Items[index];',
+  'end;',
+  'procedure TPoint.SetItems(Index: word; Value: word);',
+  'begin',
+  'end;',
+  'var p: TPoint;',
+  'begin',
+  '  p[1]:=p[2];',
+  '  p.Items[3]:=p.Items[4];',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_PropertyDefault',
+    LinesToStr([ // statements
+    'rtl.createTRecord($mod, "TPoint", function () {',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  this.GetItems = function (Index) {',
+    '    var Result = 0;',
+    '    this.SetItems(Index, this.GetItems(Index));',
+    '    this.SetItems(Index, this.GetItems(Index));',
+    '    return Result;',
+    '  };',
+    '  this.SetItems = function (Index, Value) {',
+    '  };',
+    '});',
+    'this.p = $mod.TPoint.$new();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p.SetItems(1, $mod.p.GetItems(2));',
+    '$mod.p.SetItems(3, $mod.p.GetItems(4));',
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_Property_ClassMethod;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TRec = record',
+  '    class var Fx: longint;',
+  '    class var Fy: longint;',
+  '    class function GetInt: longint; static;',
+  '    class procedure SetInt(Value: longint); static;',
+  '    class procedure DoIt; static;',
+  '    class property IntA: longint read Fx write Fy;',
+  '    class property IntB: longint read GetInt write SetInt;',
+  '  end;',
+  'class function trec.getint: longint;',
+  'begin',
+  '  result:=fx;',
+  'end;',
+  'class procedure trec.setint(value: longint);',
+  'begin',
+  'end;',
+  'class procedure trec.doit;',
+  'begin',
+  '  IntA:=IntA+1;',
+  '  IntB:=IntB+1;',
+  'end;',
+  'var r: trec;',
+  'begin',
+  '  trec.inta:=trec.inta+1;',
+  '  if trec.intb=2 then;',
+  '  trec.intb:=trec.intb+2;',
+  '  trec.setint(trec.inta);',
+  '  r.inta:=r.inta+1;',
+  '  if r.intb=2 then;',
+  '  r.intb:=r.intb+2;',
+  '  r.setint(r.inta);']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_Property_ClassMethod',
+    LinesToStr([ // statements
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.Fx = 0;',
+    '  this.Fy = 0;',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  this.GetInt = function () {',
+    '    var Result = 0;',
+    '    Result = this.Fx;',
+    '    return Result;',
+    '  };',
+    '  this.SetInt = function (Value) {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.Fy = this.Fx + 1;',
+    '    this.SetInt(this.GetInt() + 1);',
+    '  };',
+    '}, true);',
+    'this.r = $mod.TRec.$new();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.TRec.Fy = $mod.TRec.Fx + 1;',
+    'if ($mod.TRec.GetInt() === 2) ;',
+    '$mod.TRec.SetInt($mod.TRec.GetInt() + 2);',
+    '$mod.TRec.SetInt($mod.TRec.Fx);',
+    '$mod.r.$record.Fy = $mod.r.Fx + 1;',
+    'if ($mod.r.$record.GetInt() === 2) ;',
+    '$mod.r.$record.SetInt($mod.r.$record.GetInt() + 2);',
+    '$mod.r.$record.SetInt($mod.r.Fx);',
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_Const;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TArrInt = array[3..4] of longint;',
+  '  TPoint = record',
+  '    x,y: longint;',
+  '    class var Count: nativeint;',
+  '  end;',
+  '  TRec = record',
+  '    i: longint;',
+  '    a: array of longint;',
+  '    s: array[1..2] of longint;',
+  '    m: array[1..2,3..4] of longint;',
+  '    p: TPoint;',
+  '  end;',
+  '  TPoints = array of TPoint;',
+  'const',
+  '  r: TRec = (',
+  '    i:1;',
+  '    a:(2,3);',
+  '    s:(4,5);',
+  '    m:( (11,12), (13,14) );',
+  '    p: (x:21)',
+  '  );',
+  '  p: TPoints = ( (x:1;y:2), (x:3;y:4) );',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_Const',
+    LinesToStr([ // statements
+    'rtl.createTRecord($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.y = 0;',
+    '  this.Count = 0;',
+    '  this.$eq = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '    return this;',
+    '  };',
+    '}, true);',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.i = 0;',
+    '  this.a = [];',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.s = rtl.arraySetLength(null, 0, 2);',
+    '    r.m = rtl.arraySetLength(null, 0, 2, 2);',
+    '    r.p = $mod.TPoint.$new();',
+    '    return r;',
+    '  };',
+    '  this.$eq = function (b) {',
+    '    return (this.i === b.i) && (this.a === b.a) && rtl.arrayEq(this.s, b.s) && rtl.arrayEq(this.m, b.m) && this.p.$eq(b.p);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    this.a = s.a;',
+    '    this.s = s.s.slice(0);',
+    '    this.m = s.m.slice(0);',
+    '    this.p.$assign(s.p);',
+    '    return this;',
+    '  };',
+    '});',
+    'this.r = $mod.TRec.$clone({',
+    '  i: 1,',
+    '  a: [2, 3],',
+    '  s: [4, 5],',
+    '  m: [[11, 12], [13, 14]],',
+    '  p: $mod.TPoint.$clone({',
+    '      x: 21,',
+    '      y: 0',
+    '    })',
+    '});',
+    'this.p = [$mod.TPoint.$clone({',
+    '  x: 1,',
+    '  y: 2',
+    '}), $mod.TPoint.$clone({',
+    '  x: 3,',
+    '  y: 4',
+    '})];',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_SubRecord;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TRec = record',
+  '  type',
+  '    TPoint = record',
+  '      x,y: longint;',
+  '      class var Count: nativeint;',
+  '      procedure DoIt;',
+  '      class procedure DoThat; static;',
+  '    end;',
+  '  var',
+  '    i: longint;',
+  '    p: TPoint;',
+  '    procedure DoSome;',
+  '  end;',
+  'const',
+  '  r: TRec = (',
+  '    i:1;',
+  '    p: (x:21;y:22)',
+  '  );',
+  'procedure TRec.DoSome;',
+  'begin',
+  '  p.x:=p.y+1;',
+  '  p.Count:=p.Count+2;',
+  'end;',
+  'procedure TRec.TPoint.DoIt;',
+  'begin',
+  '  Count:=Count+3;',
+  'end;',
+  'class procedure TRec.TPoint.DoThat;',
+  'begin',
+  '  Count:=Count+4;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_SubRecord',
+    LinesToStr([ // statements
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  rtl.createTRecord(this, "TPoint", function () {',
+    '    this.x = 0;',
+    '    this.y = 0;',
+    '    this.Count = 0;',
+    '    this.$eq = function (b) {',
+    '      return (this.x === b.x) && (this.y === b.y);',
+    '    };',
+    '    this.$assign = function (s) {',
+    '      this.x = s.x;',
+    '      this.y = s.y;',
+    '      return this;',
+    '    };',
+    '    this.DoIt = function () {',
+    '      this.$record.Count = this.Count + 3;',
+    '    };',
+    '    this.DoThat = function () {',
+    '      this.Count = this.Count + 4;',
+    '    };',
+    '  }, true);',
+    '  this.i = 0;',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.p = this.TPoint.$new();',
+    '    return r;',
+    '  };',
+    '  this.$eq = function (b) {',
+    '    return (this.i === b.i) && this.p.$eq(b.p);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    this.p.$assign(s.p);',
+    '    return this;',
+    '  };',
+    '  this.DoSome = function () {',
+    '    this.p.x = this.p.y + 1;',
+    '    this.p.$record.Count = this.p.Count + 2;',
+    '  };',
+    '}, true);',
+    'this.r = $mod.TRec.$clone({',
+    '  i: 1,',
+    '  p: $mod.TRec.TPoint.$clone({',
+    '      x: 21,',
+    '      y: 22',
+    '    })',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_SubClass;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TObject = class end;',
+  '  TPoint = record',
+  '  type',
+  '    TBird = class',
+  '      procedure DoIt;',
+  '      class procedure Glob;',
+  '    end;',
+  '    procedure DoIt(b: TBird);',
+  '  end;',
+  'procedure TPoint.TBird.DoIt;',
+  'begin',
+  '  doit;',
+  '  self.doit;',
+  '  glob;',
+  '  self.glob;',
+  'end;',
+  'class procedure TPoint.TBird.Glob;',
+  'begin',
+  '  glob;',
+  '  self.glob;',
+  'end;',
+  'procedure TPoint.DoIt(b: TBird);',
+  'begin',
+  '  b.doit;',
+  '  b.glob;',
+  '  TBird.glob;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_SubClass',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createTRecord($mod, "TPoint", function () {',
+    '  rtl.createClass(this, "TBird", $mod.TObject, function () {',
+    '    this.DoIt = function () {',
+    '      this.DoIt();',
+    '      this.DoIt();',
+    '      this.$class.Glob();',
+    '      this.$class.Glob();',
+    '    };',
+    '    this.Glob = function () {',
+    '      this.Glob();',
+    '      this.Glob();',
+    '    };',
+    '  });',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  this.DoIt = function (b) {',
+    '    b.DoIt();',
+    '    b.$class.Glob();',
+    '    this.TBird.Glob();',
+    '  };',
+    '}, true);',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_SubInterfaceFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  IUnknown = interface end;',
+  '  TPoint = record',
+  '    type IBird = interface end;',
+  '  end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('not yet implemented: IBird:TPasClassType [20190105143752] interface inside record',
+    nNotYetImplemented);
+  ParseProgram;
 end;
 
 procedure TTestModule.TestClass_TObjectDefaultConstructor;
@@ -10032,20 +10582,21 @@ end;
 procedure TTestModule.TestClass_Var;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('  public');
-  Add('    vI: longint;');
-  Add('    constructor Create(Par: longint);');
-  Add('  end;');
-  Add('constructor tobject.create(par: longint);');
-  Add('begin');
-  Add('  vi:=par+3');
-  Add('end;');
-  Add('var Obj: tobject;');
-  Add('begin');
-  Add('  obj:=tobject.create(4);');
-  Add('  obj.vi:=obj.VI+5;');
+  Add([
+  'type',
+  '  TObject = class',
+  '  public',
+  '    vI: longint;',
+  '    constructor Create(Par: longint);',
+  '  end;',
+  'constructor tobject.create(par: longint);',
+  'begin',
+  '  vi:=par+3',
+  'end;',
+  'var Obj: tobject;',
+  'begin',
+  '  obj:=tobject.create(4);',
+  '  obj.vi:=obj.VI+5;']);
   ConvertProgram;
   CheckSource('TestClass_Var',
     LinesToStr([ // statements
@@ -10811,40 +11362,41 @@ end;
 procedure TTestModule.TestClass_Property_ClassMethod;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    class var Fx: longint;');
-  Add('    class var Fy: longint;');
-  Add('    class function GetInt: longint;');
-  Add('    class procedure SetInt(Value: longint);');
-  Add('    class procedure DoIt;');
-  Add('    class property IntA: longint read Fx write Fy;');
-  Add('    class property IntB: longint read GetInt write SetInt;');
-  Add('  end;');
-  Add('class function tobject.getint: longint;');
-  Add('begin');
-  Add('  result:=fx;');
-  Add('end;');
-  Add('class procedure tobject.setint(value: longint);');
-  Add('begin');
-  Add('end;');
-  Add('class procedure tobject.doit;');
-  Add('begin');
-  Add('  IntA:=IntA+1;');
-  Add('  Self.IntA:=Self.IntA+1;');
-  Add('  IntB:=IntB+1;');
-  Add('  Self.IntB:=Self.IntB+1;');
-  Add('end;');
-  Add('var Obj: tobject;');
-  Add('begin');
-  Add('  tobject.inta:=tobject.inta+1;');
-  Add('  if tobject.intb=2 then;');
-  Add('  tobject.intb:=tobject.intb+2;');
-  Add('  tobject.setint(tobject.inta);');
-  Add('  obj.inta:=obj.inta+1;');
-  Add('  if obj.intb=2 then;');
-  Add('  obj.intb:=obj.intb+2;');
-  Add('  obj.setint(obj.inta);');
+  Add([
+  'type',
+  '  TObject = class',
+  '    class var Fx: longint;',
+  '    class var Fy: longint;',
+  '    class function GetInt: longint;',
+  '    class procedure SetInt(Value: longint);',
+  '    class procedure DoIt;',
+  '    class property IntA: longint read Fx write Fy;',
+  '    class property IntB: longint read GetInt write SetInt;',
+  '  end;',
+  'class function tobject.getint: longint;',
+  'begin',
+  '  result:=fx;',
+  'end;',
+  'class procedure tobject.setint(value: longint);',
+  'begin',
+  'end;',
+  'class procedure tobject.doit;',
+  'begin',
+  '  IntA:=IntA+1;',
+  '  Self.IntA:=Self.IntA+1;',
+  '  IntB:=IntB+1;',
+  '  Self.IntB:=Self.IntB+1;',
+  'end;',
+  'var Obj: tobject;',
+  'begin',
+  '  tobject.inta:=tobject.inta+1;',
+  '  if tobject.intb=2 then;',
+  '  tobject.intb:=tobject.intb+2;',
+  '  tobject.setint(tobject.inta);',
+  '  obj.inta:=obj.inta+1;',
+  '  if obj.intb=2 then;',
+  '  obj.intb:=obj.intb+2;',
+  '  obj.setint(obj.inta);']);
   ConvertProgram;
   CheckSource('TestClass_Property_ClassMethod',
     LinesToStr([ // statements
@@ -13496,38 +14048,40 @@ begin
   CheckSource('TestNestedClass_Record',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
-    '  this.TPoint = function (s) {',
-    '    if (s) {',
-    '      this.x = s.x;',
-    '      this.y = s.y;',
-    '    } else {',
-    '      this.x = 0;',
-    '      this.y = 0;',
-    '    };',
-    '    this.$equal = function (b) {',
+    '  rtl.createTRecord(this, "TPoint", function () {',
+    '    this.x = 0;',
+    '    this.y = 0;',
+    '    this.$eq = function (b) {',
     '      return (this.x === b.x) && (this.y === b.y);',
     '    };',
-    '  };',
-    '  $mod.$rtti.$Record("TObject.TPoint", {}).addFields("x", rtl.byte, "y", rtl.byte);',
+    '    this.$assign = function (s) {',
+    '      this.x = s.x;',
+    '      this.y = s.y;',
+    '      return this;',
+    '    };',
+    '    var $r = $mod.$rtti.$Record("TObject.TPoint", {});',
+    '    $r.addField("x", rtl.byte);',
+    '    $r.addField("y", rtl.byte);',
+    '  });',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
     '  };',
     '  this.DoIt = function (t) {',
-    '    var p = new this.TPoint();',
+    '    var p = this.TPoint.$new();',
     '    t.x = t.y;',
-    '    p = new this.TPoint(t);',
+    '    p.$assign(t);',
     '  };',
     '});',
-    'this.p = new $mod.TObject.TPoint({',
+    'this.p = $mod.TObject.TPoint.$clone({',
     '  x: 2,',
     '  y: 4',
     '});',
     'this.o = null;',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.p = new $mod.TObject.TPoint($mod.p);',
-    '$mod.o.DoIt(new $mod.TObject.TPoint($mod.p));',
+    '$mod.p.$assign($mod.p);',
+    '$mod.o.DoIt($mod.TObject.TPoint.$clone($mod.p));',
     '']));
 end;
 
@@ -14878,17 +15432,20 @@ begin
     '});',
     'rtl.createClass($mod, "TChild", $mod.TObject, function () {',
     '});',
-    'this.TRec = function (s) {',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.$eq = function (b) {',
     '    return true;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '});',
     'this.Obj = null;',
     'this.Child = null;',
     'this.i = null;',
     'this.Bird = null;',
     'this.j = null;',
-    'this.r = new $mod.TRec();',
+    'this.r = $mod.TRec.$new();',
     'this.c = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -17387,22 +17944,22 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
-    'this.TGUID = function (s) {',
-    '  if (s) {',
+    'rtl.createTRecord($mod, "TGUID", function () {',
+    '  this.D1 = 0;',
+    '  this.D2 = 0;',
+    '  this.D3 = 0;',
+    '  this.D4 = 0;',
+    '  this.$eq = function (b) {',
+    '    return (this.D1 === b.D1) && (this.D2 === b.D2) && (this.D3 === b.D3) && (this.D4 === b.D4);',
+    '  };',
+    '  this.$assign = function (s) {',
     '    this.D1 = s.D1;',
     '    this.D2 = s.D2;',
     '    this.D3 = s.D3;',
     '    this.D4 = s.D4;',
-    '  } else {',
-    '    this.D1 = 0;',
-    '    this.D2 = 0;',
-    '    this.D3 = 0;',
-    '    this.D4 = 0;',
+    '    return this;',
     '  };',
-    '  this.$equal = function (b) {',
-    '    return (this.D1 === b.D1) && (this.D2 === b.D2) && (this.D3 === b.D3) && (this.D4 === b.D4);',
-    '  };',
-    '};',
+    '});',
     'this.DoConstGUIDIt = function (g) {',
     '};',
     'this.DoDefGUID = function (g) {',
@@ -17410,7 +17967,7 @@ begin
     'this.DoStr = function (s) {',
     '};',
     'this.i = null;',
-    'this.g = new $mod.TGUID({',
+    'this.g = $mod.TGUID.$clone({',
     '  D1: 0xD91C9AF4,',
     '  D2: 0x3C93,',
     '  D3: 0x420F,',
@@ -17429,17 +17986,17 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.DoConstGUIDIt(rtl.getIntfGUIDR($mod.IUnknown));',
-    '$mod.DoDefGUID(new $mod.TGUID(rtl.getIntfGUIDR($mod.IUnknown)));',
+    '$mod.DoDefGUID($mod.TGUID.$clone(rtl.getIntfGUIDR($mod.IUnknown)));',
     '$mod.DoStr($mod.IUnknown.$guid);',
     '$mod.DoConstGUIDIt(rtl.getIntfGUIDR($mod.i));',
-    '$mod.DoDefGUID(new $mod.TGUID(rtl.getIntfGUIDR($mod.i)));',
+    '$mod.DoDefGUID($mod.TGUID.$clone(rtl.getIntfGUIDR($mod.i)));',
     '$mod.DoStr($mod.i.$guid);',
     '$mod.DoConstGUIDIt(rtl.strToGUIDR("{D91C9AF4-3c93-420f-A303-BF5BA82BFD23}"));',
     '$mod.DoDefGUID(rtl.strToGUIDR("{D91C9AF4-3c93-420f-A303-BF5BA82BFD23}"));',
     '$mod.DoStr(rtl.guidrToStr($mod.g));',
-    '$mod.g = new $mod.TGUID(rtl.getIntfGUIDR($mod.i));',
-    '$mod.g = new $mod.TGUID(rtl.getIntfGUIDR($mod.IUnknown));',
-    '$mod.g = new $mod.TGUID({',
+    '$mod.g.$assign(rtl.getIntfGUIDR($mod.i));',
+    '$mod.g.$assign(rtl.getIntfGUIDR($mod.IUnknown));',
+    '$mod.g.$assign({',
     '  D1: 0xD91C9AF4,',
     '  D2: 0x3C93,',
     '  D3: 0x420F,',
@@ -17457,16 +18014,16 @@ begin
     '$mod.s = $mod.i.$guid;',
     '$mod.s = $mod.IUnknown.$guid;',
     '$mod.s = rtl.guidrToStr($mod.g);',
-    'if ($mod.g.$equal(rtl.getIntfGUIDR($mod.i))) ;',
-    'if ($mod.g.$equal(rtl.getIntfGUIDR($mod.i))) ;',
-    'if ($mod.g.$equal(rtl.getIntfGUIDR($mod.IUnknown))) ;',
-    'if ($mod.g.$equal(rtl.getIntfGUIDR($mod.IUnknown))) ;',
+    'if ($mod.g.$eq(rtl.getIntfGUIDR($mod.i))) ;',
+    'if ($mod.g.$eq(rtl.getIntfGUIDR($mod.i))) ;',
+    'if ($mod.g.$eq(rtl.getIntfGUIDR($mod.IUnknown))) ;',
+    'if ($mod.g.$eq(rtl.getIntfGUIDR($mod.IUnknown))) ;',
     'if ($mod.s === $mod.i.$guid) ;',
     'if ($mod.i.$guid === $mod.s) ;',
     'if ($mod.s === $mod.IUnknown.$guid) ;',
     'if ($mod.IUnknown.$guid === $mod.s) ;',
-    'if ($mod.g.$equal(rtl.createTGUID($mod.s))) ;',
-    'if ($mod.g.$equal(rtl.createTGUID($mod.s))) ;',
+    'if ($mod.g.$eq(rtl.createTGUID($mod.s))) ;',
+    'if ($mod.g.$eq(rtl.createTGUID($mod.s))) ;',
     '']));
 end;
 
@@ -17502,22 +18059,22 @@ begin
   CheckSource('TestClassInterface_GUIDProperty',
     LinesToStr([ // statements
     'rtl.createInterface($mod, "IUnknown", "{F31DB68F-3010-D355-4EBA-CDD4EF4A737C}", [], null);',
-    'this.TGUID = function (s) {',
-    '  if (s) {',
+    'rtl.createTRecord($mod, "TGUID", function () {',
+    '  this.D1 = 0;',
+    '  this.D2 = 0;',
+    '  this.D3 = 0;',
+    '  this.D4 = 0;',
+    '  this.$eq = function (b) {',
+    '    return (this.D1 === b.D1) && (this.D2 === b.D2) && (this.D3 === b.D3) && (this.D4 === b.D4);',
+    '  };',
+    '  this.$assign = function (s) {',
     '    this.D1 = s.D1;',
     '    this.D2 = s.D2;',
     '    this.D3 = s.D3;',
     '    this.D4 = s.D4;',
-    '  } else {',
-    '    this.D1 = 0;',
-    '    this.D2 = 0;',
-    '    this.D3 = 0;',
-    '    this.D4 = 0;',
+    '    return this;',
     '  };',
-    '  this.$equal = function (b) {',
-    '    return (this.D1 === b.D1) && (this.D2 === b.D2) && (this.D3 === b.D3) && (this.D4 === b.D4);',
-    '  };',
-    '};',
+    '});',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -17527,8 +18084,8 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.o.SetG(new $mod.TGUID(rtl.getIntfGUIDR($mod.IUnknown)));',
-    '$mod.o.SetG(new $mod.TGUID({',
+    '$mod.o.SetG(rtl.getIntfGUIDR($mod.IUnknown));',
+    '$mod.o.SetG({',
     '  D1: 0xD91C9AF4,',
     '  D2: 0x3C93,',
     '  D3: 0x420F,',
@@ -17542,7 +18099,7 @@ begin
     '      0xFD,',
     '      0x23',
     '    ]',
-    '}));',
+    '});',
     '$mod.o.SetS($mod.IUnknown.$guid);',
     '$mod.o.SetS(rtl.guidrToStr($mod.o.GetG()));',
     '']));
@@ -19162,31 +19719,31 @@ begin
   ConvertProgram;
   CheckSource('TestPointer_Record',
     LinesToStr([ // statements
-    'this.TRec = function (s) {',
-    '  if (s) {',
-    '    this.x = s.x;',
-    '  } else {',
-    '    this.x = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
     '    return this.x === b.x;',
     '  };',
-    '};',
-    'this.r = new $mod.TRec();',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.r = $mod.TRec.$new();',
     'this.p = null;',
     'this.q = null;',
     'this.Ptr = null;',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.p = new $mod.TRec();',
+    '$mod.p = $mod.TRec.$new();',
     '$mod.p = $mod.r;',
-    '$mod.r = new $mod.TRec($mod.p);',
+    '$mod.r.$assign($mod.p);',
     '$mod.r.x = $mod.p.x;',
     '$mod.p.x = $mod.r.x;',
     'if ($mod.p.x === 3) ;',
     'if (4 === $mod.p.x) ;',
     '$mod.p = null;',
-    '$mod.q = new $mod.TRec();',
+    '$mod.q = $mod.TRec.$new();',
     '$mod.q = null;',
     '$mod.Ptr = $mod.p;',
     '$mod.p = $mod.Ptr;',
@@ -19227,18 +19784,18 @@ begin
   ConvertProgram;
   CheckSource('TestPointer_Record',
     LinesToStr([ // statements
-    'this.TRec = function (s) {',
-    '  if (s) {',
-    '    this.x = s.x;',
-    '  } else {',
-    '    this.x = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
     '    return this.x === b.x;',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    return this;',
+    '  };',
+    '});',
     'this.DoIt = function (a, b, c) {',
-    '  var Result = new $mod.TRec();',
+    '  var Result = $mod.TRec.$new();',
     '  a.x = a.x;',
     '  a.x = a.x;',
     '  a.x = a.x;',
@@ -19251,12 +19808,12 @@ begin
     '  p.x = p.x;',
     '  return Result;',
     '};',
-    'this.r = new $mod.TRec();',
+    'this.r = $mod.TRec.$new();',
     'this.p = null;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.GetIt($mod.p);',
-    '$mod.p = new $mod.TRec($mod.GetIt($mod.r));',
+    '$mod.p.$assign($mod.GetIt($mod.r));',
     '$mod.DoIt($mod.p, {',
     '  p: $mod,',
     '  get: function () {',
@@ -21929,21 +22486,23 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Record',
     LinesToStr([ // statements
-    'this.TPoint = function (s) {',
-    '  if (s) {',
-    '    this.x = s.x;',
-    '    this.y = s.y;',
-    '  } else {',
-    '    this.x = 0;',
-    '    this.y = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.y = 0;',
+    '  this.$eq = function (b) {',
     '    return (this.x === b.x) && (this.y === b.y);',
     '  };',
-    '};',
-    '$mod.$rtti.$Record("TPoint", {}).addFields("x", rtl.longint, "y", rtl.longint);',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '    return this;',
+    '  };',
+    '  var $r = $mod.$rtti.$Record("TPoint", {});',
+    '  $r.addField("x", rtl.longint);',
+    '  $r.addField("y", rtl.longint);',
+    '});',
     'this.p = null;',
-    'this.r = new $mod.TPoint();',
+    'this.r = $mod.TPoint.$new();',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.$rtti["TPoint"];',
@@ -21970,22 +22529,23 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Record',
     LinesToStr([ // statements
-    '$mod.$rtti.$DynArray("TFloatRec.d$a", {',
-    '  eltype: rtl.char',
-    '});',
-    'this.TFloatRec = function (s) {',
-    '  if (s) {',
-    '    this.d = s.d;',
-    '  } else {',
-    '    this.d = [];',
-    '  };',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TFloatRec", function () {',
+    '  this.d = [];',
+    '  this.$eq = function (b) {',
     '    return this.d === b.d;',
     '  };',
-    '};',
-    '$mod.$rtti.$Record("TFloatRec", {}).addFields("d", $mod.$rtti["TFloatRec.d$a"]);',
+    '  this.$assign = function (s) {',
+    '    this.d = s.d;',
+    '    return this;',
+    '  };',
+    '  $mod.$rtti.$DynArray("TFloatRec.d$a", {',
+    '    eltype: rtl.char',
+    '  });',
+    '  var $r = $mod.$rtti.$Record("TFloatRec", {});',
+    '  $r.addField("d", $mod.$rtti["TFloatRec.d$a"]);',
+    '});',
     'this.p = null;',
-    'this.r = new $mod.TFloatRec();',
+    'this.r = $mod.TFloatRec.$new();',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.$rtti["TFloatRec"];',
@@ -22012,20 +22572,20 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_LocalTypes',
     LinesToStr([ // statements
-    'var TPoint = function(s) {',
-    '  if (s) {',
-    '    this.x = s.x;',
-    '    this.y = s.y;',
-    '  } else {',
-    '    this.x = 0;',
-    '    this.y = 0;',
-    '  };',
-    '  this.$equal = function (b) {',
+    'var TPoint = rtl.createTRecord(null, "", function () {',
+    '  this.x = 0;',
+    '  this.y = 0;',
+    '  this.$eq = function (b) {',
     '    return (this.x === b.x) && (this.y === b.y);',
     '  };',
-    '};',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '    return this;',
+    '  };',
+    '});',
     'this.DoIt = function () {',
-    '  var p = new TPoint();',
+    '  var p = TPoint.$new();',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -22375,12 +22935,15 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses3',
     LinesToStr([ // statements
-    'this.TRec = function (s) {',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.$eq = function (b) {',
     '    return true;',
     '  };',
-    '};',
-    '$mod.$rtti.$Record("TRec", {});',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  $mod.$rtti.$Record("TRec", {});',
+    '});',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -22390,7 +22953,7 @@ begin
     '$mod.$rtti.$ClassRef("TClass", {',
     '  instancetype: $mod.$rtti["TObject"]',
     '});',
-    'this.Rec = new $mod.TRec();',
+    'this.Rec = $mod.TRec.$new();',
     'this.tiRecord = null;',
     'this.Obj = null;',
     'this.tiClass = null;',
@@ -22658,12 +23221,15 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Interface_COM',
     LinesToStr([ // statements
-    'this.TGuid = function (s) {',
-    '  this.$equal = function (b) {',
+    'rtl.createTRecord($mod, "TGuid", function () {',
+    '  this.$eq = function (b) {',
     '    return true;',
     '  };',
-    '};',
-    '$mod.$rtti.$Record("TGuid", {});',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  $mod.$rtti.$Record("TGuid", {});',
+    '});',
     'rtl.createInterface(',
     '  $mod,',
     '  "IUnknown",',
@@ -23325,6 +23891,67 @@ begin
     '  ArrByteChar[7][7] = rtl.rc(ArrByteChar[7][7], 1, 10);',
     '  rtl.rcArrW(ArrByteChar, i, c.charCodeAt() - 48, rtl.rcArrR(ArrByteChar, i, c.charCodeAt() - 48));',
     '  o.A[i] = rtl.rc(o.A[i], 1, 10);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_ArrayOfRecIndex;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'type',
+  '  Ten = 1..10;',
+  '  TRec = record x: Ten end;',
+  '  TArr = array of TRec;',
+  '  TArrArr = array of TArr;',
+  '  TObject = class',
+  '    A: TArr;',
+  '  end;',
+  'procedure DoIt;',
+  'var',
+  '  Arr: TArr;',
+  '  ArrArr: TArrArr;',
+  '  i: Ten;',
+  '  o: tobject;',
+  'begin',
+  '  Arr[1]:=Arr[1];',
+  '  Arr[i]:=Arr[i+1];',
+  '  o.a[i]:=o.a[i+2];',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_ArrayOfRecIndex',
+    LinesToStr([ // statements
+    'rtl.createTRecord($mod, "TRec", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.x === b.x;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.A = [];',
+    '  };',
+    '  this.$final = function () {',
+    '    this.A = undefined;',
+    '  };',
+    '});',
+    'this.DoIt = function () {',
+    '  var Arr = [];',
+    '  var ArrArr = [];',
+    '  var i = 0;',
+    '  var o = null;',
+    '  Arr[1].$assign(Arr[1]);',
+    '  rtl.rcArrR(Arr, i).$assign(rtl.rcArrR(Arr, i + 1));',
+    '  o.A[i].$assign(o.A[i + 2]);',
     '};',
     '']),
     LinesToStr([ // $mod.$main

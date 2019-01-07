@@ -27,7 +27,7 @@ uses
   PasUseAnalyzer,
   Pas2jsFileCache, Pas2jsCompiler,
   Pas2JSFS,
-  FPPas2Js, Pas2jsFileUtils;
+  Pas2jsFileUtils;
 
 Type
   TPas2jsFSCompiler = Class(TPas2JSCompiler)
@@ -121,6 +121,7 @@ function TPas2jsFSCompiler.OnMacroEnv(Sender: TObject; var Params: string;
   Lvl: integer): boolean;
 begin
   if Lvl=0 then ;
+  if Sender=nil then ;
   Params:=GetEnvironmentVariablePJ(Params);
   Result:=true;
 end;
