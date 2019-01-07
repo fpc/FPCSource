@@ -628,7 +628,8 @@ End.
       <tbody>
         <tr>
           <th>Pascal</th>
-          <th>JavaScript</th>
+          <th>JS Pas2js 1.2</th>
+          <th>JS Pas2js 1.3</th>
         </tr>
         <tr>
           <td>
@@ -679,6 +680,35 @@ function(){
 []);
 </pre>
           </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  rtl.createTRecord($mod, "TMyRecord", function() {
+    this.i = 0;
+    this.s = "";
+    this.d = 0.0;
+    this.$eq = function (b) {
+      return (this.i == b.i) && (this.s == b.i) && (this.d == b.d);
+    };
+    this.$assign = function (s) {
+      this.i = s.i;
+      this.s = s.s;
+      this.d = s.d;
+      return this;
+    };
+  };
+  this.r = this.TMyRecord.$new();
+  $mod.$init = function() {
+    $mod.r.i=123;
+    $mod.r.$assign($mod.s);
+    if ($mod.r.$eq($mod.s)) ;
+  },
+},
+[]);
+</pre>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -686,9 +716,20 @@ function(){
       <li>The record variable creates a JavaScript object.</li>
       <li>Variant records are not supported.</li>
       <li>Supported: Assign, pass as argument, equal, not equal,
-      array of record, pointer of record, const, default().</li>
-      <li>Not yet implemented: advanced records, operators.</li>
-      <li>When assigning a record it is cloned. This is compatible with Delphi and FPC.</li>
+      array of record, pointer of record, const, default(), RTTI.</li>
+      <li>Advanced record (since pas2js 1.3):
+        <ul>
+          <li>visibility private, strict private, public, default is public</li>
+          <li>methods, class methods (must be static like in Delphi/FPC)</li>
+          <li>class vars</li>
+          <li>const fields</li>
+          <li>property, class property, array property, default property</li>
+        </ul>
+      </li>
+      <li>Not yet implemented: constructors, operators.</li>
+      <li>Until Pas2js 1.2 when assigning a record it is cloned, creating a new
+        JS object. Since Pas2js 1.3 only values are copied,
+        keeping the object, so pointer of record is compatible.</li>
       <li>Since record types are JS objects it is possible to typecast a record type
       to the JS Object, e.g. TJSObject(TPoint)</li>
       <li>A pointer of record is simply a reference.
