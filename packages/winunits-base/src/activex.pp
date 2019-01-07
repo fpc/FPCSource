@@ -2788,7 +2788,7 @@ TYPE
        Function GetDataHere(CONST pformatetc : FormatETC; Out medium : STGMEDIUM):HRESULT; STDCALL;
        Function QueryGetData(const pformatetc : FORMATETC):HRESULT; STDCALL;
        Function GetCanonicalFormatEtc(const pformatetcIn : FORMATETC;Out pformatetcOut : FORMATETC):HResult; STDCALl;
-       Function SetData (Const pformatetc : FORMATETC;const medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
+       Function SetData (Const pformatetc : FORMATETC;var medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
        Function EnumFormatEtc(dwDirection : DWord; OUT enumformatetcpara : IENUMFORMATETC):HRESULT; StdCall;
        Function DAdvise(const formatetc : FORMATETC;advf :DWORD; CONST AdvSink : IAdviseSink;OUT dwConnection:DWORD):HRESULT;StdCall;
        Function DUnadvise(dwconnection :DWord) :HRESULT;StdCall;
@@ -4060,7 +4060,7 @@ type
        function Uncache(dwConnection:LongWord):HRESULT;stdcall;
        function EnumCache(out ppenumSTATDATA:IEnumSTATDATA):HRESULT;stdcall;
        function InitCache(pDataObject:IDataObject):HRESULT;stdcall;
-       function SetData(var pFormatetc:tagFORMATETC;var pmedium:wireSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
+       function SetData(var pFormatetc:tagFORMATETC;var medium:TSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
       end;
 
     IOleCache2 = interface(IOleCache)
