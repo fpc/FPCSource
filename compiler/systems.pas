@@ -351,7 +351,7 @@ interface
        systems_internal_sysinit = [system_i386_win32,system_x86_64_win64,
                                    system_i386_linux,system_powerpc64_linux,system_sparc64_linux,system_x86_64_linux,
                                    system_m68k_atari,system_m68k_palmos,
-                                   system_x86_64_haiku
+                                   system_i386_haiku,system_x86_64_haiku
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use garbage collection for reference-counted types }

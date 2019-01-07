@@ -36,7 +36,8 @@ unit i_haiku;
             name         : 'Haiku for i386';
             shortname    : 'Haiku';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,
-                            tf_smartlink_sections, tf_has_winlike_resources];
+                            tf_pic_default,tf_pic_uses_got,tf_library_needs_pic,
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'HAIKUUNITS';
             extradefines : 'BEOS;UNIX;HASUNIX';
@@ -99,7 +100,7 @@ unit i_haiku;
               Under R5, this value is even greater. listarea report a default 
               size of 16 Mb for the user stack of the main thread.
               People who still use BeOS nowadays should use R5 (or Haiku), 
-              so i use this new value.  
+              so i use this new value.
             }
             stacksize    : 16 * 1024 * 1024;
             stackalign   : 4;
