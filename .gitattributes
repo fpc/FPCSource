@@ -9434,6 +9434,7 @@ rtl/haiku/termios.inc svneol=native#text/plain
 rtl/haiku/termiosproc.inc svneol=native#text/plain
 rtl/haiku/unxconst.inc svneol=native#text/plain
 rtl/haiku/unxfunc.inc svneol=native#text/plain
+rtl/haiku/x86_64/sighnd.inc svneol=native#text/plain
 rtl/i386/cpu.pp svneol=native#text/plain
 rtl/i386/cpuh.inc svneol=native#text/plain
 rtl/i386/cpuinnr.inc svneol=native#text/plain
