@@ -1020,7 +1020,8 @@ end;
                           Error / Exit / ExitProc
 *****************************************************************************}
 
-Procedure system_exit;forward;
+Procedure system_exit;forward;{$ifdef FPC_SYSTEM_EXIT_NO_RETURN}noreturn;{$endif}
+
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
 //not needed if independant memory manager
