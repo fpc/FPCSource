@@ -25,18 +25,18 @@
 
 type
   fsblkcnt_t = clonglong;
-  TStatfs = packed record
-    bsize 			: Cardinal;
-    frsize			: Cardinal;
-    blocks			: fsblkcnt_t;
-    bfree			: fsblkcnt_t;
-    bavail			: fsblkcnt_t;
-    files			: fsblkcnt_t;
-    ffree			: fsblkcnt_t;
-    favail			: fsblkcnt_t;
-    fsid			: Cardinal;
-    flag			: Cardinal;
-    namemax			: Cardinal;
+  TStatfs = record
+    bsize   : culong;
+    frsize  : culong;
+    blocks  : fsblkcnt_t;
+    bfree   : fsblkcnt_t;
+    bavail  : fsblkcnt_t;
+    files   : fsblkcnt_t;
+    ffree   : fsblkcnt_t;
+    favail  : fsblkcnt_t;
+    fsid    : culong;
+    flag    : culong;
+    namemax : culong;
   end;
   PStatFS=^TStatFS;
 
@@ -44,7 +44,7 @@ type
     converter : pointer;
     charset : array[0..63] of char;
     count : cuint;
-    data : array[0..1023+8] of char;	{ 1024 bytes for data, 8 for alignment space }
+    data : array[0..1023+8] of char;  { 1024 bytes for data, 8 for alignment space }
   end;
   pmbstate_t = ^mbstate_t;
 
@@ -173,7 +173,7 @@ type
     __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
     __align: clonglong;
   end;
-    
+
   pthread_condattr_t = record
     __dummy: cint;
   end;
@@ -200,8 +200,8 @@ type
      __sem_waiting: pointer;
   end;
 
-   rlim_t		= int64;
-   TRlim		= rlim_t;
+   rlim_t = int64;
+   TRlim  = rlim_t;
 
 
 CONST
@@ -226,7 +226,7 @@ CONST
     PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
 
     SYS_NMLN = 32;              {BSD utsname struct limit}
-    
+
     SIG_MAXSIG = 32; //128;	// highest signal version  // BeOS  
 
 const
