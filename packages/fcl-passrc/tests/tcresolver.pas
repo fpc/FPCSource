@@ -490,7 +490,10 @@ type
     Procedure TestAdvRecord;
     Procedure TestAdvRecord_Private;
     Procedure TestAdvRecord_StrictPrivate;
+    Procedure TestAdvRecord_MethodImplMissingFail;
     Procedure TestAdvRecord_VarConst;
+    Procedure TestAdvRecord_RecVal_ConstFail;
+    Procedure TestAdvRecord_RecVal_ClassVarFail;
     Procedure TestAdvRecord_LocalForwardType;
     Procedure TestAdvRecord_Constructor_NewInstance;
     Procedure TestAdvRecord_ConstructorNoParamsFail;
@@ -504,6 +507,8 @@ type
     Procedure TestAdvRecord_RecordAsFuncResult;
     Procedure TestAdvRecord_InheritedFail;
     Procedure TestAdvRecord_ForInEnumerator;
+    Procedure TestAdvRecord_InFunctionFail;
+    Procedure TestAdvRecord_SubClass;
 
     // class
     Procedure TestClass;
@@ -7874,6 +7879,20 @@ begin
   CheckResolverException('Can''t access strict private member A',nCantAccessPrivateMember);
 end;
 
+procedure TTestResolver.TestAdvRecord_MethodImplMissingFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    procedure SetSize(Value: word);',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sForwardProcNotResolved,nForwardProcNotResolved);
+end;
+
 procedure TTestResolver.TestAdvRecord_VarConst;
 begin
   StartProgram(false);
@@ -7913,6 +7932,42 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestAdvRecord_RecVal_ConstFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    V1: word;',
+  '  const',
+  '    C1 = 3;',
+  '  end;',
+  'var',
+  '  r: TRec = (V1:2; C1: 4);',
+  'begin',
+  '']);
+  CheckResolverException(sIdentifierXIsNotAnInstanceField,nIdentifierXIsNotAnInstanceField);
+end;
+
+procedure TTestResolver.TestAdvRecord_RecVal_ClassVarFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    V1: word;',
+  '  class var',
+  '    C1: word;',
+  '  end;',
+  'var',
+  '  r: TRec = (V1:2; C1: 4);',
+  'begin',
+  '']);
+  CheckResolverException(sIdentifierXIsNotAnInstanceField,nIdentifierXIsNotAnInstanceField);
+end;
+
 procedure TTestResolver.TestAdvRecord_LocalForwardType;
 begin
   StartProgram(false);
@@ -7947,7 +8002,7 @@ begin
   'type',
   '  TRec = record',
   '    constructor Create(w: word);',
-  '    class function DoSome: TRec;',
+  '    class function DoSome: TRec; static;',
   '  end;',
   'constructor TRec.Create(w: word);',
   'begin',
@@ -8027,14 +8082,17 @@ begin
   '{$modeswitch advancedrecords}',
   'type',
   '  TRec = record',
-  '    class procedure {#a}Create;',
-  '    class constructor Create;',
+  '    class var w: word;',
+  '    class procedure {#a}Create; static;',
+  '    class constructor Create; static;',
   '  end;',
   'class constructor TRec.Create;',
   'begin',
+  '  w:=w+1;',
   'end;',
   'class procedure TRec.Create;',
   'begin',
+  '  w:=w+1;',
   'end;',
   'begin',
   '  TRec.{@a}Create;',
@@ -8231,8 +8289,8 @@ begin
   'type',
   '  {#A}TRec = record',
   '     {#A_i}i: longint;',
-  '     class function {#A_CreateA}Create: TRec;',
-  '     class function {#A_CreateB}Create(i: longint): TRec;',
+  '     class function {#A_CreateA}Create: TRec; static;',
+  '     class function {#A_CreateB}Create(i: longint): TRec; static;',
   '  end;',
   'function {#F}F: TRec;',
   'begin',
@@ -8310,6 +8368,53 @@ begin
   '  {#i2}i2: TItem;',
   'begin',
   '  for i in b do {@i2}i2:=i;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_InFunctionFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'procedure DoIt;',
+  'type',
+  '  TBird = record',
+  '    class var i: word;',
+  '  end;',
+  'var',
+  '  b: TBird;',
+  'begin',
+  'end;',
+  'begin']);
+  CheckParserException(sErrRecordVariablesNotAllowed,nErrRecordVariablesNotAllowed);
+end;
+
+procedure TTestResolver.TestAdvRecord_SubClass;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TObject = class end;',
+  '  TPoint = record',
+  '  type',
+  '    TBird = class',
+  '      procedure DoIt;',
+  '      class procedure Glob;',
+  '    end;',
+  '    procedure DoIt(b: TBird);',
+  '  end;',
+  'procedure TPoint.TBird.DoIt;',
+  'begin',
+  'end;',
+  'class procedure TPoint.TBird.Glob;',
+  'begin',
+  'end;',
+  'procedure TPoint.DoIt(b: TBird);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
   ParseProgram;
 end;
 

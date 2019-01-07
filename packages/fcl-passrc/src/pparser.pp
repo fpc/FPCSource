@@ -3557,7 +3557,9 @@ begin
              RecordEl.SetGenericTemplates(List);
              NextToken;
              ParseRecordFieldList(RecordEl,tkend,
-                              msAdvancedRecords in Scanner.CurrentModeSwitches);
+                              (msAdvancedRecords in Scanner.CurrentModeSwitches)
+                              and not (Declarations is TProcedureBody)
+                              and (RecordEl.Name<>''));
              CheckHint(RecordEl,True);
              Engine.FinishScope(stTypeDef,RecordEl);
              end;
@@ -6344,7 +6346,15 @@ begin
       tkClass:
         begin
         if Not AllowMethods then
-          ParseExc(nErrRecordMethodsNotAllowed,SErrRecordMethodsNotAllowed);
+          begin
+          NextToken;
+          case CurToken of
+          tkConst: ParseExc(nErrRecordConstantsNotAllowed,SErrRecordConstantsNotAllowed);
+          tkvar: ParseExc(nErrRecordVariablesNotAllowed,SErrRecordVariablesNotAllowed);
+          else
+            ParseExc(nErrRecordMethodsNotAllowed,SErrRecordMethodsNotAllowed);
+          end;
+          end;
         if isClass then
           ParseExc(nParserTypeSyntaxError,SParserTypeSyntaxError);
         isClass:=True;
@@ -6437,7 +6447,8 @@ begin
   try
     Result.PackMode:=PackMode;
     NextToken;
-    ParseRecordFieldList(Result,tkEnd,msAdvancedRecords in Scanner.CurrentModeSwitches);
+    ParseRecordFieldList(Result,tkEnd,
+      (msAdvancedRecords in Scanner.CurrentModeSwitches) and not (Parent is TProcedureBody));
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
