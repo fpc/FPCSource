@@ -585,7 +585,6 @@ type
     Procedure TestClass_StrictPrivateInMainBeginFail;
     Procedure TestClass_StrictProtectedInMainBeginFail;
     Procedure TestClass_Constructor_NewInstance;
-    Procedure TestClass_Constructor_InstanceCallResultFail;
     Procedure TestClass_Destructor_FreeInstance;
     Procedure TestClass_ConDestructor_CallInherited;
     Procedure TestClass_Constructor_Inherited;
@@ -8019,6 +8018,7 @@ begin
   '  TRec.{#p}Create(4); // new object',
   '  r:=TRec.{#q}Create(5); // new object',
   '  r.{#r}Create(6); // normal call',
+  '  r:=r.{#s}Create(7); // normal call',
   '']);
   ParseProgram;
   aMarker:=FirstSrcMarker;
@@ -8043,7 +8043,7 @@ begin
         break;
         end;
       case aMarker^.Identifier of
-      'a','r':// should be normal call
+      'a','r','s':// should be normal call
         if ActualNewInstance then
           RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
       else // should be newinstance
@@ -10040,7 +10040,9 @@ begin
   'begin',
   '  TObject.{#p}Create; // new object',
   '  o:=TObject.{#q}Create; // new object',
-  '  o.{#r}Create; // normal call']);
+  '  o.{#r}Create; // normal call',
+  '  o:=o.{#s}Create; // normal call',
+  '']);
   ParseProgram;
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
@@ -10066,7 +10068,7 @@ begin
       if not ActualImplicitCallWithoutParams then
         RaiseErrorAtSrcMarker('expected implicit call at "#'+aMarker^.Identifier+', but got function ref"',aMarker);
       case aMarker^.Identifier of
-      'a','r':// should be normal call
+      'a','r','s':// should be normal call
         if ActualNewInstance then
           RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
       else // should be newinstance
@@ -10078,24 +10080,6 @@ begin
     end;
     aMarker:=aMarker^.Next;
     end;
-end;
-
-procedure TTestResolver.TestClass_Constructor_InstanceCallResultFail;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    constructor Create;');
-  Add('  end;');
-  Add('constructor TObject.Create;');
-  Add('begin');
-  Add('end;');
-  Add('var');
-  Add('  o: TObject;');
-  Add('begin');
-  Add('  o:=o.Create; // normal call has no result -> fail');
-  CheckResolverException('Incompatible types: got "Procedure/Function" expected "TObject"',
-    nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestClass_Destructor_FreeInstance;

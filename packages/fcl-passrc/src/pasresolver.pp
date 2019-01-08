@@ -1898,7 +1898,7 @@ type
     function GetPathStart(El: TPasExpr): TPasExpr;
     function GetNewInstanceExpr(El: TPasExpr): TPasExpr;
     function ParentNeedsExprResult(El: TPasExpr): boolean;
-    function GetReference_NewInstance_Type(Ref: TResolvedReference): TPasMembersType;
+    function GetReference_ConstructorType(Ref: TResolvedReference): TPasMembersType;
     function IsDynArray(TypeEl: TPasType; OptionalOpenArray: boolean = true): boolean;
     function IsOpenArray(TypeEl: TPasType): boolean;
     function IsDynOrOpenArray(TypeEl: TPasType): boolean;
@@ -10819,11 +10819,10 @@ begin
           // function call => return result
           ComputeElement(TPasFunctionType(Proc.ProcType).ResultEl,ResolvedEl,
             Flags+[rcNoImplicitProc],StartEl)
-        else if (Proc.ClassType=TPasConstructor)
-            and (rrfNewInstance in Ref.Flags) then
+        else if (Proc.ClassType=TPasConstructor) then
           begin
-          // new instance call -> return value of type class
-          ClassOrRec:=GetReference_NewInstance_Type(Ref);
+          // constructor -> return value of type class
+          ClassOrRec:=GetReference_ConstructorType(Ref);
           SetResolverValueExpr(ResolvedEl,btContext,ClassOrRec,ClassOrRec,Params.Value,[rrfReadable]);
           end
         else
@@ -15102,10 +15101,10 @@ begin
     // constructor: NewInstance or normal call
     //  it is a NewInstance iff the scope is a class/record, e.g. TObject.Create
     if (Proc.ClassType=TPasConstructor)
-        and OnlyTypeMembers
         and (Ref<>nil) then
       begin
-      Ref.Flags:=Ref.Flags+[rrfNewInstance]-[rrfConstInherited];
+      if OnlyTypeMembers then
+        Ref.Flags:=Ref.Flags+[rrfNewInstance]-[rrfConstInherited];
       // store the class in Ref.Context
       if Ref.Context<>nil then
         RaiseInternalError(20170131141936);
@@ -15121,7 +15120,7 @@ begin
         RaiseInternalError(20170131150855,GetObjName(StartScope));
       TypeEl:=ClassRecScope.Element as TPasType;
       TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
-      if ClassRecScope is TPasClassScope then
+      if OnlyTypeMembers and (ClassRecScope is TPasClassScope) then
         begin
         AbstractProcs:=TPasClassScope(ClassRecScope).AbstractProcs;
         if (length(AbstractProcs)>0) then
@@ -20112,11 +20111,10 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
             ComputeElement(TPasFunction(ResolvedEl.IdentEl).FuncType.ResultEl,
               ResolvedEl,Flags+[rcType],StartEl);
             end
-          else if (ResolvedEl.IdentEl.ClassType=TPasConstructor)
-              and (rrfNewInstance in Ref.Flags) then
+          else if (ResolvedEl.IdentEl.ClassType=TPasConstructor) then
             begin
-            // new instance constructor -> return value of type class
-            ClassOrRec:=GetReference_NewInstance_Type(Ref);
+            // constructor -> return value of type class
+            ClassOrRec:=GetReference_ConstructorType(Ref);
             SetResolverValueExpr(ResolvedEl,btContext,ClassOrRec,ClassOrRec,
                                  TPrimitiveExpr(Expr),[rrfReadable]);
             end
@@ -20194,7 +20192,7 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
         and (rrfNewInstance in Ref.Flags) then
       begin
       // new instance constructor -> return value of type class
-      ClassOrRec:=GetReference_NewInstance_Type(Ref);
+      ClassOrRec:=GetReference_ConstructorType(Ref);
       SetResolverValueExpr(ResolvedEl,btContext,ClassOrRec,ClassOrRec,Expr,[rrfReadable]);
       end
     else if ParentNeedsExprResult(Expr) then
@@ -20341,6 +20339,7 @@ begin
         end;
       eopMemAddress:
         if (ResolvedEl.BaseType=btContext) and (ResolvedEl.LoTypeEl is TPasProcedureType) then
+          // @@ProcVar
           exit
         else
           RaiseMsg(20180208121549,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
@@ -20526,9 +20525,9 @@ begin
     begin
     TypeEl:=TPasProcedure(El).ProcType;
     SetResolverIdentifier(ResolvedEl,btProc,El,TypeEl,TypeEl,[rrfCanBeStatement]);
-    if TPasProcedure(El).ProcType is TPasFunctionType then
+    if (TPasProcedure(El).ProcType is TPasFunctionType)
+        or (ElClass=TPasConstructor) then
       Include(ResolvedEl.Flags,rrfReadable);
-    // Note: the readability of TPasConstructor depends on the context
     // Note: implicit calls are handled in TPrimitiveExpr
     end
   else if El.InheritsFrom(TPasProcedureType) then
@@ -20864,7 +20863,7 @@ begin
     Result:=(TPasImplRaise(P).ExceptAddr=El);
 end;
 
-function TPasResolver.GetReference_NewInstance_Type(Ref: TResolvedReference
+function TPasResolver.GetReference_ConstructorType(Ref: TResolvedReference
   ): TPasMembersType;
 begin
   Result:=(Ref.Context as TResolvedRefCtxConstructor).Typ as TPasMembersType;

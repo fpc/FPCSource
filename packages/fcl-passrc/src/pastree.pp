@@ -203,7 +203,7 @@ type
                  eopEqual, eopNotEqual,  // Logical
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
                  eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
-                 eopAddress, eopDeref, eopMemAddress, // Pointers
+                 eopAddress, eopDeref, eopMemAddress, // Pointers  eopMemAddress=**
                  eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
 
   { TPasExpr }
