@@ -667,7 +667,8 @@ function(){
       this.d = 0.0;
     };
     this.$equal = function (b) {
-      return (this.i == b.i) && (this.s == b.i) && (this.d == b.d);
+      return (this.i == b.i) &&
+        (this.s == b.i) && (this.d == b.d);
     };
   };
   this.r = new this.TMyRecord();
@@ -685,12 +686,13 @@ function(){
 ["System"],
 function(){
   var $mod = this;
-  rtl.createTRecord($mod, "TMyRecord", function() {
+  rtl.recNewT($mod, "TMyRecord", function() {
     this.i = 0;
     this.s = "";
     this.d = 0.0;
     this.$eq = function (b) {
-      return (this.i == b.i) && (this.s == b.i) && (this.d == b.d);
+      return (this.i == b.i) &&
+         (this.s == b.i) && (this.d == b.d);
     };
     this.$assign = function (s) {
       this.i = s.i;
@@ -728,7 +730,15 @@ function(){
           <li>constructor</li>
         </ul>
       </li>
-      <li>Not yet implemented: constructors, operators.</li>
+      <li>Not yet implemented:
+        <ul>
+          <li>operator overloading</li>
+          <li>class constructor</li>
+          <li>COM interfaces as fields</li>
+          <li>Interfaces as nested types</li>
+          <li>default non array property</li>
+        </ul>
+      </li>
       <li>Until Pas2js 1.2 when assigning a record it is cloned, creating a new
         JS object. Since Pas2js 1.3 only values are copied,
         keeping the object, so pointer of record is compatible.</li>
