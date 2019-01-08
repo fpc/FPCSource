@@ -5124,7 +5124,7 @@ begin
   OK:=(S[StartPos] in WordChars);
   if OK then
     begin
-       While (StartPos>0) and (S[StartPos-1] in WordChars) do
+       While (StartPos>1) and (S[StartPos-1] in WordChars) do
          Dec(StartPos);
        While (EndPos<Length(S)) and (S[EndPos+1] in WordChars) do
          Inc(EndPos);
