@@ -85,7 +85,7 @@ Works:
   - const
   - array of record-const
   - skip clone record of new record
-  - use rtl.createTRecord to create a record type
+  - use rtl.recNewT to create a record type
   - use TRec.$new to instantiate records
   - advanced records:
     - public, private, strict private
@@ -95,6 +95,7 @@ Works:
     - functions
     - properties
     - rtti
+    - constructor
 - assign: copy values, do not create new JS object, needed by ^record
 - classes
   - declare using createClass
@@ -743,7 +744,7 @@ const
     'rcSetCharAt',  // rtl.rcSetCharAt
     '$assign',
     '$clone',
-    'createTRecord',
+    'recNewT',
     '$eq',
     '$new',
     'addField',
@@ -7501,20 +7502,16 @@ begin
 
   if [rrfNewInstance,rrfFreeInstance]*Ref.Flags<>[] then
     begin
-    // call constructor, destructor
     Call:=CreateFreeOrNewInstanceExpr(Ref,AContext);
     Result:=Call;
-    if Decl is TPasProcedure then
+    TargetProcType:=TPasProcedure(Decl).ProcType;
+    if TargetProcType.Args.Count>0 then
       begin
-      TargetProcType:=TPasProcedure(Decl).ProcType;
-      if TargetProcType.Args.Count>0 then
-        begin
-        // add default parameters:
-        // insert array parameter [], e.g. this.TObject.$create("create",[])
-        ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
-        CreateProcedureCallArgs(ArrLit.Elements,nil,TargetProcType,AContext);
-        Call.AddArg(ArrLit);
-        end;
+      // add default parameters:
+      // insert array parameter [], e.g. this.TObject.$create("create",[])
+      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+      CreateProcedureCallArgs(ArrLit.Elements,nil,TargetProcType,AContext);
+      Call.AddArg(ArrLit);
       end;
     exit;
     end;
@@ -11834,7 +11831,7 @@ function TPasToJSConverter.ConvertDeclarations(El: TPasDeclarations;
   AContext: TConvertContext): TJSElement;
 Var
   SLFirst, SLLast: TJSStatementList;
-  IsProcBody, IsFunction, IsAssembler, HasResult: boolean;
+  IsProcBody, IsFunction, IsAssembler, IsConstructor, HasResult: boolean;
   PasProc: TPasProcedure;
   ProcScope: TPasProcedureScope;
   ProcBody: TPasImplBlock;
@@ -11890,6 +11887,15 @@ Var
     RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,ResultEl));
     RetSt.Expr:=CreatePrimitiveDotExpr(ResultVarName,ResultEl);
     Add(RetSt,ResultEl);
+  end;
+
+  Procedure AddReturnThis;
+  var
+    RetSt: TJSReturnStatement;
+  begin
+    RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
+    RetSt.Expr:=TJSPrimaryExpressionThis(CreateElement(TJSPrimaryExpressionThis,El));
+    Add(RetSt,El);
   end;
 
   procedure AddResourceString(ResStr: TPasResString);
@@ -11986,9 +11992,9 @@ begin
   }
 
   IsProcBody:=(El is TProcedureBody) and (TProcedureBody(El).Body<>nil);
-  IsFunction:=IsProcBody and (El.Parent is TPasProcedure)
-                    and (TPasProcedure(El.Parent).ProcType is TPasFunctionType);
+  IsFunction:=IsProcBody and (TPasProcedure(El.Parent).ProcType is TPasFunctionType);
   IsAssembler:=IsProcBody and (TProcedureBody(El).Body is TPasImplAsmStatement);
+  IsConstructor:=IsProcBody and (El.Parent.ClassType=TPasConstructor);
   HasResult:=IsFunction and not IsAssembler;
 
   if (AContext.Resolver<>nil) and (El is TPasSection) then
@@ -12070,7 +12076,9 @@ begin
       end;
 
     if HasResult then
-      AddFunctionResultReturn;
+      AddFunctionResultReturn
+    else if IsConstructor then
+      AddReturnThis;
 
     if ResStrVarEl<>nil then
       begin
@@ -20123,7 +20131,7 @@ begin
   Methods:=nil;
   ok:=false;
   try
-    // rtl.createTRecord()
+    // rtl.recNewT()
     Call:=CreateCallExpression(El);
     Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnRecordCreateType)]);
 
@@ -20232,7 +20240,8 @@ begin
       else if C.InheritsFrom(TPasProcedure) then
         begin
         Methods.Add(P);
-        if (aResolver<>nil) and aResolver.IsClassMethod(P) then
+        if (C=TPasConstructor)
+            or ((aResolver<>nil) and aResolver.IsClassMethod(P)) then
           IsFull:=true;
         continue;
         end

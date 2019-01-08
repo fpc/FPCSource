@@ -460,8 +460,7 @@ type
     Procedure TestAdvRecord_SubRecord;
     Procedure TestAdvRecord_SubClass;
     Procedure TestAdvRecord_SubInterfaceFail;
-    // ToDo: pcu: record default property
-    // ToDo: constructor
+    Procedure TestAdvRecord_Constructor;
     // ToDo: class constructor
 
     // classes
@@ -5664,7 +5663,7 @@ begin
     // this.$init
     '$impl.aRec.i = 3;',
     LinesToStr([ // implementation
-    'rtl.createTRecord($impl, "TMyRecord", function () {',
+    'rtl.recNewT($impl, "TMyRecord", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -7404,6 +7403,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '});',
     'this.b = false;',
@@ -8019,7 +8019,7 @@ begin
   ConvertProgram;
   CheckSource('TestArrayOfRecord',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.Int = 0;',
     '  this.$eq = function (b) {',
     '    return this.Int === b.Int;',
@@ -8065,7 +8065,7 @@ begin
   ConvertProgram;
   CheckSource('TestArray_StaticRecord',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.Int = 0;',
     '  this.$eq = function (b) {',
     '    return this.Int === b.Int;',
@@ -8592,7 +8592,7 @@ begin
     '  "1": "small",',
     '  small: 1',
     '};',
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -8672,7 +8672,7 @@ begin
     '  "1": "small",',
     '  small: 1',
     '};',
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -8747,7 +8747,7 @@ begin
     '  "1": "small",',
     '  small: 1',
     '};',
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -9185,7 +9185,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_Empty',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRecA", function () {',
+    'rtl.recNewT($mod, "TRecA", function () {',
     '  this.$eq = function (b) {',
     '    return true;',
     '  };',
@@ -9214,7 +9214,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_Var',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRecA", function () {',
+    'rtl.recNewT($mod, "TRecA", function () {',
     '  this.Bold = 0;',
     '  this.$eq = function (b) {',
     '    return this.Bold === b.Bold;',
@@ -9248,7 +9248,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_VarExternal',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRecA", function () {',
+    'rtl.recNewT($mod, "TRecA", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return (this.i === b.i) && (this.length === b.length);',
@@ -9286,7 +9286,7 @@ begin
   ConvertProgram;
   CheckSource('TestWithRecordDo',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.vI = 0;',
     '  this.$eq = function (b) {',
     '    return this.vI === b.vI;',
@@ -9340,7 +9340,7 @@ begin
     '  "1": "green",',
     '  green: 1',
     '};',
-    'rtl.createTRecord($mod, "TSmallRec", function () {',
+    'rtl.recNewT($mod, "TSmallRec", function () {',
     '  this.N = 0;',
     '  this.$eq = function (b) {',
     '    return this.N === b.N;',
@@ -9350,7 +9350,7 @@ begin
     '    return this;',
     '  };',
     '});',
-    'rtl.createTRecord($mod, "TBigRec", function () {',
+    'rtl.recNewT($mod, "TBigRec", function () {',
     '  this.Int = 0;',
     '  this.D = 0.0;',
     '  this.Arr = [];',
@@ -9416,7 +9416,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_AsParams',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRecord", function () {',
+    'rtl.recNewT($mod, "TRecord", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -9504,7 +9504,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecordElement_AsParams',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRecord", function () {',
+    'rtl.recNewT($mod, "TRecord", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -9562,7 +9562,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecordElementFromFuncResult_AsParams',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRecord", function () {',
+    'rtl.recNewT($mod, "TRecord", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -9604,7 +9604,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecordElementFromWith_AsParams',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRecord", function () {',
+    'rtl.recNewT($mod, "TRecord", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -9663,7 +9663,7 @@ begin
     '  "1": "blue",',
     '  blue: 1',
     '};',
-    'rtl.createTRecord($mod, "TRecord", function () {',
+    'rtl.recNewT($mod, "TRecord", function () {',
     '  this.i = 0;',
     '  this.Event = null;',
     '  this.$new = function () {',
@@ -9681,7 +9681,7 @@ begin
     '    return this;',
     '  };',
     '});',
-    'rtl.createTRecord($mod, "TNested", function () {',
+    'rtl.recNewT($mod, "TNested", function () {',
     '  this.$new = function () {',
     '    var r = Object.create(this);',
     '    r.r = $mod.TRecord.$new();',
@@ -9720,7 +9720,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_TypeCastJSValueToRecord',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRecord", function () {',
+    'rtl.recNewT($mod, "TRecord", function () {',
     '  this.i = 0;',
     '  this.$eq = function (b) {',
     '    return this.i === b.i;',
@@ -9771,7 +9771,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_FieldArray',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.a = [];',
     '  this.$new = function () {',
     '    var r = Object.create(this);',
@@ -9824,7 +9824,7 @@ begin
   ConvertProgram;
   CheckSource('TestRecord_Const',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TPoint", function () {',
+    'rtl.recNewT($mod, "TPoint", function () {',
     '  this.x = 0;',
     '  this.y = 0;',
     '  this.$eq = function (b) {',
@@ -9836,7 +9836,7 @@ begin
     '    return this;',
     '  };',
     '});',
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.i = 0;',
     '  this.a = [];',
     '  this.$new = function () {',
@@ -9915,7 +9915,7 @@ begin
   CheckSource('TestRecord_InFunction',
     LinesToStr([ // statements
     'this.TPoint = 3;',
-    'var TPoint$1 = rtl.createTRecord(null, "", function () {',
+    'var TPoint$1 = rtl.recNewT(null, "", function () {',
     '  this.x = 0;',
     '  this.y = 0;',
     '  this.$eq = function (b) {',
@@ -9964,7 +9964,7 @@ begin
   ConvertProgram;
   CheckSource('TestAdvRecord_Function',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TPoint", function () {',
+    'rtl.recNewT($mod, "TPoint", function () {',
     '  this.x = 0;',
     '  this.y = 0;',
     '  this.$eq = function (b) {',
@@ -10027,7 +10027,7 @@ begin
   ConvertProgram;
   CheckSource('TestAdvRecord_Property',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TPoint", function () {',
+    'rtl.recNewT($mod, "TPoint", function () {',
     '  this.x = 0;',
     '  this.y = 0;',
     '  this.$eq = function (b) {',
@@ -10088,7 +10088,7 @@ begin
   ConvertProgram;
   CheckSource('TestAdvRecord_PropertyDefault',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TPoint", function () {',
+    'rtl.recNewT($mod, "TPoint", function () {',
     '  this.$eq = function (b) {',
     '    return true;',
     '  };',
@@ -10152,7 +10152,7 @@ begin
   ConvertProgram;
   CheckSource('TestAdvRecord_Property_ClassMethod',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.Fx = 0;',
     '  this.Fy = 0;',
     '  this.$eq = function (b) {',
@@ -10219,7 +10219,7 @@ begin
   ConvertProgram;
   CheckSource('TestAdvRecord_Const',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TPoint", function () {',
+    'rtl.recNewT($mod, "TPoint", function () {',
     '  this.x = 0;',
     '  this.y = 0;',
     '  this.Count = 0;',
@@ -10232,7 +10232,7 @@ begin
     '    return this;',
     '  };',
     '}, true);',
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.i = 0;',
     '  this.a = [];',
     '  this.$new = function () {',
@@ -10317,8 +10317,8 @@ begin
   ConvertProgram;
   CheckSource('TestAdvRecord_SubRecord',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
-    '  rtl.createTRecord(this, "TPoint", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
+    '  rtl.recNewT(this, "TPoint", function () {',
     '    this.x = 0;',
     '    this.y = 0;',
     '    this.Count = 0;',
@@ -10412,7 +10412,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createTRecord($mod, "TPoint", function () {',
+    'rtl.recNewT($mod, "TPoint", function () {',
     '  rtl.createClass(this, "TBird", $mod.TObject, function () {',
     '    this.DoIt = function () {',
     '      this.DoIt();',
@@ -10459,6 +10459,56 @@ begin
   ParseProgram;
 end;
 
+procedure TTestModule.TestAdvRecord_Constructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TPoint = record',
+  '    x,y: longint;',
+  '    constructor Create(ax: longint; ay: longint = -1);',
+  '  end;',
+  'constructor tpoint.create(ax,ay: longint);',
+  'begin',
+  '  x:=ax;',
+  '  self.y:=ay;',
+  'end;',
+  'var r: TPoint;',
+  'begin',
+  '  r:=TPoint.Create(1,2);',
+  '  r.Create(3);',
+  '  r:=r.Create(4);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_Constructor',
+    LinesToStr([ // statements
+    'rtl.recNewT($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.y = 0;',
+    '  this.$eq = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '    return this;',
+    '  };',
+    '  this.Create = function (ax, ay) {',
+    '    this.x = ax;',
+    '    this.y = ay;',
+    '    return this;',
+    '  };',
+    '}, true);',
+    'this.r = $mod.TPoint.$new();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.r.$assign($mod.TPoint.$create("Create", [1, 2]));',
+    '$mod.r.Create(3, -1);',
+    '$mod.r.$assign($mod.r.Create(4, -1));',
+    '']));
+end;
+
 procedure TTestModule.TestClass_TObjectDefaultConstructor;
 begin
   StartProgram(false);
@@ -10479,6 +10529,7 @@ begin
   '  obj:=tobject.create();',
   '  obj:=tbird.create;',
   '  obj:=tbird.create();',
+  '  obj:=obj.create();',
   '  obj.destroy;',
   '']);
   ConvertProgram;
@@ -10490,6 +10541,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function(){',
+    '    return this;',
     '  };',
     '  this.Destroy = function(){',
     '  };',
@@ -10501,6 +10553,7 @@ begin
     '$mod.Obj = $mod.TObject.$create("Create");',
     '$mod.Obj = $mod.TObject.$create("Create");',
     '$mod.Obj = $mod.TObject.$create("Create");',
+    '$mod.Obj = $mod.Obj.Create();',
     '$mod.Obj.$destroy("Destroy");',
     '']));
 end;
@@ -10527,6 +10580,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function(Par){',
+    '    return this;',
     '  };',
     '});',
     'this.Obj = null;'
@@ -10565,10 +10619,12 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function(){',
+    '    return this;',
     '  };',
     '});',
     'rtl.createClass($mod, "TTest", $mod.TObject, function () {',
     '  this.Create$1 = function (Par) {',
+    '    return this;',
     '  };',
     '});',
     'this.t = null;'
@@ -10608,6 +10664,7 @@ begin
     '  };',
     '  this.Create = function(Par){',
     '    this.vI = Par+3;',
+    '    return this;',
     '  };',
     '});',
     'this.Obj = null;'
@@ -10656,6 +10713,7 @@ begin
     '    this.Sub = undefined;',
     '  };',
     '  this.Create = function(){',
+    '    return this;',
     '  };',
     '  this.GetIt = function(Par){',
     '    var Result = null;',
@@ -10726,6 +10784,7 @@ begin
     '    iC = $impl.TIntClass.$create("Create$1");',
     '    $impl.TIntClass.DoGlob();',
     '    iC.$class.DoGlob();',
+    '    return this;',
     '  };',
     '});',
     '']),
@@ -10738,6 +10797,7 @@ begin
     '    $mod.TObject.Create.apply(this, arguments);',
     '    $mod.TObject.Create.call(this);',
     '    this.$class.DoGlob();',
+    '    return this;',
     '  };',
     '  this.DoGlob = function () {',
     '  };',
@@ -10780,6 +10840,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '});',
     'rtl.createClass($mod,"TClassA",$mod.TObject,function(){',
@@ -11094,9 +11155,11 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '  this.CreateWithB = function (b) {',
     '    this.Create();',
+    '    return this;',
     '  };',
     '});',
     'rtl.createClass($mod, "TA", $mod.TObject, function () {',
@@ -11104,6 +11167,7 @@ begin
     '    $mod.TObject.Create.apply(this, arguments);',
     '    $mod.TObject.Create.call(this);',
     '    $mod.TObject.CreateWithB.call(this, false);',
+    '    return this;',
     '  };',
     '  this.CreateWithC = function (c) {',
     '    $mod.TObject.Create.call(this);',
@@ -11111,6 +11175,7 @@ begin
     '    this.DoIt();',
     '    this.DoIt();',
     '    this.$class.DoSome();',
+    '    return this;',
     '  };',
     '  this.DoIt = function () {',
     '    this.Create();',
@@ -11178,6 +11243,7 @@ begin
     '    $mod.TObject.vI = this.vI+1;',
     '    $mod.TObject.vI = this.vI+1;',
     '    $mod.TObject.vI += 1;',
+    '    return this;',
     '  };',
     '  this.GetIt = function(Par){',
     '    var Result = null;',
@@ -11257,6 +11323,7 @@ begin
     '    $mod.TObject.vI = this.GetMore(4);',
     '    $mod.TObject.Sub = this.$class.GetIt(5);',
     '    $mod.TObject.vI = this.GetMore(6);',
+    '    return this;',
     '  };',
     '  this.GetMore = function(Par){',
     '    var Result = 0;',
@@ -11913,6 +11980,7 @@ begin
     '    this.Arr = undefined;',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '});',
     'this.Obj = null;',
@@ -11976,6 +12044,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '  this.GetSize = function () {',
     '    var Result = 0;',
@@ -12035,6 +12104,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '  this.GetItems = function (Index) {',
     '    var Result = 0;',
@@ -12091,6 +12161,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '  this.GetSize = function () {',
     '    var Result = 0;',
@@ -12149,6 +12220,7 @@ begin
     '    this.Next = undefined;',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '});',
     'rtl.createClass($mod, "TControl", $mod.TObject, function () {',
@@ -12393,8 +12465,10 @@ begin
     '  this.Create = function (vA) {',
     '    this.Create(1);',
     '    this.Create$1(1,2);',
+    '    return this;',
     '  };',
     '  this.Create$1 = function (vA, vB) {',
+    '    return this;',
     '  };',
     '});',
     'rtl.createClass($mod, "TCar", $mod.TObject, function () {',
@@ -12403,8 +12477,10 @@ begin
     '    this.Create$3(1, 2);',
     '    $mod.TObject.Create.call(this, 1);',
     '    $mod.TObject.Create$1.call(this, 1, 2);',
+    '    return this;',
     '  };',
     '  this.Create$3 = function (vA, vB) {',
+    '    return this;',
     '  };',
     '});',
     '']),
@@ -12578,6 +12654,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function (Msg) {',
+    '    return this;',
     '  };',
     '});',
     'rtl.createClass($mod, "Exception", $mod.TObject, function () {',
@@ -13269,6 +13346,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '  this.Free = function () {',
     '  };',
@@ -13454,6 +13532,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
+    '    return this;',
     '  };',
     '});',
     'this.Obj = null;',
@@ -14048,7 +14127,7 @@ begin
   CheckSource('TestNestedClass_Record',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
-    '  rtl.createTRecord(this, "TPoint", function () {',
+    '  rtl.recNewT(this, "TPoint", function () {',
     '    this.x = 0;',
     '    this.y = 0;',
     '    this.$eq = function (b) {',
@@ -14143,6 +14222,7 @@ begin
     '    };',
     '    this.Create = function () {',
     '      this.FId = 3;',
+    '      return this;',
     '    };',
     '    this.Create$1 = function (i) {',
     '      var Result = null;',
@@ -15432,7 +15512,7 @@ begin
     '});',
     'rtl.createClass($mod, "TChild", $mod.TObject, function () {',
     '});',
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.$eq = function (b) {',
     '    return true;',
     '  };',
@@ -17944,7 +18024,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createTRecord($mod, "TGUID", function () {',
+    'rtl.recNewT($mod, "TGUID", function () {',
     '  this.D1 = 0;',
     '  this.D2 = 0;',
     '  this.D3 = 0;',
@@ -18059,7 +18139,7 @@ begin
   CheckSource('TestClassInterface_GUIDProperty',
     LinesToStr([ // statements
     'rtl.createInterface($mod, "IUnknown", "{F31DB68F-3010-D355-4EBA-CDD4EF4A737C}", [], null);',
-    'rtl.createTRecord($mod, "TGUID", function () {',
+    'rtl.recNewT($mod, "TGUID", function () {',
     '  this.D1 = 0;',
     '  this.D2 = 0;',
     '  this.D3 = 0;',
@@ -19719,7 +19799,7 @@ begin
   ConvertProgram;
   CheckSource('TestPointer_Record',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.x = 0;',
     '  this.$eq = function (b) {',
     '    return this.x === b.x;',
@@ -19784,7 +19864,7 @@ begin
   ConvertProgram;
   CheckSource('TestPointer_Record',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.x = 0;',
     '  this.$eq = function (b) {',
     '    return this.x === b.x;',
@@ -22486,7 +22566,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Record',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TPoint", function () {',
+    'rtl.recNewT($mod, "TPoint", function () {',
     '  this.x = 0;',
     '  this.y = 0;',
     '  this.$eq = function (b) {',
@@ -22529,7 +22609,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Record',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TFloatRec", function () {',
+    'rtl.recNewT($mod, "TFloatRec", function () {',
     '  this.d = [];',
     '  this.$eq = function (b) {',
     '    return this.d === b.d;',
@@ -22572,7 +22652,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_LocalTypes',
     LinesToStr([ // statements
-    'var TPoint = rtl.createTRecord(null, "", function () {',
+    'var TPoint = rtl.recNewT(null, "", function () {',
     '  this.x = 0;',
     '  this.y = 0;',
     '  this.$eq = function (b) {',
@@ -22935,7 +23015,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses3',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.$eq = function (b) {',
     '    return true;',
     '  };',
@@ -23221,7 +23301,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Interface_COM',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TGuid", function () {',
+    'rtl.recNewT($mod, "TGuid", function () {',
     '  this.$eq = function (b) {',
     '    return true;',
     '  };',
@@ -23926,7 +24006,7 @@ begin
   ConvertProgram;
   CheckSource('TestRangeChecks_ArrayOfRecIndex',
     LinesToStr([ // statements
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.x = 0;',
     '  this.$eq = function (b) {',
     '    return this.x === b.x;',
