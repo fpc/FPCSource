@@ -78,8 +78,8 @@ const
 
 
 var
-  CurrentColor:     Word;
-  CurrentBkColor: Word;
+  CurrentColor:     ColorType;
+  CurrentBkColor: ColorType;
   CurrentX : smallint;   { viewport relative }
   CurrentY : smallint;   { viewport relative }
 
@@ -237,7 +237,7 @@ var
       Flag           : Boolean; { determines pixel direction in thick lines }
       NumPixels      : smallint;
       PixelCount     : smallint;
-      OldCurrentColor: Word;
+      OldCurrentColor: ColorType;
       swtmp          : smallint;
       TmpNumPixels   : smallint;
  begin
@@ -673,7 +673,8 @@ var
     TempTerm: graph_float;
     xtemp, ytemp, xp, yp, xm, ym, xnext, ynext,
       plxpyp, plxmyp, plxpym, plxmym: smallint;
-    BackupColor, TmpAngle, OldLineWidth: word;
+    BackupColor: ColorType;
+    TmpAngle, OldLineWidth: word;
     CounterClockwise : Boolean;
   Begin
    If LineInfo.ThickNess = ThickWidth Then
@@ -817,7 +818,7 @@ var
     j           : smallint;
     TmpFillPattern : byte;
     OldWriteMode : word;
-    OldCurrentColor : word;
+    OldCurrentColor : ColorType;
    begin
      { convert to global coordinates ... }
      x1 := x1 + StartXViewPort;
@@ -991,7 +992,8 @@ var
 Procedure ClearViewPortDefault; {$ifndef fpc}far;{$endif fpc}
 var
  j: smallint;
- OldWriteMode, OldCurColor: word;
+ OldWriteMode: word;
+ OldCurColor: ColorType;
  LineSets : LineSettingsType;
 Begin
   { CP is always RELATIVE coordinates }
@@ -1132,7 +1134,7 @@ type
   ptw = array[0..2] of longint;
 var
   k: longint;
-  oldCurrentColor: word;
+  oldCurrentColor: ColorType;
   oldCurrentWriteMode, i, j, y1, x1, deltaX, deltaX1, deltaY: smallint;
 Begin
 {$ifdef logging}
@@ -1541,7 +1543,7 @@ end;
 
 
 
-   procedure SetFillStyle(Pattern : word; Color: word);
+   procedure SetFillStyle(Pattern : word; Color: ColorType);
 
    begin
      { on invalid input, the current fill setting will be }
@@ -1559,7 +1561,7 @@ end;
    end;
 
 
-  procedure SetFillPattern(Pattern: FillPatternType; Color: word);
+  procedure SetFillPattern(Pattern: FillPatternType; Color: ColorType);
   {********************************************************}
   { Changes the Current FillPattern to a user defined      }
   { pattern and changes also the current fill color.       }
@@ -1595,7 +1597,7 @@ end;
   {     - No contour is drawn for the lines                }
   {********************************************************}
   var y               : smallint;
-      origcolor       : longint;
+      origcolor       : ColorType;
       origlinesettings: Linesettingstype;
       origwritemode   : smallint;
    begin
@@ -1706,27 +1708,27 @@ end;
 {--------------------------------------------------------------------------}
 
 
-  procedure SetColor(Color: Word);
+  procedure SetColor(Color: ColorType);
 
    Begin
      CurrentColor := Color;
    end;
 
 
-  function GetColor: Word;
+  function GetColor: ColorType;
 
    Begin
      GetColor := CurrentColor;
    end;
 
-  function GetBkColorDefault: Word;
+  function GetBkColorDefault: ColorType;
 
    Begin
      GetBkColorDefault := CurrentBkColor;
    end;
 
 
-  procedure SetBkColorDefault(ColorNum: Word);
+  procedure SetBkColorDefault(ColorNum: ColorType);
   { Background color means background screen color in this case, and it is  }
   { INDEPENDANT of the viewport settings, so we must clear the whole screen }
   { with the color.                                                         }
@@ -1752,7 +1754,7 @@ end;
    end;
 
 
-  function GetMaxColor: word;
+  function GetMaxColor: ColorType;
   { Checked against TP VGA driver - CEC }
 
    begin

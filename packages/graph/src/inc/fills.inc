@@ -412,7 +412,7 @@ var
   end;
 
 
-  Procedure FloodFill (x, y : smallint; Border: word);
+  Procedure FloodFill (x, y : smallint; Border: ColorType);
   {********************************************************}
   { Procedure FloodFill()                                  }
   {--------------------------------------------------------}
@@ -426,7 +426,7 @@ var
    Beginx : smallint;
    d, e : Byte;
    Cont : Boolean;
-   BackupColor : Word;
+   BackupColor : ColorType;
    x1, x2, prevy: smallint;
   Begin
     GetMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
