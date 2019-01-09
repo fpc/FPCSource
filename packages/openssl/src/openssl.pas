@@ -1282,7 +1282,7 @@ var
   function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
   function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
   function PEM_write_bio_X509(bp: pBIO;  x: px509): integer;
-
+  function PEM_write_bio_PKCS7(bp : PBIO; x : PPKCS7) : cint;
   // BIO Functions - bio.h
   function BioNew(b: PBIO_METHOD): PBIO;
   procedure BioFreeAll(b: PBIO);
@@ -1728,6 +1728,7 @@ type
   TPEM_write_bio_PUBKEY = function(bp: pBIO; x: pEVP_PKEY): integer; cdecl;
   TPEM_read_bio_X509 = function(bp: pBIO; x: PPX509; cb: Ppem_password_cb; u: pointer): px509; cdecl;
   TPEM_write_bio_X509 = function(bp: pBIO; x: PX509): integer; cdecl;
+  TPEM_write_bio_PKCS7 = function(bp: pBIO; x: PPKCS7): integer; cdecl;
 
   // BIO Functions
 
@@ -1963,6 +1964,7 @@ var
   _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
   _PEM_read_bio_X509: TPEM_read_bio_X509 = nil;
   _PEM_write_bio_X509: TPEM_write_bio_X509 = nil;
+  _PEM_write_bio_PKCS7 : TPEM_write_bio_PKCS7 = Nil;
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
@@ -3677,6 +3679,15 @@ begin
     Result := 0;
 end;
 
+function PEM_write_bio_PKCS7(bp : PBIO; x : PPKCS7) : cint;
+
+begin
+  if InitSSLInterface and Assigned(_PEM_write_bio_PKCS7) then
+    Result := PEM_write_bio_PKCS7(bp, x)
+  else
+    Result := 0;
+end;
+
 
 // BIO Functions
 
@@ -4869,7 +4880,7 @@ begin
   _PEM_write_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PUBKEY');
   _PEM_read_bio_X509 := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_X509');
   _PEM_write_bio_X509 := GetProcAddr(SSLUtilHandle,'PEM_write_bio_X509');
-
+  _PEM_write_bio_PKCS7 := GetProcAddr(SSLUtilHandle,'PEM_write_bio_PKCS7');
   // BIO
   _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl');
   _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file');
@@ -5333,6 +5344,7 @@ begin
   _PEM_write_bio_PrivateKey := nil;
   _PEM_read_bio_X509 := nil;
   _PEM_write_bio_X509 := nil;
+  _PEM_write_bio_PKCS7 := nil;
 
   // BIO
 
