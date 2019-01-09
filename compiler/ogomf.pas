@@ -1553,6 +1553,8 @@ implementation
         Thread: TOmfSubRecord_THREAD;
         FixuppWithoutLeOrLiData: Boolean=False;
       begin
+        objsec:=nil;
+        EnumeratedDataOffset:=0;
         Result:=False;
         case RawRec.RecordType of
           RT_LEDATA,RT_LEDATA32:
