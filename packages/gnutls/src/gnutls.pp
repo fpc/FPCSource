@@ -1,5 +1,21 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2019 by Michael Van Canneyt and Silvio Clecio (silvioprog),
+    members of the Free Pascal development team
+
+    Low-level binding for GnuTLS library.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 
 {$mode objfpc}
+
 unit gnutls;
 
 interface
@@ -721,6 +737,17 @@ const
   GNUTLS_PKCS_USE_PBES2_AES_192 = GNUTLS_PKCS_PBES2_AES_192;
   GNUTLS_PKCS_USE_PBES2_AES_256 = GNUTLS_PKCS_PBES2_AES_256;
 
+  // when the key is to be used for signing:
+  GNUTLS_KEY_DIGITAL_SIGNATURE = 128;
+  GNUTLS_KEY_NON_REPUDIATION = 64;
+  // when the key is to be used for encryption:
+  GNUTLS_KEY_KEY_ENCIPHERMENT = 32;
+  GNUTLS_KEY_DATA_ENCIPHERMENT = 16;
+  GNUTLS_KEY_KEY_AGREEMENT = 8;
+  GNUTLS_KEY_KEY_CERT_SIGN = 4;
+  GNUTLS_KEY_CRL_SIGN = 2;
+  GNUTLS_KEY_ENCIPHER_ONLY = 1;
+  GNUTLS_KEY_DECIPHER_ONLY = 32768;
 
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
 Type

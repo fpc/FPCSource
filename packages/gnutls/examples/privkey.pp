@@ -1,8 +1,8 @@
 {
-  Simple Low-level example showing how to generate a
-  RSA private key (4096 bytes) using the GnuTLS binding.
+  Simple low-level example for how generate a RSA private key (4096 bytes) using
+  the GnuTLS binding.
 
-  Author: Silvio Clecio (silvioprog)
+  Author(s): Silvio Clecio (silvioprog), Michael Van Canneyt
   Date: Mon Jan  7 01:36:18 -03 2019
   GnuTLS version: 3.4+
 }
@@ -18,43 +18,32 @@ uses
   gnutls;
 
 type
-{  cchar = Byte;
-  Pcchar = PAnsiChar;
-  Pcsize_t = PNativeUInt;
-  Pcvoid = Pointer;}
-
   EGnuTLS = Exception;
 
-
-procedure CheckRet(ret: cint);
-var
-  P: Pchar;
-  S: string;
+procedure TLSCheckRet(Aret: cint); inline;
 begin
-  if ret = GNUTLS_E_SUCCESS then
-    Exit;
-  P := gnutls_strerror(ret);
-  S:=StrPas(P);// SetString(S, @P[0], Length(Pcchar(@P[0])));
-  SetCodePage(RawByteString(S), CP_UTF8, False);
-  raise EGnuTLS.Create(S);
+  if Aret <> GNUTLS_E_SUCCESS then
+    raise EGnuTLS.Create(gnutls_strerror(Aret));
 end;
 
 var
-  priv_key: String;
-  priv_key_size: cuint = SizeOf(priv_key);
+  priv_key: AnsiString = '';
+  priv_key_size: cuint;
   key: Tgnutls_x509_privkey_t;
-  
 begin
   LoadGnuTLS;
+  Assert(GnuTLSLoaded);
   try
-    Assert(GnuTLSLoaded);
     try
-      CheckRet(gnutls_x509_privkey_init(@key));
-      priv_key_size := gnutls_sec_param_to_pk_bits(GNUTLS_PK_RSA, GNUTLS_SEC_PARAM_HIGH);
-      setLength(Priv_key,priv_key_size*2);
-      CheckRet(gnutls_x509_privkey_generate(key, GNUTLS_PK_RSA, priv_key_size, 0));
-      CheckRet(gnutls_x509_privkey_export(key, GNUTLS_X509_FMT_PEM, @priv_key[1], @priv_key_size));
-      setLength(Priv_key,priv_key_size);
+      TLSCheckRet(gnutls_x509_privkey_init(@key));
+      priv_key_size := gnutls_sec_param_to_pk_bits(GNUTLS_PK_RSA,
+        GNUTLS_SEC_PARAM_HIGH);
+      SetLength(priv_key, Pred(priv_key_size));
+      TLSCheckRet(gnutls_x509_privkey_generate(key, GNUTLS_PK_RSA,
+        priv_key_size, 0));
+      TLSCheckRet(gnutls_x509_privkey_export(key, GNUTLS_X509_FMT_PEM,
+        @priv_key[1], @priv_key_size));
+      SetLength(priv_key, Pred(priv_key_size));
 
       WriteLn(priv_key);
     except
