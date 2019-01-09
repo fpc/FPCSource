@@ -33,24 +33,18 @@ var
 begin
   LoadGnuTLS;
   Assert(GnuTLSLoaded);
+  key:=nil;
   try
-    try
-      TLSCheckRet(gnutls_x509_privkey_init(@key));
-      priv_key_size := gnutls_sec_param_to_pk_bits(GNUTLS_PK_RSA,
-        GNUTLS_SEC_PARAM_HIGH);
-      SetLength(priv_key, Pred(priv_key_size));
-      TLSCheckRet(gnutls_x509_privkey_generate(key, GNUTLS_PK_RSA,
-        priv_key_size, 0));
-      TLSCheckRet(gnutls_x509_privkey_export(key, GNUTLS_X509_FMT_PEM,
-        @priv_key[1], @priv_key_size));
-      SetLength(priv_key, Pred(priv_key_size));
-
-      WriteLn(priv_key);
-    except
-      gnutls_x509_privkey_deinit(key);
-      raise;
-    end;
+    TLSCheckRet(gnutls_x509_privkey_init(@key));
+    priv_key_size := gnutls_sec_param_to_pk_bits(GNUTLS_PK_RSA,GNUTLS_SEC_PARAM_HIGH);
+    SetLength(priv_key, Pred(priv_key_size));
+    TLSCheckRet(gnutls_x509_privkey_generate(key, GNUTLS_PK_RSA, priv_key_size, 0));
+    TLSCheckRet(gnutls_x509_privkey_export(key, GNUTLS_X509_FMT_PEM, @priv_key[1], @priv_key_size));
+    SetLength(priv_key, Pred(priv_key_size));
+    WriteLn(priv_key);
   finally
+    if key<>Nil then
+      gnutls_x509_privkey_deinit(key);
     FreeGnuTLS;
   end;
 end.
