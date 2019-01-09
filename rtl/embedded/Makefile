@@ -376,7 +376,7 @@ CPU_UNITS=lpc8xx lpc11xx lpc122x stm32f0xx nrf51 cortexm0
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv7a)
-CPU_UNITS=allwinner_a20 vexpress_a15
+CPU_UNITS=allwinner_a20
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
