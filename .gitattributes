@@ -3836,6 +3836,7 @@ packages/gnutls/Makefile svneol=native#text/plain
 packages/gnutls/Makefile.fpc svneol=native#text/plain
 packages/gnutls/examples/httpget.pp svneol=native#text/plain
 packages/gnutls/examples/privkey.pp svneol=native#text/plain
+packages/gnutls/examples/srvcacert.pp svneol=native#text/plain
 packages/gnutls/examples/testgnutls.pp svneol=native#text/plain
 packages/gnutls/fpmake.pp svneol=native#text/plain
 packages/gnutls/src/gnutls.pp svneol=native#text/plain
