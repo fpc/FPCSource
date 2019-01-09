@@ -199,8 +199,8 @@ Put + after a boolean switch option to enable it, - to disable it
     m     : Enables macro replacements
     2     : Same as -Mobjfpc (default)
   -SI&lt;x&gt;   : Set interface style to &lt;x&gt;
-    -SIcom   : COM compatible interface (default)
-    -SIcorba : CORBA compatible interface
+    -SIcom   : COM, reference counted interface (default)
+    -SIcorba : CORBA interface
   -T&lt;x&gt;   : Set target platform, case insensitive.
     -Tbrowser : default
     -Tnodejs  : add pas.run(), includes -Jc
@@ -734,7 +734,7 @@ function(){
         <ul>
           <li>operator overloading</li>
           <li>class constructor</li>
-          <li>COM interfaces as fields</li>
+          <li>reference counted interfaces as fields</li>
           <li>Interfaces as nested types</li>
           <li>default non array property</li>
         </ul>

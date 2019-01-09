@@ -71,12 +71,13 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 2;
+  PCUVersion = 3;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
        - pcsfAncestorResolved
        - removed msIgnoreInterfaces
+    3: changed records from function to objects
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -6634,6 +6635,9 @@ var
   Id: Integer;
   Scope: TPasRecordScope;
 begin
+  if FileVersion<3 then
+    RaiseMsg(20190109214718,El,'record format changed');
+
   Scope:=TPasRecordScope(Resolver.CreateScope(El,TPasRecordScope));
   El.CustomData:=Scope;
 
