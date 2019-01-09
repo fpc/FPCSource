@@ -919,7 +919,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TRangeValidator.Error;
 CONST PXErrMsg = 'Value not in the range';
-VAR Params: Array[0..1] Of Longint;
+VAR Params: Array[0..1] Of PtrInt;
 BEGIN
    Params[0] := Min;                                  { Transfer min value }
    Params[1] := Max;                                  { Transfer max value }
