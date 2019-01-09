@@ -28,7 +28,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testgnutls.pp');
     P.Targets.AddExampleProgram('privkey.pp');
-    P.Targets.AddExampleProgram('srvcacert.pp'):
+    P.Targets.AddExampleProgram('srvcacert.pp');
     
 {$ifndef ALLPACKAGES}
     Run;
