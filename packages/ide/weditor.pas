@@ -3422,6 +3422,7 @@ var
   E: TEvent;
   OldEvent : PEvent;
   CCAction: TCCAction;
+  LinesScroll : sw_integer;
 begin
   CCAction:=ccClear;
   E:=Event;
@@ -3437,6 +3438,18 @@ begin
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) then
+       if (Event.Buttons=mbScrollWheelUp) then { mouse scroll up}
+         begin
+           LinesScroll:=1;
+           if Event.Double then LinesScroll:=LinesScroll+4;
+           ScrollTo(Delta.X, Delta.Y + LinesScroll);
+         end else
+       if (Event.Buttons=mbScrollWheelDown) then  { mouse scroll down }
+         begin
+           LinesScroll:=-1;
+           if Event.Double then LinesScroll:=LinesScroll-4;
+           ScrollTo(Delta.X, Delta.Y + LinesScroll);
+         end else
        if (Event.Buttons=mbRightButton) then
          begin
            MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
