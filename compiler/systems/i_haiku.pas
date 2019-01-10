@@ -150,7 +150,7 @@ unit i_haiku;
             linkextern   : ld_haiku;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_little;
             { FIXME: stuff below is copied from Linux/x64 now, could be incorrect for Haiku (KB) }
