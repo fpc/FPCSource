@@ -3683,7 +3683,7 @@ function PEM_write_bio_PKCS7(bp : PBIO; x : PPKCS7) : cint;
 
 begin
   if InitSSLInterface and Assigned(_PEM_write_bio_PKCS7) then
-    Result := PEM_write_bio_PKCS7(bp, x)
+    Result := _PEM_write_bio_PKCS7(bp, x)
   else
     Result := 0;
 end;
