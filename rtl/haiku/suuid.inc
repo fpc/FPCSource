@@ -1,4 +1,20 @@
-Const 
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2019 the Free Pascal development team.
+
+    GUID generation for Haiku, part of Sysutils unit
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+
+Const
   RandomDevice  = '/dev/urandom';
 
 
@@ -7,7 +23,7 @@ Function GetURandomBytes(Var Buf; NBytes : Integer) : Boolean;
 Var
   fd,I : Integer;
   P : PByte;
-  
+
 begin
   P:=@Buf;
   fd:=FileOpen(RandomDevice,fmOpenRead);
@@ -22,7 +38,7 @@ begin
           Inc(P,I);
           Dec(NBytes,I);
           end;
-        end;  
+        end;
     Finally
       FileClose(Fd);
     end;
@@ -34,5 +50,5 @@ Function SysCreateGUID(out GUID : TGUID) : Integer;
 begin
   if not GetUrandomBytes(Guid,SizeOf(GUID)) then
     GetRandomBytes(GUID,SizeOf(Guid));  
-  Result:=0;    
+  Result:=0;
 end;
