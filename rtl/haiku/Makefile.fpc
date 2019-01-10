@@ -8,15 +8,17 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=system $(SYSINITUNITS) uuchar baseunix unixtype ctypes objpas macpas iso7185 extpas strings \
-#      beos \
       errors dos dl \
       sysconst sysutils \
       types charset cpall character typinfo classes fgl math \
       cpu $(CPUUNITS) getopts heaptrc lineinfo lnfodwrf \
-      rtlconsts syscall unix unixutil termio initc \
+      rtlconsts unix unixutil termio initc \
       cmem \
       dynlibs cwstring cthreads \
       fpintres unixcp fpwidestring
+
+# beos syscall
+
 rsts=math typinfo sysconst rtlconsts
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
