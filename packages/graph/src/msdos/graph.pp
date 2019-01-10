@@ -32,27 +32,42 @@ CONST
   { VESA Specific video modes. }
   m320x200x32k      = $10D;
   m320x200x64k      = $10E;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m320x200x16m      = $10F;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   m640x400x256      = $100;
 
   m640x480x256      = $101;
   m640x480x32k      = $110;
   m640x480x64k      = $111;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m640x480x16m      = $112;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   m800x600x16       = $102;
   m800x600x256      = $103;
   m800x600x32k      = $113;
   m800x600x64k      = $114;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m800x600x16m      = $115;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   m1024x768x16      = $104;
   m1024x768x256     = $105;
   m1024x768x32k     = $116;
   m1024x768x64k     = $117;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m1024x768x16m     = $118;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   m1280x1024x16     = $106;
   m1280x1024x256    = $107;
   m1280x1024x32k    = $119;
   m1280x1024x64k    = $11A;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m1280x1024x16m    = $11B;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
 { Helpful variable to get save/restore support in IDE PM }
 const
