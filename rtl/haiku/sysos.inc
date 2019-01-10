@@ -19,12 +19,13 @@
 {$error There's no support on Haiku for building without libc/libroot}
 {$endif}
 
-const clib = 'c';
+const
+  clib = 'root';
 
 type libcint=longint;
      plibcint=^libcint;
 
-function geterrnolocation: Plibcint; cdecl;external 'root' name '_errnop';
+function geterrnolocation: Plibcint; cdecl;external clib name '_errnop';
 
 function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
 
