@@ -1,31 +1,32 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2019 the Free Pascal development team.
+
+    System unit for Haiku
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+
 Unit System;
 
 interface
-
-// Was needed to bootstrap with our old 2.1 fpc for BeOS
-// to define real
-{ $define VER2_0}
 
 {$define FPC_IS_SYSTEM}
 
 {$I sysunixh.inc}
 
-  
-type
-  THeapPointer = ^pointer;
-var
-  heapstartpointer : THeapPointer;
-  heapstart : pointer;//external;//external name 'HEAP';
-  myheapsize : longint; //external;//external name 'HEAPSIZE';
-  myheaprealsize : longint;
-  heap_handle : longint;
 implementation
 
 procedure debugger(s : PChar); cdecl; external 'root' name 'debugger';
-
 function disable_debugger(state : integer): integer; cdecl; external 'root' name 'disable_debugger';
-//begin
-//end;
+
 
 { OS independant parts}
 
@@ -55,147 +56,12 @@ end;
 
 { OS dependant parts  }
 
-{*****************************************************************************
-                              Heap Management
-*****************************************************************************}
-
-(*var myheapstart:pointer;
-    myheapsize:longint;
-    myheaprealsize:longint;
-    heap_handle:longint;
-    zero:longint;
-
-
-{ first address of heap }
-function getheapstart:pointer;
-begin
-   getheapstart:=myheapstart;
-end;
-
-{ current length of heap }
-function getheapsize:longint;
-begin
-   getheapsize:=myheapsize;
-end;
-*)
-
-
-(*function getheapstart:pointer;
-assembler;
-asm
-        leal    HEAP,%eax
-end ['EAX'];
-
-
-function getheapsize:longint;
-assembler;
-asm
-        movl    intern_HEAPSIZE,%eax
-end ['EAX'];*)
-
-{ function to allocate size bytes more for the program }
-{ must return the first address of new data space or nil if fail }
-(*function Sbrk(size : longint):pointer;
-var newsize,newrealsize:longint;
-  s : string;
-begin
-  WriteLn('SBRK');
-  Str(size, s);
-  WriteLn('size : ' + s);
-  if (myheapsize+size)<=myheaprealsize then 
-  begin
-    Sbrk:=pointer(heapstart+myheapsize);
-    myheapsize:=myheapsize+size;
-    exit;
-  end;
-  newsize:=myheapsize+size;
-  newrealsize:=(newsize and $FFFFF000)+$1000;
-  case resize_area(heap_handle,newrealsize) of
-    B_OK : 
-      begin
-        WriteLn('B_OK');
-        Sbrk:=pointer(heapstart+myheapsize);
-        myheapsize:=newsize;
-        myheaprealsize:=newrealsize;
-        exit;
-      end;
-    B_BAD_VALUE : WriteLn('B_BAD_VALUE');
-    B_NO_MEMORY : WriteLn('B_NO_MEMORY');
-    B_ERROR : WriteLn('B_ERROR');
-    else
-      begin
-        Sbrk:=pointer(heapstart+myheapsize);
-        myheapsize:=newsize;
-        myheaprealsize:=newrealsize;
-        exit;
-      end;
-  end;
-
-//  Sbrk:=nil;
-end;*)
-
-function sys_resize_area (handle:cardinal; size:longint):longint; cdecl; external name 'sys_resize_area';
-
-//function sbrk2 (size : longint):pointer; cdecl; external name 'sbrk';
-
-{ function to allocate size bytes more for the program }
-{ must return the first address of new data space or nil if fail }
-//function Sbrk(size : longint):pointer;
-//var newsize,newrealsize:longint;
-//  s : string;
-//begin
-//  sbrk := sbrk2(size);
-(*  sbrk := nil;
-  WriteLn('sbrk');
-  Str(size, s);
-  WriteLn('size : ' + s);
-  if (myheapsize+size)<=myheaprealsize then 
-  begin
-    Sbrk:=heapstart+myheapsize;
-    myheapsize:=myheapsize+size;
-    exit;
-  end;
-  newsize:=myheapsize+size;
-  newrealsize:=(newsize and $FFFFF000)+$1000;
-  if sys_resize_area(heap_handle,newrealsize+$1000)=0 then 
-  begin
-    WriteLn('sys_resize_area OK');
-    Str(longint(newrealsize), s);
-    WriteLn('newrealsize : $' + Hexstr(longint(newrealsize), 8));
-    Str(longint(heapstartpointer), s);
-    WriteLn('heapstart : $' + Hexstr(longint(heapstart), 8));
-    Str(myheapsize, s);
-    WriteLn('myheapsize : ' + s);
-    Str(myheapsize, s);
-    WriteLn('Total : ' + s);
-    WriteLn('Before fillchar');
-    WriteLn('sbrk : $' + Hexstr(longint(heapstart+myheapsize), 8));        
-    Sbrk:=heapstart+myheapsize;
-    FillChar(sbrk^, size, #0);    
-    WriteLn('EndFillChar');
-    WriteLn('sbrk : $' + Hexstr(longint(sbrk), 8));
-//    ReadLn(s);
-    myheapsize:=newsize;
-    Str({longint(heapstartpointer) +} myheapsize, s);
-    WriteLn('Total : ' + s);    
-    myheaprealsize:=newrealsize;
-    exit;
-  end
-  else
-  begin
-    debugger('Bad resize_area');
-    WriteLn('Bad resize_area');
-  end;
-  Sbrk:=nil;
-*)
-//end;
 
 { $I text.inc}
 
 {*****************************************************************************
                            UnTyped File Handling
 *****************************************************************************}
-
 
 { $i file.inc}
 
@@ -210,11 +76,8 @@ function sys_resize_area (handle:cardinal; size:longint):longint; cdecl; externa
 *****************************************************************************}
 
 Function ParamCount: Longint;
-var
-  s : string;
 Begin
-  ParamCount := 0;
-  Paramcount:=argc - 1;
+  Paramcount := argc - 1;
 End;
 
  { variable where full path and filename and executable is stored }
@@ -274,7 +137,6 @@ var
   s: string;
   s1: string;
 begin
-   
   { stricly conforming POSIX applications  }
   { have the executing filename as argv[0] }
   if l = 0 then
@@ -326,9 +188,6 @@ end;
 // exception translation
 
 {$i sighnd.inc}
-
-//void	set_signal_stack(void *ptr, size_t size);
-//int		sigaltstack(const stack_t *ss, stack_t *oss);
 
 procedure set_signal_stack(ptr : pointer; size : size_t); cdecl; external 'root' name 'set_signal_stack';
 function sigaltstack(const stack : pstack_t; oldStack : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack'; 
@@ -410,14 +269,12 @@ begin
   result := stklen;
 end;
 
-var
-  s : string;
 begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
   ReturnNilIfGrowHeapFails := False;
-  
+
   { Set up signals handlers }
   InstallSignals;
 
@@ -426,60 +283,18 @@ begin
 {$endif}
 
   { Setup heap }
-  myheapsize:=4096*100;// $ 20000;
-  myheaprealsize:=4096*100;// $ 20000;
-  heapstart:=nil;
-  heapstartpointer := nil;
-//  heapstartpointer := Sbrk2(4096*1);
-  heapstartpointer := SysOSAlloc(4096*100);
-{$IFDEF FPC_USE_LIBC}  
-//  heap_handle := create_area('fpcheap',heapstart,0,myheaprealsize,0,3);//!!
-{$ELSE}
-//  debugger('tata'#0);
-//  heap_handle := create_area('fpcheap',longint(heapstartpointer),0,myheaprealsize,0,3);//!!
-//  case heap_handle of
-//    B_BAD_VALUE : WriteLn('B_BAD_VALUE');
-//    B_PAGE_SIZE : WriteLn('B_PAGE_SIZE');
-//    B_NO_MEMORY : WriteLn('B_NO_MEMORY');
-//    B_ERROR : WriteLn('B_ERROR');
-//  end;
+  InitHeap;
 
-  FillChar(heapstartpointer^, myheaprealsize, #0);
-//  WriteLn('EndFillChar');
-//    WriteLn('P : $' + Hexstr(longint(heapstartpointer), 8));        
-//    WriteLn('heapstart : $' + Hexstr(longint(heapstartpointer^), 8));        
-  heapstart := heapstartpointer;
-{$ENDIF}
-//  WriteLn('before InitHeap');
-//  case heap_handle of
-//    B_BAD_VALUE : WriteLn('B_BAD_VALUE');
-//    B_PAGE_SIZE : WriteLn('B_PAGE_SIZE');
-//    B_NO_MEMORY : WriteLn('B_NO_MEMORY');
-//    B_ERROR : WriteLn('B_ERROR');
-//  else
-//    begin
-//      WriteLn('ok');  
-//      WriteLn('P : $' + Hexstr(longint(heapstartpointer), 8));        
-//      WriteLn('heapstart : $' + Hexstr(longint(heapstartpointer^), 8));       
-//      if heap_handle>0 then 
-//      begin
-        InitHeap;
-//      end;
-//    end;
-//  end;
-//  WriteLn('after InitHeap');
-//  end else system_exit;
   SysInitExceptions;
-//  WriteLn('after SysInitException');
-
   initunicodestringmanager;
-{ Setup IO }
+  { Setup IO }
   SysInitStdIO;
-{ Reset IO Error }
+  { Reset IO Error }
   InOutRes:=0;
   InitSystemThreads;
   InitSystemDynLibs;
   setupexecname;
+
   { restore original signal handlers in case this is a library }
   if IsLibrary then
     RestoreOldSignalHandlers;
