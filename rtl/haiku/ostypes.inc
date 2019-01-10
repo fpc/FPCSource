@@ -64,9 +64,7 @@ Const
 
 CONST               // OS specific parameters for general<fd,sig>set behaviour
    BITSINWORD      = 8*sizeof(longint);
-//   SIG_MAXSIG      = 32;    //128;	// highest signal version
    FD_MAXFDSET     = 1024;
-//   wordsinsigset   = 4;           // words in sigset_t
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
    ln2bitmask	   = 2 shl ln2bitsinword - 1;
    wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;        // words in fdset_t

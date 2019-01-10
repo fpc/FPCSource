@@ -29,8 +29,8 @@ begin
         res:=200;
         // fp_status always here under BeOS and x86 CPU
         // (fp_status is not behind a pointer in the BeOS context record)
-        FpuState:=ucontext^.xregs.state.old_format.fp_status;
-            
+        FpuState:=ucontext^.uc_mcontext.fpu.status;
+
         if (FpuState and FPU_ExceptionMask) <> 0 then
           begin
             { first check the more precise options }
@@ -47,9 +47,9 @@ begin
             else
               res:=207;  {'Coprocessor Error'}
           end;
-        with ucontext^.xregs.state.old_format do
+        with ucontext^.uc_mcontext.fpu do
         begin
-          fp_status := fp_status and not FPU_ExceptionMask;
+          status := status and not FPU_ExceptionMask;
         end;
         SysResetFPU;
       end;
@@ -86,9 +86,8 @@ begin
 { give runtime error at the position where the signal was raised }
   if res<>0 then
   begin
-    HandleErrorAddrFrame(res, pointer(ucontext^.eip),
-                              pointer(ucontext^.ebp));    
+    HandleErrorAddrFrame(res, pointer(ucontext^.uc_mcontext.rip),
+                              pointer(ucontext^.uc_mcontext.rbp));
   end;
 end;
-
 

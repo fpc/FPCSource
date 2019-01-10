@@ -227,7 +227,7 @@ CONST
 
     SYS_NMLN = 32;              {BSD utsname struct limit}
 
-    SIG_MAXSIG = 32; //128;	// highest signal version  // BeOS  
+    SIG_MAXSIG = 64;    { __MAX_SIGNO in signal.h }
 
 const
   { For getting/setting priority }
