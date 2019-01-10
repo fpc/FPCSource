@@ -338,7 +338,7 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 HAIKUINC=$(RTL)/haiku
-LOADERS=prt0 cprt0 dllcprt0 func dllprt
+LOADERS=cprt0 dllcprt0
 CPUUNITS=mmx
 SYSINITUNITS=si_c si_dllc
 UNITPREFIX=rtl
@@ -3518,16 +3518,10 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 SYSTEMUNIT=system
-prt0$(OEXT) : $(CPU_TARGET)/prt0.as
-	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 dllcprt0$(OEXT) : $(CPU_TARGET)/dllcprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)dllcprt0$(OEXT) $(CPU_TARGET)/dllcprt0.as
-func$(OEXT) : $(CPU_TARGET)/func.as
-	$(AS) -o $(UNITTARGETDIRPREFIX)func$(OEXT) $(CPU_TARGET)/func.as
-dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
-	$(AS) -o $(UNITTARGETDIRPREFIX)dllprt$(OEXT) $(CPU_TARGET)/dllprt.as
 system$(PPUEXT) : system.pp $(SYSDEPS) $(UNIXINC)/sysunixh.inc
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
