@@ -434,7 +434,11 @@ type
 
 
     type
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+       ColorType = LongWord;
+{$else FPC_GRAPH_SUPPORTS_TRUECOLOR}
        ColorType = Word;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
        RGBRec = packed record
          Red: smallint;
