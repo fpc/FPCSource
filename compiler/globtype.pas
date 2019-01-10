@@ -87,6 +87,14 @@ interface
        AIntBits = 8;
 {$endif cpu8bitalu}
 
+     { Maximum possible size of locals space (stack frame) }
+     Const
+{$if defined(cpu16bitaddr)}
+       MaxLocalsSize = High(PUint);
+{$else}
+       MaxLocalsSize = High(longint) - 15;
+{$endif}
+
      Type
        PAWord = ^AWord;
        PAInt = ^AInt;
