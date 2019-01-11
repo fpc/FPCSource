@@ -24,6 +24,9 @@ interface
 
 implementation
 
+var
+  initialstkptr : Pointer; external name '__stkptr';
+
 procedure debugger(s : PChar); cdecl; external 'root' name 'debugger';
 function disable_debugger(state : integer): integer; cdecl; external 'root' name 'disable_debugger';
 
@@ -272,7 +275,11 @@ end;
 begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
+{$if FPC_FULLVERSION >= 30301}
+  StackBottom := initialstkptr - StackLength;
+{$else}
   StackBottom := Sptr - StackLength;
+{$endif}
   ReturnNilIfGrowHeapFails := False;
 
   { Set up signals handlers }
