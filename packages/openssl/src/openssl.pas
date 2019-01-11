@@ -42,7 +42,7 @@ unit openssl;
 |==============================================================================|
 | FreePascal basic cleanup (original worked too): Ales Katona                  |
 | WARNING: due to reliance on some units, I have removed the ThreadLocks init  |
-|          if need be, it should be re-added, or handled by the                | 
+|          if need be, it should be re-added, or handled by the                |
 |           OS threading init somehow                                          |
 |                                                                              |
 | 2010 - Felipe Monteiro de Carvalho - Added RAND functios                     |
@@ -105,7 +105,7 @@ var
    {$ELSE OS2}
   DLLSSLName: string = 'libssl';
   DLLUtilName: string = 'libcrypto';
-  
+
   { ADD NEW ONES WHEN THEY APPEAR!
     Always make .so/dylib first, then versions, in descending order!
     Add "." .before the version, first is always just "" }
@@ -134,7 +134,7 @@ type
   PSSL_METHOD = SslPtr;
 {  PX509 = SslPtr;}
 {  PX509_NAME = SslPtr;}
-  PEVP_MD	= SslPtr;
+  PEVP_MD = SslPtr;
   PBIO_METHOD = SslPtr;
   PBIO = SslPtr;
 {  EVP_PKEY = SslPtr;}
@@ -155,20 +155,20 @@ type
   PDN = ^X509_NAME;
 
   ASN1_STRING = record
-	length: integer;
-	asn1_type: integer;
-	data: pointer;
-	flags: longint;
+  length: integer;
+  asn1_type: integer;
+  data: pointer;
+  flags: longint;
   end;
   PASN1_STRING = ^ASN1_STRING;
   PASN1_TIME = PASN1_STRING;
 
   X509_VAL = record
-	notBefore: PASN1_TIME;
+  notBefore: PASN1_TIME;
     notAfter: PASN1_TIME;
   end;
   PX509_VAL = ^X509_VAL;
-  
+
   X509_CINF = record
     version: pointer;
     serialNumber: pointer;
@@ -182,7 +182,7 @@ type
     extensions: pointer;
   end;
   PX509_CINF = ^X509_CINF;
-  
+
   CRYPTO_EX_DATA = record
     sk: pointer;
     dummy: integer;
@@ -208,26 +208,26 @@ type
   end;
   pX509 = ^X509;
   PPX509 = ^PX509;
-  
+
   DSA = record
-	pad: integer;
-	version: integer;
-	write_params: integer;
-	p: pointer;
-	q: pointer;
-	g: pointer;
-	pub_key: pointer;
-	priv_key: pointer;
-	kinv: pointer;
-	r: pointer;
-	flags: integer;
-	method_mont_p: PChar;
-	references: integer;
-	ex_data: record
+  pad: integer;
+  version: integer;
+  write_params: integer;
+  p: pointer;
+  q: pointer;
+  g: pointer;
+  pub_key: pointer;
+  priv_key: pointer;
+  kinv: pointer;
+  r: pointer;
+  flags: integer;
+  method_mont_p: PChar;
+  references: integer;
+  ex_data: record
       sk: pointer;
       dummy: integer;
     end;
-	meth: pointer;
+  meth: pointer;
   end;
   pDSA = ^DSA;
 
@@ -238,7 +238,7 @@ type
       2: (dsa: pDSA);
       3: (dh: pDH);
    end;
-  
+
   EVP_PKEY = record
     ktype: integer;
     save_type: integer;
@@ -249,7 +249,7 @@ type
   end;
   PEVP_PKEY = ^EVP_PKEY;
   PPEVP_PKEY = ^PEVP_PKEY;
-  
+
   PPRSA = ^PRSA;
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
@@ -403,14 +403,14 @@ type
     key_len: cint;  //* Default value for variable length ciphers */
     iv_len: cint;
     flags: culong; //* Various flags */
-    init: EVP_CIPHER_INIT_FUNC;	//* init key */
+    init: EVP_CIPHER_INIT_FUNC; //* init key */
     do_cipher: EVP_CIPHER_DO_CIPHER_FUNC;//* encrypt/decrypt data */
     cleanup: EVP_CIPHER_CLEANUP_FUNC; //* cleanup ctx */
-    ctx_size: cint;		//* how big ctx->cipher_data needs to be */
+    ctx_size: cint;   //* how big ctx->cipher_data needs to be */
     set_asn1_parameters: EVP_CIPHER_SET_ASN1_PARAMETERS_FUNC; //* Populate a ASN1_TYPE with parameters */
     get_asn1_parameters: EVP_CIPHER_GET_ASN1_PARAMETERS_FUNC; //* Get parameters from a ASN1_TYPE */
     ctrl: EVP_CIPHER_CTRL_FUNC; //* Miscellaneous operations */
-    app_data: Pointer;	//* Application data */
+    app_data: Pointer;  //* Application data */
   end;
   PEVP_CIPHER = ^EVP_CIPHER;
 
@@ -427,7 +427,7 @@ type
 
     app_data: Pointer;   //* application stuff */
     key_len: cint;    //* May change for variable length cipher */
-    flags: culong;	//* Various flags */
+    flags: culong;  //* Various flags */
     cipher_data: Pointer; //* per EVP data */
     final_used: cint;
     block_mask: cint;
@@ -685,12 +685,12 @@ const
   SSL_CTRL_SET_CHANNEL_ID                     = 119;
 
 
-  DTLS_CTRL_GET_TIMEOUT	           = 73;
+  DTLS_CTRL_GET_TIMEOUT            = 73;
   DTLS_CTRL_HANDLE_TIMEOUT         = 74;
-  DTLS_CTRL_LISTEN		   = 75;
-  SSL_CTRL_GET_RI_SUPPORT	   = 76;
-  SSL_CTRL_CLEAR_OPTIONS	   = 77;
-  SSL_CTRL_CLEAR_MODE		   = 78;
+  DTLS_CTRL_LISTEN       = 75;
+  SSL_CTRL_GET_RI_SUPPORT    = 76;
+  SSL_CTRL_CLEAR_OPTIONS     = 77;
+  SSL_CTRL_CLEAR_MODE      = 78;
 
   TLSEXT_TYPE_server_name = 0;
   TLSEXT_TYPE_max_fragment_length = 1;
@@ -788,7 +788,7 @@ const
   OPENSSL_DES_DECRYPT = 0;
   OPENSSL_DES_ENCRYPT = 1;
 
-  X509_V_OK =	0;
+  X509_V_OK = 0;
   X509_V_ILLEGAL = 1;
   X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT = 2;
   X509_V_ERR_UNABLE_TO_GET_CRL = 3;
@@ -827,7 +827,7 @@ const
   //The application is not happy
   X509_V_ERR_APPLICATION_VERIFICATION = 50;
 
-  SSL_FILETYPE_ASN1	= 2;
+  SSL_FILETYPE_ASN1 = 2;
   SSL_FILETYPE_PEM = 1;
   EVP_PKEY_RSA = 6;
 
@@ -891,73 +891,73 @@ const
 
   // BIO
 
-  BIO_NOCLOSE	        = $00;
-  BIO_CLOSE 	        = $01;
+  BIO_NOCLOSE         = $00;
+  BIO_CLOSE           = $01;
 
   //* modifiers */
-  BIO_FP_READ		= $02;
-  BIO_FP_WRITE		= $04;
-  BIO_FP_APPEND		= $08;
-  BIO_FP_TEXT		= $10;
+  BIO_FP_READ   = $02;
+  BIO_FP_WRITE    = $04;
+  BIO_FP_APPEND   = $08;
+  BIO_FP_TEXT   = $10;
 
   BIO_C_SET_CONNECT                 = 100;
   BIO_C_DO_STATE_MACHINE            = 101;
-  BIO_C_SET_NBIO	            = 102;
-  BIO_C_SET_PROXY_PARAM	            = 103;
-  BIO_C_SET_FD	                    = 104;
-  BIO_C_GET_FD		            = 105;
-  BIO_C_SET_FILE_PTR	            = 106;
-  BIO_C_GET_FILE_PTR	            = 107;
-  BIO_C_SET_FILENAME	            = 108;
-  BIO_C_SET_SSL		            = 109;
-  BIO_C_GET_SSL		            = 110;
-  BIO_C_SET_MD		            = 111;
-  BIO_C_GET_MD	                    = 112;
+  BIO_C_SET_NBIO              = 102;
+  BIO_C_SET_PROXY_PARAM             = 103;
+  BIO_C_SET_FD                      = 104;
+  BIO_C_GET_FD                = 105;
+  BIO_C_SET_FILE_PTR              = 106;
+  BIO_C_GET_FILE_PTR              = 107;
+  BIO_C_SET_FILENAME              = 108;
+  BIO_C_SET_SSL               = 109;
+  BIO_C_GET_SSL               = 110;
+  BIO_C_SET_MD                = 111;
+  BIO_C_GET_MD                      = 112;
   BIO_C_GET_CIPHER_STATUS           = 113;
-  BIO_C_SET_BUF_MEM 	            = 114;
-  BIO_C_GET_BUF_MEM_PTR  	    = 115;
+  BIO_C_SET_BUF_MEM               = 114;
+  BIO_C_GET_BUF_MEM_PTR       = 115;
   BIO_C_GET_BUFF_NUM_LINES          = 116;
-  BIO_C_SET_BUFF_SIZE	            = 117;
-  BIO_C_SET_ACCEPT 	            = 118;
-  BIO_C_SSL_MODE 	            = 119;
-  BIO_C_GET_MD_CTX	            = 120;
-  BIO_C_GET_PROXY_PARAM	            = 121;
-  BIO_C_SET_BUFF_READ_DATA 	    = 122; // data to read first */
-  BIO_C_GET_CONNECT	 	    = 123;
-  BIO_C_GET_ACCEPT		    = 124;
+  BIO_C_SET_BUFF_SIZE             = 117;
+  BIO_C_SET_ACCEPT              = 118;
+  BIO_C_SSL_MODE              = 119;
+  BIO_C_GET_MD_CTX              = 120;
+  BIO_C_GET_PROXY_PARAM             = 121;
+  BIO_C_SET_BUFF_READ_DATA      = 122; // data to read first */
+  BIO_C_GET_CONNECT       = 123;
+  BIO_C_GET_ACCEPT        = 124;
   BIO_C_SET_SSL_RENEGOTIATE_BYTES   = 125;
   BIO_C_GET_SSL_NUM_RENEGOTIATES    = 126;
   BIO_C_SET_SSL_RENEGOTIATE_TIMEOUT = 127;
-  BIO_C_FILE_SEEK		    = 128;
-  BIO_C_GET_CIPHER_CTX		    = 129;
-  BIO_C_SET_BUF_MEM_EOF_RETURN	= 130;//*return end of input value*/
-  BIO_C_SET_BIND_MODE		= 131;
-  BIO_C_GET_BIND_MODE		= 132;
-  BIO_C_FILE_TELL		= 133;
-  BIO_C_GET_SOCKS		= 134;
-  BIO_C_SET_SOCKS		= 135;
+  BIO_C_FILE_SEEK       = 128;
+  BIO_C_GET_CIPHER_CTX        = 129;
+  BIO_C_SET_BUF_MEM_EOF_RETURN  = 130;//*return end of input value*/
+  BIO_C_SET_BIND_MODE   = 131;
+  BIO_C_GET_BIND_MODE   = 132;
+  BIO_C_FILE_TELL   = 133;
+  BIO_C_GET_SOCKS   = 134;
+  BIO_C_SET_SOCKS   = 135;
 
-  BIO_C_SET_WRITE_BUF_SIZE	= 136;//* for BIO_s_bio */
-  BIO_C_GET_WRITE_BUF_SIZE	= 137;
-  BIO_C_MAKE_BIO_PAIR		= 138;
-  BIO_C_DESTROY_BIO_PAIR	= 139;
-  BIO_C_GET_WRITE_GUARANTEE	= 140;
-  BIO_C_GET_READ_REQUEST	= 141;
-  BIO_C_SHUTDOWN_WR		= 142;
-  BIO_C_NREAD0		        = 143;
-  BIO_C_NREAD			= 144;
-  BIO_C_NWRITE0			= 145;
-  BIO_C_NWRITE			= 146;
-  BIO_C_RESET_READ_REQUEST	= 147;
-  BIO_C_SET_MD_CTX		= 148;
+  BIO_C_SET_WRITE_BUF_SIZE  = 136;//* for BIO_s_bio */
+  BIO_C_GET_WRITE_BUF_SIZE  = 137;
+  BIO_C_MAKE_BIO_PAIR   = 138;
+  BIO_C_DESTROY_BIO_PAIR  = 139;
+  BIO_C_GET_WRITE_GUARANTEE = 140;
+  BIO_C_GET_READ_REQUEST  = 141;
+  BIO_C_SHUTDOWN_WR   = 142;
+  BIO_C_NREAD0            = 143;
+  BIO_C_NREAD     = 144;
+  BIO_C_NWRITE0     = 145;
+  BIO_C_NWRITE      = 146;
+  BIO_C_RESET_READ_REQUEST  = 147;
+  BIO_C_SET_MD_CTX    = 148;
 
-  BIO_C_SET_PREFIX		= 149;
-  BIO_C_GET_PREFIX		= 150;
-  BIO_C_SET_SUFFIX		= 151;
-  BIO_C_GET_SUFFIX		= 152;
+  BIO_C_SET_PREFIX    = 149;
+  BIO_C_GET_PREFIX    = 150;
+  BIO_C_SET_SUFFIX    = 151;
+  BIO_C_GET_SUFFIX    = 152;
 
-  BIO_C_SET_EX_ARG		= 153;
-  BIO_C_GET_EX_ARG		= 154;
+  BIO_C_SET_EX_ARG    = 153;
+  BIO_C_GET_EX_ARG    = 154;
 
   BIO_CTRL_RESET  =    1  ; { opt - rewind/zero etc }
   BIO_CTRL_EOF    =    2  ; { opt - are we at the eof }
@@ -1032,7 +1032,7 @@ var
   function SslCtxNew(meth: PSSL_METHOD):PSSL_CTX;
   procedure SslCtxFree(arg0: PSSL_CTX);
   function SslSetFd(s: PSSL; fd: cInt):cInt;
-  
+
   function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
   function SslCTXCtrl(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong;
 
@@ -1040,7 +1040,7 @@ var
   function SSLSetMode(s: PSSL; mode: cLong): cLong;
   function SSLCTXGetMode(ctx: PSSL_CTX): cLong;
   function SSLGetMode(s: PSSL): cLong;
-  
+
   function SslMethodV2:PSSL_METHOD;
   function SslMethodV3:PSSL_METHOD;
   function SslMethodTLSV1:PSSL_METHOD;
@@ -1273,12 +1273,12 @@ var
   // PEM Functions - pem.h
   //
   function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
-           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;  	   
+           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
   function PEM_read_bio_PUBKEY(bp: pBIO; var x: pEVP_PKEY;
                cb: Ppem_password_cb; u: pointer): pEVP_PKEY;
   function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer;	
+               u: pointer): integer;
   function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
   function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
   function PEM_write_bio_X509(bp: pBIO;  x: px509): integer;
@@ -1294,7 +1294,7 @@ var
   function BioWrite(b: PBIO; Buf: TBytes; Len: cInt): cInt; overload;
   function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
   function BIO_read_filename(b: PBIO; const name: PChar): cint;
-  
+
   function BIO_s_file: pBIO_METHOD;
   function BIO_new_file(const filename: PChar; const mode: PChar): pBIO;
   function BIO_new_mem_buf(buf: pointer; len: integer): pBIO;
@@ -1368,7 +1368,7 @@ var
   // BN functions
   function BN_new:PBIGNUM;
   function BN_secure_new:PBIGNUM;
-  procedure BN_clear_free(a:PBIGNUM);l
+  procedure BN_clear_free(a:PBIGNUM);
   function BN_copy(a:PBIGNUM; b:PBIGNUM):PBIGNUM;
   procedure BN_swap(a:PBIGNUM; b:PBIGNUM);
   function BN_bin2bn(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM;
@@ -1681,7 +1681,7 @@ type
   TEVP_DigestInit = function(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint; cdecl;
   TEVP_DigestUpdate = function(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint; cdecl;
   TEVP_DigestFinal = function(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint; cdecl;
-  
+
   TEVP_SignFinal = function(ctx: pEVP_MD_CTX; sig: pointer; var s: cardinal;
     key: pEVP_PKEY): integer; cdecl;
   TEVP_PKEY_size = function(key: pEVP_PKEY): integer; cdecl;
@@ -1719,12 +1719,12 @@ type
 
   TPEM_read_bio_PrivateKey = function(bp: PBIO; X: PPEVP_PKEY;
            cb: Ppem_password_cb; u: Pointer): PEVP_PKEY; cdecl;
-   
+
   TPEM_read_bio_PUBKEY = function(bp: pBIO; var x: pEVP_PKEY;
                cb: Ppem_password_cb; u: pointer): pEVP_PKEY; cdecl;
   TPEM_write_bio_PrivateKey = function(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer; cdecl;	
+               u: pointer): integer; cdecl;
   TPEM_write_bio_PUBKEY = function(bp: pBIO; x: pEVP_PKEY): integer; cdecl;
   TPEM_read_bio_X509 = function(bp: pBIO; x: PPX509; cb: Ppem_password_cb; u: pointer): px509; cdecl;
   TPEM_write_bio_X509 = function(bp: pBIO; x: PX509): integer; cdecl;
@@ -1733,7 +1733,7 @@ type
   // BIO Functions
 
   TBIO_ctrl = function(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong; cdecl;
-  
+
   TBIO_s_file = function: pBIO_METHOD; cdecl;
   TBIO_new_file = function(const filename: PChar; const mode: PChar): pBIO; cdecl;
   TBIO_new_mem_buf = function(buf: pointer; len: integer): pBIO; cdecl;
@@ -1857,7 +1857,7 @@ var
 
   // 3DES functions
   _DESsetoddparity: TDESsetoddparity = nil;
-  _DESsetkey	   : TDESsetkey = nil;
+  _DESsetkey     : TDESsetkey = nil;
   _DESsetkeychecked: TDESsetkeychecked = nil;
   _DESecbencrypt: TDESecbencrypt = nil;
   //thread lock functions
@@ -1958,9 +1958,9 @@ var
   _EVP_DigestVerifyFinal: TEVP_DigestVerifyFinal = nil;
   // PEM
   _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
-  	   
-  _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil; 
-  _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;	
+
+  _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil;
+  _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;
   _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
   _PEM_read_bio_X509: TPEM_read_bio_X509 = nil;
   _PEM_write_bio_X509: TPEM_write_bio_X509 = nil;
@@ -1968,7 +1968,7 @@ var
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
-  
+
   _BIO_s_file: TBIO_s_file = nil;
   _BIO_new_file: TBIO_new_file = nil;
   _BIO_new_mem_buf: TBIO_new_mem_buf = nil;
@@ -2035,7 +2035,7 @@ var
   _PKCS7_get_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;cdecl;
   _PKCS7_get_signed_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;cdecl;
   _PKCS7_set_signed_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;cdecl;
-  _PKCS7_set_attributes : function(p7si:PPKCS7_SIGNlER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;cdecl;
+  _PKCS7_set_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;cdecl;
   _PKCS7_sign : function(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;cdecl;
   _PKCS7_sign_add_signer : function(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;cdecl;
   _PKCS7_final : function(p7:PPKCS7; data:PBIO; flags:longint):longint;cdecl;
@@ -3647,21 +3647,21 @@ end;
 
 function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer; 
+               u: pointer): integer;
 Begin
    if InitSSLInterface and Assigned(_PEM_write_bio_PrivateKey) then
     Result := _PEM_write_bio_PrivateKey(bp, x, enc ,kstr ,klen ,cb, u)
   else
     Result := -1;
-end;   
+end;
 
-function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer; 
+function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
 Begin
    if InitSSLInterface and Assigned(_PEM_write_bio_PUBKEY) then
     Result := _PEM_write_bio_PUBKEY(bp, x)
   else
     Result := -1;
-end; 
+end;
 
 function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
 begin
@@ -4624,14 +4624,14 @@ var
   i: cInt;
 begin
   Result := NilHandle;
-  
+
   for i := Low(DLLVersions) to High(DLLVersions) do begin
     {$IFDEF DARWIN}
     Result := LoadLibrary(Value + DLLVersions[i] + '.dylib');
     {$ELSE}
     Result := LoadLibrary(Value + '.so' + DLLVersions[i]);
     {$ENDIF}
-    
+
     if Result <> NilHandle then
       Break;
   end;
