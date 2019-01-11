@@ -231,7 +231,7 @@ begin
   { initialize handler                    }
   act.sa_mask[0] := 0;
   act.sa_handler := SigActionHandler(@SignalToRunError);
-  act.sa_flags := SA_ONSTACK;
+  act.sa_flags := SA_ONSTACK or SA_SIGINFO;
   FpSigAction(signum,@act,@oldact);
 end;
 
