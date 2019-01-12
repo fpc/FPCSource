@@ -302,30 +302,30 @@ unit cgcpu;
           begin
             if not(assigned(hp)) then
               internalerror(2014011105);
-             //paramanager.allocparaloc(list,hp);
-             case hp^.loc of
-               LOC_REGISTER,LOC_CREGISTER:
-                 begin
-                   if (tcgsize2size[hp^.size]<>1) or
-                     (hp^.shiftval<>0) then
-                     internalerror(2015041101);
-                   a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
+            paramanager.allocparaloc(list,hp);
+            case hp^.loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+                  if (tcgsize2size[hp^.size]<>1) or
+                    (hp^.shiftval<>0) then
+                    internalerror(2015041101);
+                  a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
 
-                   inc(i,tcgsize2size[hp^.size]);
-                   hp:=hp^.Next;
-                 end;
-               LOC_REFERENCE,LOC_CREFERENCE:
-                 begin
-                   reference_reset(ref,paraloc.alignment,[]);
-                   ref.base:=hp^.reference.index;
-                   ref.offset:=hp^.reference.offset;
-                   a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
+                  inc(i,tcgsize2size[hp^.size]);
+                  hp:=hp^.Next;
+                end;
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  reference_reset(ref,paraloc.alignment,[]);
+                  ref.base:=hp^.reference.index;
+                  ref.offset:=hp^.reference.offset;
+                  a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
 
-                   inc(i,tcgsize2size[hp^.size]);
-                   hp:=hp^.Next;
-                 end;
-               else
-                 internalerror(2002071004);
+                  inc(i,tcgsize2size[hp^.size]);
+                  hp:=hp^.Next;
+                end;
+              else
+                internalerror(2002071004);
             end;
           end;
       end;
