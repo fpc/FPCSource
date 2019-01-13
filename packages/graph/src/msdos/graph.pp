@@ -3262,6 +3262,52 @@ const CrtAddress: word = 0;
       mode.PaletteSize := mode.MaxColor;
     end;
 
+    procedure FillCommonVESA320x200(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='320 x 200 VESA';
+      mode.MaxX := 319;
+      mode.MaxY := 199;
+      mode.XAspect := 8333;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA640x480(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='640 x 480 VESA';
+      mode.MaxX := 639;
+      mode.MaxY := 479;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA800x600(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='800 x 600 VESA';
+      mode.MaxX := 799;
+      mode.MaxY := 599;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA1024x768(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='1024 x 768 VESA';
+      mode.MaxX := 1023;
+      mode.MaxY := 767;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA1280x1024(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='1280 x 1024 VESA';
+      mode.MaxX := 1279;
+      mode.MaxY := 1023;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+
    var
     HGCDetected : Boolean = FALSE;
     CGADetected : Boolean = FALSE; { TRUE means real CGA, *not* EGA or VGA }
@@ -3702,28 +3748,18 @@ const CrtAddress: word = 0;
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA320x200(mode);
              mode.ModeNumber:=m320x200x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='320 x 200 VESA';
-             mode.MaxX := 319;
-             mode.MaxY := 199;
              mode.InitMode := {$ifdef fpc}@{$endif}Init320x200x32k;
-             mode.XAspect := 8333;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m320x200x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA320x200(mode);
              mode.ModeNumber:=m320x200x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='320 x 200 VESA';
-             mode.MaxX := 319;
-             mode.MaxY := 199;
              mode.InitMode := {$ifdef fpc}@{$endif}Init320x200x64k;
-             mode.XAspect := 8333;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m640x400x256) then
@@ -3744,210 +3780,135 @@ const CrtAddress: word = 0;
            begin
              InitMode(mode);
              FillCommonVESA256(mode);
+             FillCommonVESA640x480(mode);
              mode.ModeNumber:=m640x480x256;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='640 x 480 VESA';
-             mode.MaxX := 639;
-             mode.MaxY := 479;
              mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x256;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m640x480x32k) then
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA640x480(mode);
              mode.ModeNumber:=m640x480x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='640 x 480 VESA';
-             mode.MaxX := 639;
-             mode.MaxY := 479;
              mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x32k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m640x480x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA640x480(mode);
              mode.ModeNumber:=m640x480x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='640 x 480 VESA';
-             mode.MaxX := 639;
-             mode.MaxY := 479;
              mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x64k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m800x600x16) then
            begin
              InitMode(mode);
              FillCommonVESA16(mode);
+             FillCommonVESA800x600(mode);
              mode.ModeNumber:=m800x600x16;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='800 x 600 VESA';
-             mode.MaxX := 799;
-             mode.MaxY := 599;
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x16;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m800x600x256) then
            begin
              InitMode(mode);
              FillCommonVESA256(mode);
+             FillCommonVESA800x600(mode);
              mode.ModeNumber:=m800x600x256;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='800 x 600 VESA';
-             mode.MaxX := 799;
-             mode.MaxY := 599;
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x256;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m800x600x32k) then
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA800x600(mode);
              mode.ModeNumber:=m800x600x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='800 x 600 VESA';
-             mode.MaxX := 799;
-             mode.MaxY := 599;
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x32k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m800x600x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA800x600(mode);
              mode.ModeNumber:=m800x600x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='800 x 600 VESA';
-             mode.MaxX := 799;
-             mode.MaxY := 599;
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x64k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m1024x768x16) then
            begin
              InitMode(mode);
              FillCommonVESA16(mode);
+             FillCommonVESA1024x768(mode);
              mode.ModeNumber:=m1024x768x16;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1024 x 768 VESA';
-             mode.MaxX := 1023;
-             mode.MaxY := 767;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x16;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m1024x768x256) then
            begin
              InitMode(mode);
              FillCommonVESA256(mode);
+             FillCommonVESA1024x768(mode);
              mode.ModeNumber:=m1024x768x256;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1024 x 768 VESA';
-             mode.MaxX := 1023;
-             mode.MaxY := 767;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x256;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m1024x768x32k) then
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA1024x768(mode);
              mode.ModeNumber:=m1024x768x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1024 x 768 VESA';
-             mode.MaxX := 1023;
-             mode.MaxY := 767;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x32k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m1024x768x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA1024x768(mode);
              mode.ModeNumber:=m1024x768x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1024 x 768 VESA';
-             mode.MaxX := 1023;
-             mode.MaxY := 767;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x64k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m1280x1024x16) then
            begin
              InitMode(mode);
              FillCommonVESA16(mode);
+             FillCommonVESA1280x1024(mode);
              mode.ModeNumber:=m1280x1024x16;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxX := 1279;
-             mode.MaxY := 1023;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x16;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m1280x1024x256) then
            begin
              InitMode(mode);
              FillCommonVESA256(mode);
+             FillCommonVESA1280x1024(mode);
              mode.ModeNumber:=m1280x1024x256;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxX := 1279;
-             mode.MaxY := 1023;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x256;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m1280x1024x32k) then
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA1280x1024(mode);
              mode.ModeNumber:=m1280x1024x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxX := 1279;
-             mode.MaxY := 1023;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x32k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
          if SearchVESAModes(m1280x1024x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA1280x1024(mode);
              mode.ModeNumber:=m1280x1024x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxX := 1279;
-             mode.MaxY := 1023;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x64k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
              AddMode(mode);
            end;
        end;
