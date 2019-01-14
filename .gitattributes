@@ -3840,6 +3840,7 @@ packages/gnutls/examples/srvcacert.pp svneol=native#text/plain
 packages/gnutls/examples/testgnutls.pp svneol=native#text/plain
 packages/gnutls/fpmake.pp svneol=native#text/plain
 packages/gnutls/src/gnutls.pp svneol=native#text/plain
+packages/gnutls/src/gnutlssockets.pp svneol=native#text/plain
 packages/googleapi/Makefile svneol=native#text/plain
 packages/googleapi/Makefile.fpc svneol=native#text/plain
 packages/googleapi/README.txt svneol=native#text/plain
