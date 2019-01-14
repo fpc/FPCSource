@@ -281,6 +281,7 @@ var
   stabscnt,i : longint;
   found : boolean;
   lastfunc : tstab;
+  lastline : tstab;
 
 begin
   GetLineInfo:=false;
@@ -328,20 +329,21 @@ begin
      begin
        case stabs[i].ntype of
          N_BssLine,
-         N_DataLine,
+         N_DataLine:
+           begin
+             // for code line info, we don't care about these
+           end;
          N_TextLine :
            begin
-             if (stabs[i].ntype=N_TextLine) and StabsFunctionRelative then
-               inc(stabs[i].nvalue,lastfunc.nvalue);
-             if (stabs[i].nvalue<=addr) and
-                (stabs[i].nvalue>linestab.nvalue) then
-              begin
-                { if it's equal we can stop and take the last info }
-                if stabs[i].nvalue=addr then
-                 found:=true
-                else
-                 linestab:=stabs[i];
-              end;
+             lastline:=stabs[i];
+             if StabsFunctionRelative then
+               inc(lastline.nvalue,lastfunc.nvalue);
+             if (addr>=linestab.nvalue) and (addr<lastline.nvalue) then
+               begin
+                 found:=true;
+                 break;
+               end;
+             linestab:=lastline;
            end;
          N_Function :
            begin
@@ -431,7 +433,14 @@ begin
   Success:=false;
   Store:=BackTraceStrFunc;
   BackTraceStrFunc:=@SysBackTraceStr;
-  Success:=GetLineInfo(ptruint(addr),func,source,line);
+
+  { for valid stacktraces at least you have to substract sizeof(pointer)
+    from the trace address otherwise the lineinfo might be off-by-one,
+    because of course the backtrace addresses don't point to the jump
+    instructions, but the following address, which might belong to a
+    different source line entirely (KB) }
+  Success:=GetLineInfo(ptruint(addr-sizeof(pointer)),func,source,line);
+
 { create string }
 {$ifdef netware}
   { we need addr relative to code start on netware }
