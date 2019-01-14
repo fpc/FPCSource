@@ -86,7 +86,7 @@ Works:
   - array of record-const
   - skip clone record of new record
   - use rtl.recNewT to create a record type
-  - use TRec.$new to instantiate records
+  - use TRec.$new to instantiate records, using Object.create to instantiate
   - advanced records:
     - public, private, strict private
     - class var
@@ -94,6 +94,8 @@ Works:
     - sub types
     - functions
     - properties
+    - class properties
+    - default property
     - rtti
     - constructor
 - assign: copy values, do not create new JS object, needed by ^record
@@ -376,16 +378,9 @@ Works:
 - move all local types to global
 
 ToDos:
+- class helpers, type helpers, record helpers, array helpers
 - cmd line param to set modeswitch
 - Result:=inherited;
-- move local types to unit scope
-- records:
-  - use Object.create to instantiate simple records
-  - advanced records:
-    - class properties
-    - default property
-    - constructor
-    - rtti
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - $OPTIMIZATION ON|OFF
 - $optimization REMOVEEMPTYPROCS
@@ -445,7 +440,6 @@ ToDos:
   -O2 CSE
   -O3 DFA
 - objects
-- class helpers, type helpers, record helpers, array helpers
 - generics
 - operator overloading
   - operator enumerator

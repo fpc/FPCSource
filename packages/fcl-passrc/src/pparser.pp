@@ -72,7 +72,7 @@ const
   nParserNotAProcToken = 2026;
   nRangeExpressionExpected = 2027;
   nParserExpectCase = 2028;
-  nParserHelperNotAllowed = 2029;
+  // free 2029;
   nLogStartImplementation = 2030;
   nLogStartInterface = 2031;
   nParserNoConstructorAllowed = 2032;
@@ -132,7 +132,7 @@ resourcestring
   SParserNotAProcToken = 'Not a procedure or function token';
   SRangeExpressionExpected = 'Range expression expected';
   SParserExpectCase = 'Case label expression expected';
-  SParserHelperNotAllowed = 'Helper objects not allowed for "%s"';
+  // free for 2029
   SLogStartImplementation = 'Start parsing implementation section.';
   SLogStartInterface = 'Start parsing interface section';
   SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Record helpers';
@@ -1735,12 +1735,40 @@ begin
       tkInterface:
         Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface);
       tkSpecialize: Result:=ParseSpecializeType(Parent,TypeName);
-      tkClass: Result := ParseClassDecl(Parent, NamePos, TypeName, okClass, PM, GenericArgs);
+      tkClass:
+        begin
+        isHelper:=false;
+        NextToken;
+        if CurTokenIsIdentifier('Helper') then
+          begin
+          // class helper: atype end;
+          // class helper for atype end;
+          NextToken;
+          isHelper:=CurToken in [tkfor,tkBraceOpen];
+          UnGetToken;
+          end;
+        UngetToken;
+        if isHelper then
+          Result:=ParseClassDecl(Parent,NamePos,TypeName,okClassHelper,PM, GenericArgs)
+        else
+          Result:=ParseClassDecl(Parent, NamePos, TypeName, okClass, PM, GenericArgs);
+        end;
       tkType:
         begin
-        NextToken;
-        isHelper:=CurTokenIsIdentifier('helper');
-        UnGetToken;
+        isHelper:=false;
+        if msTypeHelpers in Scanner.CurrentModeSwitches then
+          begin
+          NextToken;
+          if CurTokenIsIdentifier('helper') then
+            begin
+            // atype = type helper;
+            // atype = type helper for atype end;
+            NextToken;
+            isHelper:=CurToken in [tkfor,tkBraceOpen];
+            UnGetToken;
+            end;
+          UnGetToken;
+          end;
         if isHelper then
           Result:=ParseClassDecl(Parent,NamePos,TypeName,okTypeHelper,PM)
         else
@@ -1769,16 +1797,20 @@ begin
       tkRecord:
         begin
         NextToken;
+        isHelper:=false;
         if CurTokenIsIdentifier('Helper') then
           begin
+          // record helper: atype end;
+          // record helper for atype end;
+          NextToken;
+          isHelper:=CurToken in [tkfor,tkBraceOpen];
           UnGetToken;
-          Result:=ParseClassDecl(Parent,NamePos,TypeName,okRecordHelper,PM);
-          end
-        else
-          begin
-          UnGetToken;
-          Result := ParseRecordDecl(Parent,NamePos,TypeName,PM);
           end;
+        UngetToken;
+        if isHelper then
+          Result:=ParseClassDecl(Parent,NamePos,TypeName,okRecordHelper,PM)
+        else
+          Result:=ParseRecordDecl(Parent,NamePos,TypeName,PM);
         end;
       tkNumber,tkMinus,tkChar:
         begin
@@ -6797,18 +6829,23 @@ begin
   if (CurToken=tkBraceOpen) then
     begin
     // read ancestor and interfaces
+    if (AType.ObjKind=okRecordHelper)
+        and ([msTypeHelpers,msDelphi]*Scanner.CurrentModeSwitches=[msDelphi]) then
+      // Delphi does not support ancestors in record helpers
+      CheckToken(tkend);
     NextToken;
     AType.AncestorType := ParseTypeReference(AType,false,Expr);
-    while CurToken=tkComma do
-      begin
-      NextToken;
-      AType.Interfaces.Add(ParseTypeReference(AType,false,Expr));
-      end;
+    if AType.ObjKind in [okClass,okGeneric] then
+      while CurToken=tkComma do
+        begin
+        NextToken;
+        AType.Interfaces.Add(ParseTypeReference(AType,false,Expr));
+        end;
     CheckToken(tkBraceClose);
     NextToken;
     AType.IsShortDefinition:=(CurToken=tkSemicolon);
     end;
-  if (AType.ObjKind in [okClassHelper,okRecordHelper]) then
+  if (AType.ObjKind in [okClassHelper,okRecordHelper,okTypeHelper]) then
     begin
     CheckToken(tkfor);
     NextToken;
@@ -6837,12 +6874,10 @@ function TPasParser.ParseClassDecl(Parent: TPasElement;
 
 Var
   ok: Boolean;
-  FT : TPasType;
   AExternalNameSpace,AExternalName : String;
   PCT:TPasClassType;
 begin
   NextToken;
-  FT:=Nil;
   if (AObjKind = okClass) and (CurToken = tkOf) then
     begin
     Result := TPasClassOfType(CreateElement(TPasClassOfType, AClassName,
@@ -6860,7 +6895,7 @@ begin
     end;
     exit;
     end;
-  if ((AObjKind in [okClass,OKInterface]) and (msExternalClass in CurrentModeswitches)
+  if ((AObjKind in [okClass,okInterface]) and (msExternalClass in CurrentModeswitches)
       and CurTokenIsIdentifier('external')) then
     begin
     NextToken;
@@ -6882,19 +6917,10 @@ begin
     AExternalNameSpace:='';
     AExternalName:='';
     end;
-  if (CurTokenIsIdentifier('Helper')) then
+  if AObjKind in [okClassHelper,okRecordHelper,okTypeHelper] then
     begin
-    if Not (AObjKind in [okClass,okTypeHelper,okRecordHelper]) then
-      ParseExc(nParserHelperNotAllowed,SParserHelperNotAllowed,[ObjKindNames[AObjKind]]);
-    Case AObjKind of
-     okClass:
-       AObjKind:=okClassHelper;
-     okTypeHelper:
-       begin
-       ExpectToken(tkFor);
-       FT:=ParseType(Parent,CurSourcePos,'',False);
-       end
-    end;
+    if not CurTokenIsIdentifier('Helper') then
+      ParseExcSyntaxError;
     NextToken;
     end;
   PCT := TPasClassType(CreateElement(TPasClassType, AClassName,
@@ -6902,7 +6928,7 @@ begin
   Result:=PCT;
   ok:=false;
   try
-    PCT.HelperForType:=FT;
+    PCT.HelperForType:=nil;
     PCT.IsExternal:=(AExternalName<>'');
     if AExternalName<>'' then
       PCT.ExternalName:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalName,'''');
