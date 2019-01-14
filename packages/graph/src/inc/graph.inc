@@ -1137,13 +1137,25 @@ end;
 
 Function DefaultImageSize(X1,Y1,X2,Y2: smallint): longint; {$ifndef fpc}far;{$endif fpc}
 Begin
-  { each pixel uses two bytes, to enable modes with colors up to 64K }
-  { to work.                                                         }
-  DefaultImageSize := 12 + (((X2-X1+1)*(Y2-Y1+1))*2);
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  if MaxColor > 65536 then
+  begin
+    DefaultImageSize := 12 + (((X2-X1+1)*(Y2-Y1+1))*4);
+  end
+  else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  begin
+    { each pixel uses two bytes, to enable modes with colors up to 64K }
+    { to work.                                                         }
+    DefaultImageSize := 12 + (((X2-X1+1)*(Y2-Y1+1))*2);
+  end;
 end;
 
 Procedure DefaultPutImage(X,Y: smallint; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
 type
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  ptl = array[0..{$ifdef cpu16}8191{$else}$fffffff{$endif}] of longword;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
   pt = array[0..{$ifdef cpu16}16382{$else}$fffffff{$endif}] of word;
   ptw = array[0..2] of longint;
 var
@@ -1164,7 +1176,12 @@ Begin
 
   deltaX := 0;
   deltaX1 := 0;
-  k := 3 * sizeOf(Longint) div sizeOf(Word); { Three reserved longs at start of bitmap }
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  if MaxColor > 65536 then
+    k := 3 * sizeOf(Longint) div sizeOf(LongWord) { Three reserved longs at start of bitmap }
+  else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    k := 3 * sizeOf(Longint) div sizeOf(Word); { Three reserved longs at start of bitmap }
  { check which part of the image is in the viewport }
   if clipPixels then
     begin
@@ -1193,39 +1210,75 @@ Begin
   oldCurrentColor := currentColor;
   oldCurrentWriteMode := currentWriteMode;
   currentWriteMode := bitBlt;
-  for j:=Y to Y1 do
-   Begin
-     inc(k,deltaX);
-     for i:=X to X1 do
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  if MaxColor > 65536 then
+  begin
+    for j:=Y to Y1 do
+    Begin
+      inc(k,deltaX);
+      for i:=X to X1 do
+      begin
+        currentColor := ptl(bitmap)[k];
+        directPutPixel(i,j);
+        inc(k);
+      end;
+      inc(k,deltaX1);
+    end;
+  end
+  else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  begin
+    for j:=Y to Y1 do
+    Begin
+      inc(k,deltaX);
+      for i:=X to X1 do
       begin
         currentColor := pt(bitmap)[k];
         directPutPixel(i,j);
         inc(k);
-     end;
-     inc(k,deltaX1);
-   end;
+      end;
+      inc(k,deltaX1);
+    end;
+  end;
   currentWriteMode := oldCurrentWriteMode;
   currentColor := oldCurrentColor;
 end;
 
 Procedure DefaultGetImage(X1,Y1,X2,Y2: smallint; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
 type
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  ptl = array[0..{$ifdef cpu16}8191{$else}$fffffff{$endif}] of longword;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
   pt = array[0..{$ifdef cpu16}16382{$else}$fffffff{$endif}] of word;
   ptw = array[0..2] of longint;
 var
   i,j: smallint;
   k: longint;
 Begin
-  k:= 3 * Sizeof(longint) div sizeof(word); { Three reserved longs at start of bitmap }
   i := x2 - x1 + 1;
-  for j:=Y1 to Y2 do
-   Begin
-     GetScanLine(x1,x2,j,pt(Bitmap)[k]);
-     inc(k,i);
-   end;
-   ptw(Bitmap)[0] := X2-X1+1;   { First longint  is width  }
-   ptw(Bitmap)[1] := Y2-Y1+1;   { Second longint is height }
-   ptw(bitmap)[2] := 0;       { Third longint is reserved}
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  if MaxColor > 65536 then
+  begin
+    k:= 3 * Sizeof(longint) div sizeof(longword); { Three reserved longs at start of bitmap }
+    for j:=Y1 to Y2 do
+    Begin
+      GetScanLine(x1,x2,j,ptl(Bitmap)[k]);
+      inc(k,i);
+    end;
+  end
+  else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  begin
+    k:= 3 * Sizeof(longint) div sizeof(word); { Three reserved longs at start of bitmap }
+    for j:=Y1 to Y2 do
+    Begin
+      GetScanLine(x1,x2,j,pt(Bitmap)[k]);
+      inc(k,i);
+    end;
+  end;
+  ptw(Bitmap)[0] := X2-X1+1;   { First longint  is width  }
+  ptw(Bitmap)[1] := Y2-Y1+1;   { Second longint is height }
+  ptw(bitmap)[2] := 0;       { Third longint is reserved}
 end;
 
 
