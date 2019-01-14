@@ -17,6 +17,7 @@
 unit ptcgraph;
 
 {//$define logging}
+{//$define FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
 {******************************************************************************}
                                     interface
@@ -310,13 +311,16 @@ var
   PTCFormat8: IPTCFormat;
   PTCFormat15: IPTCFormat;
   PTCFormat16: IPTCFormat;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  PTCFormat32: IPTCFormat;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   EGAPaletteEnabled: Boolean;
   EGAPalette: TEGAPalette;
   VGAPalette: TVGAPalette;
 
   CurrentActivePage: Integer;
-  ColorMask: Word;
+  ColorMask: ColorType;
 
   DummyHGCBkColor: Word;
   CurrentCGABkColor: Word;
@@ -740,6 +744,21 @@ begin
   ColorMask := 65535;
 end;
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+procedure ptc_InitMode32bpp(XResolution, YResolution, Pages: LongInt);
+begin
+{$IFDEF logging}
+  LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 16777216 colours (32bpp)');
+{$ENDIF logging}
+  { open the console }
+  ptc_InternalOpen(WindowTitle, XResolution, YResolution, PTCFormat32, Pages);
+  PTCWidth := XResolution;
+  PTCHeight := YResolution;
+  CurrentActivePage := 0;
+  ColorMask := 16777215;
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
 
 procedure ptc_Init640x200x16;
 begin
@@ -887,6 +906,33 @@ begin
   ptc_InitMode64k(1280, 1024, 2);
 end;
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+procedure ptc_Init320x200x32bpp;
+begin
+  ptc_InitMode32bpp(320, 200, 2);
+end;
+
+procedure ptc_Init640x480x32bpp;
+begin
+  ptc_InitMode32bpp(640, 480, 2);
+end;
+
+procedure ptc_Init800x600x32bpp;
+begin
+  ptc_InitMode32bpp(800, 600, 2);
+end;
+
+procedure ptc_Init1024x768x32bpp;
+begin
+  ptc_InitMode32bpp(1024, 768, 2);
+end;
+
+procedure ptc_Init1280x1024x32bpp;
+begin
+  ptc_InitMode32bpp(1280, 1024, 2);
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
 procedure ptc_InitNonStandard16;
 begin
   ptc_InitMode16(MaxX + 1, MaxY + 1, 2);
@@ -906,6 +952,13 @@ procedure ptc_InitNonStandard64k;
 begin
   ptc_InitMode64k(MaxX + 1, MaxY + 1, 2);
 end;
+
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+procedure ptc_InitNonStandard32bpp;
+begin
+  ptc_InitMode32bpp(MaxX + 1, MaxY + 1, 2);
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
 procedure ptc_SetVisualPage(page: word);
 begin
@@ -1000,6 +1053,38 @@ begin
     end;
 end;
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+procedure ptc_DirectPixelProc_32bpp(X,Y: smallint);
+var
+  pixels:Plongword;
+begin
+//  Writeln('ptc_DirectPixelProc_32bpp(', X, ', ', Y, ')');
+  pixels := ptc_surface_lock;
+  case CurrentWriteMode of
+    XORPut:
+      begin
+        pixels[x+y*PTCWidth] := pixels[x+y*PTCWidth] xor CurrentColor;
+      end;
+    OrPut:
+      begin
+        pixels[x+y*PTCWidth] := pixels[x+y*PTCWidth] or CurrentColor;
+      end;
+    AndPut:
+      begin
+        pixels[x+y*PTCWidth] := pixels[x+y*PTCWidth] and CurrentColor;
+      end;
+    NotPut:
+      begin
+        pixels[x+y*PTCWidth] := CurrentColor xor $FFFFFF;
+      end
+  else
+    pixels[x+y*PTCWidth] := CurrentColor;
+  end;
+  ptc_surface_unlock;
+  ptc_update;
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
 procedure ptc_DirectPixelProc_16bpp(X,Y: smallint);
 var
   pixels:Pword;
@@ -1060,7 +1145,39 @@ begin
   ptc_update;
 end;
 
-procedure ptc_putpixelproc_16bpp(X,Y:smallint;Color:Word);
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+procedure ptc_putpixelproc_32bpp(X,Y:smallint;Color:ColorType);
+
+var pixels:Plongword;
+
+begin
+//  Writeln('ptc_putpixelproc_32bpp(', X, ', ', Y, ', ', Color, ')');
+  if clipcoords(X,Y) then
+    begin
+      pixels := ptc_surface_lock;
+      {Plot the pixel on the surface.}
+      pixels[x+y*PTCWidth] := color;
+      ptc_surface_unlock;
+      ptc_update;
+    end;
+end;
+
+function ptc_getpixelproc_32bpp(X,Y: smallint):ColorType;
+
+var pixels:Plongword;
+
+begin
+  if clipcoords(X,Y) then
+    begin
+      pixels := ptc_surface_lock;
+      {Get the pixel from the surface.}
+      ptc_getpixelproc_16bpp:=pixels[x+y*PTCWidth];
+      ptc_surface_unlock;
+    end;
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
+procedure ptc_putpixelproc_16bpp(X,Y:smallint;Color:ColorType);
 
 var pixels:Pword;
 
@@ -1076,7 +1193,7 @@ begin
     end;
 end;
 
-function ptc_getpixelproc_16bpp(X,Y: smallint):word;
+function ptc_getpixelproc_16bpp(X,Y: smallint):ColorType;
 
 var pixels:Pword;
 
@@ -1090,7 +1207,7 @@ begin
     end;
 end;
 
-procedure ptc_PutPixelProc_8bpp(X,Y:smallint;Color:Word);
+procedure ptc_PutPixelProc_8bpp(X,Y:smallint;Color:ColorType);
 
 var pixels:PByte;
 
@@ -1106,7 +1223,7 @@ begin
     end;
 end;
 
-function ptc_GetPixelProc_8bpp(X,Y: smallint):word;
+function ptc_GetPixelProc_8bpp(X,Y: smallint):ColorType;
 
 var pixels:PByte;
 
@@ -2099,6 +2216,29 @@ end;
       mode.PaletteSize := mode.MaxColor;
     end;
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    procedure FillCommonVESA32bpp(var mode: TModeInfo);
+    begin
+      mode.HardwarePages := 1;
+      mode.MaxColor := 16777216;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectColor := TRUE;
+      mode.DirectPutPixel  := @ptc_DirectPixelProc_32bpp;
+      mode.PutPixel        := @ptc_PutPixelProc_32bpp;
+      mode.GetPixel        := @ptc_GetPixelProc_32bpp;
+//      mode.PutImage        := @ptc_PutImageProc_32bpp;
+//      mode.GetImage        := @ptc_GetImageProc_32bpp;
+//      mode.GetScanLine     := @ptc_GetScanLineProc_32bpp;
+      mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
+      mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
+      //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+//      mode.HLine           := @ptc_HLineProc_32bpp;
+//      mode.VLine           := @ptc_VLineProc_32bpp;
+      mode.SetVisualPage   := @ptc_SetVisualPage;
+      mode.SetActivePage   := @ptc_SetActivePage;
+    end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
     procedure FillCommonVESA320x200(var mode: TModeInfo);
     begin
       mode.DriverNumber := VESA;
@@ -2482,7 +2622,7 @@ end;
 
      InitMode(graphmode);
      FillCommonVESA256(graphmode);
-     FillCommonVESA640x480(mode);
+     FillCommonVESA640x480(graphmode);
      with graphmode do
      begin
        ModeNumber:=m640x480x256;
@@ -2492,7 +2632,7 @@ end;
 
      InitMode(graphmode);
      FillCommonVESA32k(graphmode);
-     FillCommonVESA320x200(mode);
+     FillCommonVESA320x200(graphmode);
      with graphmode do
      begin
        ModeNumber := m320x200x32k;
@@ -2502,7 +2642,7 @@ end;
 
      InitMode(graphmode);
      FillCommonVESA32k(graphmode);
-     FillCommonVESA640x480(mode);
+     FillCommonVESA640x480(graphmode);
      with graphmode do
      begin
        ModeNumber := m640x480x32k;
@@ -2512,7 +2652,7 @@ end;
 
      InitMode(graphmode);
      FillCommonVESA64k(graphmode);
-     FillCommonVESA320x200(mode);
+     FillCommonVESA320x200(graphmode);
      with graphmode do
      begin
        ModeNumber := m320x200x64k;
@@ -2522,7 +2662,7 @@ end;
 
      InitMode(graphmode);
      FillCommonVESA64k(graphmode);
-     FillCommonVESA640x480(mode);
+     FillCommonVESA640x480(graphmode);
      with graphmode do
      begin
        ModeNumber := m640x480x64k;
@@ -2530,11 +2670,33 @@ end;
      end;
      AddMode(graphmode);
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+     InitMode(graphmode);
+     FillCommonVESA32bpp(graphmode);
+     FillCommonVESA320x200(graphmode);
+     with graphmode do
+     begin
+       ModeNumber := m320x200x16m;
+       InitMode := @ptc_Init320x200x32bpp;
+     end;
+     AddMode(graphmode);
+
+     InitMode(graphmode);
+     FillCommonVESA32bpp(graphmode);
+     FillCommonVESA640x480(graphmode);
+     with graphmode do
+     begin
+       ModeNumber := m640x480x16m;
+       InitMode := @ptc_Init640x480x32bpp;
+     end;
+     AddMode(graphmode);
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
      if ContainsAtLeast(800, 600) then
      begin
        InitMode(graphmode);
        FillCommonVESA16(graphmode);
-       FillCommonVESA800x600(mode);
+       FillCommonVESA800x600(graphmode);
        with graphmode do
        begin
          ModeNumber := m800x600x16;
@@ -2544,7 +2706,7 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA256(graphmode);
-       FillCommonVESA800x600(mode);
+       FillCommonVESA800x600(graphmode);
        with graphmode do
        begin
          ModeNumber:=m800x600x256;
@@ -2554,7 +2716,7 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA32k(graphmode);
-       FillCommonVESA800x600(mode);
+       FillCommonVESA800x600(graphmode);
        with graphmode do
        begin
          ModeNumber := m800x600x32k;
@@ -2564,20 +2726,32 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA64k(graphmode);
-       FillCommonVESA800x600(mode);
+       FillCommonVESA800x600(graphmode);
        with graphmode do
        begin
          ModeNumber := m800x600x64k;
          InitMode := @ptc_Init800x600x64k;
        end;
        AddMode(graphmode);
+
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+       InitMode(graphmode);
+       FillCommonVESA32bpp(graphmode);
+       FillCommonVESA800x600(graphmode);
+       with graphmode do
+       begin
+         ModeNumber := m800x600x16m;
+         InitMode := @ptc_Init800x600x32bpp;
+       end;
+       AddMode(graphmode);
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
      end;
 
      if ContainsAtLeast(1024, 768) then
      begin
        InitMode(graphmode);
        FillCommonVESA16(graphmode);
-       FillCommonVESA1024x768(mode);
+       FillCommonVESA1024x768(graphmode);
        with graphmode do
        begin
          ModeNumber := m1024x768x16;
@@ -2587,7 +2761,7 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA256(graphmode);
-       FillCommonVESA1024x768(mode);
+       FillCommonVESA1024x768(graphmode);
        with graphmode do
        begin
          ModeNumber:=m1024x768x256;
@@ -2597,7 +2771,7 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA32k(graphmode);
-       FillCommonVESA1024x768(mode);
+       FillCommonVESA1024x768(graphmode);
        with graphmode do
        begin
          ModeNumber := m1024x768x32k;
@@ -2607,20 +2781,32 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA64k(graphmode);
-       FillCommonVESA1024x768(mode);
+       FillCommonVESA1024x768(graphmode);
        with graphmode do
        begin
          ModeNumber := m1024x768x64k;
          InitMode := @ptc_Init1024x768x64k;
        end;
        AddMode(graphmode);
+
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+       InitMode(graphmode);
+       FillCommonVESA32bpp(graphmode);
+       FillCommonVESA1024x768(graphmode);
+       with graphmode do
+       begin
+         ModeNumber := m1024x768x16m;
+         InitMode := @ptc_Init1024x768x32bpp;
+       end;
+       AddMode(graphmode);
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
      end;
 
      if ContainsAtLeast(1280, 1024) then
      begin
        InitMode(graphmode);
        FillCommonVESA16(graphmode);
-       FillCommonVESA1280x1024(mode);
+       FillCommonVESA1280x1024(graphmode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x16;
@@ -2630,7 +2816,7 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA256(graphmode);
-       FillCommonVESA1280x1024(mode);
+       FillCommonVESA1280x1024(graphmode);
        with graphmode do
        begin
          ModeNumber:=m1280x1024x256;
@@ -2640,7 +2826,7 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA32k(graphmode);
-       FillCommonVESA1280x1024(mode);
+       FillCommonVESA1280x1024(graphmode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x32k;
@@ -2650,13 +2836,25 @@ end;
 
        InitMode(graphmode);
        FillCommonVESA64k(graphmode);
-       FillCommonVESA1280x1024(mode);
+       FillCommonVESA1280x1024(graphmode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x64k;
          InitMode := @ptc_Init1280x1024x64k;
        end;
        AddMode(graphmode);
+
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+       InitMode(graphmode);
+       FillCommonVESA32bpp(graphmode);
+       FillCommonVESA1280x1024(graphmode);
+       with graphmode do
+       begin
+         ModeNumber := m1280x1024x16m;
+         InitMode := @ptc_Init1280x1024x32bpp;
+       end;
+       AddMode(graphmode);
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
      end;
 
      { finally, add all the non-standard (i.e. not VESA or classic PC) modes }
@@ -2737,6 +2935,26 @@ end;
            Inc(NextNonStandardModeNumber);
            if NextNonStandardModeNumber > NonStandardModeNumberMaxLimit then
              break;
+
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+           InitMode(graphmode);
+           FillCommonVESA32bpp(graphmode);
+           with graphmode do
+           begin
+             ModeNumber := NextNonStandardModeNumber;
+             DriverNumber := VESA;
+             WriteStr(ModeName, Width, ' x ', Height, ' VESA');
+             MaxX := Width - 1;
+             MaxY := Height - 1;
+             InitMode := @ptc_InitNonStandard32bpp;
+             XAspect := 10000;
+             YAspect := 10000;
+           end;
+           AddMode(graphmode);
+           Inc(NextNonStandardModeNumber);
+           if NextNonStandardModeNumber > NonStandardModeNumberMaxLimit then
+             break;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
          end;
   end;
 
@@ -2745,6 +2963,9 @@ initialization
   PTCFormat8 := TPTCFormatFactory.CreateNew(8);
   PTCFormat15 := TPTCFormatFactory.CreateNew(16, $7C00, $03E0, $001F);
   PTCFormat16 := TPTCFormatFactory.CreateNew(16, $F800, $07E0, $001F);
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  PTCFormat32 := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
   PTCWrapperObject := TPTCWrapperThread.Create;
   InitializeGraph;
 finalization
