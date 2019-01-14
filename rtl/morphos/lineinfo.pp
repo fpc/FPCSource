@@ -434,11 +434,12 @@ begin
   Store:=BackTraceStrFunc;
   BackTraceStrFunc:=@SysBackTraceStr;
 
-  { for valid stacktraces at least you have to substract sizeof(pointer)
-    from the trace address otherwise the lineinfo might be off-by-one,
-    because of course the backtrace addresses don't point to the jump
-    instructions, but the following address, which might belong to a
-    different source line entirely (KB) }
+  { on most architectures, (but not everywhere, Sparc is a notable exception)
+    for valid stacktraces you have to substract sizeof(pointer), or similar
+    instruction length from the trace address otherwise the lineinfo might
+    be off-by-one, because of course the backtrace addresses don't point to
+    the jump instructions, but the following address, which might belong to
+    a different source line entirely (KB) }
   Success:=GetLineInfo(ptruint(addr-sizeof(pointer)),func,source,line);
 
 { create string }
