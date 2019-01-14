@@ -1250,12 +1250,12 @@ end;
      NotInGraphicsMode;
    end;
 
-  function GetPixelDefault(X,Y: smallint): word;
+  function GetPixelDefault(X,Y: smallint): ColorType;
    begin
      NotInGraphicsMode;
    end;
 
-  procedure PutPixelDefault(X,Y: smallint; Color: Word);
+  procedure PutPixelDefault(X,Y: smallint; Color: ColorType);
    begin
      NotInGraphicsMode;
    end;
@@ -1274,8 +1274,8 @@ end;
 
   procedure OutTextXYDefault(x,y : smallint;const TextString : string);forward;
   procedure CircleDefault(X, Y: smallint; Radius:Word);forward;
-  procedure SetBkColorDefault(ColorNum: Word);forward;
-  function GetBkColorDefault: Word;forward;
+  procedure SetBkColorDefault(ColorNum: ColorType);forward;
+  function GetBkColorDefault: ColorType;forward;
 
 {$i palette.inc}
 

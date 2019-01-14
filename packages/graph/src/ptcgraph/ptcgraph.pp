@@ -977,7 +977,7 @@ begin
 end;
 
 { compatible with TP7's HERC.BGI }
-procedure SetBkColorHGC720(ColorNum: Word);
+procedure SetBkColorHGC720(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -985,12 +985,12 @@ begin
 end;
 
 { compatible with TP7's HERC.BGI }
-function GetBkColorHGC720: Word;
+function GetBkColorHGC720: ColorType;
 begin
   GetBkColorHGC720 := DummyHGCBkColor;
 end;
 
-procedure SetBkColorCGA320(ColorNum: Word);
+procedure SetBkColorCGA320(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -999,13 +999,13 @@ begin
   ptc_SetEGAPalette(0, ((ColorNum shl 1) and $10) or (ColorNum and $07));
 end;
 
-function GetBkColorCGA320: Word;
+function GetBkColorCGA320: ColorType;
 begin
   GetBkColorCGA320 := CurrentCGABkColor;
 end;
 
 {yes, TP7 CGA.BGI behaves *exactly* like that}
-procedure SetBkColorCGA640(ColorNum: Word);
+procedure SetBkColorCGA640(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -1015,14 +1015,14 @@ begin
   ptc_SetEGAPalette(1, ((ColorNum shl 1) and $10) or (ColorNum and $07));
 end;
 
-function GetBkColorCGA640: Word;
+function GetBkColorCGA640: ColorType;
 begin
   GetBkColorCGA640 := CurrentCGABkColor;
 end;
 
 { nickysn: VGA compatible implementation. I don't have a real MCGA to test
   if there's any difference with VGA }
-procedure SetBkColorMCGA640(ColorNum: Word);
+procedure SetBkColorMCGA640(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -1031,7 +1031,7 @@ begin
   ptc_SetEGAPalette(0, ((ColorNum shl 1) and $10) or (ColorNum and $07));
 end;
 
-function GetBkColorMCGA640: Word;
+function GetBkColorMCGA640: ColorType;
 begin
   GetBkColorMCGA640 := CurrentCGABkColor;
 end;
@@ -1171,7 +1171,7 @@ begin
     begin
       pixels := ptc_surface_lock;
       {Get the pixel from the surface.}
-      ptc_getpixelproc_16bpp:=pixels[x+y*PTCWidth];
+      ptc_getpixelproc_32bpp:=pixels[x+y*PTCWidth];
       ptc_surface_unlock;
     end;
 end;
