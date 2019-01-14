@@ -297,6 +297,11 @@ var
      End;
 
   s1, s2, s3 : PWordArray;                { Three buffers for scanlines                 }
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  sl1 : PLongWordArray absolute s1;
+  sl2 : PLongWordArray absolute s2;
+  sl3 : PLongWordArray absolute s3;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
 
   Procedure PushPoint (x, y : smallint);
@@ -437,9 +442,20 @@ var
     BackupColor := CurrentColor;
     CurrentColor := FillSettings.Color;
     { MaxX is based on zero index }
-    GetMem (s1,(ViewWidth+1)*2);  { A pixel color represents a word }
-    GetMem (s2,(ViewWidth+1)*2);  { A pixel color represents a word }
-    GetMem (s3,(ViewWidth+1)*2);  { A pixel color represents a word }
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    if MaxColor > 65536 then
+    begin
+      GetMem (s1,(ViewWidth+1)*4);  { A pixel color represents a word }
+      GetMem (s2,(ViewWidth+1)*4);  { A pixel color represents a word }
+      GetMem (s3,(ViewWidth+1)*4);  { A pixel color represents a word }
+    end
+    else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    begin
+      GetMem (s1,(ViewWidth+1)*2);  { A pixel color represents a word }
+      GetMem (s2,(ViewWidth+1)*2);  { A pixel color represents a word }
+      GetMem (s3,(ViewWidth+1)*2);  { A pixel color represents a word }
+    end;
     if (not assigned(s1)) or (not assigned(s2)) or (not assigned(s3)) then
       begin
         _GraphResult := grNoFloodMem;
@@ -485,38 +501,82 @@ var
          end;
        prevy := y;
        { check the current scan line }
-       While (s1^[x]<>Border) And (x<=ViewWidth) Do Inc (x);
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+       if MaxColor > 65536 then
+       begin
+         While (sl1^[x]<>Border) And (x<=ViewWidth) Do Inc (x);
+       end
+       else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+       begin
+         While (s1^[x]<>Border) And (x<=ViewWidth) Do Inc (x);
+       end;
        d:=0;
        e:=0;
        dec(x);
        Beginx:=x;
-       REPEAT
-         { check the above line }
-         If y<ViewHeight then
-           Begin
-              Cont:=(s3^[x]<>Border) and (not AlreadyDrawn(x,y+1));
-              If (e=0) And Cont then
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+       if MaxColor > 65536 then
+       begin
+         REPEAT
+           { check the above line }
+           If y<ViewHeight then
+             Begin
+                Cont:=(sl3^[x]<>Border) and (not AlreadyDrawn(x,y+1));
+                If (e=0) And Cont then
+                  Begin
+                    PushPoint (x,y+1);
+                    e:=1;
+                  End
+                Else
+                  If (e=1) And Not Cont then e:=0;
+             End;
+          { check the line below }
+          If (y>0) then
+            Begin
+              Cont:=(sl2^[x]<>Border) and (not AlreadyDrawn(x,y-1));
+              If (d=0) And Cont then
                 Begin
-                  PushPoint (x,y+1);
-                  e:=1;
+                  PushPoint (x,y-1);
+                  d:=1;
                 End
               Else
-                If (e=1) And Not Cont then e:=0;
-           End;
-        { check the line below }
-        If (y>0) then
-          Begin
-            Cont:=(s2^[x]<>Border) and (not AlreadyDrawn(x,y-1));
-            If (d=0) And Cont then
-              Begin
-                PushPoint (x,y-1);
-                d:=1;
-              End
-            Else
-              If (d=1) And Not Cont then d:=0;
-          End;
-        Dec (x);
-       Until (x<0) Or (s1^[x]=Border);
+                If (d=1) And Not Cont then d:=0;
+            End;
+          Dec (x);
+         Until (x<0) Or (sl1^[x]=Border);
+       end
+       else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+       begin
+         REPEAT
+           { check the above line }
+           If y<ViewHeight then
+             Begin
+                Cont:=(s3^[x]<>Border) and (not AlreadyDrawn(x,y+1));
+                If (e=0) And Cont then
+                  Begin
+                    PushPoint (x,y+1);
+                    e:=1;
+                  End
+                Else
+                  If (e=1) And Not Cont then e:=0;
+             End;
+          { check the line below }
+          If (y>0) then
+            Begin
+              Cont:=(s2^[x]<>Border) and (not AlreadyDrawn(x,y-1));
+              If (d=0) And Cont then
+                Begin
+                  PushPoint (x,y-1);
+                  d:=1;
+                End
+              Else
+                If (d=1) And Not Cont then d:=0;
+            End;
+          Dec (x);
+         Until (x<0) Or (s1^[x]=Border);
+       end;
        { swap the values }
        x1:=x+1;
        x2:=BeginX;
@@ -531,9 +591,20 @@ var
        PatternLine (x1,x2,y);
      End; { end while }
 
-    System.FreeMem (s1,(ViewWidth+1)*2);
-    System.FreeMem (s2,(ViewWidth+1)*2);
-    System.FreeMem (s3,(ViewWidth+1)*2);
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    if MaxColor > 65536 then
+    begin
+      System.FreeMem (s1,(ViewWidth+1)*4);
+      System.FreeMem (s2,(ViewWidth+1)*4);
+      System.FreeMem (s3,(ViewWidth+1)*4);
+    end
+    else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    begin
+      System.FreeMem (s1,(ViewWidth+1)*2);
+      System.FreeMem (s2,(ViewWidth+1)*2);
+      System.FreeMem (s3,(ViewWidth+1)*2);
+    end;
     CleanUpDrawnList;
     System.FreeMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
     CurrentColor := BackUpColor;
