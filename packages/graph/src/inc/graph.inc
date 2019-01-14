@@ -52,6 +52,10 @@ type
 
   WordArray = Array [0..StdbufferSize] Of word;
   PWordArray = ^WordArray;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  LongWordArray = Array [0..StdbufferSize] Of LongWord;
+  PLongWordArray = ^LongWordArray;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
 
 const
@@ -1115,8 +1119,18 @@ end;
   Var
     x : smallint;
   Begin
-     For x:=X1 to X2 Do
-       WordArray(Data)[x-x1]:=GetPixel(x, y);
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    if MaxColor > 65536 then
+    begin
+      For x:=X1 to X2 Do
+        LongWordArray(Data)[x-x1]:=GetPixel(x, y);
+    end
+    else
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    begin
+      For x:=X1 to X2 Do
+        WordArray(Data)[x-x1]:=GetPixel(x, y);
+    end;
   End;
 
 
