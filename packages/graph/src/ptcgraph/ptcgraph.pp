@@ -2099,6 +2099,52 @@ end;
       mode.PaletteSize := mode.MaxColor;
     end;
 
+    procedure FillCommonVESA320x200(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='320 x 200 VESA';
+      mode.MaxX := 319;
+      mode.MaxY := 199;
+      mode.XAspect := 8333;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA640x480(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='640 x 480 VESA';
+      mode.MaxX := 639;
+      mode.MaxY := 479;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA800x600(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='800 x 600 VESA';
+      mode.MaxX := 799;
+      mode.MaxY := 599;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA1024x768(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='1024 x 768 VESA';
+      mode.MaxX := 1023;
+      mode.MaxY := 767;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA1280x1024(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='1280 x 1024 VESA';
+      mode.MaxX := 1279;
+      mode.MaxY := 1023;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+
    var
     graphmode:Tmodeinfo;
     I: Integer;
@@ -2436,76 +2482,51 @@ end;
 
      InitMode(graphmode);
      FillCommonVESA256(graphmode);
+     FillCommonVESA640x480(mode);
      with graphmode do
      begin
        ModeNumber:=m640x480x256;
-       DriverNumber := VESA;
-       ModeName:='640 x 480 VESA';
-       MaxX := 639;
-       MaxY := 479;
        InitMode := @ptc_Init640x480x256;
-       XAspect := 10000;
-       YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
      FillCommonVESA32k(graphmode);
+     FillCommonVESA320x200(mode);
      with graphmode do
      begin
        ModeNumber := m320x200x32k;
-       DriverNumber := VESA;
-       ModeName:='320 x 200 VESA';
-       MaxX := 319;
-       MaxY := 199;
        InitMode := @ptc_Init320x200x32k;
-       XAspect := 8333;
-       YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
      FillCommonVESA32k(graphmode);
+     FillCommonVESA640x480(mode);
      with graphmode do
      begin
        ModeNumber := m640x480x32k;
-       DriverNumber := VESA;
-       ModeName:='640 x 480 VESA';
-       MaxX := 639;
-       MaxY := 479;
        InitMode := @ptc_Init640x480x32k;
-       XAspect := 10000;
-       YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
      FillCommonVESA64k(graphmode);
+     FillCommonVESA320x200(mode);
      with graphmode do
      begin
        ModeNumber := m320x200x64k;
-       DriverNumber := VESA;
-       ModeName:='320 x 200 VESA';
-       MaxX := 319;
-       MaxY := 199;
        InitMode := @ptc_Init320x200x64k;
-       XAspect := 8333;
-       YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
      FillCommonVESA64k(graphmode);
+     FillCommonVESA640x480(mode);
      with graphmode do
      begin
        ModeNumber := m640x480x64k;
-       DriverNumber := VESA;
-       ModeName:='640 x 480 VESA';
-       MaxX := 639;
-       MaxY := 479;
        InitMode := @ptc_Init640x480x64k;
-       XAspect := 10000;
-       YAspect := 10000;
      end;
      AddMode(graphmode);
 
@@ -2513,61 +2534,41 @@ end;
      begin
        InitMode(graphmode);
        FillCommonVESA16(graphmode);
+       FillCommonVESA800x600(mode);
        with graphmode do
        begin
          ModeNumber := m800x600x16;
-         DriverNumber := VESA;
-         ModeName:='800 x 600 VESA';
-         MaxX := 799;
-         MaxY := 599;
          InitMode := @ptc_Init800x600x16;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA256(graphmode);
+       FillCommonVESA800x600(mode);
        with graphmode do
        begin
          ModeNumber:=m800x600x256;
-         DriverNumber := VESA;
-         ModeName:='800 x 600 VESA';
-         MaxX := 799;
-         MaxY := 599;
          InitMode := @ptc_Init800x600x256;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA32k(graphmode);
+       FillCommonVESA800x600(mode);
        with graphmode do
        begin
          ModeNumber := m800x600x32k;
-         DriverNumber := VESA;
-         ModeName:='800 x 600 VESA';
-         MaxX := 799;
-         MaxY := 599;
          InitMode := @ptc_Init800x600x32k;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA64k(graphmode);
+       FillCommonVESA800x600(mode);
        with graphmode do
        begin
          ModeNumber := m800x600x64k;
-         DriverNumber := VESA;
-         ModeName:='800 x 600 VESA';
-         MaxX := 799;
-         MaxY := 599;
          InitMode := @ptc_Init800x600x64k;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
      end;
@@ -2576,61 +2577,41 @@ end;
      begin
        InitMode(graphmode);
        FillCommonVESA16(graphmode);
+       FillCommonVESA1024x768(mode);
        with graphmode do
        begin
          ModeNumber := m1024x768x16;
-         DriverNumber := VESA;
-         ModeName:='1024 x 768 VESA';
-         MaxX := 1023;
-         MaxY := 767;
          InitMode := @ptc_Init1024x768x16;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA256(graphmode);
+       FillCommonVESA1024x768(mode);
        with graphmode do
        begin
          ModeNumber:=m1024x768x256;
-         DriverNumber := VESA;
-         ModeName:='1024 x 768 VESA';
-         MaxX := 1023;
-         MaxY := 767;
          InitMode := @ptc_Init1024x768x256;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA32k(graphmode);
+       FillCommonVESA1024x768(mode);
        with graphmode do
        begin
          ModeNumber := m1024x768x32k;
-         DriverNumber := VESA;
-         ModeName:='1024 x 768 VESA';
-         MaxX := 1023;
-         MaxY := 767;
          InitMode := @ptc_Init1024x768x32k;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA64k(graphmode);
+       FillCommonVESA1024x768(mode);
        with graphmode do
        begin
          ModeNumber := m1024x768x64k;
-         DriverNumber := VESA;
-         ModeName:='1024 x 768 VESA';
-         MaxX := 1023;
-         MaxY := 767;
          InitMode := @ptc_Init1024x768x64k;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
      end;
@@ -2639,61 +2620,41 @@ end;
      begin
        InitMode(graphmode);
        FillCommonVESA16(graphmode);
+       FillCommonVESA1280x1024(mode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x16;
-         DriverNumber := VESA;
-         ModeName:='1280 x 1024 VESA';
-         MaxX := 1279;
-         MaxY := 1023;
          InitMode := @ptc_Init1280x1024x16;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA256(graphmode);
+       FillCommonVESA1280x1024(mode);
        with graphmode do
        begin
          ModeNumber:=m1280x1024x256;
-         DriverNumber := VESA;
-         ModeName:='1280 x 1024 VESA';
-         MaxX := 1279;
-         MaxY := 1023;
          InitMode := @ptc_Init1280x1024x256;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA32k(graphmode);
+       FillCommonVESA1280x1024(mode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x32k;
-         DriverNumber := VESA;
-         ModeName:='1280 x 1024 VESA';
-         MaxX := 1279;
-         MaxY := 1023;
          InitMode := @ptc_Init1280x1024x32k;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
        FillCommonVESA64k(graphmode);
+       FillCommonVESA1280x1024(mode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x64k;
-         DriverNumber := VESA;
-         ModeName:='1280 x 1024 VESA';
-         MaxX := 1279;
-         MaxY := 1023;
          InitMode := @ptc_Init1280x1024x64k;
-         XAspect := 10000;
-         YAspect := 10000;
        end;
        AddMode(graphmode);
      end;
