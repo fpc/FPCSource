@@ -1863,6 +1863,128 @@ Begin
   ptc_surface_unlock;
   ptc_update;
 end;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+Procedure ptc_PutImageproc_32bpp(X,Y: smallint; var Bitmap; BitBlt: Word);
+type
+  pt = array[0..{$ifdef cpu16}16382{$else}$fffffff{$endif}] of longword;
+  ptw = array[0..2] of longint;
+var
+  pixels:Plongword;
+  k: longint;
+  i, j, y1, x1, deltaX, deltaX1, deltaY: smallint;
+  JxW, I_JxW: Longword;
+Begin
+  inc(x,startXViewPort);
+  inc(y,startYViewPort);
+  { width/height are 1-based, coordinates are zero based }
+  x1 := ptw(Bitmap)[0]+x-1; { get width and adjust end coordinate accordingly }
+  y1 := ptw(Bitmap)[1]+y-1; { get height and adjust end coordinate accordingly }
+  deltaY := 0;
+  deltaX := 0;
+  deltaX1 := 0;
+  k := 3 * sizeOf(Longint) div sizeOf(LongWord); { Three reserved longs at start of bitmap }
+ { check which part of the image is in the viewport }
+  if clipPixels then
+    begin
+      if y < startYViewPort then
+        begin
+          deltaY := startYViewPort - y;
+          inc(k,(x1-x+1)*deltaY);
+          y := startYViewPort;
+         end;
+      if y1 > startYViewPort+viewHeight then
+        y1 := startYViewPort+viewHeight;
+      if x < startXViewPort then
+        begin
+          deltaX := startXViewPort-x;
+          x := startXViewPort;
+        end;
+      if x1 > startXViewPort + viewWidth then
+        begin
+          deltaX1 := x1 - (startXViewPort + viewWidth);
+          x1 := startXViewPort + viewWidth;
+        end;
+    end;
+  pixels := ptc_surface_lock;
+  case BitBlt of
+    XORPut:
+      Begin
+        for j:=Y to Y1 do
+          Begin
+            JxW:=j*PTCWidth;
+            inc(k,deltaX);
+            for i:=X to X1 do
+              begin
+                I_JxW:=i+JxW;
+                pixels[I_JxW] := pixels[I_JxW] xor pt(bitmap)[k];
+                inc(k);
+              end;
+            inc(k,deltaX1);
+          End;
+      End;
+    ORPut:
+      Begin
+        for j:=Y to Y1 do
+          Begin
+            JxW:=j*PTCWidth;
+            inc(k,deltaX);
+            for i:=X to X1 do
+              begin
+                I_JxW:=i+JxW;
+                pixels[I_JxW] := pixels[I_JxW] or pt(bitmap)[k];
+                inc(k);
+              end;
+            inc(k,deltaX1);
+          End;
+      End;
+    AndPut:
+      Begin
+        for j:=Y to Y1 do
+          Begin
+            JxW:=j*PTCWidth;
+            inc(k,deltaX);
+            for i:=X to X1 do
+              begin
+                I_JxW:=i+JxW;
+                pixels[I_JxW] := pixels[I_JxW] and pt(bitmap)[k];
+                inc(k);
+              end;
+            inc(k,deltaX1);
+          End;
+      End;
+    NotPut:
+      Begin
+        for j:=Y to Y1 do
+          Begin
+            JxW:=j*PTCWidth;
+            inc(k,deltaX);
+            for i:=X to X1 do
+              begin
+                pixels[i+JxW] := pt(bitmap)[k] xor $FFFFFF;
+                inc(k);
+              end;
+            inc(k,deltaX1);
+          End;
+      End;
+    Else
+      Begin
+        for j:=Y to Y1 do
+          Begin
+            JxW:=j*PTCWidth;
+            inc(k,deltaX);
+            for i:=X to X1 do
+              begin
+                pixels[i+JxW] := pt(bitmap)[k];
+                inc(k);
+              end;
+            inc(k,deltaX1);
+          End;
+      End;
+  End; {case}
+  ptc_surface_unlock;
+  ptc_update;
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
 {**********************************************************}
 { Procedure GetScanLine()                                  }
@@ -2425,7 +2547,7 @@ end;
       mode.DirectPutPixel  := @ptc_DirectPixelProc_32bpp;
       mode.PutPixel        := @ptc_PutPixelProc_32bpp;
       mode.GetPixel        := @ptc_GetPixelProc_32bpp;
-//      mode.PutImage        := @ptc_PutImageProc_32bpp;
+      mode.PutImage        := @ptc_PutImageProc_32bpp;
       mode.GetImage        := @ptc_GetImageProc_32bpp;
       mode.GetScanLine     := @ptc_GetScanLineProc_32bpp;
       mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
