@@ -1940,6 +1940,38 @@ Begin
        End;
 End;
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+Procedure PTC_GetScanlineProc_32bpp (X1, X2, Y : smallint; Var Data);
+Var
+  pixels        : Plongword;
+  x,vpx1,vpx2   : smallint;
+Begin
+   vpx1:=X1+StartXViewPort;
+   vpx2:=X2+StartXViewPort;
+   Y:=Y+StartYViewPort;
+    { constrain to the part of the scanline that is in the viewport }
+    if clipPixels then
+       begin
+          if vpx1 <  startXViewPort then
+             vpx1 := startXViewPort;
+          if vpx2 >  startXViewPort + viewWidth then
+             vpx2 := startXViewPort + viewWidth;
+       end;
+    { constrain to the part of the scanline that is on the screen }
+    if vpx1 <  0 then
+       vpx1 := 0;
+    if vpx2 >= PTCwidth then
+       vpx2 := PTCwidth-1;
+    If (ClipPixels AND (y <= startYViewPort+viewHeight) and (y >= startYViewPort) and (y>=0) and (y<PTCheight)) or Not(ClipPixels) then
+       Begin
+          pixels := ptc_surface_lock;
+          For x:=vpx1 to vpx2 Do
+             LongWordArray(Data)[x-StartXViewPort-x1]:=pixels[x+y*PTCWidth];
+          ptc_surface_unlock;
+       End;
+End;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
 {**********************************************************}
 { Procedure GetImage()                                     }
 {----------------------------------------------------------}
@@ -2342,7 +2374,7 @@ end;
       mode.GetPixel        := @ptc_GetPixelProc_32bpp;
 //      mode.PutImage        := @ptc_PutImageProc_32bpp;
 //      mode.GetImage        := @ptc_GetImageProc_32bpp;
-//      mode.GetScanLine     := @ptc_GetScanLineProc_32bpp;
+      mode.GetScanLine     := @ptc_GetScanLineProc_32bpp;
       mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
       mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
       //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
