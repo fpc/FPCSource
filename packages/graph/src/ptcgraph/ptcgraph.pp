@@ -1686,6 +1686,61 @@ begin
   ptc_update;
 end;
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+procedure ptc_PatternLineProc_32bpp(x1,x2,y: smallint);
+{********************************************************}
+{ Draws a horizontal patterned line according to the     }
+{ current Fill Settings.                                 }
+{********************************************************}
+{ Important notes:                                       }
+{  - CurrentColor must be set correctly before entering  }
+{    this routine.                                       }
+{********************************************************}
+var
+  pixels: PLongWord;
+  NrIterations: smallint;
+  i           : smallint;
+  j           : smallint;
+  TmpFillPattern : byte;
+begin
+  { convert to global coordinates ... }
+  x1 := x1 + StartXViewPort;
+  x2 := x2 + StartXViewPort;
+  y  := y + StartYViewPort;
+  { if line was fully clipped then exit...}
+  if LineClipped(x1,y,x2,y,StartXViewPort,StartYViewPort,
+     StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+      exit;
+
+  { Get the current pattern }
+  TmpFillPattern := FillPatternTable
+    [FillSettings.Pattern][(y and $7)+1];
+
+  pixels := ptc_surface_lock;
+
+  { number of times to go throuh the 8x8 pattern }
+  NrIterations := abs(x2 - x1+8) div 8;
+  for i := 0 to NrIterations do
+    for j := 0 to 7 do
+    begin
+      { x1 mod 8 }
+      if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
+        pixels[x1+y*PTCWidth] := FillSettings.Color
+      else
+        pixels[x1+y*PTCWidth] := CurrentBkColor;
+      Inc(x1);
+      if x1 > x2 then
+      begin
+        ptc_surface_unlock;
+        ptc_update;
+        exit;
+      end;
+    end;
+  ptc_surface_unlock;
+  ptc_update;
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
 procedure ptc_SetRGBAllPaletteProc(const Palette: PaletteType);
 begin
   {...}
@@ -2667,6 +2722,7 @@ end;
       //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
       mode.HLine           := @ptc_HLineProc_32bpp;
       mode.VLine           := @ptc_VLineProc_32bpp;
+      mode.PatternLine     := @ptc_PatternLineProc_32bpp;
       mode.SetVisualPage   := @ptc_SetVisualPage;
       mode.SetActivePage   := @ptc_SetActivePage;
     end;
