@@ -15012,6 +15012,7 @@ begin
   Add('type');
   Add('  TExtAClass = class of TExtA;');
   Add('  TExtA = class external name ''ExtA''');
+  Add('    C: TExtAClass;');
   Add('    constructor New;');
   Add('  end;');
   Add('var');
@@ -15026,6 +15027,7 @@ begin
   Add('  end;');
   Add('  a:=test1.c.new;');
   Add('  a:=test1.c.new();');
+  Add('  a:=A.c.new();');
   ConvertProgram;
   CheckSource('TestExternalClass_ClassOf_New',
     LinesToStr([ // statements
@@ -15040,6 +15042,7 @@ begin
     '$mod.A = new $with1();',
     '$mod.A = new $mod.C();',
     '$mod.A = new $mod.C();',
+    '$mod.A = new $mod.A.C();',
     '']));
 end;
 
@@ -15698,6 +15701,8 @@ begin
   '    v:=GetItems(14);',
   '    setitems(15,16);',
   '  end;',
+  '  v:=test1.arr.items[17];',
+  '  test1.arr.items[18]:=v;',
   '']);
   ConvertProgram;
   CheckSource('TestExternalClass_BracketAccessor',
@@ -15741,6 +15746,8 @@ begin
     'var $with2 = $mod.Arr;',
     '$mod.v = $with2[14];',
     '$with2[15] = 16;',
+    '$mod.v = $mod.Arr[17];',
+    '$mod.Arr[18] = $mod.v;',
     '']));
 end;
 

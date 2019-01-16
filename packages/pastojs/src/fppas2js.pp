@@ -487,7 +487,7 @@ const
   nVirtualMethodNameMustMatchExternal = 4013;
   nPublishedNameMustMatchExternal = 4014;
   nInvalidVariableModifier = 4015;
-  nNoArgumentsAllowedForExternalObjectConstructor = 4016;
+  nExternalObjectConstructorMustBeNamedNew = 4016;
   nNewInstanceFunctionMustBeVirtual = 4017;
   nNewInstanceFunctionMustHaveTwoParameters = 4018;
   nNewInstanceFunctionMustNotHaveOverloadAtX = 4019;
@@ -515,7 +515,7 @@ resourcestring
   sVirtualMethodNameMustMatchExternal = 'Virtual method name must match external';
   sInvalidVariableModifier = 'Invalid variable modifier "%s"';
   sPublishedNameMustMatchExternal = 'Published name must match external';
-  sNoArgumentsAllowedForExternalObjectConstructor = 'no arguments allowed for external object constructor';
+  sExternalObjectConstructorMustBeNamedNew = 'external object constructor must be named "new"';
   sNewInstanceFunctionMustBeVirtual = 'NewInstance function must be virtual';
   sNewInstanceFunctionMustHaveTwoParameters = 'NewInstance function must have two parameters';
   sNewInstanceFunctionMustNotHaveOverloadAtX = 'NewInstance function must not have overload at %s';
@@ -3728,12 +3728,9 @@ begin
               RaiseMsg(20170323083511,nVirtualMethodNameMustMatchExternal,
                 sVirtualMethodNameMustMatchExternal,[],Proc.LibrarySymbolName);
             end
-          else if El.Args.Count>0 then
-            RaiseMsg(20170322164357,nNoArgumentsAllowedForExternalObjectConstructor,
-              sNoArgumentsAllowedForExternalObjectConstructor,[],TPasArgument(El.Args[0]));
-          if pmVirtual in Proc.Modifiers then
-            RaiseMsg(20170322183141,nInvalidXModifierY,sInvalidXModifierY,
-              [Proc.ElementTypeName,'virtual'],Proc.ProcType);
+          else
+            RaiseMsg(20190116211019,nExternalObjectConstructorMustBeNamedNew,
+              sExternalObjectConstructorMustBeNamedNew,[],El);
           end
         else
           RaiseMsg(20170322163210,nPasElementNotSupported,sPasElementNotSupported,
@@ -9259,7 +9256,6 @@ var
   Proc: TPasConstructor;
   ExtName: String;
   NewExpr: TJSNewMemberExpression;
-  Call: TJSCallExpression;
   LeftResolved: TPasResolverResult;
   OldAccess: TCtxAccess;
   ExtNameEl: TJSElement;
@@ -9267,7 +9263,6 @@ var
 begin
   Result:=nil;
   NewExpr:=nil;
-  Call:=nil;
   ExtNameEl:=nil;
   try
     Proc:=Ref.Declaration as TPasConstructor;
@@ -9313,7 +9308,7 @@ begin
 
     if CompareText(Proc.Name,'new')=0 then
       begin
-      // create 'new ExtName(params)'
+      // create "new ExtName(params)"
       NewExpr:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,Ref.Element));
       NewExpr.MExpr:=ExtNameEl;
       NewExpr.Args:=TJSArguments(CreateElement(TJSArguments,Ref.Element));
@@ -9324,11 +9319,10 @@ begin
       NewExpr:=nil;
       end
     else
-      RaiseInconsistency(20170323083214,Proc);
+      RaiseNotSupported(Ref.Element,AContext,20190116210204);
   finally
     ExtNameEl.Free;
     NewExpr.Free;
-    Call.Free;
   end;
 end;
 
