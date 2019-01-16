@@ -1580,6 +1580,59 @@ begin
   ptc_update;
 end;
 
+procedure ptc_PatternLineProc_8bpp(x1,x2,y: smallint);
+{********************************************************}
+{ Draws a horizontal patterned line according to the     }
+{ current Fill Settings.                                 }
+{********************************************************}
+{ Important notes:                                       }
+{  - CurrentColor must be set correctly before entering  }
+{    this routine.                                       }
+{********************************************************}
+var
+  pixels: PByte;
+  NrIterations: smallint;
+  i           : smallint;
+  j           : smallint;
+  TmpFillPattern : byte;
+begin
+  { convert to global coordinates ... }
+  x1 := x1 + StartXViewPort;
+  x2 := x2 + StartXViewPort;
+  y  := y + StartYViewPort;
+  { if line was fully clipped then exit...}
+  if LineClipped(x1,y,x2,y,StartXViewPort,StartYViewPort,
+     StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+      exit;
+
+  { Get the current pattern }
+  TmpFillPattern := FillPatternTable
+    [FillSettings.Pattern][(y and $7)+1];
+
+  pixels := ptc_surface_lock;
+
+  { number of times to go throuh the 8x8 pattern }
+  NrIterations := abs(x2 - x1+8) div 8;
+  for i := 0 to NrIterations do
+    for j := 0 to 7 do
+    begin
+      { x1 mod 8 }
+      if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
+        pixels[x1+y*PTCWidth] := FillSettings.Color and ColorMask
+      else
+        pixels[x1+y*PTCWidth] := CurrentBkColor and ColorMask;
+      Inc(x1);
+      if x1 > x2 then
+      begin
+        ptc_surface_unlock;
+        ptc_update;
+        exit;
+      end;
+    end;
+  ptc_surface_unlock;
+  ptc_update;
+end;
+
 procedure ptc_SetRGBAllPaletteProc(const Palette: PaletteType);
 begin
   {...}
@@ -2409,6 +2462,7 @@ end;
       //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
       mode.HLine           := @ptc_HLineProc_8bpp;
       mode.VLine           := @ptc_VLineProc_8bpp;
+      mode.PatternLine     := @ptc_PatternLineProc_8bpp;
       mode.SetBkColor      := @SetBkColorCGA320;
       mode.GetBkColor      := @GetBkColorCGA320;
       mode.SetVisualPage   := @ptc_SetVisualPage;
@@ -2436,6 +2490,7 @@ end;
       //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
       mode.HLine           := @ptc_HLineProc_8bpp;
       mode.VLine           := @ptc_VLineProc_8bpp;
+      mode.PatternLine     := @ptc_PatternLineProc_8bpp;
       mode.SetBkColor      := @SetBkColorCGA640;
       mode.GetBkColor      := @GetBkColorCGA640;
       mode.SetVisualPage   := @ptc_SetVisualPage;
@@ -2460,6 +2515,7 @@ end;
       //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
       mode.HLine          := @ptc_HLineProc_8bpp;
       mode.VLine          := @ptc_VLineProc_8bpp;
+      mode.PatternLine     := @ptc_PatternLineProc_8bpp;
       mode.SetVisualPage  := @ptc_SetVisualPage;
       mode.SetActivePage  := @ptc_SetActivePage;
     end;
@@ -2480,6 +2536,7 @@ end;
       mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
       mode.HLine           := @ptc_HLineProc_8bpp;
       mode.VLine           := @ptc_VLineProc_8bpp;
+      mode.PatternLine     := @ptc_PatternLineProc_8bpp;
       mode.SetVisualPage   := @ptc_SetVisualPage;
       mode.SetActivePage   := @ptc_SetActivePage;
     end;
@@ -2501,6 +2558,7 @@ end;
       //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
       mode.HLine           := @ptc_HLineProc_8bpp;
       mode.VLine           := @ptc_VLineProc_8bpp;
+      mode.PatternLine     := @ptc_PatternLineProc_8bpp;
       mode.SetVisualPage   := @ptc_SetVisualPage;
       mode.SetActivePage   := @ptc_SetActivePage;
     end;
@@ -2731,6 +2789,7 @@ end;
 
        HLine          := @ptc_HLineProc_8bpp;
        VLine          := @ptc_VLineProc_8bpp;
+       PatternLine    := @ptc_PatternLineProc_8bpp;
 
        SetVisualPage  := @ptc_SetVisualPage;
        SetActivePage  := @ptc_SetActivePage;
@@ -2768,6 +2827,7 @@ end;
          GetRGBPalette  := @ptc_GetRGBPaletteProc;
          HLine          := @ptc_HLineProc_8bpp;
          VLine          := @ptc_VLineProc_8bpp;
+         PatternLine    := @ptc_PatternLineProc_8bpp;
          SetVisualPage  := @ptc_SetVisualPage;
          SetActivePage  := @ptc_SetActivePage;
          SetBkColor     := @SetBkColorHGC720;
@@ -2883,6 +2943,7 @@ end;
 
        HLine          := @ptc_HLineProc_8bpp;
        VLine          := @ptc_VLineProc_8bpp;
+       PatternLine    := @ptc_PatternLineProc_8bpp;
 
        SetVisualPage  := @ptc_SetVisualPage;
        SetActivePage  := @ptc_SetActivePage;
@@ -2917,6 +2978,7 @@ end;
 
        HLine          := @ptc_HLineProc_8bpp;
        VLine          := @ptc_VLineProc_8bpp;
+       PatternLine    := @ptc_PatternLineProc_8bpp;
 
        SetVisualPage  := @ptc_SetVisualPage;
        SetActivePage  := @ptc_SetActivePage;
