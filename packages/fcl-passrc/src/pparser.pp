@@ -341,8 +341,6 @@ type
     function CreateBinaryExpr(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos): TBinaryExpr; overload;
     procedure AddToBinaryExprChain(var ChainFirst: TPasExpr;
       Element: TPasExpr; AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos);
-    procedure AddParamsToBinaryExprChain(var ChainFirst: TPasExpr;
-      Params: TParamsExpr);
     {$IFDEF VerbosePasParser}
     procedure WriteBinaryExprChain(Prefix: string; First, Last: TPasExpr);
     {$ENDIF}
@@ -2355,9 +2353,9 @@ begin
         if CurToken in [tkIdentifier,tktrue,tkfalse,tkself] then // true and false are sub identifiers as well
           begin
           aName:=aName+'.'+CurTokenString;
-          expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
-          AddToBinaryExprChain(Result,expr,eopSubIdent,ScrPos);
-          Func:=expr;
+          Expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
+          AddToBinaryExprChain(Result,Expr,eopSubIdent,ScrPos);
+          Func:=Expr;
           NextToken;
           end
         else
@@ -2373,14 +2371,18 @@ begin
         else
           Params:=ParseParams(AParent,pekArrayParams);
         if not Assigned(Params) then Exit;
-        AddParamsToBinaryExprChain(Result,Params);
+        Params.Value:=Result;
+        Result.Parent:=Params;
+        Result:=Params;
         CanSpecialize:=false;
+        Func:=nil;
         end;
       tkCaret:
         begin
         Result:=CreateUnaryExpr(AParent,Result,TokenToExprOp(CurToken));
         NextToken;
         CanSpecialize:=false;
+        Func:=nil;
         end;
       tkLessThan:
         begin
@@ -2402,6 +2404,7 @@ begin
           CanSpecialize:=false;
           NextToken;
           end;
+        Func:=nil;
         end
       else
         break;
@@ -2568,26 +2571,40 @@ begin
             CheckToken(tkBraceClose);
             end;
           NextToken;
-          // for expressions like (ppdouble)^^;
-          while (CurToken=tkCaret) do
-            begin
-            x:=CreateUnaryExpr(AParent,x, TokenToExprOp(tkCaret));
-            NextToken;
+          repeat
+            case CurToken of
+            tkCaret:
+              begin
+              // for expressions like (ppdouble)^^;
+              x:=CreateUnaryExpr(AParent,x, TokenToExprOp(tkCaret));
+              NextToken;
+              end;
+            tkBraceOpen:
+              begin
+              // for expressions like (a+b)(0);
+              ArrParams:=ParseParams(AParent,pekFuncParams,False);
+              ArrParams.Value:=x;
+              x.Parent:=ArrParams;
+              x:=ArrParams;
+              end;
+            tkSquaredBraceOpen:
+              begin
+              // for expressions like (PChar(a)+10)[0];
+              ArrParams:=ParseParams(AParent,pekArrayParams,False);
+              ArrParams.Value:=x;
+              x.Parent:=ArrParams;
+              x:=ArrParams;
+              end;
+            tkDot:
+              begin
+              // for expressions like (TObject(m)).Free;
+              NextToken;
+              x:=CreateBinaryExpr(AParent,x, ParseExprOperand(AParent), TokenToExprOp(tkDot));
+              end
+            else
+              break;
             end;
-          // for expressions like (PChar(a)+10)[0];
-          if (CurToken=tkSquaredBraceOpen) then
-            begin
-            ArrParams:=ParseParams(AParent,pekArrayParams,False);
-            ArrParams.Value:=x;
-            x.Parent:=ArrParams;
-            x:=ArrParams;
-            end;
-          // for expressions like (TObject(m)).Free;
-          if (CurToken=tkDot) then
-            begin
-            NextToken;
-            x:=CreateBinaryExpr(AParent,x, ParseExprOperand(AParent), TokenToExprOp(tkDot));
-            end;
+          until false;
           end
         else
           begin
@@ -5221,7 +5238,9 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
       Result := Result + '[';
       Params:=TParamsExpr(CreateElement(TParamsExpr,'',aParent));
       Params.Kind:=pekArrayParams;
-      AddParamsToBinaryExprChain(Expr,Params);
+      Params.Value:=Expr;
+      Expr.Parent:=Params;
+      Expr:=Params;
       NextToken;
       case CurToken of
         tkChar:             Param:=CreatePrimitiveExpr(aParent,pekString, CurTokenText);
@@ -7039,37 +7058,6 @@ begin
     begin
     // create new binary, old becomes left, Element right
     ChainFirst:=CreateBinaryExpr(ChainFirst.Parent,ChainFirst,Element,AOpCode,ASrcPos);
-    end;
-end;
-
-procedure TPasParser.AddParamsToBinaryExprChain(var ChainFirst: TPasExpr;
-  Params: TParamsExpr);
-// append Params to chain, using the last(right) element as Params.Value
-var
-  Bin: TBinaryExpr;
-begin
-  if Params.Value<>nil then
-    ParseExcSyntaxError;
-  if ChainFirst=nil then
-    ParseExcSyntaxError;
-  if ChainFirst is TBinaryExpr then
-    begin
-    Bin:=TBinaryExpr(ChainFirst);
-    if Bin.left=nil then
-      ParseExcSyntaxError;
-    if Bin.right=nil then
-      ParseExcSyntaxError;
-    Params.Value:=Bin.right;
-    Params.Value.Parent:=Params;
-    Bin.right:=Params;
-    Params.Parent:=Bin;
-    end
-  else
-    begin
-    Params.Value:=ChainFirst;
-    Params.Parent:=ChainFirst.Parent;
-    ChainFirst.Parent:=Params;
-    ChainFirst:=Params;
     end;
 end;
 

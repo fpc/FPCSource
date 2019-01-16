@@ -96,14 +96,19 @@ type
     Procedure TestBinaryLessThanEqual;
     Procedure TestBinaryLargerThan;
     Procedure TestBinaryLargerThanEqual;
-    procedure TestBinaryFullIdent;
+    procedure TestBinarySubIdent;
     Procedure TestArrayElement;
-    Procedure TestArrayElementrecord;
+    Procedure TestArrayElementRecord;
     Procedure TestArrayElement2Dims;
     Procedure TestFunctionCall;
     Procedure TestFunctionCall2args;
     Procedure TestFunctionCallNoArgs;
-    Procedure ParseStrWithFormatFullyQualified;
+    Procedure TestSubIdentStrWithFormat;
+    Procedure TestAPlusCallB;
+    Procedure TestAPlusBBracketFuncParams;
+    Procedure TestAPlusBBracketArrayParams;
+    Procedure TestAPlusBBracketDotC;
+    Procedure TestADotBDotC;
     Procedure TestRange;
     Procedure TestBracketsTotal;
     Procedure TestBracketsLeft;
@@ -257,7 +262,7 @@ begin
   AssertExpression('Simple identifier',theExpr,pekIdent,'b');
 end;
 
-procedure TTestExpressions.TestBinaryFullIdent;
+procedure TTestExpressions.TestBinarySubIdent;
 begin
   DeclareVar('integer','a');
   DeclareVar('record x,y : integer; end','b');
@@ -282,7 +287,7 @@ begin
   AssertExpression('Simple identifier',p.params[0],pekNumber,'1');
 end;
 
-procedure TTestExpressions.TestArrayElementrecord;
+procedure TTestExpressions.TestArrayElementRecord;
 
 Var
   P : TParamsExpr;
@@ -290,14 +295,15 @@ Var
 begin
   DeclareVar('record a : array[1..2] of integer; end ','b');
   ParseExpression('b.a[1]');
-  B:=AssertExpression('Binary of record',TheExpr,pekBinary,TBinaryExpr) as TBinaryExpr;
-  AssertEquals('Name is Subident',eopSubIdent,B.Opcode);
-  AssertExpression('Name of array',B.Left,pekIdent,'b');
-  P:=TParamsExpr(AssertExpression('Simple identifier',B.right,pekArrayParams,TParamsExpr));
-  AssertExpression('Name of array',P.Value,pekIdent,'a');
+  P:=TParamsExpr(AssertExpression('Array Param',TheExpr,pekArrayParams,TParamsExpr));
   TAssert.AssertSame('P.value.parent=P',P,P.Value.Parent);
   AssertEquals('One dimension',1,Length(P.params));
   AssertExpression('Simple identifier',P.params[0],pekNumber,'1');
+
+  B:=TBinaryExpr(AssertExpression('Binary of record',P.Value,pekBinary,TBinaryExpr));
+  AssertEquals('Name is Subident',eopSubIdent,B.Opcode);
+  AssertExpression('Name of array',B.Left,pekIdent,'b');
+  AssertExpression('Name of array',B.right,pekIdent,'a');
   TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
   TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
 end;
@@ -1124,7 +1130,7 @@ begin
   AssertNotNull('Have left',AOperand);
 end;
 
-Procedure TTestExpressions.ParseStrWithFormatFullyQualified;
+procedure TTestExpressions.TestSubIdentStrWithFormat;
 
 Var
   P : TParamsExpr;
@@ -1134,12 +1140,113 @@ begin
   DeclareVar('string','a');
   DeclareVar('integer','i');
   ParseExpression('system.str(i:0:3,a)');
-  B:=TBinaryExpr(AssertExpression('Binary identifier',theExpr,pekBinary,TBinaryExpr));
-  P:=TParamsExpr(AssertExpression('Simple identifier',B.Right,pekFuncParams,TParamsExpr));
-  AssertExpression('Name of function',P.Value,pekIdent,'str');
+  P:=TParamsExpr(AssertExpression('Params',TheExpr,pekFuncParams,TParamsExpr));
+  TAssert.AssertSame('P.value.parent=P',P,P.Value.Parent);
   AssertEquals('2 argument',2,Length(p.params));
   AssertExpression('Simple identifier',p.params[0],pekIdent,'i');
   AssertExpression('Simple identifier',p.params[1],pekIdent,'a');
+  TAssert.AssertSame('P.params[0].parent=P',P,P.params[0].Parent);
+  TAssert.AssertSame('P.params[1].parent=P',P,P.params[1].Parent);
+  B:=TBinaryExpr(AssertExpression('Binary identifier',P.Value,pekBinary,TBinaryExpr));
+  AssertExpression('Name of unit',B.left,pekIdent,'system');
+  AssertExpression('Name of function',B.right,pekIdent,'str');
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+end;
+
+procedure TTestExpressions.TestAPlusCallB;
+var
+  B: TBinaryExpr;
+  P: TParamsExpr;
+begin
+  DeclareVar('string','a');
+  DeclareVar('integer','b');
+  ParseExpression('a+b(1)');
+  B:=TBinaryExpr(AssertExpression('Binary identifier',TheExpr,pekBinary,TBinaryExpr));
+  AssertExpression('left a',B.left,pekIdent,'a');
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  P:=TParamsExpr(AssertExpression('Params',B.right,pekFuncParams,TParamsExpr));
+  TAssert.AssertSame('P.value.parent=P',P,P.Value.Parent);
+  AssertEquals('1 argument',1,Length(p.params));
+  AssertExpression('param 1',p.params[0],pekNumber,'1');
+end;
+
+procedure TTestExpressions.TestAPlusBBracketFuncParams;
+var
+  P: TParamsExpr;
+  B: TBinaryExpr;
+begin
+  DeclareVar('string','a');
+  DeclareVar('integer','b');
+  ParseExpression('(a+b)(1)');
+  P:=TParamsExpr(AssertExpression('Params',TheExpr,pekFuncParams,TParamsExpr));
+  TAssert.AssertSame('P.value.parent=P',P,P.Value.Parent);
+  AssertEquals('1 argument',1,Length(p.params));
+  AssertExpression('param 1',p.params[0],pekNumber,'1');
+  B:=TBinaryExpr(AssertExpression('Binary identifier',P.Value,pekBinary,TBinaryExpr));
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertExpression('left a',B.left,pekIdent,'a');
+  AssertExpression('right b',B.right,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestAPlusBBracketArrayParams;
+var
+  B: TBinaryExpr;
+  P: TParamsExpr;
+begin
+  DeclareVar('string','a');
+  DeclareVar('integer','b');
+  ParseExpression('(a+b)[1]');
+  P:=TParamsExpr(AssertExpression('Params',TheExpr,pekArrayParams,TParamsExpr));
+  TAssert.AssertSame('P.value.parent=P',P,P.Value.Parent);
+  AssertEquals('1 argument',1,Length(p.params));
+  AssertExpression('param 1',p.params[0],pekNumber,'1');
+
+  B:=TBinaryExpr(AssertExpression('Binary identifier',P.Value,pekBinary,TBinaryExpr));
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertExpression('left a',B.left,pekIdent,'a');
+  AssertExpression('right b',B.right,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestAPlusBBracketDotC;
+var
+  B, PlusB: TBinaryExpr;
+begin
+  DeclareVar('string','a');
+  DeclareVar('integer','b');
+  ParseExpression('(a+b).c');
+  B:=TBinaryExpr(AssertExpression('Binary identifier',TheExpr,pekBinary,TBinaryExpr));
+  AssertEquals('().',eopSubIdent,B.OpCode);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertExpression('right c',B.right,pekIdent,'c');
+
+  PlusB:=TBinaryExpr(AssertExpression('Binary identifier',B.left,pekBinary,TBinaryExpr));
+  TAssert.AssertSame('PlusB.left.parent=PlusB',PlusB,PlusB.left.Parent);
+  TAssert.AssertSame('PlusB.right.parent=PlusB',PlusB,PlusB.right.Parent);
+  AssertExpression('left a',PlusB.left,pekIdent,'a');
+  AssertExpression('right b',PlusB.right,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestADotBDotC;
+var
+  B, SubB: TBinaryExpr;
+begin
+  ParseExpression('a.b.c');
+  B:=TBinaryExpr(AssertExpression('Binary identifier',TheExpr,pekBinary,TBinaryExpr));
+  AssertEquals('dot expr',eopSubIdent,B.OpCode);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertExpression('right c',B.right,pekIdent,'c');
+
+  SubB:=TBinaryExpr(AssertExpression('Binary identifier',B.left,pekBinary,TBinaryExpr));
+  TAssert.AssertSame('PlusB.left.parent=PlusB',SubB,SubB.left.Parent);
+  TAssert.AssertSame('PlusB.right.parent=PlusB',SubB,SubB.right.Parent);
+  AssertExpression('left a',SubB.left,pekIdent,'a');
+  AssertExpression('right b',SubB.right,pekIdent,'b');
 end;
 
 initialization
