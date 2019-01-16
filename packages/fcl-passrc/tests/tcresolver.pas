@@ -347,7 +347,6 @@ type
     Procedure TestForLoopStartIncompFail;
     Procedure TestForLoopEndIncompFail;
     Procedure TestSimpleStatement_VarFail;
-    Procedure TestRecord_Default;
 
     // units
     Procedure TestUnitForwardOverloads;
@@ -483,6 +482,7 @@ type
     Procedure TestRecord_Const_UntypedFail;
     Procedure TestRecord_Const_NestedRecord;
     Procedure TestRecord_Const_Variant;
+    Procedure TestRecord_Default;
     Procedure TestRecord_VarExternal;
     Procedure TestRecord_VarSelfFail;
 
@@ -5240,23 +5240,6 @@ begin
   CheckResolverException('Illegal expression',nIllegalExpression);
 end;
 
-procedure TTestResolver.TestRecord_Default;
-begin
-  StartProgram(false);
-  Add([
-  'type',
-  '  TPoint = record x, y: longint; end;',
-  'var',
-  '  i: longint;',
-  '  r: TPoint;',
-  'begin',
-  '  i:=Default(longint);',
-  '  r:=Default(r);',
-  '  r:=Default(TPoint);',
-  '']);
-  ParseProgram;
-end;
-
 procedure TTestResolver.TestUnitForwardOverloads;
 begin
   StartUnit(false);
@@ -7798,6 +7781,23 @@ begin
   '    )',
   '  );',
   'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecord_Default;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  'var',
+  '  i: longint;',
+  '  r: TPoint;',
+  'begin',
+  '  i:=Default(longint);',
+  '  r:=Default(r);',
+  '  r:=Default(TPoint);',
+  '']);
   ParseProgram;
 end;
 
@@ -14837,28 +14837,37 @@ end;
 procedure TTestResolver.TestProcType_Property;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class end;');
-  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
-  Add('  TControl = class');
-  Add('    FOnClick: TNotifyEvent;');
-  Add('    property OnClick: TNotifyEvent read FOnClick write FOnClick;');
-  Add('    procedure Click(Sender: TObject);');
-  Add('  end;');
-  Add('procedure TControl.Click(Sender: TObject);');
-  Add('begin');
-  Add('  if Assigned(OnClick) then ;');
-  Add('  OnClick:=@Click;');
-  Add('  OnClick(Sender);');
-  Add('  Self.OnClick(Sender);');
-  Add('  with Self do OnClick(Sender);');
-  Add('end;');
-  Add('var Btn: TControl;');
-  Add('begin');
-  Add('  if Assigned(Btn.OnClick) then ;');
-  Add('  Btn.OnClick(Btn);');
-  Add('  Btn.OnClick(Btn);');
-  Add('  with Btn do OnClick(Btn);');
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TNotifyEvent = procedure(Sender: TObject) of object;',
+  '  TControl = class',
+  '    FOnClick: TNotifyEvent;',
+  '    property OnClick: TNotifyEvent read FOnClick write FOnClick;',
+  '    procedure Click(Sender: TObject);',
+  '  end;',
+  '  TButton = class(TControl)',
+  '    property OnClick;',
+  '  end;',
+  'procedure TControl.Click(Sender: TObject);',
+  'begin',
+  '  if Assigned(OnClick) then ;',
+  '  OnClick:=@Click;',
+  '  OnClick(Sender);',
+  '  Self.OnClick(Sender);',
+  '  with Self do OnClick(Sender);',
+  'end;',
+  'var',
+  '  Ctrl: TControl;',
+  '  Btn: TButton;',
+  'begin',
+  '  if Assigned(Ctrl.OnClick) then ;',
+  '  Ctrl.OnClick(Ctrl);',
+  '  with Ctrl do OnClick(Ctrl);',
+  '  if Assigned(Btn.OnClick) then ;',
+  '  Btn.OnClick(Btn);',
+  '  with Btn do OnClick(Btn);',
+  '']);
   ParseProgram;
 end;
 

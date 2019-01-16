@@ -4245,7 +4245,11 @@ begin
     begin
     Abort:=true; // can't be overloaded
     if Data^.Found<>nil then exit;
-    VarType:=ResolveAliasType(TPasVariable(El).VarType);
+    if El.ClassType=TPasProperty then
+      VarType:=GetPasPropertyType(TPasProperty(El))
+    else
+      VarType:=TPasVariable(El).VarType;
+    VarType:=ResolveAliasType(VarType);
     if VarType is TPasProcedureType then
       begin
       Distance:=CheckCallProcCompatibility(TPasProcedureType(VarType),Data^.Params,false);
