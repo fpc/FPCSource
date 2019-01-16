@@ -860,6 +860,16 @@ type
     Procedure TestHint_ElementHints_WarnOff_SymbolDeprecated;
     Procedure TestHint_Garbage;
 
+    // helpers
+    Procedure ClassHelper;
+    Procedure ClassHelper_AncestorIsNotHelperForDescendantFail;
+    Procedure ClassHelper_ForInterfaceFail;
+    Procedure ClassHelper_FieldFail;
+    Procedure ClassHelper_AbstractFail;
+    Procedure ClassHelper_VirtualObjFPCFail;
+    Procedure RecordHelper;
+    Procedure TypeHelper;
+
     // attributes
     Procedure TestAttributes_Ignore;
   end;
@@ -12148,7 +12158,7 @@ begin
   '    i: longint;',
   '  end;',
   'begin']);
-  CheckParserException(SParserNoFieldsAllowed,nParserNoFieldsAllowed);
+  CheckParserException('Fields are not allowed in interface',nParserNoFieldsAllowed);
 end;
 
 procedure TTestResolver.TestClassInterfaceConstFail;
@@ -12249,7 +12259,7 @@ begin
   '    procedure DoIt; virtual;',
   '  end;',
   'begin']);
-  CheckParserException(sParserNoFieldsAllowed,nParserNoFieldsAllowed);
+  CheckParserException('Fields are not allowed in interface',nParserNoFieldsAllowed);
 end;
 
 procedure TTestResolver.TestClassInterface_Overloads;
@@ -15484,6 +15494,162 @@ begin
   ParseProgram;
   CheckResolverHint(mtHint,nTextAfterFinalIgnored,sTextAfterFinalIgnored);
   CheckResolverUnexpectedHints(true);
+end;
+
+procedure TTestResolver.ClassHelper;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjectHelper = class helper for TObject',
+  '  type T = word;',
+  '  const',
+  '    c: T = 3;',
+  '    k: T = 4;',
+  '  class var',
+  '    v: T;',
+  '    w: T;',
+  '  end;',
+  '  TBird = class(TObject)',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '  end;',
+  '  TExtObjHelper = class helper(TObjectHelper) for TBird',
+  '  end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.ClassHelper_AncestorIsNotHelperForDescendantFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject)',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '  end;',
+  '  TFish = class(TObject)',
+  '  end;',
+  '  THelper = class helper(TBirdHelper) for TFish',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Derived class helper must extend a subclass of "TBird" or the class itself',
+    nDerivedXMustExtendASubClassY);
+end;
+
+procedure TTestResolver.ClassHelper_ForInterfaceFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  TBirdHelper = class helper for IUnknown',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('class type expected, but IUnknown found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.ClassHelper_FieldFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    F: word;',
+  '  end;',
+  'begin',
+  '']);
+  CheckParserException('Fields are not allowed in class helper',
+    nParserNoFieldsAllowed);
+end;
+
+procedure TTestResolver.ClassHelper_AbstractFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure DoIt; virtual; abstract;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Invalid class helper procedure modifier abstract',
+    nInvalidXModifierY);
+end;
+
+procedure TTestResolver.ClassHelper_VirtualObjFPCFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure DoIt; virtual;',
+  '  end;',
+  'procedure TObjHelper.DoIt;',
+  'begin end;',
+  'begin',
+  '']);
+  CheckResolverException('Invalid class helper procedure modifier virtual',
+    nInvalidXModifierY);
+end;
+
+procedure TTestResolver.RecordHelper;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TRec = record',
+  '  end;',
+  '  TRecHelper = record helper for TRec',
+  '  type T = word;',
+  '  const',
+  '    c: T = 3;',
+  '    k: T = 4;',
+  '  class var',
+  '    v: T;',
+  '    w: T;',
+  '  end;',
+  '  TAnt = word;',
+  '  TAntHelper = record helper for TAnt',
+  '  end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TypeHelper;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TStringHelper = type helper for string',
+  '  end;',
+  '  TCaption = string;',
+  '  TCapHelper = type helper(TStringHelper) for TCaption',
+  '  end;',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestAttributes_Ignore;

@@ -136,7 +136,7 @@ resourcestring
   SLogStartImplementation = 'Start parsing implementation section.';
   SLogStartInterface = 'Start parsing interface section';
   SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Record helpers';
-  SParserNoFieldsAllowed = 'Fields are not allowed in Interfaces';
+  SParserNoFieldsAllowedInX = 'Fields are not allowed in %s';
   SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
   SErrRecordConstantsNotAllowed = 'Record constants not allowed at this location.';
   SErrRecordVariablesNotAllowed = 'Record variables not allowed at this location.';
@@ -1247,6 +1247,7 @@ begin
         if not (PM in [pmOverload, pmMessage,
                         pmDispId,pmNoReturn,pmFar,pmFinal]) then exit(false);
       end;
+      exit;
       end
     else if Parent is TPasRecordType then
       begin
@@ -1254,6 +1255,7 @@ begin
                      pmInline, pmAssembler,
                      pmExternal,
                      pmNoReturn, pmFar, pmFinal]) then exit(false);
+      exit;
       end;
     Parent:=Parent.Parent;
     end;
@@ -6690,6 +6692,7 @@ begin
   LastToken:=CurToken;
   while (CurToken<>tkEnd) do
     begin
+    //writeln('TPasParser.ParseClassMembers LastToken=',LastToken,' CurToken=',CurToken,' haveClass=',haveClass,' CurSection=',CurSection);
     case CurToken of
       tkType:
         begin
@@ -6715,18 +6718,18 @@ begin
         CurSection:=stConst;
         end;
       tkVar:
-        begin
-        case AType.ObjKind of
-        okClass,okObject,okGeneric,
-        okClassHelper,okRecordHelper,okTypeHelper: ;
-        else
-          ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['VAR',ObjKindNames[AType.ObjKind]]);
-        end;
-        if LastToken=tkClass then
-          CurSection:=stClassVar
-        else
-          CurSection:=stVar;
-        end;
+        if not (CurSection in [stVar,stClassVar]) then
+          begin
+          if (AType.ObjKind in [okClass,okObject,okGeneric])
+          or (haveClass and (AType.ObjKind in [okClassHelper,okRecordHelper,okTypeHelper])) then
+            // ok
+          else
+            ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['VAR',ObjKindNames[AType.ObjKind]]);
+          if LastToken=tkClass then
+            CurSection:=stClassVar
+          else
+            CurSection:=stVar;
+          end;
       tkIdentifier:
         if CheckVisibility(CurtokenString,CurVisibility) then
           CurSection:=stNone
@@ -6740,11 +6743,17 @@ begin
           stConst :
             ParseMembersLocalConsts(AType,CurVisibility);
           stNone,
-          stVar,
+          stVar:
+            begin
+            if not (AType.ObjKind in [okObject,okClass,okGeneric]) then
+              ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowedInX,[ObjKindNames[AType.ObjKind]]);
+            ParseClassFields(AType,CurVisibility,CurSection=stClassVar);
+            HaveClass:=False;
+            end;
           stClassVar:
             begin
-            if (AType.ObjKind in [okInterface,okDispInterface]) then
-              ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowed);
+            if not (AType.ObjKind in [okObject,okClass,okGeneric,okClassHelper,okRecordHelper,okTypeHelper]) then
+              ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowedInX,[ObjKindNames[AType.ObjKind]]);
             ParseClassFields(AType,CurVisibility,CurSection=stClassVar);
             HaveClass:=False;
             end;
@@ -6757,7 +6766,11 @@ begin
         curSection:=stNone;
         if not haveClass then
           SaveComments;
-        if AType.ObjKind in [okInterface,okDispInterface,okRecordHelper] then
+        if (AType.ObjKind in [okObject,okClass,okGeneric])
+            or ((CurToken=tkconstructor)
+              and (AType.ObjKind in [okClassHelper,okTypeHelper,okRecordHelper])) then
+          // ok
+        else
           ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
         ProcessMethod(AType,HaveClass,CurVisibility);
         haveClass:=False;

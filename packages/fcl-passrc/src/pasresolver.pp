@@ -50,6 +50,15 @@ Works:
   - const param makes children const too
   - const  TRecordValues
   - function default(record type): record
+  - advanced records:
+    - $modeswitch AdvancedRecords
+    - visibility public, private, strict private
+    - sub type
+    - const, var, class var
+    - function/procedure/class function/class procedure
+    - property, class property, default property
+    - constructor
+    - RTTI
 - class:
   - forward declaration
   - instance.a
@@ -224,15 +233,7 @@ ToDo:
 - operator overload
    - operator enumerator
    - binaryexpr
-- advanced records:
-  - $modeswitch AdvancedRecords
-  - sub type
-  - const
-  - var
-  - function/procedure/class function/class procedure
-  - property, class property
-  - RTTI
-  - operator overloading
+   - advanced records
 - Include/Exclude for set of int/char/bool
 - error if property method resolution is not used
 - $H-hintpos$H+
@@ -5565,6 +5566,21 @@ begin
         if Proc.IsOverride then
           RaiseMsg(20180321234551,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'override'],Proc);
         end;
+      okClassHelper,okRecordHelper,okTypeHelper:
+        if msDelphi in CurrentParser.CurrentModeswitches then
+          begin
+          if Proc.IsAbstract then
+            RaiseMsg(20190116215744,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'abstract'],Proc);
+          if Proc.IsVirtual and (ObjKind=okRecordHelper) then
+            RaiseMsg(20190116221659,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'virtual'],Proc);
+          end
+        else
+          begin
+          if Proc.IsVirtual then
+            RaiseMsg(20190116215823,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'virtual'],Proc);
+          if Proc.IsOverride then
+            RaiseMsg(20190116215825,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'override'],Proc);
+          end;
       end;
       if Proc.IsAbstract then
         begin
@@ -6698,7 +6714,7 @@ var
   CanonicalSelf: TPasClassOfType;
   Decl: TPasElement;
   j: integer;
-  IntfType, IntfTypeRes: TPasType;
+  IntfType, IntfTypeRes, HelperForType, AncestorHelperFor: TPasType;
   ResIntfList, Members: TFPList;
 begin
   if aClass.IsForward then
@@ -6742,6 +6758,73 @@ begin
       RaiseMsg(20180321143613,nIllegalQualifier,sIllegalQualifier,
         [CurrentParser.Scanner.CurrentValueSwitch[vsInterfaces]],aClass);
     end;
+  okClassHelper,okRecordHelper,okTypeHelper:
+    begin
+    if aClass.IsExternal then
+      RaiseMsg(20190116192722,nIllegalQualifier,sIllegalQualifier,['external'],aClass);
+    HelperForType:=ResolveAliasType(aClass.HelperForType);
+    case aClass.ObjKind of
+    okClassHelper:
+      begin
+      if not (HelperForType is TPasClassType) then
+        RaiseXExpectedButYFound(20190116194751,'class type',GetTypeDescription(aClass.HelperForType),aClass);
+      if TPasClassType(HelperForType).ObjKind<>okClass then
+        RaiseXExpectedButYFound(20190116194855,'class type',GetTypeDescription(aClass.HelperForType),aClass);
+      if TPasClassType(HelperForType).IsForward then
+        RaiseMsg(20190116194931,nTypeXIsNotYetCompletelyDefined,
+          sTypeXIsNotYetCompletelyDefined,[HelperForType.Name],aClass);
+      end;
+    okRecordHelper:
+      if msDelphi in CurrentParser.CurrentModeswitches then
+        begin
+        if (HelperForType.ClassType=TPasRecordType)
+            or (HelperForType.ClassType=TPasArrayType)
+            or (HelperForType.ClassType=TPasSetType)
+            or (HelperForType.ClassType=TPasEnumType)
+            or (HelperForType.ClassType=TPasRangeType)
+            then
+          // ok
+        else if ((HelperForType.ClassType=TPasUnresolvedSymbolRef)
+            and (HelperForType.CustomData is TResElDataBaseType)) then
+        else
+          RaiseMsg(20190116200304,nTypeXCannotBeExtendedByATypeHelper,
+            sTypeXCannotBeExtendedByATypeHelper,[aClass.HelperForType.Name],aClass);
+        end
+      else
+        begin
+        // mode objfpc
+        if (HelperForType.ClassType=TPasRecordType) then
+        else
+          RaiseMsg(20190116200519,nTypeXCannotBeExtendedByATypeHelper,
+            sTypeXCannotBeExtendedByATypeHelper,[aClass.HelperForType.Name],aClass);
+        end;
+    okTypeHelper:
+      begin
+      if HelperForType.ClassType=TPasUnresolvedSymbolRef then
+        begin
+        if (HelperForType.ClassType=TPasRecordType)
+            or (HelperForType.ClassType=TPasArrayType)
+            or (HelperForType.ClassType=TPasSetType)
+            or (HelperForType.ClassType=TPasEnumType)
+            or (HelperForType.ClassType=TPasRangeType)
+            then
+          // ok
+        else if ((HelperForType.ClassType=TPasUnresolvedSymbolRef)
+            and (HelperForType.CustomData is TResElDataBaseType)) then
+        else if (HelperForType.ClassType=TPasClassType)
+            and (TPasClassType(HelperForType).ObjKind in [okClass,okInterface]) then
+          begin
+          if TPasClassType(HelperForType).IsForward then
+            RaiseMsg(20190116200940,nTypeXIsNotYetCompletelyDefined,
+              sTypeXIsNotYetCompletelyDefined,[HelperForType.Name],aClass);
+          end
+        else
+          RaiseMsg(20190116200304,nTypeXCannotBeExtendedByATypeHelper,
+            sTypeXCannotBeExtendedByATypeHelper,[aClass.HelperForType.Name],aClass);
+        end;
+      end;
+    end;
+    end
   else
     RaiseNotYetImplemented(20161010174638,aClass,'Kind='+ObjKindNames[aClass.ObjKind]);
   end;
@@ -6804,6 +6887,7 @@ begin
           end;
         end;
       end;
+    okClassHelper,okRecordHelper,okTypeHelper: ; // no root ancestor
     end;
     end
   else if AncestorType.ClassType<>TPasClassType then
@@ -6814,18 +6898,29 @@ begin
     begin
     AncestorClassEl:=TPasClassType(AncestorType);
     if AncestorClassEl.ObjKind<>aClass.ObjKind then
-      begin
       RaiseXExpectedButYFound(20180321152107,GetElementTypeName(aClass)+' type',
         GetElementTypeName(AncestorClassEl)+' type',aClass);
-      end
-    else
-      EmitTypeHints(aClass,AncestorClassEl);
+    if aClass.ObjKind in [okClassHelper,okRecordHelper,okTypeHelper] then
+      begin
+      HelperForType:=ResolveAliasType(aClass.HelperForType);
+      AncestorHelperFor:=ResolveAliasType(AncestorClassEl.HelperForType);
+      if IsSameType(HelperForType,AncestorHelperFor,prraNone) then
+        // helper for same type as ancestor helper -> ok
+      else if (HelperForType is TPasClassType)
+          and (AncestorHelperFor is TPasClassType)
+          and (CheckClassIsClass(HelperForType,AncestorHelperFor,aClass)<>cIncompatible) then
+        // helper is for descendant class of ancestor helper for -> ok
+      else
+        RaiseMsg(20190116203931,nDerivedXMustExtendASubClassY,sDerivedXMustExtendASubClassY,
+          [GetElementTypeName(aClass),AncestorClassEl.HelperForType.Name],aClass);
+      end;
+    EmitTypeHints(aClass,AncestorClassEl);
     end;
 
   AncestorClassScope:=nil;
   if AncestorClassEl=nil then
     begin
-    // root class e.g. TObject, IUnknown
+    // root class e.g. TObject, IUnknown, helper
     end
   else
     begin

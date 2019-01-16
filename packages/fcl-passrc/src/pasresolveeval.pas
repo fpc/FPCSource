@@ -176,7 +176,8 @@ const
   nCantAssignValuesToConstVariable = 3110;
   nIllegalAssignmentToForLoopVar = 3111;
   nFunctionHidesIdentifier_NonProc = 3112;
-  // Note: use one of the free IDs above
+  nTypeXCannotBeExtendedByATypeHelper = 3113;
+  nDerivedXMustExtendASubClassY = 3114;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -300,6 +301,8 @@ resourcestring
   sMissingFieldsX = 'Missing fields: "%s"';
   sCantAssignValuesToConstVariable = 'Can''t assign values to const variable';
   sIllegalAssignmentToForLoopVar = 'Illegal assignment to for-loop variable "%s"';
+  sTypeXCannotBeExtendedByATypeHelper = 'Type "%s" cannot be extended by a type helper';
+  sDerivedXMustExtendASubClassY = 'Derived %s must extend a subclass of "%s" or the class itself';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
