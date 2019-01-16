@@ -1238,6 +1238,120 @@ begin
     end;
 end;
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+procedure ptc_HLineProc_32bpp(x, x2,y : smallint);
+
+var pixels:Plongword;
+    i:word;
+    xtmp: smallint;
+
+begin
+//  Writeln('ptc_HLineProc_32bpp(', x, ', ', x2, ', ', y, ')');
+  { must we swap the values? }
+  if x >= x2 then
+  begin
+    xtmp := x2;
+    x2 := x;
+    x:= xtmp;
+  end;
+
+  inc(x,StartXViewPort);
+  inc(x2,StartXViewPort);
+  inc(y,StartYViewPort);
+  if ClipPixels then
+  begin
+    if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+               StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+      exit;
+  end;
+
+  pixels := ptc_surface_lock;
+
+  case CurrentWriteMode of
+    XORPut:
+      begin
+        for i:=x to x2 do
+          pixels[i+y*PTCWidth] := pixels[i+y*PTCWidth] xor CurrentColor;
+      end;
+    OrPut:
+      begin
+        for i:=x to x2 do
+          pixels[i+y*PTCWidth] := pixels[i+y*PTCWidth] or CurrentColor;
+      end;
+    AndPut:
+      begin
+        for i:=x to x2 do
+          pixels[i+y*PTCWidth] := pixels[i+y*PTCWidth] and CurrentColor;
+      end;
+    NotPut:
+      begin
+        for i:=x to x2 do
+          pixels[i+y*PTCWidth] := CurrentColor xor $FFFFFF;
+      end
+  else
+    for i:=x to x2 do
+      pixels[i+y*PTCWidth] := CurrentColor;
+  end;
+
+  ptc_surface_unlock;
+  ptc_update;
+end;
+
+procedure ptc_VLineProc_32bpp(x,y,y2 : smallint);
+var pixels:PLongWord;
+    i:word;
+    ytmp: smallint;
+begin
+  if y >= y2 then
+   begin
+     ytmp := y2;
+     y2 := y;
+     y:= ytmp;
+   end;
+
+  inc(x,StartXViewPort);
+  inc(y,StartYViewPort);
+  inc(y2,StartYViewPort);
+  if ClipPixels then
+  begin
+    if LineClipped(x,y,x,y2,StartXViewPort,StartYViewPort,
+          StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+      exit;
+  end;
+
+  pixels := ptc_surface_lock;
+
+  case CurrentWriteMode of
+    XORPut:
+      begin
+        for i:=y to y2 do
+          pixels[x+i*PTCWidth] := pixels[x+i*PTCWidth] xor CurrentColor;
+      end;
+    OrPut:
+      begin
+        for i:=y to y2 do
+          pixels[x+i*PTCWidth] := pixels[x+i*PTCWidth] or CurrentColor;
+      end;
+    AndPut:
+      begin
+        for i:=y to y2 do
+          pixels[x+i*PTCWidth] := pixels[x+i*PTCWidth] and CurrentColor;
+      end;
+    NotPut:
+      begin
+        for i:=y to y2 do
+          pixels[x+i*PTCWidth] := CurrentColor xor $FFFFFF;
+      end
+  else
+    for i:=y to y2 do
+      pixels[x+i*PTCWidth] := CurrentColor;
+  end;
+
+  ptc_surface_unlock;
+  ptc_update;
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
 procedure ptc_HLineProc_16bpp(x, x2,y : smallint);
 
 var pixels:Pword;
@@ -2232,8 +2346,8 @@ end;
       mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
       mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
       //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-//      mode.HLine           := @ptc_HLineProc_32bpp;
-//      mode.VLine           := @ptc_VLineProc_32bpp;
+      mode.HLine           := @ptc_HLineProc_32bpp;
+      mode.VLine           := @ptc_VLineProc_32bpp;
       mode.SetVisualPage   := @ptc_SetVisualPage;
       mode.SetActivePage   := @ptc_SetActivePage;
     end;
