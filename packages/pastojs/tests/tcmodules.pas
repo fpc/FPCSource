@@ -17657,7 +17657,7 @@ begin
     '    v.SetItems(6, v);',
     '    v.SetItems(7, $ir.ref(2, v.GetItems(8)));',
     '    $ir.ref(4, $ir.ref(3, v.GetItems(9)).GetBird()).SetBird(v);',
-    '    v = rtl.setIntfL(v, $ir.ref(6, v.$ir.ref(5, GetBird()).GetItems(10)).GetBird(), true);',
+    '    v = rtl.setIntfL(v, $ir.ref(6, $ir.ref(5, v.GetBird()).GetItems(10)).GetBird(), true);',
     '  } finally {',
     '    $ir.free();',
     '    rtl._Release(v);',
@@ -23970,7 +23970,7 @@ begin
     '  rtl.rcArrW(ArrChar, c.charCodeAt() - 48, rtl.rcArrR(ArrChar, c.charCodeAt() - 48));',
     '  ArrByteChar[7][7] = rtl.rc(ArrByteChar[7][7], 1, 10);',
     '  rtl.rcArrW(ArrByteChar, i, c.charCodeAt() - 48, rtl.rcArrR(ArrByteChar, i, c.charCodeAt() - 48));',
-    '  o.A[i] = rtl.rc(o.A[i], 1, 10);',
+    '  rtl.rcArrW(o.A, i, rtl.rcArrR(o.A, i));',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -24031,7 +24031,7 @@ begin
     '  var o = null;',
     '  Arr[1].$assign(Arr[1]);',
     '  rtl.rcArrR(Arr, i).$assign(rtl.rcArrR(Arr, i + 1));',
-    '  o.A[i].$assign(o.A[i + 2]);',
+    '  rtl.rcArrR(o.A, i).$assign(rtl.rcArrR(o.A, i + 2));',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -24058,6 +24058,7 @@ begin
   '  s[i]:=s[i];',
   '  h[i]:=h[i];',
   '  c:=o.s[i];',
+  '  o.s[i]:=c;',
   'end;',
   'begin',
   '']);
@@ -24079,7 +24080,8 @@ begin
     '  c = rtl.rcc(rtl.rcCharAt(s, 0), 0, 65535);',
     '  s = rtl.rcSetCharAt(s, i - 1, rtl.rcCharAt(s, i - 1));',
     '  h.set(rtl.rcSetCharAt(h.get(), i - 1, rtl.rcCharAt(h.get(), i - 1)));',
-    '  c = rtl.rcc(o.S.charAt(i - 1), 0, 65535);',
+    '  c = rtl.rcc(rtl.rcCharAt(o.S, i - 1), 0, 65535);',
+    '  o.S = rtl.rcSetCharAt(o.S, i - 1, c);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
