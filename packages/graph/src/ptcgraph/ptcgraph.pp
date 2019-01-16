@@ -2091,6 +2091,59 @@ Begin
    ptc_surface_unlock;
 end;
 
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+Procedure PTC_GetImageProc_32bpp(X1,Y1,X2,Y2: smallint; Var Bitmap);
+type
+  pt = array[0..{$ifdef cpu16}16382{$else}$fffffff{$endif}] of longword;
+  ptw = array[0..2] of longint;
+var
+  pixels : Plongword;
+  x,y,i,j,vpx1,vpx2,vpy1,vpy2  : smallint;
+  k      : longint;
+Begin
+  ptw(Bitmap)[0] := X2-X1+1;   { First longint  is width  }
+  ptw(Bitmap)[1] := Y2-Y1+1;   { Second longint is height }
+  ptw(bitmap)[2] := 0;         { Third longint is reserved}
+  k:= 3 * Sizeof(longint) div sizeof(longword); { Three reserved longs at start of bitmap }
+  vpx1:=x1+StartXViewPort;
+  vpx2:=x2+StartXViewPort;
+  vpy1:=y1+StartYViewPort;
+  vpy2:=y2+StartYViewPort;
+  { check which part of the image is in the viewport }
+  if clipPixels then
+    begin
+      if vpx1 < startXViewPort then
+        vpx1 := startXViewPort;
+      if vpx2 > startXViewPort + viewWidth then
+        vpx2 := startXViewPort + viewWidth;
+      if vpy1 < startYViewPort then
+        vpy1 := startYViewPort;
+      if vpy2 > startYViewPort+viewHeight then
+        vpy2 := startYViewPort+viewHeight;
+    end;
+  { check if coordinates are on the screen}
+  if vpx1 < 0 then
+    vpx1 := 0;
+  if vpx2 >= PTCwidth then
+    vpx2 := PTCwidth-1;
+  if vpy1 < 0 then
+    vpy1 := 0;
+  if vpy2 >= PTCheight then
+    vpy2 := PTCheight-1;
+  i := (x2 - x1 + 1);
+  j := i * (vpy1 - StartYViewPort - y1);
+  inc(k,j);
+  pixels := ptc_surface_lock;
+  for y:=vpy1 to vpy2 do
+   Begin
+     For x:=vpx1 to vpx2 Do
+       pt(Bitmap)[k+(x-StartXViewPort-x1)]:=pixels[x+y*PTCWidth];
+      inc(k,i);
+   end;
+   ptc_surface_unlock;
+end;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+
 {************************************************************************}
 {*                       General routines                               *}
 {************************************************************************}
@@ -2373,7 +2426,7 @@ end;
       mode.PutPixel        := @ptc_PutPixelProc_32bpp;
       mode.GetPixel        := @ptc_GetPixelProc_32bpp;
 //      mode.PutImage        := @ptc_PutImageProc_32bpp;
-//      mode.GetImage        := @ptc_GetImageProc_32bpp;
+      mode.GetImage        := @ptc_GetImageProc_32bpp;
       mode.GetScanLine     := @ptc_GetScanLineProc_32bpp;
       mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
       mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
