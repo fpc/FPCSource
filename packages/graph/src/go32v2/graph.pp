@@ -200,6 +200,114 @@ const
 {$endif fpc}
    end ['EAX'];
 
+  procedure seg_xorword(segment : word;ofs : longint;count : longint;w : word);
+    begin
+      asm
+         push edi
+         mov edi, [ofs]
+         mov ecx, [count]
+         movzx edx, word ptr [w]
+         { load segment }
+         push es
+         mov ax, [segment]
+         mov es, ax
+         { fill eax }
+         mov eax, edx
+         shl eax, 16
+         or eax, edx
+         test edi, 3
+         jz @@aligned
+         xor word ptr es:[edi], ax
+         add edi, 2
+         dec ecx
+         jz @@done
+@@aligned:
+         mov edx, ecx
+         shr ecx, 1
+@@lp:    xor dword ptr es:[edi], eax
+         add edi, 4
+         dec ecx
+         jnz @@lp
+         test edx, 1
+         jz @@done
+         xor word ptr es:[edi], ax
+@@done:  pop es
+         pop edi
+      end;
+    end;
+
+  procedure seg_orword(segment : word;ofs : longint;count : longint;w : word);
+    begin
+      asm
+         push edi
+         mov edi, [ofs]
+         mov ecx, [count]
+         movzx edx, word ptr [w]
+         { load segment }
+         push es
+         mov ax, [segment]
+         mov es, ax
+         { fill eax }
+         mov eax, edx
+         shl eax, 16
+         or eax, edx
+         test edi, 3
+         jz @@aligned
+         or word ptr es:[edi], ax
+         add edi, 2
+         dec ecx
+         jz @@done
+@@aligned:
+         mov edx, ecx
+         shr ecx, 1
+@@lp:    or dword ptr es:[edi], eax
+         add edi, 4
+         dec ecx
+         jnz @@lp
+         test edx, 1
+         jz @@done
+         or word ptr es:[edi], ax
+@@done:  pop es
+         pop edi
+      end;
+    end;
+
+  procedure seg_andword(segment : word;ofs : longint;count : longint;w : word);
+    begin
+      asm
+         push edi
+         mov edi, [ofs]
+         mov ecx, [count]
+         movzx edx, word ptr [w]
+         { load segment }
+         push es
+         mov ax, [segment]
+         mov es, ax
+         { fill eax }
+         mov eax, edx
+         shl eax, 16
+         or eax, edx
+         test edi, 3
+         jz @@aligned
+         and word ptr es:[edi], ax
+         add edi, 2
+         dec ecx
+         jz @@done
+@@aligned:
+         mov edx, ecx
+         shr ecx, 1
+@@lp:    and dword ptr es:[edi], eax
+         add edi, 4
+         dec ecx
+         jnz @@lp
+         test edx, 1
+         jz @@done
+         and word ptr es:[edi], ax
+@@done:  pop es
+         pop edi
+      end;
+    end;
+
 {************************************************************************}
 {*                   720x348x2 Hercules mode routines                   *}
 {************************************************************************}

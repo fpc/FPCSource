@@ -1807,11 +1807,27 @@ end;
     LogLn('Offs: '+strf(offs)+' -- '+hexstr(offs,8));
     {$endif logging2}
     case CurrentWriteMode of
-      AndPut,
-      XorPut,
+      XorPut:
+        begin
+          if UseNoSelector then
+            seg_xorword(get_ds,PtrUInt(LFBPointer)+PtrUInt(offs)+PtrUInt(LinearPageOfs),HLength,Word(CurrentColor))
+          else
+            seg_xorword(WinWriteSeg,offs+LinearPageOfs,HLength,Word(CurrentColor));
+        end;
       OrPut:
-        { todo: optimized And/Xor/Or put }
-        HLineDefault(x-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
+        begin
+          if UseNoSelector then
+            seg_orword(get_ds,PtrUInt(LFBPointer)+PtrUInt(offs)+PtrUInt(LinearPageOfs),HLength,Word(CurrentColor))
+          else
+            seg_orword(WinWriteSeg,offs+LinearPageOfs,HLength,Word(CurrentColor));
+        end;
+      AndPut:
+        begin
+          if UseNoSelector then
+            seg_andword(get_ds,PtrUInt(LFBPointer)+PtrUInt(offs)+PtrUInt(LinearPageOfs),HLength,Word(CurrentColor))
+          else
+            seg_andword(WinWriteSeg,offs+LinearPageOfs,HLength,Word(CurrentColor));
+        end;
       NormalPut:
         begin
           if UseNoSelector then
