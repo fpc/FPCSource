@@ -1,17 +1,3 @@
-{
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2019 by Michael Van Canneyt, member of the Free Pascal development team
-
-    FPC SSockets SSL support using GnuTLS library.
-
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
 unit gnutlssockets;
 
 {$mode objfpc}{$H+}
@@ -19,9 +5,14 @@ unit gnutlssockets;
 interface
 
 uses
-  Classes, SysUtils, sockets, ssockets, sslsockets, cTypes, sslbase, gnutls;
+  Classes, SysUtils, sockets, ssockets, sslsockets, dateUtils,
+  cTypes, sslbase, gnutls;
+
+Const
+  DefCertSize = 8192;
 
 Type
+  EGnuTLS = Class(Exception);
 
   { TGNUTLSSocketHandler }
 
@@ -68,8 +59,16 @@ Type
   { TGNUTLSX509Certificate }
 
   TGNUTLSX509Certificate = class(TX509Certificate)
-
+  private
+    FMyFormat : tgnutls_x509_crt_fmt_t;
+    procedure Check(Aret: cint);
+    procedure Check(Aexp: Boolean; Aret: cint);
+    function GenCACert(const Aca_priv_key: TBytes; const Acommon_name, Aserial: AnsiString; Adays: Word): TBytes;
+    function GenPrivKey: TBytes;
+    function GenSrvCert(const Aca_priv_key, Aca_pem, Asrv_priv_key: TBytes; const Acommon_name, Aorganization, Aserial: AnsiString;
+      Adays: Word): TBytes;
   public
+    constructor create;
     function CreateCertificateAndKey: TCertAndKey; override;
   end;
 
@@ -86,10 +85,172 @@ end;
 
 { TGNUTLSX509Certificate }
 
+procedure TGNUTLSX509Certificate.Check(Aret: cint); inline;
+
+begin
+  if Aret <> GNUTLS_E_SUCCESS then
+    raise EGnuTLS.Create(gnutls_strerror(Aret));
+end;
+
+procedure TGNUTLSX509Certificate.Check(Aexp: Boolean; Aret: cint); inline;
+begin
+  if Aexp then
+    raise EGnuTLS.Create(gnutls_strerror(Aret));
+end;
+
+function TGNUTLSX509Certificate.GenPrivKey : TBytes;
+
+var
+  akey: Tgnutls_x509_privkey_t;
+  aSize: cuint;
+
+begin
+  Result:=Default(TBytes);
+  try
+    Check(gnutls_x509_privkey_init(@akey));
+    aSize := gnutls_sec_param_to_pk_bits(GNUTLS_PK_RSA, GNUTLS_SEC_PARAM_HIGH);
+    SetLength(Result,asize);
+    Check(gnutls_x509_privkey_generate(akey, GNUTLS_PK_RSA, aSize, 0));
+    Check(gnutls_x509_privkey_export(akey,FMyFormat,Pointer(Result), @aSize));
+    SetLength(Result,asize);
+  except
+    gnutls_x509_privkey_deinit(akey);
+    raise;
+  end;
+end;
+
+
+Function TGNUTLSX509Certificate.GenCACert(const Aca_priv_key: TBytes; const Acommon_name, Aserial: AnsiString; Adays: Word) : TBytes;
+
+var
+  Vkey: Tgnutls_x509_privkey_t;
+  Vcrt: Tgnutls_x509_crt_t = nil;
+  Vdata: Tgnutls_datum_t;
+  Vkeyid: TBytes;
+  Vkeyidsize: csize_t;
+  Vactivation: ttime_t;
+  Vca_pem_size: csize_t;
+  Vret: cint;
+
+begin
+  Vkeyid:=Default(TBytes);
+  Result:=Default(TBytes);
+  try
+    Check(gnutls_x509_privkey_init(@Vkey));
+    Vdata.data := Pointer(Aca_priv_key);
+    Vdata.size := Length(Aca_priv_key);
+    Check(gnutls_x509_privkey_import(Vkey, @Vdata, FMyFormat));
+    Check(gnutls_x509_crt_init(@Vcrt));
+    Check(gnutls_x509_crt_set_key(Vcrt, Vkey));
+    Check(gnutls_x509_crt_set_dn_by_oid(Vcrt, GNUTLS_OID_X520_COMMON_NAME,0, @Acommon_name[1], Length(Acommon_name)));
+    Check(gnutls_x509_crt_set_version(Vcrt, 3));
+    Check(gnutls_x509_crt_set_serial(Vcrt, @Aserial[1], Length(Aserial)));
+    Vactivation := DateTimeToUnix(Now,False);
+    Check(gnutls_x509_crt_set_activation_time(Vcrt, Vactivation));
+    Check(gnutls_x509_crt_set_expiration_time(Vcrt, Vactivation + (Adays * 86400)));
+    Check(gnutls_x509_crt_set_ca_status(Vcrt, Ord(True)));
+    Check(gnutls_x509_crt_set_key_usage(Vcrt, GNUTLS_KEY_KEY_CERT_SIGN));
+    Vkeyidsize := 0;
+    Vret := gnutls_x509_crt_get_key_id(Vcrt, GNUTLS_KEYID_USE_SHA1, nil, @Vkeyidsize);
+    Check((Vret <> GNUTLS_E_SHORT_MEMORY_BUFFER) or (Vkeyidsize < 1), Vret);
+    SetLength(Vkeyid, Pred(Vkeyidsize));
+    Check(gnutls_x509_crt_get_key_id(Vcrt, GNUTLS_KEYID_USE_SHA1, Pointer(Vkeyid), @Vkeyidsize));
+    Check(gnutls_x509_crt_set_subject_key_id(Vcrt, Pointer(Vkeyid), Vkeyidsize));
+    Check(gnutls_x509_crt_sign2(Vcrt, Vcrt, Vkey, GNUTLS_DIG_SHA256, 0));
+    SetLength(Result, DefCertSize);
+    Check(gnutls_x509_crt_export(Vcrt, FMyFormat, Pointer(Result), @Vca_pem_size));
+    SetLength(Result, Pred(Vca_pem_size));
+  except
+    gnutls_x509_privkey_deinit(Vkey);
+    gnutls_x509_crt_deinit(Vcrt);
+    raise;
+  end;
+end;
+
+Function TGNUTLSX509Certificate.GenSrvCert(const Aca_priv_key, Aca_pem, Asrv_priv_key: TBytes;  const Acommon_name, Aorganization,  Aserial: AnsiString; Adays: Word) : TBytes;
+
+var
+  Vsrv_key: Tgnutls_x509_privkey_t = nil;
+  Vca_key: Tgnutls_x509_privkey_t = nil;
+  Vca_crt: Tgnutls_x509_crt_t = nil;
+  Vsrv_crt: Tgnutls_x509_crt_t = nil;
+  Vdata: Tgnutls_datum_t;
+  Vkeyid: TBytes;
+  Vkeyidsize: csize_t;
+  Vactivation: ttime_t;
+  Vsrv_pem_size: csize_t;
+  Vret: cint;
+
+begin
+  Vkeyid:=Default(TBytes);
+  Result:=Default(TBytes);
+  try
+    Check(gnutls_x509_privkey_init(@Vca_key));
+    Vdata.data := Pointer(Aca_priv_key);
+    Vdata.size := Length(Aca_priv_key);
+    Check(gnutls_x509_privkey_import(Vca_key, @Vdata, FMyFormat));
+    Check(gnutls_x509_privkey_init(@Vsrv_key));
+    Vdata.data := Pointer(Asrv_priv_key);
+    Vdata.size := Length(Asrv_priv_key);
+    Check(gnutls_x509_privkey_import(Vsrv_key, @Vdata, FMyFormat));
+    Check(gnutls_x509_crt_init(@Vca_crt));
+    Vdata.data := Pointer(Aca_pem);
+    Vdata.size := Length(Aca_pem);
+    Check(gnutls_x509_crt_import(Vca_crt, @Vdata, FMyFormat));
+    Check(gnutls_x509_crt_init(@Vsrv_crt));
+    Check(gnutls_x509_crt_set_key(Vsrv_crt, Vsrv_key));
+    Check(gnutls_x509_crt_set_dn_by_oid(Vsrv_crt, GNUTLS_OID_X520_COMMON_NAME, 0, @Acommon_name[1], Length(Acommon_name)));
+    if (AOrganization<>'') then
+      Check(gnutls_x509_crt_set_dn_by_oid(Vsrv_crt, GNUTLS_OID_X520_ORGANIZATION_NAME, 0, @Aorganization[1], Length(Aorganization)));
+    Check(gnutls_x509_crt_set_version(Vsrv_crt, 3));
+    Check(gnutls_x509_crt_set_serial(Vsrv_crt, @Aserial[1],Length(Aserial)));
+    Vactivation := DateTimeToUnix(Now,False);
+    Check(gnutls_x509_crt_set_activation_time(Vsrv_crt, Vactivation));
+    Check(gnutls_x509_crt_set_expiration_time(Vsrv_crt, Vactivation + (Adays * 86400)));
+    Check(gnutls_x509_crt_set_ca_status(Vsrv_crt, Ord(False)));
+    Check(gnutls_x509_crt_set_key_purpose_oid(Vsrv_crt,  @GNUTLS_KP_TLS_WWW_SERVER[1], Ord(False)));
+    Vkeyidsize := 0;
+    Vret := gnutls_x509_crt_get_subject_key_id(Vca_crt, nil, @Vkeyidsize, nil);
+    Check((Vret <> GNUTLS_E_SHORT_MEMORY_BUFFER) or  (Vkeyidsize < 1), Vret);
+    SetLength(Vkeyid, Pred(Vkeyidsize));
+    Check(gnutls_x509_crt_get_subject_key_id(Vca_crt, Pointer(Vkeyid), @Vkeyidsize, nil));
+    Check(gnutls_x509_crt_set_subject_key_id(Vsrv_crt, Pointer(Vkeyid), Vkeyidsize));
+    Vkeyidsize := 0;
+    gnutls_x509_crt_get_key_id(Vsrv_crt, GNUTLS_KEYID_USE_SHA1, nil, @Vkeyidsize);
+    Check((Vret <> GNUTLS_E_SHORT_MEMORY_BUFFER) or (Vkeyidsize < 1), Vret);
+    SetLength(Vkeyid, Pred(Vkeyidsize));
+    Check(gnutls_x509_crt_get_key_id(Vsrv_crt, GNUTLS_KEYID_USE_SHA1, Pointer(Vkeyid), @Vkeyidsize));
+    Check(gnutls_x509_crt_set_authority_key_id(Vsrv_crt,  Pointer(Vkeyid), Vkeyidsize));
+    Check(gnutls_x509_crt_sign2(Vsrv_crt, Vca_crt, Vca_key,  GNUTLS_DIG_SHA256, 0));
+    Vsrv_pem_size := DefCertSize;
+    SetLength(Result, Pred(Vsrv_pem_size));
+    Check(gnutls_x509_crt_export(Vsrv_crt, FMyFormat,Pointer(Result), @Vsrv_pem_size));
+    SetLength(Result, Vsrv_pem_size);
+  except
+    gnutls_x509_privkey_deinit(Vsrv_key);
+    gnutls_x509_privkey_deinit(Vca_key);
+    gnutls_x509_crt_deinit(Vca_crt);
+    gnutls_x509_crt_deinit(Vsrv_crt);
+    raise;
+  end;
+end;
+
+constructor TGNUTLSX509Certificate.create;
+begin
+  FMyFormat:=GNUTLS_X509_FMT_PEM;
+end;
+
 function TGNUTLSX509Certificate.CreateCertificateAndKey: TCertAndKey;
+
+Var
+  PK,cacert : TBytes;
+
 begin
   Result:=Default(TCertAndKey);
-  Raise ENotImplemented.Create('No certificate generation yet');
+  PK:=GenPrivKey;
+  CaCErt:=GenCACert(PK,Self.HostName,IntToStr(Serial),30);
+  Result.PrivateKey:=PK;
+  Result.Certificate:=GenSrvCert(PK,CaCert,PK,Self.HostName,'',IntToStr(Serial),30);
 end;
 
 function TGNUTLSSocketHandler.CreateCertGenerator: TX509Certificate;
@@ -311,9 +472,6 @@ end;
 
 function TGNUTLSSocketHandler.InitSslKeys: boolean;
 
-Const
-   DefaultCerts : PChar =  '/etc/ssl/certs/ca-certificates.crt';
-
 begin
   Result:=(FSession<>Nil);
   if not Result then
@@ -409,47 +567,24 @@ end;
 function TGNUTLSSocketHandler.Send(Const Buffer; Count: Integer): Integer;
 
 Var
-  Ret : Integer;
   P : PByte;
 
 begin
-  Result:=0;
   P:=PByte(@Buffer);
-  Repeat
-    Ret:=Check(gnutls_record_send(Fsession,P,Count));
-    if Ret>0 then
-      begin
-      Result:=Result+Ret;
-      Inc(P,Ret);
-      end;
-  Until (Result=Count) or ((Ret<0) and (gnutls_error_is_fatal(ret)<>0));
-  if Result=Count then
-    exit;
-  if Ret<0 then
+  Result:=Check(gnutls_record_send(Fsession,P,Count));
+  if Result<0 then
     Result:=-1;
 end;
 
 function TGNUTLSSocketHandler.Recv(Const Buffer; Count: Integer): Integer;
 
 Var
-  Ret : Integer;
   P : PByte;
 
 begin
-  Result:=0;
   P:=PByte(@Buffer);
-  Repeat
-    Ret:=Check(gnutls_record_recv(FSession,P,Count));
-    if Ret>0 then
-      begin
-      Result:=Result+Ret;
-      Inc(P,Ret);
-      Dec(Count,Ret)
-      end;
-  Until (Count=0) or ((Ret<0) and (gnutls_error_is_fatal(ret)<>0));
-  if Count=0 then
-    exit;
-  if Ret<0 then
+  Result:=Check(gnutls_record_recv(FSession,P,Count));
+  if Result<0 then
     Result:=-1;
 end;
 
