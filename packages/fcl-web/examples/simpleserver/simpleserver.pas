@@ -1,8 +1,16 @@
 {$mode objfpc}
 {$h+}
+{ $define USEGNUTLS}
 program simpleserver;
 
-uses sysutils, custhttpapp, fpwebfile, sslbase, opensslsockets;
+uses
+  sysutils,
+{$ifdef USEGNUTLS}
+  gnutlssockets,
+{$else}
+  opensslsockets,
+{$endif}
+  sslbase,custhttpapp, fpwebfile;
 
 Type
 
