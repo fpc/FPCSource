@@ -34,7 +34,7 @@ program srvcacert;
 uses
   sysutils,
   classes,
-  baseunix,
+  dateutils,
   ctypes,
   gnutls;
 
@@ -103,7 +103,7 @@ var
   Vdata: Tgnutls_datum_t;
   Vkeyid: AnsiString = '';
   Vkeyidsize: csize_t;
-  Vactivation: time_t;
+  Vactivation: ttime_t;
   Vca_pem_size: csize_t;
   Vret: cint;
 begin
@@ -118,7 +118,7 @@ begin
       0, @Acommon_name[1], Length(Acommon_name)));
     TLSCheckRet(gnutls_x509_crt_set_version(Vcrt, 3));
     TLSCheckRet(gnutls_x509_crt_set_serial(Vcrt, @Aserial[1], Length(Aserial)));
-    Vactivation := fptime;
+    Vactivation := DateTimeToUnix(Now,False);
     TLSCheckRet(gnutls_x509_crt_set_activation_time(Vcrt, Vactivation));
     TLSCheckRet(gnutls_x509_crt_set_expiration_time(Vcrt,
       Vactivation + (Adays * 86400)));
@@ -157,7 +157,7 @@ var
   Vdata: Tgnutls_datum_t;
   Vkeyid: AnsiString = '';
   Vkeyidsize: csize_t;
-  Vactivation: time_t;
+  Vactivation: ttime_t;
   Vsrv_pem_size: csize_t;
   Vret: cint;
 begin
@@ -184,7 +184,7 @@ begin
   TLSCheckRet(gnutls_x509_crt_set_version(Vsrv_crt, 3));
   TLSCheckRet(gnutls_x509_crt_set_serial(Vsrv_crt, @Aserial[1],
     Length(Aserial)));
-  Vactivation := fptime;
+  Vactivation := DateTimeToUnix(Now,False);
   TLSCheckRet(gnutls_x509_crt_set_activation_time(Vsrv_crt, Vactivation));
   TLSCheckRet(gnutls_x509_crt_set_expiration_time(Vsrv_crt,
     Vactivation + (Adays * 86400)));
@@ -235,7 +235,7 @@ var
   Vdata: Tgnutls_datum_t;
   Vkeyid: AnsiString = '';
   Vkeyidsize: csize_t;
-  Vactivation: time_t;
+  Vactivation: ttime_t;
   Vcli_pem_size: csize_t;
   Vret: cint;
 begin
@@ -261,7 +261,7 @@ begin
     TLSCheckRet(gnutls_x509_crt_set_version(Vcli_crt, 3));
     TLSCheckRet(gnutls_x509_crt_set_serial(Vcli_crt, @Aserial[1],
       Length(Aserial)));
-    Vactivation := fptime;
+    Vactivation := DateTimeToUnix(Now,False);
     TLSCheckRet(gnutls_x509_crt_set_activation_time(Vcli_crt, Vactivation));
     TLSCheckRet(gnutls_x509_crt_set_expiration_time(Vcli_crt,
       Vactivation + (Adays * 86400)));
