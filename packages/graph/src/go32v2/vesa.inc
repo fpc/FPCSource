@@ -1774,6 +1774,60 @@ end;
        seg_move(get_ds,longint(@col),WinWriteSeg,offs+LinearPageOfs,2);
   end;
 
+  procedure HLineVESA32kOr64kLinear(x,x2,y: smallint);
+  var
+    Offs: Longint;
+    hlength: smallint;
+  begin
+    { must we swap the values? }
+    if x > x2 then
+      begin
+        x := x xor x2;
+        x2 := x xor x2;
+        x:= x xor x2;
+      end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    X2  := X2 + StartXViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels and
+       LineClipped(x,y,x2,y,
+                   StartXViewPort,StartYViewPort,
+                   StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+      exit;
+    {$ifdef logging2}
+    LogLn('hline '+strf(x)+' - '+strf(x2)+' on '+strf(y)+' in mode '+strf(currentwritemode));
+    {$endif logging2}
+    HLength := x2 - x + 1;
+    {$ifdef logging2}
+    LogLn('length: '+strf(hlength));
+    {$endif logging2}
+    Offs:=Longint(y)*BytesPerLine+2*x;
+    {$ifdef logging2}
+    LogLn('Offs: '+strf(offs)+' -- '+hexstr(offs,8));
+    {$endif logging2}
+    case CurrentWriteMode of
+      AndPut,
+      XorPut,
+      OrPut:
+        { todo: optimized And/Xor/Or put }
+        HLineDefault(x-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
+      NormalPut:
+        begin
+          if UseNoSelector then
+            FillWord(Pointer(LFBPointer+offs+LinearPageOfs)^,HLength,Word(CurrentColor))
+          else
+            seg_fillword(WinWriteSeg,offs+LinearPageOfs,HLength,Word(CurrentColor));
+        end;
+      NotPut:
+        begin
+          if UseNoSelector then
+            FillWord(Pointer(LFBPointer+offs+LinearPageOfs)^,HLength,Word(not Word(CurrentColor)))
+          else
+            seg_fillword(WinWriteSeg,offs+LinearPageOfs,HLength,Word(not Word(CurrentColor)));
+        end;
+    end;
+  end;
 {$endif FPC}
 
  {************************************************************************}
@@ -2399,8 +2453,8 @@ Const
            DirectPutPixel:=@DirectPutPixVESA32kor64kLinear;
            PutPixel:=@PutPixVESA32kor64kLinear;
            GetPixel:=@GetPixVESA32kor64kLinear;
+           HLine:=@HLineVESA32kOr64kLinear;
            { linear mode for lines not yet implemented PM }
-           HLine:=@HLineDefault;
            VLine:=@VLineDefault;
            GetScanLine := @GetScanLineDefault;
            PatternLine := @PatternLineDefault;
