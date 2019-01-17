@@ -759,7 +759,7 @@ Type
   PDouble   = ^Double;
   Tsize_t = cint;
   Tssize_t = cint;
-  Ttime_t = int64; // Doubtful
+  Ttime_t = int64; // Used as such in gnutls
   PPdword = ^PDWord;
 
 Type
