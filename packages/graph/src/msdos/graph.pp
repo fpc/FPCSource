@@ -21,6 +21,8 @@ interface
   {$hugecode on}
 {$endif}
 
+{$define asmgraph}
+
 {$i graphh.inc}
 {$i vesah.inc}
 
@@ -1559,11 +1561,10 @@ end;
 
 
 
- Procedure PutPixel16(X,Y : smallint; Pixel: ColorType);
 {$ifndef asmgraph}
+ Procedure PutPixel16(X,Y : smallint; Pixel: ColorType);
  var offset: word;
      dummy: byte;
-{$endif asmgraph}
   Begin
     { verify clipping and then convert to absolute coordinates...}
     if ClipPixels then
@@ -1575,7 +1576,6 @@ end;
     end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
      offset := y * 80 + (x shr 3) + VideoOfs;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := (Pixel and $ff) shl 8; { Index 00 : Enable correct plane and write color }
@@ -1585,38 +1585,54 @@ end;
      Mem[Sega000: offset] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
+   end;
 {$else asmgraph}
+ Procedure PutPixel16(X,Y : smallint; Pixel: ColorType);
+  Begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
       asm
- {$ifndef fpc}
+{$ifdef FPC_MM_HUGE}
+        mov  ax, SEG SegA000
+        mov  es, ax
+        mov  es, es:[SegA000]
+{$else FPC_MM_HUGE}
         mov  es, [SegA000]
+{$endif FPC_MM_HUGE}
         { enable the set / reset function and load the color }
         mov  dx, 3ceh
         mov  ax, 0f01h
         out  dx, ax
         { setup set/reset register }
-        mov  ax, [Pixel]
-        shl  ax, 8
+        mov  ah, byte ptr [Pixel]
+        xor  al, al
         out  dx, ax
         { setup the bit mask register }
         mov  al, 8
-        out  dx, al
-        inc  dx
         { load the bitmask register }
-        mov  cx, [X]
-        and  cx, 0007h
-        mov  al, 80h
-        shr  al, cl
+        mov  cl, byte ptr [X]
+        and  cl, 07h
+        mov  ah, 80h
+        shr  ah, cl
         out  dx, ax
         { get the x index and divide by 8 for 16-color }
         mov  ax,[X]
-        shr  ax,3
-        push ax
+        mov  cl, 3
+        shr  ax, cl
+        xchg ax, si
         { determine the address }
         mov  ax,80
         mov  bx,[Y]
         mul  bx
-        pop  cx
-        add  ax,cx
+        add  ax,si
         mov  di,ax
         add  di, [VideoOfs]
         { send the data through the display memory through set/reset }
@@ -1624,71 +1640,17 @@ end;
         mov  es:[di],bl
 
         { reset for formal vga operation }
-        mov  dx,3ceh
         mov  ax,0ff08h
         out  dx,ax
 
         { restore enable set/reset register }
         mov  ax,0001h
         out  dx,ax
- {$else fpc}
-        push eax
-        push ebx
-        push ecx
-        push edx
-        push edi
-        { enable the set / reset function and load the color }
-        mov  dx, 3ceh
-        mov  ax, 0f01h
-        out  dx, ax
-        { setup set/reset register }
-        mov  ax, [Pixel]
-        shl  ax, 8
-        out  dx, ax
-        { setup the bit mask register }
-        mov  al, 8
-        out  dx, al
-        inc  dx
-        { load the bitmask register }
-        mov  cx, [X]
-        and  cx, 0007h
-        mov  al, 80h
-        shr  al, cl
-        out  dx, ax
-        { get the x index and divide by 8 for 16-color }
-        movzx eax,[X]
-        shr  eax,3
-        push eax
-        { determine the address }
-        mov  eax,80
-        mov  bx,[Y]
-        mul  bx
-        pop  ecx
-        add  eax,ecx
-        mov  edi,eax
-        add  edi, [VideoOfs]
-        { send the data through the display memory through set/reset }
-        mov  bl,fs:[edi+$a0000]
-        mov  fs:[edi+$a0000],bl
-
-        { reset for formal vga operation }
-        mov  dx,3ceh
-        mov  ax,0ff08h
-        out  dx,ax
-
-        { restore enable set/reset register }
-        mov  ax,0001h
-        out  dx,ax
-        pop edi
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
- {$endif fpc}
-      end;
-{$endif asmgraph}
+      end ['AX','BX','CX','DX','SI','DI'];
    end;
+{$endif asmgraph}
 
+{$undef asmgraph}
 
  Function GetPixel16(X,Y: smallint):ColorType;
 {$ifndef asmgraph}
