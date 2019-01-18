@@ -2384,7 +2384,6 @@ End;
       shr    ax, 1
       shr    ax, 1
       add    di, ax
-//      add    di, [VideoOfs]    { point to correct page.. }
       mov    ax, [Pixel]
       mov    es:[di], al
     end ['ax','di'];
@@ -2405,7 +2404,6 @@ End;
       shr    ax, 1
       add    di, ax
       xor    ax, ax
-//      add    di, [VideoOfs]   { point to correct gfx page ... }
       mov    al,es:[di]
       mov    word ptr @Result,ax
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
