@@ -219,16 +219,16 @@ begin
 end;
 
 procedure SetHGCRGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
+      BlueValue : smallint);
 begin
 end;
 
 procedure GetHGCRGBPalette(ColorNum: smallint; Var
-      RedValue, GreenValue, BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
+      RedValue, GreenValue, BlueValue : smallint);
 begin
 end;
 
-procedure PutPixelHGC720(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+procedure PutPixelHGC720(X, Y: SmallInt; Pixel: Word);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -256,7 +256,7 @@ begin
   Mem[SegB000:Offset] := B;
 end;
 
-function GetPixelHGC720(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+function GetPixelHGC720(X, Y: SmallInt): Word;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -274,7 +274,7 @@ begin
   GetPixelHGC720 := (B shr Shift) and 1;
 end;
 
-procedure DirectPutPixelHGC720(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure DirectPutPixelHGC720(X, Y: SmallInt);
  { x,y -> must be in global coordinates. No clipping. }
 var
   Offset: Word;
@@ -327,7 +327,7 @@ begin
   end;
 end;
 
-procedure HLineHGC720(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure HLineHGC720(X, X2, Y: SmallInt);
 var
   Color: Word;
   YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
@@ -521,7 +521,7 @@ begin
   end;
 end;
 
-procedure SetVisualHGC720(page: word); {$ifndef fpc}far;{$endif fpc}
+procedure SetVisualHGC720(page: word);
 { two page supPort... }
 begin
   if page > HardwarePages then exit;
@@ -532,7 +532,7 @@ begin
   end;
 end;
 
-procedure SetActiveHGC720(page: word); {$ifndef fpc}far;{$endif fpc}
+procedure SetActiveHGC720(page: word);
 { two page supPort... }
 begin
   case page of
@@ -632,7 +632,7 @@ begin
   CurrentCGABorder := 0;
 end;
 
-procedure PutPixelCGA320(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+procedure PutPixelCGA320(X, Y: SmallInt; Pixel: Word);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -657,7 +657,7 @@ begin
   Mem[SegB800:Offset] := B;
 end;
 
-function GetPixelCGA320(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+function GetPixelCGA320(X, Y: SmallInt): Word;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -672,7 +672,7 @@ begin
   GetPixelCGA320 := (B shr Shift) and $03;
 end;
 
-procedure DirectPutPixelCGA320(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure DirectPutPixelCGA320(X, Y: SmallInt);
  { x,y -> must be in global coordinates. No clipping. }
 var
   Offset: Word;
@@ -722,7 +722,7 @@ begin
   end;
 end;
 
-procedure HLineCGA320(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure HLineCGA320(X, X2, Y: SmallInt);
 var
   Color: Word;
   YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
@@ -942,7 +942,7 @@ begin
   GetBkColorCGA640 := CurrentCGABorder and 15;
 end;
 
-procedure PutPixelCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+procedure PutPixelCGA640(X, Y: SmallInt; Pixel: Word);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -967,7 +967,7 @@ begin
   Mem[SegB800:Offset] := B;
 end;
 
-function GetPixelCGA640(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+function GetPixelCGA640(X, Y: SmallInt): Word;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -982,7 +982,7 @@ begin
   GetPixelCGA640 := (B shr Shift) and 1;
 end;
 
-procedure DirectPutPixelCGA640(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure DirectPutPixelCGA640(X, Y: SmallInt);
  { x,y -> must be in global coordinates. No clipping. }
 var
   Offset: Word;
@@ -1032,7 +1032,7 @@ begin
   end;
 end;
 
-procedure HLineCGA640(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure HLineCGA640(X, X2, Y: SmallInt);
 var
   Color: Word;
   YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
@@ -1250,7 +1250,7 @@ begin
   GetBkColorMCGA640 := CurrentCGABorder and 15;
 end;
 
-procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: Word);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -1273,7 +1273,7 @@ begin
   Mem[SegA000:Offset] := B;
 end;
 
-function GetPixelMCGA640(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+function GetPixelMCGA640(X, Y: SmallInt): Word;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -1286,7 +1286,7 @@ begin
   GetPixelMCGA640 := (B shr Shift) and 1;
 end;
 
-procedure DirectPutPixelMCGA640(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure DirectPutPixelMCGA640(X, Y: SmallInt);
  { x,y -> must be in global coordinates. No clipping. }
 var
   Offset: Word;
@@ -1334,7 +1334,7 @@ begin
   end;
 end;
 
-procedure HLineMCGA640(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure HLineMCGA640(X, X2, Y: SmallInt);
 var
   Color: Word;
   YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
@@ -1526,7 +1526,7 @@ end;
  {*                     4-bit planar VGA mode routines                   *}
  {************************************************************************}
 
-  Procedure Init640x200x16; {$ifndef fpc}far;{$endif fpc}
+  Procedure Init640x200x16;
     begin
       if DontClearGraphMemory then
         CallInt10($8e)
@@ -1536,7 +1536,7 @@ end;
     end;
 
 
-   Procedure Init640x350x16; {$ifndef fpc}far;{$endif fpc}
+   Procedure Init640x350x16;
     begin
       if DontClearGraphMemory then
         CallInt10($90)
@@ -1547,7 +1547,7 @@ end;
 
 
 
-  Procedure Init640x480x16; {$ifndef fpc}far;{$endif fpc}
+  Procedure Init640x480x16;
     begin
       if DontClearGraphMemory then
         CallInt10($92)
@@ -1559,7 +1559,7 @@ end;
 
 
 
- Procedure PutPixel16(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+ Procedure PutPixel16(X,Y : smallint; Pixel: Word);
 {$ifndef asmgraph}
  var offset: word;
      dummy: byte;
@@ -1690,7 +1690,7 @@ end;
    end;
 
 
- Function GetPixel16(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
+ Function GetPixel16(X,Y: smallint):word;
 {$ifndef asmgraph}
  Var dummy, offset: Word;
      shift: byte;
@@ -1983,7 +1983,7 @@ Begin
 {$Endif logging}
 End;
 
- Procedure DirectPutPixel16(X,Y : smallint); {$ifndef fpc}far;{$endif fpc}
+ Procedure DirectPutPixel16(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
   var
    color: word;
@@ -2128,7 +2128,7 @@ End;
  end;
 
 
-  procedure HLine16(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure HLine16(x,x2,y: smallint);
 
    var
       xtmp: smallint;
@@ -2216,7 +2216,7 @@ End;
     PortW[$3ce]:=$0003;
    end;
 
-  procedure VLine16(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure VLine16(x,y,y2: smallint);
 
    var
      ytmp,i: smallint;
@@ -2277,7 +2277,7 @@ End;
   End;
 
 
- procedure SetVisual200(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetVisual200(page: word);
   { four page support... }
   begin
     if page > HardwarePages then exit;
@@ -2304,7 +2304,7 @@ End;
     end ['DX','CX','BX','AX','SI','DI'];
   end;
 
- procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActive200(page: word);
   { four page support... }
   begin
     case page of
@@ -2317,7 +2317,7 @@ End;
     end;
   end;
 
- procedure SetVisual350(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetVisual350(page: word);
   { one page supPort... }
   begin
     if page > HardwarePages then exit;
@@ -2332,7 +2332,7 @@ End;
     end ['DX','CX','BX','AX','SI','DI'];
   end;
 
- procedure SetActive350(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActive350(page: word);
   { one page supPort... }
   begin
     case page of
@@ -2351,7 +2351,7 @@ End;
  {*                     320x200x256c Routines                            *}
  {************************************************************************}
 
- Procedure Init320; {$ifndef fpc}far;{$endif fpc}
+ Procedure Init320;
     begin
       if DontClearGraphMemory then
         CallInt10($93)
@@ -2362,7 +2362,7 @@ End;
 
 
 
- Procedure PutPixel320(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+ Procedure PutPixel320(X,Y : smallint; Pixel: Word);
  { x,y -> must be in local coordinates. Clipping if required. }
   Begin
     { verify clipping and then convert to absolute coordinates...}
@@ -2391,7 +2391,7 @@ End;
  end;
 
 
- Function GetPixel320(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
+ Function GetPixel320(X,Y: smallint):word;
   Begin
    X:= X + StartXViewPort;
    Y:= Y + StartYViewPort;
@@ -2412,7 +2412,7 @@ End;
   end;
 
 
- Procedure DirectPutPixel320(X,Y : smallint); {$ifndef fpc}far;{$endif fpc}
+ Procedure DirectPutPixel320(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
  var offset: word;
@@ -2476,13 +2476,13 @@ End;
 {$endif asmgraph}
 
 
- procedure SetVisual320(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetVisual320(page: word);
   { no page supPort... }
   begin
     VideoOfs := 0;
   end;
 
- procedure SetActive320(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActive320(page: word);
   { no page supPort... }
   begin
     VideoOfs := 0;
@@ -2493,7 +2493,7 @@ End;
  {************************************************************************}
 const CrtAddress: word = 0;
 
- procedure InitModeX; {$ifndef fpc}far;{$endif fpc}
+ procedure InitModeX;
   begin
    asm
      {see if we are using color-/monochorme display}
@@ -2556,7 +2556,7 @@ const CrtAddress: word = 0;
  end;
 
 
- Function GetPixelX(X,Y: smallint): word; {$ifndef fpc}far;{$endif fpc}
+ Function GetPixelX(X,Y: smallint): word;
 {$ifndef asmgraph}
  var offset: word;
 {$endif asmgraph}
@@ -2633,7 +2633,7 @@ const CrtAddress: word = 0;
 {$endif asmgraph}
  end;
 
- procedure SetVisualX(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetVisualX(page: word);
   { 4 page supPort... }
 
    Procedure SetVisibleStart(AOffset: word); Assembler;
@@ -2682,7 +2682,7 @@ const CrtAddress: word = 0;
     end;
   end;
 
- procedure SetActiveX(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActiveX(page: word);
   { 4 page supPort... }
   begin
    case page of
@@ -2695,7 +2695,7 @@ const CrtAddress: word = 0;
    end;
   end;
 
- Procedure PutPixelX(X,Y: smallint; color:word); {$ifndef fpc}far;{$endif fpc}
+ Procedure PutPixelX(X,Y: smallint; color:word);
 {$ifndef asmgraph}
  var offset: word;
 {$endif asmgraph}
@@ -2761,7 +2761,7 @@ const CrtAddress: word = 0;
   end;
 
 
- Procedure DirectPutPixelX(X,Y: smallint); {$ifndef fpc}far;{$endif fpc}
+ Procedure DirectPutPixelX(X,Y: smallint);
  { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
  Var offset: Word;
@@ -2855,7 +2855,7 @@ const CrtAddress: word = 0;
   SaveSupPorted : Boolean;    { Save/Restore video state supPorted? }
 
 
- Procedure SaveStateVGA; {$ifndef fpc}far;{$endif fpc}
+ Procedure SaveStateVGA;
  var
   regs: Registers;
   begin
@@ -2895,7 +2895,7 @@ const CrtAddress: word = 0;
       end;
   end;
 
- procedure RestoreStateVGA; {$ifndef fpc}far;{$endif fpc}
+ procedure RestoreStateVGA;
   var
    regs:Registers;
    SavePtrCopy: Pointer;
@@ -2919,7 +2919,7 @@ const CrtAddress: word = 0;
   end;
 
 
-   Procedure SetVGARGBAllPalette(const Palette:PaletteType); {$ifndef fpc}far;{$endif fpc}
+   Procedure SetVGARGBAllPalette(const Palette:PaletteType);
     var
       c: byte;
     begin
@@ -2954,7 +2954,7 @@ const CrtAddress: word = 0;
 
    { VGA is never a direct color mode, so no need to check ... }
    Procedure SetVGARGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
+      BlueValue : smallint);
     begin
       { translate the color number for 16 color mode }
       If MaxColor = 16 Then
@@ -3004,7 +3004,7 @@ const CrtAddress: word = 0;
 
    { VGA is never a direct color mode, so no need to check ... }
   Procedure GetVGARGBPalette(ColorNum: smallint; Var
-      RedValue, GreenValue, BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
+      RedValue, GreenValue, BlueValue : smallint);
    begin
      If MaxColor = 16 Then
        ColorNum := ToRealCols16[ColorNum];
@@ -3895,7 +3895,7 @@ const CrtAddress: word = 0;
 var
   go32exitsave: codepointer;
 
-procedure freeSaveStateBuffer; {$ifndef fpc}far; {$endif}
+procedure freeSaveStateBuffer;
 begin
   if savePtr <> nil then
     begin
