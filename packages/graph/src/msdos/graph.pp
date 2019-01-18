@@ -2408,6 +2408,9 @@ End;
 //      add    di, [VideoOfs]   { point to correct gfx page ... }
       mov    al,es:[di]
       mov    word ptr @Result,ax
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+      mov    word ptr @Result+2, 0
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
     end ['ax','di'];
   end;
 
