@@ -1933,24 +1933,16 @@ end;
    asm
     mov ax,4F02h
     mov bx,mode
-{$ifdef fpc}
+    push ds
     push bp
-    push si
-    push di
-    push bx
-{$endif fpc}
     int 10h
-{$ifdef fpc}
-    pop bx
-    pop di
-    pop si
     pop bp
-{$endif fpc}
+    pop ds
     sub ax,004Fh
     cmp ax,1
     sbb al,al
     mov res,al
-   end ['BX','AX'];
+   end ['DX','CX','BX','AX','SI','DI'];
    if not res then
      _GraphResult := GrNotDetected
    else _GraphResult := grOk;
@@ -2222,20 +2214,12 @@ end;
       mov bx, 0000h   { set display start }
       mov cx, 0000h   { pixel zero !      }
       mov dx, [NewStartVisible]  { new scanline }
-{$ifdef fpc}
+      push    ds
       push    bp
-      push    si
-      push    di
-      push    bx
-{$endif}
       int     10h
-{$ifdef fpc}
-      pop     bx
-      pop     di
-      pop     si
       pop     bp
-{$endif}
-    end ['DX','CX','BX','AX'];
+      pop     ds
+    end ['DX','CX','BX','AX','SI','DI'];
   end;
 
  procedure SetActiveVESA(page: word); {$ifndef fpc}far;{$endif fpc}

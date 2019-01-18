@@ -164,9 +164,11 @@ const
  Procedure CallInt10(val_ax : word); assembler;
    asm
      mov ax,val_ax
+     push ds
      push bp
      int 10h
      pop bp
+     pop ds
    end;
 
 {************************************************************************}
@@ -2282,19 +2284,11 @@ End;
     asm
       mov ax,[page]    { only lower byte is supPorted. }
       mov ah,05h
-{$ifdef fpc}
+      push ds
       push bp
-      push si
-      push di
-      push bx
-{$endif fpc}
       int 10h
-{$ifdef fpc}
-      pop bx
-      pop di
-      pop si
       pop bp
-{$endif fpc}
+      pop ds
 
       { read start address }
       mov dx,3d4h
@@ -2307,7 +2301,7 @@ End;
       mov al,0dh
       out dx,al
       in  al,dx
-    end ['DX','AX'];
+    end ['DX','CX','BX','AX','SI','DI'];
   end;
 
  procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
@@ -2330,20 +2324,12 @@ End;
     asm
       mov ax,[page]    { only lower byte is supPorted. }
       mov ah,05h
-{$ifdef fpc}
+      push ds
       push bp
-      push si
-      push di
-      push bx
-{$endif fpc}
       int 10h
-{$ifdef fpc}
-      pop bx
-      pop di
-      pop si
       pop bp
-{$endif fpc}
-    end ['AX'];
+      pop ds
+    end ['DX','CX','BX','AX','SI','DI'];
   end;
 
  procedure SetActive350(page: word); {$ifndef fpc}far;{$endif fpc}
@@ -2526,19 +2512,11 @@ const CrtAddress: word = 0;
      JZ   @L2
      OR   AX, 080h
   @L2:
-{$ifdef fpc}
+     push ds
      push bp
-     push si
-     push di
-     push bx
-{$EndIf fpc}
      INT  10h
-{$ifdef fpc}
-     pop bx
-     pop di
-     pop si
      pop bp
-{$EndIf fpc}
+     pop ds
      MOV DX,03C4h   {select memory-mode-register at sequencer Port    }
      MOV AL,04
      OUT DX,AL
@@ -2574,7 +2552,7 @@ const CrtAddress: word = 0;
      IN  AL,DX
      OR  AL,40h     {bit 6 := 1: memory access scheme=linear bit array      }
      OUT DX,AL
-  end ['DX','BX','CX','AX','DI'];
+  end ['DX','BX','CX','AX','SI','DI'];
  end;
 
 
