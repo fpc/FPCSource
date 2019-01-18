@@ -217,7 +217,7 @@ end;
  {*                     8-bit pixels VESA mode routines                  *}
  {************************************************************************}
 
-  procedure PutPixVESA256(x, y : smallint; color : word);
+  procedure PutPixVESA256(x, y : smallint; color : ColorType);
   var
      offs : longint;
   begin
@@ -272,7 +272,7 @@ end;
      mem[WinWriteSeg : word(offs)] := Col;
   end;
 
-  function GetPixVESA256(x, y : smallint): word;
+  function GetPixVESA256(x, y : smallint): ColorType;
   var
      offs : longint;
   begin
@@ -983,7 +983,7 @@ end;
  {*                    15/16bit pixels VESA mode routines                *}
  {************************************************************************}
 
-  procedure PutPixVESA32kOr64k(x, y : smallint; color : word);
+  procedure PutPixVESA32kOr64k(x, y : smallint; color : ColorType);
   var
      offs : longint;
      place: word;
@@ -1015,7 +1015,7 @@ end;
      memW[WinWriteSeg : place] := color;
   end;
 
-  function GetPixVESA32kOr64k(x, y : smallint): word;
+  function GetPixVESA32kOr64k(x, y : smallint): ColorType;
   var
      offs : longint;
   begin
@@ -1393,7 +1393,7 @@ end;
  {*                     4-bit pixels VESA mode routines                  *}
  {************************************************************************}
 
-  procedure PutPixVESA16(x, y : smallint; color : word);
+  procedure PutPixVESA16(x, y : smallint; color : ColorType);
     var
      offs : longint;
      dummy : byte;
@@ -1428,7 +1428,7 @@ end;
   end;
 
 
- Function GetPixVESA16(X,Y: smallint):word;
+ Function GetPixVESA16(X,Y: smallint):ColorType;
  Var dummy: Word;
      offset: longint;
      shift: byte;

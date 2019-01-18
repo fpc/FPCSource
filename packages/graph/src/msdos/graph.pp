@@ -205,7 +205,7 @@ begin
 end;
 
 { compatible with TP7's HERC.BGI }
-procedure SetBkColorHGC720(ColorNum: Word);
+procedure SetBkColorHGC720(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -213,7 +213,7 @@ begin
 end;
 
 { compatible with TP7's HERC.BGI }
-function GetBkColorHGC720: Word;
+function GetBkColorHGC720: ColorType;
 begin
   GetBkColorHGC720 := DummyHGCBkColor;
 end;
@@ -228,7 +228,7 @@ procedure GetHGCRGBPalette(ColorNum: smallint; Var
 begin
 end;
 
-procedure PutPixelHGC720(X, Y: SmallInt; Pixel: Word);
+procedure PutPixelHGC720(X, Y: SmallInt; Pixel: ColorType);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -256,7 +256,7 @@ begin
   Mem[SegB000:Offset] := B;
 end;
 
-function GetPixelHGC720(X, Y: SmallInt): Word;
+function GetPixelHGC720(X, Y: SmallInt): ColorType;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -571,7 +571,7 @@ asm
   pop bp
 end;
 
-procedure SetBkColorCGA320(ColorNum: Word);
+procedure SetBkColorCGA320(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -579,7 +579,7 @@ begin
   SetCGABorder(CurrentCGABorder);
 end;
 
-function GetBkColorCGA320: Word;
+function GetBkColorCGA320: ColorType;
 begin
   GetBkColorCGA320 := CurrentCGABorder and 15;
 end;
@@ -632,7 +632,7 @@ begin
   CurrentCGABorder := 0;
 end;
 
-procedure PutPixelCGA320(X, Y: SmallInt; Pixel: Word);
+procedure PutPixelCGA320(X, Y: SmallInt; Pixel: ColorType);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -657,7 +657,7 @@ begin
   Mem[SegB800:Offset] := B;
 end;
 
-function GetPixelCGA320(X, Y: SmallInt): Word;
+function GetPixelCGA320(X, Y: SmallInt): ColorType;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -927,7 +927,7 @@ begin
 end;
 
 {yes, TP7 CGA.BGI behaves *exactly* like that}
-procedure SetBkColorCGA640(ColorNum: Word);
+procedure SetBkColorCGA640(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -937,12 +937,12 @@ begin
   SetCGABorder(CurrentCGABorder);
 end;
 
-function GetBkColorCGA640: Word;
+function GetBkColorCGA640: ColorType;
 begin
   GetBkColorCGA640 := CurrentCGABorder and 15;
 end;
 
-procedure PutPixelCGA640(X, Y: SmallInt; Pixel: Word);
+procedure PutPixelCGA640(X, Y: SmallInt; Pixel: ColorType);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -967,7 +967,7 @@ begin
   Mem[SegB800:Offset] := B;
 end;
 
-function GetPixelCGA640(X, Y: SmallInt): Word;
+function GetPixelCGA640(X, Y: SmallInt): ColorType;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -1237,7 +1237,7 @@ begin
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
 
-procedure SetBkColorMCGA640(ColorNum: Word);
+procedure SetBkColorMCGA640(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -1245,12 +1245,12 @@ begin
   SetCGABorder(CurrentCGABorder);
 end;
 
-function GetBkColorMCGA640: Word;
+function GetBkColorMCGA640: ColorType;
 begin
   GetBkColorMCGA640 := CurrentCGABorder and 15;
 end;
 
-procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: Word);
+procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: ColorType);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -1273,7 +1273,7 @@ begin
   Mem[SegA000:Offset] := B;
 end;
 
-function GetPixelMCGA640(X, Y: SmallInt): Word;
+function GetPixelMCGA640(X, Y: SmallInt): ColorType;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -1559,7 +1559,7 @@ end;
 
 
 
- Procedure PutPixel16(X,Y : smallint; Pixel: Word);
+ Procedure PutPixel16(X,Y : smallint; Pixel: ColorType);
 {$ifndef asmgraph}
  var offset: word;
      dummy: byte;
@@ -1690,7 +1690,7 @@ end;
    end;
 
 
- Function GetPixel16(X,Y: smallint):word;
+ Function GetPixel16(X,Y: smallint):ColorType;
 {$ifndef asmgraph}
  Var dummy, offset: Word;
      shift: byte;
@@ -2362,7 +2362,7 @@ End;
 
 
 
- Procedure PutPixel320(X,Y : smallint; Pixel: Word);
+ Procedure PutPixel320(X,Y : smallint; Pixel: ColorType);
  { x,y -> must be in local coordinates. Clipping if required. }
   Begin
     { verify clipping and then convert to absolute coordinates...}
@@ -2391,7 +2391,7 @@ End;
  end;
 
 
- Function GetPixel320(X,Y: smallint):word;
+ Function GetPixel320(X,Y: smallint):ColorType;
   Begin
    X:= X + StartXViewPort;
    Y:= Y + StartYViewPort;
@@ -2407,7 +2407,7 @@ End;
       xor    ax, ax
 //      add    di, [VideoOfs]   { point to correct gfx page ... }
       mov    al,es:[di]
-      mov    @Result,ax
+      mov    word ptr @Result,ax
     end ['ax','di'];
   end;
 
@@ -2556,7 +2556,7 @@ const CrtAddress: word = 0;
  end;
 
 
- Function GetPixelX(X,Y: smallint): word;
+ Function GetPixelX(X,Y: smallint): ColorType;
 {$ifndef asmgraph}
  var offset: word;
 {$endif asmgraph}
@@ -2695,7 +2695,7 @@ const CrtAddress: word = 0;
    end;
   end;
 
- Procedure PutPixelX(X,Y: smallint; color:word);
+ Procedure PutPixelX(X,Y: smallint; color:ColorType);
 {$ifndef asmgraph}
  var offset: word;
 {$endif asmgraph}
