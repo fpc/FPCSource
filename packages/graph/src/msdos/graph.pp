@@ -1879,14 +1879,13 @@ Begin
 End;
 
 {$undef asmgraph}
+{$ifndef asmgraph}
  Procedure DirectPutPixel16(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
   var
    color: word;
-{$ifndef asmgraph}
   offset: word;
   dummy: byte;
-{$endif asmgraph}
  begin
     If CurrentWriteMode <> NotPut Then
       Color := CurrentColor
@@ -1905,7 +1904,6 @@ End;
        else
          PortW[$3ce]:=$0003}
     end;
-{$ifndef asmgraph}
     offset := Y * 80 + (X shr 3) + VideoOfs;
     PortW[$3ce] := $f01;
     PortW[$3ce] := Color shl 8;
@@ -1918,10 +1916,32 @@ End;
        (CurrentWriteMode = ANDPut) or
        (CurrentWriteMode = ORPut) then
       PortW[$3ce] := $0003;
+ end;
 {$else asmgraph}
+ Procedure DirectPutPixel16(X,Y : smallint);
+ { x,y -> must be in global coordinates. No clipping. }
+  var
+   color: word;
+ begin
+    If CurrentWriteMode <> NotPut Then
+      Color := CurrentColor
+    else Color := not CurrentColor;
+
+    case CurrentWriteMode of
+       XORPut:
+         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
+       ANDPut:
+         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
+       ORPut:
+         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
+       {not needed, this is the default state (e.g. PutPixel16 requires it)}
+       {NormalPut, NotPut:
+         PortW[$3ce]:=$0003
+       else
+         PortW[$3ce]:=$0003}
+    end;
 { note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
-  {$ifndef fpc}
       mov  es, [SegA000]
       { enable the set / reset function and load the color }
       mov  dx, 3ceh
@@ -1965,63 +1985,9 @@ End;
       { restore enable set/reset register }
       mov  ax,0001h
       out  dx,ax
-  {$else fpc}
-      push eax
-      push ebx
-      push ecx
-      push edx
-      push edi
-      { enable the set / reset function and load the color }
-      mov  dx, 3ceh
-      mov  ax, 0f01h
-      out  dx, ax
-      { setup set/reset register }
-      mov  ax, [Color]
-      shl  ax, 8
-      out  dx, ax
-      { setup the bit mask register }
-      mov  al, 8
-      out  dx, al
-      inc  dx
-      { load the bitmask register }
-      mov  cx, [X]
-      and  cx, 0007h
-      mov  al, 80h
-      shr  al, cl
-      out  dx, ax
-      { get the x index and divide by 8 for 16-color }
-      movzx eax,[X]
-      shr  eax,3
-      push eax
-      { determine the address }
-      mov  eax,80
-      mov  bx,[Y]
-      mul  bx
-      pop  ecx
-      add  eax,ecx
-      mov  edi,eax
-      { send the data through the display memory through set/reset }
-      add  edi,[VideoOfs]   { add correct page }
-      mov  bl,fs:[edi+$a0000]
-      mov  fs:[edi+$a0000],bl
-
-      { reset for formal vga operation }
-      mov  dx,3ceh
-      mov  ax,0ff08h
-      out  dx,ax
-
-      { restore enable set/reset register }
-      mov  ax,0001h
-      out  dx,ax
-      pop edi
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-  {$endif fpc}
     end;
-{$endif asmgraph}
  end;
+{$endif asmgraph}
 
 
   procedure HLine16(x,x2,y: smallint);
