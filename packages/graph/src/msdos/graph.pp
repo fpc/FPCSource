@@ -1650,17 +1650,14 @@ end;
    end;
 {$endif asmgraph}
 
-{$undef asmgraph}
 
- Function GetPixel16(X,Y: smallint):ColorType;
 {$ifndef asmgraph}
+ Function GetPixel16(X,Y: smallint):ColorType;
  Var dummy, offset: Word;
      shift: byte;
-{$endif asmgraph}
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
     offset := Y * 80 + (x shr 3) + VideoOfs;
     PortW[$3ce] := $0004;
     shift := 7 - (X and 7);
@@ -1672,151 +1669,87 @@ end;
     Port[$3cf] := 3;
     dummy := dummy or (((Mem[Sega000:offset] shr shift) and 1) shl 3);
     GetPixel16 := dummy;
-{$else asmgraph}
-    asm
-  {$ifndef fpc}
-      mov   ax, [X]          { Get X address                    }
-      push  ax
-      shr   ax, 3
-      push  ax
-
-      mov   ax,80
-      mov   bx,[Y]
-      mul   bx
-      pop   cx
-      add   ax,cx
-      mov   si,ax            { SI = correct offset into video segment }
-
-      mov   es,[SegA000]
-      add   si,[VideoOfs]    { Point to correct page offset... }
-
-      mov   dx,03ceh
-      mov   ax,4
-      out   dx,al
-      inc   dx
-
-      pop   ax
-      and   ax,0007h
-      mov   cl,07
-      sub   cl,al
-      mov   bl,cl
-
-      { read plane 0 }
-      mov   al,0             { Select plane to read }
-      out   dx,al
-      mov   al,es:[si]       { read display memory }
-      shr   al,cl
-      and   al,01h
-      mov   ah,al            { save bit in AH       }
-
-      { read plane 1 }
-      mov   al,1             { Select plane to read }
-      out   dx,al
-      mov   al,es:[si]
-      shr   al,cl
-      and   al,01h
-      shl   al,1
-      or    ah,al            { save bit in AH      }
-
-      { read plane 2 }
-      mov   al,2             { Select plane to read }
-      out   dx,al
-      mov   al,es:[si]
-      shr   al,cl
-      and   al,01h
-      shl   al,2
-      or    ah,al            { save bit in AH       }
-
-      { read plane 3 }
-      mov   al,3             { Select plane to read }
-      out   dx,al
-      mov   al,es:[si]
-      shr   al,cl
-      and   al,01h
-      shl   al,3
-      or    ah,al            { save bit in AH       }
-
-      mov   al,ah            { 16-bit pixel in AX   }
-      xor   ah,ah
-      mov   @Result, ax
-  {$else fpc}
-      push eax
-      push ebx
-      push ecx
-      push edx
-      push esi
-      movzx eax, [X]          { Get X address                    }
-      push  eax
-      shr   eax, 3
-      push  eax
-
-      mov   eax,80
-      mov   bx,[Y]
-      mul   bx
-      pop   ecx
-      add   eax,ecx
-      mov   esi,eax            { SI = correct offset into video segment }
-
-      add   esi,[VideoOfs]    { Point to correct page offset... }
-
-      mov   dx,03ceh
-      mov   ax,4
-      out   dx,al
-      inc   dx
-
-      pop   eax
-      and   eax,0007h
-      mov   cl,07
-      sub   cl,al
-      mov   bl,cl
-
-      { read plane 0 }
-      mov   al,0             { Select plane to read }
-      out   dx,al
-      mov   al,fs:[esi+$a0000]       { read display memory }
-      shr   al,cl
-      and   al,01h
-      mov   ah,al            { save bit in AH       }
-
-      { read plane 1 }
-      mov   al,1             { Select plane to read }
-      out   dx,al
-      mov   al,fs:[esi+$a0000]
-      shr   al,cl
-      and   al,01h
-      shl   al,1
-      or    ah,al            { save bit in AH      }
-
-      { read plane 2 }
-      mov   al,2             { Select plane to read }
-      out   dx,al
-      mov   al,fs:[esi+$a0000]
-      shr   al,cl
-      and   al,01h
-      shl   al,2
-      or    ah,al            { save bit in AH       }
-
-      { read plane 3 }
-      mov   al,3             { Select plane to read }
-      out   dx,al
-      mov   al,fs:[esi+$a0000]
-      shr   al,cl
-      and   al,01h
-      shl   al,3
-      or    ah,al            { save bit in AH       }
-
-      mov   al,ah            { 16-bit pixel in AX   }
-      xor   ah,ah
-      mov   @Result, ax
-      pop esi
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-  {$endif fpc}
-    end;
-{$endif asmgraph}
   end;
+{$else asmgraph}
+ Function GetPixel16(X,Y: smallint):ColorType;assembler;
+  asm
+    mov   ax, [X]          { Get X address                    }
+    add   ax, [StartXViewPort]
+    mov   di, ax
+    mov   cl, 3
+    shr   ax, cl
+    xchg  ax, cx
+
+    mov   ax, 80
+    mov   bx, [Y]
+    add   bx, [StartYViewPort]
+    mul   bx
+    add   ax,cx
+    mov   si,ax            { SI = correct offset into video segment }
+
+{$ifdef FPC_MM_HUGE}
+    mov   ax, SEG SegA000
+    mov   es, ax
+    mov   es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov   es, [SegA000]
+{$endif FPC_MM_HUGE}
+    add   si,[VideoOfs]    { Point to correct page offset... }
+
+    mov   dx,03ceh
+    mov   ax,0004h
+    out   dx,ax
+    inc   dx
+
+    xchg  ax, di
+    and   ax,0007h
+    mov   cl,07
+    sub   cl,al
+    mov   bl,cl
+
+    { read plane 0 }
+    mov   al,es:[si]       { read display memory }
+    shr   al,cl
+    and   al,01h
+    mov   ah,al            { save bit in AH       }
+
+    { read plane 1 }
+    mov   al,1             { Select plane to read }
+    out   dx,al
+    mov   al,es:[si]
+    shr   al,cl
+    and   al,01h
+    shl   al,1
+    or    ah,al            { save bit in AH      }
+
+    { read plane 2 }
+    mov   al,2             { Select plane to read }
+    out   dx,al
+    mov   al,es:[si]
+    shr   al,cl
+    and   al,01h
+    shl   al,1
+    shl   al,1
+    or    ah,al            { save bit in AH       }
+
+    { read plane 3 }
+    mov   al,3             { Select plane to read }
+    out   dx,al
+    mov   al,es:[si]
+    shr   al,cl
+    and   al,01h
+    shl   al,1
+    shl   al,1
+    shl   al,1
+    or    ah,al            { save bit in AH       }
+
+    mov   al,ah            { 16-bit pixel in AX   }
+    xor   ah,ah
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    xor   dx,dx
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  end;
+{$endif asmgraph}
 
 Procedure GetScanLine16(x1, x2, y: smallint; var data);
 
@@ -1945,6 +1878,7 @@ Begin
 {$Endif logging}
 End;
 
+{$undef asmgraph}
  Procedure DirectPutPixel16(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
   var
