@@ -758,6 +758,7 @@ procedure GraphDefaults;
 procedure ClearDevice;
 procedure GetViewSettings(var viewport : ViewPortType);
 procedure SetWriteMode(WriteMode : smallint);
+procedure SetWriteModeEx(WriteMode : smallint);
 procedure GetFillSettings(var Fillinfo:Fillsettingstype);
 procedure GetFillPattern(var FillPattern:FillPatternType);
 procedure GetLineSettings(var ActiveLineInfo : LineSettingsType);

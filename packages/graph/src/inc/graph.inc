@@ -1991,6 +1991,13 @@ end;
    end;
 
 
+  procedure SetWriteModeEx(WriteMode : smallint);
+   begin
+     if (WriteMode >= CopyPut) and (WriteMode <= NotPut) then
+       CurrentWriteMode := WriteMode;
+   end;
+
+
   procedure GetFillSettings(var Fillinfo:Fillsettingstype);
    begin
      Fillinfo:=Fillsettings;
