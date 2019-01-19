@@ -1926,20 +1926,6 @@ End;
     If CurrentWriteMode <> NotPut Then
       Color := CurrentColor
     else Color := not CurrentColor;
-
-    case CurrentWriteMode of
-       XORPut:
-         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
-       ANDPut:
-         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
-       ORPut:
-         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
-       {not needed, this is the default state (e.g. PutPixel16 requires it)}
-       {NormalPut, NotPut:
-         PortW[$3ce]:=$0003
-       else
-         PortW[$3ce]:=$0003}
-    end;
 { note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
 {$ifdef FPC_MM_HUGE}
