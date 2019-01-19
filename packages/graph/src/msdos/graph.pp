@@ -2238,16 +2238,7 @@ End;
   end;
 {$else asmgraph}
  Procedure PutPixel320(X,Y : smallint; Pixel: ColorType);
- { x,y -> must be in local coordinates. Clipping if required. }
   Begin
-    { verify clipping and then convert to absolute coordinates...}
-    if ClipPixels then
-    begin
-      if (X < 0) or (X > ViewWidth) then
-        exit;
-      if (Y < 0) or (Y > ViewHeight) then
-        exit;
-    end;
     asm
 {$ifdef FPC_MM_HUGE}
       mov    ax, SEG SegA000
@@ -2258,6 +2249,19 @@ End;
 {$endif FPC_MM_HUGE}
       mov    ax, [Y]
       mov    di, [X]
+      cmp    byte ptr [ClipPixels], 0
+      je     @@ClipDone
+
+      test   ax, ax
+      js     @@Done
+      test   di, di
+      js     @@Done
+      cmp    ax, [ViewHeight]
+      jg     @@Done
+      cmp    di, [ViewWidth]
+      jg     @@Done
+
+@@ClipDone:
       add    ax, [StartYViewPort]
       add    di, [StartXViewPort]
       xchg   ah, al            { The value of Y must be in AH }
@@ -2267,6 +2271,7 @@ End;
       add    di, ax
       mov    ax, [Pixel]
       mov    es:[di], al
+@@Done:
     end ['ax','di'];
  end;
 {$endif asmgraph}
