@@ -1921,12 +1921,7 @@ End;
   const
     DataRotateRegTbl: array [NormalPut..NotPut] of Byte=($00,$18,$10,$08,$00);
  { x,y -> must be in global coordinates. No clipping. }
-  var
-   color: word;
  begin
-    If CurrentWriteMode <> NotPut Then
-      Color := CurrentColor
-    else Color := not CurrentColor;
     asm
 {$ifdef FPC_MM_HUGE}
       mov  ax, SEG SegA000
@@ -1936,7 +1931,15 @@ End;
       mov  es, [SegA000]
 {$endif FPC_MM_HUGE}
       mov  dx, 3ceh
+      xor  ch, ch  { Color mask = 0 }
       mov  bx, [CurrentWriteMode]
+      test bl, 4   { NotPut? }
+      jz   @@NoNotPut
+
+      { NotPut }
+      mov  ch, 15  { Color mask for NotPut }
+
+@@NoNotPut:
       mov  ah, byte ptr [DataRotateRegTbl + bx]
       test ah, ah
       jz   @@NormalPut
@@ -1949,7 +1952,8 @@ End;
       mov  ax, 0f01h
       out  dx, ax
       { setup set/reset register }
-      mov  ah, [Color]
+      mov  ah, byte ptr [CurrentColor]
+      xor  ah, ch  { Maybe apply the NotPut mask }
       xor  al, al
       out  dx, ax
       { setup the bit mask register }
