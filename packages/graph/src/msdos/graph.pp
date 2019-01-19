@@ -2220,7 +2220,6 @@ End;
 
 
 
-{$undef asmgraph}
 {$ifndef asmgraph}
  Procedure PutPixel320(X,Y : smallint; Pixel: ColorType);
  { x,y -> must be in local coordinates. Clipping if required. }
@@ -2273,6 +2272,7 @@ End;
 {$endif asmgraph}
 
 
+{$undef asmgraph}
  Function GetPixel320(X,Y: smallint):ColorType;
   Begin
    X:= X + StartXViewPort;
