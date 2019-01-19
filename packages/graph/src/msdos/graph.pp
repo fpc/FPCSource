@@ -2282,8 +2282,6 @@ End;
 {$else asmgraph}
  Function GetPixel320(X,Y: smallint):ColorType;
   Begin
-   X:= X + StartXViewPort;
-   Y:= Y + StartYViewPort;
    asm
 {$ifdef FPC_MM_HUGE}
       mov    ax, SEG SegA000
@@ -2293,7 +2291,9 @@ End;
       mov    es, [SegA000]
 {$endif FPC_MM_HUGE}
       mov    ax, [Y]
+      add    ax, [StartYViewPort]
       mov    di, [X]
+      add    di, [StartXViewPort]
       xchg   ah, al            { The value of Y must be in AH }
       add    di, ax
       shr    ax, 1
