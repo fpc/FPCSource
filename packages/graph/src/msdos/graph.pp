@@ -1917,86 +1917,84 @@ End;
       PortW[$3ce] := $0003;
  end;
 {$else asmgraph}
- Procedure DirectPutPixel16(X,Y : smallint);
+ Procedure DirectPutPixel16(X,Y : smallint); assembler;
   const
     DataRotateRegTbl: array [NormalPut..NotPut] of Byte=($00,$18,$10,$08,$00);
  { x,y -> must be in global coordinates. No clipping. }
- begin
-    asm
+  asm
 {$ifdef FPC_MM_HUGE}
-      mov  ax, SEG SegA000
-      mov  es, ax
-      mov  es, es:[SegA000]
+    mov  ax, SEG SegA000
+    mov  es, ax
+    mov  es, es:[SegA000]
 {$else FPC_MM_HUGE}
-      mov  es, [SegA000]
+    mov  es, [SegA000]
 {$endif FPC_MM_HUGE}
-      mov  dx, 3ceh
-      xor  ch, ch  { Color mask = 0 }
-      mov  bx, [CurrentWriteMode]
-      test bl, 4   { NotPut? }
-      jz   @@NoNotPut
+    mov  dx, 3ceh
+    xor  ch, ch  { Color mask = 0 }
+    mov  bx, [CurrentWriteMode]
+    test bl, 4   { NotPut? }
+    jz   @@NoNotPut
 
-      { NotPut }
-      mov  ch, 15  { Color mask for NotPut }
+    { NotPut }
+    mov  ch, 15  { Color mask for NotPut }
 
 @@NoNotPut:
-      mov  ah, byte ptr [DataRotateRegTbl + bx]
-      test ah, ah
-      jz   @@NormalPut
+    mov  ah, byte ptr [DataRotateRegTbl + bx]
+    test ah, ah
+    jz   @@NormalPut
 
-      mov  al, 3
-      out  dx, ax
+    mov  al, 3
+    out  dx, ax
 
 @@NormalPut:
-      { enable the set / reset function and load the color }
-      mov  ax, 0f01h
-      out  dx, ax
-      { setup set/reset register }
-      mov  ah, byte ptr [CurrentColor]
-      xor  ah, ch  { Maybe apply the NotPut mask }
-      xor  al, al
-      out  dx, ax
-      { setup the bit mask register }
-      mov  al, 8
-      { load the bitmask register }
-      mov  cl, [X]
-      and  cl, 07h
-      mov  ah, 80h
-      shr  ah, cl
-      out  dx, ax
-      { get the x index and divide by 8 for 16-color }
-      mov  ax, [X]
-      mov  cl, 3
-      shr  ax, cl
-      push ax
-      { determine the address }
-      mov  ax, 80
-      mov  si, [Y]
-      mul  si
-      pop  cx
-      add  ax,cx
-      mov  di,ax
-      { send the data through the display memory through set/reset }
-      add  di,[VideoOfs]   { add correct page }
-      mov  al,es:[di]
-      mov  es:[di],al
+    { enable the set / reset function and load the color }
+    mov  ax, 0f01h
+    out  dx, ax
+    { setup set/reset register }
+    mov  ah, byte ptr [CurrentColor]
+    xor  ah, ch  { Maybe apply the NotPut mask }
+    xor  al, al
+    out  dx, ax
+    { setup the bit mask register }
+    mov  al, 8
+    { load the bitmask register }
+    mov  cl, [X]
+    and  cl, 07h
+    mov  ah, 80h
+    shr  ah, cl
+    out  dx, ax
+    { get the x index and divide by 8 for 16-color }
+    mov  ax, [X]
+    mov  cl, 3
+    shr  ax, cl
+    push ax
+    { determine the address }
+    mov  ax, 80
+    mov  si, [Y]
+    mul  si
+    pop  cx
+    add  ax,cx
+    mov  di,ax
+    { send the data through the display memory through set/reset }
+    add  di,[VideoOfs]   { add correct page }
+    mov  al,es:[di]
+    mov  es:[di],al
 
-      { reset for formal vga operation }
-      mov  ax,0ff08h
-      out  dx,ax
+    { reset for formal vga operation }
+    mov  ax,0ff08h
+    out  dx,ax
 
-      { restore enable set/reset register }
-      mov  ax,0001h
-      out  dx,ax
+    { restore enable set/reset register }
+    mov  ax,0001h
+    out  dx,ax
 
-      test bl, 3   { NormalPut or NotPut? }
-      jz   @@Done  { If yes, skip }
+    test bl, 3   { NormalPut or NotPut? }
+    jz   @@Done  { If yes, skip }
 
-      mov  ax,0003h
-      out  dx,ax
+    mov  ax,0003h
+    out  dx,ax
 @@Done:
-    end ['AX','BX','CX','DX','SI','DI'];
- end;
+  end;
 {$endif asmgraph}
 
 
