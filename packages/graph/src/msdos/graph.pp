@@ -2237,43 +2237,41 @@ End;
     Mem[SegA000:Y*320+X] := Pixel;
   end;
 {$else asmgraph}
- Procedure PutPixel320(X,Y : smallint; Pixel: ColorType);
-  Begin
-    asm
+ Procedure PutPixel320(X,Y : smallint; Pixel: ColorType); assembler;
+  asm
 {$ifdef FPC_MM_HUGE}
-      mov    ax, SEG SegA000
-      mov    es, ax
-      mov    es, es:[SegA000]
+    mov    ax, SEG SegA000
+    mov    es, ax
+    mov    es, es:[SegA000]
 {$else FPC_MM_HUGE}
-      mov    es, [SegA000]
+    mov    es, [SegA000]
 {$endif FPC_MM_HUGE}
-      mov    ax, [Y]
-      mov    di, [X]
-      cmp    byte ptr [ClipPixels], 0
-      je     @@ClipDone
+    mov    ax, [Y]
+    mov    di, [X]
+    cmp    byte ptr [ClipPixels], 0
+    je     @@ClipDone
 
-      test   ax, ax
-      js     @@Done
-      test   di, di
-      js     @@Done
-      cmp    ax, [ViewHeight]
-      jg     @@Done
-      cmp    di, [ViewWidth]
-      jg     @@Done
+    test   ax, ax
+    js     @@Done
+    test   di, di
+    js     @@Done
+    cmp    ax, [ViewHeight]
+    jg     @@Done
+    cmp    di, [ViewWidth]
+    jg     @@Done
 
 @@ClipDone:
-      add    ax, [StartYViewPort]
-      add    di, [StartXViewPort]
-      xchg   ah, al            { The value of Y must be in AH }
-      add    di, ax
-      shr    ax, 1
-      shr    ax, 1
-      add    di, ax
-      mov    al, byte ptr [Pixel]
-      stosb
+    add    ax, [StartYViewPort]
+    add    di, [StartXViewPort]
+    xchg   ah, al            { The value of Y must be in AH }
+    add    di, ax
+    shr    ax, 1
+    shr    ax, 1
+    add    di, ax
+    mov    al, byte ptr [Pixel]
+    stosb
 @@Done:
-    end ['ax','di'];
- end;
+  end;
 {$endif asmgraph}
 
 
