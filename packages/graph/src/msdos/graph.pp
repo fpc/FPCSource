@@ -1878,7 +1878,6 @@ Begin
 {$Endif logging}
 End;
 
-{$undef asmgraph}
 {$ifndef asmgraph}
  Procedure DirectPutPixel16(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
@@ -1919,6 +1918,8 @@ End;
  end;
 {$else asmgraph}
  Procedure DirectPutPixel16(X,Y : smallint);
+  const
+    DataRotateRegTbl: array [NormalPut..NotPut] of Byte=($00,$18,$10,$08,$00);
  { x,y -> must be in global coordinates. No clipping. }
   var
    color: word;
@@ -1926,7 +1927,6 @@ End;
     If CurrentWriteMode <> NotPut Then
       Color := CurrentColor
     else Color := not CurrentColor;
-{ note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
 {$ifdef FPC_MM_HUGE}
       mov  ax, SEG SegA000
@@ -1935,49 +1935,63 @@ End;
 {$else FPC_MM_HUGE}
       mov  es, [SegA000]
 {$endif FPC_MM_HUGE}
-      { enable the set / reset function and load the color }
       mov  dx, 3ceh
+      mov  bx, [CurrentWriteMode]
+      mov  ah, byte ptr [DataRotateRegTbl + bx]
+      test ah, ah
+      jz   @@NormalPut
+
+      mov  al, 3
+      out  dx, ax
+
+@@NormalPut:
+      { enable the set / reset function and load the color }
       mov  ax, 0f01h
       out  dx, ax
       { setup set/reset register }
-      mov  ax, [Color]
-      shl  ax, 8
+      mov  ah, [Color]
+      xor  al, al
       out  dx, ax
       { setup the bit mask register }
       mov  al, 8
-      out  dx, al
-      inc  dx
       { load the bitmask register }
-      mov  cx, [X]
-      and  cx, 0007h
-      mov  al, 80h
-      shr  al, cl
+      mov  cl, [X]
+      and  cl, 07h
+      mov  ah, 80h
+      shr  ah, cl
       out  dx, ax
       { get the x index and divide by 8 for 16-color }
-      mov  ax,[X]
-      shr  ax,3
+      mov  ax, [X]
+      mov  cl, 3
+      shr  ax, cl
       push ax
       { determine the address }
-      mov  ax,80
-      mov  bx,[Y]
-      mul  bx
+      mov  ax, 80
+      mov  si, [Y]
+      mul  si
       pop  cx
       add  ax,cx
       mov  di,ax
       { send the data through the display memory through set/reset }
       add  di,[VideoOfs]   { add correct page }
-      mov  bl,es:[di]
-      mov  es:[di],bl
+      mov  al,es:[di]
+      mov  es:[di],al
 
       { reset for formal vga operation }
-      mov  dx,3ceh
       mov  ax,0ff08h
       out  dx,ax
 
       { restore enable set/reset register }
       mov  ax,0001h
       out  dx,ax
-    end;
+
+      test bl, 3   { NormalPut or NotPut? }
+      jz   @@Done  { If yes, skip }
+
+      mov  ax,0003h
+      out  dx,ax
+@@Done:
+    end ['AX','BX','CX','DX','SI','DI'];
  end;
 {$endif asmgraph}
 
@@ -2216,6 +2230,7 @@ End;
 
 
 
+{$undef asmgraph}
  Procedure PutPixel320(X,Y : smallint; Pixel: ColorType);
  { x,y -> must be in local coordinates. Clipping if required. }
   Begin
