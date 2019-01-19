@@ -2273,6 +2273,14 @@ End;
 
 
 {$undef asmgraph}
+{$ifndef asmgraph}
+ Function GetPixel320(X,Y: smallint):ColorType;
+  Begin
+   X:= X + StartXViewPort;
+   Y:= Y + StartYViewPort;
+   GetPixel320 := Mem[SegA000:Y*320+X];
+  end;
+{$else asmgraph}
  Function GetPixel320(X,Y: smallint):ColorType;
   Begin
    X:= X + StartXViewPort;
@@ -2294,6 +2302,7 @@ End;
 {$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
     end ['ax','di'];
   end;
+{$endif asmgraph}
 
 
  Procedure DirectPutPixel320(X,Y : smallint);
