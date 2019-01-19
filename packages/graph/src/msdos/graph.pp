@@ -2248,8 +2248,6 @@ End;
       if (Y < 0) or (Y > ViewHeight) then
         exit;
     end;
-    X:= X + StartXViewPort;
-    Y:= Y + StartYViewPort;
     asm
 {$ifdef FPC_MM_HUGE}
       mov    ax, SEG SegA000
@@ -2260,6 +2258,8 @@ End;
 {$endif FPC_MM_HUGE}
       mov    ax, [Y]
       mov    di, [X]
+      add    ax, [StartYViewPort]
+      add    di, [StartXViewPort]
       xchg   ah, al            { The value of Y must be in AH }
       add    di, ax
       shr    ax, 1
