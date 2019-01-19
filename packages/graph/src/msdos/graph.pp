@@ -2221,6 +2221,23 @@ End;
 
 
 {$undef asmgraph}
+{$ifndef asmgraph}
+ Procedure PutPixel320(X,Y : smallint; Pixel: ColorType);
+ { x,y -> must be in local coordinates. Clipping if required. }
+  Begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
+    Mem[SegA000:Y*320+X] := Pixel;
+  end;
+{$else asmgraph}
  Procedure PutPixel320(X,Y : smallint; Pixel: ColorType);
  { x,y -> must be in local coordinates. Clipping if required. }
   Begin
@@ -2247,6 +2264,7 @@ End;
       mov    es:[di], al
     end ['ax','di'];
  end;
+{$endif asmgraph}
 
 
  Function GetPixel320(X,Y: smallint):ColorType;
