@@ -2272,7 +2272,6 @@ End;
 {$endif asmgraph}
 
 
-{$undef asmgraph}
 {$ifndef asmgraph}
  Function GetPixel320(X,Y: smallint):ColorType;
   Begin
@@ -2311,6 +2310,7 @@ End;
 {$endif asmgraph}
 
 
+{$undef asmgraph}
  Procedure DirectPutPixel320(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
