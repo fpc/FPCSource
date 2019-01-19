@@ -1942,7 +1942,13 @@ End;
     end;
 { note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
+{$ifdef FPC_MM_HUGE}
+      mov  ax, SEG SegA000
+      mov  es, ax
+      mov  es, es:[SegA000]
+{$else FPC_MM_HUGE}
       mov  es, [SegA000]
+{$endif FPC_MM_HUGE}
       { enable the set / reset function and load the color }
       mov  dx, 3ceh
       mov  ax, 0f01h
