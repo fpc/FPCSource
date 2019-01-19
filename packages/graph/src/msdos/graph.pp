@@ -2159,18 +2159,6 @@ End;
       int 10h
       pop bp
       pop ds
-
-      { read start address }
-      mov dx,3d4h
-      mov al,0ch
-      out dx,al
-      inc dx
-      in  al,dx
-      mov ah,al
-      dec dx
-      mov al,0dh
-      out dx,al
-      in  al,dx
     end ['DX','CX','BX','AX','SI','DI'];
   end;
 
