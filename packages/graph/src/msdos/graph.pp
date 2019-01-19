@@ -2269,7 +2269,7 @@ End;
       shr    ax, 1
       shr    ax, 1
       add    di, ax
-      mov    ax, [Pixel]
+      mov    al, byte ptr [Pixel]
       mov    es:[di], al
 @@Done:
     end ['ax','di'];
