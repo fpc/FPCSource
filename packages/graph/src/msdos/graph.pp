@@ -2280,32 +2280,30 @@ End;
    GetPixel320 := Mem[SegA000:Y*320+X];
   end;
 {$else asmgraph}
- Function GetPixel320(X,Y: smallint):ColorType;
-  Begin
-   asm
+ Function GetPixel320(X,Y: smallint):ColorType; assembler;
+  asm
 {$ifdef FPC_MM_HUGE}
-      mov    ax, SEG SegA000
-      mov    es, ax
-      mov    es, es:[SegA000]
+    mov    ax, SEG SegA000
+    mov    es, ax
+    mov    es, es:[SegA000]
 {$else FPC_MM_HUGE}
-      mov    es, [SegA000]
+    mov    es, [SegA000]
 {$endif FPC_MM_HUGE}
-      mov    ax, [Y]
-      add    ax, [StartYViewPort]
-      mov    di, [X]
-      add    di, [StartXViewPort]
-      xchg   ah, al            { The value of Y must be in AH }
-      add    di, ax
-      shr    ax, 1
-      shr    ax, 1
-      add    di, ax
-      xor    ax, ax
-      mov    al,es:[di]
-      mov    word ptr @Result,ax
+    mov    ax, [Y]
+    add    ax, [StartYViewPort]
+    mov    di, [X]
+    add    di, [StartXViewPort]
+    xchg   ah, al            { The value of Y must be in AH }
+    add    di, ax
+    shr    ax, 1
+    shr    ax, 1
+    add    di, ax
+    xor    ax, ax
+    mov    al,es:[di]
+    mov    word ptr @Result,ax
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
-      mov    word ptr @Result+2, 0
+    mov    word ptr @Result+2, 0
 {$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
-    end ['ax','di'];
   end;
 {$endif asmgraph}
 
