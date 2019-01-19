@@ -2270,7 +2270,7 @@ End;
       shr    ax, 1
       add    di, ax
       mov    al, byte ptr [Pixel]
-      mov    es:[di], al
+      stosb
 @@Done:
     end ['ax','di'];
  end;
