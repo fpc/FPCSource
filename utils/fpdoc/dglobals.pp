@@ -1263,7 +1263,7 @@ begin
   M:=CurModule;
   CurModule:=Nil;
   try
-    ParseSource(Self,AInputLine,AOSTarget,ACPUTarget,True);
+    ParseSource(Self,AInputLine,AOSTarget,ACPUTarget,[poUseStreams,poSkipDefaultDefs]);
     Result:=CurModule;
   finally
     CurModule:=M;

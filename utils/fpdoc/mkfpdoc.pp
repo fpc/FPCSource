@@ -274,7 +274,7 @@ begin
         if FProcessedUnits.IndexOf(Cmd)=-1 then
           begin
           FProcessedUnits.Add(Cmd);
-          ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget);
+          ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget,[poUseStreams,poSkipDefaultDefs]);
           end;
       except
         on E: EParserError do
