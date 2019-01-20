@@ -730,6 +730,12 @@ begin
         Scanner.AddDefine('CPU32');
       end;
     Parser := TPasParser.Create(Scanner, FileResolver, AEngine);
+    if (poSkipDefaultDefs in Options) then
+      begin
+      Writeln('>>> Clearing <<<');
+      Parser.ImplicitUses.Clear;
+      end;
+    Writeln('Implicit >>>',Parser.ImplicitUses.Text,'<<<');
     Filename := '';
     Parser.LogEvents:=AEngine.ParserLogEvents;
     Parser.OnLog:=AEngine.Onlog;
