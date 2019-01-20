@@ -4006,7 +4006,7 @@ begin
       T.TypeConstraint:=ExpectIdentifier;
       NextToken;
       end;
-    if not (CurToken in [tkComma,tkGreaterThan]) then
+    if not (CurToken in [tkComma,tkSemicolon,tkGreaterThan]) then
       ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
         [TokenInfos[tkComma], TokenInfos[tkColon], TokenInfos[tkGreaterThan]]);
   until CurToken = tkGreaterThan;

@@ -21,6 +21,7 @@ Type
     procedure TestDeclarationConstraint;
     Procedure TestDeclarationDelphi;
     Procedure TestDeclarationDelphiSpecialize;
+    procedure TestDeclarationFPC;
     Procedure TestMethodImplementation;
     Procedure TestInlineSpecializationInArgument;
     Procedure TestSpecializeNested;
@@ -85,6 +86,28 @@ begin
   AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
   AssertSame('Parent 1 is class',T,TPasElement(T.GenericTemplateTypes[1]).Parent);
 end;
+
+procedure TTestGenerics.TestDeclarationFPC;
+Var
+  T : TPasClassType;
+begin
+  Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches ;
+  Source.Add('Type');
+  Source.Add('  TSomeClass<T;T2> = Class(TObject)');
+  Source.Add('  b : T;');
+  Source.Add('  b2 : T2;');
+  Source.Add('end;');
+  ParseDeclarations;
+  AssertNotNull('have generic definition',Declarations.Classes);
+  AssertEquals('have generic definition',1,Declarations.Classes.Count);
+  AssertEquals('Pascal class',TPasClassType,TObject(Declarations.Classes[0]).ClassType);
+  T:=TPasClassType(Declarations.Classes[0]);
+  AssertNotNull('have generic templates',T.GenericTemplateTypes);
+  AssertEquals('2 template types',2,T.GenericTemplateTypes.Count);
+  AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
+  AssertSame('Parent 1 is class',T,TPasElement(T.GenericTemplateTypes[1]).Parent);
+end;
+
 
 procedure TTestGenerics.TestDeclarationConstraint;
 Var
