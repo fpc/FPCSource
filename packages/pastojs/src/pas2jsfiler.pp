@@ -429,7 +429,8 @@ const
     'LogicalNot',
     'LogicalXor',
     'RightShift',
-    'Enumerator'
+    'Enumerator',
+    'In'
     );
 
   PCUProcedureModifierNames: array[TProcedureModifier] of string = (

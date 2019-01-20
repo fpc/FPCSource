@@ -619,7 +619,7 @@ var
     l := CurPos - Start;
     if l <= 0 then
       exit;
-    s:=copy(FPCCommandLine,Start,l);
+    s:=Trim(copy(FPCCommandLine,Start,l));
     if (s[1] = '-') and (length(s)>1) then
     begin
       case s[2] of
@@ -721,6 +721,12 @@ begin
         Scanner.AddDefine('CPU32');
       end;
     Parser := TPasParser.Create(Scanner, FileResolver, AEngine);
+    if (poSkipDefaultDefs in Options) then
+      begin
+      Writeln('>>> Clearing <<<');
+      Parser.ImplicitUses.Clear;
+      end;
+    Writeln('Implicit >>>',Parser.ImplicitUses.Text,'<<<');
     Filename := '';
     Parser.LogEvents:=AEngine.ParserLogEvents;
     Parser.OnLog:=AEngine.Onlog;
@@ -3875,16 +3881,23 @@ procedure TPasParser.ReadGenericArguments(List: TFPList; Parent: TPasElement);
 
 Var
   N : String;
+  T : TPasGenericTemplateType;
 
 begin
   ExpectToken(tkLessThan);
   repeat
     N:=ExpectIdentifier;
-    List.Add(CreateElement(TPasGenericTemplateType,N,Parent));
+    T:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,N,Parent));
+    List.Add(T);
     NextToken;
-    if not (CurToken in [tkComma, tkGreaterThan]) then
+    if Curtoken = tkColon then
+      begin
+      T.TypeConstraint:=ExpectIdentifier;
+      NextToken;
+      end;
+    if not (CurToken in [tkComma,tkSemicolon,tkGreaterThan]) then
       ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
-        [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]);
+        [TokenInfos[tkComma], TokenInfos[tkColon], TokenInfos[tkGreaterThan]]);
   until CurToken = tkGreaterThan;
 end;
 
