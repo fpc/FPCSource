@@ -629,7 +629,6 @@ var
     if l <= 0 then
       exit;
     s:=Trim(copy(FPCCommandLine,Start,l));
-    Writeln('Examining >>',S,'<<');
     if (s[1] = '-') and (length(s)>1) then
     begin
       case s[2] of
