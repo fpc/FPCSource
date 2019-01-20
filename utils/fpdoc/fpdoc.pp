@@ -288,7 +288,7 @@ procedure TFPDocApplication.ParseOption(Const S : String);
 
 var
   i: Integer;
-  ProjectFileName,Cmd, Arg: String;
+  Cmd, Arg: String;
 
 begin
   if (s = '-h') or (s = '--help') then

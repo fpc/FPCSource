@@ -72,16 +72,17 @@ end;
 Function TClassTreeBuilder.NodeMatch(N : TDomNode; AElement : TPasElement; NoPath : Boolean) : Boolean;
 
 Var
-  PN,S : String;
+  PN,S,EN : String;
 
 begin
+  EN:=AELement.Name;
   Result:=(N.NodeType=ELEMENT_NODE);
   if Result then
     begin
-    S:=N.NodeName;
+    S:=UTF8Encode(N.NodeName);
     if NoPath then
       Begin
-      Result:=(CompareText(S,AElement.Name)=0);
+      Result:=CompareText(S,EN)=0;
       end
     else
       begin
@@ -89,7 +90,7 @@ begin
         PN:=Aelement.GetModule.PackageName
       else
         PN:=FPackage.Name;
-      S:=PN+'.'+TDomElement(N)['unit']+'.'+S;
+      S:=PN+'.'+UTF8Encode(TDomElement(N)['unit'])+'.'+S;
       Result:=(CompareText(S,AElement.PathName)=0);
       end;
    end;
@@ -167,12 +168,12 @@ begin
   else if AElement.Name<>'' then
     begin // N=NIL, PE might be nil.
     Inc(ACount);
-    Result:=FClassTree.CreateElement(AElement.Name);
+    Result:=FClassTree.CreateElement(UTF8Decode(AElement.Name));
     If Not (AElement is TPasUnresolvedTypeRef) then
       begin
       M:=AElement.GetModule;
       if Assigned(M) then
-        Result['unit']:=M.Name;
+        Result['unit']:=UTF8Decode(M.Name);
       end;
     if PE=Nil then
       begin

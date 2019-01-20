@@ -15,7 +15,7 @@
 {$mode objfpc}
 {$H+}
 unit dw_txt;
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses DOM, dGlobals, PasTree, dwriter;
