@@ -221,7 +221,13 @@ implementation
                  (fcl>0)) or
                 (((fcr=fcl) or
                   (fcr=0)) and
-                 (ncr>ncl)) then
+                 (ncr>ncl)) and
+                { if one tree contains nodes being conditionally executated, we cannot swap the trees
+                  as the other tree might depend on all nodes being executed, this applies for example
+                  for temp. create nodes with init part, they must be executed else things break, see
+                  issue #34653
+                }
+                 not(has_conditional_nodes(p.right)) then
                p.swapleftright
            end;
       end;

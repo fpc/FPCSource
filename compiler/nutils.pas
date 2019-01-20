@@ -127,6 +127,9 @@ interface
     { returns true, if the tree given might have side effects }
     function might_have_sideeffects(n : tnode;const flags : tmhs_flags = []) : boolean;
 
+    { returns true, if n contains nodes which might be conditionally executed }
+    function has_conditional_nodes(n : tnode) : boolean;
+
     { count the number of nodes in the node tree,
       rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
@@ -1376,6 +1379,23 @@ implementation
     function might_have_sideeffects(n : tnode; const flags : tmhs_flags) : boolean;
       begin
         result:=foreachnodestatic(n,@check_for_sideeffect,@flags);
+      end;
+
+
+    function check_for_conditional_nodes(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result:=fen_false;
+        { this check is not complete yet, but sufficent to cover the current use case: swapping
+          of trees in expressions }
+        if (n.nodetype in [ifn,whilerepeatn,forn,tryexceptn]) or
+          ((n.nodetype in [orn,andn]) and is_boolean(n.resultdef) and doshortbooleval(n)) then
+          result:=fen_norecurse_true;
+      end;
+
+
+    function has_conditional_nodes(n : tnode) : boolean;
+      begin
+        result:=foreachnodestatic(n,@check_for_conditional_nodes,nil);
       end;
 
     var
