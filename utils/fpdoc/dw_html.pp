@@ -317,12 +317,14 @@ begin
   FExtension := AExtension;
 end;
 
-function TLongNameFileAllocator.GetFilename(AElement: TPasElement;
-  ASubindex: Integer): String;
+function TLongNameFileAllocator.GetFilename(AElement: TPasElement; ASubindex: Integer): String;
+
 var
-  s: String;
+  n,s: String;
   i: Integer;
+
 begin
+  Result:='';
   if AElement.ClassType = TPasPackage then
     Result := 'index'
   else if AElement.ClassType = TPasModule then
@@ -331,53 +333,30 @@ begin
   begin
     if AElement is TPasOperator then
     begin
-      Result := LowerCase(AElement.Parent.PathName) + '.op-';
-      s := Copy(AElement.Name, Pos(' ', AElement.Name) + 1, Length(AElement.Name));
-      s := Copy(s, 1, Pos('(', s) - 1);
-      if s = ':=' then
-        s := 'assign'
-      else if s = '+' then
-        s := 'add'
-      else if s = '-' then
-        s := 'sub'
-      else if s = '*' then
-        s := 'mul'
-      else if s = '/' then
-        s := 'div'
-      else if s = '**' then
-        s := 'power'
-      else if s = '=' then
-        s := 'equal'
-      else if s = '<>' then
-        s := 'unequal'
-      else if s = '<' then
-        s := 'less'
-      else if s = '<=' then
-        s := 'lessequal'
-      else if s = '>' then
-        s := 'greater'
-      else if s = '>=' then
-        s := 'greaterthan'
-      else if s = '><' then
-        s := 'symmetricdifference';
-      Result := Result + s + '-';
+      if Assigned(AElement.Parent) then
+        result:=LowerCase(AElement.Parent.PathName);
+      With TPasOperator(aElement) do
+        Result:= Result + 'op-'+OperatorTypeToOperatorName(OperatorType);
       s := '';
+      N:=LowerCase(aElement.Name); // Should not contain any weird chars.
+      Delete(N,1,Pos('(',N));
       i := 1;
-      while AElement.Name[i] <> '(' do
-        Inc(i);
-      Inc(i);
-      while AElement.Name[i] <> ')' do
-      begin
-        if AElement.Name[i] = ',' then
-        begin
-          s := s + '-';
-          Inc(i);
-        end else
-          s := s + AElement.Name[i];
-        Inc(i);
-      end;
-      Result := Result + LowerCase(s) + '-' + LowerCase(Copy(AElement.Name,
-        Pos('):', AElement.Name) + 3, Length(AElement.Name)));
+      Repeat
+        I:=Pos(',',N);
+        if I=0 then
+          I:=Pos(')',N);
+        if I>1 then
+          begin
+          if (S<>'') then
+            S:=S+'-';
+          S:=S+Copy(N,1,I-1);
+          end;
+        Delete(N,1,I);
+      until I=0;
+      // First char is maybe :
+      if (N<>'') and  (N[1]=':') then
+        Delete(N,1,1);
+      Result:=Result + '-'+ s + '-' + N;
     end else
       Result := LowerCase(AElement.PathName);
     // searching for TPasModule - it is on the 2nd level
@@ -396,7 +375,9 @@ begin
 
   if ASubindex > 0 then
     Result := Result + '-' + IntToStr(ASubindex);
+
   Result := Result + Extension;
+//  Writeln('Result filename : ',Result);
 end;
 
 function TLongNameFileAllocator.GetRelativePathToTop(AElement: TPasElement): String;
