@@ -398,7 +398,7 @@ begin
     FEmittedList:=TStringList.Create;
     FEmittedList.Sorted:=True;
     try
-      Module:=ParseSource(Self,AFileName,ATarget,ACPU);
+      Module:=ParseSource(Self,AFileName,ATarget,ACPU,[poUseStreams,poSkipDefaultDefs]);
       If UpdateMode then
         begin
         N:=FindDocNode(Module);
