@@ -12,11 +12,13 @@ Type
   { TTestGenerics }
 
   TTestGenerics = Class(TBaseTestTypeParser)
+  private
   Published
     Procedure TestObjectGenerics;
     Procedure TestRecordGenerics;
     Procedure TestArrayGenerics;
     Procedure TestSpecializationDelphi;
+    procedure TestDeclarationConstraint;
     Procedure TestDeclarationDelphi;
     Procedure TestDeclarationDelphiSpecialize;
     Procedure TestMethodImplementation;
@@ -82,6 +84,26 @@ begin
   AssertEquals('2 template types',2,T.GenericTemplateTypes.Count);
   AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
   AssertSame('Parent 1 is class',T,TPasElement(T.GenericTemplateTypes[1]).Parent);
+end;
+
+procedure TTestGenerics.TestDeclarationConstraint;
+Var
+  T : TPasClassType;
+begin
+  Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches ;
+  Source.Add('Type');
+  Source.Add('  TSomeClass<T: T2> = Class(TObject)');
+  Source.Add('  b : T;');
+  Source.Add('end;');
+  ParseDeclarations;
+  AssertNotNull('have generic definition',Declarations.Classes);
+  AssertEquals('have generic definition',1,Declarations.Classes.Count);
+  AssertEquals('Pascal class',TPasClassType,TObject(Declarations.Classes[0]).ClassType);
+  T:=TPasClassType(Declarations.Classes[0]);
+  AssertNotNull('have generic templates',T.GenericTemplateTypes);
+  AssertEquals('1 template types',1,T.GenericTemplateTypes.Count);
+  AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
+  AssertEquals('Type constraint is recorded','T2',TPasGenericTemplateType(T.GenericTemplateTypes[0]).TypeConstraint);
 end;
 
 procedure TTestGenerics.TestDeclarationDelphiSpecialize;

@@ -3992,16 +3992,23 @@ procedure TPasParser.ReadGenericArguments(List: TFPList; Parent: TPasElement);
 
 Var
   N : String;
+  T : TPasGenericTemplateType;
 
 begin
   ExpectToken(tkLessThan);
   repeat
     N:=ExpectIdentifier;
-    List.Add(CreateElement(TPasGenericTemplateType,N,Parent));
+    T:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,N,Parent));
+    List.Add(T);
     NextToken;
-    if not (CurToken in [tkComma, tkGreaterThan]) then
+    if Curtoken = tkColon then
+      begin
+      T.TypeConstraint:=ExpectIdentifier;
+      NextToken;
+      end;
+    if not (CurToken in [tkComma,tkGreaterThan]) then
       ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
-        [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]);
+        [TokenInfos[tkComma], TokenInfos[tkColon], TokenInfos[tkGreaterThan]]);
   until CurToken = tkGreaterThan;
 end;
 

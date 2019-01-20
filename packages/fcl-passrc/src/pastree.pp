@@ -730,7 +730,10 @@ type
     Function IsAdvancedRecord : Boolean;
   end;
 
-  TPasGenericTemplateType = Class(TPasType);
+  TPasGenericTemplateType = Class(TPasType)
+  Public
+    TypeConstraint : String;
+  end;
 
   TPasObjKind = (
     okObject, okClass, okInterface,
