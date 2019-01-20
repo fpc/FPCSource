@@ -67,7 +67,7 @@ implementation
 uses
   strings{$ifdef windows},windows{$endif windows};
 
-{$if defined(unix)}
+{$if defined(unix) and not defined(beos) and not defined(haiku)}
 
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
@@ -129,6 +129,37 @@ uses
       filename:=ParamStr(0);
     end;
 
+{$elseif defined(beos) or defined(haiku)}
+
+{$i ptypes.inc}
+{$i ostypes.inc}
+
+  function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root' name '_get_next_image_info';
+
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+    const
+      B_OK = 0;
+    var
+      cookie    : longint;
+      info      : image_info;
+    begin
+      filename:='';
+      baseaddr:=nil;
+
+      cookie:=0;
+      fillchar(info, sizeof(image_info), 0);
+
+      while get_next_image_info(0,cookie,info,sizeof(info))=B_OK do
+        begin
+          if (info._type = B_APP_IMAGE) and
+             (addr >= info.text) and (addr <= (info.text + info.text_size)) then
+            begin
+              baseaddr:=info.text;
+              filename:=PChar(@info.name);
+            end;
+        end;
+    end;
+
 {$else}
 
 {$ifdef CPUI8086}
@@ -158,6 +189,14 @@ uses
   {$else}
     {$define ELF32}
     {$define FIND_BASEADDR_ELF}
+  {$endif}
+{$endif}
+
+{$if defined(beos) or defined(haiku)}
+  {$ifdef cpu64}
+    {$define ELF64}
+  {$else}
+    {$define ELF32}
   {$endif}
 {$endif}
 
@@ -746,7 +785,7 @@ end;
                                  ELF
 ****************************************************************************}
 
-{$if defined(ELF32) or defined(BEOS)}
+{$if defined(ELF32)}
 type
   telfheader=packed record
       magic0123         : longint;
@@ -790,7 +829,7 @@ type
     p_flags           : longword;
     p_align           : longword;
   end;
-{$endif ELF32 or BEOS}
+{$endif ELF32}
 {$ifdef ELF64}
 type
   telfheader=packed record
@@ -840,7 +879,7 @@ type
 {$endif ELF64}
 
 
-{$if defined(ELF32) or defined(ELF64) or defined(BEOS)}
+{$if defined(ELF32) or defined(ELF64)}
 
 {$ifdef FIND_BASEADDR_ELF}
 var
@@ -1044,75 +1083,7 @@ begin
        end;
    end;
 end;
-{$endif ELF32 or ELF64 or BEOS}
-
-
-{$ifdef beos}
-
-{$i ptypes.inc}
-
-type
-  // Descriptive formats
-  status_t = Longint;
-  team_id   = Longint;
-  image_id = Longint;
-
-    { image types }
-const
-   B_APP_IMAGE     = 1;
-   B_LIBRARY_IMAGE = 2;
-   B_ADD_ON_IMAGE  = 3;
-   B_SYSTEM_IMAGE  = 4;
-   B_OK = 0;
-
-type
-    image_info = packed record
-     id      : image_id;
-     _type   : longint;
-     sequence: longint;
-     init_order: longint;
-     init_routine: pointer;
-     term_routine: pointer;
-     device: dev_t;
-     node: ino_t;
-     name: array[0..MAXPATHLEN-1] of char;
-{     name: string[255];
-     name2: string[255];
-     name3: string[255];
-     name4: string[255];
-     name5: string[5];
-}
-     text: pointer;
-     data: pointer;
-     text_size: longint;
-     data_size: longint;
-    end;
-
-function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root' name '_get_next_image_info';
-
-function OpenElf32Beos(var e:TExeFile):boolean;
-var
-  cookie    : longint;
-  info      : image_info;
-begin
-  // The only BeOS specific part is setting the processaddress
-  cookie := 0;
-  OpenElf32Beos:=false;
-  fillchar(info, sizeof(image_info), 0);
-  while get_next_image_info(0,cookie,info,sizeof(info))=B_OK do
-    begin
-        if e.filename=String(pchar(@info.name)) then
-          begin
-              if (info._type = B_APP_IMAGE) then
-                e.processaddress := cardinal(info.text)
-             else
-                e.processaddress := 0;
-             OpenElf32Beos := OpenElf(e);
-             exit;
-         end;
-    end;
-end;
-{$endif beos}
+{$endif ELF32 or ELF64}
 
 
 {****************************************************************************
@@ -1281,10 +1252,6 @@ const
      openproc : @OpenElf;
      findproc : @FindSectionElf;
 {$endif ELF32 or ELF64}
-{$ifdef BEOS}
-     openproc : @OpenElf32Beos;
-     findproc : @FindSectionElf;
-{$endif BEOS}
 {$ifdef darwin}
      openproc : @OpenMachO32PPC;
      findproc : @FindSectionMachO32PPC;

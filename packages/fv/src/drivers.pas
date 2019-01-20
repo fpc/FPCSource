@@ -229,9 +229,12 @@ CONST
 {                         MOUSE BUTTON STATE MASKS                          }
 {---------------------------------------------------------------------------}
 CONST
-   mbLeftButton   = $01;                              { Left mouse button }
-   mbRightButton  = $02;                              { Right mouse button }
-   mbMiddleButton = $04;                              { Middle mouse button }
+   mbLeftButton      = $01;                           { Left mouse button }
+   mbRightButton     = $02;                           { Right mouse button }
+   mbMiddleButton    = $04;                           { Middle mouse button }
+   mbScrollWheelDown = $08;                           { Scroll wheel down}
+   mbScrollWheelUp   = $10;                           { Scroll wheel up }
+
 
 {---------------------------------------------------------------------------}
 {                         SCREEN CRT MODE CONSTANTS                         }

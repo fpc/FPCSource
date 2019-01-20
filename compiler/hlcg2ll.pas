@@ -1297,6 +1297,7 @@ implementation
                reg:=getmmregister(list,newsize);
                a_loadmm_loc_reg(list,size,newsize,l,reg,mms_movescalar);
                l.size:=def_cgsize(newsize);
+               size:=newsize;
              end;
           location_freetemp(list,l);
           location_reset(l,LOC_MMREGISTER,l.size);

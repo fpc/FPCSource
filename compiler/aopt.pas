@@ -36,6 +36,9 @@ Unit aopt;
 
     Type
       TAsmOptimizer = class(TAoptObj)
+        { Pooled object that can be used by optimisation procedures to evaluate
+          future register usage without upsetting the current state. }
+        TmpUsedRegs: TAllUsedRegs;
 
         { _AsmL is the PAasmOutpout list that has to be optimized }
         Constructor create(_AsmL: TAsmList); virtual; reintroduce;
@@ -87,6 +90,7 @@ Unit aopt;
         inherited create(_asml,nil,nil,nil);
         { setup labeltable, always necessary }
         New(LabelInfo);
+        CreateUsedRegs(TmpUsedRegs);
       End;
 
     procedure TAsmOptimizer.FindLoHiLabels;
@@ -318,6 +322,7 @@ Unit aopt;
 
     Destructor TAsmOptimizer.Destroy;
       Begin
+        ReleaseUsedRegs(TmpUsedRegs);
         if assigned(LabelInfo^.LabelTable) then
           Freemem(LabelInfo^.LabelTable);
         Dispose(LabelInfo);

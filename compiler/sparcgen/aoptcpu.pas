@@ -237,7 +237,6 @@ unit aoptcpu;
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       next,next2: tai;
-      TmpUsedRegs: TAllUsedRegs;
     begin
       result:=false;
       case p.typ of
@@ -262,7 +261,7 @@ unit aoptcpu;
                     { the initial register may not be reused }
                     (not RegUsedBetween(taicpu(p).oper[0]^.reg,next,next2)) then
                     begin
-                      CopyUsedRegs(TmpUsedRegs);
+                      TransferUsedRegs(TmpUsedRegs);
                       UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                       UpdateUsedRegs(TmpUsedRegs, tai(next.next));
                       if not RegUsedAfterInstruction(taicpu(p).oper[2]^.reg,next2,TmpUsedRegs) then
@@ -275,7 +274,6 @@ unit aoptcpu;
                           next.free;
                           p:=next2;
                         end;
-                      ReleaseUsedRegs(TmpUsedRegs);
                     end
                   else
                     TryRemoveMov(p,A_MOV);
@@ -300,7 +298,7 @@ unit aoptcpu;
                     { the initial register may not be reused }
                     (not RegUsedBetween(taicpu(p).oper[0]^.reg,next,next2)) then
                     begin
-                      CopyUsedRegs(TmpUsedRegs);
+                      TransferUsedRegs(TmpUsedRegs);
                       UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                       UpdateUsedRegs(TmpUsedRegs, tai(next.next));
                       if not RegUsedAfterInstruction(taicpu(p).oper[2]^.reg,next2,TmpUsedRegs) then
@@ -313,7 +311,6 @@ unit aoptcpu;
                           next.free;
                           p:=next2;
                         end;
-                      ReleaseUsedRegs(TmpUsedRegs);
                     end
                   else
                     TryRemoveMov(p,A_MOV);
@@ -388,7 +385,7 @@ unit aoptcpu;
                     (taicpu(next).oper[0]^.typ=top_reg) and
                     (taicpu(next).oper[0]^.reg=taicpu(p).oper[2]^.reg) then
                     begin
-                      CopyUsedRegs(TmpUsedRegs);
+                      TransferUsedRegs(TmpUsedRegs);
                       UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                       if not RegUsedAfterInstruction(taicpu(p).oper[2]^.reg,next,TmpUsedRegs) then
                         begin
@@ -397,7 +394,6 @@ unit aoptcpu;
                           p.free;
                           p:=next;
                         end;
-                      ReleaseUsedRegs(TmpUsedRegs);
                     end
                   else
                     TryRemoveMov(p,A_MOV);

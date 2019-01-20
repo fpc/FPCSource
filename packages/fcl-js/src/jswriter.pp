@@ -470,6 +470,7 @@ Var
   S : String;
 
 begin
+  //system.writeln('TJSWriter.Write unicodestring=',U);
   WriteIndent;
   if UseUTF8 then
     begin
@@ -488,6 +489,7 @@ end;
 
 procedure TJSWriter.Write(const S: TJSWriterString);
 begin
+  //system.writeln('TJSWriter.Write TJSWriterString=',S);
   {$ifdef FPC_HAS_CPSTRING}
   if Not (woUseUTF8 in Options) then
     Write(UnicodeString(S))

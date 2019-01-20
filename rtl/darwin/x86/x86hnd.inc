@@ -95,7 +95,7 @@ begin
       { the ABI expects the stack pointer to be 4 bytes off alignment }
       { due to the return address which has been pushed -- but take into account
         that esp may already unaligned in case of a leaf routine }
-      if (sigcontext^.uc_mcontext^.ts.rsp and 15)=0 then
+      if (sigcontext^.uc_mcontext^.ts.esp and 15)=0 then
         dec(sigcontext^.uc_mcontext^.ts.esp,sizeof(pointer));
       { return to run time error handler }
       sigcontext^.uc_mcontext^.ts.eip:=ptruint(@HandleErrorAddrFrame);

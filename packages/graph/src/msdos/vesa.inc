@@ -217,7 +217,7 @@ end;
  {*                     8-bit pixels VESA mode routines                  *}
  {************************************************************************}
 
-  procedure PutPixVESA256(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA256(x, y : smallint; color : ColorType);
   var
      offs : longint;
   begin
@@ -239,7 +239,7 @@ end;
        end;
   end;
 
-  procedure DirectPutPixVESA256(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA256(x, y : smallint);
   var
      offs : longint;
      col : byte;
@@ -272,7 +272,7 @@ end;
      mem[WinWriteSeg : word(offs)] := Col;
   end;
 
-  function GetPixVESA256(x, y : smallint): word; {$ifndef fpc}far;{$endif fpc}
+  function GetPixVESA256(x, y : smallint): ColorType;
   var
      offs : longint;
   begin
@@ -283,7 +283,7 @@ end;
      GetPixVESA256:=mem[WinReadSeg : word(offs)];
   end;
 
-  Procedure GetScanLineVESA256(x1, x2, y: smallint; var data); {$ifndef fpc}far;{$endif}
+  Procedure GetScanLineVESA256(x1, x2, y: smallint; var data);
   var offs: Longint;
       l, amount, bankrest, index, pixels: longint;
       curbank: smallint;
@@ -372,7 +372,7 @@ end;
     Until amount = 0;
   end;
 
-  procedure HLineVESA256(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure HLineVESA256(x,x2,y: smallint);
 
    var Offs: Longint;
        mask, l, bankrest: longint;
@@ -695,7 +695,7 @@ end;
        end;
    end;
 
-  procedure VLineVESA256(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure VLineVESA256(x,y,y2: smallint);
 
    var Offs: Longint;
        l, bankrest: longint;
@@ -850,7 +850,7 @@ end;
        end;
    end;
 
-  procedure PatternLineVESA256(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure PatternLineVESA256(x1,x2,y: smallint);
   {********************************************************}
   { Draws a horizontal patterned line according to the     }
   { current Fill Settings.                                 }
@@ -983,7 +983,7 @@ end;
  {*                    15/16bit pixels VESA mode routines                *}
  {************************************************************************}
 
-  procedure PutPixVESA32kOr64k(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA32kOr64k(x, y : smallint; color : ColorType);
   var
      offs : longint;
      place: word;
@@ -1015,7 +1015,7 @@ end;
      memW[WinWriteSeg : place] := color;
   end;
 
-  function GetPixVESA32kOr64k(x, y : smallint): word; {$ifndef fpc}far;{$endif fpc}
+  function GetPixVESA32kOr64k(x, y : smallint): ColorType;
   var
      offs : longint;
   begin
@@ -1026,7 +1026,7 @@ end;
      GetPixVESA32kOr64k:=memW[WinReadSeg : word(offs)];
   end;
 
-  procedure DirectPutPixVESA32kOr64k(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA32kOr64k(x, y : smallint);
   var
      offs : longint;
      bank : smallint;
@@ -1071,7 +1071,7 @@ end;
      End;
   end;
 
-  procedure HLineVESA32kOr64k(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure HLineVESA32kOr64k(x,x2,y: smallint);
 
    var Offs: Longint;
        mask, l, bankrest: longint;
@@ -1393,7 +1393,7 @@ end;
  {*                     4-bit pixels VESA mode routines                  *}
  {************************************************************************}
 
-  procedure PutPixVESA16(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA16(x, y : smallint; color : ColorType);
     var
      offs : longint;
      dummy : byte;
@@ -1428,7 +1428,7 @@ end;
   end;
 
 
- Function GetPixVESA16(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
+ Function GetPixVESA16(X,Y: smallint):ColorType;
  Var dummy: Word;
      offset: longint;
      shift: byte;
@@ -1450,7 +1450,7 @@ end;
   end;
 
 
-  procedure DirectPutPixVESA16(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA16(x, y : smallint);
     var
      offs : longint;
      dummy : byte;
@@ -1495,7 +1495,7 @@ end;
   end;
 
 
-  procedure HLineVESA16(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure HLineVESA16(x,x2,y: smallint);
   var
       xtmp: smallint;
       ScrOfs, BankRest: longint;
@@ -1933,24 +1933,16 @@ end;
    asm
     mov ax,4F02h
     mov bx,mode
-{$ifdef fpc}
+    push ds
     push bp
-    push si
-    push di
-    push bx
-{$endif fpc}
     int 10h
-{$ifdef fpc}
-    pop bx
-    pop di
-    pop si
     pop bp
-{$endif fpc}
+    pop ds
     sub ax,004Fh
     cmp ax,1
     sbb al,al
     mov res,al
-   end ['BX','AX'];
+   end ['DX','CX','BX','AX','SI','DI'];
    if not res then
      _GraphResult := GrNotDetected
    else _GraphResult := grOk;
@@ -1980,21 +1972,21 @@ end;
      GetMaxScanLines := regs.dx;
    end;
 
- procedure Init1280x1024x64k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1280x1024x64k;
   begin
     SetVesaMode(m1280x1024x64k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init1280x1024x32k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1280x1024x32k;
   begin
     SetVESAMode(m1280x1024x32k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init1280x1024x256; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1280x1024x256;
   begin
     SetVESAMode(m1280x1024x256);
     { Get maximum number of scanlines for page flipping }
@@ -2002,105 +1994,105 @@ end;
   end;
 
 
- procedure Init1280x1024x16; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1280x1024x16;
   begin
     SetVESAMode(m1280x1024x16);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init1024x768x64k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1024x768x64k;
   begin
     SetVESAMode(m1024x768x64k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init1024x768x32k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1024x768x32k;
   begin
     SetVESAMode(m1024x768x32k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init1024x768x256; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1024x768x256;
   begin
     SetVESAMode(m1024x768x256);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init1024x768x16; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1024x768x16;
   begin
     SetVESAMode(m1024x768x16);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init800x600x64k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init800x600x64k;
   begin
     SetVESAMode(m800x600x64k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init800x600x32k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init800x600x32k;
   begin
     SetVESAMode(m800x600x32k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init800x600x256; {$ifndef fpc}far;{$endif fpc}
+ procedure Init800x600x256;
   begin
     SetVESAMode(m800x600x256);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init800x600x16; {$ifndef fpc}far;{$endif fpc}
+ procedure Init800x600x16;
   begin
     SetVesaMode(m800x600x16);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init640x480x64k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init640x480x64k;
   begin
     SetVESAMode(m640x480x64k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init640x480x32k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init640x480x32k;
   begin
     SetVESAMode(m640x480x32k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init640x480x256; {$ifndef fpc}far;{$endif fpc}
+ procedure Init640x480x256;
   begin
     SetVESAMode(m640x480x256);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init640x400x256; {$ifndef fpc}far;{$endif fpc}
+ procedure Init640x400x256;
   begin
     SetVESAMode(m640x400x256);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init320x200x64k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init320x200x64k;
   begin
     SetVESAMode(m320x200x64k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init320x200x32k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init320x200x32k;
   begin
     SetVESAMode(m320x200x32k);
     { Get maximum number of scanlines for page flipping }
@@ -2109,7 +2101,7 @@ end;
 
 
 
- Procedure SaveStateVESA; {$ifndef fpc}far;{$endif fpc}
+ Procedure SaveStateVESA;
  var
   regs: Registers;
   begin
@@ -2161,7 +2153,7 @@ end;
       end;
   end;
 
- procedure RestoreStateVESA; {$ifndef fpc}far;{$endif fpc}
+ procedure RestoreStateVESA;
   var
    regs:Registers;
    SavePtrCopy: Pointer;
@@ -2202,7 +2194,7 @@ end;
   { between VBE versions , we will use the old method where }
   { the new pixel offset is used to display different pages }
   {******************************************************** }
- procedure SetVisualVESA(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetVisualVESA(page: word);
   var
    newStartVisible : word;
   begin
@@ -2222,23 +2214,15 @@ end;
       mov bx, 0000h   { set display start }
       mov cx, 0000h   { pixel zero !      }
       mov dx, [NewStartVisible]  { new scanline }
-{$ifdef fpc}
+      push    ds
       push    bp
-      push    si
-      push    di
-      push    bx
-{$endif}
       int     10h
-{$ifdef fpc}
-      pop     bx
-      pop     di
-      pop     si
       pop     bp
-{$endif}
-    end ['DX','CX','BX','AX'];
+      pop     ds
+    end ['DX','CX','BX','AX','SI','DI'];
   end;
 
- procedure SetActiveVESA(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActiveVESA(page: word);
   begin
     { video offset is in pixels under VESA VBE! }
     { This value is reset after a mode set to page ZERO = YOffset = 0 ) }

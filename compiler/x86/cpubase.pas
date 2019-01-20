@@ -848,7 +848,7 @@ implementation
           A_LODS,A_OUTS:
             result:=-1;
           else
-            internalerror(2017101202);
+            internalerror(2017101204);
         end;
       end;
 

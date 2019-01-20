@@ -1259,7 +1259,7 @@ implementation
                           (max_label<=high(aint)) and
                           not((labelcnt<=2) or
                               (distv.svalue<0) or
-                              (dist>3*TrueCount)) then
+                              (dist>3*labelcnt)) then
                          begin
                            { if the labels less or more a continuum then }
                            genjumptable(labels,min_label.svalue,max_label.svalue);

@@ -143,6 +143,7 @@ type
     procedure TestPC_SetOfAnonymousEnumType;
     procedure TestPC_Record;
     procedure TestPC_Record_InFunction;
+    procedure TestPC_RecordAdv;
     procedure TestPC_JSValue;
     procedure TestPC_Array;
     procedure TestPC_ArrayOfAnonymous;
@@ -705,6 +706,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredRecordScope(const Path: string;
   Orig, Rest: TPasRecordScope);
 begin
+  CheckRestoredReference(Path+'.DefaultProperty',Orig.DefaultProperty,Rest.DefaultProperty);
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
@@ -808,7 +810,7 @@ begin
     AssertEquals(Path+'.ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
     CheckRestoredReference(Path+'.OverriddenProc',Orig.OverriddenProc,Rest.OverriddenProc);
 
-    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassScope,Rest.ClassScope);
+    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassOrRecordScope,Rest.ClassOrRecordScope);
     CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
     if Orig.Flags<>Rest.Flags then
       Fail(Path+'.Flags');
@@ -1750,6 +1752,39 @@ begin
   '  r: TRec;',
   'begin',
   'end;']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_RecordAdv;
+begin
+  StartUnit(false);
+  Add([
+  '{$ModeSwitch advancedrecords}',
+  'interface',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    FInt: longint;',
+  '    procedure SetInt(Value: longint);',
+  '    function GetItems(Value: word): word;',
+  '    procedure SetItems(Index, Value: word);',
+  '  public',
+  '    property Int: longint read FInt write SetInt default 3;',
+  '    property Items[Index: word]: word read GetItems write SetItems; default;',
+  '  end;',
+  'var',
+  '  r: trec;',
+  'implementation',
+  'procedure TRec.SetInt(Value: longint);',
+  'begin',
+  'end;',
+  'function TRec.GetItems(Value: word): word;',
+  'begin',
+  'end;',
+  'procedure TRec.SetItems(Index, Value: word);',
+  'begin',
+  'end;',
+  '']);
   WriteReadUnit;
 end;
 

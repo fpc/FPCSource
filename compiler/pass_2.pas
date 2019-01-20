@@ -132,7 +132,6 @@ implementation
              'while_repeat', {whilerepeatn}
              'for',         {forn}
              'exitn',       {exitn}
-             'with',        {withn}
              'case',        {casen}
              'label',       {labeln}
              'goto',        {goton}

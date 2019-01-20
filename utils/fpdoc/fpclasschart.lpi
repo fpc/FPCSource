@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -28,6 +28,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="--output=rtlclasses.xml --kind=class --format=xml --input='-Sd -dfpdocsystem -dHASGETHEAPSTATUS -dSUPPORT_DOUBLE /home/michael/rtl/linux/system.pp -Fi/home/michael/rtl/linux -Fi/home/michael//rtl/unix -Fi/home/michael/rtl/inc -Fi/home/michael/rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR&quot; --input=&quot;-Sd -dHASINTF /home/michael/rtl/objpas/objpas.pp&quot; --input=&quot;-Sd /home/michael/rtl/unix/sysutils.pp -Fi/home/michael/rtl/objpas/sysutils -Fi/home/michael//rtl/inc  /home/michael/rtl/unix/classes.pp -Fi/home/michael/rtl/objpas/classes  -dfpdocsystem&quot;"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -35,7 +36,6 @@
       <Unit0>
         <Filename Value="fpclasschart.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpclasschart"/>
       </Unit0>
       <Unit1>
         <Filename Value="dglobals.pp"/>
@@ -45,7 +45,6 @@
       <Unit2>
         <Filename Value="fpdocclasstree.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpdocclasstree"/>
       </Unit2>
     </Units>
   </ProjectOptions>
@@ -56,8 +55,5 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Other>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
 </CONFIG>

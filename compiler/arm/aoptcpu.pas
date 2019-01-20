@@ -646,7 +646,6 @@ Implementation
     var
       hp1,hp2,hp3,hp4: tai;
       i, i2: longint;
-      TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
       oldreg: tregister;
       dealloc: tai_regalloc;
@@ -932,7 +931,7 @@ Implementation
                           MatchInstruction(hp2, A_STR, [taicpu(p).condition], [PF_H]) and
                           MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^.reg) then
                           begin
-                            CopyUsedRegs(TmpUsedRegs);
+                            TransferUsedRegs(TmpUsedRegs);
                             UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                             UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
                             if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp2,TmpUsedRegs)) then
@@ -946,7 +945,6 @@ Implementation
                                 p:=hp2;
                                 Result:=true;
                               end;
-                            ReleaseUsedRegs(TmpUsedRegs);
                           end
                         { fold
                           mov reg1,reg0, shift imm1

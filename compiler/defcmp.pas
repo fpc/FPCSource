@@ -289,8 +289,15 @@ implementation
              if assigned(tstoreddef(def_from).genconstraintdata) or
                  assigned(tstoreddef(def_to).genconstraintdata) then
                begin
-                 { constants could get another deftype (e.g. niln) }
-                 if (def_from.typ<>def_to.typ) and not(fromtreetype in nodetype_const) then
+                 { this is bascially a poor man's type checking, if there is a chance
+                   that the types are equal considering the constraints, this needs probably
+                   to be improved and maybe factored out or even result in a recursive compare_defs_ext }
+                 if (def_from.typ<>def_to.typ) and
+                   { formaldefs are compatible with everything }
+                   not(def_from.typ in [formaldef]) and
+                   not(def_to.typ in [formaldef]) and
+                   { constants could get another deftype (e.g. niln) }
+                   not(fromtreetype in nodetype_const) then
                    begin
                      { not compatible anyway }
                      doconv:=tc_not_possible;

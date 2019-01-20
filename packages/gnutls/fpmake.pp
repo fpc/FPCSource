@@ -25,9 +25,13 @@ begin
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
     T:=P.Targets.AddUnit('gnutls.pp');
+    T:=P.Targets.AddUnit('gnutlssockets.pp');
+      T.Dependencies.AddUnit('gnutls');
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testgnutls.pp');
-
+    P.Targets.AddExampleProgram('privkey.pp');
+    P.Targets.AddExampleProgram('srvcacert.pp');
+    
 {$ifndef ALLPACKAGES}
     Run;
     end;

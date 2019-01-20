@@ -6,6 +6,8 @@ unit buildrtl;
       si_prc,
       athreads, dos, sysutils,
 
+      exeinfo, lineinfo,
+
       ctypes, strings,
       rtlconsts, sysconst, math, types,
       typinfo, fgl, classes,

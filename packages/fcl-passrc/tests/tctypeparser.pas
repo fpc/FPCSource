@@ -165,6 +165,7 @@ type
     Procedure TestReferencePointer;
     Procedure TestInvalidColon;
     Procedure TestTypeHelper;
+    Procedure TestTypeHelperWithParent;
     procedure TestPointerReference;
     Procedure TestPointerKeyWord;
   end;
@@ -3562,7 +3563,14 @@ end;
 
 procedure TTestTypeParser.TestTypeHelper;
 begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msTypeHelpers];
   ParseType('Type Helper for AnsiString end',TPasClassType,'');
+end;
+
+procedure TTestTypeParser.TestTypeHelperWithParent;
+begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msTypeHelpers];
+  ParseType('Type Helper(TOtherHelper) for AnsiString end',TPasClassType,'');
 end;
 
 procedure TTestTypeParser.TestPointerReference;

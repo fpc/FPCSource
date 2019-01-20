@@ -854,7 +854,10 @@ implementation
                         the interface version must also have it (otherwise we can
                         get annoying crashes due to interface crc changes) }
                       (not(po_overload in fwpd.procoptions) and
-                       (po_overload in currpd.procoptions)) then
+                       (po_overload in currpd.procoptions)) or
+                      { same with noreturn }
+                      (not(po_noreturn in fwpd.procoptions) and
+                       (po_noreturn in currpd.procoptions)) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));

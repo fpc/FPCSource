@@ -21,6 +21,7 @@ implementation
 
 { Bindings to RTL }
 var
+  initialstkptr: pointer; public name '__stkptr';
   argc: longint; public name 'operatingsystem_parameter_argc';
   argv: pointer; public name 'operatingsystem_parameter_argv';
   envp: pointer; public name 'operatingsystem_parameter_envp';
@@ -43,6 +44,7 @@ procedure __exit(status: longint); cdecl; external libc name 'exit';
 
 function _FPC_proc_start(_argc: longint; _argv: pointer; _envp: pointer): longint; cdecl; public name '_start';
 begin
+  initialstkptr:=get_frame;
   argc:=_argc;
   argv:=_argv;
   envp:=_envp;

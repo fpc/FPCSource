@@ -1,0 +1,93 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by Michael Van Canneyt,
+    member of the Free Pascal development team.
+
+    Signal handler is arch dependant due to processor to language
+    exception conversion.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+
+procedure SignalToRunerror(sig : longint; SigContext: PSigInfo; uContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
+var
+  res,fpustate : word;
+begin
+  res:=0;
+  case sig of
+    SIGFPE :
+      begin
+        { this is not allways necessary but I don't know yet
+          how to tell if it is or not PM }
+        res:=200;
+        // fp_status always here under BeOS and x86 CPU
+        // (fp_status is not behind a pointer in the BeOS context record)
+        FpuState:=ucontext^.uc_mcontext.fpu.status;
+
+        if (FpuState and FPU_ExceptionMask) <> 0 then
+          begin
+            { first check the more precise options }
+            if (FpuState and FPU_DivisionByZero)<>0 then
+              res:=200
+            else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
+              res:=207
+            else if (FpuState and FPU_Overflow)<>0 then
+              res:=205
+            else if (FpuState and FPU_Underflow)<>0 then
+              res:=206
+            else if (FpuState and FPU_Denormal)<>0 then
+              res:=216
+            else
+              res:=207;  {'Coprocessor Error'}
+          end;
+        with ucontext^.uc_mcontext.fpu do
+        begin
+          status := status and not FPU_ExceptionMask;
+        end;
+        SysResetFPU;
+      end;
+    SIGBUS:
+      begin
+        res:=214;
+      end;
+    SIGILL:
+      begin
+       // FIXME
+{      if sse_check then
+        begin
+          os_supports_sse := false;
+          res := 0;
+          inc(ucontext^.eip, 3);
+        end
+      else}
+        res:=216;
+      end;
+    SIGSEGV :
+      begin
+        res:=216;
+      end;
+    SIGINT:
+      begin
+        res:=217;
+      end;
+    SIGQUIT:
+      begin
+        res:=233;
+      end;
+  end;
+  reenable_signal(sig);
+{ give runtime error at the position where the signal was raised }
+  if res<>0 then
+  begin
+    HandleErrorAddrFrame(res, pointer(ucontext^.uc_mcontext.rip),
+                              pointer(ucontext^.uc_mcontext.rbp));
+  end;
+end;
+

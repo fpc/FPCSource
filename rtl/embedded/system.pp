@@ -197,6 +197,7 @@ const calculated_cmdline:Pchar=nil;
 {$endif FPC_HAS_FEATURE_SOFTFPU}
 {$endif FPUNONE}
 
+{$define FPC_SYSTEM_EXIT_NO_RETURN}
 {$I system.inc}
 
 {*****************************************************************************

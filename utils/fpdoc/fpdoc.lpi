@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <General>
       <Flags>
         <SaveOnlyProjectUnits Value="True"/>
@@ -22,14 +22,21 @@
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
-        <CommandLineParams Value="--package=fpdoc --input=testunit.pp --output=testunit --format=html --descr=testunit.xml"/>
+        <CommandLineParams Value="../utils/fpdoc/bin/x86_64-linux/fpdoc --macro=FPCDIR=.. --project=rtl-project.xml --format=html --output=rtl --footer-date=&quot;mmm dd yyyy&quot;"/>
+        <WorkingDirectory Value="/home/michael/docs"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="../utils/fpdoc/bin/x86_64-linux/fpdoc --macro=FPCDIR=.. --project=rtl-project.xml --format=html --output=rtl --footer-date=&quot;mmm dd yyyy&quot;"/>
+            <WorkingDirectory Value="/home/michael/docs"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="1">
       <Item1>

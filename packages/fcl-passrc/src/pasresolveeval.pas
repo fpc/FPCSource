@@ -154,14 +154,14 @@ const
   nMethodHidesMethodOfBaseType = 3077;
   nContextExpectedXButFoundY = 3078;
   nContextXInvalidY = 3079;
-  // free 3080;
+  nIdentifierXIsNotAnInstanceField = 3080;
   nXIsNotSupported = 3081;
   nOperatorIsNotOverloadedAOpB = 3082;
   nIllegalQualifierAfter = 3084;
   nIllegalQualifierInFrontOf = 3085;
   nIllegalQualifierWithin = 3086;
   nMethodClassXInOtherUnitY = 3087;
-  // free 3088
+  nClassMethodsMustBeStaticInRecords = 3088;
   nCannotMixMethodResolutionAndDelegationAtX = 3089;
   nImplementsDoesNotSupportArrayProperty = 3101;
   nImplementsDoesNotSupportIndex = 3102;
@@ -176,7 +176,8 @@ const
   nCantAssignValuesToConstVariable = 3110;
   nIllegalAssignmentToForLoopVar = 3111;
   nFunctionHidesIdentifier_NonProc = 3112;
-  // Note: use one of the free IDs above
+  nTypeXCannotBeExtendedByATypeHelper = 3113;
+  nDerivedXMustExtendASubClassY = 3114;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -277,6 +278,7 @@ resourcestring
   sMethodHidesMethodOfBaseType = 'Method "%s" hides method of base type "%s" at %s';
   sContextExpectedXButFoundY = '%s: expected "%s", but found "%s"';
   sContextXInvalidY = '%s: invalid %s';
+  sIdentifierXIsNotAnInstanceField = 'Identifier "%s" is not an instance field';
   sConstructingClassXWithAbstractMethodY = 'Constructing a class "%s" with abstract method "%s"';
   sXIsNotSupported = '%s is not supported';
   sOperatorIsNotOverloadedAOpB = 'Operator is not overloaded: "%s" %s "%s"';
@@ -285,6 +287,7 @@ resourcestring
   sIllegalQualifierWithin = 'illegal qualifier "%s" within "%s"';
   sMethodClassXInOtherUnitY = 'method class "%s" in other unit "%s"';
   sNoMatchingImplForIntfMethodXFound = 'No matching implementation for interface method "%s" found';
+  sClassMethodsMustBeStaticInRecords = 'Class methods must be static in records';
   sCannotMixMethodResolutionAndDelegationAtX = 'Cannot mix method resolution and delegation at %s';
   sImplementsDoesNotSupportArrayProperty = '"implements" does dot support array property';
   sImplementsDoesNotSupportIndex = '"implements" does not support "index"';
@@ -298,6 +301,8 @@ resourcestring
   sMissingFieldsX = 'Missing fields: "%s"';
   sCantAssignValuesToConstVariable = 'Can''t assign values to const variable';
   sIllegalAssignmentToForLoopVar = 'Illegal assignment to for-loop variable "%s"';
+  sTypeXCannotBeExtendedByATypeHelper = 'Type "%s" cannot be extended by a type helper';
+  sDerivedXMustExtendASubClassY = 'Derived %s must extend a subclass of "%s" or the class itself';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
