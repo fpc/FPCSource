@@ -231,7 +231,6 @@ Implementation
       alloc, dealloc: tai_regalloc;
       i: integer;
       l: TAsmLabel;
-      TmpUsedRegs : TAllUsedRegs;
     begin
       result := false;
       case p.typ of
@@ -325,7 +324,7 @@ Implementation
                        (taicpu(hp1).oper[1]^.reg=taicpu(p).oper[0]^.reg) and
                        not(MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^)) then
                       begin
-                        CopyUsedRegs(TmpUsedRegs);
+                        TransferUsedRegs(TmpUsedRegs);
                         if not(RegUsedAfterInstruction(taicpu(hp1).oper[1]^.reg, hp1, TmpUsedRegs)) then
                           begin
                             case taicpu(hp1).opcode of
@@ -353,7 +352,6 @@ Implementation
 
                             RemoveCurrentP(p);
                           end;
-                        ReleaseUsedRegs(TmpUsedRegs);
                       end;
                   end;
                 A_STS:
@@ -690,14 +688,12 @@ Implementation
                            taicpu(hp1).loadreg(0, taicpu(hp2).oper[0]^.reg);
 
                            { life range of reg2 and reg3 is increased, fix register allocation entries }
-                           CopyUsedRegs(TmpUsedRegs);
+                           TransferUsedRegs(TmpUsedRegs);
                            UpdateUsedRegs(TmpUsedRegs,tai(p.Next));
                            AllocRegBetween(taicpu(hp2).oper[0]^.reg,hp1,hp2,TmpUsedRegs);
-                           ReleaseUsedRegs(TmpUsedRegs);
 
-                           CopyUsedRegs(TmpUsedRegs);
+                           TransferUsedRegs(TmpUsedRegs);
                            AllocRegBetween(taicpu(hp3).oper[0]^.reg,p,hp3,TmpUsedRegs);
-                           ReleaseUsedRegs(TmpUsedRegs);
 
                            IncludeRegInUsedRegs(taicpu(hp3).oper[0]^.reg,UsedRegs);
                            UpdateUsedRegs(tai(p.Next));
@@ -750,7 +746,7 @@ Implementation
                     }
                     if MatchOpType(taicpu(p),top_reg,top_reg) then
                       begin
-                        CopyUsedRegs(TmpUsedRegs);
+                        TransferUsedRegs(TmpUsedRegs);
                         UpdateUsedRegs(TmpUsedRegs,tai(p.Next));
                         if not(RegInUsedRegs(taicpu(p).oper[0]^.reg,TmpUsedRegs)) and
                           { reg. allocation information before calls is not perfect, so don't do this before
@@ -760,10 +756,8 @@ Implementation
                           begin
                             DebugMsg('Peephole Mov2Nop performed', p);
                             result:=RemoveCurrentP(p);
-                            ReleaseUsedRegs(TmpUsedRegs);
                             exit;
                           end;
-                        ReleaseUsedRegs(TmpUsedRegs);
                       end;
 
                     { turn
