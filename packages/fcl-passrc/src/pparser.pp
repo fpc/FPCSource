@@ -628,7 +628,8 @@ var
     l := CurPos - Start;
     if l <= 0 then
       exit;
-    s:=copy(FPCCommandLine,Start,l);
+    s:=Trim(copy(FPCCommandLine,Start,l));
+    Writeln('Examining >>',S,'<<');
     if (s[1] = '-') and (length(s)>1) then
     begin
       case s[2] of
@@ -747,6 +748,7 @@ begin
           end;
         Inc(CurPos);
         end;
+      Inc(CurPos);
       ProcessCmdLinePart;
       end;
 
