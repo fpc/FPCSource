@@ -1075,7 +1075,7 @@ type
                    otGreaterThan, otAssign,otNotEqual,otLessEqualThan,otGreaterEqualThan,otPower,
                    otSymmetricalDifference, otInc, otDec, otMod, otNegative, otPositive, otBitWiseOr, otDiv,
                    otLeftShift, otLogicalOr, otBitwiseAnd, otbitwiseXor,otLogicalAnd,otLogicalNot,otLogicalXor,
-                   otRightShift,otEnumerator);
+                   otRightShift,otEnumerator, otIn);
   TOperatorTypes = set of TOperatorType;
 
   TPasOperator = class(TPasFunction)
@@ -1651,13 +1651,13 @@ const
            '>',':=','<>','<=','>=','**',
            '><','Inc','Dec','mod','-','+','Or','div',
            'shl','or','and','xor','and','not','xor',
-           'shr','enumerator');
+           'shr','enumerator','in');
   OperatorNames : Array[TOperatorType] of string
        =  ('','implicit','explicit','multiply','add','subtract','divide','lessthan','equal',
            'greaterthan','assign','notequal','lessthanorequal','greaterthanorequal','power',
            'symmetricaldifference','inc','dec','modulus','negative','positive','bitwiseor','intdivide',
            'leftshift','logicalor','bitwiseand','bitwisexor','logicaland','logicalnot','logicalxor',
-           'rightshift','enumerator');
+           'rightshift','enumerator','in');
 
   AssignKindNames : Array[TAssignKind] of string = (':=','+=','-=','*=','/=' );
 
