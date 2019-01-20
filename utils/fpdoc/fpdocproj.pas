@@ -147,7 +147,6 @@ begin
       end;
     end;
   aFile:=F;
-  Writeln('aFile *',aFile,'* options : *',O,'*');
   AOption:=O;
 end;
 
