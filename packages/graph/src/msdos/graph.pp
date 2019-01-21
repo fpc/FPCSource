@@ -2467,7 +2467,7 @@ const CrtAddress: word = 0;
      AND AL,0F7h    {bit 3 := 0: don't chain the 4 planes}
      OR  AL,04      {bit 2 := 1: no odd/even mechanism }
      OUT DX,AL      {activate new settings    }
-     MOV DX,03C4h   {s.a.: address sequencer reg. 2 (=map-mask),...   }
+     DEC DX         {s.a.: address sequencer reg. 2 (=map-mask),...   }
      MOV AL,02
      OUT DX,AL
      INC DX
