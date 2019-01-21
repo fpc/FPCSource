@@ -2293,14 +2293,14 @@ End;
 {$endif FPC_MM_HUGE}
     mov    ax, [Y]
     add    ax, [StartYViewPort]
-    mov    di, [X]
-    add    di, [StartXViewPort]
+    mov    si, [X]
+    add    si, [StartXViewPort]
     xchg   ah, al            { The value of Y must be in AH }
-    add    di, ax
+    add    si, ax
     shr    ax, 1
     shr    ax, 1
-    add    di, ax
-    mov    al, es:[di]
+    add    si, ax
+    mov    al, es:[si]
     xor    ah, ah
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
     xor    dx, dx
