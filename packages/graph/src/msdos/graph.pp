@@ -1744,9 +1744,11 @@ end;
     or    ah,al            { save bit in AH       }
 
     mov   al,ah            { 16-bit pixel in AX   }
-    xor   ah,ah
+    { 1 byte shorter than 'xor ah, ah'; will always set ah to 0, because sign(al)=0 }
+    cbw
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
-    xor   dx,dx
+    { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
+    cwd
 {$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
   end;
 {$endif asmgraph}
