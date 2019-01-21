@@ -2346,12 +2346,31 @@ End;
    shr    ax, 2
    add    di, ax
    mov    al, byte ptr [CurrentColor]
-   cmp    [CurrentWriteMode],XORPut   { check write mode   }
-   jne    @MOVMode
-   mov    ah,es:[di]        { read the byte...             }
-   xor    al,ah             { xor it and return value into AL }
-@MovMode:
-   mov    es:[di], al
+   { check write mode   }
+   mov    bl, byte ptr [CurrentWriteMode]
+   cmp    bl, NormalPut
+   jne    @@1
+   stosb
+   jmp    @Done
+@@1:
+   cmp    bl, XorPut
+   jne    @@2
+   xor    es:[di], al
+   jmp    @Done
+@@2:
+   cmp    bl, OrPut
+   jne    @@3
+   or     es:[di], al
+   jmp    @Done
+@@3:
+   cmp    bl, AndPut
+   jne    @NotPutMode
+   and    es:[di], al
+   jmp    @Done
+@NotPutMode:
+   not    al
+   stosb
+@Done:
  end;
 {$endif asmgraph}
 
