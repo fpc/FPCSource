@@ -2343,7 +2343,8 @@ End;
    mov    di, [X]
    xchg   ah, al            { The value of Y must be in AH }
    add    di, ax
-   shr    ax, 2
+   shr    ax, 1
+   shr    ax, 1
    add    di, ax
    mov    al, byte ptr [CurrentColor]
    { check write mode   }
