@@ -2345,7 +2345,6 @@ End;
    add    di, ax
    shr    ax, 2
    add    di, ax
-{   add    di, [VideoOfs] no multiple pages support in 320*200*256 }
    mov    ax, [CurrentColor]
    cmp    [CurrentWriteMode],XORPut   { check write mode   }
    jne    @MOVMode
