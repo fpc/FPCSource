@@ -433,10 +433,11 @@ var
    Cont : Boolean;
    BackupColor : ColorType;
    x1, x2, prevy: smallint;
-   SBufferSize: SizeUInt;
+   SBufferSize, DrawnListSize: SizeUInt;
   Begin
     If (x<0) Or (y<0) Or
        (x>ViewWidth) Or (y>ViewHeight) then Exit;
+    DrawnListSize:=sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1);
     { MaxX is based on zero index }
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
     if MaxColor > 65536 then
@@ -448,7 +449,7 @@ var
     s1:=nil;
     s2:=nil;
     s3:=nil;
-    GetMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
+    GetMem(DrawnList,DrawnListSize);
     GetMem (s1,SBufferSize);
     GetMem (s2,SBufferSize);
     GetMem (s3,SBufferSize);
@@ -462,10 +463,10 @@ var
         if assigned(s3) then
           System.FreeMem (s3,SBufferSize);
         if assigned(DrawnList) then
-          System.FreeMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
+          System.FreeMem(DrawnList,DrawnListSize);
         exit;
       end;
-    FillChar(DrawnList^,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1),0);
+    FillChar(DrawnList^,DrawnListSize,0);
     { init prevy }
     prevy := 32767;
     { Save current drawing color }
@@ -603,7 +604,7 @@ var
     System.FreeMem (s2,SBufferSize);
     System.FreeMem (s3,SBufferSize);
     CleanUpDrawnList;
-    System.FreeMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
+    System.FreeMem(DrawnList,DrawnListSize);
     CurrentColor := BackUpColor;
   End;
 
