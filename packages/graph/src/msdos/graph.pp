@@ -2388,8 +2388,7 @@ End;
 const CrtAddress: word = 0;
 
 {$undef asmgraph}
- procedure InitModeX;
-  begin
+ procedure InitModeX; assembler;
    asm
      {see if we are using color-/monochorme display}
      MOV DX,3CCh  {use output register:     }
@@ -2447,8 +2446,7 @@ const CrtAddress: word = 0;
      IN  AL,DX
      OR  AL,40h     {bit 6 := 1: memory access scheme=linear bit array      }
      OUT DX,AL
-  end ['DX','BX','CX','AX','SI','DI'];
- end;
+  end;
 
 
  Function GetPixelX(X,Y: smallint): ColorType;
