@@ -2329,7 +2329,6 @@ End;
  end;
 {$else asmgraph}
  Procedure DirectPutPixel320(X,Y : smallint); assembler;
-{ note: still needs or/and/notput support !!!!! (JM) }
  asm
 {$ifdef FPC_MM_HUGE}
    mov    ax, SEG SegA000
