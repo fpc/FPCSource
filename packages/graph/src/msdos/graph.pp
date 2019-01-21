@@ -2413,8 +2413,13 @@ const CrtAddress: word = 0;
      { starting with segment A000h, set 8000h logical words = 4*8000h
        physical words (because of 4 bitplanes) to 0                     }
      asm
-       MOV AX,[SegA000]
+{$ifdef FPC_MM_HUGE}
+       MOV AX,SEG SegA000
        MOV ES,AX
+       MOV ES,ES:[SegA000]
+{$else FPC_MM_HUGE}
+       MOV ES, [SegA000]
+{$endif FPC_MM_HUGE}
        XOR DI,DI
        XOR AX,AX
        MOV CX,8000h
@@ -2469,13 +2474,23 @@ const CrtAddress: word = 0;
      INC DX
      MOV AL,0Fh     {...and allow access to all 4 bit maps            }
      OUT DX,AL
-     MOV AX,[SegA000]  {starting with segment A000h, set 8000h logical     }
-     MOV ES,AX      {words = 4*8000h physical words (because of 4     }
-     XOR DI,DI      {bitplanes) to 0                                  }
+
+     {starting with segment A000h, set 8000h logical   }
+     {words = 4*8000h physical words (because of 4     }
+     {bitplanes) to 0                                  }
+{$ifdef FPC_MM_HUGE}
+     MOV AX,SEG SegA000
+     MOV ES,AX
+     MOV ES,ES:[SegA000]
+{$else FPC_MM_HUGE}
+     MOV ES, [SegA000]
+{$endif FPC_MM_HUGE}
+     XOR DI,DI
      XOR AX,AX
      MOV CX,8000h
      CLD
      REP STOSW
+
      MOV DX,CRTAddress  {address the underline-location-register at }
      MOV AL,14h         {the CRT-controller Port, read out the according      }
      OUT DX,AL          {data register:                            }
