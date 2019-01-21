@@ -437,13 +437,6 @@ var
   Begin
     If (x<0) Or (y<0) Or
        (x>ViewWidth) Or (y>ViewHeight) then Exit;
-    GetMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
-    if not assigned(DrawnList) then
-      begin
-        _GraphResult := grNoFloodMem;
-        exit;
-      end;
-    FillChar(DrawnList^,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1),0);
     { MaxX is based on zero index }
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
     if MaxColor > 65536 then
@@ -451,14 +444,28 @@ var
     else
 {$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
       SBufferSize := (ViewWidth+1)*2;  { A pixel color is represented by a word }
+    DrawnList:=nil;
+    s1:=nil;
+    s2:=nil;
+    s3:=nil;
+    GetMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
     GetMem (s1,SBufferSize);
     GetMem (s2,SBufferSize);
     GetMem (s3,SBufferSize);
-    if (not assigned(s1)) or (not assigned(s2)) or (not assigned(s3)) then
+    if (not assigned(DrawnList)) or (not assigned(s1)) or (not assigned(s2)) or (not assigned(s3)) then
       begin
         _GraphResult := grNoFloodMem;
+        if assigned(s1) then
+          System.FreeMem (s1,SBufferSize);
+        if assigned(s2) then
+          System.FreeMem (s2,SBufferSize);
+        if assigned(s3) then
+          System.FreeMem (s3,SBufferSize);
+        if assigned(DrawnList) then
+          System.FreeMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
         exit;
       end;
+    FillChar(DrawnList^,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1),0);
     { init prevy }
     prevy := 32767;
     { Save current drawing color }
