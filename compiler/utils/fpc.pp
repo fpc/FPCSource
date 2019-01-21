@@ -223,8 +223,14 @@ program fpc;
                              cpusuffix:='a64'
                            else if processorstr='arm' then
                              cpusuffix:='arm'
+                           else if processorstr='avr' then
+                             cpusuffix:='avr'
                            else if processorstr='i386' then
                              cpusuffix:='386'
+                           else if processorstr='i8086' then
+                             cpusuffix:='8086'
+                           else if processorstr='jvm' then
+                             cpusuffix:='jvm'
                            else if processorstr='m68k' then
                              cpusuffix:='68k'
                            else if processorstr='mips' then
@@ -237,14 +243,10 @@ program fpc;
                              cpusuffix:='ppc64'
                            else if processorstr='sparc' then
                              cpusuffix:='sparc'
+                           else if processorstr='sparc64' then
+                             cpusuffix:='sparc64'
                            else if processorstr='x86_64' then
                              cpusuffix:='x64'
-                           else if processorstr='jvm' then
-                             cpusuffix:='jvm'
-                           else if processorstr='i8086' then
-                             cpusuffix:='8086'
-                           else if processorstr='avr' then
-                             cpusuffix:='avr'
                            else
                              error('Illegal processor type "'+processorstr+'"');
 
