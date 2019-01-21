@@ -1842,7 +1842,7 @@ unit aoptx86;
               end
             else if MatchOpType(taicpu(hp2),top_reg,top_reg) and
               not(SuperRegistersEqual(taicpu(hp1).oper[0]^.reg,taicpu(hp2).oper[1]^.reg)) and
-              (not((taicpu(hp1).opsize=S_Q) and (taicpu(hp2).opsize=S_L)) or
+              ((topsize2memsize[taicpu(hp1).opsize]<= topsize2memsize[taicpu(hp2).opsize]) or
                { opsize matters for these opcodes, we could probably work around this, but it is not worth the effort }
                ((taicpu(hp1).opcode<>A_SHL) and (taicpu(hp1).opcode<>A_SHR) and (taicpu(hp1).opcode<>A_SAR))
               )
