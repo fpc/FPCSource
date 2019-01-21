@@ -2312,9 +2312,9 @@ End;
 
 
 {$undef asmgraph}
+{$ifndef asmgraph}
  Procedure DirectPutPixel320(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
-{$ifndef asmgraph}
  var offset: word;
      dummy: Byte;
  begin
@@ -2329,50 +2329,25 @@ End;
    Mem[SegA000:offset] := dummy;
  end;
 {$else asmgraph}
+ Procedure DirectPutPixel320(X,Y : smallint); assembler;
 { note: still needs or/and/notput support !!!!! (JM) }
-  assembler;
-    asm
-  {$ifndef fpc}
-      mov    es, [SegA000]
-      mov    ax, [Y]
-      mov    di, [X]
-      xchg   ah, al            { The value of Y must be in AH }
-      add    di, ax
-      shr    ax, 2
-      add    di, ax
-{      add    di, [VideoOfs] no multiple pages support in 320*200*256 }
-      mov    ax, [CurrentColor]
-      cmp    [CurrentWriteMode],XORPut   { check write mode   }
-      jne    @MOVMode
-      mov    ah,es:[di]        { read the byte...             }
-      xor    al,ah             { xor it and return value into AL }
-    @MovMode:
-      mov    es:[di], al
-  {$else fpc}
-      push eax
-      push ebx
-      push edi
-{$IFDEF REGCALL}
-      movzx  edi, ax
-      movzx  ebx, dx
-{$ELSE REGCALL}
-      movzx  edi, x
-      movzx  ebx, y
-{$ENDIF REGCALL}
-   {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
-      shl    ebx, 6
-      add    edi, ebx
-      mov    ax, [CurrentColor]
-      cmp    [CurrentWriteMode],XORPut   { check write mode   }
-      jne    @MOVMode
-      xor    al, fs:[edi+ebx*4+$a0000]
-     @MovMode:
-      mov    fs:[edi+ebx*4+$a0000], al
-      pop edi
-      pop ebx
-      pop eax
-{$endif fpc}
-  end;
+ asm
+   mov    es, [SegA000]
+   mov    ax, [Y]
+   mov    di, [X]
+   xchg   ah, al            { The value of Y must be in AH }
+   add    di, ax
+   shr    ax, 2
+   add    di, ax
+{   add    di, [VideoOfs] no multiple pages support in 320*200*256 }
+   mov    ax, [CurrentColor]
+   cmp    [CurrentWriteMode],XORPut   { check write mode   }
+   jne    @MOVMode
+   mov    ah,es:[di]        { read the byte...             }
+   xor    al,ah             { xor it and return value into AL }
+@MovMode:
+   mov    es:[di], al
+ end;
 {$endif asmgraph}
 
 
