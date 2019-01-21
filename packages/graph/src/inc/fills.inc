@@ -435,6 +435,11 @@ var
    x1, x2, prevy: smallint;
   Begin
     GetMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
+    if not assigned(DrawnList) then
+      begin
+        _GraphResult := grNoFloodMem;
+        exit;
+      end;
     FillChar(DrawnList^,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1),0);
     { init prevy }
     prevy := 32767;
