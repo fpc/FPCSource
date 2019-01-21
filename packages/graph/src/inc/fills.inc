@@ -434,6 +434,8 @@ var
    BackupColor : ColorType;
    x1, x2, prevy: smallint;
   Begin
+    If (x<0) Or (y<0) Or
+       (x>ViewWidth) Or (y>ViewHeight) then Exit;
     GetMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
     if not assigned(DrawnList) then
       begin
@@ -466,8 +468,6 @@ var
         _GraphResult := grNoFloodMem;
         exit;
       end;
-    If (x<0) Or (y<0) Or
-       (x>ViewWidth) Or (y>ViewHeight) then Exit;
     { Index of points to check  }
     Buffer.WordIndex:=0;
     PushPoint (x,y);
