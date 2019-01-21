@@ -443,11 +443,6 @@ var
         exit;
       end;
     FillChar(DrawnList^,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1),0);
-    { init prevy }
-    prevy := 32767;
-    { Save current drawing color }
-    BackupColor := CurrentColor;
-    CurrentColor := FillSettings.Color;
     { MaxX is based on zero index }
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
     if MaxColor > 65536 then
@@ -468,6 +463,11 @@ var
         _GraphResult := grNoFloodMem;
         exit;
       end;
+    { init prevy }
+    prevy := 32767;
+    { Save current drawing color }
+    BackupColor := CurrentColor;
+    CurrentColor := FillSettings.Color;
     { Index of points to check  }
     Buffer.WordIndex:=0;
     PushPoint (x,y);
