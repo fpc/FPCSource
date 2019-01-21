@@ -433,6 +433,7 @@ var
    Cont : Boolean;
    BackupColor : ColorType;
    x1, x2, prevy: smallint;
+   SBufferSize: SizeUInt;
   Begin
     If (x<0) Or (y<0) Or
        (x>ViewWidth) Or (y>ViewHeight) then Exit;
@@ -446,18 +447,13 @@ var
     { MaxX is based on zero index }
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
     if MaxColor > 65536 then
-    begin
-      GetMem (s1,(ViewWidth+1)*4);  { A pixel color represents a word }
-      GetMem (s2,(ViewWidth+1)*4);  { A pixel color represents a word }
-      GetMem (s3,(ViewWidth+1)*4);  { A pixel color represents a word }
-    end
+      SBufferSize := (ViewWidth+1)*4   { A pixel color is represented by a longword }
     else
 {$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
-    begin
-      GetMem (s1,(ViewWidth+1)*2);  { A pixel color represents a word }
-      GetMem (s2,(ViewWidth+1)*2);  { A pixel color represents a word }
-      GetMem (s3,(ViewWidth+1)*2);  { A pixel color represents a word }
-    end;
+      SBufferSize := (ViewWidth+1)*2;  { A pixel color is represented by a word }
+    GetMem (s1,SBufferSize);
+    GetMem (s2,SBufferSize);
+    GetMem (s3,SBufferSize);
     if (not assigned(s1)) or (not assigned(s2)) or (not assigned(s3)) then
       begin
         _GraphResult := grNoFloodMem;
@@ -596,20 +592,9 @@ var
        PatternLine (x1,x2,y);
      End; { end while }
 
-{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
-    if MaxColor > 65536 then
-    begin
-      System.FreeMem (s1,(ViewWidth+1)*4);
-      System.FreeMem (s2,(ViewWidth+1)*4);
-      System.FreeMem (s3,(ViewWidth+1)*4);
-    end
-    else
-{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
-    begin
-      System.FreeMem (s1,(ViewWidth+1)*2);
-      System.FreeMem (s2,(ViewWidth+1)*2);
-      System.FreeMem (s3,(ViewWidth+1)*2);
-    end;
+    System.FreeMem (s1,SBufferSize);
+    System.FreeMem (s2,SBufferSize);
+    System.FreeMem (s3,SBufferSize);
     CleanUpDrawnList;
     System.FreeMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
     CurrentColor := BackUpColor;
