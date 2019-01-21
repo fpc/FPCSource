@@ -2311,7 +2311,6 @@ End;
 {$endif asmgraph}
 
 
-{$undef asmgraph}
 {$ifndef asmgraph}
  Procedure DirectPutPixel320(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
@@ -2393,6 +2392,7 @@ End;
  {************************************************************************}
 const CrtAddress: word = 0;
 
+{$undef asmgraph}
  procedure InitModeX;
   begin
    asm
