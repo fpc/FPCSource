@@ -2300,7 +2300,7 @@ End;
     shr    ax, 1
     shr    ax, 1
     add    si, ax
-    mov    al, es:[si]
+    seges  lodsb
     xor    ah, ah
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
     xor    dx, dx
