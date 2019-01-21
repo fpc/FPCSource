@@ -2388,9 +2388,54 @@ End;
 const CrtAddress: word = 0;
 
 {$undef asmgraph}
+{$ifndef asmgraph}
+ procedure InitModeX;
+   begin
+     {see if we are using color-/monochrome display}
+     if (Port[$3CC] and 1) <> 0 then
+       CrtAddress := $3D4  { color }
+     else
+       CrtAddress := $3B4; { monochrome }
+
+     if DontClearGraphMemory then
+       CallInt10($93)
+     else
+       CallInt10($13);
+
+     Port[$3C4] := $04;  {select memory-mode-register at sequencer port }
+                         { bit 3 := 0: don't chain the 4 planes         }
+                         { bit 2 := 1: no odd/even mechanism            }
+     Port[$3C5] := (Port[$3C5] and $F7) or $04;
+
+     Port[$3C4] := $02; {s.a.: address sequencer reg. 2 (=map-mask),... }
+     Port[$3C5] := $0F; {...and allow access to all 4 bit maps          }
+
+     { starting with segment A000h, set 8000h logical words = 4*8000h
+       physical words (because of 4 bitplanes) to 0                     }
+     asm
+       MOV AX,[SegA000]
+       MOV ES,AX
+       XOR DI,DI
+       XOR AX,AX
+       MOV CX,8000h
+       CLD
+       REP STOSW
+     end ['AX','CX','DI'];
+
+     {address the underline-location-register at the CRT-controller
+      port, read out the according data register:                       }
+     Port[CRTAddress] := $14;
+     {bit 6:=0: no double word addressing scheme in video RAM           }
+     Port[CRTAddress+1] := Port[CRTAddress+1] and $BF;
+
+     Port[CRTAddress] := $17; {select mode control register             }
+     {bit 6 := 1: memory access scheme=linear bit array                 }
+     Port[CRTAddress+1] := Port[CRTAddress+1] or $40;
+   end;
+{$else asmgraph}
  procedure InitModeX; assembler;
    asm
-     {see if we are using color-/monochorme display}
+     {see if we are using color-/monochrome display}
      MOV DX,3CCh  {use output register:     }
      IN AL,DX
      TEST AL,1    {is it a color display?    }
@@ -2446,6 +2491,7 @@ const CrtAddress: word = 0;
      OR  AL,40h     {bit 6 := 1: memory access scheme=linear bit array      }
      OUT DX,AL
   end;
+{$endif asmgraph}
 
 
  Function GetPixelX(X,Y: smallint): ColorType;
