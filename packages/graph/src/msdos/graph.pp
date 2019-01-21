@@ -2387,7 +2387,6 @@ End;
  {************************************************************************}
 const CrtAddress: word = 0;
 
-{$undef asmgraph}
 {$ifndef asmgraph}
  procedure InitModeX;
    begin
@@ -2509,6 +2508,7 @@ const CrtAddress: word = 0;
 {$endif asmgraph}
 
 
+{$undef asmgraph}
  Function GetPixelX(X,Y: smallint): ColorType;
 {$ifndef asmgraph}
  var offset: word;
