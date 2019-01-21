@@ -1697,7 +1697,7 @@ end;
     add   si,[VideoOfs]    { Point to correct page offset... }
 
     mov   dx,03ceh
-    mov   ax,0004h
+    mov   ax,0304h
     out   dx,ax
     inc   dx
 
@@ -1707,20 +1707,11 @@ end;
     sub   cl,al
     mov   bl,cl
 
-    { read plane 0 }
+    { read plane 3 }
     mov   al,es:[si]       { read display memory }
     shr   al,cl
     and   al,01h
     mov   ah,al            { save bit in AH       }
-
-    { read plane 1 }
-    mov   al,1             { Select plane to read }
-    out   dx,al
-    mov   al,es:[si]
-    shr   al,cl
-    and   al,01h
-    shl   al,1
-    or    ah,al            { save bit in AH      }
 
     { read plane 2 }
     mov   al,2             { Select plane to read }
@@ -1728,19 +1719,25 @@ end;
     mov   al,es:[si]
     shr   al,cl
     and   al,01h
-    shl   al,1
-    shl   al,1
-    or    ah,al            { save bit in AH       }
+    shl   ah,1
+    or    ah,al            { save bit in AH      }
 
-    { read plane 3 }
-    mov   al,3             { Select plane to read }
+    { read plane 1 }
+    mov   al,1             { Select plane to read }
     out   dx,al
     mov   al,es:[si]
     shr   al,cl
     and   al,01h
-    shl   al,1
-    shl   al,1
-    shl   al,1
+    shl   ah,1
+    or    ah,al            { save bit in AH       }
+
+    { read plane 0 }
+    mov   al,0             { Select plane to read }
+    out   dx,al
+    mov   al,es:[si]
+    shr   al,cl
+    and   al,01h
+    shl   ah,1
     or    ah,al            { save bit in AH       }
 
     mov   al,ah            { 16-bit pixel in AX   }
