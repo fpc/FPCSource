@@ -2403,7 +2403,7 @@ const CrtAddress: word = 0;
      MOV  AX, 0013h
      CMP  BYTE PTR [DontClearGraphMemory],0
      JE   @L2
-     OR   AX, 080h
+     OR   AL, 080h
   @L2:
      push ds
      push bp
