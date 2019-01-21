@@ -2332,7 +2332,13 @@ End;
  Procedure DirectPutPixel320(X,Y : smallint); assembler;
 { note: still needs or/and/notput support !!!!! (JM) }
  asm
+{$ifdef FPC_MM_HUGE}
+   mov    ax, SEG SegA000
+   mov    es, ax
+   mov    es, es:[SegA000]
+{$else FPC_MM_HUGE}
    mov    es, [SegA000]
+{$endif FPC_MM_HUGE}
    mov    ax, [Y]
    mov    di, [X]
    xchg   ah, al            { The value of Y must be in AH }
