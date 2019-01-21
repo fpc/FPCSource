@@ -2215,7 +2215,6 @@ End;
         CallInt10($93)
       else
         CallInt10($13);
-      VideoOfs := 0;
     end;
 
 
@@ -2318,7 +2317,7 @@ End;
      dummy: Byte;
  begin
    dummy := CurrentColor;
-   offset := y * 320 + x + VideoOfs;
+   offset := y * 320 + x;
    case CurrentWriteMode of
      XorPut: dummy := dummy xor Mem[Sega000:offset];
      OrPut: dummy := dummy or Mem[Sega000:offset];
@@ -2377,13 +2376,11 @@ End;
  procedure SetVisual320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  procedure SetActive320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  {************************************************************************}
