@@ -2300,11 +2300,10 @@ End;
     shr    ax, 1
     shr    ax, 1
     add    di, ax
-    xor    ax, ax
-    mov    al,es:[di]
-    mov    word ptr @Result,ax
+    mov    al, es:[di]
+    xor    ah, ah
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
-    mov    word ptr @Result+2, 0
+    xor    dx, dx
 {$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
   end;
 {$endif asmgraph}
