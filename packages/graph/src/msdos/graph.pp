@@ -2345,7 +2345,7 @@ End;
    add    di, ax
    shr    ax, 2
    add    di, ax
-   mov    ax, [CurrentColor]
+   mov    al, byte ptr [CurrentColor]
    cmp    [CurrentWriteMode],XORPut   { check write mode   }
    jne    @MOVMode
    mov    ah,es:[di]        { read the byte...             }
