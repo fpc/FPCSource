@@ -1680,6 +1680,11 @@ end;
 {$else FPC_MM_HUGE}
     mov   es, [SegA000]
 {$endif FPC_MM_HUGE}
+    mov   dx,03ceh
+    mov   ax,0304h
+    out   dx,ax
+    inc   dx
+
     mov   di, [X]          { Get X address                    }
     add   di, [StartXViewPort]
     mov   ax, di
@@ -1696,11 +1701,6 @@ end;
     add   si, bx           { SI=(64+16)*(Y+StartYViewPort)=80*(Y+StartYViewPort) }
     add   si, di           { SI=correct offset into video segment }
     add   si, [VideoOfs]   { Point to correct page offset... }
-
-    mov   dx,03ceh
-    mov   ax,0304h
-    out   dx,ax
-    inc   dx
 
     mov   cx, ax
     and   cl,7
