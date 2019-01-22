@@ -1600,6 +1600,8 @@ end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
       asm
+        mov  si, [X]
+        mov  bx, [Y]
 {$ifdef FPC_MM_HUGE}
         mov  ax, SEG SegA000
         mov  es, ax
@@ -1618,7 +1620,6 @@ end;
         { setup the bit mask register }
         mov  al, 8
         { load the bitmask register }
-        mov  si, [X]
         mov  cx, si
         and  cl, 07h
         mov  ah, 80h
@@ -1628,7 +1629,6 @@ end;
         mov  cl, 3
         shr  si, cl
         { determine the address }
-        mov  bx,[Y]
         inc  cx               { CL=4 }
         shl  bx, cl
         mov  di, bx
