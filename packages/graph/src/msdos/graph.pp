@@ -1640,7 +1640,7 @@ end;
         add  di, [VideoOfs]
         { send the data through the display memory through set/reset }
         mov  bl,es:[di]
-        mov  es:[di],bl
+        stosb
 
         { reset for formal vga operation }
         mov  ax,0ff08h
