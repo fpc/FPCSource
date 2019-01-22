@@ -1702,7 +1702,7 @@ end;
     add   si, di           { SI=correct offset into video segment }
     add   si, [VideoOfs]   { Point to correct page offset... }
 
-    mov   cx, ax
+    xchg  ax, cx           { 1 byte shorter than 'mov cx, ax' }
     and   cl,7
 
     mov   bh, 080h
