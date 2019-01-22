@@ -1734,12 +1734,10 @@ end;
     seges lodsb
     and   al,bh
     rol   ah,1
-    or    ah,al            { save bit in AH       }
+    or    al,ah            { add previous bits from AH into AL }
 
     inc   cx
-    rol   ah,cl
-
-    mov   al,ah            { 16-bit pixel in AX   }
+    rol   al,cl            { 16-bit pixel in AX   }
     { 1 byte shorter than 'xor ah, ah'; will always set ah to 0, because sign(al)=0 }
     cbw
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
