@@ -1678,14 +1678,17 @@ end;
     mov   di, ax
     mov   cl, 3
     shr   ax, cl
-    xchg  ax, cx
 
-    mov   ax, 80
     mov   bx, [Y]
     add   bx, [StartYViewPort]
-    mul   bx
-    add   ax,cx
-    mov   si,ax            { SI = correct offset into video segment }
+    inc   cx               { CL=4 }
+    shl   bx, cl           { BX=16*(Y+StartYViewPort)*16 }
+    mov   si, bx           { SI=16*(Y+StartYViewPort)*16 }
+    shl   si, 1            { SI=32*(Y+StartYViewPort)*32 }
+    shl   si, 1            { SI=64*(Y+StartYViewPort)*64 }
+    add   si, bx           { SI=(64+16)*(Y+StartYViewPort)=80*(Y+StartYViewPort) }
+    add   si, ax           { SI=correct offset into video segment }
+    add   si, [VideoOfs]   { Point to correct page offset... }
 
 {$ifdef FPC_MM_HUGE}
     mov   ax, SEG SegA000
@@ -1694,7 +1697,6 @@ end;
 {$else FPC_MM_HUGE}
     mov   es, [SegA000]
 {$endif FPC_MM_HUGE}
-    add   si,[VideoOfs]    { Point to correct page offset... }
 
     mov   dx,03ceh
     mov   ax,0304h
