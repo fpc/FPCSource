@@ -1673,6 +1673,13 @@ end;
 {$else asmgraph}
  Function GetPixel16(X,Y: smallint):ColorType;assembler;
   asm
+{$ifdef FPC_MM_HUGE}
+    mov   ax, SEG SegA000
+    mov   es, ax
+    mov   es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov   es, [SegA000]
+{$endif FPC_MM_HUGE}
     mov   ax, [X]          { Get X address                    }
     add   ax, [StartXViewPort]
     mov   di, ax
@@ -1689,14 +1696,6 @@ end;
     add   si, bx           { SI=(64+16)*(Y+StartYViewPort)=80*(Y+StartYViewPort) }
     add   si, ax           { SI=correct offset into video segment }
     add   si, [VideoOfs]   { Point to correct page offset... }
-
-{$ifdef FPC_MM_HUGE}
-    mov   ax, SEG SegA000
-    mov   es, ax
-    mov   es, es:[SegA000]
-{$else FPC_MM_HUGE}
-    mov   es, [SegA000]
-{$endif FPC_MM_HUGE}
 
     mov   dx,03ceh
     mov   ax,0304h
