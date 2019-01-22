@@ -1977,7 +1977,7 @@ End;
     add  di, [VideoOfs]   { add correct page }
     { send the data through the display memory through set/reset }
     mov  al,es:[di]
-    mov  es:[di],al
+    stosb
 
     { reset for formal vga operation }
     mov  ax,0ff08h
