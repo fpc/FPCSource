@@ -2236,13 +2236,6 @@ End;
 {$else asmgraph}
  Procedure PutPixel320(X,Y : smallint; Pixel: ColorType); assembler;
   asm
-{$ifdef FPC_MM_HUGE}
-    mov    ax, SEG SegA000
-    mov    es, ax
-    mov    es, es:[SegA000]
-{$else FPC_MM_HUGE}
-    mov    es, [SegA000]
-{$endif FPC_MM_HUGE}
     mov    ax, [Y]
     mov    di, [X]
     cmp    byte ptr [ClipPixels], 0
@@ -2258,6 +2251,13 @@ End;
     jg     @@Done
 
 @@ClipDone:
+{$ifdef FPC_MM_HUGE}
+    mov    bx, SEG SegA000
+    mov    es, bx
+    mov    es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov    es, [SegA000]
+{$endif FPC_MM_HUGE}
     add    ax, [StartYViewPort]
     add    di, [StartXViewPort]
     xchg   ah, al            { The value of Y must be in AH }
