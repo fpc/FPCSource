@@ -1956,25 +1956,26 @@ End;
     { setup the bit mask register }
     mov  al, 8
     { load the bitmask register }
-    mov  cl, [X]
+    mov  si, [X]
+    mov  cx, si
     and  cl, 07h
     mov  ah, 80h
     shr  ah, cl
     out  dx, ax
     { get the x index and divide by 8 for 16-color }
-    mov  ax, [X]
     mov  cl, 3
-    shr  ax, cl
-    push ax
+    shr  si, cl
     { determine the address }
-    mov  ax, 80
-    mov  si, [Y]
-    mul  si
-    pop  cx
-    add  ax,cx
-    mov  di,ax
+    mov  bx, [Y]
+    inc  cx               { CL=4 }
+    shl  bx, cl
+    mov  di, bx
+    shl  di, 1
+    shl  di, 1
+    add  di, bx
+    add  di, si
+    add  di, [VideoOfs]   { add correct page }
     { send the data through the display memory through set/reset }
-    add  di,[VideoOfs]   { add correct page }
     mov  al,es:[di]
     mov  es:[di],al
 
