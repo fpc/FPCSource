@@ -1701,44 +1701,38 @@ end;
     out   dx,ax
     inc   dx
 
-    xchg  ax, di
-    and   ax,0007h
-    mov   cl,07
-    sub   cl,al
-    mov   bl,cl
+    mov   cx, di
+    not   cx
+    and   cl,7
 
     { read plane 3 }
-    mov   al,es:[si]       { read display memory }
-    shr   al,cl
-    and   al,01h
-    mov   ah,al            { save bit in AH       }
+    mov   ah,es:[si]       { read display memory }
+    shr   ah,cl
+    and   ah,01h           { save bit in AH       }
 
     { read plane 2 }
     mov   al,2             { Select plane to read }
     out   dx,al
-    mov   al,es:[si]
-    shr   al,cl
-    and   al,01h
-    shl   ah,1
-    or    ah,al            { save bit in AH      }
+    mov   bl,es:[si]
+    shr   bl,cl
+    shr   bl,1
+    rcl   ah,1             { save bit in AH      }
 
     { read plane 1 }
-    mov   al,1             { Select plane to read }
+    dec   ax               { Select plane to read }
     out   dx,al
-    mov   al,es:[si]
-    shr   al,cl
-    and   al,01h
-    shl   ah,1
-    or    ah,al            { save bit in AH       }
+    mov   bl,es:[si]
+    shr   bl,cl
+    shr   bl,1
+    rcl   ah,1             { save bit in AH       }
 
     { read plane 0 }
-    mov   al,0             { Select plane to read }
+    dec   ax               { Select plane to read }
     out   dx,al
-    mov   al,es:[si]
-    shr   al,cl
-    and   al,01h
-    shl   ah,1
-    or    ah,al            { save bit in AH       }
+    mov   bl,es:[si]
+    shr   bl,cl
+    shr   bl,1
+    rcl   ah,1             { save bit in AH       }
 
     mov   al,ah            { 16-bit pixel in AX   }
     { 1 byte shorter than 'xor ah, ah'; will always set ah to 0, because sign(al)=0 }
