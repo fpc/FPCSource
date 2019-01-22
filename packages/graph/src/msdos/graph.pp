@@ -1589,17 +1589,22 @@ end;
 {$else asmgraph}
  Procedure PutPixel16(X,Y : smallint; Pixel: ColorType);
   Begin
-    { verify clipping and then convert to absolute coordinates...}
-    if ClipPixels then
-    begin
-      if (X < 0) or (X > ViewWidth) then
-        exit;
-      if (Y < 0) or (Y > ViewHeight) then
-        exit;
-    end;
       asm
         mov  si, [X]
         mov  bx, [Y]
+        cmp  byte ptr [ClipPixels], 0
+        je   @@ClipDone
+
+        test si, si
+        js   @@Done
+        test bx, bx
+        js   @@Done
+        cmp  si, [ViewWidth]
+        jg   @@Done
+        cmp  bx, [ViewHeight]
+        jg   @@Done
+
+@@ClipDone:
         add  si, [StartXViewPort]
         add  bx, [StartYViewPort]
 {$ifdef FPC_MM_HUGE}
@@ -1648,6 +1653,7 @@ end;
         { restore enable set/reset register }
         mov  ax,0001h
         out  dx,ax
+@@Done:
       end ['AX','BX','CX','DX','SI','DI'];
    end;
 {$endif asmgraph}
