@@ -5345,8 +5345,8 @@ implementation
             begin
               p:=tparavarsym(parast.SymList[i]);
               { check if no parameter is located on the stack }
-              if is_open_array(p.vardef) or
-                 is_array_of_const(p.vardef) then
+              if (is_open_array(p.vardef) or
+                 is_array_of_const(p.vardef)) and (p.varspez=vs_value) then
                 begin
                   result:=true;
                   exit;
