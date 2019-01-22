@@ -1629,11 +1629,14 @@ end;
         mov  cl, 3
         shr  si, cl
         { determine the address }
-        mov  ax,80
         mov  bx,[Y]
-        mul  bx
-        add  ax,si
-        mov  di,ax
+        inc  cx               { CL=4 }
+        shl  bx, cl
+        mov  di, bx
+        shl  di, 1
+        shl  di, 1
+        add  di, bx
+        add  di, si
         add  di, [VideoOfs]
         { send the data through the display memory through set/reset }
         mov  bl,es:[di]
