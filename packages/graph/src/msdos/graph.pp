@@ -1587,75 +1587,73 @@ end;
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
    end;
 {$else asmgraph}
- Procedure PutPixel16(X,Y : smallint; Pixel: ColorType);
-  Begin
-      asm
-        mov  si, [X]
-        mov  bx, [Y]
-        cmp  byte ptr [ClipPixels], 0
-        je   @@ClipDone
+ Procedure PutPixel16(X,Y : smallint; Pixel: ColorType); assembler;
+  asm
+    mov  si, [X]
+    mov  bx, [Y]
+    cmp  byte ptr [ClipPixels], 0
+    je   @@ClipDone
 
-        test si, si
-        js   @@Done
-        test bx, bx
-        js   @@Done
-        cmp  si, [ViewWidth]
-        jg   @@Done
-        cmp  bx, [ViewHeight]
-        jg   @@Done
+    test si, si
+    js   @@Done
+    test bx, bx
+    js   @@Done
+    cmp  si, [ViewWidth]
+    jg   @@Done
+    cmp  bx, [ViewHeight]
+    jg   @@Done
 
 @@ClipDone:
-        add  si, [StartXViewPort]
-        add  bx, [StartYViewPort]
+    add  si, [StartXViewPort]
+    add  bx, [StartYViewPort]
 {$ifdef FPC_MM_HUGE}
-        mov  ax, SEG SegA000
-        mov  es, ax
-        mov  es, es:[SegA000]
+    mov  ax, SEG SegA000
+    mov  es, ax
+    mov  es, es:[SegA000]
 {$else FPC_MM_HUGE}
-        mov  es, [SegA000]
+    mov  es, [SegA000]
 {$endif FPC_MM_HUGE}
-        { enable the set / reset function and load the color }
-        mov  dx, 3ceh
-        mov  ax, 0f01h
-        out  dx, ax
-        { setup set/reset register }
-        mov  ah, byte ptr [Pixel]
-        xor  al, al
-        out  dx, ax
-        { setup the bit mask register }
-        mov  al, 8
-        { load the bitmask register }
-        mov  cx, si
-        and  cl, 07h
-        mov  ah, 80h
-        shr  ah, cl
-        out  dx, ax
-        { get the x index and divide by 8 for 16-color }
-        mov  cl, 3
-        shr  si, cl
-        { determine the address }
-        inc  cx               { CL=4 }
-        shl  bx, cl
-        mov  di, bx
-        shl  di, 1
-        shl  di, 1
-        add  di, bx
-        add  di, si
-        add  di, [VideoOfs]
-        { send the data through the display memory through set/reset }
-        mov  bl,es:[di]
-        stosb
+    { enable the set / reset function and load the color }
+    mov  dx, 3ceh
+    mov  ax, 0f01h
+    out  dx, ax
+    { setup set/reset register }
+    mov  ah, byte ptr [Pixel]
+    xor  al, al
+    out  dx, ax
+    { setup the bit mask register }
+    mov  al, 8
+    { load the bitmask register }
+    mov  cx, si
+    and  cl, 07h
+    mov  ah, 80h
+    shr  ah, cl
+    out  dx, ax
+    { get the x index and divide by 8 for 16-color }
+    mov  cl, 3
+    shr  si, cl
+    { determine the address }
+    inc  cx               { CL=4 }
+    shl  bx, cl
+    mov  di, bx
+    shl  di, 1
+    shl  di, 1
+    add  di, bx
+    add  di, si
+    add  di, [VideoOfs]
+    { send the data through the display memory through set/reset }
+    mov  bl,es:[di]
+    stosb
 
-        { reset for formal vga operation }
-        mov  ax,0ff08h
-        out  dx,ax
+    { reset for formal vga operation }
+    mov  ax,0ff08h
+    out  dx,ax
 
-        { restore enable set/reset register }
-        mov  ax,0001h
-        out  dx,ax
+    { restore enable set/reset register }
+    mov  ax,0001h
+    out  dx,ax
 @@Done:
-      end ['AX','BX','CX','DX','SI','DI'];
-   end;
+  end;
 {$endif asmgraph}
 
 
