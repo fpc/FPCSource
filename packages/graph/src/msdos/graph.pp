@@ -1618,16 +1618,16 @@ end;
         { setup the bit mask register }
         mov  al, 8
         { load the bitmask register }
-        mov  cl, byte ptr [X]
+        mov  bx, [X]
+        mov  cl, bl
         and  cl, 07h
         mov  ah, 80h
         shr  ah, cl
         out  dx, ax
         { get the x index and divide by 8 for 16-color }
-        mov  ax,[X]
+        mov  si, bx
         mov  cl, 3
-        shr  ax, cl
-        xchg ax, si
+        shr  si, cl
         { determine the address }
         mov  ax,80
         mov  bx,[Y]
