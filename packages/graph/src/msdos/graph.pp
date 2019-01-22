@@ -1731,7 +1731,7 @@ end;
     { read plane 0 }
     dec   ax               { Select plane to read }
     out   dx,al
-    mov   al,es:[si]
+    seges lodsb
     and   al,bh
     rol   ah,1
     or    ah,al            { save bit in AH       }
