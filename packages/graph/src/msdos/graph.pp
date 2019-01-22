@@ -1749,7 +1749,7 @@ end;
 
 Procedure GetScanLine16(x1, x2, y: smallint; var data);
 
-var dummylong: longint;
+var dummy: word;
     Offset, count, count2, amount, index: word;
     plane: byte;
 Begin
@@ -1762,17 +1762,17 @@ Begin
 {$ifdef logging}
   LogLn('Offset: '+HexStr(offset,4)+' - ' + strf(offset));
 {$Endif logging}
-  { first get enough pixels so offset is 32bit aligned }
+  { first get enough pixels so offset is 16bit aligned }
   amount := 0;
   index := 0;
-  If ((x1 and 31) <> 0) Or
-     ((x2-x1+1) < 32) Then
+  If ((x1 and 15) <> 0) Or
+     ((x2-x1+1) < 16) Then
     Begin
-      If ((x2-x1+1) >= 32+32-(x1 and 31)) Then
-        amount := 32-(x1 and 31)
+      If ((x2-x1+1) >= 16+16-(x1 and 15)) Then
+        amount := 16-(x1 and 15)
       Else amount := x2-x1+1;
 {$ifdef logging}
-      LogLn('amount to align to 32bits or to get all: ' + strf(amount));
+      LogLn('amount to align to 16bits or to get all: ' + strf(amount));
 {$Endif logging}
       For count := 0 to amount-1 do
         WordArray(Data)[Count] := getpixel16(x1-StartXViewPort+Count,y);
@@ -1791,46 +1791,42 @@ Begin
   { first get everything from plane 3 (4th plane) }
   PortW[$3ce] := $0304;
   Count := 0;
-  For Count := 1 to (amount shr 5) Do
+  For Count := 1 to (amount shr 4) Do
     Begin
-      dummylong := MemL[SegA000:offset+(Count-1)*4];
-      dummylong :=
-        ((dummylong and $ff) shl 24) or
-        ((dummylong and $ff00) shl 8) or
-        ((dummylong and $ff0000) shr 8) or
-        ((dummylong and $ff000000) shr 24);
-      For Count2 := 31 downto 0 Do
+      dummy := MemW[SegA000:offset+(Count-1)*2];
+      dummy :=
+        ((dummy and $ff) shl 8) or
+        ((dummy and $ff00) shr 8);
+      For Count2 := 15 downto 0 Do
         Begin
-          WordArray(Data)[index+Count2] := DummyLong and 1;
-          DummyLong := DummyLong shr 1;
+          WordArray(Data)[index+Count2] := Dummy and 1;
+          Dummy := Dummy shr 1;
         End;
-      Inc(Index, 32);
+      Inc(Index, 16);
     End;
 { Now get the data from the 3 other planes }
   plane := 3;
   Repeat
-    Dec(Index,Count*32);
+    Dec(Index,Count*16);
     Dec(plane);
     Port[$3cf] := plane;
     Count := 0;
-    For Count := 1 to (amount shr 5) Do
+    For Count := 1 to (amount shr 4) Do
       Begin
-        dummylong := MemL[SegA000:offset+(Count-1)*4];
-        dummylong :=
-          ((dummylong and $ff) shl 24) or
-          ((dummylong and $ff00) shl 8) or
-          ((dummylong and $ff0000) shr 8) or
-          ((dummylong and $ff000000) shr 24);
-        For Count2 := 31 downto 0 Do
+        dummy := MemW[SegA000:offset+(Count-1)*2];
+        dummy :=
+          ((dummy and $ff) shl 8) or
+          ((dummy and $ff00) shr 8);
+        For Count2 := 15 downto 0 Do
           Begin
             WordArray(Data)[index+Count2] :=
-              (WordArray(Data)[index+Count2] shl 1) or (DummyLong and 1);
-            DummyLong := DummyLong shr 1;
+              (WordArray(Data)[index+Count2] shl 1) or (Dummy and 1);
+            Dummy := Dummy shr 1;
           End;
-        Inc(Index, 32);
+        Inc(Index, 16);
       End;
   Until plane = 0;
-  amount := amount and 31;
+  amount := amount and 15;
   Dec(index);
 {$ifdef Logging}
   LogLn('Last array index written to: '+strf(index));
@@ -1841,32 +1837,32 @@ Begin
     WordArray(Data)[index+Count] := getpixel16(x1+index+Count,y);
 {$ifdef logging}
   inc(x1,startXViewPort);
-  LogLn('First 32 bytes gotten with getscanline16: ');
-  If x2-x1+1 >= 32 Then
-    Count2 := 32
+  LogLn('First 16 bytes gotten with getscanline16: ');
+  If x2-x1+1 >= 16 Then
+    Count2 := 16
   Else Count2 := x2-x1+1;
   For Count := 0 to Count2-1 Do
     Log(strf(WordArray(Data)[Count])+' ');
   LogLn('');
-  If x2-x1+1 >= 32 Then
+  If x2-x1+1 >= 16 Then
     Begin
-      LogLn('Last 32 bytes gotten with getscanline16: ');
-      For Count := 31 downto 0 Do
+      LogLn('Last 16 bytes gotten with getscanline16: ');
+      For Count := 15 downto 0 Do
       Log(strf(WordArray(Data)[x2-x1-Count])+' ');
     End;
   LogLn('');
   GetScanLineDefault(x1-StartXViewPort,x2-StartXViewPort,y,Data);
-  LogLn('First 32 bytes gotten with getscanlinedef: ');
-  If x2-x1+1 >= 32 Then
-    Count2 := 32
+  LogLn('First 16 bytes gotten with getscanlinedef: ');
+  If x2-x1+1 >= 16 Then
+    Count2 := 16
   Else Count2 := x2-x1+1;
   For Count := 0 to Count2-1 Do
     Log(strf(WordArray(Data)[Count])+' ');
   LogLn('');
-  If x2-x1+1 >= 32 Then
+  If x2-x1+1 >= 16 Then
     Begin
-      LogLn('Last 32 bytes gotten with getscanlinedef: ');
-      For Count := 31 downto 0 Do
+      LogLn('Last 16 bytes gotten with getscanlinedef: ');
+      For Count := 15 downto 0 Do
       Log(strf(WordArray(Data)[x2-x1-Count])+' ');
     End;
   LogLn('');
