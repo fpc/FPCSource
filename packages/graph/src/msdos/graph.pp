@@ -1731,10 +1731,10 @@ end;
     { read plane 0 }
     dec   ax               { Select plane to read }
     out   dx,al
-    mov   bl,es:[si]
-    and   bl,bh
+    mov   al,es:[si]
+    and   al,bh
     rol   ah,1
-    or    ah,bl            { save bit in AH       }
+    or    ah,al            { save bit in AH       }
 
     inc   cx
     rol   ah,cl
