@@ -119,7 +119,7 @@ const
   nWrongNumberOfParametersForArray = 3042;
   nCantAssignValuesToAnAddress = 3043;
   nIllegalExpression = 3044;
-  nCantAccessPrivateMember = 3045;
+  nCantAccessXMember = 3045;
   nMustBeInsideALoop = 3046;
   nExpectXArrayElementsButFoundY = 3047;
   nCannotCreateADescendantOfTheSealedXY = 3048;
@@ -178,6 +178,8 @@ const
   nFunctionHidesIdentifier_NonProc = 3112;
   nTypeXCannotBeExtendedByATypeHelper = 3113;
   nDerivedXMustExtendASubClassY = 3114;
+  nDefaultPropertyNotAllowedInHelperForX = 3115;
+  nHelpersCannotBeUsedAsTypes = 3116;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -236,7 +238,7 @@ resourcestring
   sWrongNumberOfParametersForArray = 'Wrong number of parameters for array';
   sCantAssignValuesToAnAddress = 'Can''t assign values to an address';
   sIllegalExpression = 'Illegal expression';
-  sCantAccessPrivateMember = 'Can''t access %s member %s';
+  sCantAccessXMember = 'Can''t access %s member %s';
   sMustBeInsideALoop = '%s must be inside a loop';
   sExpectXArrayElementsButFoundY = 'Expect %s array elements, but found %s';
   sCannotCreateADescendantOfTheSealedXY = 'Cannot create a descendant of the sealed %s "%s"';
@@ -303,6 +305,8 @@ resourcestring
   sIllegalAssignmentToForLoopVar = 'Illegal assignment to for-loop variable "%s"';
   sTypeXCannotBeExtendedByATypeHelper = 'Type "%s" cannot be extended by a type helper';
   sDerivedXMustExtendASubClassY = 'Derived %s must extend a subclass of "%s" or the class itself';
+  sDefaultPropertyNotAllowedInHelperForX = 'Default property not allowed in helper for %s';
+  sHelpersCannotBeUsedAsTypes = 'helpers cannot be used as types';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

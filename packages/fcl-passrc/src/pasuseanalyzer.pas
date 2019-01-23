@@ -1452,7 +1452,7 @@ begin
       begin
       if Ref.WithExprScope<>nil then
         begin
-        if Ref.WithExprScope.Scope is TPasRecordScope then
+        if Ref.WithExprScope.ClassRecScope is TPasRecordScope then
           begin
           // a record member was accessed -> access the record too
           UseExprRef(El,Ref.WithExprScope.Expr,Access,false);

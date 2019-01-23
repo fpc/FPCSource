@@ -294,8 +294,9 @@ type
     msExternalClass,       { Allow external class definitions }
     msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
     msIgnoreAttributes,    { workaround til resolver/converter supports attributes }
-    msOmitRTTI             { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
-  );
+    msOmitRTTI,            { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
+    msMultipleScopeHelpers { off=only one helper per type, on=all }
+    );
   TModeSwitches = Set of TModeSwitch;
 
   // switches, that can be 'on' or 'off'
@@ -987,7 +988,7 @@ const
     'Tab'
   );
 
-  SModeSwitchNames : array[TModeSwitch] of string{$ifdef fpc}[18]{$endif} =
+  SModeSwitchNames : array[TModeSwitch] of string{$ifdef fpc}[20]{$endif} =
   ( '', // msNone
     '', // Fpc,
     '', // Objfpc,
@@ -1037,7 +1038,8 @@ const
     'EXTERNALCLASS',
     'PREFIXEDATTRIBUTES',
     'IGNOREATTRIBUTES',
-    'OMITRTTI'
+    'OMITRTTI',
+    'MULTIPLESCOPEHELPERS'
     );
 
   LetterSwitchNames: array['A'..'Z'] of string=(

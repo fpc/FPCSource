@@ -741,6 +741,12 @@ type
     // okSpecialize removed in FPC 3.1.1
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);
+const
+  okWithFields = [okObject, okClass, okGeneric];
+  okAllHelpers = [okClassHelper,okRecordHelper,okTypeHelper];
+  okWithClassFields = okWithFields+okAllHelpers;
+
+type
 
   TPasClassInterfaceType = (
     citCom, // default
@@ -1074,11 +1080,25 @@ type
   end;
 
   { TPasOperator }
-  TOperatorType = (otUnknown,otImplicit,otExplicit,otMul,otPlus, otMinus, otDivision,otLessThan, otEqual,
-                   otGreaterThan, otAssign,otNotEqual,otLessEqualThan,otGreaterEqualThan,otPower,
-                   otSymmetricalDifference, otInc, otDec, otMod, otNegative, otPositive, otBitWiseOr, otDiv,
-                   otLeftShift, otLogicalOr, otBitwiseAnd, otbitwiseXor,otLogicalAnd,otLogicalNot,otLogicalXor,
-                   otRightShift,otEnumerator, otIn);
+  TOperatorType = (
+    otUnknown,
+    otImplicit, otExplicit,
+    otMul, otPlus, otMinus, otDivision,
+    otLessThan, otEqual, otGreaterThan,
+    otAssign, otNotEqual, otLessEqualThan, otGreaterEqualThan,
+    otPower, otSymmetricalDifference,
+    otInc, otDec,
+    otMod,
+    otNegative, otPositive,
+    otBitWiseOr,
+    otDiv,
+    otLeftShift,
+    otLogicalOr,
+    otBitwiseAnd, otbitwiseXor,
+    otLogicalAnd, otLogicalNot, otLogicalXor,
+    otRightShift,
+    otEnumerator, otIn
+    );
   TOperatorTypes = set of TOperatorType;
 
   TPasOperator = class(TPasFunction)

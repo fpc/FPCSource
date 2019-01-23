@@ -135,7 +135,7 @@ resourcestring
   // free for 2029
   SLogStartImplementation = 'Start parsing implementation section.';
   SLogStartInterface = 'Start parsing interface section';
-  SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Record helpers';
+  SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Records';
   SParserNoFieldsAllowedInX = 'Fields are not allowed in %s';
   SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
   SErrRecordConstantsNotAllowed = 'Record constants not allowed at this location.';
@@ -731,11 +731,7 @@ begin
       end;
     Parser := TPasParser.Create(Scanner, FileResolver, AEngine);
     if (poSkipDefaultDefs in Options) then
-      begin
-      Writeln('>>> Clearing <<<');
       Parser.ImplicitUses.Clear;
-      end;
-    Writeln('Implicit >>>',Parser.ImplicitUses.Text,'<<<');
     Filename := '';
     Parser.LogEvents:=AEngine.ParserLogEvents;
     Parser.OnLog:=AEngine.Onlog;
@@ -3353,13 +3349,27 @@ end;
 
 procedure TPasParser.ParseDeclarations(Declarations: TPasDeclarations);
 var
+  HadTypeSection: boolean;
   CurBlock: TDeclType;
 
   procedure SetBlock(NewBlock: TDeclType);
   begin
     if CurBlock=NewBlock then exit;
     if CurBlock=declType then
-      Engine.FinishScope(stTypeSection,Declarations);
+      begin
+      if msDelphi in CurrentModeswitches then
+        // Delphi allows forward types only inside a type section
+        Engine.FinishScope(stTypeSection,Declarations);
+      end;
+    if NewBlock=declType then
+      HadTypeSection:=true
+    else if (NewBlock=declNone) and HadTypeSection then
+      begin
+      HadTypeSection:=false;
+      if not (msDelphi in CurrentModeswitches) then
+        // ObjFPC allows forward types inside a whole section
+        Engine.FinishScope(stTypeSection,Declarations);
+      end;
     CurBlock:=NewBlock;
     Scanner.SetForceCaret(NewBlock=declType);
   end;
@@ -3383,6 +3393,7 @@ var
   RecordEl: TPasRecordType;
 begin
   CurBlock := declNone;
+  HadTypeSection:=false;
   while True do
   begin
     if CurBlock in [DeclNone,declConst,declType] then
@@ -3655,7 +3666,7 @@ begin
         break;
         end
       else if (Declarations is TInterfaceSection)
-      or (Declarations is TImplementationSection) then
+          or (Declarations is TImplementationSection) then
         begin
         SetBlock(declNone);
         ParseInitialization;
@@ -4014,7 +4025,7 @@ begin
       end;
     if not (CurToken in [tkComma,tkSemicolon,tkGreaterThan]) then
       ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
-        [TokenInfos[tkComma], TokenInfos[tkColon], TokenInfos[tkGreaterThan]]);
+        [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]);
   until CurToken = tkGreaterThan;
 end;
 
@@ -6227,7 +6238,7 @@ begin
   ptOperator,ptClassOperator:
     begin
     NextToken;
-    IsTokenBased:=Curtoken<>tkIdentifier;
+    IsTokenBased:=CurToken<>tkIdentifier;
     if IsTokenBased then
       OT:=TPasOperator.TokenToOperatorType(CurTokenText)
     else
@@ -6690,8 +6701,8 @@ Type
 Var
   CurVisibility : TPasMemberVisibility;
   CurSection : TSectionType;
-  haveClass ,
-    IsMethodResolution: Boolean; // true means last token was class keyword
+  haveClass: boolean; // true means last token was class keyword
+  IsMethodResolution: Boolean;
   LastToken: TToken;
   PropEl: TPasProperty;
   MethodRes: TPasMethodResolution;
@@ -6734,8 +6745,8 @@ begin
       tkVar:
         if not (CurSection in [stVar,stClassVar]) then
           begin
-          if (AType.ObjKind in [okClass,okObject,okGeneric])
-          or (haveClass and (AType.ObjKind in [okClassHelper,okRecordHelper,okTypeHelper])) then
+          if (AType.ObjKind in okWithFields)
+          or (haveClass and (AType.ObjKind in okAllHelpers)) then
             // ok
           else
             ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['VAR',ObjKindNames[AType.ObjKind]]);
@@ -6759,14 +6770,14 @@ begin
           stNone,
           stVar:
             begin
-            if not (AType.ObjKind in [okObject,okClass,okGeneric]) then
+            if not (AType.ObjKind in okWithFields) then
               ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowedInX,[ObjKindNames[AType.ObjKind]]);
             ParseClassFields(AType,CurVisibility,CurSection=stClassVar);
             HaveClass:=False;
             end;
           stClassVar:
             begin
-            if not (AType.ObjKind in [okObject,okClass,okGeneric,okClassHelper,okRecordHelper,okTypeHelper]) then
+            if not (AType.ObjKind in okWithClassFields) then
               ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowedInX,[ObjKindNames[AType.ObjKind]]);
             ParseClassFields(AType,CurVisibility,CurSection=stClassVar);
             HaveClass:=False;
@@ -6780,12 +6791,19 @@ begin
         curSection:=stNone;
         if not haveClass then
           SaveComments;
-        if (AType.ObjKind in [okObject,okClass,okGeneric])
-            or ((CurToken=tkconstructor)
-              and (AType.ObjKind in [okClassHelper,okTypeHelper,okRecordHelper])) then
-          // ok
+        case AType.ObjKind of
+        okObject,okClass,okGeneric: ;
+        okClassHelper,okTypeHelper,okRecordHelper:
+          begin
+          if (CurToken=tkdestructor) and not haveClass then
+            ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['destructor',ObjKindNames[AType.ObjKind]]);
+          end;
         else
-          ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
+          if CurToken=tkconstructor then
+            ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['constructor',ObjKindNames[AType.ObjKind]])
+          else
+            ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['destructor',ObjKindNames[AType.ObjKind]]);
+        end;
         ProcessMethod(AType,HaveClass,CurVisibility);
         haveClass:=False;
         end;
@@ -6891,7 +6909,7 @@ begin
     NextToken;
     AType.IsShortDefinition:=(CurToken=tkSemicolon);
     end;
-  if (AType.ObjKind in [okClassHelper,okRecordHelper,okTypeHelper]) then
+  if (AType.ObjKind in okAllHelpers) then
     begin
     CheckToken(tkfor);
     NextToken;
@@ -6963,7 +6981,7 @@ begin
     AExternalNameSpace:='';
     AExternalName:='';
     end;
-  if AObjKind in [okClassHelper,okRecordHelper,okTypeHelper] then
+  if AObjKind in okAllHelpers then
     begin
     if not CurTokenIsIdentifier('Helper') then
       ParseExcSyntaxError;
