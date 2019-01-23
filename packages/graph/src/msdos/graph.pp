@@ -2523,6 +2523,10 @@ const CrtAddress: word = 0;
     (* End selection of plane *)
     mov al, ES:[DI]
     xor ah, ah
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
+    cwd
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
   end;
 {$endif asmgraph}
 
