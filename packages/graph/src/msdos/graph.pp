@@ -2489,8 +2489,6 @@ const CrtAddress: word = 0;
 {$else asmgraph}
  function GetPixelX(X,Y: smallint): ColorType;
   begin
-    X := X + StartXViewPort;
-    Y := Y + StartYViewPort;
     asm
 {$ifdef FPC_MM_HUGE}
       mov ax, SEG SegA000
@@ -2500,6 +2498,7 @@ const CrtAddress: word = 0;
       mov es, [SegA000]
 {$endif FPC_MM_HUGE}
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
+      add di,[StartYViewPort]
       (* Multiply by 80 start *)
       mov cl, 4
       shl di, cl
@@ -2509,6 +2508,7 @@ const CrtAddress: word = 0;
       add di, bx                   ;  (* Multiply Value by 80             *)
       (* End multiply by 80  *)
       mov cx, [X]
+      add cx, [StartXViewPort]
       mov ax, cx
       {DI = Y * LINESIZE, BX = X, coordinates admissible}
       shr ax, 1                    ; (* Faster on 286/86 machines         *)
