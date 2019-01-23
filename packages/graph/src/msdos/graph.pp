@@ -566,23 +566,27 @@ var
 procedure SetCGAPalette(CGAPaletteID: Byte); assembler;
 asm
   mov ax,CGAPaletteID
-  push bp
   mov bl, al
   mov bh, 1
   mov ah, 0Bh
+  push ds
+  push bp
   int 10h
   pop bp
+  pop ds
 end;
 
 procedure SetCGABorder(CGABorder: Byte); assembler;
 asm
   mov ax,CGABorder
-  push bp
   mov bl, al
   mov bh, 0
   mov ah, 0Bh
+  push ds
+  push bp
   int 10h
   pop bp
+  pop ds
 end;
 
 procedure SetBkColorCGA320(ColorNum: ColorType);
