@@ -2492,6 +2492,13 @@ const CrtAddress: word = 0;
     X := X + StartXViewPort;
     Y := Y + StartYViewPort;
     asm
+{$ifdef FPC_MM_HUGE}
+      mov ax, SEG SegA000
+      mov es, ax
+      mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
+      mov es, [SegA000]
+{$endif FPC_MM_HUGE}
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
       (* Multiply by 80 start *)
       mov bx, di
@@ -2513,7 +2520,6 @@ const CrtAddress: word = 0;
       shl ah, cl                ; (* Get Plane Select Value           *)
       out dx, ax
       (* End selection of plane *)
-      mov es,[SegA000]
       mov al, ES:[DI]
       xor ah, ah
       mov @Result, ax
