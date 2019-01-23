@@ -2487,45 +2487,42 @@ const CrtAddress: word = 0;
     GetPixelX := Mem[SegA000:offset];
   end;
 {$else asmgraph}
- function GetPixelX(X,Y: smallint): ColorType;
-  begin
-    asm
+ function GetPixelX(X,Y: smallint): ColorType; assembler;
+  asm
 {$ifdef FPC_MM_HUGE}
-      mov ax, SEG SegA000
-      mov es, ax
-      mov es, es:[SegA000]
+    mov ax, SEG SegA000
+    mov es, ax
+    mov es, es:[SegA000]
 {$else FPC_MM_HUGE}
-      mov es, [SegA000]
+    mov es, [SegA000]
 {$endif FPC_MM_HUGE}
-      mov di,[Y]                   ; (* DI = Y coordinate                 *)
-      add di,[StartYViewPort]
-      (* Multiply by 80 start *)
-      mov cl, 4
-      shl di, cl
-      mov bx, di
-      shl di, 1
-      shl di, 1
-      add di, bx                   ;  (* Multiply Value by 80             *)
-      (* End multiply by 80  *)
-      mov cx, [X]
-      add cx, [StartXViewPort]
-      mov ax, cx
-      {DI = Y * LINESIZE, BX = X, coordinates admissible}
-      shr ax, 1                    ; (* Faster on 286/86 machines         *)
-      shr ax, 1
-      add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
-      add di, [VideoOfs]  ; (* Pointing at start of Active page *)
-      (* Select plane to use *)
-      mov dx, 03c4h
-      mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-      and cl, 03h               ; (* Get Plane Bits                   *)
-      shl ah, cl                ; (* Get Plane Select Value           *)
-      out dx, ax
-      (* End selection of plane *)
-      mov al, ES:[DI]
-      xor ah, ah
-      mov @Result, ax
-    end;
+    mov di,[Y]                   ; (* DI = Y coordinate                 *)
+    add di,[StartYViewPort]
+    (* Multiply by 80 start *)
+    mov cl, 4
+    shl di, cl
+    mov bx, di
+    shl di, 1
+    shl di, 1
+    add di, bx                   ;  (* Multiply Value by 80             *)
+    (* End multiply by 80  *)
+    mov cx, [X]
+    add cx, [StartXViewPort]
+    mov ax, cx
+    {DI = Y * LINESIZE, BX = X, coordinates admissible}
+    shr ax, 1                    ; (* Faster on 286/86 machines         *)
+    shr ax, 1
+    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
+    add di, [VideoOfs]  ; (* Pointing at start of Active page *)
+    (* Select plane to use *)
+    mov dx, 03c4h
+    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
+    and cl, 03h               ; (* Get Plane Bits                   *)
+    shl ah, cl                ; (* Get Plane Select Value           *)
+    out dx, ax
+    (* End selection of plane *)
+    mov al, ES:[DI]
+    xor ah, ah
   end;
 {$endif asmgraph}
 
