@@ -668,6 +668,7 @@ procedure TCustomTestPrecompile.CheckRestoredSectionScope(const Path: string;
 var
   i: Integer;
   OrigUses, RestUses: TPas2JSSectionScope;
+  OrigHelperEntry, RestHelperEntry: TPRHelperEntry;
 begin
   if Orig.BoolSwitches<>Rest.BoolSwitches then
     Fail(Path+'.BoolSwitches Orig='+BoolSwitchesToStr(Orig.BoolSwitches)+' Rest='+BoolSwitchesToStr(Rest.BoolSwitches));
@@ -684,6 +685,18 @@ begin
       Fail(Path+'.UsesScopes['+IntToStr(i)+'] Orig='+GetObjName(OrigUses)+' Rest='+GetObjName(RestUses));
     CheckRestoredReference(Path+'.UsesScopes['+IntToStr(i)+']',OrigUses.Element,RestUses.Element);
     end;
+  AssertEquals(Path+' length(Helpers)',length(Orig.Helpers),length(Rest.Helpers));
+  for i:=0 to length(Orig.Helpers)-1 do
+    begin
+    OrigHelperEntry:=TPRHelperEntry(Orig.Helpers[i]);
+    RestHelperEntry:=TPRHelperEntry(Rest.Helpers[i]);
+    if OrigHelperEntry.ClassType<>RestHelperEntry.ClassType then
+      Fail(Path+'.Helpers['+IntToStr(i)+'] Orig='+GetObjName(OrigHelperEntry)+' Rest='+GetObjName(RestHelperEntry));
+    AssertEquals(Path+'.Helpers['+IntToStr(i)+'].Added',OrigHelperEntry.Added,RestHelperEntry.Added);
+    CheckRestoredReference(Path+'.Helpers['+IntToStr(i)+'].Helper',OrigHelperEntry.Helper,RestHelperEntry.Helper);
+    CheckRestoredReference(Path+'.Helpers['+IntToStr(i)+'].HelperForType',OrigHelperEntry.HelperForType,RestHelperEntry.HelperForType);
+    end;
+
   AssertEquals(Path+'.Finished',Orig.Finished,Rest.Finished);
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
@@ -810,7 +823,7 @@ begin
     AssertEquals(Path+'.ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
     CheckRestoredReference(Path+'.OverriddenProc',Orig.OverriddenProc,Rest.OverriddenProc);
 
-    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassOrRecordScope,Rest.ClassOrRecordScope);
+    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassRecScope,Rest.ClassRecScope);
     CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
     if Orig.Flags<>Rest.Flags then
       Fail(Path+'.Flags');

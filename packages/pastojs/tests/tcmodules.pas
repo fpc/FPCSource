@@ -16144,7 +16144,7 @@ begin
   '  end;',
   'begin']);
   SetExpectedParserError(
-    'Fields are not allowed in Interfaces at token "Identifier external" in file test1.pp at line 6 column 21',
+    'Fields are not allowed in interface at token "Identifier external" in file test1.pp at line 6 column 21',
     nParserNoFieldsAllowed);
   ConvertProgram;
 end;

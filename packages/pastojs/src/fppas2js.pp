@@ -1127,7 +1127,8 @@ const
     msExternalClass,
     msArrayOperators,
     msIgnoreAttributes,
-    msOmitRTTI];
+    msOmitRTTI,
+    msMultipleScopeHelpers];
 
   msAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings
@@ -4528,7 +4529,7 @@ begin
   FindData:=Default(TPRFindData);
   FindData.ErrorPosEl:=Params;
   Abort:=false;
-  IterateElements(TIName,@OnFindFirstElement,@FindData,Abort);
+  IterateElements(TIName,@OnFindFirst,@FindData,Abort);
   RestoreSubExprScopes(ScopeDepth);
   {$IFDEF VerbosePas2JS}
   writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TIName="',TIName,'" FindData.Found="',GetObjName(FindData.Found),'"');
@@ -6056,7 +6057,7 @@ begin
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr Proc.Name=',Proc.Name);
   ProcScope:=Proc.CustomData as TPasProcedureScope;
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr ProcScope.Element=',GetObjName(ProcScope.Element),' ProcScope.ClassScope=',GetObjName(ProcScope.ClassOrRecordScope),' ProcScope.DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ProcScope.ImplProc=',GetObjName(ProcScope.ImplProc),' ProcScope.CustomData=',GetObjName(ProcScope.CustomData));
-  ClassScope:=ProcScope.ClassOrRecordScope;
+  ClassScope:=ProcScope.ClassRecScope;
   aClass:=ClassScope.Element;
   if aClass.Name='' then
     RaiseInconsistency(20170125191923,aClass);
@@ -13833,7 +13834,7 @@ begin
             end;
           end;
 
-      if ProcScope.ClassOrRecordScope<>nil then
+      if ProcScope.ClassRecScope<>nil then
         begin
         // method or class method
         if not AContext.IsGlobal then
@@ -13843,7 +13844,7 @@ begin
           end
         else
           begin
-          FuncContext.ThisPas:=ProcScope.ClassOrRecordScope.Element;
+          FuncContext.ThisPas:=ProcScope.ClassRecScope.Element;
           if bsObjectChecks in FuncContext.ScannerBoolSwitches then
             begin
             // rtl.checkMethodCall(this,<class>)
@@ -13852,7 +13853,7 @@ begin
             Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),
                                             GetBIName(pbifnCheckMethodCall)]);
             Call.AddArg(CreatePrimitiveDotExpr('this',PosEl));
-            ClassPath:=CreateReferencePath(ProcScope.ClassOrRecordScope.Element,AContext,rpkPathAndName);
+            ClassPath:=CreateReferencePath(ProcScope.ClassRecScope.Element,AContext,rpkPathAndName);
             Call.AddArg(CreatePrimitiveDotExpr(ClassPath,PosEl));
             end;
 
@@ -14943,7 +14944,7 @@ begin
   Target:=ConvertElement(El,AContext);
 
   ProcScope:=TPasProcedureScope(ResolvedEl.IdentEl.CustomData);
-  if ProcScope.ClassOrRecordScope=nil then
+  if ProcScope.ClassRecScope=nil then
     begin
     // not a method -> simply use the function
     Result:=Target;
@@ -15891,7 +15892,7 @@ begin
       begin
       // overridden proc is published as well
       OverriddenProcScope:=ProcScope.OverriddenProc.CustomData as TPasProcedureScope;
-      OverriddenClass:=OverriddenProcScope.ClassOrRecordScope.Element as TPasClassType;
+      OverriddenClass:=OverriddenProcScope.ClassRecScope.Element as TPasClassType;
       if HasTypeInfo(OverriddenClass,AContext) then
         exit; // overridden proc was already published in ancestor
       end;
