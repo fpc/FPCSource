@@ -2150,7 +2150,7 @@ End;
   begin
     if page > HardwarePages then exit;
     asm
-      mov ax,[page]    { only lower byte is supPorted. }
+      mov al, byte ptr [page]    { only lower byte is supported. }
       mov ah,05h
       push ds
       push bp
