@@ -2476,82 +2476,50 @@ const CrtAddress: word = 0;
 
 
 {$undef asmgraph}
- Function GetPixelX(X,Y: smallint): ColorType;
 {$ifndef asmgraph}
- var offset: word;
-{$endif asmgraph}
+ function GetPixelX(X,Y: smallint): ColorType;
+  var offset: word;
   begin
-     X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
-     offset := y * 80 + x shr 2 + VideoOfs;
-     PortW[$3ce] := ((x and 3) shl 8) + 4;
-     GetPixelX := Mem[SegA000:offset];
+    X := X + StartXViewPort;
+    Y := Y + StartYViewPort;
+    offset := y * 80 + x shr 2 + VideoOfs;
+    PortW[$3ce] := ((x and 3) shl 8) + 4;
+    GetPixelX := Mem[SegA000:offset];
+  end;
 {$else asmgraph}
+ function GetPixelX(X,Y: smallint): ColorType;
+  begin
+    X := X + StartXViewPort;
+    Y := Y + StartYViewPort;
     asm
-  {$ifndef fpc}
-     mov di,[Y]                   ; (* DI = Y coordinate                 *)
-     (* Multiply by 80 start *)
-     mov bx, di
-     shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-     shl bx, 4
-     add di, bx                   ;  (* Multiply Value by 80             *)
-     (* End multiply by 80  *)
-     mov cx, [X]
-     mov ax, cx
-    {DI = Y * LINESIZE, BX = X, coordinates admissible}
-     shr ax, 1                    ; (* Faster on 286/86 machines         *)
-     shr ax, 1
-     add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
-     add di, [VideoOfs]  ; (* Pointing at start of Active page *)
-    (* Select plane to use *)
-    mov dx, 03c4h
-    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-    and cl, 03h               ; (* Get Plane Bits                   *)
-    shl ah, cl                ; (* Get Plane Select Value           *)
-    out dx, ax
-   (* End selection of plane *)
-    mov es,[SegA000]
-    mov al, ES:[DI]
-    xor ah, ah
-    mov @Result, ax
-  {$else fpc}
-     push eax
-     push ebx
-     push ecx
-     push edx
-     push edi
-     movzx edi,[Y]                   ; (* DI = Y coordinate                 *)
-     (* Multiply by 80 start *)
-     mov ebx, edi
-     shl edi, 6                    ; (* Faster on 286/386/486 machines    *)
-     shl ebx, 4
-     add edi, ebx                   ;  (* Multiply Value by 80             *)
-     (* End multiply by 80  *)
-     movzx ecx, [X]
-     movzx eax, [Y]
-    {DI = Y * LINESIZE, BX = X, coordinates admissible}
-     shr eax, 2
-     add edi, eax                ; {DI = Y * LINESIZE + (X SHR 2) }
-     add edi, [VideoOfs]  ; (* Pointing at start of Active page *)
-    (* Select plane to use *)
-    mov dx, 03c4h
-    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-    and cl, 03h               ; (* Get Plane Bits                   *)
-    shl ah, cl                ; (* Get Plane Select Value           *)
-    out dx, ax
-   (* End selection of plane *)
-    mov ax, fs:[edi+$a0000]
-    mov @Result, ax
-    pop edi
-    pop edx
-    pop ecx
-    pop ebx
-    pop eax
-  {$endif fpc}
-   end;
+      mov di,[Y]                   ; (* DI = Y coordinate                 *)
+      (* Multiply by 80 start *)
+      mov bx, di
+      shl di, 6                    ; (* Faster on 286/386/486 machines    *)
+      shl bx, 4
+      add di, bx                   ;  (* Multiply Value by 80             *)
+      (* End multiply by 80  *)
+      mov cx, [X]
+      mov ax, cx
+      {DI = Y * LINESIZE, BX = X, coordinates admissible}
+      shr ax, 1                    ; (* Faster on 286/86 machines         *)
+      shr ax, 1
+      add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
+      add di, [VideoOfs]  ; (* Pointing at start of Active page *)
+      (* Select plane to use *)
+      mov dx, 03c4h
+      mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
+      and cl, 03h               ; (* Get Plane Bits                   *)
+      shl ah, cl                ; (* Get Plane Select Value           *)
+      out dx, ax
+      (* End selection of plane *)
+      mov es,[SegA000]
+      mov al, ES:[DI]
+      xor ah, ah
+      mov @Result, ax
+    end;
+  end;
 {$endif asmgraph}
- end;
 
  procedure SetVisualX(page: word);
   { 4 page supPort... }
