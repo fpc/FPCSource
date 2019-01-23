@@ -200,10 +200,14 @@ begin
   for I := 0 to 11 do
     PortW[$3B4] := I or (RegValues[I] shl 8);
   Port[$3B8] := 10; { display page 0, graphic mode, display on }
-//  DosMemFillChar($B000, 0, 65536, #0);
   asm
-    mov ax, $B000
+{$ifdef FPC_MM_HUGE}
+    mov ax, SEG SegB000
     mov es, ax
+    mov es, es:[SegB000]
+{$else FPC_MM_HUGE}
+    mov es, [SegB000]
+{$endif FPC_MM_HUGE}
     mov cx, 32768
     xor di, di
     xor ax, ax
