@@ -2501,9 +2501,11 @@ const CrtAddress: word = 0;
 {$endif FPC_MM_HUGE}
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
       (* Multiply by 80 start *)
+      mov cl, 4
+      shl di, cl
       mov bx, di
-      shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-      shl bx, 4
+      shl di, 1
+      shl di, 1
       add di, bx                   ;  (* Multiply Value by 80             *)
       (* End multiply by 80  *)
       mov cx, [X]
