@@ -2563,10 +2563,6 @@ const CrtAddress: word = 0;
     { Now Set Display Starting Address                     }
   end;
 
-{$ifdef fpc}
-  {$undef asmgraph}
-{$endif fpc}
-
   begin
     Case page of
       0: SetVisibleStart(0);
@@ -2673,6 +2669,7 @@ const CrtAddress: word = 0;
 {$endif asmgraph}
 
 
+{$undef asmgraph}
  Procedure DirectPutPixelX(X,Y: smallint);
  { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
