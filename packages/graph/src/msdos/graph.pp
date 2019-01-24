@@ -2627,8 +2627,9 @@ const CrtAddress: word = 0;
       push dx
       push es
       push di
-      mov di,[Y]                   ; (* DI = Y coordinate                 *)
-      add di,[StartYViewPort]
+      mov ax, [X]
+      mov di, [Y]                  ; (* DI = Y coordinate                 *)
+      add di, [StartYViewPort]
       (* Multiply by 80 start *)
       mov cl, 4
       shl di, cl
@@ -2637,7 +2638,6 @@ const CrtAddress: word = 0;
       shl di, 1
       add di, bx                   ;  (* Multiply Value by 80             *)
       (* End multiply by 80  *)
-      mov ax, [X]
       add ax, [StartXViewPort]
       mov cx, ax
       {DI = Y * LINESIZE, BX = X, coordinates admissible}
