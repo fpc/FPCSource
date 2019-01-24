@@ -247,6 +247,7 @@ Type
 {$ifdef FPC_HAS_CPSTRING}
 Function UTF16ToUTF8(const S: UnicodeString): string;
 {$endif}
+Function QuoteJSString(const S: TJSString; Quote: TJSChar = #0): TJSString;
 
 implementation
 
@@ -271,6 +272,36 @@ begin
   // conversion magic
   SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
+
+function QuoteJSString(const S: TJSString; Quote: TJSChar): TJSString;
+var
+  i, j, Count: Integer;
+begin
+  if Quote=#0 then
+    begin
+    if Pos('"',S)>0 then
+      Quote:=''''
+    else
+      Quote:='"';
+    end;
+  Result := '' + Quote;
+  Count := length(S);
+  i := 0;
+  j := 0;
+  while i < Count do
+    begin
+    inc(i);
+    if S[i] = Quote then
+      begin
+      Result := Result + copy(S, 1 + j, i - j) + Quote;
+      j := i;
+      end;
+    end;
+  if i <> j then
+    Result := Result + copy(S, 1 + j, i - j);
+  Result := Result + Quote;
+end;
+
 {$endif}
 
 { TBufferWriter }
@@ -1023,14 +1054,11 @@ end;
 
 
 procedure TJSWriter.WriteObjectLiteral(El: TJSObjectLiteral);
-
-
 Var
   i,C : Integer;
   QE,WC : Boolean;
   S : TJSString;
   Prop: TJSObjectLiteralElement;
-
 begin
   C:=El.Elements.Count-1;
   QE:=(woQuoteElementNames in Options);
@@ -1053,7 +1081,14 @@ begin
    Writer.CurElement:=Prop.Expr;
    S:=Prop.Name;
    if QE or not IsValidJSIdentifier(S) then
-     S:='"'+S+'"';
+     begin
+     if (length(S)>1)
+         and (((S[1]='"') and (S[length(S)]='"'))
+           or ((S[1]='''') and (S[length(S)]=''''))) then
+       // already quoted
+     else
+       S:=QuoteJSString(s);
+     end;
    Write(S+': ');
    Indent;
    FSkipRoundBrackets:=true;
