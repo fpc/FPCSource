@@ -2606,71 +2606,69 @@ const CrtAddress: word = 0;
     Mem[SegA000:offset] := color;
   end;
 {$else asmgraph}
- Procedure PutPixelX(X,Y: smallint; color:ColorType);
-  begin
-     asm
-      push ax
-      push bx
-      push cx
-      push dx
-      push es
-      push di
-      mov ax, [X]
-      mov di, [Y]                  ; (* DI = Y coordinate                 *)
+ Procedure PutPixelX(X,Y: smallint; color:ColorType); assembler;
+  asm
+    push ax
+    push bx
+    push cx
+    push dx
+    push es
+    push di
+    mov ax, [X]
+    mov di, [Y]                  ; (* DI = Y coordinate                 *)
 
-      cmp byte ptr [ClipPixels], 0
-      je @@ClipDone
+    cmp byte ptr [ClipPixels], 0
+    je @@ClipDone
 
-      test   ax, ax
-      js     @@Done
-      test   di, di
-      js     @@Done
-      cmp    ax, [ViewWidth]
-      jg     @@Done
-      cmp    di, [ViewHeight]
-      jg     @@Done
+    test   ax, ax
+    js     @@Done
+    test   di, di
+    js     @@Done
+    cmp    ax, [ViewWidth]
+    jg     @@Done
+    cmp    di, [ViewHeight]
+    jg     @@Done
 
 @@ClipDone:
 {$ifdef FPC_MM_HUGE}
-      mov bx, SEG SegA000
-      mov es, bx
-      mov es, es:[SegA000]
+    mov bx, SEG SegA000
+    mov es, bx
+    mov es, es:[SegA000]
 {$else FPC_MM_HUGE}
-      mov es, [SegA000]
+    mov es, [SegA000]
 {$endif FPC_MM_HUGE}
-      add di, [StartYViewPort]
-      (* Multiply by 80 start *)
-      mov cl, 4
-      shl di, cl
-      mov bx, di
-      shl di, 1
-      shl di, 1
-      add di, bx                   ;  (* Multiply Value by 80             *)
-      (* End multiply by 80  *)
-      add ax, [StartXViewPort]
-      mov cx, ax
-      {DI = Y * LINESIZE, BX = X, coordinates admissible}
-      shr ax, 1
-      shr ax, 1
-      add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
-      add di, [VideoOfs]        ; (* Pointing at start of Active page *)
-      (* Select plane to use *)
-      mov dx, 03c4h
-      mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-      and cl, 03h               ; (* Get Plane Bits                   *)
-      shl ah, cl                ; (* Get Plane Select Value           *)
-      out dx, ax
-      (* End selection of plane *)
-      mov ax,[Color]            ; { only lower byte is used. }
-      mov es:[di], al
+    add di, [StartYViewPort]
+    (* Multiply by 80 start *)
+    mov cl, 4
+    shl di, cl
+    mov bx, di
+    shl di, 1
+    shl di, 1
+    add di, bx                   ;  (* Multiply Value by 80             *)
+    (* End multiply by 80  *)
+    add ax, [StartXViewPort]
+    mov cx, ax
+    {DI = Y * LINESIZE, BX = X, coordinates admissible}
+    shr ax, 1
+    shr ax, 1
+    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
+    add di, [VideoOfs]        ; (* Pointing at start of Active page *)
+    (* Select plane to use *)
+    mov dx, 03c4h
+    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
+    and cl, 03h               ; (* Get Plane Bits                   *)
+    shl ah, cl                ; (* Get Plane Select Value           *)
+    out dx, ax
+    (* End selection of plane *)
+    mov ax,[Color]            ; { only lower byte is used. }
+    mov es:[di], al
 @@Done:
-      pop di
-      pop es
-      pop dx
-      pop cx
-      pop bx
-      pop ax
-    end;
+    pop di
+    pop es
+    pop dx
+    pop cx
+    pop bx
+    pop ax
   end;
 {$endif asmgraph}
 
