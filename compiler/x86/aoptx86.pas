@@ -71,6 +71,7 @@ unit aoptx86;
         function OptPass1Sub(var p : tai) : boolean;
         function OptPass1SHLSAL(var p : tai) : boolean;
         function OptPass1SETcc(var p: tai): boolean;
+        function OptPass1FSTP(var p: tai): boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -2444,6 +2445,58 @@ unit aoptx86;
               end;
 
             DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> Jcc',p);
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass1FSTP(var p: tai): boolean;
+      { returns true if a "continue" should be done after this optimization }
+      var
+        hp1, hp2: tai;
+      begin
+        Result := false;
+        if MatchOpType(taicpu(p),top_ref) and
+           GetNextInstruction(p, hp1) and
+           (hp1.typ = ait_instruction) and
+           (((taicpu(hp1).opcode = A_FLD) and
+             (taicpu(p).opcode = A_FSTP)) or
+            ((taicpu(p).opcode = A_FISTP) and
+             (taicpu(hp1).opcode = A_FILD))) and
+           MatchOpType(taicpu(hp1),top_ref) and
+           (taicpu(hp1).opsize = taicpu(p).opsize) and
+           RefsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
+          begin
+            { replacing fstp f;fld f by fst f is only valid for extended because of rounding }
+            if (taicpu(p).opsize=S_FX) and
+               GetNextInstruction(hp1, hp2) and
+               (hp2.typ = ait_instruction) and
+               IsExitCode(hp2) and
+               (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
+               not(assigned(current_procinfo.procdef.funcretsym) and
+                   (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
+               (taicpu(p).oper[0]^.ref^.index = NR_NO) then
+              begin
+                asml.remove(p);
+                asml.remove(hp1);
+                p.free;
+                hp1.free;
+                p := hp2;
+                RemoveLastDeallocForFuncRes(p);
+                Result := true;
+              end
+            (* can't be done because the store operation rounds
+            else
+              { fst can't store an extended value! }
+              if (taicpu(p).opsize <> S_FX) and
+                 (taicpu(p).opsize <> S_IQ) then
+                begin
+                  if (taicpu(p).opcode = A_FSTP) then
+                    taicpu(p).opcode := A_FST
+                  else taicpu(p).opcode := A_FIST;
+                  asml.remove(hp1);
+                  hp1.free;
+                end
+            *)
           end;
       end;
 

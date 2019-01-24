@@ -40,7 +40,6 @@ unit aoptcpu;
         procedure PeepHoleOptPass1; override;
         procedure PeepHoleOptPass2; override;
         procedure PostPeepHoleOpts; override;
-        function DoFpuLoadStoreOpt(var p : tai) : boolean;
       end;
 
     Var
@@ -57,56 +56,6 @@ unit aoptcpu;
       cgutils,
       { units we should get rid off: }
       symsym,symconst;
-
-    function TCPUAsmoptimizer.DoFpuLoadStoreOpt(var p: tai): boolean;
-    { returns true if a "continue" should be done after this optimization }
-    var hp1, hp2: tai;
-    begin
-      DoFpuLoadStoreOpt := false;
-      if (taicpu(p).oper[0]^.typ = top_ref) and
-         getNextInstruction(p, hp1) and
-         (hp1.typ = ait_instruction) and
-         (((taicpu(hp1).opcode = A_FLD) and
-           (taicpu(p).opcode = A_FSTP)) or
-          ((taicpu(p).opcode = A_FISTP) and
-           (taicpu(hp1).opcode = A_FILD))) and
-         (taicpu(hp1).oper[0]^.typ = top_ref) and
-         (taicpu(hp1).opsize = taicpu(p).opsize) and
-         RefsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
-        begin
-          { replacing fstp f;fld f by fst f is only valid for extended because of rounding }
-          if (taicpu(p).opsize=S_FX) and
-             getNextInstruction(hp1, hp2) and
-             (hp2.typ = ait_instruction) and
-             IsExitCode(hp2) and
-             (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
-             not(assigned(current_procinfo.procdef.funcretsym) and
-                 (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
-             (taicpu(p).oper[0]^.ref^.index = NR_NO) then
-            begin
-              asml.remove(p);
-              asml.remove(hp1);
-              p.free;
-              hp1.free;
-              p := hp2;
-              removeLastDeallocForFuncRes(p);
-              doFPULoadStoreOpt := true;
-            end
-          (* can't be done because the store operation rounds
-          else
-            { fst can't store an extended value! }
-            if (taicpu(p).opsize <> S_FX) and
-               (taicpu(p).opsize <> S_IQ) then
-              begin
-                if (taicpu(p).opcode = A_FSTP) then
-                  taicpu(p).opcode := A_FST
-                else taicpu(p).opcode := A_FIST;
-                asml.remove(hp1);
-                hp1.free;
-              end
-          *)
-        end;
-    end;
 
 
   { converts a TChange variable to a TRegister }
@@ -577,7 +526,7 @@ begin
                             end
                     end;
                   A_FSTP,A_FISTP:
-                    if doFpuLoadStoreOpt(p) then
+                    if OptPass1FSTP(p) then
                       continue;
                   A_LEA:
                     begin
@@ -776,7 +725,7 @@ begin
                 if OptPass2Jcc(p) then
                   continue;
               A_FSTP,A_FISTP:
-                if DoFpuLoadStoreOpt(p) then
+                if OptPass1FSTP(p) then
                   continue;
               A_IMUL:
                 if OptPass2Imul(p) then

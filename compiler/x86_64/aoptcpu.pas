@@ -118,6 +118,8 @@ uses
                 result:=OptPass1SHLSAL(p);
               A_SETcc:
                 result:=OptPass1SETcc(p);
+              A_FSTP,A_FISTP:
+                result:=OptPass1FSTP(p);
             end;
           end;
         end;
