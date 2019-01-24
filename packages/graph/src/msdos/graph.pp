@@ -2695,6 +2695,13 @@ const CrtAddress: word = 0;
  Procedure DirectPutPixelX(X,Y: smallint); assembler;
  { note: still needs or/and/notput support !!!!! (JM) }
  asm
+{$ifdef FPC_MM_HUGE}
+   mov bx, SEG SegA000
+   mov es, bx
+   mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
+   mov es, [SegA000]
+{$endif FPC_MM_HUGE}
    mov di, [Y]                   ; (* DI = Y coordinate                 *)
  (* Multiply by 80 start *)
    mov cl, 4
@@ -2718,7 +2725,6 @@ const CrtAddress: word = 0;
    shl ah, cl                ; (* Get Plane Select Value           *)
    out dx, ax
  (* End selection of plane *)
-   mov es,[SegA000]
    mov ax,[CurrentColor]     ; { only lower byte is used. }
    cmp [CurrentWriteMode],XORPut   { check write mode   }
    jne @MOVMode
