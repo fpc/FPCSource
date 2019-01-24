@@ -2612,14 +2612,6 @@ const CrtAddress: word = 0;
 {$else asmgraph}
  Procedure PutPixelX(X,Y: smallint; color:ColorType);
   begin
-    { verify clipping and then convert to absolute coordinates...}
-    if ClipPixels then
-    begin
-      if (X < 0) or (X > ViewWidth) then
-        exit;
-      if (Y < 0) or (Y > ViewHeight) then
-        exit;
-    end;
      asm
       push ax
       push bx
@@ -2629,6 +2621,20 @@ const CrtAddress: word = 0;
       push di
       mov ax, [X]
       mov di, [Y]                  ; (* DI = Y coordinate                 *)
+
+      cmp byte ptr [ClipPixels], 0
+      je @@ClipDone
+
+      test   ax, ax
+      js     @@Done
+      test   di, di
+      js     @@Done
+      cmp    ax, [ViewWidth]
+      jg     @@Done
+      cmp    di, [ViewHeight]
+      jg     @@Done
+
+@@ClipDone:
       add di, [StartYViewPort]
       (* Multiply by 80 start *)
       mov cl, 4
@@ -2655,6 +2661,7 @@ const CrtAddress: word = 0;
       mov es,[SegA000]
       mov ax,[Color]            ; { only lower byte is used. }
       mov es:[di], al
+@@Done:
       pop di
       pop es
       pop dx
