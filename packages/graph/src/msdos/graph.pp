@@ -2495,24 +2495,24 @@ const CrtAddress: word = 0;
 {$else FPC_MM_HUGE}
     mov es, [SegA000]
 {$endif FPC_MM_HUGE}
-    mov di,[Y]                   ; (* DI = Y coordinate                 *)
-    add di,[StartYViewPort]
+    mov si,[Y]                   ; (* SI = Y coordinate                 *)
+    add si,[StartYViewPort]
     (* Multiply by 80 start *)
     mov cl, 4
-    shl di, cl
-    mov bx, di
-    shl di, 1
-    shl di, 1
-    add di, bx                   ;  (* Multiply Value by 80             *)
+    shl si, cl
+    mov bx, si
+    shl si, 1
+    shl si, 1
+    add si, bx                   ;  (* Multiply Value by 80             *)
     (* End multiply by 80  *)
     mov cx, [X]
     add cx, [StartXViewPort]
     mov ax, cx
-    {DI = Y * LINESIZE, BX = X, coordinates admissible}
+    {SI = Y * LINESIZE, BX = X, coordinates admissible}
     shr ax, 1                    ; (* Faster on 286/86 machines         *)
     shr ax, 1
-    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
-    add di, [VideoOfs]  ; (* Pointing at start of Active page *)
+    add si, ax                ; {SI = Y * LINESIZE + (X SHR 2) }
+    add si, [VideoOfs]  ; (* Pointing at start of Active page *)
     (* Select plane to use *)
     mov dx, 03ceh
     mov al, 4
@@ -2520,7 +2520,7 @@ const CrtAddress: word = 0;
     mov ah, cl
     out dx, ax
     (* End selection of plane *)
-    mov al, ES:[DI]
+    mov al, ES:[SI]
     xor ah, ah
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
     { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
