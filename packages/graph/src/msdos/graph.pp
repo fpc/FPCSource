@@ -2508,7 +2508,7 @@ const CrtAddress: word = 0;
     mov cx, [X]
     add cx, [StartXViewPort]
     mov ax, cx
-    {SI = Y * LINESIZE, BX = X, coordinates admissible}
+    {SI = Y * LINESIZE, CX = X, coordinates admissible}
     shr ax, 1                    ; (* Faster on 286/86 machines         *)
     shr ax, 1
     add si, ax                ; {SI = Y * LINESIZE + (X SHR 2) }
