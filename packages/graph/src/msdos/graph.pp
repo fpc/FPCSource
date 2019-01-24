@@ -2654,7 +2654,7 @@ const CrtAddress: word = 0;
     shl ah, cl                ; (* Get Plane Select Value           *)
     out dx, ax
     (* End selection of plane *)
-    mov ax,[Color]            ; { only lower byte is used. }
+    mov al, byte ptr [Color]  ; { only lower byte is used. }
     mov es:[di], al
 @@Done:
   end;
