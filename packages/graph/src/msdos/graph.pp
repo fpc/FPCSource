@@ -2654,11 +2654,6 @@ const CrtAddress: word = 0;
       (* End selection of plane *)
       mov es,[SegA000]
       mov ax,[Color]            ; { only lower byte is used. }
-      cmp [CurrentWriteMode],XORPut   { check write mode   }
-      jne @MOVMode
-      mov ah,es:[di]        { read the byte...             }
-      xor al,ah             { xor it and return value into AL }
-    @MovMode:
       mov es:[di], al
       pop di
       pop es
