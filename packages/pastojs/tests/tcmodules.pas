@@ -6315,33 +6315,35 @@ begin
   StartProgram(false);
   Add([
   'const',
- '  c: char = ''1'';',
- 'begin',
- '  c:=#0;',
- '  c:=#1;',
- '  c:=#9;',
- '  c:=#10;',
- '  c:=#13;',
- '  c:=#31;',
- '  c:=#32;',
- '  c:=#$A;',
- '  c:=#$0A;',
- '  c:=#$b;',
- '  c:=#$0b;',
- '  c:=^A;',
- '  c:=''"'';',
- '  c:=default(char);',
- '  c:=#$00E4;', // ä
- '  c:=''ä'';',
- '  c:=#$E4;', // ä
- '  c:=#$D800;', // invalid UTF-16
- '  c:=#$DFFF;', // invalid UTF-16
- '  c:=#$FFFF;', // last UCS-2
- '  c:=high(c);', // last UCS-2
- '']);
+  '  a = #$00F3;',
+  '  c: char = ''1'';',
+  'begin',
+  '  c:=#0;',
+  '  c:=#1;',
+  '  c:=#9;',
+  '  c:=#10;',
+  '  c:=#13;',
+  '  c:=#31;',
+  '  c:=#32;',
+  '  c:=#$A;',
+  '  c:=#$0A;',
+  '  c:=#$b;',
+  '  c:=#$0b;',
+  '  c:=^A;',
+  '  c:=''"'';',
+  '  c:=default(char);',
+  '  c:=#$00E4;', // ä
+  '  c:=''ä'';',
+  '  c:=#$E4;', // ä
+  '  c:=#$D800;', // invalid UTF-16
+  '  c:=#$DFFF;', // invalid UTF-16
+  '  c:=#$FFFF;', // last UCS-2
+  '  c:=high(c);', // last UCS-2
+  '']);
   ConvertProgram;
   CheckSource('TestCharConst',
     LinesToStr([
+    'this.a="ó";',
     'this.c="1";'
     ]),
     LinesToStr([
@@ -6452,6 +6454,8 @@ begin
   StartProgram(false);
   Add([
   '{$H+}',
+  'const',
+  '  a = #$00F3#$017C;', // first <256, then >=256
   'var',
   '  s: string = ''abc'';',
   'begin',
@@ -6471,6 +6475,7 @@ begin
   ConvertProgram;
   CheckSource('TestStringConst',
     LinesToStr([
+    'this.a = "óż";',
     'this.s="abc";'
     ]),
     LinesToStr([

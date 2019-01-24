@@ -3953,12 +3953,12 @@ function TResExprEvaluator.EvalPrimitiveExprString(Expr: TPrimitiveExpr
     {$endif}
   end;
 
-  procedure AddHash(u: longword);
+  procedure AddHash(u: longword; ForceUTF16: boolean);
   {$ifdef FPC_HAS_CPSTRING}
   var
     h: RawByteString;
   begin
-    if (u>255) and (Result.Kind=revkString) then
+    if ((u>255) or (ForceUTF16)) and (Result.Kind=revkString) then
       begin
       // switch to unicodestring
       h:=TResEvalString(Result).S;
@@ -4060,11 +4060,11 @@ begin
           begin
           // split into two
           dec(u,$10000);
-          AddHash($D800+(u shr 10));
-          AddHash($DC00+(u and $3ff));
+          AddHash($D800+(u shr 10),true);
+          AddHash($DC00+(u and $3ff),true);
           end
         else
-          AddHash(u);
+          AddHash(u,p-StartP>2);
         end
       else
         begin
@@ -4084,7 +4084,7 @@ begin
           end;
         if p=StartP then
           RaiseInternalError(20170523123806);
-        AddHash(u);
+        AddHash(u,false);
         end;
       end;
     '^':
@@ -4095,8 +4095,8 @@ begin
         RaiseInternalError(20181016121520);
       c:=S[p];
       case c of
-      'a'..'z': AddHash(ord(c)-ord('a')+1);
-      'A'..'Z': AddHash(ord(c)-ord('A')+1);
+      'a'..'z': AddHash(ord(c)-ord('a')+1,false);
+      'A'..'Z': AddHash(ord(c)-ord('A')+1,false);
       else RaiseInternalError(20170523123809);
       end;
       inc(p);
