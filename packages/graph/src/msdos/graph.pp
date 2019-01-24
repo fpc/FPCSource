@@ -2662,9 +2662,9 @@ const CrtAddress: word = 0;
 
 
 {$undef asmgraph}
+{$ifndef asmgraph}
  Procedure DirectPutPixelX(X,Y: smallint);
  { x,y -> must be in global coordinates. No clipping. }
-{$ifndef asmgraph}
  Var offset: Word;
      dummy: Byte;
  begin
@@ -2692,8 +2692,8 @@ const CrtAddress: word = 0;
    Mem[Sega000: offset] := Dummy;
  end;
 {$else asmgraph}
-{ note: still needs or/and/notput support !!!!! (JM) }
- Assembler;
+ Procedure DirectPutPixelX(X,Y: smallint); assembler;
+ { note: still needs or/and/notput support !!!!! (JM) }
  asm
    push ax
    push bx
