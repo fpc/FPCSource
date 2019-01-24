@@ -393,6 +393,7 @@ type
     Procedure TestCaseOfNoElse_UseSwitch;
     Procedure TestCaseOfRange;
     Procedure TestCaseOfString;
+    Procedure TestCaseOfChar;
     Procedure TestCaseOfExternalClassConst;
     Procedure TestDebugger;
 
@@ -6797,6 +6798,7 @@ begin
   'begin',
   '  for c:=''a'' to ''c'' do ;',
   '  for c:=c downto ''a'' do ;',
+  '  for c:=''Б'' to ''Я'' do ;',
   '']);
   ConvertProgram;
   CheckSource('TestForCharDo',
@@ -6805,6 +6807,7 @@ begin
     LinesToStr([ // this.$main
     'for (var $l1 = 97; $l1 <= 99; $l1++) $mod.c = String.fromCharCode($l1);',
     'for (var $l2 = $mod.c.charCodeAt(); $l2 >= 97; $l2--) $mod.c = String.fromCharCode($l2);',
+    'for (var $l3 = 1041; $l3 <= 1071; $l3++) $mod.c = String.fromCharCode($l3);',
     '']));
 end;
 
@@ -7564,6 +7567,7 @@ begin
   '  case s of',
   '  ''foo'': s:=h;',
   '  ''a''..''z'': h:=s;',
+  '  ''Б''..''Я'': ;',
   '  end;',
   '']);
   ConvertProgram;
@@ -7576,7 +7580,34 @@ begin
     'var $tmp1 = $mod.s;',
     'if ($tmp1 === "foo") {',
     '  $mod.s = $mod.h}',
-    ' else if (($tmp1.length === 1) && ($tmp1 >= "a") && ($tmp1 <= "z")) $mod.h = $mod.s;',
+    ' else if (($tmp1.length === 1) && ($tmp1 >= "a") && ($tmp1 <= "z")) {',
+    '  $mod.h = $mod.s}',
+    ' else if (($tmp1.length === 1) && ($tmp1 >= "Б") && ($tmp1 <= "Я")) ;',
+    '']));
+end;
+
+procedure TTestModule.TestCaseOfChar;
+begin
+  StartProgram(false);
+  Add([
+  'var s,h: char;',
+  'begin',
+  '  case s of',
+  '  ''a''..''z'': h:=s;',
+  '  ''Б''..''Я'': ;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestCaseOfString',
+    LinesToStr([ // statements
+    'this.s = "";',
+    'this.h = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    'var $tmp1 = $mod.s;',
+    'if (($tmp1 >= "a") && ($tmp1 <= "z")) {',
+    '  $mod.h = $mod.s}',
+    ' else if (($tmp1 >= "Б") && ($tmp1 <= "Я")) ;',
     '']));
 end;
 

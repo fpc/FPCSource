@@ -3890,6 +3890,8 @@ end;
 
 function TResExprEvaluator.ExprStringToOrd(Value: TResEvalValue;
   PosEl: TPasElement): longword;
+const
+  Invalid = $12345678; // bigger than $ffff and smaller than $8000000
 var
   {$ifdef FPC_HAS_CPSTRING}
   S: RawByteString;
@@ -3901,11 +3903,29 @@ begin
     begin
     // ord(ansichar)
     S:=TResEvalString(Value).S;
-    if length(S)<>1 then
-      RaiseMsg(20170522221143,nXExpectedButYFound,sXExpectedButYFound,
-        ['char','string'],PosEl)
+    if length(S)=1 then
+      Result:=ord(S[1])
+    else if (length(S)=0) or (length(S)>4) then
+      begin
+      if PosEl<>nil then
+        RaiseMsg(20170522221143,nXExpectedButYFound,sXExpectedButYFound,
+          ['char','string'],PosEl)
+      else
+        exit(Invalid);
+      end
     else
-      Result:=ord(S[1]);
+      begin
+      U:=GetUnicodeStr(S,nil);
+      if length(U)<>1 then
+        begin
+        if PosEl<>nil then
+          RaiseMsg(20190124180407,nXExpectedButYFound,sXExpectedButYFound,
+            ['char','string'],PosEl)
+        else
+          exit(Invalid);
+        end;
+      Result:=ord(U[1]);
+      end;
     end
   else
   {$endif}
@@ -3914,8 +3934,13 @@ begin
     // ord(widechar)
     U:=TResEvalUTF16(Value).S;
     if length(U)<>1 then
-      RaiseMsg(20170522221358,nXExpectedButYFound,sXExpectedButYFound,
-        ['char','string'],PosEl)
+      begin
+      if PosEl<>nil then
+        RaiseMsg(20170522221358,nXExpectedButYFound,sXExpectedButYFound,
+          ['char','string'],PosEl)
+      else
+        exit(Invalid);
+      end
     else
       Result:=ord(U[1]);
     end
@@ -4555,35 +4580,35 @@ end;
 
 function TResExprEvaluator.OrdValue(Value: TResEvalValue; ErrorEl: TPasElement
   ): TResEvalValue;
+var
+  v: longword;
 begin
+  Result:=nil;
+  v:=0;
   case Value.Kind of
     revkBool:
       if TResEvalBool(Value).B then
-        Result:=TResEvalInt.CreateValue(1)
+        v:=1
       else
-        Result:=TResEvalInt.CreateValue(0);
+        v:=0;
     revkInt,revkUInt:
-      Result:=Value;
+      exit(Value);
     {$ifdef FPC_HAS_CPSTRING}
     revkString:
-      if length(TResEvalString(Value).S)<>1 then
-        RaiseRangeCheck(20170624160128,ErrorEl)
-      else
-        Result:=TResEvalInt.CreateValue(ord(TResEvalString(Value).S[1]));
+      v:=ExprStringToOrd(Value,ErrorEl);
     {$endif}
     revkUnicodeString:
-      if length(TResEvalUTF16(Value).S)<>1 then
-        RaiseRangeCheck(20170624160129,ErrorEl)
-      else
-        Result:=TResEvalInt.CreateValue(ord(TResEvalUTF16(Value).S[1]));
+      v:=ExprStringToOrd(Value,ErrorEl);
     revkEnum:
-      Result:=TResEvalInt.CreateValue(TResEvalEnum(Value).Index);
+      v:=TResEvalEnum(Value).Index;
   else
     {$IFDEF VerbosePasResEval}
     writeln('TResExprEvaluator.OrdValue ',Value.AsDebugString);
     {$ENDIF}
     RaiseNotYetImplemented(20170624155932,ErrorEl);
   end;
+  if v>$ffff then exit;
+  Result:=TResEvalInt.CreateValue(v);
 end;
 
 procedure TResExprEvaluator.PredValue(Value: TResEvalValue; ErrorEl: TPasElement
