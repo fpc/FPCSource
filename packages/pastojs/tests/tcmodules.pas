@@ -448,6 +448,7 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
+    // ToDo: Procedure TestRecord_ExternalField;
     // ToDo: RTTI of local record
     // ToDo: pcu local record, name clash and rtti
 
@@ -457,6 +458,7 @@ type
     Procedure TestAdvRecord_PropertyDefault;
     Procedure TestAdvRecord_Property_ClassMethod;
     Procedure TestAdvRecord_Const;
+    Procedure TestAdvRecord_ExternalField;
     Procedure TestAdvRecord_SubRecord;
     Procedure TestAdvRecord_SubClass;
     Procedure TestAdvRecord_SubInterfaceFail;
@@ -10273,6 +10275,73 @@ begin
     '})];',
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_ExternalField;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TCar = record',
+  '  public',
+  '    Intern: longint external name ''$Intern'';',
+  '    Intern2: longint external name ''$Intern2'';',
+  '    Bracket: longint external name ''["A B"]'';',
+  '    procedure DoIt;',
+  '  end;',
+  'implementation',
+  'procedure tcar.doit;',
+  'begin',
+  '  Intern:=Intern+1;',
+  '  Intern2:=Intern2+2;',
+  '  Bracket:=Bracket+3;',
+  'end;',
+  'var Rec: TCar = (intern: 11; intern2: 12; bracket: 13);',
+  'begin',
+  '  Rec.intern:=Rec.intern+1;',
+  '  Rec.intern2:=Rec.intern2+2;',
+  '  Rec.Bracket:=Rec.Bracket+3;',
+  '  with Rec do begin',
+  '    intern:=intern+1;',
+  '    intern2:=intern2+2;',
+  '    Bracket:=Bracket+3;',
+  '  end;']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_ExternalField',
+    LinesToStr([ // statements
+    'rtl.recNewT($mod, "TCar", function () {',
+    '  this.$eq = function (b) {',
+    '    return (this.$Intern === b.$Intern) && (this.$Intern2 === b.$Intern2) && (this["A B"] === b["A B"]);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.$Intern = s.$Intern;',
+    '    this.$Intern2 = s.$Intern2;',
+    '    this["A B"] = s["A B"];',
+    '    return this;',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.$Intern = this.$Intern + 1;',
+    '    this.$Intern2 = this.$Intern2 + 2;',
+    '    this["A B"] = this["A B"] + 3;',
+    '  };',
+    '});',
+    'this.Rec = $mod.TCar.$clone({',
+    '  $Intern: 11,',
+    '  $Intern2: 12,',
+    '  "A B": 13',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Rec.$Intern = $mod.Rec.$Intern + 1;',
+    '$mod.Rec.$Intern2 = $mod.Rec.$Intern2 + 2;',
+    '$mod.Rec["A B"] = $mod.Rec["A B"] + 3;',
+    'var $with1 = $mod.Rec;',
+    '$with1.$Intern = $with1.$Intern + 1;',
+    '$with1.$Intern2 = $with1.$Intern2 + 2;',
+    '$with1["A B"] = $with1["A B"] + 3;',
     '']));
 end;
 

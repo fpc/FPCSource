@@ -4434,7 +4434,7 @@ begin
     TPasVariable(VarList[OldListCount]).Expr:=Value;
     Value:=nil;
 
-    // Note: external members are allowed for non external classes too
+    // Note: external members are allowed for non external classes/records too
     ExternalStruct:=(msExternalClass in CurrentModeSwitches)
                     and (Parent is TPasMembersType);
 

@@ -1582,7 +1582,9 @@ type
     FOptions: TPasToJsConverterOptions;
     FReservedWords: TJSReservedWordList; // sorted with CompareStr
     Function CreatePrimitiveDotExpr(AName: string; Src: TPasElement): TJSElement;
-    Function CreateSubDeclNameExpr(El: TPasElement; const Name: string;
+    Function CreateSubDeclJSNameExpr(El: TPasElement; JSName: string;
+      AContext: TConvertContext; PosEl: TPasElement): TJSElement;
+    Function CreateSubDeclNameExpr(El: TPasElement; const PasName: string;
       AContext: TConvertContext; PosEl: TPasElement = nil): TJSElement;
     Function CreateSubDeclNameExpr(El: TPasElement;
       AContext: TConvertContext; PosEl: TPasElement = nil): TJSElement;
@@ -1664,7 +1666,7 @@ type
       PosEl: TPasElement): TJSElement; virtual;
     Function CreateUnary(Members: array of string; E: TJSElement): TJSUnary;
     Function CreateUnaryPlus(Expr: TJSElement; El: TPasElement): TJSUnaryPlusExpression;
-    Function CreateMemberExpression(Members: array of string): TJSDotMemberExpression;
+    Function CreateMemberExpression(Members: array of string): TJSElement;
     Function CreateCallExpression(El: TPasElement): TJSCallExpression;
     Function CreateCallCharCodeAt(Arg: TJSElement; aNumber: integer; El: TPasElement): TJSCallExpression; virtual;
     Function CreateCallFromCharCode(Arg: TJSElement; El: TPasElement): TJSCallExpression; virtual;
@@ -7270,34 +7272,41 @@ begin
   Result:=CreatePrimitiveDotExpr(TransformVariableName(PosEl,AName,CheckGlobal,AContext),PosEl);
 end;
 
-function TPasToJSConverter.CreateSubDeclNameExpr(El: TPasElement;
-  const Name: string; AContext: TConvertContext; PosEl: TPasElement
-  ): TJSElement;
+function TPasToJSConverter.CreateSubDeclJSNameExpr(El: TPasElement;
+  JSName: string; AContext: TConvertContext; PosEl: TPasElement): TJSElement;
 var
-  CurName, ParentName: String;
+  ParentName: String;
 begin
-  if PosEl=nil then PosEl:=El;
-  CurName:=TransformVariableName(El,Name,false,AContext);
   if AContext.IsGlobal then
     begin
     ParentName:=AContext.GetLocalName(El.Parent);
     if ParentName='' then
       ParentName:='this';
-    CurName:=ParentName+'.'+CurName;
+    if JSName[1]='[' then
+      JSName:=ParentName+JSName
+    else
+      JSName:=ParentName+'.'+JSName;
     end;
-  Result:=CreatePrimitiveDotExpr(CurName,PosEl);
+  Result:=CreatePrimitiveDotExpr(JSName,PosEl);
+end;
+
+function TPasToJSConverter.CreateSubDeclNameExpr(El: TPasElement;
+  const PasName: string; AContext: TConvertContext; PosEl: TPasElement
+  ): TJSElement;
+var
+  JSName: String;
+begin
+  JSName:=TransformVariableName(El,PasName,false,AContext);
+  Result:=CreateSubDeclJSNameExpr(El,JSName,AContext,PosEl);
 end;
 
 function TPasToJSConverter.CreateSubDeclNameExpr(El: TPasElement;
   AContext: TConvertContext; PosEl: TPasElement): TJSElement;
 var
-  Name: String;
+  JSName: String;
 begin
-  if AContext.Resolver<>nil then
-    Name:=AContext.Resolver.GetOverloadName(El)
-  else
-    Name:=El.Name;
-  Result:=CreateSubDeclNameExpr(El,Name,AContext,PosEl);
+  JSName:=TransformVariableName(El,AContext);
+  Result:=CreateSubDeclJSNameExpr(El,JSName,AContext,PosEl);
 end;
 
 function TPasToJSConverter.ConvertPrimitiveExpression(El: TPrimitiveExpr;
@@ -11681,6 +11690,7 @@ var
   ok: Boolean;
   ObjLitEl: TJSObjectLiteralElement;
   Call: TJSCallExpression;
+  CurName: String;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -11717,7 +11727,15 @@ begin
       PasVar:=Ref.Declaration as TPasVariable;
       Vars.Add(PasVar);
       ObjLitEl:=ObjLit.Elements.AddElement;
-      ObjLitEl.Name:=TJSString(TransformVariableName(PasVar,AContext));
+      CurName:=TransformVariableName(PasVar,AContext);
+      if CurName[1]='[' then
+        begin
+        if CurName[length(CurName)]=']' then
+          CurName:=copy(CurName,2,length(CurName)-2)
+        else
+          CurName:=copy(CurName,2,length(CurName)-1);
+        end;
+      ObjLitEl.Name:=TJSString(CurName);
       ObjLitEl.Expr:=CreateValInit(PasVar.VarType,Field^.ValueExp,Field^.NameExp,AContext);
       end;
     // add missing fields
@@ -14726,12 +14744,12 @@ var
   i: Integer;
   PasVar: TPasVariable;
   VarName: String;
-  VarDotExpr: TJSDotMemberExpression;
   aResolver: TPas2JSResolver;
   PasVarType: TPasType;
   RetSt: TJSReturnStatement;
   PasVarClass: TClass;
   Call: TJSCallExpression;
+  SrcExpr: TJSElement;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -14754,9 +14772,7 @@ begin
       begin
       PasVar:=TPasVariable(Fields[i]);
       VarName:=TransformVariableName(PasVar,AContext);
-      VarDotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,PasVar));
-      VarDotExpr.MExpr:=CreatePrimitiveDotExpr(SrcParamName,PasVar);
-      VarDotExpr.Name:=TJSString(VarName);
+      SrcExpr:=CreateMemberExpression([SrcParamName,VarName]);
       if aResolver<>nil then
         begin
         PasVarType:=aResolver.ResolveAliasType(PasVar.VarType);
@@ -14767,28 +14783,28 @@ begin
           Call:=CreateCallExpression(PasVar);
           AddToSourceElements(Src,Call);
           Call.Expr:=CreateMemberExpression(['this',VarName,GetBIName(pbifnRecordAssign)]);
-          Call.AddArg(VarDotExpr);
+          Call.AddArg(SrcExpr);
           continue;
           end;
         end;
       // create "this.A = s.A;"
       VarAssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PasVar));
       AddToSourceElements(Src,VarAssignSt);
-      VarAssignSt.LHS:=CreateSubDeclNameExpr(PasVar,VarName,aContext);
-      VarAssignSt.Expr:=VarDotExpr;
+      VarAssignSt.LHS:=CreateSubDeclNameExpr(PasVar,aContext);
+      VarAssignSt.Expr:=SrcExpr;
       if PasVarClass=TPasArrayType then
         begin
         if length(TPasArrayType(PasVarType).Ranges)>0 then
           begin
           // clone sub static array
           VarAssignSt.Expr:=CreateCloneStaticArray(PasVar,TPasArrayType(PasVarType),
-                                              VarDotExpr,aContext);
+                                              SrcExpr,aContext);
           end;
         end
       else if PasVarClass=TPasSetType then
         begin
         // clone sub set
-        VarAssignSt.Expr:=CreateReferencedSet(PasVar,VarDotExpr);
+        VarAssignSt.Expr:=CreateReferencedSet(PasVar,SrcExpr);
         end;
       end;
 
@@ -18253,29 +18269,55 @@ begin
   Result.A:=Expr;
 end;
 
-function TPasToJSConverter.CreateMemberExpression(Members: array of string): TJSDotMemberExpression;
+function TPasToJSConverter.CreateMemberExpression(Members: array of string
+  ): TJSElement;
+// Examples:
+//   foo   ->  foo
+//   foo,bar  -> foo.bar
+//   foo,[1]  ->  foo[1]
 var
-  pex: TJSPrimaryExpressionIdent;
-  MExpr: TJSDotMemberExpression;
-  LastMExpr: TJSDotMemberExpression;
+  Prim: TJSPrimaryExpressionIdent;
+  MExpr, LastMExpr: TJSMemberExpression;
   k: integer;
+  CurName: String;
+  Lit: TJSLiteral;
 begin
-  if Length(Members) < 2 then
-    DoError(20161024192715,'internal error: member expression with less than two members');
+  if Length(Members) < 1 then
+    DoError(20161024192715,'internal error: member expression needs at least one element');
   LastMExpr := nil;
   for k:=High(Members) downto Low(Members)+1 do
   begin
-    MExpr := TJSDotMemberExpression.Create(0, 0, '');
-    MExpr.Name := TJSString(Members[k]);
+    CurName:=Members[k];
+    if CurName='' then
+      DoError(20190124114806,'internal error: member expression needs name');
+    if CurName[1]='[' then
+      begin
+      if CurName[length(CurName)]=']' then
+        CurName:=copy(CurName,2,length(CurName)-2)
+      else
+        CurName:=copy(CurName,2,length(CurName)-1);
+      MExpr := TJSBracketMemberExpression.Create(0,0,'');
+      Lit:=TJSLiteral.Create(0,0,'');
+      Lit.Value.CustomValue:=TJSString(CurName);
+      TJSBracketMemberExpression(MExpr).Name := Lit;
+      end
+    else
+      begin
+      MExpr := TJSDotMemberExpression.Create(0, 0, '');
+      TJSDotMemberExpression(MExpr).Name := TJSString(CurName);
+      end;
     if LastMExpr=nil then
       Result := MExpr
     else
       LastMExpr.MExpr := MExpr;
     LastMExpr := MExpr;
   end;
-  pex := TJSPrimaryExpressionIdent.Create(0, 0, '');
-  pex.Name := TJSString(Members[Low(Members)]);
-  LastMExpr.MExpr := pex;
+  Prim := TJSPrimaryExpressionIdent.Create(0, 0, '');
+  Prim.Name := TJSString(Members[Low(Members)]);
+  if LastMExpr=nil then
+    Result:=Prim
+  else
+    LastMExpr.MExpr := Prim;
 end;
 
 function TPasToJSConverter.CreateCallExpression(El: TPasElement
