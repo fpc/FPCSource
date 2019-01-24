@@ -2520,7 +2520,7 @@ const CrtAddress: word = 0;
     mov ah, cl
     out dx, ax
     (* End selection of plane *)
-    mov al, ES:[SI]
+    seges lodsb
     xor ah, ah
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
     { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
