@@ -2620,8 +2620,6 @@ const CrtAddress: word = 0;
       if (Y < 0) or (Y > ViewHeight) then
         exit;
     end;
-    X:= X + StartXViewPort;
-    Y:= Y + StartYViewPort;
      asm
       push ax
       push bx
@@ -2630,6 +2628,7 @@ const CrtAddress: word = 0;
       push es
       push di
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
+      add di,[StartYViewPort]
       (* Multiply by 80 start *)
       mov cl, 4
       shl di, cl
@@ -2639,6 +2638,7 @@ const CrtAddress: word = 0;
       add di, bx                   ;  (* Multiply Value by 80             *)
       (* End multiply by 80  *)
       mov cx, [X]
+      add cx, [StartXViewPort]
       mov ax, cx
       {DI = Y * LINESIZE, BX = X, coordinates admissible}
       shr ax, 1
