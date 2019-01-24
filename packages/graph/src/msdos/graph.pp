@@ -2637,9 +2637,9 @@ const CrtAddress: word = 0;
       shl di, 1
       add di, bx                   ;  (* Multiply Value by 80             *)
       (* End multiply by 80  *)
-      mov cx, [X]
-      add cx, [StartXViewPort]
-      mov ax, cx
+      mov ax, [X]
+      add ax, [StartXViewPort]
+      mov cx, ax
       {DI = Y * LINESIZE, BX = X, coordinates admissible}
       shr ax, 1
       shr ax, 1
