@@ -272,6 +272,7 @@ begin
   // conversion magic
   SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
+{$endif}
 
 function QuoteJSString(const S: TJSString; Quote: TJSChar): TJSString;
 var
@@ -301,8 +302,6 @@ begin
     Result := Result + copy(S, 1 + j, i - j);
   Result := Result + Quote;
 end;
-
-{$endif}
 
 { TBufferWriter }
 

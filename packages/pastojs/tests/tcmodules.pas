@@ -6431,6 +6431,9 @@ begin
   '  c:=succ(c);',
   '  c:=low(c);',
   '  c:=high(c);',
+  '  i:=byte(c);',
+  '  i:=word(c);',
+  '  i:=longint(c);',
   '']);
   ConvertProgram;
   CheckSource('TestChar_BuiltInProcs',
@@ -6447,6 +6450,9 @@ begin
     '$mod.c = String.fromCharCode($mod.c.charCodeAt() + 1);',
     '$mod.c = "\x00";',
     '$mod.c = "\uFFFF";',
+    '$mod.i = $mod.c.charCodeAt() & 255;',
+    '$mod.i = $mod.c.charCodeAt();',
+    '$mod.i = $mod.c.charCodeAt() & 0xFFFFFFFF;',
     '']));
 end;
 

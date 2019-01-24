@@ -1803,6 +1803,9 @@ type
     Function ConvertArrayValues(El: TArrayValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertInheritedExpr(El: TInheritedExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertNilExpr(El: TNilExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertCharToInt(Arg: TJSElement; PosEl: TPasElement; ArgContext: TConvertContext): TJSElement; virtual;
+    Function ConvertIntToInt(Arg: TJSElement; FromBT, ToBT: TResolverBaseType; PosEl: TPasElement; ArgContext: TConvertContext): TJSElement; virtual;
+    Function CreateBitWiseAnd(El: TPasElement; Value: TJSElement; const Mask: TMaxPrecInt; Shift: integer): TJSElement; virtual;
     Function ConvertParamsExpr(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertArrayParams(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertFuncParams(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -7753,6 +7756,132 @@ begin
   Result:=CreateLiteralNull(El);
 end;
 
+function TPasToJSConverter.ConvertCharToInt(Arg: TJSElement;
+  PosEl: TPasElement; ArgContext: TConvertContext): TJSElement;
+begin
+  if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstString) then
+    begin
+    // convert char literal to int
+    ConvertCharLiteralToInt(TJSLiteral(Arg),PosEl,ArgContext);
+    Result:=Arg;
+    end
+  else
+    begin
+    // convert char to int  ->  Arg.charCodeAt(0)
+    Result:=CreateCallCharCodeAt(Arg,0,PosEl);
+    end;
+end;
+
+function TPasToJSConverter.ConvertIntToInt(Arg: TJSElement; FromBT,
+  ToBT: TResolverBaseType; PosEl: TPasElement; ArgContext: TConvertContext
+  ): TJSElement;
+var
+  aResolver: TPas2JSResolver;
+  MinVal, MaxVal: TMaxPrecInt;
+  Call: TJSCallExpression;
+  ShiftEx: TJSURShiftExpression;
+begin
+  Result:=Arg;
+  aResolver:=ArgContext.Resolver;
+  if FromBT=btCurrency then
+    begin
+    if ToBT<>btCurrency then
+      // currency to integer -> Math.floor(value/10000)
+      Result:=CreateMathFloor(PosEl,CreateDivideNumber(PosEl,Result,10000));
+    end
+  else if ToBT=btCurrency then
+    // integer to currency -> value*10000
+    Result:=CreateMulNumber(PosEl,Result,10000);
+  if (ToBT<>btIntDouble) and not (Result is TJSLiteral) then
+    begin
+    if bsRangeChecks in ArgContext.ScannerBoolSwitches then
+      begin
+      // rtl.rc(param,MinInt,MaxInt)
+      if not aResolver.GetIntegerRange(ToBT,MinVal,MaxVal) then
+        RaiseNotSupported(PosEl,ArgContext,20180425131839);
+      Call:=CreateCallExpression(PosEl);
+      Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnRangeCheckInt),PosEl);
+      Call.AddArg(Result);
+      Result:=Call;
+      Call.AddArg(CreateLiteralNumber(PosEl,MinVal));
+      Call.AddArg(CreateLiteralNumber(PosEl,MaxVal));
+      end
+    else
+      case ToBT of
+      btByte:
+        // value to byte  ->  value & 255
+        if FromBT<>btByte then
+          Result:=CreateBitWiseAnd(PosEl,Result,255,0);
+      btShortInt:
+        // value to shortint  ->  value & 255 << 24 >> 24
+        if FromBT<>btShortInt then
+          Result:=CreateBitWiseAnd(PosEl,Result,255,24);
+      btWord:
+        // value to word  ->  value & 65535
+        if not (FromBT in [btByte,btWord]) then
+          Result:=CreateBitWiseAnd(PosEl,Result,65535,0);
+      btSmallInt:
+        // value to smallint  ->  value & 65535 << 16 >> 16
+        if not (FromBT in [btShortInt,btSmallInt]) then
+          Result:=CreateBitWiseAnd(PosEl,Result,65535,16);
+      btLongWord:
+        // value to longword  ->  value >>> 0
+        if not (FromBT in [btByte,btWord,btLongWord,btUIntSingle]) then
+          begin
+          ShiftEx:=TJSURShiftExpression(CreateElement(TJSURShiftExpression,PosEl));
+          ShiftEx.A:=Result;
+          ShiftEx.B:=CreateLiteralNumber(PosEl,0);
+          Result:=ShiftEx;
+          end;
+      btLongint:
+        // value to longint  ->  value & 0xffffffff
+        if not (FromBT in [btShortInt,btSmallInt,btLongint,btIntSingle]) then
+          Result:=CreateBitWiseAnd(PosEl,Result,$ffffffff,0);
+      end;
+    end;
+end;
+
+function TPasToJSConverter.CreateBitWiseAnd(El: TPasElement; Value: TJSElement;
+  const Mask: TMaxPrecInt; Shift: integer): TJSElement;
+// if sign=false: Value & Mask
+// if sign=true:  Value & Mask << ZeroBits >> ZeroBits
+var
+  AndEx: TJSBitwiseAndExpression;
+  Hex: String;
+  i: Integer;
+  ShiftEx: TJSShiftExpression;
+begin
+  AndEx:=TJSBitwiseAndExpression(CreateElement(TJSBitwiseAndExpression,El));
+  Result:=AndEx;
+  AndEx.A:=Value;
+  AndEx.B:=CreateLiteralNumber(El,Mask);
+  if Mask>999999 then
+    begin
+    Hex:=HexStr(Mask,8);
+    i:=1;
+    while i<8 do
+      if Hex[i]='0' then
+        inc(i)
+      else
+        break;
+    Hex:=Copy(Hex,i,8);
+    TJSLiteral(AndEx.B).Value.CustomValue:=TJSString('0x'+Hex);
+    end;
+  if Shift>0 then
+    begin
+    // value << ZeroBits
+    ShiftEx:=TJSLShiftExpression(CreateElement(TJSLShiftExpression,El));
+    ShiftEx.A:=Result;
+    Result:=ShiftEx;
+    ShiftEx.B:=CreateLiteralNumber(El,Shift);
+    // value << ZeroBits >> ZeroBits
+    ShiftEx:=TJSRShiftExpression(CreateElement(TJSRShiftExpression,El));
+    ShiftEx.A:=Result;
+    Result:=ShiftEx;
+    ShiftEx.B:=CreateLiteralNumber(El,Shift);
+    end;
+end;
+
 function TPasToJSConverter.ConvertInheritedExpr(El: TInheritedExpr;
   AContext: TConvertContext): TJSElement;
 
@@ -7967,7 +8096,7 @@ var
   begin
     Result:=ConvertExpression(Param,ArgContext);
     NeedMinus1:=true;
-    if (Result is TJSLiteral) then
+    if Result is TJSLiteral then
       begin
       JSVal:=TJSLiteral(Result).Value;
       if (JSVal.ValueType=jstNumber) then
@@ -8107,20 +8236,6 @@ var
     end;
   end;
 
-  procedure ConvCharToInt(var Arg: TJSElement; Param: TPasElement);
-  begin
-    if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstString) then
-      begin
-      // convert char literal to int
-      ConvertCharLiteralToInt(TJSLiteral(Arg),Param,ArgContext);
-      end
-    else
-      begin
-      // convert char to int  ->  Arg.charCodeAt(0)
-      Arg:=CreateCallCharCodeAt(Arg,0,Param);
-      end;
-  end;
-
   procedure ConvertArray(ArrayEl: TPasArrayType);
   var
     BracketEx, Sub: TJSBracketMemberExpression;
@@ -8232,7 +8347,7 @@ var
                   end
                 else
                   Int:=ord(TResEvalString(LowRg).S[1]);
-                ConvCharToInt(Arg,Param);
+                Arg:=ConvertCharToInt(Arg,Param,ArgContext);
                 end;
               {$ENDIF}
               revkUnicodeString:
@@ -8241,7 +8356,7 @@ var
                   ArgContext.Resolver.RaiseXExpectedButYFound(20170910213247,'char','string',Param)
                 else
                   Int:=ord(TResEvalUTF16(LowRg).S[1]);
-                ConvCharToInt(Arg,Param);
+                Arg:=ConvertCharToInt(Arg,Param,ArgContext);
                 end
               else
                 RaiseNotSupported(Param,ArgContext,20170910170446);
@@ -9459,46 +9574,6 @@ var
     JSBaseType:=JSBaseTypeData.JSBaseType;
   end;
 
-  function CreateBitWiseAnd(Value: TJSElement; const Mask: TMaxPrecInt; Shift: integer): TJSElement;
-  // if sign=false: Value & Mask
-  // if sign=true:  Value & Mask << ZeroBits >> ZeroBits
-  var
-    AndEx: TJSBitwiseAndExpression;
-    Hex: String;
-    i: Integer;
-    ShiftEx: TJSShiftExpression;
-  begin
-    AndEx:=TJSBitwiseAndExpression(CreateElement(TJSBitwiseAndExpression,El));
-    Result:=AndEx;
-    AndEx.A:=Value;
-    AndEx.B:=CreateLiteralNumber(El,Mask);
-    if Mask>999999 then
-      begin
-      Hex:=HexStr(Mask,8);
-      i:=1;
-      while i<8 do
-        if Hex[i]='0' then
-          inc(i)
-        else
-          break;
-      Hex:=Copy(Hex,i,8);
-      TJSLiteral(AndEx.B).Value.CustomValue:=TJSString('0x'+Hex);
-      end;
-    if Shift>0 then
-      begin
-      // value << ZeroBits
-      ShiftEx:=TJSLShiftExpression(CreateElement(TJSLShiftExpression,El));
-      ShiftEx.A:=Result;
-      Result:=ShiftEx;
-      ShiftEx.B:=CreateLiteralNumber(El,Shift);
-      // value << ZeroBits >> ZeroBits
-      ShiftEx:=TJSRShiftExpression(CreateElement(TJSRShiftExpression,El));
-      ShiftEx.A:=Result;
-      Result:=ShiftEx;
-      ShiftEx.B:=CreateLiteralNumber(El,Shift);
-      end;
-  end;
-
 var
   NotEqual: TJSEqualityExpressionNE;
   CondExpr: TJSConditionalExpression;
@@ -9507,9 +9582,8 @@ var
   AddExpr: TJSAdditiveExpressionPlus;
   TypeEl: TPasType;
   C: TClass;
-  Int, MinVal, MaxVal: TMaxPrecInt;
+  Int: TMaxPrecInt;
   aResolver: TPas2JSResolver;
-  ShiftEx: TJSURShiftExpression;
 begin
   Result:=nil;
   Param:=El.Params[0];
@@ -9525,62 +9599,7 @@ begin
       begin
       // integer to integer -> value
       Result:=ConvertExpression(Param,AContext);
-      if ParamResolved.BaseType=btCurrency then
-        begin
-        if to_bt<>btCurrency then
-          // currency to integer -> Math.floor(value/10000)
-          Result:=CreateMathFloor(Param,CreateDivideNumber(Param,Result,10000));
-        end
-      else if to_bt=btCurrency then
-        // integer to currency -> value*10000
-        Result:=CreateMulNumber(Param,Result,10000);
-      if (to_bt<>btIntDouble) and not (Result is TJSLiteral) then
-        begin
-        if bsRangeChecks in AContext.ScannerBoolSwitches then
-          begin
-          // rtl.rc(param,MinInt,MaxInt)
-          if not aResolver.GetIntegerRange(to_bt,MinVal,MaxVal) then
-            RaiseNotSupported(Param,AContext,20180425131839);
-          Call:=CreateCallExpression(El);
-          Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnRangeCheckInt),El);
-          Call.AddArg(Result);
-          Result:=Call;
-          Call.AddArg(CreateLiteralNumber(El,MinVal));
-          Call.AddArg(CreateLiteralNumber(El,MaxVal));
-          end
-        else
-          case to_bt of
-          btByte:
-            // value to byte  ->  value & 255
-            if ParamResolved.BaseType<>btByte then
-              Result:=CreateBitWiseAnd(Result,255,0);
-          btShortInt:
-            // value to shortint  ->  value & 255 << 24 >> 24
-            if ParamResolved.BaseType<>btShortInt then
-              Result:=CreateBitWiseAnd(Result,255,24);
-          btWord:
-            // value to word  ->  value & 65535
-            if not (ParamResolved.BaseType in [btByte,btWord]) then
-              Result:=CreateBitWiseAnd(Result,65535,0);
-          btSmallInt:
-            // value to smallint  ->  value & 65535 << 16 >> 16
-            if not (ParamResolved.BaseType in [btShortInt,btSmallInt]) then
-              Result:=CreateBitWiseAnd(Result,65535,16);
-          btLongWord:
-            // value to longword  ->  value >>> 0
-            if not (ParamResolved.BaseType in [btByte,btWord,btLongWord,btUIntSingle]) then
-              begin
-              ShiftEx:=TJSURShiftExpression(CreateElement(TJSURShiftExpression,El));
-              ShiftEx.A:=Result;
-              ShiftEx.B:=CreateLiteralNumber(El,0);
-              Result:=ShiftEx;
-              end;
-          btLongint:
-            // value to longint  ->  value & 0xffffffff
-            if not (ParamResolved.BaseType in [btShortInt,btSmallInt,btLongint,btIntSingle]) then
-              Result:=CreateBitWiseAnd(Result,$ffffffff,0);
-          end;
-        end;
+      Result:=ConvertIntToInt(Result,ParamResolved.BaseType,to_bt,El,AContext);
       exit;
       end
     else if ParamResolved.BaseType in btAllJSBooleans then
@@ -9596,6 +9615,14 @@ begin
         CondExpr.B:=CreateLiteralNumber(El,1);
       CondExpr.C:=CreateLiteralNumber(El,0);
       Result:=CondExpr;
+      exit;
+      end
+    else if ParamResolved.BaseType in btAllJSChars then
+      begin
+      // char to integer
+      Result:=ConvertExpression(Param,AContext);
+      Result:=ConvertCharToInt(Result,El,AContext);
+      Result:=ConvertIntToInt(Result,btWord,to_bt,El,AContext);
       exit;
       end
     else if ParamResolved.BaseType=btContext then
