@@ -2695,14 +2695,9 @@ const CrtAddress: word = 0;
  Procedure DirectPutPixelX(X,Y: smallint); assembler;
  { note: still needs or/and/notput support !!!!! (JM) }
  asm
-{$IFDEF REGCALL}
-   mov cl, al
-   mov di, dx
-{$ELSE REGCALL}
    mov cx, [X]
    mov ax, cx
    mov di, [Y]                   ; (* DI = Y coordinate                 *)
-{$ENDIF REGCALL}
  (* Multiply by 80 start *)
    mov bx, di
    shl di, 6                    ; (* Faster on 286/386/486 machines    *)
