@@ -949,6 +949,14 @@ unit aoptx86;
           GetNextInstruction(p,hp2) and
           MatchInstruction(hp2,A_RET,[S_NO])
          ) or
+         (((taicpu(p).opcode=A_LEA) and
+           MatchOpType(taicpu(p),top_ref,top_reg) and
+           (taicpu(p).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
+           (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG)
+           ) and
+          GetNextInstruction(p,hp2) and
+          MatchInstruction(hp2,A_RET,[S_NO])
+         ) or
          ((((taicpu(p).opcode=A_MOV) and
            MatchOpType(taicpu(p),top_reg,top_reg) and
            (taicpu(p).oper[0]^.reg=current_procinfo.framepointer) and
