@@ -2693,7 +2693,6 @@ const CrtAddress: word = 0;
  end;
 {$else asmgraph}
  Procedure DirectPutPixelX(X,Y: smallint); assembler;
- { note: still needs or/and/notput support !!!!! (JM) }
  asm
 {$ifdef FPC_MM_HUGE}
    mov bx, SEG SegA000
@@ -2726,12 +2725,51 @@ const CrtAddress: word = 0;
    out dx, ax
  (* End selection of plane *)
    mov al, byte ptr [CurrentColor] ; { only lower byte is used. }
-   cmp [CurrentWriteMode],XORPut   { check write mode   }
-   jne @MOVMode
-   mov ah,es:[di]        { read the byte...             }
-   xor al,ah             { xor it and return value into AL }
- @MovMode:
-   mov es:[di], al
+   { check write mode   }
+   mov    bl, byte ptr [CurrentWriteMode]
+   cmp    bl, NormalPut
+   jne    @@1
+   { NormalPut }
+   stosb
+   jmp    @Done
+@@1:
+   cmp    bl, XorPut
+   jne    @@2
+   { XorPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   xor    es:[di], bh
+   jmp    @Done
+@@2:
+   cmp    bl, OrPut
+   jne    @@3
+   { OrPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   or     es:[di], bh
+   jmp    @Done
+@@3:
+   cmp    bl, AndPut
+   jne    @NotPutMode
+   { AndPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   and    es:[di], bh
+   jmp    @Done
+@NotPutMode:
+   { NotPut }
+   not    al
+   stosb
+@Done:
  end;
 {$endif asmgraph}
 
