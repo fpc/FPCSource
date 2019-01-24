@@ -2713,7 +2713,7 @@ const CrtAddress: word = 0;
  (* End multiply by 80  *)
    mov cx, [X]
    mov ax, cx
-  {DI = Y * LINESIZE, BX = X, coordinates admissible}
+  {DI = Y * LINESIZE, CX = X, coordinates admissible}
    shr ax, 1
    shr ax, 1
    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
