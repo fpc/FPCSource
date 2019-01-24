@@ -2725,7 +2725,7 @@ const CrtAddress: word = 0;
    shl ah, cl                ; (* Get Plane Select Value           *)
    out dx, ax
  (* End selection of plane *)
-   mov ax,[CurrentColor]     ; { only lower byte is used. }
+   mov al, byte ptr [CurrentColor] ; { only lower byte is used. }
    cmp [CurrentWriteMode],XORPut   { check write mode   }
    jne @MOVMode
    mov ah,es:[di]        { read the byte...             }
