@@ -2695,12 +2695,6 @@ const CrtAddress: word = 0;
  Procedure DirectPutPixelX(X,Y: smallint); assembler;
  { note: still needs or/and/notput support !!!!! (JM) }
  asm
-   push ax
-   push bx
-   push cx
-   push dx
-   push es
-   push di
 {$IFDEF REGCALL}
    mov cl, al
    mov di, dx
@@ -2734,12 +2728,6 @@ const CrtAddress: word = 0;
    xor al,ah             { xor it and return value into AL }
  @MovMode:
    mov es:[di], al
-   pop di
-   pop es
-   pop dx
-   pop cx
-   pop bx
-   pop ax
  end;
 {$endif asmgraph}
 
