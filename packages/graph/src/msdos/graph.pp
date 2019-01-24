@@ -2631,7 +2631,13 @@ const CrtAddress: word = 0;
       jg     @@Done
 
 @@ClipDone:
+{$ifdef FPC_MM_HUGE}
+      mov bx, SEG SegA000
+      mov es, bx
+      mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
       mov es, [SegA000]
+{$endif FPC_MM_HUGE}
       add di, [StartYViewPort]
       (* Multiply by 80 start *)
       mov cl, 4
