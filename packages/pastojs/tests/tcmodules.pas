@@ -257,6 +257,7 @@ type
     Procedure TestInteger;
     Procedure TestIntegerRange;
     Procedure TestIntegerTypecasts;
+    Procedure TestBitwiseAndNativeIntWarn;
     Procedure TestCurrency;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -6070,6 +6071,27 @@ begin
     '$mod.lw = $mod.i >>> 0;',
     '$mod.li = $mod.i & 0xFFFFFFFF;',
     '']));
+end;
+
+procedure TTestModule.TestBitwiseAndNativeIntWarn;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  i,j: nativeint;',
+  'begin',
+  '  i:=i and j;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestBitwiseAndNativeIntWarn',
+    LinesToStr([
+    'this.i = 0;',
+    'this.j = 0;',
+    '']),
+    LinesToStr([
+    '$mod.i = $mod.i & $mod.j;',
+    '']));
+  CheckHint(mtWarning,nBitWiseOperationsAre32Bit,sBitWiseOperationsAre32Bit);
 end;
 
 procedure TTestModule.TestCurrency;

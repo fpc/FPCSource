@@ -6572,8 +6572,15 @@ begin
         eopXor:
           begin
           if aResolver<>nil then
+            begin
             UseBitwiseOp:=((LeftResolved.BaseType in btAllJSInteger)
-                       or (RightResolved.BaseType in btAllJSInteger))
+                       or (RightResolved.BaseType in btAllJSInteger));
+            if UseBitwiseOp
+                and (LeftResolved.BaseType in [btIntDouble,btUIntDouble])
+                and (RightResolved.BaseType in [btIntDouble,btUIntDouble]) then
+              aResolver.LogMsg(20190124233439,mtWarning,nBitWiseOperationsAre32Bit,
+                sBitWiseOperationsAre32Bit,[],El);
+            end
           else
             UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
               or (GetExpressionValueType(El.right,AContext)=jstNumber);

@@ -180,6 +180,7 @@ const
   nDerivedXMustExtendASubClassY = 3114;
   nDefaultPropertyNotAllowedInHelperForX = 3115;
   nHelpersCannotBeUsedAsTypes = 3116;
+  nBitWiseOperationsAre32Bit = 3117;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -307,6 +308,7 @@ resourcestring
   sDerivedXMustExtendASubClassY = 'Derived %s must extend a subclass of "%s" or the class itself';
   sDefaultPropertyNotAllowedInHelperForX = 'Default property not allowed in helper for %s';
   sHelpersCannotBeUsedAsTypes = 'helpers cannot be used as types';
+  sBitWiseOperationsAre32Bit = 'Bitwise operations are 32-bit';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
