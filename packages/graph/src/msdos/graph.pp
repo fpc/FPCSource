@@ -2591,10 +2591,9 @@ const CrtAddress: word = 0;
    end;
   end;
 
- Procedure PutPixelX(X,Y: smallint; color:ColorType);
 {$ifndef asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:ColorType);
  var offset: word;
-{$endif asmgraph}
   begin
     { verify clipping and then convert to absolute coordinates...}
     if ClipPixels then
@@ -2606,11 +2605,23 @@ const CrtAddress: word = 0;
     end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
     offset := y * 80 + x shr 2 + VideoOfs;
     PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
     Mem[SegA000:offset] := color;
+  end;
 {$else asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:ColorType);
+  begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
      asm
       push ax
       push bx
@@ -2653,8 +2664,8 @@ const CrtAddress: word = 0;
       pop bx
       pop ax
     end;
-{$endif asmgraph}
   end;
+{$endif asmgraph}
 
 
  Procedure DirectPutPixelX(X,Y: smallint);
