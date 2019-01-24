@@ -2631,15 +2631,18 @@ const CrtAddress: word = 0;
       push di
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
       (* Multiply by 80 start *)
+      mov cl, 4
+      shl di, cl
       mov bx, di
-      shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-      shl bx, 4
+      shl di, 1
+      shl di, 1
       add di, bx                   ;  (* Multiply Value by 80             *)
       (* End multiply by 80  *)
       mov cx, [X]
       mov ax, cx
       {DI = Y * LINESIZE, BX = X, coordinates admissible}
-      shr ax, 2
+      shr ax, 1
+      shr ax, 1
       add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
       add di, [VideoOfs]        ; (* Pointing at start of Active page *)
       (* Select plane to use *)
