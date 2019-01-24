@@ -2655,7 +2655,7 @@ const CrtAddress: word = 0;
     out dx, ax
     (* End selection of plane *)
     mov al, byte ptr [Color]  ; { only lower byte is used. }
-    mov es:[di], al
+    stosb
 @@Done:
   end;
 {$endif asmgraph}
