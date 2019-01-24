@@ -2475,7 +2475,6 @@ const CrtAddress: word = 0;
 {$endif asmgraph}
 
 
-{$undef asmgraph}
 {$ifndef asmgraph}
  function GetPixelX(X,Y: smallint): ColorType;
   var offset: word;
@@ -2515,10 +2514,10 @@ const CrtAddress: word = 0;
     add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
     add di, [VideoOfs]  ; (* Pointing at start of Active page *)
     (* Select plane to use *)
-    mov dx, 03c4h
-    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-    and cl, 03h               ; (* Get Plane Bits                   *)
-    shl ah, cl                ; (* Get Plane Select Value           *)
+    mov dx, 03ceh
+    mov al, 4
+    and cl, 03h
+    mov ah, cl
     out dx, ax
     (* End selection of plane *)
     mov al, ES:[DI]
