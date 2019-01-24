@@ -2608,12 +2608,6 @@ const CrtAddress: word = 0;
 {$else asmgraph}
  Procedure PutPixelX(X,Y: smallint; color:ColorType); assembler;
   asm
-    push ax
-    push bx
-    push cx
-    push dx
-    push es
-    push di
     mov ax, [X]
     mov di, [Y]                  ; (* DI = Y coordinate                 *)
 
@@ -2663,12 +2657,6 @@ const CrtAddress: word = 0;
     mov ax,[Color]            ; { only lower byte is used. }
     mov es:[di], al
 @@Done:
-    pop di
-    pop es
-    pop dx
-    pop cx
-    pop bx
-    pop ax
   end;
 {$endif asmgraph}
 
