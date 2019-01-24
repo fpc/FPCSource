@@ -2631,6 +2631,7 @@ const CrtAddress: word = 0;
       jg     @@Done
 
 @@ClipDone:
+      mov es, [SegA000]
       add di, [StartYViewPort]
       (* Multiply by 80 start *)
       mov cl, 4
@@ -2654,7 +2655,6 @@ const CrtAddress: word = 0;
       shl ah, cl                ; (* Get Plane Select Value           *)
       out dx, ax
       (* End selection of plane *)
-      mov es,[SegA000]
       mov ax,[Color]            ; { only lower byte is used. }
       mov es:[di], al
 @@Done:
