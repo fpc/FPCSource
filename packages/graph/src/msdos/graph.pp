@@ -2661,7 +2661,6 @@ const CrtAddress: word = 0;
 {$endif asmgraph}
 
 
-{$undef asmgraph}
 {$ifndef asmgraph}
  Procedure DirectPutPixelX(X,Y: smallint);
  { x,y -> must be in global coordinates. No clipping. }
