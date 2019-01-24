@@ -58,24 +58,6 @@ unit aoptcpu;
       symsym,symconst;
 
 
-  { converts a TChange variable to a TRegister }
-  function tch2reg(ch: tinschange): tsuperregister;
-    const
-      ch2reg: array[CH_REAX..CH_REDI] of tsuperregister = (RS_EAX,RS_ECX,RS_EDX,RS_EBX,RS_ESP,RS_EBP,RS_ESI,RS_EDI);
-    begin
-      if (ch <= CH_REDI) then
-        tch2reg := ch2reg[ch]
-      else if (ch <= CH_WEDI) then
-        tch2reg := ch2reg[tinschange(ord(ch) - ord(CH_REDI))]
-      else if (ch <= CH_RWEDI) then
-        tch2reg := ch2reg[tinschange(ord(ch) - ord(CH_WEDI))]
-      else if (ch <= CH_MEDI) then
-        tch2reg := ch2reg[tinschange(ord(ch) - ord(CH_RWEDI))]
-      else
-        InternalError(2016041901)
-    end;
-
-
   { Checks if the register is a 32 bit general purpose register }
   function isgp32reg(reg: TRegister): boolean;
     begin
@@ -424,107 +406,8 @@ begin
                         end
                     end;
                   A_FLD:
-                    begin
-                      if (taicpu(p).oper[0]^.typ = top_reg) and
-                         GetNextInstruction(p, hp1) and
-                         (hp1.typ = Ait_Instruction) and
-                          (taicpu(hp1).oper[0]^.typ = top_reg) and
-                         (taicpu(hp1).oper[1]^.typ = top_reg) and
-                         (taicpu(hp1).oper[0]^.reg = NR_ST) and
-                         (taicpu(hp1).oper[1]^.reg = NR_ST1) then
-                         { change                        to
-                             fld      reg               fxxx reg,st
-                             fxxxp    st, st1 (hp1)
-                           Remark: non commutative operations must be reversed!
-                         }
-                        begin
-                            case taicpu(hp1).opcode Of
-                              A_FMULP,A_FADDP,
-                              A_FSUBP,A_FDIVP,A_FSUBRP,A_FDIVRP:
-                                begin
-                                  case taicpu(hp1).opcode Of
-                                    A_FADDP: taicpu(hp1).opcode := A_FADD;
-                                    A_FMULP: taicpu(hp1).opcode := A_FMUL;
-                                    A_FSUBP: taicpu(hp1).opcode := A_FSUBR;
-                                    A_FSUBRP: taicpu(hp1).opcode := A_FSUB;
-                                    A_FDIVP: taicpu(hp1).opcode := A_FDIVR;
-                                    A_FDIVRP: taicpu(hp1).opcode := A_FDIV;
-                                  end;
-                                  taicpu(hp1).oper[0]^.reg := taicpu(p).oper[0]^.reg;
-                                  taicpu(hp1).oper[1]^.reg := NR_ST;
-                                  asml.remove(p);
-                                  p.free;
-                                  p := hp1;
-                                  continue;
-                                end;
-                            end;
-                        end
-                      else
-                        if (taicpu(p).oper[0]^.typ = top_ref) and
-                           GetNextInstruction(p, hp2) and
-                           (hp2.typ = Ait_Instruction) and
-                           (taicpu(hp2).ops = 2) and
-                           (taicpu(hp2).oper[0]^.typ = top_reg) and
-                           (taicpu(hp2).oper[1]^.typ = top_reg) and
-                           (taicpu(p).opsize in [S_FS, S_FL]) and
-                           (taicpu(hp2).oper[0]^.reg = NR_ST) and
-                           (taicpu(hp2).oper[1]^.reg = NR_ST1) then
-                          if GetLastInstruction(p, hp1) and
-                             (hp1.typ = Ait_Instruction) and
-                             ((taicpu(hp1).opcode = A_FLD) or
-                              (taicpu(hp1).opcode = A_FST)) and
-                             (taicpu(hp1).opsize = taicpu(p).opsize) and
-                             (taicpu(hp1).oper[0]^.typ = top_ref) and
-                             RefsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
-                            if ((taicpu(hp2).opcode = A_FMULP) or
-                                (taicpu(hp2).opcode = A_FADDP)) then
-                            { change                      to
-                                fld/fst   mem1  (hp1)       fld/fst   mem1
-                                fld       mem1  (p)         fadd/
-                                faddp/                       fmul     st, st
-                                fmulp  st, st1 (hp2) }
-                              begin
-                                asml.remove(p);
-                                p.free;
-                                p := hp1;
-                                if (taicpu(hp2).opcode = A_FADDP) then
-                                  taicpu(hp2).opcode := A_FADD
-                                else
-                                  taicpu(hp2).opcode := A_FMUL;
-                                taicpu(hp2).oper[1]^.reg := NR_ST;
-                              end
-                            else
-                            { change              to
-                                fld/fst mem1 (hp1)   fld/fst mem1
-                                fld     mem1 (p)     fld      st}
-                              begin
-                                taicpu(p).changeopsize(S_FL);
-                                taicpu(p).loadreg(0,NR_ST);
-                              end
-                          else
-                            begin
-                              case taicpu(hp2).opcode Of
-                                A_FMULP,A_FADDP,A_FSUBP,A_FDIVP,A_FSUBRP,A_FDIVRP:
-                          { change                        to
-                              fld/fst  mem1    (hp1)      fld/fst    mem1
-                              fld      mem2    (p)        fxxx       mem2
-                              fxxxp    st, st1 (hp2)                      }
-
-                                  begin
-                                    case taicpu(hp2).opcode Of
-                                      A_FADDP: taicpu(p).opcode := A_FADD;
-                                      A_FMULP: taicpu(p).opcode := A_FMUL;
-                                      A_FSUBP: taicpu(p).opcode := A_FSUBR;
-                                      A_FSUBRP: taicpu(p).opcode := A_FSUB;
-                                      A_FDIVP: taicpu(p).opcode := A_FDIVR;
-                                      A_FDIVRP: taicpu(p).opcode := A_FDIV;
-                                    end;
-                                    asml.remove(hp2);
-                                    hp2.free;
-                                  end
-                              end
-                            end
-                    end;
+                    if OptPass1FLD(p) then
+                      continue;
                   A_FSTP,A_FISTP:
                     if OptPass1FSTP(p) then
                       continue;

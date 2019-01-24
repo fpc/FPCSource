@@ -72,6 +72,7 @@ unit aoptx86;
         function OptPass1SHLSAL(var p : tai) : boolean;
         function OptPass1SETcc(var p: tai): boolean;
         function OptPass1FSTP(var p: tai): boolean;
+        function OptPass1FLD(var p: tai): boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -2509,7 +2510,109 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
+     function TX86AsmOptimizer.OptPass1FLD(var p : tai) : boolean;
+      var
+       hp1, hp2: tai;
+      begin
+        result:=false;
+        if MatchOpType(taicpu(p),top_reg) and
+           GetNextInstruction(p, hp1) and
+           (hp1.typ = Ait_Instruction) and
+           MatchOpType(taicpu(hp1),top_reg,top_reg) and
+           (taicpu(hp1).oper[0]^.reg = NR_ST) and
+           (taicpu(hp1).oper[1]^.reg = NR_ST1) then
+           { change                        to
+               fld      reg               fxxx reg,st
+               fxxxp    st, st1 (hp1)
+             Remark: non commutative operations must be reversed!
+           }
+          begin
+              case taicpu(hp1).opcode Of
+                A_FMULP,A_FADDP,
+                A_FSUBP,A_FDIVP,A_FSUBRP,A_FDIVRP:
+                  begin
+                    case taicpu(hp1).opcode Of
+                      A_FADDP: taicpu(hp1).opcode := A_FADD;
+                      A_FMULP: taicpu(hp1).opcode := A_FMUL;
+                      A_FSUBP: taicpu(hp1).opcode := A_FSUBR;
+                      A_FSUBRP: taicpu(hp1).opcode := A_FSUB;
+                      A_FDIVP: taicpu(hp1).opcode := A_FDIVR;
+                      A_FDIVRP: taicpu(hp1).opcode := A_FDIV;
+                    end;
+                    taicpu(hp1).oper[0]^.reg := taicpu(p).oper[0]^.reg;
+                    taicpu(hp1).oper[1]^.reg := NR_ST;
+                    asml.remove(p);
+                    p.free;
+                    p := hp1;
+                    Result:=true;
+                    exit;
+                  end;
+              end;
+          end
+        else
+          if MatchOpType(taicpu(p),top_ref) and
+             GetNextInstruction(p, hp2) and
+             (hp2.typ = Ait_Instruction) and
+             MatchOpType(taicpu(hp2),top_reg,top_reg) and
+             (taicpu(p).opsize in [S_FS, S_FL]) and
+             (taicpu(hp2).oper[0]^.reg = NR_ST) and
+             (taicpu(hp2).oper[1]^.reg = NR_ST1) then
+            if GetLastInstruction(p, hp1) and
+              MatchInstruction(hp1,A_FLD,A_FST,[taicpu(p).opsize]) and
+              MatchOpType(taicpu(hp1),top_ref) and
+              RefsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
+              if ((taicpu(hp2).opcode = A_FMULP) or
+                  (taicpu(hp2).opcode = A_FADDP)) then
+              { change                      to
+                  fld/fst   mem1  (hp1)       fld/fst   mem1
+                  fld       mem1  (p)         fadd/
+                  faddp/                       fmul     st, st
+                  fmulp  st, st1 (hp2) }
+                begin
+                  asml.remove(p);
+                  p.free;
+                  p := hp1;
+                  if (taicpu(hp2).opcode = A_FADDP) then
+                    taicpu(hp2).opcode := A_FADD
+                  else
+                    taicpu(hp2).opcode := A_FMUL;
+                  taicpu(hp2).oper[1]^.reg := NR_ST;
+                end
+              else
+              { change              to
+                  fld/fst mem1 (hp1)   fld/fst mem1
+                  fld     mem1 (p)     fld      st}
+                begin
+                  taicpu(p).changeopsize(S_FL);
+                  taicpu(p).loadreg(0,NR_ST);
+                end
+            else
+              begin
+                case taicpu(hp2).opcode Of
+                  A_FMULP,A_FADDP,A_FSUBP,A_FDIVP,A_FSUBRP,A_FDIVRP:
+            { change                        to
+                fld/fst  mem1    (hp1)      fld/fst    mem1
+                fld      mem2    (p)        fxxx       mem2
+                fxxxp    st, st1 (hp2)                      }
+
+                    begin
+                      case taicpu(hp2).opcode Of
+                        A_FADDP: taicpu(p).opcode := A_FADD;
+                        A_FMULP: taicpu(p).opcode := A_FMUL;
+                        A_FSUBP: taicpu(p).opcode := A_FSUBR;
+                        A_FSUBRP: taicpu(p).opcode := A_FSUB;
+                        A_FDIVP: taicpu(p).opcode := A_FDIVR;
+                        A_FDIVRP: taicpu(p).opcode := A_FDIV;
+                      end;
+                      asml.remove(hp2);
+                      hp2.free;
+                    end
+                end
+              end
+      end;
+
+
+   function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
       var
        hp1,hp2: tai;
 {$ifdef x86_64}

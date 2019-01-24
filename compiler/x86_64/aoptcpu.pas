@@ -120,6 +120,8 @@ uses
                 result:=OptPass1SETcc(p);
               A_FSTP,A_FISTP:
                 result:=OptPass1FSTP(p);
+              A_FLD:
+                result:=OptPass1FLD(p);
             end;
           end;
         end;
