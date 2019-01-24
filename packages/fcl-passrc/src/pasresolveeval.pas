@@ -1865,7 +1865,7 @@ begin
       // float - currency
       try
         {$Q+}
-        aCurrency:=aCurrency - TResEvalCurrency(RightValue).Value;
+        aCurrency:=Flo - TResEvalCurrency(RightValue).Value;
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         Result:=TResEvalCurrency.CreateValue(aCurrency);
       except
