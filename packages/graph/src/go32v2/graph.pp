@@ -155,7 +155,6 @@ const
      ScrWidth : word absolute $40:$4a;
      inWindows: boolean;
 
-{$ifndef tp}
   Procedure seg_bytemove(sseg : word;source : longint;dseg : word;dest : longint;count : longint); assembler;
     asm
       push edi
@@ -174,7 +173,6 @@ const
       pop esi
       pop edi
     end;
-{$endif tp}
 
  Procedure CallInt10(val_ax : word); assembler;
    asm
@@ -2153,11 +2151,7 @@ End;
          if HLength>0 then
            begin
               Port[$3cf]:=$ff;
-{$ifndef tp}
               seg_bytemove(dosmemselector,$a0000+ScrOfs,dosmemselector,$a0000+ScrOfs,HLength);
-{$else}
-              move(Ptr(SegA000,ScrOfs)^, Ptr(SegA000,ScrOfs)^, HLength);
-{$endif}
               ScrOfs:=ScrOfs+HLength;
            end;
          Port[$3cf]:=RMask;
