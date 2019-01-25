@@ -192,6 +192,14 @@ const
       pop ebp
    end ['EAX'];
 
+ Procedure InitInt10hMode(mode : byte);
+   begin
+     if DontClearGraphMemory then
+       CallInt10(mode or $80)
+     else
+       CallInt10(mode);
+   end;
+
   procedure seg_xorword(segment : word;ofs : longint;count : longint;w : word);
     begin
       asm
@@ -722,10 +730,7 @@ end;
 
 procedure InitCGA320C0;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(0);
   SetCGABorder(16);
@@ -734,10 +739,7 @@ end;
 
 procedure InitCGA320C1;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(1);
   SetCGABorder(16);
@@ -746,10 +748,7 @@ end;
 
 procedure InitCGA320C2;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(2);
   SetCGABorder(0);
@@ -758,10 +757,7 @@ end;
 
 procedure InitCGA320C3;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(3);
   SetCGABorder(0);
@@ -1054,10 +1050,7 @@ end;
 
 procedure InitCGA640;
 begin
-  if DontClearGraphMemory then
-    CallInt10($86)
-  else
-    CallInt10($06);
+  InitInt10hMode($06);
   VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
@@ -1365,10 +1358,7 @@ end;
 
 procedure InitMCGA640;
 begin
-  if DontClearGraphMemory then
-    CallInt10($91)
-  else
-    CallInt10($11);
+  InitInt10hMode($11);
   VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
@@ -1664,20 +1654,14 @@ end;
 
   Procedure Init640x200x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($8e)
-      else
-        CallInt10($e);
+      InitInt10hMode($e);
       VideoOfs := 0;
     end;
 
 
    Procedure Init640x350x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($90)
-      else
-        CallInt10($10);
+      InitInt10hMode($10);
       VideoOfs := 0;
     end;
 
@@ -1685,10 +1669,7 @@ end;
 
   Procedure Init640x480x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($92)
-      else
-        CallInt10($12);
+      InitInt10hMode($12);
       VideoOfs := 0;
     end;
 
@@ -2338,10 +2319,7 @@ End;
 
  Procedure Init320;
     begin
-      if DontClearGraphMemory then
-        CallInt10($93)
-      else
-        CallInt10($13);
+      InitInt10hMode($13);
       VideoOfs := 0;
     end;
 
