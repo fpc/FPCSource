@@ -2014,6 +2014,7 @@ begin
       SrcMap.SourceContents[i]:=aFile.Source;
     end;
     // translate local file name
+    MapFilename:=LocalFilename;
     if (BaseDir<>'') and not SrcMapFilenamesAbsolute then
     begin
       if not FS.TryCreateRelativePath(LocalFilename,BaseDir,true,MapFilename) then
@@ -2028,9 +2029,8 @@ begin
         end;
         // the source is included, do not translate the filename
         MapFilename:=LocalFilename;
-      end
-    else
-      MapFilename:=LocalFilename;
+      end;
+    end;
     {$IFNDEF Unix}
     // use / as PathDelim
     if PathDelim<>'/' then
@@ -2038,7 +2038,6 @@ begin
     {$ENDIF}
     if LocalFilename<>MapFilename then
       SrcMap.SourceTranslatedFiles[i]:=MapFilename;
-    end;
   end;
 end;
 

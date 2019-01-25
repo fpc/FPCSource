@@ -40,8 +40,13 @@ function FileIsInPath(const Filename, Path: string): boolean;
 function ChompPathDelim(const Path: string): string;
 function ExpandFileNamePJ(const FileName: string; {const} BaseDir: string = ''): string;
 function ExpandDirectory(const aDirectory: string): string;
-function TryCreateRelativePath(const Filename, BaseDirectory: String;
-  UsePointDirectory: boolean; out RelPath: String): Boolean;
+function IsUNCPath(const {%H-}Path: String): Boolean;
+function ExtractUNCVolume(const {%H-}Path: String): String;
+function ExtractFileRoot(FileName: String): String;
+function TryCreateRelativePath(const Dest, Source: String;
+  UsePointDirectory: boolean; // True = return '.' for the current directory instead of ''
+  AlwaysRequireSharedBaseFolder: Boolean;// true = only shorten if at least one shared folder
+  out RelPath: String): Boolean;
 function ResolveDots(const AFilename: string): string;
 procedure ForcePathDelims(Var FileName: string);
 function GetForcedPathDelims(Const FileName: string): String;
@@ -201,8 +206,47 @@ begin
   Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
-function TryCreateRelativePath(const Filename, BaseDirectory: String;
-  UsePointDirectory: boolean; out RelPath: String): Boolean;
+{
+  Returns
+  - DriveLetter + : + PathDelim on Windows (if present) or
+  - UNC Share on Windows if present or
+  - PathDelim if FileName starts with PathDelim on Unix or Wince or
+  - Empty string of non eof the above applies
+}
+function ExtractFileRoot(FileName: String): String;
+var
+  Len: Integer;
+begin
+  Result := '';
+  Len := Length(FileName);
+  if (Len > 0) then
+  begin
+    if IsUncPath(FileName) then
+    begin
+      Result := ExtractUNCVolume(FileName);
+      // is it like \\?\C:\Directory?  then also include the "C:\" part
+      if (Result = '\\?\') and (Length(FileName) > 6) and
+         (FileName[5] in ['a'..'z','A'..'Z']) and (FileName[6] = ':') and (FileName[7] in AllowDirectorySeparators)
+      then
+        Result := Copy(FileName, 1, 7);
+    end
+    else
+    begin
+      {$if defined(unix) or defined(wince)}
+      if (FileName[1] = PathDelim) then Result := PathDelim;
+      {$else}
+        {$ifdef HASAMIGA}
+        if Pos(':', FileName) > 1 then
+          Result := Copy(FileName, 1, Pos(':', FileName));
+        {$else}
+        if (Len > 2) and (FileName[1] in ['a'..'z','A'..'Z']) and (FileName[2] = ':') and (FileName[3] in AllowDirectorySeparators) then
+          Result := UpperCase(Copy(FileName,1,3));
+        {$endif}
+      {$endif}
+    end;
+  end;
+end;
+
 {
   Returns True if it is possible to create a relative path from Source to Dest
   Function must be thread safe, so no expanding of filenames is done, since this
@@ -221,104 +265,167 @@ function TryCreateRelativePath(const Filename, BaseDirectory: String;
     no PathDelimiter is appended to the end of RelPath
 
   Examples:
-  - Filename = /foo/bar BaseDirectory = /foo Result = True RelPath = bar
-  - Filename = /foo///bar BaseDirectory = /foo// Result = True RelPath = bar
-  - Filename = /foo BaseDirectory = /foo/bar Result = True RelPath = ../
-  - Filename = /foo/bar BaseDirectory = /bar Result = False (no shared base directory)
-  - Filename = foo/bar BaseDirectory = foo/foo Result = True RelPath = ../bar
-  - Filename = foo/bar BaseDirectory = bar/foo Result = False (no shared base directory)
-  - Filename = /foo BaseDirectory = bar Result = False (mixed absolute and relative)
+  - Dest = /foo/bar Source = /foo Result = True RelPath = bar
+  - Dest = /foo///bar Source = /foo// Result = True RelPath = bar
+  - Dest = /foo Source = /foo/bar Result = True RelPath = ../
+  - Dest = /foo/bar Source = /bar Result = True RelPath = ../foo/bar
+  - Dest = foo/bar Source = foo/foo Result = True RelPath = ../bar
+  - Dest = foo/bar Source = bar/foo Result = False (no shared base directory)
+  - Dest = /foo Source = bar Result = False (mixed absolute and relative)
+  - Dest = c:foo Source = c:bar Result = False (no expanding)
+  - Dest = c:\foo Source = d:\bar Result is False (different drives)
+  - Dest = \foo Source = foo (Windows) Result is False (too ambiguous to guess what this should mean)
+  - Dest = /foo Source = /bar AlwaysRequireSharedBaseFolder = True Result = False
+  - Dest = /foo Source = /bar AlwaysRequireSharedBaseFolder = False Result = True RelPath = ../foo
 }
-  function IsNameChar(c: char): boolean; inline;
+function TryCreateRelativePath(const Dest, Source: String; UsePointDirectory: boolean;
+  AlwaysRequireSharedBaseFolder: Boolean; out RelPath: String): Boolean;
+Type
+  TDirArr =  TStringArray;
+
+  function SplitDirs(Dir: String; out Dirs: TDirArr): integer;
+  var
+    Start, Stop, Len: Integer;
+    S: String;
   begin
-    Result:=(c<>#0) and not (c in AllowDirectorySeparators);
+    Result := 0;
+    Len := Length(Dir);
+    Dirs:=nil;
+    if (Len = 0) then Exit;
+    Start := 1;
+    Stop := 1;
+
+    While Start <= Len do
+    begin
+      if (Dir[Start] in AllowDirectorySeparators) then
+      begin
+        S := Copy(Dir,Stop,Start-Stop);
+        //ignore empty strings, they are caused by double PathDelims, which we just ignore
+        if (S <> '') then
+        begin
+          Inc(Result);
+          if Result>length(Dirs) then
+            SetLength(Dirs,length(Dirs)*2+10);
+          Dirs[Result-1] := S;
+        end;
+        Stop := Start + 1;
+      end;
+      Inc(Start);
+    end;
+
+    S := Copy(Dir,Stop,Start-Stop);
+    if (S <> '') then
+    begin
+      Inc(Result);
+      if Result>length(Dirs) then
+        SetLength(Dirs,length(Dirs)*2+10);
+      Dirs[Result-1] := S;
+    end;
   end;
 
 var
-  UpDirCount: Integer;
-  i: Integer;
-  s: string;
-  SharedDirs: Integer;
-  FileP, BaseP, FileEndP, BaseEndP, FileL, BaseL: integer;
+  SourceRoot, DestRoot, CmpDest, CmpSource: String;
+  CmpDestLen, CmpSourceLen, DestCount, SourceCount, i,
+  SharedFolders, LevelsBack, LevelsUp: Integer;
+  SourceDirs, DestDirs: TDirArr;
+  IsAbs: Boolean;
 begin
-  Result:=false;
-  RelPath:=Filename;
-  if (BaseDirectory='') or (Filename='') then exit;
-  {$IFDEF Windows}
-  // check for different windows file drives
-  if (CompareText(ExtractFileDrive(Filename),
-                     ExtractFileDrive(BaseDirectory))<>0)
-  then
-    exit;
-  {$ENDIF}
-
-  FileP:=1;
-  FileL:=length(Filename);
-  BaseP:=1;
-  BaseL:=length(BaseDirectory);
-
-  // skip matching directories
-  SharedDirs:=0;
-  if Filename[FileP] in AllowDirectorySeparators then
+  Result := False;
+  if (Dest = '') or (Source = '') then Exit;
+  if (Pos('..',Dest) > 0) or (Pos('..',Source) > 0) then Exit;
+  SourceRoot := ExtractFileRoot(Source);
+  DestRoot := ExtractFileRoot(Dest);
+  // Root must be same: either both absolute filenames or both relative (and on same drive in Windows)
+  if (CompareFileNames(SourceRoot, DestRoot) <> 0) then Exit;
+  IsAbs := (DestRoot <> '');
+  {$if defined(windows) and not defined(wince)}
+  if not IsAbs then  // relative paths
   begin
-    if not (BaseDirectory[BaseP] in AllowDirectorySeparators) then exit;
-    repeat
-      while (FileP<=FileL) and (Filename[FileP] in AllowDirectorySeparators) do
-        inc(FileP);
-      while (BaseP<=BaseL) and (BaseDirectory[BaseP] in AllowDirectorySeparators) do
-        inc(BaseP);
-      if (FileP>FileL) or (BaseP>BaseL) then break;
-      //writeln('TryCreateRelativePath check match .. File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
-      FileEndP:=FileP;
-      BaseEndP:=BaseP;
-      while (FileEndP<=FileL) and IsNameChar(Filename[FileEndP]) do inc(FileEndP);
-      while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do inc(BaseEndP);
-      if CompareFilenames(copy(Filename,FileP,FileEndP-FileP),
-        copy(BaseDirectory,BaseP,BaseEndP-BaseP))<>0
-      then
-        break;
-      FileP:=FileEndP;
-      BaseP:=BaseEndP;
-      inc(SharedDirs);
-    until false;
-  end else if (BaseDirectory[BaseP] in AllowDirectorySeparators) then
-    exit;
+    //we cannot handle files like c:foo
+    if ((Length(Dest) > 1) and (UpCase(Dest[1]) in ['A'..'Z']) and (Dest[2] = ':')) or
+       ((Length(Source) > 1) and (UpCase(Source[1]) in ['A'..'Z']) and (Source[2] = ':')) then Exit;
+    //we cannot handle combinations like dest=foo source=\bar or the other way around
+    if ((Dest[1] in AllowDirectorySeparators) and not (Source[1] in AllowDirectorySeparators)) or
+       (not (Dest[1] in AllowDirectorySeparators) and (Source[1] in AllowDirectorySeparators)) then Exit;
+  end;
+  {$endif}
 
-  //writeln('TryCreateRelativePath skipped matches SharedDirs=',SharedDirs,' File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
-  if SharedDirs=0 then exit;
+  CmpSource := Source;
+  CmpDest := Dest;
 
-  // calculate needed '../'
-  UpDirCount:=0;
-  BaseEndP:=BaseP;
-  while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do begin
-    inc(UpDirCount);
-    while (BaseEndP<=BaseL) and IsNameChar(BaseDirectory[BaseEndP]) do
-      inc(BaseEndP);
-    while (BaseEndP<=BaseL) and (BaseDirectory[BaseEndP] in AllowDirectorySeparators) do
-      inc(BaseEndP);
+  CmpDest := ChompPathDelim(Dest);
+  CmpSource := ChompPathDelim(Source);
+  if IsAbs then
+  begin
+    System.Delete(CmpSource,1,Length(SourceRoot));
+    System.Delete(CmpDest,1,Length(DestRoot));
   end;
 
-  //writeln('TryCreateRelativePath UpDirCount=',UpDirCount,' File="',copy(Filename,FileP),'" Base="',copy(BaseDirectory,BaseP),'"');
-  // create relative filename
-  if (FileP>FileL) and (UpDirCount=0) then
+  //Get rid of excessive trailing PathDelims now after (!) we stripped Root
+  while (Length(CmpDest) > 0) and (CmpDest[Length(CmpDest)] in AllowDirectorySeparators) do System.Delete(CmpDest,Length(CmpDest),1);
+  while (Length(CmpSource) > 0) and (CmpSource[Length(CmpSource)] in AllowDirectorySeparators) do System.Delete(CmpSource,Length(CmpSource),1);
+
+  CmpDestLen := Length(CmpDest);
+  CmpSourceLen := Length(CmpSource);
+
+  DestCount := SplitDirs(CmpDest, DestDirs);
+  SourceCount :=  SplitDirs(CmpSource, SourceDirs);
+
+  //writeln('TryCreaterelativePath: DestDirs:');
+  //for i := 1 to DestCount do writeln(i,' "',DestDirs[i-1],'"');
+  //writeln('TryCreaterelativePath: SrcDirs:');
+  //for i := 1 to SourceCount do writeln(i,' "',SourceDirs[i-1],'"');
+
+  i := 0;
+  SharedFolders := 0;
+  while (i < DestCount) and (i < SourceCount) do
   begin
-    // Filename is the BaseDirectory
-    if UsePointDirectory then
-      RelPath:='.'
+    if CompareFilenames(DestDirs[i], SourceDirs[i]) = 0 then
+    begin
+      Inc(SharedFolders);
+      Inc(i);
+    end
     else
-      RelPath:='';
-    exit(true);
+      Break;
   end;
 
-  s:='';
-  for i:=1 to UpDirCount do
-    s+='..'+PathDelim;
-  if (FileP>FileL) and (UpDirCount>0) then
-    s:=LeftStr(s,length(s)-1)
+  //writeln('TryCreaterelativePath: SharedFolders = ',SharedFolders);
+  if (SharedFolders = 0) and ((not IsAbs) or AlwaysRequireSharedBaseFolder) and not ((CmpDestLen = 0) or (CmpSourceLen = 0)) then
+  begin
+    //debguln('TryCreaterelativePath: FAIL: IsAbs = ',DbgS(IsAs),' AlwaysRequireSharedBaseFolder = ',DbgS(AlwaysRequireSharedBaseFolder),
+    //' SharedFolders = 0, CmpDestLen = ',DbgS(cmpdestlen),' CmpSourceLen = ',DbgS(CmpSourceLen));
+    Exit;
+  end;
+  LevelsBack := SourceCount - SharedFolders;
+  LevelsUp := DestCount - SharedFolders;
+  //writeln('TryCreaterelativePath: LevelsBack = ',Levelsback);
+  //writeln('TryCreaterelativePath: LevelsUp   = ',LevelsUp);
+  if (LevelsBack > 0) then
+  begin
+    RelPath := '';
+    for i := 1 to LevelsBack do RelPath := '..' + PathDelim + Relpath;
+
+    for i := LevelsUp downto 1 do
+    begin
+      if (RelPath <> '') and not (RelPath[Length(RelPath)] in AllowDirectorySeparators) then RelPath := RelPath + PathDelim;
+      RelPath := RelPath + DestDirs[DestCount - i];
+    end;
+    RelPath := ChompPathDelim(RelPath);
+  end
   else
-    s+=copy(Filename,FileP);
-  RelPath:=s;
-  Result:=true;
+  begin
+    RelPath := '';
+    for i := LevelsUp downto 1 do
+    begin
+      if (RelPath <> '') then RelPath := RelPath + PathDelim;
+      RelPath := RelPath + DestDirs[DestCount - i];
+    end;
+  end;
+  if UsePointDirectory and (RelPath = '') then
+    RelPath := '.'; // Dest = Source
+
+  //writeln('TryCreateRelativePath RelPath=',RelPath);
+  Result := True;
 end;
 
 function ResolveDots(const AFilename: string): string;

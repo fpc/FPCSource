@@ -1805,10 +1805,11 @@ begin
   AddSrcUnitPaths(aValue,FromCmdLine,Result);
 end;
 
-function TPas2jsFilesCache.TryCreateRelativePath(const Filename, BaseDirectory: String; UsePointDirectory: boolean; out
-  RelPath: String): Boolean;
+function TPas2jsFilesCache.TryCreateRelativePath(const Filename, BaseDirectory: String;
+  UsePointDirectory: boolean; out RelPath: String): Boolean;
 begin
-  Result:=Pas2jsFileUtils.TryCreateRelativePath(Filename, BaseDirectory, UsePointDirectory, RelPath);
+  Result:=Pas2jsFileUtils.TryCreateRelativePath(Filename, BaseDirectory,
+    UsePointDirectory, true, RelPath);
 end;
 
 function TPas2jsFilesCache.FindIncludeFileName(const aFilename: string): String;
