@@ -173,7 +173,7 @@ const
       pop es
       pop esi
       pop edi
-    end ['ECX'];
+    end;
 {$endif tp}
 
  Procedure CallInt10(val_ax : word); assembler;
@@ -190,7 +190,7 @@ const
       pop edi
       pop esi
       pop ebp
-   end ['EAX'];
+   end;
 
  Procedure InitInt10hMode(mode : byte);
    begin
