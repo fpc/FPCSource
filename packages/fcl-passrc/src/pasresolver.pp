@@ -1482,8 +1482,6 @@ type
     procedure FinishSection(Section: TPasSection); virtual;
     procedure FinishInterfaceSection(Section: TPasSection); virtual;
     procedure FinishTypeSection(El: TPasElement); virtual;
-    procedure FinishDeclarations(El: TPasDeclarations); virtual;
-    procedure FinishMemberType(El: TPasMembersType); virtual;
     procedure FinishTypeSectionEl(El: TPasType); virtual;
     procedure FinishTypeDef(El: TPasType); virtual;
     procedure FinishEnumType(El: TPasEnumType); virtual;
@@ -5097,40 +5095,41 @@ begin
 end;
 
 procedure TPasResolver.FinishTypeSection(El: TPasElement);
+
+  procedure FinishDeclarations(El: TPasDeclarations);
+  var
+    i: Integer;
+    Decl: TPasElement;
+  begin
+    for i:=0 to El.Declarations.Count-1 do
+      begin
+      Decl:=TPasElement(El.Declarations[i]);
+      if Decl is TPasType then
+        FinishTypeSectionEl(TPasType(Decl));
+      end;
+  end;
+
+  procedure FinishMembersType(El: TPasMembersType);
+  var
+    i: Integer;
+    Decl: TPasElement;
+  begin
+    for i:=0 to El.Members.Count-1 do
+      begin
+      Decl:=TPasElement(El.Members[i]);
+      if Decl is TPasType then
+        FinishTypeSectionEl(TPasType(Decl));
+      end;
+  end;
+
 begin
   // resolve pending forwards
   if El is TPasDeclarations then
     FinishDeclarations(TPasDeclarations(El))
   else if El is TPasMembersType then
-    FinishMemberType(TPasMembersType(El))
+    FinishMembersType(TPasMembersType(El))
   else
     RaiseNotYetImplemented(20181226105933,El);
-end;
-
-procedure TPasResolver.FinishDeclarations(El: TPasDeclarations);
-var
-  i: Integer;
-  Decl: TPasElement;
-begin
-  for i:=0 to El.Declarations.Count-1 do
-    begin
-    Decl:=TPasElement(El.Declarations[i]);
-    if Decl is TPasType then
-      FinishTypeSectionEl(TPasType(Decl));
-    end;
-end;
-
-procedure TPasResolver.FinishMemberType(El: TPasMembersType);
-var
-  i: Integer;
-  Decl: TPasElement;
-begin
-  for i:=0 to El.Members.Count-1 do
-    begin
-    Decl:=TPasElement(El.Members[i]);
-    if Decl is TPasType then
-      FinishTypeSectionEl(TPasType(Decl));
-    end;
 end;
 
 procedure TPasResolver.FinishTypeSectionEl(El: TPasType);
