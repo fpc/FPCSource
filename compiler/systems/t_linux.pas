@@ -178,6 +178,12 @@ begin
 {$ifdef m68k}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/m68k-linux-gnu',true);
 {$endif m68k}
+{$ifdef mipsel}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/mipsel-linux-gnu',true);
+{$endif mipsel}
+{$ifdef mips}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/mips-linux-gnu',true);
+{$endif mips}
 {$ifdef sparc64}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/sparc64-linux-gnu',true);
 {$endif sparc64}
