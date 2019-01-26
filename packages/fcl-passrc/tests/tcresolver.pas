@@ -888,6 +888,7 @@ type
     Procedure TestClassHelper_Enumerator;
     Procedure TestClassHelper_FromUnitInterface;
     Procedure TestClassHelper_Constructor_NewInstance;
+    Procedure TestClassHelper_ReintroduceHides_CallFail;
     Procedure TestClassHelper_DefaultProperty;
     Procedure TestClassHelper_DefaultClassProperty;
     Procedure TestClassHelper_MultipleScopeHelpers;
@@ -899,7 +900,6 @@ type
     Procedure TestTypeHelper_Enum;
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_Constructor_NewInstance;
-    // Todo: warn hides method
 
     // attributes
     Procedure TestAttributes_Ignore;
@@ -16263,6 +16263,27 @@ begin
     end;
     aMarker:=aMarker^.Next;
     end;
+end;
+
+procedure TTestResolver.TestClassHelper_ReintroduceHides_CallFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create(o: tobject);',
+  '  end;',
+  '  TBird = class helper for TObject',
+  '    constructor Create(i: longint); reintroduce;',
+  '  end;',
+  'constructor tobject.Create(o: tobject); begin end;',
+  'constructor tbird.Create(i: longint); begin end;',
+  'var o: TObject;',
+  'begin',
+  '  o:=TObject.Create(nil);',
+  '']);
+  CheckResolverException('Incompatible type arg no. 1: Got "Nil", expected "Longint"',
+    nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestClassHelper_DefaultProperty;

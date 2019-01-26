@@ -813,6 +813,7 @@ begin
               Delete(S,i,length(S))
             else if (Exp>=-6) and (Exp<=6) then
               begin
+              // small exponent -> use notation without E
               Delete(S,i,length(S));
               j:=Pos('.',S);
               if j>0 then
@@ -856,8 +857,11 @@ begin
               end
             else
               begin
-              // e.g. 1.0E+001  -> 1.0E1
+              // e.g. 1.1E+0010  -> 1.1E10
               S:=LeftStr(S,i)+IntToStr(Exp);
+              if (i >= 4) and (s[i-1] = '0') and (s[i-2] = '.') then
+                // e.g. 1.0E22 -> 1E22
+                Delete(S, i-2, 2);
               end
             end;
           end;
