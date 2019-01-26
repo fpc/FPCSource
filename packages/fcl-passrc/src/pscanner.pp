@@ -1119,7 +1119,7 @@ const
 
 const
   // all mode switches supported by FPC
-  msAllFPCModeSwitches = [low(TModeSwitch)..High(TModeSwitch)];
+  msAllModeSwitches = [low(TModeSwitch)..High(TModeSwitch)];
 
   DelphiModeSwitches = [msDelphi,msClass,msObjpas,msResult,msStringPchar,
      msPointer2Procedure,msAutoDeref,msTPProcVar,msInitFinal,msDefaultAnsistring,
@@ -1130,7 +1130,7 @@ const
 
   DelphiUnicodeModeSwitches = delphimodeswitches + [msSystemCodePage,msDefaultUnicodestring];
 
-  // mode switches of $mode FPC, don't confuse with msAllFPCModeSwitches
+  // mode switches of $mode FPC, don't confuse with msAllModeSwitches
   FPCModeSwitches = [msFpc,msStringPchar,msNestedComment,msRepeatForward,
     msCVarSupport,msInitFinal,msHintDirective,msProperty,msDefaultInline];
   //FPCBoolSwitches bsObjectChecks
@@ -2665,7 +2665,7 @@ begin
   FMaxIncludeStackDepth:=DefaultMaxIncludeStackDepth;
 
   FCurrentModeSwitches:=FPCModeSwitches;
-  FAllowedModeSwitches:=msAllFPCModeSwitches;
+  FAllowedModeSwitches:=msAllModeSwitches;
   FCurrentBoolSwitches:=bsFPCMode;
   FAllowedBoolSwitches:=bsAll;
   FAllowedValueSwitches:=vsAllValueSwitches;

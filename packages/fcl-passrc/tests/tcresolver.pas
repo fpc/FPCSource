@@ -867,37 +867,39 @@ type
     Procedure TestHint_Garbage;
 
     // helpers
-    Procedure ClassHelper;
-    Procedure ClassHelper_AncestorIsNotHelperForDescendantFail;
-    Procedure ClassHelper_HelperForParentFail;
-    Procedure ClassHelper_ForInterfaceFail;
-    Procedure ClassHelper_FieldFail;
-    Procedure ClassHelper_AbstractFail;
-    Procedure ClassHelper_VirtualObjFPCFail;
-    Procedure ClassHelper_VirtualDelphiFail;
-    Procedure ClassHelper_DestructorFail;
-    Procedure ClassHelper_ClassRefersToTypeHelperOfAncestor;
-    Procedure ClassHelper_InheritedObjFPC;
-    Procedure ClassHelper_InheritedObjFPC2;
-    Procedure ClassHelper_InheritedObjFPCStrictPrivateFail;
-    Procedure ClassHelper_InheritedDelphi;
-    Procedure ClassHelper_NestedInheritedParentFail;
-    Procedure ClassHelper_AccessFields;
-    Procedure ClassHelper_CallClassMethodFail;
-    Procedure ClassHelper_AsTypeFail;
-    Procedure ClassHelper_Enumerator;
-    Procedure ClassHelper_FromUnitInterface;
-    // ToDo ClassHelper_Constructor
-    // ToDo ClassHelper_DefaultProperty
-    // ToDo ClassHelper_MultiScopeHelpers
-    Procedure RecordHelper;
-    // RecordHelper_Constructor
-    Procedure TypeHelper;
-    Procedure TypeHelper_HelperForProcTypeFail;
-    Procedure TypeHelper_DefaultPropertyFail;
-    Procedure TypeHelper_Enum;
-    Procedure TypeHelper_Enumerator;
-    // TypeHelper_Constructor
+    Procedure TestClassHelper;
+    Procedure TestClassHelper_AncestorIsNotHelperForDescendantFail;
+    Procedure TestClassHelper_HelperForParentFail;
+    Procedure TestClassHelper_ForInterfaceFail;
+    Procedure TestClassHelper_FieldFail;
+    Procedure TestClassHelper_AbstractFail;
+    Procedure TestClassHelper_VirtualObjFPCFail;
+    Procedure TestClassHelper_VirtualDelphiFail;
+    Procedure TestClassHelper_DestructorFail;
+    Procedure TestClassHelper_ClassRefersToTypeHelperOfAncestor;
+    Procedure TestClassHelper_InheritedObjFPC;
+    Procedure TestClassHelper_InheritedObjFPC2;
+    Procedure TestClassHelper_InheritedObjFPCStrictPrivateFail;
+    Procedure TestClassHelper_InheritedDelphi;
+    Procedure TestClassHelper_NestedInheritedParentFail;
+    Procedure TestClassHelper_AccessFields;
+    Procedure TestClassHelper_CallClassMethodFail;
+    Procedure TestClassHelper_AsTypeFail;
+    Procedure TestClassHelper_Enumerator;
+    Procedure TestClassHelper_FromUnitInterface;
+    Procedure TestClassHelper_Constructor_NewInstance;
+    Procedure TestClassHelper_DefaultProperty;
+    Procedure TestClassHelper_DefaultClassProperty;
+    Procedure TestClassHelper_MultipleScopeHelpers;
+    Procedure TestRecordHelper;
+    Procedure TestRecordHelper_Constructor_NewInstance;
+    Procedure TestTypeHelper;
+    Procedure TestTypeHelper_HelperForProcTypeFail;
+    Procedure TestTypeHelper_DefaultPropertyFail;
+    Procedure TestTypeHelper_Enum;
+    Procedure TestTypeHelper_Enumerator;
+    Procedure TestTypeHelper_Constructor_NewInstance;
+    // Todo: warn hides method
 
     // attributes
     Procedure TestAttributes_Ignore;
@@ -8080,8 +8082,16 @@ begin
   'begin',
   '  TRec.{#p}Create(4); // new object',
   '  r:=TRec.{#q}Create(5); // new object',
-  '  r.{#r}Create(6); // normal call',
-  '  r:=r.{#s}Create(7); // normal call',
+  '  with TRec do begin',
+  '    {#r}Create(6); // new object',
+  '    r:={#s}Create(7); // new object',
+  '  end;',
+  '  r.{#t}Create(8); // normal call',
+  '  r:=r.{#u}Create(9); // normal call',
+  '  with r do begin',
+  '    {#v}Create(10); // normal call',
+  '    r:={#w}Create(11); // normal call',
+  '  end;',
   '']);
   ParseProgram;
   aMarker:=FirstSrcMarker;
@@ -8106,7 +8116,7 @@ begin
         break;
         end;
       case aMarker^.Identifier of
-      'a','r','s':// should be normal call
+      'a','t','u','v','w':// should be normal call
         if ActualNewInstance then
           RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
       else // should be newinstance
@@ -12169,25 +12179,26 @@ end;
 procedure TTestResolver.TestDefaultProperty;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    function GetB(Index: longint): longint;');
-  Add('    procedure SetB(Index: longint; Value: longint);');
-  Add('    property B[Index: longint]: longint read GetB write SetB; default;');
-  Add('  end;');
-  Add('function TObject.GetB(Index: longint): longint;');
-  Add('begin');
-  Add('end;');
-  Add('procedure TObject.SetB(Index: longint; Value: longint);');
-  Add('begin');
-  Add('  if Value=Self[Index] then ;');
-  Add('  Self[Index]:=Value;');
-  Add('end;');
-  Add('var o: TObject;');
-  Add('begin');
-  Add('  o[3]:=4;');
-  Add('  if o[5]=6 then;');
-  Add('  if 7=o[8] then;');
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetB(Index: longint): longint;',
+  '    procedure SetB(Index: longint; Value: longint);',
+  '    property B[Index: longint]: longint read GetB write SetB; default;',
+  '  end;',
+  'function TObject.GetB(Index: longint): longint;',
+  'begin',
+  'end;',
+  'procedure TObject.SetB(Index: longint; Value: longint);',
+  'begin',
+  '  if Value=Self[Index] then ;',
+  '  Self[Index]:=Value;',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o[3]:=4;',
+  '  if o[5]=6 then;',
+  '  if 7=o[8] then;']);
   ParseProgram;
 end;
 
@@ -15640,7 +15651,7 @@ begin
   CheckResolverUnexpectedHints(true);
 end;
 
-procedure TTestResolver.ClassHelper;
+procedure TTestResolver.TestClassHelper;
 begin
   StartProgram(false);
   Add([
@@ -15667,7 +15678,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.ClassHelper_AncestorIsNotHelperForDescendantFail;
+procedure TTestResolver.TestClassHelper_AncestorIsNotHelperForDescendantFail;
 begin
   StartProgram(false);
   Add([
@@ -15688,7 +15699,7 @@ begin
     nDerivedXMustExtendASubClassY);
 end;
 
-procedure TTestResolver.ClassHelper_HelperForParentFail;
+procedure TTestResolver.TestClassHelper_HelperForParentFail;
 begin
   StartProgram(false);
   Add([
@@ -15706,7 +15717,7 @@ begin
     nTypeXIsNotYetCompletelyDefined);
 end;
 
-procedure TTestResolver.ClassHelper_ForInterfaceFail;
+procedure TTestResolver.TestClassHelper_ForInterfaceFail;
 begin
   StartProgram(false);
   Add([
@@ -15722,7 +15733,7 @@ begin
     nXExpectedButYFound);
 end;
 
-procedure TTestResolver.ClassHelper_FieldFail;
+procedure TTestResolver.TestClassHelper_FieldFail;
 begin
   StartProgram(false);
   Add([
@@ -15738,7 +15749,7 @@ begin
     nParserNoFieldsAllowed);
 end;
 
-procedure TTestResolver.ClassHelper_AbstractFail;
+procedure TTestResolver.TestClassHelper_AbstractFail;
 begin
   StartProgram(false);
   Add([
@@ -15755,7 +15766,7 @@ begin
     nInvalidXModifierY);
 end;
 
-procedure TTestResolver.ClassHelper_VirtualObjFPCFail;
+procedure TTestResolver.TestClassHelper_VirtualObjFPCFail;
 begin
   StartProgram(false);
   Add([
@@ -15773,7 +15784,7 @@ begin
     nInvalidXModifierY);
 end;
 
-procedure TTestResolver.ClassHelper_VirtualDelphiFail;
+procedure TTestResolver.TestClassHelper_VirtualDelphiFail;
 begin
   StartProgram(false);
   Add([
@@ -15792,7 +15803,7 @@ begin
     nInvalidXModifierY);
 end;
 
-procedure TTestResolver.ClassHelper_DestructorFail;
+procedure TTestResolver.TestClassHelper_DestructorFail;
 begin
   StartProgram(false);
   Add([
@@ -15810,7 +15821,7 @@ begin
     nParserXNotAllowedInY);
 end;
 
-procedure TTestResolver.ClassHelper_ClassRefersToTypeHelperOfAncestor;
+procedure TTestResolver.TestClassHelper_ClassRefersToTypeHelperOfAncestor;
 begin
   StartProgram(false);
   Add([
@@ -15837,7 +15848,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.ClassHelper_InheritedObjFPC;
+procedure TTestResolver.TestClassHelper_InheritedObjFPC;
 begin
   StartProgram(false);
   Add([
@@ -15896,7 +15907,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.ClassHelper_InheritedObjFPC2;
+procedure TTestResolver.TestClassHelper_InheritedObjFPC2;
 begin
   StartProgram(false);
   Add([
@@ -15944,7 +15955,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.ClassHelper_InheritedObjFPCStrictPrivateFail;
+procedure TTestResolver.TestClassHelper_InheritedObjFPCStrictPrivateFail;
 begin
   StartProgram(false);
   Add([
@@ -15960,7 +15971,7 @@ begin
   CheckResolverException('Can''t access strict private member i',nCantAccessXMember);
 end;
 
-procedure TTestResolver.ClassHelper_InheritedDelphi;
+procedure TTestResolver.TestClassHelper_InheritedDelphi;
 begin
   StartProgram(false);
   Add([
@@ -16020,7 +16031,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.ClassHelper_NestedInheritedParentFail;
+procedure TTestResolver.TestClassHelper_NestedInheritedParentFail;
 begin
   StartProgram(false);
   Add([
@@ -16046,7 +16057,7 @@ begin
   CheckResolverException('identifier not found "Fly"',nIdentifierNotFound);
 end;
 
-procedure TTestResolver.ClassHelper_AccessFields;
+procedure TTestResolver.TestClassHelper_AccessFields;
 begin
   StartProgram(false);
   Add([
@@ -16073,7 +16084,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.ClassHelper_CallClassMethodFail;
+procedure TTestResolver.TestClassHelper_CallClassMethodFail;
 begin
   StartProgram(false);
   Add([
@@ -16091,7 +16102,7 @@ begin
   CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
 end;
 
-procedure TTestResolver.ClassHelper_AsTypeFail;
+procedure TTestResolver.TestClassHelper_AsTypeFail;
 begin
   StartProgram(false);
   Add([
@@ -16105,7 +16116,7 @@ begin
   CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
 end;
 
-procedure TTestResolver.ClassHelper_Enumerator;
+procedure TTestResolver.TestClassHelper_Enumerator;
 begin
   StartProgram(false);
   Add([
@@ -16140,7 +16151,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.ClassHelper_FromUnitInterface;
+procedure TTestResolver.TestClassHelper_FromUnitInterface;
 begin
   AddModuleWithIntfImplSrc('unit2.pas',
     LinesToStr([
@@ -16172,7 +16183,187 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.RecordHelper;
+procedure TTestResolver.TestClassHelper_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+  ActualNewInstance, ActualImplicitCallWithoutParams: Boolean;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    constructor Create;',
+  '    class function DoSome: TObject;',
+  '  end;',
+  'constructor THelper.Create;',
+  'begin',
+  '  {#a}Create; // normal call',
+  '  TObject.{#b}Create; // new instance',
+  'end;',
+  'class function THelper.DoSome: TObject;',
+  'begin',
+  '  Result:={#c}Create; // new instance',
+  'end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  TObject.{#p}Create; // new object',
+  '  o:=TObject.{#q}Create; // new object',
+  '  with TObject do begin',
+  '    {#r}Create; // new object',
+  '    o:={#s}Create; // new object',
+  '  end;',
+  '  o.{#t}Create; // normal call',
+  '  o:=o.{#u}Create; // normal call',
+  '  with o do begin',
+  '    {#v}Create; // normal call',
+  '    o:={#w}Create; // normal call',
+  '  end;',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestClassHelper_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      ActualImplicitCallWithoutParams:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestClassHelper_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestClassHelper_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        ActualImplicitCallWithoutParams:=rrfImplicitCallWithoutParams in Ref.Flags;
+        break;
+        end;
+      if not ActualImplicitCallWithoutParams then
+        RaiseErrorAtSrcMarker('expected implicit call at "#'+aMarker^.Identifier+', but got function ref"',aMarker);
+      case aMarker^.Identifier of
+      'a','t','u','v','w':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestClassHelper_DefaultProperty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetB(Index: longint): longint;',
+  '    procedure SetB(Index: longint; Value: longint);',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    property B[Index: longint]: longint read GetB write SetB; default;',
+  '  end;',
+  'function TObject.GetB(Index: longint): longint;',
+  'begin',
+  'end;',
+  'procedure TObject.SetB(Index: longint; Value: longint);',
+  'begin',
+  '  if Value=Self[Index] then ;',
+  '  Self[Index]:=Value;',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o[3]:=4;',
+  '  if o[5]=6 then;',
+  '  if 7=o[8] then;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_DefaultClassProperty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    class function GetB(Index: longint): longint; static;',
+  '    class procedure SetB(Index: longint; Value: longint); static;',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    class property B[Index: longint]: longint read GetB write SetB; default;',
+  '  end;',
+  'class function TObject.GetB(Index: longint): longint;',
+  'begin',
+  'end;',
+  'class procedure TObject.SetB(Index: longint; Value: longint);',
+  'begin',
+  '  if Value=TObject[Index] then ;',
+  '  TObject[Index]:=Value;',
+  'end;',
+  'var c: TClass;',
+  'begin',
+  '  c[3]:=4;',
+  '  if c[5]=6 then;',
+  '  if 7=c[8] then;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_MultipleScopeHelpers;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch multiplescopehelpers}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TFlyHelper = class helper for TObject',
+  '    procedure {#Fly}Fly;',
+  '    procedure {#FlyMove}Move;',
+  '  end;',
+  '  TRunHelper = class helper for TObject',
+  '    procedure {#Run}Run;',
+  '    procedure {#RunMove}Move;',
+  '    procedure {#RunBack}Back;',
+  '  end;',
+  '  TSwimHelper = class helper for TObject',
+  '    procedure {#Swim}Swim;',
+  '    procedure {#SwimBack}Back;',
+  '  end;',
+  'procedure TFlyHelper.Fly; begin end;',
+  'procedure TFlyHelper.Move; begin end;',
+  'procedure TRunHelper.Run; begin end;',
+  'procedure TRunHelper.Move; begin end;',
+  'procedure TRunHelper.Back; begin end;',
+  'procedure TSwimHelper.Swim; begin end;',
+  'procedure TSwimHelper.Back; begin end;',
+  'var o: TObject;',
+  'begin',
+  '  o.{@Fly}Fly;',
+  '  o.{@Run}Run;',
+  '  o.{@Swim}Swim;',
+  '  o.{@RunMove}Move;',
+  '  o.{@SwimBack}Back;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordHelper;
 begin
   StartProgram(false);
   Add([
@@ -16207,7 +16398,87 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TypeHelper;
+procedure TTestResolver.TestRecordHelper_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualNewInstance: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TRec = record',
+  '    constructor Create(w: word);',
+  '    class function DoSome: TRec; static;',
+  '  end;',
+  'constructor TRec.Create(w: word);',
+  'begin',
+  '  {#a}Create(1); // normal call',
+  '  TRec.{#b}Create(2); // new instance',
+  'end;',
+  'class function TRec.DoSome: TRec;',
+  'begin',
+  '  Result:={#c}Create(3); // new instance',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  TRec.{#p}Create(4); // new object',
+  '  r:=TRec.{#q}Create(5); // new object',
+  '  with TRec do begin',
+  '    {#r}Create(6); // new object',
+  '    r:={#s}Create(7); // new object',
+  '  end;',
+  '  r.{#t}Create(8); // normal call',
+  '  r:=r.{#u}Create(9); // normal call',
+  '  with r do begin',
+  '    {#v}Create(10); // normal call',
+  '    r:={#w}Create(11); // normal call',
+  '  end;',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        if rrfImplicitCallWithoutParams in Ref.Flags then
+          RaiseErrorAtSrcMarker('unexpected implicit call at "#'+aMarker^.Identifier+' ref"',aMarker);
+        break;
+        end;
+      case aMarker^.Identifier of
+      'a','t','u','v','w':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestTypeHelper;
 begin
   StartProgram(false);
   Add([
@@ -16223,7 +16494,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TypeHelper_HelperForProcTypeFail;
+procedure TTestResolver.TestTypeHelper_HelperForProcTypeFail;
 begin
   StartProgram(false);
   Add([
@@ -16238,7 +16509,7 @@ begin
     nTypeXCannotBeExtendedByATypeHelper);
 end;
 
-procedure TTestResolver.TypeHelper_DefaultPropertyFail;
+procedure TTestResolver.TestTypeHelper_DefaultPropertyFail;
 begin
   StartProgram(false);
   Add([
@@ -16258,7 +16529,7 @@ begin
     nDefaultPropertyNotAllowedInHelperForX);
 end;
 
-procedure TTestResolver.TypeHelper_Enum;
+procedure TTestResolver.TestTypeHelper_Enum;
 begin
   StartProgram(false);
   Add([
@@ -16282,7 +16553,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TypeHelper_Enumerator;
+procedure TTestResolver.TestTypeHelper_Enumerator;
 begin
   StartProgram(false);
   Add([
@@ -16314,6 +16585,86 @@ begin
   '  w.GetEnumerator;',
   '  for i in w do {@i2}i2:=i;']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualNewInstance: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TInt = type word;',
+  '  THelper = type helper for TInt',
+  '    constructor Create(w: TInt);',
+  '    class function DoSome: TInt; static;',
+  '  end;',
+  'constructor THelper.Create(w: TInt);',
+  'begin',
+  '  {#a}Create(1); // normal call',
+  '  TInt.{#b}Create(2); // new instance',
+  'end;',
+  'class function THelper.DoSome: TInt;',
+  'begin',
+  '  Result:={#c}Create(3); // new instance',
+  'end;',
+  'var',
+  '  r: TInt;',
+  'begin',
+  '  TInt.{#p}Create(4); // new object',
+  '  r:=TInt.{#q}Create(5); // new object',
+  '  with TInt do begin',
+  '    {#r}Create(6); // new object',
+  '    r:={#s}Create(7); // new object',
+  '  end;',
+  '  r.{#t}Create(8); // normal call',
+  '  r:=r.{#u}Create(9); // normal call',
+  '  with r do begin',
+  '    {#v}Create(10); // normal call',
+  '    r:={#w}Create(11); // normal call',
+  '  end;',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        if rrfImplicitCallWithoutParams in Ref.Flags then
+          RaiseErrorAtSrcMarker('unexpected implicit call at "#'+aMarker^.Identifier+' ref"',aMarker);
+        break;
+        end;
+      case aMarker^.Identifier of
+      'a','t','u','v','w':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
 end;
 
 procedure TTestResolver.TestAttributes_Ignore;

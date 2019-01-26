@@ -688,9 +688,6 @@ type
     property PostProcessorSupport: TPas2JSPostProcessorSupport Read FPostProcessorSupport Write FPostProcessorSupport;
   end;
 
-
-
-
 function GetCompiledDate: string;
 function GetCompiledVersion: string;
 function GetCompiledTargetOS: string;
