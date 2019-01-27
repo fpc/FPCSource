@@ -881,6 +881,7 @@ type
     Procedure TestClassHelper_InheritedObjFPC;
     Procedure TestClassHelper_InheritedObjFPC2;
     Procedure TestClassHelper_InheritedObjFPCStrictPrivateFail;
+    Procedure TestClassHelper_InheritedClassObjFPC;
     Procedure TestClassHelper_InheritedDelphi;
     Procedure TestClassHelper_NestedInheritedParentFail;
     Procedure TestClassHelper_AccessFields;
@@ -895,6 +896,7 @@ type
     Procedure TestClassHelper_DefaultClassProperty;
     Procedure TestClassHelper_MultipleScopeHelpers;
     Procedure TestRecordHelper;
+    Procedure TestRecordHelper_InheritedObjFPC;
     Procedure TestRecordHelper_Constructor_NewInstance;
     Procedure TestTypeHelper;
     Procedure TestTypeHelper_HelperForProcTypeFail;
@@ -904,6 +906,7 @@ type
     Procedure TestTypeHelper_EnumHelperDotProcFail;
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_Constructor_NewInstance;
+    Procedure TestTypeHelper_InterfaceFail;
 
     // attributes
     Procedure TestAttributes_Ignore;
@@ -15917,7 +15920,12 @@ begin
   '  {@TBirdHelper_Walk}inherited;',
   '  inherited {@TBirdHelper_Walk}Walk;',
   'end;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
   'begin',
+  '  o.{@TObjHelper_Fly}Fly;',
+  '  b.{@TEagleHelper_Fly}Fly;',
   '']);
   ParseProgram;
 end;
@@ -15986,6 +15994,72 @@ begin
   CheckResolverException('Can''t access strict private member i',nCantAccessXMember);
 end;
 
+procedure TTestResolver.TestClassHelper_InheritedClassObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class procedure {#TObject_Fly}Fly;',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    class procedure {#TObjHelper_Fly}Fly;',
+  '  end;',
+  '  TBird = class',
+  '    class procedure {#TBird_Fly}Fly;',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    class procedure {#TBirdHelper_Fly}Fly;',
+  '    class procedure {#TBirdHelper_Walk}Walk;',
+  '  end;',
+  '  TEagleHelper = class helper(TBirdHelper) for TBird',
+  '    class procedure {#TEagleHelper_Fly}Fly;',
+  '    class procedure {#TEagleHelper_Walk}Walk;',
+  '  end;',
+  'class procedure Tobject.fly;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'class procedure Tobjhelper.fly;',
+  'begin',
+  '  {@TObject_Fly}inherited;',
+  '  inherited {@TObject_Fly}Fly;',
+  'end;',
+  'class procedure Tbird.fly;',
+  'begin',
+  '  {@TObjHelper_Fly}inherited;',
+  '  inherited {@TObjHelper_Fly}Fly;',
+  'end;',
+  'class procedure Tbirdhelper.fly;',
+  'begin',
+  '  {@TBird_Fly}inherited;',
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'class procedure Tbirdhelper.walk;',
+  'begin',
+  'end;',
+  'class procedure teagleHelper.fly;',
+  'begin',
+  '  {@TBird_Fly}inherited;',
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'class procedure teagleHelper.walk;',
+  'begin',
+  '  {@TBirdHelper_Walk}inherited;',
+  '  inherited {@TBirdHelper_Walk}Walk;',
+  'end;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
+  'begin',
+  '  o.{@TObjHelper_Fly}Fly;',
+  '  TObject.{@TObjHelper_Fly}Fly;',
+  '  b.{@TEagleHelper_Fly}Fly;',
+  '  TBird.{@TEagleHelper_Fly}Fly;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClassHelper_InheritedDelphi;
 begin
   StartProgram(false);
@@ -16041,7 +16115,12 @@ begin
   '  inherited;', // ignore
   '  inherited {@TBirdHelper_Walk}Walk;',
   'end;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
   'begin',
+  '  o.{@TObjHelper_Fly}Fly;',
+  '  b.{@TEagleHelper_Fly}Fly;',
   '']);
   ParseProgram;
 end;
@@ -16419,6 +16498,7 @@ begin
   Add([
   '{$mode delphi}',
   'type',
+  '  TProc = procedure of object;',
   '  TRec = record',
   '    x: word;',
   '  end;',
@@ -16436,14 +16516,76 @@ begin
   '  TAntHelper = record helper for TAnt',
   '  end;',
   'procedure TRecHelper.Fly;',
-  'var r: TRec;',
+  'var',
+  '  r: TRec;',
+  '  p: TProc;',
   'begin',
   '  Self:=r;',
   '  r:=Self;',
   '  c:=v+x;',
   '  x:=k+w;',
+  '  p:=Fly;',
   'end;',
+  'var',
+  '  r: TRec;',
+  '  p: TProc;',
   'begin',
+  '  p:=r.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordHelper_InheritedObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    procedure {#TRec_Fly}Fly;',
+  '  end;',
+  '  TRecHelper = record helper for TRec',
+  '    procedure {#TRecHelper_Fly}Fly;',
+  '    procedure {#TRecHelper_Walk}Walk;',
+  '    procedure {#TRecHelper_Run}Run;',
+  '  end;',
+  '  TEagleHelper = record helper(TRecHelper) for TRec',
+  '    procedure {#TEagleHelper_Fly}Fly;',
+  '    procedure {#TEagleHelper_Run}Run;',
+  '  end;',
+  'procedure TRec.fly;',
+  'begin',
+  'end;',
+  'procedure TRechelper.fly;',
+  'begin',
+  '  {@TRec_Fly}inherited;',
+  '  inherited {@TRec_Fly}Fly;',
+  'end;',
+  'procedure TRechelper.walk;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure TRechelper.run;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure teagleHelper.fly;',
+  'begin',
+  '  {@TRec_Fly}inherited;',
+  '  inherited {@TRec_Fly}Fly;',
+  'end;',
+  'procedure teagleHelper.run;',
+  'begin',
+  '  {@TRecHelper_Run}inherited;',
+  '  inherited {@TRecHelper_Run}Run;',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  r.{@TEagleHelper_Fly}Fly;',
+  '  r.{@TRecHelper_Walk}Walk;',
+  '  r.{@TEagleHelper_Run}Run;',
   '']);
   ParseProgram;
 end;
@@ -16538,8 +16680,16 @@ begin
   '  end;',
   '  TCaption = string;',
   '  TCapHelper = type helper(TStringHelper) for TCaption',
+  '    procedure Fly;',
   '  end;',
+  '  TProc = procedure of object;',
+  'procedure TCapHelper.Fly; begin end;',
+  'var',
+  '  c: TCaption;',
+  '  p: TProc;',
   'begin',
+  '  c.Fly;',
+  '  p:=@c.Fly;',
   '']);
   ParseProgram;
 end;
@@ -16756,6 +16906,20 @@ begin
     end;
     aMarker:=aMarker^.Next;
     end;
+end;
+
+procedure TTestResolver.TestTypeHelper_InterfaceFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  IUnknown = interface end;',
+  '  THelper = type helper for IUnknown',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Type "IUnknown" cannot be extended by a type helper',nTypeXCannotBeExtendedByATypeHelper);
 end;
 
 procedure TTestResolver.TestAttributes_Ignore;

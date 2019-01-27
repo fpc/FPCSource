@@ -737,7 +737,7 @@ type
 
   TPasObjKind = (
     okObject, okClass, okInterface,
-    // okGeneric  removed in FPC 3.3.1  check instead GenericTemplateTypes
+    // okGeneric  removed in FPC 3.3.1  check instead GenericTemplateTypes.Count>0
     // okSpecialize removed in FPC 3.1.1
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);

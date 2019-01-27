@@ -5996,7 +5996,7 @@ begin
     // finished proc type, e.g. type TProcedure = procedure;
     end
   else
-    RaiseNotYetImplemented(20160922163411,El.Parent);
+    RaiseNotYetImplemented(20160922163411,El.Parent,'anonymous procedure type');
 end;
 
 procedure TPasResolver.FinishMethodDeclHeader(Proc: TPasProcedure);
@@ -7105,7 +7105,7 @@ begin
       else if ((HelperForType.ClassType=TPasUnresolvedSymbolRef)
           and (HelperForType.CustomData is TResElDataBaseType)) then
       else if (HelperForType.ClassType=TPasClassType)
-          and (TPasClassType(HelperForType).ObjKind in [okClass,okInterface]) then
+          and (TPasClassType(HelperForType).ObjKind=okClass) then
         begin
         if TPasClassType(HelperForType).IsForward then
           RaiseMsg(20190116200940,nTypeXIsNotYetCompletelyDefined,
@@ -21736,12 +21736,9 @@ begin
     SetResolverValueExpr(Result,btContext,TypeEl,TypeEl,Expr,[rrfReadable])
   else
     begin
-    writeln('AAA1 TPasResolver.GetReference_ConstructorType ',GetObjName(TypeEl));
     ComputeElement(TypeEl,Result,[rcType]);
-    writeln('AAA2 TPasResolver.GetReference_ConstructorType ',GetResolverResultDbg(Result));
     Result.ExprEl:=Expr;
     Result.Flags:=[rrfReadable];
-    writeln('AAA3 TPasResolver.GetReference_ConstructorType ',GetResolverResultDbg(Result));
     end;
 end;
 
