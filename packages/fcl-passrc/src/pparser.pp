@@ -5625,14 +5625,13 @@ var
 
 var
   SubBlock: TPasImplElement;
-  Left, Right: TPasExpr;
+  Left, Right, Expr: TPasExpr;
   El : TPasImplElement;
   lt : TLoopType;
   SrcPos: TPasSourcePos;
   Name: String;
   TypeEl: TPasType;
   ImplRaise: TPasImplRaise;
-  Expr: TPasExpr;
 
 begin
   NewImplElement:=nil;
@@ -5829,12 +5828,11 @@ begin
           SrcPos:=CurTokenPos;
           NextToken;
           El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
-          Left:=DoParseExpression(CurBlock);
+          Expr:=DoParseExpression(CurBlock);
           //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
-          TPasImplWithDo(El).AddExpression(Left);
-          Left.Parent:=El;
-          Engine.BeginScope(stWithExpr,Left);
-          Left:=nil;
+          TPasImplWithDo(El).AddExpression(Expr);
+          Expr.Parent:=El;
+          Engine.BeginScope(stWithExpr,Expr);
           CreateBlock(TPasImplWithDo(El));
           El:=nil;
           repeat
@@ -5842,11 +5840,10 @@ begin
             if CurToken<>tkComma then
               ParseExcTokenError(TokenInfos[tkdo]);
             NextToken;
-            Left:=DoParseExpression(CurBlock);
+            Expr:=DoParseExpression(CurBlock);
             //writeln(i,'WITH ...,Expr="',Expr,'" Token=',CurTokenText);
-            TPasImplWithDo(CurBlock).AddExpression(Left);
-            Engine.BeginScope(stWithExpr,Left);
-            Left:=nil;
+            TPasImplWithDo(CurBlock).AddExpression(Expr);
+            Engine.BeginScope(stWithExpr,Expr);
           until false;
         end;
       tkcase:

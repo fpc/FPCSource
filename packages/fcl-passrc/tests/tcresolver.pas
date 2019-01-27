@@ -256,6 +256,7 @@ type
     // enums and sets
     Procedure TestEnums;
     Procedure TestEnumRangeFail;
+    Procedure TestEnumDotValueFail;
     Procedure TestSets;
     Procedure TestSetOperators;
     Procedure TestEnumParams;
@@ -884,6 +885,7 @@ type
     Procedure TestClassHelper_NestedInheritedParentFail;
     Procedure TestClassHelper_AccessFields;
     Procedure TestClassHelper_CallClassMethodFail;
+    Procedure TestClassHelper_WithHelperFail;
     Procedure TestClassHelper_AsTypeFail;
     Procedure TestClassHelper_Enumerator;
     Procedure TestClassHelper_FromUnitInterface;
@@ -898,6 +900,8 @@ type
     Procedure TestTypeHelper_HelperForProcTypeFail;
     Procedure TestTypeHelper_DefaultPropertyFail;
     Procedure TestTypeHelper_Enum;
+    Procedure TestTypeHelper_EnumDotValueFail;
+    Procedure TestTypeHelper_EnumHelperDotProcFail;
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_Constructor_NewInstance;
 
@@ -3546,6 +3550,17 @@ begin
   'const all = a..c;',
   'begin']);
   CheckParserException('Const ranges are not allowed',nParserNoConstRangeAllowed);
+end;
+
+procedure TTestResolver.TestEnumDotValueFail;
+begin
+  StartProgram(false);
+  Add([
+  'type TFlag = (a,b,c);',
+  'var f: TFlag;',
+  'begin',
+  '  f:=f.a;']);
+  CheckResolverException('illegal qualifier "." after "f:TFlag"',nIllegalQualifierAfter);
 end;
 
 procedure TTestResolver.TestSets;
@@ -16102,6 +16117,20 @@ begin
   CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
 end;
 
+procedure TTestResolver.TestClassHelper_WithHelperFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  THelper = class helper for TObject',
+  '  end;',
+  'begin',
+  '  with THelper do ;',
+  '']);
+  CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
+end;
+
 procedure TTestResolver.TestClassHelper_AsTypeFail;
 begin
   StartProgram(false);
@@ -16559,6 +16588,7 @@ begin
   '  TFlag = (Red, Green, Blue);',
   '  THelper = type helper for TFlag',
   '    function toString: string;',
+  '    class procedure Fly;',
   '  end;',
   'function THelper.toString: string;',
   'begin',
@@ -16566,12 +16596,52 @@ begin
   '  if Self=TFlag.Blue then ;',
   '  Result:=str(Self);',
   'end;',
+  'class procedure THelper.Fly;',
+  'begin',
+  'end;',
   'var',
   '  f: TFlag;',
   'begin',
   '  f.toString;',
+  '  TFlag.Fly;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_EnumDotValueFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TFlag = (Red, Green, Blue);',
+  '  THelper = type helper for TFlag',
+  '  end;',
+  'var',
+  '  f: TFlag;',
+  'begin',
+  '  f:=f.red;',
+  '']);
+  CheckResolverException('identifier not found "red"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestTypeHelper_EnumHelperDotProcFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TFlag = (Red, Green, Blue);',
+  '  THelper = type helper for TFlag',
+  '    procedure Fly;',
+  '  end;',
+  'procedure THelper.Fly;',
+  'begin',
+  'end;',
+  'begin',
+  '  TFlag.Fly;',
+  '']);
+  CheckResolverException('Cannot access this member from a type helper',nCannotAccessThisMemberFromAX);
 end;
 
 procedure TTestResolver.TestTypeHelper_Enumerator;
