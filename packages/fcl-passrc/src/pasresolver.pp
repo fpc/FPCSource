@@ -939,6 +939,8 @@ type
     destructor Destroy; override;
     function GetFirstNonHelperScope: TPasIdentifierScope;
     class function IsStoredInElement: boolean; override;
+    function FindAncestorIdentifier(const Identifier: String): TPasIdentifier;
+    function FindAncestorElement(const Identifier: String): TPasElement;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -2844,6 +2846,31 @@ end;
 class function TPasGroupScope.IsStoredInElement: boolean;
 begin
   Result:=false;
+end;
+
+function TPasGroupScope.FindAncestorIdentifier(const Identifier: String
+  ): TPasIdentifier;
+var
+  i: Integer;
+begin
+  for i:=1 to Count-1 do
+    begin
+    Result:=Scopes[i].FindIdentifier(Identifier);
+    if Result<>nil then exit;
+    end;
+  Result:=nil;
+end;
+
+function TPasGroupScope.FindAncestorElement(const Identifier: String
+  ): TPasElement;
+var
+  Item: TPasIdentifier;
+begin
+  Item:=FindAncestorIdentifier(Identifier);
+  if Item<>nil then
+    Result:=Item.Element
+  else
+    Result:=nil;
 end;
 
 function TPasGroupScope.FindIdentifier(const Identifier: String
@@ -6362,11 +6389,16 @@ var
   procedure GetPropType;
   var
     AncEl: TPasElement;
+    GroupScope: TPasGroupScope;
   begin
     if PropType<>nil then exit;
     AncEl:=nil;
     if (ClassScope<>nil) and (ClassScope.AncestorScope<>nil) then
-      AncEl:=ClassScope.AncestorScope.FindElement(PropEl.Name);
+      begin
+      CheckTopScope(TPasGroupScope);
+      GroupScope:=TPasGroupScope(TopScope);
+      AncEl:=GroupScope.FindAncestorElement(PropEl.Name);
+      end;
     if AncEl is TPasProperty then
       begin
       // override or redeclaration property

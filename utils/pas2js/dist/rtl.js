@@ -279,12 +279,16 @@ var rtl = {
       // if root is a "function" then c.$ancestor === c.__proto__, Object.getPrototypeOf(c) returns the root
     } else {
       c = {};
-      c.$create = function(fnname,args){
+      c.$create = function(fn,args){
         if (args == undefined) args = [];
         var o = Object.create(this);
         o.$init();
         try{
-          o[fnname].apply(o,args);
+          if (typeof(fn)==="string"){
+            o[fn].apply(o,args);
+          } else {
+            fn.apply(o,args);
+          };
           o.AfterConstruction();
         } catch($e){
           // do not call BeforeDestruction
@@ -308,17 +312,21 @@ var rtl = {
     // If newinstancefnname is given, use that function to create the new object.
     // If exist call BeforeDestruction and AfterConstruction.
     var c = Object.create(ancestor);
-    c.$create = function(fnname,args){
+    c.$create = function(fn,args){
       if (args == undefined) args = [];
       var o = null;
       if (newinstancefnname.length>0){
-        o = this[newinstancefnname](fnname,args);
+        o = this[newinstancefnname](fn,args);
       } else {
         o = Object.create(this);
       }
       if (o.$init) o.$init();
       try{
-        o[fnname].apply(o,args);
+        if (typeof(fn)==="string"){
+          o[fn].apply(o,args);
+        } else {
+          fn.apply(o,args);
+        };
         if (o.AfterConstruction) o.AfterConstruction();
       } catch($e){
         // do not call BeforeDestruction

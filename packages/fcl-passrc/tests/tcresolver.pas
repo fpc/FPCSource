@@ -11838,19 +11838,27 @@ end;
 procedure TTestResolver.TestPropertyTypeless;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#TOBJ}TObject = class');
-  Add('    {#FB}FB: longint;');
-  Add('    property {#TOBJ_B}B: longint write {@FB}FB;');
-  Add('  end;');
-  Add('  {#TA}TClassA = class');
-  Add('    {#FC}FC: longint;');
-  Add('    property {#TA_B}{@TOBJ_B}B write {@FC}FC;');
-  Add('  end;');
-  Add('var');
-  Add('  {#v}{=TA}v: TClassA;');
-  Add('begin');
-  Add('  {@v}v.{@TA_B}B:=3;');
+  Add([
+  'type',
+  '  {#TOBJ}TObject = class',
+  '    {#FB}FB: longint;',
+  '    property {#TOBJ_B}B: longint write {@FB}FB;',
+  '    property {#TOBJ_D}D: longint write {@FB}FB;',
+  '  end;',
+  '  {#TA}TClassA = class',
+  '    {#FC}FC: longint;',
+  '    property {#TA_B}{@TOBJ_B}B write {@FC}FC;',
+  '  end;',
+  '  {#TB}TClassB = class(TClassA)',
+  '  published',
+  '    property {#TB_D}{@TOBJ_D}D;',
+  '  end;',
+  'var',
+  '  {#v}{=TA}v: TClassA;',
+  'begin',
+  '  {@v}v.{@TA_B}B:=3;',
+  '  {@v}v.{@TObj_D}D:=4;',
+  '']);
   ParseProgram;
 end;
 

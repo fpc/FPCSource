@@ -625,6 +625,10 @@ type
     Procedure TestClassInterface_GUID;
     Procedure TestClassInterface_GUIDProperty;
 
+    // helpers
+    Procedure TestClassHelper_ClassVar; // ToDo
+    // todo: TestClassHelper_Overload
+
     // proc types
     Procedure TestProcType;
     Procedure TestProcType_Arg;
@@ -18342,6 +18346,61 @@ begin
     '});',
     '$mod.o.SetS($mod.IUnknown.$guid);',
     '$mod.o.SetS(rtl.guidrToStr($mod.o.GetG()));',
+    '']));
+end;
+
+procedure TTestModule.TestClassHelper_ClassVar;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '  const',
+  '    One = 1;',
+  '    Two: word = 2;',
+  '  class var Glob: word;',
+  '  procedure Foo;',
+  '  class procedure Bar;',
+  '  end;',
+  'procedure THelper.foo;',
+  'begin',
+  '  Two:=One;',
+  '  Glob:=Glob;',
+  '  Self.Glob:=Self.Glob;',
+  '  with Self do Self.Glob:=Self.Glob;',
+  'end;',
+  'class procedure THelper.bar;',
+  'begin',
+  '  Two:=One;',
+  '  Glob:=Glob;',
+  '  Self.Glob:=Self.Glob;',
+  '  with Self do Self.Glob:=Self.Glob;',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  tobject.two:=tobject.one;',
+  '  tobject.Glob:=tobject.Glob;',
+  '  with tobject do begin',
+  '    two:=one;',
+  '    Glob:=Glob;',
+  '  end;',
+  '  o.two:=o.one;',
+  '  o.Glob:=o.Glob;',
+  '  with o do begin',
+  '    two:=one;',
+  '    Glob:=Glob;',
+  '  end;',
+  '',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassHelper',
+    LinesToStr([ // statements
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

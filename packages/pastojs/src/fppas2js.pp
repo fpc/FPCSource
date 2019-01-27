@@ -19821,8 +19821,9 @@ begin
         // create
         //    GetPathExpr: path1.path2
         //    GetExpr:     this.p.readvar
+        //    SetExpr:     this.p.readvar
         // Will create "{p:GetPathExpr, get:function(){return GetExpr;},
-        //                              set:function(v){GetExpr = v;}}"
+        //                              set:function(v){SetExpr = v;}}"
         GetPathExpr:=CreatePrimitiveDotExpr(LeftStr(GetPath,GetDotPos-1),El);
         GetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+copy(GetPath,GetDotPos+1),El);
         if ParamContext.Setter=nil then
