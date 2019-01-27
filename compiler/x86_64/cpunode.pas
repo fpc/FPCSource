@@ -53,6 +53,7 @@ unit cpunode;
        nx86con,
        nx86mem,
        nx64add,
+       nx86ld,
        nx64cal,
        nx64cnv,
        nx64mat,
