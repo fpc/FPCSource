@@ -11,6 +11,11 @@
     *********************************************************************
 }
 
+function IsLeadChar(Ch: WideChar): Boolean;
+begin
+    Result := (Ch >= #$D800) and (Ch <= #$DFFF);
+end;
+
 function Trim(const S: widestring): widestring;
 	var 
 	  Ofs, Len: sizeint;
@@ -179,6 +184,7 @@ Function CharInSet(Ch:WideChar;Const CSet : TSysCharSet) : Boolean;
 begin
   result:=(Ch<=#$FF) and (ansichar(byte(ch)) in CSet);
 end;
+
 
 {$macro on}
 {$define INWIDESTRINGREPLACE}
