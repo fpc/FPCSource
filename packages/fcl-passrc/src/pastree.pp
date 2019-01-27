@@ -57,10 +57,10 @@ resourcestring
   SPasTreeObjectType = 'object';
   SPasTreeClassType = 'class';
   SPasTreeInterfaceType = 'interface';
-  SPasTreeGenericType = 'generic class';
   SPasTreeSpecializedType = 'specialized class type';
-  SPasClassHelperType = 'Class helper type';
-  SPasRecordHelperType = 'Record helper type';
+  SPasClassHelperType = 'class helper type';
+  SPasRecordHelperType = 'record helper type';
+  SPasTypeHelperType = 'type helper type';
   SPasTreeArgument = 'argument';
   SPasTreeProcedureType = 'procedure type';
   SPasTreeResultElement = 'function result';
@@ -737,12 +737,12 @@ type
 
   TPasObjKind = (
     okObject, okClass, okInterface,
-    okGeneric, // MG: what is okGeneric?
+    // okGeneric  removed in FPC 3.3.1  check instead GenericTemplateTypes
     // okSpecialize removed in FPC 3.1.1
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);
 const
-  okWithFields = [okObject, okClass, okGeneric];
+  okWithFields = [okObject, okClass];
   okAllHelpers = [okClassHelper,okRecordHelper,okTypeHelper];
   okWithClassFields = okWithFields+okAllHelpers;
 
@@ -778,7 +778,6 @@ type
     ExternalNameSpace : String;
     ExternalName : String;
     InterfaceType: TPasClassInterfaceType;
-    Procedure SetGenericTemplates(AList : TFPList); override;
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function InterfaceGUID : string;
@@ -1630,8 +1629,9 @@ const
     'strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
-    'object', 'class', 'interface', 'class',
-    'class helper','record helper','type helper','dispinterface');
+    'object', 'class', 'interface',
+    'class helper','record helper','type helper',
+    'dispinterface');
 
   InterfaceTypeNames: array[TPasClassInterfaceType] of string = (
     'COM',
@@ -3037,9 +3037,9 @@ begin
     okObject: Result := SPasTreeObjectType;
     okClass: Result := SPasTreeClassType;
     okInterface: Result := SPasTreeInterfaceType;
-    okGeneric : Result := SPasTreeGenericType;
     okClassHelper : Result:=SPasClassHelperType;
     okRecordHelper : Result:=SPasRecordHelperType;
+    okTypeHelper : Result:=SPasTypeHelperType;
   else
     Result:='ObjKind('+IntToStr(ord(ObjKind))+')';
   end;
@@ -3057,12 +3057,6 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasElement(Interfaces[i]),true);
   ForEachChildCall(aMethodCall,Arg,HelperForType,true);
   ForEachChildCall(aMethodCall,Arg,GUIDExpr,false);
-end;
-
-procedure TPasClassType.SetGenericTemplates(AList: TFPList);
-begin
-  ObjKind:=okGeneric;
-  inherited SetGenericTemplates(AList);
 end;
 
 function TPasClassType.FindMember(MemberClass: TPTreeElement; const MemberName: String): TPasElement;

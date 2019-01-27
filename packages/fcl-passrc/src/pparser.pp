@@ -6719,7 +6719,7 @@ begin
       tkType:
         begin
         case AType.ObjKind of
-        okClass,okObject,okGeneric,
+        okClass,okObject,
         okClassHelper,okRecordHelper,okTypeHelper: ;
         else
           ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['TYPE',ObjKindNames[AType.ObjKind]]);
@@ -6732,7 +6732,7 @@ begin
           ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
             ['Procedure','Var']);
         case AType.ObjKind of
-        okClass,okObject,okGeneric,
+        okClass,okObject,
         okClassHelper,okRecordHelper,okTypeHelper: ;
         else
           ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['CONST',ObjKindNames[AType.ObjKind]]);
@@ -6789,7 +6789,7 @@ begin
         if not haveClass then
           SaveComments;
         case AType.ObjKind of
-        okObject,okClass,okGeneric: ;
+        okObject,okClass: ;
         okClassHelper,okTypeHelper,okRecordHelper:
           begin
           if (CurToken=tkdestructor) and not haveClass then
@@ -6836,7 +6836,7 @@ begin
       tkclass:
         begin
         case AType.ObjKind of
-        okClass,okObject,okGeneric,
+        okClass,okObject,
         okClassHelper,okRecordHelper,okTypeHelper: ;
         else
           ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['CLASS',ObjKindNames[AType.ObjKind]]);
@@ -6876,7 +6876,7 @@ var
   Expr: TPasExpr;
 
 begin
-  if (CurToken=tkIdentifier) and (AType.ObjKind in [okClass,okGeneric]) then
+  if (CurToken=tkIdentifier) and (AType.ObjKind=okClass) then
     begin
     s := LowerCase(CurTokenString);
     if (s = 'sealed') or (s = 'abstract') then
@@ -6896,7 +6896,7 @@ begin
       CheckToken(tkend);
     NextToken;
     AType.AncestorType := ParseTypeReference(AType,false,Expr);
-    if AType.ObjKind in [okClass,okGeneric] then
+    if AType.ObjKind=okClass then
       while CurToken=tkComma do
         begin
         NextToken;

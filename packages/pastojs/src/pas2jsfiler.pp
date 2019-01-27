@@ -349,7 +349,6 @@ const
     'Object',
     'Class',
     'Interface',
-    'Generic',
     'ClassHelper',
     'RecordHelper',
     'TypeHelper',
@@ -5694,7 +5693,6 @@ begin
     'Object': CreateClassType(okObject,Name);
     'Class': CreateClassType(okClass,Name);
     'Interface': CreateClassType(okInterface,Name);
-    'Generic': CreateClassType(okGeneric,Name);
     'ClassHelper': CreateClassType(okClassHelper,Name);
     'RecordHelper': CreateClassType(okRecordHelper,Name);
     'TypeHelper': CreateClassType(okTypeHelper,Name);
