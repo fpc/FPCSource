@@ -683,9 +683,7 @@ var
 
 procedure SetCGAPalette(CGAPaletteID: Byte); assembler;
 asm
-{$IFNDEF REGCALL}
-  mov ax,val_ax
-{$ENDIF REGCALL}
+  {# Var CGAPaletteID located in register al }
   push ebp
   push esi
   push edi
@@ -702,9 +700,7 @@ end;
 
 procedure SetCGABorder(CGABorder: Byte); assembler;
 asm
-{$IFNDEF REGCALL}
-  mov ax,val_ax
-{$ENDIF REGCALL}
+  {# Var CGABorder located in register al }
   push ebp
   push esi
   push edi
