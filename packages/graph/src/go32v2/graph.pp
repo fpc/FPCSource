@@ -181,9 +181,7 @@ const
 
  Procedure CallInt10(val_ax : word); assembler;
    asm
-{$IFNDEF REGCALL}
-     mov ax,val_ax
-{$ENDIF REGCALL}
+      {# Var val_ax located in register ax }
       push ebp
       push esi
       push edi
