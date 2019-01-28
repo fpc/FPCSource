@@ -157,6 +157,11 @@ const
 
   Procedure seg_bytemove(sseg : word;source : longint;dseg : word;dest : longint;count : longint); assembler;
     asm
+      {# Var sseg located in register ax
+       # Var source located in register edx
+       # Var dseg located in register cx
+       # Var dest located at ebp+12, size=OS_S32
+       # Var count located at ebp+8, size=OS_S32 }
       push edi
       push esi
       push es
