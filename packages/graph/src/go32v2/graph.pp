@@ -2231,12 +2231,11 @@ End;
   End;
 
 
- procedure SetVisual200(page: word);
-  { four page support... }
+ procedure SetVisual200_350(page: word);
   begin
     if page > HardwarePages then exit;
     asm
-      mov ax,[page]    { only lower byte is supPorted. }
+      mov ax,[page]    { only lower byte is supported. }
       mov ah,05h
       push ebp
       push esi
@@ -2261,25 +2260,6 @@ End;
     else
       VideoOfs := 0;
     end;
-  end;
-
- procedure SetVisual350(page: word);
-  { one page supPort... }
-  begin
-    if page > HardwarePages then exit;
-    asm
-      mov ax,[page]    { only lower byte is supPorted. }
-      mov ah,05h
-      push ebp
-      push esi
-      push edi
-      push ebx
-      int 10h
-      pop ebx
-      pop edi
-      pop esi
-      pop ebp
-    end ['EAX'];
   end;
 
  procedure SetActive350(page: word);
@@ -3569,7 +3549,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 199;
          mode.HardwarePages := 3;
-         mode.SetVisualPage := @SetVisual200;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive200;
          mode.InitMode := @Init640x200x16;
          mode.XAspect := 4500;
@@ -3584,7 +3564,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 349;
          mode.HardwarePages := 1;
-         mode.SetVisualPage := @SetVisual350;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive350;
          mode.InitMode := @Init640x350x16;
          mode.XAspect := 7750;
@@ -3742,7 +3722,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 199;
          mode.HardwarePages := 3;
-         mode.SetVisualPage := @SetVisual200;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive200;
          mode.InitMode := @Init640x200x16;
          mode.XAspect := 4500;
@@ -3757,7 +3737,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 349;
          mode.HardwarePages := 1;
-         mode.SetVisualPage := @SetVisual350;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive350;
          mode.InitMode := @Init640x350x16;
          mode.XAspect := 7750;
