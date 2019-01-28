@@ -7,8 +7,8 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) $(RESUNIT) uuchar objpas macpas iso7185 extpas buildrtl cpall
-implicitunits=$(SYSINITUNITS) athreads dos sysutils \
+units=$(SYSTEMUNIT) $(RESUNIT) heaptrc uuchar objpas macpas iso7185 extpas buildrtl cpall
+implicitunits=$(SYSINITUNITS) $(EXEUNITS) athreads dos sysutils \
       ctypes strings rtlconsts sysconst math types \
       typinfo fgl classes charset character getopts \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -18,17 +18,7 @@ implicitunits=$(SYSINITUNITS) athreads dos sysutils \
       cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u \
       unicodedata unicodenumtable
 
-#      dos heaptrc lineinfo ctypes \
-#      sysutils fgl classes math typinfo \
-#      charset cpall getopts \
-#      types rtlconsts sysconst character \
-#      athreads
-#implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-#      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
-#      unicodedata unicodenumtable
-
 rsts=math rtlconsts typinfo classes sysconst
-#implicitunits=exeinfo
 
 [require]
 nortl=y
@@ -76,6 +66,7 @@ ifeq ($(ARCH),powerpc)
 override LOADERS=
 RESUNIT=fpintres
 SYSINITUNITS=si_prc
+EXEUNITS=lineinfo exeinfo
 endif
 
 [rules]

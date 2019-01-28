@@ -6,6 +6,10 @@ unit buildrtl;
       si_prc,
       athreads, dos, sysutils,
 
+{$ifdef cpupowerpc}
+      exeinfo, lineinfo,
+{$endif}
+
       ctypes, strings,
       rtlconsts, sysconst, math, types,
       typinfo, fgl, classes,
