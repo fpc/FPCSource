@@ -198,112 +198,115 @@ const
        CallInt10(mode);
    end;
 
-  procedure seg_xorword(segment : word;ofs : longint;count : longint;w : word);
-    begin
-      asm
-         push edi
-         mov edi, [ofs]
-         mov ecx, [count]
-         movzx edx, word ptr [w]
-         { load segment }
-         push es
-         mov ax, [segment]
-         mov es, ax
-         { fill eax }
-         mov eax, edx
-         shl eax, 16
-         or eax, edx
-         test edi, 3
-         jz @@aligned
-         xor word ptr es:[edi], ax
-         add edi, 2
-         dec ecx
-         jz @@done
+  procedure seg_xorword(segment : word;ofs : longint;count : longint;w : word); assembler;
+    asm
+      {# Var segment located in register ax
+       # Var ofs located in register edx
+       # Var count located in register ecx
+       # Var w located at ebp+8, size=OS_16 }
+      push edi
+      mov edi, edx
+      { load segment }
+      push es
+      mov es, ax
+      { fill eax }
+      movzx edx, word ptr [w]
+      mov eax, edx
+      shl eax, 16
+      or eax, edx
+      test edi, 3
+      jz @@aligned
+      xor word ptr es:[edi], ax
+      add edi, 2
+      dec ecx
+      jz @@done
 @@aligned:
-         mov edx, ecx
-         shr ecx, 1
-@@lp:    xor dword ptr es:[edi], eax
-         add edi, 4
-         dec ecx
-         jnz @@lp
-         test edx, 1
-         jz @@done
-         xor word ptr es:[edi], ax
-@@done:  pop es
-         pop edi
-      end;
+      mov edx, ecx
+      shr ecx, 1
+@@lp: xor dword ptr es:[edi], eax
+      add edi, 4
+      dec ecx
+      jnz @@lp
+      test edx, 1
+      jz @@done
+      xor word ptr es:[edi], ax
+@@done:
+      pop es
+      pop edi
     end;
 
-  procedure seg_orword(segment : word;ofs : longint;count : longint;w : word);
-    begin
-      asm
-         push edi
-         mov edi, [ofs]
-         mov ecx, [count]
-         movzx edx, word ptr [w]
-         { load segment }
-         push es
-         mov ax, [segment]
-         mov es, ax
-         { fill eax }
-         mov eax, edx
-         shl eax, 16
-         or eax, edx
-         test edi, 3
-         jz @@aligned
-         or word ptr es:[edi], ax
-         add edi, 2
-         dec ecx
-         jz @@done
+  procedure seg_orword(segment : word;ofs : longint;count : longint;w : word); assembler;
+    asm
+      {# Var segment located in register ax
+       # Var ofs located in register edx
+       # Var count located in register ecx
+       # Var w located at ebp+8, size=OS_16 }
+      push edi
+      mov edi, edx
+      { load segment }
+      push es
+      mov es, ax
+      { fill eax }
+      movzx edx, word ptr [w]
+      mov eax, edx
+      shl eax, 16
+      or eax, edx
+      test edi, 3
+      jz @@aligned
+      or word ptr es:[edi], ax
+      add edi, 2
+      dec ecx
+      jz @@done
 @@aligned:
-         mov edx, ecx
-         shr ecx, 1
-@@lp:    or dword ptr es:[edi], eax
-         add edi, 4
-         dec ecx
-         jnz @@lp
-         test edx, 1
-         jz @@done
-         or word ptr es:[edi], ax
-@@done:  pop es
-         pop edi
-      end;
+      mov edx, ecx
+      shr ecx, 1
+@@lp: or dword ptr es:[edi], eax
+      add edi, 4
+      dec ecx
+      jnz @@lp
+      test edx, 1
+      jz @@done
+      or word ptr es:[edi], ax
+@@done:
+      pop es
+      pop edi
     end;
 
-  procedure seg_andword(segment : word;ofs : longint;count : longint;w : word);
-    begin
-      asm
-         push edi
-         mov edi, [ofs]
-         mov ecx, [count]
-         movzx edx, word ptr [w]
-         { load segment }
-         push es
-         mov ax, [segment]
-         mov es, ax
-         { fill eax }
-         mov eax, edx
-         shl eax, 16
-         or eax, edx
-         test edi, 3
-         jz @@aligned
-         and word ptr es:[edi], ax
-         add edi, 2
-         dec ecx
-         jz @@done
+  procedure seg_andword(segment : word;ofs : longint;count : longint;w : word); assembler;
+    asm
+      {# Var segment located in register ax
+       # Var ofs located in register edx
+       # Var count located in register ecx
+       # Var w located at ebp+8, size=OS_16 }
+      push edi
+      mov edi, edx
+      { load segment }
+      push es
+      mov es, ax
+      { fill eax }
+      movzx edx, word ptr [w]
+      mov eax, edx
+      shl eax, 16
+      or eax, edx
+      test edi, 3
+      jz @@aligned
+      and word ptr es:[edi], ax
+      add edi, 2
+      dec ecx
+      jz @@done
 @@aligned:
-         mov edx, ecx
-         shr ecx, 1
-@@lp:    and dword ptr es:[edi], eax
-         add edi, 4
-         dec ecx
-         jnz @@lp
-         test edx, 1
-         jz @@done
-         and word ptr es:[edi], ax
-@@done:  pop es
-         pop edi
-      end;
+      mov edx, ecx
+      shr ecx, 1
+@@lp: and dword ptr es:[edi], eax
+      add edi, 4
+      dec ecx
+      jnz @@lp
+      test edx, 1
+      jz @@done
+      and word ptr es:[edi], ax
+@@done:
+      pop es
+      pop edi
     end;
 
 {************************************************************************}
