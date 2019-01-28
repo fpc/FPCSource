@@ -991,7 +991,7 @@ end;
 
 Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); iocheck; compilerproc;
 var
-  s : String[32];
+  s : String;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -1002,7 +1002,7 @@ End;
 
 Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); iocheck; compilerproc;
 var
-  s : String[32];
+  s : String;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -1013,7 +1013,7 @@ End;
 
 Procedure fpc_Write_Text_SInt_Iso(Len : Longint;var t : Text;l : ValSInt); iocheck; compilerproc;
 var
-  s : String[32];
+  s : String;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -1029,7 +1029,7 @@ End;
 
 Procedure fpc_Write_Text_UInt_Iso(Len : Longint;var t : Text;l : ValUInt); iocheck; compilerproc;
 var
-  s : String[32];
+  s : String;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -1045,7 +1045,7 @@ End;
 {$ifndef CPU64}
 procedure fpc_write_text_qword(len : longint;var t : text;q : qword); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1056,7 +1056,7 @@ end;
 
 procedure fpc_write_text_int64(len : longint;var t : text;i : int64); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1067,7 +1067,7 @@ end;
 
 procedure fpc_write_text_qword_iso(len : longint;var t : text;q : qword); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
     exit;
@@ -1083,7 +1083,7 @@ end;
 
 procedure fpc_write_text_int64_iso(len : longint;var t : text;i : int64); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1101,7 +1101,7 @@ end;
 {$if defined(CPU16) or defined(CPU8)}
 procedure fpc_write_text_longword(len : longint;var t : text;q : longword); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1112,7 +1112,7 @@ end;
 
 procedure fpc_write_text_longint(len : longint;var t : text;i : longint); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1123,7 +1123,7 @@ end;
 
 procedure fpc_write_text_longword_iso(len : longint;var t : text;q : longword); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
     exit;
@@ -1139,7 +1139,7 @@ end;
 
 procedure fpc_write_text_longint_iso(len : longint;var t : text;i : longint); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1155,7 +1155,7 @@ end;
 
 procedure fpc_write_text_word(len : longint;var t : text;q : word); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1166,7 +1166,7 @@ end;
 
 procedure fpc_write_text_smallint(len : longint;var t : text;i : smallint); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1177,7 +1177,7 @@ end;
 
 procedure fpc_write_text_word_iso(len : longint;var t : text;q : word); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
     exit;
@@ -1193,7 +1193,7 @@ end;
 
 procedure fpc_write_text_smallint_iso(len : longint;var t : text;i : smallint); iocheck; compilerproc;
 var
-  s : string[32];
+  s : string;
 begin
   if (InOutRes<>0) then
    exit;
