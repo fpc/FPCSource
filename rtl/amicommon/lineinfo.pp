@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2019 by the Free Pascal development team
 
-    Stabs Line Info Retriever, MorphOS version
+    Stabs Line Info Retriever, Amiga-NG version
     can parse relocatable ELF executables
 
     See the file COPYING.FPC, included in this distribution,
@@ -327,7 +327,7 @@ begin
           end;
 {$endif}
 {$ifdef cpupowerpc}
-        inc(stab[j].nvalue,rela^.r_addend);
+        inc(stab[j].nvalue,rel^.r_addend);
 {$endif}
       end;
   until not GetNextReloc;
