@@ -2237,16 +2237,8 @@ End;
     asm
       mov ax,[page]    { only lower byte is supported. }
       mov ah,05h
-      push ebp
-      push esi
-      push edi
-      push ebx
       int 10h
-      pop ebx
-      pop edi
-      pop esi
-      pop ebp
-    end ['EDX','EAX'];
+    end ['EAX','EBX','ECX','EDX','ESI','EDI','EBP'];
   end;
 
  procedure SetActive200(page: word);
