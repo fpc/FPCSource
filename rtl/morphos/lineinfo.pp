@@ -234,7 +234,7 @@ begin
       origpos:=filepos(e.f);
       seek(e.f,relocofs);
       readlen:=min(relocleft,maxstabsreloc*sizeof(telf32_rela));
-      blockread(e.f,stabsreloc,maxstabsreloc*sizeof(telf32_rela),res);
+      blockread(e.f,stabsreloc,readlen,res);
       reloclen:=res div sizeof(telf32_rela);
       dec(relocleft,res);
       if reloclen <= 0 then
@@ -324,7 +324,8 @@ begin
      stabscnt:=stabsleft;
     blockread(e.f,stabs,stabscnt*sizeof(tstab),res);
     stabscnt:=res div sizeof(tstab);
-    relocastabsentries(@stabs,stabscnt);
+    if StabsNeedsRelocation then
+      relocastabsentries(@stabs,stabscnt);
     for i:=0 to stabscnt-1 do
      begin
        case stabs[i].ntype of
