@@ -81,6 +81,35 @@ type
     r_addend: longint;
   end;
 
+type
+  pelf32_rel = ^telf32_rel;
+  telf32_rel = packed record
+    r_offset: pointer;
+    r_info: dword;
+  end;
+
+type
+  pelf32_sym = ^telf32_sym;
+  telf32_sym = packed record
+    st_name: dword;
+    st_addr: pointer;
+    st_size: dword;
+    st_info: byte;
+    st_other: byte;
+    st_shndx: word;
+  end;
+
+{$ifdef cpui386}
+type
+  pelf32_reloc = ^telf32_reloc;
+  telf32_reloc = telf32_rel;
+{$else}
+type
+  pelf32_reloc = ^telf32_reloc;
+  telf32_reloc = telf32_rela;
+{$endif}
+
+
 { We use static variable so almost no stack is required, and is thus
   more safe when an error has occurred in the program }
 {$WARNING This code is not thread-safe, and needs improvement }  
@@ -93,9 +122,11 @@ var
   stabstrofs : longint; { absolute stabstr section offset in executable }
   dirlength  : longint; { length of the dirctory part of the source file }
   stabs      : array[0..maxstabs-1] of tstab;  { buffer }
-  stabsreloc : array[0..maxstabsreloc-1] of telf32_rela;
+  stabsreloc : array[0..maxstabsreloc-1] of telf32_reloc;
   textofs,
   textlen: longint;
+  symtabofs,
+  symtablen: longint;
   funcstab,             { stab with current function info }
   linestab,             { stab with current line info }
   dirstab,              { stab with current directory info }
@@ -199,7 +230,13 @@ function InitRelocs: boolean;
 var
   res: boolean;
 begin
+{$ifdef cpui386}
+  res:=FindExeSection(e,'.rel.stab',stabrelocofs,stabreloclen);
+  if res then
+    res:=res and FindExeSection(e,'.symtab',symtabofs,symtablen);
+{$else}
   res:=FindExeSection(e,'.rela.stab',stabrelocofs,stabreloclen);
+{$endif}
 
   if res then
     begin
@@ -233,9 +270,9 @@ begin
     begin
       origpos:=filepos(e.f);
       seek(e.f,relocofs);
-      readlen:=min(relocleft,maxstabsreloc*sizeof(telf32_rela));
+      readlen:=min(relocleft,maxstabsreloc*sizeof(telf32_reloc));
       blockread(e.f,stabsreloc,readlen,res);
-      reloclen:=res div sizeof(telf32_rela);
+      reloclen:=res div sizeof(telf32_reloc);
       dec(relocleft,res);
       if reloclen <= 0 then
         exit;
@@ -248,28 +285,50 @@ begin
   GetNextReloc:=true;
 end;
 
-procedure RelocaStabsEntries(stab: pstab; stablen: longint);
+function GetSym(symnr: longint): telf32_sym;
+var
+  origpos: longint;
+begin
+  origpos:=filepos(e.f);
+  seek(e.f,symtabofs+(symnr*sizeof(telf32_sym)));
+  blockread(e.f,GetSym,sizeof(telf32_sym));
+  seek(e.f,origpos);
+end;
+
+procedure RelocStabsEntries(stab: pstab; stablen: longint);
+const
+  R_386_32 = 1;
 var
   origpos: longint;
   intostabsofs: longint;
-  i,j: longint;
-  rela: pelf32_rela;
+  j: longint;
+  rel: pelf32_reloc;
+  sym: telf32_sym;
 begin
   origpos:=filepos(e.f);
   intostabsofs:=origpos-(stabofs+stablen*sizeof(tstab));
 
   j:=0;
   repeat
-    rela:=@stabsreloc[currentreloc];
-    while pointer(intostabsofs + (sizeof(tstab) * j) + 8) < rela^.r_offset do
+    rel:=@stabsreloc[currentreloc];
+    while pointer(intostabsofs + (sizeof(tstab) * j) + 8) < rel^.r_offset do
       begin
         inc(j);
         if j >= stablen then exit;
       end;
 
-    if (pointer(intostabsofs + (sizeof(tstab) * j) + 8) = rela^.r_offset) then
+    if (pointer(intostabsofs + (sizeof(tstab) * j) + 8) = rel^.r_offset) then
       begin
+{$ifdef cpui386}
+        if byte(rel^.r_info) = R_386_32 then
+          begin
+            sym:=GetSym(rel^.r_info shr 8);
+            inc(stab[j].nvalue,ptruint(sym.st_addr));
+          end;
+{$endif}
+{$ifdef cpupowerpc}
         inc(stab[j].nvalue,rela^.r_addend);
+{$endif}
       end;
   until not GetNextReloc;
 end;
@@ -325,7 +384,7 @@ begin
     blockread(e.f,stabs,stabscnt*sizeof(tstab),res);
     stabscnt:=res div sizeof(tstab);
     if StabsNeedsRelocation then
-      relocastabsentries(@stabs,stabscnt);
+      relocstabsentries(@stabs,stabscnt);
     for i:=0 to stabscnt-1 do
      begin
        case stabs[i].ntype of
