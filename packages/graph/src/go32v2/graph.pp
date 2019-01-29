@@ -2325,13 +2325,8 @@ End;
     push ecx
     push edx
     push edi
-{$IFDEF REGCALL}
     movsx  edi, ax
     movsx  ebx, dx
-{$ELSE REGCALL}
-    movsx  edi, x
-    movsx  ebx, y
-{$ENDIF REGCALL}
     movsx  ecx, StartYViewPort
     movsx  edx, StartXViewPort
     add    ebx, ecx
