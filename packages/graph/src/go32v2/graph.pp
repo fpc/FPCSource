@@ -2322,8 +2322,6 @@ End;
     {# Var X located in register ax
      # Var Y located in register dx }
     push ebx
-    push ecx
-    push edx
     push edi
     movsx  edi, ax
     movsx  ebx, dx
@@ -2335,8 +2333,6 @@ End;
     add    edi, ebx
     movzx  eax, byte ptr fs:[edi+ebx*4+$a0000]
     pop edi
-    pop edx
-    pop ecx
     pop ebx
   end;
 
