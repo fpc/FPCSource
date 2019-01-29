@@ -2281,9 +2281,8 @@ End;
 
 
 
- Procedure PutPixel320(X,Y : smallint; Pixel: Word);
+ Procedure PutPixel320(X,Y : smallint; Pixel: Word); assembler;
  { x,y -> must be in local coordinates. Clipping if required. }
-  assembler;
   asm
       {# Var X located in register ax
        # Var Y located in register dx
@@ -2316,8 +2315,7 @@ End;
  end;
 
 
- Function GetPixel320(X,Y: smallint):word;
-  assembler;
+ Function GetPixel320(X,Y: smallint):word; assembler;
   asm
     {# Var X located in register ax
      # Var Y located in register dx }
