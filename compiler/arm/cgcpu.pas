@@ -2686,6 +2686,21 @@ unit cgcpu;
           list.concat(taicpu.op_reg_reg(A_MOV,destreg,destreg));
         end;
 
+      { save estimation, if a creating a separate ref is needed or
+        if we can keep the original reference while copying }
+      function SimpleRef(const ref : treference) : boolean;
+        begin
+          result:=((ref.base=NR_PC) and (ref.addressmode=AM_OFFSET) and (ref.refaddr=addr_full)) or
+              ((ref.symbol=nil) and
+               (ref.addressmode=AM_OFFSET) and
+               (((ref.offset>=0) and (ref.offset+len<=31)) or
+                (not(GenerateThumbCode) and (ref.offset>=-255) and (ref.offset+len<=255))
+                { ldrh has a limited offset range }
+                (not(GenerateThumbCode) and ((len mod 4) in [0,1]) and (ref.offset>=-4095) and (ref.offset+len<=4095))}
+               )
+              );
+        end;
+
       { will never be called with count<=4 }
       procedure genloop_thumb(count : aword;size : byte);
 
@@ -2792,17 +2807,15 @@ unit cgcpu;
           begin
             tmpregi:=0;
 
-            srcreg:=getintregister(list,OS_ADDR);
-
-            { explicit pc relative addressing, could be
-              e.g. a floating point constant }
-            if source.base=NR_PC then
+            { loading address in a separate register needed? }
+            if SimpleRef(source) then
               begin
                 { ... then we don't need a loadaddr }
                 srcref:=source;
               end
             else
               begin
+                srcreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,source,srcreg);
                 reference_reset_base(srcref,srcreg,0,source.temppos,source.alignment,source.volatility);
               end;
@@ -2816,9 +2829,15 @@ unit cgcpu;
                 dec(len,4);
               end;
 
-            destreg:=getintregister(list,OS_ADDR);
-            a_loadaddr_ref_reg(list,dest,destreg);
-            reference_reset_base(dstref,destreg,0,dest.temppos,dest.alignment,dest.volatility);
+            { loading address in a separate register needed? }
+            if SimpleRef(dest) then
+              dstref:=dest
+            else
+              begin
+                destreg:=getintregister(list,OS_ADDR);
+                a_loadaddr_ref_reg(list,dest,destreg);
+                reference_reset_base(dstref,destreg,0,dest.temppos,dest.alignment,dest.volatility);
+              end;
             tmpregi2:=1;
             while (tmpregi2<=tmpregi) do
               begin
