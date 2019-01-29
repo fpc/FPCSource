@@ -16,6 +16,10 @@ begin
     begin
     P:=AddPackage('utils-h2pas');
     P.ShortName:='h2pas';
+    { java and jvm-android do not support 
+      fpc_get_output used in these sources }
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

@@ -16,6 +16,11 @@ begin
     begin
     P:=AddPackage('utils-fprcp');
     P.ShortName:='fprcp';
+    { java and jvm-android do not support 
+      getmem/freemem and new/dispose used in
+      these sources }
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
