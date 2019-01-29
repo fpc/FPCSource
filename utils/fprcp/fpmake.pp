@@ -23,6 +23,8 @@ begin
       P.OSes := P.OSes - [java,android];
     { palmos does not have classes }
     P.OSes := P.OSes - [palmos];
+    { Program does not fit in 16-bit memory constraints }
+    P.OSes := P.OSes - [msdos,win16];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
