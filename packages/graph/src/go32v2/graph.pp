@@ -2288,9 +2288,7 @@ End;
       {# Var X located in register ax
        # Var Y located in register dx
        # Var Pixel located in register cx }
-      push eax
       push ebx
-      push ecx
       push edi
       movsx  edi, ax
       movsx  ebx, dx
@@ -2315,9 +2313,7 @@ End;
       mov    fs:[edi+ebx*4+$a0000], al
 @putpix320done:
       pop edi
-      pop ecx
       pop ebx
-      pop eax
  end;
 
 
