@@ -2292,7 +2292,6 @@ End;
       push edi
       movsx  edi, ax
       movsx  ebx, dx
-      mov    al, cl
       cmp    clippixels, 0
       je     @putpix320noclip
       test   edi, edi
@@ -2304,13 +2303,13 @@ End;
       cmp    bx, ViewHeight
       jg     @putpix320done
 @putpix320noclip:
-      movsx  ecx, StartYViewPort
+      movsx  eax, StartYViewPort
       movsx  edx, StartXViewPort
-      add    ebx, ecx
+      add    ebx, eax
       add    edi, edx
       shl    ebx, 6
       add    edi, ebx
-      mov    fs:[edi+ebx*4+$a0000], al
+      mov    fs:[edi+ebx*4+$a0000], cl
 @putpix320done:
       pop edi
       pop ebx
