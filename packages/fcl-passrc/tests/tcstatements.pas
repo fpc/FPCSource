@@ -1794,7 +1794,9 @@ end;
 procedure TTestStatementParser.TestGotoInIfThen;
 
 begin
-  AddStatements(['if expr then',
+  AddStatements([
+  '{$goto on}',
+  'if expr then',
   '  dosomething',
   '   else if expr2 then',
   '    goto try_qword',

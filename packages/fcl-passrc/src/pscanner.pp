@@ -334,7 +334,8 @@ type
     bsMacro,
     bsScopedEnums,
     bsObjectChecks,   // check methods 'Self' and object type casts
-    bsPointerMath     // pointer arithmetic
+    bsPointerMath,    // pointer arithmetic
+    bsGoto       // support label and goto, set by {$goto on|off}
     );
   TBoolSwitches = set of TBoolSwitch;
 const
@@ -370,8 +371,8 @@ const
   bsAll = [low(TBoolSwitch)..high(TBoolSwitch)];
   bsFPCMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
   bsObjFPCMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
-  bsDelphiMode: TBoolSwitches = [bsWriteableConst];
-  bsDelphiUnicodeMode: TBoolSwitches = [bsWriteableConst];
+  bsDelphiMode: TBoolSwitches = [bsWriteableConst,bsGoto];
+  bsDelphiUnicodeMode: TBoolSwitches = [bsWriteableConst,bsGoto];
   bsMacPasMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
 
 type
@@ -1102,7 +1103,8 @@ const
     'Macro',
     'ScopedEnums',
     'ObjectChecks',
-    'PointerMath'
+    'PointerMath',
+    'Goto'
     );
 
   ValueSwitchNames: array[TValueSwitch] of string = (
@@ -3674,6 +3676,8 @@ begin
           DoBoolDirective(bsAssertions);
         'DEFINE':
           HandleDefine(Param);
+        'GOTO':
+          DoBoolDirective(bsGoto);
         'ERROR':
           HandleError(Param);
         'HINT':
@@ -3788,9 +3792,9 @@ begin
     DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
       [BoolSwitchNames[bs]])
   else if NewValue then
-    Include(FCurrentBoolSwitches,bs)
+    CurrentBoolSwitches:=CurrentBoolSwitches+[bs]
   else
-    Exclude(FCurrentBoolSwitches,bs);
+    CurrentBoolSwitches:=CurrentBoolSwitches-[bs];
 end;
 
 function TPascalScanner.DoFetchToken: TToken;
@@ -4510,9 +4514,24 @@ begin
 end;
 
 procedure TPascalScanner.SetCurrentBoolSwitches(const AValue: TBoolSwitches);
+var
+  OldBS, Removed, Added: TBoolSwitches;
 begin
   if FCurrentBoolSwitches=AValue then Exit;
+  OldBS:=FCurrentBoolSwitches;
   FCurrentBoolSwitches:=AValue;
+  Removed:=OldBS-FCurrentBoolSwitches;
+  Added:=FCurrentBoolSwitches-OldBS;
+  if bsGoto in Added then
+    begin
+    UnsetNonToken(tklabel);
+    UnsetNonToken(tkgoto);
+    end;
+  if bsGoto in Removed then
+    begin
+    SetNonToken(tklabel);
+    SetNonToken(tkgoto);
+    end;
 end;
 
 procedure TPascalScanner.SetCurrentModeSwitches(AValue: TModeSwitches);

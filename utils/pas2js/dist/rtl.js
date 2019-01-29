@@ -344,6 +344,31 @@ var rtl = {
     rtl.initClass(c,parent,name,initfn);
   },
 
+  createHelper: function(parent,name,ancestor,initfn){
+    // create a helper,
+    // ancestor must be null or a helper,
+    var c = null;
+    if (ancestor != null){
+      c = Object.create(ancestor);
+      c.$ancestor = ancestor;
+      // c.$ancestor === Object.getPrototypeOf(c)
+    } else {
+      c = {};
+    };
+    parent[name] = c;
+    c.$class = c; // Note: o.$class === Object.getPrototypeOf(o)
+    c.$classname = name;
+    parent = rtl.initStruct(c,parent,name);
+    c.$fullname = parent.$name+'.'+name;
+    // rtti
+    var t = c.$module.$rtti.$Helper(c.$name,{ "helper": c });
+    c.$rtti = t;
+    if (rtl.isObject(ancestor)) t.ancestor = ancestor.$rtti;
+    if (!t.ancestor) t.ancestor = null;
+    // init members
+    initfn.call(c);
+  },
+
   tObjectDestroy: "Destroy",
 
   free: function(obj,name){
@@ -1163,7 +1188,8 @@ var rtl = {
     newBaseTI("tTypeInfoRecord",12 /* tkRecord */,rtl.tTypeInfoStruct);
     newBaseTI("tTypeInfoClass",13 /* tkClass */,rtl.tTypeInfoStruct);
     newBaseTI("tTypeInfoClassRef",14 /* tkClassRef */);
-    newBaseTI("tTypeInfoInterface",15 /* tkInterface */,rtl.tTypeInfoStruct);
+    newBaseTI("tTypeInfoInterface",18 /* tkInterface */,rtl.tTypeInfoStruct);
+    newBaseTI("tTypeInfoHelper",19 /* tkHelper */,rtl.tTypeInfoStruct);
   },
 
   tSectionRTTI: {
@@ -1214,6 +1240,7 @@ var rtl = {
     $ClassRef: function(name,o){ return this.$inherited(name,rtl.tTypeInfoClassRef,o); },
     $Pointer: function(name,o){ return this.$inherited(name,rtl.tTypeInfoPointer,o); },
     $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); }
+    $Helper: function(name,o){ return this.$Scope(name,rtl.tTypeInfoHelper,o); }
   },
 
   newTIParam: function(param){

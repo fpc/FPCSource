@@ -348,6 +348,8 @@ type
     Procedure TestForLoopStartIncompFail;
     Procedure TestForLoopEndIncompFail;
     Procedure TestSimpleStatement_VarFail;
+    Procedure TestLabelStatementFail;
+    Procedure TestLabelStatementDelphiFail;
 
     // units
     Procedure TestUnitForwardOverloads;
@@ -5297,6 +5299,26 @@ begin
   Add('begin');
   Add('  i;');
   CheckResolverException('Illegal expression',nIllegalExpression);
+end;
+
+procedure TTestResolver.TestLabelStatementFail;
+begin
+  StartProgram(false);
+  Add('var i: longint;');
+  Add('begin');
+  Add('  i: i;');
+  CheckParserException('Expected ";"',nParserExpectTokenError);
+end;
+
+procedure TTestResolver.TestLabelStatementDelphiFail;
+begin
+  StartProgram(false);
+  Add('{$mode delphi}');
+  Add('{$goto off}');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  i: i;');
+  CheckParserException('Expected ";"',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestUnitForwardOverloads;

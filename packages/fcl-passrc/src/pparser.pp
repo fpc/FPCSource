@@ -3692,9 +3692,9 @@ begin
       end;
     tklabel:
       begin
-        SetBlock(declNone);
-        if not (Declarations is TInterfaceSection) then
-          ParseLabels(Declarations);
+      SetBlock(declNone);
+      if not (Declarations is TInterfaceSection) then
+        ParseLabels(Declarations);
       end;
     tkSquaredBraceOpen:
       if [msPrefixedAttributes,msIgnoreAttributes]*CurrentModeSwitches<>[] then
@@ -6102,7 +6102,7 @@ begin
             tkAssignMinus,
             tkAssignMul,
             tkAssignDivision:
-            begin
+              begin
               // assign statement
               El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock,SrcPos));
               TPasImplAssign(El).left:=Left;
@@ -6116,10 +6116,12 @@ begin
               Right:=nil;
               AddStatement(El);
               El:=nil;
-            end;
+              end;
             tkColon:
-            begin
-              if not (Left is TPrimitiveExpr) then
+              begin
+              if not (bsGoto in Scanner.CurrentBoolSwitches) then
+                ParseExcTokenError(TokenInfos[tkSemicolon])
+              else if not (Left is TPrimitiveExpr) then
                 ParseExcTokenError(TokenInfos[tkSemicolon]);
               // label mark. todo: check mark identifier in the list of labels
               El:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock,SrcPos));
@@ -6128,7 +6130,7 @@ begin
               CurBlock.AddElement(El);
               CmdElem:=TPasImplLabelMark(El);
               El:=nil;
-            end;
+              end;
           else
             // simple statement (function call)
             El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock,SrcPos));
