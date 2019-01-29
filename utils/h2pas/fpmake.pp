@@ -20,6 +20,8 @@ begin
       fpc_get_output used in these sources }
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
+    { palmos does not support command line parameters }
+    P.OSes := P.OSes - [palmos];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

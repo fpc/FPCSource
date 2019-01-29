@@ -21,6 +21,8 @@ begin
       these sources }
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
+    { palmos does not have classes }
+    P.OSes := P.OSes - [palmos];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
