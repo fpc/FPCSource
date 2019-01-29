@@ -1354,6 +1354,13 @@
   (
     opcode  : A_MSR;
     ops     : 2;
+    optypes : (ot_regs,ot_reg32,ot_none,ot_none,ot_none,ot_none);
+    code    : #18#1#32#240;
+    flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_MSR;
+    ops     : 2;
     optypes : (ot_regf,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
     code    : #19#3#32#240;
     flags   : if_arm32 or if_armv4
