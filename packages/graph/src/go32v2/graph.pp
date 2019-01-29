@@ -2285,6 +2285,9 @@ End;
  { x,y -> must be in local coordinates. Clipping if required. }
   assembler;
   asm
+      {# Var X located in register ax
+       # Var Y located in register dx
+       # Var Pixel located in register cx }
       push eax
       push ebx
       push ecx
