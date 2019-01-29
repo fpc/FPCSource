@@ -2694,9 +2694,9 @@ unit cgcpu;
               ((ref.symbol=nil) and
                (ref.addressmode=AM_OFFSET) and
                (((ref.offset>=0) and (ref.offset+len<=31)) or
-                (not(GenerateThumbCode) and (ref.offset>=-255) and (ref.offset+len<=255))
+                (not(GenerateThumbCode) and (ref.offset>=-255) and (ref.offset+len<=255)) or
                 { ldrh has a limited offset range }
-                (not(GenerateThumbCode) and ((len mod 4) in [0,1]) and (ref.offset>=-4095) and (ref.offset+len<=4095))}
+                (not(GenerateThumbCode) and ((len mod 4) in [0,1]) and (ref.offset>=-4095) and (ref.offset+len<=4095))
                )
               );
         end;
