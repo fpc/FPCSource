@@ -207,7 +207,8 @@ const
     'Macro',
     'ScopedEnums',
     'ObjectChecks',
-    'PointerMath'
+    'PointerMath',
+    'Goto'
     );
 
   PCUDefaultConverterOptions: TPasToJsConverterOptions = [coUseStrict];
