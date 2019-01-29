@@ -2292,14 +2292,9 @@ End;
       push ebx
       push ecx
       push edi
-{$IFDEF REGCALL}
       movsx  edi, ax
       movsx  ebx, dx
       mov    al, cl
-{$ELSE REGCALL}
-      movsx  edi, x
-      movsx  ebx, y
-{$ENDIF REGCALL}
       cmp    clippixels, 0
       je     @putpix320noclip
       test   edi, edi
@@ -2316,9 +2311,6 @@ End;
       add    ebx, ecx
       add    edi, edx
 {    add    edi, [VideoOfs]      no multiple pages in 320*200*256 }
-{$IFNDEF REGCALL}
-      mov    ax, [pixel]
-{$ENDIF REGCALL}
       shl    ebx, 6
       add    edi, ebx
       mov    fs:[edi+ebx*4+$a0000], al
