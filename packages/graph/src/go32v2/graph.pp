@@ -2319,6 +2319,8 @@ End;
  Function GetPixel320(X,Y: smallint):word;
   assembler;
   asm
+    {# Var X located in register ax
+     # Var Y located in register dx }
     push ebx
     push ecx
     push edx
