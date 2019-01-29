@@ -9285,6 +9285,7 @@ begin
     ComputeElement(SubParams,ResolvedEl,[rcNoImplicitProc,rcSetReferenceFlags]);
     if Value.CustomData=nil then
       CreateReference(ResolvedEl.LoTypeEl,Value,Access);
+    ResolvedEl.IdentEl:=nil;
     end
   else if Value.InheritsFrom(TUnaryExpr) then
     begin
@@ -21857,10 +21858,17 @@ begin
 end;
 
 function TPasResolver.IsClassField(El: TPasElement): boolean;
+var
+  C: TClass;
 begin
-  Result:=((El.ClassType=TPasVariable) or (El.ClassType=TPasConst))
-    and ([vmClass,vmStatic]*TPasVariable(El).VarModifiers<>[])
-    and (El.Parent is TPasClassType);
+  if ((El.ClassType=TPasVariable) or (El.ClassType=TPasConst))
+      and ([vmClass,vmStatic]*TPasVariable(El).VarModifiers<>[]) then
+    begin
+    C:=El.Parent.ClassType;
+    Result:=(C=TPasClassType) or (C=TPasRecordType);
+    end
+  else
+    Result:=false;
 end;
 
 function TPasResolver.GetFunctionType(El: TPasElement): TPasFunctionType;
