@@ -188,11 +188,11 @@ implementation
     procedure tcgordconstnode.pass_generate_code;
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resultdef));
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
          location.value:=value.svalue;
-{$else cpu64bitalu}
+{$else cpu64bitalu or cpuhighleveltarget}
          location.value64:=value.svalue;
-{$endif cpu64bitalu}
+{$endif cpu64bitalu or cpuhighleveltarget}
       end;
 
 

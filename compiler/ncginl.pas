@@ -82,9 +82,9 @@ implementation
       ncon,ncal,
       tgobj,ncgutil,
       cgutils,cgobj,hlcgobj
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
       ,cg64f32
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
       ;
 
 
@@ -322,7 +322,7 @@ implementation
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         if def_cgsize(resultdef) in [OS_64,OS_S64] then
           begin
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -330,7 +330,7 @@ implementation
             cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,left.location.register64,location.register64);
           end
         else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
           begin
             location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,1,left.location.register,location.register);
@@ -352,17 +352,17 @@ implementation
         var
          addvalue : TConstExprInt;
          addconstant : boolean;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          hregisterhi,
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
          hregister : tregister;
         begin
           { set defaults }
           addconstant:=true;
           hregister:=NR_NO;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
           hregisterhi:=NR_NO;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
           { first secondpass second argument, because if the first arg }
           { is used in that expression then SSL may move it to another }
@@ -398,9 +398,9 @@ implementation
                 begin
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,second_incdec_tempregdef,addvalue<=1);
                   hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.register64.reghi;
-{$endif not cpu64bitalu}
+{$endif not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   { insert multiply with addvalue if its >1 }
                   if addvalue>1 then
                     hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,left.resultdef,addvalue.svalue,hregister);
@@ -410,11 +410,11 @@ implementation
           { write the add instruction }
           if addconstant then
             begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
                 cg64.a_op64_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),addvalue,tcallparanode(left).left.location)
               else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],left.resultdef,
 {$ifdef cpu64bitalu}
                   aint(addvalue.svalue),
@@ -425,12 +425,12 @@ implementation
             end
            else
              begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
                  cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),
                    joinreg64(hregister,hregisterhi),tcallparanode(left).left.location)
                else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                  hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],left.resultdef,
                    hregister,tcallparanode(left).left.location);
              end;
@@ -464,18 +464,18 @@ implementation
         var
           maskvalue : TConstExprInt;
           maskconstant : boolean;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
           hregisterhi,
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
           hregister : tregister;
         begin
           { set defaults }
           maskconstant:=true;
           hregister:=NR_NO;
           maskvalue:=0;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
           hregisterhi:=NR_NO;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
           { first secondpass first argument, because if the second arg }
           { is used in that expression then SSL may move it to another }
@@ -495,9 +495,9 @@ implementation
               else
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,tcallparanode(left).right.resultdef,true);
               hregister:=tcallparanode(left).left.location.register;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               hregisterhi:=tcallparanode(left).left.location.register64.reghi;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
               maskconstant:=false;
             end;
           { write the and/or/xor/sar/shl/shr/rol/ror instruction }
@@ -508,11 +508,11 @@ implementation
                   maskvalue:=maskvalue and 63
                 else
                   maskvalue:=maskvalue and 31;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               if def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64] then
                 cg64.a_op64_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),maskvalue.svalue,tcallparanode(tcallparanode(left).right).left.location)
               else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],tcallparanode(left).right.resultdef,
 {$ifdef cpu64bitalu}
                   aint(maskvalue.svalue),
@@ -523,12 +523,12 @@ implementation
             end
            else
              begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                if def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64] then
                  cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),
                    joinreg64(hregister,hregisterhi),tcallparanode(tcallparanode(left).right).left.location)
                else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                  hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],tcallparanode(left).right.resultdef,
                    hregister,tcallparanode(tcallparanode(left).right).left.location);
              end;
@@ -828,33 +828,33 @@ implementation
         hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,true);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         if def_cgsize(resultdef) in [OS_64,OS_S64] then
           begin
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
           end
         else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
           location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         if assigned(op2) then
           begin
              { rotating by a constant directly coded: }
              if op2.nodetype=ordconstn then
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                if def_cgsize(resultdef) in [OS_64,OS_S64] then
                  cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
                    tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
                    op1.location.register64, location.register64)
                else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                  hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
                    tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
                    op1.location.register, location.register)
              else
                begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                  if def_cgsize(resultdef) in [OS_64,OS_S64] then
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
@@ -864,7 +864,7 @@ implementation
                                              location.register64);
                    end
                  else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
                                              op2.resultdef,resultdef,true);
@@ -875,12 +875,12 @@ implementation
                end;
           end
         else
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
           if def_cgsize(resultdef) in [OS_64,OS_S64] then
             cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),1,
                                       op1.location.register64,location.register64)
           else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,1,
                                     op1.location.register,location.register);
       end;

@@ -318,9 +318,7 @@
 }
 {$ifdef llvm}
   {$undef SUPPORT_MMX}
-  {$undef cpu16bitalu}
-  {$undef cpu32bitalu}
-  {$define cpu64bitalu}
   {$define cpuhighleveltarget}
+  {$define cpucg64shiftsupport}
   {$define symansistr}
 {$endif}

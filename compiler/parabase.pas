@@ -269,7 +269,7 @@ implementation
         case location^.loc of
           LOC_REGISTER :
             begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               if size in [OS_64,OS_S64] then
                 begin
                   if not assigned(location^.next) then

@@ -3694,7 +3694,7 @@ implementation
                    we're done here }
                  expectloc:=LOC_REGISTER;
                end
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               { is there a 64 bit type ? }
              else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) then
                begin
@@ -3706,7 +3706,7 @@ implementation
                   else
                     expectloc:=LOC_JUMP;
                end
-{$endif cpu64bitalu}
+{$endif not(cpu64bitalu) and not(cpuhighleveltarget)}
              { generic 32bit conversion }
              else
                begin
@@ -3740,8 +3740,10 @@ implementation
 {$endif cpuneedsmulhelper}
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
+{$if not defined(cpuhighleveltarget)}
                   else if torddef(ld).size>sizeof(aint) then
                     expectloc:=LOC_JUMP
+{$endif}
                   else
                     expectloc:=LOC_FLAGS;
               end;
