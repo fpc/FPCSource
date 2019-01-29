@@ -330,8 +330,9 @@ implementation
                begin
                  { Load a pointer to the thread var record into a register. }
                  { This register will be used in both multithreaded and non-multithreaded cases. }
-                 hreg_tv_rec:=hlcg.getaddressregister(current_asmdata.CurrAsmList,fieldptrdef);
-                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,tvref,hreg_tv_rec);
+                 hreg_tv_rec:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(tv_rec));
+                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tv_rec,cpointerdef.getreusable(tv_rec),tvref,hreg_tv_rec);
+                 reference_reset_base(tvref,hreg_tv_rec,0,ctempposinvalid,tvref.alignment,tvref.volatility)
                end;
              paraloc1.init;
              paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
@@ -346,8 +347,6 @@ implementation
              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
                tfieldvarsym(tv_index_field),href);
-             if size_opt then
-               hlcg.reference_reset_base(href,tfieldvarsym(tv_index_field).vardef,hreg_tv_rec,href.offset,href.temppos,href.alignment,[]);
              hlcg.a_load_ref_cgpara(current_asmdata.CurrAsmList,tfieldvarsym(tv_index_field).vardef,href,paraloc1);
              { Dealloc the threadvar record register before calling the helper function to allow  }
              { the register allocator to assign non-mandatory real registers for hreg_tv_rec. }
@@ -377,10 +376,6 @@ implementation
              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
                tfieldvarsym(tv_non_mt_data_field),href);
-             { load in the same "hregister" as above, so after this sequence
-               the address of the threadvar is always in hregister }
-             if size_opt then
-               hlcg.reference_reset_base(href,fieldptrdef,hreg_tv_rec,href.offset,href.temppos,href.alignment,[]);
              hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,href,hregister);
              hlcg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
 
