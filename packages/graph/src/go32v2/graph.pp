@@ -2331,7 +2331,6 @@ End;
     movsx  edx, StartXViewPort
     add    ebx, ecx
     add    edi, edx
- {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
     shl    ebx, 6
     add    edi, ebx
     movzx  eax, byte ptr fs:[edi+ebx*4+$a0000]
