@@ -2310,7 +2310,6 @@ End;
       movsx  edx, StartXViewPort
       add    ebx, ecx
       add    edi, edx
-{    add    edi, [VideoOfs]      no multiple pages in 320*200*256 }
       shl    ebx, 6
       add    edi, ebx
       mov    fs:[edi+ebx*4+$a0000], al
