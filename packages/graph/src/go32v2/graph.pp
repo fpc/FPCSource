@@ -2276,7 +2276,6 @@ End;
  Procedure Init320;
     begin
       InitInt10hMode($13);
-      VideoOfs := 0;
     end;
 
 
@@ -2342,7 +2341,7 @@ End;
      dummy: Byte;
  begin
    dummy := CurrentColor;
-   offset := y * 320 + x + VideoOfs;
+   offset := y * 320 + x;
    case CurrentWriteMode of
      XorPut: dummy := dummy xor Mem[Sega000:offset];
      OrPut: dummy := dummy or Mem[Sega000:offset];
@@ -2365,7 +2364,6 @@ End;
       movzx  edi, x
       movzx  ebx, y
 {$ENDIF REGCALL}
-   {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
       shl    ebx, 6
       add    edi, ebx
       mov    ax, [CurrentColor]
@@ -2384,13 +2382,11 @@ End;
  procedure SetVisual320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  procedure SetActive320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  {************************************************************************}
