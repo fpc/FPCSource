@@ -553,8 +553,14 @@ implementation
 
 
   procedure thlcgllvm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
+    var
+      fromsize: tdef;
     begin
-      list.concat(taillvm.op_reg_size_const_size(llvmconvop(ptrsinttype,tosize,false),register,ptrsinttype,a,tosize))
+      if tosize.size<=ptrsinttype.size then
+        fromsize:=ptrsinttype
+      else
+        fromsize:=tosize;
+      list.concat(taillvm.op_reg_size_const_size(llvmconvop(fromsize,tosize,false),register,fromsize,a,tosize))
     end;
 
 
