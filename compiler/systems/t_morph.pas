@@ -69,7 +69,7 @@ begin
    begin
     if not UseVLink then
      begin
-      ExeCmd[1]:='ld $OPT -o $EXE $RES';
+      ExeCmd[1]:='ld $OPT $GCSECTIONS -o $EXE $RES';
       ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
      end
     else
@@ -223,6 +223,11 @@ begin
      StripStr:='-s -P __abox__';
     if create_smartlink_sections then
      GCSectionsStr:='-gc-all -sc -sd';
+   end
+  else
+   begin
+    if create_smartlink_sections then
+     GCSectionsStr:='--gc-sections -e _start';
    end;
 
 { Write used files and libraries }
@@ -242,6 +247,7 @@ begin
    begin
     Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
    end;
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
