@@ -2319,17 +2319,15 @@ End;
     {# Var X located in register ax
      # Var Y located in register dx }
     push ebx
-    push edi
-    movsx  edi, ax
+    movsx  eax, ax
     movsx  ebx, dx
     movsx  ecx, StartYViewPort
     movsx  edx, StartXViewPort
     add    ebx, ecx
-    add    edi, edx
+    add    eax, edx
     shl    ebx, 6
-    add    edi, ebx
-    movzx  eax, byte ptr fs:[edi+ebx*4+$a0000]
-    pop edi
+    add    eax, ebx
+    movzx  eax, byte ptr fs:[eax+ebx*4+$a0000]
     pop ebx
   end;
 
