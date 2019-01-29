@@ -626,7 +626,7 @@ type
     Procedure TestClassInterface_GUIDProperty;
 
     // helpers
-    Procedure TestClassHelper_ClassVar; // ToDo
+    Procedure TestClassHelper_ClassVar; // todo
     // todo: TestClassHelper_Overload
 
     // proc types
@@ -10259,7 +10259,7 @@ begin
     '  this.SetInt = function (Value) {',
     '  };',
     '  this.DoIt = function () {',
-    '    this.Fy = this.Fx + 1;',
+    '    $mod.TRec.Fy = this.Fx + 1;',
     '    this.SetInt(this.GetInt() + 1);',
     '  };',
     '}, true);',
@@ -10270,7 +10270,7 @@ begin
     'if ($mod.TRec.GetInt() === 2) ;',
     '$mod.TRec.SetInt($mod.TRec.GetInt() + 2);',
     '$mod.TRec.SetInt($mod.TRec.Fx);',
-    '$mod.r.$record.Fy = $mod.r.Fx + 1;',
+    '$mod.TRec.Fy = $mod.r.Fx + 1;',
     'if ($mod.r.$record.GetInt() === 2) ;',
     '$mod.r.$record.SetInt($mod.r.$record.GetInt() + 2);',
     '$mod.r.$record.SetInt($mod.r.Fx);',
@@ -10488,10 +10488,10 @@ begin
     '      return this;',
     '    };',
     '    this.DoIt = function () {',
-    '      this.$record.Count = this.Count + 3;',
+    '      $mod.TRec.TPoint.Count = this.Count + 3;',
     '    };',
     '    this.DoThat = function () {',
-    '      this.Count = this.Count + 4;',
+    '      $mod.TRec.TPoint.Count = this.Count + 4;',
     '    };',
     '  }, true);',
     '  this.i = 0;',
@@ -10510,7 +10510,7 @@ begin
     '  };',
     '  this.DoSome = function () {',
     '    this.p.x = this.p.y + 1;',
-    '    this.p.$record.Count = this.p.Count + 2;',
+    '    this.TPoint.Count = this.p.Count + 2;',
     '  };',
     '}, true);',
     'this.r = $mod.TRec.$clone({',
@@ -11593,6 +11593,8 @@ begin
   '    class var Fy: longint;',
   '    class function GetInt: longint;',
   '    class procedure SetInt(Value: longint);',
+  '  end;',
+  '  TBird = class',
   '    class procedure DoIt;',
   '    class property IntA: longint read Fx write Fy;',
   '    class property IntB: longint read GetInt write SetInt;',
@@ -11604,23 +11606,41 @@ begin
   'class procedure tobject.setint(value: longint);',
   'begin',
   'end;',
-  'class procedure tobject.doit;',
+  'class procedure tbird.doit;',
   'begin',
+  '  FX:=3;',
   '  IntA:=IntA+1;',
   '  Self.IntA:=Self.IntA+1;',
   '  IntB:=IntB+1;',
   '  Self.IntB:=Self.IntB+1;',
+  '  with Self do begin',
+  '    FX:=11;',
+  '    IntA:=IntA+12;',
+  '    IntB:=IntB+13;',
+  '  end;',
   'end;',
-  'var Obj: tobject;',
+  'var Obj: tbird;',
   'begin',
-  '  tobject.inta:=tobject.inta+1;',
-  '  if tobject.intb=2 then;',
-  '  tobject.intb:=tobject.intb+2;',
-  '  tobject.setint(tobject.inta);',
+  '  tbird.fx:=tbird.fx+1;',
+  '  tbird.inta:=tbird.inta+1;',
+  '  if tbird.intb=2 then;',
+  '  tbird.intb:=tbird.intb+2;',
+  '  tbird.setint(tbird.inta);',
   '  obj.inta:=obj.inta+1;',
   '  if obj.intb=2 then;',
   '  obj.intb:=obj.intb+2;',
-  '  obj.setint(obj.inta);']);
+  '  obj.setint(obj.inta);',
+  '  with Tbird do begin',
+  '    FX:=FY+1;',
+  '    inta:=inta+2;',
+  '    intb:=intb+3;',
+  '  end;',
+  '  with Obj do begin',
+  '    FX:=FY+1;',
+  '    inta:=inta+2;',
+  '    intb:=intb+3;',
+  '  end;',
+  '']);
   ConvertProgram;
   CheckSource('TestClass_Property_ClassMethod',
     LinesToStr([ // statements
@@ -11638,25 +11658,40 @@ begin
     '  };',
     '  this.SetInt = function (Value) {',
     '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
     '  this.DoIt = function () {',
-    '    this.Fy = this.Fx + 1;',
-    '    this.Fy = this.Fx + 1;',
+    '    $mod.TObject.Fx = 3;',
+    '    $mod.TObject.Fy = this.Fx + 1;',
+    '    $mod.TObject.Fy = this.Fx + 1;',
     '    this.SetInt(this.GetInt() + 1);',
     '    this.SetInt(this.GetInt() + 1);',
+    '    $mod.TObject.Fx = 11;',
+    '    $mod.TObject.Fy = this.Fx + 12;',
+    '    this.SetInt(this.GetInt() + 13);',
     '  };',
     '});',
     'this.Obj = null;'
     ]),
     LinesToStr([ // $mod.$main
-    '$mod.TObject.Fy = $mod.TObject.Fx + 1;',
-    'if ($mod.TObject.GetInt() === 2);',
-    '$mod.TObject.SetInt($mod.TObject.GetInt() + 2);',
-    '$mod.TObject.SetInt($mod.TObject.Fx);',
-    '$mod.Obj.$class.Fy = $mod.Obj.Fx + 1;',
+    '$mod.TObject.Fx = $mod.TBird.Fx + 1;',
+    '$mod.TObject.Fy = $mod.TBird.Fx + 1;',
+    'if ($mod.TBird.GetInt() === 2);',
+    '$mod.TBird.SetInt($mod.TBird.GetInt() + 2);',
+    '$mod.TBird.SetInt($mod.TBird.Fx);',
+    '$mod.TObject.Fy = $mod.Obj.Fx + 1;',
     'if ($mod.Obj.$class.GetInt() === 2);',
     '$mod.Obj.$class.SetInt($mod.Obj.$class.GetInt() + 2);',
-    '$mod.Obj.$class.SetInt($mod.Obj.Fx);'
-    ]));
+    '$mod.Obj.$class.SetInt($mod.Obj.Fx);',
+    'var $with1 = $mod.TBird;',
+    '$mod.TObject.Fx = $with1.Fy + 1;',
+    '$mod.TObject.Fy = $with1.Fx + 2;',
+    '$with1.SetInt($with1.GetInt() + 3);',
+    'var $with2 = $mod.Obj;',
+    '$mod.TObject.Fx = $with2.Fy + 1;',
+    '$mod.TObject.Fy = $with2.Fx + 2;',
+    '$with2.SetInt($with2.GetInt() + 3);',
+    '']));
 end;
 
 procedure TTestModule.TestClass_Property_Indexed;
@@ -11916,9 +11951,9 @@ begin
   'type',
   '  TObject = class end;',
   '  TAlphaList = class',
-  '    function GetAlphas(Index: longint): Pointer; virtual; abstract;',
-  '    procedure SetAlphas(Index: longint; Value: Pointer); virtual; abstract;',
-  '    property Alphas[Index: longint]: Pointer read getAlphas write setAlphas; default;',
+  '    function GetAlphas(Index: boolean): Pointer; virtual; abstract;',
+  '    procedure SetAlphas(Index: boolean; Value: Pointer); virtual; abstract;',
+  '    property Alphas[Index: boolean]: Pointer read getAlphas write setAlphas; default;',
   '  end;',
   '  TBetaList = class',
   '    function GetBetas(Index: longint): Pointer; virtual; abstract;',
@@ -11932,14 +11967,14 @@ begin
   'var',
   '  List: TAlphaList;',
   'begin',
-  '  if TBetaList(List[2])[3]=nil then ;',
-  '  TBetaList(List[4])[5]:=nil;',
+  '  if TBetaList(List[true])[3]=nil then ;',
+  '  TBetaList(List[false])[5]:=nil;',
   'end;',
   'var',
   '  List: TAlphaList;',
   'begin',
-  '  if TBetaList(List[2])[3]=nil then ;',
-  '  TBetaList(List[4])[5]:=nil;',
+  '  if TBetaList(List[true])[3]=nil then ;',
+  '  TBetaList(List[false])[5]:=nil;',
   '']);
   ConvertProgram;
   CheckSource('TestClass_PropertyDefault2',
@@ -11957,15 +11992,15 @@ begin
     'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
     '  this.DoIt = function () {',
     '    var List = null;',
-    '    if (List.GetAlphas(2).GetBetas(3) === null) ;',
-    '    List.GetAlphas(4).SetBetas(5, null);',
+    '    if (List.GetAlphas(true).GetBetas(3) === null) ;',
+    '    List.GetAlphas(false).SetBetas(5, null);',
     '  };',
     '});',
     'this.List = null;',
     '']),
     LinesToStr([ // $mod.$main
-    'if ($mod.List.GetAlphas(2).GetBetas(3) === null) ;',
-    '$mod.List.GetAlphas(4).SetBetas(5, null);',
+    'if ($mod.List.GetAlphas(true).GetBetas(3) === null) ;',
+    '$mod.List.GetAlphas(false).SetBetas(5, null);',
     '']));
 end;
 
@@ -13937,37 +13972,39 @@ end;
 procedure TTestModule.TestClassOf_ClassProperty;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    class var FA: longint;');
-  Add('    class function GetA: longint;');
-  Add('    class procedure SetA(Value: longint);');
-  Add('    class property pA: longint read fa write fa;');
-  Add('    class property pB: longint read geta write seta;');
-  Add('  end;');
-  Add('  TObjectClass = class of tobject;');
-  Add('class function tobject.geta: longint; begin end;');
-  Add('class procedure tobject.seta(value: longint); begin end;');
-  Add('var');
-  Add('  b: boolean;');
-  Add('  Obj: tobject;');
-  Add('  Cla: tobjectclass;');
-  Add('begin');
-  Add('  obj.pa:=obj.pa;');
-  Add('  obj.pb:=obj.pb;');
-  Add('  b:=obj.pa=4;');
-  Add('  b:=obj.pb=obj.pb;');
-  Add('  b:=5=obj.pa;');
-  Add('  cla.pa:=6;');
-  Add('  cla.pa:=cla.pa;');
-  Add('  cla.pb:=cla.pb;');
-  Add('  b:=cla.pa=7;');
-  Add('  b:=cla.pb=cla.pb;');
-  Add('  b:=8=cla.pa;');
-  Add('  tobject.pa:=9;');
-  Add('  tobject.pb:=tobject.pb;');
-  Add('  b:=tobject.pa=10;');
-  Add('  b:=11=tobject.pa;');
+  Add([
+  'type',
+  '  TObject = class',
+  '    class var FA: longint;',
+  '    class function GetA: longint;',
+  '    class procedure SetA(Value: longint);',
+  '    class property pA: longint read fa write fa;',
+  '    class property pB: longint read geta write seta;',
+  '  end;',
+  '  TObjectClass = class of tobject;',
+  'class function tobject.geta: longint; begin end;',
+  'class procedure tobject.seta(value: longint); begin end;',
+  'var',
+  '  b: boolean;',
+  '  Obj: tobject;',
+  '  Cla: tobjectclass;',
+  'begin',
+  '  obj.pa:=obj.pa;',
+  '  obj.pb:=obj.pb;',
+  '  b:=obj.pa=4;',
+  '  b:=obj.pb=obj.pb;',
+  '  b:=5=obj.pa;',
+  '  cla.pa:=6;',
+  '  cla.pa:=cla.pa;',
+  '  cla.pb:=cla.pb;',
+  '  b:=cla.pa=7;',
+  '  b:=cla.pb=cla.pb;',
+  '  b:=8=cla.pa;',
+  '  tobject.pa:=9;',
+  '  tobject.pb:=tobject.pb;',
+  '  b:=tobject.pa=10;',
+  '  b:=11=tobject.pa;',
+  '']);
   ConvertProgram;
   CheckSource('TestClassOf_ClassProperty',
     LinesToStr([ // statements
@@ -13989,13 +14026,13 @@ begin
     'this.Cla = null;'
     ]),
     LinesToStr([ // $mod.$main
-    '$mod.Obj.$class.FA = $mod.Obj.FA;',
+    '$mod.TObject.FA = $mod.Obj.FA;',
     '$mod.Obj.$class.SetA($mod.Obj.$class.GetA());',
     '$mod.b = $mod.Obj.FA === 4;',
     '$mod.b = $mod.Obj.$class.GetA() === $mod.Obj.$class.GetA();',
     '$mod.b = 5 === $mod.Obj.FA;',
-    '$mod.Cla.FA = 6;',
-    '$mod.Cla.FA = $mod.Cla.FA;',
+    '$mod.TObject.FA = 6;',
+    '$mod.TObject.FA = $mod.Cla.FA;',
     '$mod.Cla.SetA($mod.Cla.GetA());',
     '$mod.b = $mod.Cla.FA === 7;',
     '$mod.b = $mod.Cla.GetA() === $mod.Cla.GetA();',
@@ -18363,38 +18400,40 @@ begin
   '    One = 1;',
   '    Two: word = 2;',
   '  class var Glob: word;',
-  '  procedure Foo;',
-  '  class procedure Bar;',
+  '  function Foo(w: word): word;',
+  '  class function Bar(w: word): word;',
   '  end;',
-  'procedure THelper.foo;',
+  'function THelper.foo(w: word): word;',
   'begin',
-  '  Two:=One;',
-  '  Glob:=Glob;',
-  '  Self.Glob:=Self.Glob;',
-  '  with Self do Self.Glob:=Self.Glob;',
+  //'  Result:=w;',
+  //'  Two:=One+w;',
+  //'  Glob:=Glob;',
+  //'  Self.Glob:=Self.Glob;',
+  'Result:=Self.Glob;',
+  //'  with Self do Self.Glob:=Self.Glob;',
   'end;',
-  'class procedure THelper.bar;',
+  'class function THelper.bar(w: word): word;',
   'begin',
-  '  Two:=One;',
-  '  Glob:=Glob;',
-  '  Self.Glob:=Self.Glob;',
-  '  with Self do Self.Glob:=Self.Glob;',
+  '  Result:=w;',
+  //'  Two:=One;',
+  //'  Glob:=Glob;',
+  //'  Self.Glob:=Self.Glob;',
+  //'  with Self do Self.Glob:=Self.Glob;',
   'end;',
   'var o: TObject;',
   'begin',
-  '  tobject.two:=tobject.one;',
-  '  tobject.Glob:=tobject.Glob;',
-  '  with tobject do begin',
-  '    two:=one;',
-  '    Glob:=Glob;',
-  '  end;',
-  '  o.two:=o.one;',
-  '  o.Glob:=o.Glob;',
-  '  with o do begin',
-  '    two:=one;',
-  '    Glob:=Glob;',
-  '  end;',
-  '',
+  //'  tobject.two:=tobject.one;',
+  //'  tobject.Glob:=tobject.Glob;',
+  //'  with tobject do begin',
+  //'    two:=one;',
+  //'    Glob:=Glob;',
+  //'  end;',
+  //'  o.two:=o.one;',
+  //'  o.Glob:=o.Glob;',
+  //'  with o do begin',
+  //'    two:=one;',
+  //'    Glob:=Glob;',
+  //'  end;',
   '']);
   ConvertProgram;
   CheckSource('TestClassHelper',
