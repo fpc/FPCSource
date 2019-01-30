@@ -1239,7 +1239,7 @@ var rtl = {
     $Class: function(name,o){ return this.$Scope(name,rtl.tTypeInfoClass,o); },
     $ClassRef: function(name,o){ return this.$inherited(name,rtl.tTypeInfoClassRef,o); },
     $Pointer: function(name,o){ return this.$inherited(name,rtl.tTypeInfoPointer,o); },
-    $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); }
+    $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); },
     $Helper: function(name,o){ return this.$Scope(name,rtl.tTypeInfoHelper,o); }
   },
 
