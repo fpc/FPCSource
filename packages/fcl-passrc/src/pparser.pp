@@ -2168,29 +2168,6 @@ function TPasParser.ParseExprOperand(AParent: TPasElement): TPasExpr;
       end;
   end;
 
-  Procedure HandleSelf(Var Last: TPasExpr);
-
-  Var
-    b       : TBinaryExpr;
-    optk    : TToken;
-
-  begin
-    NextToken;
-    if CurToken = tkDot then
-      begin // self.Write(EscapeText(AText));
-      optk:=CurToken;
-      NextToken;
-      b:=CreateBinaryExpr(AParent,Last, ParseExprOperand(AParent), TokenToExprOp(optk));
-      if not Assigned(b.right) then
-        begin
-        b.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-        ParseExcExpectedIdentifier;
-        end;
-      Last:=b;
-      end;
-    UngetToken;
-  end;
-
   function IsSpecialize: boolean;
   var
     LookAhead, i: Integer;
@@ -2267,10 +2244,7 @@ begin
       CanSpecialize:=true;
       aName:=CurTokenText;
       if CompareText(aName,'self')=0 then
-        begin
-        Last:=CreateSelfExpr(AParent);
-        HandleSelf(Last);
-        end
+        Last:=CreateSelfExpr(AParent)
       else
         Last:=CreatePrimitiveExpr(AParent,pekIdent,aName);
       end;
@@ -2301,7 +2275,6 @@ begin
       CanSpecialize:=true;
       aName:=CurTokenText;
       Last:=CreateSelfExpr(AParent);
-      HandleSelf(Last);
       end;
     tkprocedure,tkfunction:
       begin
@@ -2691,7 +2664,6 @@ begin
     ExpStack.Free;
   end;
 end;
-
 
 function GetExprIdent(p: TPasExpr): String;
 begin

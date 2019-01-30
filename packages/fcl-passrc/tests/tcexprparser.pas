@@ -109,6 +109,8 @@ type
     Procedure TestAPlusBBracketArrayParams;
     Procedure TestAPlusBBracketDotC;
     Procedure TestADotBDotC;
+    Procedure TestADotBBracketC;
+    Procedure TestSelfDotBBracketC;
     Procedure TestRange;
     Procedure TestBracketsTotal;
     Procedure TestBracketsLeft;
@@ -1247,6 +1249,44 @@ begin
   TAssert.AssertSame('PlusB.right.parent=PlusB',SubB,SubB.right.Parent);
   AssertExpression('left a',SubB.left,pekIdent,'a');
   AssertExpression('right b',SubB.right,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestADotBBracketC;
+var
+  P: TParamsExpr;
+  B: TBinaryExpr;
+begin
+  ParseExpression('a.b[c]');
+  P:=TParamsExpr(AssertExpression('ArrayParams',TheExpr,pekArrayParams,TParamsExpr));
+
+  B:=TBinaryExpr(AssertExpression('Binary identifier',P.Value,pekBinary,TBinaryExpr));
+  AssertEquals('dot expr',eopSubIdent,B.OpCode);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertExpression('left a',B.left,pekIdent,'a');
+  AssertExpression('right b',B.right,pekIdent,'b');
+
+  AssertEquals('length(p.Params)',length(p.Params),1);
+  AssertExpression('first param c',p.Params[0],pekIdent,'c');
+end;
+
+procedure TTestExpressions.TestSelfDotBBracketC;
+var
+  P: TParamsExpr;
+  B: TBinaryExpr;
+begin
+  ParseExpression('self.b[c]');
+  P:=TParamsExpr(AssertExpression('ArrayParams',TheExpr,pekArrayParams,TParamsExpr));
+
+  B:=TBinaryExpr(AssertExpression('Binary identifier',P.Value,pekBinary,TBinaryExpr));
+  AssertEquals('dot expr',eopSubIdent,B.OpCode);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertEquals('left self',TSelfExpr,B.left.classtype);
+  AssertExpression('right b',B.right,pekIdent,'b');
+
+  AssertEquals('length(p.Params)',length(p.Params),1);
+  AssertExpression('first param c',p.Params[0],pekIdent,'c');
 end;
 
 initialization
