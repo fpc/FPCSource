@@ -2797,6 +2797,20 @@ begin
   '  r=low(word)+high(int64);',
   '  s=low(longint)+high(integer);',
   '  t=succ(2)+pred(2);',
+  '  lo1:byte=lo(word($1234));',
+  '  hi1:byte=hi(word($1234));',
+  '  lo2:word=lo(longword($1234CDEF));',
+  '  hi2:word=hi(longword($1234CDEF));',
+  '  lo3:word=lo(LongInt(-$1234CDEF));',
+  '  hi3:word=hi(LongInt(-$1234CDEF));',
+  '  lo4:byte=lo(byte($34));',
+  '  hi4:byte=hi(byte($34));',
+  '  lo5:byte=lo(shortint(-$34));',
+  '  hi5:byte=hi(shortint(-$34));',
+  '  lo6:longword=lo($123456789ABCDEF0);',
+  '  hi6:longword=hi($123456789ABCDEF0);',
+  '  lo7:longword=lo(-$123456789ABCDEF0);',
+  '  hi7:longword=hi(-$123456789ABCDEF0);',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -4359,6 +4373,10 @@ begin
   Add('  if i>=j then;');
   Add('  if i<j then;');
   Add('  if i<=j then;');
+  Add('  i:=lo($1234);');
+  Add('  i:=lo($1234CDEF);');
+  Add('  i:=hi($1234);');
+  Add('  i:=hi($1234CDEF);');
   ParseProgram;
 end;
 

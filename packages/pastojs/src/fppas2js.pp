@@ -1836,6 +1836,7 @@ type
     Function ConvertBuiltInStrParam(El: TPasExpr; AContext: TConvertContext; IsStrFunc, IsFirst: boolean): TJSElement; virtual;
     Function ConvertBuiltIn_WriteStr(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Val(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_LoHi(El: TParamsExpr; AContext: TConvertContext; IsLoFunc: Boolean): TJSElement; virtual;
     Function ConvertBuiltIn_ConcatArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_ConcatString(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_CopyArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -9020,6 +9021,8 @@ begin
           bfStrFunc: Result:=ConvertBuiltIn_StrFunc(El,AContext);
           bfWriteStr: Result:=ConvertBuiltIn_WriteStr(El,AContext);
           bfVal: Result:=ConvertBuiltIn_Val(El,AContext);
+          bfLo: Result := ConvertBuiltIn_LoHi(El,AContext,True);
+          bfHi: Result := ConvertBuiltIn_LoHi(El,AContext,False);
           bfConcatArray: Result:=ConvertBuiltIn_ConcatArray(El,AContext);
           bfConcatString: Result:=ConvertBuiltIn_ConcatString(El,AContext);
           bfCopyArray: Result:=ConvertBuiltIn_CopyArray(El,AContext);
@@ -11097,6 +11100,66 @@ begin
       AssignContext.Free;
       end;
   end;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_LoHi(El: TParamsExpr;
+  AContext: TConvertContext; IsLoFunc: Boolean): TJSElement;
+var
+  ResolvedParam: TPasResolverResult;
+  Param: TPasExpr;
+  Mask: LongWord;
+  Shift, Digits: Integer;
+  ShiftEx: TJSShiftExpression;
+  AndEx: TJSBitwiseAndExpression;
+begin
+  Result := nil;
+  if AContext.Resolver=nil then
+    RaiseInconsistency(20190129102200,El);
+  Param := El.Params[0];
+  AContext.Resolver.ComputeElement(Param,ResolvedParam,[]);
+  if not (ResolvedParam.BaseType in btAllInteger) then
+    DoError(20190129121100,nXExpectedButYFound,sXExpectedButYFound,['integer type',
+      AContext.Resolver.GetResolverResultDescription(ResolvedParam)],Param);
+  Shift := AContext.Resolver.GetShiftAndMaskForLoHiFunc(ResolvedParam.BaseType,IsLoFunc,Mask);
+  Result := ConvertExpression(Param,AContext);
+  // Note: convert Param first, as it might raise an exception
+  if Shift > 0 then
+    begin
+    if Shift=32 then
+      begin
+      // JS bitwise operations work only 32bit -> use division for bigger shifts
+      Result:=CreateMathFloor(El,CreateDivideNumber(El,Result,$100000000));
+      end
+    else
+      begin
+      ShiftEx := TJSRShiftExpression(CreateElement(TJSRShiftExpression,El));
+      ShiftEx.A := Result;
+      ShiftEx.B := CreateLiteralNumber(El, Shift);
+      Result := ShiftEx;
+      end;
+    end;
+  case Mask of
+    $FF: Digits := 2;
+    $FFFF: Digits := 4;
+    $FFFFFFFF: Digits := 8;
+    else { $F } Digits := 1;
+  end;
+  if Digits<8 then
+    begin
+    // & Mask
+    AndEx := TJSBitwiseAndExpression(CreateElement(TJSBitwiseAndExpression,El));
+    AndEx.A := Result;
+    AndEx.B := CreateLiteralHexNumber(El,Mask,Digits);
+    Result := AndEx;
+    end
+  else
+    begin
+    // mask to longword ->   >>> 0
+    ShiftEx:=TJSURShiftExpression(CreateElement(TJSURShiftExpression,El));
+    ShiftEx.A:=Result;
+    ShiftEx.B:=CreateLiteralNumber(El,0);
+    Result:=ShiftEx;
+    end;
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_ConcatArray(El: TParamsExpr;

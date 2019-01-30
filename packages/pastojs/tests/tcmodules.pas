@@ -370,6 +370,8 @@ type
     // statements
     Procedure TestNestBegin;
     Procedure TestIncDec;
+    Procedure TestLoHiFpcMode;
+    Procedure TestLoHiDelphiMode;
     Procedure TestAssignments;
     Procedure TestArithmeticOperators1;
     Procedure TestLogicalOperators;
@@ -2680,6 +2682,154 @@ begin
     '$mod.Bar+=2;',
     '$mod.Bar-=1;',
     '$mod.Bar-=3;'
+    ]));
+end;
+
+procedure TTestModule.TestLoHiFpcMode;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'const',
+  '  LoByte1 = Lo(Word($1234));',
+  '  HiByte1 = Hi(Word($1234));',
+  '  LoByte2 = Lo(SmallInt($1234));',
+  '  HiByte2 = Hi(SmallInt($1234));',
+  '  LoWord1 = Lo($1234CDEF);',
+  '  HiWord1 = Hi($1234CDEF);',
+  '  LoWord2 = Lo(-$1234CDEF);',
+  '  HiWord2 = Hi(-$1234CDEF);',
+  '  lo4:byte=lo(byte($34));',
+  '  hi4:byte=hi(byte($34));',
+  '  lo5:byte=lo(shortint(-$34));',
+  '  hi5:byte=hi(shortint(-$34));',
+  '  lo6:longword=lo($123456789ABCDE);',
+  '  hi6:longword=hi($123456789ABCDE);',
+  '  lo7:longword=lo(-$123456789ABCDE);',
+  '  hi7:longword=hi(-$123456789ABCDE);',
+  'var',
+  '  b: Byte;',
+  '  ss: shortint;',
+  '  w: Word;',
+  '  si: SmallInt;',
+  '  lw: LongWord;',
+  '  li: LongInt;',
+  '  b2: Byte;',
+  '  ni: nativeint;',
+  'begin',
+  '  w := $1234;',
+  '  ss := -$12;',
+  '  b := lo(ss);',
+  '  b := HI(ss);',
+  '  b := lo(w);',
+  '  b := HI(w);',
+  '  b2 := lo(b);',
+  '  b2 := hi(b);',
+  '  lw := $1234CDEF;',
+  '  w := lo(lw);',
+  '  w := hi(lw);',
+  '  ni := $123456789ABCDE;',
+  '  lw := lo(ni);',
+  '  lw := hi(ni);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestLoHiFpcMode',
+    LinesToStr([ // statements
+    'this.LoByte1 = 0x1234 & 0xFF;',
+    'this.HiByte1 = (0x1234 >> 8) & 0xFF;',
+    'this.LoByte2 = 0x1234 & 0xFF;',
+    'this.HiByte2 = (0x1234 >> 8) & 0xFF;',
+    'this.LoWord1 = 0x1234CDEF & 0xFFFF;',
+    'this.HiWord1 = (0x1234CDEF >> 16) & 0xFFFF;',
+    'this.LoWord2 = -0x1234CDEF & 0xFFFF;',
+    'this.HiWord2 = (-0x1234CDEF >> 16) & 0xFFFF;',
+    'this.lo4 = 0x34 & 0xF;',
+    'this.hi4 = (0x34 >> 4) & 0xF;',
+    'this.lo5 = (((-0x34 & 255) << 24) >> 24) & 0xFF;',
+    'this.hi5 = ((((-0x34 & 255) << 24) >> 24) >> 8) & 0xFF;',
+    'this.lo6 = 0x123456789ABCDE >>> 0;',
+    'this.hi6 = 1193046 >>> 0;',
+    'this.lo7 = -0x123456789ABCDE >>> 0;',
+    'this.hi7 = Math.floor(-0x123456789ABCDE / 4294967296) >>> 0;',
+    'this.b = 0;',
+    'this.ss = 0;',
+    'this.w = 0;',
+    'this.si = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    'this.b2 = 0;',
+    'this.ni = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    '$mod.w = 0x1234;',
+    '$mod.ss = -0x12;',
+    '$mod.b = $mod.ss & 0xFF;',
+    '$mod.b = ($mod.ss >> 8) & 0xFF;',
+    '$mod.b = $mod.w & 0xFF;',
+    '$mod.b = ($mod.w >> 8) & 0xFF;',
+    '$mod.b2 = $mod.b & 0xF;',
+    '$mod.b2 = ($mod.b >> 4) & 0xF;',
+    '$mod.lw = 0x1234CDEF;',
+    '$mod.w = $mod.lw & 0xFFFF;',
+    '$mod.w = ($mod.lw >> 16) & 0xFFFF;',
+    '$mod.ni = 0x123456789ABCDE;',
+    '$mod.lw = $mod.ni >>> 0;',
+    '$mod.lw = Math.floor($mod.ni / 4294967296) >>> 0;',
+    '']));
+end;
+
+procedure TTestModule.TestLoHiDelphiMode;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'const',
+  '  LoByte1 = Lo(Word($1234));',
+  '  HiByte1 = Hi(Word($1234));',
+  '  LoByte2 = Lo(SmallInt($1234));',
+  '  HiByte2 = Hi(SmallInt($1234));',
+  '  LoByte3 = Lo($1234CDEF);',
+  '  HiByte3 = Hi($1234CDEF);',
+  '  LoByte4 = Lo(-$1234CDEF);',
+  '  HiByte4 = Hi(-$1234CDEF);',
+  'var',
+  '  b: Byte;',
+  '  w: Word;',
+  '  si: SmallInt;',
+  '  lw: LongWord;',
+  '  li: LongInt;',
+  'begin',
+  '  w := $1234;',
+  '  b := lo(w);',
+  '  b := HI(w);',
+  '  lw := $1234CDEF;',
+  '  b := lo(lw);',
+  '  b := hi(lw);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestLoHiDelphiMode',
+    LinesToStr([ // statements
+    'this.LoByte1 = 0x1234 & 0xFF;',
+    'this.HiByte1 = (0x1234 >> 8) & 0xFF;',
+    'this.LoByte2 = 0x1234 & 0xFF;',
+    'this.HiByte2 = (0x1234 >> 8) & 0xFF;',
+    'this.LoByte3 = 0x1234CDEF & 0xFF;',
+    'this.HiByte3 = (0x1234CDEF >> 8) & 0xFF;',
+    'this.LoByte4 = -0x1234CDEF & 0xFF;',
+    'this.HiByte4 = (-0x1234CDEF >> 8) & 0xFF;',
+    'this.b = 0;',
+    'this.w = 0;',
+    'this.si = 0;',
+    'this.lw = 0;',
+    'this.li = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    '$mod.w = 0x1234;',
+    '$mod.b = $mod.w & 0xFF;',
+    '$mod.b = ($mod.w >> 8) & 0xFF;',
+    '$mod.lw = 0x1234CDEF;',
+    '$mod.b = $mod.lw & 0xFF;',
+    '$mod.b = ($mod.lw >> 8) & 0xFF;'
     ]));
 end;
 

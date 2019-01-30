@@ -228,6 +228,13 @@ Works:
   - with
   - self
 - built-in procedure Val(const s: string; var e: enumtype; out Code: integertype);
+- intrinsic functions Lo and Hi, depending on $mode (ObjFPC or Delphi):
+  - In $MODE DELPHI:
+    function Lo/Hi(i: <any integer type>): Byte
+  - In $MODE OBJFPC:
+    function Lo/Hi(i: Byte/ShortInt/Word/SmallInt): Byte
+    function Lo/Hi(i: LongWord/LongInt/UIntSingle/IntSingle): Word
+    function Lo/Hi(i: QWord/Int64/UIntDouble/IntDouble): LongWord
 - helpers:
   - class
   - record
@@ -549,6 +556,8 @@ type
     bfStrFunc,
     bfWriteStr,
     bfVal,
+    bfLo,
+    bfHi,
     bfConcatArray,
     bfConcatString,
     bfCopyArray,
@@ -584,6 +593,8 @@ const
     'Str',
     'WriteStr',
     'Val',
+    'Lo',
+    'Hi',
     'Concat',
     'Concat',
     'Copy',
@@ -1689,6 +1700,12 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Val_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
+    function BI_LoHi_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_LoHi_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_LoHi_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_ConcatArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_ConcatArray_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
@@ -2015,6 +2032,8 @@ type
     function IsElementSkipped(El: TPasElement): boolean; virtual;
     function FindLocalBuiltInSymbol(El: TPasElement): TPasElement; virtual;
     function GetLastSection: TPasSection;
+    function GetShiftAndMaskForLoHiFunc(BaseType: TResolverBaseType;
+      isLoFunc: Boolean; out Mask: LongWord): Integer;
   public
     // options
     property Options: TPasResolverOptions read FOptions write FOptions;
@@ -14387,6 +14406,77 @@ begin
   FinishCallArgAccess(P[2],rraOutParam);
 end;
 
+function TPasResolver.BI_LoHi_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    Exit(cIncompatible);
+  Params:=TParamsExpr(Expr);
+  // first Param: any integer type
+  Param:=Params.params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  Result:=cIncompatible;
+  if (rrfReadable in ParamResolved.Flags)
+      and (ParamResolved.BaseType in btAllInteger)
+  then
+    Result:=cExact;
+  if Result=cIncompatible then
+    Exit(CheckRaiseTypeArgNo(20190128232600,1,Param,ParamResolved,'integer type',RaiseOnError));
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_LoHi_OnGetCallResult(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
+var
+  ResolvedParam: TPasResolverResult;
+  BaseType: TResolverBaseType;
+  Mask: LongWord;
+begin
+  ComputeElement(Params.Params[0],ResolvedParam,[]);
+  GetShiftAndMaskForLoHiFunc(ResolvedParam.BaseType, Proc.BuiltIn=bfLo, Mask);
+  case Mask of
+    $F, $FF: BaseType := btByte;
+    $FFFF: BaseType := btWord;
+    else { $FFFFFFFF } BaseType := btLongWord;
+  end;
+  SetResolverIdentifier(ResolvedEl,BaseType,Proc.Proc,
+    FBaseTypes[BaseType],FBaseTypes[BaseType],[rrfReadable]);
+end;
+
+procedure TPasResolver.BI_LoHi_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+var
+  Param: TPasExpr;
+  ResolvedParam: TPasResolverResult;
+  Value: TResEvalValue;
+  Shift: Integer;
+  Mask: LongWord;
+begin
+  Evaluated := nil;
+  Param := Params.Params[0];
+  Value := Eval(Param,Flags);
+  {$IFDEF VerbosePasResEval}
+  {AllowWriteln}
+  if value=nil then
+    writeln('TPasResolver.BI_LoHi_OnEval Value=NIL')
+  else
+    writeln('TPasResolver.BI_LoHi_OnEval Value=',value.AsDebugString);
+  {AllowWriteln-}
+  {$ENDIF}
+  if Value=nil then exit;
+  try
+    ComputeElement(Param,ResolvedParam,[]);
+    Shift := GetShiftAndMaskForLoHiFunc(ResolvedParam.BaseType, Proc.BuiltIn=bfLo, Mask);
+    Evaluated := fExprEvaluator.LoHiValue(Value,Shift,Mask,Params);
+  finally
+    ReleaseEvalValue(Value);
+  end;
+end;
+
 function TPasResolver.BI_ConcatArray_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
 var
@@ -16337,6 +16427,14 @@ begin
     AddBuiltInProc('Val','procedure Val(const String; var Value: bool|int|float|enum; out Int)',
         @BI_Val_OnGetCallCompatibility,nil,nil,
         @BI_Val_OnFinishParamsExpr,bfVal,[bipfCanBeStatement]);
+  if bfLo in TheBaseProcs then
+    AddBuiltInProc('Lo','function Lo(X: any integer type): Byte|Word)',
+      @BI_LoHi_OnGetCallCompatibility,@BI_LoHi_OnGetCallResult,
+      @BI_LoHi_OnEval,nil,bfLo);
+  if bfHi in TheBaseProcs then
+    AddBuiltInProc('Hi','function Hi(X: any integer type): Byte|Word)',
+      @BI_LoHi_OnGetCallCompatibility,@BI_LoHi_OnGetCallResult,
+      @BI_LoHi_OnEval,nil,bfHi);
   if bfConcatArray in TheBaseProcs then
     AddBuiltInProc('Concat','function Concat(const Array1, Array2, ...): Array',
         @BI_ConcatArray_OnGetCallCompatibility,@BI_ConcatArray_OnGetCallResult,
@@ -21095,6 +21193,8 @@ var
   ElClass: TClass;
   bt: TResolverBaseType;
   TypeEl: TPasType;
+  Value: TResEvalValue;
+  Int: TMaxPrecInt;
 begin
   if StartEl=nil then StartEl:=El;
   ResolvedEl:=Default(TPasResolverResult);
@@ -21114,14 +21214,35 @@ begin
         ComputeIdentifier(TPrimitiveExpr(El));
         end;
       pekNumber:
-        if Pos('.',TPrimitiveExpr(El).Value)>0 then
-          SetResolverValueExpr(ResolvedEl,BaseTypeExtended,
-                      FBaseTypes[BaseTypeExtended],FBaseTypes[BaseTypeExtended],
-                      TPrimitiveExpr(El),[rrfReadable])
-        else
-          SetResolverValueExpr(ResolvedEl,btLongint,
-                      FBaseTypes[btLongint],FBaseTypes[btLongint],
-                      TPrimitiveExpr(El),[rrfReadable]);
+        begin
+          if NumberIsFloat(TPrimitiveExpr(El).Value) then
+            bt:=BaseTypeExtended
+          else if length(TPrimitiveExpr(El).Value)<10 then
+            bt:=btLongint
+          else
+            begin
+            Value:=Eval(TPrimitiveExpr(El),[]);
+            if Value=nil then
+              RaiseNotYetImplemented(20190130162601,El);
+            try
+              case Value.Kind of
+              revkInt:
+                begin
+                Int:=TResEvalInt(Value).Int;
+                bt:=GetSmallestIntegerBaseType(Int,Int);
+                end;
+              revkUInt:
+                bt:=btQWord;
+              else
+                bt:=BaseTypeExtended;
+              end;
+            finally
+              ReleaseEvalValue(Value);
+            end;
+            end;
+        SetResolverValueExpr(ResolvedEl,bt,FBaseTypes[bt],FBaseTypes[bt],
+                    TPrimitiveExpr(El),[rrfReadable])
+        end;
       pekString:
         begin
         {$IFDEF VerbosePasResolver}
@@ -22597,6 +22718,43 @@ begin
     Result:=Module.ImplementationSection
   else
     Result:=Module.InterfaceSection;
+end;
+
+function TPasResolver.GetShiftAndMaskForLoHiFunc(BaseType: TResolverBaseType;
+  isLoFunc: Boolean; out Mask: LongWord): Integer;
+const
+  SHIFT_SIZE: array[btByte..{$IFDEF HasInt64}btComp{$ELSE}btIntDouble{$ENDIF}] of Integer = (
+    4, // btByte
+    8, // btShortInt FPC lo/hi(shortint) works like SmallInt
+    8, 8, // btWord, btSmallInt
+    16, 16, 16, 16, // btUIntSingle, btIntSingle, btLongWord, btLongint
+    32, 32 // btUIntDouble, btIntDouble
+    {$IFDEF HasInt64}
+    , 32, 32, 32 // btQWord, btInt64, btComp
+    {$endif}
+  );
+begin
+  if (BaseType >= Low(SHIFT_SIZE)) and (BaseType <= High(SHIFT_SIZE)) then
+    begin
+    if msDelphi in CurrentParser.CurrentModeswitches then
+      Result := 8
+    else
+      Result := SHIFT_SIZE[BaseType];
+    case Result of
+      8: Mask := $FF;
+      16: Mask := $FFFF;
+      32: Mask := $FFFFFFFF;
+    else
+      {4} Mask := $F;
+    end;
+    if isLoFunc then
+      Result := 0;
+    end
+  else
+    begin
+    RaiseInternalError(20190130122300);
+    Result := -1;
+    end;
 end;
 
 function TPasResolver.CheckSrcIsADstType(const ResolvedSrcType,

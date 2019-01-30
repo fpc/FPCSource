@@ -25,7 +25,7 @@ Works:
 - int/uint
   - unary +, -
   - binary: +, -, *, div, mod, ^^, =, <>, <, >, <=, >=, and, or, xor, not, shl, shr
-  - low(), high(), pred(), succ(), ord()
+  - Low(), High(), Pred(), Succ(), Ord(), Lo(), Hi()
   - typecast longint(-1), word(-2), intsingle(-1), uintsingle(1)
 - float:
   - typecast single(double), double(single), float(integer)
@@ -714,6 +714,8 @@ type
     function EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalStringAddExpr(Expr, LeftExpr, RightExpr: TPasExpr;
       LeftValue, RightValue: TResEvalValue): TResEvalValue; virtual;
+    function LoHiValue(Value: TResEvalValue; ShiftSize: Integer; Mask: LongWord;
+      ErrorEl: TPasElement): TResEvalValue; virtual;
     function EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
       Flags: TResEvalFlags): TResEvalEnum; virtual;
     {$ifdef FPC_HAS_CPSTRING}
@@ -735,6 +737,7 @@ type
   TResExprEvaluatorClass = class of TResExprEvaluator;
 
 procedure ReleaseEvalValue(var Value: TResEvalValue);
+function NumberIsFloat(const Value: string): boolean;
 
 {$ifdef FPC_HAS_CPSTRING}
 function RawStrToCaption(const r: RawByteString; MaxLength: integer): string;
@@ -755,6 +758,17 @@ begin
   if Value.Element<>nil then exit;
   Value.{$ifdef pas2js}Destroy{$else}Free{$endif};
   Value:=nil;
+end;
+
+function NumberIsFloat(const Value: string): boolean;
+var
+  i: Integer;
+begin
+  if Value='' then exit(false);
+  if Value[1] in ['$','%','&'] then exit(false);
+  for i:=2 to length(Value) do
+    if Value[i] in ['.','E','e'] then exit(true);
+  Result:=false;
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
@@ -4847,6 +4861,35 @@ begin
   else
     RaiseNotYetImplemented(20181219233139,Expr);
   end;
+end;
+
+function TResExprEvaluator.LoHiValue(Value: TResEvalValue; ShiftSize: Integer;
+  Mask: LongWord; ErrorEl: TPasElement): TResEvalValue;
+var
+  uint: LongWord;
+begin
+  case Value.Kind of
+    revkInt:
+      {$IFDEF Pas2js}
+      if ShiftSize=32 then
+        uint := (TResEvalInt(Value).Int div $100000000) and Mask;
+      else
+      {$ENDIF}
+        uint := (TResEvalInt(Value).Int shr ShiftSize) and Mask;
+    revkUInt:
+      {$IFDEF Pas2js}
+      if ShiftSize=32 then
+        uint := (TResEvalUInt(Value).UInt div $100000000) and Mask;
+      else
+      {$ENDIF}
+        uint := (TResEvalUInt(Value).UInt shr ShiftSize) and Mask;
+  else
+    {$IFDEF VerbosePasResEval}
+    writeln('TResExprEvaluator.LoHiValue ',Value.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20190129012100,ErrorEl);
+  end;
+  Result := TResEvalInt.CreateValue(uint);
 end;
 
 function TResExprEvaluator.EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
