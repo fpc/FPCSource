@@ -2244,25 +2244,19 @@ End;
  procedure SetActive200(page: word);
   { four page support... }
   begin
-    case page of
-     0 : VideoOfs := 0;
-     1 : VideoOfs := 16384;
-     2 : VideoOfs := 32768;
-     3 : VideoOfs := 49152;
+    if (page >= 0) and (page <= 3) then
+      VideoOfs := page shl 14
     else
       VideoOfs := 0;
-    end;
   end;
 
  procedure SetActive350(page: word);
   { one page supPort... }
   begin
-    case page of
-     0 : VideoOfs := 0;
-     1 : VideoOfs := 32768;
+    if page = 1 then
+      VideoOfs := 32768
     else
       VideoOfs := 0;
-    end;
   end;
 
 
