@@ -626,7 +626,7 @@ type
     Procedure TestClassInterface_GUIDProperty;
 
     // helpers
-    Procedure TestClassHelper_ClassVar; // todo
+    Procedure TestClassHelper_ClassVar; // ToDo
     // todo: TestClassHelper_Overload
 
     // proc types

@@ -3111,7 +3111,7 @@ begin
         begin
         i:=Pos('=',aValue);
         if i<1 then
-          result:=false
+          ParamFatal('unknown -Jm parameter "'+aValue+'"')
         else
           begin
           S:=LeftStr(aValue,i-1);
@@ -3120,7 +3120,7 @@ begin
             'sourceroot': SrcMapSourceRoot:=aValue;
             'basedir': SrcMapBaseDir:=aValue;
           else
-            Result:=False;
+            ParamFatal('unknown -Jm parameter "'+s+'"')
           end;
           end;
         end;

@@ -7195,7 +7195,7 @@ begin
       begin
       // e.g. mod.ExtClass.new;
       if El.Parent is TParamsExpr then
-        // Note: ExtClass.new() must be handled in ConvertFuncParams
+        // Note: ExtClass.new() is handled in ConvertFuncParams
         RaiseNotSupported(El,AContext,20190116135818);
       Result:=ConvertExternalConstructor(El.left,RightRef,nil,AContext);
       exit;
@@ -7273,8 +7273,15 @@ begin
     DotContext.LeftResolved:=LeftResolved;
     if Assigned(OnConvertRight) then
       Right:=OnConvertRight(El.right,DotContext,Data)
+    else if El.right.ClassType=TPrimitiveExpr then
+      Right:=ConvertPrimitiveExpression(TPrimitiveExpr(El.right),DotContext)
     else
-      Right:=ConvertExpression(El.right,DotContext);
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.ConvertSubIdentExprCustom Bin=',El.OpCode,' El.Right=',GetObjName(El.right));
+      {$ENDIF}
+      RaiseNotSupported(El,AContext,20190130101045);
+      end;
     if DotContext.JS<>nil then
       begin
       Left:=nil;
@@ -7758,7 +7765,7 @@ begin
         and (AContext is TDotContext)
         and (AContext.JSElement<>nil) then
       begin
-      // e.g. Obj.A  and A is defined as: A: t external name '["name"]';
+      // e.g. Obj.A  with A having an external name '["name"]';
       // -> Obj["name"]
       if IsImplicitCall then
         RaiseNotSupported(El,AContext,20180509134951,Name);
