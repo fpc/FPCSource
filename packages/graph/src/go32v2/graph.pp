@@ -2384,7 +2384,9 @@ End;
  {************************************************************************}
  {*                       Mode-X related routines                        *}
  {************************************************************************}
-const CrtAddress: word = 0;
+const
+  CrtAddress: word = 0;
+  ModeXVideoPageStart: array [0..3] of longint = (0,16000,32000,48000);
 
  procedure InitModeX;
   begin
@@ -2511,7 +2513,7 @@ const CrtAddress: word = 0;
  end;
 
  procedure SetVisualX(page: word);
-  { 4 page supPort... }
+  { 4 page support... }
 
    Procedure SetVisibleStart(AOffset: word); Assembler;
    (* Select where the left corner of the screen will be *)
@@ -2564,27 +2566,19 @@ const CrtAddress: word = 0;
 {$undef asmgraph}
 
   begin
-    Case page of
-      0: SetVisibleStart(0);
-      1: SetVisibleStart(16000);
-      2: SetVisibleStart(32000);
-      3: SetVisibleStart(48000);
+    if (page >= 0) and (page <= 3) then
+      SetVisibleStart(ModeXVideoPageStart[page])
     else
       SetVisibleStart(0);
-    end;
   end;
 
  procedure SetActiveX(page: word);
-  { 4 page supPort... }
+  { 4 page support... }
   begin
-   case page of
-     0: VideoOfs := 0;
-     1: VideoOfs := 16000;
-     2: VideoOfs := 32000;
-     3: VideoOfs := 48000;
-   else
-     VideoOfs:=0;
-   end;
+    if (page >= 0) and (page <= 3) then
+      VideoOfs := ModeXVideoPageStart[page]
+    else
+      VideoOfs := 0;
   end;
 
  Procedure PutPixelX(X,Y: smallint; color:word);
