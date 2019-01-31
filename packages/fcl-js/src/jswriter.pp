@@ -681,7 +681,7 @@ Var
   p, StartP: Integer;
   MinIndent, CurLineIndent, j, Exp, Code: Integer;
   i: SizeInt;
-  D: TJSNumber;
+  D, AsNumber: TJSNumber;
 begin
   if V.CustomValue<>'' then
     begin
@@ -736,15 +736,17 @@ begin
       exit;
       end;
     jstNumber :
-      if (Frac(V.AsNumber)=0)
-          and (V.AsNumber>=double(MinSafeIntDouble))
-          and (V.AsNumber<=double(MaxSafeIntDouble)) then
+      begin
+      AsNumber:=V.AsNumber;
+      if (Frac(AsNumber)=0)
+          and (AsNumber>=double(MinSafeIntDouble))
+          and (AsNumber<=double(MaxSafeIntDouble)) then
         begin
-        Str(Round(V.AsNumber),S);
+        Str(Round(AsNumber),S);
         end
       else
         begin
-        Str(V.AsNumber,S);
+        Str(AsNumber,S);
         if S[1]=' ' then Delete(S,1,1);
         i:=Pos('E',S);
         if (i>2) then
@@ -758,7 +760,7 @@ begin
             if s[j]='.' then inc(j);
             S2:=LeftStr(S,j)+copy(S,i,length(S));
             val(S2,D,Code);
-            if (Code=0) and (D=V.AsNumber) then
+            if (Code=0) and (D=AsNumber) then
               S:=S2;
             end;
           '9':
@@ -796,7 +798,7 @@ begin
                 end;
             until false;
             val(S2,D,Code);
-            if (Code=0) and (D=V.AsNumber) then
+            if (Code=0) and (D=AsNumber) then
               S:=S2;
             end;
           end;
@@ -866,6 +868,7 @@ begin
             end;
           end;
         end;
+      end;
     jstObject : ;
     jstReference : ;
     jstCompletion : ;
