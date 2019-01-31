@@ -4872,14 +4872,14 @@ begin
     revkInt:
       {$IFDEF Pas2js}
       if ShiftSize=32 then
-        uint := (TResEvalInt(Value).Int div $100000000) and Mask;
+        uint := longword(TResEvalInt(Value).Int div $100000000)
       else
       {$ENDIF}
         uint := (TResEvalInt(Value).Int shr ShiftSize) and Mask;
     revkUInt:
       {$IFDEF Pas2js}
       if ShiftSize=32 then
-        uint := (TResEvalUInt(Value).UInt div $100000000) and Mask;
+        uint := longword(TResEvalUInt(Value).UInt div $100000000)
       else
       {$ENDIF}
         uint := (TResEvalUInt(Value).UInt shr ShiftSize) and Mask;

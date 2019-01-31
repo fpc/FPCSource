@@ -406,6 +406,7 @@ type
   TResolveBaseTypes = set of TResolverBaseType;
 const
   btIntMax = {$ifdef HasInt64}btInt64{$else}btIntDouble{$endif};
+  btUIntMax = {$ifdef HasInt64}btQWord{$else}btUIntDouble{$endif};
   btAllInteger = [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,
     btLongWord,btLongint,btIntDouble,btUIntDouble
     {$ifdef HasInt64}
@@ -2026,7 +2027,7 @@ type
     procedure GetIntegerProps(bt: TResolverBaseType; out Precision: word; out Signed: boolean);
     function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: TMaxPrecInt): boolean;
     function GetIntegerBaseType(Precision: word; Signed: boolean; ErrorEl: TPasElement): TResolverBaseType;
-    function GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt): TResolverBaseType;
+    function GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt): TResolverBaseType; // returns BaseTypeExtended if too big
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function IsElementSkipped(El: TPasElement): boolean; virtual;
@@ -21230,8 +21231,10 @@ begin
                 Int:=TResEvalInt(Value).Int;
                 bt:=GetSmallestIntegerBaseType(Int,Int);
                 end;
+              {$IFDEF HasInt64}
               revkUInt:
                 bt:=btQWord;
+              {$ENDIF}
               else
                 bt:=BaseTypeExtended;
               end;
@@ -22540,6 +22543,7 @@ end;
 
 function TPasResolver.GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt
   ): TResolverBaseType;
+// returns BaseTypeExtended if too big
 var
   V: TMaxPrecInt;
 begin
@@ -22555,14 +22559,18 @@ begin
       Result:=btShortInt
     else if V<=high(SmallInt) then
       Result:=btSmallInt
-    else if (BaseTypes[btIntSingle]<>nil) and (V<MaxSafeIntSingle) then
+    else if (BaseTypes[btIntSingle]<>nil) and (V<=MaxSafeIntSingle) then
       Result:=btIntSingle
     else if V<=High(Longint) then
       Result:=btLongint
-    else if (BaseTypes[btIntDouble]<>nil) and (V<MaxSafeIntDouble) then
+    else if (BaseTypes[btIntDouble]<>nil) and (V<=MaxSafeIntDouble) then
       Result:=btIntDouble
     else
+      begin
       Result:=btIntMax;
+      if BaseTypes[Result]=nil then
+        Result:=BaseTypeExtended;
+      end;
     end
   else
     begin
@@ -22571,14 +22579,18 @@ begin
       Result:=btByte
     else if V<=high(Word) then
       Result:=btWord
-    else if (BaseTypes[btUIntSingle]<>nil) and (V<MaxSafeIntSingle) then
+    else if (BaseTypes[btUIntSingle]<>nil) and (V<=MaxSafeIntSingle) then
       Result:=btUIntSingle
     else if V<=High(LongWord) then
       Result:=btLongWord
-    else if (BaseTypes[btUIntDouble]<>nil) and (V<MaxSafeIntDouble) then
+    else if (BaseTypes[btUIntDouble]<>nil) and (V<=MaxSafeIntDouble) then
       Result:=btUIntDouble
     else
+      begin
       Result:=btIntMax;
+      if BaseTypes[Result]=nil then
+        Result:=BaseTypeExtended;
+      end;
     end;
 end;
 
