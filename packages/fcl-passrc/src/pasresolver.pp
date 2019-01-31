@@ -2348,6 +2348,8 @@ begin
     Result:=ExprKindNames[TBinaryExpr(El).Kind]
   else if C=TPasClassType then
     Result:=ObjKindNames[TPasClassType(El).ObjKind]
+  else if C=TPasUnresolvedSymbolRef then
+    Result:=El.Name
   else
     begin
     Result:=GetElementTypeName(TPasElementBaseClass(C));
@@ -5343,6 +5345,14 @@ begin
 end;
 
 procedure TPasResolver.FinishSetType(El: TPasSetType);
+
+  function GetEnumTypePosEl: TPasElement;
+  begin
+    Result:=El.EnumType;
+    if Result.Parent<>El then
+      Result:=El;
+  end;
+
 var
   BaseTypeData: TResElDataBaseType;
   StartResolved, EndResolved: TPasResolverResult;
@@ -5372,10 +5382,12 @@ begin
       BaseTypeData:=TResElDataBaseType(EnumType.CustomData);
       if BaseTypeData.BaseType in (btAllChars+[btBoolean,btByte]) then
         exit;
-      RaiseXExpectedButYFound(20170216151553,'char or boolean',GetElementTypeName(EnumType),EnumType);
+      RaiseXExpectedButYFound(20170216151553,'char or boolean',
+        GetElementTypeName(EnumType),GetEnumTypePosEl);
       end;
     end;
-  RaiseXExpectedButYFound(20170216151557,'enum type',GetElementTypeName(EnumType),EnumType);
+  RaiseXExpectedButYFound(20170216151557,'enum type',
+    GetElementTypeName(EnumType),GetEnumTypePosEl);
 end;
 
 procedure TPasResolver.FinishSubElementType(Parent: TPasElement; El: TPasType);
