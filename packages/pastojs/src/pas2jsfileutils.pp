@@ -43,7 +43,9 @@ function ExpandDirectory(const aDirectory: string): string;
 function IsUNCPath(const {%H-}Path: String): Boolean;
 function ExtractUNCVolume(const {%H-}Path: String): String;
 function ExtractFileRoot(FileName: String): String;
-function TryCreateRelativePath(const Dest, Source: String;
+function TryCreateRelativePath(
+  const Dest: String; // Filename
+  const Source: String; // Directory
   UsePointDirectory: boolean; // True = return '.' for the current directory instead of ''
   AlwaysRequireSharedBaseFolder: Boolean;// true = only shorten if at least one shared folder
   out RelPath: String): Boolean;
@@ -278,8 +280,9 @@ end;
   - Dest = /foo Source = /bar AlwaysRequireSharedBaseFolder = True Result = False
   - Dest = /foo Source = /bar AlwaysRequireSharedBaseFolder = False Result = True RelPath = ../foo
 }
-function TryCreateRelativePath(const Dest, Source: String; UsePointDirectory: boolean;
-  AlwaysRequireSharedBaseFolder: Boolean; out RelPath: String): Boolean;
+function TryCreateRelativePath(const Dest: String; const Source: String;
+  UsePointDirectory: boolean; AlwaysRequireSharedBaseFolder: Boolean; out
+  RelPath: String): Boolean;
 Type
   TDirArr =  TStringArray;
 
@@ -649,7 +652,7 @@ begin
 end;
 {$ENDIF}
 
-procedure ForcePathDelims(Var FileName: string);
+procedure ForcePathDelims(var FileName: string);
 begin
   Filename:=GetForcedPathDelims(Filename);
 end;

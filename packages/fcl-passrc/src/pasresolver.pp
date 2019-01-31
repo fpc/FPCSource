@@ -21217,10 +21217,11 @@ begin
         begin
           if NumberIsFloat(TPrimitiveExpr(El).Value) then
             bt:=BaseTypeExtended
-          else if length(TPrimitiveExpr(El).Value)<10 then
+          else if length(TPrimitiveExpr(El).Value)<9 then
             bt:=btLongint
           else
             begin
+            // with 9+ it could be longword: e.g. $87654321
             Value:=Eval(TPrimitiveExpr(El),[]);
             if Value=nil then
               RaiseNotYetImplemented(20190130162601,El);

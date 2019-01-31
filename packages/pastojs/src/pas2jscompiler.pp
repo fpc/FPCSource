@@ -577,7 +577,7 @@ type
     // Command-line option handling
     procedure HandleOptionPCUFormat(aValue: String); virtual;
     function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): Boolean; virtual;
-    function HandleOptionJS(C: Char; aValue: String; Quick,FromCmdLine: Boolean): Boolean; virtual;
+    function HandleOptionJ(C: Char; aValue: String; Quick,FromCmdLine: Boolean): Boolean; virtual;
     procedure HandleOptionConfigFile(aPos: Integer; const aFileName: string); virtual;
     procedure HandleOptionInfo(aValue: string);
     // DoWriteJSFile: return false to use the default write function.
@@ -633,7 +633,7 @@ type
     function IsDefined(const aName: String): boolean;
     procedure SetOption(Flag: TP2jsCompilerOption; Enable: boolean);
 
-    function GetUnitInfo(const UseUnitName, InFileName: String;
+    function GetUnitInfo(const UseUnitName, InFileName, ModuleDir: String;
       PCUSupport: TPCUSupport): TFindUnitInfo;
     function FindFileWithUnitFilename(UnitFilename: string): TPas2jsCompilerFile;
     procedure LoadModuleFile(UnitFilename, UseUnitName: string;
@@ -1624,6 +1624,7 @@ var
   aFile: TPas2jsCompilerFile;
   UnitInfo: TFindUnitInfo;
   LoadInfo: TLoadUnitInfo;
+  ModuleDir: String;
 begin
   Result:=nil;
   aFile:=Nil;
@@ -1631,7 +1632,8 @@ begin
   if CompareText(ExtractFilenameOnly(UnitFilename),UseUnitname)=0 then
     Parser.RaiseParserError(nUnitCycle,[UseUnitname]);
 
-  UnitInfo:=Compiler.GetUnitInfo(UseUnitName,InFileName,PCUSupport);
+  ModuleDir:=ExtractFilePath(PasFileName);
+  UnitInfo:=Compiler.GetUnitInfo(UseUnitName,InFileName,ModuleDir,PCUSupport);
   if UnitInfo.FileName<>'' then
     begin
     LoadInfo.UseFilename:=UnitInfo.FileName;
@@ -1656,8 +1658,6 @@ begin
     Result:=aFile.PasModule;
   // if Result=nil resolver will give a nice error position, so don't do it here
 end;
-
-
 
 { TPas2jsCompiler }
 
@@ -3025,7 +3025,7 @@ begin
 
 end;
 
-function TPas2jsCompiler.HandleOptionJS(C: Char; aValue: String;
+function TPas2jsCompiler.HandleOptionJ(C: Char; aValue: String;
   Quick, FromCmdLine: Boolean): Boolean;
 
 Var
@@ -3422,7 +3422,7 @@ begin
             UnknownParam;
           c:=aValue[1];
           Delete(aValue,1,1);
-          if not HandleOptionJS(c,aValue,Quick,FromCmdLine) then
+          if not HandleOptionJ(c,aValue,Quick,FromCmdLine) then
             UnknownParam;
         end;
       'M': // syntax mode
@@ -4657,8 +4657,8 @@ begin
   Result:=FMainJSFileResolved;
 end;
 
-function TPas2jsCompiler.GetUnitInfo(const UseUnitName, InFileName: String;
-  PCUSupport: TPCUSupport): TFindUnitInfo;
+function TPas2jsCompiler.GetUnitInfo(const UseUnitName, InFileName,
+  ModuleDir: String; PCUSupport: TPCUSupport): TFindUnitInfo;
 
 var
   FoundPasFilename, FoundPasUnitName: string;
@@ -4687,7 +4687,7 @@ var
         end;
       end else begin
         // search pas in unit path
-        FoundPasFilename:=FS.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
+        FoundPasFilename:=FS.FindUnitFileName(TestUnitName,'',ModuleDir,FoundPasIsForeign);
         if FoundPasFilename<>'' then
           FoundPasUnitName:=TestUnitName;
       end;
@@ -4745,7 +4745,7 @@ begin
     end;
   end else begin
     // search Pascal file with InFilename
-    FoundPasFilename:=FS.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
+    FoundPasFilename:=FS.FindUnitFileName(UseUnitname,InFilename,ModuleDir,FoundPasIsForeign);
     if FoundPasFilename='' then
       exit; // an in-filename unit source is missing -> stop
     FoundPasUnitName:=ExtractFilenameOnly(InFilename);
