@@ -1676,11 +1676,10 @@ end;
 
 
 
- Procedure PutPixel16(X,Y : smallint; Pixel: Word);
 {$ifndef asmgraph}
+ Procedure PutPixel16(X,Y : smallint; Pixel: Word);
  var offset: word;
      dummy: byte;
-{$endif asmgraph}
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
@@ -1692,7 +1691,6 @@ end;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
-{$ifndef asmgraph}
      offset := y * 80 + (x shr 3) + VideoOfs;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := (Pixel and $ff) shl 8; { Index 00 : Enable correct plane and write color }
@@ -1702,7 +1700,20 @@ end;
      Mem[Sega000: offset] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
+   end;
 {$else asmgraph}
+ Procedure PutPixel16(X,Y : smallint; Pixel: Word);
+  Begin
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
+    { convert to absolute coordinates and then verify clipping...}
+    if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
       asm
         push eax
         push ebx
@@ -1757,19 +1768,17 @@ end;
         pop ebx
         pop eax
       end;
-{$endif asmgraph}
    end;
+{$endif asmgraph}
 
 
- Function GetPixel16(X,Y: smallint):word;
 {$ifndef asmgraph}
+ Function GetPixel16(X,Y: smallint):word;
  Var dummy, offset: Word;
      shift: byte;
-{$endif asmgraph}
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
     offset := Y * 80 + (x shr 3) + VideoOfs;
     PortW[$3ce] := $0004;
     shift := 7 - (X and 7);
@@ -1781,7 +1790,12 @@ end;
     Port[$3cf] := 3;
     dummy := dummy or (((Mem[Sega000:offset] shr shift) and 1) shl 3);
     GetPixel16 := dummy;
+  end;
 {$else asmgraph}
+ Function GetPixel16(X,Y: smallint):word;
+  Begin
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
     asm
       push eax
       push ebx
@@ -1857,8 +1871,8 @@ end;
       pop ebx
       pop eax
     end;
-{$endif asmgraph}
   end;
+{$endif asmgraph}
 
 Procedure GetScanLine16(x1, x2, y: smallint; var data);
 
@@ -1987,14 +2001,13 @@ Begin
 {$Endif logging}
 End;
 
+{$ifndef asmgraph}
  Procedure DirectPutPixel16(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
   var
    color: word;
-{$ifndef asmgraph}
   offset: word;
   dummy: byte;
-{$endif asmgraph}
  begin
     If CurrentWriteMode <> NotPut Then
       Color := CurrentColor
@@ -2013,7 +2026,6 @@ End;
        else
          PortW[$3ce]:=$0003}
     end;
-{$ifndef asmgraph}
     offset := Y * 80 + (X shr 3) + VideoOfs;
     PortW[$3ce] := $f01;
     PortW[$3ce] := Color shl 8;
@@ -2026,7 +2038,30 @@ End;
        (CurrentWriteMode = ANDPut) or
        (CurrentWriteMode = ORPut) then
       PortW[$3ce] := $0003;
+ end;
 {$else asmgraph}
+ Procedure DirectPutPixel16(X,Y : smallint);
+ { x,y -> must be in global coordinates. No clipping. }
+  var
+   color: word;
+ begin
+    If CurrentWriteMode <> NotPut Then
+      Color := CurrentColor
+    else Color := not CurrentColor;
+
+    case CurrentWriteMode of
+       XORPut:
+         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
+       ANDPut:
+         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
+       ORPut:
+         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
+       {not needed, this is the default state (e.g. PutPixel16 requires it)}
+       {NormalPut, NotPut:
+         PortW[$3ce]:=$0003
+       else
+         PortW[$3ce]:=$0003}
+    end;
 { note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
       push eax
@@ -2082,8 +2117,8 @@ End;
       pop ebx
       pop eax
     end;
-{$endif asmgraph}
  end;
+{$endif asmgraph}
 
 
   procedure HLine16(x,x2,y: smallint);
@@ -2326,9 +2361,9 @@ End;
   end;
 
 
+{$ifndef asmgraph}
  Procedure DirectPutPixel320(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
-{$ifndef asmgraph}
  var offset: word;
      dummy: Byte;
  begin
@@ -2343,8 +2378,9 @@ End;
    Mem[SegA000:offset] := dummy;
  end;
 {$else asmgraph}
+ Procedure DirectPutPixel320(X,Y : smallint); assembler;
+ { x,y -> must be in global coordinates. No clipping. }
 { note: still needs or/and/notput support !!!!! (JM) }
-  assembler;
     asm
       push eax
       push ebx
@@ -2463,18 +2499,21 @@ const
  end;
 
 
- Function GetPixelX(X,Y: smallint): word;
 {$ifndef asmgraph}
+ Function GetPixelX(X,Y: smallint): word;
  var offset: word;
-{$endif asmgraph}
   begin
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
      offset := y * 80 + x shr 2 + VideoOfs;
      PortW[$3ce] := ((x and 3) shl 8) + 4;
      GetPixelX := Mem[SegA000:offset];
+ end;
 {$else asmgraph}
+ Function GetPixelX(X,Y: smallint): word;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
     asm
      push eax
      push ebx
@@ -2509,8 +2548,8 @@ const
     pop ebx
     pop eax
    end;
-{$endif asmgraph}
  end;
+{$endif asmgraph}
 
  procedure SetVisualX(page: word);
   { 4 page support... }
@@ -2581,10 +2620,9 @@ const
       VideoOfs := 0;
   end;
 
- Procedure PutPixelX(X,Y: smallint; color:word);
 {$ifndef asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:word);
  var offset: word;
-{$endif asmgraph}
   begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
@@ -2596,11 +2634,23 @@ const
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
-{$ifndef asmgraph}
     offset := y * 80 + x shr 2 + VideoOfs;
     PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
     Mem[SegA000:offset] := color;
+  end;
 {$else asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:word);
+  begin
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
+    { convert to absolute coordinates and then verify clipping...}
+    if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
      asm
       push ax
       push bx
@@ -2643,13 +2693,13 @@ const
       pop bx
       pop ax
     end;
-{$endif asmgraph}
   end;
+{$endif asmgraph}
 
 
+{$ifndef asmgraph}
  Procedure DirectPutPixelX(X,Y: smallint);
  { x,y -> must be in global coordinates. No clipping. }
-{$ifndef asmgraph}
  Var offset: Word;
      dummy: Byte;
  begin
@@ -2677,8 +2727,9 @@ const
    Mem[Sega000: offset] := Dummy;
  end;
 {$else asmgraph}
+ Procedure DirectPutPixelX(X,Y: smallint); Assembler;
+ { x,y -> must be in global coordinates. No clipping. }
 { note: still needs or/and/notput support !!!!! (JM) }
- Assembler;
  asm
    push ax
    push bx
