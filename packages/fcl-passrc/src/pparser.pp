@@ -2243,7 +2243,7 @@ begin
       begin
       CanSpecialize:=true;
       aName:=CurTokenText;
-      if CompareText(aName,'self')=0 then
+      if (CompareText(aName,'self')=0) and not (tkself in Scanner.NonTokens) then
         Last:=CreateSelfExpr(AParent)
       else
         Last:=CreatePrimitiveExpr(AParent,pekIdent,aName);
@@ -3855,8 +3855,6 @@ begin
       finally
         Scanner.SetForceCaret(OldForceCaret);
       end;
-{      if Result.VarType is TPasRangeType then
-        Ungettoken; // Range type stops on token after last range token}
       end
     else
       begin

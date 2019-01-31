@@ -1980,8 +1980,8 @@ type
     function ResolveAliasType(aType: TPasType): TPasType;
     function ResolveAliasTypeEl(El: TPasElement): TPasType; inline;
     function ExprIsAddrTarget(El: TPasExpr): boolean;
-    function IsNameExpr(El: TPasExpr): boolean; inline; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
-    function GetNameExprValue(El: TPasExpr): string; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
+    function IsNameExpr(El: TPasExpr): boolean; inline; // TPrimitiveExpr with Kind=pekIdent
+    function GetNameExprValue(El: TPasExpr): string; // TPrimitiveExpr with Kind=pekIdent
     function GetNextDottedExpr(El: TPasExpr): TPasExpr;
     function GetLeftMostExpr(El: TPasExpr): TPasExpr;
     function GetRightMostExpr(El: TPasExpr): TPasExpr;
@@ -4048,8 +4048,7 @@ end;
 // inline
 function TPasResolver.IsNameExpr(El: TPasExpr): boolean;
 begin
-  Result:=(El.ClassType=TSelfExpr)
-      or ((El.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(El).Kind=pekIdent));
+  Result:=(El.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(El).Kind=pekIdent);
 end;
 
 function TPasResolver.GetNameExprValue(El: TPasExpr): string;
@@ -4063,14 +4062,12 @@ begin
     else
       Result:='';
     end
-  else if El.ClassType=TSelfExpr then
-    Result:='self'
   else
     Result:='';
 end;
 
 function TPasResolver.GetNextDottedExpr(El: TPasExpr): TPasExpr;
-// returns TSelfExpr or TPrimitiveExpr (Kind=pekIdent)
+// returns TPrimitiveExpr (Kind=pekIdent)
 var
   Bin: TBinaryExpr;
   C: TClass;
@@ -4089,9 +4086,7 @@ begin
       // find left most
       repeat
         C:=El.ClassType;
-        if C=TSelfExpr then
-          exit(El)
-        else if C=TPrimitiveExpr then
+        if C=TPrimitiveExpr then
           begin
           if TPrimitiveExpr(El).Kind<>pekIdent then
             RaiseNotYetImplemented(20170502163825,El);
@@ -4213,7 +4208,7 @@ begin
 end;
 
 function TPasResolver.GetPathStart(El: TPasExpr): TPasExpr;
-// get leftmost name element (e.g. TPrimitiveExpr or TSelfExpr)
+// get leftmost name element (e.g. TPrimitiveExpr)
 // nil if not found
 var
   C: TClass;
@@ -4223,8 +4218,6 @@ begin
     begin
     C:=El.ClassType;
     if C=TPrimitiveExpr then
-      exit(El)
-    else if C=TSelfExpr then
       exit(El)
     else if C=TBinaryExpr then
       begin
@@ -4832,6 +4825,8 @@ begin
 end;
 
 procedure TPasResolver.SetCurrentParser(AValue: TPasParser);
+var
+  Scanner: TPascalScanner;
 begin
   //writeln('TPasResolver.SetCurrentParser ',AValue<>nil);
   if AValue=CurrentParser then exit;
@@ -4840,8 +4835,13 @@ begin
   if CurrentParser<>nil then
     begin
     CurrentParser.Options:=CurrentParser.Options+po_Resolver;
-    if (CurrentParser.Scanner<>nil) and (CurrentParser.Scanner.OnWarnDirective=nil) then
-      CurrentParser.Scanner.OnWarnDirective:=@ScannerWarnDirective;
+    if CurrentParser.Scanner<>nil then
+      begin
+      Scanner:=CurrentParser.Scanner;
+      if (Scanner.OnWarnDirective=nil) then
+        Scanner.OnWarnDirective:=@ScannerWarnDirective;
+      Scanner.SetNonToken(tkself);
+      end;
     end;
 end;
 
@@ -8463,8 +8463,6 @@ begin
     ResolveParamsExpr(TParamsExpr(El),Access)
   else if ElClass=TBoolConstExpr then
   else if ElClass=TNilExpr then
-  else if ElClass=TSelfExpr then
-    ResolveNameExpr(El,'Self',Access)
   else if ElClass=TInheritedExpr then
     ResolveInherited(TInheritedExpr(El),Access)
   else if ElClass=TArrayValues then
@@ -9104,8 +9102,6 @@ begin
   // e.g. Name() -> find compatible
   if NameExpr.ClassType=TPrimitiveExpr then
     CallName:=TPrimitiveExpr(NameExpr).Value
-  else if NameExpr.ClassType=TSelfExpr then
-    CallName:='Self'
   else
     RaiseNotYetImplemented(20190115143539,NameExpr);
   FindCallData:=Default(TFindCallElData);
@@ -9363,9 +9359,8 @@ begin
       and (TPrimitiveExpr(NameExpr).Kind=pekIdent) then
     // e.g. Name[]
     ArrayName:=TPrimitiveExpr(NameExpr).Value
-  else if (NameExpr.ClassType=TSelfExpr) then
-    // e.g. Self[]
-    ArrayName:='Self';
+  else
+    RaiseNotYetImplemented(20190131154557,NameExpr);
 
   DeclEl:=FindElementWithoutParams(ArrayName,FindData,NameExpr,true);
   Ref:=CreateReference(DeclEl,NameExpr,Access,@FindData);
@@ -9795,7 +9790,7 @@ begin
       RaiseNotYetImplemented(20170403173831,Params);
     end;
     end
-  else if (C=TSelfExpr) or ((C=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)) then
+  else if (C=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent) then
     // ok
   else if (Access in [rraRead,rraParamToUnknownProc])
       and ((C=TPrimitiveExpr)
@@ -15271,6 +15266,9 @@ begin
   SrcY:=ASrcPos.Row;
   if StoreSrcColumns then
     SrcY:=MangleSourceLineNumber(SrcY,ASrcPos.Column);
+
+  if AClass=TSelfExpr then
+    RaiseInternalError(20190131154235);
 
   // create element
   El:=AClass.Create(AName,AParent);
@@ -21271,13 +21269,6 @@ begin
     else
       RaiseNotYetImplemented(20160922163701,El);
     end;
-    end
-  else if ElClass=TSelfExpr then
-    begin
-    // self is just an identifier
-    if not (El.CustomData is TResolvedReference) then
-      RaiseNotYetImplemented(20170216150017,El,' El="'+GetObjName(El)+'" CustomData='+GetObjName(El.CustomData)+' '+GetElementSourcePosStr(El));
-    ComputeIdentifier(TSelfExpr(El));
     end
   else if ElClass=TPasUnresolvedSymbolRef then
     begin
