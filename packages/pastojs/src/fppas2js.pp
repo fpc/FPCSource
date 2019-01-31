@@ -1855,7 +1855,6 @@ type
       const LeftResolved, RightResolved: TPasResolverResult; var A,B: TJSElement): TJSElement; virtual;
     Function ConvertSubIdentExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSubIdentExprCustom(El: TBinaryExpr; AContext: TConvertContext;
-      const LeftResolved: TPasResolverResult;
       const OnConvertRight: TConvertJSEvent = nil; Data: Pointer = nil): TJSElement; virtual;
     Function ConvertBoolConstExpression(El: TBoolConstExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertPrimitiveExpression(El: TPrimitiveExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -7165,8 +7164,6 @@ function TPasToJSConverter.ConvertSubIdentExpression(El: TBinaryExpr;
   AContext: TConvertContext): TJSElement;
 // connect El.left and El.right with a dot.
 var
-  Left: TJSElement;
-  LeftResolved: TPasResolverResult;
   RightRef: TResolvedReference;
   RightEl: TPasExpr;
   RightRefDecl: TPasElement;
@@ -7179,55 +7176,108 @@ begin
   //       TParamsExpr and its NameExpr. E.g. a.b.c() = ((a.b).c)()
 
   RightEl:=El.right;
-  RightRef:=nil;
-  RightRefDecl:=nil;
-  if (RightEl.ClassType=TPrimitiveExpr)
-      and (RightEl.CustomData is TResolvedReference) then
+  if (RightEl.ClassType<>TPrimitiveExpr) then
+    RaiseNotSupported(RightEl,AContext,20190131162250);
+  if not (RightEl.CustomData is TResolvedReference) then
+    RaiseNotSupported(RightEl,AContext,20190131162301);
+
+  RightRef:=TResolvedReference(RightEl.CustomData);
+  RightRefDecl:=RightRef.Declaration;
+  if aResolver.IsTObjectFreeMethod(RightEl) then
     begin
-    RightRef:=TResolvedReference(RightEl.CustomData);
-    RightRefDecl:=RightRef.Declaration;
-    if aResolver.IsTObjectFreeMethod(RightEl) then
+    // e.g. Obj.Free;
+    Result:=ConvertTObjectFree_Bin(El,RightEl,AContext);
+    exit;
+    end
+  else if aResolver.IsExternalClassConstructor(RightRefDecl) then
+    begin
+    // e.g. mod.ExtClass.new;
+    if El.Parent is TParamsExpr then
+      // Note: ExtClass.new() is handled in ConvertFuncParams
+      RaiseNotSupported(El,AContext,20190116135818);
+    Result:=ConvertExternalConstructor(El.left,RightRef,nil,AContext);
+    exit;
+    end;
+
+  Result:=ConvertSubIdentExprCustom(El,AContext);
+end;
+
+function TPasToJSConverter.ConvertSubIdentExprCustom(El: TBinaryExpr;
+  AContext: TConvertContext; const OnConvertRight: TConvertJSEvent;
+  Data: Pointer): TJSElement;
+var
+  OldAccess: TCtxAccess;
+  Left: TJSElement;
+  DotContext: TDotContext;
+  Right: TJSElement;
+  aResolver: TPas2JSResolver;
+  LeftResolved: TPasResolverResult;
+  RightEl: TPasExpr;
+  RightRef: TResolvedReference;
+  RightRefDecl: TPasElement;
+begin
+  aResolver:=AContext.Resolver;
+
+  // Note: TPasParser guarantees that there is at most one TBinaryExpr between
+  //       TParamsExpr and its NameExpr. E.g. a.b.c() = ((a.b).c)()
+
+  RightEl:=El.right;
+  if (RightEl.ClassType<>TPrimitiveExpr) then
+    begin
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.ConvertSubIdentExprCustom Bin=',El.OpCode,' El.Right=',GetObjName(RightEl));
+    {$ENDIF}
+    RaiseNotSupported(RightEl,AContext,20190131164529);
+    end;
+  if not (RightEl.CustomData is TResolvedReference) then
+    RaiseNotSupported(RightEl,AContext,20190131164530);
+
+  RightRef:=TResolvedReference(RightEl.CustomData);
+  RightRefDecl:=RightRef.Declaration;
+  if RightRefDecl.ClassType=TPasProperty then
+    begin
+    // redirect to Getter/Setter
+    case AContext.Access of
+    caAssign:
       begin
-      // e.g. Obj.Free;
-      Result:=ConvertTObjectFree_Bin(El,RightEl,AContext);
+      RightRefDecl:=aResolver.GetPasPropertySetter(TPasProperty(RightRefDecl));
+      if RightRefDecl=nil then
+        RaiseNotSupported(RightEl,AContext,20190128153754);
+      end;
+    caRead:
+      begin
+      RightRefDecl:=aResolver.GetPasPropertyGetter(TPasProperty(RightRefDecl));
+      if RightRefDecl=nil then
+        RaiseNotSupported(RightEl,AContext,20190128153829);
+      end;
+    end;
+    end;
+  if (AContext.Access=caAssign)
+      and aResolver.IsClassField(RightRefDecl) then
+    begin
+    // e.g. "Something.aClassVar:=" -> "aClass.aClassVar:="
+    Left:=CreateReferencePathExpr(RightRefDecl.Parent,AContext);
+    Result:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+    TJSDotMemberExpression(Result).MExpr:=Left;
+    TJSDotMemberExpression(Result).Name:=TJSString(TransformVariableName(RightRefDecl,AContext));
+    exit;
+    end;
+  if (RightRefDecl.Parent.ClassType=TPasClassType)
+      and (TPasClassType(RightRefDecl.Parent).HelperForType<>nil) then
+    begin
+    // Left.HelperMember
+    if RightRefDecl is TPasVariable then
+      begin
+      // Left.HelperField
+      if Assigned(OnConvertRight) then
+        Result:=OnConvertRight(RightEl,AContext,Data)
+      else
+        Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,AContext);
       exit;
       end
-    else if aResolver.IsExternalClassConstructor(RightRefDecl) then
+    else
       begin
-      // e.g. mod.ExtClass.new;
-      if El.Parent is TParamsExpr then
-        // Note: ExtClass.new() is handled in ConvertFuncParams
-        RaiseNotSupported(El,AContext,20190116135818);
-      Result:=ConvertExternalConstructor(El.left,RightRef,nil,AContext);
-      exit;
-      end
-    else if RightRefDecl.ClassType=TPasProperty then
-      begin
-      // redirect to Getter/Setter
-      case AContext.Access of
-      caAssign:
-        begin
-        RightRefDecl:=aResolver.GetPasPropertySetter(TPasProperty(RightRefDecl));
-        if RightRefDecl=nil then
-          RaiseNotSupported(RightEl,AContext,20190128153754);
-        end;
-      caRead:
-        begin
-        RightRefDecl:=aResolver.GetPasPropertyGetter(TPasProperty(RightRefDecl));
-        if RightRefDecl=nil then
-          RaiseNotSupported(RightEl,AContext,20190128153829);
-        end;
-      end;
-      end;
-    if (AContext.Access=caAssign)
-        and aResolver.IsClassField(RightRefDecl) then
-      begin
-      // e.g. "Something.aClassVar:=" -> "aClass.aClassVar:="
-      Left:=CreateReferencePathExpr(RightRefDecl.Parent,AContext);
-      Result:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-      TJSDotMemberExpression(Result).MExpr:=Left;
-      TJSDotMemberExpression(Result).Name:=TJSString(TransformVariableName(RightRefDecl,AContext));
-      exit;
+      RaiseNotSupported(El,AContext,20190131170119);
       end;
     end;
 
@@ -7235,27 +7285,14 @@ begin
     aResolver.ComputeElement(El.left,LeftResolved,[])
   else
     LeftResolved:=Default(TPasResolverResult);
-
-  Result:=ConvertSubIdentExprCustom(El,AContext,LeftResolved);
-end;
-
-function TPasToJSConverter.ConvertSubIdentExprCustom(El: TBinaryExpr;
-  AContext: TConvertContext; const LeftResolved: TPasResolverResult;
-  const OnConvertRight: TConvertJSEvent; Data: Pointer): TJSElement;
-var
-  OldAccess: TCtxAccess;
-  Left: TJSElement;
-  DotContext: TDotContext;
-  Right: TJSElement;
-begin
   if LeftResolved.BaseType=btModule then
     begin
     // e.g. system.inttostr()
     // module path is created automatically
     if Assigned(OnConvertRight) then
-      Result:=OnConvertRight(El.right,AContext,Data)
+      Result:=OnConvertRight(RightEl,AContext,Data)
     else
-      Result:=ConvertExpression(El.right,AContext);
+      Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,AContext);
     exit;
     end;
 
@@ -7273,16 +7310,9 @@ begin
   try
     DotContext.LeftResolved:=LeftResolved;
     if Assigned(OnConvertRight) then
-      Right:=OnConvertRight(El.right,DotContext,Data)
-    else if El.right.ClassType=TPrimitiveExpr then
-      Right:=ConvertPrimitiveExpression(TPrimitiveExpr(El.right),DotContext)
+      Right:=OnConvertRight(RightEl,DotContext,Data)
     else
-      begin
-      {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.ConvertSubIdentExprCustom Bin=',El.OpCode,' El.Right=',GetObjName(El.right));
-      {$ENDIF}
-      RaiseNotSupported(El,AContext,20190130101045);
-      end;
+      Right:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,DotContext);
     if DotContext.JS<>nil then
       begin
       Left:=nil;
@@ -8620,7 +8650,6 @@ var
     aResolver: TPas2JSResolver;
     TypeEl: TPasType;
     Bin: TBinaryExpr;
-    LeftResolved: TPasResolverResult;
     CreateRefPathData: TCreateRefPathData;
   begin
     Result:=nil;
@@ -8664,11 +8693,10 @@ var
           Bin:=TBinaryExpr(El.Value);
           if Bin.OpCode<>eopSubIdent then
             RaiseNotSupported(El,AContext,20190116100510);
-          aResolver.ComputeElement(Bin.left,LeftResolved,[]);
           CreateRefPathData.El:=AccessEl;
           CreateRefPathData.Full:=false;
           CreateRefPathData.Ref:=GetValueReference;
-          Call.Expr:=ConvertSubIdentExprCustom(Bin,AContext,LeftResolved,
+          Call.Expr:=ConvertSubIdentExprCustom(Bin,AContext,
             @OnCreateReferencePathExpr,@CreateRefPathData);
           end
         else
@@ -8953,7 +8981,7 @@ var
   TargetProcType: TPasProcedureType;
   JsArrLit: TJSArrayLiteral;
   OldAccess: TCtxAccess;
-  DeclResolved, ParamResolved, ValueResolved, LeftResolved: TPasResolverResult;
+  DeclResolved, ParamResolved, ValueResolved: TPasResolverResult;
   Param, Value: TPasExpr;
   JSBaseType: TPas2jsBaseType;
   C: TClass;
@@ -9316,15 +9344,8 @@ begin
     if Call.Expr=nil then
       begin
       if DotBin<>nil then
-        begin
-        aResolver.ComputeElement(DotBin.left,LeftResolved,[]);
-        if LeftResolved.BaseType=btModule then
-          // e.g. system.inttostr()
-          // module path is created automatically
-        else
-          Call.Expr:=ConvertSubIdentExprCustom(DotBin,AContext,LeftResolved);
-        end;
-      if Call.Expr=nil then
+        Call.Expr:=ConvertSubIdentExprCustom(DotBin,AContext)
+      else
         Call.Expr:=ConvertExpression(El.Value,AContext);
       end;
     //if Call.Expr is TPrimitiveExpr then
@@ -9587,6 +9608,12 @@ begin
   JSBaseType:=pbtNone;
 
   to_bt:=ToBaseTypeData.BaseType;
+  if to_bt=ParamResolved.BaseType then
+    begin
+    Result:=ConvertExpression(Param,AContext);
+    exit;
+    end;
+
   if to_bt in btAllJSInteger then
     begin
     if ParamResolved.BaseType in btAllJSInteger then
@@ -19202,6 +19229,18 @@ function TPasToJSConverter.CreateReferencePath(El: TPasElement;
     aPath:=Prefix+aPath;
   end;
 
+  function NeedsWithExpr: boolean;
+  var
+    Parent: TPasElement;
+  begin
+    if (Ref=nil) or (Ref.WithExprScope=nil) then exit(false);
+    Parent:=El.Parent;
+    if (Parent<>nil) and (Parent.ClassType=TPasClassType)
+        and (TPasClassType(Parent).HelperForType<>nil) then
+      exit(false);
+    Result:=true;
+  end;
+
   function IsClassFunction(Proc: TPasElement): boolean;
   var
     C: TClass;
@@ -19319,12 +19358,6 @@ begin
         end;
       end;
     end
-  else if (Ref<>nil) and (Ref.WithExprScope<>nil) then
-    begin
-    // using local WITH var
-    WithData:=Ref.WithExprScope as TPas2JSWithExprScope;
-    Prepend(Result,WithData.WithVarName);
-    end
   else if IsLocalVar then
     begin
     // El is local var -> does not need path
@@ -19332,7 +19365,7 @@ begin
   else if ElClass.InheritsFrom(TPasProcedure) and (TPasProcedure(El).LibrarySymbolName<>nil)
       and not (El.Parent is TPasMembersType) then
     begin
-    // an external function -> use the literal
+    // an external global function -> use the literal
     if Kind=rpkPathAndName then
       Result:=ComputeConstString(TPasProcedure(El).LibrarySymbolName,AContext,true)
     else
@@ -19342,7 +19375,7 @@ begin
   else if ElClass.InheritsFrom(TPasVariable) and (TPasVariable(El).ExportName<>nil)
       and not (El.Parent is TPasMembersType) then
     begin
-    // an external var -> use the literal
+    // an external global var -> use the literal
     if Kind=rpkPathAndName then
       Result:=ComputeConstString(TPasVariable(El).ExportName,AContext,true)
     else
@@ -19354,6 +19387,12 @@ begin
     // an external class -> use the literal
     Result:=TPasClassType(El).ExternalName;
     exit;
+    end
+  else if NeedsWithExpr then
+    begin
+    // using local WITH var
+    WithData:=Ref.WithExprScope as TPas2JSWithExprScope;
+    Prepend(Result,WithData.WithVarName);
     end
   else
     begin
