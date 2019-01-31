@@ -7181,7 +7181,7 @@ begin
   RightEl:=El.right;
   RightRef:=nil;
   RightRefDecl:=nil;
-  if ((RightEl.ClassType=TPrimitiveExpr) or (RightEl.ClassType=TSelfExpr))
+  if (RightEl.ClassType=TPrimitiveExpr)
       and (RightEl.CustomData is TResolvedReference) then
     begin
     RightRef:=TResolvedReference(RightEl.CustomData);
@@ -11875,8 +11875,6 @@ begin
     Result:=ConvertNilExpr(TNilExpr(El),AContext)
   else if (El.ClassType=TInheritedExpr) then
     Result:=ConvertInheritedExpr(TInheritedExpr(El),AContext)
-  else if (El.ClassType=TSelfExpr) then
-    Result:=ConvertSelfExpression(TSelfExpr(El),AContext)
   else if (El.ClassType=TParamsExpr) then
     Result:=ConvertParamsExpr(TParamsExpr(El),AContext)
   else if (El.ClassType=TProcedureExpr) then
