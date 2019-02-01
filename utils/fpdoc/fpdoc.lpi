@@ -4,9 +4,12 @@
     <Version Value="11"/>
     <General>
       <Flags>
+        <SaveClosedFiles Value="False"/>
         <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <SaveJumpHistory Value="False"/>
+        <SaveFoldState Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
@@ -25,15 +28,15 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="../utils/fpdoc/bin/x86_64-linux/fpdoc --macro=FPCDIR=.. --project=rtl-project.xml --format=html --output=rtl --footer-date=&quot;mmm dd yyyy&quot;"/>
-        <WorkingDirectory Value="/home/michael/docs"/>
+        <CommandLineParams Value="--macro=FPCDIR=../fpcsrc --project=rtl-project.xml --format=html --output=rtl --footer-date=&quot;mmm dd yyyy&quot;"/>
+        <WorkingDirectory Value="/home/michael/FPC/build/tag_3_2_0/fpcdocs"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="../utils/fpdoc/bin/x86_64-linux/fpdoc --macro=FPCDIR=.. --project=rtl-project.xml --format=html --output=rtl --footer-date=&quot;mmm dd yyyy&quot;"/>
-            <WorkingDirectory Value="/home/michael/docs"/>
+            <CommandLineParams Value="--macro=FPCDIR=../fpcsrc --project=rtl-project.xml --format=html --output=rtl --footer-date=&quot;mmm dd yyyy&quot;"/>
+            <WorkingDirectory Value="/home/michael/FPC/build/tag_3_2_0/fpcdocs"/>
           </local>
         </Mode0>
       </Modes>

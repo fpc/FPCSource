@@ -1312,28 +1312,28 @@ end;
      Halt(1);
    end;
 
-  procedure DirectPutPixelDefault(X,Y: smallint);
+  procedure DirectPutPixelDefault(X,Y: smallint); noreturn;
    begin
      NotInGraphicsMode;
    end;
 
-  function GetPixelDefault(X,Y: smallint): ColorType;
+  function GetPixelDefault(X,Y: smallint): ColorType; noreturn;
    begin
      NotInGraphicsMode;
    end;
 
-  procedure PutPixelDefault(X,Y: smallint; Color: ColorType);
+  procedure PutPixelDefault(X,Y: smallint; Color: ColorType); noreturn;
    begin
      NotInGraphicsMode;
    end;
 
-  procedure SetRGBPaletteDefault(ColorNum, RedValue, GreenValue, BlueValue: smallint);
+  procedure SetRGBPaletteDefault(ColorNum, RedValue, GreenValue, BlueValue: smallint); noreturn;
    begin
      NotInGraphicsMode;
    end;
 
   procedure GetRGBPaletteDefault(ColorNum: smallint; var
-            RedValue, GreenValue, BlueValue: smallint);
+            RedValue, GreenValue, BlueValue: smallint); noreturn;
    begin
      NotInGraphicsMode;
    end;

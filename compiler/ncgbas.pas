@@ -625,14 +625,14 @@ interface
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
-{$if defined(cpu32bitalu)}
+{$if defined(cpu32bitalu) and not defined(cpuhighleveltarget)}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
                     end
                   else
-{$elseif defined(cpu16bitalu)}
+{$elseif defined(cpu16bitalu) and not defined(cpuhighleveltarget)}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
@@ -647,7 +647,7 @@ interface
                       cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register));
                     end
                   else
-{$elseif defined(cpu8bitalu)}
+{$elseif defined(cpu8bitalu) and not defined(cpuhighleveltarget)}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);

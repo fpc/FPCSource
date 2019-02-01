@@ -298,10 +298,6 @@
   {$define cpurequiresproperalignment}
 {$endif riscv64}
 
-{$IFDEF MACOS}
-{$DEFINE USE_FAKE_SYSUTILS}
-{$ENDIF MACOS}
-
 { Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
   (but there we don't support it)
 }
@@ -322,9 +318,7 @@
 }
 {$ifdef llvm}
   {$undef SUPPORT_MMX}
-  {$undef cpu16bitalu}
-  {$undef cpu32bitalu}
-  {$define cpu64bitalu}
   {$define cpuhighleveltarget}
+  {$define cpucg64shiftsupport}
   {$define symansistr}
 {$endif}

@@ -466,25 +466,23 @@ unit cpupara;
             else
               begin
                 paralen:=push_size(hp.varspez,paradef,p.proccalloption);
-                { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
-                { zero extended to sizeof(aint)                                }
-                if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                   (side = callerside) and
-                   (paralen > 0) and
-                   (paralen < sizeof(aint)) then
-                  begin
-                    paralen:=sizeof(aint);
-                    paracgsize:=OS_SINT;
-                    paradef:=sinttype;
-                  end
-                else
-                  paracgsize:=def_cgsize(paradef);
+                paracgsize:=def_cgsize(paradef);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].def:=paradef;
             hp.paraloc[side].Alignment:=paraalign;
+            { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
+            { zero extended to sizeof(aint)                                }
+            if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+               (side = callerside) and
+               (paralen > 0) and
+               (paralen < sizeof(aint)) then
+              begin
+                paracgsize:=OS_SINT;
+                paradef:=sinttype;
+              end;
             { Copy to stack? }
             if (paracgsize=OS_NO) or
                (use_fixed_stack) then

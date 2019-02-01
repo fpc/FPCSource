@@ -136,6 +136,7 @@ type
     // source map
     coSourceMapCreate,
     coSourceMapInclude,
+    coSourceMapFilenamesAbsolute,
     coSourceMapXSSIHeader
     );
   TP2jsCompilerOptions = set of TP2jsCompilerOption;
@@ -184,6 +185,7 @@ const
     'Keep not used declarations (WPO)',
     'Create source map',
     'Include Pascal sources in source map',
+    'Do not shorten filenames in source map',
     'Prepend XSSI protection )]} to source map'
     );
 
@@ -505,6 +507,7 @@ type
     function GetSkipDefaultConfig: Boolean; inline;
     function GetSrcMapEnable: boolean;
     function GetSrcMapInclude: boolean;
+    function GetSrcMapFilenamesAbsolute: boolean;
     function GetSrcMapXSSIHeader: boolean;
     function GetTargetPlatform: TPasToJsPlatform;
     function GetTargetProcessor: TPasToJsProcessor;
@@ -532,6 +535,7 @@ type
     procedure SetSrcMapBaseDir(const AValue: string);
     procedure SetSrcMapEnable(const AValue: boolean);
     procedure SetSrcMapInclude(const AValue: boolean);
+    procedure SetSrcMapFilenamesAbsolute(const AValue: boolean);
     procedure SetSrcMapXSSIHeader(const AValue: boolean);
     procedure SetTargetPlatform(const AValue: TPasToJsPlatform);
     procedure SetTargetProcessor(const AValue: TPasToJsProcessor);
@@ -573,7 +577,7 @@ type
     // Command-line option handling
     procedure HandleOptionPCUFormat(aValue: String); virtual;
     function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): Boolean; virtual;
-    function HandleOptionJS(C: Char; aValue: String; Quick,FromCmdLine: Boolean): Boolean; virtual;
+    function HandleOptionJ(C: Char; aValue: String; Quick,FromCmdLine: Boolean): Boolean; virtual;
     procedure HandleOptionConfigFile(aPos: Integer; const aFileName: string); virtual;
     procedure HandleOptionInfo(aValue: string);
     // DoWriteJSFile: return false to use the default write function.
@@ -629,7 +633,7 @@ type
     function IsDefined(const aName: String): boolean;
     procedure SetOption(Flag: TP2jsCompilerOption; Enable: boolean);
 
-    function GetUnitInfo(const UseUnitName, InFileName: String;
+    function GetUnitInfo(const UseUnitName, InFileName, ModuleDir: String;
       PCUSupport: TPCUSupport): TFindUnitInfo;
     function FindFileWithUnitFilename(UnitFilename: string): TPas2jsCompilerFile;
     procedure LoadModuleFile(UnitFilename, UseUnitName: string;
@@ -659,6 +663,7 @@ type
     property SrcMapSourceRoot: string read FSrcMapSourceRoot write FSrcMapSourceRoot;
     property SrcMapInclude: boolean read GetSrcMapInclude write SetSrcMapInclude;
     property SrcMapXSSIHeader: boolean read GetSrcMapXSSIHeader write SetSrcMapXSSIHeader;
+    property SrcMapFilenamesAbsolute: boolean read GetSrcMapFilenamesAbsolute write SetSrcMapFilenamesAbsolute;
     property ShowDebug: boolean read GetShowDebug write SetShowDebug;
     property ShowFullPaths: boolean read GetShowFullPaths write SetShowFullPaths;
     property ShowLogo: Boolean read GetShowLogo write SetShowLogo;
@@ -682,9 +687,6 @@ type
     property ConfigSupport: TPas2JSConfigSupport Read FConfigSupport Write FConfigSupport;
     property PostProcessorSupport: TPas2JSPostProcessorSupport Read FPostProcessorSupport Write FPostProcessorSupport;
   end;
-
-
-
 
 function GetCompiledDate: string;
 function GetCompiledVersion: string;
@@ -1622,6 +1624,7 @@ var
   aFile: TPas2jsCompilerFile;
   UnitInfo: TFindUnitInfo;
   LoadInfo: TLoadUnitInfo;
+  ModuleDir: String;
 begin
   Result:=nil;
   aFile:=Nil;
@@ -1629,7 +1632,8 @@ begin
   if CompareText(ExtractFilenameOnly(UnitFilename),UseUnitname)=0 then
     Parser.RaiseParserError(nUnitCycle,[UseUnitname]);
 
-  UnitInfo:=Compiler.GetUnitInfo(UseUnitName,InFileName,PCUSupport);
+  ModuleDir:=ExtractFilePath(PasFileName);
+  UnitInfo:=Compiler.GetUnitInfo(UseUnitName,InFileName,ModuleDir,PCUSupport);
   if UnitInfo.FileName<>'' then
     begin
     LoadInfo.UseFilename:=UnitInfo.FileName;
@@ -1654,8 +1658,6 @@ begin
     Result:=aFile.PasModule;
   // if Result=nil resolver will give a nice error position, so don't do it here
 end;
-
-
 
 { TPas2jsCompiler }
 
@@ -2009,7 +2011,8 @@ begin
       SrcMap.SourceContents[i]:=aFile.Source;
     end;
     // translate local file name
-    if BaseDir<>'' then
+    MapFilename:=LocalFilename;
+    if (BaseDir<>'') and not SrcMapFilenamesAbsolute then
     begin
       if not FS.TryCreateRelativePath(LocalFilename,BaseDir,true,MapFilename) then
       begin
@@ -2024,12 +2027,14 @@ begin
         // the source is included, do not translate the filename
         MapFilename:=LocalFilename;
       end;
-      {$IFNDEF Unix}
-      // use / as PathDelim
-      MapFilename:=StringReplace(MapFilename,PathDelim,'/',[rfReplaceAll]);
-      {$ENDIF}
-      SrcMap.SourceTranslatedFiles[i]:=MapFilename;
     end;
+    {$IFNDEF Unix}
+    // use / as PathDelim
+    if PathDelim<>'/' then
+      MapFilename:=StringReplace(MapFilename,PathDelim,'/',[rfReplaceAll]);
+    {$ENDIF}
+    if LocalFilename<>MapFilename then
+      SrcMap.SourceTranslatedFiles[i]:=MapFilename;
   end;
 end;
 
@@ -2483,6 +2488,11 @@ begin
   Result:=coSourceMapInclude in FOptions;
 end;
 
+function TPas2jsCompiler.GetSrcMapFilenamesAbsolute: boolean;
+begin
+  Result:=coSourceMapFilenamesAbsolute in FOptions;
+end;
+
 function TPas2jsCompiler.GetSrcMapXSSIHeader: boolean;
 begin
   Result:=coSourceMapXSSIHeader in FOptions;
@@ -2586,6 +2596,11 @@ end;
 procedure TPas2jsCompiler.SetSrcMapInclude(const AValue: boolean);
 begin
   SetOption(coSourceMapInclude,AValue);
+end;
+
+procedure TPas2jsCompiler.SetSrcMapFilenamesAbsolute(const AValue: boolean);
+begin
+  SetOption(coSourceMapFilenamesAbsolute,AValue);
 end;
 
 procedure TPas2jsCompiler.SetSrcMapXSSIHeader(const AValue: boolean);
@@ -3010,7 +3025,7 @@ begin
 
 end;
 
-function TPas2jsCompiler.HandleOptionJS(C: Char; aValue: String;
+function TPas2jsCompiler.HandleOptionJ(C: Char; aValue: String;
   Quick, FromCmdLine: Boolean): Boolean;
 
 Var
@@ -3084,6 +3099,10 @@ begin
         SrcMapInclude:=true;
       'include-':
         SrcMapInclude:=false;
+      'absolute':
+        SrcMapFilenamesAbsolute:=true;
+      'absolute-':
+        SrcMapFilenamesAbsolute:=false;
       'xssiheader':
         SrcMapXSSIHeader:=true;
       'xssiheader-':
@@ -3092,7 +3111,7 @@ begin
         begin
         i:=Pos('=',aValue);
         if i<1 then
-          result:=false
+          ParamFatal('unknown -Jm parameter "'+aValue+'"')
         else
           begin
           S:=LeftStr(aValue,i-1);
@@ -3101,7 +3120,7 @@ begin
             'sourceroot': SrcMapSourceRoot:=aValue;
             'basedir': SrcMapBaseDir:=aValue;
           else
-            Result:=False;
+            ParamFatal('unknown -Jm parameter "'+s+'"')
           end;
           end;
         end;
@@ -3403,7 +3422,7 @@ begin
             UnknownParam;
           c:=aValue[1];
           Delete(aValue,1,1);
-          if not HandleOptionJS(c,aValue,Quick,FromCmdLine) then
+          if not HandleOptionJ(c,aValue,Quick,FromCmdLine) then
             UnknownParam;
         end;
       'M': // syntax mode
@@ -4214,8 +4233,9 @@ begin
   w('   -Jl   : lower case identifiers');
   w('   -Jm   : generate source maps');
   w('     -Jmsourceroot=<x>: use x as "sourceRoot", prefix URL for source file names.');
-  w('     -Jmbasedir=<x>: write source file names relative to directory x.');
+  w('     -Jmbasedir=<x>: write source file names relative to directory x, default is map file folder.');
   w('     -Jminclude: include Pascal sources in source map.');
+  w('     -Jmabsolute: store absolute filenames, not relative.');
   w('     -Jmxssiheader: start source map with XSSI protection )]}'', default.');
   w('     -Jm-: disable generating source maps');
   w('   -Jo<x>: Enable or disable extra option. The x is case insensitive:');
@@ -4637,8 +4657,8 @@ begin
   Result:=FMainJSFileResolved;
 end;
 
-function TPas2jsCompiler.GetUnitInfo(const UseUnitName, InFileName: String;
-  PCUSupport: TPCUSupport): TFindUnitInfo;
+function TPas2jsCompiler.GetUnitInfo(const UseUnitName, InFileName,
+  ModuleDir: String; PCUSupport: TPCUSupport): TFindUnitInfo;
 
 var
   FoundPasFilename, FoundPasUnitName: string;
@@ -4667,7 +4687,7 @@ var
         end;
       end else begin
         // search pas in unit path
-        FoundPasFilename:=FS.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
+        FoundPasFilename:=FS.FindUnitFileName(TestUnitName,'',ModuleDir,FoundPasIsForeign);
         if FoundPasFilename<>'' then
           FoundPasUnitName:=TestUnitName;
       end;
@@ -4725,7 +4745,7 @@ begin
     end;
   end else begin
     // search Pascal file with InFilename
-    FoundPasFilename:=FS.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
+    FoundPasFilename:=FS.FindUnitFileName(UseUnitname,InFilename,ModuleDir,FoundPasIsForeign);
     if FoundPasFilename='' then
       exit; // an in-filename unit source is missing -> stop
     FoundPasUnitName:=ExtractFilenameOnly(InFilename);

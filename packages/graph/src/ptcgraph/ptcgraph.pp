@@ -17,7 +17,7 @@
 unit ptcgraph;
 
 {//$define logging}
-{//$define FPC_GRAPH_SUPPORTS_TRUECOLOR}
+{$define FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
 {******************************************************************************}
                                     interface

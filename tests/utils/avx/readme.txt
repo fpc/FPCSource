@@ -29,6 +29,17 @@ for %a in (*.asm) do nasm -fwin64 %a
 cd ..
 avxtestfilecmp -mtmp\*.obj -dtmp -eexe -s
 
+Linux x86-64:
+mkdir tmp
+fpc avxtestgenerator
+fpc avxtestfilecmp
+./avxtestgenerator -px8664 -ffpc -otmp
+./avxtestgenerator -px8664 -fnasm -otmp
+cd tmp
+echo *.pp | xargs -n 1 fpc -Px86_64 -v0i
+echo *.asm | xargs -n 1 nasm -fwin64
+cd ..
+./avxtestfilecmp -mtmp/*.o -dtmp -s
 
 x86_64 testing by using self testing fpc executables: 
 avxtestgenerator -px8664 -ffpcinc -otmp

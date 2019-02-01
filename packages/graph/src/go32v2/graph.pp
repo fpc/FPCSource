@@ -155,9 +155,13 @@ const
      ScrWidth : word absolute $40:$4a;
      inWindows: boolean;
 
-{$ifndef tp}
   Procedure seg_bytemove(sseg : word;source : longint;dseg : word;dest : longint;count : longint); assembler;
     asm
+      {# Var sseg located in register ax
+       # Var source located in register edx
+       # Var dseg located in register cx
+       # Var dest located at ebp+12, size=OS_S32
+       # Var count located at ebp+8, size=OS_S32 }
       push edi
       push esi
       push es
@@ -173,14 +177,11 @@ const
       pop es
       pop esi
       pop edi
-    end ['ECX'];
-{$endif tp}
+    end;
 
  Procedure CallInt10(val_ax : word); assembler;
    asm
-{$IFNDEF REGCALL}
-     mov ax,val_ax
-{$ENDIF REGCALL}
+      {# Var val_ax located in register ax }
       push ebp
       push esi
       push edi
@@ -190,114 +191,125 @@ const
       pop edi
       pop esi
       pop ebp
-   end ['EAX'];
+   end;
 
-  procedure seg_xorword(segment : word;ofs : longint;count : longint;w : word);
-    begin
-      asm
-         push edi
-         mov edi, [ofs]
-         mov ecx, [count]
-         movzx edx, word ptr [w]
-         { load segment }
-         push es
-         mov ax, [segment]
-         mov es, ax
-         { fill eax }
-         mov eax, edx
-         shl eax, 16
-         or eax, edx
-         test edi, 3
-         jz @@aligned
-         xor word ptr es:[edi], ax
-         add edi, 2
-         dec ecx
-         jz @@done
+ Procedure InitInt10hMode(mode : byte);
+   begin
+     if DontClearGraphMemory then
+       CallInt10(mode or $80)
+     else
+       CallInt10(mode);
+   end;
+
+  procedure seg_xorword(segment : word;ofs : longint;count : longint;w : word); assembler;
+    asm
+      {# Var segment located in register ax
+       # Var ofs located in register edx
+       # Var count located in register ecx
+       # Var w located at ebp+8, size=OS_16 }
+      push edi
+      mov edi, edx
+      { load segment }
+      push es
+      mov es, ax
+      { fill eax }
+      movzx edx, word ptr [w]
+      mov eax, edx
+      shl eax, 16
+      or eax, edx
+      test edi, 3
+      jz @@aligned
+      xor word ptr es:[edi], ax
+      add edi, 2
+      dec ecx
+      jz @@done
 @@aligned:
-         mov edx, ecx
-         shr ecx, 1
-@@lp:    xor dword ptr es:[edi], eax
-         add edi, 4
-         dec ecx
-         jnz @@lp
-         test edx, 1
-         jz @@done
-         xor word ptr es:[edi], ax
-@@done:  pop es
-         pop edi
-      end;
+      mov edx, ecx
+      shr ecx, 1
+@@lp: xor dword ptr es:[edi], eax
+      add edi, 4
+      dec ecx
+      jnz @@lp
+      test edx, 1
+      jz @@done
+      xor word ptr es:[edi], ax
+@@done:
+      pop es
+      pop edi
     end;
 
-  procedure seg_orword(segment : word;ofs : longint;count : longint;w : word);
-    begin
-      asm
-         push edi
-         mov edi, [ofs]
-         mov ecx, [count]
-         movzx edx, word ptr [w]
-         { load segment }
-         push es
-         mov ax, [segment]
-         mov es, ax
-         { fill eax }
-         mov eax, edx
-         shl eax, 16
-         or eax, edx
-         test edi, 3
-         jz @@aligned
-         or word ptr es:[edi], ax
-         add edi, 2
-         dec ecx
-         jz @@done
+  procedure seg_orword(segment : word;ofs : longint;count : longint;w : word); assembler;
+    asm
+      {# Var segment located in register ax
+       # Var ofs located in register edx
+       # Var count located in register ecx
+       # Var w located at ebp+8, size=OS_16 }
+      push edi
+      mov edi, edx
+      { load segment }
+      push es
+      mov es, ax
+      { fill eax }
+      movzx edx, word ptr [w]
+      mov eax, edx
+      shl eax, 16
+      or eax, edx
+      test edi, 3
+      jz @@aligned
+      or word ptr es:[edi], ax
+      add edi, 2
+      dec ecx
+      jz @@done
 @@aligned:
-         mov edx, ecx
-         shr ecx, 1
-@@lp:    or dword ptr es:[edi], eax
-         add edi, 4
-         dec ecx
-         jnz @@lp
-         test edx, 1
-         jz @@done
-         or word ptr es:[edi], ax
-@@done:  pop es
-         pop edi
-      end;
+      mov edx, ecx
+      shr ecx, 1
+@@lp: or dword ptr es:[edi], eax
+      add edi, 4
+      dec ecx
+      jnz @@lp
+      test edx, 1
+      jz @@done
+      or word ptr es:[edi], ax
+@@done:
+      pop es
+      pop edi
     end;
 
-  procedure seg_andword(segment : word;ofs : longint;count : longint;w : word);
-    begin
-      asm
-         push edi
-         mov edi, [ofs]
-         mov ecx, [count]
-         movzx edx, word ptr [w]
-         { load segment }
-         push es
-         mov ax, [segment]
-         mov es, ax
-         { fill eax }
-         mov eax, edx
-         shl eax, 16
-         or eax, edx
-         test edi, 3
-         jz @@aligned
-         and word ptr es:[edi], ax
-         add edi, 2
-         dec ecx
-         jz @@done
+  procedure seg_andword(segment : word;ofs : longint;count : longint;w : word); assembler;
+    asm
+      {# Var segment located in register ax
+       # Var ofs located in register edx
+       # Var count located in register ecx
+       # Var w located at ebp+8, size=OS_16 }
+      push edi
+      mov edi, edx
+      { load segment }
+      push es
+      mov es, ax
+      { fill eax }
+      movzx edx, word ptr [w]
+      mov eax, edx
+      shl eax, 16
+      or eax, edx
+      test edi, 3
+      jz @@aligned
+      and word ptr es:[edi], ax
+      add edi, 2
+      dec ecx
+      jz @@done
 @@aligned:
-         mov edx, ecx
-         shr ecx, 1
-@@lp:    and dword ptr es:[edi], eax
-         add edi, 4
-         dec ecx
-         jnz @@lp
-         test edx, 1
-         jz @@done
-         and word ptr es:[edi], ax
-@@done:  pop es
-         pop edi
-      end;
+      mov edx, ecx
+      shr ecx, 1
+@@lp: and dword ptr es:[edi], eax
+      add edi, 4
+      dec ecx
+      jnz @@lp
+      test edx, 1
+      jz @@done
+      and word ptr es:[edi], ax
+@@done:
+      pop es
+      pop edi
     end;
 
 {************************************************************************}
@@ -671,9 +683,7 @@ var
 
 procedure SetCGAPalette(CGAPaletteID: Byte); assembler;
 asm
-{$IFNDEF REGCALL}
-  mov ax,val_ax
-{$ENDIF REGCALL}
+  {# Var CGAPaletteID located in register al }
   push ebp
   push esi
   push edi
@@ -690,9 +700,7 @@ end;
 
 procedure SetCGABorder(CGABorder: Byte); assembler;
 asm
-{$IFNDEF REGCALL}
-  mov ax,val_ax
-{$ENDIF REGCALL}
+  {# Var CGABorder located in register al }
   push ebp
   push esi
   push edi
@@ -722,10 +730,7 @@ end;
 
 procedure InitCGA320C0;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(0);
   SetCGABorder(16);
@@ -734,10 +739,7 @@ end;
 
 procedure InitCGA320C1;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(1);
   SetCGABorder(16);
@@ -746,10 +748,7 @@ end;
 
 procedure InitCGA320C2;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(2);
   SetCGABorder(0);
@@ -758,10 +757,7 @@ end;
 
 procedure InitCGA320C3;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(3);
   SetCGABorder(0);
@@ -1054,10 +1050,7 @@ end;
 
 procedure InitCGA640;
 begin
-  if DontClearGraphMemory then
-    CallInt10($86)
-  else
-    CallInt10($06);
+  InitInt10hMode($06);
   VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
@@ -1365,10 +1358,7 @@ end;
 
 procedure InitMCGA640;
 begin
-  if DontClearGraphMemory then
-    CallInt10($91)
-  else
-    CallInt10($11);
+  InitInt10hMode($11);
   VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
@@ -1664,20 +1654,14 @@ end;
 
   Procedure Init640x200x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($8e)
-      else
-        CallInt10($e);
+      InitInt10hMode($e);
       VideoOfs := 0;
     end;
 
 
    Procedure Init640x350x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($90)
-      else
-        CallInt10($10);
+      InitInt10hMode($10);
       VideoOfs := 0;
     end;
 
@@ -1685,21 +1669,17 @@ end;
 
   Procedure Init640x480x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($92)
-      else
-        CallInt10($12);
+      InitInt10hMode($12);
       VideoOfs := 0;
     end;
 
 
 
 
- Procedure PutPixel16(X,Y : smallint; Pixel: Word);
 {$ifndef asmgraph}
+ Procedure PutPixel16(X,Y : smallint; Pixel: Word);
  var offset: word;
      dummy: byte;
-{$endif asmgraph}
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
@@ -1711,7 +1691,6 @@ end;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
-{$ifndef asmgraph}
      offset := y * 80 + (x shr 3) + VideoOfs;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := (Pixel and $ff) shl 8; { Index 00 : Enable correct plane and write color }
@@ -1721,7 +1700,20 @@ end;
      Mem[Sega000: offset] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
+   end;
 {$else asmgraph}
+ Procedure PutPixel16(X,Y : smallint; Pixel: Word);
+  Begin
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
+    { convert to absolute coordinates and then verify clipping...}
+    if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
       asm
         push eax
         push ebx
@@ -1776,19 +1768,17 @@ end;
         pop ebx
         pop eax
       end;
-{$endif asmgraph}
    end;
+{$endif asmgraph}
 
 
- Function GetPixel16(X,Y: smallint):word;
 {$ifndef asmgraph}
+ Function GetPixel16(X,Y: smallint):word;
  Var dummy, offset: Word;
      shift: byte;
-{$endif asmgraph}
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
     offset := Y * 80 + (x shr 3) + VideoOfs;
     PortW[$3ce] := $0004;
     shift := 7 - (X and 7);
@@ -1800,7 +1790,12 @@ end;
     Port[$3cf] := 3;
     dummy := dummy or (((Mem[Sega000:offset] shr shift) and 1) shl 3);
     GetPixel16 := dummy;
+  end;
 {$else asmgraph}
+ Function GetPixel16(X,Y: smallint):word;
+  Begin
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
     asm
       push eax
       push ebx
@@ -1876,8 +1871,8 @@ end;
       pop ebx
       pop eax
     end;
-{$endif asmgraph}
   end;
+{$endif asmgraph}
 
 Procedure GetScanLine16(x1, x2, y: smallint; var data);
 
@@ -2006,14 +2001,13 @@ Begin
 {$Endif logging}
 End;
 
+{$ifndef asmgraph}
  Procedure DirectPutPixel16(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
   var
    color: word;
-{$ifndef asmgraph}
   offset: word;
   dummy: byte;
-{$endif asmgraph}
  begin
     If CurrentWriteMode <> NotPut Then
       Color := CurrentColor
@@ -2032,7 +2026,6 @@ End;
        else
          PortW[$3ce]:=$0003}
     end;
-{$ifndef asmgraph}
     offset := Y * 80 + (X shr 3) + VideoOfs;
     PortW[$3ce] := $f01;
     PortW[$3ce] := Color shl 8;
@@ -2045,7 +2038,30 @@ End;
        (CurrentWriteMode = ANDPut) or
        (CurrentWriteMode = ORPut) then
       PortW[$3ce] := $0003;
+ end;
 {$else asmgraph}
+ Procedure DirectPutPixel16(X,Y : smallint);
+ { x,y -> must be in global coordinates. No clipping. }
+  var
+   color: word;
+ begin
+    If CurrentWriteMode <> NotPut Then
+      Color := CurrentColor
+    else Color := not CurrentColor;
+
+    case CurrentWriteMode of
+       XORPut:
+         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
+       ANDPut:
+         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
+       ORPut:
+         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
+       {not needed, this is the default state (e.g. PutPixel16 requires it)}
+       {NormalPut, NotPut:
+         PortW[$3ce]:=$0003
+       else
+         PortW[$3ce]:=$0003}
+    end;
 { note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
       push eax
@@ -2101,8 +2117,8 @@ End;
       pop ebx
       pop eax
     end;
-{$endif asmgraph}
  end;
+{$endif asmgraph}
 
 
   procedure HLine16(x,x2,y: smallint);
@@ -2172,11 +2188,7 @@ End;
          if HLength>0 then
            begin
               Port[$3cf]:=$ff;
-{$ifndef tp}
               seg_bytemove(dosmemselector,$a0000+ScrOfs,dosmemselector,$a0000+ScrOfs,HLength);
-{$else}
-              move(Ptr(SegA000,ScrOfs)^, Ptr(SegA000,ScrOfs)^, HLength);
-{$endif}
               ScrOfs:=ScrOfs+HLength;
            end;
          Port[$3cf]:=RMask;
@@ -2254,78 +2266,32 @@ End;
   End;
 
 
- procedure SetVisual200(page: word);
-  { four page support... }
+ procedure SetVisual200_350(page: word);
   begin
     if page > HardwarePages then exit;
     asm
-      mov ax,[page]    { only lower byte is supPorted. }
+      mov ax,[page]    { only lower byte is supported. }
       mov ah,05h
-      push ebp
-      push esi
-      push edi
-      push ebx
       int 10h
-      pop ebx
-      pop edi
-      pop esi
-      pop ebp
-
-      { read start address }
-      mov dx,3d4h
-      mov al,0ch
-      out dx,al
-      inc dx
-      in  al,dx
-      mov ah,al
-      dec dx
-      mov al,0dh
-      out dx,al
-      in  al,dx
-    end ['EDX','EAX'];
+    end ['EAX','EBX','ECX','EDX','ESI','EDI','EBP'];
   end;
 
  procedure SetActive200(page: word);
   { four page support... }
   begin
-    case page of
-     0 : VideoOfs := 0;
-     1 : VideoOfs := 16384;
-     2 : VideoOfs := 32768;
-     3 : VideoOfs := 49152;
+    if (page >= 0) and (page <= 3) then
+      VideoOfs := page shl 14
     else
       VideoOfs := 0;
-    end;
-  end;
-
- procedure SetVisual350(page: word);
-  { one page supPort... }
-  begin
-    if page > HardwarePages then exit;
-    asm
-      mov ax,[page]    { only lower byte is supPorted. }
-      mov ah,05h
-      push ebp
-      push esi
-      push edi
-      push ebx
-      int 10h
-      pop ebx
-      pop edi
-      pop esi
-      pop ebp
-    end ['EAX'];
   end;
 
  procedure SetActive350(page: word);
   { one page supPort... }
   begin
-    case page of
-     0 : VideoOfs := 0;
-     1 : VideoOfs := 32768;
+    if page = 1 then
+      VideoOfs := 32768
     else
       VideoOfs := 0;
-    end;
   end;
 
 
@@ -2338,31 +2304,21 @@ End;
 
  Procedure Init320;
     begin
-      if DontClearGraphMemory then
-        CallInt10($93)
-      else
-        CallInt10($13);
-      VideoOfs := 0;
+      InitInt10hMode($13);
     end;
 
 
 
- Procedure PutPixel320(X,Y : smallint; Pixel: Word);
+ Procedure PutPixel320(X,Y : smallint; Pixel: Word); assembler;
  { x,y -> must be in local coordinates. Clipping if required. }
-  assembler;
   asm
-      push eax
+      {# Var X located in register ax
+       # Var Y located in register dx
+       # Var Pixel located in register cx }
       push ebx
-      push ecx
       push edi
-{$IFDEF REGCALL}
       movsx  edi, ax
       movsx  ebx, dx
-      mov    al, cl
-{$ELSE REGCALL}
-      movsx  edi, x
-      movsx  ebx, y
-{$ENDIF REGCALL}
       cmp    clippixels, 0
       je     @putpix320noclip
       test   edi, edi
@@ -2374,62 +2330,45 @@ End;
       cmp    bx, ViewHeight
       jg     @putpix320done
 @putpix320noclip:
-      movsx  ecx, StartYViewPort
+      movsx  eax, StartYViewPort
       movsx  edx, StartXViewPort
-      add    ebx, ecx
+      add    ebx, eax
       add    edi, edx
-{    add    edi, [VideoOfs]      no multiple pages in 320*200*256 }
-{$IFNDEF REGCALL}
-      mov    ax, [pixel]
-{$ENDIF REGCALL}
       shl    ebx, 6
       add    edi, ebx
-      mov    fs:[edi+ebx*4+$a0000], al
+      mov    fs:[edi+ebx*4+$a0000], cl
 @putpix320done:
       pop edi
-      pop ecx
       pop ebx
-      pop eax
  end;
 
 
- Function GetPixel320(X,Y: smallint):word;
-  assembler;
+ Function GetPixel320(X,Y: smallint):word; assembler;
   asm
+    {# Var X located in register ax
+     # Var Y located in register dx }
     push ebx
-    push ecx
-    push edx
-    push edi
-{$IFDEF REGCALL}
-    movsx  edi, ax
+    movsx  eax, ax
     movsx  ebx, dx
-{$ELSE REGCALL}
-    movsx  edi, x
-    movsx  ebx, y
-{$ENDIF REGCALL}
     movsx  ecx, StartYViewPort
     movsx  edx, StartXViewPort
     add    ebx, ecx
-    add    edi, edx
- {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
+    add    eax, edx
     shl    ebx, 6
-    add    edi, ebx
-    movzx  eax, byte ptr fs:[edi+ebx*4+$a0000]
-    pop edi
-    pop edx
-    pop ecx
+    add    eax, ebx
+    movzx  eax, byte ptr fs:[eax+ebx*4+$a0000]
     pop ebx
   end;
 
 
+{$ifndef asmgraph}
  Procedure DirectPutPixel320(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
-{$ifndef asmgraph}
  var offset: word;
      dummy: Byte;
  begin
    dummy := CurrentColor;
-   offset := y * 320 + x + VideoOfs;
+   offset := y * 320 + x;
    case CurrentWriteMode of
      XorPut: dummy := dummy xor Mem[Sega000:offset];
      OrPut: dummy := dummy or Mem[Sega000:offset];
@@ -2439,8 +2378,9 @@ End;
    Mem[SegA000:offset] := dummy;
  end;
 {$else asmgraph}
+ Procedure DirectPutPixel320(X,Y : smallint); assembler;
+ { x,y -> must be in global coordinates. No clipping. }
 { note: still needs or/and/notput support !!!!! (JM) }
-  assembler;
     asm
       push eax
       push ebx
@@ -2452,7 +2392,6 @@ End;
       movzx  edi, x
       movzx  ebx, y
 {$ENDIF REGCALL}
-   {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
       shl    ebx, 6
       add    edi, ebx
       mov    ax, [CurrentColor]
@@ -2471,19 +2410,19 @@ End;
  procedure SetVisual320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  procedure SetActive320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  {************************************************************************}
  {*                       Mode-X related routines                        *}
  {************************************************************************}
-const CrtAddress: word = 0;
+const
+  CrtAddress: word = 0;
+  ModeXVideoPageStart: array [0..3] of longint = (0,16000,32000,48000);
 
  procedure InitModeX;
   begin
@@ -2560,18 +2499,21 @@ const CrtAddress: word = 0;
  end;
 
 
- Function GetPixelX(X,Y: smallint): word;
 {$ifndef asmgraph}
+ Function GetPixelX(X,Y: smallint): word;
  var offset: word;
-{$endif asmgraph}
   begin
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
      offset := y * 80 + x shr 2 + VideoOfs;
      PortW[$3ce] := ((x and 3) shl 8) + 4;
      GetPixelX := Mem[SegA000:offset];
+ end;
 {$else asmgraph}
+ Function GetPixelX(X,Y: smallint): word;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
     asm
      push eax
      push ebx
@@ -2606,11 +2548,11 @@ const CrtAddress: word = 0;
     pop ebx
     pop eax
    end;
-{$endif asmgraph}
  end;
+{$endif asmgraph}
 
  procedure SetVisualX(page: word);
-  { 4 page supPort... }
+  { 4 page support... }
 
    Procedure SetVisibleStart(AOffset: word); Assembler;
    (* Select where the left corner of the screen will be *)
@@ -2663,33 +2605,24 @@ const CrtAddress: word = 0;
 {$undef asmgraph}
 
   begin
-    Case page of
-      0: SetVisibleStart(0);
-      1: SetVisibleStart(16000);
-      2: SetVisibleStart(32000);
-      3: SetVisibleStart(48000);
+    if (page >= 0) and (page <= 3) then
+      SetVisibleStart(ModeXVideoPageStart[page])
     else
       SetVisibleStart(0);
-    end;
   end;
 
  procedure SetActiveX(page: word);
-  { 4 page supPort... }
+  { 4 page support... }
   begin
-   case page of
-     0: VideoOfs := 0;
-     1: VideoOfs := 16000;
-     2: VideoOfs := 32000;
-     3: VideoOfs := 48000;
-   else
-     VideoOfs:=0;
-   end;
+    if (page >= 0) and (page <= 3) then
+      VideoOfs := ModeXVideoPageStart[page]
+    else
+      VideoOfs := 0;
   end;
 
- Procedure PutPixelX(X,Y: smallint; color:word);
 {$ifndef asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:word);
  var offset: word;
-{$endif asmgraph}
   begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
@@ -2701,11 +2634,23 @@ const CrtAddress: word = 0;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
-{$ifndef asmgraph}
     offset := y * 80 + x shr 2 + VideoOfs;
     PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
     Mem[SegA000:offset] := color;
+  end;
 {$else asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:word);
+  begin
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
+    { convert to absolute coordinates and then verify clipping...}
+    if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
      asm
       push ax
       push bx
@@ -2748,13 +2693,13 @@ const CrtAddress: word = 0;
       pop bx
       pop ax
     end;
-{$endif asmgraph}
   end;
+{$endif asmgraph}
 
 
+{$ifndef asmgraph}
  Procedure DirectPutPixelX(X,Y: smallint);
  { x,y -> must be in global coordinates. No clipping. }
-{$ifndef asmgraph}
  Var offset: Word;
      dummy: Byte;
  begin
@@ -2782,8 +2727,9 @@ const CrtAddress: word = 0;
    Mem[Sega000: offset] := Dummy;
  end;
 {$else asmgraph}
+ Procedure DirectPutPixelX(X,Y: smallint); Assembler;
+ { x,y -> must be in global coordinates. No clipping. }
 { note: still needs or/and/notput support !!!!! (JM) }
- Assembler;
  asm
    push ax
    push bx
@@ -3607,7 +3553,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 199;
          mode.HardwarePages := 3;
-         mode.SetVisualPage := @SetVisual200;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive200;
          mode.InitMode := @Init640x200x16;
          mode.XAspect := 4500;
@@ -3622,7 +3568,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 349;
          mode.HardwarePages := 1;
-         mode.SetVisualPage := @SetVisual350;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive350;
          mode.InitMode := @Init640x350x16;
          mode.XAspect := 7750;
@@ -3780,7 +3726,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 199;
          mode.HardwarePages := 3;
-         mode.SetVisualPage := @SetVisual200;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive200;
          mode.InitMode := @Init640x200x16;
          mode.XAspect := 4500;
@@ -3795,7 +3741,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 349;
          mode.HardwarePages := 1;
-         mode.SetVisualPage := @SetVisual350;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive350;
          mode.InitMode := @Init640x350x16;
          mode.XAspect := 7750;

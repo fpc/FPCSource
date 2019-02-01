@@ -3347,10 +3347,10 @@ var
     TDEl := CreateTD(TREl);
     CodeEl := CreateCode(CreatePara(TDEl));
     AppendKw(CodeEl, 'type');
-    if AClass.ObjKind=okGeneric then
+    if AClass.GenericTemplateTypes.Count>0 then
       AppendKw(CodeEl, ' generic ');
     AppendText(CodeEl, ' ' + UTF8Decode(AClass.Name) + ' ');
-    if AClass.ObjKind=okGeneric then
+    if AClass.GenericTemplateTypes.Count>0 then
       AppendGenericTypes(CodeEl,AClass.GenericTemplateTypes,false);
     AppendSym(CodeEl, '=');
     AppendText(CodeEl, ' ');

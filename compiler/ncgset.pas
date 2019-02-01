@@ -755,16 +755,17 @@ implementation
 
       procedure genitem(t : pcaselabel);
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         var
            l1 : tasmlabel;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
         begin
            if assigned(t^.less) then
              genitem(t^.less);
            if t^._low=t^._high then
              begin
+{$ifndef cpuhighleveltarget}
 {$if defined(cpu32bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
@@ -824,6 +825,7 @@ implementation
                   end
                 else
 {$endif}
+{$endif cpuhighleveltarget}
                   begin
                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, aint(t^._low.svalue),hregister, blocklabel(t^.blockid));
                   end;
@@ -838,6 +840,7 @@ implementation
                 { ELSE-label                                }
                 if not lastwasrange or (t^._low-last>1) then
                   begin
+{$ifndef cpuhighleveltarget}
 {$if defined(cpu32bitalu)}
                      if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
@@ -929,11 +932,13 @@ implementation
                        end
                      else
 {$endif}
+{$endif cpuhighleveltarget}
                        begin
                         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(t^._low.svalue), hregister,
                            elselabel);
                        end;
                   end;
+{$ifndef cpuhighleveltarget}
 {$if defined(cpu32bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
@@ -1019,6 +1024,7 @@ implementation
                   end
                 else
 {$endif}
+{$endif cpuhighleveltarget}
                   begin
                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, aint(t^._high.svalue), hregister, blocklabel(t^.blockid));
                   end;
@@ -1200,14 +1206,14 @@ implementation
          opsize:=left.resultdef;
          { copy the case expression to a register }
          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opsize,false);
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu)}
          if def_cgsize(opsize) in [OS_S64,OS_64] then
            begin
              hregister:=left.location.register64.reglo;
              hregister2:=left.location.register64.reghi;
            end
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
            hregister:=left.location.register;
 
          { we need the min_label always to choose between }
@@ -1218,11 +1224,11 @@ implementation
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu)}
          if def_cgsize(opsize) in [OS_64,OS_S64] then
            genlinearcmplist(labels)
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
            begin
               labelcnt := 0;
               TrueCount := 0;

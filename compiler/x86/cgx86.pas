@@ -1140,6 +1140,38 @@ unit cgx86;
                 end;
               end;
 {$endif i386}
+{$ifdef x86_64}
+            if refaddr=addr_tpoff then
+              begin
+                { Convert thread local address to a process global addres
+                  as we cannot handle far pointers.}
+                case target_info.system of
+                  system_x86_64_linux:
+                    if segment=NR_FS then
+                      begin
+                        reference_reset(tmpref,1,[]);
+                        tmpref.segment:=NR_FS;
+                        tmpreg:=getaddressregister(list);
+                        a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,tmpreg);
+                        reference_reset(tmpref,1,[]);
+                        tmpref.symbol:=symbol;
+                        tmpref.refaddr:=refaddr;
+                        tmpref.base:=tmpreg;
+                        if base<>NR_NO then
+                          tmpref.index:=base;
+                        list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,tmpreg));
+                        segment:=NR_NO;
+                        base:=tmpreg;
+                        symbol:=nil;
+                        refaddr:=addr_no;
+                      end
+                    else
+                      Internalerror(2019012003);
+                  else
+                    Internalerror(2019012004);
+                end;
+              end;
+{$endif x86_64}
             if (base=NR_NO) and (index=NR_NO) then
               begin
                 if assigned(dirref.symbol) then
@@ -2814,6 +2846,24 @@ unit cgx86;
            dstref.base:=r;
          end;
 {$endif i386}
+{$ifdef x86_64}
+      { we could handle "far" pointers here, but reloading es/ds is probably much slower
+        than just resolving the tls segment }
+      if (srcref.refaddr=addr_tpoff) and (srcref.segment=NR_FS) then
+        begin
+          r:=getaddressregister(list);
+          a_loadaddr_ref_reg(list,srcref,r);
+          reference_reset(srcref,srcref.alignment,srcref.volatility);
+          srcref.base:=r;
+        end;
+       if (dstref.refaddr=addr_tpoff) and (dstref.segment=NR_FS) then
+         begin
+           r:=getaddressregister(list);
+           a_loadaddr_ref_reg(list,dstref,r);
+           reference_reset(dstref,dstref.alignment,dstref.volatility);
+           dstref.base:=r;
+         end;
+{$endif x86_64}
       cm:=copy_move;
       helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then

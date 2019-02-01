@@ -4256,7 +4256,7 @@ begin
   C^.Insert(NewStr(S));
 end;
 begin
-  R.Assign(0,0,58,14{$ifdef NODEBUG}-1{$endif});
+  R.Assign(0,0,58,14{$ifdef USE_GRAPH_SWITCH}+1{$endif});
   inherited Init(R, dialog_about);
   HelpCtx:=hcAbout;
   GetExtent(R); R.Grow(-3,-2);

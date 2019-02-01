@@ -37,6 +37,9 @@ interface
 {$if defined(go32v2) or defined(watcom)}
       Dos,
 {$endif}
+{$ifdef macos}
+      macutils,
+{$endif macos}
 {$IFNDEF USE_FAKE_SYSUTILS}
       SysUtils,
 {$ELSE}

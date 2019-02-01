@@ -247,6 +247,7 @@ Type
 {$ifdef FPC_HAS_CPSTRING}
 Function UTF16ToUTF8(const S: UnicodeString): string;
 {$endif}
+Function QuoteJSString(const S: TJSString; Quote: TJSChar = #0): TJSString;
 
 implementation
 
@@ -272,6 +273,35 @@ begin
   SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
 {$endif}
+
+function QuoteJSString(const S: TJSString; Quote: TJSChar): TJSString;
+var
+  i, j, Count: Integer;
+begin
+  if Quote=#0 then
+    begin
+    if Pos('"',S)>0 then
+      Quote:=''''
+    else
+      Quote:='"';
+    end;
+  Result := '' + Quote;
+  Count := length(S);
+  i := 0;
+  j := 0;
+  while i < Count do
+    begin
+    inc(i);
+    if S[i] = Quote then
+      begin
+      Result := Result + copy(S, 1 + j, i - j) + Quote;
+      j := i;
+      end;
+    end;
+  if i <> j then
+    Result := Result + copy(S, 1 + j, i - j);
+  Result := Result + Quote;
+end;
 
 { TBufferWriter }
 
@@ -651,7 +681,7 @@ Var
   p, StartP: Integer;
   MinIndent, CurLineIndent, j, Exp, Code: Integer;
   i: SizeInt;
-  D: TJSNumber;
+  D, AsNumber: TJSNumber;
 begin
   if V.CustomValue<>'' then
     begin
@@ -706,15 +736,17 @@ begin
       exit;
       end;
     jstNumber :
-      if (Frac(V.AsNumber)=0)
-          and (V.AsNumber>=double(MinSafeIntDouble))
-          and (V.AsNumber<=double(MaxSafeIntDouble)) then
+      begin
+      AsNumber:=V.AsNumber;
+      if (Frac(AsNumber)=0)
+          and (AsNumber>=double(MinSafeIntDouble))
+          and (AsNumber<=double(MaxSafeIntDouble)) then
         begin
-        Str(Round(V.AsNumber),S);
+        Str(Round(AsNumber),S);
         end
       else
         begin
-        Str(V.AsNumber,S);
+        Str(AsNumber,S);
         if S[1]=' ' then Delete(S,1,1);
         i:=Pos('E',S);
         if (i>2) then
@@ -728,7 +760,7 @@ begin
             if s[j]='.' then inc(j);
             S2:=LeftStr(S,j)+copy(S,i,length(S));
             val(S2,D,Code);
-            if (Code=0) and (D=V.AsNumber) then
+            if (Code=0) and (D=AsNumber) then
               S:=S2;
             end;
           '9':
@@ -766,7 +798,7 @@ begin
                 end;
             until false;
             val(S2,D,Code);
-            if (Code=0) and (D=V.AsNumber) then
+            if (Code=0) and (D=AsNumber) then
               S:=S2;
             end;
           end;
@@ -783,6 +815,7 @@ begin
               Delete(S,i,length(S))
             else if (Exp>=-6) and (Exp<=6) then
               begin
+              // small exponent -> use notation without E
               Delete(S,i,length(S));
               j:=Pos('.',S);
               if j>0 then
@@ -826,12 +859,16 @@ begin
               end
             else
               begin
-              // e.g. 1.0E+001  -> 1.0E1
+              // e.g. 1.1E+0010  -> 1.1E10
               S:=LeftStr(S,i)+IntToStr(Exp);
+              if (i >= 4) and (s[i-1] = '0') and (s[i-2] = '.') then
+                // e.g. 1.0E22 -> 1E22
+                Delete(S, i-2, 2);
               end
             end;
           end;
         end;
+      end;
     jstObject : ;
     jstReference : ;
     jstCompletion : ;
@@ -1023,14 +1060,11 @@ end;
 
 
 procedure TJSWriter.WriteObjectLiteral(El: TJSObjectLiteral);
-
-
 Var
   i,C : Integer;
   QE,WC : Boolean;
   S : TJSString;
   Prop: TJSObjectLiteralElement;
-
 begin
   C:=El.Elements.Count-1;
   QE:=(woQuoteElementNames in Options);
@@ -1053,7 +1087,14 @@ begin
    Writer.CurElement:=Prop.Expr;
    S:=Prop.Name;
    if QE or not IsValidJSIdentifier(S) then
-     S:='"'+S+'"';
+     begin
+     if (length(S)>1)
+         and (((S[1]='"') and (S[length(S)]='"'))
+           or ((S[1]='''') and (S[length(S)]=''''))) then
+       // already quoted
+     else
+       S:=QuoteJSString(s);
+     end;
    Write(S+': ');
    Indent;
    FSkipRoundBrackets:=true;

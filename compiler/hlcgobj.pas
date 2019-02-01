@@ -991,7 +991,7 @@ implementation
                      { load the value piecewise to get it into the register }
                      orgsizeleft:=sizeleft;
                      reghasvalue:=false;
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
                      if sizeleft>=4 then
                        begin
                          a_load_ref_reg(list,u32inttype,location^.def,tmpref,location^.register);
@@ -1001,7 +1001,7 @@ implementation
                          inc(tmpref.offset,4);
                          reghasvalue:=true;
                        end;
-{$endif cpu64bitalu}
+{$endif defind(cpu64bitalu) or defined(cpuhighleveltarget)}
                      if sizeleft>=2 then
                        begin
                          tmpreg:=getintregister(list,location^.def);

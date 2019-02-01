@@ -107,7 +107,7 @@ uses
         end;
     end;
 
-{$elseif defined(morphos)}
+{$elseif defined(morphos) or defined(aros) or defined(amigaos4)}
 
   procedure startsymbol; external name '_start';
 
@@ -200,8 +200,12 @@ uses
   {$endif}
 {$endif}
 
-{$if defined(morphos)}
-  {$define ELF32}
+{$if defined(morphos) or defined(aros) or defined(amigaos4)}
+  {$ifdef cpu64}
+    {$define ELF64}
+  {$else}
+    {$define ELF32}
+  {$endif}
 {$endif}
 
 {$if defined(msdos)}

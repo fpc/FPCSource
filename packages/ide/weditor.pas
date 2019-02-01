@@ -5991,12 +5991,11 @@ begin
 end;
 
 procedure TCustomCodeEditor.GotoLine;
-var
-  GotoRec: TGotoLineDialogRec;
+const
+  GotoRec: TGotoLineDialogRec = (LineNo:'1';Lines:0);  {keep previous goto line number}
 begin
   with GotoRec do
   begin
-    LineNo:='1';
     Lines:=GetLineCount;
     {Linecount can be 0, but in that case there still is a cursor blinking in top
      of the window, which will become line 1 as soon as sometype hits a key.}

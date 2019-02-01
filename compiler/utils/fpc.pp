@@ -35,7 +35,11 @@ program fpc;
     {$ifdef NETWARE}
       exeext='.nlm';
     {$else}
-      exeext='.exe';
+      {$ifdef ATARI}
+        exeext='.ttp';
+      {$else}
+        exeext='.exe';
+      {$endif ATARI}
     {$endif NETWARE}
   {$endif HASAMIGA}
 {$endif UNIX}

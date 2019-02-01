@@ -158,8 +158,9 @@ Put + after a boolean switch option to enable it, - to disable it
    -Jl    : lower case identifiers
    -Jm    : generate source maps
      -Jmsourceroot=&lt;x&gt; : use x as "sourceRoot", prefix URL for source file names.
-     -Jmbasedir=&lt;x&gt; : write source file names relative to directory x.
+     -Jmbasedir=&lt;x&gt; : write source file names relative to directory x, default is map file folder.
      -Jminclude : include Pascal sources in source map.
+     -Jmabsolute: store absolute filenames, not relative.
      -Jmxssiheader : start source map with XSSI protection )]}.
      -Jm- : disable generating source maps
    -Jo&lt;x&gt; : Enable or disable extra option. The x is case insensitive:

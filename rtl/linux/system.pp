@@ -117,6 +117,180 @@ procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 {$endif android}
 
 {*****************************************************************************
+                               TLS handling
+*****************************************************************************}
+
+{$if defined(CPUARM)}
+{$define INITTLS}
+Function fpset_tls(p : pointer;size : SizeUInt):cint;
+begin
+  Result:=do_syscall(syscall_nr___ARM_NR_set_tls,TSysParam(p));
+end;
+{$endif defined(CPUARM)}
+
+{$if defined(CPUI386)}
+{$define INITTLS}
+Function fpset_tls(p : pointer;size : SizeUInt):cint;
+var
+  desc : record
+    entry_number : dword;
+    base_addr : dword;
+    limit : dword;
+    flags : dword;
+  end;
+  selector : word;
+begin
+  // get descriptor from the kernel
+  desc.entry_number:=$ffffffff;
+  // TLS is accessed by negative offsets, only the TCB pointer is at offset 0
+  desc.base_addr:=dword(p)+size-SizeOf(Pointer);
+  // 4 GB, limit is given in pages
+  desc.limit:=$fffff;
+  // seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1
+  desc.flags:=%1010001;
+  Result:=do_syscall(syscall_nr_set_thread_area,TSysParam(@desc));
+  if Result=0 then
+    begin
+      selector:=desc.entry_number*8+3;
+      asm
+        movw selector,%gs
+        movl desc.base_addr,%eax
+        movl %eax,%gs:0
+      end;
+    end;
+end;
+{$endif defined(CPUI386)}
+
+{$if defined(CPUX86_64)}
+{$define INITTLS}
+const
+  ARCH_SET_FS = $1002;
+
+Function fpset_tls(p : pointer;size : SizeUInt):cint;
+begin
+  p:=pointer(qword(p)+size-SizeOf(Pointer));
+  Result:=do_syscall(syscall_nr_arch_prctl,TSysParam(ARCH_SET_FS),TSysParam(p));
+  if Result=0 then
+    begin
+      asm
+        movq p,%rax
+        movq %rax,%fs:0
+      end;
+    end;
+end;
+{$endif defined(CPUX86_64)}
+
+
+{$ifdef INITTLS}
+{ This code initialized the TLS segment for single threaded and static programs.
+
+  In case of multithreaded and/or dynamically linked programs it is assumed that they
+  dependent anyways on glibc which initializes tls properly.
+
+  As soon as a purely FPC dynamic loading or multithreading is implemented, the code
+  needs to be extended to handle these cases as well.
+}
+
+procedure InitTLS; [public,alias:'FPC_INITTLS'];
+  const
+    PT_TLS = 7;
+    PT_DYNAMIC = 2;
+
+  type
+{$ifdef CPU64}
+    tphdr = record
+      p_type,
+      p_flags : dword;
+      p_offset,
+      p_vaddr,
+      p_paddr,
+      p_filesz,
+      p_memsz,
+      p_align : qword;
+    end;
+{$else CPU64}
+    tphdr = record
+      p_type,
+      p_offset,
+      p_vaddr,
+      p_paddr,
+      p_filesz,
+      p_memsz,
+      p_flags,
+      p_align : dword;
+    end;
+{$endif CPU64}
+    pphdr = ^tphdr;
+
+  var
+    phdr : pphdr;
+    phnum : dword;
+    i   : integer;
+    tls : pointer;
+    auxp : ppointer;
+    found : boolean;
+    size : SizeUInt;
+  begin
+    auxp:=ppointer(envp);
+    { skip environment }
+    while assigned(auxp^) do
+      inc(auxp);
+    inc(auxp);
+    phdr:=nil;
+    phnum:=0;
+    { now we are at the auxillary vector }
+    while assigned(auxp^) do
+      begin
+        case plongint(auxp)^ of
+          3:
+            phdr:=pphdr(ppointer(auxp+1)^);
+          5:
+            phnum:=pdword(auxp+1)^;
+        end;
+        inc(auxp,2);
+      end;
+    found:=false;
+    size:=0;
+    for i:=1 to phnum do
+      begin
+        case phdr^.p_type of
+          PT_TLS:
+            begin
+              found:=true;
+              inc(size,phdr^.p_memsz);
+              size:=Align(size,phdr^.p_align);
+            end;
+          PT_DYNAMIC:
+            { if the program header contains a dynamic section, the program
+              is linked dynamically so the dynamic linker takes care of the
+              allocation of the TLS segment.
+
+              We cannot allocate it by ourself anyways as PT_TLS provides only
+              the size of TLS data of the executable itself
+             }
+            exit;
+        end;
+        inc(phdr);
+      end;
+    if found then
+      begin
+{$ifdef CPUI386}
+        { threadvars should start at a page boundary,
+          add extra space for the TCB }
+        size:=Align(size,4096)+sizeof(Pointer);
+{$endif CPUI386}
+{$ifdef CPUX86_64}
+        { threadvars should start at a page boundary,
+          add extra space for the TCB }
+        size:=Align(size,4096)+sizeof(Pointer);
+{$endif CPUX86_64}
+        tls:=Fpmmap(nil,size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+        fpset_tls(tls,size);
+      end;
+  end;
+{$endif INITTLS}
+
+{*****************************************************************************
                        Indirect Entry Point
 *****************************************************************************}
 
@@ -133,9 +307,23 @@ begin
   initialstklen := info.OS.stklen;
 end;
 
+{ we need two variants here because TLS must be initialized by FPC only if no libc is linked however,
+  InitTLS cannot be called from the start up files because when they are run, envp is not setup yet.}
 procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
 begin
   SetupEntryInformation(info);
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+
+procedure SysEntry_InitTLS(constref info: TEntryInformation);[public,alias:'FPC_SysEntry_InitTLS'];
+begin
+  SetupEntryInformation(info);
+{$ifdef INITTLS}
+  InitTLS;
+{$endif INITTLS}
 {$ifdef cpui386}
   Set8087CW(Default8087CW);
 {$endif cpui386}
@@ -153,6 +341,8 @@ var
   operatingsystem_parameter_argv : Pointer; public name 'operatingsystem_parameter_argv';
 
 
+{ we need two variants here because TLS must be initialized by FPC only if no libc is linked however,
+  InitTLS cannot be called from the start up files because when they are run, envp is not setup yet.}
 procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
 begin
   initialstkptr := info.OS.stkptr;
@@ -164,6 +354,23 @@ begin
 {$endif cpui386}
   info.PascalMain();
 end;
+
+
+procedure SysEntry_InitTLS(constref info: TEntryInformation);[public,alias:'FPC_SysEntry_InitTLS'];
+begin
+  initialstkptr := info.OS.stkptr;
+  operatingsystem_parameter_envp := info.OS.envp;
+  operatingsystem_parameter_argc := info.OS.argc;
+  operatingsystem_parameter_argv := info.OS.argv;
+{$ifdef INITTLS}
+  InitTLS;
+{$endif INITTLS}
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+
 {$endif FPC_BOOTSTRAP_INDIRECT_ENTRY}
 
 {$if defined(CPUARM) and defined(FPC_ABI_EABI)}
@@ -440,140 +647,6 @@ begin
   else
     result := stklen;
 end;
-
-
-{$if defined(CPUARM)}
-{$define INITTLS}
-Function fpset_tls(p : pointer;size : SizeUInt):cint;
-begin
-  Result:=do_syscall(syscall_nr___ARM_NR_set_tls,TSysParam(p));
-end;
-{$endif defined(CPUARM)}
-
-{$if defined(CPUI386)}
-{$define INITTLS}
-Function fpset_tls(p : pointer;size : SizeUInt):cint;
-var
-  desc : record
-    entry_number : dword;
-    base_addr : dword;
-    limit : dword;
-    flags : dword;
-  end;
-  selector : word;
-begin
-  // get descriptor from the kernel
-  desc.entry_number:=$ffffffff;
-  // TLS is accessed by negative offsets, only the TCB pointer is at offset 0
-  desc.base_addr:=dword(p)+size-SizeOf(Pointer);
-  // 4 GB, limit is given in pages
-  desc.limit:=$fffff;
-  // seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1
-  desc.flags:=%1010001;
-  Result:=do_syscall(syscall_nr_set_thread_area,TSysParam(@desc));
-  if Result=0 then
-    begin
-      selector:=desc.entry_number*8+3;
-      asm
-        movw selector,%gs
-        movl desc.base_addr,%eax
-        movl %eax,%gs:0
-      end;
-    end;
-end;
-{$endif defined(CPUI386)}
-
-{$ifdef INITTLS}
-{ This code initialized the TLS segment for single threaded and static programs.
-
-  In case of multithreaded and/or dynamically linked programs it is assumed that they
-  dependent anyways on glibc which initializes tls properly.
-
-  As soon as a purely FPC dynamic loading or multithreading is implemented, the code
-  needs to be extended to handle these cases as well.
-}
-
-procedure InitTLS; [public,alias:'FPC_INITTLS'];
-  const
-    PT_TLS = 7;
-    PT_DYNAMIC = 2;
-
-  type
-    tphdr = record
-      p_type,
-      p_offset,
-      p_vaddr,
-      p_paddr,
-      p_filesz,
-      p_memsz,
-      p_flags,
-      p_align : dword;
-    end;
-    pphdr = ^tphdr;
-
-  var
-    phdr : pphdr;
-    phnum : dword;
-    i   : integer;
-    tls : pointer;
-    auxp : ppointer;
-    found : boolean;
-    size : SizeUInt;
-  begin
-    auxp:=ppointer(envp);
-    { skip environment }
-    while assigned(auxp^) do
-      inc(auxp);
-    inc(auxp);
-    phdr:=nil;
-    phnum:=0;
-    { now we are at the auxillary vector }
-    while assigned(auxp^) do
-      begin
-        case plongint(auxp)^ of
-          3:
-            phdr:=pphdr(ppointer(auxp+1)^);
-          5:
-            phnum:=pdword(auxp+1)^;
-        end;
-        inc(auxp,2);
-      end;
-    found:=false;
-    size:=0;
-    for i:=1 to phnum do
-      begin
-        case phdr^.p_type of
-          PT_TLS:
-            begin
-              found:=true;
-              inc(size,phdr^.p_memsz);
-              size:=Align(size,phdr^.p_align);
-            end;
-          PT_DYNAMIC:
-            { if the program header contains a dynamic section, the program
-              is linked dynamically so the dynamic linker takes care of the
-              allocation of the TLS segment.
-
-              We cannot allocate it by ourself anyways as PT_TLS provides only
-              the size of TLS data of the executable itself
-             }
-            exit;
-        end;
-        inc(phdr);
-      end;
-    if found then
-      begin
-{$ifdef CPUI386}
-        { threadvars should start at a page boundary,
-          add extra space for the TCB }
-        size:=Align(size,4096)+sizeof(Pointer);
-{$endif CPUI386}
-        tls:=Fpmmap(nil,size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-        fpset_tls(tls,size);
-      end;
-  end;
-{$endif CPUARM}
-
 
 {$if FPC_FULLVERSION>30200}
 {$if defined(CPUI386) or defined(CPUARM)}

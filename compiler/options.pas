@@ -138,7 +138,7 @@ const
                         + [system_i386_wdosx]
                         + [system_riscv32_linux,system_riscv64_linux];
 
-  suppported_targets_x_smallr = systems_linux + systems_solaris
+  suppported_targets_x_smallr = systems_linux + systems_solaris + systems_android
                              + [system_i386_haiku,system_x86_64_haiku]
                              + [system_i386_beos]
                              + [system_m68k_amiga];
@@ -4023,8 +4023,10 @@ begin
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
-  if (cs_asm_leave in init_settings.globalswitches) and
-     (af_outputbinary in target_asm.flags) then
+  if ((cs_asm_leave in init_settings.globalswitches) and
+     (af_outputbinary in target_asm.flags)) or
+     { if -s is passed, we shouldn't call the internal assembler }
+     (cs_asm_extern in init_settings.globalswitches) then
    begin
      Message(option_switch_bin_to_src_assembler);
      set_target_asm(target_info.assemextern);

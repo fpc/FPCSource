@@ -377,6 +377,11 @@ unit cpupara;
             if (p.proccalloption in cstylearrayofconst) and
                is_array_of_const(paradef) then
               begin
+                hp.paraloc[side].def:=paradef;
+                hp.paraloc[side].size:=OS_NO;
+                hp.paraloc[side].alignment:=std_param_align;
+                hp.paraloc[side].intsize:=0;
+
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
                 paraloc^.loc:=LOC_REGISTER;

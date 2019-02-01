@@ -121,6 +121,45 @@ implementation
                 end;
             end;
 {$endif i386}
+{$ifdef x86_64}
+            case target_info.system of
+              system_x86_64_linux:
+                begin
+                  case current_settings.tlsmodel of
+                    tlsm_local:
+                      begin
+                        location.reference.segment:=NR_FS;
+                        location.reference.refaddr:=addr_tpoff;
+                      end;
+                    tlsm_general:
+                      begin
+                        if not(cs_create_pic in current_settings.moduleswitches) then
+                          Internalerror(2019012001);
+
+                        current_asmdata.CurrAsmList.concat(tai_const.Create_8bit($66));
+                        reference_reset(href,0,[]);
+                        location.reference.base:=NR_RIP;
+                        location.reference.scalefactor:=1;
+                        location.reference.refaddr:=addr_tlsgd;
+                        cg.getcpuregister(current_asmdata.CurrAsmList,NR_RDI);
+                        current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_LEA,S_Q,location.reference,NR_RDI));
+                        current_asmdata.CurrAsmList.concat(tai_const.Create_8bit($66));
+                        current_asmdata.CurrAsmList.concat(tai_const.Create_8bit($66));
+                        current_asmdata.CurrAsmList.concat(tai_const.Create_8bit($48));
+                        cg.g_call(current_asmdata.CurrAsmList,'__tls_get_addr');
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RDI);
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_RAX,hregister);
+                        reference_reset(location.reference,location.reference.alignment,location.reference.volatility);
+                        location.reference.base:=hregister;
+                      end;
+                    else
+                      Internalerror(2019012002);
+                  end;
+                end;
+            end;
+{$endif x86_64}
           end;
       end;
 

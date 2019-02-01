@@ -248,7 +248,7 @@ interface
             end;
           LOC_REGISTER,LOC_CREGISTER :
             begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               if left.location.size in [OS_64,OS_S64] then
                begin
                  hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -256,7 +256,7 @@ interface
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                end
               else
-{$endif cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                begin
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                end;
