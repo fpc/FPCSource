@@ -308,7 +308,7 @@ end;
 
 procedure TFPList.Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
 begin
-  SortingAlgorithm^.ListSorter_NoContextComparer(PPointer(FList), FCount, Compare);
+  SortingAlgorithm^.PtrListSorter_NoContextComparer(PPointer(FList), FCount, Compare);
 end;
 
 
