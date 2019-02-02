@@ -23,9 +23,11 @@ interface
 type
   TListSortComparer_NoContext = function(Item1, Item2: Pointer): Integer;
   TPtrListSorter_NoContext = procedure(ItemPtrs: PPointer; ItemCount: PtrUInt; Comparer: TListSortComparer_NoContext);
+  TItemListSorter_NoContext = procedure(Items: Pointer; ItemSize, ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
 
   TListSortComparer_Context = function(Item1, Item2, Context: Pointer): Integer;
   TPtrListSorter_Context = procedure(ItemPtrs: PPointer; ItemCount: PtrUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+  TItemListSorter_Context = procedure(Items: Pointer; ItemSize, ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 
   PSortingAlgorithm = ^TSortingAlgorithm;
   TSortingAlgorithm = record
