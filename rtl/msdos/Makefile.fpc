@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system uuchar objpas strings dos heaptrc lnfodwrf sysconst sysutils \
       math macpas iso7185 extpas rtlconsts typinfo cpu types \
-      getopts fgl classes \
+      getopts sortbase fgl classes \
       msmouse ports  \
       charset cpall ctypes \
       fpwidestring character unicodedata unicodenumtable
@@ -145,7 +145,9 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
+                   types$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT) \
+                   objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
@@ -223,6 +225,8 @@ unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas objpas$(PPUEXT) syst
 unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 
 #
 # Other system-dependent RTL Units

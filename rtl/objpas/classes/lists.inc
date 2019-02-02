@@ -299,54 +299,16 @@ begin
   FCount:=NewCount;
 end;
 
-// Needed by Sort method.
-
-Procedure QuickSort(FList: PPointerList; L, R : Longint;
-                     Compare: TListSortCompare);
-var
-  I, J : Longint;
-  P, Q : Pointer;
-begin
- repeat
-   I := L;
-   J := R;
-   P := FList^[ (L + R) div 2 ];
-   repeat
-     while Compare(P, FList^[i]) > 0 do
-       I := I + 1;
-     while Compare(P, FList^[J]) < 0 do
-       J := J - 1;
-     If I <= J then
-     begin
-       Q := FList^[I];
-       Flist^[I] := FList^[J];
-       FList^[J] := Q;
-       I := I + 1;
-       J := J - 1;
-     end;
-   until I > J;
-   // sort the smaller range recursively
-   // sort the bigger range via the loop
-   // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
-   if J - L < R - I then
-   begin
-     if L < J then
-       QuickSort(FList, L, J, Compare);
-     L := I;
-   end
-   else
-   begin
-     if I < R then
-       QuickSort(FList, I, R, Compare);
-     R := J;
-   end;
- until L >= R;
-end;
 
 procedure TFPList.Sort(Compare: TListSortCompare);
 begin
-  if Not Assigned(FList) or (FCount < 2) then exit;
-  QuickSort(Flist, 0, FCount-1, Compare);
+  Sort(Compare, @SortBase.DefaultSortingAlgorithm);
+end;
+
+
+procedure TFPList.Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
+begin
+  SortingAlgorithm^.ListSorter_NoContextComparer(PPointer(FList), FCount, Compare);
 end;
 
 

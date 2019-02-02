@@ -10,7 +10,7 @@ loaders=prt0 cprt0 func dllprt
 units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 extpas strings \
       errors dos dl cthreads \
       sysconst sysutils \
-      types charset cpall typinfo classes fgl math \
+      types charset cpall typinfo sortbase classes fgl math \
       cpu mmx getopts heaptrc lineinfo lnfodwrf \
       rtlconsts syscall unix unixutil termio initc \
       character fpwidestring unicodedata unicodenumtable \
@@ -181,7 +181,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(UNIXINC) $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) types$(PPUEXT) rtlconsts$(PPUEXT)  system$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) types$(PPUEXT) rtlconsts$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
 #                   systhrd$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) -Fi$(OBJPASDIR)/classes classes.pp
 
@@ -281,5 +281,7 @@ cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUE
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/sortbase.pp
 
 

@@ -354,7 +354,7 @@ CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
 ifeq ($(ARCH),arm)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math sortbase classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 lm4f120 sam3x8e xmc4500 cortexm3 cortexm4 # thumb2_bare
 CPU_UNITS_DEFINED=1
@@ -429,7 +429,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),i386)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math sortbase classes fgl macpas typinfo types rtlconsts getopts lineinfo
 CPU_UNITS=multiboot
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -437,13 +437,13 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),x86_64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math sortbase classes fgl macpas typinfo types rtlconsts getopts lineinfo
 endif
 ifeq ($(ARCH),m68k)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math
 endif
 ifeq ($(ARCH),mipsel)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math sortbase classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),pic32mx)
 CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
 CPU_UNITS_DEFINED=1
@@ -2821,7 +2821,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) sysconst$(PPUEXT) heapmgr$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
@@ -2886,3 +2886,5 @@ fpcylix$(PPUEXT) : fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEX
 	$(COMPILER) fpcylix.pp
 intrinsics$(PPUEXT) : $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/intrinsics.pp
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/sortbase.pp

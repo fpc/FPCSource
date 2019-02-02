@@ -10,7 +10,7 @@ main=rtl
 # extpas unit relies on dos unit, not yet handled
 units=system uuchar objpas sysconst sysutils math rtlconsts \
       character fpwidestring unicodedata unicodenumtable \
-      dos iso7185 extpas typinfo types classes macpas buildrtl
+      dos iso7185 extpas typinfo types sortbase classes macpas buildrtl
 implicitunits=ctypes strings symbian
 
 [require]
@@ -101,7 +101,7 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlc
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -132,4 +132,6 @@ unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
 unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 

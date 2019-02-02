@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 extpas macpas 
       heaptrc lineinfo lnfodwrf \
       baseunix unixutil unixcp \
       termio unix initc cmem \
-      sysutils typinfo math fgl classes \
+      sysutils typinfo math sortbase fgl classes \
       charset cpall getopts \
       errors \
       dl dynlibs \
@@ -184,7 +184,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) \
-		   $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT)
+		   $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
@@ -258,6 +258,9 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
+
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 
 #
 # Other system-dependent RTL Units

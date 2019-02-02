@@ -10,7 +10,7 @@ loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
       lineinfo lnfodwrf  heaptrc \
       nwsnut libc dos sysconst \
-      initc sysutils types typinfo fgl classes \
+      initc sysutils types typinfo sortbase fgl classes \
       cpu mmx getopts \
       charset cpall \
       rtlconsts math \
@@ -166,7 +166,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
-                   sysconst$(PPUEXT) types$(PPUEXT) \
+                   sysconst$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) \
                    tthread.inc fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
@@ -220,6 +220,9 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 
 #
 # Other system-dependent RTL Units

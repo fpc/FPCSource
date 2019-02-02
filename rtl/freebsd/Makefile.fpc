@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 extpas \
       strings syscall sysctl baseunix unixutil character \
       unix rtlconsts initc cmem  \
       dl termio \
-      sysutils math typinfo types classes fgl dynlibs \
+      sysutils math typinfo types sortbase classes fgl dynlibs \
       $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo \
       errors bsd freebsd \
       console  \
@@ -199,7 +199,8 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) \
+                   sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
@@ -322,4 +323,7 @@ bsd$(PPUEXT) : $(BSDINC)/bsd.pas unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(P
         $(COMPILER) $<
 
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<

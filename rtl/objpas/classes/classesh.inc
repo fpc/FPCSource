@@ -255,6 +255,7 @@ Type
     function Remove(Item: Pointer): Integer;
     procedure Pack;
     procedure Sort(Compare: TListSortCompare);
+    procedure Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
     procedure ForEachCall(proc2call:TListCallback;arg:pointer);
     procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
     property Capacity: Integer read FCapacity write SetCapacity;

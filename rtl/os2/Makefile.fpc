@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 extpas strings \
       ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos \
-      sysutils fgl classes math typinfo \
+      sysutils sortbase fgl classes math typinfo \
       charset cpall cpu mmx getopts heaptrc lineinfo lnfodwrf dynlibs \
       types rtlconst sysconst \
       so32dll fpwidestring character \
@@ -169,7 +169,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) \
-		   objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT)
+		   objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
@@ -232,6 +232,9 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas $(SYSTEMUNIT)$(PPUEXT) charset$(PPUEXT
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 
 
 #

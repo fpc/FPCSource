@@ -10,7 +10,7 @@ loaders=prt0 prt1
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
       ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
-      dos unicodedata unicodenumtable character \
+      dos unicodedata unicodenumtable character sortbase \
       sysutils classes fgl math typinfo \
       charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs \
       types rtlconst sysconst \
@@ -201,7 +201,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : $(OS2INC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) \
-		   objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT)
+		   objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $<
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -270,3 +270,5 @@ unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) $(SY
 character$(PPUEXT): $(OBJPASDIR)/character.pas unicodedata$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<

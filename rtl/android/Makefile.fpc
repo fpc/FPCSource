@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem \
       linuxvcs sysutils typinfo math charset cpall character \
       getopts errors dl dynlibs \
-      types  sysconst cthreads classes fgl  \
+      types  sysconst cthreads sortbase classes fgl  \
       rtlconsts dos cwstring fpcylix unixcp fpwidestring
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -47,7 +47,7 @@ libunits=$(SYSTEMUNIT) objpas strings dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
       errors sockets \
-      classes fgl sysconst rtlconsts \
+      sortbase classes fgl sysconst rtlconsts \
 
 [prerules]
 RTL=..
@@ -198,7 +198,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
@@ -306,3 +306,5 @@ linux$(PPUEXT) : $(LINUXINC)/linux.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) u
 linuxvcs$(PPUEXT) : $(LINUXINC)/linuxvcs.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) strings$(PPUEXT)
         $(COMPILER) $(LINUXINC)/linuxvcs.pp
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/sortbase.pp
