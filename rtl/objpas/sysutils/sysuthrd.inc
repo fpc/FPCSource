@@ -145,12 +145,11 @@ begin
     begin
       { Count active threads rather than readers.  A write request can
         be granted whenever the count has reduced to one }
+
+      { no order vs increment of fwriterequests needed, because we acquired
+        a critical section which orders for us }
       if p^.RefCount=0 then
-        begin
-          { flush increment of fwriterequests }
-          WriteBarrier;
-          System.InterlockedIncrement(factivethreads);
-        end;
+        System.InterlockedIncrement(factivethreads);
 
       { new readers have to block from now on; writers get priority to avoid
         writer starvation (since they have to compete with potentially many
@@ -164,9 +163,10 @@ begin
         that's about to wait on it) }
       RTLeventResetEvent(fwaitingwriterlock);
 
-      { wait until we are the only active thread.  Get threadinfo
-        (needs to become a volatile read) }
-      while factivethreads>1 do
+      { wait until we are the only active thread (no need for memory order
+        barriers, because RTLeventResetEvent and RTLEventWaitFor imply a
+        full barrier) }
+      while System.InterlockedExchangeAdd(factivethreads,0) > 1 do
         RTLEventWaitFor(fwaitingwriterlock);
 
       { Make sure that out-of-order execution cannot already perform reads
@@ -244,10 +244,10 @@ begin
       System.InterlockedIncrement(factivethreads);
 
       { wait until there are no more writer active or pending }
-      ReadBarrier;
-      { must make read volatile }
-      while fwriterequests<>0 do
+      ReadWriteBarrier;
+      while System.InterlockedExchangeAdd(fwriterequests,0)<>0 do
         begin
+          ReadWriteBarrier;
           { This thread is not active }
           if System.InterlockedDecrement(factivethreads)<>0 then
             RTLEventSetEvent(fwaitingwriterlock);
@@ -258,7 +258,7 @@ begin
           { Try again to make this thread active }
           System.InterlockedIncrement(factivethreads);
           { order w.r.t. reading fwriterequests }
-          ReadBarrier;
+          ReadWriteBarrier;
         end;
 
       { Make sure that out-of-order execution cannot perform reads
