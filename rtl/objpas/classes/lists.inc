@@ -302,7 +302,7 @@ end;
 
 procedure TFPList.Sort(Compare: TListSortCompare);
 begin
-  Sort(Compare, @SortBase.DefaultSortingAlgorithm);
+  Sort(Compare, SortBase.DefaultSortingAlgorithm);
 end;
 
 
