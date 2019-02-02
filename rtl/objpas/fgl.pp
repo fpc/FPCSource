@@ -26,7 +26,7 @@ unit fgl;
 interface
 
 uses
-  types, sysutils;
+  types, sysutils, sortbase;
 
 {$IF defined(VER2_4)}
   {$DEFINE OldSyntax}
@@ -85,6 +85,7 @@ type
     function Remove(Item: Pointer): Integer;
     procedure Pack;
     procedure Sort(Compare: TFPSListCompareFunc);
+    procedure Sort(Compare: TFPSListCompareFunc; SortingAlgorithm: PSortingAlgorithm);
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
@@ -828,8 +829,26 @@ end;
 
 procedure TFPSList.Sort(Compare: TFPSListCompareFunc);
 begin
-  if not Assigned(FList) or (FCount < 2) then exit;
-  QuickSort(0, FCount-1, Compare);
+  Sort(Compare, SortBase.DefaultSortingAlgorithm);
+end;
+
+type
+  PFPSList_Sort_Comparer_Context = ^TFPSList_Sort_Comparer_Context;
+  TFPSList_Sort_Comparer_Context = record
+    Compare: TFPSListCompareFunc;
+  end;
+
+function TFPSList_Sort_Comparer(Item1, Item2, Context: Pointer): Integer;
+begin
+  Result := PFPSList_Sort_Comparer_Context(Context)^.Compare(Item1, Item2);
+end;
+
+procedure TFPSList.Sort(Compare: TFPSListCompareFunc; SortingAlgorithm: PSortingAlgorithm);
+var
+  Context: TFPSList_Sort_Comparer_Context;
+begin
+  Context.Compare := Compare;
+  SortingAlgorithm^.ItemListSorter_ContextComparer(FList, FCount, FItemSize, @TFPSList_Sort_Comparer, @Context);
 end;
 
 procedure TFPSList.AddList(Obj: TFPSList);
