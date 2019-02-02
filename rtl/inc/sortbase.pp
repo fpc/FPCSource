@@ -64,16 +64,16 @@ begin
    P := ItemPtrs[ (L + R) div 2 ];
    repeat
      while Comparer(P, ItemPtrs[i]) > 0 do
-       I := I + 1;
+       Inc(I);
      while Comparer(P, ItemPtrs[J]) < 0 do
-       J := J - 1;
+       Dec(J);
      If I <= J then
      begin
        Q := ItemPtrs[I];
        ItemPtrs[I] := ItemPtrs[J];
        ItemPtrs[J] := Q;
-       I := I + 1;
-       J := J - 1;
+       Inc(I);
+       Dec(J);
      end;
    until I > J;
    // sort the smaller range recursively
@@ -114,16 +114,16 @@ procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Com
       P := ItemPtrs[ (L + R) div 2 ];
       repeat
         while Comparer(P, ItemPtrs[I], Context) > 0 do
-          I := I + 1;
+          Inc(I);
         while Comparer(P, ItemPtrs[J], Context) < 0 do
-          J := J - 1;
+          Dec(J);
         If I <= J then
         begin
           Q := ItemPtrs[I];
           ItemPtrs[I] := ItemPtrs[J];
           ItemPtrs[J] := Q;
-          I := I + 1;
-          J := J - 1;
+          Inc(I);
+          Dec(J);
         end;
       until I > J;
       // sort the smaller range recursively
@@ -166,16 +166,16 @@ var
       P := Items + ItemSize*((L + R) div 2);
       repeat
         while Comparer(P, Items + ItemSize*I, Context) > 0 do
-          I := I + 1;
+          Inc(I);
         while Comparer(P, Items + ItemSize*J, Context) < 0 do
-          J := J - 1;
+          Dec(J);
         If I <= J then
         begin
           Move((Items + ItemSize*I)^, TempBuf^, ItemSize);
           Move((Items + ItemSize*J)^, (Items + ItemSize*I)^, ItemSize);
           Move(TempBuf^, (Items + ItemSize*J)^, ItemSize);
-          I := I + 1;
-          J := J - 1;
+          Inc(I);
+          Dec(J);
         end;
       until I > J;
       // sort the smaller range recursively
