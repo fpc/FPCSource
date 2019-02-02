@@ -443,52 +443,7 @@ begin
   w3.free;
   w4.free;
 
-  { now try some mixed readers/writers }
-  gcount:=0;
-  r1:=treadcounter.create;
-  r2:=treadcounter.create;
-  r3:=treadcounter.create;
-  r4:=treadcounter.create;
-  r5:=treadcounter.create;
-  r6:=treadcounter.create;
-  w1:=twritecounter.create;
-  w2:=twritecounter.create;
-  
-  r1.resume;
-  r2.resume;
-  r3.resume;
-  r4.resume;
-  r5.resume;
-  r6.resume;
-  w1.resume;
-  w2.resume;
-  
-  r1.waitfor;
-  r2.waitfor;
-  r3.waitfor;
-  r4.waitfor;
-  r5.waitfor;
-  r6.waitfor;
-  w1.waitfor;
-  w2.waitfor;
-  
-  { updating via the readcount must have caused data races }
-  if (gcount>=r1.localcount+r2.localcount+r3.localcount+r4.localcount+r5.localcount+r6.localcount+w1.localcount+w2.localcount) then
-    begin
-      writeln('error 3');
-      halt(3);
-    end;
-
-  r1.free;
-  r2.free;
-  r3.free;
-  r4.free;
-  r5.free;
-  r6.free;
-  w1.free;
-  w2.free;
-
-  { mixed readers and writers without proper synchronisation }
+  { mixed readers and writers with proper synchronisation }
   gcount:=0;
   rw1:=treadwritecounter.create(true);
   rw2:=treadwritecounter.create(false);
