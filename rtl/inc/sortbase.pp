@@ -50,7 +50,7 @@ var
 implementation
 
 Procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; L, R : Longint;
-                                      Compare: TListSortComparer_NoContext);
+                                      Comparer: TListSortComparer_NoContext);
 var
   I, J : Longint;
   P, Q : Pointer;
@@ -60,9 +60,9 @@ begin
    J := R;
    P := ItemPtrs[ (L + R) div 2 ];
    repeat
-     while Compare(P, ItemPtrs[i]) > 0 do
+     while Comparer(P, ItemPtrs[i]) > 0 do
        I := I + 1;
-     while Compare(P, ItemPtrs[J]) < 0 do
+     while Comparer(P, ItemPtrs[J]) < 0 do
        J := J - 1;
      If I <= J then
      begin
@@ -79,13 +79,13 @@ begin
    if J - L < R - I then
    begin
      if L < J then
-       QuickSort_PtrList_NoContext(ItemPtrs, L, J, Compare);
+       QuickSort_PtrList_NoContext(ItemPtrs, L, J, Comparer);
      L := I;
    end
    else
    begin
      if I < R then
-       QuickSort_PtrList_NoContext(ItemPtrs, I, R, Compare);
+       QuickSort_PtrList_NoContext(ItemPtrs, I, R, Comparer);
      R := J;
    end;
  until L >= R;
