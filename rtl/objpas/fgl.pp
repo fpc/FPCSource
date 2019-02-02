@@ -791,42 +791,6 @@ begin
   FCount:=NewCount;
 end;
 
-// Needed by Sort method.
-
-procedure TFPSList.QuickSort(L, R: Integer; Compare: TFPSListCompareFunc);
-var
-  I, J, P: Integer;
-  PivotItem: Pointer;
-begin
-  repeat
-    I := L;
-    J := R;
-    { cast to dword to avoid overflow to a negative number during addition which
-      would result again in a negative number when being divided }
-    P := (dword(L) + dword(R)) div 2;
-    repeat
-      PivotItem := InternalItems[P];
-      while Compare(PivotItem, InternalItems[I]) > 0 do
-        Inc(I);
-      while Compare(PivotItem, InternalItems[J]) < 0 do
-        Dec(J);
-      if I <= J then
-      begin
-        InternalExchange(I, J);
-        if P = I then
-          P := J
-        else if P = J then
-          P := I;
-        Inc(I);
-        Dec(J);
-      end;
-    until I > J;
-    if L < J then
-      QuickSort(L, J, Compare);
-    L := I;
-  until I >= R;
-end;
-
 procedure TFPSList.Sort(Compare: TFPSListCompareFunc);
 begin
   Sort(Compare, SortBase.DefaultSortingAlgorithm);
@@ -849,6 +813,19 @@ var
 begin
   Context.Compare := Compare;
   SortingAlgorithm^.ItemListSorter_ContextComparer(FList, FCount, FItemSize, @TFPSList_Sort_Comparer, @Context);
+end;
+
+procedure TFPSList.QuickSort(L, R: Integer; Compare: TFPSListCompareFunc);
+var
+  Context: TFPSList_Sort_Comparer_Context;
+  SortingAlgorithm: PSortingAlgorithm;
+begin
+  if (R > L) and (L >= 0) then
+  begin
+    Context.Compare := Compare;
+    SortingAlgorithm := SortBase.DefaultSortingAlgorithm;
+    SortingAlgorithm^.ItemListSorter_ContextComparer(FList + FItemSize*L, R-L+1, FItemSize, @TFPSList_Sort_Comparer, @Context);
+  end;
 end;
 
 procedure TFPSList.AddList(Obj: TFPSList);
