@@ -23,25 +23,28 @@ interface
 type
   TListSortComparer_NoContext = function(Item1, Item2: Pointer): Integer;
   TPtrListSorter_NoContext = procedure(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
-  TItemListSorter_NoContext = procedure(Items: Pointer; ItemSize, ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
+  TItemListSorter_NoContext = procedure(Items: Pointer; ItemCount, ItemSize: SizeUInt; Comparer: TListSortComparer_NoContext);
 
   TListSortComparer_Context = function(Item1, Item2, Context: Pointer): Integer;
   TPtrListSorter_Context = procedure(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
-  TItemListSorter_Context = procedure(Items: Pointer; ItemSize, ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+  TItemListSorter_Context = procedure(Items: Pointer; ItemCount, ItemSize: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 
   PSortingAlgorithm = ^TSortingAlgorithm;
   TSortingAlgorithm = record
     PtrListSorter_NoContextComparer: TPtrListSorter_NoContext;
     PtrListSorter_ContextComparer: TPtrListSorter_Context;
+    ItemListSorter_ContextComparer: TItemListSorter_Context;
   end;
 
 procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
 procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+procedure QuickSort_ItemList_Context(Items: Pointer; ItemCount, ItemSize: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 
 const
   QuickSort: TSortingAlgorithm = (
     PtrListSorter_NoContextComparer: @QuickSort_PtrList_NoContext;
-    PtrListSorter_ContextComparer: @QuickSort_PtrList_Context
+    PtrListSorter_ContextComparer: @QuickSort_PtrList_Context;
+    ItemListSorter_ContextComparer: @QuickSort_ItemList_Context;
   );
 
 var
@@ -100,7 +103,7 @@ end;
 
 procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 
-  Procedure QuickSort(L, R : Longint);
+  procedure QuickSort(L, R : Longint);
   var
     I, J : Longint;
     P, Q : Pointer;
@@ -145,6 +148,60 @@ begin
   if not Assigned(ItemPtrs) or (ItemCount < 2) then
     exit;
   QuickSort(0, ItemCount - 1);
+end;
+
+procedure QuickSort_ItemList_Context(Items: Pointer; ItemCount, ItemSize: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+
+var
+  TempBuf: Pointer;
+
+  procedure QuickSort(L, R : Longint);
+  var
+    I, J : Longint;
+    P : Pointer;
+  begin
+    repeat
+      I := L;
+      J := R;
+      P := Items + ItemSize*((L + R) div 2);
+      repeat
+        while Comparer(P, Items + ItemSize*I, Context) > 0 do
+          I := I + 1;
+        while Comparer(P, Items + ItemSize*J, Context) < 0 do
+          J := J - 1;
+        If I <= J then
+        begin
+          Move((Items + ItemSize*I)^, TempBuf^, ItemSize);
+          Move((Items + ItemSize*J)^, (Items + ItemSize*I)^, ItemSize);
+          Move(TempBuf^, (Items + ItemSize*J)^, ItemSize);
+          I := I + 1;
+          J := J - 1;
+        end;
+      until I > J;
+      // sort the smaller range recursively
+      // sort the bigger range via the loop
+      // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
+      if J - L < R - I then
+      begin
+        if L < J then
+          QuickSort(L, J);
+        L := I;
+      end
+      else
+      begin
+        if I < R then
+          QuickSort(I, R);
+        R := J;
+      end;
+    until L >= R;
+  end;
+
+begin
+  if not Assigned(Items) or (ItemCount < 2) or (ItemSize < 1) then
+    exit;
+  GetMem(TempBuf, ItemSize);
+  QuickSort(0, ItemCount - 1);
+  FreeMem(TempBuf, ItemSize);
 end;
 
 end.
