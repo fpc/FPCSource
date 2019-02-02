@@ -204,6 +204,9 @@ begin
       end;
   end;
 
+  { ensure the writes to Counter and Counter2 are ordered vs the writes to FinishedCount }
+  WriteBarrier;
+
   InterLockedIncrement(FinishedCount);
 end;
 
@@ -287,6 +290,10 @@ begin
   t:=Now - t;
   if t = 0 then
     t:=1/MSecsPerDay;
+
+  { ensure the read from FinishedCount above is ordered relative to the reads from
+    Counter and Counter2 (counterpart to WriteBarrier in the thread function) }
+  ReadBarrier();
 
   CheckResult(Counter, 0, 20, 'Counter error:');
 
