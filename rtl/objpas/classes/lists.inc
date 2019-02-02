@@ -774,6 +774,11 @@ begin
   FList.Sort(Compare);
 end;
 
+procedure TList.Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
+begin
+  FList.Sort(Compare, SortingAlgorithm);
+end;
+
 procedure TList.CopyMove (aList : TList);
 var r : integer;
 begin
