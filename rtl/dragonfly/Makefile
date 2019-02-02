@@ -3284,7 +3284,7 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconsts$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp

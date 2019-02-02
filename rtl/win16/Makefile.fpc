@@ -155,7 +155,7 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 	$(EXECPPAS)
 

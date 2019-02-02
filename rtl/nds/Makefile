@@ -3000,7 +3000,7 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
-fgl$(PPUEXT): $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+fgl$(PPUEXT): $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/fgl.pp $(REDIR)
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)

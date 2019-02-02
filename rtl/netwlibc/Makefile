@@ -3267,7 +3267,7 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysconst$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) \
 		   tthread.inc fgl$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp

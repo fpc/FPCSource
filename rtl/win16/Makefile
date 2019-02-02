@@ -2751,7 +2751,7 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   winprocs$(PPUEXT) wintypes$(PPUEXT) sortbase$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT) sortbase$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
 	$(EXECPPAS)
 math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc objpas$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
