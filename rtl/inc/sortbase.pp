@@ -22,11 +22,11 @@ interface
 
 type
   TListSortComparer_NoContext = function(Item1, Item2: Pointer): Integer;
-  TPtrListSorter_NoContext = procedure(ItemPtrs: PPointer; ItemCount: PtrUInt; Comparer: TListSortComparer_NoContext);
+  TPtrListSorter_NoContext = procedure(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
   TItemListSorter_NoContext = procedure(Items: Pointer; ItemSize, ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
 
   TListSortComparer_Context = function(Item1, Item2, Context: Pointer): Integer;
-  TPtrListSorter_Context = procedure(ItemPtrs: PPointer; ItemCount: PtrUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+  TPtrListSorter_Context = procedure(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
   TItemListSorter_Context = procedure(Items: Pointer; ItemSize, ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 
   PSortingAlgorithm = ^TSortingAlgorithm;
@@ -35,8 +35,8 @@ type
     PtrListSorter_ContextComparer: TPtrListSorter_Context;
   end;
 
-procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: PtrUInt; Comparer: TListSortComparer_NoContext);
-procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: PtrUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
+procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 
 const
   QuickSort: TSortingAlgorithm = (
@@ -91,14 +91,14 @@ begin
  until L >= R;
 end;
 
-procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: PtrUInt; Comparer: TListSortComparer_NoContext);
+procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
 begin
   if not Assigned(ItemPtrs) or (ItemCount < 2) then
     exit;
   QuickSort_PtrList_NoContext(ItemPtrs, 0, ItemCount - 1, Comparer);
 end;
 
-procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: PtrUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 
   Procedure QuickSort(L, R : Longint);
   var
