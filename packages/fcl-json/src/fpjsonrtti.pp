@@ -5,7 +5,7 @@ unit fpjsonrtti;
 interface
 
 uses
-  Classes, SysUtils, contnrs, typinfo, fpjson, rttiutils, jsonparser;
+  Classes, SysUtils, contnrs, jsonscanner, typinfo, fpjson, rttiutils, jsonparser;
 
 Const
   RFC3339DateTimeFormat = 'yyyy"-"mm"-"dd"T"hh":"nn":"ss';
@@ -68,6 +68,7 @@ Type
     // If AObject is of type TStrings or TCollection, special treatment occurs:
     // TStrings results in { Strings: [S,S,S] } or { Strings: { "S1" : O1, "S2" : O2 }} depending on Options.
     // Collection results in { Items: [I,I,I] }
+    // Tlist/TObjectlist results in { "Objects": [O1,O2,O3] }
     Function ObjectToJSON(Const AObject : TObject) : TJSONObject;
     // Stream a collection - always returns an array
     function StreamCollection(Const ACollection: TCollection): TJSONArray;
@@ -217,7 +218,7 @@ Type
 function TJSONDeStreamer.ObjectFromString(const JSON: TJSONStringType): TJSONData;
 
 begin
-  With TJSONParser.Create(JSON) do
+  With TJSONParser.Create(JSON,[joUTF8]) do
     try
       Result:=Parse;
     finally
@@ -777,7 +778,7 @@ begin
     else If AObject is TObjectList then
       Result.Add('Objects',StreamObjectList(TObjectList(AObject)))
     else if (jsoStreamTlist in Options) and (AObject is TList) then
-      Result := TJSONObject(StreamTList(TList(AObject)))
+      Result.Add('Objects', StreamTList(TList(AObject)))
     else
       begin
       PIL:=TPropInfoList.Create(AObject,tkProperties);
