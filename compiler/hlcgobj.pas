@@ -3502,7 +3502,9 @@ implementation
 
   procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
     var
-{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
+{$if defined(cpuhighleveltarget)}
+      aintmax: tcgint;
+{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
       aintmax: aint;
 {$else}
       aintmax: longint;

@@ -255,6 +255,7 @@ Type
     function Remove(Item: Pointer): Integer;
     procedure Pack;
     procedure Sort(Compare: TListSortCompare);
+    procedure Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
     procedure ForEachCall(proc2call:TListCallback;arg:pointer);
     procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
     property Capacity: Integer read FCapacity write SetCapacity;
@@ -339,6 +340,7 @@ Type
     function Remove(Item: Pointer): Integer;
     procedure Pack;
     procedure Sort(Compare: TListSortCompare);
+    procedure Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
@@ -766,7 +768,6 @@ type
     function GetSorted: Boolean;
     procedure Grow;
     procedure InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
-    procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(b : boolean);
     procedure SetSortStyle(AValue: TStringsSortStyle);
@@ -798,7 +799,9 @@ type
     function IndexOf(const S: string): Integer; override;
     procedure Insert(Index: Integer; const S: string); override;
     procedure Sort; virtual;
+    procedure Sort(SortingAlgorithm: PSortingAlgorithm); virtual;
     procedure CustomSort(CompareFn: TStringListSortCompare); virtual;
+    procedure CustomSort(CompareFn: TStringListSortCompare; SortingAlgorithm: PSortingAlgorithm); virtual;
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
     property Sorted: Boolean read GetSorted write SetSorted;
     property CaseSensitive: Boolean read FCaseSensitive write SetCaseSensitive;

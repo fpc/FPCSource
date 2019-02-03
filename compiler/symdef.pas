@@ -2716,8 +2716,8 @@ implementation
             if (minval>=0) then
               sizeval:=maxval
             else
-              { don't count 0 twice }
-              sizeval:=(cutils.max(-minval,maxval)*2)-1;
+             { don't count 0 twice, but take into account that range goes from -n-1..n }
+              sizeval:=(cutils.max(-minval,maxval+1)*2)-1;
             { 256 must become 512 etc. }
             nextpowerof2(sizeval+1,power);
             result := power;
@@ -2939,8 +2939,8 @@ implementation
             if (low>=0) then
               sizeval:=high
             else
-              { don't count 0 twice }
-              sizeval:=(cutils.max(-low,high)*2)-1;
+              { don't count 0 twice, but take into account that range goes from -n-1..n }
+              sizeval:=(cutils.max(-low,high+1)*2)-1;
             { 256 must become 512 etc. }
             nextpowerof2(sizeval+1,power);
             result := power;

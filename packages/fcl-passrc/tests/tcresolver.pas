@@ -887,9 +887,10 @@ type
     Procedure TestClassHelper_InheritedDelphi;
     Procedure TestClassHelper_NestedInheritedParentFail;
     Procedure TestClassHelper_AccessFields;
-    Procedure TestClassHelper_CallClassMethodFail;
+    Procedure TestClassHelper_HelperDotClassMethodFail;
     Procedure TestClassHelper_WithHelperFail;
     Procedure TestClassHelper_AsTypeFail;
+    Procedure TestClassHelper_ClassMethod;
     Procedure TestClassHelper_Enumerator;
     Procedure TestClassHelper_FromUnitInterface;
     Procedure TestClassHelper_Constructor_NewInstance;
@@ -898,6 +899,7 @@ type
     Procedure TestClassHelper_DefaultClassProperty;
     Procedure TestClassHelper_MultipleScopeHelpers;
     Procedure TestRecordHelper;
+    Procedure TestRecordHelper_ClassNonStaticFail;
     Procedure TestRecordHelper_InheritedObjFPC;
     Procedure TestRecordHelper_Constructor_NewInstance;
     Procedure TestTypeHelper;
@@ -16226,7 +16228,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassHelper_CallClassMethodFail;
+procedure TTestResolver.TestClassHelper_HelperDotClassMethodFail;
 begin
   StartProgram(false);
   Add([
@@ -16270,6 +16272,66 @@ begin
   'begin',
   '']);
   CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
+end;
+
+procedure TTestResolver.TestClassHelper_ClassMethod;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  THelper = class helper for TObject',
+  '    class procedure Fly(w: word = 1);',
+  '    class procedure Run(w: word = 1); static;',
+  '  end;',
+  'class procedure THelper.Fly(w: word = 1);',
+  'begin',
+  '  Fly;',
+  '  Fly();',
+  '  Run;',
+  '  Run();',
+  '  Self.Fly;',
+  '  Self.Fly();',
+  '  Self.Run;',
+  '  Self.Run();',
+  '  with Self do begin',
+  '    Fly;',
+  '    Fly();',
+  '    Run;',
+  '    Run();',
+  '  end;',
+  'end;',
+  'class procedure THelper.Run(w: word = 1);',
+  'begin',
+  '  Fly;',
+  '  Fly();',
+  '  Run;',
+  '  Run();',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o.Fly;',
+  '  o.Fly();',
+  '  o.Run;',
+  '  o.Run();',
+  '  with o do begin',
+  '    Fly;',
+  '    Fly();',
+  '    Run;',
+  '    Run();',
+  '  end;',
+  '  TObject.Fly;',
+  '  TObject.Fly();',
+  '  TObject.Run;',
+  '  TObject.Run();',
+  '  with TObject do begin',
+  '    Fly;',
+  '    Fly();',
+  '    Run;',
+  '    Run();',
+  '  end;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClassHelper_Enumerator;
@@ -16583,6 +16645,26 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestRecordHelper_ClassNonStaticFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TRec = record',
+  '    x: word;',
+  '  end;',
+  '  TRecHelper = record helper for TRec',
+  '    class procedure Fly;',
+  '  end;',
+  'class procedure TRecHelper.Fly;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Class methods must be static in record helper',nClassMethodsMustBeStaticInX);
+end;
+
 procedure TTestResolver.TestRecordHelper_InheritedObjFPC;
 begin
   StartProgram(false);
@@ -16786,7 +16868,7 @@ begin
   '  TFlag = (Red, Green, Blue);',
   '  THelper = type helper for TFlag',
   '    function toString: string;',
-  '    class procedure Fly;',
+  '    class procedure Fly; static;',
   '  end;',
   'function THelper.toString: string;',
   'begin',

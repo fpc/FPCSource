@@ -5854,7 +5854,7 @@ begin
       end;
 
     IsClassConDestructor:=(Proc.ClassType=TPasClassConstructor)
-      or (Proc.ClassType=TPasClassDestructor);
+                       or (Proc.ClassType=TPasClassDestructor);
     if IsClassConDestructor then
       begin
       // class constructor/destructor
@@ -5897,6 +5897,11 @@ begin
           RaiseMsg(20190116215823,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'virtual'],Proc);
         if Proc.IsOverride then
           RaiseMsg(20190116215825,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'override'],Proc);
+        if (ObjKind<>okClassHelper) and IsClassMethod(Proc) then
+          begin
+          if not Proc.IsStatic then
+            RaiseMsg(20190201153831,nClassMethodsMustBeStaticInX,sClassMethodsMustBeStaticInX,[ObjKindNames[ObjKind]],Proc);
+          end;
         end;
       end;
       if Proc.IsAbstract then
@@ -5933,13 +5938,10 @@ begin
         RaiseMsg(20181218195552,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'abstract'],Proc);
       if Proc.IsForward then
         RaiseMsg(20181218195514,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'forward'],Proc);
-      if (Proc.ClassType=TPasClassProcedure)
-          or (Proc.ClassType=TPasClassFunction)
-          or (Proc.ClassType=TPasClassConstructor)
-          or (Proc.ClassType=TPasClassDestructor) then
+      if IsClassMethod(Proc) then
         begin
         if not Proc.IsStatic then
-          RaiseMsg(20190106121503,nClassMethodsMustBeStaticInRecords,sClassMethodsMustBeStaticInRecords,[],Proc);
+          RaiseMsg(20190106121503,nClassMethodsMustBeStaticInX,sClassMethodsMustBeStaticInX,['records'],Proc);
         end;
       end
     else
@@ -7900,7 +7902,7 @@ type
         exit(AddString(ExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,Expr)))
       else
         begin
-        if length(TResEvalString(Value).S)<>1 then
+        if fExprEvaluator.StringToOrd(Value,nil)>$ffff then
           exit(false);
         RangeStart:=ord(TResEvalString(Value).S[1]);
         RangeEnd:=RangeStart;
@@ -13120,7 +13122,7 @@ begin
       begin
       if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
         begin
-        if length(TResEvalString(Value).S)<>1 then
+        if fExprEvaluator.StringToOrd(Value,nil)>$ffff then
           RaiseXExpectedButYFound(20181005141025,'char','string',Params);
         Result:=Value;
         Value:=nil;
@@ -18040,9 +18042,6 @@ var
   EnumType: TPasEnumType;
   bt: TResolverBaseType;
   LTypeEl: TPasType;
-  {$ifdef FPC_HAS_CPSTRING}
-  w: WideChar;
-  {$endif}
 begin
   LTypeEl:=LeftResolved.LoTypeEl;
   if (LTypeEl<>nil)
@@ -18182,22 +18181,10 @@ begin
       begin
       case RValue.Kind of
       {$ifdef FPC_HAS_CPSTRING}
-      revkString:
-        if length(TResEvalString(RValue).S)<>1 then
-          begin
-          if fExprEvaluator.GetWideChar(TResEvalString(RValue).S,w) then
-            Int:=ord(w)
-          else
-            RaiseXExpectedButYFound(20170714171352,'char','string',RHS);
-          end
-        else
-          Int:=ord(TResEvalString(RValue).S[1]);
+      revkString,
       {$endif}
       revkUnicodeString:
-        if length(TResEvalUTF16(RValue).S)<>1 then
-          RaiseXExpectedButYFound(20170714171534,'char','string',RHS)
-        else
-          Int:=ord(TResEvalUTF16(RValue).S[1]);
+        Int:=fExprEvaluator.StringToOrd(RValue,RHS);
       else
         RaiseNotYetImplemented(20170714171218,RHS);
       end;

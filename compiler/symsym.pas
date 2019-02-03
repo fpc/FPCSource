@@ -1862,7 +1862,8 @@ implementation
             { globalasmsym is called normally before the body of a subroutine is parsed
               so we cannot know if it will be auto inlined, so make all symbols of it
               global if asked }
-            (cs_opt_autoinline in current_settings.optimizerswitches))
+            (not(po_noinline in current_procinfo.procdef.procoptions) and
+             (cs_opt_autoinline in current_settings.optimizerswitches)))
           ) or
           (vo_is_public in varoptions);
       end;

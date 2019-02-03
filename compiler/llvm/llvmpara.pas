@@ -28,7 +28,7 @@ unit llvmpara;
     uses
       globtype,aasmdata,
       symconst,symtype,symdef,symsym,
-      parabase,
+      parabase,cgbase,
       cpupara;
 
     type
@@ -53,6 +53,8 @@ unit llvmpara;
        private
         procedure set_llvm_paraloc_name(p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
         procedure add_llvm_callee_paraloc_names(p: tabstractprocdef);
+        procedure reducetosingleregparaloc(paraloc: PCGParaLocation; def: tdef; reg: tregister);
+        procedure reduceparalocs(p: tabstractprocdef; side: tcallercallee);
       end;
 
 
@@ -63,7 +65,7 @@ unit llvmpara;
       aasmbase,
       llvmsym,
       paramgr,defutil,llvmdef,
-      cgbase,cgutils,tgobj,hlcgobj;
+      cgutils,tgobj,hlcgobj;
 
   { tllvmparamanager }
 
@@ -88,10 +90,49 @@ unit llvmpara;
     end;
 
 
+  procedure tllvmparamanager.reducetosingleregparaloc(paraloc: PCGParaLocation; def: tdef; reg: tregister);
+    var
+      nextloc: pcgparalocation;
+    begin
+      paraloc^.def:=def;
+      paraloc^.size:=def_cgsize(def);
+      paraloc^.register:=reg;
+      paraloc^.shiftval:=0;
+      { remove all other paralocs }
+      while assigned(paraloc^.next) do
+        begin
+          nextloc:=paraloc^.next;
+          paraloc^.next:=nextloc^.next;
+          dispose(nextloc);
+        end;
+    end;
+
+
+  procedure tllvmparamanager.reduceparalocs(p: tabstractprocdef; side: tcallercallee);
+    var
+      paranr: longint;
+      hp: tparavarsym;
+      paraloc: PCGParaLocation;
+    begin
+      for paranr:=0 to p.paras.count-1 do
+        begin
+          hp:=tparavarsym(p.paras[paranr]);
+          paraloc:=hp.paraloc[side].location;
+          if assigned(paraloc) and
+             assigned(paraloc^.next) and
+             (hp.paraloc[side].def.typ in [orddef,enumdef,floatdef]) then
+            begin
+              if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
+                internalerror(2019011902);
+              reducetosingleregparaloc(paraloc,hp.paraloc[side].def,paraloc^.register);
+            end;
+        end;
+    end;
+
   procedure tllvmparamanager.createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara);
     var
-      paraloc,
-      nextloc: pcgparalocation;
+      paraloc: pcgparalocation;
+      paralocdef: tdef;
     begin
       inherited;
       paraloc:=cgpara.location;
@@ -101,6 +142,14 @@ unit llvmpara;
         begin
           if vo_is_funcret in parasym.varoptions then
             paraloc^.retvalloc:=true;
+          { ordinal parameters must be passed as a single paraloc }
+          if (cgpara.def.typ in [orddef,enumdef,floatdef]) and
+             assigned(paraloc^.next) then
+            begin
+              paraloc^.loc:=LOC_REGISTER;
+              reducetosingleregparaloc(paraloc,cgpara.def,hlcg.getintregister(list,cgpara.def));
+            end;
+
           { varargs parameters do not have a parasym.owner, but they're always
             by value }
           if (assigned(parasym.owner) and
@@ -149,18 +198,9 @@ unit llvmpara;
                 a pointer to the value that it should place on the stack (or
                 passed in registers, in some cases) }
               paraloc^.llvmvalueloc:=false;
-              paraloc^.def:=cpointerdef.getreusable_no_free(paraloc^.def);
-              paraloc^.size:=def_cgsize(paraloc^.def);
               paraloc^.loc:=LOC_REGISTER;
-              paraloc^.register:=hlcg.getaddressregister(list,paraloc^.def);
-              paraloc^.shiftval:=0;
-              { remove all other paralocs }
-              while assigned(paraloc^.next) do
-                begin
-                  nextloc:=paraloc^.next;
-                  paraloc^.next:=nextloc^.next;
-                  dispose(nextloc);
-                end;
+              paralocdef:=cpointerdef.getreusable_no_free(paraloc^.def);
+              reducetosingleregparaloc(paraloc,paralocdef,hlcg.getaddressregister(list,paralocdef));
             end;
           paraloc^.llvmloc.loc:=paraloc^.loc;
           paraloc^.llvmloc.reg:=paraloc^.register;
@@ -176,8 +216,16 @@ unit llvmpara;
         (a list of parameters and their types), but they correspond more
         closely to parameter locations than to parameters -> add names to the
         locations }
-      if side=calleeside then
-        add_llvm_callee_paraloc_names(p)
+      if (side=calleeside) and
+         not(po_assembler in p.procoptions) then
+        begin
+          add_llvm_callee_paraloc_names(p);
+          reduceparalocs(p,side);
+        end
+      else if side=callerside then
+        begin
+          reduceparalocs(p,side);
+        end;
     end;
 
 
@@ -191,6 +239,16 @@ unit llvmpara;
         paraloc^.llvmvalueloc:=true;
         paraloc:=paraloc^.next;
       until not assigned(paraloc);
+      paraloc:=result.location;
+      if assigned(paraloc^.next) and
+         (result.def.typ in [orddef,enumdef,floatdef]) and
+         ((side=callerside) or
+          not(po_assembler in p.procoptions)) then
+        begin
+          if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
+            internalerror(2019011902);
+          reducetosingleregparaloc(paraloc,result.def,paraloc^.register);
+        end;
     end;
 
 

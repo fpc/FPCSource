@@ -14,7 +14,7 @@ unit buildrtl;
       lineinfo,
 {$endif}
 
-      typinfo, fgl, classes,
+      typinfo, sortbase, fgl, classes,
       charset, character, getopts,
       fpintres;
 
