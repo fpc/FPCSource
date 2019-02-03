@@ -30,7 +30,7 @@ interface
       cclasses,globtype,
       aasmbase,
       parabase,
-      symbase,symtype,symdef,
+      symconst,symbase,symtype,symdef,
       llvmbase;
 
    type
@@ -76,7 +76,7 @@ interface
       such parameters to be zero/sign extended. The second parameter can be used
       to get the type before zero/sign extension, as e.g. required to generate
       function declarations. }
-    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean): tdef;
+    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean; callercallee: tcallercallee): tdef;
 
     { can be used to extract the value extension info from acgpara. Pass in
       the def of the cgpara as first parameter and a local variable holding
@@ -116,7 +116,7 @@ implementation
     globals,cutils,constexp,
     verbose,systems,
     fmodule,
-    symtable,symconst,symsym,
+    symtable,symsym,
     llvmsym,hlcgobj,
     defutil,blockutl,cgbase,paramgr;
 
@@ -817,7 +817,7 @@ implementation
         { function result (return-by-ref is handled explicitly) }
         if not paramanager.ret_in_param(def.returndef,def) then
           begin
-            usedef:=llvmgetcgparadef(def.funcretloc[useside],false);
+            usedef:=llvmgetcgparadef(def.funcretloc[useside],false,useside);
             llvmextractvalueextinfo(def.returndef,usedef,signext);
             { specifying result sign extention information for an alias causes
               an error for some reason }
@@ -924,7 +924,7 @@ implementation
       end;
 
 
-    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean): tdef;
+    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean; callercallee: tcallercallee): tdef;
       var
         retdeflist: array[0..9] of tdef;
         retloc: pcgparalocation;
@@ -967,6 +967,16 @@ implementation
             begin
               retdeflist[i]:=retloc^.def;
               dec(sizeleft,retloc^.def.size);
+            end
+          { on the callerside, "byval" parameter locations have the implicit
+            pointer in their type -> remove if we wish to create a record
+            containing all actual parameter data }
+          else if (callercallee=callerside) and
+             not retloc^.llvmvalueloc then
+            begin
+              if retloc^.def.typ<>pointerdef then
+                internalerror(2019020201);
+              retdeflist[i]:=tpointerdef(retloc^.def).pointeddef
             end
           else if retloc^.def.size<>sizeleft then
             begin

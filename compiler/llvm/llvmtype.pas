@@ -501,8 +501,8 @@ implementation
                 if (tprocdef(def).has_paraloc_info=callnoside) then
                   tprocdef(def).init_paraloc_info(callerside);
                 for i:=0 to tprocdef(def).paras.count-1 do
-                  record_def(llvmgetcgparadef(tparavarsym(tprocdef(def).paras[i]).paraloc[callerside],true));
-                record_def(llvmgetcgparadef(tprocdef(def).funcretloc[callerside],true));
+                  record_def(llvmgetcgparadef(tparavarsym(tprocdef(def).paras[i]).paraloc[callerside],true,calleeside));
+                record_def(llvmgetcgparadef(tprocdef(def).funcretloc[callerside],true,calleeside));
               end;
           end;
       end;
@@ -586,8 +586,8 @@ implementation
           types that are then casted to the real type when they are used }
         def.init_paraloc_info(callerside);
         for i:=0 to def.paras.count-1 do
-          appenddef(list,llvmgetcgparadef(tparavarsym(def.paras[i]).paraloc[callerside],true));
-        appenddef(list,llvmgetcgparadef(def.funcretloc[callerside],true));
+          appenddef(list,llvmgetcgparadef(tparavarsym(def.paras[i]).paraloc[callerside],true,calleeside));
+        appenddef(list,llvmgetcgparadef(def.funcretloc[callerside],true,calleeside));
         if assigned(def.typesym) and
            not def.is_addressonly then
           list.concat(taillvm.op_size(LA_TYPE,record_def(def)));

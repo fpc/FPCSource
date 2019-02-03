@@ -314,7 +314,7 @@ implementation
       newrefsize: tdef;
       reg: tregister;
     begin
-      newrefsize:=llvmgetcgparadef(para,true);
+      newrefsize:=llvmgetcgparadef(para,true,callerside);
       if (refsize<>newrefsize) and
          (initialref.refaddr<>addr_full) then
         begin
@@ -532,7 +532,7 @@ implementation
       hlretdef:=forceresdef;
     { llvm will always expect the original return def }
     if not paramanager.ret_in_param(hlretdef, pd) then
-      llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside], true)
+      llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside], true, callerside)
     else
       llvmretdef:=voidtype;
     if not is_void(llvmretdef) then
@@ -1416,7 +1416,7 @@ implementation
             LOC_MMREGISTER:
               begin
                 if not llvmaggregatetype(resdef) then
-                  list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,llvmgetcgparadef(resloc,true)))
+                  list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,llvmgetcgparadef(resloc,true,calleeside)))
                 else
                   { bitcast doesn't work for aggregates -> just load from the
                     (uninitialised) function result memory location }
@@ -1634,7 +1634,7 @@ implementation
         end;
       { get the LLVM representation of the function result (e.g. a
         struct with two i64 fields for a record with 4 i32 fields) }
-      result.def:=llvmgetcgparadef(result,true);
+      result.def:=llvmgetcgparadef(result,true,callerside);
       if assigned(result.location^.next) then
         begin
           { unify the result into a sinlge location; unlike for parameters,
@@ -1722,7 +1722,7 @@ implementation
       { get the equivalent llvm def used to pass the parameter (e.g. a record
         with two int64 fields for passing a record consisiting of 8 bytes on
         x86-64) }
-      llvmparadef:=llvmgetcgparadef(para,true);
+      llvmparadef:=llvmgetcgparadef(para,true,calleeside);
       userecord:=
         (llvmparadef<>para.def) and
         assigned(para.location^.next);
