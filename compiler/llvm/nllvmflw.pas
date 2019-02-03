@@ -60,7 +60,7 @@ interface
     end;
 
     tllvmtryfinallynode = class(tcgtryfinallynode)
-      function pass_typecheck: tnode; override;
+      function pass_1: tnode; override;
     end;
 
     tllvmraisenode = class(tcgraisenode)
@@ -104,7 +104,7 @@ implementation
                           tllvmtryfinallynode
 *****************************************************************************}
 
-    function tllvmtryfinallynode.pass_typecheck: tnode;
+    function tllvmtryfinallynode.pass_1: tnode;
       begin
         { make a copy of the "finally" code for the "no exception happened"
           case }
@@ -267,8 +267,8 @@ implementation
         else
           begin
             { Need a begin_catch so that the reraise will know what exception to throw.
-              Don't need to add a "catch all" to the landing pad, as it contains one
-              we want to rethrow whatever exception was caught rather than guarantee
+              Don't need to add a "catch all" to the landing pad, as it contains one.
+              We want to rethrow whatever exception was caught rather than guarantee
               that all possible kinds of exceptions get caught. }
             catch_all_start_internal(list,false);
             hlcg.g_call_system_proc(list,'fpc_reraise',[],nil).resetiftemp;
