@@ -150,6 +150,7 @@ type
 {$endif VER2_4}
     function Remove(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
+    procedure Sort(Compare: TCompareFunc; SortingAlgorithm: PSortingAlgorithm);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
   end;
@@ -190,6 +191,7 @@ type
 {$endif VER2_4}
     function Remove(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
+    procedure Sort(Compare: TCompareFunc; SortingAlgorithm: PSortingAlgorithm);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
     property FreeObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -230,6 +232,7 @@ type
 {$endif VER2_4}
     function Remove(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
+    procedure Sort(Compare: TCompareFunc; SortingAlgorithm: PSortingAlgorithm);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
   end;
@@ -272,6 +275,7 @@ type
     procedure InsertKeyData(Index: Integer; AKey, AData: Pointer);
     function Remove(AKey: Pointer): Integer;
     procedure Sort;
+    procedure Sort(SortingAlgorithm: PSortingAlgorithm);
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
     property KeySize: Integer read FKeySize;
     property DataSize: Integer read FDataSize;
@@ -996,6 +1000,12 @@ begin
   inherited Sort(@ItemPtrCompare);
 end;
 
+procedure TFPGList.Sort(Compare: TCompareFunc; SortingAlgorithm: PSortingAlgorithm);
+begin
+  FOnCompare := Compare;
+  inherited Sort(@ItemPtrCompare, SortingAlgorithm);
+end;
+
 
 {****************************************************************************}
 {*                TFPGObjectList                                            *}
@@ -1115,6 +1125,12 @@ procedure TFPGObjectList.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);
+end;
+
+procedure TFPGObjectList.Sort(Compare: TCompareFunc; SortingAlgorithm: PSortingAlgorithm);
+begin
+  FOnCompare := Compare;
+  inherited Sort(@ItemPtrCompare, SortingAlgorithm);
 end;
 
 
@@ -1240,6 +1256,12 @@ procedure TFPGInterfacedObjectList.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);
+end;
+
+procedure TFPGInterfacedObjectList.Sort(Compare: TCompareFunc; SortingAlgorithm: PSortingAlgorithm);
+begin
+  FOnCompare := Compare;
+  inherited Sort(@ItemPtrCompare, SortingAlgorithm);
 end;
 
 {****************************************************************************
@@ -1474,6 +1496,11 @@ end;
 procedure TFPSMap.Sort;
 begin
   inherited Sort(FOnKeyPtrCompare);
+end;
+
+procedure TFPSMap.Sort(SortingAlgorithm: PSortingAlgorithm);
+begin
+  inherited Sort(FOnKeyPtrCompare, SortingAlgorithm);
 end;
 
 {****************************************************************************
