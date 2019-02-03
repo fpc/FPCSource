@@ -676,7 +676,6 @@ type
     function EvalSetParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalSet;
     function EvalSetExpr(Expr: TPasExpr; ExprArray: TPasExprArray; Flags: TResEvalFlags): TResEvalSet;
     function EvalArrayValuesExpr(Expr: TArrayValues; Flags: TResEvalFlags): TResEvalSet;
-    function ExprStringToOrd(Value: TResEvalValue; PosEl: TPasElement): longword; virtual;
     function EvalPrimitiveExprString(Expr: TPrimitiveExpr): TResEvalValue; virtual;
     procedure PredBool(Value: TResEvalBool; ErrorEl: TPasElement);
     procedure SuccBool(Value: TResEvalBool; ErrorEl: TPasElement);
@@ -709,6 +708,7 @@ type
       MinVal, MaxVal: TMaxPrecInt; PosEl: TPasElement; MsgType: TMessageType = mtWarning);
     function ChrValue(Value: TResEvalValue; ErrorEl: TPasElement): TResEvalValue; virtual;
     function OrdValue(Value: TResEvalValue; ErrorEl: TPasElement): TResEvalValue; virtual;
+    function StringToOrd(Value: TResEvalValue; PosEl: TPasElement): longword; virtual;
     procedure PredValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     procedure SuccValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     function EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
@@ -1517,10 +1517,10 @@ begin
   {$endif}
   revkUnicodeString:
     begin
-    LeftInt:=ExprStringToOrd(LeftValue,Expr.left);
+    LeftInt:=StringToOrd(LeftValue,Expr.left);
     if RightValue.Kind in revkAllStrings then
       begin
-      RightInt:=ExprStringToOrd(RightValue,Expr.right);
+      RightInt:=StringToOrd(RightValue,Expr.right);
       if LeftInt>RightInt then
         RaiseMsg(20170523151508,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
@@ -3324,19 +3324,10 @@ begin
       else
         Int:=TResEvalUInt(LeftValue).UInt;
     {$ifdef FPC_HAS_CPSTRING}
-    revkString:
-      if length(TResEvalString(LeftValue).S)<>1 then
-        RaiseMsg(20170714124231,nXExpectedButYFound,sXExpectedButYFound,
-          ['char','string'],Expr)
-      else
-        Int:=ord(TResEvalString(LeftValue).S[1]);
+    revkString,
     {$endif}
     revkUnicodeString:
-      if length(TResEvalUTF16(LeftValue).S)<>1 then
-        RaiseMsg(20170714124320,nXExpectedButYFound,sXExpectedButYFound,
-          ['char','unicodestring'],Expr)
-      else
-        Int:=ord(TResEvalUTF16(LeftValue).S[1]);
+      Int:=StringToOrd(LeftValue,Expr);
     revkEnum:
       Int:=TResEvalEnum(LeftValue).Index;
     else
@@ -3589,7 +3580,7 @@ begin
           Result.ElKind:=revskChar
         else if Result.ElKind<>revskChar then
           RaiseNotYetImplemented(20170713201456,El);
-        if length(TResEvalString(Value).S)<>1 then
+        if StringToOrd(Value,nil)>$ffff then
           begin
           // set of string (not of char)
           ReleaseEvalValue(TResEvalValue(Result));
@@ -3904,7 +3895,7 @@ begin
   end;
 end;
 
-function TResExprEvaluator.ExprStringToOrd(Value: TResEvalValue;
+function TResExprEvaluator.StringToOrd(Value: TResEvalValue;
   PosEl: TPasElement): longword;
 const
   Invalid = $12345678; // bigger than $ffff and smaller than $8000000
@@ -3914,8 +3905,9 @@ var
   {$endif}
   U: UnicodeString;
 begin
+  case Value.Kind of
   {$ifdef FPC_HAS_CPSTRING}
-  if Value.Kind=revkString then
+  revkString:
     begin
     // ord(ansichar)
     S:=TResEvalString(Value).S;
@@ -3942,10 +3934,9 @@ begin
         end;
       Result:=ord(U[1]);
       end;
-    end
-  else
+    end;
   {$endif}
-  if Value.Kind=revkUnicodeString then
+  revkUnicodeString:
     begin
     // ord(widechar)
     U:=TResEvalUTF16(Value).S;
@@ -3959,9 +3950,10 @@ begin
       end
     else
       Result:=ord(U[1]);
-    end
+    end;
   else
     RaiseNotYetImplemented(20170522220959,PosEl);
+  end;
 end;
 
 function TResExprEvaluator.EvalPrimitiveExprString(Expr: TPrimitiveExpr
@@ -4385,7 +4377,7 @@ begin
         if Value.Kind in revkAllStrings then
           begin
           // string in char..char
-          CharIndex:=ExprStringToOrd(Value,ValueExpr);
+          CharIndex:=StringToOrd(Value,ValueExpr);
           if (CharIndex<RgInt.RangeStart) or (CharIndex>RgInt.RangeEnd) then
             begin
             if EmitHints then
@@ -4610,11 +4602,10 @@ begin
     revkInt,revkUInt:
       exit(Value);
     {$ifdef FPC_HAS_CPSTRING}
-    revkString:
-      v:=ExprStringToOrd(Value,ErrorEl);
+    revkString,
     {$endif}
     revkUnicodeString:
-      v:=ExprStringToOrd(Value,ErrorEl);
+      v:=StringToOrd(Value,ErrorEl);
     revkEnum:
       v:=TResEvalEnum(Value).Index;
   else

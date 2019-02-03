@@ -7902,7 +7902,7 @@ type
         exit(AddString(ExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,Expr)))
       else
         begin
-        if length(TResEvalString(Value).S)<>1 then
+        if fExprEvaluator.StringToOrd(Value,nil)>$ffff then
           exit(false);
         RangeStart:=ord(TResEvalString(Value).S[1]);
         RangeEnd:=RangeStart;
@@ -13122,7 +13122,7 @@ begin
       begin
       if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
         begin
-        if length(TResEvalString(Value).S)<>1 then
+        if fExprEvaluator.StringToOrd(Value,nil)>$ffff then
           RaiseXExpectedButYFound(20181005141025,'char','string',Params);
         Result:=Value;
         Value:=nil;
@@ -18042,9 +18042,6 @@ var
   EnumType: TPasEnumType;
   bt: TResolverBaseType;
   LTypeEl: TPasType;
-  {$ifdef FPC_HAS_CPSTRING}
-  w: WideChar;
-  {$endif}
 begin
   LTypeEl:=LeftResolved.LoTypeEl;
   if (LTypeEl<>nil)
@@ -18184,22 +18181,10 @@ begin
       begin
       case RValue.Kind of
       {$ifdef FPC_HAS_CPSTRING}
-      revkString:
-        if length(TResEvalString(RValue).S)<>1 then
-          begin
-          if fExprEvaluator.GetWideChar(TResEvalString(RValue).S,w) then
-            Int:=ord(w)
-          else
-            RaiseXExpectedButYFound(20170714171352,'char','string',RHS);
-          end
-        else
-          Int:=ord(TResEvalString(RValue).S[1]);
+      revkString,
       {$endif}
       revkUnicodeString:
-        if length(TResEvalUTF16(RValue).S)<>1 then
-          RaiseXExpectedButYFound(20170714171534,'char','string',RHS)
-        else
-          Int:=ord(TResEvalUTF16(RValue).S[1]);
+        Int:=fExprEvaluator.StringToOrd(RValue,RHS);
       else
         RaiseNotYetImplemented(20170714171218,RHS);
       end;

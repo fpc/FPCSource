@@ -7813,6 +7813,7 @@ begin
   'begin',
   '  case s of',
   '  ''a''..''z'': h:=s;',
+  '  ''ä'': ;',
   '  ''Б''..''Я'': ;',
   '  end;',
   '']);
@@ -7826,6 +7827,7 @@ begin
     'var $tmp1 = $mod.s;',
     'if (($tmp1 >= "a") && ($tmp1 <= "z")) {',
     '  $mod.h = $mod.s}',
+    ' else if ($tmp1 === "ä") {}',
     ' else if (($tmp1 >= "Б") && ($tmp1 <= "Я")) ;',
     '']));
 end;
