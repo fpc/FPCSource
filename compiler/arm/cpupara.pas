@@ -458,7 +458,10 @@ unit cpupara;
                             if (nextintreg in [RS_R1,RS_R3]) then
                               inc(nextintreg)
                             else if nextintreg>RS_R3 then
-                              stack_offset:=align(stack_offset,8);
+                              begin
+                                stack_offset:=align(stack_offset,8);
+                                hp.paraloc[side].Alignment:=8;
+                              end;
                           end;
                         if nextintreg<=RS_R3 then
                           begin
@@ -573,7 +576,10 @@ unit cpupara;
                             if (target_info.abi in [abi_eabi,abi_eabihf]) and
                                firstparaloc and
                                (paradef.alignment=8) then
-                              stack_offset:=align(stack_offset,8);
+                              begin
+                                stack_offset:=align(stack_offset,8);
+                                hp.paraloc[side].Alignment:=8;
+                              end;
 
                              paraloc^.loc:=LOC_REFERENCE;
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
