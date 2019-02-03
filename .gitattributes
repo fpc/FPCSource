@@ -14247,6 +14247,7 @@ tests/test/units/objects/testobj2.pp svneol=native#text/plain
 tests/test/units/sharemem/libtest.pp svneol=native#text/plain
 tests/test/units/sharemem/test1.pp svneol=native#text/plain
 tests/test/units/softfpu/sfttst.pp svneol=native#text/plain
+tests/test/units/sortbase/tsortbase.pp svneol=native#text/plain
 tests/test/units/strings/tstrcopy.pp svneol=native#text/plain
 tests/test/units/strings/tstrings1.pp svneol=native#text/plain
 tests/test/units/strutils/taddchar.pp svneol=native#text/plain
