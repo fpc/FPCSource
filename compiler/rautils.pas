@@ -1388,13 +1388,15 @@ begin
     begin
       case srsym.typ of
          staticvarsym:
-           cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(srsym.mangledname,AT_DATA),tstaticvarsym(srsym).vardef,true);
+           if not(vo_is_external in tstaticvarsym(srsym).varoptions) then
+             cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(srsym.mangledname,AT_DATA),tstaticvarsym(srsym).vardef,true);
          procsym:
            begin
              { if it's a pure assembler routine, the definition of the symbol will also
                be in assembler and it can't be removed by the compiler (and if we mark
                it as used anyway, clang will get into trouble) }
-             if not(po_assembler in tprocdef(tprocsym(srsym).ProcdefList[0]).procoptions) then
+             if not(po_assembler in tprocdef(tprocsym(srsym).ProcdefList[0]).procoptions) and
+                not(po_external in tprocdef(tprocsym(srsym).ProcdefList[0]).procoptions) then
                cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname,AT_FUNCTION),tprocdef(tprocsym(srsym).ProcdefList[0]),true);
            end;
       end;
