@@ -240,9 +240,9 @@ implementation
                    assigned(p.oper[opidx]^.ref^.symbol) and
                    (p.oper[opidx]^.ref^.symbol.bind<>AB_TEMP) then
                   begin
-                    if (opidx=3) and
+                    if (opidx=4) and
                        (p.llvmopcode in [la_call,la_invoke]) then
-                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef,false)
+                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[3]^.def).pointeddef,false)
                     { not a named register }
                     else if (p.oper[opidx]^.ref^.refaddr<>addr_full) then
                       record_asmsym_def(p.oper[opidx]^.ref^.symbol,p.spilling_get_reg_type(opidx),false);
@@ -320,13 +320,13 @@ implementation
           la_call,
           la_invoke:
             begin
-              if p.oper[3]^.typ=top_ref then
+              if p.oper[4]^.typ=top_ref then
                 begin
-                  maybe_insert_extern_sym_decl(toplevellist,p.oper[3]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef);
-                  symdef:=get_asmsym_def(p.oper[3]^.ref^.symbol);
+                  maybe_insert_extern_sym_decl(toplevellist,p.oper[4]^.ref^.symbol,tpointerdef(p.oper[3]^.def).pointeddef);
+                  symdef:=get_asmsym_def(p.oper[4]^.ref^.symbol);
                   { the type used in the call is different from the type used to
                     declare the symbol -> insert a typecast }
-                  if not equal_llvm_defs(symdef,p.oper[2]^.def) then
+                  if not equal_llvm_defs(symdef,p.oper[3]^.def) then
                     begin
                       if symdef.typ=procdef then
                         { ugly, but can't use getcopyas(procvardef) due to the
@@ -335,8 +335,8 @@ implementation
                           symtable) and "pointer to procedure" results in the
                           correct llvm type }
                         symdef:=cpointerdef.getreusable(tprocdef(symdef));
-                      cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[3]^.ref^.symbol,p.oper[2]^.def);
-                      p.loadtai(3,cnv);
+                      cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[4]^.ref^.symbol,p.oper[3]^.def);
+                      p.loadtai(4,cnv);
                     end;
                 end;
               for i:=0 to p.ops-1 do

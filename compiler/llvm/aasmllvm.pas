@@ -141,6 +141,7 @@ interface
         procedure loadfpcond(opidx: longint; _fpcond: tllvmfpcmp);
         procedure loadparas(opidx: longint; _paras: tfplist);
         procedure loadasmlist(opidx: longint; _asmlist: tasmlist);
+        procedure loadcallingconvention(opidx: longint; calloption: tproccalloption);
 
         procedure landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
 
@@ -489,6 +490,18 @@ uses
       end;
 
 
+    procedure taillvm.loadcallingconvention(opidx: longint; calloption: tproccalloption);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           clearop(opidx);
+           callingconvention:=calloption;
+           typ:=top_callingconvention;
+         end;
+      end;
+
+
     procedure taillvm.landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
       var
         lastclause,
@@ -590,10 +603,10 @@ uses
             begin
               case opnr of
                 1: result:=oper[0]^.def;
-                3:
+                4:
                   begin
-                    if oper[3]^.typ=top_reg then
-                      result:=oper[2]^.def
+                    if oper[4]^.typ=top_reg then
+                      result:=oper[3]^.def
                     else
                       internalerror(2015112001)
                   end
@@ -1117,7 +1130,7 @@ uses
     constructor taillvm.call_size_name_paras(callpd: tdef; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
       begin
         create_llvm(la_call);
-        ops:=5;
+        ops:=6;
         { we need this in case the call symbol is an alias for a symbol with a
           different def in the same module (via "external"), because then we
           have to insert a type conversion later from the alias def to the
@@ -1125,49 +1138,53 @@ uses
           is generated, because the alias declaration may occur anywhere }
         loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,callpd);
-        loadsymbol(3,name,0);
-        loadparas(4,paras);
+        loadcallingconvention(2,tabstractprocdef(callpd).proccalloption);
+        loaddef(3,callpd);
+        loadsymbol(4,name,0);
+        loadparas(5,paras);
       end;
 
 
     constructor taillvm.call_size_reg_paras(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
       begin
         create_llvm(la_call);
-        ops:=5;
+        ops:=6;
         loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,callpd);
-        loadreg(3,reg);
-        loadparas(4,paras);
+        loadcallingconvention(2,tabstractprocdef(callpd).proccalloption);
+        loaddef(3,callpd);
+        loadreg(4,reg);
+        loadparas(5,paras);
       end;
 
 
     constructor taillvm.invoke_size_name_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; name: tasmsymbol; paras: tfplist; retlab, exceptlab: TAsmLabel);
       begin
         create_llvm(la_invoke);
-        ops:=7;
+        ops:=8;
         loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,callpd);
-        loadsymbol(3,name,0);
-        loadparas(4,paras);
-        loadsymbol(5,retlab,0);
-        loadsymbol(6,exceptlab,0);
+        loadcallingconvention(2,tabstractprocdef(callpd).proccalloption);
+        loaddef(3,callpd);
+        loadsymbol(4,name,0);
+        loadparas(5,paras);
+        loadsymbol(6,retlab,0);
+        loadsymbol(7,exceptlab,0);
       end;
 
 
     constructor taillvm.invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab: TAsmLabel);
       begin
         create_llvm(la_invoke);
-        ops:=7;
+        ops:=8;
         loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,callpd);
-        loadreg(3,reg);
-        loadparas(4,paras);
-        loadsymbol(5,retlab,0);
-        loadsymbol(6,exceptlab,0);
+        loadcallingconvention(2,tabstractprocdef(callpd).proccalloption);
+        loaddef(3,callpd);
+        loadreg(4,reg);
+        loadparas(5,paras);
+        loadsymbol(6,retlab,0);
+        loadsymbol(7,exceptlab,0);
       end;
 
 

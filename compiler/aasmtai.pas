@@ -265,6 +265,7 @@ interface
        ,top_cond
        ,top_para
        ,top_asmlist
+       ,top_callingconvention
 {$endif llvm}
 {$if defined(riscv32) or defined(riscv64)}
        ,top_fenceflags
@@ -470,6 +471,7 @@ interface
             top_fpcond : (fpcond: tllvmfpcmp);
             top_para   : (paras: tfplist);
             top_asmlist : (asmlist: tasmlist);
+            top_callingconvention: (callingconvention: tproccalloption);
         {$endif llvm}
         {$if defined(riscv32) or defined(riscv64)}
             top_fenceflags : (fenceflags : TFenceFlags);

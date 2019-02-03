@@ -496,7 +496,9 @@ implementation
            end;
 {$endif cpuextended}
          top_undef:
-           result:='undef'
+           result:='undef';
+         top_callingconvention:
+           result:=llvm_callingconvention_name(o.callingconvention);
          else
            internalerror(2013060227);
        end;
@@ -629,8 +631,15 @@ implementation
             if llvmflag_call_no_ptr in llvmversion_properties[current_settings.llvmversion] then
               begin
                 owner.writer.AsmWrite(getopcodestr(taillvm(hp)));
+                tmpstr:=llvm_callingconvention_name(taillvm(hp).oper[2]^.callingconvention);
+                if tmpstr<>'' then
+                  begin
+                    owner.writer.AsmWrite(' "');
+                    owner.writer.AsmWrite(tmpstr);
+                    owner.writer.AsmWrite('"');
+                  end;
                 opdone:=true;
-                tmpstr:=llvmencodetypename(taillvm(hp).oper[2]^.def);
+                tmpstr:=llvmencodetypename(taillvm(hp).oper[3]^.def);
                 if tmpstr[length(tmpstr)]<>'*' then
                   begin
                     writeln(tmpstr);
@@ -639,7 +648,7 @@ implementation
                 else
                   setlength(tmpstr,length(tmpstr)-1);
                 owner.writer.AsmWrite(tmpstr);
-                opstart:=3;
+                opstart:=4;
               end;
           end;
         la_blockaddress:
@@ -733,8 +742,8 @@ implementation
                    { special invoke interjections: "to label X unwind label Y" }
                    if (op=la_invoke) then
                      case i of
-                       5: owner.writer.AsmWrite('to ');
-                       6: owner.writer.AsmWrite('unwind ');
+                       6: owner.writer.AsmWrite('to ');
+                       7: owner.writer.AsmWrite('unwind ');
                      end;
 
                    owner.writer.AsmWrite(getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]));
@@ -1391,7 +1400,7 @@ implementation
                WriteTypedConstData(tai_abstracttypedconst(hp));
              end
           else
-            internalerror(2006012201);
+            internalerror(2019012001);
         end;
       end;
 

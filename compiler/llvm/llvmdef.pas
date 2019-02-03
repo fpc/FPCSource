@@ -791,6 +791,7 @@ implementation
 
     procedure llvmaddencodedproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype; var encodedstr: TSymStr);
       var
+        callingconv: ansistring;
         usedef: tdef;
         paranr: longint;
         hp: tparavarsym;
@@ -798,6 +799,12 @@ implementation
         useside: tcallercallee;
         first: boolean;
       begin
+        if not(pddecltype in [lpd_alias,lpd_procvar]) then
+          begin
+            callingconv:=llvm_callingconvention_name(def.proccalloption);
+            if callingconv<>'' then
+              encodedstr:=encodedstr+' "'+callingconv+'"';
+          end;
         { when writing a definition, we have to write the parameter names, and
           those are only available on the callee side. In all other cases,
           we are at the callerside }
