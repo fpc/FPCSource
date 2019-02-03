@@ -49,9 +49,8 @@
 {$linklib libgcc_s}
 {$endif}
 
-{$if (defined(CPUARMEL) or defined(CPUARMHF)) and not defined(darwin)}
-{$define __ARM_EABI_UNWINDER__}
-{$error add ARM EABI unwinder support}
+{$ifdef __ARM_EABI_UNWINDER__}
+{$define PSABIEH_NO_SIZEOF_ENCODED_VALUE}
 {$endif}
 
 function FPC_psabieh_GetExceptionWrapper(exceptionObject: PFPC_Unwind_Exception): PExceptObject; inline;
@@ -71,6 +70,11 @@ function _Unwind_GetLanguageSpecificData(context:PFPC_Unwind_Context):PtrUInt;cd
 
 function _Unwind_GetDataRelBase(context:PFPC_Unwind_Context):PtrUInt;cdecl;external;
 function _Unwind_GetTextRelBase(context:PFPC_Unwind_Context):PtrUInt;cdecl;external;
+
+{$ifdef __ARM_EABI_UNWINDER__}
+procedure _Unwind_Complete(exceptionObject: PFPC_Unwind_Exception);cdecl;external;
+function __gnu_unwind_frame(exception:PFPC_Unwind_Exception;context:PFPC_Unwind_Context):FPC_Unwind_Reason_Code;cdecl;external;
+{$endif}
 
 { _Unwind_Backtrace() is a gcc extension that walks the stack and calls the  }
 { _Unwind_Trace_Fn once per frame until it reaches the bottom of the stack }
@@ -108,6 +112,7 @@ const
 
   DW_EH_PE_indirect	= $80;
 
+{$ifndef PSABIEH_NO_SIZEOF_ENCODED_VALUE}
 function FPC_psabieh_size_of_encoded_value(encoding: byte): longint;
   begin
     if encoding = DW_EH_PE_omit then
@@ -131,6 +136,7 @@ function FPC_psabieh_size_of_encoded_value(encoding: byte): longint;
         end;
     end
   end;
+{$endif PSABIEH_NO_SIZEOF_ENCODED_VALUE}
 
 { Given an encoding and an _Unwind_Context, return the base to which
    the encoding is relative.  This base may then be passed to
@@ -350,8 +356,39 @@ function FPC_psabieh_parse_lsda_header(context: PFPC_Unwind_Context; p: PByte; o
     result:=p;
   end;
 
+{$ifdef __ARM_EABI_UNWINDER__}
+function FPC_psabieh_Unwind_decode_target2(ptr: PtrUInt {_Unwind_Word}):  PtrUInt {_Unwind_Word}; inline;
+  begin
+    result:=PPtrUInt(ptr)^;;
+    // Zero values are always NULL.
+    if result<>0 then
+      begin
+{$if defined(linux) or defined(netbsd)}
+        // Pc-relative indirect.
+        inc(result,ptr);
+        result:=PPtrUint(result)^;
+{$else}
+        // Pc-relative pointer.
+        inc(result,ptr);
+{$endif}
+      end;
+  end;
+{$endif __ARM_EABI_UNWINDER__}
+
 
 // Return an element from a type table.
+{$ifdef __ARM_EABI_UNWINDER__}
+function FPC_psabieh_get_ttype_entry(const info: FPC_psabieh_lsda_header_info; i: PtrUInt {_Unwind_Word}): TClass;
+var
+  ptr: PtrUInt {_Unwind_Word};
+begin
+  ptr:=PtrUInt(info.TType)-(i*4);
+  ptr:=FPC_psabieh_Unwind_decode_target2(ptr);
+  result:=TClass(ptr);
+end;
+
+{$else}
+
 function FPC_psabieh_get_ttype_entry(const info: FPC_psabieh_lsda_header_info; i: PtrUInt): TClass;
   var
     ptr: PtrUInt;
@@ -360,6 +397,8 @@ function FPC_psabieh_get_ttype_entry(const info: FPC_psabieh_lsda_header_info; i
     FPC_psabieh_read_encoded_value_with_base(info.ttype_encoding,info.ttype_base,info.TType-i,ptr);
     result:=TClass(ptr);
   end;
+{$endif}
+
 
 // Return true if THROW_TYPE matches one if the filter types.
 function FPC_psabieh_check_exception_spec(const info: FPC_psabieh_lsda_header_info; thrown: TObject; filter_value: PtrInt): boolean;
@@ -376,6 +415,9 @@ function FPC_psabieh_check_exception_spec(const info: FPC_psabieh_lsda_header_in
       if tmp=0 then
         exit(false);
 
+{$ifdef __ARM_EABI_UNWINDER__}
+      tmp:=FPC_psabieh_Unwind_decode_target2(PtrUInt(e)); {_Unwind_Word}
+{$endif}
       // Match a ttype entry.
       catch_type:=FPC_psabieh_get_ttype_entry(info,tmp);
 
@@ -383,8 +425,44 @@ function FPC_psabieh_check_exception_spec(const info: FPC_psabieh_lsda_header_in
     result:=true;
   end;
 
+
+{$ifdef __ARM_EABI_UNWINDER__}
 // Save stage1 handler information in the exception object
 procedure FPC_psabieh_save_caught_exception(ue_header: PFPC_Unwind_Exception;
+                      context: PFPC_Unwind_Context;
+                      handler_switch_value: longint;
+                      language_specific_data: PByte;
+                      landing_pad: PtrUInt);
+  begin
+    with ue_header^.barrier_cache do
+      begin
+        sp:=_Unwind_GetGR(context,13);
+        { bitpattern[0] is assigned but never used in the original code }
+        bitpattern[1]:=handler_switch_value;
+        bitpattern[2]:=PtrUInt(language_specific_data);
+        bitpattern[3]:=landing_pad;
+      end;
+  end;
+
+// Restore the catch handler information saved during phase1.
+procedure FPC_psabieh_restore_caught_exception(ue_header: PFPC_Unwind_Exception;
+                         out handler_switch_value: longint;
+                         out language_specific_data: PByte;
+                         out landing_pad: PtrUInt);
+  begin
+    with ue_header^.barrier_cache do
+      begin
+        handler_switch_value:=longint(bitpattern[1]);
+        language_specific_data:=PByte(bitpattern[2]);
+        landing_pad:=bitpattern[3];
+      end;
+  end;
+
+{$else __ARM_EABI_UNWINDER__}
+
+// Save stage1 handler information in the exception object
+procedure FPC_psabieh_save_caught_exception(ue_header: PFPC_Unwind_Exception;
+                      context: PFPC_Unwind_Context;
                       handler_switch_value: longint;
                       language_specific_data: PByte;
                       landing_pad: PtrUInt);
@@ -410,6 +488,7 @@ procedure FPC_psabieh_restore_caught_exception(ue_header: PFPC_Unwind_Exception;
     language_specific_data:=xh^.language_specific_data;
     landing_pad:=xh^.landing_pad;
   end;
+{$endif __ARM_EABI_UNWINDER__}
 
 function FPC_psabieh_find_action_record(const info: FPC_psabieh_lsda_header_info; var p: PByte; const ip: PTRUint; var landing_pad: PtrUInt; var action_record: PByte): boolean;
   var
@@ -559,7 +638,26 @@ function FPC_psabieh_find_handler(const info: FPC_psabieh_lsda_header_info; cons
 procedure __gxx_personality_v0(version: cint; actions: FPC_Unwind_Action; exceptionClass: cuint64; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context); cdecl; external;
 {$endif FPC_PSABIEH_CPLUSPLUSSUPPORT}
 
+
+{$ifdef __ARM_EABI_UNWINDER__}
+function continue_unwinding(libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; inline;
+  begin
+    if __gnu_unwind_frame(libunwind_exception, context)<>FPC_URC_OK then
+      result:=FPC_URC_FAILURE
+    else
+      result:=FPC_URC_CONTINUE_UNWIND;
+  end;
+
+function _FPC_psabieh_personality_v0(state: FPC_Unwind_State; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl;
+{$else}
+
+function continue_unwinding(libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; inline;
+  begin
+    result:=FPC_URC_CONTINUE_UNWIND;
+  end;
+
 function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Action; exceptionClass: qword; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl;
+{$endif}
   var
     WrappedException: PExceptObject;
     found_type: FPC_psabieh_found_handler_type;
@@ -567,11 +665,46 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
     language_specific_data: PByte;
     action_record: PByte;
     p: PByte;
-    landing_pad, ip: PtrUInt;
+    landing_pad, ip: PtrUInt; { _Unwind_Ptr }
     handler_switch_value: longint;
     foreign_exception: boolean;
+{$ifdef __ARM_EABI_UNWINDER__}
+    actions: FPC_Unwind_Action;
+{$endif}
   begin
-    { unsupported version -> failure }
+{$ifdef __ARM_EABI_UNWINDER__}
+    { convert the state flags to FPC_Unwind_Action flags so we can share the rest of the code }
+    case (state and FPC_US_ACTION_MASK) of
+      FPC_US_VIRTUAL_UNWIND_FRAME:
+        begin
+          actions:=FPC_UA_SEARCH_PHASE;
+        end;
+      FPC_US_UNWIND_FRAME_STARTING:
+        begin
+          actions:=FPC_UA_CLEANUP_PHASE;
+          if ((state and FPC_US_FORCE_UNWIND)<>0) and
+             (libunwind_exception^.barrier_cache.sp=_Unwind_GetGR(context,13)) then
+            actions:=actions or FPC_UA_HANDLER_FRAME;
+        end;
+      FPC_US_UNWIND_FRAME_RESUME:
+        begin
+          result:=continue_unwinding(libunwind_exception,context);
+          exit;
+        end;
+    end;
+    actions:=actions or (state and FPC_US_FORCE_UNWIND);
+
+    // The dwarf unwinder assumes the context structure holds things like the
+    // function and LSDA pointers.  The ARM implementation caches these in
+    // the exception header (UCB).  To avoid rewriting everything we make the
+    // virtual IP register point at the UCB.
+    ip:=PtrUInt(libunwind_exception);
+    _Unwind_SetGR(context, 12, ip);
+
+    { foreign exception type -> let c++ runtime handle it }
+    foreign_exception:=libunwind_exception^.exception_class<>FPC_psabieh_exceptionClass_ID.u;
+{$else __ARM_EABI_UNWINDER__}
+{ unsupported version -> failure }
     if version<>1 then
       begin
         result:=FPC_URC_FATAL_PHASE1_ERROR;
@@ -580,6 +713,8 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 
     { foreign exception type -> let c++ runtime handle it }
     foreign_exception:=exceptionClass<>FPC_psabieh_exceptionClass_ID.u;
+{$endif __ARM_EABI_UNWINDER__}
+
 {$ifdef FPC_PSABIEH_CPLUSPLUSSUPPORT}
     if foreign_exception then
       begin
@@ -620,7 +755,8 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
             writeln('did not find lsda');
 {$endif}
-            exit(FPC_URC_CONTINUE_UNWIND);
+
+            exit(continue_unwinding(libunwind_exception,context));
           end;
 
         // Parse the LSDA header.
@@ -669,12 +805,12 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$endif}
 
          if found_type=found_nothing then
-           exit(FPC_URC_CONTINUE_UNWIND);
+           exit(continue_unwinding(libunwind_exception,context));
 
         if (actions and FPC_UA_SEARCH_PHASE)<>0 then
           begin
             if found_type=found_cleanup then
-              exit(FPC_URC_CONTINUE_UNWIND);
+              exit(continue_unwinding(libunwind_exception,context));
 
             if not foreign_exception then
               begin
@@ -682,7 +818,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
                 writeln('saving native exception: $',hexstr(landing_pad,sizeof(landing_pad)*2));
 {$endif}
                 // For domestic exceptions, we cache data from phase 1 for phase 2.
-                FPC_psabieh_save_caught_exception(libunwind_exception,
+                FPC_psabieh_save_caught_exception(libunwind_exception,context,
                                         handler_switch_value,language_specific_data,
                                         landing_pad);
               end;
@@ -715,6 +851,14 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
           begin
 {$ifdef excdebug}
             writeln('native exception and no force unwind, and force_terminate');
+{$endif}
+            RunError(217);
+          end
+        else if handler_switch_value<0 then
+          begin
+            { C++ calls __cxa_call_unexpected in this case }
+{$ifdef excdebug}
+            writeln('native exception and no force unwind, and handler_switch_value<0: ', handler_switch_value);
 {$endif}
             RunError(217);
           end;
@@ -865,7 +1009,7 @@ function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compi
 {$endif}
     result:= ExceptWrapper^.FObject;
 {$ifdef __ARM_EABI_UNWINDER__}
-    _Unwind_Complete(ExceptWrapper);
+    _Unwind_Complete(exc);
 {$endif}
   end;
 
@@ -910,16 +1054,6 @@ procedure FPC_psabi_end_catch; cdecl; compilerproc;
         { Can happen in the original glibc code, but not for us. When re-raising an
           exception, we always immediately do this to an outer frame }
         halt(217);
-(*
-        // This exception was rethrown.  Decrement the (inverted) catch
-        // count and remove it from the chain when it reaches zero.
-        inc(refcount);
-{$ifdef excdebug}
-        writeln('stop end_catch, rethrown, new refcount: ',refcount);
-{$endif}
-        if refcount = 0 then
-          ExceptObjectStack:=_ExceptObjectStack^.next;
-*)
       end
     else
       begin
