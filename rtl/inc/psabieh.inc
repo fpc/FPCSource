@@ -221,50 +221,50 @@ function FPC_psabieh_read_encoded_value_with_base (encoding: byte; base: PtrUInt
     else
       begin
         case encoding and $0f of
-	        DW_EH_PE_absptr:
+          DW_EH_PE_absptr:
             begin
               res:=unaligned(PPtrUint(p)^);
-	            result:=p+sizeof(PtrUInt);
+              result:=p+sizeof(PtrUInt);
             end;
-	        DW_EH_PE_uleb128:
-	          begin
+          DW_EH_PE_uleb128:
+            begin
               result:=fpc_read_uleb128(p,res);
             end;
-	        DW_EH_PE_sleb128:
-	          begin
+          DW_EH_PE_sleb128:
+            begin
               result:=fpc_read_sleb128(p,tmpres);
-	            res:=PtrUInt(tmpres);;
+              res:=PtrUInt(tmpres);;
             end;
-	        DW_EH_PE_udata2:
+          DW_EH_PE_udata2:
             begin
-	            res:=unaligned(pword(p)^);
-	            result:=p+2;
+              res:=unaligned(pword(p)^);
+              result:=p+2;
             end;
-	        DW_EH_PE_udata4:
+          DW_EH_PE_udata4:
             begin
-	            res:=unaligned(pdword(p)^);
-	            result:=p+4;
-	          end;
-	        DW_EH_PE_udata8:
-            begin
-	            res:=unaligned(pqword(p)^);
-	            result:=p+8;
-	          end;
-	        DW_EH_PE_sdata2:
-            begin
-	            res:=PtrUInt(unaligned(psmallint(p)^));
-	            result:=p+2;
+              res:=unaligned(pdword(p)^);
+              result:=p+4;
             end;
-	        DW_EH_PE_sdata4:
+          DW_EH_PE_udata8:
             begin
-	            res:=PtrUInt(unaligned(plongint(p)^));
-	            result:=p+4;
-	          end;
-	        DW_EH_PE_sdata8:
+              res:=unaligned(pqword(p)^);
+              result:=p+8;
+            end;
+          DW_EH_PE_sdata2:
             begin
-	            res:=PtrUInt(unaligned(pint64(p)^));
-	            result:=p+8;
-	          end;
+              res:=PtrUInt(unaligned(psmallint(p)^));
+              result:=p+2;
+            end;
+          DW_EH_PE_sdata4:
+            begin
+              res:=PtrUInt(unaligned(plongint(p)^));
+              result:=p+4;
+            end;
+          DW_EH_PE_sdata8:
+            begin
+              res:=PtrUInt(unaligned(pint64(p)^));
+              result:=p+8;
+            end;
           else
             begin
 {$ifdef excdebug}
