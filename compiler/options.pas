@@ -963,15 +963,27 @@ begin
     system_powerpc64_darwin,
     system_i386_darwin:
       begin
+{$ifdef llvm}
+        { We only support libunwind as part of libsystem }
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1060');
+        MacOSXVersionMin:='10.6';
+{$else llvm}
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1040');
         MacOSXVersionMin:='10.4';
+{$endif llvm}
       end;
     system_x86_64_darwin:
       begin
+{$ifdef llvm}
+        { We only support libunwind as part of libsystem }
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1060');
+        MacOSXVersionMin:='10.6';
+{$else llvm}
         { actually already works on 10.4, but it's unlikely any 10.4 system
           with an x86-64 is still in use, so don't default to it }
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1050');
         MacOSXVersionMin:='10.5';
+{$endif llvm}
       end;
     system_arm_darwin,
     system_i386_iphonesim:
