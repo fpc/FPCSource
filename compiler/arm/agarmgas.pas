@@ -94,7 +94,9 @@ unit agarmgas;
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);
+{$ifndef llvm}
         if GenerateThumb2Code then
+{$endif}
           TArmInstrWriter(InstrWriter).unified_syntax:=true;
       end;
 
