@@ -4022,7 +4022,11 @@ begin
      (cs_asm_extern in init_settings.globalswitches) then
    begin
      Message(option_switch_bin_to_src_assembler);
+{$ifdef llvm}
+     set_target_asm(as_llvm_clang);
+{$else}
      set_target_asm(target_info.assemextern);
+{$endif}
      { At least i8086 needs that for nasm and -CX
        which is incompatible with internal linker }
      option.checkoptionscompatibility;
