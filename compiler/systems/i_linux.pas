@@ -597,6 +597,9 @@ unit i_linux;
 {$ifdef tls_threadvars}
                             tf_section_threadvars,
 {$endif tls_threadvars}
+{$ifdef llvm}
+                            tf_use_psabieh,
+{$endif llvm}
                             tf_smartlink_sections,tf_pic_uses_got,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;

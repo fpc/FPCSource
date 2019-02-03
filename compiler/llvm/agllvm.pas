@@ -1584,7 +1584,7 @@ implementation
           idtxt  : 'LLVM-LLC';
           asmbin : 'llc';
           asmcmd: '$OPT -o $OBJ $ASM';
-          supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_aarch64_linux];
+          supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_aarch64_linux,system_arm_linux];
           flags : [af_smartlink_sections];
           labelprefix : 'L';
           comment : '; ';
@@ -1598,7 +1598,7 @@ implementation
           idtxt  : 'LLVM-CLANG';
           asmbin : 'clang';
           asmcmd: '$OPT -c -o $OBJ $ASM';
-          supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_aarch64_linux];
+          supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_aarch64_linux,system_arm_linux];
           flags : [af_smartlink_sections];
           labelprefix : 'L';
           comment : '; ';

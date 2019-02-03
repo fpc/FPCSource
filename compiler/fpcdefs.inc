@@ -318,6 +318,8 @@
 }
 {$ifdef llvm}
   {$undef SUPPORT_MMX}
+  {$undef cpuneedsmulhelper}
+  {$undef cpuneedsdivhelper}
   {$define cpuhighleveltarget}
   {$define cpucg64shiftsupport}
   {$define symansistr}

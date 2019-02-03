@@ -4386,7 +4386,7 @@ begin
     end;
 {$endif defined(i386) or defined(x86_64)}
 
-{$if defined(arm)}
+{$if defined(arm) and not defined(llvm)}
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }

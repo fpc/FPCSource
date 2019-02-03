@@ -111,6 +111,7 @@ implementation
     systems;
 
 {$j-}
+{$ifndef arm}
   const
     llvmsystemcpu: array[tsystemcpu] of ansistring =
       ('unknown',
@@ -135,6 +136,7 @@ implementation
        'riscv32',
        'riscv64'
       );
+{$endif}
 
   function llvm_target_name: ansistring;
     begin
@@ -154,7 +156,7 @@ implementation
             llvm_target_name:=llvm_target_name+'-ios'+iPhoneOSVersionMin;
         end
       else if target_info.system in (systems_linux+systems_android) then
-        llvm_target_name:=llvm_target_name+'-unknown-linux-gnu'
+        llvm_target_name:=llvm_target_name+'-unknown-linux'
       else if target_info.system in systems_windows then
         begin
           { WinCE isn't supported (yet) by llvm, but if/when added this is
@@ -191,7 +193,10 @@ implementation
         llvm_target_name:=llvm_target_name+'-android' }
       else
         llvm_target_name:=llvm_target_name+'-gnueabi';
-{$endif FPC_ARM_HF}
+{$else}
+      if target_info.system in systems_linux then
+        llvm_target_name:=llvm_target_name+'-gnu';
+{$endif}
     end;
 
 end.
