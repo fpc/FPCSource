@@ -2369,7 +2369,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=51;
+  num_proc_directives=52;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2516,7 +2516,16 @@ const
       pooption : [po_inline];
       mutexclpocall : [pocall_safecall];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod,po_iocheck]
+      mutexclpo     : [po_noinline,po_exports,po_external,po_interrupt,po_virtualmethod,po_iocheck]
+    ),(
+      idtok:_NOINLINE;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_noinline];
+      mutexclpocall : [];
+      mutexclpotype : [];
+      mutexclpo     : [po_inline,po_external]
     ),(
       idtok:_INTERNCONST;
       pd_flags : [pd_interface,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];

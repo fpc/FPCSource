@@ -979,6 +979,8 @@ implementation
             writer.AsmWrite(' returns_twice');
           if po_inline in pd.procoptions then
             writer.AsmWrite(' inlinehint');
+          if po_noinline in pd.procoptions then
+            writer.AsmWrite(' noinline');
           { ensure that functions that happen to have the same name as a
             standard C library function, but which are implemented in Pascal,
             are not considered to have the same semantics as the C function with

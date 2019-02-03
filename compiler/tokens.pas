@@ -236,6 +236,7 @@ type
     _MULTIPLY,
     _MWPASCAL,
     _NEGATIVE,
+    _NOINLINE,
     _NORETURN,
     _NOTEQUAL,
     _OPERATOR,
@@ -576,6 +577,7 @@ const
       (str:'MULTIPLY'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'MWPASCAL'      ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NEGATIVE'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
+      (str:'NOINLINE'      ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NORETURN'      ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NOTEQUAL'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'OPERATOR'      ;special:false;keyword:[m_fpc];op:NOTOKEN),
