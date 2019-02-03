@@ -107,7 +107,7 @@ begin
    end;
 
    if FSize < MaxBitRec then
-     result := FSize * 32;  {first bit of next record}
+     result := FBSize;  {first bit of next record}
 end;
 
 { ******************** TBits ***************************** }
