@@ -16,6 +16,9 @@ begin
     begin
     P:=AddPackage('utils-pas2fpm');
     p.ShortName:='p2fm';
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := 'Free Pascal Team';
     P.License := 'LGPL with modification';

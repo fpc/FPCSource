@@ -16,6 +16,9 @@ begin
     begin
     P:=AddPackage('utils-unicode');
     P.ShortName:='ucode';
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := 'Inoussa OUEDRAOGO';
     P.License := 'LGPL with modification';
@@ -36,6 +39,7 @@ begin
     T := P.Targets.AddImplicitUnit('helper.pas');
     T.ResourceStrings := true;
     T.Install := false;
+    T := P.Targets.AddImplicitUnit('cldrtxt.pas');
     T.Install := false;
     T := P.Targets.AddImplicitUnit('cldrxml.pas');
     T.Install := false;
@@ -46,6 +50,7 @@ begin
     T.Install := false;
     T := P.Targets.AddImplicitUnit('cldrhelper.pas');
     T.Install := false;
+    T.ResourceStrings:=true;
     T := P.Targets.AddImplicitUnit('cldrtest.pas');
     T.Install := false;
     T := P.Targets.AddImplicitUnit('grbtree.pas');

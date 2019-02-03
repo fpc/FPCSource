@@ -26,6 +26,8 @@ begin
     P.Directory:=ADirectory;
     P.Version:='3.2.0-beta';
     P.OSes:=AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [android];
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-passrc');
@@ -34,9 +36,11 @@ begin
     P.Dependencies.Add('webidl');
     PT:=P.Targets.AddProgram('pas2js.pp');
     PT:=P.Targets.AddLibrary('pas2jslib.pp');
+    PT:=P.Targets.AddUnit('dirwatch.pp');
     PT:=P.Targets.AddUnit('httpcompiler.pp');
+    PT.Dependencies.AddUnit('dirwatch');
     PT:=P.Targets.AddProgram('compileserver.pp');
-    PT.Dependencies.AddUnit('httpcompiler');    
+    PT.Dependencies.AddUnit('httpcompiler');
     PT:=P.Targets.AddProgram('webidl2pas.pp');
     end;
 end;

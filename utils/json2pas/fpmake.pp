@@ -18,6 +18,9 @@ begin
     P.Dependencies.Add('fcl-json');
 
     P.ShortName:='json2pas';
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := 'Michael Van Canneyt';
     P.License := 'LGPL with modification';

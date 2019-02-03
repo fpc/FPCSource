@@ -8804,12 +8804,12 @@ begin
     begin
       if FileExists(UnitsDir + RSJFileName) then
         begin
-          Installer.Log(VlDebug,Format(SDbgUNregisteredResource,[APrefixU + RSJFileName]));
+          Installer.Log(VlDebug,Format(SDbgUnregisteredResource,[APrefixU + RSJFileName]));
           List.Add(APrefixU + RSJFileName);
         end
       else if FileExists(UnitsDir + RSTFileName) then
         begin
-          Installer.Log(VlDebug,Format(SDbgUNregisteredResource,[APrefixU + RSTFileName]));
+          Installer.Log(VlDebug,Format(SDbgUnregisteredResource,[APrefixU + RSTFileName]));
           List.Add(APrefixU + RSTFileName);
         end;
      end;

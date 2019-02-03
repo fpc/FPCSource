@@ -17,6 +17,9 @@ begin
     begin
     P:=AddPackage('utils-fpcmkcfg');
     P.ShortName:='fcmk';
+    P.OSes:=AllOSes-[embedded,msdos,nativent,win16,atari,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -39,6 +42,7 @@ begin
     p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s default.cft default.inc fppkg_default','default.inc','default.cft');
 
     T:=P.Targets.AddProgram('fpcmkcfg.pp');
+    T.ResourceStrings:=true;
     T.Dependencies.AddInclude('fpccfg.inc');
     T.Dependencies.AddInclude('fpcfg.inc');
     T.Dependencies.AddInclude('fpini.inc');

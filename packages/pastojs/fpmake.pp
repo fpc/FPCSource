@@ -42,6 +42,7 @@ begin
 
     T:=P.Targets.AddUnit('pas2jsfiler.pp');
     T:=P.Targets.AddUnit('fppas2js.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fppjssrcmap.pp');
     T:=P.Targets.AddUnit('pas2jsfilecache.pp');
     T:=P.Targets.AddUnit('pas2jsfileutils.pp');

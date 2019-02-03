@@ -120,6 +120,7 @@ begin
           AddInclude('mysql.inc');
         end;
     T:=P.Targets.AddUnit('mysql51dyn.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddInclude('mysql.inc');

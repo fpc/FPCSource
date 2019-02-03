@@ -50,6 +50,10 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils');
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -69,7 +73,7 @@ begin
 
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('rtl-objpas');
-	
+
     P.Version:='3.2.0-beta';
 
     T:=P.Targets.AddProgram('ptop.pp');
@@ -77,7 +81,8 @@ begin
     T.ResourceStrings:=true;
 
     P.Targets.AddProgram('ppdep.pp');
-    P.Targets.AddProgram('rstconv.pp');
+    T:=P.Targets.AddProgram('rstconv.pp');
+    T.ResourceStrings:=true;
     P.Targets.AddProgram('data2inc.pp');
     P.Targets.AddProgram('delp.pp');
     P.Targets.AddProgram('bin2obj.pp');
@@ -87,6 +92,7 @@ begin
     P.Targets.AddProgram('grab_vcsa.pp',[linux]);
     T:=P.Targets.AddProgram('fpcsubst.pp');
     T.Dependencies.AddUnit('usubst');
+    T.ResourceStrings:=true;
     P.Targets.AddUnit('usubst.pp').install:=false;
     P.Targets.AddUnit('ptopu.pp').install:=false;
     end;

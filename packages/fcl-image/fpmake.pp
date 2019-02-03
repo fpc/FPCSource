@@ -227,6 +227,7 @@ begin
     T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
     T.Dependencies.AddInclude('libfreetype.inc');
     T:=P.Targets.AddUnit('freetypehdyn.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+      T.ResourceStrings:=true;
     T.Dependencies.AddInclude('libfreetype.inc');
     T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       with T.Dependencies do

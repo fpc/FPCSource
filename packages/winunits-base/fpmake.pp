@@ -77,6 +77,7 @@ begin
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('urlmon.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddImplicitUnit('commctrl.pp');
     T:=P.Targets.AddImplicitUnit('commdlg.pp');
     T:=P.Targets.AddImplicitUnit('comobj.pp');

@@ -18,7 +18,10 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.2.0-beta';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
@@ -50,6 +53,7 @@ begin
     T.Dependencies.AddUnit('httpprotocol');
 
     T:=P.Targets.AddUnit('httproute.pp');
+      T.ResourceStrings:=true;
     T.Dependencies.AddUnit('httpdefs');
 
     T:=P.Targets.AddUnit('cgiapp.pp');
@@ -269,6 +273,7 @@ begin
     T:=P.Targets.AddUnit('fpwebclient.pp');
     T:=P.Targets.AddUnit('fpjwt.pp');
     T:=P.Targets.AddUnit('fpoauth2.pp');
+      T.ResourceStrings:=true;
     T.Dependencies.AddUnit('fpwebclient');
     T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fpoauth2ini.pp');
