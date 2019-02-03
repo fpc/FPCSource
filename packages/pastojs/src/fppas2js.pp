@@ -498,6 +498,7 @@ const
   nDuplicateGUIDXInYZ = 4024;
   nCantCallExtBracketAccessor = 4025;
   nJSNewNotSupported = 4026;
+  nHelperClassMethodForExtClassMustBeStatic = 4027;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -526,6 +527,7 @@ resourcestring
   sDuplicateGUIDXInYZ = 'Duplicate GUID %s in %s and %s';
   sCantCallExtBracketAccessor = 'cannot call external bracket accessor, use a property instead';
   sJSNewNotSupported = 'Pascal class does not support the "new" constructor';
+  sHelperClassMethodForExtClassMustBeStatic = 'Helper class method for external class must be static';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -1784,6 +1786,9 @@ type
       FuncContext: TFunctionContext);
     Procedure AddInterfaceReleases(FuncContext: TFunctionContext; PosEl: TPasElement);
     Procedure AddRTLVersionCheck(FuncContext: TFunctionContext; PosEl: TPasElement);
+    // create elements for helpers
+    Function CreateCallNonStaticHelperMethod(Proc: TPasProcedure; Expr: TPasExpr;
+      AContext: TConvertContext): TJSElement; virtual;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -3644,7 +3649,7 @@ var
   AClass: TPasClassType;
   ClassScope: TPas2JSClassScope;
   ptm: TProcTypeModifier;
-  TypeEl, ElTypeEl: TPasType;
+  TypeEl, ElTypeEl, HelperForType: TPasType;
 begin
   inherited FinishProcedureType(El);
 
@@ -3697,83 +3702,95 @@ begin
         begin
         AClass:=TPasClassType(AClassOrRec);
         ClassScope:=TPas2JSClassScope(ClassOrRecScope);
+        if AClass.IsExternal then
+          begin
+          // external class -> make method external
+          if not (pmExternal in Proc.Modifiers) then
+            begin
+            if Proc.LibrarySymbolName<>nil then
+              RaiseMsg(20170322142158,nInvalidXModifierY,
+                sInvalidXModifierY,[Proc.ElementTypeName,'symbol name'],Proc.LibrarySymbolName);
+            Proc.Modifiers:=Proc.Modifiers+[pmExternal];
+            Proc.LibrarySymbolName:=TPrimitiveExpr.Create(Proc,pekString,''''+Proc.Name+'''');
+            end;
+
+          if Proc.Visibility=visPublished then
+            // Note: an external class has no typeinfo
+            RaiseMsg(20170413221327,nSymbolCannotBePublished,sSymbolCannotBePublished,
+              [],Proc);
+
+          C:=Proc.ClassType;
+          if (C=TPasProcedure) or (C=TPasFunction) then
+            // ok
+          else if (C=TPasClassProcedure) or (C=TPasClassFunction) then
+            // ok
+          else if C=TPasConstructor then
+            begin
+            if Proc.IsVirtual then
+              // constructor of external class can't be overriden -> forbid virtual
+              RaiseMsg(20170323100447,nInvalidXModifierY,sInvalidXModifierY,
+                [Proc.ElementTypeName,'virtual,external'],Proc);
+            if CompareText(Proc.Name,'new')=0 then
+              begin
+              ExtName:=ComputeConstString(Proc.LibrarySymbolName,true,true);
+              if ExtName<>Proc.Name then
+                RaiseMsg(20170323083511,nVirtualMethodNameMustMatchExternal,
+                  sVirtualMethodNameMustMatchExternal,[],Proc.LibrarySymbolName);
+              end
+            else
+              RaiseMsg(20190116211019,nExternalObjectConstructorMustBeNamedNew,
+                sExternalObjectConstructorMustBeNamedNew,[],El);
+            end
+          else
+            RaiseMsg(20170322163210,nPasElementNotSupported,sPasElementNotSupported,
+              [Proc.ElementTypeName],Proc);
+
+          end
+        else
+          // Pascal class, not external
+          case AClass.ObjKind of
+          okClass:
+            begin
+            if (ClassScope.NewInstanceFunction=nil)
+                and (ClassScope.AncestorScope<>nil)
+                and (TPasClassType(ClassScope.AncestorScope.Element).IsExternal)
+                and (Proc.ClassType=TPasClassFunction)
+                and (Proc.Visibility in [visProtected,visPublic,visPublished])
+                and (TPasClassFunction(Proc).FuncType.ResultEl.ResultType=AClassOrRec)
+                and ([pmOverride,pmExternal]*Proc.Modifiers=[]) then
+              begin
+              // The first non private class function in a Pascal class descending
+              // from an external class
+              // -> this is the NewInstance function
+              ClassScope.NewInstanceFunction:=TPasClassFunction(Proc);
+              CheckNewInstanceFunction(ClassScope);
+              end;
+            end;
+          okInterface:
+            begin
+            for pm in Proc.Modifiers do
+              if not (pm in [pmOverload, pmReintroduce]) then
+                RaiseMsg(20180329141108,nInvalidXModifierY,
+                  sInvalidXModifierY,[Proc.ElementTypeName,ModifierNames[pm]],Proc);
+            end;
+          okClassHelper:
+            begin
+            HelperForType:=ResolveAliasType(AClass.HelperForType);
+            if HelperForType.ClassType<>TPasClassType then
+              RaiseNotYetImplemented(20190201165157,El);
+            if TPasClassType(HelperForType).IsExternal then
+              begin
+              if not (ptmStatic in El.Modifiers) then
+                RaiseMsg(20190201165259,nHelperClassMethodForExtClassMustBeStatic,
+                  sHelperClassMethodForExtClassMustBeStatic,[],El);
+              end;
+            end;
+          end;
         end
       else
         begin
         AClass:=nil;
         ClassScope:=nil;
-        end;
-
-      if (AClass<>nil) and AClass.IsExternal then
-        begin
-        // external class -> make method external
-        if not (pmExternal in Proc.Modifiers) then
-          begin
-          if Proc.LibrarySymbolName<>nil then
-            RaiseMsg(20170322142158,nInvalidXModifierY,
-              sInvalidXModifierY,[Proc.ElementTypeName,'symbol name'],Proc.LibrarySymbolName);
-          Proc.Modifiers:=Proc.Modifiers+[pmExternal];
-          Proc.LibrarySymbolName:=TPrimitiveExpr.Create(Proc,pekString,''''+Proc.Name+'''');
-          end;
-
-        if Proc.Visibility=visPublished then
-          // Note: an external class has no typeinfo
-          RaiseMsg(20170413221327,nSymbolCannotBePublished,sSymbolCannotBePublished,
-            [],Proc);
-
-        C:=Proc.ClassType;
-        if (C=TPasProcedure) or (C=TPasFunction)
-            or (C=TPasClassProcedure) or (C=TPasClassFunction) then
-          // ok
-        else if C=TPasConstructor then
-          begin
-          if Proc.IsVirtual then
-            // constructor of external class can't be overriden -> forbid virtual
-            RaiseMsg(20170323100447,nInvalidXModifierY,sInvalidXModifierY,
-              [Proc.ElementTypeName,'virtual,external'],Proc);
-          if CompareText(Proc.Name,'new')=0 then
-            begin
-            ExtName:=ComputeConstString(Proc.LibrarySymbolName,true,true);
-            if ExtName<>Proc.Name then
-              RaiseMsg(20170323083511,nVirtualMethodNameMustMatchExternal,
-                sVirtualMethodNameMustMatchExternal,[],Proc.LibrarySymbolName);
-            end
-          else
-            RaiseMsg(20190116211019,nExternalObjectConstructorMustBeNamedNew,
-              sExternalObjectConstructorMustBeNamedNew,[],El);
-          end
-        else
-          RaiseMsg(20170322163210,nPasElementNotSupported,sPasElementNotSupported,
-            [Proc.ElementTypeName],Proc);
-
-        end
-      else if aClass<>nil then
-        // Pascal class, not external
-        case AClass.ObjKind of
-        okClass:
-          begin
-          if (ClassScope.NewInstanceFunction=nil)
-              and (ClassScope.AncestorScope<>nil)
-              and (TPasClassType(ClassScope.AncestorScope.Element).IsExternal)
-              and (Proc.ClassType=TPasClassFunction)
-              and (Proc.Visibility in [visProtected,visPublic,visPublished])
-              and (TPasClassFunction(Proc).FuncType.ResultEl.ResultType=AClassOrRec)
-              and ([pmOverride,pmExternal]*Proc.Modifiers=[]) then
-            begin
-            // The first non private class function in a Pascal class descending
-            // from an external class
-            // -> this is the NewInstance function
-            ClassScope.NewInstanceFunction:=TPasClassFunction(Proc);
-            CheckNewInstanceFunction(ClassScope);
-            end;
-          end;
-        okInterface:
-          begin
-          for pm in Proc.Modifiers do
-            if not (pm in [pmOverload, pmReintroduce]) then
-              RaiseMsg(20180329141108,nInvalidXModifierY,
-                sInvalidXModifierY,[Proc.ElementTypeName,ModifierNames[pm]],Proc);
-          end;
         end;
       end;
 
@@ -7207,14 +7224,14 @@ function TPasToJSConverter.ConvertSubIdentExprCustom(El: TBinaryExpr;
   Data: Pointer): TJSElement;
 var
   OldAccess: TCtxAccess;
-  Left: TJSElement;
+  LeftJS, RightJS: TJSElement;
   DotContext: TDotContext;
-  Right: TJSElement;
   aResolver: TPas2JSResolver;
   LeftResolved: TPasResolverResult;
   RightEl: TPasExpr;
   RightRef: TResolvedReference;
   RightRefDecl: TPasElement;
+  Proc: TPasProcedure;
 begin
   aResolver:=AContext.Resolver;
 
@@ -7256,81 +7273,107 @@ begin
       and aResolver.IsClassField(RightRefDecl) then
     begin
     // e.g. "Something.aClassVar:=" -> "aClass.aClassVar:="
-    Left:=CreateReferencePathExpr(RightRefDecl.Parent,AContext);
+    LeftJS:=CreateReferencePathExpr(RightRefDecl.Parent,AContext);
     Result:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-    TJSDotMemberExpression(Result).MExpr:=Left;
+    TJSDotMemberExpression(Result).MExpr:=LeftJS;
     TJSDotMemberExpression(Result).Name:=TJSString(TransformVariableName(RightRefDecl,AContext));
     exit;
     end;
+
+  LeftJS:=nil;
   if (RightRefDecl.Parent.ClassType=TPasClassType)
       and (TPasClassType(RightRefDecl.Parent).HelperForType<>nil) then
     begin
-    // Left.HelperMember
+    // LeftJS.HelperMember
     if RightRefDecl is TPasVariable then
       begin
-      // Left.HelperField
+      // LeftJS.HelperField  -> HelperType.HelperField
       if Assigned(OnConvertRight) then
         Result:=OnConvertRight(RightEl,AContext,Data)
       else
         Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,AContext);
       exit;
       end
-    else
+    else if RightRefDecl is TPasProcedure then
       begin
-      RaiseNotSupported(El,AContext,20190131170119);
-      end;
-    end;
-
-  if aResolver<>nil then
-    aResolver.ComputeElement(El.left,LeftResolved,[])
-  else
-    LeftResolved:=Default(TPasResolverResult);
-  if LeftResolved.BaseType=btModule then
-    begin
-    // e.g. system.inttostr()
-    // module path is created automatically
-    if Assigned(OnConvertRight) then
-      Result:=OnConvertRight(RightEl,AContext,Data)
+      // LeftJS.HelperCall
+      Proc:=TPasProcedure(RightRefDecl);
+      if ptmStatic in Proc.ProcType.Modifiers then
+        begin
+        // call static helper method ->  HelperType.Call
+        OldAccess:=AContext.Access;
+        AContext.Access:=caRead;
+        LeftJS:=CreateReferencePathExpr(Proc.Parent,AContext);
+        if LeftJS=nil then
+          RaiseNotSupported(El,AContext,20190131212553);
+        AContext.Access:=OldAccess;
+        end
+      else
+        begin
+        // call non static helper method
+        Result:=CreateCallNonStaticHelperMethod(Proc,El,AContext);
+        exit;
+        end;
+      end
     else
-      Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,AContext);
-    exit;
+      RaiseNotSupported(El,AContext,20190131170119,GetObjName(RightRefDecl));
     end;
 
-  // convert left side
-  OldAccess:=AContext.Access;
-  AContext.Access:=caRead;
-  Left:=ConvertExpression(El.left,AContext);
-  if Left=nil then
-    RaiseNotSupported(El,AContext,20190116110446);
-  AContext.Access:=OldAccess;
+  if LeftJS=nil then
+    begin
+    // check Left
 
-  // convert right side
-  DotContext:=TDotContext.Create(El,Left,AContext);
-  Right:=nil;
+    if aResolver<>nil then
+      aResolver.ComputeElement(El.left,LeftResolved,[])
+    else
+      LeftResolved:=Default(TPasResolverResult);
+    if LeftResolved.BaseType=btModule then
+      begin
+      // e.g. system.inttostr()
+      // module path is created automatically
+      if Assigned(OnConvertRight) then
+        Result:=OnConvertRight(RightEl,AContext,Data)
+      else
+        Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,AContext);
+      exit;
+      end;
+
+    // convert LeftJS side
+    OldAccess:=AContext.Access;
+    AContext.Access:=caRead;
+    LeftJS:=ConvertExpression(El.left,AContext);
+    if LeftJS=nil then
+      RaiseNotSupported(El,AContext,20190116110446);
+    AContext.Access:=OldAccess;
+    end;
+
+  // convert RightJS side
+  DotContext:=TDotContext.Create(El,LeftJS,AContext);
+  RightJS:=nil;
   try
     DotContext.LeftResolved:=LeftResolved;
     if Assigned(OnConvertRight) then
-      Right:=OnConvertRight(RightEl,DotContext,Data)
+      RightJS:=OnConvertRight(RightEl,DotContext,Data)
     else
-      Right:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,DotContext);
+      RightJS:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,DotContext);
     if DotContext.JS<>nil then
       begin
-      Left:=nil;
-      Right:=nil;
+      LeftJS:=nil;
+      RightJS:=nil;
       exit(DotContext.JS);
       end;
   finally
     DotContext.Free;
-    if Right=nil then
-      Left.Free;
+    if RightJS=nil then
+      LeftJS.Free;
   end;
-  if Right is TJSLiteral then
+  if RightJS is TJSLiteral then
     begin
-    Left.Free;
-    exit(Right);
+    LeftJS.Free;
+    exit(RightJS);
     end;
   // connect via dot
-  Result:=CreateDotExpression(El,Left,Right,true);
+  Result:=CreateDotExpression(El,LeftJS,RightJS,true);
 end;
 
 function TPasToJSConverter.CreateIdentifierExpr(El: TPasElement;
@@ -16770,6 +16813,111 @@ begin
     {$ENDIF}
     RaiseNotSupported(PosEl,FuncContext,20181002154026,GetObjName(St));
     end;
+end;
+
+function TPasToJSConverter.CreateCallNonStaticHelperMethod(Proc: TPasProcedure;
+  Expr: TPasExpr; AContext: TConvertContext): TJSElement;
+var
+  Helper: TPasClassType;
+  aResolver: TPas2JSResolver;
+  HelperForType, LoTypeEl: TPasType;
+  Bin: TBinaryExpr;
+  LeftResolved: TPasResolverResult;
+  SelfJS: TJSElement;
+  PosEl, Left: TPasExpr;
+  LeftArg: TPasArgument;
+  Path: String;
+begin
+  Result:=nil;
+  aResolver:=AContext.Resolver;
+  Helper:=Proc.Parent as TPasClassType;
+  HelperForType:=aResolver.ResolveAliasType(Helper.HelperForType);
+  PosEl:=Expr;
+  if Expr is TBinaryExpr then
+    begin
+    Bin:=TBinaryExpr(Expr);
+    if Bin.OpCode<>eopSubIdent then
+      RaiseNotSupported(Expr,AContext,20190201163152);
+    Left:=Bin.left;
+    aResolver.ComputeElement(Left,LeftResolved,[]);
+    PosEl:=Bin.right;
+    end
+  else
+    RaiseNotSupported(Expr,AContext,20190201163210);
+
+  LoTypeEl:=LeftResolved.LoTypeEl;
+  if (Proc.ClassType=TPasClassFunction) or (Proc.ClassType=TPasClassProcedure) then
+    begin
+    // call non static helper class method
+    if LoTypeEl=nil then
+      RaiseNotSupported(PosEl,AContext,20190201163453,GetResolverResultDbg(LeftResolved));
+    if (LeftResolved.IdentEl.ClassType=TPasClassType) then
+      begin
+      //  ClassType.HelperCall -> HelperType.HelperCall.apply(ClassType?,args?)
+      if TPasClassType(LeftResolved.IdentEl).IsExternal then
+        RaiseNotSupported(PosEl,AContext,20190201165636);
+      SelfJS:=CreateReferencePathExpr(LeftResolved.IdentEl,AContext);
+      end
+    else if (LoTypeEl.ClassType=TPasClassType) then
+      begin
+      //  ClassInstance.HelperCall -> HelperType.HelperCall.apply(ClassInstance.$class?,args?)
+      if TPasClassType(LeftResolved.LoTypeEl).IsExternal then
+        RaiseNotSupported(PosEl,AContext,20190201165656);
+      Path:=CreateReferencePath(LeftResolved.IdentEl,AContext,rpkPathAndName)+'.'+GetBIName(pbivnPtrClass);
+      SelfJS:=CreatePrimitiveDotExpr(Path,Expr);
+      end
+    else if (LoTypeEl.ClassType=TPasClassOfType) then
+      begin
+      //  ClassOfVar.HelperCall -> HelperType.HelperCall.apply(ClassOfVar?,args?)
+      SelfJS:=ConvertExpression(Left,AContext);
+      end
+    else
+      // forbidden in record and type helpers
+      RaiseNotSupported(PosEl,AContext,20190201162601);
+    end
+  else if (Proc.ClassType=TPasFunction) or (Proc.ClassType=TPasProcedure) then
+    begin
+    // method, neither static nor class method
+    if LeftResolved.IdentEl is TPasType then
+      RaiseNotSupported(PosEl,AContext,20190201170843);
+    if LoTypeEl is TPasClassType then
+      begin
+      // ClassInstance.HelperCall -> HelperType.HelperCall.apply(ClassInstance?,args?)
+      SelfJS:=ConvertExpression(Left,AContext);
+      end
+    else if HelperForType.ClassType=TPasClassType then
+      RaiseNotSupported(PosEl,AContext,20190203171241)
+    else if LeftResolved.IdentEl is TPasArgument then
+      begin
+      LeftArg:=TPasArgument(LeftResolved.IdentEl);
+      case LeftArg.Access of
+      argVar,argOut:
+        begin
+        // VarArg.HelperCall -> HelperType.HelperCall.apply(VarArg?,args?)
+        Path:=TransformVariableName(LeftArg,AContext);
+        SelfJS:=CreatePrimitiveDotExpr(Path,Expr);
+        end;
+      argConst:
+        begin
+        // ConstArg.HelperCall -> HelperType.HelperCall.apply({p: ConstArg,get,set-error}?,args?)
+        RaiseNotSupported(PosEl,AContext,20190201172006);
+        end;
+      end;
+      RaiseNotSupported(PosEl,AContext,20190201171117);
+      end;
+
+    // Var.HelperCall -> HelperType.HelperCall.apply({p: RecordVar,get,set}?,args?)
+    // FuncResult.HelperCall -> HelperType.HelperCall.apply({p: RecordFuncResult,get,set}?,args?)
+    // Literal.HelperCall -> HelperType.HelperCall.apply({p: Literal,get,set}?,args?)
+    RaiseNotSupported(PosEl,AContext,20190131211753);
+    end
+  else
+    RaiseNotSupported(PosEl,AContext,20190201162609);
+  // ToDo
+  if SelfJS=nil then
+    RaiseNotSupported(PosEl,AContext,20190203171010);
+
+  RaiseNotSupported(PosEl,AContext,20190201170016);
 end;
 
 function TPasToJSConverter.ConvertImplBlock(El: TPasImplBlock;

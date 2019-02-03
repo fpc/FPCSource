@@ -628,8 +628,17 @@ type
     Procedure TestClassInterface_GUIDProperty;
 
     // helpers
-    Procedure TestClassHelper_ClassVar; // ToDo
+    Procedure TestClassHelper_ClassVar;
+    Procedure TestClassHelper_Method_AccessInstanceFields;
+    Procedure TestClassHelper_Method_Call;
+    //Procedure TestClassHelper_Constructor;
+    //Procedure TestClassHelper_InheritedObjFPC;
+    //Procedure TestClassHelper_InheritedDelphi;
+    // todo: TestClassHelper_Property
+    // todo: TestClassHelper_ClassProperty
     // todo: TestClassHelper_Overload
+    // todo: TestRecordHelper
+    // todo: TestTypeHelper
 
     // proc types
     Procedure TestProcType;
@@ -18552,12 +18561,13 @@ begin
   '  TObject = class',
   '  end;',
   '  THelper = class helper for TObject',
-  '  const',
-  '    One = 1;',
-  '    Two: word = 2;',
-  '  class var Glob: word;',
-  '  function Foo(w: word): word;',
-  '  class function Bar(w: word): word;',
+  '    const',
+  '      One = 1;',
+  '      Two: word = 2;',
+  '    class var',
+  '      Glob: word;',
+  '    function Foo(w: word): word;',
+  '    class function Bar(w: word): word;',
   '  end;',
   'function THelper.foo(w: word): word;',
   'begin',
@@ -18637,6 +18647,145 @@ begin
     'var $with2 = $mod.o;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
+    '']));
+end;
+
+procedure TTestModule.TestClassHelper_Method_AccessInstanceFields;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    FSize: word;',
+  '    property Size: word read FSize write FSize;',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    function Foo(w: word = 1): word;',
+  '  end;',
+  'function THelper.foo(w: word): word;',
+  'begin',
+  '  Result:=Size;',
+  '  Size:=Size+2;',
+  '  Self.Size:=Self.Size+3;',
+  '  FSize:=FSize+4;',
+  '  Self.FSize:=Self.FSize+5;',
+  '  with Self do begin',
+  '    Size:=Size+6;',
+  '    FSize:=FSize+7;',
+  '    FSize:=FSize+8;',
+  '  end;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassHelper_Method_AccessInstanceFields',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FSize = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.Foo = function (w) {',
+    '    var Result = 0;',
+    '    Result = this.FSize;',
+    '    this.FSize = this.FSize + 2;',
+    '    this.FSize = this.FSize + 3;',
+    '    this.FSize = this.FSize + 4;',
+    '    this.FSize = this.FSize + 5;',
+    '    this.FSize = this.FSize + 6;',
+    '    this.FSize = this.FSize + 7;',
+    '    this.FSize = this.FSize + 8;',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassHelper_Method_Call;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Run(w: word = 10);',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    function Foo(w: word = 1): word;',
+  '  end;',
+  'procedure TObject.Run(w: word);',
+  'begin',
+  '  Foo;',
+  '  Foo();',
+  '  Foo(2);',
+  '  Self.Foo;',
+  '  Self.Foo();',
+  '  Self.Foo(3);',
+  '  with Self do begin',
+  '    Foo;',
+  '    Foo();',
+  '    Foo(4);',
+  '  end;',
+  'end;',
+  'function THelper.foo(w: word): word;',
+  'begin',
+  '  Run;',
+  '  Run();',
+  '  Run(11);',
+  '  Foo;',
+  '  Foo();',
+  '  Foo(12);',
+  '  Self.Foo;',
+  '  Self.Foo();',
+  '  Self.Foo(13);',
+  '  with Self do begin',
+  '    Foo;',
+  '    Foo();',
+  '    Foo(14);',
+  '  end;',
+  'end;',
+  'var Obj: TObject;',
+  'begin',
+  '  obj.Foo;',
+  '  obj.Foo();',
+  '  obj.Foo(21);',
+  '  with obj do begin',
+  '    Foo;',
+  '    Foo();',
+  '    Foo(22);',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassHelper_Method_Call',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FSize = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.Foo = function (w) {',
+    '    var Result = 0;',
+    '    Result = this.FSize;',
+    '    this.FSize = this.FSize + 2;',
+    '    this.FSize = this.FSize + 3;',
+    '    this.FSize = this.FSize + 4;',
+    '    this.FSize = this.FSize + 5;',
+    '    this.FSize = this.FSize + 6;',
+    '    this.FSize = this.FSize + 7;',
+    '    this.FSize = this.FSize + 8;',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
