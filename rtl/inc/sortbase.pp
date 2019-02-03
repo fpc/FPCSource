@@ -183,9 +183,16 @@ var
           Dec(J);
         If I <= J then
         begin
-          Move((Items + ItemSize*I)^, TempBuf^, ItemSize);
-          Move((Items + ItemSize*J)^, (Items + ItemSize*I)^, ItemSize);
-          Move(TempBuf^, (Items + ItemSize*J)^, ItemSize);
+          if I < J then
+          begin
+            Move((Items + ItemSize*I)^, TempBuf^, ItemSize);
+            Move((Items + ItemSize*J)^, (Items + ItemSize*I)^, ItemSize);
+            Move(TempBuf^, (Items + ItemSize*J)^, ItemSize);
+            if P = (Items + ItemSize*I) then
+              P := Items + ItemSize*J
+            else if P = (Items + ItemSize*J) then
+              P := Items + ItemSize*I;
+          end;
           Inc(I);
           Dec(J);
         end;
@@ -239,7 +246,14 @@ procedure QuickSort_ItemList_CustomItemExchanger_Context(
           Dec(J);
         If I <= J then
         begin
-          Exchanger(Items + ItemSize*I, Items + ItemSize*J, Context);
+          if I < J then
+          begin
+            Exchanger(Items + ItemSize*I, Items + ItemSize*J, Context);
+            if P = (Items + ItemSize*I) then
+              P := Items + ItemSize*J
+            else if P = (Items + ItemSize*J) then
+              P := Items + ItemSize*I;
+          end;
           Inc(I);
           Dec(J);
         end;
