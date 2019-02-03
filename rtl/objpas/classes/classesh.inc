@@ -768,7 +768,6 @@ type
     function GetSorted: Boolean;
     procedure Grow;
     procedure InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
-    procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(b : boolean);
     procedure SetSortStyle(AValue: TStringsSortStyle);
@@ -800,7 +799,9 @@ type
     function IndexOf(const S: string): Integer; override;
     procedure Insert(Index: Integer; const S: string); override;
     procedure Sort; virtual;
+    procedure Sort(SortingAlgorithm: PSortingAlgorithm); virtual;
     procedure CustomSort(CompareFn: TStringListSortCompare); virtual;
+    procedure CustomSort(CompareFn: TStringListSortCompare; SortingAlgorithm: PSortingAlgorithm); virtual;
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
     property Sorted: Boolean read GetSorted write SetSorted;
     property CaseSensitive: Boolean read FCaseSensitive write SetCaseSensitive;
