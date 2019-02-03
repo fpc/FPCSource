@@ -166,6 +166,14 @@ begin
     result := '#DEFINE NEEDCROSSBINUTILS';
 end;
 
+function GetDefaultUserPathSuffix: string;
+begin
+  if not (StringToOS(BuildOSTarget) in AllWindowsOSes) then
+    Result := 'lib/fpc/{CompilerVersion}'
+  else
+    Result := '';
+end;
+
 function GetDefaultGCCDir: string;
 
   var
@@ -276,6 +284,7 @@ begin
   TemplateParser.Values['COMPILERCONFIGDIR'] := GetDefaultCompilerConfigDir;
   TemplateParser.Values['NEEDCROSSBINUTILSIFDEF'] := GetDefaultNeedCrossBinutilsIfdef;
   TemplateParser.Values['GCCLIBPATH'] := GetDefaultGCCDIR;
+  TemplateParser.Values['USERPATHSUFFIX'] := GetDefaultUserPathSuffix;
 
   Cfg:=TStringList.Create;
   Cfg.Text:=StrPas(Addr(DefaultConfig[0][1]));

@@ -24,11 +24,11 @@ const fppkg : array[0..2,1..240] of char=(
   'Prefix=%GlobalP','refix%'#010+
   #010+
   '[IncludeFiles]'#010+
-  'FileMask=%CompilerConfigDir%/conf.d/*.conf'#010+
+  'FileMask=%CompilerConfigDir%conf.d/*.conf'#010+
   #010+
   '[Repository]'#010+
   'Name=user'#010+
   'Description=User-installed packages'#010+
-  'Path={LocalRepository}lib/fpc/{CompilerVersion}/'#010+
+  'Path={LocalRepository}%UserPathSuffix%'#010+
   'Prefix={LocalRepository}'#010
 );
