@@ -487,7 +487,6 @@ unit cpupara;
                             { LOC_REFERENCE always contains everything that's left }
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
@@ -561,7 +560,6 @@ unit cpupara;
                             { LOC_REFERENCE always contains everything that's left }
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
@@ -586,7 +584,6 @@ unit cpupara;
                               stack_offset:=align(stack_offset,8);
 
                              paraloc^.size:=paracgsize;
-                             paraloc^.def:=paradef;
                              paraloc^.loc:=LOC_REFERENCE;
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
                              paraloc^.reference.offset:=stack_offset;
