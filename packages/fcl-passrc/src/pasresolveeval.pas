@@ -161,7 +161,7 @@ const
   nIllegalQualifierInFrontOf = 3085;
   nIllegalQualifierWithin = 3086;
   nMethodClassXInOtherUnitY = 3087;
-  nClassMethodsMustBeStaticInRecords = 3088;
+  nClassMethodsMustBeStaticInX = 3088;
   nCannotMixMethodResolutionAndDelegationAtX = 3089;
   nImplementsDoesNotSupportArrayProperty = 3101;
   nImplementsDoesNotSupportIndex = 3102;
@@ -290,7 +290,7 @@ resourcestring
   sIllegalQualifierWithin = 'illegal qualifier "%s" within "%s"';
   sMethodClassXInOtherUnitY = 'method class "%s" in other unit "%s"';
   sNoMatchingImplForIntfMethodXFound = 'No matching implementation for interface method "%s" found';
-  sClassMethodsMustBeStaticInRecords = 'Class methods must be static in records';
+  sClassMethodsMustBeStaticInX = 'Class methods must be static in %s';
   sCannotMixMethodResolutionAndDelegationAtX = 'Cannot mix method resolution and delegation at %s';
   sImplementsDoesNotSupportArrayProperty = '"implements" does dot support array property';
   sImplementsDoesNotSupportIndex = '"implements" does not support "index"';

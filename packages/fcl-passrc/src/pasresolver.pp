@@ -5854,7 +5854,7 @@ begin
       end;
 
     IsClassConDestructor:=(Proc.ClassType=TPasClassConstructor)
-      or (Proc.ClassType=TPasClassDestructor);
+                       or (Proc.ClassType=TPasClassDestructor);
     if IsClassConDestructor then
       begin
       // class constructor/destructor
@@ -5897,6 +5897,11 @@ begin
           RaiseMsg(20190116215823,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'virtual'],Proc);
         if Proc.IsOverride then
           RaiseMsg(20190116215825,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'override'],Proc);
+        if (ObjKind<>okClassHelper) and IsClassMethod(Proc) then
+          begin
+          if not Proc.IsStatic then
+            RaiseMsg(20190201153831,nClassMethodsMustBeStaticInX,sClassMethodsMustBeStaticInX,[ObjKindNames[ObjKind]],Proc);
+          end;
         end;
       end;
       if Proc.IsAbstract then
@@ -5933,13 +5938,10 @@ begin
         RaiseMsg(20181218195552,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'abstract'],Proc);
       if Proc.IsForward then
         RaiseMsg(20181218195514,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'forward'],Proc);
-      if (Proc.ClassType=TPasClassProcedure)
-          or (Proc.ClassType=TPasClassFunction)
-          or (Proc.ClassType=TPasClassConstructor)
-          or (Proc.ClassType=TPasClassDestructor) then
+      if IsClassMethod(Proc) then
         begin
         if not Proc.IsStatic then
-          RaiseMsg(20190106121503,nClassMethodsMustBeStaticInRecords,sClassMethodsMustBeStaticInRecords,[],Proc);
+          RaiseMsg(20190106121503,nClassMethodsMustBeStaticInX,sClassMethodsMustBeStaticInX,['records'],Proc);
         end;
       end
     else
