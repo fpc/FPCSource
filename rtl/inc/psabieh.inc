@@ -61,10 +61,6 @@ function FPC_psabieh_GetExceptionWrapper(exceptionObject: PFPC_Unwind_Exception)
 
 function _Unwind_Resume_or_Rethrow (context:PFPC_Unwind_Context): FPC_Unwind_Reason_Code;cdecl;external;
 procedure _Unwind_DeleteException(context:PFPC_Unwind_Context);cdecl;external;
-function _Unwind_GetGR(context:PFPC_Unwind_Context; index:cint):PtrUInt;cdecl;external;
-procedure _Unwind_SetGR(context:PFPC_Unwind_Context; index:cint; new_value:PtrUInt);cdecl;external;
-function _Unwind_GetIP(context:PFPC_Unwind_Context):PtrUInt;cdecl;external;
-procedure _Unwind_SetIP(_para1:PFPC_Unwind_Context; new_value:PtrUInt);cdecl;external;
 function _Unwind_GetRegionStart(context:PFPC_Unwind_Context):PtrUInt;cdecl;external;
 function _Unwind_GetLanguageSpecificData(context:PFPC_Unwind_Context):PtrUInt;cdecl;external;
 
@@ -74,6 +70,69 @@ function _Unwind_GetTextRelBase(context:PFPC_Unwind_Context):PtrUInt;cdecl;exter
 {$ifdef __ARM_EABI_UNWINDER__}
 procedure _Unwind_Complete(exceptionObject: PFPC_Unwind_Exception);cdecl;external;
 function __gnu_unwind_frame(exception:PFPC_Unwind_Exception;context:PFPC_Unwind_Context):FPC_Unwind_Reason_Code;cdecl;external;
+
+type
+  FPC_Unwind_VRS_RegClass = UInt32;
+const
+  FPC_UVRSC_CORE = FPC_Unwind_VRS_RegClass(0);      // integer register
+  FPC_UVRSC_VFP = FPC_Unwind_VRS_RegClass(1);       // vfp
+  FPC_UVRSC_FPA = FPC_Unwind_VRS_RegClass(2);       // fpa
+  FPC_UVRSC_WMMXD = FPC_Unwind_VRS_RegClass(3);     // Intel WMMX data register
+  FPC_UVRSC_WMMXC = FPC_Unwind_VRS_RegClass(4);     // Intel WMMX control register
+
+type
+  FPC_Unwind_VRS_DataRepresentation = UInt32;
+const
+  FPC_UVRSD_UINT32 = FPC_Unwind_VRS_DataRepresentation(0);
+  FPC_UVRSD_VFPX = FPC_Unwind_VRS_DataRepresentation(1);
+  FPC_UVRSD_FPAX = FPC_Unwind_VRS_DataRepresentation(2);
+  FPC_UVRSD_UINT64 = FPC_Unwind_VRS_DataRepresentation(3);
+  FPC_UVRSD_FLOAT = FPC_Unwind_VRS_DataRepresentation(4);
+  FPC_UVRSD_DOUBLE = FPC_Unwind_VRS_DataRepresentation(5);
+
+type
+  FPC_Unwind_VRS_Result = UInt32;
+const
+  FPC_UVRSR_OK = FPC_Unwind_VRS_Result(0);
+  FPC_UVRSR_NOT_IMPLEMENTED = FPC_Unwind_VRS_Result(1);
+  FPC_UVRSR_FAILED = FPC_Unwind_VRS_Result(2);
+
+Function _Unwind_VRS_Set(context: PFPC_Unwind_Context; regclass: FPC_Unwind_VRS_RegClass;
+                                   regnr: PTRUint {uw}; repr: FPC_Unwind_VRS_DataRepresentation;
+                                   value: pointer): FPC_Unwind_VRS_Result; cdecl; external;
+
+function _Unwind_VRS_Get(context: PFPC_Unwind_Context; regclass: FPC_Unwind_VRS_RegClass;
+                                   regnr: PTRUint {uw}; repr: FPC_Unwind_VRS_DataRepresentation;
+                                   value: pointer): FPC_Unwind_VRS_Result; cdecl; external;
+
+
+procedure _Unwind_SetGR(context:PFPC_Unwind_Context;index:cint; new_value:PtrUInt); inline;
+  begin
+    _Unwind_VRS_Set(context,FPC_UVRSC_CORE, index, FPC_UVRSD_UINT32, @new_Value);
+  end;
+
+function _Unwind_GetGR(context:PFPC_Unwind_Context;index:cint):PtrUInt; inline;
+  begin
+    _Unwind_VRS_Get(context,FPC_UVRSC_CORE, index, FPC_UVRSD_UINT32, @result);
+  end;
+
+
+procedure _Unwind_SetIP(context:PFPC_Unwind_Context;new_value:PtrUInt); inline;
+  begin
+    _Unwind_SetGR(context,15,new_value or (_Unwind_GetGR(context,15) and 1));
+  end;
+
+function _Unwind_GetIP(context:PFPC_Unwind_Context):PtrUInt;cdecl; inline;
+  begin
+    result:=_Unwind_GetGR(context,15) and not(1);
+  end;
+
+{$else}
+
+function _Unwind_GetGR(context:PFPC_Unwind_Context; index:cint):PtrUInt;cdecl;external;
+procedure _Unwind_SetGR(context:PFPC_Unwind_Context; index:cint; new_value:PtrUInt);cdecl;external;
+function _Unwind_GetIP(context:PFPC_Unwind_Context):PtrUInt;cdecl;external;
+procedure _Unwind_SetIP(context:PFPC_Unwind_Context; new_value:PtrUInt);cdecl;external;
 {$endif}
 
 { _Unwind_Backtrace() is a gcc extension that walks the stack and calls the  }
