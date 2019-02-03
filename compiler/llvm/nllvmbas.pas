@@ -84,6 +84,7 @@ interface
         if not assigned(res^.Data) then
           begin
             new(callpara);
+            callpara^.alignment:=std_param_align;
             callpara^.def:=cpointerdef.getreusable(sym.vardef);
             if (sym.typ=paravarsym) and
                paramanager.push_addr_param(sym.varspez,sym.vardef,current_procinfo.procdef.proccalloption) then

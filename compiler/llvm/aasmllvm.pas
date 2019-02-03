@@ -204,6 +204,7 @@ interface
     pllvmcallpara = ^tllvmcallpara;
     tllvmcallpara = record
       def: tdef;
+      alignment: byte;
       valueext: tllvmvalueextension;
       byval,
       sret: boolean;

@@ -437,6 +437,7 @@ implementation
     href: treference;
     callpara: pllvmcallpara;
     paraloc: pcgparalocation;
+    firstparaloc: boolean;
   begin
     callparas:=tfplist.Create;
     for i:=0 to high(paras) do
@@ -445,10 +446,15 @@ implementation
         if paras[i]^.isempty then
           continue;
         paraloc:=paras[i]^.location;
+        firstparaloc:=true;
         while assigned(paraloc) do
           begin
             new(callpara);
             callpara^.def:=paraloc^.def;
+            if firstparaloc then
+              callpara^.alignment:=paras[i]^.Alignment
+            else
+              callpara^.alignment:=std_param_align;
             { if the paraloc doesn't contain the value itself, it's a byval
               parameter }
             if paraloc^.retvalloc then
@@ -515,6 +521,7 @@ implementation
               end;
             callparas.add(callpara);
             paraloc:=paraloc^.next;
+            firstparaloc:=false;
           end;
       end;
     { the Pascal level may expect a different returndef compared to the

@@ -339,6 +339,11 @@ implementation
              owner.writer.AsmWrite(' byval');
            if para^.sret then
              owner.writer.AsmWrite(' sret');
+           if para^.alignment<>std_param_align then
+             begin
+               owner.writer.AsmWrite(' align ');
+               owner.writer.AsmWrite(tostr(para^.alignment));
+             end;
            case para^.typ of
              top_reg:
                begin
