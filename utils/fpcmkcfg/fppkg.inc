@@ -20,8 +20,8 @@ const fppkg : array[0..2,1..240] of char=(
   'Name=fpc'#010+
   'Description=Packages which are installed along with the Free Pascal Co'+
   'mpiler'#010+
-  'Path=%GlobalPath%/{CompilerVersio','n}/'#010+
-  'Prefix=%GlobalPrefix%'#010+
+  'Path=%GlobalPath%'#010+
+  'Prefix=%GlobalP','refix%'#010+
   #010+
   '[IncludeFiles]'#010+
   'FileMask=%CompilerConfigDir%/conf.d/*.conf'#010+
