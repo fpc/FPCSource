@@ -8746,15 +8746,17 @@ begin
     end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     begin
-    List.Add(APrefixB + GetProgramFileName(AOS));
-    if FileExists(APrefixB + GetProgramDebugFileName(AOS)) then
-      List.Add(APrefixB + GetProgramDebugFileName(AOS));
+      List.Add(APrefixB + GetProgramFileName(AOS));
+      if FileExists(APrefixB + GetProgramDebugFileName(AOS)) then
+        List.Add(APrefixB + GetProgramDebugFileName(AOS));
+      if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
+        List.Add(APrefixU + GetImportLibFilename(AOS));
     end
   else If (TargetType in [ttSharedLibrary]) then
     begin
-    List.Add(APrefixB + GetLibraryFileName(AOS));
-    if FileExists(APrefixB + GetLibraryDebugFileName(AOS)) then
-      List.Add(APrefixB + GetLibraryDebugFileName(AOS));
+      List.Add(APrefixB + GetLibraryFileName(AOS));
+      if FileExists(APrefixB + GetLibraryDebugFileName(AOS)) then
+        List.Add(APrefixB + GetLibraryDebugFileName(AOS));
     end;
   If ResourceStrings then
     begin
