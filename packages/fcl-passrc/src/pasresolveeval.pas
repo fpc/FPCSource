@@ -181,6 +181,7 @@ const
   nDefaultPropertyNotAllowedInHelperForX = 3115;
   nHelpersCannotBeUsedAsTypes = 3116;
   nBitWiseOperationsAre32Bit = 3117;
+  nImplictConversionUnicodeToAnsi = 3118;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -309,6 +310,7 @@ resourcestring
   sDefaultPropertyNotAllowedInHelperForX = 'Default property not allowed in helper for %s';
   sHelpersCannotBeUsedAsTypes = 'helpers cannot be used as types';
   sBitWiseOperationsAre32Bit = 'Bitwise operations are 32-bit';
+  sImplictConversionUnicodeToAnsi = 'Implicit string type conversion with potential data loss from "UnicodeString" to "AnsiString"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -721,6 +723,7 @@ type
     {$ifdef FPC_HAS_CPSTRING}
     function CheckValidUTF8(const s: RawByteString; ErrorEl: TPasElement): boolean;
     function GetCodePage(const s: RawByteString): TSystemCodePage;
+    function GetRawByteString(const s: UnicodeString; CodePage: TSystemCodePage; ErrorEl: TPasElement): RawByteString;
     function GetUTF8Str(const s: RawByteString; ErrorEl: TPasElement): String;
     function GetUnicodeStr(const s: RawByteString; ErrorEl: TPasElement): UnicodeString;
     function GetWideChar(const s: RawByteString; out w: WideChar): boolean;
@@ -4954,6 +4957,33 @@ begin
       if Result=CP_NONE then
         Result:=CP_ACP;
       end;
+    end;
+end;
+
+function TResExprEvaluator.GetRawByteString(const s: UnicodeString;
+  CodePage: TSystemCodePage; ErrorEl: TPasElement): RawByteString;
+var
+  ok: Boolean;
+begin
+  Result:=UTF8Encode(s);
+  if (CodePage=CP_UTF8)
+      or ((DefaultSystemCodePage=CP_UTF8) and ((CodePage=CP_ACP) or (CodePage=CP_NONE))) then
+    begin
+    // to UTF-8
+    SetCodePage(Result,CodePage,false);
+    end
+  else
+    begin
+    // to non UTF-8 -> possible loss
+    ok:=false;
+    try
+      SetCodePage(Result,CodePage,true);
+      ok:=true;
+    except
+    end;
+    if (not ok) or (GetUnicodeStr(Result,ErrorEl)<>s) then
+      LogMsg(20190204165110,mtWarning,nImplictConversionUnicodeToAnsi,
+        sImplictConversionUnicodeToAnsi,[],ErrorEl);
     end;
 end;
 

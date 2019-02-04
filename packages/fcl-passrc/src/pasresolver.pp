@@ -13122,6 +13122,7 @@ begin
       begin
       if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
         begin
+        // ansichar(ansistring)
         if fExprEvaluator.StringToOrd(Value,nil)>$ffff then
           RaiseXExpectedButYFound(20181005141025,'char','string',Params);
         Result:=Value;
@@ -13129,6 +13130,7 @@ begin
         end
       else if (bt=btWideChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
         begin
+        // widechar(ansistring)
         if fExprEvaluator.GetWideChar(TResEvalString(Value).S,w) then
           begin
           Result:=Value;
@@ -13136,6 +13138,24 @@ begin
           end
         else
           RaiseXExpectedButYFound(20181005141058,'char','string',Params);
+        end
+      else if (bt=btAnsiString) or ((bt=btString) and (BaseTypeString=btAnsiString)) then
+        begin
+        // ansistring(ansistring)
+        Result:=Value;
+        Value:=nil;
+        end
+      else if (bt=btUnicodeString) or (bt=btWideString)
+          or ((bt=btString) and (BaseTypeString=btUnicodeString)) then
+        begin
+        // unicodestring(ansistring)
+        Result:=TResEvalUTF16.CreateValue(
+                  fExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,Params));
+        end
+      else if bt=btRawByteString then
+        begin
+        // rawbytestring(ansistring)
+        SetCodePage(TResEvalString(Value).S,CP_NONE,false);
         end;
       end;
     {$endif}
@@ -13146,6 +13166,7 @@ begin
         {$ifdef FPC_HAS_CPSTRING}
         if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
           begin
+          // ansichar(unicodestring)
           if ord(w)<=255 then
             begin
             Result:=Value;
@@ -13158,9 +13179,28 @@ begin
         {$endif}
         if (bt=btWideChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
           begin
+          // widechar(unicodestring)
           Result:=Value;
           Value:=nil;
           end;
+        end
+      else if (bt=btAnsiString) or ((bt=btString) and (BaseTypeString=btAnsiString)) then
+        begin
+        // ansistring(unicodestring)
+        Result:=TResEvalString.CreateValue(
+                   fExprEvaluator.GetRawByteString(TResEvalUTF16(Value).S,CP_ACP,Params));
+        end
+      else if (bt=btUnicodeString) or ((bt=btString) and (BaseTypeString=btUnicodeString)) then
+        begin
+        // unicodestring(unicodestring)
+        Result:=Value;
+        Value:=nil;
+        end
+      else if bt=btRawByteString then
+        begin
+        // rawbytestring(unicodestring)
+        Result:=TResEvalString.CreateValue(
+             fExprEvaluator.GetRawByteString(TResEvalUTF16(Value).S,CP_NONE,Params));
         end;
     revkExternal:
       exit;

@@ -3399,6 +3399,8 @@ begin
   '  k=chr(97);',
   '  l=ord(a[1]);',
   '  m=low(char)+high(char);',
+  '  n = string(''A'');',
+  '  o = UnicodeString(''A'');',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
