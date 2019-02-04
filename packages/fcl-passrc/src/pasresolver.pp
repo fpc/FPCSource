@@ -7902,9 +7902,9 @@ type
         exit(AddString(ExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,Expr)))
       else
         begin
-        if fExprEvaluator.StringToOrd(Value,nil)>$ffff then
+        RangeStart:=fExprEvaluator.StringToOrd(Value,nil);
+        if RangeStart>$ffff then
           exit(false);
-        RangeStart:=ord(TResEvalString(Value).S[1]);
         RangeEnd:=RangeStart;
         end;
     {$endif}
