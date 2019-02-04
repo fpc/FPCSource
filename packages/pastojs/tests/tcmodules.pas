@@ -6679,6 +6679,10 @@ begin
   '{$H+}',
   'const',
   '  a = #$00F3#$017C;', // first <256, then >=256
+  '  b = string(''a'');',
+  '  c = string(''ä'');',
+  '  d = UnicodeString(''b'');',
+  '  e = UnicodeString(''ö'');',
   'var',
   '  s: string = ''abc'';',
   'begin',
@@ -6699,8 +6703,12 @@ begin
   CheckSource('TestStringConst',
     LinesToStr([
     'this.a = "óż";',
-    'this.s="abc";'
-    ]),
+    'this.b = "a";',
+    'this.c = "ä";',
+    'this.d = "b";',
+    'this.e = "ö";',
+    'this.s="abc";',
+    '']),
     LinesToStr([
     '$mod.s="";',
     '$mod.s="\r\n";',

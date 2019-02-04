@@ -1183,8 +1183,8 @@ const
     ];
   bfAllJSBaseProcs = bfAllStandardProcs;
 
-  btAllJSStrings = [btString];
-  btAllJSChars = [btChar];
+  btAllJSStrings = [btString,btUnicodeString];
+  btAllJSChars = [btChar,btWideChar];
   btAllJSStringAndChars = btAllJSStrings+btAllJSChars;
   btAllJSFloats = [btDouble];
   btAllJSBooleans = [btBoolean];
