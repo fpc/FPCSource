@@ -67,13 +67,14 @@ implementation
 Procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; L, R : Longint;
                                       Comparer: TListSortComparer_NoContext);
 var
-  I, J : Longint;
+  I, J, PivotIdx : Longint;
   P, Q : Pointer;
 begin
  repeat
    I := L;
    J := R;
-   P := ItemPtrs[ (L + R) div 2 ];
+   PivotIdx := (L + R) div 2;
+   P := ItemPtrs[PivotIdx];
    repeat
      while Comparer(P, ItemPtrs[i]) > 0 do
        Inc(I);
@@ -84,6 +85,10 @@ begin
        Q := ItemPtrs[I];
        ItemPtrs[I] := ItemPtrs[J];
        ItemPtrs[J] := Q;
+       if PivotIdx = I then
+         PivotIdx := J
+       else if PivotIdx = J then
+         PivotIdx := I;
        Inc(I);
        Dec(J);
      end;
@@ -117,13 +122,14 @@ procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Com
 
   procedure QuickSort(L, R : Longint);
   var
-    I, J : Longint;
+    I, J, PivotIdx : Longint;
     P, Q : Pointer;
   begin
     repeat
       I := L;
       J := R;
-      P := ItemPtrs[ (L + R) div 2 ];
+      PivotIdx := (L + R) div 2;
+      P := ItemPtrs[PivotIdx];
       repeat
         while Comparer(P, ItemPtrs[I], Context) > 0 do
           Inc(I);
@@ -134,6 +140,11 @@ procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Com
           Q := ItemPtrs[I];
           ItemPtrs[I] := ItemPtrs[J];
           ItemPtrs[J] := Q;
+          if PivotIdx = I then
+            PivotIdx := J
+          else if PivotIdx = J then
+            PivotIdx := I;
+
           Inc(I);
           Dec(J);
         end;
@@ -169,13 +180,14 @@ var
 
   procedure QuickSort(L, R : Longint);
   var
-    I, J : Longint;
+    I, J, PivotIdx : Longint;
     P : Pointer;
   begin
     repeat
       I := L;
       J := R;
-      P := Items + ItemSize*((L + R) div 2);
+      PivotIdx := (L + R) div 2;
+      P := Items + ItemSize*PivotIdx;
       repeat
         while Comparer(P, Items + ItemSize*I, Context) > 0 do
           Inc(I);
@@ -188,10 +200,16 @@ var
             Move((Items + ItemSize*I)^, TempBuf^, ItemSize);
             Move((Items + ItemSize*J)^, (Items + ItemSize*I)^, ItemSize);
             Move(TempBuf^, (Items + ItemSize*J)^, ItemSize);
-            if P = (Items + ItemSize*I) then
-              P := Items + ItemSize*J
-            else if P = (Items + ItemSize*J) then
-              P := Items + ItemSize*I;
+            if PivotIdx = I then
+            begin
+              PivotIdx := J;
+              P := Items + ItemSize*PivotIdx
+            end
+            else if PivotIdx = J then
+            begin
+              PivotIdx := I;
+              P := Items + ItemSize*PivotIdx;
+            end;
           end;
           Inc(I);
           Dec(J);
@@ -232,13 +250,14 @@ procedure QuickSort_ItemList_CustomItemExchanger_Context(
 
   procedure QuickSort(L, R : Longint);
   var
-    I, J : Longint;
+    I, J, PivotIdx : Longint;
     P : Pointer;
   begin
     repeat
       I := L;
       J := R;
-      P := Items + ItemSize*((L + R) div 2);
+      PivotIdx := (L + R) div 2;
+      P := Items + ItemSize*PivotIdx;
       repeat
         while Comparer(P, Items + ItemSize*I, Context) > 0 do
           Inc(I);
@@ -249,10 +268,16 @@ procedure QuickSort_ItemList_CustomItemExchanger_Context(
           if I < J then
           begin
             Exchanger(Items + ItemSize*I, Items + ItemSize*J, Context);
-            if P = (Items + ItemSize*I) then
-              P := Items + ItemSize*J
-            else if P = (Items + ItemSize*J) then
-              P := Items + ItemSize*I;
+            if PivotIdx = I then
+            begin
+              PivotIdx := J;
+              P := Items + ItemSize*PivotIdx
+            end
+            else if PivotIdx = J then
+            begin
+              PivotIdx := I;
+              P := Items + ItemSize*PivotIdx;
+            end;
           end;
           Inc(I);
           Dec(J);
