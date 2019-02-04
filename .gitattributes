@@ -7483,6 +7483,7 @@ packages/rtl-extra/src/inc/real48utils.pp svneol=native#text/plain
 packages/rtl-extra/src/inc/sockets.inc svneol=native#text/plain
 packages/rtl-extra/src/inc/socketsh.inc svneol=native#text/plain
 packages/rtl-extra/src/inc/sockovl.inc svneol=native#text/plain
+packages/rtl-extra/src/inc/sortalgs.pp svneol=native#text/plain
 packages/rtl-extra/src/inc/stdsock.inc svneol=native#text/plain
 packages/rtl-extra/src/inc/ucomplex.pp svneol=native#text/plain
 packages/rtl-extra/src/linux/ipccall.inc svneol=native#text/plain

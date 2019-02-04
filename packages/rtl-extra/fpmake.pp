@@ -144,6 +144,7 @@ begin
      begin
        addinclude('clocale.inc',clocaleincOSes);
      end;
+    T:=P.Targets.AddUnit('sortalgs.pp');
   end
 end;
 
