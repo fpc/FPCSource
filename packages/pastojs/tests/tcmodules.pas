@@ -5495,7 +5495,6 @@ end;
 procedure TTestModule.TestSet_AnonymousEnumTypeChar;
 begin
   exit;
-
   StartProgram(false);
   Add([
   'type',
@@ -5584,6 +5583,7 @@ begin
   'const',
   '  LowChars = [''a''..''z''];',
   '  Chars = LowChars+[''A''..''Z''];',
+  '  sc = [''А'', ''Я''];',
   'var',
   '  c: char;',
   '  s: string;',
@@ -5594,12 +5594,14 @@ begin
   '  if c in chars then ;',
   '  if c in [''a''..''z'',''_''] then ;',
   '  if ''b'' in [''a''..''z'',''_''] then ;',
+  '  if ''Я'' in sc then ;',
   '']);
   ConvertProgram;
   CheckSource('TestSet_ConstChar',
     LinesToStr([ // statements
     'this.LowChars = rtl.createSet(null, 97, 122);',
     'this.Chars = rtl.unionSet($mod.LowChars, rtl.createSet(null, 65, 90));',
+    'this.sc = rtl.createSet(1040, 1071);',
     'this.c = "";',
     'this.s = "";',
     '']),
@@ -5610,6 +5612,7 @@ begin
     'if ($mod.c.charCodeAt() in $mod.Chars) ;',
     'if ($mod.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
     'if (98 in rtl.createSet(null, 97, 122, 95)) ;',
+    'if (1071 in $mod.sc) ;',
     '']));
 end;
 

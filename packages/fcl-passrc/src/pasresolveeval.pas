@@ -3580,13 +3580,13 @@ begin
           Result.ElKind:=revskChar
         else if Result.ElKind<>revskChar then
           RaiseNotYetImplemented(20170713201456,El);
-        if StringToOrd(Value,nil)>$ffff then
+        RangeStart:=StringToOrd(Value,nil);
+        if RangeStart>$ffff then
           begin
           // set of string (not of char)
           ReleaseEvalValue(TResEvalValue(Result));
           exit;
           end;
-        RangeStart:=ord(TResEvalString(Value).S[1]);
         RangeEnd:=RangeStart;
         end;
       {$endif}

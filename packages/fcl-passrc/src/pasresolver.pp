@@ -13389,6 +13389,7 @@ var
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
   EnumType: TPasEnumType;
+  C: TClass;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,2,RaiseOnError) then
     exit(cIncompatible);
@@ -13400,13 +13401,17 @@ begin
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
   EnumType:=nil;
   if ([rrfReadable,rrfWritable]*ParamResolved.Flags=[rrfReadable,rrfWritable])
-      and ((ParamResolved.IdentEl is TPasVariable)
-        or (ParamResolved.IdentEl is TPasArgument)
-        or (ParamResolved.IdentEl is TPasResultElement)) then
+      and (ParamResolved.IdentEl<>nil) then
     begin
-    if (ParamResolved.BaseType=btSet)
-        and (ParamResolved.LoTypeEl is TPasEnumType) then
-      EnumType:=TPasEnumType(ParamResolved.LoTypeEl);
+    C:=ParamResolved.IdentEl.ClassType;
+    if (C.InheritsFrom(TPasVariable)
+        or (C=TPasArgument)
+        or (C=TPasResultElement)) then
+      begin
+      if (ParamResolved.BaseType=btSet)
+          and (ParamResolved.LoTypeEl is TPasEnumType) then
+        EnumType:=TPasEnumType(ParamResolved.LoTypeEl);
+      end;
     end;
   if EnumType=nil then
     begin
