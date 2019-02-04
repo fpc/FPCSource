@@ -13184,23 +13184,25 @@ begin
           Value:=nil;
           end;
         end
+      {$ifdef FPC_HAS_CPSTRING}
       else if (bt=btAnsiString) or ((bt=btString) and (BaseTypeString=btAnsiString)) then
         begin
         // ansistring(unicodestring)
         Result:=TResEvalString.CreateValue(
                    fExprEvaluator.GetRawByteString(TResEvalUTF16(Value).S,CP_ACP,Params));
         end
-      else if (bt=btUnicodeString) or ((bt=btString) and (BaseTypeString=btUnicodeString)) then
-        begin
-        // unicodestring(unicodestring)
-        Result:=Value;
-        Value:=nil;
-        end
       else if bt=btRawByteString then
         begin
         // rawbytestring(unicodestring)
         Result:=TResEvalString.CreateValue(
              fExprEvaluator.GetRawByteString(TResEvalUTF16(Value).S,CP_NONE,Params));
+        end
+      {$endif}
+      else if (bt=btUnicodeString) or ((bt=btString) and (BaseTypeString=btUnicodeString)) then
+        begin
+        // unicodestring(unicodestring)
+        Result:=Value;
+        Value:=nil;
         end;
     revkExternal:
       exit;
