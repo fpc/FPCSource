@@ -274,10 +274,6 @@
   {$define SUPPORT_SAFECALL}
 {$endif aarch64}
 
-{$IFDEF MACOS}
-{$DEFINE USE_FAKE_SYSUTILS}
-{$ENDIF MACOS}
-
 { Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
   (but there we don't support it)
 }
