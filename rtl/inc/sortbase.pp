@@ -76,37 +76,49 @@ begin
    PivotIdx := (L + R) div 2;
    P := ItemPtrs[PivotIdx];
    repeat
-     while Comparer(P, ItemPtrs[i]) > 0 do
+     while (I < PivotIdx) and (Comparer(P, ItemPtrs[i]) >= 0) do
        Inc(I);
-     while Comparer(P, ItemPtrs[J]) < 0 do
+     while (J > PivotIdx) and (Comparer(P, ItemPtrs[J]) < 0) do
        Dec(J);
-     If I <= J then
+     if I < J then
      begin
        Q := ItemPtrs[I];
        ItemPtrs[I] := ItemPtrs[J];
        ItemPtrs[J] := Q;
        if PivotIdx = I then
-         PivotIdx := J
+       begin
+         PivotIdx := J;
+         Inc(I);
+       end
        else if PivotIdx = J then
+       begin
          PivotIdx := I;
-       Inc(I);
-       Dec(J);
+         Dec(J);
+       end
+       else
+       begin
+         Inc(I);
+         Dec(J);
+       end;
      end;
-   until I > J;
+   until I >= J;
    // sort the smaller range recursively
    // sort the bigger range via the loop
    // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
-   if J - L < R - I then
+   if (PivotIdx - L) < (R - PivotIdx) then
    begin
-     if L < J then
-       QuickSort_PtrList_NoContext(ItemPtrs, L, J, Comparer);
-     L := I;
+     if (L + 1) < PivotIdx then
+       QuickSort_PtrList_NoContext(ItemPtrs, L, PivotIdx - 1, Comparer);
+     L := PivotIdx + 1;
    end
    else
    begin
-     if I < R then
-       QuickSort_PtrList_NoContext(ItemPtrs, I, R, Comparer);
-     R := J;
+     if (PivotIdx + 1) < R then
+       QuickSort_PtrList_NoContext(ItemPtrs, PivotIdx + 1, R, Comparer);
+     if (L + 1) < PivotIdx then
+       R := PivotIdx - 1
+     else
+       exit;
    end;
  until L >= R;
 end;
@@ -131,38 +143,49 @@ procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Com
       PivotIdx := (L + R) div 2;
       P := ItemPtrs[PivotIdx];
       repeat
-        while Comparer(P, ItemPtrs[I], Context) > 0 do
+        while (I < PivotIdx) and (Comparer(P, ItemPtrs[I], Context) >= 0) do
           Inc(I);
-        while Comparer(P, ItemPtrs[J], Context) < 0 do
+        while (J > PivotIdx) and (Comparer(P, ItemPtrs[J], Context) < 0) do
           Dec(J);
-        If I <= J then
+        if I < J then
         begin
           Q := ItemPtrs[I];
           ItemPtrs[I] := ItemPtrs[J];
           ItemPtrs[J] := Q;
           if PivotIdx = I then
-            PivotIdx := J
+          begin
+            PivotIdx := J;
+            Inc(I);
+          end
           else if PivotIdx = J then
+          begin
             PivotIdx := I;
-
-          Inc(I);
-          Dec(J);
+            Dec(J);
+          end
+          else
+          begin
+            Inc(I);
+            Dec(J);
+          end;
         end;
-      until I > J;
+      until I >= J;
       // sort the smaller range recursively
       // sort the bigger range via the loop
       // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
-      if J - L < R - I then
+      if (PivotIdx - L) < (R - PivotIdx) then
       begin
-        if L < J then
-          QuickSort(L, J);
-        L := I;
+        if (L + 1) < PivotIdx then
+          QuickSort(L, PivotIdx - 1);
+        L := PivotIdx + 1;
       end
       else
       begin
-        if I < R then
-          QuickSort(I, R);
-        R := J;
+        if (PivotIdx + 1) < R then
+          QuickSort(PivotIdx + 1, R);
+        if (L + 1) < PivotIdx then
+          R := PivotIdx - 1
+        else
+          exit;
       end;
     until L >= R;
   end;
@@ -189,46 +212,51 @@ var
       PivotIdx := (L + R) div 2;
       P := Items + ItemSize*PivotIdx;
       repeat
-        while Comparer(P, Items + ItemSize*I, Context) > 0 do
+        while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) >= 0) do
           Inc(I);
-        while Comparer(P, Items + ItemSize*J, Context) < 0 do
+        while (J > PivotIdx) and (Comparer(P, Items + ItemSize*J, Context) < 0) do
           Dec(J);
-        If I <= J then
+        if I < J then
         begin
-          if I < J then
+          Move((Items + ItemSize*I)^, TempBuf^, ItemSize);
+          Move((Items + ItemSize*J)^, (Items + ItemSize*I)^, ItemSize);
+          Move(TempBuf^, (Items + ItemSize*J)^, ItemSize);
+          if PivotIdx = I then
           begin
-            Move((Items + ItemSize*I)^, TempBuf^, ItemSize);
-            Move((Items + ItemSize*J)^, (Items + ItemSize*I)^, ItemSize);
-            Move(TempBuf^, (Items + ItemSize*J)^, ItemSize);
-            if PivotIdx = I then
-            begin
-              PivotIdx := J;
-              P := Items + ItemSize*PivotIdx
-            end
-            else if PivotIdx = J then
-            begin
-              PivotIdx := I;
-              P := Items + ItemSize*PivotIdx;
-            end;
+            PivotIdx := J;
+            P := Items + ItemSize*PivotIdx;
+            Inc(I);
+          end
+          else if PivotIdx = J then
+          begin
+            PivotIdx := I;
+            P := Items + ItemSize*PivotIdx;
+            Dec(J);
+          end
+          else
+          begin
+            Inc(I);
+            Dec(J);
           end;
-          Inc(I);
-          Dec(J);
         end;
-      until I > J;
+      until I >= J;
       // sort the smaller range recursively
       // sort the bigger range via the loop
       // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
-      if J - L < R - I then
+      if (PivotIdx - L) < (R - PivotIdx) then
       begin
-        if L < J then
-          QuickSort(L, J);
-        L := I;
+        if (L + 1) < PivotIdx then
+          QuickSort(L, PivotIdx - 1);
+        L := PivotIdx + 1;
       end
       else
       begin
-        if I < R then
-          QuickSort(I, R);
-        R := J;
+        if (PivotIdx + 1) < R then
+          QuickSort(PivotIdx + 1, R);
+        if (L + 1) < PivotIdx then
+          R := PivotIdx - 1
+        else
+          exit;
       end;
     until L >= R;
   end;
@@ -262,44 +290,49 @@ procedure QuickSort_ItemList_CustomItemExchanger_Context(
       PivotIdx := (L + R) div 2;
       P := Items + ItemSize*PivotIdx;
       repeat
-        while Comparer(P, Items + ItemSize*I, Context) > 0 do
+        while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) >= 0) do
           Inc(I);
-        while Comparer(P, Items + ItemSize*J, Context) < 0 do
+        while (J > PivotIdx) and (Comparer(P, Items + ItemSize*J, Context) < 0) do
           Dec(J);
-        If I <= J then
+        if I < J then
         begin
-          if I < J then
+          Exchanger(Items + ItemSize*I, Items + ItemSize*J, Context);
+          if PivotIdx = I then
           begin
-            Exchanger(Items + ItemSize*I, Items + ItemSize*J, Context);
-            if PivotIdx = I then
-            begin
-              PivotIdx := J;
-              P := Items + ItemSize*PivotIdx
-            end
-            else if PivotIdx = J then
-            begin
-              PivotIdx := I;
-              P := Items + ItemSize*PivotIdx;
-            end;
+            PivotIdx := J;
+            P := Items + ItemSize*PivotIdx;
+            Inc(I);
+          end
+          else if PivotIdx = J then
+          begin
+            PivotIdx := I;
+            P := Items + ItemSize*PivotIdx;
+            Dec(J);
+          end
+          else
+          begin
+            Inc(I);
+            Dec(J);
           end;
-          Inc(I);
-          Dec(J);
         end;
-      until I > J;
+      until I >= J;
       // sort the smaller range recursively
       // sort the bigger range via the loop
       // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
-      if J - L < R - I then
+      if (PivotIdx - L) < (R - PivotIdx) then
       begin
-        if L < J then
-          QuickSort(L, J);
-        L := I;
+        if (L + 1) < PivotIdx then
+          QuickSort(L, PivotIdx - 1);
+        L := PivotIdx + 1;
       end
       else
       begin
-        if I < R then
-          QuickSort(I, R);
-        R := J;
+        if (PivotIdx + 1) < R then
+          QuickSort(PivotIdx + 1, R);
+        if (L + 1) < PivotIdx then
+          R := PivotIdx - 1
+        else
+          exit;
       end;
     until L >= R;
   end;
