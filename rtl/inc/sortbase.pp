@@ -76,7 +76,7 @@ begin
    PivotIdx := (L + R) div 2;
    P := ItemPtrs[PivotIdx];
    repeat
-     while (I < PivotIdx) and (Comparer(P, ItemPtrs[i]) >= 0) do
+     while (I < PivotIdx) and (Comparer(P, ItemPtrs[i]) > 0) do
        Inc(I);
      while (J > PivotIdx) and (Comparer(P, ItemPtrs[J]) < 0) do
        Dec(J);
@@ -143,7 +143,7 @@ procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Com
       PivotIdx := (L + R) div 2;
       P := ItemPtrs[PivotIdx];
       repeat
-        while (I < PivotIdx) and (Comparer(P, ItemPtrs[I], Context) >= 0) do
+        while (I < PivotIdx) and (Comparer(P, ItemPtrs[I], Context) > 0) do
           Inc(I);
         while (J > PivotIdx) and (Comparer(P, ItemPtrs[J], Context) < 0) do
           Dec(J);
@@ -212,7 +212,7 @@ var
       PivotIdx := (L + R) div 2;
       P := Items + ItemSize*PivotIdx;
       repeat
-        while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) >= 0) do
+        while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) > 0) do
           Inc(I);
         while (J > PivotIdx) and (Comparer(P, Items + ItemSize*J, Context) < 0) do
           Dec(J);
@@ -290,7 +290,7 @@ procedure QuickSort_ItemList_CustomItemExchanger_Context(
       PivotIdx := (L + R) div 2;
       P := Items + ItemSize*PivotIdx;
       repeat
-        while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) >= 0) do
+        while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) > 0) do
           Inc(I);
         while (J > PivotIdx) and (Comparer(P, Items + ItemSize*J, Context) < 0) do
           Dec(J);
