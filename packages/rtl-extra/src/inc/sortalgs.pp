@@ -31,6 +31,20 @@ uses
     Worst performance: O(n log n)
      Extra memory use: O(1)
                Stable: no
+     Additional notes: Usually slower in practice, compared to QuickSort (in the
+                       average case), but has a much better worst-case
+                       performance of O(n log n) (versus O(n*n) for QuickSort).
+                       Can be used instead of QuickSort where the risk of
+                       QuickSort's worst case scenario is not acceptable - e.g.
+                       high risk applications, security-conscious applications
+                       or applications with hard real-time requirements.
+
+                       On systems with small or no data caches it might perform
+                       better or comparable to QuickSort even in the average
+                       case, so might be a good general purpose choice for
+                       embedded systems as well. It's O(1) extra memory use and
+                       the fact it's not recursive also makes it a good
+                       candidate for embedded use.
 }
 
 procedure HeapSort_PtrList_NoContext(
