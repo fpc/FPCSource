@@ -41,6 +41,27 @@ type
     ItemListSorter_CustomItemExchanger_ContextComparer: TItemListSorter_CustomItemExchanger_Context;
   end;
 
+{
+                       QuickSort
+
+  Average performance: O(n log n)
+    Worst performance: O(n*n)
+     Extra memory use: O(n log n) on the stack
+               Stable: no
+     Additional notes: Uses the middle element as the pivot. This makes it work
+                       well also on already sorted sequences, which can occur
+                       often in practice. As expected from QuickSort, it works
+                       best on random sequences and is usually the fastest
+                       algorithm to sort them. It is, however, possible for a
+                       malicious user to craft special sequences, which trigger
+                       its worst O(n*n) case. They can also occur in practice,
+                       although they are very unlikely. If this is not an
+                       acceptable risk (e.g. for high risk applications,
+                       security-conscious applications or applications with hard
+                       real-time requirements), another sorting algorithm must
+                       be used.
+}
+
 procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
 procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 procedure QuickSort_ItemList_Context(Items: Pointer; ItemCount, ItemSize: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
