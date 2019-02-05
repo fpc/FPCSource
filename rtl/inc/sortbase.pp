@@ -237,8 +237,11 @@ begin
   if not Assigned(Items) or (ItemCount < 2) or (ItemSize < 1) then
     exit;
   GetMem(TempBuf, ItemSize);
-  QuickSort(0, ItemCount - 1);
-  FreeMem(TempBuf, ItemSize);
+  try
+    QuickSort(0, ItemCount - 1);
+  finally
+    FreeMem(TempBuf, ItemSize);
+  end;
 end;
 
 procedure QuickSort_ItemList_CustomItemExchanger_Context(
