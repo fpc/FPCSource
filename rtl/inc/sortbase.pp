@@ -64,10 +64,10 @@ var
 
 implementation
 
-Procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; L, R : Longint;
+Procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; L, R : SizeUInt;
                                       Comparer: TListSortComparer_NoContext);
 var
-  I, J, PivotIdx : Longint;
+  I, J, PivotIdx : SizeUInt;
   P, Q : Pointer;
 begin
  repeat
@@ -132,9 +132,9 @@ end;
 
 procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
 
-  procedure QuickSort(L, R : Longint);
+  procedure QuickSort(L, R : SizeUInt);
   var
-    I, J, PivotIdx : Longint;
+    I, J, PivotIdx : SizeUInt;
     P, Q : Pointer;
   begin
     repeat
@@ -201,9 +201,9 @@ procedure QuickSort_ItemList_Context(Items: Pointer; ItemCount, ItemSize: SizeUI
 var
   TempBuf: Pointer;
 
-  procedure QuickSort(L, R : Longint);
+  procedure QuickSort(L, R : SizeUInt);
   var
-    I, J, PivotIdx : Longint;
+    I, J, PivotIdx : SizeUInt;
     P : Pointer;
   begin
     repeat
@@ -279,9 +279,9 @@ procedure QuickSort_ItemList_CustomItemExchanger_Context(
                 Exchanger: TListSortCustomItemExchanger_Context;
                 Context: Pointer);
 
-  procedure QuickSort(L, R : Longint);
+  procedure QuickSort(L, R : SizeUInt);
   var
-    I, J, PivotIdx : Longint;
+    I, J, PivotIdx : SizeUInt;
     P : Pointer;
   begin
     repeat
