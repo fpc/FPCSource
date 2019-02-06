@@ -376,6 +376,17 @@ Works:
   - pass as argument
 - procedure val(const string; var enumtype; out int)
 - move all local types to global
+- class helpers:
+  - ancestor
+  - class var,
+  - const
+  - sub type
+  - method, class method, static class method
+  - call methods, @method
+  - constructor
+  - inherited, inherited name
+- record helpers:
+- type helpers:
 
 ToDos:
 - class helpers, type helpers, record helpers, array helpers
@@ -8054,6 +8065,8 @@ function TPasToJSConverter.ConvertInheritedExpr(El: TInheritedExpr;
       end
     else
       FunName:=CreateReferencePath(AncestorProc,AContext,rpkPathAndName,true);
+    if AncestorProc.ProcType.Args.Count=0 then
+      Apply:=false;
     if Apply and (SelfContext=AContext) then
       // create "ancestor.funcname.apply(this,arguments)"
       FunName:=FunName+'.apply'

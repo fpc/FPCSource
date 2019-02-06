@@ -636,7 +636,7 @@ type
     Procedure TestClassHelper_ClassOf;
     Procedure TestClassHelper_MethodRefObjFPC;
     Procedure TestClassHelper_Constructor;
-    //Procedure TestClassHelper_InheritedObjFPC;
+    Procedure TestClassHelper_InheritedObjFPC;
     //Procedure TestClassHelper_InheritedDelphi;
     // todo: TestClassHelper_Property
     // todo: TestClassHelper_Property_Array
@@ -11159,7 +11159,7 @@ begin
     LinesToStr([
     'rtl.createClass($impl, "TIntClass", $mod.TObject, function () {',
     '  this.Create$1 = function () {',
-    '    $mod.TObject.Create.apply(this, arguments);',
+    '    $mod.TObject.Create.call(this);',
     '    $mod.TObject.Create.call(this);',
     '    this.$class.DoGlob();',
     '    return this;',
@@ -11352,7 +11352,7 @@ begin
     '    $mod.TObject.DoVirtual.call(this);',
     '  };',
     '  this.DoVirtual = function () {',
-    '    $mod.TObject.DoVirtual.apply(this, arguments);',
+    '    $mod.TObject.DoVirtual.call(this);',
     '    $mod.TObject.DoVirtual.call(this);',
     '    $mod.TObject.DoVirtual.call(this);',
     '    this.DoIt();',
@@ -11529,7 +11529,7 @@ begin
     '});',
     'rtl.createClass($mod, "TA", $mod.TObject, function () {',
     '  this.Create = function () {',
-    '    $mod.TObject.Create.apply(this, arguments);',
+    '    $mod.TObject.Create.call(this);',
     '    $mod.TObject.Create.call(this);',
     '    $mod.TObject.CreateWithB.call(this, false);',
     '    return this;',
@@ -17547,7 +17547,7 @@ begin
     '    var $ir = rtl.createIntfRefs();',
     '    var $ok = false;',
     '    try {',
-    '      $ir.ref(1, $mod.TObject.GetIntf.apply(this, arguments));',
+    '      $ir.ref(1, $mod.TObject.GetIntf.call(this));',
     '      $ir.ref(2, $mod.TObject.GetIntf.call(this));',
     '      $ir.ref(3, $mod.TObject.GetIntf.call(this));',
     '      Result = rtl.setIntfL(Result, $mod.TObject.GetIntf.call(this), true);',
@@ -19284,6 +19284,108 @@ begin
     '$mod.c.$create($mod.THelper.NewHlp, [4]);',
     'var $with3 = $mod.c;',
     '$with3.$create($mod.THelper.NewHlp, [14]);',
+    '']));
+end;
+
+procedure TTestModule.TestClassHelper_InheritedObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Fly;',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure Fly;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Fly;',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    procedure Fly;',
+  '    procedure Walk;',
+  '  end;',
+  '  TEagleHelper = class helper(TBirdHelper) for TBird',
+  '    procedure Fly;',
+  '    procedure Walk;',
+  '  end;',
+  'procedure Tobject.fly;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure Tobjhelper.fly;',
+  'begin',
+  '  {@TObject_Fly}inherited;',
+  '  inherited {@TObject_Fly}Fly;',
+  'end;',
+  'procedure Tbird.fly;',
+  'begin',
+  '  {@TObjHelper_Fly}inherited;',
+  '  inherited {@TObjHelper_Fly}Fly;',
+  'end;',
+  'procedure Tbirdhelper.fly;',
+  'begin',
+  '  {@TBird_Fly}inherited;',
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'procedure Tbirdhelper.walk;',
+  'begin',
+  'end;',
+  'procedure teagleHelper.fly;',
+  'begin',
+  '  {@TBird_Fly}inherited;',
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'procedure teagleHelper.walk;',
+  'begin',
+  '  {@TBirdHelper_Walk}inherited;',
+  '  inherited {@TBirdHelper_Walk}Walk;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassHelper_InheritedObjFPC',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Fly = function () {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "TObjHelper", null, function () {',
+    '  this.Fly = function () {',
+    '    $mod.TObject.Fly.call(this);',
+    '    $mod.TObject.Fly.call(this);',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.Fly$1 = function () {',
+    '    $mod.TObjHelper.Fly.call(this);',
+    '    $mod.TObjHelper.Fly.call(this);',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "TBirdHelper", null, function () {',
+    '  this.Fly = function () {',
+    '    $mod.TBird.Fly$1.call(this);',
+    '    $mod.TBird.Fly$1.call(this);',
+    '  };',
+    '  this.Walk = function () {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "TEagleHelper", $mod.TBirdHelper, function () {',
+    '  this.Fly$1 = function () {',
+    '    $mod.TBird.Fly$1.call(this);',
+    '    $mod.TBird.Fly$1.call(this);',
+    '  };',
+    '  this.Walk$1 = function () {',
+    '    $mod.TBirdHelper.Walk.call(this);',
+    '    $mod.TBirdHelper.Walk.call(this);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

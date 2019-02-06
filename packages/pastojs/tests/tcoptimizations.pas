@@ -763,7 +763,7 @@ begin
     '});',
     ' rtl.createClass($mod, "TMobile", $mod.TObject, function () {',
     '  this.DoA$1 = function () {',
-    '    $mod.TObject.DoA.apply(this, arguments);',
+    '    $mod.TObject.DoA.call(this);',
     '  };',
     '  this.DoC = function () {',
     '    $mod.TObject.DoB.call(this);',
