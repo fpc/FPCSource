@@ -46,7 +46,7 @@ type
 
   Average performance: O(n log n)
     Worst performance: O(n*n)
-     Extra memory use: O(n log n) on the stack
+     Extra memory use: O(log n) on the stack
                Stable: no
      Additional notes: Uses the middle element as the pivot. This makes it work
                        well also on already sorted sequences, which can occur
