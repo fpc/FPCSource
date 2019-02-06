@@ -1839,8 +1839,10 @@ type
     function PushWithExprScope(Expr: TPasExpr): TPasWithExprScope;
     procedure ResetSubExprScopes(out Depth: integer);
     procedure RestoreSubExprScopes(Depth: integer);
-    function GetProcScope(ErrorEl: TPasElement): TPasProcedureScope;
-    function GetSelfScope(ErrorEl: TPasElement): TPasProcedureScope;
+    function GetCurrentProcScope(ErrorEl: TPasElement): TPasProcedureScope;
+    function GetProcScope(El: TPasElement): TPasProcedureScope;
+    function GetCurrentSelfScope(ErrorEl: TPasElement): TPasProcedureScope;
+    function GetSelfScope(El: TPasElement): TPasProcedureScope;
     procedure AddHelper(Helper: TPasClassType; var List: TPRHelperEntryArray);
     procedure AddActiveHelper(Helper: TPasClassType); virtual;
     // log and messages
@@ -3312,7 +3314,7 @@ begin
   Result:=Self;
   repeat
     if Result.ClassRecScope<>nil then exit;
-    Proc:=TPasProcedure(Element);
+    Proc:=TPasProcedure(Result.Element);
     if not (Proc.Parent is TProcedureBody) then exit(nil);
     Proc:=Proc.Parent.Parent as TPasProcedure;
     Result:=TPasProcedureScope(Proc.CustomData);
@@ -6109,7 +6111,8 @@ var
   i: Integer;
   ParentScope: TPasScope;
 begin
-  Proc.ProcType.IsOfObject:=true;
+  if not (ptmStatic in Proc.ProcType.Modifiers) then
+    Proc.ProcType.IsOfObject:=true;
   ProcScope:=TopScope as TPasProcedureScope;
   ParentScope:=Scopes[ScopeCount-2];
   // ToDo: store the scanner flags *before* it has parsed the token after the proc
@@ -6204,7 +6207,6 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishMethodBodyHeader searching declaration "',ProcName,'" ...');
   {$ENDIF}
-  ImplProc.ProcType.IsOfObject:=true;
 
   repeat
     p:=Pos('.',ProcName);
@@ -6234,6 +6236,7 @@ begin
   if DeclProc=nil then
     RaiseIdentifierNotFound(20170216151720,ImplProc.Name,ImplProc.ProcType);
   DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
+  ImplProc.ProcType.IsOfObject:=DeclProc.ProcType.IsOfObject;
 
   // connect method declaration and body
   if DeclProcScope.ImplProc<>nil then
@@ -8654,7 +8657,7 @@ begin
     end;
 
   // 'inherited;' without expression
-  SelfScope:=GetSelfScope(El);
+  SelfScope:=GetCurrentSelfScope(El);
   if SelfScope=nil then
     RaiseMsg(20170216152141,nInheritedOnlyWorksInMethods,sInheritedOnlyWorksInMethods,[],El);
   DeclProc:=SelfScope.DeclarationProc;
@@ -8742,7 +8745,7 @@ begin
   writeln('TPasResolver.ResolveInheritedCall El=',GetTreeDbg(El));
   {$ENDIF}
 
-  SelfScope:=GetSelfScope(El);
+  SelfScope:=GetCurrentSelfScope(El);
   if SelfScope=nil then
     RaiseMsg(20170216152148,nInheritedOnlyWorksInMethods,sInheritedOnlyWorksInMethods,[],El);
   ClassRecScope:=SelfScope.ClassRecScope;
@@ -17076,7 +17079,7 @@ begin
     end;
 end;
 
-function TPasResolver.GetProcScope(ErrorEl: TPasElement
+function TPasResolver.GetCurrentProcScope(ErrorEl: TPasElement
   ): TPasProcedureScope;
 var
   Scope: TPasScope;
@@ -17094,10 +17097,31 @@ begin
   Result:=nil;
 end;
 
-function TPasResolver.GetSelfScope(ErrorEl: TPasElement): TPasProcedureScope;
+function TPasResolver.GetProcScope(El: TPasElement): TPasProcedureScope;
+var
+  CurEl: TPasElement;
 begin
-  Result:=GetProcScope(ErrorEl);
+  CurEl:=El;
+  while CurEl<>nil do
+    begin
+    if CurEl is TPasProcedure then
+      exit(TPasProcedureScope(CurEl.CustomData));
+    CurEl:=CurEl.Parent;
+    end;
+  Result:=nil;
+end;
+
+function TPasResolver.GetCurrentSelfScope(ErrorEl: TPasElement): TPasProcedureScope;
+begin
+  Result:=GetCurrentProcScope(ErrorEl);
   Result:=Result.GetSelfScope;
+end;
+
+function TPasResolver.GetSelfScope(El: TPasElement): TPasProcedureScope;
+begin
+  Result:=GetProcScope(El);
+  if Result<>nil then
+    Result:=Result.GetSelfScope;
 end;
 
 procedure TPasResolver.AddHelper(Helper: TPasClassType;
