@@ -94,7 +94,7 @@ begin
  repeat
    I := L;
    J := R;
-   PivotIdx := (L + R) div 2;
+   PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
    P := ItemPtrs[PivotIdx];
    repeat
      while (I < PivotIdx) and (Comparer(P, ItemPtrs[i]) > 0) do
@@ -161,7 +161,7 @@ procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Com
     repeat
       I := L;
       J := R;
-      PivotIdx := (L + R) div 2;
+      PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
       P := ItemPtrs[PivotIdx];
       repeat
         while (I < PivotIdx) and (Comparer(P, ItemPtrs[I], Context) > 0) do
@@ -230,7 +230,7 @@ var
     repeat
       I := L;
       J := R;
-      PivotIdx := (L + R) div 2;
+      PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
       P := Items + ItemSize*PivotIdx;
       repeat
         while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) > 0) do
@@ -308,7 +308,7 @@ procedure QuickSort_ItemList_CustomItemExchanger_Context(
     repeat
       I := L;
       J := R;
-      PivotIdx := (L + R) div 2;
+      PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
       P := Items + ItemSize*PivotIdx;
       repeat
         while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) > 0) do
