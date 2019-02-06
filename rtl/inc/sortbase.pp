@@ -62,9 +62,20 @@ type
                        be used.
 }
 
-procedure QuickSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
-procedure QuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
-procedure QuickSort_ItemList_Context(Items: Pointer; ItemCount, ItemSize: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+procedure QuickSort_PtrList_NoContext(
+                ItemPtrs: PPointer;
+                ItemCount: SizeUInt;
+                Comparer: TListSortComparer_NoContext);
+procedure QuickSort_PtrList_Context(
+                ItemPtrs: PPointer;
+                ItemCount: SizeUInt;
+                Comparer: TListSortComparer_Context;
+                Context: Pointer);
+procedure QuickSort_ItemList_Context(
+                Items: Pointer;
+                ItemCount, ItemSize: SizeUInt;
+                Comparer: TListSortComparer_Context;
+                Context: Pointer);
 procedure QuickSort_ItemList_CustomItemExchanger_Context(
                 Items: Pointer;
                 ItemCount, ItemSize: SizeUInt;

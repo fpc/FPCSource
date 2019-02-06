@@ -103,9 +103,20 @@ const
                        sorting algorithm should be used.
 }
 
-procedure RandomizedQuickSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
-procedure RandomizedQuickSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
-procedure RandomizedQuickSort_ItemList_Context(Items: Pointer; ItemCount, ItemSize: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+procedure RandomizedQuickSort_PtrList_NoContext(
+                ItemPtrs: PPointer;
+                ItemCount: SizeUInt;
+                Comparer: TListSortComparer_NoContext);
+procedure RandomizedQuickSort_PtrList_Context(
+                ItemPtrs: PPointer;
+                ItemCount: SizeUInt;
+                Comparer: TListSortComparer_Context;
+                Context: Pointer);
+procedure RandomizedQuickSort_ItemList_Context(
+                Items: Pointer;
+                ItemCount, ItemSize: SizeUInt;
+                Comparer: TListSortComparer_Context;
+                Context: Pointer);
 procedure RandomizedQuickSort_ItemList_CustomItemExchanger_Context(
                 Items: Pointer;
                 ItemCount, ItemSize: SizeUInt;
