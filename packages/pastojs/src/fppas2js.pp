@@ -556,6 +556,7 @@ type
     pbifnGetNumber,
     pbifnGetObject,
     pbifnGetResourcestring,
+    pbifnHelperNew,
     pbifnIntf_AddRef,
     pbifnIntf_Release,
     pbifnIntfAddMap,
@@ -710,6 +711,7 @@ const
     'getNumber', // rtl.getNumber
     'getObject', // rtl.getObject
     'getResStr', // rtl.getResStr
+    '$new', // helpertype.$new
     '_AddRef', // rtl._AddRef
     '_Release', // rtl._Release
     'addIntf', // rtl.addIntf
@@ -3782,9 +3784,12 @@ begin
               RaiseNotYetImplemented(20190201165157,El);
             if TPasClassType(HelperForType).IsExternal then
               begin
+              // method of a class helper for external class
               if not (ptmStatic in El.Modifiers) then
                 RaiseMsg(20190201165259,nHelperClassMethodForExtClassMustBeStatic,
                   sHelperClassMethodForExtClassMustBeStatic,[],El);
+              if El.ClassType=TPasConstructor then
+                RaiseNotYetImplemented(20190206153655,El);
               end;
             end;
           end;
@@ -6073,8 +6078,8 @@ var
   C: TJSCallExpression;
   Proc: TPasProcedure;
   ProcScope: TPasProcedureScope;
-  ClassScope: TPasClassOrRecordScope;
-  aClass: TPasElement;
+  ClassRecScope: TPasClassOrRecordScope;
+  ClassOrRec: TPasElement;
   ArgEx: TJSLiteral;
   FunName: String;
 begin
@@ -6086,11 +6091,10 @@ begin
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr Proc.Name=',Proc.Name);
   ProcScope:=Proc.CustomData as TPasProcedureScope;
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr ProcScope.Element=',GetObjName(ProcScope.Element),' ProcScope.ClassScope=',GetObjName(ProcScope.ClassOrRecordScope),' ProcScope.DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ProcScope.ImplProc=',GetObjName(ProcScope.ImplProc),' ProcScope.CustomData=',GetObjName(ProcScope.CustomData));
-  ClassScope:=ProcScope.ClassRecScope;
-  aClass:=ClassScope.Element;
-  if aClass.Name='' then
-    RaiseInconsistency(20170125191923,aClass);
-  //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr aClass.Name=',aClass.Name);
+  ClassRecScope:=ProcScope.ClassRecScope;
+  ClassOrRec:=ClassRecScope.Element;
+  if ClassOrRec.Name='' then
+    RaiseInconsistency(20170125191923,ClassOrRec);
   C:=CreateCallExpression(Ref.Element);
   try
     // add "$create()"
@@ -16907,10 +16911,12 @@ var
   Path, ProcPath: String;
   Call: TJSCallExpression;
   IdentEl: TPasElement;
-  IsStatic, NeedIntfRef: Boolean;
+  IsStatic, NeedIntfRef, IsConstructorNormalCall: Boolean;
   Ref: TResolvedReference;
   ProcType: TPasProcedureType;
   ParamsExpr: TParamsExpr;
+  ArgElements : TJSArrayLiteralElements;
+  ArrLit: TJSArrayLiteral;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.CreateCallHelperMethod Proc=',GetObjName(Proc),' Expr=',GetObjName(Expr));
@@ -16923,9 +16929,11 @@ begin
   WithExprScope:=nil;
   SelfScope:=nil;
   PosEl:=Expr;
+  Ref:=nil;
   Left:=nil;
   SelfJS:=nil;
   Call:=nil;
+  ArgElements:=nil;
   try
     if Expr is TBinaryExpr then
       begin
@@ -16936,6 +16944,8 @@ begin
       Left:=Bin.left;
       aResolver.ComputeElement(Left,LeftResolved,[]);
       PosEl:=Bin.right;
+      if PosEl.CustomData is TResolvedReference then
+        Ref:=TResolvedReference(PosEl.CustomData);
       end
     else if aResolver.IsNameExpr(Expr) then
       begin
@@ -16972,10 +16982,15 @@ begin
 
     LoTypeEl:=LeftResolved.LoTypeEl;
     IdentEl:=LeftResolved.IdentEl;
+    IsConstructorNormalCall:=(Proc.ClassType=TPasConstructor)
+                           and (Ref<>nil) and not (rrfNewInstance in Ref.Flags);
 
     if IsStatic then
       begin
       // call static helper method ->  HelperType.HelperCall(args?)
+      if (Proc.ClassType<>TPasClassFunction)
+          and (Proc.ClassType<>TPasClassProcedure) then
+        RaiseNotSupported(PosEl,AContext,20190206151034,GetObjName(Proc));
       end
     else if (Proc.ClassType=TPasClassFunction) or (Proc.ClassType=TPasClassProcedure) then
       begin
@@ -17007,7 +17022,8 @@ begin
       else
         RaiseNotSupported(PosEl,AContext,20190201162601,GetResolverResultDbg(LeftResolved));
       end
-    else if (Proc.ClassType=TPasFunction) or (Proc.ClassType=TPasProcedure) then
+    else if (Proc.ClassType=TPasFunction) or (Proc.ClassType=TPasProcedure)
+        or IsConstructorNormalCall then
       begin
       // normal method, neither static nor class method
       if IdentEl is TPasType then
@@ -17070,25 +17086,61 @@ begin
         RaiseNotSupported(PosEl,AContext,20190131211753);
         end;
       end
+    else if Proc.ClassType=TPasConstructor then
+      begin
+      if Ref=nil then
+        RaiseNotSupported(PosEl,AContext,20190206151234);
+      if not (rrfNewInstance in Ref.Flags) then
+        RaiseNotSupported(PosEl,AContext,20190206151901);
+      // new instance
+      if (LoTypeEl<>nil) and ((LoTypeEl.ClassType=TPasClassType)
+          or (LoTypeEl.ClassType=TPasClassOfType)) then
+        begin
+        // aClassVarOrType.HelperCall(args)
+        //  -> aClassVarOrType.$create(HelperType.HelperCall,[args])
+        Call:=CreateCallExpression(PosEl);
+        SelfJS:=ConvertLeftExpr;
+        Call.Expr:=CreateDotExpression(PosEl,SelfJS,
+                CreatePrimitiveDotExpr(GetBIName(pbifnClassInstanceNew),PosEl));
+        SelfJS:=nil;
+        Call.AddArg(CreateReferencePathExpr(Proc,AContext));
+        end
+      else
+        begin
+        // record, simpletype  ->  HelperType.$new('HelperCall',[args])
+        Call:=CreateCallExpression(PosEl);
+        ProcPath:=CreateReferencePath(Proc.Parent,AContext,rpkPathAndName)+'.'+GetBIName(pbifnHelperNew);
+        Call.Expr:=CreatePrimitiveDotExpr(ProcPath,PosEl);
+        ProcPath:=TransformVariableName(Proc,AContext);
+        Call.AddArg(CreateLiteralString(PosEl,ProcPath));
+        end;
+      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,PosEl));
+      Call.AddArg(ArrLit);
+      ArgElements:=ArrLit.Elements;
+      end
     else
       RaiseNotSupported(PosEl,AContext,20190201162609,GetObjName(Proc));
 
-    if (SelfJS=nil) and not IsStatic then
-      RaiseNotSupported(PosEl,AContext,20190203171010,GetResolverResultDbg(LeftResolved));
-
-    // create HelperType.HelperCall.apply(SelfJS)
-    Call:=CreateCallExpression(Expr);
-    ProcPath:=CreateReferencePath(Proc,AContext,rpkPathAndName);
-    if not IsStatic then
-      ProcPath:=ProcPath+'.apply';
-    Call.Expr:=CreatePrimitiveDotExpr(ProcPath,Expr);
-    if SelfJS<>nil then
+    if Call=nil then
       begin
-      Call.AddArg(SelfJS);
-      SelfJS:=nil;
+      if (SelfJS=nil) and not IsStatic then
+        RaiseNotSupported(PosEl,AContext,20190203171010,GetResolverResultDbg(LeftResolved));
+
+      // create HelperType.HelperCall.apply(SelfJS)
+      Call:=CreateCallExpression(Expr);
+      ProcPath:=CreateReferencePath(Proc,AContext,rpkPathAndName);
+      if not IsStatic then
+        ProcPath:=ProcPath+'.apply';
+      Call.Expr:=CreatePrimitiveDotExpr(ProcPath,Expr);
+      if SelfJS<>nil then
+        begin
+        Call.AddArg(SelfJS);
+        SelfJS:=nil;
+        end;
+      ArgElements:=Call.Args.Elements;
       end;
 
-    // ToDo: implicit args
+    // append args
     ProcType:=Proc.ProcType;
     if Expr.Parent is TParamsExpr then
       ParamsExpr:=TParamsExpr(Expr.Parent)
@@ -17101,7 +17153,7 @@ begin
     then
       NeedIntfRef:=true;
 
-    CreateProcedureCallArgs(Call.Args.Elements,ParamsExpr,ProcType,AContext);
+    CreateProcedureCallArgs(ArgElements,ParamsExpr,ProcType,AContext);
     if NeedIntfRef then
       // $ir.ref(id,fnname())
       Call:=CreateIntfRef(Call,AContext,PosEl);

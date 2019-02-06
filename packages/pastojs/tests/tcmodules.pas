@@ -635,8 +635,7 @@ type
     Procedure TestClassHelper_ClassMethod_Call;
     Procedure TestClassHelper_ClassOf;
     Procedure TestClassHelper_MethodRefObjFPC;
-    // Procedure TestClassHelper_MethodRefDelphi;
-    //Procedure TestClassHelper_Constructor;
+    Procedure TestClassHelper_Constructor;
     //Procedure TestClassHelper_InheritedObjFPC;
     //Procedure TestClassHelper_InheritedDelphi;
     // todo: TestClassHelper_Property
@@ -19207,6 +19206,84 @@ begin
     'var $with2 = $mod.TObject;',
     '$mod.g = rtl.createCallback($with2, $mod.THelper.Glide);',
     '$mod.r = $mod.THelper.Run;',
+    '']));
+end;
+
+procedure TTestModule.TestClassHelper_Constructor;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  TClass = class of TObject;',
+  '  THelper = class helper for TObject',
+  '    constructor NewHlp(w: word);',
+  '  end;',
+  'var',
+  '  obj: TObject;',
+  '  c: TClass;',
+  'constructor TObject.Create;',
+  'begin',
+  '  NewHlp(2);', // normal call
+  '  tobject.NewHlp(3);', // new instance
+  '  c.newhlp(4);', // new instance
+  'end;',
+  'constructor THelper.NewHlp(w: word);',
+  'begin',
+  '  create;', // normal call
+  '  tobject.create;', // new instance
+  '  NewHlp(2);', // normal call
+  '  tobject.NewHlp(3);', // new instance
+  '  c.newhlp(4);', // new instance
+  'end;',
+  'begin',
+  '  obj.newhlp(2);', // normal call
+  '  with Obj do newhlp(12);', // normal call
+  '  tobject.newhlp(3);', // new instance
+  '  with tobject do newhlp(13);', // new instance
+  '  c.newhlp(4);', // new instance
+  '  with c do newhlp(14);', // new instance
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassHelper_Constructor',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    $mod.THelper.NewHlp.apply(this, 2);',
+    '    $mod.TObject.$create($mod.THelper.NewHlp, [3]);',
+    '    $mod.c.$create($mod.THelper.NewHlp, [4]);',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.NewHlp = function (w) {',
+    '    this.Create();',
+    '    $mod.TObject.$create("Create");',
+    '    $mod.THelper.NewHlp.apply(this, 2);',
+    '    $mod.TObject.$create($mod.THelper.NewHlp, [3]);',
+    '    $mod.c.$create($mod.THelper.NewHlp, [4]);',
+    '    return this;',
+    '  };',
+    '});',
+    'this.obj = null;',
+    'this.c = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.NewHlp.apply($mod.obj, 2);',
+    'var $with1 = $mod.obj;',
+    '$mod.THelper.NewHlp.apply($with1, 12);',
+    '$mod.TObject.$create($mod.THelper.NewHlp, [3]);',
+    'var $with2 = $mod.TObject;',
+    '$with2.$create($mod.THelper.NewHlp, [13]);',
+    '$mod.c.$create($mod.THelper.NewHlp, [4]);',
+    'var $with3 = $mod.c;',
+    '$with3.$create($mod.THelper.NewHlp, [14]);',
     '']));
 end;
 
