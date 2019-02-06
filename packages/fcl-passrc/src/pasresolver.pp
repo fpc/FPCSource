@@ -5940,6 +5940,9 @@ begin
         RaiseMsg(20181218195552,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'abstract'],Proc);
       if Proc.IsForward then
         RaiseMsg(20181218195514,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'forward'],Proc);
+      if Proc.IsStatic then
+        if (Proc.ClassType<>TPasClassProcedure) and (Proc.ClassType<>TPasClassFunction) then
+          RaiseMsg(20190206150922,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(Proc),'static'],Proc);
       if IsClassMethod(Proc) then
         begin
         if not Proc.IsStatic then
