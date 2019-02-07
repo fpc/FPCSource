@@ -102,7 +102,7 @@ const
                        predict). If these risks cannot be tolerated, a different
                        sorting algorithm should be used.
 }
-
+{$ifdef FPC_HAS_FEATURE_RANDOM}
 procedure RandomizedQuickSort_PtrList_NoContext(
                 ItemPtrs: PPointer;
                 ItemCount: SizeUInt;
@@ -131,6 +131,7 @@ const
     ItemListSorter_ContextComparer: @RandomizedQuickSort_ItemList_Context;
     ItemListSorter_CustomItemExchanger_ContextComparer: @RandomizedQuickSort_ItemList_CustomItemExchanger_Context;
   );
+{$endif def FPC_HAS_FEATURE_RANDOM}
 
 implementation
 
@@ -374,6 +375,7 @@ end;
 {*****************************************************************************
                             Randomized QuickSort
 *****************************************************************************}
+{$ifdef FPC_HAS_FEATURE_RANDOM}
 
 function Random_SizeUInt(L: SizeUInt): SizeUInt;
 begin
@@ -671,5 +673,6 @@ begin
     exit;
   QuickSort(0, ItemCount - 1);
 end;
+{$endif def FPC_HAS_FEATURE_RANDOM}
 
 end.
