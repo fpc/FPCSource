@@ -49,9 +49,9 @@ implementation
       symbase,symsym,symtable,symcreat,defcmp,
       node,ncon,
       fmodule,scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,ppu
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,pparautl,ppu
 {$ifdef jvm}
-      ,pjvm;
+      ,jvmdef,pjvm;
 {$else}
       ;
 {$endif}
@@ -75,12 +75,12 @@ implementation
               // we can't add hidden params here because record is not yet defined
               // and therefore record size which has influence on paramter passing rules may change too
               // look at record_dec to see where calling conventions are applied (issue #0021044)
-              handle_calling_convention(pd,[hcc_check]);
+              handle_calling_convention(pd,[hcc_declaration,hcc_check]);
             end;
           objectdef:
             begin
               parse_object_proc_directives(pd);
-              handle_calling_convention(pd);
+              handle_calling_convention(pd,hcc_default_actions_intf);
             end
           else
             internalerror(2011040502);
@@ -923,7 +923,7 @@ implementation
                      is_classdef and not (po_staticmethod in result.procoptions) then
                     MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
 
-                  handle_calling_convention(result);
+                  handle_calling_convention(result,hcc_default_actions_intf);
 
                   { add definition to procsym }
                   proc_add_definition(result);

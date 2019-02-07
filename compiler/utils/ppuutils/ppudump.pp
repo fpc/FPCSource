@@ -3068,6 +3068,12 @@ begin
                    orddef.OrdType:=otSInt;
                    orddef.Size:=16;
                  end;
+               pasbool1:
+                 begin
+                   writeln('pasbool1');
+                   orddef.OrdType:=otPasBool;
+                   orddef.Size:=1;
+                 end;
                pasbool8:
                  begin
                    writeln('pasbool8');

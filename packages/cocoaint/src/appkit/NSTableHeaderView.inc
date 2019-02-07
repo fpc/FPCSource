@@ -48,11 +48,11 @@
     _pressedColumn: NSInteger;
     _headerDragImage: NSImage;
     _draggedDistance: CGFloat;
-    _isColumnResizing: Boolean;
-    _showHandCursorFired: Boolean;
-    _toolTipRectsDirty: Boolean;
-    _alignTitleWithDataCell: Boolean;
-    _skipDrawingSeparator: Boolean;
+    _isColumnResizing: BOOL;
+    _showHandCursorFired: BOOL;
+    _toolTipRectsDirty: BOOL;
+    _alignTitleWithDataCell: BOOL;
+    _skipDrawingSeparator: BOOL;
     _reserved: id;
     
   public

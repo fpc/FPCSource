@@ -153,6 +153,10 @@ interface
     { include or exclude cs from p.localswitches }
     procedure node_change_local_switch(p : tnode;cs : tlocalswitch;enable : boolean);
 
+    { returns true, if p is a node which shall be short boolean evaluated,
+      if it is not an orn/andn with boolean operans, the result is undefined }
+    function doshortbooleval(p : tnode) : Boolean;
+
 implementation
 
     uses
@@ -1464,6 +1468,12 @@ implementation
         lsc.cs:=cs;
         lsc.enable:=enable;
         foreachnodestatic(p,@do_change_local_settings,@lsc);
+      end;
+
+
+    function doshortbooleval(p : tnode) : Boolean;
+      begin
+        Result:=(p.nodetype in [orn,andn]) and ((nf_short_bool in taddnode(p).flags) or not(cs_full_boolean_eval in p.localswitches));
       end;
 
 end.

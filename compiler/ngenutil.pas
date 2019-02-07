@@ -57,7 +57,7 @@ interface
         all local (static) typed consts }
       class procedure static_syms_finalize(p: TObject; arg: pointer);
       class procedure sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
-      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
+      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); virtual;
      public
       class procedure procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
       class procedure procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);

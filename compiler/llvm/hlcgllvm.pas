@@ -47,6 +47,7 @@ uses
       procedure getcpuregister(list: TAsmList; r: Tregister); override;
       procedure ungetcpuregister(list: TAsmList; r: Tregister); override;
       procedure alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset); override;
+      procedure allocallcpuregisters(list: TAsmList); override;
       procedure deallocallcpuregisters(list: TAsmList); override;
 
       procedure a_bit_test_reg_reg_reg(list: TAsmList; bitnumbersize, valuesize, destsize: tdef; bitnumber, value, destreg: tregister); override;
@@ -328,6 +329,12 @@ implementation
 
 
   procedure thlcgllvm.alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset);
+    begin
+      { don't do anything }
+    end;
+
+
+  procedure thlcgllvm.allocallcpuregisters(list: TAsmList);
     begin
       { don't do anything }
     end;
@@ -1037,7 +1044,7 @@ implementation
     begin
       { since all comparisons return their results in a register, we'll often
         get comparisons against true/false -> optimise }
-      if (size=pasbool8type) and
+      if (size=pasbool1type) and
          (cmp_op in [OC_EQ,OC_NE]) then
         begin
           { convert to an llvmbool1type and use directly }

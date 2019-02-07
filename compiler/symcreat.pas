@@ -97,10 +97,6 @@ interface
     tprocdef.getcopyas(procdef,pc_bareproc) }
   procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
 
-  { create "parent frame pointer" record skeleton for procdef, in which local
-    variables and parameters from pd accessed from nested routines can be
-    stored }
-  procedure build_parentfpstruct(pd: tprocdef);
   { checks whether sym (a local or para of pd) already has a counterpart in
     pd's parentfpstruct, and if not adds a new field to the struct with type
     "vardef" (can be different from sym's type in case it's a call-by-reference
@@ -118,8 +114,6 @@ interface
   { finalises the parentfpstruct (alignment padding, ...) }
   procedure finish_parentfpstruct(pd: tprocdef);
 
-  procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
-
   { turns a fieldvarsym into a class/static field definition, and returns the
     created staticvarsym that is responsible for allocating the global storage }
   function make_field_static(recst: tsymtable; fieldvs: tfieldvarsym): tstaticvarsym;
@@ -131,11 +125,13 @@ interface
 
   function generate_pkg_stub(pd:tprocdef):tnode;
 
+
+
 implementation
 
   uses
     cutils,cclasses,globals,verbose,systems,comphook,fmodule,constexp,
-    symtable,defutil,
+    symtable,defutil,symutil,
     pbase,pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
     pjvm,jvmdef,
@@ -515,7 +511,7 @@ implementation
     end;
 
 
-  procedure addvisibibleparameters(var str: ansistring; pd: tprocdef);
+  procedure addvisibleparameters(var str: ansistring; pd: tprocdef);
     var
       currpara: tparavarsym;
       i: longint;
@@ -530,7 +526,7 @@ implementation
               if not firstpara then
                 str:=str+',';
               firstpara:=false;
-              str:=str+currpara.realname;
+              str:=str+'&'+currpara.realname;
             end;
         end;
     end;
@@ -554,7 +550,7 @@ implementation
         mnetion this program/unit name to avoid accidentally calling other
         same-named routines that may be in scope }
       str:=str+def_unit_name_prefix_if_toplevel(callpd)+callpd.procsym.realname+'(';
-      addvisibibleparameters(str,pd);
+      addvisibleparameters(str,pd);
       str:=str+') end;';
       str_parse_method_impl(str,pd,isclassmethod);
     end;
@@ -862,7 +858,7 @@ implementation
          not is_void(pd.returndef) then
         str:=str+'result:=';
       str:=str+'pv(';
-      addvisibibleparameters(str,pd);
+      addvisibleparameters(str,pd);
       str:=str+') end;';
       str_parse_method_impl(str,pd,true)
     end;
@@ -964,7 +960,7 @@ implementation
       if pd.returndef<>voidtype then
         str:=str+'result:=';
       str:=str+'__FPC_BLOCK_INVOKE_PV_TYPE(PFPC_Block_literal_complex_procvar(FPC_Block_Self)^.pv)(';
-      addvisibibleparameters(str,pd);
+      addvisibleparameters(str,pd);
       str:=str+') end;';
       str_parse_method_impl(str,pd,false);
     end;
@@ -988,8 +984,8 @@ implementation
       { now call through to the actual method }
       if pd.returndef<>voidtype then
         str:=str+'result:=';
-      str:=str+callthroughpd.procsym.realname+'(';
-      addvisibibleparameters(str,callthroughpd);
+      str:=str+'&'+callthroughpd.procsym.realname+'(';
+      addvisibleparameters(str,pd);
       str:=str+') end;';
       { add dummy file info so we can step in/through it }
       if pd.owner.iscurrentunit then
@@ -1147,8 +1143,11 @@ implementation
   function create_procdef_alias(pd: tprocdef; const newrealname: string; const newmangledname: TSymStr; newparentst: tsymtable; newstruct: tabstractrecorddef;
       sk: tsynthetickind; skpara: pointer): tprocdef;
     begin
-      { bare copy so we don't copy the aliasnames }
-      result:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+      { bare copy so we don't copy the aliasnames (specify prefix for
+        parameter names so we don't get issues in the body in case
+        we e.g. reference system.initialize and one of the parameters
+        is called "system") }
+      result:=tprocdef(pd.getcopyas(procdef,pc_bareproc,'__FPCW_'));
       { set the mangled name to the wrapper name }
       result.setmangledname(newmangledname);
       { finish creating the copy }
@@ -1222,52 +1221,6 @@ implementation
         end;
       pd.calcparas;
       proc_add_definition(pd);
-    end;
-
-
-  procedure build_parentfpstruct(pd: tprocdef);
-    var
-      nestedvars: tsym;
-      nestedvarsst: tsymtable;
-      pnestedvarsdef,
-      nestedvarsdef: tdef;
-      old_symtablestack: tsymtablestack;
-    begin
-      { make sure the defs are not registered in the current symtablestack,
-        because they may be for a parent procdef (changeowner does remove a def
-        from the symtable in which it was originally created, so that by itself
-        is not enough) }
-      old_symtablestack:=symtablestack;
-      symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
-      { create struct to hold local variables and parameters that are
-        accessed from within nested routines (start with extra dollar to prevent
-        the JVM from thinking this is a nested class in the unit) }
-      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
-        current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,current_settings.alignment.maxCrecordalign);
-      nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
-{$ifdef jvm}
-      maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
-      { don't add clone/FpcDeepCopy, because the field names are not all
-        representable in source form and we don't need them anyway }
-      symtablestack.push(trecorddef(nestedvarsdef).symtable);
-      maybe_add_public_default_java_constructor(trecorddef(nestedvarsdef));
-      insert_record_hidden_paras(trecorddef(nestedvarsdef));
-      symtablestack.pop(trecorddef(nestedvarsdef).symtable);
-{$endif}
-      symtablestack.free;
-      symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
-      pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
-      if not(po_assembler in pd.procoptions) then
-        begin
-          nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
-          pd.localst.insert(nestedvars);
-          pd.parentfpstruct:=nestedvars;
-          pd.parentfpinitblock:=cblocknode.create(nil);
-        end;
-      symtablestack.free;
-      pd.parentfpstructptrtype:=pnestedvarsdef;
-
-      symtablestack:=old_symtablestack;
     end;
 
 
@@ -1396,26 +1349,6 @@ implementation
     end;
 
 
-  procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
-    var
-      ts: ttypesym;
-    begin
-      { create a dummy typesym for the JVM target, because the record
-        has to be wrapped by a class }
-      if (target_info.system in systems_jvm) and
-         (def.typ=recorddef) and
-         not assigned(def.typesym) then
-        begin
-          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def,true);
-          st.insert(ts);
-          ts.visibility:=vis_strictprivate;
-          { this typesym can't be used by any Pascal code, so make sure we don't
-            print a hint about it being unused }
-          addsymref(ts);
-        end;
-    end;
-
-
   function make_field_static(recst: tsymtable; fieldvs: tfieldvarsym): tstaticvarsym;
     var
       static_name: string;
@@ -1481,7 +1414,10 @@ implementation
         because there may already be references to the mangled name for the
         non-external "test".
       }
-      newpd:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc));
+
+      { prefixing the parameters here is useless, because the new procdef will
+        just be an external declaration without a body }
+      newpd:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc,''));
       insert_funcret_para(newpd);
       newpd.procoptions:=newpd.procoptions+orgpd.procoptions*[po_external,po_has_importname,po_has_importdll];
       newpd.import_name:=orgpd.import_name;
@@ -1493,6 +1429,9 @@ implementation
       newpd.setmangledname(newname);
       finish_copied_procdef(newpd,'__FPC_IMPL_EXTERNAL_REDIRECT_'+newname,current_module.localsymtable,nil);
       newpd.forwarddef:=false;
+      { ideally we would prefix the parameters of the original routine here, but since it
+        can be an interface definition, we cannot do that without risking to change the
+        interface crc }
       orgpd.skpara:=newpd;
       orgpd.synthetickind:=tsk_callthrough;
       orgpd.procoptions:=orgpd.procoptions-[po_external,po_has_importname,po_has_importdll];
@@ -1513,7 +1452,6 @@ implementation
       else
         result:=cnothingnode.create;
     end;
-
 
 end.
 

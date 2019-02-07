@@ -44,7 +44,7 @@
     
   public
     function name: NSString; message 'name';
-    function specified: Boolean; message 'specified';
+    function specified: BOOL; message 'specified';
     procedure setValue (newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
     function ownerElement: DOMElement; message 'ownerElement';

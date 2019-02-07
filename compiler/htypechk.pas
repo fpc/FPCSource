@@ -1964,7 +1964,7 @@ implementation
               { all types can be passed to a formaldef,
                 but it is not the prefered way }
               if not is_constnode(fromnode) then
-                eq:=te_convert_l2
+                eq:=te_convert_l6
               else
                 eq:=te_incompatible;
             end;
@@ -2037,11 +2037,6 @@ implementation
       begin
         { Note: eq must be already valid, it will only be updated! }
         case def_to.typ of
-          formaldef :
-            begin
-              { all types can be passed to a formaldef }
-              eq:=te_equal;
-            end;
           stringdef :
             begin
               { to support ansi/long/wide strings in a proper way }
@@ -3122,7 +3117,7 @@ implementation
         variantorddef_cl: array[tordtype] of tvariantequaltype =
           (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,tve_incompatible,
            tve_shortint,tve_smallint,tve_longint,tve_chari64,tve_incompatible,
-           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
+           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_chari64,tve_chari64,tve_dblcurrency);
 { TODO: fixme for 128 bit floats }

@@ -1596,10 +1596,19 @@ implementation
                 ]);
               finish_entry;
             end;
-          pasbool8 :
+          pasbool1 :
             begin
               append_entry(DW_TAG_base_type,false,[
                 DW_AT_name,DW_FORM_string,'Boolean'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,1
+                ]);
+              finish_entry;
+            end;
+          pasbool8 :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Boolean8'#0,
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
                 DW_AT_byte_size,DW_FORM_data1,1
                 ]);

@@ -60,24 +60,24 @@
     function implementationClassName: NSString; message 'implementationClassName';
     function superclassDescription: NSScriptClassDescription; message 'superclassDescription';
     function appleEventCode: FourCharCode; message 'appleEventCode';
-    function matchesAppleEventCode(appleEventCode_: FourCharCode): Boolean; message 'matchesAppleEventCode:';
-    function supportsCommand(commandDescription: NSScriptCommandDescription): Boolean; message 'supportsCommand:';
+    function matchesAppleEventCode(appleEventCode_: FourCharCode): BOOL; message 'matchesAppleEventCode:';
+    function supportsCommand(commandDescription: NSScriptCommandDescription): BOOL; message 'supportsCommand:';
     function selectorForCommand(commandDescription: NSScriptCommandDescription): SEL; message 'selectorForCommand:';
     function typeForKey(key: NSString): NSString; message 'typeForKey:';
     function classDescriptionForKey(key: NSString): NSScriptClassDescription; message 'classDescriptionForKey:';
     function appleEventCodeForKey(key: NSString): FourCharCode; message 'appleEventCodeForKey:';
     function keyWithAppleEventCode(appleEventCode_: FourCharCode): NSString; message 'keyWithAppleEventCode:';
     function defaultSubcontainerAttributeKey: NSString; message 'defaultSubcontainerAttributeKey';
-    function isLocationRequiredToCreateForKey(toManyRelationshipKey: NSString): Boolean; message 'isLocationRequiredToCreateForKey:';
-    function hasPropertyForKey(key: NSString): Boolean; message 'hasPropertyForKey:';
-    function hasOrderedToManyRelationshipForKey(key: NSString): Boolean; message 'hasOrderedToManyRelationshipForKey:';
-    function hasReadablePropertyForKey(key: NSString): Boolean; message 'hasReadablePropertyForKey:';
-    function hasWritablePropertyForKey(key: NSString): Boolean; message 'hasWritablePropertyForKey:';
+    function isLocationRequiredToCreateForKey(toManyRelationshipKey: NSString): BOOL; message 'isLocationRequiredToCreateForKey:';
+    function hasPropertyForKey(key: NSString): BOOL; message 'hasPropertyForKey:';
+    function hasOrderedToManyRelationshipForKey(key: NSString): BOOL; message 'hasOrderedToManyRelationshipForKey:';
+    function hasReadablePropertyForKey(key: NSString): BOOL; message 'hasReadablePropertyForKey:';
+    function hasWritablePropertyForKey(key: NSString): BOOL; message 'hasWritablePropertyForKey:';
   end;
 
 { NSDeprecated_NSScriptClassDescriptionCategory }
   NSDeprecated_NSScriptClassDescriptionCategory = objccategory external name 'NSDeprecated' (NSScriptClassDescription)
-    function isReadOnlyKey(key: NSString): Boolean; message 'isReadOnlyKey:'; deprecated 'in Mac OS X 10.5 and later';
+    function isReadOnlyKey(key: NSString): BOOL; message 'isReadOnlyKey:'; deprecated 'in Mac OS X 10.5 and later';
   end;
 
 { NSScriptClassDescription_NSObjectCategory }

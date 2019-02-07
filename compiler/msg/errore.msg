@@ -1582,6 +1582,18 @@ parser_w_operator_overloaded_hidden_3=03347_W_Operator overload hidden by intern
 % (in case of dynamic arrays that is the modeswitch \var{ArrayOperators}).
 parser_e_threadvar_must_be_class=03348_E_Thread variables inside classes or records must be class variables
 % A \var{threadvar} section inside a class or record was started without it being prefixed by \var{class}.
+parser_e_only_static_members_via_object_type=03349_E_Only static methods and static variables can be referenced through an object type
+% This error occurs in a situation like the following:
+% \begin{verbatim}
+% Type
+%    TObj = object
+%      procedure test;
+%    end;
+%
+% begin
+%   TObj.test;
+% \end{verbatim}
+% \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
 %
 %
 % \end{description}

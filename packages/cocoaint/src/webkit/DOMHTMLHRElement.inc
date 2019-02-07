@@ -45,8 +45,8 @@
   public
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
-    procedure setNoShade (newValue: Boolean); message 'setNoShade:';
-    function noShade: Boolean; message 'noShade';
+    procedure setNoShade (newValue: BOOL); message 'setNoShade:';
+    function noShade: BOOL; message 'noShade';
     procedure setSize (newValue: NSString); message 'setSize:';
     function size: NSString; message 'size';
     procedure setWidth (newValue: NSString); message 'setWidth:';

@@ -84,11 +84,11 @@ var
     procedure setNotificationBatchingInterval(ti: NSTimeInterval); message 'setNotificationBatchingInterval:';
     function searchScopes: NSArray; message 'searchScopes';
     procedure setSearchScopes(scopes: NSArray); message 'setSearchScopes:';
-    function startQuery: Boolean; message 'startQuery';
+    function startQuery: BOOL; message 'startQuery';
     procedure stopQuery; message 'stopQuery';
-    function isStarted: Boolean; message 'isStarted';
-    function isGathering: Boolean; message 'isGathering';
-    function isStopped: Boolean; message 'isStopped';
+    function isStarted: BOOL; message 'isStarted';
+    function isGathering: BOOL; message 'isGathering';
+    function isStopped: BOOL; message 'isStopped';
     procedure disableUpdates; message 'disableUpdates';
     procedure enableUpdates; message 'enableUpdates';
     function resultCount: NSUInteger; message 'resultCount';

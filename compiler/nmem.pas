@@ -136,25 +136,12 @@ interface
        end;
        tvecnodeclass = class of tvecnode;
 
-       twithnode = class(tunarynode)
-          constructor create(l:tnode);
-          destructor destroy;override;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function dogetcopy : tnode;override;
-          function pass_1 : tnode;override;
-          function docompare(p: tnode): boolean; override;
-          function pass_typecheck:tnode;override;
-       end;
-       twithnodeclass = class of twithnode;
-
     var
        cloadvmtaddrnode : tloadvmtaddrnodeclass= tloadvmtaddrnode;
        caddrnode : taddrnodeclass= taddrnode;
        cderefnode : tderefnodeclass= tderefnode;
        csubscriptnode : tsubscriptnodeclass= tsubscriptnode;
        cvecnode : tvecnodeclass= tvecnode;
-       cwithnode : twithnodeclass= twithnode;
        cloadparentfpnode : tloadparentfpnodeclass = tloadparentfpnode;
 
     function is_big_untyped_addrnode(p: tnode): boolean;
@@ -1314,66 +1301,6 @@ implementation
         end;
     end;
 
-
-{*****************************************************************************
-                               TWITHNODE
-*****************************************************************************}
-
-    constructor twithnode.create(l:tnode);
-      begin
-         inherited create(withn,l);
-         fileinfo:=l.fileinfo;
-      end;
-
-
-    destructor twithnode.destroy;
-      begin
-        inherited destroy;
-      end;
-
-
-    constructor twithnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-      end;
-
-
-    procedure twithnode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-      end;
-
-
-    function twithnode.dogetcopy : tnode;
-      var
-         p : twithnode;
-      begin
-         p:=twithnode(inherited dogetcopy);
-         result:=p;
-      end;
-
-
-    function twithnode.pass_typecheck:tnode;
-      begin
-        result:=nil;
-        resultdef:=voidtype;
-        if assigned(left) then
-          typecheckpass(left);
-      end;
-
-
-    function twithnode.pass_1 : tnode;
-      begin
-        result:=nil;
-        expectloc:=LOC_VOID;
-      end;
-
-
-    function twithnode.docompare(p: tnode): boolean;
-      begin
-        docompare :=
-          inherited docompare(p);
-      end;
 
     function is_big_untyped_addrnode(p: tnode): boolean;
       begin

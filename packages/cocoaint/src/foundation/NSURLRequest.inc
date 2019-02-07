@@ -97,7 +97,7 @@ type
     function valueForHTTPHeaderField(field: NSString): NSString; message 'valueForHTTPHeaderField:';
     function HTTPBody: NSData; message 'HTTPBody';
     function HTTPBodyStream: NSInputStream; message 'HTTPBodyStream';
-    function HTTPShouldHandleCookies: Boolean; message 'HTTPShouldHandleCookies';
+    function HTTPShouldHandleCookies: BOOL; message 'HTTPShouldHandleCookies';
   end;
 
 { NSMutableHTTPURLRequestCategory }
@@ -108,7 +108,7 @@ type
     procedure addValue_forHTTPHeaderField(value: NSString; field: NSString); message 'addValue:forHTTPHeaderField:';
     procedure setHTTPBody(data: NSData); message 'setHTTPBody:';
     procedure setHTTPBodyStream(inputStream: NSInputStream); message 'setHTTPBodyStream:';
-    procedure setHTTPShouldHandleCookies(should: Boolean); message 'setHTTPShouldHandleCookies:';
+    procedure setHTTPShouldHandleCookies(should: BOOL); message 'setHTTPShouldHandleCookies:';
   end;
 
 {$endif}

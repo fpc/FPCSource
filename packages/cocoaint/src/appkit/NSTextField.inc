@@ -49,32 +49,32 @@
   public
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
-    procedure setDrawsBackground(flag: Boolean); message 'setDrawsBackground:';
-    function drawsBackground: Boolean; message 'drawsBackground';
+    procedure setDrawsBackground(flag: BOOL); message 'setDrawsBackground:';
+    function drawsBackground: BOOL; message 'drawsBackground';
     procedure setTextColor(color: NSColor); message 'setTextColor:';
     function textColor: NSColor; message 'textColor';
-    function isBordered: Boolean; message 'isBordered';
-    procedure setBordered(flag: Boolean); message 'setBordered:';
-    function isBezeled: Boolean; message 'isBezeled';
-    procedure setBezeled(flag: Boolean); message 'setBezeled:';
-    function isEditable: Boolean; message 'isEditable';
-    procedure setEditable(flag: Boolean); message 'setEditable:';
-    function isSelectable: Boolean; message 'isSelectable';
-    procedure setSelectable(flag: Boolean); message 'setSelectable:';
+    function isBordered: BOOL; message 'isBordered';
+    procedure setBordered(flag: BOOL); message 'setBordered:';
+    function isBezeled: BOOL; message 'isBezeled';
+    procedure setBezeled(flag: BOOL); message 'setBezeled:';
+    function isEditable: BOOL; message 'isEditable';
+    procedure setEditable(flag: BOOL); message 'setEditable:';
+    function isSelectable: BOOL; message 'isSelectable';
+    procedure setSelectable(flag: BOOL); message 'setSelectable:';
     procedure selectText(sender: id); message 'selectText:';
     function delegate: NSTextFieldDelegateProtocol; message 'delegate';
     procedure setDelegate(anObject: NSTextFieldDelegateProtocol); message 'setDelegate:';
-    function textShouldBeginEditing(textObject: NSText): Boolean; message 'textShouldBeginEditing:';
-    function textShouldEndEditing(textObject: NSText): Boolean; message 'textShouldEndEditing:';
+    function textShouldBeginEditing(textObject: NSText): BOOL; message 'textShouldBeginEditing:';
+    function textShouldEndEditing(textObject: NSText): BOOL; message 'textShouldEndEditing:';
     procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';
     procedure textDidEndEditing(notification: NSNotification); message 'textDidEndEditing:';
     procedure textDidChange(notification: NSNotification); message 'textDidChange:';
-    function acceptsFirstResponder: Boolean; message 'acceptsFirstResponder';
+    function acceptsFirstResponder: BOOL; message 'acceptsFirstResponder';
     procedure setBezelStyle(style: NSTextFieldBezelStyle); message 'setBezelStyle:';
     function bezelStyle: NSTextFieldBezelStyle; message 'bezelStyle';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): BOOL;
   end;
 
 { NSKeyboardUI_NSTextFieldCategory }
@@ -84,10 +84,10 @@
 
 { NSTextFieldAttributedStringMethodsCategory }
   NSTextFieldAttributedStringMethodsCategory = objccategory external (NSTextField)
-    function allowsEditingTextAttributes: Boolean; message 'allowsEditingTextAttributes';
-    procedure setAllowsEditingTextAttributes(flag: Boolean); message 'setAllowsEditingTextAttributes:';
-    function importsGraphics: Boolean; message 'importsGraphics';
-    procedure setImportsGraphics(flag: Boolean); message 'setImportsGraphics:';
+    function allowsEditingTextAttributes: BOOL; message 'allowsEditingTextAttributes';
+    procedure setAllowsEditingTextAttributes(flag: BOOL); message 'setAllowsEditingTextAttributes:';
+    function importsGraphics: BOOL; message 'importsGraphics';
+    procedure setImportsGraphics(flag: BOOL); message 'setImportsGraphics:';
   end;
 
 {$endif}

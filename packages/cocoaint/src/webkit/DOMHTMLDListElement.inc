@@ -43,8 +43,8 @@
   DOMHTMLDListElement = objcclass external (DOMHTMLElement)
     
   public
-    procedure setCompact (newValue: Boolean); message 'setCompact:';
-    function compact: Boolean; message 'compact';
+    procedure setCompact (newValue: BOOL); message 'setCompact:';
+    function compact: BOOL; message 'compact';
   end;
 
 {$endif}

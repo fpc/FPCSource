@@ -1001,7 +1001,7 @@ implementation
                 (otUByte{otNone},
                  otUByte,otUWord,otULong,otUQWord,otUByte{otNone},
                  otSByte,otSWord,otSLong,otSQWord,otUByte{otNone},
-                 otUByte,otUWord,otULong,otUQWord,
+                 otUByte,otUByte,otUWord,otULong,otUQWord,
                  otSByte,otSWord,otSLong,otSQWord,
                  otUByte,otUWord,otUByte);
             var
@@ -1059,6 +1059,7 @@ implementation
                 dointeger(tkInt64);
             u64bit :
                 dointeger(tkQWord);
+            pasbool1,
             pasbool8,
             pasbool16,
             pasbool32,

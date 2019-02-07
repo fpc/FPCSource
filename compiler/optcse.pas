@@ -298,14 +298,14 @@ unit optcse;
             if not(csedomain) then
               begin
                 { try to transform the tree to get better cse domains, consider:
-                       +
+                       +    (1)
                       / \
                      +   C
                     / \
                    A   B
 
                   if A is not cse'able but B and C are, then the compiler cannot do cse so the tree is transformed into
-                       +
+                 (2)   +
                       / \
                      A   +
                         / \
@@ -329,6 +329,9 @@ unit optcse;
                    (is_set(n.resultdef))
                    ) then
                   while (n.nodetype=tbinarynode(n).left.nodetype) and
+                    { if node (1) is fully boolean evaluated and node (2) not, we cannot do the swap as this might result in B being evaluated always,
+                      the other way round is no problem, C is still evaluated only if needed }
+                    (not(is_boolean(n.resultdef)) or not(n.nodetype in [andn,orn]) or doshortbooleval(n) or not(doshortbooleval(tbinarynode(n).left))) and
                         { the resulttypes of the operands we'll swap must be equal,
                           required in case of a 32x32->64 multiplication, then we
                           cannot swap out one of the 32 bit operands for a 64 bit one
@@ -344,6 +347,17 @@ unit optcse;
                           foreachnodestatic(pm_postprocess,tbinarynode(tbinarynode(n).left).right,@searchsubdomain,@csedomain);
                           if csedomain then
                             begin
+                              { move the full boolean evaluation of (2) to (1), if it was there (so it again applies to A and
+                                what follows) }
+                              if not(doshortbooleval(tbinarynode(n).left)) and
+                                 doshortbooleval(n) then
+                                begin
+                                  n.localswitches:=n.localswitches+(tbinarynode(n).left.localswitches*[cs_full_boolean_eval]);
+                                  exclude(tbinarynode(n).left.localswitches,cs_full_boolean_eval);
+                                  tbinarynode(n).left.flags:=tbinarynode(n).left.flags+(n.flags*[nf_short_bool]);
+                                  exclude(n.Flags,nf_short_bool);
+                                end;
+
                               hp2:=tbinarynode(tbinarynode(n).left).left;
                               tbinarynode(tbinarynode(n).left).left:=tbinarynode(tbinarynode(n).left).right;
                               tbinarynode(tbinarynode(n).left).right:=tbinarynode(n).right;

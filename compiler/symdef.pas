@@ -158,6 +158,7 @@ interface
           function  getmangledparaname:TSymStr;override;
           function  size:asizeint;override;
           procedure setsize;
+          function alignment: shortint; override;
        end;
        tfiledefclass = class of tfiledef;
 
@@ -629,7 +630,7 @@ interface
           function  is_addressonly:boolean;virtual;
           function  no_self_node:boolean;
           { get either a copy as a procdef or procvardef }
-          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; virtual;
+          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp; const paraprefix: string): tstoreddef; virtual;
           function  compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
@@ -667,7 +668,7 @@ interface
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           function  getmangledparaname:TSymStr;override;
-          function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef; override;
+          function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef; override;
        end;
        tprocvardefclass = class of tprocvardef;
 
@@ -812,11 +813,12 @@ interface
                 needs to be finalised afterwards by calling
                 symcreat.finish_copied_procdef() afterwards
           }
-          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; override;
+          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp; const paraprefix: string): tstoreddef; override;
           function  getcopy: tstoreddef; override;
           function  GetTypeName : string;override;
           function  mangledname : TSymStr; virtual;
           procedure setmangledname(const s : TSymStr);
+          procedure setcompilerprocname;
           function  fullprocname(showhidden:boolean):string;
           function  customprocname(pno: tprocnameoptions):ansistring;
           function  defaultmangledname: TSymStr;
@@ -956,6 +958,7 @@ interface
           procedure deref;override;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
+          function alignment: shortint; override;
        end;
        tsetdefclass = class of tsetdef;
 
@@ -1039,7 +1042,8 @@ interface
        voidtype,                  { Void (procedure) }
        cansichartype,             { Char }
        cwidechartype,             { WideChar }
-       pasbool8type,              { boolean type }
+       pasbool1type,              { boolean type }
+       pasbool8type,
        pasbool16type,
        pasbool32type,
        pasbool64type,
@@ -2704,8 +2708,8 @@ implementation
             if (minval>=0) then
               sizeval:=maxval
             else
-              { don't count 0 twice }
-              sizeval:=(cutils.max(-minval,maxval)*2)-1;
+             { don't count 0 twice, but take into account that range goes from -n-1..n }
+              sizeval:=(cutils.max(-minval,maxval+1)*2)-1;
             { 256 must become 512 etc. }
             nextpowerof2(sizeval+1,power);
             result := power;
@@ -2886,7 +2890,7 @@ implementation
           0,
           1,2,4,8,16,
           1,2,4,8,16,
-          1,2,4,8,
+          1,1,2,4,8,
           1,2,4,8,
           1,2,8
         );
@@ -2917,7 +2921,7 @@ implementation
             (low >= 0) and
             (high <= 1)
            ) or (
-             ordtype in [pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]
+             ordtype in [pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]
            ) then
           result := 1
         else
@@ -2925,8 +2929,8 @@ implementation
             if (low>=0) then
               sizeval:=high
             else
-              { don't count 0 twice }
-              sizeval:=(cutils.max(-low,high)*2)-1;
+              { don't count 0 twice, but take into account that range goes from -n-1..n }
+              sizeval:=(cutils.max(-low,high+1)*2)-1;
             { 256 must become 512 etc. }
             nextpowerof2(sizeval+1,power);
             result := power;
@@ -2940,7 +2944,7 @@ implementation
           varUndefined,
           varbyte,varword,varlongword,varqword,varUndefined,
           varshortint,varsmallint,varinteger,varint64,varUndefined,
-          varboolean,varboolean,varboolean,varboolean,
+          varboolean,varboolean,varboolean,varboolean,varboolean,
           varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
@@ -2970,7 +2974,7 @@ implementation
           'untyped',
           'Byte','Word','DWord','QWord','UInt128',
           'ShortInt','SmallInt','LongInt','Int64','Int128',
-          'Boolean','Boolean16','Boolean32','Boolean64',
+          'Boolean','Boolean8','Boolean16','Boolean32','Boolean64',
           'ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
 
@@ -3198,6 +3202,20 @@ implementation
          else
            internalerror(2013113001);
          end;
+      end;
+
+
+    function tfiledef.alignment: shortint;
+      begin
+        case filetyp of
+          ft_text:
+            result:=search_system_type('TEXTREC').typedef.alignment;
+          ft_typed,
+          ft_untyped:
+            result:=search_system_type('FILEREC').typedef.alignment;
+          else
+            internalerror(2018120101);
+          end;
       end;
 
 
@@ -3652,6 +3670,13 @@ implementation
     function tsetdef.is_publishable : boolean;
       begin
          is_publishable:=savesize in [1,2,4];
+      end;
+
+    function tsetdef.alignment: shortint;
+      begin
+        Result:=inherited;
+        if result>sizeof(aint) then
+          result:=sizeof(aint);
       end;
 
 
@@ -5120,7 +5145,7 @@ implementation
       end;
 
 
-    function tabstractprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef;
+    function tabstractprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp; const paraprefix: string): tstoreddef;
       var
         j, nestinglevel: longint;
         pvs, npvs: tparavarsym;
@@ -5153,8 +5178,15 @@ implementation
                   if (copytyp=pc_bareproc) and
                      (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret]*pvs.varoptions)<>[]) then
                     continue;
-                  npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
-                    pvs.vardef,pvs.varoptions);
+                  if paraprefix='' then
+                    npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
+                      pvs.vardef,pvs.varoptions)
+                  else if not(vo_is_high_para in pvs.varoptions) then
+                    npvs:=cparavarsym.create(paraprefix+pvs.realname,pvs.paranr,pvs.varspez,
+                      pvs.vardef,pvs.varoptions)
+                  else
+                    npvs:=cparavarsym.create('$high'+paraprefix+copy(pvs.name,5,length(pvs.name)),pvs.paranr,pvs.varspez,
+                      pvs.vardef,pvs.varoptions);
                   npvs.defaultconstsym:=pvs.defaultconstsym;
                   tabstractprocdef(result).parast.insert(npvs);
                 end;
@@ -6036,11 +6068,11 @@ implementation
       end;
 
 
-    function tprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+    function tprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef;
       var
         j : longint;
       begin
-        result:=inherited getcopyas(newtyp,copytyp);
+        result:=inherited;
         if newtyp=procvardef then
           begin
             { create new paralist }
@@ -6107,7 +6139,7 @@ implementation
 
     function tprocdef.getcopy: tstoreddef;
       begin
-        result:=getcopyas(procdef,pc_normal);
+        result:=getcopyas(procdef,pc_normal,'');
       end;
 
 
@@ -6231,14 +6263,14 @@ implementation
              '',
              'Uc','Us','Ui','Us','',
              'Sc','s','i','x','',
-             'b','b','b','b','b',
+             'b','b','b','b','b','b',
              'c','w','x');
 {$else NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[1] = (
              'v',
              'h','t','j','y','',
              'a','s','i','x','',
-             'b','b','b','b',
+             'b','b','b','b','b',
              'b','b','b','b',
              'c','w','x');
 
@@ -6437,6 +6469,12 @@ implementation
       end;
 
 
+    procedure tprocdef.setcompilerprocname;
+      begin
+        procsym.realname:='$'+lower(procsym.name);
+      end;
+
+
 {***************************************************************************
                                  TPROCVARDEF
 ***************************************************************************}
@@ -6466,7 +6504,7 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            result:=tprocvardef(def.getcopyas(procvardef,pc_address_only));
+            result:=tprocvardef(def.getcopyas(procvardef,pc_address_only,''));
             setup_reusable_def(def,result,res,oldsymtablestack);
             { res^.Data may still be nil -> don't overwrite result }
             exit;
@@ -6605,7 +6643,7 @@ implementation
       end;
 
 
-    function tprocvardef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+    function tprocvardef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef;
       begin
         result:=inherited;
         tabstractprocdef(result).calcparas;

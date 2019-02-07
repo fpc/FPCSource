@@ -90,15 +90,15 @@
     procedure setAlternateImage(image_: NSImage); message 'setAlternateImage:';
     function menu: NSMenu; message 'menu';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
-    function isEnabled: Boolean; message 'isEnabled';
-    procedure setEnabled(enabled: Boolean); message 'setEnabled:';
+    function isEnabled: BOOL; message 'isEnabled';
+    procedure setEnabled(enabled: BOOL); message 'setEnabled:';
     function toolTip: NSString; message 'toolTip';
     procedure setToolTip(toolTip_: NSString); message 'setToolTip:';
-    procedure setHighlightMode(highlightMode_: Boolean); message 'setHighlightMode:';
-    function highlightMode: Boolean; message 'highlightMode';
+    procedure setHighlightMode(highlightMode_: BOOL); message 'setHighlightMode:';
+    function highlightMode: BOOL; message 'highlightMode';
     function sendActionOn(mask: NSInteger): NSInteger; message 'sendActionOn:';
     procedure popUpStatusItemMenu(menu_: NSMenu); message 'popUpStatusItemMenu:';
-    procedure drawStatusBarBackgroundInRect_withHighlight(rect: NSRect; highlight: Boolean); message 'drawStatusBarBackgroundInRect:withHighlight:';
+    procedure drawStatusBarBackgroundInRect_withHighlight(rect: NSRect; highlight: BOOL); message 'drawStatusBarBackgroundInRect:withHighlight:';
   end;
 
 { NSStatusItemViewCategory }

@@ -1098,7 +1098,7 @@ implementation
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_'+chartype+'array_to_shortstr',
               ccallparanode.create(cordconstnode.create(
-                ord(tarraydef(left.resultdef).lowrange=0),pasbool8type,false),
+                ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false),
               ccallparanode.create(left,ccallparanode.create(
               ctemprefnode.create(restemp),nil)))));
             addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
@@ -1112,7 +1112,7 @@ implementation
                       ccallparanode.create(
                         cordconstnode.create(
                           ord(tarraydef(left.resultdef).lowrange=0),
-                          pasbool8type,
+                          pasbool1type,
                           false
                         ),
                         ccallparanode.create(
@@ -1131,7 +1131,7 @@ implementation
           result:=ccallnode.createinternres(
             'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
             ccallparanode.create(cordconstnode.create(
-               ord(tarraydef(left.resultdef).lowrange=0),pasbool8type,false),
+               ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false),
              ccallparanode.create(left,nil)),resultdef);
         left:=nil;
       end;
@@ -1635,12 +1635,6 @@ implementation
              pb:=pbyte(tstringconstnode(left).value_str);
              fcc:=(pb[0] shl 24) or (pb[1] shl 16) or (pb[2] shl 8) or pb[3];
              result:=cordconstnode.create(fcc,u32inttype,false);
-           end
-         else if is_widechar(resultdef) and
-            (tstringconstnode(left).cst_type=cst_unicodestring) and
-            (pcompilerwidestring(tstringconstnode(left).value_str)^.len=1) then
-           begin
-             result:=cordconstnode.create(pcompilerwidestring(tstringconstnode(left).value_str)^.data[0], resultdef, false);
            end
          else
            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
@@ -2275,7 +2269,7 @@ implementation
              copytype:=pc_address_only
            else
              copytype:=pc_normal;
-           resultdef:=pd.getcopyas(procvardef,copytype);
+           resultdef:=pd.getcopyas(procvardef,copytype,'');
          end;
       end;
 
@@ -4240,7 +4234,7 @@ implementation
               CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
             case nodetype of
               isn:
-                resultdef:=pasbool8type;
+                resultdef:=pasbool1type;
               asn:
                 resultdef:=tclassrefdef(right.resultdef).pointeddef;
             end;
@@ -4251,7 +4245,7 @@ implementation
           begin
            case nodetype of
              isn:
-               resultdef:=pasbool8type;
+               resultdef:=pasbool1type;
              asn:
                resultdef:=right.resultdef;
            end;

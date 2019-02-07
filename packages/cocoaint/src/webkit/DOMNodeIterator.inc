@@ -46,9 +46,9 @@
     function root: DOMNode; message 'root';
     function whatToShow: cuint; message 'whatToShow';
     function filter: id; message 'filter';
-    function expandEntityReferences: Boolean; message 'expandEntityReferences';
+    function expandEntityReferences: BOOL; message 'expandEntityReferences';
     function referenceNode: DOMNode; message 'referenceNode';
-    function pointerBeforeReferenceNode: Boolean; message 'pointerBeforeReferenceNode';
+    function pointerBeforeReferenceNode: BOOL; message 'pointerBeforeReferenceNode';
     function nextNode: DOMNode; message 'nextNode';
     function previousNode: DOMNode; message 'previousNode';
     procedure detach; message 'detach';

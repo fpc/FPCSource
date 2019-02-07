@@ -78,7 +78,7 @@ valuePtr = ^value;
     class function invocationWithMethodSignature(sig: NSMethodSignature): NSInvocation; message 'invocationWithMethodSignature:';
     function methodSignature: NSMethodSignature; message 'methodSignature';
     procedure retainArguments; message 'retainArguments';
-    function argumentsRetained: Boolean; message 'argumentsRetained';
+    function argumentsRetained: BOOL; message 'argumentsRetained';
     function target: id; message 'target';
     procedure setTarget(target_: id); message 'setTarget:';
     function selector: SEL; message 'selector';

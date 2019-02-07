@@ -304,7 +304,7 @@ unit hlcg2ll;
 
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);override;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);override;
-          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
+          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;var size:tdef;maybeconst:boolean);override;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 
           procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel); override;
@@ -1250,7 +1250,7 @@ implementation
       end;
     end;
 
-  procedure thlcg2ll.location_force_mmregscalar(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
+  procedure thlcg2ll.location_force_mmregscalar(list: TAsmList; var l: tlocation; var size: tdef; maybeconst: boolean);
     var
       reg : tregister;
       href : treference;
@@ -1297,6 +1297,7 @@ implementation
                reg:=getmmregister(list,newsize);
                a_loadmm_loc_reg(list,size,newsize,l,reg,mms_movescalar);
                l.size:=def_cgsize(newsize);
+               size:=newsize;
              end;
           location_freetemp(list,l);
           location_reset(l,LOC_MMREGISTER,l.size);

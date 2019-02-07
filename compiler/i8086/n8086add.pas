@@ -149,17 +149,17 @@ interface
                     internalerror(2014040606);
                 end;
               ltn:
-                t:=cordconstnode.create(ord(word(qword(lv))<word(qword(rv))),pasbool8type,true);
+                t:=cordconstnode.create(ord(word(qword(lv))<word(qword(rv))),pasbool1type,true);
               lten:
-                t:=cordconstnode.create(ord(word(qword(lv))<=word(qword(rv))),pasbool8type,true);
+                t:=cordconstnode.create(ord(word(qword(lv))<=word(qword(rv))),pasbool1type,true);
               gtn:
-                t:=cordconstnode.create(ord(word(qword(lv))>word(qword(rv))),pasbool8type,true);
+                t:=cordconstnode.create(ord(word(qword(lv))>word(qword(rv))),pasbool1type,true);
               gten:
-                t:=cordconstnode.create(ord(word(qword(lv))>=word(qword(rv))),pasbool8type,true);
+                t:=cordconstnode.create(ord(word(qword(lv))>=word(qword(rv))),pasbool1type,true);
               equaln:
-                t:=cordconstnode.create(ord(lv=rv),pasbool8type,true);
+                t:=cordconstnode.create(ord(lv=rv),pasbool1type,true);
               unequaln:
-                t:=cordconstnode.create(ord(lv<>rv),pasbool8type,true);
+                t:=cordconstnode.create(ord(lv<>rv),pasbool1type,true);
               else
                 internalerror(2014040605);
             end;

@@ -65,10 +65,10 @@
     
   public
     class function metadataForPersistentStoreWithURL_error(url_: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreWithURL:error:';
-    class function setMetadata_forPersistentStoreWithURL_error(metadata_: NSDictionary; url_: NSURL; error: NSErrorPointer): Boolean; message 'setMetadata:forPersistentStoreWithURL:error:';
+    class function setMetadata_forPersistentStoreWithURL_error(metadata_: NSDictionary; url_: NSURL; error: NSErrorPointer): BOOL; message 'setMetadata:forPersistentStoreWithURL:error:';
     class function migrationManagerClass: Pobjc_class; message 'migrationManagerClass';
     function initWithPersistentStoreCoordinator_configurationName_URL_options(root: NSPersistentStoreCoordinator; name: NSString; url_: NSURL; options_: NSDictionary): id; message 'initWithPersistentStoreCoordinator:configurationName:URL:options:';
-    function loadMetadata(error: NSErrorPointer): Boolean; message 'loadMetadata:';
+    function loadMetadata(error: NSErrorPointer): BOOL; message 'loadMetadata:';
     function persistentStoreCoordinator: NSPersistentStoreCoordinator; message 'persistentStoreCoordinator';
     function configurationName: NSString; message 'configurationName';
     function options: NSDictionary; message 'options';
@@ -77,8 +77,8 @@
     function identifier: NSString; message 'identifier';
     procedure setIdentifier(identifier_: NSString); message 'setIdentifier:';
     function type_: NSString; message 'type';
-    function isReadOnly: Boolean; message 'isReadOnly';
-    procedure setReadOnly(flag: Boolean); message 'setReadOnly:';
+    function isReadOnly: BOOL; message 'isReadOnly';
+    procedure setReadOnly(flag: BOOL); message 'setReadOnly:';
     function metadata: NSDictionary; message 'metadata';
     procedure setMetadata(storeMetadata: NSDictionary); message 'setMetadata:';
     procedure didAddToPersistentStoreCoordinator(coordinator: NSPersistentStoreCoordinator); message 'didAddToPersistentStoreCoordinator:';

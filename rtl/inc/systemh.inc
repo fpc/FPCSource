@@ -109,7 +109,6 @@ Type
   Cardinal = LongWord;
   Integer  = SmallInt;
   UInt64   = QWord;
-  Boolean8 = Boolean;
 
   { moved here from psystem.pas
     Delphi allows chose of overloaded procedure depending

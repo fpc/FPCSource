@@ -54,7 +54,7 @@
     procedure setProperty_value_priority(propertyName: NSString; value: NSString; priority: NSString); message 'setProperty:value:priority:';
     function item(index: cuint): NSString; message 'item:';
     function getPropertyShorthand(propertyName: NSString): NSString; message 'getPropertyShorthand:';
-    function isPropertyImplicit(propertyName: NSString): Boolean; message 'isPropertyImplicit:';
+    function isPropertyImplicit(propertyName: NSString): BOOL; message 'isPropertyImplicit:';
   end;
 
 { DOMCSSStyleDeclarationDeprecatedCategory }

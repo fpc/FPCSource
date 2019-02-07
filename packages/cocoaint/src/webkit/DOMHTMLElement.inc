@@ -66,7 +66,7 @@
     function children: DOMHTMLCollection; message 'children';
     procedure setContentEditable (newValue: NSString); message 'setContentEditable:';
     function contentEditable: NSString; message 'contentEditable';
-    function isContentEditable: Boolean; message 'isContentEditable';
+    function isContentEditable: BOOL; message 'isContentEditable';
     function titleDisplayString: NSString; message 'titleDisplayString';
   end;
 
