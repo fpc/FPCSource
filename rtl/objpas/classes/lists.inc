@@ -493,6 +493,11 @@ begin
   inherited Sort(TFPPtrListSortCompare(Compare));
 end;
 
+procedure TFPList.Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
+begin
+  inherited Sort(TFPPtrListSortCompare(Compare), SortingAlgorithm);
+end;
+
 procedure TFPList.ForEachCall(Proc2call: TListCallback; Arg: Pointer);
 var
   I: integer;
