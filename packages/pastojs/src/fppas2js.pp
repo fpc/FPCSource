@@ -1499,7 +1499,6 @@ type
     RightSide: TJSElement;
     // created by ConvertElement if assign needs a call:
     PropertyEl: TPasProperty;
-    Setter: TPasElement;
     Call: TJSCallExpression;
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); override;
   end;
@@ -1766,8 +1765,12 @@ type
     Function CreateGetEnumeratorLoop(El: TPasImplForLoop;
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallRTLFreeLoc(Setter, Getter: TJSElement; Src: TPasElement): TJSElement; virtual;
-    Function CreatePropertyGet(Prop: TPasProperty; Ref: TResolvedReference;
+    Function CreatePropertyGet(Prop: TPasProperty; Expr: TPasExpr;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
+    Function AppendPropertyAssignArgs(Call: TJSCallExpression; Prop: TPasProperty;
+      AssignContext: TAssignContext; PosEl: TPasElement): TJSCallExpression; virtual;
+    Function AppendPropertyReadArgs(Call: TJSCallExpression; Prop: TPasProperty;
+      aContext: TConvertContext; PosEl: TPasElement): TJSCallExpression; virtual;
     Function CreatePrecompiledJS(El: TJSElement): string; virtual;
     // create elements for RTTI
     Function CreateTypeInfoRef(El: TPasType; AContext: TConvertContext;
@@ -7620,7 +7623,6 @@ var
   IsImplicitCall: Boolean;
   TargetProcType: TPasProcedureType;
   ArrLit: TJSArrayLiteral;
-  IndexExpr: TPasExpr;
   FuncScope: TPas2JSProcedureScope;
   Value: TResEvalValue;
   aResolver: TPas2JSResolver;
@@ -7706,31 +7708,16 @@ begin
             Result:=CreateCallHelperMethod(TPasProcedure(Decl),El,AContext);
             exit;
             end;
-          AssignContext.PropertyEl:=Prop;
-          AssignContext.Setter:=Decl;
           // Setter
           Call:=CreateCallExpression(El);
-          AssignContext.Call:=Call;
           Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
-          IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
-          if IndexExpr<>nil then
-            begin
-            Value:=aResolver.Eval(IndexExpr,[refConst]);
-            try
-              Call.AddArg(ConvertConstValue(Value,AssignContext,El));
-            finally
-              ReleaseEvalValue(Value);
-            end;
-            end;
-          Call.AddArg(AssignContext.RightSide);
-          AssignContext.RightSide:=nil;
-          Result:=Call;
+          Result:=AppendPropertyAssignArgs(Call,Prop,AssignContext,El);
           exit;
           end;
         end;
       caRead:
         begin
-        Result:=CreatePropertyGet(Prop,Ref,AContext,El);
+        Result:=CreatePropertyGet(Prop,El,AContext,El);
         if Result is TJSCallExpression then exit;
         if not IsImplicitCall then exit;
         end;
@@ -8738,7 +8725,6 @@ var
           end;
         AssignContext:=AContext.AccessContext as TAssignContext;
         AssignContext.PropertyEl:=Prop;
-        AssignContext.Setter:=AccessEl;
         AssignContext.Call:=Call;
         end;
       caRead:
@@ -15795,7 +15781,8 @@ begin
     Call.Expr:=CreateDotExpression(PosEl,CreateInName,
                                    CreateIdentifierExpr(MoveNextFunc,AContext));
 
-    // Item=$in.GetCurrent();
+    // read property "Current"
+    // Item=$in.GetCurrent();  or Item=$in.FCurrent;
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
     WhileSt.Body:=AssignSt;
     AssignSt.LHS:=ConvertExpression(El.VariableName,AContext); // beware: might fail
@@ -15863,38 +15850,38 @@ begin
 end;
 
 function TPasToJSConverter.CreatePropertyGet(Prop: TPasProperty;
-  Ref: TResolvedReference; AContext: TConvertContext; PosEl: TPasElement
-  ): TJSElement;
+  Expr: TPasExpr; AContext: TConvertContext; PosEl: TPasElement): TJSElement;
 var
   aResolver: TPas2JSResolver;
   Decl: TPasElement;
-  IndexExpr: TPasExpr;
   Call: TJSCallExpression;
-  Value: TResEvalValue;
   Name: String;
-  TypeEl: TPasType;
+  Ref: TResolvedReference;
 begin
   aResolver:=AContext.Resolver;
   Decl:=aResolver.GetPasPropertyGetter(Prop);
+  if (Expr<>nil) and (Expr.CustomData is TResolvedReference) then
+    Ref:=TResolvedReference(Expr.CustomData)
+  else
+    Ref:=nil;
   if Decl is TPasFunction then
     begin
     // call function
-    Value:=nil;
+    if (Expr<>nil) then
+      begin
+      // explicit property read
+      if (Decl.Parent is TPasClassType)
+        and (TPasClassType(Decl.Parent).HelperForType<>nil) then
+        begin
+        Result:=CreateCallHelperMethod(TPasProcedure(Decl),Expr,AContext);
+        exit;
+        end;
+      end;
     Call:=CreateCallExpression(PosEl);
     try
       Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
-      IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
-      if IndexExpr<>nil then
-        begin
-        Value:=aResolver.Eval(IndexExpr,[refConst]);
-        Call.AddArg(ConvertConstValue(Value,AContext.GetFunctionContext,PosEl));
-        end;
-      TypeEl:=aResolver.GetPasPropertyType(Prop);
-      if aResolver.IsInterfaceType(TypeEl,citCom) then
-        Call:=CreateIntfRef(Call,AContext,PosEl);
-      Result:=Call;
+      Result:=AppendPropertyReadArgs(Call,Prop,AContext,PosEl);
     finally
-      ReleaseEvalValue(Value);
       if Result=nil then
         Call.Free;
     end;
@@ -15905,6 +15892,58 @@ begin
     Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
     Result:=CreatePrimitiveDotExpr(Name,PosEl);
     end;
+end;
+
+function TPasToJSConverter.AppendPropertyAssignArgs(Call: TJSCallExpression;
+  Prop: TPasProperty; AssignContext: TAssignContext; PosEl: TPasElement
+  ): TJSCallExpression;
+var
+  aResolver: TPas2JSResolver;
+  IndexExpr: TPasExpr;
+  Value: TResEvalValue;
+begin
+  AssignContext.Call:=Call;
+  AssignContext.PropertyEl:=Prop;
+  aResolver:=AssignContext.Resolver;
+  IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
+  if IndexExpr<>nil then
+    begin
+    Value:=aResolver.Eval(IndexExpr,[refConst]);
+    try
+      Call.AddArg(ConvertConstValue(Value,AssignContext,PosEl));
+    finally
+      ReleaseEvalValue(Value);
+    end;
+    end;
+  Call.AddArg(AssignContext.RightSide);
+  AssignContext.RightSide:=nil;
+  Result:=Call;
+end;
+
+function TPasToJSConverter.AppendPropertyReadArgs(Call: TJSCallExpression;
+  Prop: TPasProperty; aContext: TConvertContext; PosEl: TPasElement
+  ): TJSCallExpression;
+var
+  aResolver: TPas2JSResolver;
+  IndexExpr: TPasExpr;
+  Value: TResEvalValue;
+  TypeEl: TPasType;
+begin
+  aResolver:=aContext.Resolver;
+  IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
+  if IndexExpr<>nil then
+    begin
+    Value:=aResolver.Eval(IndexExpr,[refConst]);
+    try
+      Call.AddArg(ConvertConstValue(Value,AContext.GetFunctionContext,PosEl));
+    finally
+      ReleaseEvalValue(Value);
+    end;
+    end;
+  TypeEl:=aResolver.GetPasPropertyType(Prop);
+  if aResolver.IsInterfaceType(TypeEl,citCom) then
+    Call:=CreateIntfRef(Call,AContext,PosEl);
+  Result:=Call;
 end;
 
 function TPasToJSConverter.CreatePrecompiledJS(El: TJSElement): string;
@@ -16924,12 +16963,13 @@ var
   Path, ProcPath: String;
   Call: TJSCallExpression;
   IdentEl: TPasElement;
-  IsStatic, NeedIntfRef, IsConstructorNormalCall: Boolean;
+  IsStatic, IsConstructorNormalCall: Boolean;
   Ref: TResolvedReference;
   ProcType: TPasProcedureType;
   ParamsExpr: TParamsExpr;
   ArgElements : TJSArrayLiteralElements;
   ArrLit: TJSArrayLiteral;
+  Prop: TPasProperty;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.CreateCallHelperMethod Proc=',GetObjName(Proc),' Expr=',GetObjName(Expr));
@@ -16995,8 +17035,15 @@ begin
 
     LoTypeEl:=LeftResolved.LoTypeEl;
     IdentEl:=LeftResolved.IdentEl;
-    IsConstructorNormalCall:=(Proc.ClassType=TPasConstructor)
-                           and (Ref<>nil) and not (rrfNewInstance in Ref.Flags);
+    Prop:=nil;
+    IsConstructorNormalCall:=false;
+    if Ref<>nil then
+      begin
+      IsConstructorNormalCall:=(Proc.ClassType=TPasConstructor)
+                             and not (rrfNewInstance in Ref.Flags);
+      if Ref.Declaration.ClassType=TPasProperty then
+        Prop:=TPasProperty(Ref.Declaration);
+      end;
 
     if IsStatic then
       begin
@@ -17153,22 +17200,42 @@ begin
       ArgElements:=Call.Args.Elements;
       end;
 
+    if Prop<>nil then
+      begin
+      case AContext.Access of
+      caAssign:
+        begin
+        // call property setter, e.g. left.prop:=RightSide
+        // -> HelperType.HelperSetter.apply(SelfJS,RightSide)
+        // append index and RightSide
+        Result:=AppendPropertyAssignArgs(Call,Prop,TAssignContext(AContext),PosEl);
+        Call:=nil;
+        exit;
+        end;
+      caRead:
+        begin
+        Result:=AppendPropertyReadArgs(Call,Prop,aContext,PosEl);
+        Call:=nil;
+        exit;
+        end;
+      else
+        RaiseNotSupported(PosEl,AContext,20190207122708);
+      end;
+      end;
+
     // append args
     ProcType:=Proc.ProcType;
     if Expr.Parent is TParamsExpr then
       ParamsExpr:=TParamsExpr(Expr.Parent)
     else
       ParamsExpr:=nil;
-    NeedIntfRef:=false;
+    CreateProcedureCallArgs(ArgElements,ParamsExpr,ProcType,AContext);
+
     if (ProcType is TPasFunctionType)
         and aResolver.IsInterfaceType(
           TPasFunctionType(ProcType).ResultEl.ResultType,citCom)
     then
-      NeedIntfRef:=true;
-
-    CreateProcedureCallArgs(ArgElements,ParamsExpr,ProcType,AContext);
-    if NeedIntfRef then
-      // $ir.ref(id,fnname())
+      // need interface reference: $ir.ref(id,fnname())
       Call:=CreateIntfRef(Call,AContext,PosEl);
 
     Result:=Call;
