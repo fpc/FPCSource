@@ -585,6 +585,7 @@ type
     Procedure TestClass_FuncReturningObjectMember;
     Procedure TestClass_StaticWithoutClassFail;
     Procedure TestClass_SelfInStaticFail;
+    Procedure TestClass_SelfDotInStaticFail;
     Procedure TestClass_PrivateProtectedInSameUnit;
     Procedure TestClass_PrivateInMainBeginFail;
     Procedure TestClass_PrivateInDescendantFail;
@@ -692,7 +693,11 @@ type
     Procedure TestPropertyArgs2;
     Procedure TestPropertyArgsWithDefaultsFail;
     Procedure TestPropertyArgs_StringConstDefault;
-    Procedure TestProperty_Index;
+    Procedure TestClassProperty;
+    Procedure TestClassPropertyNonStaticFail;
+    Procedure TestClassPropertyNonStaticAllow;
+    //Procedure TestClassPropertyStaticMismatchFail;
+    Procedure TestArrayProperty;
     Procedure TestProperty_WrongTypeAsIndexFail;
     Procedure TestProperty_Option_ClassPropertyNonStatic;
     Procedure TestDefaultProperty;
@@ -10038,6 +10043,23 @@ begin
   CheckResolverException('identifier not found "Self"',nIdentifierNotFound);
 end;
 
+procedure TTestResolver.TestClass_SelfDotInStaticFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class var FLeft: word;');
+  Add('    class function DoIt: word; static;');
+  Add('    class property Left: word read FLeft;');
+  Add('  end;');
+  Add('class function TObject.DoIt: word;');
+  Add('begin');
+  Add('  Result:=Self.Left;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('identifier not found "Self"',nIdentifierNotFound);
+end;
+
 procedure TTestResolver.TestClass_PrivateProtectedInSameUnit;
 begin
   StartProgram(false);
@@ -12175,7 +12197,89 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestProperty_Index;
+procedure TTestResolver.TestClassProperty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetStatic: word; static;',
+  '    class procedure SetStatic(Value: word); static;',
+  '    class property StaticP: word read GetStatic write SetStatic;',
+  '  end;',
+  'class function TObject.GetStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  'end;',
+  'class procedure TObject.SetStatic(Value: word);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassPropertyNonStaticFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetNonStatic: word;',
+  '    class property NonStatic: word read GetNonStatic;',
+  '  end;',
+  'class function TObject.GetNonStatic: word;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sClassPropertyAccessorMustBeStatic,nClassPropertyAccessorMustBeStatic);
+end;
+
+procedure TTestResolver.TestClassPropertyNonStaticAllow;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proClassPropertyNonStatic];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetStatic: word; static;',
+  '    class procedure SetStatic(Value: word); static;',
+  '    class property StaticP: word read GetStatic write SetStatic;',
+  '    class function GetNonStatic: word;',
+  '    class procedure SetNonStatic(Value: word);',
+  '    class property NonStatic: word read GetNonStatic write SetNonStatic;',
+  '  end;',
+  '  TClass = class of TObject;',
+  'class function TObject.GetStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  '  NonStatic:=NonStatic;',
+  'end;',
+  'class procedure TObject.SetStatic(Value: word);',
+  'begin',
+  'end;',
+  'class function TObject.GetNonStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  '  NonStatic:=NonStatic;',
+  'end;',
+  'class procedure TObject.SetNonStatic(Value: word);',
+  'begin',
+  'end;',
+  'var',
+  '  c: TClass;',
+  '  o: TObject;',
+  'begin',
+  '  c.STaticP:=c.StaticP;',
+  '  o.STaticP:=o.StaticP;',
+  '  c.NonStatic:=c.NonStatic;',
+  '  o.NonStatic:=o.NonStatic;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArrayProperty;
 begin
   StartProgram(false);
   Add('type');
