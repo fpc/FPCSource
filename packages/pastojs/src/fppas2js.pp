@@ -1806,7 +1806,7 @@ type
     Procedure AddRTLVersionCheck(FuncContext: TFunctionContext; PosEl: TPasElement);
     // create elements for helpers
     Function CreateCallHelperMethod(Proc: TPasProcedure; Expr: TPasExpr;
-      AContext: TConvertContext): TJSCallExpression; virtual;
+      AContext: TConvertContext; Implicit: boolean = false): TJSCallExpression; virtual;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -15684,6 +15684,7 @@ var
   end;
 
 var
+  aResolver: TPas2JSResolver;
   ForScope: TPasForLoopScope;
   Statements: TJSStatementList;
   VarSt: TJSVariableStatement;
@@ -15700,6 +15701,7 @@ var
   EnumeratorTypeEl: TPasType;
   NeedTryFinally, NeedIntfRef: Boolean;
 begin
+  aResolver:=AContext.Resolver;
   ForScope:=TPasForLoopScope(El.CustomData);
   NeedTryFinally:=true;
   NeedIntfRef:=false;
@@ -15710,7 +15712,7 @@ begin
     RaiseNotSupported(El,AContext,20171225104212);
   if GetEnumeratorFunc.ClassType<>TPasFunction then
     RaiseNotSupported(El,AContext,20171225104237);
-  AContext.Resolver.ComputeElement(GetEnumeratorFunc.FuncType.ResultEl,ResolvedEl,[rcType]);
+  aResolver.ComputeElement(GetEnumeratorFunc.FuncType.ResultEl,ResolvedEl,[rcType]);
   EnumeratorTypeEl:=ResolvedEl.LoTypeEl;
 
   if EnumeratorTypeEl is TPasClassType then
@@ -15735,12 +15737,18 @@ begin
     RaiseNotSupported(El,AContext,20171225104249);
   if MoveNextFunc.ClassType<>TPasFunction then
     RaiseNotSupported(El,AContext,20171225104256);
+  if MoveNextFunc.Parent.ClassType<>TPasClassType then
+    RaiseNotSupported(El,AContext,20190208153949);
+  if TPasClassType(MoveNextFunc.Parent).HelperForType<>nil then
+    RaiseNotSupported(El,AContext,20190208155015);
   // find property Current
   CurrentProp:=ForScope.Current;
   if (CurrentProp=nil) then
     RaiseNotSupported(El,AContext,20171225104306);
   if CurrentProp.ClassType<>TPasProperty then
     RaiseNotSupported(El,AContext,20171225104316);
+  if CurrentProp.Parent.ClassType<>TPasClassType then
+    RaiseNotSupported(El,AContext,20190208154003);
 
   // get function context
   FuncContext:=AContext;
@@ -15758,9 +15766,14 @@ begin
     List:=ConvertExpression(El.StartExpr,AContext); // beware: might fail
     PosEl:=El.StartExpr;
     // List.GetEnumerator()
-    Call:=TJSCallExpression(CreateElement(TJSCallExpression,PosEl));
-    Call.Expr:=CreateDotExpression(PosEl,List,
+    if aResolver.IsHelperMethod(GetEnumeratorFunc) then
+      Call:=CreateCallHelperMethod(GetEnumeratorFunc,El.StartExpr,AContext,true)
+    else
+      begin
+      Call:=TJSCallExpression(CreateElement(TJSCallExpression,PosEl));
+      Call.Expr:=CreateDotExpression(PosEl,List,
                          CreateIdentifierExpr(GetEnumeratorFunc,AContext),true);
+      end;
     // var $in=
     CurInVarName:=FuncContext.CreateLocalIdentifier(GetBIName(pbivnLoopIn));
     VarSt.A:=CreateVarDecl(CurInVarName,Call,PosEl);
@@ -16922,7 +16935,8 @@ begin
 end;
 
 function TPasToJSConverter.CreateCallHelperMethod(Proc: TPasProcedure;
-  Expr: TPasExpr; AContext: TConvertContext): TJSCallExpression;
+  Expr: TPasExpr; AContext: TConvertContext; Implicit: boolean
+  ): TJSCallExpression;
 var
   Left: TPasExpr;
   WithExprScope: TPas2JSWithExprScope;
@@ -16992,7 +17006,13 @@ begin
   Call:=nil;
   ArgElements:=nil;
   try
-    if Expr is TBinaryExpr then
+    if Implicit then
+      begin
+      Left:=Expr;
+      PosEl:=Expr;
+      aResolver.ComputeElement(Left,LeftResolved,[]);
+      end
+    else if Expr is TBinaryExpr then
       begin
       // e.g. "path.proc(args)" or "path.proc"
       Bin:=TBinaryExpr(Expr);
