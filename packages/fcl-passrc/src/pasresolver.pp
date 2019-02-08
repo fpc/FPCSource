@@ -2004,6 +2004,8 @@ type
     function IsClassField(El: TPasElement): boolean;
     function GetFunctionType(El: TPasElement): TPasFunctionType;
     function IsMethod(El: TPasProcedure): boolean;
+    function IsHelperMethod(El: TPasElement): boolean;
+    function IsHelper(El: TPasElement): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
@@ -15942,7 +15944,8 @@ begin
         if ClassRecScope=nil then
           RaiseInternalError(20190123120156,GetObjName(StartScope));
         TypeEl:=ClassRecScope.Element as TPasType;
-        if (TypeEl.ClassType=TPasClassType) and (TPasClassType(TypeEl).HelperForType<>nil) then
+        if (TypeEl.ClassType=TPasClassType)
+            and (TPasClassType(TypeEl).HelperForType<>nil) then
           TypeEl:=ResolveAliasType(TPasClassType(TypeEl).HelperForType);
         TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
         if OnlyTypeMembers and (ClassRecScope is TPasClassScope) then
@@ -22082,6 +22085,17 @@ begin
   if not (El.CustomData is TPasProcedureScope) then exit;
   ProcScope:=TPasProcedureScope(El.CustomData);
   Result:=IsMethod(ProcScope.DeclarationProc);
+end;
+
+function TPasResolver.IsHelperMethod(El: TPasElement): boolean;
+begin
+  Result:=(El is TPasProcedure) and (El.Parent is TPasClassType)
+          and (TPasClassType(El.Parent).HelperForType<>nil);
+end;
+
+function TPasResolver.IsHelper(El: TPasElement): boolean;
+begin
+  Result:=(El<>nil) and (El.ClassType=TPasClassType) and (TPasClassType(El).HelperForType<>nil);
 end;
 
 function TPasResolver.IsExternalClass_Name(aClass: TPasClassType;

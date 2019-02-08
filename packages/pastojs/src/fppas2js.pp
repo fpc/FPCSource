@@ -1806,7 +1806,7 @@ type
     Procedure AddRTLVersionCheck(FuncContext: TFunctionContext; PosEl: TPasElement);
     // create elements for helpers
     Function CreateCallHelperMethod(Proc: TPasProcedure; Expr: TPasExpr;
-      AContext: TConvertContext): TJSElement; virtual;
+      AContext: TConvertContext): TJSCallExpression; virtual;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -7301,8 +7301,7 @@ begin
     end;
 
   LeftJS:=nil;
-  if (RightRefDecl.Parent.ClassType=TPasClassType)
-      and (TPasClassType(RightRefDecl.Parent).HelperForType<>nil) then
+  if aResolver.IsHelper(RightRefDecl.Parent) then
     begin
     // LeftJS.HelperMember
     if RightRefDecl is TPasVariable then
@@ -7702,8 +7701,7 @@ begin
         Decl:=aResolver.GetPasPropertySetter(Prop);
         if Decl is TPasProcedure then
           begin
-          if (Decl.Parent is TPasClassType)
-              and (TPasClassType(Decl.Parent).HelperForType<>nil) then
+          if aResolver.IsHelper(Decl.Parent) then
             begin
             Result:=CreateCallHelperMethod(TPasProcedure(Decl),El,AContext);
             exit;
@@ -7772,8 +7770,7 @@ begin
     Call.AddArg(CreateLiteralString(El,TransformVariableName(Decl,AContext)));
     exit;
     end
-  else if (Decl is TPasProcedure) and (Decl.Parent is TPasClassType)
-      and (TPasClassType(Decl.Parent).HelperForType<>nil)
+  else if aResolver.IsHelperMethod(Decl)
       and not (rrfNoImplicitCallWithoutParams in Ref.Flags) then
     begin
     Result:=CreateCallHelperMethod(TPasProcedure(Decl),El,AContext);
@@ -8712,17 +8709,18 @@ var
     Result:=nil;
     AssignContext:=nil;
     aResolver:=AContext.Resolver;
-    Call:=CreateCallExpression(El);
+    Call:=nil;
     try
       case AContext.Access of
       caAssign:
         begin
         AccessEl:=aResolver.GetPasPropertySetter(Prop);
         if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
-          begin
-          FreeAndNil(Call);
           exit;
-          end;
+        if aResolver.IsHelperMethod(AccessEl) then
+          Call:=CreateCallHelperMethod(TPasProcedure(AccessEl),El.Value,AContext)
+        else
+          Call:=CreateCallExpression(El);
         AssignContext:=AContext.AccessContext as TAssignContext;
         AssignContext.PropertyEl:=Prop;
         AssignContext.Call:=Call;
@@ -8731,16 +8729,17 @@ var
         begin
         AccessEl:=aResolver.GetPasPropertyGetter(Prop);
         if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
-          begin
-          FreeAndNil(Call);
           exit;
-          end;
+        if aResolver.IsHelperMethod(AccessEl) then
+          Call:=CreateCallHelperMethod(TPasProcedure(AccessEl),El.Value,AContext)
+        else
+          Call:=CreateCallExpression(El);
         end
       else
         RaiseNotSupported(El,AContext,20170213213317);
       end;
 
-      if CheckPath then
+      if CheckPath and (Call.Expr=nil) then
         if aResolver.IsNameExpr(El.Value) then
           // no special context
         else if El.Value is TBinaryExpr then
@@ -8953,12 +8952,11 @@ begin
   writeln('TPasToJSConverter.ConvertArrayParams Value=',GetResolverResultDbg(ResolvedEl));
   {$ENDIF}
   if ResolvedEl.BaseType in btAllJSStrings then
-    // astring[]
+    // aString[]
     ConvertStringBracket(ResolvedEl)
   else if (ResolvedEl.IdentEl is TPasProperty)
-      and (aResolver.IsNameExpr(El.Value) or (El.Value is TBinaryExpr))
       and (aResolver.GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
-    // aproperty[]
+    // aProperty[]
     ConvertIndexedProperty(TPasProperty(ResolvedEl.IdentEl),AContext,true)
   else if ResolvedEl.BaseType=btContext then
     begin
@@ -9167,8 +9165,7 @@ begin
       end
     else if C.InheritsFrom(TPasProcedure) then
       begin
-      if (Decl.Parent is TPasClassType)
-          and (TPasClassType(Decl.Parent).HelperForType<>nil) then
+      if aResolver.IsHelper(Decl.Parent) then
         begin
         // calling a helper method
         Result:=CreateCallHelperMethod(TPasProcedure(Decl),El.Value,AContext);
@@ -14038,8 +14035,7 @@ begin
         else
           begin
           ThisPas:=ProcScope.ClassRecScope.Element;
-          if (ThisPas.ClassType=TPasClassType)
-              and (TPasClassType(ThisPas).HelperForType<>nil) then
+          if aResolver.IsHelper(ThisPas) then
             begin
             // helper method
             HelperForType:=aResolver.ResolveAliasType(TPasClassType(ThisPas).HelperForType);
@@ -15471,8 +15467,7 @@ begin
     Result:=CreateReferencePathExpr(Proc,AContext);
     exit;
     end;
-  IsHelper:=(Proc.Parent.ClassType=TPasClassType)
-            and (TPasClassType(Proc.Parent).HelperForType<>nil);
+  IsHelper:=aResolver.IsHelper(Proc.Parent);
   NeedClass:=aResolver.IsClassMethod(Proc);
 
   // an of-object method -> create "rtl.createCallback(Target,func)"
@@ -15870,8 +15865,7 @@ begin
     if (Expr<>nil) then
       begin
       // explicit property read
-      if (Decl.Parent is TPasClassType)
-        and (TPasClassType(Decl.Parent).HelperForType<>nil) then
+      if aResolver.IsHelper(Decl.Parent) then
         begin
         Result:=CreateCallHelperMethod(TPasProcedure(Decl),Expr,AContext);
         exit;
@@ -16919,7 +16913,7 @@ begin
 end;
 
 function TPasToJSConverter.CreateCallHelperMethod(Proc: TPasProcedure;
-  Expr: TPasExpr; AContext: TConvertContext): TJSElement;
+  Expr: TPasExpr; AContext: TConvertContext): TJSCallExpression;
 var
   Left: TPasExpr;
   WithExprScope: TPas2JSWithExprScope;
@@ -17202,6 +17196,13 @@ begin
 
     if Prop<>nil then
       begin
+      if aResolver.GetPasPropertyArgs(Prop).Count>0 then
+        begin
+        // arguments are passed by ConvertParamsExpr
+        Result:=Call;
+        Call:=nil;
+        exit;
+        end;
       case AContext.Access of
       caAssign:
         begin

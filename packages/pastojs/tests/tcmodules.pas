@@ -638,11 +638,10 @@ type
     Procedure TestClassHelper_Constructor;
     Procedure TestClassHelper_InheritedObjFPC;
     Procedure TestClassHelper_Property;
-    // todo: TestClassHelper_Property_Array
-    // todo: TestClassHelper_Property_Index
-    // todo: TestClassHelper_ClassProperty
+    Procedure TestClassHelper_Property_Array;
+    //Procedure TestClassHelper_Property_Array_Default;
+    // todo: TestClassHelper_ClassProperty  static/nonstatic
     // todo: TestClassHelper_ClassProperty_Array
-    // todo: TestClassHelper_ClassProperty_Index
     // todo: TestClassHelper_Overload
     // todo: TestClassHelper_ForIn
     // todo: TestRecordHelper_ClassVar
@@ -19531,6 +19530,128 @@ begin
     '$with1.SetSpeed($with1.GetSpeed() + 32);',
     '$mod.TObjHelper.SetLeft.apply($with1, $mod.TObjHelper.GetLeft.apply($with1) + 33);',
     '$mod.TObjHelper.SetLeft.apply($with1, $mod.TObjHelper.GetLeft.apply($with1) + 34);',
+    '']));
+end;
+
+procedure TTestModule.TestClassHelper_Property_Array;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetSpeed(Index: boolean): word;',
+  '    procedure SetSpeed(Index: boolean; Value: word);',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    function GetSize(Index: boolean): word;',
+  '    procedure SetSize(Index: boolean; Value: word);',
+  '    property Size[Index: boolean]: word read GetSize write SetSize;',
+  '    property Speed[Index: boolean]: word read GetSpeed write SetSpeed;',
+  '  end;',
+  '  TBird = class',
+  '    property Items[Index: boolean]: word read GetSize write SetSize;',
+  '    procedure DoIt;',
+  '  end;',
+  'var',
+  '  b: TBird;',
+  'function Tobject.GetSpeed(Index: boolean): word;',
+  'begin',
+  '  Result:=Size[false];',
+  '  Size[true]:=Size[false]+11;',
+  '  Speed[true]:=Speed[false]+12;',
+  '  Self.Size[true]:=Self.Size[false]+21;',
+  '  Self.Speed[true]:=Self.Speed[false]+22;',
+  '  with Self do begin',
+  '    Size[true]:=Size[false]+31;',
+  '    Speed[true]:=Speed[false]+32;',
+  '  end;',
+  'end;',
+  'procedure Tobject.SetSpeed(Index: boolean; Value: word);',
+  'begin',
+  'end;',
+  'function TObjHelper.GetSize(Index: boolean): word;',
+  'begin',
+  '  Size[true]:=Size[false]+11;',
+  '  Speed[true]:=Speed[false]+12;',
+  '  Self.Size[true]:=Self.Size[false]+21;',
+  '  Self.Speed[true]:=Self.Speed[false]+22;',
+  '  with Self do begin',
+  '    Size[true]:=Size[false]+31;',
+  '    Speed[true]:=Speed[false]+32;',
+  '  end;',
+  'end;',
+  'procedure TObjHelper.SetSize(Index: boolean; Value: word);',
+  'begin',
+  'end;',
+  'procedure TBird.DoIt;',
+  'begin',
+  '  Items[true]:=Items[false]+11;',
+  '  Self.Items[true]:=Self.Items[false]+21;',
+  '  with Self do Items[true]:=Items[false]+31;',
+  'end;',
+  'begin',
+  '  b.Size[true]:=b.Size[false]+11;',
+  '  b.Speed[true]:=b.Speed[false]+12;',
+  '  b.Items[true]:=b.Items[false]+13;',
+  '  with b do begin',
+  '    Size[true]:=Size[false]+21;',
+  '    Speed[true]:=Speed[false]+22;',
+  '    Items[true]:=Items[false]+23;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassHelper_Property_Array',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetSpeed = function (Index) {',
+    '    var Result = 0;',
+    '    Result = $mod.TObjHelper.GetSize.apply(this, false);',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 11);',
+    '    this.SetSpeed(true, this.GetSpeed(false) + 12);',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 21);',
+    '    this.SetSpeed(true, this.GetSpeed(false) + 22);',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 31);',
+    '    this.SetSpeed(true, this.GetSpeed(false) + 32);',
+    '    return Result;',
+    '  };',
+    '  this.SetSpeed = function (Index, Value) {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "TObjHelper", null, function () {',
+    '  this.GetSize = function (Index) {',
+    '    var Result = 0;',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 11);',
+    '    this.SetSpeed(true, this.GetSpeed(false) + 12);',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 21);',
+    '    this.SetSpeed(true, this.GetSpeed(false) + 22);',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 31);',
+    '    this.SetSpeed(true, this.GetSpeed(false) + 32);',
+    '    return Result;',
+    '  };',
+    '  this.SetSize = function (Index, Value) {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.DoIt = function () {',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 11);',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 21);',
+    '    $mod.TObjHelper.SetSize.apply(this, true, $mod.TObjHelper.GetSize.apply(this, false) + 31);',
+    '  };',
+    '});',
+    'this.b = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.TObjHelper.SetSize.apply($mod.b, true, $mod.TObjHelper.GetSize.apply($mod.b, false) + 11);',
+    '$mod.b.SetSpeed(true, $mod.b.GetSpeed(false) + 12);',
+    '$mod.TObjHelper.SetSize.apply($mod.b, true, $mod.TObjHelper.GetSize.apply($mod.b, false) + 13);',
+    'var $with1 = $mod.b;',
+    '$mod.TObjHelper.SetSize.apply($with1, true, $mod.TObjHelper.GetSize.apply($with1, false) + 21);',
+    '$with1.SetSpeed(true, $with1.GetSpeed(false) + 22);',
+    '$mod.TObjHelper.SetSize.apply($with1, true, $mod.TObjHelper.GetSize.apply($with1, false) + 23);',
     '']));
 end;
 
