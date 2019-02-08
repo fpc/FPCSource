@@ -15882,6 +15882,8 @@ begin
     else if ((C=TPasVariable) or (C=TPasProperty))
         and (not (vmClass in TPasVariable(FindData.Found).VarModifiers)) then
       // ok
+    else if IsHelper(FindData.Found.Parent) then
+      // ok
     else
       begin
       RaiseMsg(20170331184224,nExternalClassInstanceCannotAccessStaticX,
