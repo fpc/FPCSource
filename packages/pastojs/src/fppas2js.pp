@@ -15478,7 +15478,7 @@ begin
     exit;
     end;
   IsHelper:=aResolver.IsHelper(Proc.Parent);
-  NeedClass:=aResolver.IsClassMethod(Proc);
+  NeedClass:=aResolver.IsClassMethod(Proc) and not Proc.IsStatic;
 
   // an of-object method -> create "rtl.createCallback(Target,func)"
   TargetJS:=nil;
@@ -15872,14 +15872,13 @@ begin
   if Decl is TPasFunction then
     begin
     // call function
-    if (Expr<>nil) then
+    if aResolver.IsHelper(Decl.Parent) then
       begin
-      // explicit property read
-      if aResolver.IsHelper(Decl.Parent) then
-        begin
-        Result:=CreateCallHelperMethod(TPasProcedure(Decl),Expr,AContext);
-        exit;
-        end;
+      if (Expr=nil) then
+        // implicit property read, e.g. enumerator property Current
+        RaiseNotSupported(PosEl,AContext,20190208111355,GetObjName(Prop));
+      Result:=CreateCallHelperMethod(TPasProcedure(Decl),Expr,AContext);
+      exit;
       end;
     Call:=CreateCallExpression(PosEl);
     try
@@ -19848,7 +19847,8 @@ begin
         end
       else if IsClassFunction(El) then
         begin
-        if Dot.Resolver.ResolvedElIsClassOrRecordInstance(Dot.LeftResolved) then
+        if (not TPasProcedure(El).IsStatic)
+            and Dot.Resolver.ResolvedElIsClassOrRecordInstance(Dot.LeftResolved) then
           // accessing a class method from an object, 'this' must be the class/record
           Append_GetClass(El);
         end;
