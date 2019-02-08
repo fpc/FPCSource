@@ -174,5 +174,6 @@ end;
 begin
   TestAlgorithm(@HeapSort, 'HeapSort');
   TestAlgorithm(@RandomizedQuickSort, 'Randomized QuickSort');
+  TestAlgorithm(@IntroSort, 'IntroSort');
   Writeln('Ok!');
 end.

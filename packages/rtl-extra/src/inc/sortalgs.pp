@@ -133,6 +133,50 @@ const
   );
 {$endif def FPC_HAS_FEATURE_RANDOM}
 
+{
+                       IntroSort
+
+  Average performance: O(n log n)
+    Worst performance: O(n log n)
+     Extra memory use: O(log n) on the stack
+               Stable: no
+     Additional notes: Hybrid between QuickSort and HeapSort. It starts by doing
+                       QuickSort, but switches to HeapSort if the recursion
+                       depth exceeds 2*log2(n). This results in fast average
+                       performance, similar to QuickSort, combined with a good
+                       O(n log n) worst case performance, because sequences that
+                       trigger QuickSort's worst case are caught and sorted by
+                       HeapSort instead.
+}
+procedure IntroSort_PtrList_NoContext(
+                ItemPtrs: PPointer;
+                ItemCount: SizeUInt;
+                Comparer: TListSortComparer_NoContext);
+procedure IntroSort_PtrList_Context(
+                ItemPtrs: PPointer;
+                ItemCount: SizeUInt;
+                Comparer: TListSortComparer_Context;
+                Context: Pointer);
+procedure IntroSort_ItemList_Context(
+                Items: Pointer;
+                ItemCount, ItemSize: SizeUInt;
+                Comparer: TListSortComparer_Context;
+                Context: Pointer);
+procedure IntroSort_ItemList_CustomItemExchanger_Context(
+                Items: Pointer;
+                ItemCount, ItemSize: SizeUInt;
+                Comparer: TListSortComparer_Context;
+                Exchanger: TListSortCustomItemExchanger_Context;
+                Context: Pointer);
+
+const
+  IntroSort: TSortingAlgorithm = (
+    PtrListSorter_NoContextComparer: @IntroSort_PtrList_NoContext;
+    PtrListSorter_ContextComparer: @IntroSort_PtrList_Context;
+    ItemListSorter_ContextComparer: @IntroSort_ItemList_Context;
+    ItemListSorter_CustomItemExchanger_ContextComparer: @IntroSort_ItemList_CustomItemExchanger_Context;
+  );
+
 implementation
 
 {$GOTO on}
@@ -674,5 +718,330 @@ begin
   QuickSort(0, ItemCount - 1);
 end;
 {$endif def FPC_HAS_FEATURE_RANDOM}
+
+{*****************************************************************************
+                                   IntroSort
+*****************************************************************************}
+
+function IntLog2(a: Word): Integer; inline;
+begin
+  Result := BsrWord(a);
+end;
+function IntLog2(a: LongWord): Integer; inline;
+begin
+  Result := BsrDWord(a);
+end;
+function IntLog2(a: QWord): Integer; inline;
+begin
+  Result := BsrQWord(a);
+end;
+
+procedure IntroSort_PtrList_NoContext(ItemPtrs: PPointer; L, R : SizeUInt;
+                                      Comparer: TListSortComparer_NoContext;
+                                      MaxDepth: Integer);
+var
+  I, J, PivotIdx : SizeUInt;
+  P, Q : Pointer;
+begin
+ repeat
+   if MaxDepth > 0 then
+     Dec(MaxDepth)
+   else
+   begin
+     HeapSort_PtrList_NoContext(@ItemPtrs[L], (R - L) + 1, Comparer);
+     exit;
+   end;
+   I := L;
+   J := R;
+   PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
+   P := ItemPtrs[PivotIdx];
+   repeat
+     while (I < PivotIdx) and (Comparer(P, ItemPtrs[i]) > 0) do
+       Inc(I);
+     while (J > PivotIdx) and (Comparer(P, ItemPtrs[J]) < 0) do
+       Dec(J);
+     if I < J then
+     begin
+       Q := ItemPtrs[I];
+       ItemPtrs[I] := ItemPtrs[J];
+       ItemPtrs[J] := Q;
+       if PivotIdx = I then
+       begin
+         PivotIdx := J;
+         Inc(I);
+       end
+       else if PivotIdx = J then
+       begin
+         PivotIdx := I;
+         Dec(J);
+       end
+       else
+       begin
+         Inc(I);
+         Dec(J);
+       end;
+     end;
+   until I >= J;
+   // sort the smaller range recursively
+   // sort the bigger range via the loop
+   // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
+   if (PivotIdx - L) < (R - PivotIdx) then
+   begin
+     if (L + 1) < PivotIdx then
+       IntroSort_PtrList_NoContext(ItemPtrs, L, PivotIdx - 1, Comparer, MaxDepth);
+     L := PivotIdx + 1;
+   end
+   else
+   begin
+     if (PivotIdx + 1) < R then
+       IntroSort_PtrList_NoContext(ItemPtrs, PivotIdx + 1, R, Comparer, MaxDepth);
+     if (L + 1) < PivotIdx then
+       R := PivotIdx - 1
+     else
+       exit;
+   end;
+ until L >= R;
+end;
+
+procedure IntroSort_PtrList_NoContext(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_NoContext);
+begin
+  if not Assigned(ItemPtrs) or (ItemCount < 2) then
+    exit;
+  IntroSort_PtrList_NoContext(ItemPtrs, 0, ItemCount - 1, Comparer, 2*IntLog2(ItemCount));
+end;
+
+procedure IntroSort_PtrList_Context(ItemPtrs: PPointer; ItemCount: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+
+  procedure IntroSort(L, R : SizeUInt; MaxDepth: Integer);
+  var
+    I, J, PivotIdx : SizeUInt;
+    P, Q : Pointer;
+  begin
+    repeat
+      if MaxDepth > 0 then
+        Dec(MaxDepth)
+      else
+      begin
+        HeapSort_PtrList_Context(@ItemPtrs[L], (R - L) + 1, Comparer, Context);
+        exit;
+      end;
+      I := L;
+      J := R;
+      PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
+      P := ItemPtrs[PivotIdx];
+      repeat
+        while (I < PivotIdx) and (Comparer(P, ItemPtrs[I], Context) > 0) do
+          Inc(I);
+        while (J > PivotIdx) and (Comparer(P, ItemPtrs[J], Context) < 0) do
+          Dec(J);
+        if I < J then
+        begin
+          Q := ItemPtrs[I];
+          ItemPtrs[I] := ItemPtrs[J];
+          ItemPtrs[J] := Q;
+          if PivotIdx = I then
+          begin
+            PivotIdx := J;
+            Inc(I);
+          end
+          else if PivotIdx = J then
+          begin
+            PivotIdx := I;
+            Dec(J);
+          end
+          else
+          begin
+            Inc(I);
+            Dec(J);
+          end;
+        end;
+      until I >= J;
+      // sort the smaller range recursively
+      // sort the bigger range via the loop
+      // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
+      if (PivotIdx - L) < (R - PivotIdx) then
+      begin
+        if (L + 1) < PivotIdx then
+          IntroSort(L, PivotIdx - 1, MaxDepth);
+        L := PivotIdx + 1;
+      end
+      else
+      begin
+        if (PivotIdx + 1) < R then
+          IntroSort(PivotIdx + 1, R, MaxDepth);
+        if (L + 1) < PivotIdx then
+          R := PivotIdx - 1
+        else
+          exit;
+      end;
+    until L >= R;
+  end;
+
+begin
+  if not Assigned(ItemPtrs) or (ItemCount < 2) then
+    exit;
+  IntroSort(0, ItemCount - 1, 2*IntLog2(ItemCount));
+end;
+
+procedure IntroSort_ItemList_Context(Items: Pointer; ItemCount, ItemSize: SizeUInt; Comparer: TListSortComparer_Context; Context: Pointer);
+
+var
+  TempBuf: Pointer;
+
+  procedure IntroSort(L, R : SizeUInt; MaxDepth: Integer);
+  var
+    I, J, PivotIdx : SizeUInt;
+    P : Pointer;
+  begin
+    repeat
+      if MaxDepth > 0 then
+        Dec(MaxDepth)
+      else
+      begin
+        HeapSort_ItemList_Context(Items + ItemSize*L, (R - L) + 1, ItemSize, Comparer, Context);
+        exit;
+      end;
+      I := L;
+      J := R;
+      PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
+      P := Items + ItemSize*PivotIdx;
+      repeat
+        while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) > 0) do
+          Inc(I);
+        while (J > PivotIdx) and (Comparer(P, Items + ItemSize*J, Context) < 0) do
+          Dec(J);
+        if I < J then
+        begin
+          Move((Items + ItemSize*I)^, TempBuf^, ItemSize);
+          Move((Items + ItemSize*J)^, (Items + ItemSize*I)^, ItemSize);
+          Move(TempBuf^, (Items + ItemSize*J)^, ItemSize);
+          if PivotIdx = I then
+          begin
+            PivotIdx := J;
+            P := Items + ItemSize*PivotIdx;
+            Inc(I);
+          end
+          else if PivotIdx = J then
+          begin
+            PivotIdx := I;
+            P := Items + ItemSize*PivotIdx;
+            Dec(J);
+          end
+          else
+          begin
+            Inc(I);
+            Dec(J);
+          end;
+        end;
+      until I >= J;
+      // sort the smaller range recursively
+      // sort the bigger range via the loop
+      // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
+      if (PivotIdx - L) < (R - PivotIdx) then
+      begin
+        if (L + 1) < PivotIdx then
+          IntroSort(L, PivotIdx - 1, MaxDepth);
+        L := PivotIdx + 1;
+      end
+      else
+      begin
+        if (PivotIdx + 1) < R then
+          IntroSort(PivotIdx + 1, R, MaxDepth);
+        if (L + 1) < PivotIdx then
+          R := PivotIdx - 1
+        else
+          exit;
+      end;
+    until L >= R;
+  end;
+
+begin
+  if not Assigned(Items) or (ItemCount < 2) or (ItemSize < 1) then
+    exit;
+  GetMem(TempBuf, ItemSize);
+  try
+    IntroSort(0, ItemCount - 1, 2*IntLog2(ItemCount));
+  finally
+    FreeMem(TempBuf, ItemSize);
+  end;
+end;
+
+procedure IntroSort_ItemList_CustomItemExchanger_Context(
+                Items: Pointer;
+                ItemCount, ItemSize: SizeUInt;
+                Comparer: TListSortComparer_Context;
+                Exchanger: TListSortCustomItemExchanger_Context;
+                Context: Pointer);
+
+  procedure IntroSort(L, R : SizeUInt; MaxDepth: Integer);
+  var
+    I, J, PivotIdx : SizeUInt;
+    P : Pointer;
+  begin
+    repeat
+      if MaxDepth > 0 then
+        Dec(MaxDepth)
+      else
+      begin
+        HeapSort_ItemList_CustomItemExchanger_Context(Items + ItemSize*L, (R - L) + 1, ItemSize, Comparer, Exchanger, Context);
+        exit;
+      end;
+      I := L;
+      J := R;
+      PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
+      P := Items + ItemSize*PivotIdx;
+      repeat
+        while (I < PivotIdx) and (Comparer(P, Items + ItemSize*I, Context) > 0) do
+          Inc(I);
+        while (J > PivotIdx) and (Comparer(P, Items + ItemSize*J, Context) < 0) do
+          Dec(J);
+        if I < J then
+        begin
+          Exchanger(Items + ItemSize*I, Items + ItemSize*J, Context);
+          if PivotIdx = I then
+          begin
+            PivotIdx := J;
+            P := Items + ItemSize*PivotIdx;
+            Inc(I);
+          end
+          else if PivotIdx = J then
+          begin
+            PivotIdx := I;
+            P := Items + ItemSize*PivotIdx;
+            Dec(J);
+          end
+          else
+          begin
+            Inc(I);
+            Dec(J);
+          end;
+        end;
+      until I >= J;
+      // sort the smaller range recursively
+      // sort the bigger range via the loop
+      // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
+      if (PivotIdx - L) < (R - PivotIdx) then
+      begin
+        if (L + 1) < PivotIdx then
+          IntroSort(L, PivotIdx - 1, MaxDepth);
+        L := PivotIdx + 1;
+      end
+      else
+      begin
+        if (PivotIdx + 1) < R then
+          IntroSort(PivotIdx + 1, R, MaxDepth);
+        if (L + 1) < PivotIdx then
+          R := PivotIdx - 1
+        else
+          exit;
+      end;
+    until L >= R;
+  end;
+
+begin
+  if not Assigned(Items) or (ItemCount < 2) or (ItemSize < 1) then
+    exit;
+  IntroSort(0, ItemCount - 1, 2*IntLog2(ItemCount));
+end;
 
 end.
