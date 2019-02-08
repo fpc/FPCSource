@@ -639,7 +639,8 @@ type
     Procedure TestClassHelper_InheritedObjFPC;
     Procedure TestClassHelper_Property;
     Procedure TestClassHelper_Property_Array;
-    //Procedure TestClassHelper_Property_Array_Default;
+    Procedure TestClassHelper_Property_Array_Default;
+    Procedure TestClassHelper_Property_Array_DefaultDefault;
     // todo: TestClassHelper_ClassProperty  static/nonstatic
     // todo: TestClassHelper_ClassProperty_Array
     // todo: TestClassHelper_Overload
@@ -19652,6 +19653,133 @@ begin
     '$mod.TObjHelper.SetSize.apply($with1, true, $mod.TObjHelper.GetSize.apply($with1, false) + 21);',
     '$with1.SetSpeed(true, $with1.GetSpeed(false) + 22);',
     '$mod.TObjHelper.SetSize.apply($with1, true, $mod.TObjHelper.GetSize.apply($with1, false) + 23);',
+    '']));
+end;
+
+procedure TTestModule.TestClassHelper_Property_Array_Default;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetSpeed(Index: boolean): word;',
+  '    procedure SetSpeed(Index: boolean; Value: word);',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    property Speed[Index: boolean]: word read GetSpeed write SetSpeed; default;',
+  '  end;',
+  '  TBird = class',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    function GetSize(Index: word): boolean;',
+  '    procedure SetSize(Index: word; Value: boolean);',
+  '    property Size[Index: word]: boolean read GetSize write SetSize; default;',
+  '  end;',
+  'function Tobject.GetSpeed(Index: boolean): word;',
+  'begin',
+  '  Self[true]:=Self[false]+1;',
+  'end;',
+  'procedure Tobject.SetSpeed(Index: boolean; Value: word);',
+  'begin',
+  'end;',
+  'function TBirdHelper.GetSize(Index: word): boolean;',
+  'begin',
+  '  Self[1]:=not Self[2];',
+  'end;',
+  'procedure TBirdHelper.SetSize(Index: word; Value: boolean);',
+  'begin',
+  'end;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
+  'begin',
+  '  o[true]:=o[false]+1;',
+  '  b[3]:=not b[4];',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassHelper_Property_Array_Default',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetSpeed = function (Index) {',
+    '    var Result = 0;',
+    '    this.SetSpeed(true, this.GetSpeed(false) + 1);',
+    '    return Result;',
+    '  };',
+    '  this.SetSpeed = function (Index, Value) {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "TObjHelper", null, function () {',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '});',
+    'rtl.createHelper($mod, "TBirdHelper", null, function () {',
+    '  this.GetSize = function (Index) {',
+    '    var Result = false;',
+    '    $mod.TBirdHelper.SetSize.apply(this, 1, !$mod.TBirdHelper.GetSize.apply(this, 2));',
+    '    return Result;',
+    '  };',
+    '  this.SetSize = function (Index, Value) {',
+    '  };',
+    '});',
+    'this.o = null;',
+    'this.b = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.o.SetSpeed(true, $mod.o.GetSpeed(false) + 1);',
+    '$mod.TBirdHelper.SetSize.apply($mod.b, 3, !$mod.TBirdHelper.GetSize.apply($mod.b, 4));',
+    '']));
+end;
+
+procedure TTestModule.TestClassHelper_Property_Array_DefaultDefault;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    function GetItems(Index: word): TObject;',
+  '    procedure SetItems(Index: word; Value: TObject);',
+  '    property Items[Index: word]: TObject read GetItems write SetItems; default;',
+  '  end;',
+  'function Tobjhelper.GetItems(Index: word): TObject;',
+  'begin',
+  '  Self[1][2]:=Self[3][4];',
+  'end;',
+  'procedure Tobjhelper.SetItems(Index: word; Value: TObject);',
+  'begin',
+  'end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  o[1][2]:=o[3][4];',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassHelper_Property_Array_DefaultDefault',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "TObjHelper", null, function () {',
+    '  this.GetItems = function (Index) {',
+    '    var Result = null;',
+    '    $mod.TObjHelper.SetItems.apply($mod.TObjHelper.GetItems.apply(this, 1), 2, $mod.TObjHelper.GetItems.apply($mod.TObjHelper.GetItems.apply(this, 3), 4));',
+    '    return Result;',
+    '  };',
+    '  this.SetItems = function (Index, Value) {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.TObjHelper.SetItems.apply($mod.TObjHelper.GetItems.apply($mod.o, 1), 2, $mod.TObjHelper.GetItems.apply($mod.TObjHelper.GetItems.apply($mod.o, 3), 4));',
     '']));
 end;
 

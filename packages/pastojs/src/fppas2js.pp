@@ -8711,33 +8711,35 @@ var
     aResolver:=AContext.Resolver;
     Call:=nil;
     try
+      // find getter/setter
       case AContext.Access of
       caAssign:
-        begin
         AccessEl:=aResolver.GetPasPropertySetter(Prop);
-        if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
-          exit;
-        if aResolver.IsHelperMethod(AccessEl) then
+      caRead:
+        AccessEl:=aResolver.GetPasPropertyGetter(Prop);
+      else
+        RaiseNotSupported(El,AContext,20170213213317);
+      end;
+      if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
+        exit;
+
+      // create call
+      if aResolver.IsHelperMethod(AccessEl) then
+        begin
+        if CheckPath then
           Call:=CreateCallHelperMethod(TPasProcedure(AccessEl),El.Value,AContext)
         else
-          Call:=CreateCallExpression(El);
+          Call:=CreateCallHelperMethod(TPasProcedure(AccessEl),El,AContext)
+        end
+      else
+        Call:=CreateCallExpression(El);
+
+      if AContext.Access=caAssign then
+        begin
         AssignContext:=AContext.AccessContext as TAssignContext;
         AssignContext.PropertyEl:=Prop;
         AssignContext.Call:=Call;
         end;
-      caRead:
-        begin
-        AccessEl:=aResolver.GetPasPropertyGetter(Prop);
-        if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
-          exit;
-        if aResolver.IsHelperMethod(AccessEl) then
-          Call:=CreateCallHelperMethod(TPasProcedure(AccessEl),El.Value,AContext)
-        else
-          Call:=CreateCallExpression(El);
-        end
-      else
-        RaiseNotSupported(El,AContext,20170213213317);
-      end;
 
       if CheckPath and (Call.Expr=nil) then
         if aResolver.IsNameExpr(El.Value) then
@@ -8839,27 +8841,29 @@ var
     Left, Right: TJSElement;
     OldAccess: TCtxAccess;
     AccessEl, SetAccessEl: TPasElement;
+    aResolver: TPas2JSResolver;
   begin
+    aResolver:=AContext.Resolver;
     case AContext.Access of
     caAssign:
       begin
-      AccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
+      AccessEl:=aResolver.GetPasPropertySetter(Prop);
       if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,false) then
         exit;
       end;
     caRead:
       begin
-      AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
+      AccessEl:=aResolver.GetPasPropertyGetter(Prop);
       if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,false) then
         exit;
       end;
     caByReference:
       begin
-      AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
-      SetAccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
-      if AContext.Resolver.IsExternalBracketAccessor(AccessEl) then
+      AccessEl:=aResolver.GetPasPropertyGetter(Prop);
+      SetAccessEl:=aResolver.GetPasPropertySetter(Prop);
+      if aResolver.IsExternalBracketAccessor(AccessEl) then
         begin
-        if AContext.Resolver.IsExternalBracketAccessor(SetAccessEl) then
+        if aResolver.IsExternalBracketAccessor(SetAccessEl) then
           begin
           // read and write are brackets -> easy
           if not IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,false) then
@@ -8872,6 +8876,12 @@ var
     else
       RaiseNotSupported(El,AContext,20170402233834);
     end;
+
+    if aResolver.IsHelperMethod(AccessEl) then
+      begin
+      ConvertIndexedProperty(Prop,AContext,false);
+      exit;
+      end;
 
     DotContext:=nil;
     Left:=nil;
@@ -16977,6 +16987,7 @@ begin
   SelfScope:=nil;
   PosEl:=Expr;
   Ref:=nil;
+  Prop:=nil;
   Left:=nil;
   SelfJS:=nil;
   Call:=nil;
@@ -17021,6 +17032,17 @@ begin
           end;
         end;
       end
+    else if Expr is TParamsExpr then
+      begin
+      PosEl:=Expr;
+      if not (Expr.CustomData is TResolvedReference) then
+        RaiseNotSupported(Expr,AContext,20190208105144);
+      Ref:=TResolvedReference(PosEl.CustomData);
+      if Ref.Declaration.ClassType<>TPasProperty then
+        RaiseNotSupported(Expr,AContext,20190208105222);
+      Left:=TParamsExpr(Expr).Value;
+      aResolver.ComputeElement(Left,LeftResolved,[]);
+      end
     else
       begin
       RaiseNotSupported(Expr,AContext,20190201163210);
@@ -17029,7 +17051,6 @@ begin
 
     LoTypeEl:=LeftResolved.LoTypeEl;
     IdentEl:=LeftResolved.IdentEl;
-    Prop:=nil;
     IsConstructorNormalCall:=false;
     if Ref<>nil then
       begin
