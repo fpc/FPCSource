@@ -1002,8 +1002,9 @@
      DM_COPY = 2;
      DM_UPDATE = 1;
   { DrawAnimatedRects  }
-     IDANI_OPEN = 1;
-     IDANI_CLOSE = 2;
+     IDANI_OPEN    = 1;
+     IDANI_CLOSE   = 2;
+     IDANI_CAPTION = 3;
   { DrawCaption  }
      DC_ACTIVE   = 1;
      DC_SMALLCAP = 2;
