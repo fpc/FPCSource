@@ -72,6 +72,12 @@ begin
 {$include dbus/fpmake.pp}
 end;
 
+procedure add_libmagic(const ADirectory: string);
+begin
+  with Installer do
+{$include libmagic/fpmake.pp}
+end;
+
 procedure add_dts(const ADirectory: string);
 begin
   with Installer do
