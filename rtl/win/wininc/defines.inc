@@ -5424,6 +5424,12 @@ Type
      FLASHW_TIMER        = $00000004;
      FLASHW_TIMERNOFG    = $0000000C;
 
+     CLASSFACTORY_E_FIRST  = DWORD($80040110);
+     CLASSFACTORY_E_LAST   = DWORD($8004011F);
+     CLASSFACTORY_S_FIRST  = DWORD($00040110);
+     CLASSFACTORY_S_LAST   = DWORD($0004011F);
+     CLASS_E_NOTLICENSED   = DWORD($80040112);
+
   { --------------------- old stuff, need to organize! ---------------  }
   { BEGINNING of windowsx.h stuff from old headers:  }
   {  Not convertable by H2PAS
