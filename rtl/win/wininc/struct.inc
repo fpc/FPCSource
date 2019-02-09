@@ -821,6 +821,16 @@ Const
      TDCB = DCB;
      PDCB = ^DCB;
 
+     FLASHWINFO = record
+         cbSize    : UINT;
+         hwnd      : HWND;
+         dwFlags   : DWORD;
+         uCount    : UINT;
+         dwTimeOut : DWORD;
+     end;
+    TFLASHWINFO  = FLASHWINFO;
+    PFLASHWINFO  = ^FLASHWINFO;
+
   const
      bm_DCB_fBinary = $1;
      bp_DCB_fBinary = 0;
