@@ -6269,8 +6269,8 @@ begin
       if (ClassOrRecScope is TPasClassScope)
           and (TPasClassScope(ClassOrRecScope).CanonicalClassOf<>nil) then
         begin
-        // 'Self' in a class method is the hidden classtype argument
-        // Note: this is true in classes and helpers
+        // 'Self' in a method is the hidden classtype argument
+        // Note: this is true in classes, adv records and helpers
         SelfArg:=TPasArgument.Create('Self',DeclProc);
         ImplProcScope.SelfArg:=SelfArg;
         {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
@@ -8962,15 +8962,19 @@ begin
         end;
       end;
     // default: search for type helpers
-    DotScope:=PushHelperDotScope(LeftResolved.HiTypeEl);
-    if DotScope<>nil then
+    if (LeftResolved.BaseType in btAllStandardTypes)
+        or (LeftResolved.BaseType=btContext) then
       begin
-      if LeftResolved.IdentEl is TPasType then
-        // e.g. TSet.HelperProc
-        DotScope.OnlyTypeMembers:=true;
-      ResolveExpr(El.right,Access);
-      PopScope;
-      exit;
+      DotScope:=PushHelperDotScope(LeftResolved.HiTypeEl);
+      if DotScope<>nil then
+        begin
+        if LeftResolved.IdentEl is TPasType then
+          // e.g. TSet.HelperProc
+          DotScope.OnlyTypeMembers:=true;
+        ResolveExpr(El.right,Access);
+        PopScope;
+        exit;
+        end;
       end;
     end;
 
@@ -11682,6 +11686,12 @@ begin
         else if (ToLoType.ClassType=TPasRecordType)
             and (ParamResolved.LoTypeEl.ClassType=TPasRecordType) then
           // typecast record
+          KeepWriteFlags:=true
+        else if (ToLoType.ClassType=TPasArrayType)
+            and (ParamResolved.LoTypeEl.ClassType=TPasArrayType)
+            and IsDynArray(ToLoType)
+            and IsDynArray(ParamResolved.LoTypeEl) then
+          // typecast array
           KeepWriteFlags:=true;
         end
       else
@@ -17000,6 +17010,13 @@ begin
   // ToDo: use last element in Expr for error position
   if TypeEl=nil then
     RaiseMsg(20170216152004,nExprTypeMustBeClassOrRecordTypeGot,sExprTypeMustBeClassOrRecordTypeGot,
+      [BaseTypeNames[ExprResolved.BaseType]],ErrorEl);
+  if (ExprResolved.BaseType in btAllStandardTypes) then
+    // ok
+  else if (ExprResolved.BaseType=btContext) then
+    // ok
+  else
+    RaiseMsg(20190210143257,nExprTypeMustBeClassOrRecordTypeGot,sExprTypeMustBeClassOrRecordTypeGot,
       [BaseTypeNames[ExprResolved.BaseType]],ErrorEl);
 
   Flags:=[];

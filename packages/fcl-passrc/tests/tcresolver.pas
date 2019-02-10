@@ -914,6 +914,7 @@ type
     Procedure TestTypeHelper_Enum;
     Procedure TestTypeHelper_EnumDotValueFail;
     Procedure TestTypeHelper_EnumHelperDotProcFail;
+    Procedure TestTypeHelper_Set;
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_String;
     Procedure TestTypeHelper_Boolean;
@@ -17006,6 +17007,8 @@ begin
   '  f: TFlag;',
   'begin',
   '  f.toString;',
+  '  green.toString;',
+  '  TFlag.green.toString;',
   '  TFlag.Fly;',
   '']);
   ParseProgram;
@@ -17045,6 +17048,32 @@ begin
   '  TFlag.Fly;',
   '']);
   CheckResolverException('Cannot access this member from a type helper',nCannotAccessThisMemberFromAX);
+end;
+
+procedure TTestResolver.TestTypeHelper_Set;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TSetOfEnum = set of TEnum;',
+  '  THelper = type helper for TSetOfEnum',
+  '    procedure Fly;',
+  '  end;',
+  'procedure THelper.Fly;',
+  'begin',
+  '  Self:=[];',
+  '  Self:=[green];',
+  '  Include(Self,blue);',
+  'end;',
+  'var s: TSetOfEnum;',
+  'begin',
+  // todo: '  s.Fly;',
+  // not supported: [green].Fly
+  // todo: with s do Fly
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestTypeHelper_Enumerator;
