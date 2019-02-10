@@ -702,7 +702,9 @@ interface
            to restore DS segment register  }
          pi_has_open_array_parameter,
          { subroutine uses threadvars }
-         pi_uses_threadvar
+         pi_uses_threadvar,
+         { set if the procedure has generated data which shall go in an except table }
+         pi_has_except_table_data
        );
        tprocinfoflags=set of tprocinfoflag;
 
