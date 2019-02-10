@@ -726,6 +726,9 @@ implementation
         { generate call frame marker for dwarf call frame info }
         current_asmdata.asmcfi.start_frame(list);
 
+        if current_procinfo.procdef.proctypeoption=potype_proginit then
+          current_asmdata.asmcfi.outmost_frame(list);
+
         { All temps are know, write offsets used for information }
         if (cs_asm_source in current_settings.globalswitches) and
            (current_procinfo.tempstart<>tg.lasttemp) then

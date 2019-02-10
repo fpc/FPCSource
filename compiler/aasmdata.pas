@@ -160,6 +160,7 @@ interface
         procedure generate_code(list:TAsmList);virtual;
         procedure start_frame(list:TAsmList);virtual;
         procedure end_frame(list:TAsmList);virtual;
+        procedure outmost_frame(list:TAsmList);virtual;
         procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);virtual;
         procedure cfa_restore(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);virtual;
@@ -281,6 +282,11 @@ implementation
 
 
     procedure TAsmCFI.end_frame(list:TAsmList);
+      begin
+      end;
+
+
+    procedure TAsmCFI.outmost_frame(list: TAsmList);
       begin
       end;
 
@@ -674,7 +680,8 @@ initialization
   memasmlists:=TMemDebug.create('AsmLists');
   memasmlists.stop;
 {$endif MEMDEBUG}
-  CAsmCFI:=TAsmCFI;
+  if not(assigned(CAsmCFI)) then
+    CAsmCFI:=TAsmCFI;
 
 finalization
 {$ifdef MEMDEBUG}
