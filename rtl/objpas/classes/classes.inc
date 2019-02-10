@@ -418,17 +418,19 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
 
     syncentry^.Exception := Nil;
     syncentry^.Method := AMethod;
-    ThreadQueueAppend(syncentry, False);
+    try
+      ThreadQueueAppend(syncentry, False);
+    finally
+      syncentry^.Method := Nil;
+      syncentry^.Next := Nil;
 
-    syncentry^.Method := Nil;
-    syncentry^.Next := Nil;
-
-    if not Assigned(thread) then begin
-      { clean up again }
+      if not Assigned(thread) then begin
+        { clean up again }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-      RtlEventDestroy(syncentry^.SyncEvent);
+        RtlEventDestroy(syncentry^.SyncEvent);
 {$endif}
-      Dispose(syncentry);
+        Dispose(syncentry);
+      end;
     end;
   end;
 
