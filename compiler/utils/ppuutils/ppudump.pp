@@ -1357,7 +1357,9 @@ const
          (mask:pi_has_open_array_parameter;
          str:' has open array parameter '),
          (mask:pi_uses_threadvar;
-         str:' uses threadvars ')
+         str:' uses threadvars '),
+         (mask:pi_has_except_table_data;
+         str:' has except table data ')
   );
 var
   procinfooptions : tprocinfoflags;

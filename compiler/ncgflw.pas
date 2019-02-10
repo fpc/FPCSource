@@ -356,7 +356,12 @@ implementation
           begin
             typeindex:=current_procinfo.CurrentAction.AddAction(excepttype);
             current_asmdata.getjumplabel(catchstartlab);
+{$ifdef i386}
             hlcg.a_cmp_const_reg_label (list,osuinttype,OC_EQ,typeindex+1,NR_FUNCTION_RESULT64_HIGH_REG,catchstartlab);
+{$else i386}
+            { we need to find a way to fix this in a generic way }
+            Internalerror(2019021008);
+{$endif i386}
             hlcg.a_jmp_always(list,nextonlabel);
             hlcg.a_label(list,catchstartlab);
           end
