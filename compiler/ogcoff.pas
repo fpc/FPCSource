@@ -592,7 +592,8 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          '.gcc_except_table'
         );
 
 const go32v2stub : array[0..2047] of byte=(

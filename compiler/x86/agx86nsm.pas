@@ -556,7 +556,8 @@ interface
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          ',gcc_except_table'
         );
       var
         secname,secgroup: string;
