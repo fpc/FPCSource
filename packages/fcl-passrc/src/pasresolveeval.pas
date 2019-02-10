@@ -177,11 +177,12 @@ const
   nIllegalAssignmentToForLoopVar = 3111;
   nFunctionHidesIdentifier_NonProc = 3112;
   nTypeXCannotBeExtendedByATypeHelper = 3113;
-  nDerivedXMustExtendASubClassY = 3114;
-  nDefaultPropertyNotAllowedInHelperForX = 3115;
-  nHelpersCannotBeUsedAsTypes = 3116;
-  nBitWiseOperationsAre32Bit = 3117;
-  nImplictConversionUnicodeToAnsi = 3118;
+  nTypeXCannotBeExtendedByARecordHelper = 3114;
+  nDerivedXMustExtendASubClassY = 3115;
+  nDefaultPropertyNotAllowedInHelperForX = 3116;
+  nHelpersCannotBeUsedAsTypes = 3117;
+  nBitWiseOperationsAre32Bit = 3118;
+  nImplictConversionUnicodeToAnsi = 3119;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -306,6 +307,7 @@ resourcestring
   sCantAssignValuesToConstVariable = 'Can''t assign values to const variable';
   sIllegalAssignmentToForLoopVar = 'Illegal assignment to for-loop variable "%s"';
   sTypeXCannotBeExtendedByATypeHelper = 'Type "%s" cannot be extended by a type helper';
+  sTypeXCannotBeExtendedByARecordHelper = 'Type "%s" cannot be extended by a record helper';
   sDerivedXMustExtendASubClassY = 'Derived %s must extend a subclass of "%s" or the class itself';
   sDefaultPropertyNotAllowedInHelperForX = 'Default property not allowed in helper for %s';
   sHelpersCannotBeUsedAsTypes = 'helpers cannot be used as types';

@@ -7158,16 +7158,16 @@ begin
         else if ((HelperForType.ClassType=TPasUnresolvedSymbolRef)
             and (HelperForType.CustomData is TResElDataBaseType)) then
         else
-          RaiseMsg(20190116200304,nTypeXCannotBeExtendedByATypeHelper,
-            sTypeXCannotBeExtendedByATypeHelper,[GetTypeDescription(HelperForType)],aClass);
+          RaiseMsg(20190116200304,nTypeXCannotBeExtendedByARecordHelper,
+            sTypeXCannotBeExtendedByARecordHelper,[GetTypeDescription(HelperForType)],aClass);
         end
       else
         begin
         // mode objfpc
         if (HelperForType.ClassType=TPasRecordType) then
         else
-          RaiseMsg(20190116200519,nTypeXCannotBeExtendedByATypeHelper,
-            sTypeXCannotBeExtendedByATypeHelper,[GetTypeDescription(HelperForType)],aClass);
+          RaiseMsg(20190116200519,nTypeXCannotBeExtendedByARecordHelper,
+            sTypeXCannotBeExtendedByARecordHelper,[GetTypeDescription(HelperForType)],aClass);
         end;
     okTypeHelper:
       begin

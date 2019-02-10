@@ -904,6 +904,7 @@ type
     Procedure TestClassHelper_DefaultClassProperty;
     Procedure TestClassHelper_MultipleScopeHelpers;
     Procedure TestRecordHelper;
+    Procedure TestRecordHelper_ForByteFail;
     Procedure TestRecordHelper_ClassNonStaticFail;
     Procedure TestRecordHelper_InheritedObjFPC;
     Procedure TestRecordHelper_Constructor_NewInstance;
@@ -16749,6 +16750,20 @@ begin
   '  p:=r.Fly;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordHelper_ForByteFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRecHelper = record helper for byte',
+  '    class var Glob: word;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Type "Byte" cannot be extended by a record helper',nTypeXCannotBeExtendedByARecordHelper);
 end;
 
 procedure TTestResolver.TestRecordHelper_ClassNonStaticFail;
