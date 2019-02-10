@@ -557,7 +557,8 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          '.gcc_except_table'
         );
       var
         sep : string[3];

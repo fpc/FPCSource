@@ -1256,7 +1256,8 @@ implementation
           {sec_objc_nlcatlist} [oso_data,oso_load],
           {sec_objc_protolist'} [oso_data,oso_load],
           {stack} [oso_load,oso_write],
-          {heap} [oso_load,oso_write]
+          {heap} [oso_load,oso_write],
+          {gcc_except_table} [oso_data,oso_load]
         );
       begin
         result:=secoptions[atype];

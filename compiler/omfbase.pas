@@ -86,7 +86,8 @@ interface
       'obcj_nlcatlist',
       'objc_protolist',
       'stack',
-      'heap'
+      'heap',
+      'gcc_except_table'
     );
 
     { OMF record types }
@@ -2820,7 +2821,8 @@ implementation
         {objc_nlcatlist} 'DATA',
         {objc_protolist} 'DATA',
         {stack} 'STACK',
-        {heap} 'HEAP'
+        {heap} 'HEAP',
+        {gcc_except_table} 'DATA'
       );
     begin
       result:=segclass[atype];
