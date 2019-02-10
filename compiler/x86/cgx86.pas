@@ -3394,6 +3394,7 @@ unit cgx86;
           r: longint;
           usedregs: tcpuregisterset;
           regs_to_save_int: tcpuregisterarray;
+          hreg: TRegister;
         begin
           regsize:=0;
           usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
@@ -3402,7 +3403,9 @@ unit cgx86;
             if regs_to_save_int[r] in usedregs then
               begin
                 inc(regsize,sizeof(aint));
-                list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE)));
+                hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
+                list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],hreg));
+                current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+localsize));
               end;
         end;
 
@@ -3691,6 +3694,7 @@ unit cgx86;
                   a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
                   inc(href.offset,sizeof(aint));
                 end;
+              current_asmdata.asmcfi.cfa_restore(list,hreg);
             end;
       end;
 
@@ -3712,6 +3716,9 @@ unit cgx86;
             list.Concat(taicpu.op_reg(A_POP,S_W,NR_BP));
 {$endif}
           end;
+        current_asmdata.asmcfi.cfa_restore(list,NR_EBP);
+        current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_ESP);
+        current_asmdata.asmcfi.cfa_def_cfa_offset(list,4);
       end;
 
 
