@@ -86,6 +86,9 @@ interface
            jmpbuf,
            envbuf,
            reasonbuf  : treference;
+           { when using dwarf based eh handling, the landing pads get the unwind info passed, it is
+             stored in the given register so it can be passed to unwind_resum }
+           unwind_info : TRegister;
          end;
 
          texceptionstate = record
@@ -101,12 +104,12 @@ interface
          class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); virtual;
          class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); virtual;
          { start of "except/finally" block }
-         class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate); virtual;
+         class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate;var exceptiontemps:texceptiontemps); virtual;
          { end of a try-block, label comes after the end of try/except or
            try/finally }
          class procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); virtual;
          class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); virtual;
-         class procedure handle_nested_exception(list:TAsmList;const t:texceptiontemps;var entrystate: texceptionstate); virtual;
+         class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); virtual;
          class procedure handle_reraise(list:TAsmList;const t:texceptiontemps;const entrystate: texceptionstate; const exceptframekind: texceptframekind); virtual;
          { start of an "on" (catch) block }
          class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); virtual;
@@ -117,9 +120,41 @@ interface
          class procedure catch_all_end(list: TAsmList); virtual;
          class procedure cleanupobjectstack(list: TAsmList); virtual;
          class procedure popaddrstack(list: TAsmList); virtual;
+         class function use_cleanup(const exceptframekind: texceptframekind): boolean;
        end;
        tcgexceptionstatehandlerclass = class of tcgexceptionstatehandler;
 
+       { Utility class for exception handling state management that is used
+         by tryexcept/tryfinally/on nodes (in a separate class so it can both
+         be shared and overridden)
+
+         Never instantiated. }
+       tpsabiehexceptionstatehandler = class(tcgexceptionstatehandler)
+       protected
+         class procedure begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out
+           exceptlocreg: tregister);
+         class procedure catch_all_start_internal(list: TAsmList; add_catch: boolean);
+       public
+         class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
+         class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
+         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+         { start of "except/finally" block }
+         class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps); override;
+         { end of a try-block, label comes after the end of try/except or
+           try/finally }
+         class procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); override;
+         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+         class procedure handle_reraise(list:TAsmList;const t:texceptiontemps;const entrystate: texceptionstate; const exceptframekind: texceptframekind); override;
+         { start of an "on" (catch) block }
+         class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+         { end of an "on" (catch) block }
+         class procedure end_catch(list: TAsmList); override;
+         { called for a catch all exception }
+         class procedure catch_all_start(list: TAsmList); override;
+         class procedure catch_all_end(list: TAsmList); override;
+         class procedure cleanupobjectstack(list: TAsmList); override;
+         class procedure popaddrstack(list: TAsmList); override;
+       end;
 
        tcgtryexceptnode = class(ttryexceptnode)
         protected
@@ -160,6 +195,239 @@ implementation
       tgobj,paramgr,
       cgobj,hlcgobj,nutils
       ;
+
+    class procedure tpsabiehexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
+      begin
+        tg.gethltemp(list,ossinttype,ossinttype.size,tt_persistent,t.reasonbuf);
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
+      begin
+        tg.ungettemp(list,t.reasonbuf);
+        current_procinfo.PopAction(current_procinfo.CurrentAction);
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.new_exception(list: TAsmList; const t: texceptiontemps;
+      const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+      var
+        reg: tregister;
+        action: TPSABIEHAction;
+      begin
+        exceptstate.oldflowcontrol:=flowcontrol;
+        current_asmdata.getjumplabel(exceptstate.exceptionlabel);
+        if exceptframekind<>tek_except then
+          begin
+            current_asmdata.getjumplabel(exceptstate.finallycodelabel);
+            action:=TPSABIEHAction.Create(exceptstate.finallycodelabel);
+          end
+        else
+          begin
+            exceptstate.finallycodelabel:=nil;
+            action:=TPSABIEHAction.Create(exceptstate.exceptionlabel);
+          end;
+        current_procinfo.CreateNewPSABIEHCallsite;
+        current_procinfo.PushAction(action);
+        current_procinfo.PushLandingPad(action);
+        if exceptframekind<>tek_except then
+          current_procinfo.CurrentAction.AddAction(nil);
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
+        if exceptframekind<>tek_except then
+          begin
+            reg:=hlcg.getintregister(list,ossinttype);
+            hlcg.a_load_const_reg(list,ossinttype,1,reg);
+            hlcg.g_exception_reason_save(list,ossinttype,ossinttype,reg,t.reasonbuf);
+          end;
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind;
+      var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps);
+      begin
+        hlcg.g_unreachable(list);
+        hlcg.a_label(list,exceptionstate.exceptionlabel);
+        if exceptframekind<>tek_except then
+          begin
+            if not assigned(exceptionstate.finallycodelabel) then
+              internalerror(2019021002);
+
+            hlcg.a_label(list,exceptionstate.finallycodelabel);
+            exceptionstate.finallycodelabel:=nil;
+            exceptiontemps.unwind_info:=cg.getaddressregister(list);
+            hlcg.a_load_reg_reg(list,voidpointertype,voidpointertype,NR_FUNCTION_RESULT_REG,exceptiontemps.unwind_info);
+          end;
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps;
+      var exceptionstate: texceptionstate; endlabel: TAsmLabel);
+      var
+        reg: TRegister;
+      begin
+        current_procinfo.CreateNewPSABIEHCallsite;
+        current_procinfo.PopLandingPad(current_procinfo.CurrentLandingPad);
+        if exceptframekind<>tek_except then
+          begin
+            { record that no exception happened in the reason buf, in case we are in a try block of a finally statement }
+            reg:=hlcg.getintregister(list,ossinttype);
+            hlcg.a_load_const_reg(list,ossinttype,0,reg);
+            hlcg.g_exception_reason_save(list,ossinttype,ossinttype,reg,t.reasonbuf);
+          end;
+        inherited;
+        if exceptframekind=tek_except then
+          hlcg.a_jmp_always(list,endlabel);
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint;
+      endexceptlabel: tasmlabel; onlyfree: boolean);
+      begin
+        current_procinfo.CreateNewPSABIEHCallsite;
+//        inherited free_exception(list, t, s, a, endexceptlabel, onlyfree);
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate;
+      const exceptframekind: texceptframekind);
+      var
+        cgpara1: tcgpara;
+        pd: tprocdef;
+        action: TPSABIEHAction;
+      begin
+       cgpara1.init;
+        if exceptframekind<>tek_except
+          { not(fc_catching_exceptions in flowcontrol) and
+           use_cleanup(exceptframekind) } then
+          begin
+            pd:=search_system_proc('fpc_resume');
+            paramanager.getintparaloc(list,pd,1,cgpara1);
+            hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
+            paramanager.freecgpara(list,cgpara1);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_resume',[@cgpara1],nil).resetiftemp
+          end
+        else
+          hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+       cgpara1.done;
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel;
+      add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
+      var
+        catchstartlab : tasmlabel;
+        begincatchres,
+        typeidres,
+        paraloc1: tcgpara;
+        pd: tprocdef;
+        landingpadstructdef,
+        landingpadtypeiddef: tdef;
+        rttisym: TAsmSymbol;
+        rttidef: tdef;
+        rttiref: treference;
+        wrappedexception,
+        exceptiontypeidreg,
+        landingpadres: tregister;
+        exceptloc: tlocation;
+        indirect: boolean;
+        otherunit: boolean;
+        typeindex : aint;
+      begin
+        paraloc1.init;
+        rttidef:=nil;
+        rttisym:=nil;
+        if add_catch then
+          begin
+            if assigned(excepttype) then
+              begin
+                otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+                indirect:=(tf_supports_packages in target_info.flags) and
+                        (target_info.system in systems_indirect_var_imports) and
+                        (cs_imported_data in current_settings.localswitches) and
+                        otherunit;
+                { add "catch exceptiontype" clause to the landing pad }
+                rttidef:=cpointerdef.getreusable(excepttype.vmt_def);
+                rttisym:=current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect);
+              end;
+          end;
+        { check if the exception is handled by this node }
+        if assigned(excepttype) then
+          begin
+            typeindex:=current_procinfo.CurrentAction.AddAction(excepttype);
+            current_asmdata.getjumplabel(catchstartlab);
+            hlcg.a_cmp_const_reg_label (list,osuinttype,OC_EQ,typeindex+1,NR_FUNCTION_RESULT64_HIGH_REG,catchstartlab);
+            hlcg.a_jmp_always(list,nextonlabel);
+            hlcg.a_label(list,catchstartlab);
+          end
+        else
+          current_procinfo.CurrentAction.AddAction(tobjectdef(-1));
+
+        wrappedexception:=hlcg.getaddressregister(list,voidpointertype);
+
+        pd:=search_system_proc('fpc_psabi_begin_catch');
+        paramanager.getintparaloc(list, pd, 1, paraloc1);
+        hlcg.a_load_reg_cgpara(list,voidpointertype,wrappedexception,paraloc1);
+        begincatchres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+        location_reset(exceptloc, LOC_REGISTER, def_cgsize(begincatchres.def));
+        exceptloc.register:=hlcg.getaddressregister(list, begincatchres.def);
+        hlcg.gen_load_cgpara_loc(list, begincatchres.def, begincatchres, exceptloc, true);
+
+        begincatchres.resetiftemp;
+        paraloc1.done;
+
+        exceptlocdef:=begincatchres.def;
+        exceptlocreg:=exceptloc.register;
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.catch_all_start_internal(list: TAsmList; add_catch: boolean);
+      var
+        exceptlocdef: tdef;
+        exceptlocreg: tregister;
+      begin
+        begin_catch_internal(list,nil,nil,add_catch,exceptlocdef,exceptlocreg);
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out
+      exceptlocreg: tregister);
+      begin
+        begin_catch_internal(list,excepttype,nextonlabel,true,exceptlocdef,exceptlocreg);
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.end_catch(list: TAsmList);
+      begin
+        hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
+        inherited;
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.catch_all_start(list: TAsmList);
+      begin
+        catch_all_start_internal(list,true);
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.catch_all_end(list: TAsmList);
+      begin
+        hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.cleanupobjectstack(list: TAsmList);
+      begin
+        // inherited cleanupobjectstack(list);
+//!!! some catch all clause needed?
+//!!!        internalerror(2019021004)
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.popaddrstack(list: TAsmList);
+      begin
+        { there is no addr stack, so do nothing }
+      end;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -564,6 +832,17 @@ implementation
                      tcgexceptionstatehandler
 *****************************************************************************}
 
+    class function tcgexceptionstatehandler.use_cleanup(const exceptframekind: texceptframekind): boolean;
+      begin
+        { in case of an exception caught by the implicit exception frame of
+          a safecall routine, this is not a cleanup frame but one that
+          catches the exception and returns a value from the function }
+        result:=
+          (exceptframekind=tek_implicitfinally) and
+          not((tf_safecall_exceptions in target_info.flags) and
+             (current_procinfo.procdef.proccalloption=pocall_safecall));
+      end;
+
     {  Allocate the buffers for exception management and setjmp environment.
        Return a pointer to these buffers, send them to the utility routine
        so they are registered, and then call setjmp.
@@ -666,7 +945,7 @@ implementation
      end;
 
 
-    class procedure tcgexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate);
+    class procedure tcgexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate;var exceptiontemps:texceptiontemps);
       begin
         hlcg.a_label(list,exceptstate.exceptionlabel);
       end;
@@ -703,13 +982,13 @@ implementation
 
     { generates code to be executed when another exeception is raised while
       control is inside except block }
-    class procedure tcgexceptionstatehandler.handle_nested_exception(list:TAsmList;const t:texceptiontemps;var entrystate: texceptionstate);
+    class procedure tcgexceptionstatehandler.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       var
          exitlabel: tasmlabel;
       begin
          current_asmdata.getjumplabel(exitlabel);
          end_try_block(list,tek_except,t,entrystate,exitlabel);
-         emit_except_label(current_asmdata.CurrAsmList,tek_normalfinally,entrystate);
+         emit_except_label(current_asmdata.CurrAsmList,tek_except,entrystate,t);
          { don't generate line info for internal cleanup }
          list.concat(tai_marker.create(mark_NoLineInfoStart));
          free_exception(list,t,entrystate,0,exitlabel,false);
@@ -723,7 +1002,7 @@ implementation
 
     class procedure tcgexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
       begin
-         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
       end;
 
 
@@ -889,7 +1168,7 @@ implementation
 
          cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,endexceptlabel);
 
-         cexceptionstatehandler.emit_except_label(current_asmdata.CurrAsmList,tek_except,trystate);
+         cexceptionstatehandler.emit_except_label(current_asmdata.CurrAsmList,tek_except,trystate,excepttemps);
          cexceptionstatehandler.free_exception(current_asmdata.CurrAsmList, excepttemps, trystate, 0, endexceptlabel, false);
 
          { end cleanup }
@@ -933,7 +1212,7 @@ implementation
                    part of this try/except }
                  flowcontrol:=trystate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
                  cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,destroytemps);
-                 cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_normalfinally,doobjectdestroyandreraisestate);
+                 cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_except,doobjectdestroyandreraisestate);
                  { the flowcontrol from the default except-block must be merged
                    with the flowcontrol flags potentially set by the
                    on-statements handled above (secondpass(right)), as they are
@@ -1050,7 +1329,7 @@ implementation
            we've to destroy the old one, so create a new
            exception frame for the catch-handler }
          cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-         cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_normalfinally,doobjectdestroyandreraisestate);
+         cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
 
          oldBreakLabel:=nil;
          oldContinueLabel:=nil;
@@ -1177,6 +1456,7 @@ implementation
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_FUNCTION_RESULT_REG, NR_FUNCTION_RETURN_REG);
       end;
 
+
     procedure tcgtryfinallynode.pass_generate_code;
       var
          endfinallylabel,
@@ -1267,7 +1547,7 @@ implementation
              { emit the except label already (to a temporary list) to ensure that any calls in the
                finally block refer to the outer exception frame rather than to the exception frame
                that emits this same finally code in case an exception does happen }
-             cexceptionstatehandler.emit_except_label(tmplist,exceptframekind,finallyexceptionstate);
+             cexceptionstatehandler.emit_except_label(tmplist,exceptframekind,finallyexceptionstate,excepttemps);
 
              flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
              current_asmdata.getjumplabel(finallyNoExceptionLabel);
@@ -1287,7 +1567,7 @@ implementation
              tmplist.free;
            end
          else
-           cexceptionstatehandler.emit_except_label(current_asmdata.CurrAsmList,exceptframekind,finallyexceptionstate);
+           cexceptionstatehandler.emit_except_label(current_asmdata.CurrAsmList,exceptframekind,finallyexceptionstate,excepttemps);
 
          { just free the frame information }
          cexceptionstatehandler.free_exception(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate,1,finallyexceptionstate.exceptionlabel,true);

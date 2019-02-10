@@ -23,6 +23,8 @@ unit psub;
 
 {$i fpcdefs.inc}
 
+{ $define debug_eh}
+
 interface
 
     uses
@@ -66,6 +68,8 @@ interface
 
         function has_assembler_child : boolean;
         procedure set_eh_info; override;
+        procedure setup_eh;
+        procedure finish_eh;
       end;
 
 
@@ -93,7 +97,7 @@ implementation
     uses
        sysutils,
        { common }
-       cutils, cmsgs,
+       cutils, cmsgs, cclasses,
        { global }
        globtype,tokens,verbose,comphook,constexp,
        systems,cpubase,aasmbase,aasmtai,aasmdata,
@@ -116,7 +120,14 @@ implementation
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
        tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
+
+       { dwarf }
+       dwarfbase,
+       cfidwarf,
+
+       ncgflw,
        ncgutil,
+
        optbase,
        opttail,
        optcse,
@@ -1142,15 +1153,116 @@ implementation
           end;
       end;
 
+
     procedure tcgprocinfo.set_eh_info;
       begin
         inherited;
          if (tf_use_psabieh in target_info.flags) and
             ((pi_uses_exceptions in flags) or
              ((cs_implicit_exceptions in current_settings.moduleswitches) and
-              (pi_needs_implicit_finally in flags))) then
-           procdef.personality:=search_system_proc('_FPC_PSABIEH_PERSONALITY_V0');
+              (pi_needs_implicit_finally in flags))) or
+             (pi_has_except_table_data in flags) then
+           procdef.personality:=search_system_proc('_fpc_psabieh_personality_v0');
+         if (tf_use_psabieh in target_info.flags) and not(pi_has_except_table_data in flags) then
+           (current_asmdata.AsmCFI as TDwarfAsmCFI).LSDALabel:=nil;
       end;
+
+
+    procedure tcgprocinfo.setup_eh;
+      var
+        gcc_except_table: tai_section;
+      begin
+        if tf_use_psabieh in target_info.flags then
+          begin
+            gcc_except_table_data:=TAsmList.Create;
+            callsite_table_data:=TAsmList.Create;
+            action_table_data:=TAsmList.Create;
+            actionstack:=TFPList.Create;
+            landingpadstack:=TFPList.Create;
+            typefilterlist:=TFPList.Create;
+            gcc_except_table:=new_section(gcc_except_table_data,sec_gcc_except_table,'',0);
+            gcc_except_table.secflags:=SF_A;
+            gcc_except_table.secprogbits:=SPB_PROGBITS;
+            if not(current_asmdata.AsmCFI is TDwarfAsmCFI) then
+              internalerror(2019021003);
+{$ifdef debug_eh}
+            gcc_except_table_data.concat(tai_comment.Create(strpnew('gcc_except_table for '+procdef.fullprocname(true))));
+{$endif debug_eh}
+            current_asmdata.getlabel(TDwarfAsmCFI(current_asmdata.AsmCFI).LSDALabel,alt_data);
+
+            current_asmdata.getlabel(callsitetablestart,alt_data);
+            current_asmdata.getlabel(callsitetableend,alt_data);
+
+            callsite_table_data.concat(tai_label.create(callsitetablestart));
+            cexceptionstatehandler:=tpsabiehexceptionstatehandler;
+          end;
+      end;
+
+
+    procedure tcgprocinfo.finish_eh;
+      var
+        i: Integer;
+      begin
+        if (tf_use_psabieh in target_info.flags) then
+          begin
+            if pi_has_except_table_data in flags then
+              begin
+                gcc_except_table_data.concat(tai_label.create(TDwarfAsmCFI(current_asmdata.AsmCFI).LSDALabel));
+                { landing pad base is relative to procedure start, so write an omit }
+                gcc_except_table_data.concat(tai_const.create_8bit(DW_EH_PE_omit));
+
+                if typefilterlist.count>0 then
+                  begin
+                    gcc_except_table_data.concat(tai_const.create_8bit(DW_EH_PE_udata4));
+                    current_asmdata.getlabel(typefilterlistlabel,alt_data);
+                    current_asmdata.getlabel(typefilterlistlabelref,alt_data);
+                    gcc_except_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,typefilterlistlabel,typefilterlistlabelref));
+                    gcc_except_table_data.concat(tai_label.create(typefilterlistlabel));
+                  end
+                else
+                  { default types table encoding }
+                  gcc_except_table_data.concat(tai_const.create_8bit(DW_EH_PE_omit));
+
+                { call-site table encoded using uleb128 }
+                gcc_except_table_data.concat(tai_const.create_8bit(DW_EH_PE_uleb128));
+                gcc_except_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,callsitetablestart,callsitetableend));
+
+                callsite_table_data.concat(tai_label.create(callsitetableend));
+{$ifdef debug_eh}
+                gcc_except_table_data.concat(tai_comment.Create(strpnew('Call site table for '+procdef.fullprocname(true))));
+{$endif debug_eh}
+                gcc_except_table_data.concatList(callsite_table_data);
+                { action table must follow immediatly after callsite table }
+{$ifdef debug_eh}
+                if not(action_table_data.Empty) then
+                  gcc_except_table_data.concat(tai_comment.Create(strpnew('Action table for '+procdef.fullprocname(true))));
+{$endif debug_eh}
+                gcc_except_table_data.concatlist(action_table_data);
+                if typefilterlist.count>0 then
+                  begin
+{$ifdef debug_eh}
+                    gcc_except_table_data.concat(tai_comment.Create(strpnew('Type filter list for '+procdef.fullprocname(true))));
+{$endif debug_eh}
+                    for i:=typefilterlist.count-1 downto 0 do
+                      begin
+{$ifdef debug_eh}
+                        gcc_except_table_data.concat(tai_comment.Create(strpnew('Type filter '+tostr(i))));
+{$endif debug_eh}
+                        if assigned(typefilterlist[i]) then
+                          gcc_except_table_data.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(tobjectdef(typefilterlist[i]).vmt_mangledname, AT_DATA)))
+                        else
+                          gcc_except_table_data.concat(tai_const.Create_32bit(0));
+                      end;
+                    { the types are resolved by the negative offset, so the label must be written after all types }
+                    gcc_except_table_data.concat(tai_label.create(typefilterlistlabelref));
+                  end;
+
+                new_section(gcc_except_table_data,sec_code,'',0);
+                aktproccode.concatlist(gcc_except_table_data);
+              end;
+          end;
+      end;
+
 
     procedure tcgprocinfo.generate_code_tree;
       var
@@ -1531,6 +1643,8 @@ implementation
           begin
             create_hlcodegen;
 
+            setup_eh;
+
             if (procdef.proctypeoption<>potype_exceptfilter) then
               setup_tempgen;
 
@@ -1751,6 +1865,9 @@ implementation
                 hlcg.gen_stack_check_size_para(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
+
+            current_procinfo.set_eh_info;
+
             { Add entry code (stack allocation) after header }
             current_filepos:=entrypos;
             gen_proc_entry_code(templist);
@@ -1776,7 +1893,13 @@ implementation
                not(target_info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
 
-            current_procinfo.set_eh_info;
+             { sanity check }
+             if not(assigned(current_procinfo.procdef.personality)) and
+                (tf_use_psabieh in target_info.flags) and
+                ((pi_uses_exceptions in flags) or
+                 ((cs_implicit_exceptions in current_settings.moduleswitches) and
+                  (pi_needs_implicit_finally in flags))) then
+               Internalerror(2019021005);
 
             { Position markers are only used to insert additional code after the secondpass
               and before this point. They are of no use in optimizer. Instead of checking and
@@ -1821,6 +1944,8 @@ implementation
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then
               current_debuginfo.insertlineinfo(aktproccode);
+
+            finish_eh;
 
             hlcg.record_generated_code_for_procdef(current_procinfo.procdef,aktproccode,aktlocaldata);
 

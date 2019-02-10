@@ -53,7 +53,6 @@ interface
      protected
       class procedure begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
       class procedure catch_all_start_internal(list: TAsmList; add_catch: boolean);
-      class function use_cleanup(const exceptframekind: texceptframekind): boolean;
     end;
 
     tllvmtryexceptnode = class(tcgtryexceptnode)
@@ -396,19 +395,6 @@ implementation
       begin
         begin_catch_internal(list,nil,nil,add_catch,exceptlocdef,exceptlocreg);
       end;
-
-
-    class function tllvmexceptionstatehandler.use_cleanup(const exceptframekind: texceptframekind): boolean;
-      begin
-        { in case of an exception caught by the implicit exception frame of
-          a safecall routine, this is not a cleanup frame but one that
-          catches the exception and returns a value from the function }
-        result:=
-          (exceptframekind=tek_implicitfinally) and
-          not((tf_safecall_exceptions in target_info.flags) and
-             (current_procinfo.procdef.proccalloption=pocall_safecall));
-      end;
-
 
 {*****************************************************************************
                      tllvmexceptionstatehandler
