@@ -2010,6 +2010,9 @@ const
   TempRefObjGetterName = 'get';
   TempRefObjSetterName = 'set';
   TempRefObjSetterArgName = 'v';
+  TempRefGetPathName = 'p';
+  TempRefSetPathName = 's';
+  TempRefParamName = 'a';
   IdentChars = ['0'..'9', 'A'..'Z', 'a'..'z','_'];
 
 function CodePointToJSString(u: longword): TJSString;
@@ -17043,21 +17046,56 @@ var
       end;
   end;
 
+  function CreateRefObj(PosEl: TPasElement;
+    GetExpr, SetExpr: TJSElement; SetterArgName: string;
+    PathExpr: TJSElement = nil): TJSObjectLiteral;
+  var
+    Obj: TJSObjectLiteral;
+    ObjLit: TJSObjectLiteralElement;
+    FuncSt: TJSFunctionDeclarationStatement;
+    RetSt: TJSReturnStatement;
+  begin
+    Obj:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,PosEl));
+    Result:=Obj;
+
+    if PathExpr<>nil then
+      begin
+      // add "p:path"
+      ObjLit:=Obj.Elements.AddElement;
+      ObjLit.Name:=TJSString(TempRefGetPathName);
+      ObjLit.Expr:=PathExpr;
+      end;
+
+    // add "get: function(){return Left}"
+    ObjLit:=Obj.Elements.AddElement;
+    ObjLit.Name:=TempRefObjGetterName;
+    FuncSt:=CreateFunctionSt(PosEl);
+    ObjLit.Expr:=FuncSt;
+    RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,PosEl));
+    FuncSt.AFunction.Body.A:=RetSt;
+    RetSt.Expr:=GetExpr;
+
+    // add "set: function(v){Left=v}"
+    ObjLit:=Obj.Elements.AddElement;
+    ObjLit.Name:=TempRefObjSetterName;
+    FuncSt:=CreateFunctionSt(PosEl);
+    ObjLit.Expr:=FuncSt;
+    if SetterArgName<>'' then
+      FuncSt.AFunction.Params.Add(SetterArgName);
+    FuncSt.AFunction.Body.A:=SetExpr;
+  end;
+
   function ConvertImplicitLeftIdentifier(PosEl: TPasElement;
     const LeftResolved: TPasResolverResult): TJSElement;
   var
     GetExpr, SetExpr: TJSElement;
     SetterArgName: string;
     AssignSt: TJSSimpleAssignStatement;
-    Obj: TJSObjectLiteral;
-    FuncSt: TJSFunctionDeclarationStatement;
-    RetSt: TJSReturnStatement;
-    ObjLit: TJSObjectLiteralElement;
     Arg: TPasArgument;
   begin
     // implicit Left (e.g. with Left do proc, or Self.proc)
 
-    if (LeftResolved.IdentEl is TPasArgument) then
+    if LeftResolved.IdentEl is TPasArgument then
       begin
       Arg:=TPasArgument(LeftResolved.IdentEl);
       if Arg.Access in [argVar,argOut] then
@@ -17087,30 +17125,82 @@ var
     else
       begin
       // SetExpr  rtl.raiseE("EPropReadOnly")
+      SetterArgName:='';
       SetExpr:=CreateRaisePropReadOnly(PosEl);
       end;
 
-    Obj:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,PosEl));
-    Result:=Obj;
+    Result:=CreateRefObj(PosEl,GetExpr,SetExpr,SetterArgName);
+  end;
 
-    // add "get: function(){return Left}"
-    ObjLit:=Obj.Elements.AddElement;
-    ObjLit.Name:=TempRefObjGetterName;
-    FuncSt:=CreateFunctionSt(PosEl);
-    ObjLit.Expr:=FuncSt;
-    RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,PosEl));
-    FuncSt.AFunction.Body.A:=RetSt;
-    RetSt.Expr:=GetExpr;
-    GetExpr:=nil;
+  function CreatePropertyReference(PosEl: TPasElement;
+    const LeftResolved: TPasResolverResult): TJSElement;
+  var
+    Prop: TPasProperty;
+    OldAccess: TCtxAccess;
+    GetExpr, SetExpr, LeftJS, PathExpr: TJSElement;
+    DotExpr: TJSDotMemberExpression;
+    AssignSt: TJSSimpleAssignStatement;
+    SetterArgName, aName: String;
+  begin
+    // explicit Left is property
+    // path.Prop.Proc or Prop.Proc
+    Prop:=TPasProperty(LeftResolved.IdentEl);
 
-    // add "set: function(v){Left=v}"
-    ObjLit:=Obj.Elements.AddElement;
-    ObjLit.Name:=TempRefObjSetterName;
-    FuncSt:=CreateFunctionSt(PosEl);
-    ObjLit.Expr:=FuncSt;
-    FuncSt.AFunction.Params.Add(SetterArgName);
-    FuncSt.AFunction.Body.A:=SetExpr;
-    SetExpr:=nil;
+    OldAccess:=AContext.Access;
+    AContext.Access:=caRead;
+    LeftJS:=ConvertExpression(Left,AContext);
+    AContext.Access:=OldAccess;
+    {$IFDEF VerbosePas2JS}
+    writeln('CreatePropertyReference LeftJS=',GetObjName(LeftJS));
+    {$ENDIF}
+
+    PathExpr:=nil;
+    SetterArgName:='';
+    if LeftJS.ClassType=TJSLiteral then
+      begin
+      // getter is a const
+      // convert to {get:function(){return value},set:function(v){ error }}
+      SetExpr:=CreateRaisePropReadOnly(PosEl);
+      GetExpr:=LeftJS;
+      end
+    else if LeftJS.ClassType=TJSDotMemberExpression then
+      begin
+      // getter is a field
+      // convert to {p:path,get:function(){return this.p.field},set:function(v){ this.p.field=v }}
+      DotExpr:=TJSDotMemberExpression(LeftJS);
+      PathExpr:=DotExpr.MExpr;
+      DotExpr.MExpr:=nil;
+      aName:=String(DotExpr.Name);
+      DotExpr.Free;
+      GetExpr:=CreateMemberExpression(['this',TempRefGetPathName,aName]);
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
+      if vmClass in Prop.VarModifiers then
+        // assign class field -> always use class path
+        AssignSt.LHS:=CreateDotExpression(PosEl,
+           CreateReferencePathExpr(Prop.Parent,AContext),
+           CreatePrimitiveDotExpr(aName,PosEl))
+      else
+        AssignSt.LHS:=CreateMemberExpression(['this',TempRefGetPathName,aName]);
+      SetExpr:=AssignSt;
+      SetterArgName:=TempRefObjSetterArgName;
+      AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,PosEl);
+      end
+    else if LeftJS.ClassType=TJSCallExpression then
+      begin
+      // getter is a function
+      // convert to {p:FuncResult(),get:function(){return this.p},set:function(v){ this.p=v }}
+      PathExpr:=TJSCallExpression(LeftJS);
+      GetExpr:=CreateMemberExpression(['this',TempRefGetPathName]);
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
+      AssignSt.LHS:=CreateMemberExpression(['this',TempRefGetPathName]);
+      SetExpr:=AssignSt;
+      SetterArgName:=TempRefObjSetterArgName;
+      AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,PosEl);
+      end
+    else
+      RaiseNotSupported(PosEl,AContext,20190210193605,GetObjName(LeftJS));
+
+    Result:=CreateRefObj(PosEl,GetExpr,SetExpr,SetterArgName,PathExpr);
   end;
 
   function CreateReference(PosEl: TPasElement;
@@ -17118,15 +17208,19 @@ var
   var
     ProcScope: TPas2JSProcedureScope;
   begin
-    ProcScope:=Proc.CustomData as TPas2JSProcedureScope;
-    if ProcScope.ImplProc<>nil then
-      ProcScope:=ProcScope.ImplProc.CustomData as TPas2JSProcedureScope;
-    if ProcScope.SelfArg=nil then
-      RaiseNotSupported(PosEl,AContext,20190209214906,GetObjName(Proc));
     if Left=nil then
       Result:=ConvertImplicitLeftIdentifier(PosEl,LeftResolved)
+    else if LeftResolved.IdentEl is TPasProperty then
+      Result:=CreatePropertyReference(PosEl,LeftResolved)
     else
+      begin
+      ProcScope:=Proc.CustomData as TPas2JSProcedureScope;
+      if ProcScope.ImplProc<>nil then
+        ProcScope:=ProcScope.ImplProc.CustomData as TPas2JSProcedureScope;
+      if ProcScope.SelfArg=nil then
+        RaiseNotSupported(PosEl,AContext,20190209214906,GetObjName(Proc));
       Result:=CreateProcCallArgRef(Left,LeftResolved,ProcScope.SelfArg,AContext);
+      end;
   end;
 
 var
@@ -17244,7 +17338,7 @@ begin
         Prop:=TPasProperty(Ref.Declaration);
       end;
     {$IFDEF VerbosePas2JS}
-    writeln('TPasToJSConverter.CreateCallHelperMethod IsConstructorNormalCall=',IsConstructorNormalCall,' Ref=',GetObjName(Ref),' Left=',GetObjName(Left),' ',GetResolverResultDbg(LeftResolved));
+    writeln('TPasToJSConverter.CreateCallHelperMethod IsStatic=',IsStatic,' IsConstructorNormalCall=',IsConstructorNormalCall,' Ref=',GetObjName(Ref),' Left=',GetObjName(Left),' ',GetResolverResultDbg(LeftResolved));
     {$ENDIF}
 
     if IsStatic then
@@ -17309,6 +17403,7 @@ begin
         if (C=TPasArgument)
             or (C=TPasVariable)
             or (C=TPasConst)
+            or (C=TPasProperty)
             or (C=TPasResultElement)
             or (C=TPasEnumValue) then
           begin
@@ -19198,7 +19293,6 @@ var
   MExpr, LastMExpr: TJSMemberExpression;
   k: integer;
   CurName: String;
-  Lit: TJSLiteral;
 begin
   if Length(Members) < 1 then
     DoError(20161024192715,'internal error: member expression needs at least one element');
@@ -19215,9 +19309,9 @@ begin
       else
         CurName:=copy(CurName,2,length(CurName)-1);
       MExpr := TJSBracketMemberExpression.Create(0,0,'');
-      Lit:=TJSLiteral.Create(0,0,'');
-      Lit.Value.CustomValue:=TJSString(CurName);
-      TJSBracketMemberExpression(MExpr).Name := Lit;
+      Prim := TJSPrimaryExpressionIdent.Create(0, 0, '');
+      Prim.Name:=TJSString(CurName);
+      TJSBracketMemberExpression(MExpr).Name := Prim;
       end
     else
       begin
@@ -20188,6 +20282,12 @@ begin
     if WithData.WithVarName='' then
       RaiseNotSupported(WithData.Expr,AContext,20190209092506,GetObjName(El));
     Prepend(Result,WithData.WithVarName);
+    if not (wesfOnlyTypeMembers in WithData.Flags)
+        and IsClassFunction(El) and (not TPasProcedure(El).IsStatic) then
+      begin
+      // with Obj do NonStaticClassMethod -> append .$class
+      Append_GetClass(El);
+      end;
     end
   else
     begin
@@ -20625,10 +20725,6 @@ end;
 function TPasToJSConverter.CreateProcCallArgRef(El: TPasExpr;
   ResolvedEl: TPasResolverResult; TargetArg: TPasArgument;
   AContext: TConvertContext): TJSElement;
-const
-  GetPathName = 'p';
-  SetPathName = 's';
-  ParamName = 'a';
 var
   Obj: TJSObjectLiteral;
 
@@ -20723,9 +20819,9 @@ begin
         // Will create "{p:GetPathExpr, get:function(){return GetExpr;},
         //                              set:function(v){SetExpr = v;}}"
         GetPathExpr:=CreatePrimitiveDotExpr(LeftStr(GetPath,GetDotPos-1),El);
-        GetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+copy(GetPath,GetDotPos+1),El);
+        GetExpr:=CreatePrimitiveDotExpr('this.'+TempRefGetPathName+'.'+copy(GetPath,GetDotPos+1),El);
         if SetExpr=nil then
-          SetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+copy(GetPath,GetDotPos+1),El);
+          SetExpr:=CreatePrimitiveDotExpr('this.'+TempRefGetPathName+'.'+copy(GetPath,GetDotPos+1),El);
         end
       else
         begin
@@ -20748,13 +20844,13 @@ begin
           if LeftStr(GetPath,GetDotPos)=LeftStr(SetPath,SetDotPos) then
             begin
             // use GetPathExpr for setter
-            SetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+copy(SetPath,GetDotPos+1),El);
+            SetExpr:=CreatePrimitiveDotExpr('this.'+TempRefGetPathName+'.'+copy(SetPath,GetDotPos+1),El);
             end
           else
             begin
             // setter needs its own SetPathExpr
             SetPathExpr:=CreatePrimitiveDotExpr(LeftStr(SetPath,SetDotPos-1),El);
-            SetExpr:=CreatePrimitiveDotExpr('this.'+SetPathName+'.'+copy(SetPath,GetDotPos+1),El);
+            SetExpr:=CreatePrimitiveDotExpr('this.'+TempRefSetPathName+'.'+copy(SetPath,GetDotPos+1),El);
             end;
           end;
         end;
@@ -20773,11 +20869,11 @@ begin
       // SetExpr:  this.p.i
       DotExpr:=TJSDotMemberExpression(FullGetter);
       GetPathExpr:=DotExpr.MExpr;
-      DotExpr.MExpr:=CreatePrimitiveDotExpr('this.'+GetPathName,El);
+      DotExpr.MExpr:=CreatePrimitiveDotExpr('this.'+TempRefGetPathName,El);
       GetExpr:=DotExpr;
       FullGetter:=nil;
       if (rrfWritable in ResolvedEl.Flags) then
-        SetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+String(DotExpr.Name),El)
+        SetExpr:=CreatePrimitiveDotExpr('this.'+TempRefGetPathName+'.'+String(DotExpr.Name),El)
       else
         SetExpr:=IfReadOnlyCreateRaiseE(ParamContext);
       end
@@ -20795,22 +20891,22 @@ begin
       ParamExpr:=BracketExpr.Name;
 
       // create "a:ParamExpr"
-      AddVar(ParamName,ParamExpr);
+      AddVar(TempRefParamName,ParamExpr);
 
       // create GetPathExpr "this.arr"
       GetPathExpr:=BracketExpr.MExpr;
 
       // GetExpr  "this.p[this.a]"
-      BracketExpr.MExpr:=CreatePrimitiveDotExpr('this.'+GetPathName,El);
-      BracketExpr.Name:=CreatePrimitiveDotExpr('this.'+ParamName,El);
+      BracketExpr.MExpr:=CreatePrimitiveDotExpr('this.'+TempRefGetPathName,El);
+      BracketExpr.Name:=CreatePrimitiveDotExpr('this.'+TempRefParamName,El);
       GetExpr:=BracketExpr;
       FullGetter:=nil;
 
       // SetExpr  "this.p[this.a]"
       BracketExpr:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
       SetExpr:=BracketExpr;
-      BracketExpr.MExpr:=CreatePrimitiveDotExpr('this.'+GetPathName,El);
-      BracketExpr.Name:=CreatePrimitiveDotExpr('this.'+ParamName,El);
+      BracketExpr.MExpr:=CreatePrimitiveDotExpr('this.'+TempRefGetPathName,El);
+      BracketExpr.Name:=CreatePrimitiveDotExpr('this.'+TempRefParamName,El);
       end
     else if FullGetter.ClassType=TJSCallExpression then
       begin
@@ -20823,14 +20919,14 @@ begin
       // }
 
       // create "p:FullGetter"
-      AddVar(ParamName,FullGetter);
+      AddVar(TempRefParamName,FullGetter);
       FullGetter:=nil;
 
       // GetExpr  "this.a"
-      GetExpr:=CreatePrimitiveDotExpr('this.'+ParamName,El);
+      GetExpr:=CreatePrimitiveDotExpr('this.'+TempRefParamName,El);
 
       // SetExpr  "this.a"
-      SetExpr:=CreatePrimitiveDotExpr('this.'+ParamName,El);
+      SetExpr:=CreatePrimitiveDotExpr('this.'+TempRefParamName,El);
       end
     else if FullGetter.ClassType=TJSLiteral then
       begin
@@ -20900,7 +20996,7 @@ begin
       RaiseInconsistency(20170213225940,El);
 
     // add   p:GetPathExpr
-    AddVar(GetPathName,GetPathExpr);
+    AddVar(TempRefGetPathName,GetPathExpr);
 
     // add   get:function(){ return GetExpr; }
     ObjLit:=Obj.Elements.AddElement;
@@ -20913,7 +21009,7 @@ begin
     GetExpr:=nil;
 
     // add   s:SetPathExpr
-    AddVar(SetPathName,SetPathExpr);
+    AddVar(TempRefSetPathName,SetPathExpr);
 
     // add   set:function(v){ SetExpr }
     ObjLit:=Obj.Elements.AddElement;
