@@ -645,24 +645,34 @@ type
     Procedure TestClassHelper_ClassPropertyStatic;
     Procedure TestClassHelper_ClassProperty_Array;
     Procedure TestClassHelper_ForIn;
+    // ToDo: RTTI, class property static/nonstatic
     Procedure TestExtClassHelper_ClassVar;
     Procedure TestExtClassHelper_Method_Call;
     Procedure TestRecordHelper_ClassVar;
     Procedure TestRecordHelper_Method_Call;
-    Procedure TestRecorHelper_Constructor;
-    // todo: TestRecordHelper_Args
-    // todo: TestRecordHelper_Property
-    // todo: TestRecordHelper_Property_Array
-    // todo: TestRecordHelper_ClassProperty
-    // todo: TestRecordHelper_ClassProperty_Array
-    // todo: TestTypeHelper_ClassVar
-    // todo: TestTypeHelper_Method
+    Procedure TestRecordHelper_Constructor;
+    Procedure TestTypeHelper_ClassVar;
+    Procedure TestTypeHelper_ResultElement;
+    Procedure TestTypeHelper_Args;
+    Procedure TestTypeHelper_VarConst;
+    // todo: var
+    // todo: not writable const
+    // todo: literal
     // todo: TestTypeHelper_ClassMethod
     // todo: TestTypeHelper_Constructor;
     // todo: TestTypeHelper_Property
     // todo: TestTypeHelper_Property_Array
     // todo: TestTypeHelper_ClassProperty
     // todo: TestTypeHelper_ClassProperty_Array
+    //Procedure TestTypeHelper_Word;
+    //Procedure TestTypeHelper_IntRange;
+    //Procedure TestTypeHelper_String;
+    //Procedure TestTypeHelper_Char;
+    //Procedure TestTypeHelper_Currency;
+    //Procedure TestTypeHelper_Array;
+    //Procedure TestTypeHelper_EnumType;
+    //Procedure TestTypeHelper_SetType;
+    //Procedure TestTypeHelper_InterfaceFail;
 
     // proc types
     Procedure TestProcType;
@@ -20522,6 +20532,7 @@ begin
   '  Result:=Self.Glob;',
   '  Self.Glob:=Self.Glob;',
   '  with Self do Glob:=Glob;',
+  '  Self:=Self;',
   'end;',
   'class function THelper.bar(w: word): word;',
   'begin',
@@ -20567,6 +20578,7 @@ begin
     '    Result = $mod.THelper.Glob;',
     '    $mod.THelper.Glob = $mod.THelper.Glob;',
     '    $mod.THelper.Glob = $mod.THelper.Glob;',
+    '    this.$assign(this);',
     '    return Result;',
     '  };',
     '  this.Bar = function (w) {',
@@ -20700,7 +20712,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestRecorHelper_Constructor;
+procedure TTestModule.TestRecordHelper_Constructor;
 begin
   StartProgram(false);
   Add([
@@ -20769,6 +20781,358 @@ begin
     '$mod.THelper.$new("NewHlp", [3]);',
     'var $with2 = $mod.TRec;',
     '$mod.THelper.$new("NewHlp", [13]);',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_ClassVar;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for byte',
+  '    const',
+  '      One = 1;',
+  '      Two: word = 2;',
+  '    class var',
+  '      Glob: word;',
+  '    function Foo(w: word): word;',
+  '    class function Bar(w: word): word; static;',
+  '  end;',
+  'function THelper.foo(w: word): word;',
+  'begin',
+  '  Result:=w;',
+  '  Two:=One+w;',
+  '  Glob:=Glob;',
+  '  Result:=Self.Glob;',
+  '  Self.Glob:=Self.Glob;',
+  '  with Self do Glob:=Glob;',
+  'end;',
+  'class function THelper.bar(w: word): word;',
+  'begin',
+  '  Result:=w;',
+  '  Two:=One;',
+  '  Glob:=Glob;',
+  'end;',
+  'var b: byte;',
+  'begin',
+  '  byte.two:=byte.one;',
+  '  byte.Glob:=byte.Glob;',
+  '  with byte do begin',
+  '    two:=one;',
+  '    Glob:=Glob;',
+  '  end;',
+  '  b.two:=b.one;',
+  '  b.Glob:=b.Glob;',
+  '  with b do begin',
+  '    two:=one;',
+  '    Glob:=Glob;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_ClassVar',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.One = 1;',
+    '  this.Two = 2;',
+    '  this.Glob = 0;',
+    '  this.Foo = function (w) {',
+    '    var Result = 0;',
+    '    Result = w;',
+    '    $mod.THelper.Two = 1 + w;',
+    '    $mod.THelper.Glob = $mod.THelper.Glob;',
+    '    Result = $mod.THelper.Glob;',
+    '    $mod.THelper.Glob = $mod.THelper.Glob;',
+    '    var $with1 = this.get();',
+    '    $mod.THelper.Glob = $mod.THelper.Glob;',
+    '    return Result;',
+    '  };',
+    '  this.Bar = function (w) {',
+    '    var Result = 0;',
+    '    Result = w;',
+    '    $mod.THelper.Two = 1;',
+    '    $mod.THelper.Glob = $mod.THelper.Glob;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.b = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.Two = 1;',
+    '$mod.THelper.Glob = $mod.THelper.Glob;',
+    '$mod.THelper.Two = 1;',
+    '$mod.THelper.Glob = $mod.THelper.Glob;',
+    '$mod.THelper.Two = 1;',
+    '$mod.THelper.Glob = $mod.THelper.Glob;',
+    'var $with1 = $mod.b;',
+    '$mod.THelper.Two = 1;',
+    '$mod.THelper.Glob = $mod.THelper.Glob;',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_ResultElement;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for word',
+  '    procedure DoIt(e: byte = 123);',
+  '    class procedure DoSome(e: byte = 456); static;',
+  '  end;',
+  'procedure THelper.DoIt(e: byte);',
+  'begin',
+  'end;',
+  'class procedure THelper.DoSome(e: byte);',
+  'begin',
+  'end;',
+  'function Foo(w: word): word;',
+  'begin',
+  '  Result.DoIt;',
+  '  Result.DoIt();',
+  '  Result.DoSome;',
+  '  Result.DoSome();',
+  '  with Result do begin',
+  '    DoIt;',
+  '    DoIt();',
+  '    DoSome;',
+  '    DoSome();',
+  '  end;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_ResultElement',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.DoIt = function (e) {',
+    '  };',
+    '  this.DoSome = function (e) {',
+    '  };',
+    '});',
+    'this.Foo = function (w) {',
+    '  var Result = 0;',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return Result;',
+    '      },',
+    '    set: function (v) {',
+    '        Result = v;',
+    '      }',
+    '  }, 123);',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return Result;',
+    '      },',
+    '    set: function (v) {',
+    '        Result = v;',
+    '      }',
+    '  }, 123);',
+    '  $mod.THelper.DoSome(456);',
+    '  $mod.THelper.DoSome(456);',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return Result;',
+    '      },',
+    '    set: function (v) {',
+    '        Result = v;',
+    '      }',
+    '  }, 123);',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return Result;',
+    '      },',
+    '    set: function (v) {',
+    '        Result = v;',
+    '      }',
+    '  }, 123);',
+    '  $mod.THelper.DoSome(456);',
+    '  $mod.THelper.DoSome(456);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_Args;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for word',
+  '    procedure DoIt(e: byte = 123);',
+  '  end;',
+  'procedure THelper.DoIt(e: byte);',
+  'begin',
+  'end;',
+  'procedure FooDefault(a: word);',
+  'begin',
+  '  a.DoIt;',
+  '  with a do DoIt;',
+  'end;',
+  'procedure FooConst(const a: word);',
+  'begin',
+  '  a.DoIt;',
+  '  with a do DoIt;',
+  'end;',
+  'procedure FooVar(var a: word);',
+  'begin',
+  '  a.DoIt;',
+  '  with a do DoIt;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_Args',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.DoIt = function (e) {',
+    '  };',
+    '});',
+    'this.FooDefault = function (a) {',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return a;',
+    '      },',
+    '    set: function (v) {',
+    '        a = v;',
+    '      }',
+    '  }, 123);',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return a;',
+    '      },',
+    '    set: function (v) {',
+    '        a = v;',
+    '      }',
+    '  }, 123);',
+    '};',
+    'this.FooConst = function (a) {',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return a;',
+    '      },',
+    '    set: function (v) {',
+    '        rtl.raiseE("EPropReadOnly");',
+    '      }',
+    '  }, 123);',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return a;',
+    '      },',
+    '    set: function () {',
+    '        rtl.raiseE("EPropReadOnly");',
+    '      }',
+    '  }, 123);',
+    '};',
+    'this.FooVar = function (a) {',
+    '  $mod.THelper.DoIt.apply(a, 123);',
+    '  var $with1 = a.get();',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return $with1;',
+    '      },',
+    '    set: function (v) {',
+    '        $with1 = v;',
+    '      }',
+    '  }, 123);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_VarConst;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for word',
+  '    procedure DoIt(e: byte = 123);',
+  '  end;',
+  'procedure THelper.DoIt(e: byte);',
+  'begin',
+  'end;',
+  'var a: word;',
+  'const c: word = 2;',
+  '{$writeableconst off}',
+  'const r: word = 3;',
+  'begin',
+  '  a.DoIt;',
+  '  with a do DoIt;',
+  '  c.DoIt;',
+  '  with c do DoIt;',
+  '  r.DoIt;',
+  '  with r do DoIt;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_VarConst',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.DoIt = function (e) {',
+    '  };',
+    '});',
+    'this.a = 0;',
+    'this.c = 2;',
+    'this.r = 3;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.DoIt.apply({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.a;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.a = v;',
+    '    }',
+    '}, 123);',
+    'var $with1 = $mod.a;',
+    '$mod.THelper.DoIt.apply({',
+    '  get: function () {',
+    '      return $with1;',
+    '    },',
+    '  set: function (v) {',
+    '      $with1 = v;',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.DoIt.apply({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.c;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.c = v;',
+    '    }',
+    '}, 123);',
+    'var $with2 = $mod.c;',
+    '$mod.THelper.DoIt.apply({',
+    '  get: function () {',
+    '      return $with2;',
+    '    },',
+    '  set: function (v) {',
+    '      $with2 = v;',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.DoIt.apply({',
+    '  get: function () {',
+    '      return 3;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '}, 123);',
+    'var $with3 = 3;',
+    '  $mod.THelper.DoIt.apply({',
+    '    get: function () {',
+    '        return $with3;',
+    '      },',
+    '    set: function () {',
+    '        rtl.raiseE("EPropReadOnly");',
+    '      }',
+    '  }, 123);',
     '']));
 end;
 
