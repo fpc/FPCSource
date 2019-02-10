@@ -308,9 +308,12 @@ begin
   if (GetCurrentThreadID = MainThreadID) and (not aQueueIfMain or not IsMultiThread) then
 {$endif}
   begin
-    ExecuteThreadQueueEntry(aEntry);
-    if not Assigned(aEntry^.SyncEvent) then
-      Dispose(aEntry);
+    try
+      ExecuteThreadQueueEntry(aEntry);
+    finally
+      if not Assigned(aEntry^.SyncEvent) then
+        Dispose(aEntry);
+    end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   end else begin
     { store thread and whether we're dealing with a synchronized event; the
