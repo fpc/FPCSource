@@ -608,6 +608,7 @@ type
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
     Procedure TestClass_Const;
+    Procedure TestClass_ClassMissingVarFail;
     Procedure TestClass_ClassConstFail;
     Procedure TestClass_Enumerator;
     Procedure TestClass_EnumeratorFunc;
@@ -10770,6 +10771,18 @@ begin
   '  with Cla do if ci=26 then;']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestClass_ClassMissingVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class c: word;',
+  '  end;',
+  'begin']);
+  CheckParserException('Expected "procedure or function"',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestClass_ClassConstFail;

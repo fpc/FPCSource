@@ -6670,7 +6670,12 @@ begin
           CurSection:=stNone
         else
           begin
-          if not haveClass then
+          if haveClass then
+            begin
+            if LastToken=tkclass then
+              ParseExcTokenError('procedure or function');
+            end
+          else
             SaveComments;
           Case CurSection of
           stType:
