@@ -1303,9 +1303,17 @@ begin
             add('  {');
             add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
             add('  }');
+            add('  .rodata1        : { *(.rodata1) }');
+            add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
+            add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
+            add('  .gcc_except_table   : { KEEP *(.gcc_except_table .gcc_except_table.*) }');
+
             {Adjust the address for the data segment.  We want to adjust up to
              the same address within the page on the next page up.}
             add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1));');
+            add('  /* Exception handling  */');
+            add('  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }');
+            add('  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }');
             add('  .dynamic        : { *(.dynamic) }');
             add('  .got            : { *(.got) }');
             add('  .got.plt        : { *(.got.plt) }');
