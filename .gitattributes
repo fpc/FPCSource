@@ -172,6 +172,7 @@ compiler/dbgstabx.pas svneol=native#text/plain
 compiler/defcmp.pas svneol=native#text/plain
 compiler/defutil.pas svneol=native#text/plain
 compiler/dirparse.pas svneol=native#text/plain
+compiler/dwarfbase.pas svneol=native#text/plain
 compiler/elfbase.pas svneol=native#text/plain
 compiler/entfile.pas svneol=native#text/plain
 compiler/export.pas svneol=native#text/plain
