@@ -7853,9 +7853,8 @@ begin
       Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,true);
       end;
     end
-  else if (Decl.ClassType=TPasArgument) and (Decl.Parent is TPasProcedure)
-      and (CompareText(aName,'Self')=0) then
-    Name:=AContext.GetLocalName(Decl)
+  else if Decl.ClassType=TPasArgument then
+    Name:=TransformArgName(TPasArgument(Decl),AContext)
   else
     Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
   if Name='' then
@@ -17054,8 +17053,21 @@ var
     FuncSt: TJSFunctionDeclarationStatement;
     RetSt: TJSReturnStatement;
     ObjLit: TJSObjectLiteralElement;
+    Arg: TPasArgument;
   begin
     // implicit Left (e.g. with Left do proc, or Self.proc)
+
+    if (LeftResolved.IdentEl is TPasArgument) then
+      begin
+      Arg:=TPasArgument(LeftResolved.IdentEl);
+      if Arg.Access in [argVar,argOut] then
+        begin
+        // implicit Left is already a reference
+        Result:=CreatePrimitiveDotExpr(TransformArgName(Arg,AContext),PosEl);
+        exit;
+        end;
+      end;
+
     // ->  {get: function(){return GetExpr},set:function(v){SetExpr}}
 
     // GetExpr  "ImplicitLeft"
@@ -17190,7 +17202,9 @@ begin
       else
         begin
         // inside helper method, no explicit left expression
-        if not IsStatic then
+        if IsStatic then
+          LeftResolved:=default(TPasResolverResult)
+        else
           begin
           SelfScope:=aResolver.GetSelfScope(Expr);
           if SelfScope=nil then
@@ -17229,6 +17243,9 @@ begin
       if Ref.Declaration.ClassType=TPasProperty then
         Prop:=TPasProperty(Ref.Declaration);
       end;
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.CreateCallHelperMethod IsConstructorNormalCall=',IsConstructorNormalCall,' Ref=',GetObjName(Ref),' Left=',GetObjName(Left),' ',GetResolverResultDbg(LeftResolved));
+    {$ENDIF}
 
     if IsStatic then
       begin
@@ -17292,7 +17309,8 @@ begin
         if (C=TPasArgument)
             or (C=TPasVariable)
             or (C=TPasConst)
-            or (C=TPasResultElement) then
+            or (C=TPasResultElement)
+            or (C=TPasEnumValue) then
           begin
           // Left.HelperCall -> HelperType.HelperCall.apply({get,set},args?)
           SelfJS:=CreateReference(PosEl,LeftResolved);
@@ -17426,18 +17444,22 @@ procedure TPasToJSConverter.AddHelperConstructor(El: TPasClassType;
 const
   FunName = 'fn';
   ArgsName = 'args';
+  ValueName = 'p';
 var
   aResolver: TPas2JSResolver;
   HelperForType: TPasType;
   AssignSt: TJSSimpleAssignStatement;
-  Func: TJSFunctionDeclarationStatement;
+  Func, FuncSt: TJSFunctionDeclarationStatement;
   New_Src: TJSSourceElements;
   Call: TJSCallExpression;
   DotExpr: TJSDotMemberExpression;
   BracketExpr: TJSBracketMemberExpression;
   New_FuncContext: TFunctionContext;
-  Init: TJSElement;
-  ReturnSt: TJSReturnStatement;
+  SelfJS: TJSElement;
+  ReturnSt, RetSt: TJSReturnStatement;
+  Obj: TJSObjectLiteral;
+  ObjLit: TJSObjectLiteralElement;
+  SetterArgName: Char;
 begin
   if El.HelperForType=nil then exit;
   aResolver:=AContext.Resolver;
@@ -17451,31 +17473,63 @@ begin
     New_FuncContext.ThisPas:=El;
     New_FuncContext.IsGlobal:=true;
 
+    // Note: a newinstance call looks like this: THelper.$new("NewHlp", [3]);
+    // The $new function:
+    // this.$new = function(fnname,args){
+    // record:
+    //   return this[fnname].call(TRecType.$new(),args);
+    // other:
+    //   return this[fnname].call({p:SelfJS,get,set},args);
+    // }
+    ReturnSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
+    AddToSourceElements(New_Src,ReturnSt);
+    Call:=CreateCallExpression(El);
+    ReturnSt.Expr:=Call;
+    DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+    Call.Expr:=DotExpr;
+    BracketExpr:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+    DotExpr.MExpr:=BracketExpr;
+    DotExpr.Name:='call';
+    BracketExpr.MExpr:=CreatePrimitiveDotExpr('this',El);
+    BracketExpr.Name:=CreatePrimitiveDotExpr(FunName,El);
+    SelfJS:=CreateValInit(HelperForType,nil,El,New_FuncContext);
     if HelperForType.ClassType=TPasRecordType then
-      begin
-      // record helper
-      // Note: a newinstance call looks like this: THelper.$new("NewHlp", [3]);
-      // The $new function:
-      // this.$new = function(fnname,args){
-      //   return this[fnname].call(TRecType.$new(),args);
-      // }
-      ReturnSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
-      AddToSourceElements(New_Src,ReturnSt);
-      Call:=CreateCallExpression(El);
-      ReturnSt.Expr:=Call;
-      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-      Call.Expr:=DotExpr;
-      BracketExpr:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-      DotExpr.MExpr:=BracketExpr;
-      DotExpr.Name:='call';
-      BracketExpr.MExpr:=CreatePrimitiveDotExpr('this',El);
-      BracketExpr.Name:=CreatePrimitiveDotExpr(FunName,El);
-      Init:=CreateValInit(HelperForType,nil,El,New_FuncContext);
-      Call.AddArg(Init);
-      Call.AddArg(CreatePrimitiveDotExpr(ArgsName,El));
-      end
+      // pass new record directly
     else
-      RaiseNotSupported(El,AContext,20190208181800);
+      begin
+      // pass new value as reference
+      Obj:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+
+      // add "p: SelfJS"
+      ObjLit:=Obj.Elements.AddElement;
+      ObjLit.Name:=TJSString(ValueName);
+      ObjLit.Expr:=SelfJS;
+      SelfJS:=Obj;
+
+      // add "get: function(){return this.p}"
+      ObjLit:=Obj.Elements.AddElement;
+      ObjLit.Name:=TempRefObjGetterName;
+      FuncSt:=CreateFunctionSt(El);
+      ObjLit.Expr:=FuncSt;
+      RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
+      FuncSt.AFunction.Body.A:=RetSt;
+      RetSt.Expr:=CreateMemberExpression(['this',ValueName]);
+
+      // add "set: function(v){this.p=v}"
+      ObjLit:=Obj.Elements.AddElement;
+      ObjLit.Name:=TempRefObjSetterName;
+      FuncSt:=CreateFunctionSt(El);
+      ObjLit.Expr:=FuncSt;
+      SetterArgName:=TempRefObjSetterArgName;
+      FuncSt.AFunction.Params.Add(SetterArgName);
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      FuncSt.AFunction.Body.A:=AssignSt;
+      AssignSt.LHS:=CreateMemberExpression(['this',ValueName]);
+      AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,El);
+      end;
+
+    Call.AddArg(SelfJS);
+    Call.AddArg(CreatePrimitiveDotExpr(ArgsName,El));
     // this.$new = function(fnname,args){
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
     AddToSourceElements(Src,AssignSt);
@@ -20722,7 +20776,10 @@ begin
       DotExpr.MExpr:=CreatePrimitiveDotExpr('this.'+GetPathName,El);
       GetExpr:=DotExpr;
       FullGetter:=nil;
-      SetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+String(DotExpr.Name),El);
+      if (rrfWritable in ResolvedEl.Flags) then
+        SetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+String(DotExpr.Name),El)
+      else
+        SetExpr:=IfReadOnlyCreateRaiseE(ParamContext);
       end
     else if FullGetter.ClassType=TJSBracketMemberExpression then
       begin

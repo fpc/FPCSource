@@ -660,16 +660,13 @@ type
     // todo: TestTypeHelper_Property_Array
     // todo: TestTypeHelper_ClassProperty
     // todo: TestTypeHelper_ClassProperty_Array
-    // todo: TestTypeHelper_ClassMethod
-    // todo: TestTypeHelper_Constructor;
+    Procedure TestTypeHelper_ClassMethod;
+    Procedure TestTypeHelper_Constructor;
     Procedure TestTypeHelper_Word;
-    Procedure TestTypeHelper_String;
-    //Procedure TestTypeHelper_Char;
-    //Procedure TestTypeHelper_Currency;
-    //Procedure TestTypeHelper_Array;
-    //Procedure TestTypeHelper_EnumType;
-    //Procedure TestTypeHelper_SetType;
-    //Procedure TestTypeHelper_InterfaceFail;
+    Procedure TestTypeHelper_StringChar;
+    Procedure TestTypeHelper_Array;
+    Procedure TestTypeHelper_EnumType;
+    Procedure TestTypeHelper_SetType; // ToDo
 
     // proc types
     Procedure TestProcType;
@@ -21027,14 +21024,7 @@ begin
     'this.FooVar = function (a) {',
     '  $mod.THelper.DoIt.apply(a, 123);',
     '  var $with1 = a.get();',
-    '  $mod.THelper.DoIt.apply({',
-    '    get: function () {',
-    '        return $with1;',
-    '      },',
-    '    set: function (v) {',
-    '        $with1 = v;',
-    '      }',
-    '  }, 123);',
+    '  $mod.THelper.DoIt.apply(a, 123);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -21206,6 +21196,110 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestTypeHelper_ClassMethod;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for word',
+  '    class procedure DoStatic; static;',
+  '  end;',
+  'class procedure THelper.DoStatic;',
+  'begin',
+  '  DoStatic;',
+  '  DoStatic();',
+  'end;',
+  'var w: word;',
+  'begin',
+  '  w.DoStatic;',
+  '  w.DoStatic();',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_ClassMethod',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.DoStatic = function () {',
+    '    $mod.THelper.DoStatic();',
+    '    $mod.THelper.DoStatic();',
+    '  };',
+    '});',
+    'this.w = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.DoStatic();',
+    '$mod.THelper.DoStatic();',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_Constructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for word',
+  '    constructor Init(e: longint);',
+  '  end;',
+  'constructor THelper.Init(e: longint);',
+  'begin',
+  '  Self:=e;',
+  '  Init(e+1);',
+  'end;',
+  'var w: word;',
+  'begin',
+  '  w:=word.Init(2);',
+  '  w:=w.Init(3);',
+  '  with word do w:=Init(4);',
+  '  with w do w:=Init(5);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_Constructor',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.Init = function (e) {',
+    '    this.set(e);',
+    '    $mod.THelper.Init.apply(this, e + 1);',
+    '    return this;',
+    '  };',
+    '  this.$new = function (fn, args) {',
+    '    return this[fn].call({',
+    '      p: 0,',
+    '      get: function () {',
+    '          return this.p;',
+    '        },',
+    '      set: function (v) {',
+    '          this.p = v;',
+    '        }',
+    '    }, args);',
+    '  };',
+    '});',
+    'this.w = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.w = $mod.THelper.$new("Init", [2]);',
+    '$mod.w = $mod.THelper.Init.apply({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.w;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.w = v;',
+    '    }',
+    '}, 3);',
+    '$mod.w = $mod.THelper.$new("Init", [4]);',
+    'var $with1 = $mod.w;',
+    '$mod.w = $mod.THelper.Init.apply({',
+    '  get: function () {',
+    '      return $with1;',
+    '    },',
+    '  set: function (v) {',
+    '      $with1 = v;',
+    '    }',
+    '}, 5);',
+    '']));
+end;
+
 procedure TTestModule.TestTypeHelper_Word;
 begin
   StartProgram(false);
@@ -21232,14 +21326,7 @@ begin
     '    this.set(e);',
     '    this.set(this.get() + 1);',
     '    var $with1 = this.get();',
-    '    $mod.THelper.DoIt.apply({',
-    '      get: function () {',
-    '          return $with1;',
-    '        },',
-    '      set: function (v) {',
-    '          $with1 = v;',
-    '        }',
-    '    }, 123);',
+    '    $mod.THelper.DoIt.apply(this, 123);',
     '  };',
     '});',
     '']),
@@ -21255,7 +21342,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestTypeHelper_String;
+procedure TTestModule.TestTypeHelper_StringChar;
 begin
   StartProgram(false);
   Add([
@@ -21282,7 +21369,7 @@ begin
   '  ''c''.Fly();',
   '']);
   ConvertProgram;
-  CheckSource('TestTypeHelper_String',
+  CheckSource('TestTypeHelper_StringChar',
     LinesToStr([ // statements
     'rtl.createHelper($mod, "TStringHelper", null, function () {',
     '  this.DoIt = function (e) {',
@@ -21321,6 +21408,226 @@ begin
     '      rtl.raiseE("EPropReadOnly");',
     '    }',
     '});',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_Array;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TArrOfBool = array of boolean;',
+  '  TArrOfJS = array of jsvalue;',
+  '  THelper = type helper for TArrOfBool',
+  '    procedure DoIt(e: byte = 123);',
+  '  end;',
+  'procedure THelper.DoIt(e: byte);',
+  'begin',
+  '  Self[1]:=true;',
+  '  Self[2]:=not Self[3];',
+  '  SetLength(Self,4);',
+  'end;',
+  'var',
+  '  b: TArrOfBool;',
+  '  j: TArrOfJS;',
+  'begin',
+  '  b.DoIt;',
+  '  TArrOfBool(j).DoIt();',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_Array',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.DoIt = function (e) {',
+    '    this.get()[1] = true;',
+    '    this.get()[2] = !this.get()[3];',
+    '    this.set(rtl.arraySetLength(this.get(), false, 4));',
+    '  };',
+    '});',
+    'this.b = [];',
+    'this.j = [];',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.DoIt.apply({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.b;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.b = v;',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.DoIt.apply({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.j;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.j = v;',
+    '    }',
+    '}, 123);',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_EnumType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TEnum = (red,blue);',
+  '  THelper = type helper for TEnum',
+  '    procedure DoIt(e: byte = 123);',
+  '    class procedure Swing(w: word); static;',
+  '  end;',
+  'procedure THelper.DoIt(e: byte);',
+  'begin',
+  '  Self:=red;',
+  '  Self:=succ(Self);',
+  '  with Self do Doit;',
+  'end;',
+  'class procedure THelper.Swing(w: word);',
+  'begin',
+  'end;',
+  'var e: TEnum;',
+  'begin',
+  '  e.DoIt;',
+  '  red.DoIt;',
+  '  TEnum.blue.DoIt;',
+  '  TEnum(1).DoIt;',
+  '  TEnum.Swing(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_EnumType',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.DoIt = function (e) {',
+    '    this.set($mod.TEnum.red);',
+    '    this.set(this.get() + 1);',
+    '    var $with1 = this.get();',
+    '    $mod.THelper.DoIt.apply(this, 123);',
+    '  };',
+    '  this.Swing = function (w) {',
+    '  };',
+    '});',
+    'this.e = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.DoIt.apply({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.e;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.e = v;',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.DoIt.apply({',
+    '  p: $mod.TEnum,',
+    '  get: function () {',
+    '      return this.p.red;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.DoIt.apply({',
+    '  p: $mod.TEnum,',
+    '  get: function () {',
+    '      return this.p.blue;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.DoIt.apply({',
+    '  get: function () {',
+    '      return 1;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.Swing(3);',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_SetType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TEnum = (red,blue);',
+  '  TSetOfEnum = set of TEnum;',
+  '  THelper = type helper for TSetOfEnum',
+  '    procedure DoIt(e: byte = 123);',
+  '    constructor Init(e: TEnum);',
+  '  end;',
+  'procedure THelper.DoIt(e: byte);',
+  'begin',
+  '  Self:=[];',
+  '  Self:=[red];',
+  '  Include(Self,blue);',
+  'end;',
+  'constructor THelper.Init(e: TEnum);',
+  'begin',
+  '  Self:=[];',
+  '  Self:=[e];',
+  '  Include(Self,blue);',
+  'end;',
+  'var s: TSetOfEnum;',
+  'begin',
+  //'  s.DoIt;',
+  //'  [red].DoIt;',
+  //'  with s do DoIt;',
+  //'  with [red,blue] do DoIt;',
+  //'  s:=TSetOfEnum.Init(blue);',
+  //'  s:=s.Init(blue);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_SetType',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.DoIt = function (e) {',
+    '    this.set({});',
+    '    this.set(rtl.createSet($mod.TEnum.red));',
+    '    this.set(rtl.includeSet(this.get(), $mod.TEnum.blue));',
+    '  };',
+    '  this.Init = function (e) {',
+    '    this.set({});',
+    '    this.set(rtl.createSet(e));',
+    '    this.set(rtl.includeSet(this.get(), $mod.TEnum.blue));',
+    '    return this;',
+    '  };',
+    '  this.$new = function (fn, args) {',
+    '    return this[fn].call({',
+    '      p: {},',
+    '      get: function () {',
+    '          return this.p;',
+    '        },',
+    '      set: function (v) {',
+    '          this.p = v;',
+    '        }',
+    '    }, args);',
+    '  };',
+    '});',
+    'this.s = {};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
