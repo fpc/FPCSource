@@ -40,7 +40,11 @@ unit i_linux;
 {$endif tls_threadvars}
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_needs_dwarf_cfi,tf_has_winlike_resources,
-                            tf_safecall_exceptions, tf_safecall_clearstack];
+                            tf_safecall_exceptions, tf_safecall_clearstack
+{$ifdef psabieh}
+                            ,tf_use_psabieh
+{$endif psabieh}
+                            ];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
