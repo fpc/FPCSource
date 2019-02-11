@@ -17073,6 +17073,7 @@ begin
   '  TSetOfEnum = set of TEnum;',
   '  THelper = type helper for TSetOfEnum',
   '    procedure Fly;',
+  '    class procedure Run; static;',
   '  end;',
   'procedure THelper.Fly;',
   'begin',
@@ -17080,11 +17081,16 @@ begin
   '  Self:=[green];',
   '  Include(Self,blue);',
   'end;',
+  'class procedure THelper.Run;',
+  'begin',
+  'end;',
   'var s: TSetOfEnum;',
   'begin',
-  // todo: '  s.Fly;',
-  // not supported: [green].Fly
-  // todo: with s do Fly
+  '  s.Fly;',
+  //'  with s do Fly;',
+  '  TSetOfEnum.Run;',
+  //'  with TSetOfEnum do Run;',
+  //'  [green].Fly', not supported
   '']);
   ParseProgram;
 end;

@@ -1995,6 +1995,7 @@ type
     function ParentNeedsExprResult(El: TPasExpr): boolean;
     function GetReference_ConstructorType(Ref: TResolvedReference; Expr: TPasExpr): TPasResolverResult;
     function GetParamsValueRef(Params: TParamsExpr): TResolvedReference;
+    function GetSetType(const ResolvedSet: TPasResolverResult): TPasSetType;
     function IsDynArray(TypeEl: TPasType; OptionalOpenArray: boolean = true): boolean;
     function IsOpenArray(TypeEl: TPasType): boolean;
     function IsDynOrOpenArray(TypeEl: TPasType): boolean;
@@ -8859,6 +8860,22 @@ end;
 
 procedure TPasResolver.ResolveSubIdent(El: TBinaryExpr;
   Access: TResolvedRefAccess);
+
+  function SearchInTypeHelpers(aType: TPasType; IdentEl: TPasElement): boolean;
+  var
+    DotScope: TPasDotBaseScope;
+  begin
+    if aType=nil then exit(false);
+    DotScope:=PushHelperDotScope(aType);
+    if DotScope=nil then exit(false);
+    if IdentEl is TPasType then
+      // e.g. TFlag.HelperProc
+      DotScope.OnlyTypeMembers:=true;
+    ResolveExpr(El.right,Access);
+    PopScope;
+    Result:=true;
+  end;
+
 var
   aModule: TPasModule;
   ClassEl: TPasClassType;
@@ -8869,6 +8886,7 @@ var
   RecordScope: TPasDotClassOrRecordScope;
   LTypeEl: TPasType;
   DotScope: TPasDotBaseScope;
+  SetType: TPasSetType;
 begin
   if El.CustomData is TResolvedReference then
     exit; // for example, when a.b has a dotted unit name
@@ -8951,7 +8969,7 @@ begin
       end
     else if LTypeEl.ClassType=TPasEnumType then
       begin
-      if LeftResolved.IdentEl is TPasType then
+      if LeftResolved.IdentEl is TPasEnumType then
         begin
         // e.g. TShiftState.ssAlt
         DotScope:=PushEnumDotScope(TPasEnumType(LTypeEl));
@@ -8965,16 +8983,12 @@ begin
     if (LeftResolved.BaseType in btAllStandardTypes)
         or (LeftResolved.BaseType=btContext) then
       begin
-      DotScope:=PushHelperDotScope(LeftResolved.HiTypeEl);
-      if DotScope<>nil then
-        begin
-        if LeftResolved.IdentEl is TPasType then
-          // e.g. TSet.HelperProc
-          DotScope.OnlyTypeMembers:=true;
-        ResolveExpr(El.right,Access);
-        PopScope;
-        exit;
-        end;
+      if SearchInTypeHelpers(LeftResolved.HiTypeEl,LeftResolved.IdentEl) then exit;
+      end
+    else if LeftResolved.BaseType=btSet then
+      begin
+      SetType:=GetSetType(LeftResolved);
+      if SearchInTypeHelpers(SetType,LeftResolved.IdentEl) then exit;
       end;
     end;
 
@@ -11691,7 +11705,7 @@ begin
             and (ParamResolved.LoTypeEl.ClassType=TPasArrayType)
             and IsDynArray(ToLoType)
             and IsDynArray(ParamResolved.LoTypeEl) then
-          // typecast array
+          // typecast dyn array to dyn array
           KeepWriteFlags:=true;
         end
       else
@@ -22004,6 +22018,46 @@ begin
       El:=TBinaryExpr(El).right
     else
       break;
+    end;
+end;
+
+function TPasResolver.GetSetType(const ResolvedSet: TPasResolverResult
+  ): TPasSetType;
+var
+  IdentEl: TPasElement;
+  aType: TPasType;
+  C: TClass;
+begin
+  Result:=nil;
+  if ResolvedSet.BaseType=btSet then
+    begin
+    IdentEl:=ResolvedSet.IdentEl;
+    if IdentEl=nil then exit;
+    C:=IdentEl.ClassType;
+    if (C=TPasVariable)
+        or (C=TPasConst) then
+      aType:=TPasVariable(IdentEl).VarType
+    else if C=TPasProperty then
+      aType:=GetPasPropertyType(TPasProperty(IdentEl))
+    else if C=TPasArgument then
+      aType:=TPasArgument(IdentEl).ArgType
+    else if C.InheritsFrom(TPasProcedure)
+        and (TPasProcedure(IdentEl).ProcType is TPasFunctionType) then
+      aType:=TPasFunctionType(TPasProcedure(IdentEl).ProcType).ResultEl.ResultType
+    else if C=TPasSetType then
+      exit(TPasSetType(IdentEl))
+    else
+      exit;
+    if aType.ClassType=TPasSetType then
+      Result:=TPasSetType(aType);
+    end
+  else if ResolvedSet.BaseType=btContext then
+    begin
+    if ResolvedSet.LoTypeEl.ClassType=TPasSetType then
+      if ResolvedSet.HiTypeEl.ClassType=TPasSetType then
+        Result:=TPasSetType(ResolvedSet.HiTypeEl)
+      else
+        Result:=TPasSetType(ResolvedSet.LoTypeEl);
     end;
 end;
 
