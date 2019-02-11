@@ -570,11 +570,6 @@ function FPC_psabieh_find_action_record(const info: FPC_psabieh_lsda_header_info
         writeln('find action record: cs_start: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,', lp: ', cs_lp,' action ofs: ',cs_action);
 {$endif}
         // The table is sorted, so if we've passed the ip, stop.
-{$ifdef dummy}
-{        if ip<(info.Start+cs_start) then
-          p:=info.action_table
-        else } if (ip>=(info.Start+cs_start)) and (ip<(info.Start+cs_start+cs_len)) then
-{$endif dummy}
         if ip<(info.Start+cs_start) then
           p:=info.action_table
         else if (ip<(info.Start+cs_start+cs_len)) then
