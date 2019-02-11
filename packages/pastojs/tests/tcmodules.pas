@@ -672,7 +672,7 @@ type
     Procedure TestTypeHelper_StringChar;
     Procedure TestTypeHelper_Array;
     Procedure TestTypeHelper_EnumType;
-    Procedure TestTypeHelper_SetType; // ToDo
+    Procedure TestTypeHelper_SetType;
 
     // proc types
     Procedure TestProcType;
@@ -22694,6 +22694,7 @@ begin
   '  THelper = type helper for TSetOfEnum',
   '    procedure DoIt(e: byte = 123);',
   '    constructor Init(e: TEnum);',
+  '    constructor InitEmpty;',
   '  end;',
   'procedure THelper.DoIt(e: byte);',
   'begin',
@@ -22707,14 +22708,17 @@ begin
   '  Self:=[e];',
   '  Include(Self,blue);',
   'end;',
+  'constructor THelper.InitEmpty;',
+  'begin',
+  'end;',
   'var s: TSetOfEnum;',
   'begin',
-  //'  s.DoIt;',
+  '  s.DoIt;',
   //'  [red].DoIt;',
   //'  with s do DoIt;',
   //'  with [red,blue] do DoIt;',
-  //'  s:=TSetOfEnum.Init(blue);',
-  //'  s:=s.Init(blue);',
+  '  s:=TSetOfEnum.Init(blue);',
+  '  s:=s.Init(blue);',
   '']);
   ConvertProgram;
   CheckSource('TestTypeHelper_SetType',
@@ -22735,7 +22739,10 @@ begin
     '    this.set({});',
     '    this.set(rtl.createSet(e));',
     '    this.set(rtl.includeSet(this.get(), $mod.TEnum.blue));',
-    '    return this;',
+    '    return this.get();',
+    '  };',
+    '  this.InitEmpty = function () {',
+    '    return this.get();',
     '  };',
     '  this.$new = function (fn, args) {',
     '    return this[fn].call({',
@@ -22752,6 +22759,25 @@ begin
     'this.s = {};',
     '']),
     LinesToStr([ // $mod.$main
+    '$mod.THelper.DoIt.apply({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.s;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.s = v;',
+    '    }',
+    '}, 123);',
+    '$mod.s = rtl.refSet($mod.THelper.$new("Init", [$mod.TEnum.blue]));',
+    '$mod.s = rtl.refSet($mod.THelper.Init.apply({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.s;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.s = v;',
+    '    }',
+    '}, $mod.TEnum.blue));',
     '']));
 end;
 

@@ -388,12 +388,16 @@ Works:
 - record helpers:
   - in function allow assign Self
 - type helpers:
-  - var, const, read only const
-  - arg default, arg const, arg var, arg out
-  - result element
+  - pass var, const, read only const
+  - pass arg default, arg const, arg var, arg out
+  - pass result element
+  - pass function result
+  - pass field, class field
+  - pass property getter field, property getter function,
+  - pass class property, static class property
+  - pass array property
 
 ToDos:
-- class helpers, type helpers, record helpers
 - cmd line param to set modeswitch
 - Result:=inherited;
 - asm-block annotate/reference
@@ -12265,9 +12269,38 @@ Var
   Procedure AddReturnThis;
   var
     RetSt: TJSReturnStatement;
+    HelperForType: TPasType;
+    Call: TJSCallExpression;
+    Proc: TPasProcedure;
+    aResolver: TPas2JSResolver;
+    ClassOrRec: TPasMembersType;
   begin
+    // "return this"
     RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
     RetSt.Expr:=TJSPrimaryExpressionThis(CreateElement(TJSPrimaryExpressionThis,El));
+    aResolver:=AContext.Resolver;
+    if aResolver<>nil then
+      begin
+      Proc:=TPasProcedure(El.Parent);
+      ProcScope:=Proc.CustomData as TPas2JSProcedureScope;
+      ClassOrRec:=ProcScope.ClassRecScope.Element as TPasMembersType;
+      if (ClassOrRec.ClassType=TPasClassType)
+          and (TPasClassType(ClassOrRec).HelperForType<>nil) then
+        begin
+        HelperForType:=AContext.Resolver.ResolveAliasType(TPasClassType(ClassOrRec).HelperForType);
+        if HelperForType is TPasMembersType then
+          // helper constructor for class or record -> "this" is the class/record
+        else
+          begin
+          // helper constructor for a simpletype -> "this" is a reference
+          // -> return this.get()
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreateDotExpression(El,RetSt.Expr,
+            CreatePrimitiveDotExpr(TempRefObjGetterName,El));
+          RetSt.Expr:=Call;
+          end;
+        end;
+      end;
     Add(RetSt,El);
   end;
 
