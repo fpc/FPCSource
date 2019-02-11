@@ -12742,9 +12742,10 @@ begin
           P:=TPasElement(El.Members[i]);
           //writeln('TPasToJSConverter.ConvertClassType methods El[',i,']=',GetObjName(P));
           if not IsMemberNeeded(P) then continue;
+          C:=P.ClassType;
           if P is TPasProcedure then
             begin
-            if IsTObject and (P.ClassType=TPasDestructor) then
+            if IsTObject and (C=TPasDestructor) then
               begin
               DestructorName:=TransformVariableName(P,AContext);
               if DestructorName<>'Destroy' then
@@ -12756,7 +12757,7 @@ begin
                 AddToSourceElements(Src,AssignSt);
                 end;
               end
-            else if C.ClassType=TPasConstructor then
+            else if C=TPasConstructor then
               HasConstructor:=true;
             NewEl:=ConvertProcedure(TPasProcedure(P),FuncContext);
             end

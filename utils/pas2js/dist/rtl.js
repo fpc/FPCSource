@@ -384,6 +384,7 @@ var rtl = {
   },
 
   recNewT: function(parent,name,initfn,full){
+    // create new record type
     var t = {};
     if (parent) parent[name] = t;
     function hide(prop){
