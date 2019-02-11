@@ -1162,7 +1162,7 @@ implementation
              ((cs_implicit_exceptions in current_settings.moduleswitches) and
               (pi_needs_implicit_finally in flags))) or
              (pi_has_except_table_data in flags) then
-           procdef.personality:=search_system_proc('_fpc_psabieh_personality_v0');
+           procdef.personality:=search_system_proc('_FPC_PSABIEH_PERSONALITY_V0');
          if (tf_use_psabieh in target_info.flags) and not(pi_has_except_table_data in flags) then
            (current_asmdata.AsmCFI as TDwarfAsmCFI).LSDALabel:=nil;
       end;
