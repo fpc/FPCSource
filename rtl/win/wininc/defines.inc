@@ -5417,6 +5417,8 @@ Type
 
      C3_LEXICAL     = 1024;
 
+     CLASS_E_NOTLICENSED   = DWORD($80040112);
+
   { --------------------- old stuff, need to organize! ---------------  }
   { BEGINNING of windowsx.h stuff from old headers:  }
   {  Not convertable by H2PAS
