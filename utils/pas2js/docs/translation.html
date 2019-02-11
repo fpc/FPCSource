@@ -1859,7 +1859,7 @@ function(){
       <li>Helpers cannot be forward defined (e.g. no <i>THelper = helper;</i>).</li>
       <li>Helpers must not have fields.</li>
       <li><b>Class Var, Const, Type</b></li>
-      <li><b>Visibility</b>: <i>strict private .. published</i></li>
+      <li><b>Visibility</b> : <i>strict private .. published</i></li>
       <li><b>Function, procedure</b>:
         In class and record helpers <i>Self</i> is the class/record instance. For other
         types Self is a reference to the passed value.
@@ -1872,21 +1872,21 @@ function(){
         <i>AnObj.Create</i> calls the constructor function as normal method. Note that
         Delphi does not allow calling helper construcors as normal method.</li>
       <li>no destructor</li>
-      <li><b>Property</b>: getters/setters can refer to members of the helper, its
+      <li><b>Property</b> : getters/setters can refer to members of the helper, its
         ancestors and the helped class/record.</li>
-      <li><b>Class property</b>: getter can be static or non static. Delphi/FPC only allows static.</li>
-      <li><b>Ancestors</b>. Helpers can have an ancestor helper, but they
+      <li><b>Class property</b> : getter can be static or non static. Delphi/FPC only allows static.</li>
+      <li><b>Ancestors</b> : Helpers can have an ancestor helper, but they
       do not have a shared root class, especially not <i>TObject</i>.</li>
       <li><b>no virtual, abstract, override</b>. Delphi allows them, but 10.3 crashes when calling.</li>
-      <li><b>inherited</b>:
+      <li><b>inherited</b> :
         <i>inherited</i> inside a method of a class/record calls helper of ancestor.<br>
         <i>inherited</i> inside a helper depends on the $mode:
         <ul>
-        <li> <i>$mode objfpc</i>: <i>inherited;</i> and <i>inherited Name(args);</i>
+        <li> <i>$mode objfpc</i> : <i>inherited;</i> and <i>inherited Name(args);</i>
           work the same and searches first in HelperForType, then in ancestor(s).</li>
-        <li><i>$mode delphi: inherited;</i>: skip ancestors and HelperForType,
+        <li><i>$mode delphi: inherited;</i> : skip ancestors and HelperForType,
           searches first in helper(s) of ancestor of HelperForType.</li>
-        <li><i>$mode delphi: inherited name(args);</i>:
+        <li><i>$mode delphi: inherited name(args);</i> :
           same as $mode objfpc first searches in HelperForType, then Ancestor(s)</li>
         </ul>
         In any case if <i>inherited;</i> has no ancestor to call, it is silently ignored,
@@ -1901,7 +1901,7 @@ function(){
         <li><i>property</i> : uses only the getter, ignoring the setter.
           This breaks OOP, as it allows to change fields without calling the setter.
           This is FPC/Delphi compatible.</li>
-        <li><i>with value do ;</i> : uses some temporary variable. Delphi/FPC do not support it.</li>
+        <li><i>with value do ;</i> : uses a temporary variable. Delphi/FPC do not support it.</li>
         </ul>
       </li>
     </ul>
