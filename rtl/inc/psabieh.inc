@@ -409,7 +409,7 @@ function FPC_psabieh_parse_lsda_header(context: PFPC_Unwind_Context; p: PByte; o
     writeln('  * lp_start: $',hexstr(info.LPStart,sizeof(info.LPStart)*2));
     writeln('  * ttype_encoding: $',hexstr(info.ttype_encoding,sizeof(info.ttype_encoding)*2));
     writeln('  * ttype base: $',hexstr(info.TType));
-    writeln('  * ttype_encoding: $',hexstr(info.call_site_encoding,sizeof(info.call_site_encoding)*2));
+    writeln('  * call_site_encoding: $',hexstr(info.call_site_encoding,sizeof(info.call_site_encoding)*2));
     writeln('  * action table: $', hexstr(p),' (offset: ',tmp,')');
 {$endif}
     result:=p;
@@ -567,19 +567,25 @@ function FPC_psabieh_find_action_record(const info: FPC_psabieh_lsda_header_info
         p:=FPC_read_uleb128 (p, &cs_action);
 
 {$ifdef excdebug}
-        writeln('find action record: cs_start: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,', lp: ', cs_lp);
+        writeln('find action record: cs_start: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,', lp: ', cs_lp,' action ofs: ',cs_action);
 {$endif}
         // The table is sorted, so if we've passed the ip, stop.
+{$ifdef dummy}
+{        if ip<(info.Start+cs_start) then
+          p:=info.action_table
+        else } if (ip>=(info.Start+cs_start)) and (ip<(info.Start+cs_start+cs_len)) then
+{$endif dummy}
         if ip<(info.Start+cs_start) then
           p:=info.action_table
-        else if ip<(info.Start+cs_start+cs_len) then
+        else if (ip<(info.Start+cs_start+cs_len)) then
           begin
             if cs_lp<>0 then
               landing_pad:=info.LPStart+cs_lp;
             if cs_action<>0 then
               action_record:=info.action_table+cs_action-1;
 {$ifdef excdebug}
-              writeln('action record result: action_record: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,', lp: ', cs_lp);
+            writeln('action record result: action_record: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,', lp: ', cs_lp,
+              ',landing_pad: $',hexstr(landing_pad,sizeof(landing_pad)*2));
 {$endif}
             result:=true;
             exit;
@@ -785,7 +791,8 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
     WrappedException:=FPC_psabieh_GetExceptionWrapper(libunwind_exception);
 
 {$ifdef excdebug}
-    writeln('Personality started for wrapper ',hexstr(WrappedException),' = fpc exc ',hexstr(WrappedException^.FObject),', refcount is now ',WrappedException^.refcount);
+    writeln('Personality (version = ',version,', actions = $',hexstr(actions,4),') started for wrapper ',hexstr(WrappedException),' = fpc exc ',hexstr(WrappedException^.FObject),
+      ', refcount is now ',WrappedException^.refcount);
 {$endif}
     // Shortcut for phase 2 found handler for domestic exception.
     if (actions=(FPC_UA_CLEANUP_PHASE or FPC_UA_HANDLER_FRAME)) and
@@ -812,7 +819,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
         if not assigned(language_specific_data) then
           begin
 {$ifdef excdebug}
-            writeln('did not find lsda');
+            writeln('did not find lsda for ip ',hexstr(_Unwind_GetIP(context),sizeof(pointer)*2));
 {$endif}
 
             exit(continue_unwinding(libunwind_exception,context));
@@ -831,7 +838,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
         if FPC_psabieh_find_action_record(info,p,ip,landing_pad,action_record) then
           begin
 {$ifdef excdebug}
-            writeln('found action record');
+            writeln('found action record for ip ',hexstr(_Unwind_GetIP(context),sizeof(pointer)*2));
 {$endif}
             if landing_pad=0 then
               begin
@@ -1029,7 +1036,7 @@ function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compi
         if assigned(_ExceptObjectStack) then
           begin
 {$ifdef excdebug}
-            writeln('begin catch for nested foreigh exception');
+            writeln('begin catch for nested foreign exception');
 {$endif}
             halt(217);
           end;
@@ -1196,6 +1203,16 @@ procedure fpc_ReRaise; [public,alias:'FPC_RERAISE']; compilerproc;
         RunError(217);
       end;
     RunError(217);
+  end;
+
+
+{$define FPC_SYSTEM_HAS_RESUME}
+procedure fpc_Resume(exception_object: PFPC_Unwind_Exception); [public,alias:'FPC_RESUME']; compilerproc; assembler; nostackframe;
+  asm
+    popl %ecx
+    pushl %eax
+    pushl %ecx
+    jmp _Unwind_Resume
   end;
 
 

@@ -332,7 +332,7 @@ implementation
             { encoding }
             list.concat(tai_const.create_8bit({DW_EH_PE_indirect or DW_EH_PE_pcrel or} DW_EH_PE_sdata4));
             { address of personality function }
-            list.concat(tai_const.Createname('_fpc_psabieh_personality_v0',AT_FUNCTION,0));
+            list.concat(tai_const.Createname('_FPC_psabieh_personality_v0',AT_FUNCTION,0));
 
             { LSDA encoding  ('L')}
             list.concat(tai_const.create_8bit({DW_EH_PE_pcrel or }DW_EH_PE_sdata4));

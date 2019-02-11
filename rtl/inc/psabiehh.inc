@@ -74,12 +74,13 @@ const
 {$pop}
 
 {$ifdef __ARM_EABI_UNWINDER__}
-function _FPC_psabieh_personality_v0(state: FPC_Unwind_State; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl;
+function _FPC_psabieh_personality_v0(state: FPC_Unwind_State; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl; public;
 {$else}
-function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Action; exceptionClass: qword; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl;
+function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Action; exceptionClass: qword; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl; public;
 {$endif}
 function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compilerproc;
 procedure FPC_psabi_end_catch; cdecl; compilerproc;
+Procedure fpc_Resume(exception_object: PFPC_Unwind_Exception); compilerproc;
 
 { llvm cannot create a catch/cleanup block if there is no call inside the
   try block to a routine that can raise an exception. Hence, we will call
