@@ -392,6 +392,10 @@
 {$else}
          private_1: ptruint;
          private_2: ptruint;
+         private_3: ptruint;
+         private_4: ptruint;
+         private_5: ptruint;
+         private_6: ptruint;
 {$endif}
        end;
 {$endif FPC_USE_PSABIEH}
