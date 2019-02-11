@@ -260,7 +260,7 @@ type
     procedure UseInheritedExpr(El: TInheritedExpr); virtual;
     procedure UseScopeReferences(Refs: TPasScopeReferences); virtual;
     procedure UseProcedure(Proc: TPasProcedure); virtual;
-    procedure UseProcedureType(ProcType: TPasProcedureType; Mark: boolean); virtual;
+    procedure UseProcedureType(ProcType: TPasProcedureType); virtual;
     procedure UseType(El: TPasType; Mode: TPAUseMode); virtual;
     procedure UseClassOrRecType(El: TPasMembersType; Mode: TPAUseMode); virtual;
     procedure UseVariable(El: TPasVariable; Access: TResolvedRefAccess;
@@ -1010,19 +1010,18 @@ begin
   else if C.InheritsFrom(TPasExpr) then
     UseExpr(TPasExpr(El))
   else if C=TPasEnumValue then
-    begin
-    UseExpr(TPasEnumValue(El).Value);
-    repeat
-      MarkElementAsUsed(El);
-      El:=El.Parent;
-    until not (El is TPasType);
-    end
+    UseExpr(TPasEnumValue(El).Value)
   else if C=TPasMethodResolution then
     // nothing to do
   else if (C.InheritsFrom(TPasModule)) or (C=TPasUsesUnit) then
     // e.g. unitname.identifier -> the module is used by the identifier
   else
     RaiseNotSupported(20170307090947,El);
+  repeat
+    El:=El.Parent;
+    if not (El is TPasType) then break;
+    MarkElementAsUsed(El);
+  until false;
 end;
 
 procedure TPasAnalyzer.UseTypeInfo(El: TPasElement);
@@ -1729,7 +1728,7 @@ begin
   {$ENDIF}
   UseScopeReferences(ProcScope.References);
 
-  UseProcedureType(Proc.ProcType,false);
+  UseProcedureType(Proc.ProcType);
 
   ImplProc:=Proc;
   if ProcScope.ImplProc<>nil then
@@ -1778,8 +1777,7 @@ begin
     end;
 end;
 
-procedure TPasAnalyzer.UseProcedureType(ProcType: TPasProcedureType;
-  Mark: boolean);
+procedure TPasAnalyzer.UseProcedureType(ProcType: TPasProcedureType);
 var
   i: Integer;
   Arg: TPasArgument;
@@ -1787,7 +1785,7 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseProcedureType ',GetElModName(ProcType));
   {$ENDIF}
-  if Mark and not MarkElementAsUsed(ProcType) then exit;
+  if not MarkElementAsUsed(ProcType) then exit;
 
   for i:=0 to ProcType.Args.Count-1 do
     begin
@@ -1869,7 +1867,7 @@ begin
       UseElType(El,TPasSetType(El).EnumType,Mode);
       end
     else if C.InheritsFrom(TPasProcedureType) then
-      UseProcedureType(TPasProcedureType(El),true)
+      UseProcedureType(TPasProcedureType(El))
     else
       RaiseNotSupported(20170306170315,El);
 

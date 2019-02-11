@@ -8861,6 +8861,12 @@ end;
 procedure TPasResolver.ResolveSubIdent(El: TBinaryExpr;
   Access: TResolvedRefAccess);
 
+  procedure ResolveRight; inline;
+  begin
+    ResolveExpr(El.right,Access);
+    PopScope;
+  end;
+
   function SearchInTypeHelpers(aType: TPasType; IdentEl: TPasElement): boolean;
   var
     DotScope: TPasDotBaseScope;
@@ -8871,8 +8877,7 @@ procedure TPasResolver.ResolveSubIdent(El: TBinaryExpr;
     if IdentEl is TPasType then
       // e.g. TFlag.HelperProc
       DotScope.OnlyTypeMembers:=true;
-    ResolveExpr(El.right,Access);
-    PopScope;
+    ResolveRight;
     Result:=true;
   end;
 
@@ -8901,8 +8906,7 @@ begin
     // => search in interface and if this is our module in the implementation
     aModule:=NoNil(LeftResolved.IdentEl) as TPasModule;
     PushModuleDotScope(aModule);
-    ResolveExpr(El.right,Access);
-    PopScope;
+    ResolveRight;
     exit;
     end
   else if LeftResolved.LoTypeEl=nil then
@@ -8934,8 +8938,7 @@ begin
       else
         // e.g. Image.Width
         ClassScope.OnlyTypeMembers:=false;
-      ResolveExpr(El.right,Access);
-      PopScope;
+      ResolveRight;
       exit;
       end
     else if LTypeEl.ClassType=TPasClassOfType then
@@ -8945,8 +8948,7 @@ begin
       ClassScope:=PushClassDotScope(ClassEl);
       ClassScope.OnlyTypeMembers:=true;
       ClassScope.IsClassOf:=true;
-      ResolveExpr(El.right,Access);
-      PopScope;
+      ResolveRight;
       exit;
       end
     else if LTypeEl.ClassType=TPasRecordType then
@@ -8963,8 +8965,7 @@ begin
         AccessExpr(El.left,Access);
         RecordScope.OnlyTypeMembers:=false;
         end;
-      ResolveExpr(El.right,Access);
-      PopScope;
+      ResolveRight;
       exit;
       end
     else if LTypeEl.ClassType=TPasEnumType then
@@ -8974,8 +8975,7 @@ begin
         // e.g. TShiftState.ssAlt
         DotScope:=PushEnumDotScope(TPasEnumType(LTypeEl));
         DotScope.OnlyTypeMembers:=true;
-        ResolveExpr(El.right,Access);
-        PopScope;
+        ResolveRight;
         exit;
         end;
       end;
