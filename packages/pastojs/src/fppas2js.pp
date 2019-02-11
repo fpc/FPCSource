@@ -7305,13 +7305,13 @@ begin
       begin
       RightRefDecl:=aResolver.GetPasPropertySetter(TPasProperty(RightRefDecl));
       if RightRefDecl=nil then
-        RaiseNotSupported(RightEl,AContext,20190128153754);
+        DoError(20190211111137,nNoMemberIsProvidedToAccessProperty,sNoMemberIsProvidedToAccessProperty,[],RightEl);
       end;
     caRead:
       begin
       RightRefDecl:=aResolver.GetPasPropertyGetter(TPasProperty(RightRefDecl));
       if RightRefDecl=nil then
-        RaiseNotSupported(RightEl,AContext,20190128153829);
+        DoError(20190211111038,nNoMemberIsProvidedToAccessProperty,sNoMemberIsProvidedToAccessProperty,[],RightEl);
       end;
     end;
     end;
@@ -17189,7 +17189,9 @@ var
 
     PathExpr:=nil;
     SetterArgName:='';
-    if LeftJS.ClassType=TJSLiteral then
+    if LeftJS=nil then
+      DoError(20190211105946,nNoMemberIsProvidedToAccessProperty,sNoMemberIsProvidedToAccessProperty,[],PosEl)
+    else if LeftJS.ClassType=TJSLiteral then
       begin
       // getter is a const
       // convert to {get:function(){return value},set:function(v){ error }}
@@ -17389,14 +17391,14 @@ begin
         RaiseNotSupported(PosEl,AContext,20190201163453,GetResolverResultDbg(LeftResolved));
       if (IdentEl is TPasClassType) then
         begin
-        // ClassType.HelperCall -> HelperType.HelperCall.apply(ClassType,args?)
+        // ClassType.HelperCall -> HelperType.HelperCall.call(ClassType,args?)
         if TPasClassType(LeftResolved.IdentEl).IsExternal then
           RaiseNotSupported(PosEl,AContext,20190201165636);
         SelfJS:=CreateReferencePathExpr(LeftResolved.IdentEl,AContext);
         end
       else if (LoTypeEl.ClassType=TPasClassType) and (rrfReadable in LeftResolved.Flags) then
         begin
-        // ClassInstance.HelperCall -> HelperType.HelperCall.apply(ClassInstance.$class,args?)
+        // ClassInstance.HelperCall -> HelperType.HelperCall.call(ClassInstance.$class,args?)
         if TPasClassType(LeftResolved.LoTypeEl).IsExternal then
           RaiseNotSupported(PosEl,AContext,20190201165656);
         SelfJS:=ConvertLeftExpr;
@@ -17405,7 +17407,7 @@ begin
         end
       else if (LoTypeEl.ClassType=TPasClassOfType) and (rrfReadable in LeftResolved.Flags) then
         begin
-        // ClassOfVar.HelperCall -> HelperType.HelperCall.apply(ClassOfVar,args?)
+        // ClassOfVar.HelperCall -> HelperType.HelperCall.call(ClassOfVar,args?)
         SelfJS:=ConvertLeftExpr;
         end
       else
@@ -17419,7 +17421,7 @@ begin
         RaiseNotSupported(PosEl,AContext,20190201170843);
       if (LoTypeEl is TPasClassType) and (rrfReadable in LeftResolved.Flags) then
         begin
-        // ClassInstance.HelperCall -> HelperType.HelperCall.apply(ClassInstance,args?)
+        // ClassInstance.HelperCall -> HelperType.HelperCall.call(ClassInstance,args?)
         SelfJS:=ConvertLeftExpr;
         end
       else if HelperForType.ClassType=TPasClassType then
@@ -17427,7 +17429,7 @@ begin
         RaiseNotSupported(PosEl,AContext,20190203171241)
       else if (LoTypeEl is TPasRecordType) and (rrfReadable in LeftResolved.Flags) then
         begin
-        // RecordInstance.HelperCall -> HelperType.HelperCall.apply(RecordInstance,args?)
+        // RecordInstance.HelperCall -> HelperType.HelperCall.call(RecordInstance,args?)
         SelfJS:=ConvertLeftExpr;
         end
       else if IdentEl<>nil then
@@ -17440,7 +17442,7 @@ begin
             or (C=TPasResultElement)
             or (C=TPasEnumValue) then
           begin
-          // Left.HelperCall -> HelperType.HelperCall.apply({get,set},args?)
+          // Left.HelperCall -> HelperType.HelperCall.call({get,set},args?)
           SelfJS:=CreateReference(PosEl,LeftResolved);
           end
         else
@@ -17448,12 +17450,12 @@ begin
         end
       else if (LeftResolved.ExprEl<>nil) and (rrfReadable in LeftResolved.Flags) then
         begin
-        // LeftExpr.HelperCall -> HelperType.HelperCall.apply({get,set},args?)
+        // LeftExpr.HelperCall -> HelperType.HelperCall.call({get,set},args?)
         SelfJS:=CreateReference(PosEl,LeftResolved);
         end
       else
         begin
-        // Literal.HelperCall -> HelperType.HelperCall.apply({p: Literal,get,set},args?)
+        // Literal.HelperCall -> HelperType.HelperCall.call({p: Literal,get,set},args?)
         {$IFDEF VerbosePas2JS}
         writeln('TPasToJSConverter.CreateCallHelperMethod Left=',GetObjName(Left),' LeftResolved=',GetResolverResultDbg(LeftResolved));
         {$ENDIF}
@@ -17500,11 +17502,11 @@ begin
       if (SelfJS=nil) and not IsStatic then
         RaiseNotSupported(PosEl,AContext,20190203171010,GetResolverResultDbg(LeftResolved));
 
-      // create HelperType.HelperCall.apply(SelfJS)
+      // create HelperType.HelperCall.call(SelfJS)
       Call:=CreateCallExpression(Expr);
       ProcPath:=CreateReferencePath(Proc,AContext,rpkPathAndName);
       if not IsStatic then
-        ProcPath:=ProcPath+'.apply';
+        ProcPath:=ProcPath+'.call';
       Call.Expr:=CreatePrimitiveDotExpr(ProcPath,Expr);
       if SelfJS<>nil then
         begin
@@ -17527,7 +17529,7 @@ begin
       caAssign:
         begin
         // call property setter, e.g. left.prop:=RightSide
-        // -> HelperType.HelperSetter.apply(SelfJS,RightSide)
+        // -> HelperType.HelperSetter.call(SelfJS,RightSide)
         // append index and RightSide
         Result:=AppendPropertyAssignArgs(Call,Prop,TAssignContext(AContext),PosEl);
         Call:=nil;
@@ -17605,9 +17607,9 @@ begin
     // The $new function:
     // this.$new = function(fnname,args){
     // record:
-    //   return this[fnname].call(TRecType.$new(),args);
+    //   return this[fnname].apply(TRecType.$new(),args);
     // other:
-    //   return this[fnname].call({p:SelfJS,get,set},args);
+    //   return this[fnname].apply({p:SelfJS,get,set},args);
     // }
     ReturnSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
     AddToSourceElements(New_Src,ReturnSt);
@@ -17617,7 +17619,7 @@ begin
     Call.Expr:=DotExpr;
     BracketExpr:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
     DotExpr.MExpr:=BracketExpr;
-    DotExpr.Name:='call';
+    DotExpr.Name:='apply';
     BracketExpr.MExpr:=CreatePrimitiveDotExpr('this',El);
     BracketExpr.Name:=CreatePrimitiveDotExpr(FunName,El);
     SelfJS:=CreateValInit(HelperForType,nil,El,New_FuncContext);
