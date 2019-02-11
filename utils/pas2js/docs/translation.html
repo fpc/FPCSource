@@ -1895,12 +1895,13 @@ function(){
       <li><b>RTTI</b>: <i>typeinfo(somehelper)</i> returns a pointer to <i>TTypeInfoHelper</i> with <i>Kind tkHelper</i>.</li>
       <li>There are some special cases when using a <b>type helper</b> function/procedure on a value:
         <ul>
-        <li><i>function result</i>: using a temporary variable</li>
-        <li><i>const, const argument</i>: When helper function tries to assign a value,
+        <li><i>function result</i> : using a temporary variable</li>
+        <li><i>const, const argument</i> : When helper function tries to assign a value,
         pas2js raises a EPropReadOnly exception. FPC/Delphi use a temporary variable allowing the write. </li>
-        <li><i>property</i>: uses only the getter, ignoring the setter.
+        <li><i>property</i> : uses only the getter, ignoring the setter.
           This breaks OOP, as it allows to change fields without calling the setter.
           This is FPC/Delphi compatible.</li>
+        <li><i>with value do ;</i> : uses some temporary variable. Delphi/FPC do not support it.</li>
         </ul>
       </li>
     </ul>
