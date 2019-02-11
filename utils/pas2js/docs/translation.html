@@ -57,6 +57,7 @@
     <a href="#classof">Translating class-of type</a><br>
     <a href="#tobjectfree">Translating TObject.Free</a><br>
     <a href="#classinterfaces">Translating class interfaces</a><br>
+    <a href="#helpers">Translating helpers</a><br>
     <a href="#attributes">Translating attributes</a><br>
     <a href="#tryfinally">Translating try..finally</a><br>
     <a href="#tryexcept">Translating try..except</a><br>
@@ -1832,6 +1833,80 @@ function(){
     </div>
 
     <div class="section">
+    <h2 id="helpers">Translating helpers</h2>
+    Pas2js supports class helpers, record helpers and type helpers.
+    The extend is only virtual, the helped type is kept untouched.
+    <br>
+    <ul>
+      <li>A <b>class helper</b> can "extend" Pascal classes and external JS classes.</li>
+      <li>A <b>record helper</b> can "extend" a record type. In $mode delphi a
+        record helper can extend other types as well, see <i>type helper</i></li>
+      <li>A <b>type helper</b> can extend all base types like integer, string,
+        char, boolean, double, currency, and some user types like enumeration,
+        set, range and array types. It cannot extend interfaces or helpers.<br>
+        Type helpers are enabled by default in <i>$mode delphi</i> and disabled in <i>$mode objfpc</i>.
+        You can enable them with <b>{$modeswitch typehelpers}</b>.
+        </li>
+      <li>By default only one helper is active per type, same as in FPC/Delphi.
+        If there are multiple helpers for the same type, the last helper in scope wins.<br>
+        A class with ancestors can have one active helper per ancestor type, so
+        multiple helpers can be active, same as FPC/Delphi.<br>
+        Using <b>{$modeswitch multiplescopehelpers}</b> you can activate all helpers
+        within scope.
+        </li>
+      <li>Nested helpers (e.g. <i>TDemo.TSub.THelper</i>) are elevated.
+        Visibility is ignored. Same as FPC/Delphi.</li>
+      <li>Helpers cannot be forward defined (e.g. no <i>THelper = helper;</i>).</li>
+      <li>Helpers must not have fields.</li>
+      <li><b>Class Var, Const, Type</b></li>
+      <li><b>Visibility</b>: <i>strict private .. published</i></li>
+      <li><b>Function, procedure</b>:
+        In class and record helpers <i>Self</i> is the class/record instance. For other
+        types Self is a reference to the passed value.
+      </li>
+      <li><b>Class function, class procedure</b>: Helpers for Pascal classes/records can
+        add <i>static</i> and non static class functions. Helpers for external classes
+        and other types can only add static class functions.</li>
+      <li><b>Constructor</b>. Not for external classes. Works similar to
+        construcors, i.e. <i>THelpedClass.Create</i> creates a new instance, while
+        <i>AnObj.Create</i> calls the constructor function as normal method. Note that
+        Delphi does not allow calling helper construcors as normal method.</li>
+      <li>no destructor</li>
+      <li><b>Property</b>: getters/setters can refer to members of the helper, its
+        ancestors and the helped class/record.</li>
+      <li><b>Class property</b>: getter can be static or non static. Delphi/FPC only allows static.</li>
+      <li><b>Ancestors</b>. Helpers can have an ancestor helper, but they
+      do not have a shared root class, especially not <i>TObject</i>.</li>
+      <li><b>no virtual, abstract, override</b>. Delphi allows them, but 10.3 crashes when calling.</li>
+      <li><b>inherited</b>:
+        <i>inherited</i> inside a method of a class/record calls helper of ancestor.<br>
+        <i>inherited</i> inside a helper depends on the $mode:
+        <ul>
+        <li> <i>$mode objfpc</i>: <i>inherited;</i> and <i>inherited Name(args);</i>
+          work the same and searches first in HelperForType, then in ancestor(s).</li>
+        <li><i>$mode delphi: inherited;</i>: skip ancestors and HelperForType,
+          searches first in helper(s) of ancestor of HelperForType.</li>
+        <li><i>$mode delphi: inherited name(args);</i>:
+          same as $mode objfpc first searches in HelperForType, then Ancestor(s)</li>
+        </ul>
+        In any case if <i>inherited;</i> has no ancestor to call, it is silently ignored,
+        while <i>inherited Name;</i> gives an error.
+        </li>
+      <li><b>RTTI</b>: <i>typeinfo(somehelper)</i> returns a pointer to <i>TTypeInfoHelper</i> with <i>Kind tkHelper</i>.</li>
+      <li>There are some special cases when using a <b>type helper</b> function/procedure on a value:
+        <ul>
+        <li><i>function result</i>: using a temporary variable</li>
+        <li><i>const, const argument</i>: When helper function tries to assign a value,
+        pas2js raises a EPropReadOnly exception. FPC/Delphi use a temporary variable allowing the write. </li>
+        <li><i>property</i>: uses only the getter, ignoring the setter.
+          This breaks OOP, as it allows to change fields without calling the setter.
+          This is FPC/Delphi compatible.</li>
+        </ul>
+      </li>
+    </ul>
+    </div>
+
+    <div class="section">
     <h2 id="attributes">Translating attributes</h2>
     Attributes are not yet implemented. To make porting code easier there
     is a <i>{$modeswitch ignoreattributes}</i>, that ignores attributes.
@@ -3003,15 +3078,13 @@ End.
     <div class="section">
     <h2 id="notsupportedelements">Not supported elements</h2>
     <ul>
-    <li>Advanced records</li>
-    <li>Anonymous functions</li>
     <li>Array of const</li>
     <li>Attributes</li>
+    <li>Class constructor, class destructor</li>
     <li>Enums with custom values</li>
     <li>Generics</li>
     <li>Global properties</li>
     <li>Futures</li>
-    <li>Helpers for types, classes, records</li>
     <li>Inline</li>
     <li>Library</li>
     <li>Objects</li>
