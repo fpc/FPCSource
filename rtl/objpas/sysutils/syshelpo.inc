@@ -49,13 +49,13 @@ Function TORDINALHELPER.ToHexString(const AMinDigits: Integer): string;
 overload; inline;
 
 begin
-  Result:=HexStr(Self,AMinDigits);
+  Result:=IntToHex(Self,AMinDigits);
 end;
 
 Function TORDINALHELPER.ToHexString: string; overload; inline;
 
 begin
-  Result:=HexStr(Self,SizeOf(TORDINALTYPE)*2);
+  Result:=IntToHex(Self,SizeOf(TORDINALTYPE)*2);
 end;
 
 Function TORDINALHELPER.ToSingle: Single; inline;
