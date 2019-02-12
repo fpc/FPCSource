@@ -2926,9 +2926,10 @@ implementation
         i : integer;
       begin
         inherited ppuload(t,ppufile);
-        { hopefully, we don't get problems with big/litte endian here when cross compiling :/ }
+        { hopefully, we don't get problems with big/little endian here when cross compiling :/ }
         ppufile.getdata(condition,sizeof(tasmcond));
-        allocate_oper(ppufile.getbyte);
+        ops := ppufile.getbyte;
+        allocate_oper(ops);
         for i:=0 to ops-1 do
           ppuloadoper(ppufile,oper[i]^);
         opcode:=tasmop(ppufile.getword);
