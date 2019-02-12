@@ -168,8 +168,6 @@ Procedure SysInitFPU;
     CR0_NE = $20;
     CR0_NOT_NE = $FFFF - CR0_NE;
   var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localfpucw: word;
     prevInt06 : FarPointer;
     _newcr0_lw : word;
     restore_old_int10 : boolean;
@@ -177,10 +175,9 @@ Procedure SysInitFPU;
 
   begin
     restore_old_int10:=false;
-    localfpucw:=Default8087CW;
     asm
       fninit
-      fldcw   localfpucw
+      fldcw   Default8087CW
       fwait
     end;
     if Test8087 < 3 then { i8087/i80287 do not have "native" exception mode (CR0:NE) }

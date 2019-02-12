@@ -1197,33 +1197,21 @@ procedure DetectFPU;
 
 {$ifndef FPC_SYSTEM_HAS_SYSINITFPU}
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
-Procedure SysInitFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localfpucw: word;
-  begin
-    localfpucw:=Default8087CW;
-    asm
-      fninit
-      fldcw   localfpucw
-      fwait
-    end;
+Procedure SysInitFPU; assembler;
+  asm
+    fninit
+    fldcw   Default8087CW
+    fwait
   end;
 
 {$endif ndef FPC_SYSTEM_HAS_SYSINITFPU}
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localfpucw: word;
-  begin
-    localfpucw:=Default8087CW;
-    asm
-      fninit
-      fwait
-      fldcw   localfpucw
-    end;
+Procedure SysResetFPU; assembler;
+  asm
+    fninit
+    fwait
+    fldcw   Default8087CW
   end;
 
 {$I int32p.inc}
