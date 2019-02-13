@@ -1639,9 +1639,15 @@ begin
         Fjs.WriteLn('}');
       end;
 
-      // Support functions
+      // Public support functions
       Fjs.WriteLn('public native static long AllocMemory(int Size);');
       AddNativeMethod(u, '_AllocMemory', 'AllocMemory', '(I)J');
+
+      Fjs.WriteLn('public native static byte[] GetMemoryAsArray(long SrcBuf, int BufSize);');
+      AddNativeMethod(u, '_GetMemoryAsArray', 'GetMemoryAsArray', '(JI)[B');
+
+      Fjs.WriteLn('public native static void SetMemoryFromArray(long DstBuf, byte[] SrcArray);');
+      AddNativeMethod(u, '_SetMemoryFromArray', 'SetMemoryFromArray', '(J[B)V');
 
       // Base object
       Fjs.WriteLn;
@@ -2981,6 +2987,8 @@ begin
     Fps.WriteLn('raise Exception.CreateFmt(''An array with only single element must be passed as parameter "%s".'', [VarName]);', 1);
     Fps.WriteLn('end;');
 
+    // Public support functions
+
     Fps.WriteLn;
     Fps.WriteLn('function _AllocMemory(env: PJNIEnv; jobj: jobject; size: jint): jlong;' + JniCaliing);
     Fps.WriteLn('var p: pointer;');
@@ -2988,6 +2996,19 @@ begin
     Fps.WriteLn('GetMem(p, size);', 1);
     Fps.WriteLn('FillChar(p^, size, 0);', 1);
     Fps.WriteLn('Result:=ptruint(p);', 1);
+    Fps.WriteLn('end;');
+
+    Fps.WriteLn;
+    Fps.WriteLn('function _GetMemoryAsArray(env: PJNIEnv; jobj: jobject; SrcBuf: jlong; BufSize: jint): jarray;' + JniCaliing);
+    Fps.WriteLn('begin');
+    Fps.WriteLn('Result:=env^^.NewByteArray(env, BufSize);', 1);
+    Fps.WriteLn('env^^.SetByteArrayRegion(env, Result, 0, BufSize, pointer(ptruint(SrcBuf)));', 1);
+    Fps.WriteLn('end;');
+
+    Fps.WriteLn;
+    Fps.WriteLn('procedure _SetMemoryFromArray(env: PJNIEnv; jobj: jobject; DstBuf: jlong; SrcArray: jarray);' + JniCaliing);
+    Fps.WriteLn('begin');
+    Fps.WriteLn('env^^.GetByteArrayRegion(env, SrcArray, 0, env^^.GetArrayLength(env, SrcArray), pointer(ptruint(DstBuf)));', 1);
     Fps.WriteLn('end;');
 
     // Set support
