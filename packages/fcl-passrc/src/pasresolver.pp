@@ -1653,31 +1653,31 @@ type
     function BI_Assigned_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Assigned_OnGetCallResult(Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     procedure BI_Assigned_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
     function BI_Chr_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Chr_OnGetCallResult(Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     procedure BI_Chr_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_Ord_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Ord_OnGetCallResult(Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     procedure BI_Ord_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_LowHigh_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_LowHigh_OnGetCallResult(Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     procedure BI_LowHigh_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_PredSucc_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
-    procedure BI_PredSucc_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_PredSucc_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     procedure BI_PredSucc_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_Str_CheckParam(IsFunc: boolean; Param: TPasExpr;
@@ -1689,9 +1689,9 @@ type
       Params: TParamsExpr); virtual;
     function BI_StrFunc_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
-    procedure BI_StrFunc_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
-    procedure BI_StrFunc_OnEval({%H-}Proc: TResElDataBuiltInProc;
+    procedure BI_StrFunc_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_StrFunc_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_WriteStrProc_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
@@ -1709,18 +1709,18 @@ type
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_ConcatArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
-    procedure BI_ConcatArray_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_ConcatArray_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     function BI_ConcatString_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
-    procedure BI_ConcatString_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
-    procedure BI_ConcatString_OnEval({%H-}Proc: TResElDataBuiltInProc;
+    procedure BI_ConcatString_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_ConcatString_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_CopyArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
-    procedure BI_CopyArray_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_CopyArray_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     function BI_InsertArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_InsertArray_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
@@ -1731,8 +1731,8 @@ type
       Params: TParamsExpr); virtual;
     function BI_TypeInfo_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
-    procedure BI_TypeInfo_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_TypeInfo_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     function BI_Assert_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Assert_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
@@ -1747,9 +1747,9 @@ type
       Params: TParamsExpr); virtual;
     function BI_Default_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
-    procedure BI_Default_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
-      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
-    procedure BI_Default_OnEval({%H-}Proc: TResElDataBuiltInProc;
+    procedure BI_Default_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_Default_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
   public
     constructor Create;
@@ -13785,6 +13785,7 @@ procedure TPasResolver.BI_Chr_OnGetCallResult(Proc: TResElDataBuiltInProc;
 begin
   SetResolverIdentifier(ResolvedEl,BaseTypeChar,Proc.Proc,
     FBaseTypes[BaseTypeChar],FBaseTypes[BaseTypeChar],[rrfReadable]);
+  if Params=nil then ;
 end;
 
 procedure TPasResolver.BI_Chr_OnEval(Proc: TResElDataBuiltInProc;
@@ -13862,6 +13863,7 @@ procedure TPasResolver.BI_Ord_OnGetCallResult(Proc: TResElDataBuiltInProc;
 begin
   SetResolverIdentifier(ResolvedEl,btLongint,Proc.Proc,
     FBaseTypes[btLongint],FBaseTypes[btLongint],[rrfReadable]);
+  if Params=nil then ;
 end;
 
 procedure TPasResolver.BI_Ord_OnEval(Proc: TResElDataBuiltInProc;
@@ -14194,6 +14196,7 @@ procedure TPasResolver.BI_PredSucc_OnGetCallResult(Proc: TResElDataBuiltInProc;
 begin
   ComputeElement(Params.Params[0],ResolvedEl,[]);
   ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
+  if Proc=nil then ;
 end;
 
 procedure TPasResolver.BI_PredSucc_OnEval(Proc: TResElDataBuiltInProc;
@@ -14369,15 +14372,17 @@ end;
 procedure TPasResolver.BI_StrFunc_OnGetCallResult(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
 begin
-  if Params=nil then ;
   SetResolverIdentifier(ResolvedEl,btString,Proc.Proc,
     FBaseTypes[btString],FBaseTypes[btString],[rrfReadable]);
+  if Params=nil then ;
+  if Proc=nil then ;
 end;
 
 procedure TPasResolver.BI_StrFunc_OnEval(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
 begin
   Evaluated:=fExprEvaluator.EvalStrFunc(Params,Flags);
+  if Proc=nil then ;
 end;
 
 function TPasResolver.BI_WriteStrProc_OnGetCallCompatibility(
@@ -14623,6 +14628,7 @@ begin
   ResolvedEl.IdentEl:=nil;
   if ResolvedEl.BaseType=btArrayOrSet then
     ResolvedEl.BaseType:=btArrayLit;
+  if Proc=nil then ;
 end;
 
 function TPasResolver.BI_ConcatString_OnGetCallCompatibility(
@@ -14657,11 +14663,14 @@ var
   i: Integer;
   Param: TPasExpr;
   ParamResolved, CombinedResolved: TPasResolverResult;
+  ParamsArr: TPasExprArray;
 begin
-  for i:=0 to length(Params.Params)-1 do
+  if Proc=nil then ;
+  ParamsArr:=Params.Params;
+  for i:=0 to length(ParamsArr)-1 do
     begin
     // all params: char or string
-    Param:=Params.Params[i];
+    Param:=ParamsArr[i];
     ComputeElement(Param,ParamResolved,[]);
     if i=0 then
       ResolvedEl:=ParamResolved
@@ -14681,6 +14690,7 @@ var
   Value, NewValue: TResEvalValue;
   ok: Boolean;
 begin
+  if Proc=nil then ;
   Value:=nil;
   Evaluated:=nil;
   ok:=false;
@@ -14767,6 +14777,7 @@ procedure TPasResolver.BI_CopyArray_OnGetCallResult(
   Proc: TResElDataBuiltInProc; Params: TParamsExpr; out
   ResolvedEl: TPasResolverResult);
 begin
+  if Proc=nil then ;
   ComputeElement(Params.Params[0],ResolvedEl,[]);
   ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
   ResolvedEl.ExprEl:=Params;
@@ -15149,6 +15160,7 @@ procedure TPasResolver.BI_Default_OnGetCallResult(Proc: TResElDataBuiltInProc;
 var
   Param: TPasExpr;
 begin
+  if Proc=nil then ;
   Param:=Params.Params[0];
   ComputeElement(Param,ResolvedEl,[rcNoImplicitProc]);
   ResolvedEl.Flags:=[rrfReadable];
@@ -15167,6 +15179,7 @@ var
   bt: TResolverBaseType;
   MinInt, MaxInt: TMaxPrecInt;
 begin
+  if Proc=nil then ;
   Evaluated:=nil;
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);

@@ -4012,6 +4012,7 @@ function TResExprEvaluator.EvalPrimitiveExprString(Expr: TPrimitiveExpr
   {$else}
   begin
     TResEvalUTF16(Result).S:=TResEvalUTF16(Result).S+WideChar(u);
+    if ForceUTF16 then ;
   end;
   {$endif}
 
@@ -4855,6 +4856,10 @@ begin
       RaiseNotYetImplemented(20170601141811,Expr);
     end;
   else
+    {$ifndef FPC_HAS_CPSTRING}
+    if LeftExpr=nil then ; // no Parameter "LeftExpr" not used
+    if RightExpr=nil then ; // no Parameter "RightExpr" not used
+    {$endif}
     RaiseNotYetImplemented(20181219233139,Expr);
   end;
 end;

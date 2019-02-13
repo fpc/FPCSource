@@ -4437,6 +4437,7 @@ procedure TPasParser.OnScannerModeChanged(Sender: TObject;
   NewMode: TModeSwitch; Before: boolean; var Handled: boolean);
 begin
   Engine.ModeChanged(Self,NewMode,Before,Handled);
+  if Sender=nil then ;
 end;
 
 function TPasParser.SaveComments: String;
