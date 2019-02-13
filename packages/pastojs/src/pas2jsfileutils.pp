@@ -40,8 +40,8 @@ function FileIsInPath(const Filename, Path: string): boolean;
 function ChompPathDelim(const Path: string): string;
 function ExpandFileNamePJ(const FileName: string; {const} BaseDir: string = ''): string;
 function ExpandDirectory(const aDirectory: string): string;
-function IsUNCPath(const {%H-}Path: String): Boolean;
-function ExtractUNCVolume(const {%H-}Path: String): String;
+function IsUNCPath(const Path: String): Boolean;
+function ExtractUNCVolume(const Path: String): String;
 function ExtractFileRoot(FileName: String): String;
 function TryCreateRelativePath(
   const Dest: String; // Filename
