@@ -137,7 +137,14 @@ asm
   add di, cx
   dec si
   dec di
-  rep movsb  // todo: movsw
+  dec si
+  dec di
+  shr cx, 1
+  rep movsw
+  adc cx, cx
+  inc si
+  inc di
+  rep movsb
   cld
 
 @@AfterMove:
@@ -183,7 +190,14 @@ asm
   add di, cx
   dec si
   dec di
-  rep movsb  // todo: movsw
+  dec si
+  dec di
+  shr cx, 1
+  rep movsw
+  adc cx, cx
+  inc si
+  inc di
+  rep movsb
   cld
 
 @@AfterMove:
