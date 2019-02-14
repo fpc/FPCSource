@@ -5417,6 +5417,13 @@ Type
 
      C3_LEXICAL     = 1024;
 
+     FLASHW_STOP         = $00000000;
+     FLASHW_CAPTION      = $00000001;
+     FLASHW_TRAY         = $00000002;
+     FLASHW_ALL          = (FLASHW_CAPTION or FLASHW_TRAY);
+     FLASHW_TIMER        = $00000004;
+     FLASHW_TIMERNOFG    = $0000000C;
+
      CLASS_E_NOTLICENSED   = DWORD($80040112);
 
   { --------------------- old stuff, need to organize! ---------------  }

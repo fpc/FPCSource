@@ -1061,6 +1061,7 @@ procedure SHFreeNameMappings(_para1:HANDLE); external 'shell32' name 'SHFreeName
 function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD_PTR; external 'shell32' name 'SHGetFileInfo';
 function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external 'shell32' name 'SHGetPathFromIDList';
 function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external 'shell32' name 'SHGetSpecialFolderLocation';
+function FlashWindowEx(pfwi : PFLASHWINFO) : BOOL; stdcall; external 'user32' name 'FlashWindowEx';
 
 { was missing, bug report 1808 PM }
 {
