@@ -87,7 +87,7 @@ interface
            envbuf,
            reasonbuf  : treference;
            { when using dwarf based eh handling, the landing pads get the unwind info passed, it is
-             stored in the given register so it can be passed to unwind_resum }
+             stored in the given register so it can be passed to unwind_resume }
            unwind_info : TRegister;
          end;
 
@@ -1427,11 +1427,7 @@ implementation
 
     function tcgtryfinallynode.get_jump_out_of_try_finally_frame_label(const finallyexceptionstate: tcgexceptionstatehandler.texceptionstate): tasmlabel;
       begin
-         if implicitframe and
-            not assigned(third) then
-           result:=finallyexceptionstate.exceptionlabel
-         else
-           current_asmdata.getjumplabel(result);
+        current_asmdata.getjumplabel(result);
       end;
 
 
@@ -1615,6 +1611,8 @@ implementation
                    handle_safecall_exception
                  else
                    cexceptionstatehandler.handle_reraise(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate,exceptframekind);
+                 { we have to load 0 into the execepttemp, else the program thinks an exception happended }
+                 emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,0,finallyexceptionstate.exceptionlabel,excepttemps,exitfinallylabel);
                end
              else
                begin
