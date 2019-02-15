@@ -1892,32 +1892,42 @@ begin
     case CurToken of
       tkSquaredBraceOpen:
         begin
-          repeat
-            NextToken;
-            if po_arrayrangeexpr in Options then
-              begin
-              RangeExpr:=DoParseExpression(Result);
-              Result.AddRange(RangeExpr);
-              end
-            else if CurToken<>tkSquaredBraceClose then
-               S:=S+CurTokenText;
-            if CurToken=tkSquaredBraceClose then
-              break
-            else if CurToken=tkComma then
-              continue
-            else if po_arrayrangeexpr in Options then
-              ParseExcTokenError(']');
-          until false;
-          Result.IndexRange:=S;
-          ExpectToken(tkOf);
-          Result.ElType := ParseType(Result,CurSourcePos);
+        // static array
+        if Parent is TPasArgument then
+          ParseExcTokenError('of');
+        repeat
+          NextToken;
+          if po_arrayrangeexpr in Options then
+            begin
+            RangeExpr:=DoParseExpression(Result);
+            Result.AddRange(RangeExpr);
+            end
+          else if CurToken<>tkSquaredBraceClose then
+             S:=S+CurTokenText;
+          if CurToken=tkSquaredBraceClose then
+            break
+          else if CurToken=tkComma then
+            continue
+          else if po_arrayrangeexpr in Options then
+            ParseExcTokenError(']');
+        until false;
+        Result.IndexRange:=S;
+        ExpectToken(tkOf);
+        Result.ElType := ParseType(Result,CurSourcePos);
         end;
       tkOf:
         begin
         NextToken;
         if CurToken = tkConst then
+          // array of const
+          begin
+          if not (Parent is TPasArgument) then
+            ParseExcExpectedIdentifier;
+          end
         else
           begin
+          if (CurToken=tkarray) and (Parent is TPasArgument) then
+            ParseExcExpectedIdentifier;
           UngetToken;
           Result.ElType := ParseType(Result,CurSourcePos);
           end;

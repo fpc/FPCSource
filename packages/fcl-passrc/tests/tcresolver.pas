@@ -103,7 +103,8 @@ type
   PTestResolverReferenceData = ^TTestResolverReferenceData;
 
   TSystemUnitPart = (
-    supTObject
+    supTObject,
+    supTVarRec
     );
   TSystemUnitParts = set of TSystemUnitPart;
 
@@ -800,9 +801,12 @@ type
     Procedure TestArray_ConstDynArrayWrite;
     Procedure TestArray_ConstOpenArrayWriteFail;
     Procedure TestArray_ForIn;
+    Procedure TestArray_Arg_AnonymousStaticFail;
+    Procedure TestArray_Arg_AnonymousMultiDimFail;
 
     // array of const
     Procedure TestArrayOfConst;
+    Procedure TestArrayOfConst_PassDynArrayOfIntFail;
 
     // static arrays
     Procedure TestArrayIntRange_OutOfRange;
@@ -2072,6 +2076,20 @@ begin
     '    procedure BeforeDestruction;virtual;',
     '    function Equals(Obj: TObject): boolean; virtual;',
     '    function ToString: String; virtual;',
+    '  end;']);
+    end;
+  if supTVarRec in Parts then
+    begin
+    Intf.AddStrings([
+    'const',
+    '  vtInteger       = 0;',
+    '  vtBoolean       = 1;',
+    'type',
+    '  PVarRec = ^TVarRec;',
+    '  TVarRec = record',
+    '    case VType : sizeint of',
+    '    vtInteger       : (VInteger: Longint);',
+    '    vtBoolean       : (VBoolean: Boolean);',
     '  end;']);
     end;
   Intf.Add('var');
@@ -14324,14 +14342,74 @@ begin
   CheckParamsExpr_pkSet_Markers;
 end;
 
-procedure TTestResolver.TestArrayOfConst;
+procedure TTestResolver.TestArray_Arg_AnonymousStaticFail;
 begin
   StartProgram(false);
   Add([
-  'procedure DoIt(args: array of const);',
-  'begin end;',
+  'procedure DoIt(args: array[1..2] of word);',
+  'begin',
+  'end;',
   'begin']);
-  CheckResolverException('not yet implemented: :TPasArrayType [20171005235610] array of const',nNotYetImplemented);
+  CheckParserException('Expected "of"',nParserExpectTokenError);
+end;
+
+procedure TTestResolver.TestArray_Arg_AnonymousMultiDimFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(args: array of array of word);',
+  'begin',
+  'end;',
+  'begin']);
+  CheckParserException(SParserExpectedIdentifier,nParserExpectedIdentifier);
+end;
+
+procedure TTestResolver.TestArrayOfConst;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'type',
+  '  TArrOfVarRec = array of TVarRec;',
+  'procedure DoIt(args: array of const);',
+  'var',
+  '  i: longint;',
+  '  v: TVarRec;',
+  '  a: TArrOfVarRec;',
+  'begin',
+  '  DoIt(args);',
+  '  DoIt(a);',
+  '  DoIt([]);',
+  '  DoIt([1]);',
+  '  DoIt([i]);',
+  '  DoIt([true,''foo'',''c'',1.3,nil,@DoIt]);',
+  '  for i:=low(args) to high(args) do begin',
+  '    v:=args[i];',
+  '    case args[i].VType of',
+  '    vtInteger: if length(args)=args[i].VInteger then ;',
+  '    end;',
+  '  end;',
+  '  for v in Args do ;',
+  '  args:=nil;',
+  '  SetLength(args,2);',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArrayOfConst_PassDynArrayOfIntFail;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'type',
+  '  TArr = array of word;',
+  'procedure DoIt(args: array of const);',
+  'begin',
+  'end;',
+  'var a: TArr;',
+  'begin',
+  '  DoIt(a)']);
+  CheckResolverException('Incompatible type arg no. 1: Got "TArr", expected "array of const"',
+    nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestArrayIntRange_OutOfRange;

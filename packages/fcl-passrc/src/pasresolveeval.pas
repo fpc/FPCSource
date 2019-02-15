@@ -183,6 +183,7 @@ const
   nHelpersCannotBeUsedAsTypes = 3117;
   nBitWiseOperationsAre32Bit = 3118;
   nImplictConversionUnicodeToAnsi = 3119;
+  nWrongTypeXInArrayConstructor = 3120;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -313,6 +314,7 @@ resourcestring
   sHelpersCannotBeUsedAsTypes = 'helpers cannot be used as types';
   sBitWiseOperationsAre32Bit = 'Bitwise operations are 32-bit';
   sImplictConversionUnicodeToAnsi = 'Implicit string type conversion with potential data loss from "UnicodeString" to "AnsiString"';
+  sWrongTypeXInArrayConstructor = 'Wrong type "%s" in array constructor';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

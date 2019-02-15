@@ -250,7 +250,7 @@ type
     procedure UseElement(El: TPasElement; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseTypeInfo(El: TPasElement); virtual;
-    procedure UseModule(aModule: TPasModule; Mode: TPAUseMode); virtual;
+    function UseModule(aModule: TPasModule; Mode: TPAUseMode): boolean; virtual;
     procedure UseSection(Section: TPasSection; Mode: TPAUseMode); virtual;
     procedure UseImplBlock(Block: TPasImplBlock; Mark: boolean); virtual;
     procedure UseImplElement(El: TPasImplElement); virtual;
@@ -1135,7 +1135,7 @@ begin
   UseElement(El,rraNone,true);
 end;
 
-procedure TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode);
+function TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode): boolean;
 
   procedure UseInitFinal(ImplBlock: TPasImplBlock);
   var
@@ -1154,7 +1154,8 @@ procedure TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode);
 var
   ModScope: TPasModuleScope;
 begin
-  if ElementVisited(aModule,Mode) then exit;
+  if ElementVisited(aModule,Mode) then exit(false);
+  Result:=true;
 
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseModule ',GetElModName(aModule),' Mode=',Mode{$IFDEF pas2js},' ',aModule.PasElementId{$ENDIF});
@@ -1179,6 +1180,10 @@ begin
     UseClassOrRecType(ModScope.RangeErrorClass,paumElement);
   if ModScope.RangeErrorConstructor<>nil then
     UseProcedure(ModScope.RangeErrorConstructor);
+  // no need to use here ModScope.AssertClass, it is used by Assert
+  // no need to use here ModScope.AssertMsgConstructor
+  // no need to use here ModScope.AssertDefConstructor
+  // no need to use here ModScope.SystemTVarRec
 
   if Mode=paumElement then
     // e.g. a reference: unitname.identifier
