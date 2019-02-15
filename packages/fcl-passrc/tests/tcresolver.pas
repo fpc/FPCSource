@@ -256,6 +256,7 @@ type
     // enums and sets
     Procedure TestEnums;
     Procedure TestEnumRangeFail;
+    Procedure TestEnumDotValueFail;
     Procedure TestSets;
     Procedure TestSetOperators;
     Procedure TestEnumParams;
@@ -347,7 +348,8 @@ type
     Procedure TestForLoopStartIncompFail;
     Procedure TestForLoopEndIncompFail;
     Procedure TestSimpleStatement_VarFail;
-    Procedure TestRecord_Default;
+    Procedure TestLabelStatementFail;
+    Procedure TestLabelStatementDelphiFail;
 
     // units
     Procedure TestUnitForwardOverloads;
@@ -483,28 +485,34 @@ type
     Procedure TestRecord_Const_UntypedFail;
     Procedure TestRecord_Const_NestedRecord;
     Procedure TestRecord_Const_Variant;
+    Procedure TestRecord_Default;
     Procedure TestRecord_VarExternal;
     Procedure TestRecord_VarSelfFail;
 
     // advanced record
     Procedure TestAdvRecord;
     Procedure TestAdvRecord_Private;
-    // ToDO: Procedure TestAdvRecord_PropertyWithoutTypeFail;
-    // Todo: Procedure TestAdvRecord_ForwardFail
-    // ToDo: public, private, strict private
-    // ToDo: TestAdvRecordPublishedFail
-    // ToDo: TestAdvRecord_VirtualFail
-    // ToDo: TestAdvRecord_OverrideFail
-    // ToDo: constructor, destructor
-    // ToDo: class function/procedure
-    // ToDo: nested record type
-    // ToDo: const
-    // todo: var
-    // todo: class var
-    // todo: property
-    // todo: class property
-    // todo: TestRecordAsFuncResult
-    // todo: for in record
+    Procedure TestAdvRecord_StrictPrivate;
+    Procedure TestAdvRecord_StrictPrivateFail;
+    Procedure TestAdvRecord_MethodImplMissingFail;
+    Procedure TestAdvRecord_VarConst;
+    Procedure TestAdvRecord_RecVal_ConstFail;
+    Procedure TestAdvRecord_RecVal_ClassVarFail;
+    Procedure TestAdvRecord_LocalForwardType;
+    Procedure TestAdvRecord_Constructor_NewInstance;
+    Procedure TestAdvRecord_ConstructorNoParamsFail;
+    Procedure TestAdvRecord_ClassConstructor;
+    Procedure TestAdvRecord_ClassConstructorParamsFail;
+    Procedure TestAdvRecord_NestedRecordType;
+    Procedure TestAdvRecord_NestedArgConstFail;
+    Procedure TestAdvRecord_Property;
+    Procedure TestAdvRecord_ClassProperty;
+    Procedure TestAdvRecord_PropertyDefault;
+    Procedure TestAdvRecord_RecordAsFuncResult;
+    Procedure TestAdvRecord_InheritedFail;
+    Procedure TestAdvRecord_ForInEnumerator;
+    Procedure TestAdvRecord_InFunctionFail;
+    Procedure TestAdvRecord_SubClass;
 
     // class
     Procedure TestClass;
@@ -516,6 +524,9 @@ type
     Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
     Procedure TestClassForwardDuplicateFail;
+    Procedure TestClassForwardDelphiFail;
+    Procedure TestClassForwardObjFPCProgram;
+    Procedure TestClassForwardObjFPCUnit;
     Procedure TestClass_Method;
     Procedure TestClass_ConstructorMissingDotFail;
     Procedure TestClass_MethodImplDuplicateFail;
@@ -574,6 +585,7 @@ type
     Procedure TestClass_FuncReturningObjectMember;
     Procedure TestClass_StaticWithoutClassFail;
     Procedure TestClass_SelfInStaticFail;
+    Procedure TestClass_SelfDotInStaticFail;
     Procedure TestClass_PrivateProtectedInSameUnit;
     Procedure TestClass_PrivateInMainBeginFail;
     Procedure TestClass_PrivateInDescendantFail;
@@ -581,7 +593,6 @@ type
     Procedure TestClass_StrictPrivateInMainBeginFail;
     Procedure TestClass_StrictProtectedInMainBeginFail;
     Procedure TestClass_Constructor_NewInstance;
-    Procedure TestClass_Constructor_InstanceCallResultFail;
     Procedure TestClass_Destructor_FreeInstance;
     Procedure TestClass_ConDestructor_CallInherited;
     Procedure TestClass_Constructor_Inherited;
@@ -597,6 +608,7 @@ type
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
     Procedure TestClass_Const;
+    Procedure TestClass_ClassMissingVarFail;
     Procedure TestClass_ClassConstFail;
     Procedure TestClass_Enumerator;
     Procedure TestClass_EnumeratorFunc;
@@ -655,6 +667,8 @@ type
     Procedure TestPropertyReadAccessorFuncWrongResult;
     Procedure TestPropertyReadAccessorFuncWrongArgCount;
     Procedure TestPropertyReadAccessorFunc;
+    Procedure TestPropertyReadAccessorStrictPrivate;
+    Procedure TestPropertyReadAccessorNonClassFail;
     Procedure TestPropertyWriteAccessorVarWrongType;
     Procedure TestPropertyWriteAccessorFuncNotProc;
     Procedure TestPropertyWriteAccessorProcWrongArgCount;
@@ -680,7 +694,11 @@ type
     Procedure TestPropertyArgs2;
     Procedure TestPropertyArgsWithDefaultsFail;
     Procedure TestPropertyArgs_StringConstDefault;
-    Procedure TestProperty_Index;
+    Procedure TestClassProperty;
+    Procedure TestClassPropertyNonStaticFail;
+    Procedure TestClassPropertyNonStaticAllow;
+    //Procedure TestClassPropertyStaticMismatchFail;
+    Procedure TestArrayProperty;
     Procedure TestProperty_WrongTypeAsIndexFail;
     Procedure TestProperty_Option_ClassPropertyNonStatic;
     Procedure TestDefaultProperty;
@@ -856,6 +874,53 @@ type
     Procedure TestHint_ElementHintsAlias;
     Procedure TestHint_ElementHints_WarnOff_SymbolDeprecated;
     Procedure TestHint_Garbage;
+
+    // helpers
+    Procedure TestClassHelper;
+    Procedure TestClassHelper_AncestorIsNotHelperForDescendantFail;
+    Procedure TestClassHelper_HelperForParentFail;
+    Procedure TestClassHelper_ForInterfaceFail;
+    Procedure TestClassHelper_FieldFail;
+    Procedure TestClassHelper_AbstractFail;
+    Procedure TestClassHelper_VirtualObjFPCFail;
+    Procedure TestClassHelper_VirtualDelphiFail;
+    Procedure TestClassHelper_DestructorFail;
+    Procedure TestClassHelper_ClassRefersToTypeHelperOfAncestor;
+    Procedure TestClassHelper_InheritedObjFPC;
+    Procedure TestClassHelper_InheritedObjFPC2;
+    Procedure TestClassHelper_InheritedObjFPCStrictPrivateFail;
+    Procedure TestClassHelper_InheritedClassObjFPC;
+    Procedure TestClassHelper_InheritedDelphi;
+    Procedure TestClassHelper_NestedInheritedParentFail;
+    Procedure TestClassHelper_AccessFields;
+    Procedure TestClassHelper_HelperDotClassMethodFail;
+    Procedure TestClassHelper_WithHelperFail;
+    Procedure TestClassHelper_AsTypeFail;
+    Procedure TestClassHelper_ClassMethod;
+    Procedure TestClassHelper_Enumerator;
+    Procedure TestClassHelper_FromUnitInterface;
+    Procedure TestClassHelper_Constructor_NewInstance;
+    Procedure TestClassHelper_ReintroduceHides_CallFail;
+    Procedure TestClassHelper_DefaultProperty;
+    Procedure TestClassHelper_DefaultClassProperty;
+    Procedure TestClassHelper_MultipleScopeHelpers;
+    Procedure TestRecordHelper;
+    Procedure TestRecordHelper_ForByteFail;
+    Procedure TestRecordHelper_ClassNonStaticFail;
+    Procedure TestRecordHelper_InheritedObjFPC;
+    Procedure TestRecordHelper_Constructor_NewInstance;
+    Procedure TestTypeHelper;
+    Procedure TestTypeHelper_HelperForProcTypeFail;
+    Procedure TestTypeHelper_DefaultPropertyFail;
+    Procedure TestTypeHelper_Enum;
+    Procedure TestTypeHelper_EnumDotValueFail;
+    Procedure TestTypeHelper_EnumHelperDotProcFail;
+    Procedure TestTypeHelper_Set;
+    Procedure TestTypeHelper_Enumerator;
+    Procedure TestTypeHelper_String;
+    Procedure TestTypeHelper_Boolean;
+    Procedure TestTypeHelper_Constructor_NewInstance;
+    Procedure TestTypeHelper_InterfaceFail;
 
     // attributes
     Procedure TestAttributes_Ignore;
@@ -2744,6 +2809,20 @@ begin
   '  r=low(word)+high(int64);',
   '  s=low(longint)+high(integer);',
   '  t=succ(2)+pred(2);',
+  '  lo1:byte=lo(word($1234));',
+  '  hi1:byte=hi(word($1234));',
+  '  lo2:word=lo(longword($1234CDEF));',
+  '  hi2:word=hi(longword($1234CDEF));',
+  '  lo3:word=lo(LongInt(-$1234CDEF));',
+  '  hi3:word=hi(LongInt(-$1234CDEF));',
+  '  lo4:byte=lo(byte($34));',
+  '  hi4:byte=hi(byte($34));',
+  '  lo5:byte=lo(shortint(-$34));',
+  '  hi5:byte=hi(shortint(-$34));',
+  '  lo6:longword=lo($123456789ABCDEF0);',
+  '  hi6:longword=hi($123456789ABCDEF0);',
+  '  lo7:longword=lo(-$123456789ABCDEF0);',
+  '  hi7:longword=hi(-$123456789ABCDEF0);',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -3330,6 +3409,8 @@ begin
   '  k=chr(97);',
   '  l=ord(a[1]);',
   '  m=low(char)+high(char);',
+  '  n = string(''A'');',
+  '  o = UnicodeString(''A'');',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -3502,6 +3583,17 @@ begin
   'const all = a..c;',
   'begin']);
   CheckParserException('Const ranges are not allowed',nParserNoConstRangeAllowed);
+end;
+
+procedure TTestResolver.TestEnumDotValueFail;
+begin
+  StartProgram(false);
+  Add([
+  'type TFlag = (a,b,c);',
+  'var f: TFlag;',
+  'begin',
+  '  f:=f.a;']);
+  CheckResolverException('illegal qualifier "." after "f:TFlag"',nIllegalQualifierAfter);
 end;
 
 procedure TTestResolver.TestSets;
@@ -4295,6 +4387,10 @@ begin
   Add('  if i>=j then;');
   Add('  if i<j then;');
   Add('  if i<=j then;');
+  Add('  i:=lo($1234);');
+  Add('  i:=lo($1234CDEF);');
+  Add('  i:=hi($1234);');
+  Add('  i:=hi($1234CDEF);');
   ParseProgram;
 end;
 
@@ -5237,21 +5333,24 @@ begin
   CheckResolverException('Illegal expression',nIllegalExpression);
 end;
 
-procedure TTestResolver.TestRecord_Default;
+procedure TTestResolver.TestLabelStatementFail;
 begin
   StartProgram(false);
-  Add([
-  'type',
-  '  TPoint = record x, y: longint; end;',
-  'var',
-  '  i: longint;',
-  '  r: TPoint;',
-  'begin',
-  '  i:=Default(longint);',
-  '  r:=Default(r);',
-  '  r:=Default(TPoint);',
-  '']);
-  ParseProgram;
+  Add('var i: longint;');
+  Add('begin');
+  Add('  i: i;');
+  CheckParserException('Expected ";"',nParserExpectTokenError);
+end;
+
+procedure TTestResolver.TestLabelStatementDelphiFail;
+begin
+  StartProgram(false);
+  Add('{$mode delphi}');
+  Add('{$goto off}');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  i: i;');
+  CheckParserException('Expected ";"',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestUnitForwardOverloads;
@@ -7798,6 +7897,23 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestRecord_Default;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  'var',
+  '  i: longint;',
+  '  r: TPoint;',
+  'begin',
+  '  i:=Default(longint);',
+  '  r:=Default(r);',
+  '  r:=Default(TPoint);',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestRecord_VarExternal;
 begin
   StartProgram(false);
@@ -7855,6 +7971,595 @@ begin
   '  r: TRec;',
   'begin',
   '  r.a:=r.b;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_StrictPrivate;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  strict private',
+  '    FSize: longword;',
+  '    function GetSize: longword;',
+  '  public',
+  '    property Size: longword read GetSize write FSize;',
+  '  end;',
+  'function TRec.GetSize: longword;',
+  'begin',
+  '  FSize:=GetSize;',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  r.Size:=r.Size;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_StrictPrivateFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  strict private',
+  '    A: word;',
+  '  end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  r.a:=r.a;']);
+  CheckResolverException('Can''t access strict private member A',nCantAccessXMember);
+end;
+
+procedure TTestResolver.TestAdvRecord_MethodImplMissingFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    procedure SetSize(Value: word);',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sForwardProcNotResolved,nForwardProcNotResolved);
+end;
+
+procedure TTestResolver.TestAdvRecord_VarConst;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  type TInt = word;',
+  '  const',
+  '    C1 = 3;',
+  '    C2: TInt = 4;',
+  '  var',
+  '    V1: TInt;',
+  '    V2: TInt;',
+  '  class var',
+  '    VC: TInt;',
+  '    CA: array[1..C1] of TInt;',
+  '  procedure DoIt;',
+  '  end;',
+  'procedure TRec.DoIt;',
+  'begin',
+  '  C2:=Self.C2;',
+  '  V1:=VC;',
+  '  Self.V1:=Self.VC;',
+  '  VC:=V1;',
+  '  Self.VC:=Self.V1;',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  trec.C2:=trec.C2;',
+  '  r.V1:=r.VC;',
+  '  r.V1:=trec.VC;',
+  '  r.VC:=r.V1;',
+  '  trec.VC:=trec.c1;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_RecVal_ConstFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    V1: word;',
+  '  const',
+  '    C1 = 3;',
+  '  end;',
+  'var',
+  '  r: TRec = (V1:2; C1: 4);',
+  'begin',
+  '']);
+  CheckResolverException(sIdentifierXIsNotAnInstanceField,nIdentifierXIsNotAnInstanceField);
+end;
+
+procedure TTestResolver.TestAdvRecord_RecVal_ClassVarFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    V1: word;',
+  '  class var',
+  '    C1: word;',
+  '  end;',
+  'var',
+  '  r: TRec = (V1:2; C1: 4);',
+  'begin',
+  '']);
+  CheckResolverException(sIdentifierXIsNotAnInstanceField,nIdentifierXIsNotAnInstanceField);
+end;
+
+procedure TTestResolver.TestAdvRecord_LocalForwardType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  type',
+  '    PInt = ^TInt;',
+  '    TInt = word;',
+  '  var i: PInt;',
+  '  end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualNewInstance: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    constructor Create(w: word);',
+  '    class function DoSome: TRec; static;',
+  '  end;',
+  'constructor TRec.Create(w: word);',
+  'begin',
+  '  {#a}Create(1); // normal call',
+  '  TRec.{#b}Create(2); // new instance',
+  'end;',
+  'class function TRec.DoSome: TRec;',
+  'begin',
+  '  Result:={#c}Create(3); // new instance',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  TRec.{#p}Create(4); // new object',
+  '  r:=TRec.{#q}Create(5); // new object',
+  '  with TRec do begin',
+  '    {#r}Create(6); // new object',
+  '    r:={#s}Create(7); // new object',
+  '  end;',
+  '  r.{#t}Create(8); // normal call',
+  '  r:=r.{#u}Create(9); // normal call',
+  '  with r do begin',
+  '    {#v}Create(10); // normal call',
+  '    r:={#w}Create(11); // normal call',
+  '  end;',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        if rrfImplicitCallWithoutParams in Ref.Flags then
+          RaiseErrorAtSrcMarker('unexpected implicit call at "#'+aMarker^.Identifier+' ref"',aMarker);
+        break;
+        end;
+      case aMarker^.Identifier of
+      'a','t','u','v','w':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestAdvRecord_ConstructorNoParamsFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    constructor Create(w: word = 3);',
+  '  end;',
+  'constructor TRec.Create(w: word);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sParameterlessConstructorsNotAllowedInRecords,
+    nParameterlessConstructorsNotAllowedInRecords);
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassConstructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    class var w: word;',
+  '    class procedure {#a}Create; static;',
+  '    class constructor Create; static;',
+  '  end;',
+  'class constructor TRec.Create;',
+  'begin',
+  '  w:=w+1;',
+  'end;',
+  'class procedure TRec.Create;',
+  'begin',
+  '  w:=w+1;',
+  'end;',
+  'begin',
+  '  TRec.{@a}Create;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassConstructorParamsFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    class constructor Create(w: word);',
+  '  end;',
+  'class constructor TRec.Create(w: word);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('class constructor cannot have parameters',nXCannotHaveParameters);
+end;
+
+procedure TTestResolver.TestAdvRecord_NestedRecordType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  type',
+  '    TSub = record',
+  '      x: word;',
+  '      class var y: word;',
+  '      procedure DoSub;',
+  '    end;',
+  '  var',
+  '    Sub: TSub;',
+  '    procedure DoIt(const r: TRec);',
+  '  end;',
+  'procedure TRec.TSub.DoSub;',
+  'begin',
+  '  x:=3;',
+  'end;',
+  'procedure TRec.DoIt(const r: TRec);',
+  'begin',
+  '  Sub.x:=4;',
+  '  r.Sub.y:=Sub.x;', // class var y is writable, even though r.Sub is not
+  'end;',
+  'var r: TRec;',
+  'begin',
+  '  r.sub.x:=4;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_NestedArgConstFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  type',
+  '    TSub = record',
+  '      x: word;',
+  '    end;',
+  '  var',
+  '    Sub: TSub;',
+  '    procedure DoIt(const r: TRec);',
+  '  end;',
+  'procedure TRec.DoIt(const r: TRec);',
+  'begin',
+  '  r.Sub.x:=4;',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestAdvRecord_Property;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    FSize: word;',
+  '    function SizeStored: boolean;',
+  '    function GetWidth: word;',
+  '    procedure SetWidth(Value: word);',
+  '  public',
+  '    property Size: word read FSize write FSize stored SizeStored default 3;',
+  '    property Width: word read GetWidth write SetWidth;',
+  '  end;',
+  'function TRec.SizeStored: boolean;',
+  'begin',
+  'end;',
+  'function TRec.GetWidth: word;',
+  'begin',
+  '  Result:=FSize;',
+  'end;',
+  'procedure TRec.SetWidth(Value: word);',
+  'begin',
+  '  FSize:=Value;',
+  'end;',
+  'var r: TRec;',
+  'begin',
+  '  r.Size:=r.Size;',
+  '  r.Width:=r.Width;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassProperty;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    class var FSize: word;',
+  '    class function GetWidth: word; static;',
+  '    class procedure SetWidth(Value: word); static;',
+  '  public',
+  '    class property Size: word read FSize write FSize;',
+  '    class property Width: word read GetWidth write SetWidth;',
+  '  end;',
+  'class function TRec.GetWidth: word;',
+  'begin',
+  '  Result:=FSize;',
+  'end;',
+  'class procedure TRec.SetWidth(Value: word);',
+  'begin',
+  '  FSize:=Value;',
+  'end;',
+  'begin',
+  '  TRec.Size:=TRec.Size;',
+  '  TRec.Width:=TRec.Width;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_PropertyDefault;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    function GetItems(Index: word): word;',
+  '    procedure SetItems(Index: word; Value: word);',
+  '  public',
+  '    property Items[Index: word]: word read GetItems write SetItems; default;',
+  '  end;',
+  '  TGlob = record',
+  '  private',
+  '    class function GetSizes(Index: word): word; static;',
+  '    class procedure SetSizes(Index: word; Value: word); static;',
+  '  public',
+  '    class property Sizes[Index: word]: word read GetSizes write SetSizes; default;',
+  '  end;',
+  'function TRec.GetItems(Index: word): word;',
+  'begin',
+  'end;',
+  'procedure TRec.SetItems(Index: word; Value: word);',
+  'begin',
+  'end;',
+  'class function TGlob.GetSizes(Index: word): word;',
+  'begin',
+  'end;',
+  'class procedure TGlob.SetSizes(Index: word; Value: word);',
+  'begin',
+  'end;',
+  'var',
+  '  r: TRec;',
+  '  g: TGlob;',
+  'begin',
+  '  r[1]:=r[2];',
+  '  TGlob[1]:=TGlob[2];',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_RecordAsFuncResult;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  {#A}TRec = record',
+  '     {#A_i}i: longint;',
+  '     class function {#A_CreateA}Create: TRec; static;',
+  '     class function {#A_CreateB}Create(i: longint): TRec; static;',
+  '  end;',
+  'function {#F}F: TRec;',
+  'begin',
+  '  Result:=default(TRec);',
+  'end;',
+  'class function TRec.Create: TRec;',
+  'begin',
+  '  Result:=default(TRec);',
+  'end;',
+  'class function TRec.Create(i: longint): TRec;',
+  'begin',
+  '  Result:=default(TRec);',
+  '  Result.i:=i;',
+  'end;',
+  'var',
+  '  {#v}{=A}v: TRec;',
+  'begin',
+  '  {@v}v:={@F}F;',
+  '  {@v}v:={@F}F();',
+  '  if {@v}v={@F}F then ;',
+  '  if {@v}v={@F}F() then ;',
+  '  {@v}v:={@A}TRec.{@A_CreateA}Create;',
+  '  {@v}v:={@A}TRec.{@A_CreateA}Create();',
+  '  {@v}v:={@A}TRec.{@A_CreateB}Create(3);',
+  '  {@A}TRec.{@A_CreateA}Create . {@A_i}i:=4;',
+  '  {@A}TRec.{@A_CreateA}Create().{@A_i}i:=5;',
+  '  {@A}TRec.{@A_CreateB}Create(3).{@A_i}i:=6;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_InheritedFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TRec.DoIt;',
+  'begin',
+  '  inherited;',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('The use of "inherited" is not allowed in a record',
+    nTheUseOfXisNotAllowedInARecord);
+end;
+
+procedure TTestResolver.TestAdvRecord_ForInEnumerator;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TObject = class end;',
+  '  TItem = TObject;',
+  '  TEnumerator = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  TBird = record',
+  '    function GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TBird.GetEnumerator: TEnumerator;',
+  'begin',
+  'end;',
+  'var',
+  '  b: TBird;',
+  '  i: TItem;',
+  '  {#i2}i2: TItem;',
+  'begin',
+  '  for i in b do {@i2}i2:=i;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAdvRecord_InFunctionFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'procedure DoIt;',
+  'type',
+  '  TBird = record',
+  '    class var i: word;',
+  '  end;',
+  'var',
+  '  b: TBird;',
+  'begin',
+  'end;',
+  'begin']);
+  CheckParserException(sErrRecordVariablesNotAllowed,nErrRecordVariablesNotAllowed);
+end;
+
+procedure TTestResolver.TestAdvRecord_SubClass;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TObject = class end;',
+  '  TPoint = record',
+  '  type',
+  '    TBird = class',
+  '      procedure DoIt;',
+  '      class procedure Glob;',
+  '    end;',
+  '    procedure DoIt(b: TBird);',
+  '  end;',
+  'procedure TPoint.TBird.DoIt;',
+  'begin',
+  'end;',
+  'class procedure TPoint.TBird.Glob;',
+  'begin',
+  'end;',
+  'procedure TPoint.DoIt(b: TBird);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
   ParseProgram;
 end;
 
@@ -8044,6 +8749,62 @@ begin
   '  end;',
   'begin']);
   CheckResolverException('Duplicate identifier "TObject" at afile.pp(3,10)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestClassForwardDelphiFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class;',
+  'const k = 1;',
+  'type',
+  '  TBird = class',
+  '  end;',
+  'begin']);
+  CheckResolverException('Forward type not resolved "TBird"',nForwardTypeNotResolved);
+end;
+
+procedure TTestResolver.TestClassForwardObjFPCProgram;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class;',
+  'const k = 1;',
+  'type',
+  '  TBird = class',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassForwardObjFPCUnit;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode objfpc}',
+  'interface',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class;',
+  'const k = 1;',
+  'type',
+  '  TBird = class',
+  '  end;',
+  'implementation',
+  'type',
+  '  TEagle = class;',
+  'const c = 1;',
+  'type',
+  '  TEagle = class',
+  '  end;',
+  '']);
+  ParseUnit;
 end;
 
 procedure TTestResolver.TestClass_Method;
@@ -9076,42 +9837,43 @@ end;
 procedure TTestResolver.TestClassAsFuncResult;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#TOBJ}TObject = class');
-  Add('  end;');
-  Add('  {#A}TClassA = class');
-  Add('     {#A_i}i: longint;');
-  Add('     constructor {#A_CreateA}Create;');
-  Add('     constructor {#A_CreateB}Create(i: longint);');
-  Add('  end;');
-  Add('function {#F}F: TClassA;');
-  Add('begin');
-  Add('  Result:=nil;');
-  Add('end;');
-  Add('constructor TClassA.Create;');
-  Add('begin');
-  Add('end;');
-  Add('constructor TClassA.Create(i: longint);');
-  Add('begin');
-  Add('end;');
-  Add('var');
-  Add('  {#o}{=TOBJ}o: TObject;');
-  Add('  {#v}{=A}v: TClassA;');
-  Add('begin');
-  Add('  {@o}o:={@F}F;');
-  Add('  {@o}o:={@F}F();');
-  Add('  {@v}v:={@F}F;');
-  Add('  {@v}v:={@F}F();');
-  Add('  if {@o}o={@F}F then ;');
-  Add('  if {@o}o={@F}F() then ;');
-  Add('  if {@v}v={@F}F then ;');
-  Add('  if {@v}v={@F}F() then ;');
-  Add('  {@v}v:={@A}TClassA.{@A_CreateA}Create;');
-  Add('  {@v}v:={@A}TClassA.{@A_CreateA}Create();');
-  Add('  {@v}v:={@A}TClassA.{@A_CreateB}Create(3);');
-  Add('  {@A}TClassA.{@A_CreateA}Create.{@A_i}i:=3;');
-  Add('  {@A}TClassA.{@A_CreateA}Create().{@A_i}i:=3;');
-  Add('  {@A}TClassA.{@A_CreateB}Create(3).{@A_i}i:=3;');
+  Add([
+  'type',
+  '  {#TOBJ}TObject = class',
+  '  end;',
+  '  {#A}TClassA = class',
+  '     {#A_i}i: longint;',
+  '     constructor {#A_CreateA}Create;',
+  '     constructor {#A_CreateB}Create(i: longint);',
+  '  end;',
+  'function {#F}F: TClassA;',
+  'begin',
+  '  Result:=nil;',
+  'end;',
+  'constructor TClassA.Create;',
+  'begin',
+  'end;',
+  'constructor TClassA.Create(i: longint);',
+  'begin',
+  'end;',
+  'var',
+  '  {#o}{=TOBJ}o: TObject;',
+  '  {#v}{=A}v: TClassA;',
+  'begin',
+  '  {@o}o:={@F}F;',
+  '  {@o}o:={@F}F();',
+  '  {@v}v:={@F}F;',
+  '  {@v}v:={@F}F();',
+  '  if {@o}o={@F}F then ;',
+  '  if {@o}o={@F}F() then ;',
+  '  if {@v}v={@F}F then ;',
+  '  if {@v}v={@F}F() then ;',
+  '  {@v}v:={@A}TClassA.{@A_CreateA}Create;',
+  '  {@v}v:={@A}TClassA.{@A_CreateA}Create();',
+  '  {@v}v:={@A}TClassA.{@A_CreateB}Create(3);',
+  '  {@A}TClassA.{@A_CreateA}Create.{@A_i}i:=3;',
+  '  {@A}TClassA.{@A_CreateA}Create().{@A_i}i:=3;',
+  '  {@A}TClassA.{@A_CreateB}Create(3).{@A_i}i:=3;']);
   ParseProgram;
 end;
 
@@ -9286,6 +10048,23 @@ begin
   CheckResolverException('identifier not found "Self"',nIdentifierNotFound);
 end;
 
+procedure TTestResolver.TestClass_SelfDotInStaticFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class var FLeft: word;');
+  Add('    class function DoIt: word; static;');
+  Add('    class property Left: word read FLeft;');
+  Add('  end;');
+  Add('class function TObject.DoIt: word;');
+  Add('begin');
+  Add('  Result:=Self.Left;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('identifier not found "Self"',nIdentifierNotFound);
+end;
+
 procedure TTestResolver.TestClass_PrivateProtectedInSameUnit;
 begin
   StartProgram(false);
@@ -9341,7 +10120,7 @@ begin
   Add('begin');
   Add('  if o.v=3 then ;');
   CheckResolverException('Can''t access private member v',
-    nCantAccessPrivateMember);
+    nCantAccessXMember);
 end;
 
 procedure TTestResolver.TestClass_PrivateInDescendantFail;
@@ -9369,7 +10148,7 @@ begin
   Add('end;');
   Add('begin');
   CheckResolverException('Can''t access private member v',
-    nCantAccessPrivateMember);
+    nCantAccessXMember);
 end;
 
 procedure TTestResolver.TestClass_ProtectedInDescendant;
@@ -9431,7 +10210,7 @@ begin
   Add('begin');
   Add('  if o.v=3 then ;');
   CheckResolverException('Can''t access strict private member v',
-    nCantAccessPrivateMember);
+    nCantAccessXMember);
 end;
 
 procedure TTestResolver.TestClass_StrictProtectedInMainBeginFail;
@@ -9446,7 +10225,7 @@ begin
   Add('begin');
   Add('  if o.v=3 then ;');
   CheckResolverException('Can''t access strict protected member v',
-    nCantAccessPrivateMember);
+    nCantAccessXMember);
 end;
 
 procedure TTestResolver.TestClass_Constructor_NewInstance;
@@ -9459,26 +10238,29 @@ var
   ActualNewInstance, ActualImplicitCallWithoutParams: Boolean;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    constructor Create;');
-  Add('    class function DoSome: TObject;');
-  Add('  end;');
-  Add('constructor TObject.Create;');
-  Add('begin');
-  Add('  {#a}Create; // normal call');
-  Add('  TObject.{#b}Create; // new instance');
-  Add('end;');
-  Add('class function TObject.DoSome: TObject;');
-  Add('begin');
-  Add('  Result:={#c}Create; // new instance');
-  Add('end;');
-  Add('var');
-  Add('  o: TObject;');
-  Add('begin');
-  Add('  TObject.{#p}Create; // new object');
-  Add('  o:=TObject.{#q}Create; // new object');
-  Add('  o.{#r}Create; // normal call');
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '    class function DoSome: TObject;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  '  {#a}Create; // normal call',
+  '  TObject.{#b}Create; // new instance',
+  'end;',
+  'class function TObject.DoSome: TObject;',
+  'begin',
+  '  Result:={#c}Create; // new instance',
+  'end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  TObject.{#p}Create; // new object',
+  '  o:=TObject.{#q}Create; // new object',
+  '  o.{#r}Create; // normal call',
+  '  o:=o.{#s}Create; // normal call',
+  '']);
   ParseProgram;
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
@@ -9504,7 +10286,7 @@ begin
       if not ActualImplicitCallWithoutParams then
         RaiseErrorAtSrcMarker('expected implicit call at "#'+aMarker^.Identifier+', but got function ref"',aMarker);
       case aMarker^.Identifier of
-      'a','r':// should be normal call
+      'a','r','s':// should be normal call
         if ActualNewInstance then
           RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
       else // should be newinstance
@@ -9516,24 +10298,6 @@ begin
     end;
     aMarker:=aMarker^.Next;
     end;
-end;
-
-procedure TTestResolver.TestClass_Constructor_InstanceCallResultFail;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    constructor Create;');
-  Add('  end;');
-  Add('constructor TObject.Create;');
-  Add('begin');
-  Add('end;');
-  Add('var');
-  Add('  o: TObject;');
-  Add('begin');
-  Add('  o:=o.Create; // normal call has no result -> fail');
-  CheckResolverException('Incompatible types: got "Procedure/Function" expected "TObject"',
-    nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestClass_Destructor_FreeInstance;
@@ -10009,6 +10773,18 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
+procedure TTestResolver.TestClass_ClassMissingVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class c: word;',
+  '  end;',
+  'begin']);
+  CheckParserException('Expected "procedure or function"',nParserExpectTokenError);
+end;
+
 procedure TTestResolver.TestClass_ClassConstFail;
 begin
   StartProgram(false);
@@ -10253,7 +11029,7 @@ begin
   '  Arm: TObject.TArm;',
   'begin',
   '']);
-  CheckResolverException('Can''t access strict private member TArm',nCantAccessPrivateMember);
+  CheckResolverException('Can''t access strict private member TArm',nCantAccessXMember);
 end;
 
 procedure TTestResolver.TestNestedClass_AccessStrictPrivate;
@@ -11024,6 +11800,42 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestPropertyReadAccessorStrictPrivate;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  strict private',
+  '    FSize: word;',
+  '    property Size: word read FSize;',
+  '  strict protected',
+  '    FName: string;',
+  '    property Name: string read FName;',
+  '  end;',
+  '  TBird = class',
+  '  strict protected',
+  '    property Caption: string read FName;',
+  '  end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPropertyReadAccessorNonClassFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    FSize: word;',
+  '    class property Size: word read FSize;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('class var expected, but var found',nXExpectedButYFound);
+end;
+
 procedure TTestResolver.TestPropertyWriteAccessorVarWrongType;
 begin
   StartProgram(false);
@@ -11109,19 +11921,27 @@ end;
 procedure TTestResolver.TestPropertyTypeless;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#TOBJ}TObject = class');
-  Add('    {#FB}FB: longint;');
-  Add('    property {#TOBJ_B}B: longint write {@FB}FB;');
-  Add('  end;');
-  Add('  {#TA}TClassA = class');
-  Add('    {#FC}FC: longint;');
-  Add('    property {#TA_B}{@TOBJ_B}B write {@FC}FC;');
-  Add('  end;');
-  Add('var');
-  Add('  {#v}{=TA}v: TClassA;');
-  Add('begin');
-  Add('  {@v}v.{@TA_B}B:=3;');
+  Add([
+  'type',
+  '  {#TOBJ}TObject = class',
+  '    {#FB}FB: longint;',
+  '    property {#TOBJ_B}B: longint write {@FB}FB;',
+  '    property {#TOBJ_D}D: longint write {@FB}FB;',
+  '  end;',
+  '  {#TA}TClassA = class',
+  '    {#FC}FC: longint;',
+  '    property {#TA_B}{@TOBJ_B}B write {@FC}FC;',
+  '  end;',
+  '  {#TB}TClassB = class(TClassA)',
+  '  published',
+  '    property {#TB_D}{@TOBJ_D}D;',
+  '  end;',
+  'var',
+  '  {#v}{=TA}v: TClassA;',
+  'begin',
+  '  {@v}v.{@TA_B}B:=3;',
+  '  {@v}v.{@TObj_D}D:=4;',
+  '']);
   ParseProgram;
 end;
 
@@ -11394,7 +12214,89 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestProperty_Index;
+procedure TTestResolver.TestClassProperty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetStatic: word; static;',
+  '    class procedure SetStatic(Value: word); static;',
+  '    class property StaticP: word read GetStatic write SetStatic;',
+  '  end;',
+  'class function TObject.GetStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  'end;',
+  'class procedure TObject.SetStatic(Value: word);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassPropertyNonStaticFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetNonStatic: word;',
+  '    class property NonStatic: word read GetNonStatic;',
+  '  end;',
+  'class function TObject.GetNonStatic: word;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sClassPropertyAccessorMustBeStatic,nClassPropertyAccessorMustBeStatic);
+end;
+
+procedure TTestResolver.TestClassPropertyNonStaticAllow;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proClassPropertyNonStatic];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetStatic: word; static;',
+  '    class procedure SetStatic(Value: word); static;',
+  '    class property StaticP: word read GetStatic write SetStatic;',
+  '    class function GetNonStatic: word;',
+  '    class procedure SetNonStatic(Value: word);',
+  '    class property NonStatic: word read GetNonStatic write SetNonStatic;',
+  '  end;',
+  '  TClass = class of TObject;',
+  'class function TObject.GetStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  '  NonStatic:=NonStatic;',
+  'end;',
+  'class procedure TObject.SetStatic(Value: word);',
+  'begin',
+  'end;',
+  'class function TObject.GetNonStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  '  NonStatic:=NonStatic;',
+  'end;',
+  'class procedure TObject.SetNonStatic(Value: word);',
+  'begin',
+  'end;',
+  'var',
+  '  c: TClass;',
+  '  o: TObject;',
+  'begin',
+  '  c.STaticP:=c.StaticP;',
+  '  o.STaticP:=o.StaticP;',
+  '  c.NonStatic:=c.NonStatic;',
+  '  o.NonStatic:=o.NonStatic;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArrayProperty;
 begin
   StartProgram(false);
   Add('type');
@@ -11468,25 +12370,26 @@ end;
 procedure TTestResolver.TestDefaultProperty;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    function GetB(Index: longint): longint;');
-  Add('    procedure SetB(Index: longint; Value: longint);');
-  Add('    property B[Index: longint]: longint read GetB write SetB; default;');
-  Add('  end;');
-  Add('function TObject.GetB(Index: longint): longint;');
-  Add('begin');
-  Add('end;');
-  Add('procedure TObject.SetB(Index: longint; Value: longint);');
-  Add('begin');
-  Add('  if Value=Self[Index] then ;');
-  Add('  Self[Index]:=Value;');
-  Add('end;');
-  Add('var o: TObject;');
-  Add('begin');
-  Add('  o[3]:=4;');
-  Add('  if o[5]=6 then;');
-  Add('  if 7=o[8] then;');
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetB(Index: longint): longint;',
+  '    procedure SetB(Index: longint; Value: longint);',
+  '    property B[Index: longint]: longint read GetB write SetB; default;',
+  '  end;',
+  'function TObject.GetB(Index: longint): longint;',
+  'begin',
+  'end;',
+  'procedure TObject.SetB(Index: longint; Value: longint);',
+  'begin',
+  '  if Value=Self[Index] then ;',
+  '  Self[Index]:=Value;',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o[3]:=4;',
+  '  if o[5]=6 then;',
+  '  if 7=o[8] then;']);
   ParseProgram;
 end;
 
@@ -11602,7 +12505,7 @@ begin
   '    i: longint;',
   '  end;',
   'begin']);
-  CheckParserException(SParserNoFieldsAllowed,nParserNoFieldsAllowed);
+  CheckParserException('Fields are not allowed in interface',nParserNoFieldsAllowed);
 end;
 
 procedure TTestResolver.TestClassInterfaceConstFail;
@@ -11663,7 +12566,7 @@ begin
   '    constructor Create;',
   '  end;',
   'begin']);
-  CheckParserException(SParserNoConstructorAllowed,nParserNoConstructorAllowed);
+  CheckParserException('constructor is not allowed in interface',nParserXNotAllowedInY);
 end;
 
 procedure TTestResolver.TestClassInterface_DelphiClassAncestorIntfFail;
@@ -11703,7 +12606,7 @@ begin
   '    procedure DoIt; virtual;',
   '  end;',
   'begin']);
-  CheckParserException(sParserNoFieldsAllowed,nParserNoFieldsAllowed);
+  CheckParserException('Fields are not allowed in interface',nParserNoFieldsAllowed);
 end;
 
 procedure TTestResolver.TestClassInterface_Overloads;
@@ -14291,28 +15194,37 @@ end;
 procedure TTestResolver.TestProcType_Property;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class end;');
-  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
-  Add('  TControl = class');
-  Add('    FOnClick: TNotifyEvent;');
-  Add('    property OnClick: TNotifyEvent read FOnClick write FOnClick;');
-  Add('    procedure Click(Sender: TObject);');
-  Add('  end;');
-  Add('procedure TControl.Click(Sender: TObject);');
-  Add('begin');
-  Add('  if Assigned(OnClick) then ;');
-  Add('  OnClick:=@Click;');
-  Add('  OnClick(Sender);');
-  Add('  Self.OnClick(Sender);');
-  Add('  with Self do OnClick(Sender);');
-  Add('end;');
-  Add('var Btn: TControl;');
-  Add('begin');
-  Add('  if Assigned(Btn.OnClick) then ;');
-  Add('  Btn.OnClick(Btn);');
-  Add('  Btn.OnClick(Btn);');
-  Add('  with Btn do OnClick(Btn);');
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TNotifyEvent = procedure(Sender: TObject) of object;',
+  '  TControl = class',
+  '    FOnClick: TNotifyEvent;',
+  '    property OnClick: TNotifyEvent read FOnClick write FOnClick;',
+  '    procedure Click(Sender: TObject);',
+  '  end;',
+  '  TButton = class(TControl)',
+  '    property OnClick;',
+  '  end;',
+  'procedure TControl.Click(Sender: TObject);',
+  'begin',
+  '  if Assigned(OnClick) then ;',
+  '  OnClick:=@Click;',
+  '  OnClick(Sender);',
+  '  Self.OnClick(Sender);',
+  '  with Self do OnClick(Sender);',
+  'end;',
+  'var',
+  '  Ctrl: TControl;',
+  '  Btn: TButton;',
+  'begin',
+  '  if Assigned(Ctrl.OnClick) then ;',
+  '  Ctrl.OnClick(Ctrl);',
+  '  with Ctrl do OnClick(Ctrl);',
+  '  if Assigned(Btn.OnClick) then ;',
+  '  Btn.OnClick(Btn);',
+  '  with Btn do OnClick(Btn);',
+  '']);
   ParseProgram;
 end;
 
@@ -14638,7 +15550,6 @@ begin
   '  PInteger = ^integer;',
   'var',
   '  i: integer;',
-  '  p1: PInteger;',
   'begin',
   '']);
   CheckResolverException('identifier not found "integer"',nIdentifierNotFound);
@@ -14929,6 +15840,1435 @@ begin
   ParseProgram;
   CheckResolverHint(mtHint,nTextAfterFinalIgnored,sTextAfterFinalIgnored);
   CheckResolverUnexpectedHints(true);
+end;
+
+procedure TTestResolver.TestClassHelper;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjectHelper = class helper for TObject',
+  '  type T = word;',
+  '  const',
+  '    c: T = 3;',
+  '    k: T = 4;',
+  '  class var',
+  '    v: T;',
+  '    w: T;',
+  '  end;',
+  '  TBird = class(TObject)',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '  end;',
+  '  TExtObjHelper = class helper(TObjectHelper) for TBird',
+  '  end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_AncestorIsNotHelperForDescendantFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject)',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '  end;',
+  '  TFish = class(TObject)',
+  '  end;',
+  '  THelper = class helper(TBirdHelper) for TFish',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Derived class helper must extend a subclass of "TBird" or the class itself',
+    nDerivedXMustExtendASubClassY);
+end;
+
+procedure TTestResolver.TestClassHelper_HelperForParentFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject)',
+  '  type',
+  '    TBirdHelper = class helper for TBird',
+  '    end;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sTypeXIsNotYetCompletelyDefined,
+    nTypeXIsNotYetCompletelyDefined);
+end;
+
+procedure TTestResolver.TestClassHelper_ForInterfaceFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  TBirdHelper = class helper for IUnknown',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('class type expected, but IUnknown found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestClassHelper_FieldFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    F: word;',
+  '  end;',
+  'begin',
+  '']);
+  CheckParserException('Fields are not allowed in class helper',
+    nParserNoFieldsAllowed);
+end;
+
+procedure TTestResolver.TestClassHelper_AbstractFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure DoIt; virtual; abstract;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Invalid class helper procedure modifier abstract',
+    nInvalidXModifierY);
+end;
+
+procedure TTestResolver.TestClassHelper_VirtualObjFPCFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure DoIt; virtual;',
+  '  end;',
+  'procedure TObjHelper.DoIt;',
+  'begin end;',
+  'begin',
+  '']);
+  CheckResolverException('Invalid class helper procedure modifier virtual',
+    nInvalidXModifierY);
+end;
+
+procedure TTestResolver.TestClassHelper_VirtualDelphiFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure DoIt; virtual;',
+  '  end;',
+  'procedure TObjHelper.DoIt;',
+  'begin end;',
+  'begin',
+  '']);
+  CheckResolverException('Invalid class helper procedure modifier virtual',
+    nInvalidXModifierY);
+end;
+
+procedure TTestResolver.TestClassHelper_DestructorFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    destructor Destroyer;',
+  '  end;',
+  'destructor TObjHelper.Destroyer;',
+  'begin end;',
+  'begin',
+  '']);
+  CheckParserException('destructor is not allowed in class helper',
+    nParserXNotAllowedInY);
+end;
+
+procedure TTestResolver.TestClassHelper_ClassRefersToTypeHelperOfAncestor;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '  type',
+  '    TInt = word;',
+  '    function GetSize: TInt;',
+  '  end;',
+  '  TAnt = class',
+  '    procedure SetSize(Value: TInt);',
+  '    property Size: TInt read GetSize write SetSize;',
+  '  end;',
+  'function Tobjhelper.getSize: TInt;',
+  'begin',
+  'end;',
+  'procedure TAnt.SetSize(Value: TInt);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_InheritedObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure {#TObject_Fly}Fly;',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure {#TObjHelper_Fly}Fly;',
+  '  end;',
+  '  TBird = class',
+  '    procedure {#TBird_Fly}Fly;',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    procedure {#TBirdHelper_Fly}Fly;',
+  '    procedure {#TBirdHelper_Walk}Walk;',
+  '  end;',
+  '  TEagleHelper = class helper(TBirdHelper) for TBird',
+  '    procedure {#TEagleHelper_Fly}Fly;',
+  '    procedure {#TEagleHelper_Walk}Walk;',
+  '  end;',
+  'procedure Tobject.fly;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure Tobjhelper.fly;',
+  'begin',
+  '  {@TObject_Fly}inherited;',
+  '  inherited {@TObject_Fly}Fly;',
+  'end;',
+  'procedure Tbird.fly;',
+  'begin',
+  '  {@TObjHelper_Fly}inherited;',
+  '  inherited {@TObjHelper_Fly}Fly;',
+  'end;',
+  'procedure Tbirdhelper.fly;',
+  'begin',
+  '  {@TBird_Fly}inherited;',
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'procedure Tbirdhelper.walk;',
+  'begin',
+  'end;',
+  'procedure teagleHelper.fly;',
+  'begin',
+  '  {@TBird_Fly}inherited;',
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'procedure teagleHelper.walk;',
+  'begin',
+  '  {@TBirdHelper_Walk}inherited;',
+  '  inherited {@TBirdHelper_Walk}Walk;',
+  'end;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
+  'begin',
+  '  o.{@TObjHelper_Fly}Fly;',
+  '  b.{@TEagleHelper_Fly}Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_InheritedObjFPC2;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure {#TObject_Fly}Fly;',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure {#TObjHelper_Walk}Walk;',
+  '  end;',
+  '  TBird = class',
+  '    procedure {#TBird_Fly}Fly;',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    procedure {#TBirdHelper_Walk}Walk;',
+  '  end;',
+  '  TEagleHelper = class helper(TBirdHelper) for TBird',
+  '    procedure {#TEagleHelper_Walk}Walk;',
+  '  end;',
+  'procedure Tobject.fly;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure Tobjhelper.walk;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure Tbird.fly;',
+  'begin',
+  '  {@TObject_Fly}inherited;', // no helper, search further in ancestor
+  '  inherited {@TObject_Fly}Fly;', // no helper, search further in ancestor
+  'end;',
+  'procedure Tbirdhelper.walk;',
+  'begin',
+  '  {@TObjHelper_Walk}inherited;',
+  '  inherited {@TObjHelper_Walk}Walk;',
+  'end;',
+  'procedure teagleHelper.walk;',
+  'begin',
+  '  {@TObjHelper_Walk}inherited;',
+  '  inherited {@TObjHelper_Walk}Walk;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_InheritedObjFPCStrictPrivateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  strict private i: word;',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    property a: word read i;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Can''t access strict private member i',nCantAccessXMember);
+end;
+
+procedure TTestResolver.TestClassHelper_InheritedClassObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class procedure {#TObject_Fly}Fly;',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    class procedure {#TObjHelper_Fly}Fly;',
+  '  end;',
+  '  TBird = class',
+  '    class procedure {#TBird_Fly}Fly;',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    class procedure {#TBirdHelper_Fly}Fly;',
+  '    class procedure {#TBirdHelper_Walk}Walk;',
+  '  end;',
+  '  TEagleHelper = class helper(TBirdHelper) for TBird',
+  '    class procedure {#TEagleHelper_Fly}Fly;',
+  '    class procedure {#TEagleHelper_Walk}Walk;',
+  '  end;',
+  'class procedure Tobject.fly;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'class procedure Tobjhelper.fly;',
+  'begin',
+  '  {@TObject_Fly}inherited;',
+  '  inherited {@TObject_Fly}Fly;',
+  'end;',
+  'class procedure Tbird.fly;',
+  'begin',
+  '  {@TObjHelper_Fly}inherited;',
+  '  inherited {@TObjHelper_Fly}Fly;',
+  'end;',
+  'class procedure Tbirdhelper.fly;',
+  'begin',
+  '  {@TBird_Fly}inherited;',
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'class procedure Tbirdhelper.walk;',
+  'begin',
+  'end;',
+  'class procedure teagleHelper.fly;',
+  'begin',
+  '  {@TBird_Fly}inherited;',
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'class procedure teagleHelper.walk;',
+  'begin',
+  '  {@TBirdHelper_Walk}inherited;',
+  '  inherited {@TBirdHelper_Walk}Walk;',
+  'end;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
+  'begin',
+  '  o.{@TObjHelper_Fly}Fly;',
+  '  TObject.{@TObjHelper_Fly}Fly;',
+  '  b.{@TEagleHelper_Fly}Fly;',
+  '  TBird.{@TEagleHelper_Fly}Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_InheritedDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    procedure {#TObject_Fly}Fly;',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure {#TObjHelper_Fly}Fly;',
+  '  end;',
+  '  TBird = class',
+  '    procedure {#TBird_Fly}Fly;',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    procedure {#TBirdHelper_Fly}Fly;',
+  '    procedure {#TBirdHelper_Walk}Walk;',
+  '  end;',
+  '  TEagleHelper = class helper(TBirdHelper) for TBird',
+  '    procedure {#TEagleHelper_Fly}Fly;',
+  '    procedure {#TEagleHelper_Walk}Walk;',
+  '  end;',
+  'procedure Tobject.fly;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure Tobjhelper.fly;',
+  'begin',
+  '  inherited;', // ignore
+  '  inherited {@TObject_Fly}Fly;',
+  'end;',
+  'procedure Tbird.fly;',
+  'begin',
+  '  {@TObjHelper_Fly}inherited;',
+  '  inherited {@TObjHelper_Fly}Fly;',
+  'end;',
+  'procedure Tbirdhelper.fly;',
+  'begin',
+  '  {@TObjHelper_Fly}inherited;',// skip helperfortype too
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'procedure Tbirdhelper.walk;',
+  'begin',
+  'end;',
+  'procedure teagleHelper.fly;',
+  'begin',
+  '  {@TObjHelper_Fly}inherited;',// skip helperfortype too
+  '  inherited {@TBird_Fly}Fly;',
+  'end;',
+  'procedure teagleHelper.walk;',
+  'begin',
+  '  inherited;', // ignore
+  '  inherited {@TBirdHelper_Walk}Walk;',
+  'end;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
+  'begin',
+  '  o.{@TObjHelper_Fly}Fly;',
+  '  b.{@TEagleHelper_Fly}Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_NestedInheritedParentFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class',
+  '    procedure Fly;',
+  '  type',
+  '    TBirdHelper = class helper for TObject',
+  '      procedure Fly;',
+  '    end;',
+  '  end;',
+  'procedure TBird.fly;',
+  'begin',
+  'end;',
+  'procedure TBird.Tbirdhelper.fly;',
+  'begin',
+  '  inherited Fly;',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "Fly"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestClassHelper_AccessFields;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TBird = class',
+  '    Size: word;',
+  '    FItems: array of word;',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    procedure Fly;',
+  '  end;',
+  'procedure TBirdHelper.Fly;',
+  'begin',
+  '  Size:=FItems[0];',
+  '  Self.Size:=Self.FItems[0];',
+  'end;',
+  'var',
+  '  b: TBird;',
+  'begin',
+  '  b.Fly;',
+  '  b.Fly()',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_HelperDotClassMethodFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  THelper = class helper for TObject',
+  '    class procedure Fly;',
+  '  end;',
+  'class procedure THelper.Fly;',
+  'begin',
+  'end;',
+  'begin',
+  '  THelper.Fly;',
+  '']);
+  CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
+end;
+
+procedure TTestResolver.TestClassHelper_WithHelperFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  THelper = class helper for TObject',
+  '  end;',
+  'begin',
+  '  with THelper do ;',
+  '']);
+  CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
+end;
+
+procedure TTestResolver.TestClassHelper_AsTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  THelper = class helper for TObject',
+  '  end;',
+  'var h: THelper;',
+  'begin',
+  '']);
+  CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
+end;
+
+procedure TTestResolver.TestClassHelper_ClassMethod;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  THelper = class helper for TObject',
+  '    class procedure Fly(w: word = 1);',
+  '    class procedure Run(w: word = 1); static;',
+  '  end;',
+  'class procedure THelper.Fly(w: word = 1);',
+  'begin',
+  '  Fly;',
+  '  Fly();',
+  '  Run;',
+  '  Run();',
+  '  Self.Fly;',
+  '  Self.Fly();',
+  '  Self.Run;',
+  '  Self.Run();',
+  '  with Self do begin',
+  '    Fly;',
+  '    Fly();',
+  '    Run;',
+  '    Run();',
+  '  end;',
+  'end;',
+  'class procedure THelper.Run(w: word = 1);',
+  'begin',
+  '  Fly;',
+  '  Fly();',
+  '  Run;',
+  '  Run();',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o.Fly;',
+  '  o.Fly();',
+  '  o.Run;',
+  '  o.Run();',
+  '  with o do begin',
+  '    Fly;',
+  '    Fly();',
+  '    Run;',
+  '    Run();',
+  '  end;',
+  '  TObject.Fly;',
+  '  TObject.Fly();',
+  '  TObject.Run;',
+  '  TObject.Run();',
+  '  with TObject do begin',
+  '    Fly;',
+  '    Fly();',
+  '    Run;',
+  '    Run();',
+  '  end;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_Enumerator;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TItem = TObject;',
+  '  TEnumerator = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  TBird = class',
+  '    FItems: array of TItem;',
+  '  end;',
+  '  TBirdHelper = class helper for TBird',
+  '    function GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TBirdHelper.GetEnumerator: TEnumerator;',
+  'begin',
+  '  Result.FCurrent:=FItems[0];',
+  '  Result.FCurrent:=Self.FItems[0];',
+  'end;',
+  'var',
+  '  b: TBird;',
+  '  i: TItem;',
+  '  {#i2}i2: TItem;',
+  'begin',
+  '  for i in b do {@i2}i2:=i;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_FromUnitInterface;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  public',
+    '    Id: word;',
+    '  end;',
+    '  TObjHelper = class helper for TObject',
+    '    property Size: word read ID write ID;',
+    '  end;',
+    '']),
+    '');
+  AddModuleWithIntfImplSrc('unit3.pas',
+    LinesToStr([
+    'uses unit2;',
+    'type',
+    '  TObjHelper = class helper for TObject',
+    '    property Size: word read ID write ID;',
+    '  end;',
+    '']),
+    '');
+  StartProgram(true);
+  Add([
+  'uses unit2, unit3;',
+  'var o: TObject;',
+  'begin',
+  '  o.Size:=o.Size;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+  ActualNewInstance, ActualImplicitCallWithoutParams: Boolean;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    constructor Create;',
+  '    class function DoSome: TObject;',
+  '  end;',
+  'constructor THelper.Create;',
+  'begin',
+  '  {#a}Create; // normal call',
+  '  TObject.{#b}Create; // new instance',
+  'end;',
+  'class function THelper.DoSome: TObject;',
+  'begin',
+  '  Result:={#c}Create; // new instance',
+  'end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  TObject.{#p}Create; // new object',
+  '  o:=TObject.{#q}Create; // new object',
+  '  with TObject do begin',
+  '    {#r}Create; // new object',
+  '    o:={#s}Create; // new object',
+  '  end;',
+  '  o.{#t}Create; // normal call',
+  '  o:=o.{#u}Create; // normal call',
+  '  with o do begin',
+  '    {#v}Create; // normal call',
+  '    o:={#w}Create; // normal call',
+  '  end;',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestClassHelper_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      ActualImplicitCallWithoutParams:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestClassHelper_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestClassHelper_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        ActualImplicitCallWithoutParams:=rrfImplicitCallWithoutParams in Ref.Flags;
+        break;
+        end;
+      if not ActualImplicitCallWithoutParams then
+        RaiseErrorAtSrcMarker('expected implicit call at "#'+aMarker^.Identifier+', but got function ref"',aMarker);
+      case aMarker^.Identifier of
+      'a','t','u','v','w':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestClassHelper_ReintroduceHides_CallFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create(o: tobject);',
+  '  end;',
+  '  TBird = class helper for TObject',
+  '    constructor Create(i: longint); reintroduce;',
+  '  end;',
+  'constructor tobject.Create(o: tobject); begin end;',
+  'constructor tbird.Create(i: longint); begin end;',
+  'var o: TObject;',
+  'begin',
+  '  o:=TObject.Create(nil);',
+  '']);
+  CheckResolverException('Incompatible type arg no. 1: Got "Nil", expected "Longint"',
+    nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestClassHelper_DefaultProperty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetB(Index: longint): longint;',
+  '    procedure SetB(Index: longint; Value: longint);',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    property B[Index: longint]: longint read GetB write SetB; default;',
+  '  end;',
+  'function TObject.GetB(Index: longint): longint;',
+  'begin',
+  'end;',
+  'procedure TObject.SetB(Index: longint; Value: longint);',
+  'begin',
+  '  if Value=Self[Index] then ;',
+  '  Self[Index]:=Value;',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o[3]:=4;',
+  '  if o[5]=6 then;',
+  '  if 7=o[8] then;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_DefaultClassProperty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    class function GetB(Index: longint): longint; static;',
+  '    class procedure SetB(Index: longint; Value: longint); static;',
+  '  end;',
+  '  THelper = class helper for TObject',
+  '    class property B[Index: longint]: longint read GetB write SetB; default;',
+  '  end;',
+  'class function TObject.GetB(Index: longint): longint;',
+  'begin',
+  'end;',
+  'class procedure TObject.SetB(Index: longint; Value: longint);',
+  'begin',
+  '  if Value=TObject[Index] then ;',
+  '  TObject[Index]:=Value;',
+  'end;',
+  'var c: TClass;',
+  'begin',
+  '  c[3]:=4;',
+  '  if c[5]=6 then;',
+  '  if 7=c[8] then;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_MultipleScopeHelpers;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch multiplescopehelpers}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TFlyHelper = class helper for TObject',
+  '    procedure {#Fly}Fly;',
+  '    procedure {#FlyMove}Move;',
+  '  end;',
+  '  TRunHelper = class helper for TObject',
+  '    procedure {#Run}Run;',
+  '    procedure {#RunMove}Move;',
+  '    procedure {#RunBack}Back;',
+  '  end;',
+  '  TSwimHelper = class helper for TObject',
+  '    procedure {#Swim}Swim;',
+  '    procedure {#SwimBack}Back;',
+  '  end;',
+  'procedure TFlyHelper.Fly; begin end;',
+  'procedure TFlyHelper.Move; begin end;',
+  'procedure TRunHelper.Run; begin end;',
+  'procedure TRunHelper.Move; begin end;',
+  'procedure TRunHelper.Back; begin end;',
+  'procedure TSwimHelper.Swim; begin end;',
+  'procedure TSwimHelper.Back; begin end;',
+  'var o: TObject;',
+  'begin',
+  '  o.{@Fly}Fly;',
+  '  o.{@Run}Run;',
+  '  o.{@Swim}Swim;',
+  '  o.{@RunMove}Move;',
+  '  o.{@SwimBack}Back;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordHelper;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TProc = procedure of object;',
+  '  TRec = record',
+  '    x: word;',
+  '  end;',
+  '  TRecHelper = record helper for TRec',
+  '  type T = word;',
+  '  const',
+  '    c: T = 3;',
+  '    k: T = 4;',
+  '  class var',
+  '    v: T;',
+  '    w: T;',
+  '    procedure Fly;',
+  '  end;',
+  '  TAnt = word;',
+  '  TAntHelper = record helper for TAnt',
+  '  end;',
+  'procedure TRecHelper.Fly;',
+  'var',
+  '  r: TRec;',
+  '  p: TProc;',
+  'begin',
+  '  Self:=r;',
+  '  r:=Self;',
+  '  c:=v+x;',
+  '  x:=k+w;',
+  '  p:=Fly;',
+  'end;',
+  'var',
+  '  r: TRec;',
+  '  p: TProc;',
+  'begin',
+  '  p:=r.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordHelper_ForByteFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRecHelper = record helper for byte',
+  '    class var Glob: word;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Type "Byte" cannot be extended by a record helper',nTypeXCannotBeExtendedByARecordHelper);
+end;
+
+procedure TTestResolver.TestRecordHelper_ClassNonStaticFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TRec = record',
+  '    x: word;',
+  '  end;',
+  '  TRecHelper = record helper for TRec',
+  '    class procedure Fly;',
+  '  end;',
+  'class procedure TRecHelper.Fly;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Class methods must be static in record helper',nClassMethodsMustBeStaticInX);
+end;
+
+procedure TTestResolver.TestRecordHelper_InheritedObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    procedure {#TRec_Fly}Fly;',
+  '  end;',
+  '  TRecHelper = record helper for TRec',
+  '    procedure {#TRecHelper_Fly}Fly;',
+  '    procedure {#TRecHelper_Walk}Walk;',
+  '    procedure {#TRecHelper_Run}Run;',
+  '  end;',
+  '  TEagleHelper = record helper(TRecHelper) for TRec',
+  '    procedure {#TEagleHelper_Fly}Fly;',
+  '    procedure {#TEagleHelper_Run}Run;',
+  '  end;',
+  'procedure TRec.fly;',
+  'begin',
+  'end;',
+  'procedure TRechelper.fly;',
+  'begin',
+  '  {@TRec_Fly}inherited;',
+  '  inherited {@TRec_Fly}Fly;',
+  'end;',
+  'procedure TRechelper.walk;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure TRechelper.run;',
+  'begin',
+  '  inherited;', // ignore
+  'end;',
+  'procedure teagleHelper.fly;',
+  'begin',
+  '  {@TRec_Fly}inherited;',
+  '  inherited {@TRec_Fly}Fly;',
+  'end;',
+  'procedure teagleHelper.run;',
+  'begin',
+  '  {@TRecHelper_Run}inherited;',
+  '  inherited {@TRecHelper_Run}Run;',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  r.{@TEagleHelper_Fly}Fly;',
+  '  r.{@TRecHelper_Walk}Walk;',
+  '  r.{@TEagleHelper_Run}Run;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordHelper_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualNewInstance: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TRec = record',
+  '    constructor Create(w: word);',
+  '    class function DoSome: TRec; static;',
+  '  end;',
+  'constructor TRec.Create(w: word);',
+  'begin',
+  '  {#a}Create(1); // normal call',
+  '  TRec.{#b}Create(2); // new instance',
+  'end;',
+  'class function TRec.DoSome: TRec;',
+  'begin',
+  '  Result:={#c}Create(3); // new instance',
+  'end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  TRec.{#p}Create(4); // new object',
+  '  r:=TRec.{#q}Create(5); // new object',
+  '  with TRec do begin',
+  '    {#r}Create(6); // new object',
+  '    r:={#s}Create(7); // new object',
+  '  end;',
+  '  r.{#t}Create(8); // normal call',
+  '  r:=r.{#u}Create(9); // normal call',
+  '  with r do begin',
+  '    {#v}Create(10); // normal call',
+  '    r:={#w}Create(11); // normal call',
+  '  end;',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        if rrfImplicitCallWithoutParams in Ref.Flags then
+          RaiseErrorAtSrcMarker('unexpected implicit call at "#'+aMarker^.Identifier+' ref"',aMarker);
+        break;
+        end;
+      case aMarker^.Identifier of
+      'a','t','u','v','w':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestTypeHelper;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TStringHelper = type helper for string',
+  '  end;',
+  '  TCaption = string;',
+  '  TCapHelper = type helper(TStringHelper) for TCaption',
+  '    procedure Fly;',
+  '  end;',
+  '  TProc = procedure of object;',
+  'procedure TCapHelper.Fly; begin end;',
+  'var',
+  '  c: TCaption;',
+  '  p: TProc;',
+  'begin',
+  '  c.Fly;',
+  '  p:=@c.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_HelperForProcTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TProc = procedure;',
+  '  THelper = type helper for TProc',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Type "TProc" cannot be extended by a type helper',
+    nTypeXCannotBeExtendedByATypeHelper);
+end;
+
+procedure TTestResolver.TestTypeHelper_DefaultPropertyFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TStringHelper = type helper for string',
+  '  end;',
+  '  TCaption = string;',
+  '  TCapHelper = type helper(TStringHelper) for TCaption',
+  '    function GetItems(Index: boolean): boolean;',
+  '    property Items[Index: boolean]: boolean read GetItems; default;',
+  '  end;',
+  'function TCapHelper.GetItems(Index: boolean): boolean; begin end;',
+  'begin',
+  '']);
+  CheckResolverException('Default property not allowed in helper for TCaption',
+    nDefaultPropertyNotAllowedInHelperForX);
+end;
+
+procedure TTestResolver.TestTypeHelper_Enum;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TFlag = (Red, Green, Blue);',
+  '  THelper = type helper for TFlag',
+  '    function toString: string;',
+  '    class procedure Fly; static;',
+  '  end;',
+  'function THelper.toString: string;',
+  'begin',
+  '  Self:=Red;',
+  '  if Self=TFlag.Blue then ;',
+  '  Result:=str(Self);',
+  'end;',
+  'class procedure THelper.Fly;',
+  'begin',
+  'end;',
+  'var',
+  '  f: TFlag;',
+  'begin',
+  '  f.toString;',
+  '  green.toString;',
+  '  TFlag.green.toString;',
+  '  TFlag.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_EnumDotValueFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TFlag = (Red, Green, Blue);',
+  '  THelper = type helper for TFlag',
+  '  end;',
+  'var',
+  '  f: TFlag;',
+  'begin',
+  '  f:=f.red;',
+  '']);
+  CheckResolverException('identifier not found "red"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestTypeHelper_EnumHelperDotProcFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TFlag = (Red, Green, Blue);',
+  '  THelper = type helper for TFlag',
+  '    procedure Fly;',
+  '  end;',
+  'procedure THelper.Fly;',
+  'begin',
+  'end;',
+  'begin',
+  '  TFlag.Fly;',
+  '']);
+  CheckResolverException('Cannot access this member from a type helper',nCannotAccessThisMemberFromAX);
+end;
+
+procedure TTestResolver.TestTypeHelper_Set;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TSetOfEnum = set of TEnum;',
+  '  THelper = type helper for TSetOfEnum',
+  '    procedure Fly;',
+  '    class procedure Run; static;',
+  '  end;',
+  'procedure THelper.Fly;',
+  'begin',
+  '  Self:=[];',
+  '  Self:=[green];',
+  '  Include(Self,blue);',
+  'end;',
+  'class procedure THelper.Run;',
+  'begin',
+  'end;',
+  'var s: TSetOfEnum;',
+  'begin',
+  '  s.Fly;',
+  //'  with s do Fly;',
+  '  TSetOfEnum.Run;',
+  //'  with TSetOfEnum do Run;',
+  //'  [green].Fly', not supported
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Enumerator;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TObject = class end;',
+  '  TItem = byte;',
+  '  TEnumerator = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  TWordHelper = type helper for Word',
+  '    function GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TWordHelper.GetEnumerator: TEnumerator;',
+  'begin',
+  '  if Self=2 then ;',
+  '  Self:=Self+3;',
+  'end;',
+  'var',
+  '  w: word;',
+  '  i: TItem;',
+  '  {#i2}i2: TItem;',
+  'begin',
+  '  w.GetEnumerator;',
+  '  for i in w do {@i2}i2:=i;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_String;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TStringHelper = type helper for String',
+  '    procedure DoIt;',
+  '  end;',
+  '  TCharHelper = type helper for char',
+  '    procedure Fly;',
+  '  end;',
+  'procedure TStringHelper.DoIt;',
+  'begin',
+  '  Self[1]:=Self[2];',
+  'end;',
+  'procedure TCharHelper.Fly;',
+  'begin',
+  '  Self:=''c'';',
+  '  Self:=Self;',
+  'end;',
+  'begin',
+  '  ''abc''.DoIt;',
+  '  ''xyz''.DoIt();',
+  '  ''c''.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Boolean;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for boolean',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure THelper.DoIt;',
+  'begin',
+  '  Self:=not Self;',
+  'end;',
+  'begin',
+  '  false.DoIt;',
+  '  true.DoIt();']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualNewInstance: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TInt = type word;',
+  '  THelper = type helper for TInt',
+  '    constructor Create(w: TInt);',
+  '    class function DoSome: TInt; static;',
+  '  end;',
+  'constructor THelper.Create(w: TInt);',
+  'begin',
+  '  {#a}Create(1); // normal call',
+  '  TInt.{#b}Create(2); // new instance',
+  'end;',
+  'class function THelper.DoSome: TInt;',
+  'begin',
+  '  Result:={#c}Create(3); // new instance',
+  'end;',
+  'var',
+  '  r: TInt;',
+  'begin',
+  '  TInt.{#p}Create(4); // new object',
+  '  r:=TInt.{#q}Create(5); // new object',
+  '  with TInt do begin',
+  '    {#r}Create(6); // new object',
+  '    r:={#s}Create(7); // new object',
+  '  end;',
+  '  r.{#t}Create(8); // normal call',
+  '  r:=r.{#u}Create(9); // normal call',
+  '  with r do begin',
+  '    {#v}Create(10); // normal call',
+  '    r:={#w}Create(11); // normal call',
+  '  end;',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestAdvRecord_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        if rrfImplicitCallWithoutParams in Ref.Flags then
+          RaiseErrorAtSrcMarker('unexpected implicit call at "#'+aMarker^.Identifier+' ref"',aMarker);
+        break;
+        end;
+      case aMarker^.Identifier of
+      'a','t','u','v','w':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestTypeHelper_InterfaceFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  IUnknown = interface end;',
+  '  THelper = type helper for IUnknown',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Type "IUnknown" cannot be extended by a type helper',nTypeXCannotBeExtendedByATypeHelper);
 end;
 
 procedure TTestResolver.TestAttributes_Ignore;

@@ -1582,6 +1582,18 @@ parser_w_operator_overloaded_hidden_3=03347_W_Operator overload hidden by intern
 % (in case of dynamic arrays that is the modeswitch \var{ArrayOperators}).
 parser_e_threadvar_must_be_class=03348_E_Thread variables inside classes or records must be class variables
 % A \var{threadvar} section inside a class or record was started without it being prefixed by \var{class}.
+parser_e_only_static_members_via_object_type=03349_E_Only static methods and static variables can be referenced through an object type
+% This error occurs in a situation like the following:
+% \begin{verbatim}
+% Type
+%    TObj = object
+%      procedure test;
+%    end;
+%
+% begin
+%   TObj.test;
+% \end{verbatim}
+% \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
 %
 %
 % \end{description}
@@ -2028,7 +2040,7 @@ type_w_empty_constant_range_set=04125_W_The first value of a set constructur ran
 #
 # Symtable
 #
-# 05097 is the last used one
+# 05098 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2344,6 +2356,8 @@ sym_e_generic_type_param_mismatch=05096_E_Generic type parameter "$1" does not m
 sym_e_generic_type_param_decl=05097_E_Generic type parameter declared as "$1"
 % Shows what the generic type parameter was originally declared as if a mismatch
 % is found between a declaration and the definition.
+sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
+% The variable or expression isn't of the type \var{record} or \var{object}.
 % \end{description}
 #
 # Codegenerator
@@ -3007,6 +3021,9 @@ exec_n_backquote_cat_file_not_found=09033_N_File "$1" not found for backquoted c
 exec_w_init_file_not_found=09034_W_"$1" not found, this will probably cause a linking failure
 % The compiler adds certain startup code files to the linker only when they are found.
 % If they are not found, they are not added and this might cause a linking failure.
+% If the system has gcc installed, running \var{gcc --print-file-name <filename>} might return the path to the file.
+% Add this path in your \var{fpc.cfg} using the switch \var{-Fl} to fix this error. This requires though,
+% that gcc targets the same target as FPC.
 %
 %\end{description}
 # EndOfTeX

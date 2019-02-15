@@ -138,8 +138,8 @@ const
                         + [system_i386_wdosx]
                         + [system_riscv32_linux,system_riscv64_linux];
 
-  suppported_targets_x_smallr = systems_linux + systems_solaris
-                             + [system_i386_haiku]
+  suppported_targets_x_smallr = systems_linux + systems_solaris + systems_android
+                             + [system_i386_haiku,system_x86_64_haiku]
                              + [system_i386_beos]
                              + [system_m68k_amiga];
 
@@ -963,15 +963,27 @@ begin
     system_powerpc64_darwin,
     system_i386_darwin:
       begin
+{$ifdef llvm}
+        { We only support libunwind as part of libsystem }
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1060');
+        MacOSXVersionMin:='10.6';
+{$else llvm}
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1040');
         MacOSXVersionMin:='10.4';
+{$endif llvm}
       end;
     system_x86_64_darwin:
       begin
+{$ifdef llvm}
+        { We only support libunwind as part of libsystem }
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1060');
+        MacOSXVersionMin:='10.6';
+{$else llvm}
         { actually already works on 10.4, but it's unlikely any 10.4 system
           with an x86-64 is still in use, so don't default to it }
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1050');
         MacOSXVersionMin:='10.5';
+{$endif llvm}
       end;
     system_arm_darwin,
     system_i386_iphonesim:
@@ -4004,11 +4016,17 @@ begin
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
-  if (cs_asm_leave in init_settings.globalswitches) and
-     (af_outputbinary in target_asm.flags) then
+  if ((cs_asm_leave in init_settings.globalswitches) and
+     (af_outputbinary in target_asm.flags)) or
+     { if -s is passed, we shouldn't call the internal assembler }
+     (cs_asm_extern in init_settings.globalswitches) then
    begin
      Message(option_switch_bin_to_src_assembler);
+{$ifdef llvm}
+     set_target_asm(as_llvm_clang);
+{$else}
      set_target_asm(target_info.assemextern);
+{$endif}
      { At least i8086 needs that for nasm and -CX
        which is incompatible with internal linker }
      option.checkoptionscompatibility;

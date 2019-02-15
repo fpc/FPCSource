@@ -164,6 +164,7 @@ type
     procedure TestWP_ClassInterface_COM_Unit;
     procedure TestWP_ClassInterface_Typeinfo;
     procedure TestWP_ClassInterface_TGUID;
+    procedure TestWP_ClassHelper;
 
     // scope references
     procedure TestSR_Proc_UnitVar;
@@ -3057,6 +3058,37 @@ begin
   'var g,h: TGuid;',
   'begin',
   '  if g=h then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ClassHelper;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#TObject_used}TObject = class',
+  '  end;',
+  '  {#TBird_used}TBird = class',
+  '    {#TBird_A_notused}A: word;',
+  '  end;',
+  '  {#TAnt_used}TAnt = class',
+  '    {#TAnt_B_notused}B: word;',
+  '  type',
+  '    {#TMouth_used}TMouth = class',
+  '      {#TMouth_C_notused}C: word;',
+  '    type',
+  '      {#TBirdHelper_used}TBirdHelper = class helper for TBird',
+  '        procedure {#TBirdHelper_Fly_used}Fly;',
+  '      end;',
+  '    end;',
+  '  end;',
+  'procedure TAnt.TMouth.TBirdHelper.Fly;',
+  'begin',
+  'end;',
+  'var b: TBird;',
+  'begin',
+  '  b.Fly;;',
   '']);
   AnalyzeWholeProgram;
 end;

@@ -32,7 +32,7 @@ type
   end;
 
   TRegDataType = (rdUnknown, rdString, rdExpandString, rdBinary, rdInteger, rdIntegerBigEndian,
-                  rdLink, rdMultiString, rdResourceList, rdFullResourceDescriptor,  rdResourceRequirementList);
+                  rdLink, rdMultiString, rdResourceList, rdFullResourceDescriptor,  rdResourceRequirementList, rdInt64);
 
   TRegDataInfo = record
     RegData: TRegDataType;
@@ -95,6 +95,7 @@ type
     function ReadDateTime(const Name: string): TDateTime;
     function ReadFloat(const Name: string): Double;
     function ReadInteger(const Name: string): Integer;
+    function ReadInt64(const Name: string): Int64;
     function ReadString(const Name: string): string;
     procedure ReadStringList(const Name: string; AList: TStrings);
     function ReadTime(const Name: string): TDateTime;
@@ -118,6 +119,7 @@ type
     procedure WriteDateTime(const Name: string; Value: TDateTime);
     procedure WriteFloat(const Name: string; Value: Double);
     procedure WriteInteger(const Name: string; Value: Integer);
+    procedure WriteInt64(const Name: string; Value: Int64);
     procedure WriteString(const Name, Value: string);
     procedure WriteExpandString(const Name, Value: string);
     procedure WriteStringList(const Name: string; List: TStrings);
@@ -346,6 +348,17 @@ begin
     Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
 end;
 
+function TRegistry.ReadInt64(const Name: string): Int64;
+
+Var
+  RegDataType: TRegDataType;
+
+begin
+  GetData(Name, @Result, SizeOf(Int64), RegDataType);
+  If RegDataType<>rdInt64 Then
+    Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
+end;
+
 function TRegistry.ReadBool(const Name: string): Boolean;
 
 begin
@@ -513,6 +526,11 @@ end;
 procedure TRegistry.WriteInteger(const Name: string; Value: Integer);
 begin
   PutData(Name, @Value, SizeOf(Integer), rdInteger);
+end;
+
+procedure TRegistry.WriteInt64(const Name: string; Value: Int64);
+begin
+  PutData(Name, @Value, SizeOf(Int64), rdInt64);
 end;
 
 procedure TRegistry.WriteString(const Name, Value: string);

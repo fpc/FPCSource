@@ -28,7 +28,7 @@ uses BaseList, Classes;
 
 type
   TOpType = (otUnknown, otXMMReg, otXMMRM, otXMMRM16, otXMMRM8, otYMMReg, otYMMRM, otEAX, otRAX, otMem32,
-             otMem8, otMem16, otMem64, otMem128, otMem256, otREG64, otREG32, otRM32, otRM64, otIMM8,
+             otMem8, otMem16, otMem64, otMem128, otMem256, otREG64, otREG32, otREG16, otRM32, otRM64, otIMM8,
              otXMEM32, otXMEM64, otYMEM32, otYMEM64);
 
   TOperandListItem = class(TObject)
@@ -63,6 +63,7 @@ type
 
   TAsmTestGenerator = class(TObject)
   private
+    FReg16Base     : TStringList;
     FReg32Base     : TStringList;
     FReg32Index    : TStringList;
     FReg64Base     : TStringList;
@@ -525,6 +526,18 @@ begin
               end
               else MemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32Index, Item.Values);
             end
+            else if AnsiSameText(sl_Operand, 'REG16') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otREG16;
+              Item.OpActive := true;
+
+              if x64 then
+              begin
+                Item.Values.AddStrings(FReg16Base);
+              end
+              else Item.Values.AddStrings(FReg16Base);
+            end
             else if AnsiSameText(sl_Operand, 'REG32') then
             begin
               Item.OpNumber := il_Op;
@@ -828,6 +841,7 @@ begin
 
   FX64 := true;
 
+  FReg16Base     := TStringList.Create;
   FReg32Base     := TStringList.Create;
   FReg32Index    := TStringList.Create;
   FReg64Base     := TStringList.Create;
@@ -839,6 +853,16 @@ begin
   FReg64XMMIndex := TStringList.Create;
   FReg64YMMIndex := TStringList.Create;
 
+  
+  FReg16Base.Add('AX');
+  FReg16Base.Add('BX');
+  FReg16Base.Add('CX');
+  FReg16Base.Add('DX');
+  FReg16Base.Add('SP');
+  FReg16Base.Add('BP');
+  FReg16Base.Add('DI');
+  FReg16Base.Add('SI');
+  
 
   FReg32Base.Add('EAX');
   FReg32Base.Add('EBX');

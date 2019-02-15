@@ -536,6 +536,7 @@ begin
   pp^.size:=size;
   pp^.extra_info_size:=extra_info_size;
   pp^.exact_info_size:=exact_info_size;
+  fillchar(pp^.calls[1],sizeof(pp^.calls),#0);
   {
     the end of the block contains:
     <tail>   4 bytes

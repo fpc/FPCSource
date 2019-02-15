@@ -189,7 +189,8 @@ const
   { 98 }  'Embedded-RiscV32',
   { 99 }  'Embedded-RiscV64',
   { 100 } 'Android-AArch64',
-  { 101 } 'Android-x86-64'
+  { 101 } 'Android-x86-64',
+  { 102 } 'Haiku-x86-64'
   );
 
 const
@@ -2011,7 +2012,8 @@ const
      (mask:po_is_function_ref; str: 'Function reference'),
      (mask:po_is_block;        str: 'C "Block"'),
      (mask:po_is_auto_getter;  str: 'Automatically generated getter'),
-     (mask:po_is_auto_setter;  str: 'Automatically generated setter')
+     (mask:po_is_auto_setter;  str: 'Automatically generated setter'),
+     (mask:po_noinline;        str: 'Never inline')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -2231,7 +2233,8 @@ const
   piopt : array[low(timplprocoption)..high(timplprocoption)] of tpiopt=(
     (mask:pio_empty; str:'IsEmpty'),
     (mask:pio_has_inlininginfo; str:'HasInliningInfo'),
-    (mask:pio_inline_not_possible; str:'InlineNotPossible')
+    (mask:pio_inline_not_possible; str:'InlineNotPossible'),
+    (mask:pio_nested_access; str:'NestedAccess')
   );
 var
   i: timplprocoption;

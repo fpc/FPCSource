@@ -18,7 +18,7 @@ type filedesarray=array[0..1] of cint;
 {$if defined(solaris) or defined(aix)}
 Function fpFlock (fd,mode : longint) : cint;{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$else solaris or aix}
-{$ifndef beos}
+{$if not defined(beos) or defined(haiku)}
 Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 {$endif beos}
 {$endif solaris or aix}

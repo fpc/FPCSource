@@ -50,6 +50,7 @@ unit cpupara;
             var sparesinglereg: tregister);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
             var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister; isvariadic: boolean):longint;
+          procedure paradeftointparaloc(paradef: tdef; paracgsize: tcgsize; out paralocdef: tdef; out paralocsize: tcgsize);
        end;
 
   implementation
@@ -377,6 +378,11 @@ unit cpupara;
             if (p.proccalloption in cstylearrayofconst) and
                is_array_of_const(paradef) then
               begin
+                hp.paraloc[side].def:=paradef;
+                hp.paraloc[side].size:=OS_NO;
+                hp.paraloc[side].alignment:=std_param_align;
+                hp.paraloc[side].intsize:=0;
+
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
                 paraloc^.loc:=LOC_REGISTER;
@@ -430,35 +436,20 @@ unit cpupara;
              while paralen>0 do
                begin
                  paraloc:=hp.paraloc[side].add_location;
-
-                 if (loc=LOC_REGISTER) and (paracgsize in [OS_F32,OS_F64,OS_F80]) then
-                   case paracgsize of
-                     OS_F32:
-                       begin
-                         paraloc^.size:=OS_32;
-                         paraloc^.def:=u32inttype;
-                       end;
-                     OS_F64:
-                       begin
-                         paraloc^.size:=OS_32;
-                         paraloc^.def:=u32inttype;
-                       end;
-                     else
-                       internalerror(2005082901);
-                   end
-                 else if (paracgsize in [OS_NO,OS_64,OS_S64]) then
-                   begin
-                     paraloc^.size:=OS_32;
-                     paraloc^.def:=u32inttype;
-                   end
-                 else
-                   begin
-                     paraloc^.size:=paracgsize;
-                     paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
-                   end;
                  case loc of
                     LOC_REGISTER:
                       begin
+                        if paracgsize in [OS_F32,OS_F64,OS_F80] then
+                          case paracgsize of
+                            OS_F32,
+                            OS_F64:
+                              begin
+                                paraloc^.size:=OS_32;
+                                paraloc^.def:=u32inttype;
+                              end;
+                            else
+                              internalerror(2005082901);
+                          end;
                         { align registers for eabi }
                         if (target_info.abi in [abi_eabi,abi_eabihf]) and
                            firstparaloc and
@@ -467,22 +458,24 @@ unit cpupara;
                             if (nextintreg in [RS_R1,RS_R3]) then
                               inc(nextintreg)
                             else if nextintreg>RS_R3 then
-                              stack_offset:=align(stack_offset,8);
+                              begin
+                                stack_offset:=align(stack_offset,8);
+                                hp.paraloc[side].Alignment:=8;
+                              end;
                           end;
-                        { this is not abi compliant
-                          why? (FK) }
                         if nextintreg<=RS_R3 then
                           begin
+                            paradeftointparaloc(paradef,paracgsize,paraloc^.def,paraloc^.size);
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                             inc(nextintreg);
                           end
                         else
                           begin
-                            { LOC_REFERENCE always contains everything that's left }
+                            { LOC_REFERENCE always contains everything that's left as a multiple of 4 bytes}
                             paraloc^.loc:=LOC_REFERENCE;
-                            paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
+                            paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
+                            paraloc^.size:=def_cgsize(paraloc^.def);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
@@ -492,6 +485,8 @@ unit cpupara;
                       end;
                     LOC_FPUREGISTER:
                       begin
+                        paraloc^.size:=paracgsize;
+                        paraloc^.def:=paradef;
                         if nextfloatreg<=RS_F3 then
                           begin
                             paraloc^.loc:=LOC_FPUREGISTER;
@@ -519,6 +514,8 @@ unit cpupara;
                       end;
                     LOC_MMREGISTER:
                       begin
+                        paraloc^.size:=paracgsize;
+                        paraloc^.def:=paradef;
                         if (nextmmreg<=RS_D7) or
                            ((paraloc^.size = OS_F32) and
                             (sparesinglereg<>NR_NO)) then
@@ -556,7 +553,6 @@ unit cpupara;
                             { LOC_REFERENCE always contains everything that's left }
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
@@ -566,6 +562,8 @@ unit cpupara;
                       end;
                     LOC_REFERENCE:
                       begin
+                        paraloc^.size:=paracgsize;
+                        paraloc^.def:=paradef;
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
                             paraloc^.size:=OS_ADDR;
@@ -578,10 +576,11 @@ unit cpupara;
                             if (target_info.abi in [abi_eabi,abi_eabihf]) and
                                firstparaloc and
                                (paradef.alignment=8) then
-                              stack_offset:=align(stack_offset,8);
+                              begin
+                                stack_offset:=align(stack_offset,8);
+                                hp.paraloc[side].Alignment:=8;
+                              end;
 
-                             paraloc^.size:=paracgsize;
-                             paraloc^.def:=paradef;
                              paraloc^.loc:=LOC_REFERENCE;
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
                              paraloc^.reference.offset:=stack_offset;
@@ -621,6 +620,23 @@ unit cpupara;
         curmmreg:=nextmmreg;
         cur_stack_offset:=stack_offset;
         result:=cur_stack_offset;
+      end;
+
+
+    procedure tcpuparamanager.paradeftointparaloc(paradef: tdef; paracgsize: tcgsize; out paralocdef: tdef; out paralocsize: tcgsize);
+      begin
+        if not(paracgsize in [OS_32,OS_S32]) or
+           (paradef.typ in [arraydef,recorddef]) or
+           is_object(paradef) then
+          begin
+            paralocsize:=OS_32;
+            paralocdef:=u32inttype;
+          end
+        else
+          begin
+            paralocsize:=paracgsize;
+            paralocdef:=paradef;
+          end;
       end;
 
 
@@ -740,8 +756,7 @@ unit cpupara;
                     end;
                   else
                     begin
-                      paraloc^.size:=retcgsize;
-                      paraloc^.def:=result.def;
+                      paradeftointparaloc(result.def,result.size,paraloc^.def,paraloc^.size);
                     end;
                 end;
               end;

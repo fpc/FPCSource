@@ -798,7 +798,6 @@ implementation
         nodeclass[whilerepeatn]:=cwhilerepeatnode;
         nodeclass[forn]:=cfornode;
         nodeclass[exitn]:=cexitnode;
-        nodeclass[withn]:=cwithnode;
         nodeclass[casen]:=ccasenode;
         nodeclass[labeln]:=clabelnode;
         nodeclass[goton]:=cgotonode;

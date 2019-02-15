@@ -3042,9 +3042,9 @@ type
             alignment.procalign:=tokenreadlongint;
             alignment.loopalign:=tokenreadlongint;
             alignment.jumpalign:=tokenreadlongint;
-            alignment.jumpalignmax:=tokenreadlongint;
+            alignment.jumpalignskipmax:=tokenreadlongint;
             alignment.coalescealign:=tokenreadlongint;
-            alignment.coalescealignmax:=tokenreadlongint;
+            alignment.coalescealignskipmax:=tokenreadlongint;
             alignment.constalignmin:=tokenreadlongint;
             alignment.constalignmax:=tokenreadlongint;
             alignment.varalignmin:=tokenreadlongint;
@@ -3127,9 +3127,9 @@ type
             tokenwritelongint(alignment.procalign);
             tokenwritelongint(alignment.loopalign);
             tokenwritelongint(alignment.jumpalign);
-            tokenwritelongint(alignment.jumpalignmax);
+            tokenwritelongint(alignment.jumpalignskipmax);
             tokenwritelongint(alignment.coalescealign);
-            tokenwritelongint(alignment.coalescealignmax);
+            tokenwritelongint(alignment.coalescealignskipmax);
             tokenwritelongint(alignment.constalignmin);
             tokenwritelongint(alignment.constalignmax);
             tokenwritelongint(alignment.varalignmin);

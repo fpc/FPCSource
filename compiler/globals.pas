@@ -406,9 +406,9 @@ interface
           procalign : 0;
           loopalign : 0;
           jumpalign : 0;
-          jumpalignmax    : 0;
+          jumpalignskipmax    : 0;
           coalescealign   : 0;
-          coalescealignmax: 0;
+          coalescealignskipmax: 0;
           constalignmin : 0;
           constalignmax : 0;
           varalignmin : 0;

@@ -818,6 +818,7 @@ interface
           function  GetTypeName : string;override;
           function  mangledname : TSymStr; virtual;
           procedure setmangledname(const s : TSymStr);
+          procedure setcompilerprocname;
           function  fullprocname(showhidden:boolean):string;
           function  customprocname(pno: tprocnameoptions):ansistring;
           function  defaultmangledname: TSymStr;
@@ -827,6 +828,8 @@ interface
           function  is_addressonly:boolean;override;
           procedure make_external;
           procedure init_genericdecl;
+
+          function getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean; virtual;
 
           { returns whether the mangled name or any of its aliases is equal to
             s }
@@ -2713,8 +2716,8 @@ implementation
             if (minval>=0) then
               sizeval:=maxval
             else
-              { don't count 0 twice }
-              sizeval:=(cutils.max(-minval,maxval)*2)-1;
+             { don't count 0 twice, but take into account that range goes from -n-1..n }
+              sizeval:=(cutils.max(-minval,maxval+1)*2)-1;
             { 256 must become 512 etc. }
             nextpowerof2(sizeval+1,power);
             result := power;
@@ -2936,8 +2939,8 @@ implementation
             if (low>=0) then
               sizeval:=high
             else
-              { don't count 0 twice }
-              sizeval:=(cutils.max(-low,high)*2)-1;
+              { don't count 0 twice, but take into account that range goes from -n-1..n }
+              sizeval:=(cutils.max(-low,high+1)*2)-1;
             { 256 must become 512 etc. }
             nextpowerof2(sizeval+1,power);
             result := power;
@@ -5342,8 +5345,8 @@ implementation
             begin
               p:=tparavarsym(parast.SymList[i]);
               { check if no parameter is located on the stack }
-              if is_open_array(p.vardef) or
-                 is_array_of_const(p.vardef) then
+              if (is_open_array(p.vardef) or
+                 is_array_of_const(p.vardef)) and (p.varspez=vs_value) then
                 begin
                   result:=true;
                   exit;
@@ -6046,6 +6049,27 @@ implementation
       end;
 
 
+    function tprocdef.getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean;
+      begin
+        result:=false;
+        if proctypeoption=potype_constructor then
+          begin
+            result:=true;
+            ressym:=tsym(parast.Find('self'));
+            resdef:=tabstractnormalvarsym(ressym).vardef;
+            { and TP-style constructors return a pointer to self }
+            if is_object(resdef) then
+              resdef:=cpointerdef.getreusable(resdef);
+          end
+        else if not is_void(returndef) then
+          begin
+            result:=true;
+            ressym:=funcretsym;
+            resdef:=tabstractnormalvarsym(ressym).vardef;
+          end;
+      end;
+
+
     function tprocdef.has_alias_name(const s: TSymStr): boolean;
       var
         item : TCmdStrListItem;
@@ -6479,6 +6503,12 @@ implementation
   {$endif symansistr}
 {$endif jvm}
         include(procoptions,po_has_mangledname);
+      end;
+
+
+    procedure tprocdef.setcompilerprocname;
+      begin
+        procsym.realname:='$'+lower(procsym.name);
       end;
 
 

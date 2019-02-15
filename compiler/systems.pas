@@ -47,15 +47,15 @@ interface
          { alignment for labels after unconditional jumps, this must be a power of two }
          jumpalign,
          { max. alignment for labels after unconditional jumps:
-           the compiler tries to align jumpalign, however, to do so it inserts at maximum jumpalignmax bytes or uses
+           the compiler tries to align jumpalign, however, to do so it inserts at maximum jumpalignskipmax bytes or uses
            the next smaller power of two of jumpalign }
-         jumpalignmax,
+         jumpalignskipmax,
          { alignment for labels where two flows of the program flow coalesce, this must be a power of two }
          coalescealign,
          { max. alignment for labels where two flows of the program flow coalesce
-           the compiler tries to align to coalescealign, however, to do so it inserts at maximum coalescealignmax bytes or uses
+           the compiler tries to align to coalescealign, however, to do so it inserts at maximum coalescealignskipmax bytes or uses
            the next smaller power of two of coalescealign }
-         coalescealignmax,
+         coalescealignskipmax,
          constalignmin,
          constalignmax,
          varalignmin,
@@ -350,7 +350,8 @@ interface
 
        systems_internal_sysinit = [system_i386_win32,system_x86_64_win64,
                                    system_i386_linux,system_powerpc64_linux,system_sparc64_linux,system_x86_64_linux,
-                                   system_m68k_atari,system_m68k_palmos
+                                   system_m68k_atari,system_m68k_palmos,
+                                   system_i386_haiku,system_x86_64_haiku
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use garbage collection for reference-counted types }
@@ -673,10 +674,10 @@ begin
        coalescealign:=s.coalescealign
      else if s.coalescealign<>0 then
        result:=false;
-     if s.jumpalignmax>0 then
-       jumpalignmax:=s.jumpalignmax;
+     if s.jumpalignskipmax>0 then
+       jumpalignskipmax:=s.jumpalignskipmax;
      if s.coalescealign>0 then
-       coalescealignmax:=s.coalescealignmax;
+       coalescealignskipmax:=s.coalescealignskipmax;
      { general update rules:
        minimum: if higher then update
        maximum: if lower then update or if undefined then update }

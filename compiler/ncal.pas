@@ -292,7 +292,7 @@ interface
          dct_propput
        );
 
-    function reverseparameters(p: tcallparanode): tcallparanode;
+    procedure reverseparameters(var p: tcallparanode);
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
       dispid : longint;resultdef : tdef) : tnode;
 
@@ -333,21 +333,23 @@ implementation
                              HELPERS
  ****************************************************************************}
 
-    function reverseparameters(p: tcallparanode): tcallparanode;
+    procedure reverseparameters(var p: tcallparanode);
       var
+        tmpp,
         hp1, hp2: tcallparanode;
       begin
         hp1:=nil;
-        while assigned(p) do
+        tmpp:=p;
+        while assigned(tmpp) do
           begin
              { pull out }
-             hp2:=p;
-             p:=tcallparanode(p.right);
+             hp2:=tmpp;
+             tmpp:=tcallparanode(tmpp.right);
              { pull in }
              hp2.right:=hp1;
              hp1:=hp2;
           end;
-        reverseparameters:=hp1;
+        p:=hp1;
       end;
 
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
@@ -4627,6 +4629,17 @@ implementation
 
     function tcallnode.paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean;
       begin
+        { We don't need temps for parameters that are already temps, except if
+          the passed temp could be put in a regvar while the parameter inside
+          the routine cannot be (e.g., because its address is taken in the
+          routine), or if the temp is a const and the parameter gets modified }
+        if (para.left.nodetype=temprefn) and
+           (not(ti_may_be_in_reg in ttemprefnode(para.left).tempflags) or
+            not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr])) and
+           (not(ti_const in ttemprefnode(para.left).tempflags) or
+            (tparavarsym(para.parasym).varstate in [vs_initialised,vs_declared,vs_read])) then
+          exit(false);
+
         { We need a temp if the passed value will not be in memory, while
           the parameter inside the routine must be in memory }
         if (tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
@@ -4759,17 +4772,6 @@ implementation
             not(realtarget.nodetype=realconstn)
            )
           );
-
-        { We don't need temps for parameters that are already temps, except if
-          the passed temp could be put in a regvar while the parameter inside
-          the routine cannot be (e.g., because its address is taken in the
-          routine), or if the temp is a const and the parameter gets modified }
-        if (para.left.nodetype=temprefn) and
-           (not(ti_may_be_in_reg in ttemprefnode(para.left).tempflags) or
-            not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr])) and
-           (not(ti_const in ttemprefnode(para.left).tempflags) or
-            (tparavarsym(para.parasym).varstate in [vs_initialised,vs_declared,vs_read])) then
-          exit;
 
         { check if we have to create a temp, assign the parameter's
           contents to that temp and then substitute the parameter

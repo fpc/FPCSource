@@ -56,7 +56,7 @@ implementation
        globtype,globals,tokens,verbose,constexp,
        systems,
        { symtable }
-       symconst,symbase,defutil,defcmp,symcreat,
+       symconst,symbase,defutil,defcmp,symutil,symcreat,
 {$if defined(i386) or defined(i8086)}
        symcpu,
 {$endif}
@@ -68,7 +68,7 @@ implementation
        ngenutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub;
+       pbase,pexpr,ptype,ptconst,pdecsub,pparautl;
 
 
     function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
@@ -132,6 +132,8 @@ implementation
                      end;
                    _POINT :
                      begin
+                       if not is_object(def) and not is_record(def) then
+                         message(sym_e_type_must_be_rec_or_object);
                        consume(_POINT);
                        if assigned(def) then
                         begin
@@ -258,7 +260,7 @@ implementation
             var
               sym: tprocsym;
             begin
-              handle_calling_convention(pd);
+              handle_calling_convention(pd,hcc_default_actions_intf);
               sym:=cprocsym.create(prefix+lower(p.realname));
               symtablestack.top.insert(sym);
               pd.procsym:=sym;
@@ -537,7 +539,7 @@ implementation
                       begin
                         readprocdef.returndef:=p.propdef;
                         { Insert hidden parameters }
-                        handle_calling_convention(readprocdef);
+                        handle_calling_convention(readprocdef,hcc_default_actions_intf);
                       end;
                     p.add_getter_or_setter_for_sym(palt_read,sym,def,readprocdef);
                   end;
@@ -560,7 +562,7 @@ implementation
                         hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
                         writeprocdef.parast.insert(hparavs);
                         { Insert hidden parameters }
-                        handle_calling_convention(writeprocdef);
+                        handle_calling_convention(writeprocdef,hcc_default_actions_intf);
                       end;
                     p.add_getter_or_setter_for_sym(palt_write,sym,def,writeprocdef);
                   end;
@@ -648,7 +650,7 @@ implementation
                                    end;
 
                                  { Insert hidden parameters }
-                                 handle_calling_convention(storedprocdef);
+                                 handle_calling_convention(storedprocdef,hcc_default_actions_intf);
                                  p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
                                  if not assigned(p.propaccesslist[palt_stored].procdef) then
                                    message(parser_e_ill_property_storage_sym);
@@ -1457,7 +1459,7 @@ implementation
                  { Add calling convention for procvar }
                  if (hdef.typ=procvardef) and
                     (hdef.typesym=nil) then
-                   handle_calling_convention(tprocvardef(hdef));
+                   handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
                  read_default_value(sc);
                  hasdefaultvalue:=true;
                end
@@ -1475,7 +1477,7 @@ implementation
                  { Parse procvar directives after ; }
                  maybe_parse_proc_directives(hdef);
                  { Add calling convention for procvar }
-                 handle_calling_convention(tprocvardef(hdef));
+                 handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
                  { Handling of Delphi typed const = initialized vars }
                  if (token=_EQ) and
                     not(m_tp7 in current_settings.modeswitches) and
@@ -1766,7 +1768,7 @@ implementation
              { Add calling convention for procvar }
              if (hdef.typ=procvardef) and
                 (hdef.typesym=nil) then
-               handle_calling_convention(tprocvardef(hdef));
+               handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
 
              if (vd_object in options) then
                begin

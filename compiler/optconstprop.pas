@@ -92,7 +92,7 @@ unit optconstprop;
           iterate manually here so we have full controll how all nodes are processed }
 
         { We cannot analyze beyond those nodes, so we terminate to be on the safe side }
-        if (n.nodetype in [addrn,derefn,asmn,withn,casen,whilerepeatn,labeln,continuen,breakn,
+        if (n.nodetype in [addrn,derefn,asmn,casen,whilerepeatn,labeln,continuen,breakn,
                            tryexceptn,raisen,tryfinallyn,onn,loadparentfpn,loadvmtaddrn,guidconstn,rttin,addoptn,asn,goton,
                            objcselectorn,objcprotocoln]) then
           exit(false)

@@ -1971,10 +1971,10 @@ implementation
           aitconst_16bit,aitconst_16bit_unaligned :
             result:=2;
           aitconst_32bit,aitconst_darwin_dwarf_delta32,
-	  aitconst_32bit_unaligned:
+          aitconst_32bit_unaligned:
             result:=4;
           aitconst_64bit,aitconst_darwin_dwarf_delta64,
-	  aitconst_64bit_unaligned:
+          aitconst_64bit_unaligned:
             result:=8;
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :
@@ -2926,9 +2926,10 @@ implementation
         i : integer;
       begin
         inherited ppuload(t,ppufile);
-        { hopefully, we don't get problems with big/litte endian here when cross compiling :/ }
+        { hopefully, we don't get problems with big/little endian here when cross compiling :/ }
         ppufile.getdata(condition,sizeof(tasmcond));
-        allocate_oper(ppufile.getbyte);
+        ops := ppufile.getbyte;
+        allocate_oper(ops);
         for i:=0 to ops-1 do
           ppuloadoper(ppufile,oper[i]^);
         opcode:=tasmop(ppufile.getword);

@@ -130,6 +130,10 @@ interface
          ,addr_ntpoff
          ,addr_tlsgd
          {$ENDIF}
+{$ifdef x86_64}
+          ,addr_tpoff
+          ,addr_tlsgd
+{$endif x86_64}
          );
 
 

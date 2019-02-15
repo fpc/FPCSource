@@ -26,18 +26,24 @@ unit symutil;
 interface
 
     uses
-       symbase,symsym;
+       symconst,symbase,symtype,symsym;
 
     function is_funcret_sym(p:TSymEntry):boolean;
 
     function equal_constsym(sym1,sym2:tconstsym; nanequal: boolean):boolean;
 
+    function get_first_proc_str(Options: TProcOptions): ShortString;
+
+    procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
+
 
 implementation
 
     uses
-       globtype,cpuinfo,constexp,
-       symconst,widestr;
+       systems,
+       globtype,cpuinfo,constexp,verbose,
+       widestr,
+       symdef;
 
 
     function is_funcret_sym(p:TSymEntry):boolean;
@@ -94,6 +100,46 @@ implementation
              equal_constsym:=true;
         end;
       end;
+
+
+    { get_first_proc_str - returns the token string of the first option that
+      appears in the list }
+    function get_first_proc_str(Options: TProcOptions): ShortString;
+      var
+        X: TProcOption;
+      begin
+        if Options = [] then
+          InternalError(2018051700);
+
+        get_first_proc_str := '';
+
+        for X in Options do
+          begin
+            get_first_proc_str := ProcOptionKeywords[X];
+            Exit;
+          end;
+      end;
+
+
+    procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
+      var
+        ts: ttypesym;
+      begin
+        { create a dummy typesym for the JVM target, because the record
+          has to be wrapped by a class }
+        if (target_info.system in systems_jvm) and
+           (def.typ=recorddef) and
+           not assigned(def.typesym) then
+          begin
+            ts:=ctypesym.create(trecorddef(def).symtable.realname^,def,true);
+            st.insert(ts);
+            ts.visibility:=vis_strictprivate;
+            { this typesym can't be used by any Pascal code, so make sure we don't
+              print a hint about it being unused }
+            include(ts.symoptions,sp_internal);
+          end;
+      end;
+
 
 end.
 

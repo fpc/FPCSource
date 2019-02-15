@@ -413,7 +413,9 @@ type
     { procedure is an automatically generated property getter }
     po_is_auto_getter,
     { procedure is an automatically generated property setter }
-    po_is_auto_setter
+    po_is_auto_setter,
+    { must never be inlined          by auto-inlining }
+    po_noinline
   );
   tprocoptions=set of tprocoption;
 
@@ -425,7 +427,9 @@ type
     { the inline body of this routine is available }
     pio_has_inlininginfo,
     { inline is not possible (has assembler block, etc) }
-    pio_inline_not_possible
+    pio_inline_not_possible,
+    { a nested routine accesses a local variable from this routine }
+    pio_nested_access
   );
   timplprocoptions = set of timplprocoption;
 
@@ -1022,7 +1026,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       'po_is_function_ref',{po_is_function_ref}
       'C-style blocks',{po_is_block}
       'po_is_auto_getter',{po_is_auto_getter}
-      'po_is_auto_setter'{po_is_auto_setter}
+      'po_is_auto_setter',{po_is_auto_setter}
+      'po_noinline'{po_noinline}
     );
 
 implementation

@@ -459,6 +459,7 @@ const
   parser_e_invalid_internal_function_index=03346;
   parser_w_operator_overloaded_hidden_3=03347;
   parser_e_threadvar_must_be_class=03348;
+  parser_e_only_static_members_via_object_type=03349;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -659,6 +660,7 @@ const
   sym_w_duplicate_id=05095;
   sym_e_generic_type_param_mismatch=05096;
   sym_e_generic_type_param_decl=05097;
+  sym_e_type_must_be_rec_or_object=05098;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -1105,9 +1107,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 82667;
+  MsgTxtSize = 82796;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,349,126,98,59,142,34,221,67,
+    28,106,350,126,99,59,142,34,221,67,
     62,20,30,1,1,1,1,1,1,1
   );

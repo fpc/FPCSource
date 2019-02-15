@@ -79,6 +79,9 @@ const
   //machine-specific flags
   EF_IA_64_ABI64 = $10;  //wow, this is really a 64-bit object file!
 
+  EF_ARM_ABIMASK = $ff000000;
+  EF_ARM_ABI5    = $05000000;
+
   // riscv flags
   EF_RISCV_RVC = 1;
 

@@ -50,7 +50,7 @@ implementation
       procinfo;
 
 {*****************************************************************************
-                            TI386LOADNODE
+                            TARMLOADNODE
 *****************************************************************************}
 
     procedure tarmloadnode.generate_threadvar_access(gvs: tstaticvarsym);

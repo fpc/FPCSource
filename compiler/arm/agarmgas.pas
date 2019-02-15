@@ -94,7 +94,9 @@ unit agarmgas;
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);
+{$ifndef llvm}
         if GenerateThumb2Code then
+{$endif}
           TArmInstrWriter(InstrWriter).unified_syntax:=true;
       end;
 
@@ -205,6 +207,8 @@ unit agarmgas;
                        s:=s+', rrx'
                      else if shiftmode <> SM_None then
                        s:=s+', '+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
+                     if offset<>0 then
+                       Internalerror(2019012601);
                   end
                 else if offset<>0 then
                   s:=s+', #'+tostr(offset);

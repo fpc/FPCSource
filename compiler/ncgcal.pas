@@ -611,7 +611,7 @@ implementation
             case location.loc of
               LOC_REGISTER :
                 begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if location.size in [OS_64,OS_S64] then
                     cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,location.register64,funcretnode.location)
                   else

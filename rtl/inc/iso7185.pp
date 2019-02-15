@@ -47,6 +47,7 @@ unit iso7185;
 
     Procedure Get(Var f: TypedFile);
     Procedure Put(Var f: TypedFile);
+    Procedure Seek(var f:TypedFile;Pos:Int64);
 
     Function Eof(var f:TypedFile): Boolean;
 
@@ -193,19 +194,36 @@ unit iso7185;
     procedure Get(var f:TypedFile);[IOCheck];
       Begin
         if not(eof(f)) then
-          BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1)
+          BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1);
       End;
 
 
     Procedure Put(var f:TypedFile);[IOCheck];
       begin
-        BlockWrite(f,(pbyte(@f)+sizeof(FileRec))^,1)
+        BlockWrite(f,(pbyte(@f)+sizeof(FileRec))^,1);
       end;
 
 
     Function Eof(var f:TypedFile): Boolean;[IOCheck];
       Begin
         Eof:=FileRec(f)._private[1]=1;
+      End;
+
+
+    Procedure Seek(var f:TypedFile;Pos:Int64);
+      Begin
+        System.Seek(f,Pos);
+        if (FileRec(f).mode=fmInOut) or
+          (FileRec(f).mode=fmInput) then
+          begin
+            if FilePos(f)<FileSize(f) then
+              begin
+                FileRec(f)._private[1]:=0;
+                Get(f);
+              end
+            else
+              FileRec(f)._private[1]:=1;
+          end;
       End;
 
 begin

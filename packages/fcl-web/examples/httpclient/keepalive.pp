@@ -3,7 +3,7 @@ program keepalive;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, CustApp, fphttpclient;
+  Classes, SysUtils, CustApp, fphttpclient, opensslsockets;
 
 const
   URL_DIRECT = 'https://www.google.com/humans.txt';

@@ -3582,6 +3582,21 @@ void                   \326\1\xAD                                    X86_64
 (Ch_RWRSI, Ch_RMemEDI, Ch_RWRDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                   \326\1\xA7                                    X86_64
 
+[MOVBE,movbeX]
+(Ch_Rop1, Ch_Wop2)
+reg16|32|64,mem16|32|64              \320\3\xf\x38\xf0\110           MOVBE,SM
+mem16|32|64,reg16|32|64              \321\3\xf\x38\xf1\101           MOVBE,SM
+
+
+;*******************************************************************************
+;********* CLMUL ***************************************************************
+;*******************************************************************************
+
+[PCLMULQDQ]
+(Ch_All)
+xmmreg,xmmrm,imm8                    \361\3\xf\x3A\x44\110\26        CLMUL,SANDYBRIDGE
+
+
 ;*******************************************************************************
 ;****** AVX I ******************************************************************
 ;*******************************************************************************
@@ -5285,6 +5300,21 @@ reg64,reg64,rm64                      \362\363\371\1\xf2\75\120           BMI1,P
 reg32,rm32,reg32                      \362\371\1\xf7\76\110               BMI1,PROT
 reg64,rm64,reg64                      \362\363\371\1\xf7\76\110           BMI1,PROT,X86_64
 
+[BLSI]
+(Ch_Rop1, Ch_Wop2, Ch_W0OverflowFlag, Ch_WCarryFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WUParityFlag, Ch_WUAuxiliaryFlag)
+reg32,rm32                            \362\371\1\xf3\74\213               BMI1,PROT
+reg64,rm64                            \362\363\371\1\xf3\74\213           BMI1,PROT,X86_64
+
+[BLSMSK]
+(Ch_Rop1, Ch_Wop2, Ch_W0OverflowFlag, Ch_WCarryFlag, Ch_WSignFlag, Ch_W0ZeroFlag, Ch_WUParityFlag, Ch_WUAuxiliaryFlag)
+reg32,rm32                            \362\371\1\xf3\74\212               BMI1,PROT
+reg64,rm64                            \362\363\371\1\xf3\74\212           BMI1,PROT,X86_64
+
+[BLSR]
+(Ch_Rop1, Ch_Wop2, Ch_W0OverflowFlag, Ch_WCarryFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WUParityFlag, Ch_WUAuxiliaryFlag)
+reg32,rm32                            \362\371\1\xf3\74\211               BMI1,PROT
+reg64,rm64                            \362\363\371\1\xf3\74\211           BMI1,PROT,X86_64
+
 [TZCNT]
 (Ch_Wop2, Ch_WFlags, Ch_Rop1)
 reg16|32|64,regmem                    \320\333\2\x0F\xBC\110              BMI1,SM
@@ -5333,6 +5363,19 @@ reg64,rm64,reg64                      \361\362\363\371\1\xf7\76\110       BMI2,P
 reg32,rm32,reg32                      \334\362\371\1\xf7\76\110           BMI2,PROT
 reg64,rm64,reg64                      \334\362\363\371\1\xf7\76\110       BMI2,PROT,X86_64
 
+;*******************************************************************************
+;********** ADX ****************************************************************
+;*******************************************************************************
+
+[ADCX,adcxX]
+(Ch_Rop1, Ch_Mop2, Ch_RWCarryFlag)
+reg32,rm32                            \361\3\xf\x38\xf6\110               ADX
+reg64,rm64                            \361\326\3\xf\x38\xf6\110           ADX,X86_64
+
+[ADOX,adoxX]
+(Ch_Rop1, Ch_Mop2, Ch_RWOverflowFlag)
+reg32,rm32                            \333\3\xf\x38\xf6\110               ADX
+reg64,rm64                            \333\326\3\xf\x38\xf6\110           ADX,X86_64
 
 ;*******************************************************************************
 ;********** AVX2 ***************************************************************

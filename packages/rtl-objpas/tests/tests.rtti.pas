@@ -55,6 +55,11 @@ type
 {$ifdef fpc}
     procedure TestMakeArrayOpen;
 {$endif}
+    procedure TestMakeSingle;
+    procedure TestMakeDouble;
+    procedure TestMakeExtended;
+    procedure TestMakeCurrency;
+    procedure TestMakeComp;
 
     procedure TestDataSize;
     procedure TestDataSizeEmpty;
@@ -482,7 +487,183 @@ begin
   CheckEquals(arr[0], 84);
   CheckEquals(arr[1], 128);
 end;
+
 {$endif}
+
+procedure TTestCase1.TestMakeSingle;
+var
+  fs: Single;
+  v: TValue;
+  hadexcept: Boolean;
+begin
+  fs := 3.14;
+
+  TValue.Make(@fs, TypeInfo(fs), v);
+  CheckEquals(v.IsClass, False);
+  CheckEquals(v.IsObject, False);
+  CheckEquals(v.IsOrdinal, False);
+  Check(v.AsExtended=fs);
+  Check(v.GetReferenceToRawData <> @fs);
+
+  try
+    hadexcept := False;
+    v.AsInt64;
+  except
+    hadexcept := True;
+  end;
+
+  CheckTrue(hadexcept, 'No signed type conversion exception');
+
+  try
+    hadexcept := False;
+    v.AsUInt64;
+  except
+    hadexcept := True;
+  end;
+
+  CheckTrue(hadexcept, 'No unsigned type conversion exception');
+end;
+
+procedure TTestCase1.TestMakeDouble;
+var
+  fd: Double;
+  v: TValue;
+  hadexcept: Boolean;
+begin
+  fd := 3.14;
+
+  TValue.Make(@fd, TypeInfo(fd), v);
+  CheckEquals(v.IsClass, False);
+  CheckEquals(v.IsObject, False);
+  CheckEquals(v.IsOrdinal, False);
+  Check(v.AsExtended=fd);
+  Check(v.GetReferenceToRawData <> @fd);
+
+  try
+    hadexcept := False;
+    v.AsInt64;
+  except
+    hadexcept := True;
+  end;
+
+  CheckTrue(hadexcept, 'No signed type conversion exception');
+
+  try
+    hadexcept := False;
+    v.AsUInt64;
+  except
+    hadexcept := True;
+  end;
+
+  CheckTrue(hadexcept, 'No unsigned type conversion exception');
+end;
+
+procedure TTestCase1.TestMakeExtended;
+var
+  fe: Extended;
+  v: TValue;
+  hadexcept: Boolean;
+begin
+  fe := 3.14;
+
+  TValue.Make(@fe, TypeInfo(fe), v);
+  CheckEquals(v.IsClass, False);
+  CheckEquals(v.IsObject, False);
+  CheckEquals(v.IsOrdinal, False);
+  Check(v.AsExtended=fe);
+  Check(v.GetReferenceToRawData <> @fe);
+
+  try
+    hadexcept := False;
+    v.AsInt64;
+  except
+    hadexcept := True;
+  end;
+
+  CheckTrue(hadexcept, 'No signed type conversion exception');
+
+  try
+    hadexcept := False;
+    v.AsUInt64;
+  except
+    hadexcept := True;
+  end;
+
+  CheckTrue(hadexcept, 'No unsigned type conversion exception');
+end;
+
+procedure TTestCase1.TestMakeCurrency;
+var
+  fcu: Currency;
+  v: TValue;
+  hadexcept: Boolean;
+begin
+  fcu := 3.14;
+
+  TValue.Make(@fcu, TypeInfo(fcu), v);
+  CheckEquals(v.IsClass, False);
+  CheckEquals(v.IsObject, False);
+  CheckEquals(v.IsOrdinal, False);
+  Check(v.AsExtended=Extended(fcu));
+  Check(v.AsCurrency=fcu);
+  Check(v.GetReferenceToRawData <> @fcu);
+
+  try
+    hadexcept := False;
+    v.AsInt64;
+  except
+    hadexcept := True;
+  end;
+
+  CheckTrue(hadexcept, 'No signed type conversion exception');
+
+  try
+    hadexcept := False;
+    v.AsUInt64;
+  except
+    hadexcept := True;
+  end;
+
+  CheckTrue(hadexcept, 'No unsigned type conversion exception');
+end;
+
+procedure TTestCase1.TestMakeComp;
+var
+  fco: Comp;
+  v: TValue;
+  hadexcept: Boolean;
+begin
+  fco := 314;
+
+  TValue.Make(@fco, TypeInfo(fco), v);
+
+  if v.Kind <> tkFloat then
+    Exit;
+
+  CheckEquals(v.IsClass, False);
+  CheckEquals(v.IsObject, False);
+  CheckEquals(v.IsOrdinal, False);
+  Check(v.AsExtended=Extended(fco));
+  Check(v.GetReferenceToRawData <> @fco);
+
+  try
+    hadexcept := False;
+    CheckEquals(v.AsInt64, 314);
+  except
+    hadexcept := True;
+  end;
+
+  CheckFalse(hadexcept, 'Had signed type conversion exception');
+
+  try
+    hadexcept := False;
+    CheckEquals(v.AsUInt64, 314);
+  except
+    hadexcept := True;
+  end;
+
+  CheckFalse(hadexcept, 'Had unsigned type conversion exception');
+end;
 
 procedure TTestCase1.TestGetIsReadable;
 var

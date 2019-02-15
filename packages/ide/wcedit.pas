@@ -1386,13 +1386,14 @@ begin
                 WasInserting:=GetInsertMode;
                 SetInsertMode(true);
                 SetFlags(GetFlags or efNoIndent);
-                InsertLine(StartPos.Y,'');
+                InsertLine(StartPos.Y,GetStr(Text));
                 SetInsertMode(WasInserting);
                 if not HadefNoIndent then
                   SetFlags(GetFlags and not efNoIndent);
                 {DelEnd; wrong for eaCut at least }
                 SetCurPtr(StartPos.X,StartPos.Y);
-                SetLineText(StartPos.Y,Copy(GetDisplayText(StartPos.Y),1,StartPos.X)+GetStr(Text));
+                if StartPos.Y > EndPos.Y then
+                   SetLineText(EndPos.Y,Copy(GetDisplayText(EndPos.Y),1,EndPos.X));
                 SetMinMax(StartPos.Y);
               end;
             eaSelectionChanged :

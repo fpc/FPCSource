@@ -8,6 +8,8 @@ uses
   DB, typinfo, Classes, SysUtils, fpjson;
 
 type
+  TBaseJSONDataset = class;
+
   // How are rows encoded in the JSON ?
   TJSONRowType = (rtJSONObject, // Each row is an object.
                   rtJSONArray   // Each row is an array.
@@ -106,6 +108,83 @@ type
     Function Update(aCurrentIndex, aRecordIndex : Integer) : NativeInt; override;
   end;
 
+  { TFieldComparer }
+
+  TFieldComparer = Class
+  Private
+    FValue : Variant;
+    FField : TField;
+    FOptions : TLocateOptions;
+    FDataset : TBaseJSONDataset;
+  Public
+    Constructor Create(aDataset : TBaseJSONDataset; aField : TField; aValue : Variant; aOptions : TLocateOptions);
+    Function GetFieldValue(RowIndex : integer) : TJSONData;
+    // First value is always dataset value.
+    Function Compare (RowIndex : Integer; aValue : Variant) : Integer; virtual; abstract;
+    Function Compare (RowIndex : Integer) : Integer; virtual;
+    Property Value : Variant read FValue Write FValue;
+    Property Options : TLocateOptions Read FOptions;
+    Property Dataset : TBaseJSONDataset Read FDataset;
+    Property Field : TField Read FField;
+  end;
+  TFieldComparerClass = Class of TFieldComparer;
+
+  { TStringFieldComparer }
+
+  TStringFieldComparer = Class (TFieldComparer)
+    Function Compare (RowIndex : Integer; aValue : Variant) : Integer; override;
+  end;
+
+  { TInt64FieldComparer }
+
+  TInt64FieldComparer = Class (TFieldComparer)
+    Function Compare (RowIndex : Integer; aValue : Variant) : Integer; override;
+  end;
+  { TIntegerFieldComparer }
+
+  TIntegerFieldComparer = Class (TFieldComparer)
+    Function Compare (RowIndex : Integer; aValue : Variant) : Integer; override;
+  end;
+
+  { TBooleanFieldComparer }
+
+  TBooleanFieldComparer = Class (TFieldComparer)
+    Function Compare (RowIndex : Integer; aValue : Variant) : Integer; override;
+  end;
+
+  { TDateTimeFieldComparer }
+
+  TDateTimeFieldComparer = Class (TFieldComparer)
+    Function Compare (RowIndex : Integer; aValue : Variant) : Integer; override;
+  end;
+
+  { TFloatFieldComparer }
+
+  TFloatFieldComparer = Class (TFieldComparer)
+    Function Compare (RowIndex : Integer; aValue : Variant) : Integer; override;
+  end;
+
+  { TRecordComparer }
+  TVariantArray = Array of Variant;
+  TRecordComparer = class
+  private
+    FDataset: TBaseJSONDataset;
+    FItems : Array of TFieldComparer;
+    FOptions: TLocateOptions;
+    FValues: TVariantArray;
+    function GetFieldComparer(Index : Integer): TFieldComparer;
+  Protected
+    procedure ConstructItems(aFields: String); virtual;
+    function DataTypeToComparerClass(aFieldType: TFieldType): TFieldComparerClass;
+    Function Compare(aRowindex : integer) : Integer;
+  Public
+    Constructor Create(aDataset : TBaseJSONDataset; aFields : String; aValues : Variant; aOptions : TLocateOptions);
+    Property Dataset : TBaseJSONDataset Read FDataset;
+    property Items [Index : Integer] : TFieldComparer Read GetFieldComparer;
+    Property Options : TLocateOptions Read FOptions Write FOptions;
+    Property Values : TVariantArray Read FValues;
+  end;
+
   { TBaseJSONDataSet }
 
   // basic JSON dataset. Does nothing ExtJS specific.
@@ -134,6 +213,8 @@ type
     procedure SetRows(AValue: TJSONArray);
     procedure SetRowType(AValue: TJSONRowType);
   protected
+    // Return index of Row in FRows matching keyfields/values. If not found, -1 is returned.
+    function LocateRecordIndex(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Integer;
     // dataset virtual methods
     function AllocRecordBuffer: TRecordBuffer; override;
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
@@ -193,6 +274,8 @@ type
     destructor Destroy; override;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat : Boolean): Boolean; override;
     procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat : Boolean); override;
+    Function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): boolean; override;
+    Function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
   published
@@ -251,7 +334,214 @@ type
   
 implementation
 
-uses dateutils, jsonparser;
+uses variants, dateutils, jsonparser;
+
+{ TIntegerFieldComparer }
+
+function TIntegerFieldComparer.Compare(RowIndex: Integer; aValue: Variant): Integer;
+var
+  I1,I2 : Integer;
+
+begin
+  I1:=GetFieldValue(Rowindex).AsInteger;
+  I2:=Int64(aValue);
+  Result:=I1-I2;
+end;
+
+{ TFloatFieldComparer }
+
+function TFloatFieldComparer.Compare(RowIndex: Integer; aValue: Variant): Integer;
+var
+  D1,D2 : Double;
+
+begin
+  D1:=GetFieldValue(Rowindex).AsFloat;
+  D2:=Double(aValue);
+  Result:=Round(D1-D2);
+end;
+
+{ TDateTimeFieldComparer }
+
+function TDateTimeFieldComparer.Compare(RowIndex: Integer; aValue: Variant): Integer;
+
+var
+  D1,D2 : TDateTime;
+
+begin
+  D1:=Dataset.ConvertDateTimeField(GetFieldValue(Rowindex).AsString,Self.Field);
+  D2:=TDateTime(aValue);
+  Result:=Round(D1-D2);
+end;
+
+{ TBooleanFieldComparer }
+
+function TBooleanFieldComparer.Compare(RowIndex: Integer; aValue: Variant): Integer;
+
+var
+  B1,B2 : Boolean;
+
+begin
+  B1:=GetFieldValue(Rowindex).AsBoolean;
+  B2:=Boolean(aValue);
+  Result:=Ord(B1)-Ord(B2);
+end;
+
+{ TNativeIntFieldComparer }
+
+function TInt64FieldComparer.Compare(RowIndex: Integer; aValue: Variant): Integer;
+
+var
+  I1,I2 : Int64;
+
+begin
+  I1:=GetFieldValue(Rowindex).AsInt64;
+  I2:=Int64(aValue);
+  Result:=I1-I2;
+end;
+
+{ TStringFieldComparer }
+
+function TStringFieldComparer.Compare(RowIndex: Integer; aValue: Variant): Integer;
+
+var
+  S1,S2 : String;
+
+begin
+  S1:=GetFieldValue(Rowindex).AsString;
+  S2:=String(aValue);
+  if loPartialKey in Options then
+    S1:=Copy(S1,1,Length(S2));
+  if loCaseInsensitive in options then
+    Result := CompareText(S1,S2)
+  else
+    Result := CompareStr(S1,S2);
+end;
+
+{ TFieldComparer }
+
+constructor TFieldComparer.Create(aDataset: TBaseJSONDataset; aField: TField; aValue: Variant; aOptions: TLocateOptions);
+
+begin
+  FField:=AField;
+  FValue:=aValue;
+  FOptions:=aOptions;
+  FDataset:=aDataset;
+end;
+
+function TFieldComparer.GetFieldValue(RowIndex: integer): TJSONData;
+begin
+  Result:=FDataset.FieldMapper.GetJSONDataForField(FField,FDataset.FRows[Rowindex]);
+
+end;
+
+function TFieldComparer.Compare(RowIndex: Integer): Integer;
+begin
+  Result:=Compare(RowIndex,FValue);
+end;
+
+{ TRecordComparer }
+
+function TRecordComparer.GetFieldComparer(Index: Integer): TFieldComparer;
+begin
+  if (Index<0) or (Index>=Length(Fitems)) then
+    Raise EListError.CreateFmt('Index out of bounds: %d not in [%d,%d]',[Index,0,Length(Fitems)-1]);
+  Result:=Items[Index];
+end;
+
+procedure TRecordComparer.ConstructItems(aFields : String);
+
+Var
+  L : Tlist;
+  FCC : TFieldComparerClass;
+  F : TField;
+  I : Integer;
+
+
+begin
+  L:=TList.Create;
+  try
+    Dataset.GetFieldList(L,aFields);
+    if L.Count<>Length(FValues) then
+       Raise EDatabaseError.CreateFmt('Array of values has different length (%d) from array of fields (%d)',[Length(FValues), L.Count]);
+    SetLength(FItems,L.Count);
+    For I:=0 to L.Count-1 do
+      begin
+      F:=TField(L[i]);
+      FCC:=DataTypeToComparerClass(F.DataType);
+      If FCC=Nil then
+        Raise EDatabaseError.CreateFmt('Cannot locate on field %s of type %s)',[F.FieldName,GetEnumName(TypeInfo(TFieldType),Ord(F.DataType))]);
+      Fitems[i]:=FCC.Create(FDataset,F,FValues[i],FOptions);
+      end;
+  finally
+    L.Free;
+  end;
+end;
+
+function TRecordComparer.DataTypeToComparerClass(aFieldType: TFieldType): TFieldComparerClass;
+
+begin
+  Case aFieldType of
+    ftMemo, ftFixedChar,ftString :
+      Result:=TStringFieldComparer;
+    ftAutoInc, ftInteger:
+      Result:=TIntegerFieldComparer;
+    ftLargeInt:
+      Result:=TInt64FieldComparer;
+    ftBoolean:
+      Result:=TBooleanFieldComparer;
+    ftFloat:
+      Result:=TFloatFieldComparer;
+    ftDate, ftTime, ftDateTime:
+      Result:=TDateTimeFieldComparer;
+  else
+   result:=Nil;
+  end;
+end;
+
+function TRecordComparer.Compare(aRowindex: integer): Integer;
+
+Var
+  I,L : Integer;
+
+begin
+  Result:=0;
+  I:=0;
+  L:=Length(FItems);
+  While (Result=0) and (I<L) do
+    begin
+    Result:=Fitems[i].Compare(aRowindex);
+    Inc(I);
+    end;
+end;
+
+constructor TRecordComparer.Create(aDataset: TBaseJSONDataset; aFields: String; aValues: Variant; aOptions: TLocateOptions);
+
+Var
+  L,H,I : Integer;
+
+begin
+  FDataset:=aDataset;
+  if VarisArray(aValues) then
+    begin
+    L:=VarArrayLowBound(aValues,1);
+    H:=VarArrayHighBound(aValues,1);
+    SetLength(FValues,H-L+1);
+    I:=0;
+    While L<=H do
+      begin
+      FValues[i]:=aValues[L];
+      Inc(I);
+      Inc(L);
+      end;
+    end
+  else
+    begin
+    SetLength(FValues,1);
+    FValues[0]:=Avalues;
+    end;
+  Foptions:=aOptions;
+  ConstructItems(aFields);
+end;
 
 { TDefaultJSONIndex }
 
@@ -748,14 +1038,18 @@ Var
 
 begin
   Result:=0;
+  Ptrn:='';
   Case F.DataType of
-    ftDate : Ptrn:=TJSONDateField(F).DateFormat;
-    ftTime : Ptrn:=TJSONTimeField(F).TimeFormat;
-    ftDateTime : Ptrn:=TJSONDateTimeField(F).DateTimeFormat;
+    ftDate : if F is TJSONDateField then
+               Ptrn:=TJSONDateField(F).DateFormat;
+    ftTime : if F is TJSONTimeField then
+               Ptrn:=TJSONTimeField(F).TimeFormat;
+    ftDateTime : if F is TJSONDateTimeField then
+               Ptrn:=TJSONDateTimeField(F).DateTimeFormat;
   end;
   If (Ptrn='') then
     Case F.DataType of
-      ftDate : Result:=StrToDate(S);
+      ftDate : Result:=StrToDate(S,'y/m/d');
       ftTime : Result:=StrToTime(S);
       ftDateTime : Result:=StrToDateTime(S);
     end
@@ -772,10 +1066,14 @@ Var
   Ptrn : string;
 begin
   Result:='';
+  Ptrn:='';
   Case F.DataType of
-    ftDate : Ptrn:=TJSONDateField(F).DateFormat;
-    ftTime : Ptrn:=TJSONTimeField(F).TimeFormat;
-    ftDateTime : Ptrn:=TJSONDateTimeField(F).DateTimeFormat;
+    ftDate : if F is TJSONDateField then
+                Ptrn:=TJSONDateField(F).DateFormat;
+    ftTime : if F is TJSONTimeField then
+             Ptrn:=TJSONTimeField(F).TimeFormat;
+    ftDateTime : if F is TJSONDateTimeField then
+             Ptrn:=TJSONDateTimeField(F).DateTimeFormat;
   end;
   If (Ptrn='') then
     Case F.DataType of
@@ -987,6 +1285,105 @@ destructor TBaseJSONDataSet.Destroy;
 begin
   FreeData;
   inherited;
+end;
+
+function TBaseJSONDataSet.LocateRecordIndex(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Integer;
+
+Var
+  Comp : TRecordComparer;
+  RI,I : Integer;
+
+begin
+  Result:=-1;
+  Comp:=TRecordComparer.Create(Self,KeyFields,KeyValues,Options);
+  try
+    I:=FCurrent;
+    RI:=FCurrentIndex.GetRecordIndex(I);
+    While (Result=-1) and (RI<>-1) do
+      begin
+      if Comp.Compare(RI)=0 then
+        Result:=RI;
+      inc(I);
+      if I<FCurrentIndex.Count then
+        RI:=FCurrentIndex.GetRecordIndex(I)
+      else
+        RI:=-1;
+      end;
+  finally
+    Comp.Free;
+  end;
+end;
+
+function TBaseJSONDataSet.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): boolean;
+
+Var
+  I : Integer;
+  BM : TBookMark;
+  NI : NativeInt;
+
+begin
+  Result:=Inherited;
+  I:=LocateRecordIndex(KeyFields,KeyValues,Options);
+  Result:=I<>-1;
+  if Result then
+    begin
+    // Construct bookmark.
+    // Bookmark is always the index in the FRows array.
+    NI:=I;
+    GotoBookMark(@NI);
+    end;
+end;
+
+function TBaseJSONDataSet.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
+
+Var
+  RI,I : Integer;
+  BM : TBookMark;
+  l : TList;
+  Vals : TVariantArray;
+  D : TJSONData;
+  V : Variant;
+
+begin
+  Result:=Null;
+  l:=TList.Create;
+  try
+    GetFieldList(L,ResultFields);
+    Result:=inherited Lookup(KeyFields, KeyValues, ResultFields);
+    RI:=LocateRecordIndex(KeyFields,KeyValues,[]);
+    Result:=RI<>-1;
+    if Result then
+      begin
+      SetLength(Vals,L.Count);
+      For I:=0 to L.Count-1 do
+        begin
+        D:=FFieldMapper.GetJSONDataForField(TField(L[I]),FRows[RI]);
+        if D=Nil then
+          Vals[i]:=Null
+        else
+          Case D.JSONType of
+            jtNull : Vals[i]:=Null;
+            jtString : Vals[i]:=D.AsString;
+            jtBoolean : Vals[i]:=D.AsBoolean;
+            jtNumber :
+                Case TJSONNUmber(D).NumberType of
+                  ntInteger : Vals[i]:=D.AsInteger;
+                  ntInt64 : Vals[i]:=D.AsInt64;
+                  ntQword : Vals[i]:=D.AsQWord;
+                  ntFloat : Vals[i]:=D.AsFloat;
+                end;
+          else
+            Raise Exception.CreateFmt('Unknown JSON value %s',[D.ClassName]);
+          end;
+        end;
+      if L.Count=1 then
+        Result:=Vals[i]
+      else
+        Result:=VarArrayOf(Vals);
+      end;
+  finally
+    L.Free;
+  end;
 end;
 
 end.

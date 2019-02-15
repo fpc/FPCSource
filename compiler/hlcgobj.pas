@@ -991,7 +991,7 @@ implementation
                      { load the value piecewise to get it into the register }
                      orgsizeleft:=sizeleft;
                      reghasvalue:=false;
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
                      if sizeleft>=4 then
                        begin
                          a_load_ref_reg(list,u32inttype,location^.def,tmpref,location^.register);
@@ -1001,7 +1001,7 @@ implementation
                          inc(tmpref.offset,4);
                          reghasvalue:=true;
                        end;
-{$endif cpu64bitalu}
+{$endif defind(cpu64bitalu) or defined(cpuhighleveltarget)}
                      if sizeleft>=2 then
                        begin
                          tmpreg:=getintregister(list,location^.def);
@@ -3186,7 +3186,7 @@ implementation
          paramanager.getintparaloc(list,pd,1,cgpara1);
          a_load_const_cgpara(list,s32inttype,aint(210),cgpara1);
          paramanager.freecgpara(list,cgpara1);
-         g_call_system_proc(list,pd,[@cgpara1],nil);
+         g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
          cgpara1.done;
          a_label(list,oklabel);
        end;
@@ -3234,7 +3234,7 @@ implementation
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil).resetiftemp;
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
@@ -3262,7 +3262,7 @@ implementation
         end;
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil).resetiftemp;
       cgpara2.done;
       cgpara1.done;
     end;
@@ -3301,7 +3301,7 @@ implementation
             { these functions get the pointer by value }
             a_load_ref_cgpara(list,t,ref,cgpara1);
           paramanager.freecgpara(list,cgpara1);
-          g_call_system_proc(list,pd,[@cgpara1],nil);
+          g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
         end
        else
         begin
@@ -3323,7 +3323,7 @@ implementation
             end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
-          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil).resetiftemp;
         end;
        cgpara2.done;
        cgpara1.done;
@@ -3349,7 +3349,7 @@ implementation
            paramanager.getintparaloc(list,pd,1,cgpara1);
            a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
            paramanager.freecgpara(list,cgpara1);
-          g_call_system_proc(list,pd,[@cgpara1],nil);
+          g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
          end
        else
          begin
@@ -3371,7 +3371,7 @@ implementation
               end;
             paramanager.freecgpara(list,cgpara1);
             paramanager.freecgpara(list,cgpara2);
-            g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
+            g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil).resetiftemp;
          end;
        cgpara1.done;
        cgpara2.done;
@@ -3421,7 +3421,7 @@ implementation
             end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
-          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil).resetiftemp;
           cgpara1.done;
           cgpara2.done;
           exit;
@@ -3431,7 +3431,7 @@ implementation
       paramanager.getintparaloc(list,pd,1,cgpara1);
       a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1],nil);
+      g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
       cgpara1.done;
     end;
 
@@ -3485,7 +3485,7 @@ implementation
       paramanager.freecgpara(list,cgpara1);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara3);
-      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil).resetiftemp;
 
       cgpara3.done;
       cgpara2.done;
@@ -3502,7 +3502,9 @@ implementation
 
   procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
     var
-{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
+{$if defined(cpuhighleveltarget)}
+      aintmax: tcgint;
+{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
       aintmax: aint;
 {$else}
       aintmax: longint;
@@ -3664,7 +3666,7 @@ implementation
                   { if low(to) > maxlongint also range error }
                   (lto > aintmax) then
                  begin
-                   g_call_system_proc(list,'fpc_rangeerror',[],nil);
+                   g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
                    exit
                  end;
                { from is signed and to is unsigned -> when looking at to }
@@ -3679,7 +3681,7 @@ implementation
                if (lfrom > aintmax) or
                   (hto < 0) then
                  begin
-                   g_call_system_proc(list,'fpc_rangeerror',[],nil);
+                   g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
                    exit
                  end;
                { from is unsigned and to is signed -> when looking at to }
@@ -3702,7 +3704,7 @@ implementation
         a_cmp_const_reg_label(list,maxdef,OC_BE,aintmax,hreg,neglabel)
       else
         a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint(int64(hto-lto)),hreg,neglabel);
-      g_call_system_proc(list,'fpc_rangeerror',[],nil);
+      g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
       a_label(list,neglabel);
     end;
 
@@ -3781,7 +3783,7 @@ implementation
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil).resetiftemp;
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
@@ -3800,7 +3802,7 @@ implementation
       { load source }
       a_load_loc_cgpara(list,cpointerdef.getreusable(arrdef),l,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,[@cgpara1],nil);
+      g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
       cgpara1.done;
     end;
 
@@ -4639,10 +4641,10 @@ implementation
 {$ifdef AVR}
            cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false)
 {$else AVR}
-           g_call_system_proc(list,'fpc_initializeunits',[],nil)
+           g_call_system_proc(list,'fpc_initializeunits',[],nil).resetiftemp
 {$endif AVR}
          else
-           g_call_system_proc(list,'fpc_libinitializeunits',[],nil);
+           g_call_system_proc(list,'fpc_libinitializeunits',[],nil).resetiftemp;
        end;
 
       list.concat(Tai_force_line.Create);
@@ -4660,7 +4662,7 @@ implementation
       { call __EXIT for main program }
       if (not current_module.islibrary) and
          (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        g_call_system_proc(list,'fpc_do_exit',[],nil);
+        g_call_system_proc(list,'fpc_do_exit',[],nil).resetiftemp;
     end;
 
   procedure thlcgobj.inittempvariables(list: TAsmList);
@@ -5182,7 +5184,7 @@ implementation
 
   procedure thlcgobj.gen_load_return_value(list: TAsmList);
     var
-      ressym : tabstractnormalvarsym;
+      ressym : tsym;
       retdef : tdef;
     begin
       { Is the loading needed? }
@@ -5196,30 +5198,19 @@ implementation
         exit;
 
       { constructors return self }
-      if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-        begin
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'));
-          retdef:=ressym.vardef;
-          { and TP-style constructors return a pointer to self }
-          if is_object(ressym.vardef) then
-            retdef:=cpointerdef.getreusable(retdef);
-        end
-      else
-        begin
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
-          retdef:=ressym.vardef;
-        end;
+      if not current_procinfo.procdef.getfuncretsyminfo(ressym,retdef) then
+        internalerror(2018122501);
       if (ressym.refs>0) or
          is_managed_type(retdef) then
         begin
           { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
           if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
-            gen_load_loc_function_result(list,retdef,ressym.localloc);
+            gen_load_loc_function_result(list,retdef,tabstractnormalvarsym(ressym).localloc);
         end
       else
         gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside]);
-      if ressym.localloc.loc=LOC_REFERENCE then
-        tg.UnGetLocal(list,ressym.localloc.reference);
+      if tabstractnormalvarsym(ressym).localloc.loc=LOC_REFERENCE then
+        tg.UnGetLocal(list,tabstractnormalvarsym(ressym).localloc.reference);
     end;
 
   procedure thlcgobj.gen_stack_check_size_para(list: TAsmList);
@@ -5247,7 +5238,7 @@ implementation
       paramanager.getintparaloc(list,pd,1,paraloc1);
       paramanager.freecgpara(list,paraloc1);
       { Call the helper }
-      hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+      g_call_system_proc(list,pd,[@paraloc1],nil).resetiftemp;
       paraloc1.done;
     end;
 

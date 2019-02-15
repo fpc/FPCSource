@@ -57,10 +57,10 @@ resourcestring
   SPasTreeObjectType = 'object';
   SPasTreeClassType = 'class';
   SPasTreeInterfaceType = 'interface';
-  SPasTreeGenericType = 'generic class';
   SPasTreeSpecializedType = 'specialized class type';
-  SPasClassHelperType = 'Class helper type';
-  SPasRecordHelperType = 'Record helper type';
+  SPasClassHelperType = 'class helper type';
+  SPasRecordHelperType = 'record helper type';
+  SPasTypeHelperType = 'type helper type';
   SPasTreeArgument = 'argument';
   SPasTreeProcedureType = 'procedure type';
   SPasTreeResultElement = 'function result';
@@ -203,7 +203,7 @@ type
                  eopEqual, eopNotEqual,  // Logical
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
                  eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
-                 eopAddress, eopDeref, eopMemAddress, // Pointers
+                 eopAddress, eopDeref, eopMemAddress, // Pointers  eopMemAddress=**
                  eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
 
   { TPasExpr }
@@ -730,13 +730,23 @@ type
     Function IsAdvancedRecord : Boolean;
   end;
 
-  TPasGenericTemplateType = Class(TPasType);
+  TPasGenericTemplateType = Class(TPasType)
+  Public
+    TypeConstraint : String;
+  end;
 
   TPasObjKind = (
-    okObject, okClass, okInterface, okGeneric,
+    okObject, okClass, okInterface,
+    // okGeneric  removed in FPC 3.3.1  check instead GenericTemplateTypes.Count>0
     // okSpecialize removed in FPC 3.1.1
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);
+const
+  okWithFields = [okObject, okClass];
+  okAllHelpers = [okClassHelper,okRecordHelper,okTypeHelper];
+  okWithClassFields = okWithFields+okAllHelpers;
+
+type
 
   TPasClassInterfaceType = (
     citCom, // default
@@ -758,7 +768,7 @@ type
     ObjKind: TPasObjKind;
     AncestorType: TPasType;   // TPasClassType or TPasUnresolvedTypeRef or TPasAliasType or TPasTypeAliasType
                               // Note: AncestorType can be nil even though it has a default ancestor
-    HelperForType: TPasType;  // TPasClassType or TPasUnresolvedTypeRef
+    HelperForType: TPasType;  // any type, except helper
     IsForward: Boolean;
     IsExternal : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
@@ -768,7 +778,6 @@ type
     ExternalNameSpace : String;
     ExternalName : String;
     InterfaceType: TPasClassInterfaceType;
-    Procedure SetGenericTemplates(AList : TFPList); override;
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function InterfaceGUID : string;
@@ -1070,11 +1079,25 @@ type
   end;
 
   { TPasOperator }
-  TOperatorType = (otUnknown,otImplicit,otExplicit,otMul,otPlus, otMinus, otDivision,otLessThan, otEqual,
-                   otGreaterThan, otAssign,otNotEqual,otLessEqualThan,otGreaterEqualThan,otPower,
-                   otSymmetricalDifference, otInc, otDec, otMod, otNegative, otPositive, otBitWiseOr, otDiv,
-                   otLeftShift, otLogicalOr, otBitwiseAnd, otbitwiseXor,otLogicalAnd,otLogicalNot,otLogicalXor,
-                   otRightShift,otEnumerator);
+  TOperatorType = (
+    otUnknown,
+    otImplicit, otExplicit,
+    otMul, otPlus, otMinus, otDivision,
+    otLessThan, otEqual, otGreaterThan,
+    otAssign, otNotEqual, otLessEqualThan, otGreaterEqualThan,
+    otPower, otSymmetricalDifference,
+    otInc, otDec,
+    otMod,
+    otNegative, otPositive,
+    otBitWiseOr,
+    otDiv,
+    otLeftShift,
+    otLogicalOr,
+    otBitwiseAnd, otbitwiseXor,
+    otLogicalAnd, otLogicalNot, otLogicalXor,
+    otRightShift,
+    otEnumerator, otIn
+    );
   TOperatorTypes = set of TOperatorType;
 
   TPasOperator = class(TPasFunction)
@@ -1606,8 +1629,9 @@ const
     'strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
-    'object', 'class', 'interface', 'class',
-    'class helper','record helper','type helper','dispinterface');
+    'object', 'class', 'interface',
+    'class helper','record helper','type helper',
+    'dispinterface');
 
   InterfaceTypeNames: array[TPasClassInterfaceType] of string = (
     'COM',
@@ -1650,13 +1674,13 @@ const
            '>',':=','<>','<=','>=','**',
            '><','Inc','Dec','mod','-','+','Or','div',
            'shl','or','and','xor','and','not','xor',
-           'shr','enumerator');
+           'shr','enumerator','in');
   OperatorNames : Array[TOperatorType] of string
        =  ('','implicit','explicit','multiply','add','subtract','divide','lessthan','equal',
            'greaterthan','assign','notequal','lessthanorequal','greaterthanorequal','power',
            'symmetricaldifference','inc','dec','modulus','negative','positive','bitwiseor','intdivide',
            'leftshift','logicalor','bitwiseand','bitwisexor','logicaland','logicalnot','logicalxor',
-           'rightshift','enumerator');
+           'rightshift','enumerator','in');
 
   AssignKindNames : Array[TAssignKind] of string = (':=','+=','-=','*=','/=' );
 
@@ -3013,9 +3037,9 @@ begin
     okObject: Result := SPasTreeObjectType;
     okClass: Result := SPasTreeClassType;
     okInterface: Result := SPasTreeInterfaceType;
-    okGeneric : Result := SPasTreeGenericType;
     okClassHelper : Result:=SPasClassHelperType;
     okRecordHelper : Result:=SPasRecordHelperType;
+    okTypeHelper : Result:=SPasTypeHelperType;
   else
     Result:='ObjKind('+IntToStr(ord(ObjKind))+')';
   end;
@@ -3033,12 +3057,6 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasElement(Interfaces[i]),true);
   ForEachChildCall(aMethodCall,Arg,HelperForType,true);
   ForEachChildCall(aMethodCall,Arg,GUIDExpr,false);
-end;
-
-procedure TPasClassType.SetGenericTemplates(AList: TFPList);
-begin
-  ObjKind:=okGeneric;
-  inherited SetGenericTemplates(AList);
 end;
 
 function TPasClassType.FindMember(MemberClass: TPTreeElement; const MemberName: String): TPasElement;

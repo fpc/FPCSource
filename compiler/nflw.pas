@@ -29,7 +29,7 @@ interface
     uses
       cclasses,
       node,cpubase,
-      symtype,symbase,symdef,symsym,
+      symconst,symtype,symbase,symdef,symsym,
       optloop;
 
     type
@@ -197,7 +197,6 @@ interface
           function pass_1 : tnode;override;
           function simplify(forinline:boolean): tnode;override;
        protected
-          function create_finalizer_procdef: tprocdef;
           procedure adjust_estimated_stack_size; virtual;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
@@ -243,9 +242,8 @@ implementation
     uses
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,
-      symconst,symtable,paramgr,defcmp,defutil,htypechk,pass_1,
+      symtable,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,nutils,ninl,nset,ngenutil,
-      pdecsub,
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -1773,8 +1771,9 @@ implementation
 
     function texitnode.pass_typecheck:tnode;
       var
-        pd: tprocdef;
         newstatement : tstatementnode;
+        ressym: tsym;
+        resdef: tdef;
       begin
         result:=nil;
         newstatement:=nil;
@@ -1790,16 +1789,13 @@ implementation
           because the code to this that we add in tnodeutils.wrap_proc_body()
           gets inserted before the exit label to which this node will jump }
         if (target_info.system in systems_fpnestedstruct) and
-           not(nf_internal in flags) then
+           not(nf_internal in flags) and
+           current_procinfo.procdef.getfuncretsyminfo(ressym,resdef) and
+           (tabstractnormalvarsym(ressym).inparentfpstruct) then
           begin
-            pd:=current_procinfo.procdef;
-            if assigned(pd.funcretsym) and
-               tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
-              begin
-                if not assigned(result) then
-                  result:=internalstatements(newstatement);
-                cnodeutils.load_parentfpstruct_nested_funcret(current_procinfo.procdef,newstatement);
-              end;
+            if not assigned(result) then
+              result:=internalstatements(newstatement);
+            cnodeutils.load_parentfpstruct_nested_funcret(ressym,newstatement);
           end;
         if assigned(result) then
           begin
@@ -1973,7 +1969,6 @@ implementation
                     if assigned(labelsym.jumpbuf) then
                       begin
                         labelsym.nonlocal:=true;
-                        exclude(current_procinfo.procdef.procoptions,po_inline);
                         result:=ccallnode.createintern('fpc_longjmp',
                           ccallparanode.create(cordconstnode.create(1,sinttype,true),
                           ccallparanode.create(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner),
@@ -2107,12 +2102,6 @@ implementation
         expectloc:=LOC_VOID;
 
         include(current_procinfo.flags,pi_has_label);
-
-        if assigned(labsym) and labsym.nonlocal then
-          begin
-            include(current_procinfo.flags,pi_has_interproclabel);
-            exclude(current_procinfo.procdef.procoptions,po_inline);
-          end;
 
         if assigned(left) then
           firstpass(left);
@@ -2358,53 +2347,6 @@ implementation
            right:=nil;
          end;
      end;
-
-
-    var
-      seq: longint=0;
-
-    function ttryfinallynode.create_finalizer_procdef: tprocdef;
-      var
-        st:TSymTable;
-        checkstack: psymtablestackitem;
-        oldsymtablestack: tsymtablestack;
-        sym:tprocsym;
-      begin
-        { get actual procedure symtable (skip withsymtables, etc.) }
-        st:=nil;
-        checkstack:=symtablestack.stack;
-        while assigned(checkstack) do
-          begin
-            st:=checkstack^.symtable;
-            if st.symtabletype in [staticsymtable,globalsymtable,localsymtable] then
-              break;
-            checkstack:=checkstack^.next;
-          end;
-        { Create a nested procedure, even from main_program_level.
-          Furthermore, force procdef and procsym into the same symtable
-          (by default, defs are registered with symtablestack.top which may be
-          something temporary like exceptsymtable - in that case, procdef can be
-          destroyed before procsym, leaving invalid pointers). }
-        oldsymtablestack:=symtablestack;
-        symtablestack:=nil;
-        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true);
-        symtablestack:=oldsymtablestack;
-        st.insertdef(result);
-        result.struct:=current_procinfo.procdef.struct;
-        { tabstractprocdef constructor sets po_delphi_nested_cc whenever
-          nested procvars modeswitch is active. We must be independent of this switch. }
-        exclude(result.procoptions,po_delphi_nested_cc);
-        result.proctypeoption:=potype_exceptfilter;
-        handle_calling_convention(result);
-        sym:=cprocsym.create('$fin$'+tostr(seq));
-        st.insert(sym);
-        inc(seq);
-
-        result.procsym:=sym;
-        proc_add_definition(result);
-        result.forwarddef:=false;
-        result.aliasnames.insert(result.mangledname);
-      end;
 
 
     procedure ttryfinallynode.adjust_estimated_stack_size;

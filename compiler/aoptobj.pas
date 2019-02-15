@@ -270,6 +270,8 @@ Unit AoptObj;
         Procedure UpdateUsedRegs(p : Tai);
         class procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
         Function CopyUsedRegs(var dest : TAllUsedRegs) : boolean;
+        procedure RestoreUsedRegs(const Regs : TAllUsedRegs);
+        procedure TransferUsedRegs(var dest: TAllUsedRegs);
         class Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
         class Function RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
         class Procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs);
@@ -457,7 +459,7 @@ Unit AoptObj;
       End;
 
 
-    Function TUsedRegs.GetUsedRegs: TRegSet;
+    Function TUsedRegs.GetUsedRegs: TRegSet; inline;
       Begin
         GetUsedRegs := UsedRegs;
       End;
@@ -942,6 +944,30 @@ Unit AoptObj;
         Result:=true;
         for i:=low(TRegisterType) to high(TRegisterType) do
           dest[i]:=TUsedRegs.Create_Regset(i,UsedRegs[i].GetUsedRegs);
+      end;
+
+
+      procedure TAOptObj.RestoreUsedRegs(const Regs: TAllUsedRegs);
+      var
+        i : TRegisterType;
+      begin
+        { Note that the constructor Create_Regset is being called as a regular
+          method - it is not instantiating a new object.  This is because it is
+          the only published means to modify the internal state en-masse. [Kit] }
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          UsedRegs[i].Create_Regset(i,Regs[i].GetUsedRegs);
+      end;
+
+
+      procedure TAOptObj.TransferUsedRegs(var dest: TAllUsedRegs);
+      var
+        i : TRegisterType;
+      begin
+        { Note that the constructor Create_Regset is being called as a regular
+          method - it is not instantiating a new object.  This is because it is
+          the only published means to modify the internal state en-masse. [Kit] }
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          dest[i].Create_Regset(i, UsedRegs[i].GetUsedRegs);
       end;
 
 

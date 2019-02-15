@@ -402,6 +402,7 @@ reg32,regf          \x10\x01\x0F                        ARM32,ARMv4
 regf,reg32          \x96\xF3\x80\x80\x0                 THUMB32,ARMv6
 
 regf,reg32          \x12\x01\x20\xF0                    ARM32,ARMv4
+regs,reg32          \x12\x01\x20\xF0                    ARM32,ARMv4
 regf,immshifter     \x13\x03\x20\xF0                    ARM32,ARMv4
 regs,immshifter     \x13\x03\x20\xF0                    ARM32,ARMv4
 

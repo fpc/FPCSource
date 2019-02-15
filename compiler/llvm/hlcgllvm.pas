@@ -434,6 +434,9 @@ implementation
     callparas:=tfplist.Create;
     for i:=0 to high(paras) do
       begin
+        { skip parameters without data }
+        if paras[i]^.isempty then
+          continue;
         paraloc:=paras[i]^.location;
         while assigned(paraloc) do
           begin
@@ -550,8 +553,14 @@ implementation
 
 
   procedure thlcgllvm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
+    var
+      fromsize: tdef;
     begin
-      list.concat(taillvm.op_reg_size_const_size(llvmconvop(ptrsinttype,tosize,false),register,ptrsinttype,a,tosize))
+      if tosize.size<=ptrsinttype.size then
+        fromsize:=ptrsinttype
+      else
+        fromsize:=tosize;
+      list.concat(taillvm.op_reg_size_const_size(llvmconvop(fromsize,tosize,false),register,fromsize,a,tosize))
     end;
 
 
@@ -1395,7 +1404,7 @@ implementation
         internalerror(2015122504);
       current_asmdata.getjumplabel(hl);
       a_cmp_const_loc_label(list,llvmbool1type,OC_EQ,0,ovloc,hl);
-      g_call_system_proc(list,'fpc_overflow',[],nil);
+      g_call_system_proc(list,'fpc_overflow',[],nil).resetiftemp;
       a_label(list,hl);
     end;
 
@@ -1621,8 +1630,12 @@ implementation
 
 
   procedure thlcgllvm.gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);
+    var
+      retlocpara: tcgpara;
     begin
-      gen_load_loc_cgpara(list,vardef,l,get_call_result_cgpara(current_procinfo.procdef,nil));
+      retlocpara:=get_call_result_cgpara(current_procinfo.procdef,nil);
+      gen_load_loc_cgpara(list,vardef,l,retlocpara);
+      retlocpara.resetiftemp;
     end;
 
 

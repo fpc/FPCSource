@@ -119,6 +119,15 @@ Implementation
       i : Longint;
     begin
       result:=false;
+      case taicpu(p1).opcode of
+        A_LDR:
+          { special handling for LDRD }
+          if (taicpu(p1).oppostfix=PF_D) and (getsupreg(taicpu(p1).oper[0]^.reg)+1=getsupreg(Reg)) then
+            begin
+              result:=true;
+              exit;
+            end;
+      end;
       for i:=0 to taicpu(p1).ops-1 do
         case taicpu(p1).oper[i]^.typ of
           top_reg:

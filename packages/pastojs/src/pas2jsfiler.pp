@@ -71,12 +71,13 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 2;
+  PCUVersion = 3;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
        - pcsfAncestorResolved
        - removed msIgnoreInterfaces
+    3: changed records from function to objects
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -168,7 +169,8 @@ const
     'ExternalClass',
     'PrefixedAttributes',
     'IgnoreAttributes',
-    'OmitRTTI'
+    'OmitRTTI',
+    'MultipleScopeHelpers'
     );
 
   PCUDefaultBoolSwitches: TBoolSwitches = [
@@ -205,7 +207,8 @@ const
     'Macro',
     'ScopedEnums',
     'ObjectChecks',
-    'PointerMath'
+    'PointerMath',
+    'Goto'
     );
 
   PCUDefaultConverterOptions: TPasToJsConverterOptions = [coUseStrict];
@@ -347,7 +350,6 @@ const
     'Object',
     'Class',
     'Interface',
-    'Generic',
     'ClassHelper',
     'RecordHelper',
     'TypeHelper',
@@ -430,7 +432,8 @@ const
     'LogicalNot',
     'LogicalXor',
     'RightShift',
-    'Enumerator'
+    'Enumerator',
+    'In'
     );
 
   PCUProcedureModifierNames: array[TProcedureModifier] of string = (
@@ -842,6 +845,7 @@ type
     procedure Set_SetType_EnumType(RefEl: TPasElement; Data: TObject);
     procedure Set_Variant_Members(RefEl: TPasElement; Data: TObject);
     procedure Set_RecordType_VariantEl(RefEl: TPasElement; Data: TObject);
+    procedure Set_RecordScope_DefaultProperty(RefEl: TPasElement; Data: TObject);
     procedure Set_Argument_ArgType(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassScope_NewInstanceFunction(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassScope_DirectAncestor(RefEl: TPasElement; Data: TObject);
@@ -1699,11 +1703,11 @@ var
   El: TPasElement;
 begin
   El:=Scope.Element;
-  if El is TPasClassType then
+  if El is TPasMembersType then
     Result:=El
   else if El is TPasModule then
     Result:=El
-  else if (Scope is TPasProcedureScope) and (Scope.Element.Parent is TPasClassType) then
+  else if (Scope is TPasProcedureScope) and (Scope.Element.Parent is TPasMembersType) then
     Result:=Scope.Element.Parent
   else
     Result:=nil;
@@ -2633,6 +2637,9 @@ begin
   WriteIdentifierScope(Obj,Scope,aContext);
 
   // not needed: Scope ElevatedLocals
+  // not needed: Scope Helpers
+  if (length(Scope.Helpers)>0) and not (Scope.Element is TInterfaceSection) then
+    RaiseMsg(20190119122007,Section);
 
   WriteDeclarations(Obj,Section,aContext);
   if Section is TInterfaceSection then
@@ -3324,6 +3331,7 @@ end;
 procedure TPCUWriter.WriteRecordTypeScope(Obj: TJSONObject;
   Scope: TPasRecordScope; aContext: TPCUWriterContext);
 begin
+  AddReferenceToObj(Obj,'DefaultProperty',Scope.DefaultProperty);
   WriteIdentifierScope(Obj,Scope,aContext);
 end;
 
@@ -3707,7 +3715,7 @@ begin
     RaiseMsg(20180219135933,Scope.Element);
   AddReferenceToObj(Obj,'ImplProc',Scope.ImplProc);
   AddReferenceToObj(Obj,'Overridden',Scope.OverriddenProc);
-  // ClassScope: TPasClassScope; auto derived
+  // ClassOrRecordScope: TPasClassScope; auto derived
   if Scope.SelfArg<>nil then
     RaiseMsg(20180211180457,Scope.Element); // SelfArg only valid for method implementation
   // Mode: TModeSwitch: auto derived
@@ -3729,8 +3737,7 @@ begin
   WritePasElement(Obj,El,aContext);
   Scope:=El.CustomData as TPas2JSProcedureScope;
   //writeln('TPCUWriter.WriteProcedure ',GetObjName(El),' ',GetObjName(Scope),' ',Resolver.GetElementSourcePosStr(El));
-  // BEWARE: Scope can be nil for ignored methods of an interface (msIgnoreInterfaces)
-  if (Scope=nil) or (Scope.DeclarationProc=nil) then
+  if Scope.DeclarationProc=nil then
     begin
     WriteElementProperty(Obj,El,'ProcType',El.ProcType,aContext);
     WriteExpr(Obj,El,'Public',El.PublicName,aContext);
@@ -3747,12 +3754,6 @@ begin
       Obj.Add('Message',El.MessageName);
       if El.MessageType<>pmtInteger then
         Obj.Add('MessageType',PCUProcedureMessageTypeNames[El.MessageType]);
-      end;
-
-    if Scope=nil then
-      begin
-      Obj.Add('Scope',false); // msIgnoreInterfaces
-      exit;
       end;
     WriteProcedureScope(Obj,Scope,aContext);
     end
@@ -3829,10 +3830,9 @@ begin
   C:=Parent.ClassType;
   if C.InheritsFrom(TPasDeclarations) then
     WriteMemberIndex(TPasDeclarations(Parent).Declarations,Ref.Element,Ref.Obj)
-  else if C=TPasClassType then
-    WriteMemberIndex(TPasClassType(Parent).Members,Ref.Element,Ref.Obj)
-  else if C=TPasRecordType then
-    WriteMemberIndex(TPasRecordType(Parent).Members,Ref.Element,Ref.Obj)
+  else if (C=TPasClassType)
+      or (C=TPasRecordType) then
+    WriteMemberIndex(TPasMembersType(Parent).Members,Ref.Element,Ref.Obj)
   else if C=TPasEnumType then
     WriteMemberIndex(TPasEnumType(Parent).Values,Ref.Element,Ref.Obj)
   else if C.InheritsFrom(TPasModule) then
@@ -4210,6 +4210,17 @@ begin
     end
   else
     RaiseMsg(20180210205031,El,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_RecordScope_DefaultProperty(RefEl: TPasElement;
+  Data: TObject);
+var
+  Scope: TPasRecordScope absolute Data;
+begin
+  if RefEl is TPasProperty then
+    Scope.DefaultProperty:=TPasProperty(RefEl) // no AddRef
+  else
+    RaiseMsg(20190106213412,Scope.Element,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.Set_Argument_ArgType(RefEl: TPasElement; Data: TObject);
@@ -5230,10 +5241,8 @@ begin
     begin
     if El is TPasDeclarations then
       ReadExternalMembers(El,Arr,TPasDeclarations(El).Declarations)
-    else if El is TPasClassType then
-      ReadExternalMembers(El,Arr,TPasClassType(El).Members)
-    else if El is TPasRecordType then
-      ReadExternalMembers(El,Arr,TPasRecordType(El).Members)
+    else if El is TPasMembersType then
+      ReadExternalMembers(El,Arr,TPasMembersType(El).Members)
     else if El is TPasEnumType then
       ReadExternalMembers(El,Arr,TPasEnumType(El).Values)
     else if El is TPasModule then
@@ -5389,6 +5398,7 @@ procedure TPCUReader.ReadSectionScope(Obj: TJSONObject;
 begin
   ReadIdentifierScope(Obj,Scope,aContext);
   // not needed: Scope ElevatedLocals
+  // not needed: Scope Helpers, autogenerated in ReadClassType
   Scope.BoolSwitches:=ReadBoolSwitches(Obj,Scope.Element,'BoolSwitches',aContext.BoolSwitches);
   Scope.ModeSwitches:=ReadModeSwitches(Obj,Scope.Element,'ModeSwitches',aContext.ModeSwitches);
 end;
@@ -5459,9 +5469,7 @@ begin
       Section.ResStrings.Add(El)
     else if C=TPasConst then
       Section.Consts.Add(El)
-    else if C=TPasClassType then
-      Section.Classes.Add(El)
-    else if C=TPasRecordType then
+    else if (C=TPasClassType) or (C=TPasRecordType) then
       Section.Classes.Add(El)
     else if C.InheritsFrom(TPasType) then
       // not TPasClassType, TPasRecordType !
@@ -5686,7 +5694,6 @@ begin
     'Object': CreateClassType(okObject,Name);
     'Class': CreateClassType(okClass,Name);
     'Interface': CreateClassType(okInterface,Name);
-    'Generic': CreateClassType(okGeneric,Name);
     'ClassHelper': CreateClassType(okClassHelper,Name);
     'RecordHelper': CreateClassType(okRecordHelper,Name);
     'TypeHelper': CreateClassType(okTypeHelper,Name);
@@ -6615,6 +6622,7 @@ end;
 procedure TPCUReader.ReadRecordScope(Obj: TJSONObject; Scope: TPasRecordScope;
   aContext: TPCUReaderContext);
 begin
+  ReadElementReference(Obj,Scope,'DefaultProperty',@Set_RecordScope_DefaultProperty);
   ReadIdentifierScope(Obj,Scope,aContext);
 end;
 
@@ -6625,6 +6633,9 @@ var
   Id: Integer;
   Scope: TPasRecordScope;
 begin
+  if FileVersion<3 then
+    RaiseMsg(20190109214718,El,'record format changed');
+
   Scope:=TPasRecordScope(Resolver.CreateScope(El,TPasRecordScope));
   El.CustomData:=Scope;
 
@@ -6911,6 +6922,8 @@ var
   Data: TJSONData;
   Scope: TPas2JSClassScope;
   Ref: TResolvedReference;
+  Parent: TPasElement;
+  SectionScope: TPasSectionScope;
 begin
   ReadBoolean(Obj,'Forward',El.IsForward,El);
 
@@ -6972,6 +6985,22 @@ begin
     begin
     ReadClassScopeAbstractProcs(Obj,Scope);
     ReadClassScopeInterfaces(Obj,Scope);
+
+    if El.ObjKind in okAllHelpers then
+      begin
+      // restore cached helpers in interface
+      Parent:=El.Parent;
+      while Parent<>nil do
+        begin
+        if Parent.ClassType=TInterfaceSection then
+          begin
+          SectionScope:=Parent.CustomData as TPasSectionScope;
+          Resolver.AddHelper(El,SectionScope.Helpers);
+          break;
+          end;
+        Parent:=Parent.Parent;
+        end;
+      end;
     end;
 end;
 
@@ -7313,9 +7342,10 @@ begin
   // Scope.OverloadName is already set in ReadProcedure
   ReadElementReference(Obj,Scope,'ImplProc',@Set_ProcedureScope_ImplProc);
   ReadElementReference(Obj,Scope,'Overridden',@Set_ProcedureScope_Overridden);
-  if Proc.Parent is TPasClassType then
-    Scope.ClassScope:=Proc.Parent.CustomData as TPas2JSClassScope; // no AddRef
-  // ClassScope: TPasClassScope; auto derived
+  if Proc.Parent is TPasMembersType then
+    Scope.ClassRecScope:=Proc.Parent.CustomData as TPasClassOrRecordScope // no AddRef
+  else
+    ; // set via Set_ProcedureScope_ImplProc
   // Scope.SelfArg only valid for method implementation
 
   Scope.Flags:=ReadProcScopeFlags(Obj,Proc,'SFlags',[]);
@@ -7332,8 +7362,8 @@ var
   DeclProc: TPasProcedure;
 begin
   // Note: the References are stored in the scope object of the declaration proc,
-  //       OTOH in the JSON they are stored in the scope of the implementation
-  //       proc, so that all references can be resolved immediately.
+  //       But TPCUWriter stores them in the implementation scope, so that all
+  //       references can be resolved immediately.
   if ImplScope.ImplProc<>nil then
     RaiseMsg(20180318212631,ImplScope.Element);
   DeclProc:=ImplScope.DeclarationProc;

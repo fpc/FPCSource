@@ -1553,6 +1553,8 @@ implementation
         Thread: TOmfSubRecord_THREAD;
         FixuppWithoutLeOrLiData: Boolean=False;
       begin
+        objsec:=nil;
+        EnumeratedDataOffset:=0;
         Result:=False;
         case RawRec.RecordType of
           RT_LEDATA,RT_LEDATA32:
@@ -2684,7 +2686,7 @@ implementation
             ObjSec:=TOmfObjSection(ExeSec.ObjSectionList[i]);
             if ObjSec.MemPos<Header.LoadableImageSize then
               begin
-                FWriter.WriteZeros(max(0,ObjSec.MemPos-ComFileOffset-FWriter.Size));
+                FWriter.WriteZeros(max(0,int64(ObjSec.MemPos)-ComFileOffset-int64(FWriter.Size)));
                 if assigned(ObjSec.Data) then
                   begin
                     if ObjSec.MemPos<ComFileOffset then

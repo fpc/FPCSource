@@ -147,6 +147,7 @@ Unit raarmgas;
           end;
       end;
 
+
     function tarmattreader.is_targetdirective(const s: string): boolean;
       begin
         case s of

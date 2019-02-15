@@ -109,6 +109,7 @@ type
     exprasmlist      : TAsmList;
     function  jvmmangledbasename(signature: boolean): TSymStr;
     function mangledname: TSymStr; override;
+    function getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean; override;
     destructor destroy; override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
@@ -221,7 +222,7 @@ implementation
   uses
     verbose,cutils,cclasses,globals,
     symconst,symbase,symtable,symcreat,jvmdef,
-    pdecsub,pjvm,
+    pdecsub,pparautl,pjvm,
     paramgr;
 
 
@@ -489,9 +490,9 @@ implementation
           begin
             { calling convention, self, ... }
             if obj.typ=recorddef then
-              handle_calling_convention(pd,[hcc_check])
+              handle_calling_convention(pd,[hcc_declaration,hcc_check])
             else
-              handle_calling_convention(pd,hcc_all);
+              handle_calling_convention(pd,hcc_default_actions_intf);
             { register forward declaration with procsym }
             proc_add_definition(pd);
           end;
@@ -749,6 +750,15 @@ implementation
         end
       else
         result:=_mangledname;
+    end;
+
+  function tcpuprocdef.getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean;
+    begin
+      { constructors don't have a result on the JVM platform }
+      if proctypeoption<>potype_constructor then
+        result:=inherited
+      else
+        result:=false;
     end;
 
 

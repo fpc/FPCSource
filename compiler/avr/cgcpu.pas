@@ -302,30 +302,30 @@ unit cgcpu;
           begin
             if not(assigned(hp)) then
               internalerror(2014011105);
-             //paramanager.allocparaloc(list,hp);
-             case hp^.loc of
-               LOC_REGISTER,LOC_CREGISTER:
-                 begin
-                   if (tcgsize2size[hp^.size]<>1) or
-                     (hp^.shiftval<>0) then
-                     internalerror(2015041101);
-                   a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
+            paramanager.allocparaloc(list,hp);
+            case hp^.loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+                  if (tcgsize2size[hp^.size]<>1) or
+                    (hp^.shiftval<>0) then
+                    internalerror(2015041101);
+                  a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
 
-                   inc(i,tcgsize2size[hp^.size]);
-                   hp:=hp^.Next;
-                 end;
-               LOC_REFERENCE,LOC_CREFERENCE:
-                 begin
-                   reference_reset(ref,paraloc.alignment,[]);
-                   ref.base:=hp^.reference.index;
-                   ref.offset:=hp^.reference.offset;
-                   a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
+                  inc(i,tcgsize2size[hp^.size]);
+                  hp:=hp^.Next;
+                end;
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  reference_reset(ref,paraloc.alignment,[]);
+                  ref.base:=hp^.reference.index;
+                  ref.offset:=hp^.reference.offset;
+                  a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
 
-                   inc(i,tcgsize2size[hp^.size]);
-                   hp:=hp^.Next;
-                 end;
-               else
-                 internalerror(2002071004);
+                  inc(i,tcgsize2size[hp^.size]);
+                  hp:=hp^.Next;
+                end;
+              else
+                internalerror(2002071004);
             end;
           end;
       end;
@@ -1345,21 +1345,38 @@ unit cgcpu;
            end;
          if not conv_done then
            begin
-             for i:=1 to tcgsize2size[fromsize] do
+             // CC
+             // Write to 16 bit ioreg, first high byte then low byte
+             // sequence required for 16 bit timer registers
+             // See e.g. atmega328p manual para 15.3 Accessing 16 bit registers
+             if (fromsize in [OS_16, OS_S16]) and QuickRef and (href.offset > 31)
+               and (href.offset < cpuinfo.embedded_controllers[current_settings.controllertype].srambase) then
                begin
-                   if not(QuickRef) and (i<tcgsize2size[fromsize]) then
-                     href.addressmode:=AM_POSTINCREMENT
-                   else
-                     href.addressmode:=AM_UNCHANGED;
-
+                 tmpreg:=GetNextReg(reg);
+                 href.addressmode:=AM_UNCHANGED;
+                 inc(href.offset);
+                 list.concat(taicpu.op_ref_reg(GetStore(href),href,tmpreg));
+                 dec(href.offset);
                  list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
+               end
+             else
+               begin
+                 for i:=1 to tcgsize2size[fromsize] do
+                   begin
+                       if not(QuickRef) and (i<tcgsize2size[fromsize]) then
+                         href.addressmode:=AM_POSTINCREMENT
+                       else
+                         href.addressmode:=AM_UNCHANGED;
 
-                 if QuickRef then
-                   inc(href.offset);
+                     list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
 
-                 { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
-                 if i<tcgsize2size[fromsize] then
-                   reg:=GetNextReg(reg);
+                     if QuickRef then
+                       inc(href.offset);
+
+                     { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                     if i<tcgsize2size[fromsize] then
+                       reg:=GetNextReg(reg);
+                   end;
                end;
            end;
 
@@ -2124,7 +2141,7 @@ unit cgcpu;
 
     procedure tcgavr.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
       var
-        countreg,tmpreg : tregister;
+        countreg,tmpreg,tmpreg2: tregister;
         srcref,dstref : treference;
         copysize,countregsize : tcgsize;
         l : TAsmLabel;
@@ -2269,40 +2286,91 @@ unit cgcpu;
                 dstref:=dest;
               end;
 
-            for i:=1 to len do
-              begin
-                if not(SrcQuickRef) and (i<len) then
-                  srcref.addressmode:=AM_POSTINCREMENT
-                else
-                  srcref.addressmode:=AM_UNCHANGED;
+              // CC
+              // If dest is an ioreg (31 < offset < srambase) and size = 16 bit then
+              // load high byte first, then low byte
+              if (len = 2) and DestQuickRef
+                and (dest.offset > 31)
+                and (dest.offset < cpuinfo.embedded_controllers[current_settings.controllertype].srambase) then
+                begin
+                  // If src is also a 16 bit ioreg then read low byte then high byte
+                  if SrcQuickRef and (srcref.offset > 31)
+                    and (srcref.offset < cpuinfo.embedded_controllers[current_settings.controllertype].srambase) then
+                    begin
+                      // First read source into temp registers
+                      tmpreg:=getintregister(list, OS_16);
+                      list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg,srcref));
+                      inc(srcref.offset);
+                      tmpreg2:=GetNextReg(tmpreg);
+                      list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg2,srcref));
 
-                if not(DestQuickRef) and (i<len) then
-                  dstref.addressmode:=AM_POSTINCREMENT
-                else
-                  dstref.addressmode:=AM_UNCHANGED;
+                      // then move temp registers to dest in reverse order
+                      inc(dstref.offset);
+                      list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg2));
+                      dec(dstref.offset);
+                      list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg));
+                    end
+                  else
+                    begin
+                      srcref.addressmode:=AM_UNCHANGED;
+                      inc(srcref.offset);
+                      dstref.addressmode:=AM_UNCHANGED;
+                      inc(dstref.offset);
 
-                cg.getcpuregister(list,NR_R0);
-                list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
-                list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
-                cg.ungetcpuregister(list,NR_R0);
+                      cg.getcpuregister(list,NR_R0);
+                      list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
+                      list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
+                      cg.ungetcpuregister(list,NR_R0);
 
-                if SrcQuickRef then
-                  inc(srcref.offset);
-                if DestQuickRef then
-                  inc(dstref.offset);
-              end;
-            if not(SrcQuickRef) then
-              begin
-                ungetcpuregister(list,srcref.base);
-                ungetcpuregister(list,TRegister(ord(srcref.base)+1));
-              end;
-            if not(DestQuickRef) then
-              begin
-                ungetcpuregister(list,dstref.base);
-                ungetcpuregister(list,TRegister(ord(dstref.base)+1));
-              end;
-          end;
-      end;
+                      if not(SrcQuickRef) then
+                        srcref.addressmode:=AM_POSTINCREMENT
+                      else
+                        srcref.addressmode:=AM_UNCHANGED;
+
+                      dec(srcref.offset);
+                      dec(dstref.offset);
+
+                      cg.getcpuregister(list,NR_R0);
+                      list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
+                      list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
+                      cg.ungetcpuregister(list,NR_R0);
+                    end;
+                end
+              else
+              for i:=1 to len do
+                begin
+                  if not(SrcQuickRef) and (i<len) then
+                    srcref.addressmode:=AM_POSTINCREMENT
+                  else
+                    srcref.addressmode:=AM_UNCHANGED;
+
+                  if not(DestQuickRef) and (i<len) then
+                    dstref.addressmode:=AM_POSTINCREMENT
+                  else
+                    dstref.addressmode:=AM_UNCHANGED;
+
+                  cg.getcpuregister(list,NR_R0);
+                  list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
+                  list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
+                  cg.ungetcpuregister(list,NR_R0);
+
+                  if SrcQuickRef then
+                    inc(srcref.offset);
+                  if DestQuickRef then
+                    inc(dstref.offset);
+                end;
+              if not(SrcQuickRef) then
+                begin
+                  ungetcpuregister(list,srcref.base);
+                  ungetcpuregister(list,TRegister(ord(srcref.base)+1));
+                end;
+              if not(DestQuickRef) then
+                begin
+                  ungetcpuregister(list,dstref.base);
+                  ungetcpuregister(list,TRegister(ord(dstref.base)+1));
+                end;
+            end;
+        end;
 
 
     procedure tcgavr.g_overflowCheck(list : TAsmList;const l : tlocation;def : tdef);

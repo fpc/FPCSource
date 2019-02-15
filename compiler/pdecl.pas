@@ -61,7 +61,7 @@ implementation
        ninl,ncon,nobj,ngenutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,
+       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,pparautl,
 {$ifdef jvm}
        pjvm,
 {$endif}
@@ -310,7 +310,7 @@ implementation
                           parse_var_proc_directives(sym);
                        end;
                       { add default calling convention }
-                      handle_calling_convention(tabstractprocdef(hdef));
+                      handle_calling_convention(tabstractprocdef(hdef),hcc_default_actions_intf);
                     end;
                    if not skipequal then
                     begin
@@ -864,7 +864,7 @@ implementation
                                  Comment(V_Error,'Function references are not yet supported, only C blocks (add "cdecl;" at the end)');
                              end
                          end;
-                       handle_calling_convention(tprocvardef(hdef));
+                       handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
                        if try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
                          consume(_SEMICOLON);
                      end;

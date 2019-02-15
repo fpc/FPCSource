@@ -158,16 +158,9 @@ constructor tx64tryfinallynode.create(l, r: TNode);
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
         generic node tree is discarded without generating code. }
-       not (df_generic in current_procinfo.procdef.defoptions)
-       then
+       not (df_generic in current_procinfo.procdef.defoptions) then
       begin
-        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-        finalizepi.force_nested;
-        finalizepi.procdef:=create_finalizer_procdef;
-        finalizepi.entrypos:=r.fileinfo;
-        finalizepi.entryswitches:=r.localswitches;
-        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-        finalizepi.exitswitches:=current_settings.localswitches;
+        finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);
         { Regvar optimization for symbols is suppressed when using exceptions, but
@@ -184,14 +177,7 @@ constructor tx64tryfinallynode.create_implicit(l, r: TNode);
         if df_generic in current_procinfo.procdef.defoptions then
           InternalError(2013012501);
 
-        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-        finalizepi.force_nested;
-        finalizepi.procdef:=create_finalizer_procdef;
-
-        finalizepi.entrypos:=current_filepos;
-        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-        finalizepi.entryswitches:=r.localswitches;
-        finalizepi.exitswitches:=current_settings.localswitches;
+        finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
         include(finalizepi.flags,pi_do_call);
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);

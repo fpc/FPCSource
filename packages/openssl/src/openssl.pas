@@ -42,7 +42,7 @@ unit openssl;
 |==============================================================================|
 | FreePascal basic cleanup (original worked too): Ales Katona                  |
 | WARNING: due to reliance on some units, I have removed the ThreadLocks init  |
-|          if need be, it should be re-added, or handled by the                | 
+|          if need be, it should be re-added, or handled by the                |
 |           OS threading init somehow                                          |
 |                                                                              |
 | 2010 - Felipe Monteiro de Carvalho - Added RAND functios                     |
@@ -105,7 +105,7 @@ var
    {$ELSE OS2}
   DLLSSLName: string = 'libssl';
   DLLUtilName: string = 'libcrypto';
-  
+
   { ADD NEW ONES WHEN THEY APPEAR!
     Always make .so/dylib first, then versions, in descending order!
     Add "." .before the version, first is always just "" }
@@ -134,7 +134,7 @@ type
   PSSL_METHOD = SslPtr;
 {  PX509 = SslPtr;}
 {  PX509_NAME = SslPtr;}
-  PEVP_MD	= SslPtr;
+  PEVP_MD = SslPtr;
   PBIO_METHOD = SslPtr;
   PBIO = SslPtr;
 {  EVP_PKEY = SslPtr;}
@@ -155,20 +155,20 @@ type
   PDN = ^X509_NAME;
 
   ASN1_STRING = record
-	length: integer;
-	asn1_type: integer;
-	data: pointer;
-	flags: longint;
+  length: integer;
+  asn1_type: integer;
+  data: pointer;
+  flags: longint;
   end;
   PASN1_STRING = ^ASN1_STRING;
   PASN1_TIME = PASN1_STRING;
 
   X509_VAL = record
-	notBefore: PASN1_TIME;
+  notBefore: PASN1_TIME;
     notAfter: PASN1_TIME;
   end;
   PX509_VAL = ^X509_VAL;
-  
+
   X509_CINF = record
     version: pointer;
     serialNumber: pointer;
@@ -182,7 +182,7 @@ type
     extensions: pointer;
   end;
   PX509_CINF = ^X509_CINF;
-  
+
   CRYPTO_EX_DATA = record
     sk: pointer;
     dummy: integer;
@@ -208,26 +208,26 @@ type
   end;
   pX509 = ^X509;
   PPX509 = ^PX509;
-  
+
   DSA = record
-	pad: integer;
-	version: integer;
-	write_params: integer;
-	p: pointer;
-	q: pointer;
-	g: pointer;
-	pub_key: pointer;
-	priv_key: pointer;
-	kinv: pointer;
-	r: pointer;
-	flags: integer;
-	method_mont_p: PChar;
-	references: integer;
-	ex_data: record
+  pad: integer;
+  version: integer;
+  write_params: integer;
+  p: pointer;
+  q: pointer;
+  g: pointer;
+  pub_key: pointer;
+  priv_key: pointer;
+  kinv: pointer;
+  r: pointer;
+  flags: integer;
+  method_mont_p: PChar;
+  references: integer;
+  ex_data: record
       sk: pointer;
       dummy: integer;
     end;
-	meth: pointer;
+  meth: pointer;
   end;
   pDSA = ^DSA;
 
@@ -238,7 +238,7 @@ type
       2: (dsa: pDSA);
       3: (dh: pDH);
    end;
-  
+
   EVP_PKEY = record
     ktype: integer;
     save_type: integer;
@@ -249,11 +249,15 @@ type
   end;
   PEVP_PKEY = ^EVP_PKEY;
   PPEVP_PKEY = ^PEVP_PKEY;
-  
+
   PPRSA = ^PRSA;
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
   PCallbackCb = SslPtr;
+
+  PX509_STORE_CTX = SslPtr;
+  TSSLCTXVerifyCallback = function (ok : cInt; ctx : PX509_STORE_CTX) : Cint; cdecl;
+
   PFunction = procedure;
   DES_cblock = array[0..7] of Byte;
   PDES_cblock = ^DES_cblock;
@@ -399,14 +403,14 @@ type
     key_len: cint;  //* Default value for variable length ciphers */
     iv_len: cint;
     flags: culong; //* Various flags */
-    init: EVP_CIPHER_INIT_FUNC;	//* init key */
+    init: EVP_CIPHER_INIT_FUNC; //* init key */
     do_cipher: EVP_CIPHER_DO_CIPHER_FUNC;//* encrypt/decrypt data */
     cleanup: EVP_CIPHER_CLEANUP_FUNC; //* cleanup ctx */
-    ctx_size: cint;		//* how big ctx->cipher_data needs to be */
+    ctx_size: cint;   //* how big ctx->cipher_data needs to be */
     set_asn1_parameters: EVP_CIPHER_SET_ASN1_PARAMETERS_FUNC; //* Populate a ASN1_TYPE with parameters */
     get_asn1_parameters: EVP_CIPHER_GET_ASN1_PARAMETERS_FUNC; //* Get parameters from a ASN1_TYPE */
     ctrl: EVP_CIPHER_CTRL_FUNC; //* Miscellaneous operations */
-    app_data: Pointer;	//* Application data */
+    app_data: Pointer;  //* Application data */
   end;
   PEVP_CIPHER = ^EVP_CIPHER;
 
@@ -423,7 +427,7 @@ type
 
     app_data: Pointer;   //* application stuff */
     key_len: cint;    //* May change for variable length cipher */
-    flags: culong;	//* Various flags */
+    flags: culong;  //* Various flags */
     cipher_data: Pointer; //* per EVP data */
     final_used: cint;
     block_mask: cint;
@@ -681,12 +685,12 @@ const
   SSL_CTRL_SET_CHANNEL_ID                     = 119;
 
 
-  DTLS_CTRL_GET_TIMEOUT	           = 73;
+  DTLS_CTRL_GET_TIMEOUT            = 73;
   DTLS_CTRL_HANDLE_TIMEOUT         = 74;
-  DTLS_CTRL_LISTEN		   = 75;
-  SSL_CTRL_GET_RI_SUPPORT	   = 76;
-  SSL_CTRL_CLEAR_OPTIONS	   = 77;
-  SSL_CTRL_CLEAR_MODE		   = 78;
+  DTLS_CTRL_LISTEN       = 75;
+  SSL_CTRL_GET_RI_SUPPORT    = 76;
+  SSL_CTRL_CLEAR_OPTIONS     = 77;
+  SSL_CTRL_CLEAR_MODE      = 78;
 
   TLSEXT_TYPE_server_name = 0;
   TLSEXT_TYPE_max_fragment_length = 1;
@@ -784,7 +788,7 @@ const
   OPENSSL_DES_DECRYPT = 0;
   OPENSSL_DES_ENCRYPT = 1;
 
-  X509_V_OK =	0;
+  X509_V_OK = 0;
   X509_V_ILLEGAL = 1;
   X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT = 2;
   X509_V_ERR_UNABLE_TO_GET_CRL = 3;
@@ -823,7 +827,7 @@ const
   //The application is not happy
   X509_V_ERR_APPLICATION_VERIFICATION = 50;
 
-  SSL_FILETYPE_ASN1	= 2;
+  SSL_FILETYPE_ASN1 = 2;
   SSL_FILETYPE_PEM = 1;
   EVP_PKEY_RSA = 6;
 
@@ -833,6 +837,35 @@ const
   RSA_NO_PADDING         = 3;
   RSA_PKCS1_OAEP_PADDING = 4;
 
+  // ASN1 values
+  V_ASN1_EOC                     = 0;
+  V_ASN1_BOOLEAN                 = 1;
+  V_ASN1_INTEGER                 = 2;
+  V_ASN1_BIT_STRING              = 3;
+  V_ASN1_OCTET_STRING            = 4;
+  V_ASN1_NULL                    = 5;
+  V_ASN1_OBJECT                  = 6;
+  V_ASN1_OBJECT_DESCRIPTOR       = 7;
+  V_ASN1_EXTERNAL                = 8;
+  V_ASN1_REAL                    = 9;
+  V_ASN1_ENUMERATED              = 10;
+  V_ASN1_UTF8STRING              = 12;
+  V_ASN1_SEQUENCE                = 16;
+  V_ASN1_SET                     = 17;
+  V_ASN1_NUMERICSTRING           = 18;
+  V_ASN1_PRINTABLESTRING         = 19;
+  V_ASN1_T61STRING               = 20;
+  V_ASN1_TELETEXSTRING           = 20;
+  V_ASN1_VIDEOTEXSTRING          = 21;
+  V_ASN1_IA5STRING               = 22;
+  V_ASN1_UTCTIME                 = 23;
+  V_ASN1_GENERALIZEDTIME         = 24;
+  V_ASN1_GRAPHICSTRING           = 25;
+  V_ASN1_ISO64STRING             = 26;
+  V_ASN1_VISIBLESTRING           = 26;
+  V_ASN1_GENERALSTRING           = 27;
+  V_ASN1_UNIVERSALSTRING         = 28;
+  V_ASN1_BMPSTRING               = 30;
 
   // BN
 {$ifdef cpu64}
@@ -858,73 +891,73 @@ const
 
   // BIO
 
-  BIO_NOCLOSE	        = $00;
-  BIO_CLOSE 	        = $01;
+  BIO_NOCLOSE         = $00;
+  BIO_CLOSE           = $01;
 
   //* modifiers */
-  BIO_FP_READ		= $02;
-  BIO_FP_WRITE		= $04;
-  BIO_FP_APPEND		= $08;
-  BIO_FP_TEXT		= $10;
+  BIO_FP_READ   = $02;
+  BIO_FP_WRITE    = $04;
+  BIO_FP_APPEND   = $08;
+  BIO_FP_TEXT   = $10;
 
   BIO_C_SET_CONNECT                 = 100;
   BIO_C_DO_STATE_MACHINE            = 101;
-  BIO_C_SET_NBIO	            = 102;
-  BIO_C_SET_PROXY_PARAM	            = 103;
-  BIO_C_SET_FD	                    = 104;
-  BIO_C_GET_FD		            = 105;
-  BIO_C_SET_FILE_PTR	            = 106;
-  BIO_C_GET_FILE_PTR	            = 107;
-  BIO_C_SET_FILENAME	            = 108;
-  BIO_C_SET_SSL		            = 109;
-  BIO_C_GET_SSL		            = 110;
-  BIO_C_SET_MD		            = 111;
-  BIO_C_GET_MD	                    = 112;
+  BIO_C_SET_NBIO              = 102;
+  BIO_C_SET_PROXY_PARAM             = 103;
+  BIO_C_SET_FD                      = 104;
+  BIO_C_GET_FD                = 105;
+  BIO_C_SET_FILE_PTR              = 106;
+  BIO_C_GET_FILE_PTR              = 107;
+  BIO_C_SET_FILENAME              = 108;
+  BIO_C_SET_SSL               = 109;
+  BIO_C_GET_SSL               = 110;
+  BIO_C_SET_MD                = 111;
+  BIO_C_GET_MD                      = 112;
   BIO_C_GET_CIPHER_STATUS           = 113;
-  BIO_C_SET_BUF_MEM 	            = 114;
-  BIO_C_GET_BUF_MEM_PTR  	    = 115;
+  BIO_C_SET_BUF_MEM               = 114;
+  BIO_C_GET_BUF_MEM_PTR       = 115;
   BIO_C_GET_BUFF_NUM_LINES          = 116;
-  BIO_C_SET_BUFF_SIZE	            = 117;
-  BIO_C_SET_ACCEPT 	            = 118;
-  BIO_C_SSL_MODE 	            = 119;
-  BIO_C_GET_MD_CTX	            = 120;
-  BIO_C_GET_PROXY_PARAM	            = 121;
-  BIO_C_SET_BUFF_READ_DATA 	    = 122; // data to read first */
-  BIO_C_GET_CONNECT	 	    = 123;
-  BIO_C_GET_ACCEPT		    = 124;
+  BIO_C_SET_BUFF_SIZE             = 117;
+  BIO_C_SET_ACCEPT              = 118;
+  BIO_C_SSL_MODE              = 119;
+  BIO_C_GET_MD_CTX              = 120;
+  BIO_C_GET_PROXY_PARAM             = 121;
+  BIO_C_SET_BUFF_READ_DATA      = 122; // data to read first */
+  BIO_C_GET_CONNECT       = 123;
+  BIO_C_GET_ACCEPT        = 124;
   BIO_C_SET_SSL_RENEGOTIATE_BYTES   = 125;
   BIO_C_GET_SSL_NUM_RENEGOTIATES    = 126;
   BIO_C_SET_SSL_RENEGOTIATE_TIMEOUT = 127;
-  BIO_C_FILE_SEEK		    = 128;
-  BIO_C_GET_CIPHER_CTX		    = 129;
-  BIO_C_SET_BUF_MEM_EOF_RETURN	= 130;//*return end of input value*/
-  BIO_C_SET_BIND_MODE		= 131;
-  BIO_C_GET_BIND_MODE		= 132;
-  BIO_C_FILE_TELL		= 133;
-  BIO_C_GET_SOCKS		= 134;
-  BIO_C_SET_SOCKS		= 135;
+  BIO_C_FILE_SEEK       = 128;
+  BIO_C_GET_CIPHER_CTX        = 129;
+  BIO_C_SET_BUF_MEM_EOF_RETURN  = 130;//*return end of input value*/
+  BIO_C_SET_BIND_MODE   = 131;
+  BIO_C_GET_BIND_MODE   = 132;
+  BIO_C_FILE_TELL   = 133;
+  BIO_C_GET_SOCKS   = 134;
+  BIO_C_SET_SOCKS   = 135;
 
-  BIO_C_SET_WRITE_BUF_SIZE	= 136;//* for BIO_s_bio */
-  BIO_C_GET_WRITE_BUF_SIZE	= 137;
-  BIO_C_MAKE_BIO_PAIR		= 138;
-  BIO_C_DESTROY_BIO_PAIR	= 139;
-  BIO_C_GET_WRITE_GUARANTEE	= 140;
-  BIO_C_GET_READ_REQUEST	= 141;
-  BIO_C_SHUTDOWN_WR		= 142;
-  BIO_C_NREAD0		        = 143;
-  BIO_C_NREAD			= 144;
-  BIO_C_NWRITE0			= 145;
-  BIO_C_NWRITE			= 146;
-  BIO_C_RESET_READ_REQUEST	= 147;
-  BIO_C_SET_MD_CTX		= 148;
+  BIO_C_SET_WRITE_BUF_SIZE  = 136;//* for BIO_s_bio */
+  BIO_C_GET_WRITE_BUF_SIZE  = 137;
+  BIO_C_MAKE_BIO_PAIR   = 138;
+  BIO_C_DESTROY_BIO_PAIR  = 139;
+  BIO_C_GET_WRITE_GUARANTEE = 140;
+  BIO_C_GET_READ_REQUEST  = 141;
+  BIO_C_SHUTDOWN_WR   = 142;
+  BIO_C_NREAD0            = 143;
+  BIO_C_NREAD     = 144;
+  BIO_C_NWRITE0     = 145;
+  BIO_C_NWRITE      = 146;
+  BIO_C_RESET_READ_REQUEST  = 147;
+  BIO_C_SET_MD_CTX    = 148;
 
-  BIO_C_SET_PREFIX		= 149;
-  BIO_C_GET_PREFIX		= 150;
-  BIO_C_SET_SUFFIX		= 151;
-  BIO_C_GET_SUFFIX		= 152;
+  BIO_C_SET_PREFIX    = 149;
+  BIO_C_GET_PREFIX    = 150;
+  BIO_C_SET_SUFFIX    = 151;
+  BIO_C_GET_SUFFIX    = 152;
 
-  BIO_C_SET_EX_ARG		= 153;
-  BIO_C_GET_EX_ARG		= 154;
+  BIO_C_SET_EX_ARG    = 153;
+  BIO_C_GET_EX_ARG    = 154;
 
   BIO_CTRL_RESET  =    1  ; { opt - rewind/zero etc }
   BIO_CTRL_EOF    =    2  ; { opt - are we at the eof }
@@ -999,7 +1032,7 @@ var
   function SslCtxNew(meth: PSSL_METHOD):PSSL_CTX;
   procedure SslCtxFree(arg0: PSSL_CTX);
   function SslSetFd(s: PSSL; fd: cInt):cInt;
-  
+
   function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
   function SslCTXCtrl(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong;
 
@@ -1007,7 +1040,7 @@ var
   function SSLSetMode(s: PSSL; mode: cLong): cLong;
   function SSLCTXGetMode(ctx: PSSL_CTX): cLong;
   function SSLGetMode(s: PSSL): cLong;
-  
+
   function SslMethodV2:PSSL_METHOD;
   function SslMethodV3:PSSL_METHOD;
   function SslMethodTLSV1:PSSL_METHOD;
@@ -1016,11 +1049,13 @@ var
   function SslMethodV23:PSSL_METHOD;
   function SslTLSMethod:PSSL_METHOD;
   function SslCtxUsePrivateKey(ctx: PSSL_CTX; pkey: SslPtr):cInt;
-  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
+  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;overload;
+  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; b: TBytes; len: cLong):cInt;overload;
 //  function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: PChar; _type: cInt):cInt;
   function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
   function SslCtxUseCertificate(ctx: PSSL_CTX; x: SslPtr):cInt;
-  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
+  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt; overload;
+  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; Buf: TBytes):cInt; overload;
   function SslCtxUseCertificateFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
 //  function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: PChar):cInt;
   function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: String):cInt;
@@ -1040,7 +1075,7 @@ var
   function SslPending(ssl: PSSL):cInt;
   function SslGetVersion(ssl: PSSL):String;
   function SslGetPeerCertificate(ssl: PSSL):PX509;
-  procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: PFunction);
+  procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback);
   function SSLGetCurrentCipher(s: PSSL):SslPtr;
   function SSLCipherGetName(c: SslPtr): String;
   function SSLCipherGetBits(c: SslPtr; var alg_bits: cInt):cInt;
@@ -1086,6 +1121,9 @@ var
   function d2iPKCS12bio(b:PBIO; Pkcs12: SslPtr): SslPtr;
   function PKCS12parse(p12: SslPtr; pass: string; var pkey, cert, ca: SslPtr): cInt;
   procedure PKCS12free(p12: SslPtr);
+  function Asn1StringTypeNew(aType : cint): PASN1_STRING;
+  Function Asn1UtctimePrint(b : PBio; a: PASN1_UTCTIME) : integer;
+  Function ASN1UtcTimeSetString(t : PASN1_UTCTIME; s : PAnsichar) : cint;
   function Asn1UtctimeNew: PASN1_UTCTIME;
   procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
   function Asn1IntegerSet(a: PASN1_INTEGER; v: integer): integer;
@@ -1235,25 +1273,28 @@ var
   // PEM Functions - pem.h
   //
   function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
-           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;  	   
+           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
   function PEM_read_bio_PUBKEY(bp: pBIO; var x: pEVP_PKEY;
                cb: Ppem_password_cb; u: pointer): pEVP_PKEY;
   function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer;	
+               u: pointer): integer;
   function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
   function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
-  
+  function PEM_write_bio_X509(bp: pBIO;  x: px509): integer;
+  function PEM_write_bio_PKCS7(bp : PBIO; x : PPKCS7) : cint;
   // BIO Functions - bio.h
   function BioNew(b: PBIO_METHOD): PBIO;
   procedure BioFreeAll(b: PBIO);
   function BioSMem: PBIO_METHOD;
   function BioCtrlPending(b: PBIO): cInt;
   function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
-  function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt;
+  function BioRead(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+  function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt; overload;
+  function BioWrite(b: PBIO; Buf: TBytes; Len: cInt): cInt; overload;
   function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
   function BIO_read_filename(b: PBIO; const name: PChar): cint;
-  
+
   function BIO_s_file: pBIO_METHOD;
   function BIO_new_file(const filename: PChar; const mode: PChar): pBIO;
   function BIO_new_mem_buf(buf: pointer; len: integer): pBIO;
@@ -1558,7 +1599,9 @@ type
   Td2iPKCS12bio = function(b:PBIO; Pkcs12: SslPtr): SslPtr; cdecl;
   TPKCS12parse = function(p12: SslPtr; pass: PChar; var pkey, cert, ca: SslPtr): cInt; cdecl;
   TPKCS12free = procedure(p12: SslPtr); cdecl;
-  TAsn1UtctimeNew = function: PASN1_UTCTIME; cdecl;
+  TAsn1StringTypeNew = function(aype : cint): SSlPtr; cdecl;
+  TAsn1UtcTimeSetString = function(t : PASN1_UTCTIME; S : PAnsiChar): cint; cdecl;
+  TAsn1UtctimePrint = Function(b : PBio;a: PASN1_UTCTIME) : cint; cdecl;
   TAsn1UtctimeFree = procedure(a: PASN1_UTCTIME); cdecl;
   TAsn1IntegerSet = function(a: PASN1_INTEGER; v: integer): integer; cdecl;
   TAsn1IntegerGet = function(a: PASN1_INTEGER): integer; cdecl;
@@ -1638,7 +1681,7 @@ type
   TEVP_DigestInit = function(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint; cdecl;
   TEVP_DigestUpdate = function(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint; cdecl;
   TEVP_DigestFinal = function(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint; cdecl;
-  
+
   TEVP_SignFinal = function(ctx: pEVP_MD_CTX; sig: pointer; var s: cardinal;
     key: pEVP_PKEY): integer; cdecl;
   TEVP_PKEY_size = function(key: pEVP_PKEY): integer; cdecl;
@@ -1676,19 +1719,21 @@ type
 
   TPEM_read_bio_PrivateKey = function(bp: PBIO; X: PPEVP_PKEY;
            cb: Ppem_password_cb; u: Pointer): PEVP_PKEY; cdecl;
-   
+
   TPEM_read_bio_PUBKEY = function(bp: pBIO; var x: pEVP_PKEY;
                cb: Ppem_password_cb; u: pointer): pEVP_PKEY; cdecl;
   TPEM_write_bio_PrivateKey = function(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer; cdecl;	
+               u: pointer): integer; cdecl;
   TPEM_write_bio_PUBKEY = function(bp: pBIO; x: pEVP_PKEY): integer; cdecl;
   TPEM_read_bio_X509 = function(bp: pBIO; x: PPX509; cb: Ppem_password_cb; u: pointer): px509; cdecl;
+  TPEM_write_bio_X509 = function(bp: pBIO; x: PX509): integer; cdecl;
+  TPEM_write_bio_PKCS7 = function(bp: pBIO; x: PPKCS7): integer; cdecl;
 
   // BIO Functions
 
   TBIO_ctrl = function(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong; cdecl;
-  
+
   TBIO_s_file = function: pBIO_METHOD; cdecl;
   TBIO_new_file = function(const filename: PChar; const mode: PChar): pBIO; cdecl;
   TBIO_new_mem_buf = function(buf: pointer; len: integer): pBIO; cdecl;
@@ -1783,7 +1828,9 @@ var
   _d2iPKCS12bio: Td2iPKCS12bio = nil;
   _PKCS12parse: TPKCS12parse = nil;
   _PKCS12free: TPKCS12free = nil;
-  _Asn1UtctimeNew: TAsn1UtctimeNew = nil;
+  _Asn1StringTypeNew: TAsn1StringTypeNew = nil;
+  _Asn1UtctimeSetString : TAsn1UtctimeSetString = Nil;
+  _Asn1UtctimePrint: TAsn1UtctimePrint = nil;
   _Asn1UtctimeFree: TAsn1UtctimeFree = nil;
   _Asn1IntegerSet: TAsn1IntegerSet = nil;
   _Asn1IntegerGet: TAsn1IntegerGet = nil;
@@ -1810,7 +1857,7 @@ var
 
   // 3DES functions
   _DESsetoddparity: TDESsetoddparity = nil;
-  _DESsetkey	   : TDESsetkey = nil;
+  _DESsetkey     : TDESsetkey = nil;
   _DESsetkeychecked: TDESsetkeychecked = nil;
   _DESecbencrypt: TDESecbencrypt = nil;
   //thread lock functions
@@ -1911,15 +1958,17 @@ var
   _EVP_DigestVerifyFinal: TEVP_DigestVerifyFinal = nil;
   // PEM
   _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
-  	   
-  _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil; 
-  _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;	
+
+  _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil;
+  _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;
   _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
   _PEM_read_bio_X509: TPEM_read_bio_X509 = nil;
+  _PEM_write_bio_X509: TPEM_write_bio_X509 = nil;
+  _PEM_write_bio_PKCS7 : TPEM_write_bio_PKCS7 = Nil;
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
-  
+
   _BIO_s_file: TBIO_s_file = nil;
   _BIO_new_file: TBIO_new_file = nil;
   _BIO_new_mem_buf: TBIO_new_mem_buf = nil;
@@ -1938,68 +1987,68 @@ var
   PKCS7_ATTR_SIGN_it : ASN1_ITEM;cvar;external;
   PKCS7_ATTR_VERIFY_it : ASN1_ITEM;cvar;external;
 }
-  _PKCS7_ISSUER_AND_SERIAL_new : function: PPKCS7_ISSUER_AND_SERIAL;
-  _PKCS7_ISSUER_AND_SERIAL_free : procedure(a:PPKCS7_ISSUER_AND_SERIAL);
-  _PKCS7_ISSUER_AND_SERIAL_digest : function(data:PPKCS7_ISSUER_AND_SERIAL; _type:PEVP_MD; md:Pbyte; len:Pdword):longint;
-  _PKCS7_dup : function(p7:PPKCS7):PPKCS7;
-  _PEM_write_bio_PKCS7_stream : function(_out:PBIO; p7:PPKCS7; _in:PBIO; flags:longint):longint;
-  _PKCS7_SIGNER_INFO_new : function:PPKCS7_SIGNER_INFO;
-  _PKCS7_SIGNER_INFO_free : procedure(a:PPKCS7_SIGNER_INFO);
-  _PKCS7_RECIP_INFO_new : function:PPKCS7_RECIP_INFO;
-  _PKCS7_RECIP_INFO_free : procedure(a:PPKCS7_RECIP_INFO);
-  _PKCS7_SIGNED_new : function:PPKCS7_SIGNED;
-  _PKCS7_SIGNED_free : procedure(a:PPKCS7_SIGNED);
-  _PKCS7_ENC_CONTENT_new : function:PPKCS7_ENC_CONTENT;
-  _PKCS7_ENC_CONTENT_free : procedure(a:PPKCS7_ENC_CONTENT);
-  _PKCS7_ENVELOPE_new : function:PPKCS7_ENVELOPE;
-  _PKCS7_ENVELOPE_free : procedure(a:PPKCS7_ENVELOPE);
-  _PKCS7_SIGN_ENVELOPE_new : function:PPKCS7_SIGN_ENVELOPE;
-  _PKCS7_SIGN_ENVELOPE_free : procedure(a:PPKCS7_SIGN_ENVELOPE);
-  _PKCS7_DIGEST_new : function:PPKCS7_DIGEST;
-  _PKCS7_DIGEST_free : procedure(a:PPKCS7_DIGEST);
-  _PKCS7_ENCRYPT_new : function:PPKCS7_ENCRYPT;
-  _PKCS7_ENCRYPT_free : procedure(a:PPKCS7_ENCRYPT);
-  _PKCS7_new : function:PPKCS7;
-  _PKCS7_free : procedure(a:PPKCS7);
-  _PKCS7_print_ctx : function(_out:PBIO; x:PPKCS7; indent:longint; pctx:Pointer):longint;
-  _PKCS7_ctrl : function(p7:PPKCS7; cmd:longint; larg:longint; parg:Pchar):longint;
-  _PKCS7_set_type : function(p7:PPKCS7; _type:longint):longint;
-  _PKCS7_set0_type_other : function(p7:PPKCS7; _type:longint; other:PASN1_TYPE):longint;
-  _PKCS7_set_content : function(p7:PPKCS7; p7_data:PPKCS7):longint;
-  _PKCS7_SIGNER_INFO_set : function(p7i:PPKCS7_SIGNER_INFO; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):longint;
-  _PKCS7_SIGNER_INFO_sign : function(si:PPKCS7_SIGNER_INFO):longint;
-  _PKCS7_add_signer : function(p7:PPKCS7; p7i:PPKCS7_SIGNER_INFO):longint;
-  _PKCS7_add_certificate : function(p7:PPKCS7; x509:PX509):longint;
-  _PKCS7_add_crl : function(p7:PPKCS7; x509: Pointer):longint;
-  _PKCS7_content_new : function(p7:PPKCS7; nid:longint):longint;
-  _PKCS7_add_signature : function(p7:PPKCS7; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):PPKCS7_SIGNER_INFO;
-  _PKCS7_cert_from_signer_info : function(p7:PPKCS7; si:PPKCS7_SIGNER_INFO):PX509;
-  _PKCS7_set_digest : function(p7:PPKCS7; md:PEVP_MD):longint;
-  _PKCS7_add_recipient : function(p7:PPKCS7; x509:PX509):PPKCS7_RECIP_INFO;
-  _PKCS7_add_recipient_info : function(p7:PPKCS7; ri:PPKCS7_RECIP_INFO):longint;
-  _PKCS7_RECIP_INFO_set : function(p7i:PPKCS7_RECIP_INFO; x509:PX509):longint;
-  _PKCS7_set_cipher : function(p7:PPKCS7; cipher:PEVP_CIPHER):longint;
-  _PKCS7_get_issuer_and_serial : function(p7:PPKCS7; idx:longint):PPKCS7_ISSUER_AND_SERIAL;
-  _PKCS7_digest_from_attributes : function(sk:Pstack_st_X509_ATTRIBUTE):Pointer;
-  _PKCS7_add_signed_attribute : function(p7si:PPKCS7_SIGNER_INFO; nid:longint; _type:longint; data:pointer):longint;
-  _PKCS7_add_attribute : function(p7si:PPKCS7_SIGNER_INFO; nid:longint; atrtype:longint; value:pointer):longint;
-  _PKCS7_get_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
-  _PKCS7_get_signed_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
-  _PKCS7_set_signed_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
-  _PKCS7_set_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
-  _PKCS7_sign : function(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;
-  _PKCS7_sign_add_signer : function(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;
-  _PKCS7_final : function(p7:PPKCS7; data:PBIO; flags:longint):longint;
-  _PKCS7_verify : function(p7:PPKCS7; certs:Pstack_st_X509; store: Pointer; indata:PBIO; _out:PBIO;  flags:longint):longint;
-  _PKCS7_encrypt : function(certs:Pstack_st_X509; _in:PBIO; cipher:PEVP_CIPHER; flags:longint):PPKCS7;
-  _PKCS7_decrypt : function(p7:PPKCS7; pkey:PEVP_PKEY; cert:PX509; data:PBIO; flags:longint):longint;
-  _PKCS7_add_attrib_smimecap : function(si:PPKCS7_SIGNER_INFO; cap:Pstack_st_X509_ALGOR):longint;
-  _PKCS7_simple_smimecap : function(sk:Pstack_st_X509_ALGOR; nid:longint; arg:longint):longint;
-  _PKCS7_add_attrib_content_type : function(si:PPKCS7_SIGNER_INFO; coid:Pointer):longint;
-  _PKCS7_add0_attrib_signing_time : function(si:PPKCS7_SIGNER_INFO; t:PASN1_TIME):longint;
-  _PKCS7_add1_attrib_digest : function(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;
-  _BIO_new_PKCS7 : function(_out:PBIO; p7:PPKCS7):PBIO;
-  _ERR_load_PKCS7_strings : procedure;
+  _PKCS7_ISSUER_AND_SERIAL_new : function: PPKCS7_ISSUER_AND_SERIAL;cdecl;
+  _PKCS7_ISSUER_AND_SERIAL_free : procedure(a:PPKCS7_ISSUER_AND_SERIAL);cdecl;
+  _PKCS7_ISSUER_AND_SERIAL_digest : function(data:PPKCS7_ISSUER_AND_SERIAL; _type:PEVP_MD; md:Pbyte; len:Pdword):longint;cdecl;
+  _PKCS7_dup : function(p7:PPKCS7):PPKCS7;cdecl;
+  _PEM_write_bio_PKCS7_stream : function(_out:PBIO; p7:PPKCS7; _in:PBIO; flags:longint):longint;cdecl;
+  _PKCS7_SIGNER_INFO_new : function:PPKCS7_SIGNER_INFO;cdecl;
+  _PKCS7_SIGNER_INFO_free : procedure(a:PPKCS7_SIGNER_INFO);cdecl;
+  _PKCS7_RECIP_INFO_new : function:PPKCS7_RECIP_INFO;cdecl;
+  _PKCS7_RECIP_INFO_free : procedure(a:PPKCS7_RECIP_INFO);cdecl;
+  _PKCS7_SIGNED_new : function:PPKCS7_SIGNED;cdecl;
+  _PKCS7_SIGNED_free : procedure(a:PPKCS7_SIGNED);cdecl;
+  _PKCS7_ENC_CONTENT_new : function:PPKCS7_ENC_CONTENT;cdecl;
+  _PKCS7_ENC_CONTENT_free : procedure(a:PPKCS7_ENC_CONTENT);cdecl;
+  _PKCS7_ENVELOPE_new : function:PPKCS7_ENVELOPE;cdecl;
+  _PKCS7_ENVELOPE_free : procedure(a:PPKCS7_ENVELOPE);cdecl;
+  _PKCS7_SIGN_ENVELOPE_new : function:PPKCS7_SIGN_ENVELOPE;cdecl;
+  _PKCS7_SIGN_ENVELOPE_free : procedure(a:PPKCS7_SIGN_ENVELOPE);cdecl;
+  _PKCS7_DIGEST_new : function:PPKCS7_DIGEST;cdecl;
+  _PKCS7_DIGEST_free : procedure(a:PPKCS7_DIGEST);cdecl;
+  _PKCS7_ENCRYPT_new : function:PPKCS7_ENCRYPT;cdecl;
+  _PKCS7_ENCRYPT_free : procedure(a:PPKCS7_ENCRYPT);cdecl;
+  _PKCS7_new : function:PPKCS7;cdecl;
+  _PKCS7_free : procedure(a:PPKCS7);cdecl;
+  _PKCS7_print_ctx : function(_out:PBIO; x:PPKCS7; indent:longint; pctx:Pointer):longint;cdecl;
+  _PKCS7_ctrl : function(p7:PPKCS7; cmd:longint; larg:longint; parg:Pchar):longint;cdecl;
+  _PKCS7_set_type : function(p7:PPKCS7; _type:longint):longint;cdecl;
+  _PKCS7_set0_type_other : function(p7:PPKCS7; _type:longint; other:PASN1_TYPE):longint;cdecl;
+  _PKCS7_set_content : function(p7:PPKCS7; p7_data:PPKCS7):longint;cdecl;
+  _PKCS7_SIGNER_INFO_set : function(p7i:PPKCS7_SIGNER_INFO; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):longint;cdecl;
+  _PKCS7_SIGNER_INFO_sign : function(si:PPKCS7_SIGNER_INFO):longint;cdecl;
+  _PKCS7_add_signer : function(p7:PPKCS7; p7i:PPKCS7_SIGNER_INFO):longint;cdecl;
+  _PKCS7_add_certificate : function(p7:PPKCS7; x509:PX509):longint;cdecl;
+  _PKCS7_add_crl : function(p7:PPKCS7; x509: Pointer):longint;cdecl;
+  _PKCS7_content_new : function(p7:PPKCS7; nid:longint):longint;cdecl;
+  _PKCS7_add_signature : function(p7:PPKCS7; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):PPKCS7_SIGNER_INFO;cdecl;
+  _PKCS7_cert_from_signer_info : function(p7:PPKCS7; si:PPKCS7_SIGNER_INFO):PX509;cdecl;
+  _PKCS7_set_digest : function(p7:PPKCS7; md:PEVP_MD):longint;cdecl;
+  _PKCS7_add_recipient : function(p7:PPKCS7; x509:PX509):PPKCS7_RECIP_INFO;cdecl;
+  _PKCS7_add_recipient_info : function(p7:PPKCS7; ri:PPKCS7_RECIP_INFO):longint;cdecl;
+  _PKCS7_RECIP_INFO_set : function(p7i:PPKCS7_RECIP_INFO; x509:PX509):longint;cdecl;
+  _PKCS7_set_cipher : function(p7:PPKCS7; cipher:PEVP_CIPHER):longint;cdecl;
+  _PKCS7_get_issuer_and_serial : function(p7:PPKCS7; idx:longint):PPKCS7_ISSUER_AND_SERIAL;cdecl;
+  _PKCS7_digest_from_attributes : function(sk:Pstack_st_X509_ATTRIBUTE):Pointer;cdecl;
+  _PKCS7_add_signed_attribute : function(p7si:PPKCS7_SIGNER_INFO; nid:longint; _type:longint; data:pointer):longint;cdecl;
+  _PKCS7_add_attribute : function(p7si:PPKCS7_SIGNER_INFO; nid:longint; atrtype:longint; value:pointer):longint;cdecl;
+  _PKCS7_get_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;cdecl;
+  _PKCS7_get_signed_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;cdecl;
+  _PKCS7_set_signed_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;cdecl;
+  _PKCS7_set_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;cdecl;
+  _PKCS7_sign : function(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;cdecl;
+  _PKCS7_sign_add_signer : function(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;cdecl;
+  _PKCS7_final : function(p7:PPKCS7; data:PBIO; flags:longint):longint;cdecl;
+  _PKCS7_verify : function(p7:PPKCS7; certs:Pstack_st_X509; store: Pointer; indata:PBIO; _out:PBIO;  flags:longint):longint;cdecl;
+  _PKCS7_encrypt : function(certs:Pstack_st_X509; _in:PBIO; cipher:PEVP_CIPHER; flags:longint):PPKCS7;cdecl;
+  _PKCS7_decrypt : function(p7:PPKCS7; pkey:PEVP_PKEY; cert:PX509; data:PBIO; flags:longint):longint;cdecl;
+  _PKCS7_add_attrib_smimecap : function(si:PPKCS7_SIGNER_INFO; cap:Pstack_st_X509_ALGOR):longint;cdecl;
+  _PKCS7_simple_smimecap : function(sk:Pstack_st_X509_ALGOR; nid:longint; arg:longint):longint;cdecl;
+  _PKCS7_add_attrib_content_type : function(si:PPKCS7_SIGNER_INFO; coid:Pointer):longint;cdecl;
+  _PKCS7_add0_attrib_signing_time : function(si:PPKCS7_SIGNER_INFO; t:PASN1_TIME):longint;cdecl;
+  _PKCS7_add1_attrib_digest : function(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;cdecl;
+  _BIO_new_PKCS7 : function(_out:PBIO; p7:PPKCS7):PBIO;cdecl;
+  _ERR_load_PKCS7_strings : procedure;cdecl;
 
   // BN
   _BN_new : function():PBIGNUM; cdecl;
@@ -2200,10 +2249,18 @@ begin
     Result := 0;
 end;
 
-function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
+function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt; overload;
 begin
   if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
     Result := _SslCtxUsePrivateKeyASN1(pk, ctx, Sslptr(d), len)
+  else
+    Result := 0;
+end;
+
+function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; b: TBytes; len: cLong): cInt;overload;
+begin
+  if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
+    Result := _SslCtxUsePrivateKeyASN1(pk, ctx, Sslptr(b), len)
   else
     Result := 0;
 end;
@@ -2228,6 +2285,14 @@ function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
 begin
   if InitSSLInterface and Assigned(_SslCtxUseCertificateASN1) then
     Result := _SslCtxUseCertificateASN1(ctx, len, SslPtr(d))
+  else
+    Result := 0;
+end;
+
+function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; Buf: TBytes): cInt;
+begin
+  if InitSSLInterface and Assigned(_SslCtxUseCertificateASN1) then
+    Result := _SslCtxUseCertificateASN1(ctx, len, SslPtr(Buf))
   else
     Result := 0;
 end;
@@ -2363,7 +2428,7 @@ begin
     Result := nil;
 end;
 
-procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: PFunction);
+procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback);
 begin
   if InitSSLInterface and Assigned(_SslCtxSetVerify) then
     _SslCtxSetVerify(ctx, mode, @arg2);
@@ -2587,6 +2652,14 @@ begin
     Result := 0;
 end;
 
+function BioRead(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+begin
+  if InitSSLInterface and Assigned(_BioRead) then
+    Result := _BioRead(b, PChar(Buf), Len)
+  else
+    Result := -2;
+end;
+
 function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
 begin
   if InitSSLInterface and Assigned(_BioRead) then
@@ -2603,6 +2676,16 @@ begin
   else
     Result := -2;
 end;
+
+function BioWrite(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+
+begin
+  if InitSSLInterface and Assigned(_BioWrite) then
+    Result := _BioWrite(b, PChar(Buf), Len)
+  else
+    Result := -2;
+end;
+
 
 function X509print(b: PBIO; a: PX509): cInt;
 begin
@@ -2694,8 +2777,14 @@ end;
 
 function Asn1UtctimeNew: PASN1_UTCTIME;
 begin
-  if InitSSLInterface and Assigned(_Asn1UtctimeNew) then
-    Result := _Asn1UtctimeNew
+  Result:=PASN1_UTCTIME(Asn1StringTypeNew(V_ASN1_UTCTIME));
+end;
+
+function Asn1StringTypeNew(aType : cint): PASN1_STRING;
+
+begin
+  if InitSSLInterface and Assigned(_Asn1StringTypeNew) then
+    Result := _Asn1StringTypeNew(aType)
   else
     Result := nil;
 end;
@@ -2704,6 +2793,22 @@ procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
 begin
   if InitSSLInterface and Assigned(_Asn1UtctimeFree) then
     _Asn1UtctimeFree(a);
+end;
+
+function Asn1UtctimePrint(b: PBio; a: PASN1_UTCTIME): integer;
+begin
+  if InitSSLInterface and Assigned(_Asn1UtctimePrint) then
+    Result:=_Asn1UtctimePrint(b,a)
+  else
+    Result:=0;
+end;
+
+function ASN1UtcTimeSetString(t: PASN1_UTCTIME; s: PAnsichar): cint;
+begin
+  if InitSSLInterface and Assigned(_Asn1UtctimeSetString) then
+    Result:=_Asn1UtctimeSetString(t,s)
+  else
+    Result:=0;
 end;
 
 function Asn1IntegerSet(a: PASN1_INTEGER; v: integer): integer;
@@ -3542,28 +3647,45 @@ end;
 
 function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer; 
+               u: pointer): integer;
 Begin
    if InitSSLInterface and Assigned(_PEM_write_bio_PrivateKey) then
     Result := _PEM_write_bio_PrivateKey(bp, x, enc ,kstr ,klen ,cb, u)
   else
     Result := -1;
-end;   
+end;
 
-function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer; 
+function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
 Begin
    if InitSSLInterface and Assigned(_PEM_write_bio_PUBKEY) then
     Result := _PEM_write_bio_PUBKEY(bp, x)
   else
     Result := -1;
-end; 
+end;
 
-function PEM_read_bio_X509(bp: pBIO;  x: ppx509; cb: Ppem_password_cb; u: pointer): px509;
+function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
 begin
   if InitSSLInterface and Assigned(_PEM_read_bio_X509) then
     Result := _PEM_read_bio_X509(bp, x, cb, u)
   else
     Result := nil;
+end;
+
+function PEM_write_bio_X509(bp: pBIO;  x: px509): integer;
+begin
+  if InitSSLInterface and Assigned(_PEM_write_bio_X509) then
+    Result := _PEM_write_bio_X509(bp, x)
+  else
+    Result := 0;
+end;
+
+function PEM_write_bio_PKCS7(bp : PBIO; x : PPKCS7) : cint;
+
+begin
+  if InitSSLInterface and Assigned(_PEM_write_bio_PKCS7) then
+    Result := _PEM_write_bio_PKCS7(bp, x)
+  else
+    Result := 0;
 end;
 
 
@@ -3582,7 +3704,7 @@ begin
   Result := BIO_ctrl(b, BIO_C_SET_FILENAME, BIO_CLOSE or BIO_FP_READ, name);
 end;
 
-function BIO_s_file: PBIO_METHOD;
+function BIO_s_file: pBIO_METHOD;
 begin
   if InitSSLInterface and Assigned(_BIO_s_file) then
     Result := _BIO_s_file
@@ -4502,14 +4624,14 @@ var
   i: cInt;
 begin
   Result := NilHandle;
-  
+
   for i := Low(DLLVersions) to High(DLLVersions) do begin
     {$IFDEF DARWIN}
     Result := LoadLibrary(Value + DLLVersions[i] + '.dylib');
     {$ELSE}
     Result := LoadLibrary(Value + '.so' + DLLVersions[i]);
     {$ENDIF}
-    
+
     if Result <> NilHandle then
       Break;
   end;
@@ -4643,7 +4765,9 @@ begin
   _d2iPKCS12bio := GetProcAddr(SSLUtilHandle, 'd2i_PKCS12_bio');
   _PKCS12parse := GetProcAddr(SSLUtilHandle, 'PKCS12_parse');
   _PKCS12free := GetProcAddr(SSLUtilHandle, 'PKCS12_free');
-  _Asn1UtctimeNew := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_new');
+  _Asn1UtctimeSetString := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_set_string');
+  _Asn1StringTypeNew := GetProcAddr(SSLUtilHandle, 'ASN1_STRING_type_new');
+  _Asn1UtctimePrint := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_print');
   _Asn1UtctimeFree := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_free');
   _Asn1IntegerSet := GetProcAddr(SSLUtilHandle, 'ASN1_INTEGER_set');
   _Asn1IntegerGet := GetProcAddr(SSLUtilHandle, 'ASN1_INTEGER_get');
@@ -4755,7 +4879,8 @@ begin
   _PEM_write_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PrivateKey');
   _PEM_write_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PUBKEY');
   _PEM_read_bio_X509 := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_X509');
-  
+  _PEM_write_bio_X509 := GetProcAddr(SSLUtilHandle,'PEM_write_bio_X509');
+  _PEM_write_bio_PKCS7 := GetProcAddr(SSLUtilHandle,'PEM_write_bio_PKCS7');
   // BIO
   _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl');
   _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file');
@@ -5105,7 +5230,9 @@ begin
   _d2iPKCS12bio := nil;
   _PKCS12parse := nil;
   _PKCS12free := nil;
-  _Asn1UtctimeNew := nil;
+  _Asn1UtctimeSetString := nil;
+  _Asn1StringTypeNew := nil;
+  _Asn1UtctimePrint := nil;
   _Asn1UtctimeFree := nil;
   _Asn1IntegerSet:= nil;
   _Asn1IntegerGet:= nil;
@@ -5216,6 +5343,8 @@ begin
   _PEM_read_bio_PUBKEY := nil;
   _PEM_write_bio_PrivateKey := nil;
   _PEM_read_bio_X509 := nil;
+  _PEM_write_bio_X509 := nil;
+  _PEM_write_bio_PKCS7 := nil;
 
   // BIO
 

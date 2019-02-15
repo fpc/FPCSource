@@ -3422,6 +3422,7 @@ var
   E: TEvent;
   OldEvent : PEvent;
   CCAction: TCCAction;
+  LinesScroll : sw_integer;
 begin
   CCAction:=ccClear;
   E:=Event;
@@ -3437,6 +3438,18 @@ begin
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) then
+       if (Event.Buttons=mbScrollWheelUp) then { mouse scroll up}
+         begin
+           LinesScroll:=1;
+           if Event.Double then LinesScroll:=LinesScroll+4;
+           ScrollTo(Delta.X, Delta.Y + LinesScroll);
+         end else
+       if (Event.Buttons=mbScrollWheelDown) then  { mouse scroll down }
+         begin
+           LinesScroll:=-1;
+           if Event.Double then LinesScroll:=LinesScroll-4;
+           ScrollTo(Delta.X, Delta.Y + LinesScroll);
+         end else
        if (Event.Buttons=mbRightButton) then
          begin
            MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
@@ -5124,7 +5137,7 @@ begin
   OK:=(S[StartPos] in WordChars);
   if OK then
     begin
-       While (StartPos>0) and (S[StartPos-1] in WordChars) do
+       While (StartPos>1) and (S[StartPos-1] in WordChars) do
          Dec(StartPos);
        While (EndPos<Length(S)) and (S[EndPos+1] in WordChars) do
          Inc(EndPos);
@@ -5978,12 +5991,11 @@ begin
 end;
 
 procedure TCustomCodeEditor.GotoLine;
-var
-  GotoRec: TGotoLineDialogRec;
+const
+  GotoRec: TGotoLineDialogRec = (LineNo:'1';Lines:0);  {keep previous goto line number}
 begin
   with GotoRec do
   begin
-    LineNo:='1';
     Lines:=GetLineCount;
     {Linecount can be 0, but in that case there still is a cursor blinking in top
      of the window, which will become line 1 as soon as sometype hits a key.}

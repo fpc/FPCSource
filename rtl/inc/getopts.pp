@@ -47,27 +47,24 @@ Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Longin
 
 
 Implementation
-{$IFNDEF FPC}
-  {$ifdef TP}
-    uses strings;
-  {$else }
-    uses SysUtils;
-    type PtrInt = Integer;
-  {$endif}
-{$ENDIF FPC}
 
+{$IFNDEF FPC}
 {***************************************************************************
                                Create an ArgV
 ***************************************************************************}
 
-{$IF not Declared(argv)} //{$ifdef TP}
+uses SysUtils;
+
+    type PtrInt = Integer;
 
 type
   ppchar = ^pchar;
   apchar = array[0..127] of pchar;
+
 var
   argc  : longint;
   argv  : apchar;
+
 const
   CHAR_SIZE = SizeOf(Char);
 
@@ -139,7 +136,7 @@ begin
   move(argsbuf,argv,count shl 2);
 end;
 
-{$IFEND} //{$endif TP}
+{$ENDIF}
 
 {***************************************************************************
                                Real Getopts
@@ -167,7 +164,7 @@ begin
     if (top-middle>middle-bottom) then
       begin
       len:=middle-bottom;
-      for i:=1 to len-1 do
+      for i:=0 to len-1 do
         begin
         temp:=argv[bottom+i];
         argv[bottom+i]:=argv[top-(middle-bottom)+i];
@@ -496,17 +493,8 @@ begin
   getlongopts:=internal_getopt(shortopts,longopts,@longind,true);
 end;
 
-{$ifdef FPC}
-    initialization
-{$endif}
-{$ifndef FPC}
-  {$ifdef TP}
-    begin
-  {$else}
-    initialization
-  {$endif}
-{$endif}
-{ create argv if running under TP }
+initialization
+{ create argv if not running under FPC }
 {$ifndef FPC}
   setup_arguments;
 {$endif}

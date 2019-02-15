@@ -73,7 +73,7 @@ uses
   node,nobj,
   { parser }
   scanner,
-  pbase,pexpr,pdecsub,ptype,psub;
+  pbase,pexpr,pdecsub,ptype,psub,pparautl;
 
 
     procedure maybe_add_waiting_unit(tt:tdef);
@@ -1077,7 +1077,7 @@ uses
                         end;
                       if replaydepth>current_scanner.replay_stack_depth then
                         parse_var_proc_directives(ttypesym(srsym));
-                      handle_calling_convention(tprocvardef(result));
+                      handle_calling_convention(tprocvardef(result),hcc_default_actions_intf);
                       if not hintsprocessed and (replaydepth>current_scanner.replay_stack_depth) then
                         begin
                           try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
@@ -1095,7 +1095,10 @@ uses
                       parse_proc_directives(pd,pdflags);
                       while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
                         consume(_SEMICOLON);
-                      handle_calling_convention(tprocdef(result),hcc_all);
+                      if parse_generic then
+                        handle_calling_convention(tprocdef(result),hcc_default_actions_intf)
+                      else
+                        handle_calling_convention(tprocdef(result),hcc_default_actions_impl);
                       proc_add_definition(tprocdef(result));
                       { for partial specializations we implicitely declare the routine as
                         having its implementation although we'll not specialize it in reality }

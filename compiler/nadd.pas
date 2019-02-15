@@ -3694,7 +3694,7 @@ implementation
                    we're done here }
                  expectloc:=LOC_REGISTER;
                end
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               { is there a 64 bit type ? }
              else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) then
                begin
@@ -3706,7 +3706,22 @@ implementation
                   else
                     expectloc:=LOC_JUMP;
                end
-{$endif cpu64bitalu}
+{$else if defined(llvm) and cpu32bitalu}
+            { llvm does not support 128 bit math on 32 bit targets, which is
+              necessary for overflow checking 64 bit operations }
+            else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) and
+                    (cs_check_overflow in current_settings.localswitches) and
+                    (nodetype in [addn,subn,muln]) then
+              begin
+                result := first_add64bitint;
+                if assigned(result) then
+                  exit;
+                 if nodetype in [addn,subn,muln,andn,orn,xorn] then
+                   expectloc:=LOC_REGISTER
+                 else
+                   expectloc:=LOC_JUMP;
+              end
+{$endif not(cpu64bitalu) and not(cpuhighleveltarget)}
              { generic 32bit conversion }
              else
                begin
@@ -3740,8 +3755,10 @@ implementation
 {$endif cpuneedsmulhelper}
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
+{$if not defined(cpuhighleveltarget)}
                   else if torddef(ld).size>sizeof(aint) then
                     expectloc:=LOC_JUMP
+{$endif}
                   else
                     expectloc:=LOC_FLAGS;
               end;

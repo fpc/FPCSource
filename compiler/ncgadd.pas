@@ -146,7 +146,7 @@ interface
     procedure tcgaddnode.set_result_location_reg;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         if location.size in [OS_64,OS_S64] then
           begin
             location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -435,7 +435,7 @@ interface
               else
                  internalerror(200203247);
             end;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
             if right.location.size in [OS_64,OS_S64] then
               begin
                 if right.location.loc <> LOC_CONSTANT then
@@ -522,7 +522,7 @@ interface
           (right.resultdef.typ<>pointerdef) and
           (cs_check_overflow in current_settings.localswitches) and not(nf_internal in flags);
 
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
         case nodetype of
           xorn,orn,andn,addn:
             begin
@@ -563,7 +563,7 @@ interface
           else
             internalerror(2002072803);
         end;
-{$else cpu64bitalu}
+{$else cpu64bitalu or cpuhighleveltarget}
         case nodetype of
           xorn,orn,andn,addn:
             begin
@@ -609,7 +609,7 @@ interface
           else
             internalerror(2002072803);
         end;
-{$endif cpu64bitalu}
+{$endif cpu64bitalu or cpuhighleveltarget}
 
         { emit overflow check if enabled }
         if checkoverflow then

@@ -31,7 +31,8 @@ unit procinfo;
       { global }
       globtype,
       { symtable }
-      symconst,symdef,symsym,
+      symconst,symtype,symdef,symsym,
+      node,
       { aasm }
       cpubase,cgbase,cgutils,
       aasmbase,aasmdata;
@@ -168,6 +169,8 @@ unit procinfo;
           function has_nestedprocs: boolean;
           function get_normal_proc: tprocinfo;
 
+          function create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
+
           { Add to parent's list of nested procedures even if parent is a 'main' procedure }
           procedure force_nested;
 
@@ -189,7 +192,8 @@ unit procinfo;
 implementation
 
     uses
-      cutils,systems;
+      globals,cutils,systems,
+      procdefutil;
 
 {****************************************************************************
                                  TProcInfo
@@ -271,6 +275,17 @@ implementation
         result:=self;
         while assigned(result.parent) and (result.procdef.parast.symtablelevel>normal_function_level) do
           result:=result.parent;
+      end;
+
+    function tprocinfo.create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
+      begin
+        result:=cprocinfo.create(self);
+        result.force_nested;
+        result.procdef:=create_outline_procdef(basesymname,astruct,potype,resultdef);
+        result.entrypos:=entrynodeinfo.fileinfo;
+        result.entryswitches:=entrynodeinfo.localswitches;
+        result.exitpos:=current_filepos; // filepos of last node?
+        result.exitswitches:=current_settings.localswitches; // localswitches of last node?
       end;
 
     procedure tprocinfo.allocate_push_parasize(size:longint);

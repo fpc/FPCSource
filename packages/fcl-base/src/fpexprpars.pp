@@ -780,6 +780,7 @@ Type
     Property Identifiers : TFPExprIdentifierDefs Read FIdentifiers Write SetIdentifiers;
     Property BuiltIns : TBuiltInCategories Read FBuiltIns Write SetBuiltIns;
   end;
+  TFPExpressionParserClass = Class of TFPExpressionParser;
 
   { TExprBuiltInManager }
 
