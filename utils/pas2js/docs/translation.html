@@ -1518,7 +1518,14 @@ function(){
     <li>In Delphi/FPC an empty array is <i>nil</i>. In JS it can be <i>null</i> or <i>[]</i>.
      For compatibility comparing an array with <i>nil</i> checks for <i>length(a)>0</i>.</li>
     <li><i>function Assigned(array): boolean</i>  results true iff <i>length(array)>0</i>.</li>
-    <li>Not yet implemented: array of const.</li>
+    <li>array of const:
+      <ul>
+      <li>Works the same: vtInteger, vtBoolean, vtPointer, vtObject, vtClass, vtWideChar, vtInterface, vtUnicodeString</li>
+      <li>vtExtended is double, Delphi/FPC: PExtended</li>
+      <li>vtCurrency is currency, Delphi/FPC: PCurrency</li>
+      <li>Not supported: vtChar, vtString, vtPChar, vtPWideChar, vtAnsiString, vtVariant, vtWideString, vtInt64, vtQWord</li>
+      <li>only in pas2js: vtNativeInt, vtJSValue</li>
+      </ul></li>
     <li>Assignation using constant array, e.g. <i>a:=[1,1,2];</i></li>
     <li>String like operation: + operator concatenates arrays. e.g. <i>a:=[1]+[2];</i>.
       This is controlled by modeswitch arrayoperators, which is enabled in mode delphi.</li>
