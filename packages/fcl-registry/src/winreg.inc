@@ -28,12 +28,13 @@ begin
   Dispose(PWinRegData(FSysData));
 end;
 
-Function PrepKey(Const S : String) : pChar;
+Function PrepKey(Const S : String) : String;
 
 begin
-  Result:=PChar(S);
-  If Result^='\' then
-    Inc(Result);
+  If Copy(S, 1, 1)='\' then
+    Result := Copy(Result, 2)
+  else
+    Result := S;
 end;
 
 Function RelativeKey(Const S : String) : Boolean;
@@ -52,7 +53,7 @@ Var
 
 begin
   SecurityAttributes := Nil;
-  u:=UTF8Decode(PrepKey(Key));
+  u:=PrepKey(Key);
   FLastError:=RegCreateKeyExW(GetBaseKey(RelativeKey(Key)),
                               PWideChar(u),
                               0,
@@ -71,14 +72,14 @@ function TRegistry.DeleteKey(const Key: String): Boolean;
 Var
   u: UnicodeString;
 begin
-  u:=UTF8Decode(PRepKey(Key));
+  u:=PRepKey(Key);
   FLastError:=RegDeleteKeyW(GetBaseKey(RelativeKey(Key)),PWideChar(u));
   Result:=FLastError=ERROR_SUCCESS;
 end;
 
 function TRegistry.DeleteValue(const Name: String): Boolean;
 begin
-  FLastError:= RegDeleteValueW(fCurrentKey, PWideChar(UTF8Decode(Name)));
+  FLastError:= RegDeleteValueW(fCurrentKey, PWideChar(UnicodeString(Name)));
   Result:=FLastError=ERROR_SUCCESS;
 end;
 
@@ -89,7 +90,7 @@ Var
   RD : DWord;
 
 begin
-  u := UTF8Decode(Name);
+  u := Name;
   FLastError:=RegQueryValueExW(fCurrentKey,PWideChar(u),Nil,
                       @RD,Buffer,lpdword(@BufSize));
   if (FLastError<>ERROR_SUCCESS) Then
@@ -110,7 +111,7 @@ Var
   RD : DWord;
 
 begin
-  u:=UTF8Decode(ValueName);
+  u:=ValueName;
   With Value do
     begin
     FLastError:=RegQueryValueExW(fCurrentKey,PWideChar(u),Nil,lpdword(@RegData),Nil,lpdword(@DataSize));
@@ -147,7 +148,7 @@ begin
 {$ifdef WinCE}
   FLastError:=RegOpenKeyEx(GetBaseKey(Rel),PWideChar(WideString(S)),0,FAccess,Result);
 {$else WinCE}
-  u:=UTF8Decode(S);
+  u:=UnicodeString(S);
   FLastError:=RegOpenKeyExW(GetBaseKey(Rel),PWideChar(u),0,FAccess,Result);
 {$endif WinCE}
 end;
@@ -212,7 +213,7 @@ Var
   S: string;
 begin
   SecurityAttributes := Nil;
-  u:=UTF8Decode(PrepKey(Key));
+  u:=PrepKey(Key);
   If CanCreate then
     begin
     Handle:=0;
@@ -260,7 +261,7 @@ begin
 {$ifdef WinCE}
   Result:=False;
 {$else}
-  FLastError:=RegConnectRegistryW(PWideChar(UTF8Decode(UNCName)),RootKey,newroot);
+  FLastError:=RegConnectRegistryW(PWideChar(UnicodeString(UNCName)),RootKey,newroot);
   Result:=FLastError=ERROR_SUCCESS;
   if Result then begin
     RootKey:=newroot;
@@ -422,7 +423,7 @@ Var
 
 begin
   RegDataType:=RegDataWords[RegData];
-  u:=UTF8Decode(Name);
+  u:=UnicodeString(Name);
   FLastError:=RegSetValueExW(fCurrentKey,PWideChar(u),0,RegDataType,Buffer,BufSize);
   Result:=FLastError=ERROR_SUCCESS;
 end;
