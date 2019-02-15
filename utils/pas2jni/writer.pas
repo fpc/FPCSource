@@ -387,9 +387,7 @@ begin
   s:=Prefix + d.Name;
   i:=IncludeList.IndexOf(s);
   if i >= 0 then begin
-    i:=ptruint(IncludeList.Objects[i]);
-    if (i = 0) or (d.Count = i - 1) then
-      d.IsUsed:=True;
+    d.IsUsed:=True;
   end
   else
     if ExcludeList.IndexOf(s) >= 0 then begin
