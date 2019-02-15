@@ -38,8 +38,8 @@ uses
   // !! No filesystem units here.
   Classes, SysUtils, contnrs,
   jsbase, jstree, jswriter, JSSrcMap,
-  PScanner, PParser, PasTree, PasResolver, PasUseAnalyzer, PasResolveEval,
-  FPPas2Js, FPPJsSrcMap, Pas2jsLogger, Pas2jsFS, Pas2jsPParser;
+  PScanner, PParser, PasTree, PasResolver, PasResolveEval, PasUseAnalyzer,
+  FPPas2Js, FPPJsSrcMap, Pas2jsLogger, Pas2jsFS, Pas2jsPParser, Pas2jsUseAnalyzer;
 
 const
   VersionMajor = 1;
@@ -346,7 +346,7 @@ type
     FScanner: TPas2jsPasScanner;
     FShowDebug: boolean;
     FUnitFilename: string;
-    FUseAnalyzer: TPasAnalyzer;
+    FUseAnalyzer: TPas2JSAnalyzer;
     FUsedBy: array[TUsedBySection] of TFPList; // list of TPas2jsCompilerFile
     function GetUsedBy(Section: TUsedBySection; Index: integer): TPas2jsCompilerFile;
     function GetUsedByCount(Section: TUsedBySection): integer;
@@ -413,7 +413,7 @@ type
     property Scanner: TPas2jsPasScanner read FScanner;
     property ShowDebug: boolean read FShowDebug write FShowDebug;
     property UnitFilename: string read FUnitFilename;
-    property UseAnalyzer: TPasAnalyzer read FUseAnalyzer; // unit analysis
+    property UseAnalyzer: TPas2JSAnalyzer read FUseAnalyzer; // unit analysis
     property UsedByCount[Section: TUsedBySection]: integer read GetUsedByCount;
     property UsedBy[Section: TUsedBySection; Index: integer]: TPas2jsCompilerFile read GetUsedBy;
   end;
@@ -454,11 +454,6 @@ type
     property Compiler:  TPas2jsCompiler Read FCompiler;
   end;
 
-  { TPas2JSWPOptimizer }
-
-  TPas2JSWPOptimizer = class(TPasAnalyzer)
-  end;
-
   { TPas2jsCompiler }
 
   TPas2jsCompiler = class
@@ -484,7 +479,7 @@ type
     FParamMacros: TPas2jsMacroEngine;
     FSrcMapSourceRoot: string;
     FUnits: TPasAnalyzerKeySet; // set of TPas2jsCompilerFile, key is PasUnitName
-    FWPOAnalyzer: TPas2JSWPOptimizer;
+    FWPOAnalyzer: TPas2JSAnalyzer;
     FInterfaceType: TPasClassInterfaceType;
     FPrecompileGUID: TGUID;
     FInsertFilenames: TStringList;
@@ -564,7 +559,7 @@ type
     function CreateLog: TPas2jsLogger; virtual;
     function CreateMacroEngine: TPas2jsMacroEngine;virtual;
     function CreateSrcMap(const aFileName: String): TPas2JSSrcMap; virtual;
-    function CreateOptimizer: TPas2JSWPOptimizer;
+    function CreateOptimizer: TPas2JSAnalyzer;
     // These are mandatory !
     function CreateSetOfCompilerFiles(keyType: TKeyCompareType): TPasAnalyzerKeySet; virtual; abstract;
     function CreateFS: TPas2JSFS; virtual; abstract;
@@ -672,7 +667,7 @@ type
     property SkipDefaultConfig: Boolean read GetSkipDefaultConfig write SetSkipDefaultConfig;
     property TargetPlatform: TPasToJsPlatform read GetTargetPlatform write SetTargetPlatform;
     property TargetProcessor: TPasToJsProcessor read GetTargetProcessor write SetTargetProcessor;
-    property WPOAnalyzer: TPas2JSWPOptimizer read FWPOAnalyzer; // Whole Program Optimization
+    property WPOAnalyzer: TPas2JSAnalyzer read FWPOAnalyzer; // Whole Program Optimization
     property WriteDebugLog: boolean read GetWriteDebugLog write SetWriteDebugLog;
     property WriteMsgToStdErr: boolean read GetWriteMsgToStdErr write SetWriteMsgToStdErr;
     property AllJSIntoMainJS: Boolean Read FAllJSIntoMainJS Write SetAllJSIntoMainJS;
@@ -936,7 +931,7 @@ begin
   for ub in TUsedBySection do
     FUsedBy[ub]:=TFPList.Create;
 
-  FUseAnalyzer:=TPasAnalyzer.Create;
+  FUseAnalyzer:=TPas2JSAnalyzer.Create;
   FUseAnalyzer.OnMessage:=@OnUseAnalyzerMessage;
   FUseAnalyzer.Resolver:=FPasResolver;
 
@@ -1938,10 +1933,10 @@ begin
   Result:=aFile.NeedBuild;
 end;
 
-function TPas2jsCompiler.CreateOptimizer: TPas2JSWPOptimizer;
+function TPas2jsCompiler.CreateOptimizer: TPas2JSAnalyzer;
 
 begin
-  Result:=TPas2JSWPOptimizer.Create;
+  Result:=TPas2JSAnalyzer.Create;
 end;
 
 procedure TPas2jsCompiler.OptimizeProgram(aFile: TPas2jsCompilerFile);

@@ -49,6 +49,12 @@ type
     Next: PSrcMarker;
   end;
 
+  TSystemUnitPart = (
+    supTObject,
+    supTVarRec
+    );
+  TSystemUnitParts = set of TSystemUnitPart;
+
   { TTestHintMessage }
 
   TTestHintMessage = class
@@ -153,9 +159,9 @@ type
     function AddModuleWithSrc(aFilename, Src: string): TTestEnginePasResolver; virtual;
     function AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
       ImplementationSrc: string): TTestEnginePasResolver; virtual;
-    procedure AddSystemUnit; virtual;
-    procedure StartProgram(NeedSystemUnit: boolean); virtual;
-    procedure StartUnit(NeedSystemUnit: boolean); virtual;
+    procedure AddSystemUnit(Parts: TSystemUnitParts = []); virtual;
+    procedure StartProgram(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []); virtual;
+    procedure StartUnit(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []); virtual;
     procedure ConvertModule; virtual;
     procedure ConvertProgram; virtual;
     procedure ConvertUnit; virtual;
@@ -412,8 +418,6 @@ type
     Procedure TestArrayOfRecord;
     Procedure TestArray_StaticRecord;
     Procedure TestArrayOfSet;
-    // call(set)  literal and clone var
-    // call([set])   literal and clone var
     Procedure TestArray_DynAsParam;
     Procedure TestArray_StaticAsParam;
     Procedure TestArrayElement_AsParams;
@@ -434,6 +438,10 @@ type
     Procedure TestArray_ForInArrOfString;
     Procedure TestExternalClass_TypeCastArrayToExternalClass;
     Procedure TestExternalClass_TypeCastArrayFromExternalClass;
+    Procedure TestArrayOfConst_TVarRec;
+    Procedure TestArrayOfConst_PassBaseTypes;
+    Procedure TestArrayOfConst_PassObj;
+    // ToDo: tcfiler TPasModuleScope.SystemTVarRec TPas2JSModuleScope.SystemVarRecs
 
     // record
     Procedure TestRecord_Empty;
@@ -452,7 +460,6 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
-    // ToDo: Procedure TestRecord_ExternalField;
     // ToDo: RTTI of local record
     // ToDo: pcu local record, name clash and rtti
 
@@ -1512,36 +1519,136 @@ begin
   Result:=AddModuleWithSrc(aFilename,Src);
 end;
 
-procedure TCustomTestModule.AddSystemUnit;
+procedure TCustomTestModule.AddSystemUnit(Parts: TSystemUnitParts);
+var
+  Intf, Impl: TStringList;
 begin
-  AddModuleWithIntfImplSrc('system.pp',
-    // interface
-    LinesToStr([
+  Intf:=TStringList.Create;
+  // interface
+  if supTVarRec in Parts then
+    Intf.Add('{$modeswitch externalclass}');
+  Intf.Add('type');
+  Intf.Add('  integer=longint;');
+  Intf.Add('  sizeint=nativeint;');
+    //'const',
+    //'  LineEnding = #10;',
+    //'  DirectorySeparator = ''/'';',
+    //'  DriveSeparator = '''';',
+    //'  AllowDirectorySeparators : set of char = [''\'',''/''];',
+    //'  AllowDriveSeparators : set of char = [];',
+  if supTObject in Parts then
+    Intf.AddStrings([
     'type',
-    '  integer=longint;',
+    '  TClass = class of TObject;',
+    '  TObject = class',
+    '    constructor Create;',
+    '    destructor Destroy; virtual;',
+    '    class function ClassType: TClass; assembler;',
+    '    class function ClassName: String; assembler;',
+    '    class function ClassNameIs(const Name: string): boolean;',
+    '    class function ClassParent: TClass; assembler;',
+    '    class function InheritsFrom(aClass: TClass): boolean; assembler;',
+    '    class function UnitName: String; assembler;',
+    '    procedure AfterConstruction; virtual;',
+    '    procedure BeforeDestruction;virtual;',
+    '    function Equals(Obj: TObject): boolean; virtual;',
+    '    function ToString: String; virtual;',
+    '  end;']);
+  if supTVarRec in Parts then
+    Intf.AddStrings([
+    'const',
+    '  vtInteger       = 0;',
+    '  vtBoolean       = 1;',
+    '  vtJSValue       = 19;',
+    'type',
+    '  PVarRec = ^TVarRec;',
+    '  TVarRec = record',
+    '    VType : byte;',
+    '    VJSValue: JSValue;',
+    '    vInteger: longint external name ''VJSValue'';',
+    '    vBoolean: boolean external name ''VJSValue'';',
+    '  end;',
+    '  TVarRecArray = array of TVarRec;',
+    'function VarRecs: TVarRecArray; varargs;',
+    '']);
+  Intf.Add('var');
+  Intf.Add('  ExitCode: Longint = 0;');
+
+  // implementation
+  Impl:=TStringList.Create;
+  if supTObject in Parts then
+    Impl.AddStrings([
+      '// needed by ClassNameIs, the real SameText is in SysUtils',
+      'function SameText(const s1, s2: String): Boolean; assembler;',
+      'asm',
+      'end;',
+      'constructor TObject.Create; begin end;',
+      'destructor TObject.Destroy; begin end;',
+      'class function TObject.ClassType: TClass; assembler;',
+      'asm',
+      'end;',
+      'class function TObject.ClassName: String; assembler;',
+      'asm',
+      'end;',
+      'class function TObject.ClassNameIs(const Name: string): boolean;',
+      'begin',
+      '  Result:=SameText(Name,ClassName);',
+      'end;',
+      'class function TObject.ClassParent: TClass; assembler;',
+      'asm',
+      'end;',
+      'class function TObject.InheritsFrom(aClass: TClass): boolean; assembler;',
+      'asm',
+      'end;',
+      'class function TObject.UnitName: String; assembler;',
+      'asm',
+      'end;',
+      'procedure TObject.AfterConstruction; begin end;',
+      'procedure TObject.BeforeDestruction; begin end;',
+      'function TObject.Equals(Obj: TObject): boolean;',
+      'begin',
+      '  Result:=Obj=Self;',
+      'end;',
+      'function TObject.ToString: String;',
+      'begin',
+      '  Result:=ClassName;',
+      'end;'
+      ]);
+  if supTVarRec in Parts then
+    Impl.AddStrings([
+    'function VarRecs: TVarRecArray; varargs;',
     'var',
-    '  ExitCode: Longint;',
-    ''
-    // implementation
-    ]),LinesToStr([
-    ''
-    ]));
+    '  v: PVarRec;',
+    'begin',
+    '  v^.VType:=1;',
+    '  v^.VJSValue:=2;',
+    'end;',
+    '']);
+
+  try
+    AddModuleWithIntfImplSrc('system.pp',Intf.Text,Impl.Text);
+  finally
+    Intf.Free;
+    Impl.Free;
+  end;
 end;
 
-procedure TCustomTestModule.StartProgram(NeedSystemUnit: boolean);
+procedure TCustomTestModule.StartProgram(NeedSystemUnit: boolean;
+  SystemUnitParts: TSystemUnitParts);
 begin
   if NeedSystemUnit then
-    AddSystemUnit
+    AddSystemUnit(SystemUnitParts)
   else
     Parser.ImplicitUses.Clear;
   Add('program '+ExtractFileUnitName(Filename)+';');
   Add('');
 end;
 
-procedure TCustomTestModule.StartUnit(NeedSystemUnit: boolean);
+procedure TCustomTestModule.StartUnit(NeedSystemUnit: boolean;
+  SystemUnitParts: TSystemUnitParts);
 begin
   if NeedSystemUnit then
-    AddSystemUnit
+    AddSystemUnit(SystemUnitParts)
   else
     Parser.ImplicitUses.Clear;
   Add('unit Test1;');
@@ -9481,10 +9588,154 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArrayOfConst_TVarRec;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'procedure Say(args: array of const);',
+  'var',
+  '  i: longint;',
+  '  v: TVarRec;',
+  'begin',
+  '  for i:=low(args) to high(args) do begin',
+  '    v:=args[i];',
+  '    case v.vtype of',
+  '    vtInteger: if length(args)=args[i].vInteger then ;',
+  '    end;',
+  '  end;',
+  '  for v in args do ;',
+  '  args:=nil;',
+  '  SetLength(args,2);',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestArrayOfConst_TVarRec',
+    LinesToStr([ // statements
+    'this.Say = function (args) {',
+    '  var i = 0;',
+    '  var v = pas.system.TVarRec.$new();',
+    '  for (var $l1 = 0, $end2 = rtl.length(args) - 1; $l1 <= $end2; $l1++) {',
+    '    i = $l1;',
+    '    v.$assign(args[i]);',
+    '    var $tmp3 = v.VType;',
+    '    if ($tmp3 === 0) if (rtl.length(args) === args[i].VJSValue) ;',
+    '  };',
+    '  for (var $in4 = args, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) v = $in4[$l5];',
+    '  args = [];',
+    '  args = rtl.arraySetLength(args, pas.system.TVarRec, 2);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    ]));
+end;
+
+procedure TTestModule.TestArrayOfConst_PassBaseTypes;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'procedure Say(args: array of const);',
+  'begin',
+  '  Say(args);',
+  'end;',
+  'var',
+  '  p: Pointer;',
+  '  j: jsvalue;',
+  '  c: currency;',
+  'begin',
+  '  Say([]);',
+  '  Say([1]);',
+  '  Say([''c'',''foo'',nil,true,1.3,p,j,c]);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArrayOfConst_PassBaseTypes',
+    LinesToStr([ // statements
+    'this.Say = function (args) {',
+    '  $mod.Say(args);',
+    '};',
+    'this.p = null;',
+    'this.j = undefined;',
+    'this.c = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Say([]);',
+    '$mod.Say(pas.system.VarRecs(0, 1));',
+    '$mod.Say(pas.system.VarRecs(',
+    '  9,',
+    '  "c",',
+    '  18,',
+    '  "foo",',
+    '  5,',
+    '  null,',
+    '  1,',
+    '  true,',
+    '  3,',
+    '  1.3,',
+    '  5,',
+    '  $mod.p,',
+    '  20,',
+    '  $mod.j,',
+    '  12,',
+    '  $mod.c',
+    '  ));',
+    '']));
+end;
+
+procedure TTestModule.TestArrayOfConst_PassObj;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TClass = class of TObject;',
+  '  IUnknown = interface',
+  '  end;',
+  'procedure Say(args: array of const);',
+  'begin',
+  'end;',
+  'var',
+  '  o: TObject;',
+  '  c: TClass;',
+  '  i: IUnknown;',
+  'begin',
+  '  Say([o,c,TObject]);',
+  '  Say([nil,i]);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArrayOfConst_PassObj',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'this.Say = function (args) {',
+    '};',
+    'this.o = null;',
+    'this.c = null;',
+    'this.i = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Say(pas.system.VarRecs(',
+    '  7,',
+    '  $mod.o,',
+    '  8,',
+    '  $mod.c,',
+    '  8,',
+    '  $mod.TObject',
+    '));',
+    '$mod.Say(pas.system.VarRecs(5, null, 14, $mod.i));',
+    '']));
+end;
+
 procedure TTestModule.TestRecord_Empty;
 begin
   StartProgram(false);
-  Add(['type',
+  Add([
+  'type',
   '  TRecA = record',
   '  end;',
   'var a,b: TRecA;',

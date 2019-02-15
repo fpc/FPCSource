@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, testregistry, fppas2js, pastree,
-  PScanner, PasUseAnalyzer, PasResolver, PasResolveEval,
+  PScanner, Pas2jsUseAnalyzer, PasResolver, PasResolveEval,
   tcmodules;
 
 type
@@ -34,8 +34,8 @@ type
 
   TCustomTestOptimizations = class(TCustomTestModule)
   private
-    FAnalyzerModule: TPasAnalyzer;
-    FAnalyzerProgram: TPasAnalyzer;
+    FAnalyzerModule: TPas2JSAnalyzer;
+    FAnalyzerProgram: TPas2JSAnalyzer;
     FWholeProgramOptimization: boolean;
     function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
     function OnConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
@@ -46,8 +46,8 @@ type
     procedure ParseProgram; override;
     function CreateConverter: TPasToJSConverter; override;
   public
-    property AnalyzerModule: TPasAnalyzer read FAnalyzerModule;
-    property AnalyzerProgram: TPasAnalyzer read FAnalyzerProgram;
+    property AnalyzerModule: TPas2JSAnalyzer read FAnalyzerModule;
+    property AnalyzerProgram: TPas2JSAnalyzer read FAnalyzerProgram;
     property WholeProgramOptimization: boolean read FWholeProgramOptimization
         write FWholeProgramOptimization;
   end;
@@ -78,6 +78,7 @@ type
     procedure TestWPO_Class_OmitPropertySetter2;
     procedure TestWPO_CallInherited;
     procedure TestWPO_UseUnit;
+    procedure TestWPO_ArrayOfConst;
     procedure TestWPO_Class_PropertyInOtherUnit;
     procedure TestWPO_ProgramPublicDeclaration;
     procedure TestWPO_ConstructorDefaultValueConst;
@@ -92,7 +93,7 @@ implementation
 function TCustomTestOptimizations.OnConverterIsElementUsed(Sender: TObject;
   El: TPasElement): boolean;
 var
-  A: TPasAnalyzer;
+  A: TPas2JSAnalyzer;
 begin
   if WholeProgramOptimization then
     A:=AnalyzerProgram
@@ -114,7 +115,7 @@ end;
 function TCustomTestOptimizations.OnConverterIsTypeInfoUsed(Sender: TObject;
   El: TPasElement): boolean;
 var
-  A: TPasAnalyzer;
+  A: TPas2JSAnalyzer;
 begin
   if WholeProgramOptimization then
     A:=AnalyzerProgram
@@ -137,9 +138,9 @@ procedure TCustomTestOptimizations.SetUp;
 begin
   inherited SetUp;
   FWholeProgramOptimization:=false;
-  FAnalyzerModule:=TPasAnalyzer.Create;
+  FAnalyzerModule:=TPas2JSAnalyzer.Create;
   FAnalyzerModule.Resolver:=Engine;
-  FAnalyzerProgram:=TPasAnalyzer.Create;
+  FAnalyzerProgram:=TPas2JSAnalyzer.Create;
   FAnalyzerProgram.Resolver:=Engine;
 end;
 
@@ -812,6 +813,42 @@ begin
     '});',
     '']);
   CheckDiff('TestWPO_UseUnit',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_ArrayOfConst;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'procedure Say(arr: array of const);',
+  'begin end;',
+  'begin',
+  '  Say([true]);']);
+  ConvertProgram;
+  CheckUnit('system.pp',
+  LinesToStr([
+  'rtl.module("system", [], function () {',
+  '  var $mod = this;',
+  '  rtl.recNewT($mod, "TVarRec", function () {',
+  '    this.VType = 0;',
+  '    this.VJSValue = undefined;',
+  '    this.$eq = function (b) {',
+  '      return (this.VType === b.VType) && (this.VJSValue === b.VJSValue);',
+  '    };',
+  '    this.$assign = function (s) {',
+  '      this.VType = s.VType;',
+  '      this.VJSValue = s.VJSValue;',
+  '      return this;',
+  '    };',
+  '  });',
+  '  this.VarRecs = function () {',
+  '    var Result = [];',
+  '    var v = null;',
+  '    v.VType = 1;',
+  '    v.VJSValue = 2;',
+  '    return Result;',
+  '  };',
+  '});',
+  '']));
 end;
 
 procedure TTestOptimizations.TestWPO_Class_PropertyInOtherUnit;

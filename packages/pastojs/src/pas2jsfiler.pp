@@ -860,6 +860,8 @@ type
     procedure Set_ModScope_AssertMsgConstructor(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_RangeErrorClass(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_RangeErrorConstructor(RefEl: TPasElement; Data: TObject);
+    procedure Set_ModScope_SystemTVarRec(RefEl: TPasElement; Data: TObject);
+    procedure Set_ModScope_SystemVarRecs(RefEl: TPasElement; Data: TObject);
     procedure Set_EnumTypeScope_CanonicalSet(RefEl: TPasElement; Data: TObject);
     procedure Set_PropertyScope_AncestorProp(RefEl: TPasElement; Data: TObject);
     procedure Set_ProcedureScope_ImplProc(RefEl: TPasElement; Data: TObject);
@@ -2511,6 +2513,8 @@ begin
   AddReferenceToObj(Obj,'AssertMsgConstructor',Scope.AssertMsgConstructor);
   AddReferenceToObj(Obj,'RangeErrorClass',Scope.RangeErrorClass);
   AddReferenceToObj(Obj,'RangeErrorConstructor',Scope.RangeErrorConstructor);
+  AddReferenceToObj(Obj,'SystemTVarRec',Scope.SystemTVarRec);
+  AddReferenceToObj(Obj,'SystemVarRecs',Scope.SystemVarRecs);
   WritePasScope(Obj,Scope,aContext);
 end;
 
@@ -4399,6 +4403,28 @@ begin
     RaiseMsg(20180211123100,Scope.Element,GetObjName(RefEl));
 end;
 
+procedure TPCUReader.Set_ModScope_SystemTVarRec(RefEl: TPasElement;
+  Data: TObject);
+var
+  Scope: TPas2JSModuleScope absolute Data;
+begin
+  if RefEl is TPasRecordType then
+    Scope.SystemTVarRec:=TPasRecordType(RefEl)
+  else
+    RaiseMsg(20190215230826,Scope.Element,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_ModScope_SystemVarRecs(RefEl: TPasElement;
+  Data: TObject);
+var
+  Scope: TPas2JSModuleScope absolute Data;
+begin
+  if RefEl is TPasFunction then
+    Scope.SystemVarRecs:=TPasFunction(RefEl)
+  else
+    RaiseMsg(20190215230857,Scope.Element,GetObjName(RefEl));
+end;
+
 procedure TPCUReader.Set_EnumTypeScope_CanonicalSet(RefEl: TPasElement;
   Data: TObject);
 var
@@ -6262,6 +6288,8 @@ begin
   ReadElementReference(Obj,Scope,'AssertMsgConstructor',@Set_ModScope_AssertMsgConstructor);
   ReadElementReference(Obj,Scope,'RangeErrorClass',@Set_ModScope_RangeErrorClass);
   ReadElementReference(Obj,Scope,'RangeErrorConstructor',@Set_ModScope_RangeErrorConstructor);
+  ReadElementReference(Obj,Scope,'SystemTVarRec',@Set_ModScope_SystemTVarRec);
+  ReadElementReference(Obj,Scope,'SystemVarRecs',@Set_ModScope_SystemVarRecs);
   ReadPasScope(Obj,Scope,aContext);
 end;
 

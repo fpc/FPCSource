@@ -87,6 +87,7 @@ Works:
   - skip clone record of new record
   - use rtl.recNewT to create a record type
   - use TRec.$new to instantiate records, using Object.create to instantiate
+  - record field external name
   - advanced records:
     - public, private, strict private
     - class var
@@ -396,6 +397,7 @@ Works:
   - pass property getter field, property getter function,
   - pass class property, static class property
   - pass array property
+- array of const, TVarRec
 
 ToDos:
 - cmd line param to set modeswitch
@@ -418,7 +420,6 @@ ToDos:
 - range check:
    arr[i]:=value  check if value is in range
    astring[i]:=value check if value is in range
-- record field external name
 - 1 as TEnum, ERangeError
 - ifthen<T>
 - stdcall of methods: pass original 'this' as first parameter
@@ -1067,6 +1068,7 @@ type
 
   TPas2JSModuleScope = class(TPasModuleScope)
   public
+    SystemVarRecs: TPasFunction;
   end;
 
   { TPas2JSSectionScope }
@@ -1304,6 +1306,12 @@ type
     procedure FinishArgument(El: TPasArgument); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
     procedure FinishProperty(PropEl: TPasProperty); override;
+    procedure FinishProcParamAccess(ProcType: TPasProcedureType;
+      Params: TParamsExpr); override;
+    procedure FinishPropertyParamAccess(Params: TParamsExpr; Prop: TPasProperty
+      ); override;
+    procedure FindCreatorArrayOfConst(Args: TFPList; ErrorEl: TPasElement);
+    function FindProc_ArrLitToArrayOfConst(ErrorEl: TPasElement): TPasFunction; virtual;
     procedure CheckExternalClassConstructor(Ref: TResolvedReference); virtual;
     procedure CheckConditionExpr(El: TPasExpr;
       const ResolvedEl: TPasResolverResult); override;
@@ -1974,6 +1982,31 @@ type
         otUIntDouble  // 7 NativeUInt
         );
     Function GetOrdType(MinValue, MaxValue: TMaxPrecInt; ErrorEl: TPasElement): TOrdType; virtual;
+  Public
+    // array of const, TVarRec
+    const
+      pas2js_vtInteger       = 0;
+      pas2js_vtBoolean       = 1;
+      //vtChar          = 2; // Delphi/FPC: ansichar
+      pas2js_vtExtended      = 3; // Note: double in pas2js, PExtended in Delphi/FPC
+      //vtString        = 4; // Delphi/FPC: PShortString
+      pas2js_vtPointer       = 5;
+      //vtPChar         = 6;
+      pas2js_vtObject        = 7;
+      pas2js_vtClass         = 8;
+      pas2js_vtWideChar      = 9;
+      //vtPWideChar     = 10;
+      //vtAnsiString    = 11;
+      pas2js_vtCurrency      = 12; // Note: currency in pas2js, PCurrency in Delphi/FPC
+      //vtVariant       = 13;
+      pas2js_vtInterface     = 14;
+      //vtWideString    = 15;
+      //vtInt64         = 16;
+      //vtQWord         = 17;
+      pas2js_vtUnicodeString = 18;
+      // only pas2js, not in Delphi/FPC:
+      pas2js_vtNativeInt     = 19;
+      pas2js_vtJSValue       = 20;
   Public
     Constructor Create;
     Destructor Destroy; override;
@@ -3952,6 +3985,87 @@ begin
     end;
 end;
 
+procedure TPas2JSResolver.FinishProcParamAccess(ProcType: TPasProcedureType;
+  Params: TParamsExpr);
+begin
+  inherited FinishProcParamAccess(ProcType, Params);
+  FindCreatorArrayOfConst(ProcType.Args,Params);
+end;
+
+procedure TPas2JSResolver.FinishPropertyParamAccess(Params: TParamsExpr;
+  Prop: TPasProperty);
+var
+  Args: TFPList;
+begin
+  inherited FinishPropertyParamAccess(Params, Prop);
+  Args:=GetPasPropertyArgs(Prop);
+  if Args=nil then
+    RaiseNotYetImplemented(20190215210914,Params,GetObjName(Prop));
+  FindCreatorArrayOfConst(Args,Params);
+end;
+
+procedure TPas2JSResolver.FindCreatorArrayOfConst(Args: TFPList;
+  ErrorEl: TPasElement);
+var
+  i: Integer;
+  Arg: TPasArgument;
+begin
+  for i:=0 to Args.Count-1 do
+    begin
+    Arg:=TPasArgument(Args[i]);
+    if not IsArrayOfConst(Arg.ArgType) then continue;
+    FindProc_ArrLitToArrayOfConst(ErrorEl);
+    end;
+end;
+
+function TPas2JSResolver.FindProc_ArrLitToArrayOfConst(ErrorEl: TPasElement
+  ): TPasFunction;
+var
+  aMod, UtilsMod: TPasModule;
+  ModScope: TPas2JSModuleScope;
+  SectionScope: TPasSectionScope;
+  Identifier: TPasIdentifier;
+  El: TPasElement;
+  FuncType: TPasFunctionType;
+begin
+  aMod:=RootElement;
+  ModScope:=aMod.CustomData as TPas2JSModuleScope;
+  Result:=ModScope.SystemVarRecs;
+  if Result<>nil then exit;
+
+  // find unit in uses clauses
+  UtilsMod:=FindUsedUnit('system',aMod);
+  if UtilsMod=nil then
+    RaiseIdentifierNotFound(20190215211531,'System.VarRecs',ErrorEl);
+
+  // find class in interface
+  if UtilsMod.InterfaceSection=nil then
+    RaiseIdentifierNotFound(20190215211538,'System.VarRecs',ErrorEl);
+
+  // find function VarRecs
+  SectionScope:=NoNil(UtilsMod.InterfaceSection.CustomData) as TPasSectionScope;
+  Identifier:=SectionScope.FindLocalIdentifier('VarRecs');
+  if Identifier=nil then
+    RaiseIdentifierNotFound(20190215211551,'System.VarRecs',ErrorEl);
+  El:=Identifier.Element;
+  if El.ClassType<>TPasFunction then
+    RaiseXExpectedButYFound(20190215211559,'function System.VarRecs',GetElementTypeName(El),ErrorEl);
+  Result:=TPasFunction(El);
+  ModScope.SystemVarRecs:=Result;
+
+  // check signature
+  FuncType:=Result.ProcType as TPasFunctionType;
+  if FuncType.Args.Count>0 then
+    RaiseXExpectedButYFound(20190215211953,'function System.VarRecs with 0 args',
+      IntToStr(FuncType.Args.Count),ErrorEl);
+  if FuncType.Modifiers<>[ptmVarargs] then
+    RaiseXExpectedButYFound(20190215212151,'function System.VarRecs; varargs',
+      '?',ErrorEl);
+  if FuncType.CallingConvention<>ccDefault then
+    RaiseXExpectedButYFound(20190215211824,'function System.VarRecs with default calling convention',
+      cCallingConventions[FuncType.CallingConvention],ErrorEl);
+end;
+
 procedure TPas2JSResolver.CheckExternalClassConstructor(Ref: TResolvedReference
   );
 var
@@ -4253,7 +4367,7 @@ begin
         exit;
       if (RHS.BaseType<>btContext) or (RTypeEl.ClassType<>TPasArrayType) then
         exit;
-      ComputeElement(LArray.ElType,ElTypeResolved,[rcType]);
+      ComputeElement(GetArrayElType(LArray),ElTypeResolved,[rcType]);
       if IsJSBaseType(ElTypeResolved,pbtJSValue) then
         begin
         // array of jsvalue := array
@@ -8555,7 +8669,7 @@ var
           break;
         // continue in sub array
         ArrayEl:=AContext.Resolver.ResolveAliasType(ArrayEl.ElType) as TPasArrayType;
-      until false;
+      until ArrayEl=nil;
 
       IsRangeCheck:=NeedRangeCheck
                 and (bsRangeChecks in AContext.ScannerBoolSwitches)
@@ -10107,12 +10221,14 @@ var
   AssignContext: TAssignContext;
   ElType, TypeEl: TPasType;
   i: Integer;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   Param0:=El.Params[0];
   if AContext.Access<>caRead then
     RaiseInconsistency(20170213213621,El);
-  AContext.Resolver.ComputeElement(Param0,ResolvedParam0,[rcNoImplicitProc]);
+  aResolver:=AContext.Resolver;
+  aResolver.ComputeElement(Param0,ResolvedParam0,[rcNoImplicitProc]);
   {$IFDEF VerbosePasResolver}
   writeln('TPasToJSConverter.ConvertBuiltInSetLength ',GetResolverResultDbg(ResolvedParam0));
   {$ENDIF}
@@ -10128,7 +10244,7 @@ begin
     // ->  AnArray = rtl.setArrayLength(AnArray,defaultvalue,dim1,dim2,...)
     AssignContext:=TAssignContext.Create(El,nil,AContext);
     try
-      AContext.Resolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
+      aResolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
       AssignContext.RightResolved:=ResolvedParam0;
 
       // create right side
@@ -10141,10 +10257,10 @@ begin
       // 2nd param: default value
       for i:=3 to length(El.Params) do
         begin
-        ElType:=AContext.Resolver.ResolveAliasType(ArrayType.ElType);
+        ElType:=aResolver.ResolveAliasType(aResolver.GetArrayElType(ArrayType));
         ArrayType:=ElType as TPasArrayType;
         end;
-      ElType:=AContext.Resolver.ResolveAliasType(ArrayType.ElType);
+      ElType:=aResolver.ResolveAliasType(aResolver.GetArrayElType(ArrayType));
       if ElType.ClassType=TPasRecordType then
         ValInit:=CreateReferencePathExpr(ElType,AContext)
       else
@@ -10169,7 +10285,7 @@ begin
     {$ENDIF}
     AssignContext:=TAssignContext.Create(El,nil,AContext);
     try
-      AContext.Resolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
+      aResolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
       AssignContext.RightResolved:=AssignContext.LeftResolved;
 
       // create right side  rtl.strSetLength(aString,NewLen)
@@ -11395,17 +11511,19 @@ var
   TypeParam: TJSElement;
   Call: TJSCallExpression;
   ArrayType: TPasArrayType;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
   Call:=nil;
   try
     Param:=El.Params[0];
-    AContext.Resolver.ComputeElement(El,ParamResolved,[]);
+    aResolver.ComputeElement(El,ParamResolved,[]);
     if (ParamResolved.BaseType=btContext)
         and (ParamResolved.LoTypeEl.ClassType=TPasArrayType) then
       begin
       ArrayType:=TPasArrayType(ParamResolved.LoTypeEl);
-      AContext.Resolver.ComputeElement(ArrayType.ElType,ElTypeResolved,[rcType]);
+      aResolver.ComputeElement(aResolver.GetArrayElType(ArrayType),ElTypeResolved,[rcType]);
       end
     else if ParamResolved.BaseType=btArrayLit then
       begin
@@ -14906,15 +15024,22 @@ function TPasToJSConverter.CreateArrayConcat(ArrayType: TPasArrayType;
   PosEl: TPasElement; AContext: TConvertContext): TJSCallExpression;
 var
   ElTypeResolved: TPasResolverResult;
+  aResolver: TPas2JSResolver;
 begin
   if length(ArrayType.Ranges)>1 then
     RaiseNotSupported(PosEl,AContext,20170331001021);
-  AContext.Resolver.ComputeElement(ArrayType.ElType,ElTypeResolved,[rcType]);
+  aResolver:=AContext.Resolver;
+  aResolver.ComputeElement(aResolver.GetArrayElType(ArrayType),ElTypeResolved,[rcType]);
   Result:=CreateArrayConcat(ElTypeResolved,PosEl,AContext);
 end;
 
 function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
   Expr: TPasExpr; El: TPasElement; AContext: TConvertContext): TJSElement;
+
+  function IsAdd(AnExpr: TPasExpr): Boolean;
+  begin
+    Result:=(AnExpr.ClassType=TBinaryExpr) and (AnExpr.OpCode=eopAdd);
+  end;
 
   function ConvertArrayExpr(CurArrType: TPasArrayType; RgIndex: integer;
     CurExpr: TPasExpr): TJSElement;
@@ -14947,11 +15072,6 @@ function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
         end;
     end;
 
-    function IsAdd(AnExpr: TPasExpr): Boolean;
-    begin
-      Result:=(AnExpr.ClassType=TBinaryExpr) and (AnExpr.OpCode=eopAdd);
-    end;
-
     procedure TraverseAdd(Bin: TBinaryExpr; ConcatCall: TJSCallExpression);
     // A+B -> A,B
     // (A+B)+C -> A,B,C
@@ -14969,6 +15089,7 @@ function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
   var
     ElTypeResolved: TPasResolverResult;
     Call: TJSCallExpression;
+    aResolver: TPas2JSResolver;
   begin
     Result:=nil;
     IsLastRange:=false;
@@ -14976,7 +15097,8 @@ function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
     NextRgIndex:=RgIndex+1;
     if RgIndex>=length(CurArrType.Ranges)-1 then
       begin
-      AContext.Resolver.ComputeElement(CurArrType.ElType,ElTypeResolved,[rcType]);
+      aResolver:=AContext.Resolver;
+      aResolver.ComputeElement(aResolver.GetArrayElType(CurArrType),ElTypeResolved,[rcType]);
       if (ElTypeResolved.BaseType=btContext)
           and (ElTypeResolved.LoTypeEl.ClassType=TPasArrayType) then
         begin
@@ -15015,6 +15137,112 @@ function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
     Result:=ConvertExpression(CurExpr,AContext);
   end;
 
+  function ConvertExprToVarRec(CurExpr: TPasExpr): TJSElement;
+  // convert [true,Int] to  system.varrecs(1,true,0,Int)
+  var
+    aResolver: TPas2JSResolver;
+    Param: TPasExpr;
+    ParamResolved: TPasResolverResult;
+
+    procedure RaiseWrongTypeInArrayConstructor(id: TMaxPrecInt);
+    begin
+      aResolver.RaiseMsg(id,nWrongTypeXInArrayConstructor,sWrongTypeXInArrayConstructor,
+        [aResolver.GetResolverResultDescription(ParamResolved)],Param);
+    end;
+
+  var
+    Params: TParamsExpr;
+    ModScope: TPas2JSModuleScope;
+    Call: TJSCallExpression;
+    i, VType: Integer;
+    LoTypeEl: TPasType;
+    ParamsArr: TPasExprArray;
+  begin
+    Result:=nil;
+    aResolver:=AContext.Resolver;
+    if IsAdd(CurExpr) then
+      aResolver.RaiseMsg(20190215222435,nXExpectedButYFound,sXExpectedButYFound,
+        ['array of const',GetElementTypeName(CurExpr)],CurExpr);
+    if (not (CurExpr is TParamsExpr)) or (TParamsExpr(CurExpr).Kind<>pekSet) then
+      begin
+      // e.g. Format(args)
+      Result:=ConvertExpression(CurExpr,AContext);
+      exit;
+      end;
+    Params:=TParamsExpr(CurExpr);
+    ParamsArr:=Params.Params;
+    if length(ParamsArr)=0 then
+      begin
+      // e.g. Format([])
+      Result:=CreateElement(TJSArrayLiteral,Params);
+      exit;
+      end;
+
+    ModScope:=NoNil(aResolver.RootElement.CustomData) as TPas2JSModuleScope;
+    if ModScope.SystemVarRecs=nil then
+      RaiseNotSupported(Params,AContext,20190215215148);
+    Call:=CreateCallExpression(Params);
+    try
+      Call.Expr:=CreateReferencePathExpr(ModScope.SystemVarRecs,AContext);
+      for i:=0 to length(ParamsArr)-1 do
+        begin
+        Param:=ParamsArr[i];
+        aResolver.ComputeElement(Param,ParamResolved,[]);
+        if not (rrfReadable in ParamResolved.Flags) then
+          begin
+          if (ParamResolved.BaseType=btContext)
+              and (ParamResolved.IdentEl is TPasClassType)
+              and (TPasClassType(ParamResolved.IdentEl).ObjKind=okClass) then
+            VType:=pas2js_vtClass
+          else
+            RaiseWrongTypeInArrayConstructor(20190215221549);
+          end
+        else if ParamResolved.BaseType in [btByte,btShortInt,btWord,btSmallInt,btLongint] then
+          VType:=pas2js_vtInteger
+        else if ParamResolved.BaseType in [btLongWord,btUIntDouble,btIntDouble] then
+          VType:=pas2js_vtNativeInt
+        else if ParamResolved.BaseType in btAllJSBooleans then
+          VType:=pas2js_vtBoolean
+        else if ParamResolved.BaseType in btAllJSFloats then
+          VType:=pas2js_vtExtended
+        else if ParamResolved.BaseType in btAllJSChars then
+          VType:=pas2js_vtWideChar
+        else if ParamResolved.BaseType in btAllJSStrings then
+          VType:=pas2js_vtUnicodeString
+        else if ParamResolved.BaseType in [btNil,btPointer] then
+          VType:=pas2js_vtPointer
+        else if ParamResolved.BaseType=btCurrency then
+          VType:=pas2js_vtCurrency
+        else if ParamResolved.BaseType=btContext then
+          begin
+          LoTypeEl:=ParamResolved.LoTypeEl;
+          if LoTypeEl.ClassType=TPasClassType then
+            case TPasClassType(LoTypeEl).ObjKind of
+            okClass: VType:=pas2js_vtObject;
+            okInterface: VType:=pas2js_vtInterface;
+            else
+              RaiseWrongTypeInArrayConstructor(20190215221106);
+            end
+          else if LoTypeEl.ClassType=TPasClassOfType then
+            VType:=pas2js_vtClass
+          else
+            RaiseWrongTypeInArrayConstructor(20190215221122);
+          end
+        else if (ParamResolved.BaseType=btCustom)
+            and aResolver.IsJSBaseType(ParamResolved,pbtJSValue) then
+          VType:=pas2js_vtJSValue
+        else
+          RaiseWrongTypeInArrayConstructor(20190215221457);
+        Call.AddArg(CreateLiteralNumber(Param,VType));
+        Call.AddArg(ConvertExpression(Param,AContext));
+        end;
+      Result:=Call;
+    finally
+      if Result=nil then
+        Call.Free;
+    end;
+  end;
+
 var
   Call: TJSCallExpression;
   ArrLit: TJSArrayLiteral;
@@ -15027,7 +15255,6 @@ var
   US: TJSString;
   DimLits: TObjectList;
   aResolver: TPas2JSResolver;
-  CompFlags: TPasResolverComputeFlags;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.CreateArrayInit ',GetObjName(ArrayType),' ',ArrayType.ParentPath,' Expr=',GetObjName(Expr));
@@ -15035,18 +15262,19 @@ begin
   aResolver:=AContext.Resolver;
   if Assigned(Expr) then
     begin
-    // init array with constant(s)
+    // init array with expression
     if aResolver=nil then
       DoError(20161024192739,nInitializedArraysNotSupported,sInitializedArraysNotSupported,[],ArrayType);
-    if aResolver.ExprEvaluator.IsConst(Expr) then
-      CompFlags:=[rcConstant]
-    else
-      CompFlags:=[];
-    aResolver.ComputeElement(Expr,ExprResolved,CompFlags);
+    aResolver.ComputeElement(Expr,ExprResolved,[]);
     if (ExprResolved.BaseType in [btArrayOrSet,btArrayLit])
         or ((ExprResolved.BaseType=btContext)
           and (ExprResolved.LoTypeEl.ClassType=TPasArrayType)) then
-      Result:=ConvertArrayExpr(ArrayType,0,Expr)
+      begin
+      if ArrayType.ElType=nil then
+        Result:=ConvertExprToVarRec(Expr)
+      else
+        Result:=ConvertArrayExpr(ArrayType,0,Expr);
+      end
     else if ExprResolved.BaseType in btAllStringAndChars then
       begin
       US:=StrToJSString(aResolver.ComputeConstString(Expr,false,true));
@@ -15094,7 +15322,7 @@ begin
           Lit:=CreateLiteralNumber(El,DimSize);
           DimLits.Add(Lit);
           end;
-        aResolver.ComputeElement(CurArrayType.ElType,ElTypeResolved,[rcType]);
+        aResolver.ComputeElement(aResolver.GetArrayElType(CurArrayType),ElTypeResolved,[rcType]);
         if (ElTypeResolved.LoTypeEl is TPasArrayType) then
           begin
           CurArrayType:=TPasArrayType(ElTypeResolved.LoTypeEl);
@@ -16034,7 +16262,9 @@ var
   ArgName: String;
   Flags: Integer;
   ArrType: TPasArrayType;
+  aResolver: TPas2JSResolver;
 begin
+  aResolver:=AContext.Resolver;
   // for each param add  "["argname",argtype,flags]"  Note: flags only if >0
   Param:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Arg));
   TargetParams.Elements.AddElement.Expr:=Param;
@@ -16051,7 +16281,8 @@ begin
     // open array param
     inc(Flags,pfArray);
     ArrType:=TPasArrayType(Arg.ArgType);
-    Param.Elements.AddElement.Expr:=CreateTypeInfoRef(ArrType.ElType,AContext,Arg);
+    Param.Elements.AddElement.Expr:=
+              CreateTypeInfoRef(aResolver.GetArrayElType(ArrType),AContext,Arg);
     end
   else
     Param.Elements.AddElement.Expr:=CreateTypeInfoRef(Arg.ArgType,AContext,Arg);

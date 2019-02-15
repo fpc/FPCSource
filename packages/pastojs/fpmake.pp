@@ -55,6 +55,7 @@ begin
       T.Dependencies.AddInclude('pas2jsfileutilswin.inc',AllWindowsOSes);
     T:=P.Targets.AddUnit('pas2jslogger.pp');
     T:=P.Targets.AddUnit('pas2jspparser.pp');
+    T:=P.Targets.AddUnit('pas2jsuseanalyzer.pp');
     T:=P.Targets.AddUnit('pas2jscompiler.pp');
     T:=P.Targets.AddUnit('pas2jsfscompiler.pp');
       T.Dependencies.AddUnit('pas2jscompiler');
