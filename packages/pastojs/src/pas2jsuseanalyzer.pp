@@ -48,6 +48,8 @@ procedure TPas2JSAnalyzer.UseExpr(El: TPasExpr);
     i: Integer;
     ArgType: TPasType;
     ModScope: TPas2JSModuleScope;
+    aMod: TPasModule;
+    SystemVarRecs: TPasFunction;
   begin
     if Args=nil then exit;
     for i:=0 to Args.Count-1 do
@@ -58,10 +60,13 @@ procedure TPas2JSAnalyzer.UseExpr(El: TPasExpr);
           and (TPasArrayType(ArgType).ElType=nil) then
         begin
         // array of const
-        ModScope:=NoNil(Resolver.RootElement.CustomData) as TPas2JSModuleScope;
-        if ModScope.SystemVarRecs=nil then
+        aMod:=El.GetModule;
+        ModScope:=NoNil(aMod.CustomData) as TPas2JSModuleScope;
+        SystemVarRecs:=ModScope.SystemVarRecs;
+        if SystemVarRecs=nil then
           RaiseNotSupported(20190216104347,El);
-        UseProcedure(ModScope.SystemVarRecs);
+        MarkImplScopeRef(El,SystemVarRecs,psraRead);
+        UseProcedure(SystemVarRecs);
         break;
         end;
       end;
