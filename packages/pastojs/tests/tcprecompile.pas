@@ -536,7 +536,7 @@ end;
 procedure TTestCLI_Precompile.TestPCU_CheckVersionSystem;
 var
   aFile: TCLIFile;
-  s, JSFilename, ExpectedSrc: string;
+  s, JSFilename, ExpectedSrc, VerStr: string;
 begin
   AddUnit('src/system.pp',[
     'type integer = longint;'],
@@ -549,10 +549,11 @@ begin
   aFile:=FindFile(JSFilename);
   AssertNotNull('File not found '+JSFilename,aFile);
   writeln('TTestCLI_Precompile.TestPCU_CheckVersionMain ',aFile.Source);
+  VerStr:=IntToStr((VersionMajor*100+VersionMinor)*100+VersionRelease);
   ExpectedSrc:=LinesToStr([
     UTF8BOM+'rtl.module("system",[],function () {',
     '  "use strict";',
-    '  rtl.checkVersion(10301);',
+    '  rtl.checkVersion('+VerStr+');',
     '  var $mod = this;',
     '});']);
   if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
