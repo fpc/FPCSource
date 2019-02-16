@@ -1038,6 +1038,34 @@ begin
   GetlocaleFormatSettings(GetThreadLocale, DefaultFormatSettings);
 end;
 
+Procedure InitLeadBytes;
+
+var
+  I,B,C,E: Byte;
+  Info: TCPInfo;
+
+begin
+  GetCPInfo(CP_ACP,Info);
+  I:=0;
+  With Info do
+    begin
+    B:=LeadByte[i];
+    E:=LeadByte[i+1];
+    while (I<MAX_LEADBYTES) and (B<>0) and (E<>0) do
+      begin
+      for C:=B to E do
+        Include(LeadBytes,AnsiChar(C));
+      Inc(I,2);
+      if (I<MAX_LEADBYTES) then
+        begin
+        B:=LeadByte[i];
+        E:=LeadByte[i+1];
+        end;
+      end;
+    end;   
+end;
+
+
 Procedure InitInternational;
 var
   { A call to GetSystemMetrics changes the value of the 8087 Control Word on

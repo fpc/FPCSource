@@ -76,6 +76,19 @@ begin
 Dest := Dest + S;
 end ;
 
+function IsLeadChar(C: AnsiChar): Boolean; inline;
+
+begin
+  Result:=C in LeadBytes;
+end;
+
+function IsLeadChar(B: Byte): Boolean; inline;
+
+
+begin
+  Result:=Char(B) in LeadBytes;
+end;
+
 Function InternalChangeCase(Const S : AnsiString; const Chars: TSysCharSet; const Adjustment: Longint): AnsiString;
   var
     i : Integer;

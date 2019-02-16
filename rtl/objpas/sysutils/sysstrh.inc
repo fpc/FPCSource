@@ -251,6 +251,8 @@ Function CharToByteLen(const S: string; MaxLen: SizeInt): SizeInt;
 Function ByteToCharIndex(const S: string; Index: SizeInt): SizeInt;
 Function StrCharLength(const Str: PChar): SizeInt;
 function StrNextChar(const Str: PChar): PChar;
+function IsLeadChar(C: AnsiChar): Boolean; inline; overload;
+function IsLeadChar(B: Byte): Boolean; inline; overload;
 
 
 const
