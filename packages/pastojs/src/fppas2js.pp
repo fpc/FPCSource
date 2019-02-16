@@ -1218,7 +1218,7 @@ const
     btIntDouble,btUIntDouble,
     btCurrency  // in pas2js currency is more like an integer, instead of float
     ];
-  btAllJSValueSrcTypes = [btNil,btUntyped,btPointer]+btAllJSInteger
+  btAllJSValueSrcTypes = [btNil,btUntyped,btPointer,btSet]+btAllJSInteger
       +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans;
   btAllJSValueTypeCastTo = btAllJSInteger
       +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans+[btPointer];
@@ -9808,8 +9808,6 @@ var
   Call: TJSCallExpression;
   NotExpr: TJSUnaryNotExpression;
   AddExpr: TJSAdditiveExpressionPlus;
-  TypeEl: TPasType;
-  C: TClass;
   Int: TMaxPrecInt;
   aResolver: TPas2JSResolver;
 begin
@@ -10072,20 +10070,6 @@ begin
       begin
       // type cast to jsvalue
       Result:=ConvertExpression(Param,AContext);
-      // Note: convert value first in case it raises an exception
-      if ParamResolved.BaseType=btContext then
-        begin
-        TypeEl:=ParamResolved.LoTypeEl;
-        C:=TypeEl.ClassType;
-        if (C=TPasClassType) or (C=TPasRecordType) then
-          begin
-          // TObject(jsvalue) -> rtl.getObject(jsvalue)
-          Call:=CreateCallExpression(El);
-          Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnGetObject)]);
-          Call.AddArg(Result);
-          Result:=Call;
-          end;
-        end;
       exit;
       end;
     end;

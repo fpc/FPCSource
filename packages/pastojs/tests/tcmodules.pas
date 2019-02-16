@@ -720,6 +720,7 @@ type
     // jsvalue
     Procedure TestJSValue_AssignToJSValue;
     Procedure TestJSValue_TypeCastToBaseType;
+    Procedure TestJSValue_TypecastToJSValue;
     Procedure TestJSValue_Equal;
     Procedure TestJSValue_If;
     Procedure TestJSValue_Not;
@@ -17428,7 +17429,7 @@ begin
     '$mod.v = $mod.IntfVar;',
     '$mod.IntfVar = rtl.getObject($mod.v);',
     'if (rtl.isExt($mod.v, $mod.IBird, 1)) ;',
-    '$mod.v = rtl.getObject($mod.IntfVar);',
+    '$mod.v = $mod.IntfVar;',
     '$mod.v = $mod.IBird;',
     '']));
 end;
@@ -24879,6 +24880,50 @@ begin
     '$mod.d = rtl.getNumber($mod.v);',
     '$mod.c = rtl.getChar($mod.v);',
     '$mod.c = rtl.getChar($mod.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_TypecastToJSValue;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TArr = array of word;',
+  '  TRec = record end;',
+  '  TSet = set of boolean;',
+  'procedure Fly(v: jsvalue);',
+  'begin',
+  'end;',
+  'var',
+  '  a: TArr;',
+  '  r: TRec;',
+  '  s: TSet;',
+  'begin',
+  '  Fly(jsvalue(a));',
+  '  Fly(jsvalue(r));',
+  '  Fly(jsvalue(s));',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_TypecastToJSValue',
+    LinesToStr([ // statements
+    'rtl.recNewT($mod, "TRec", function () {',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '});',
+    'this.Fly = function (v) {',
+    '};',
+    'this.a = [];',
+    'this.r = $mod.TRec.$new();',
+    'this.s = {};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Fly($mod.a);',
+    '$mod.Fly($mod.r);',
+    '$mod.Fly($mod.s);',
     '']));
 end;
 
