@@ -193,7 +193,17 @@ end;
 {$define SRPChar:=PWideChar}
 {$define SRChar:=WideChar}
 
-function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags): WideString;
+
+Function WideStringReplace(const S, OldPattern, NewPattern: Widestring;  Flags: TReplaceFlags): Widestring;
+
+Var
+  C : Integer;
+
+begin
+  Result:=WideStringReplace(S,OldPattern,NewPattern,Flags,C);
+end;
+
+function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : Integer): WideString;
 {$i syssr.inc}
 
 {$undef INWIDESTRINGREPLACE}

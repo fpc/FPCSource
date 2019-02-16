@@ -234,6 +234,7 @@ function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 function TryStrToBool(const S: string; out Value: Boolean; Const FormatSettings: TFormatSettings): Boolean;
 
 function LastDelimiter(const Delimiters, S: string): SizeInt;
+function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; Out aCount : Integer): string;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 Function IsDelimiter(const Delimiters, S: string; Index: SizeInt): Boolean;
 

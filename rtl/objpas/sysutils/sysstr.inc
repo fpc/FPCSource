@@ -2294,6 +2294,16 @@ end;
 {$define SRCHAR:=Char}
 
 Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
+
+Var
+  C : Integer;
+
+begin
+  Result:=StringReplace(S,OldPattern,NewPattern,Flags,C);
+end;
+
+function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; Out aCount : Integer): string;
+
 {$i syssr.inc}
 
 {$undef INSTRINGREPLACE}
