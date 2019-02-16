@@ -807,6 +807,8 @@ type
     // array of const
     Procedure TestArrayOfConst;
     Procedure TestArrayOfConst_PassDynArrayOfIntFail;
+    Procedure TestArrayOfConst_AssignNilFail;
+    Procedure TestArrayOfConst_SetLengthFail;
 
     // static arrays
     Procedure TestArrayIntRange_OutOfRange;
@@ -14375,6 +14377,7 @@ begin
   '  i: longint;',
   '  v: TVarRec;',
   '  a: TArrOfVarRec;',
+  '  sa: array[1..2] of TVarRec;',
   'begin',
   '  DoIt(args);',
   '  DoIt(a);',
@@ -14389,8 +14392,7 @@ begin
   '    end;',
   '  end;',
   '  for v in Args do ;',
-  '  args:=nil;',
-  '  SetLength(args,2);',
+  '  args:=sa;',
   'end;',
   'begin']);
   ParseProgram;
@@ -14409,6 +14411,35 @@ begin
   'begin',
   '  DoIt(a)']);
   CheckResolverException('Incompatible type arg no. 1: Got "TArr", expected "array of const"',
+    nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestArrayOfConst_AssignNilFail;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'type',
+  '  TArr = array of word;',
+  'procedure DoIt(args: array of const);',
+  'begin',
+  '  args:=nil;',
+  'end;',
+  'begin']);
+  CheckResolverException('Incompatible types: got "Nil" expected "array of const"',nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArrayOfConst_SetLengthFail;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'type',
+  '  TArr = array of word;',
+  'procedure DoIt(args: array of const);',
+  'begin',
+  '  SetLength(args,2);',
+  'end;',
+  'begin']);
+  CheckResolverException('Incompatible type arg no. 1: Got "array of const", expected "string or dynamic array variable"',
     nIncompatibleTypeArgNo);
 end;
 

@@ -22215,8 +22215,7 @@ begin
     exit(false);
   if length(TPasArrayType(TypeEl).Ranges)<>0 then
     exit(false);
-  if TPasArrayType(TypeEl).ElType=nil then
-    exit(true);// array of const is a dynamic array of TVarRec
+  // Note: Array of Const is an open array of TVarRec
   if OptionalOpenArray and (proOpenAsDynArrays in Options) then
     Result:=true
   else
@@ -22229,8 +22228,7 @@ begin
       and (TypeEl.ClassType=TPasArrayType)
       and (length(TPasArrayType(TypeEl).Ranges)=0)
       and (TypeEl.Parent<>nil)
-      and (TypeEl.Parent.ClassType=TPasArgument)
-      and (TPasArrayType(TypeEl).ElType<>nil);
+      and (TypeEl.Parent.ClassType=TPasArgument);
 end;
 
 function TPasResolver.IsDynOrOpenArray(TypeEl: TPasType): boolean;
