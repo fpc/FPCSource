@@ -17,7 +17,7 @@ begin
 
   for dx := 0 to w-1 do
     for dy := 0 to h-1 do
-      Canvas.Colors[x+dx,y+dy] := Image.Colors[dx*iw div w, dy*ih div h];
+      Canvas.DrawPixel(x+dx,y+dy, Image.Colors[dx*iw div w, dy*ih div h]);
 end;
 
 { TFPBaseInterpolation }
@@ -223,7 +223,7 @@ begin
           NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
           NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
         end;
-        Canvas.Colors[x+dx,y+dy]:=AlphaBlend(Canvas.Colors[x+dx,y+dy], NewCol);
+        Canvas.DrawPixel(x+dx,y+dy, NewCol);
       end;
     end;
   finally

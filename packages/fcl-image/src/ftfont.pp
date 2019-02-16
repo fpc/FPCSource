@@ -353,8 +353,16 @@ procedure TFreeTypeFont.DrawChar (x,y:integer; data:PByteArray; pitch, width, he
   var
     pixelcolor: TFPColor;
   begin
-    pixelcolor := AlphaBlend(canv.colors[x,y], FPImage.FPColor(c.red, c.green,c.blue, (t+1) shl 8 - 1));
-    canv.colors[x,y] := pixelcolor;
+    case canv.DrawingMode of
+      dmOpaque:
+      begin
+        pixelcolor := FPImage.FPColor(c.red, c.green,c.blue, (t+1) shl 8 - 1); // opaque: ignore c.Alpha
+        canv.colors[x,y] := AlphaBlend(canv.colors[x,y], pixelcolor);
+      end;
+    else
+      pixelcolor := FPImage.FPColor(c.red, c.green,c.blue, ((t+1) shl 8 - 1) * c.Alpha div $ffff); // apply c.Alpha
+      canv.DrawPixel(x,y,pixelcolor);
+    end;
   end;
 
 var b,rx,ry : integer;
@@ -380,7 +388,7 @@ begin
       begin
       rb := rx mod 8;
       if (data^[b+l] and bits[rb]) <> 0 then
-        canvas.colors[x+rx,y+ry] := FPColor;
+        canvas.DrawPixel(x+rx,y+ry, FPColor);
       if rb = 7 then
         inc (l);
       end;

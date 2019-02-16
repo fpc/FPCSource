@@ -233,6 +233,9 @@ type
     function IsPointInRegion(AX, AY: Integer): Boolean; override;
   end;
 
+  TFPDrawingMode = (dmOpaque, dmAlphaBlend, dmCustom);
+  TFPCanvasCombineColors = function(const color1, color2: TFPColor): TFPColor of object;
+
   { TFPCustomCanvas }
 
   TFPCustomCanvas = class(TPersistent)
@@ -243,6 +246,8 @@ type
     FHelpers : TList;
     FLocks : integer;
     FInterpolation : TFPCustomInterpolation;
+    FDrawingMode : TFPDrawingMode;
+    FOnCombineColors : TFPCanvasCombineColors;
     function AllowFont (AFont : TFPCustomFont) : boolean;
     function AllowBrush (ABrush : TFPCustomBrush) : boolean;
     function AllowPen (APen : TFPCustomPen) : boolean;
@@ -370,6 +375,7 @@ type
     procedure Draw (x,y:integer; image:TFPCustomImage);
     procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage);
     procedure Erase;virtual;
+    procedure DrawPixel(const x, y: integer; const newcolor: TFPColor);
     // properties
     property LockCount: Integer read FLocks;
     property Font : TFPCustomFont read GetFont write SetFont;
@@ -384,6 +390,8 @@ type
     property Height : integer read GetHeight write SetHeight;
     property Width : integer read GetWidth write SetWidth;
     property ManageResources: boolean read FManageResources write FManageResources;
+    property DrawingMode : TFPDrawingMode read FDrawingMode write FDrawingMode;
+    property OnCombineColors : TFPCanvasCombineColors read FOnCombineColors write FOnCombineColors;
   end;
 
   TFPCustomDrawFont = class (TFPCustomFont)
