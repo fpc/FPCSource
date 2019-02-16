@@ -43,7 +43,7 @@ uses
 
 const
   VersionMajor = 1;
-  VersionMinor = 3;
+  VersionMinor = 5;
   VersionRelease = 1;
   VersionExtra = '';
   DefaultConfigFile = 'pas2js.cfg';
