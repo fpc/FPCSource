@@ -1642,6 +1642,7 @@ Initialization
   ExceptObjProc:=@WinExceptionObject;
   ExceptClsProc:=@WinExceptionClass;
 {$endif mswindows}
+  InitLeadBytes;
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
