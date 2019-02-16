@@ -258,6 +258,7 @@ Type
                              sraBoyerMoore  // Algorithm optimized for long replacements.
                             );
 
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
 Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
 { We need these for backwards compatibility:
   The compiler will stop searching and convert to ansistring if the widestring version of stringreplace is used.
@@ -576,8 +577,7 @@ begin
   Result:=MatchesCount>0;
 end;
 
-function StringReplaceFast(const S, OldPattern, NewPattern: string;
-  Flags: TReplaceFlags): string;
+function StringReplaceFast(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; out aCount : Integer): string;
 const
   MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
 var
@@ -619,6 +619,7 @@ var
     inc(MatchesCount);
   end;
 begin
+  aCount:=0;
   if (OldPattern='') or (Length(OldPattern)>Length(S)) then begin
     //This cases will never match nothing.
     Result:=S;
@@ -703,7 +704,8 @@ begin
       end;
     end;
   end;
-  //Create room enougth for the result string
+  //Create room enough for the result string
+  aCount:=MatchesCount;
   SetLength(Result,Length(S)-OldPatternSize*MatchesCount+NewPatternSize*MatchesCount);
   MatchIndex:=1;
   MatchTarget:=1;
@@ -759,7 +761,7 @@ end;
 
 *)
 
-function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags): string;
+function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags; out aCount : Integer): string;
 var
   Matches: SizeIntArray;
   OldPatternSize: SizeInt;
@@ -770,6 +772,7 @@ var
   MatchInternal: SizeInt;
   AdvanceIndex: SizeInt;
 begin
+  aCount:=0;
   OldPatternSize:=Length(OldPattern);
   NewPatternSize:=Length(NewPattern);
   if (OldPattern='') or (Length(OldPattern)>Length(S)) then begin
@@ -784,6 +787,7 @@ begin
   end;
 
   MatchesCount:=Length(Matches);
+  aCount:=MatchesCount;
 
   //Create room enougth for the result string
   SetLength(Result,Length(S)-OldPatternSize*MatchesCount+NewPatternSize*MatchesCount);
@@ -813,11 +817,21 @@ end;
 
 function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; Algorithm: TStringReplaceAlgorithm): string;
 
+Var
+  C : Integer;
+
+begin
+  Result:=StringReplace(S, OldPattern, NewPattern, Flags,C,Algorithm);
+end;
+
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+
+
 begin
   Case Algorithm of
-    sraDefault    : Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
-    sraManySmall  : Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags);
-    sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags);
+    sraDefault    : Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags,aCount);
+    sraManySmall  : Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags,aCount);
+    sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags,aCount);
   end;
 end;
 
