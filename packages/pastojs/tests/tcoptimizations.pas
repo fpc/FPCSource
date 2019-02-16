@@ -78,7 +78,8 @@ type
     procedure TestWPO_Class_OmitPropertySetter2;
     procedure TestWPO_CallInherited;
     procedure TestWPO_UseUnit;
-    procedure TestWPO_ArrayOfConst;
+    procedure TestWPO_ArrayOfConst_Use;
+    procedure TestWPO_ArrayOfConst_NotUsed;
     procedure TestWPO_Class_PropertyInOtherUnit;
     procedure TestWPO_ProgramPublicDeclaration;
     procedure TestWPO_ConstructorDefaultValueConst;
@@ -815,12 +816,13 @@ begin
   CheckDiff('TestWPO_UseUnit',ExpectedSrc,ActualSrc);
 end;
 
-procedure TTestOptimizations.TestWPO_ArrayOfConst;
+procedure TTestOptimizations.TestWPO_ArrayOfConst_Use;
 begin
   StartProgram(true,[supTVarRec]);
   Add([
   'procedure Say(arr: array of const);',
-  'begin end;',
+  'begin',
+  'end;',
   'begin',
   '  Say([true]);']);
   ConvertProgram;
@@ -847,6 +849,23 @@ begin
   '    v.VJSValue = 2;',
   '    return Result;',
   '  };',
+  '});',
+  '']));
+end;
+
+procedure TTestOptimizations.TestWPO_ArrayOfConst_NotUsed;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'procedure Say(arr: array of const);',
+  'begin',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckUnit('system.pp',
+  LinesToStr([
+  'rtl.module("system", [], function () {',
+  '  var $mod = this;',
   '});',
   '']));
 end;

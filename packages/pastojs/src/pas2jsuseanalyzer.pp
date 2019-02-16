@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils,
-  PasUseAnalyzer, PasTree,
+  PasUseAnalyzer, PasTree, PasResolver,
   FPPas2Js;
 
 type
@@ -34,24 +34,57 @@ type
 
   TPas2JSAnalyzer = class(TPasAnalyzer)
   public
-    function UseModule(aModule: TPasModule; Mode: TPAUseMode): boolean;
-      override;
+    procedure UseExpr(El: TPasExpr); override;
   end;
 
 implementation
 
 { TPas2JSAnalyzer }
 
-function TPas2JSAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode
-  ): boolean;
+procedure TPas2JSAnalyzer.UseExpr(El: TPasExpr);
+
+  procedure CheckArgs(Args: TFPList);
+  var
+    i: Integer;
+    ArgType: TPasType;
+    ModScope: TPas2JSModuleScope;
+  begin
+    if Args=nil then exit;
+    for i:=0 to Args.Count-1 do
+      begin
+      ArgType:=TPasArgument(Args[i]).ArgType;
+      if ArgType=nil then continue;
+      if (ArgType.ClassType=TPasArrayType)
+          and (TPasArrayType(ArgType).ElType=nil) then
+        begin
+        // array of const
+        ModScope:=NoNil(Resolver.RootElement.CustomData) as TPas2JSModuleScope;
+        if ModScope.SystemVarRecs=nil then
+          RaiseNotSupported(20190216104347,El);
+        UseProcedure(ModScope.SystemVarRecs);
+        break;
+        end;
+      end;
+  end;
+
 var
-  ModScope: TPas2JSModuleScope;
+  Ref: TResolvedReference;
+  Decl: TPasElement;
 begin
-  Result:=inherited UseModule(aModule, Mode);
-  if not Result then exit;
-  ModScope:=aModule.CustomData as TPas2JSModuleScope;
-  if ModScope.SystemVarRecs<>nil then
-    UseProcedure(ModScope.SystemVarRecs);
+  if El=nil then exit;
+  inherited UseExpr(El);
+
+  Ref:=nil;
+  if El.CustomData is TResolvedReference then
+    begin
+    // this is a reference -> mark target
+    Ref:=TResolvedReference(El.CustomData);
+    Decl:=Ref.Declaration;
+    if Decl is TPasProcedure then
+      CheckArgs(TPasProcedure(Decl).ProcType.Args)
+    else if Decl.ClassType=TPasProperty then
+      CheckArgs(Resolver.GetPasPropertyArgs(TPasProperty(Decl)));
+    end;
 end;
 
 end.
