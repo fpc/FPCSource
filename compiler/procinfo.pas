@@ -51,9 +51,6 @@ unit procinfo;
        { This object gives information on the current routine being
          compiled.
        }
-
-       { tprocinfo }
-
        tprocinfo = class(tlinkedlistitem)
        private
           { list to store the procinfo's of the nested procedures }
@@ -184,6 +181,9 @@ unit procinfo;
 
           { set exception handling info }
           procedure set_eh_info; virtual;
+
+          procedure setup_eh; virtual;
+          procedure finish_eh; virtual;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -325,14 +325,28 @@ implementation
           be initialized }
       end;
 
+
     procedure tprocinfo.postprocess_code;
       begin
         { no action by default }
       end;
 
+
     procedure tprocinfo.set_eh_info;
       begin
         { default code is in tcgprocinfo }
+      end;
+
+
+    procedure tprocinfo.setup_eh;
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.finish_eh;
+      begin
+        { no action by default }
       end;
 
 end.

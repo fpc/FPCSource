@@ -75,7 +75,9 @@ interface
 
        tcgraisenode = class(traisenode)
          function pass_1: tnode;override;
+{$ifndef jvm}
          procedure pass_generate_code;override;
+{$endif jvm}
        end;
 
        { Utility class for exception handling state management that is used
@@ -127,38 +129,6 @@ interface
        end;
        tcgexceptionstatehandlerclass = class of tcgexceptionstatehandler;
 
-       { Utility class for exception handling state management that is used
-         by tryexcept/tryfinally/on nodes (in a separate class so it can both
-         be shared and overridden)
-
-         Never instantiated. }
-       tpsabiehexceptionstatehandler = class(tcgexceptionstatehandler)
-       protected
-         class procedure begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out
-           exceptlocreg: tregister);
-         class procedure catch_all_start_internal(list: TAsmList; add_catch: boolean);
-       public
-         class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
-         class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
-         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
-         { start of "except/finally" block }
-         class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps); override;
-         { end of a try-block, label comes after the end of try/except or
-           try/finally }
-         class procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); override;
-         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
-         class procedure handle_reraise(list:TAsmList;const t:texceptiontemps;const entrystate: texceptionstate; const exceptframekind: texceptframekind); override;
-         { start of an "on" (catch) block }
-         class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
-         { end of an "on" (catch) block }
-         class procedure end_catch(list: TAsmList); override;
-         { called for a catch all exception }
-         class procedure catch_all_start(list: TAsmList); override;
-         class procedure catch_all_end(list: TAsmList); override;
-         class procedure cleanupobjectstack(list: TAsmList); override;
-         class procedure popaddrstack(list: TAsmList); override;
-       end;
-
        tcgtryexceptnode = class(ttryexceptnode)
         protected
           type
@@ -197,245 +167,10 @@ implementation
       cpubase,
       tgobj,paramgr,
       cgobj,hlcgobj,nutils
+{$ifndef jvm}
+      ,psabiehpi
+{$endif jvm}
       ;
-
-    class procedure tpsabiehexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
-      begin
-        tg.gethltemp(list,ossinttype,ossinttype.size,tt_persistent,t.reasonbuf);
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
-      begin
-        tg.ungettemp(list,t.reasonbuf);
-        current_procinfo.PopAction(current_procinfo.CurrentAction);
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.new_exception(list: TAsmList; const t: texceptiontemps;
-      const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
-      var
-        reg: tregister;
-        action: TPSABIEHAction;
-      begin
-        exceptstate.oldflowcontrol:=flowcontrol;
-        current_asmdata.getjumplabel(exceptstate.exceptionlabel);
-        if exceptframekind<>tek_except then
-          begin
-            current_asmdata.getjumplabel(exceptstate.finallycodelabel);
-            action:=TPSABIEHAction.Create(exceptstate.finallycodelabel);
-          end
-        else
-          begin
-            exceptstate.finallycodelabel:=nil;
-            action:=TPSABIEHAction.Create(exceptstate.exceptionlabel);
-          end;
-        current_procinfo.CreateNewPSABIEHCallsite;
-        current_procinfo.PushAction(action);
-        current_procinfo.PushLandingPad(action);
-        if exceptframekind<>tek_except then
-          current_procinfo.CurrentAction.AddAction(nil);
-
-        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
-        if exceptframekind<>tek_except then
-          begin
-            reg:=hlcg.getintregister(list,ossinttype);
-            hlcg.a_load_const_reg(list,ossinttype,1,reg);
-            hlcg.g_exception_reason_save(list,ossinttype,ossinttype,reg,t.reasonbuf);
-          end;
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind;
-      var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps);
-      begin
-        hlcg.g_unreachable(list);
-        hlcg.a_label(list,exceptionstate.exceptionlabel);
-        if exceptframekind<>tek_except then
-          begin
-            if not assigned(exceptionstate.finallycodelabel) then
-              internalerror(2019021002);
-
-            hlcg.a_label(list,exceptionstate.finallycodelabel);
-            exceptionstate.finallycodelabel:=nil;
-            exceptiontemps.unwind_info:=cg.getaddressregister(list);
-            hlcg.a_load_reg_reg(list,voidpointertype,voidpointertype,NR_FUNCTION_RESULT_REG,exceptiontemps.unwind_info);
-          end;
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps;
-      var exceptionstate: texceptionstate; endlabel: TAsmLabel);
-      var
-        reg: TRegister;
-      begin
-        current_procinfo.CreateNewPSABIEHCallsite;
-        current_procinfo.PopLandingPad(current_procinfo.CurrentLandingPad);
-        if exceptframekind<>tek_except then
-          begin
-            { record that no exception happened in the reason buf, in case we are in a try block of a finally statement }
-            reg:=hlcg.getintregister(list,ossinttype);
-            hlcg.a_load_const_reg(list,ossinttype,0,reg);
-            hlcg.g_exception_reason_save(list,ossinttype,ossinttype,reg,t.reasonbuf);
-          end;
-        inherited;
-        if exceptframekind=tek_except then
-          hlcg.a_jmp_always(list,endlabel);
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint;
-      endexceptlabel: tasmlabel; onlyfree: boolean);
-      begin
-        current_procinfo.CreateNewPSABIEHCallsite;
-//        inherited free_exception(list, t, s, a, endexceptlabel, onlyfree);
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate;
-      const exceptframekind: texceptframekind);
-      var
-        cgpara1: tcgpara;
-        pd: tprocdef;
-        action: TPSABIEHAction;
-      begin
-       cgpara1.init;
-        if not(fc_catching_exceptions in flowcontrol) and
-           use_cleanup(exceptframekind) then
-          begin
-            pd:=search_system_proc('fpc_resume');
-            paramanager.getintparaloc(list,pd,1,cgpara1);
-            hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
-            paramanager.freecgpara(list,cgpara1);
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_resume',[@cgpara1],nil).resetiftemp
-          end
-        else
-          hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
-       cgpara1.done;
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel;
-      add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
-      var
-        catchstartlab : tasmlabel;
-        begincatchres,
-        typeidres,
-        paraloc1: tcgpara;
-        pd: tprocdef;
-        landingpadstructdef,
-        landingpadtypeiddef: tdef;
-        rttisym: TAsmSymbol;
-        rttidef: tdef;
-        rttiref: treference;
-        wrappedexception,
-        exceptiontypeidreg,
-        landingpadres: tregister;
-        exceptloc: tlocation;
-        indirect: boolean;
-        otherunit: boolean;
-        typeindex : aint;
-      begin
-        paraloc1.init;
-        rttidef:=nil;
-        rttisym:=nil;
-        if add_catch then
-          begin
-            if assigned(excepttype) then
-              begin
-                otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
-                indirect:=(tf_supports_packages in target_info.flags) and
-                        (target_info.system in systems_indirect_var_imports) and
-                        (cs_imported_data in current_settings.localswitches) and
-                        otherunit;
-                { add "catch exceptiontype" clause to the landing pad }
-                rttidef:=cpointerdef.getreusable(excepttype.vmt_def);
-                rttisym:=current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect);
-              end;
-          end;
-        { check if the exception is handled by this node }
-        if assigned(excepttype) then
-          begin
-            typeindex:=current_procinfo.CurrentAction.AddAction(excepttype);
-            current_asmdata.getjumplabel(catchstartlab);
-{$ifdef i386}
-            hlcg.a_cmp_const_reg_label (list,osuinttype,OC_EQ,typeindex+1,NR_FUNCTION_RESULT64_HIGH_REG,catchstartlab);
-{$else i386}
-            { we need to find a way to fix this in a generic way }
-            Internalerror(2019021008);
-{$endif i386}
-            hlcg.a_jmp_always(list,nextonlabel);
-            hlcg.a_label(list,catchstartlab);
-          end
-        else
-          current_procinfo.CurrentAction.AddAction(tobjectdef(-1));
-
-        wrappedexception:=hlcg.getaddressregister(list,voidpointertype);
-
-        pd:=search_system_proc('fpc_psabi_begin_catch');
-        paramanager.getintparaloc(list, pd, 1, paraloc1);
-        hlcg.a_load_reg_cgpara(list,voidpointertype,wrappedexception,paraloc1);
-        begincatchres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
-        location_reset(exceptloc, LOC_REGISTER, def_cgsize(begincatchres.def));
-        exceptloc.register:=hlcg.getaddressregister(list, begincatchres.def);
-        hlcg.gen_load_cgpara_loc(list, begincatchres.def, begincatchres, exceptloc, true);
-
-        begincatchres.resetiftemp;
-        paraloc1.done;
-
-        exceptlocdef:=begincatchres.def;
-        exceptlocreg:=exceptloc.register;
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.catch_all_start_internal(list: TAsmList; add_catch: boolean);
-      var
-        exceptlocdef: tdef;
-        exceptlocreg: tregister;
-      begin
-        begin_catch_internal(list,nil,nil,add_catch,exceptlocdef,exceptlocreg);
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out
-      exceptlocreg: tregister);
-      begin
-        begin_catch_internal(list,excepttype,nextonlabel,true,exceptlocdef,exceptlocreg);
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.end_catch(list: TAsmList);
-      begin
-        hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
-        inherited;
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.catch_all_start(list: TAsmList);
-      begin
-        catch_all_start_internal(list,true);
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.catch_all_end(list: TAsmList);
-      begin
-        hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.cleanupobjectstack(list: TAsmList);
-      begin
-        // inherited cleanupobjectstack(list);
-//!!! some catch all clause needed?
-//!!!        internalerror(2019021004)
-      end;
-
-
-    class procedure tpsabiehexceptionstatehandler.popaddrstack(list: TAsmList);
-      begin
-        { there is no addr stack, so do nothing }
-      end;
-
 {*****************************************************************************
                          Second_While_RepeatN
 *****************************************************************************}
@@ -1664,43 +1399,46 @@ implementation
           end;
       end;
 
-
+{$ifndef jvm}
+    { has to be factored out as well }
     procedure tcgraisenode.pass_generate_code;
       var
         CurrentLandingPad, CurrentAction, ReRaiseLandingPad: TPSABIEHAction;
+        psabiehprocinfo: tpsabiehprocinfo;
       begin
         if not(tf_use_psabieh in target_info.flags) then
           Internalerror(2019021701);
 
         location_reset(location,LOC_VOID,OS_NO);
         CurrentLandingPad:=nil;
+        psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
         { a reraise must raise the exception to the parent exception frame }
         if fc_catching_exceptions in flowcontrol then
           begin
-            current_procinfo.CreateNewPSABIEHCallsite;
-            CurrentLandingPad:=current_procinfo.CurrentLandingPad;
-            if current_procinfo.PopLandingPad(CurrentLandingPad) then
+            psabiehprocinfo.CreateNewPSABIEHCallsite;
+            CurrentLandingPad:=psabiehprocinfo.CurrentLandingPad;
+            if psabiehprocinfo.PopLandingPad(CurrentLandingPad) then
               exclude(flowcontrol,fc_catching_exceptions);
-            CurrentAction:=current_procinfo.CurrentAction;
-            current_procinfo.PopAction(CurrentAction);
+            CurrentAction:=psabiehprocinfo.CurrentAction;
+            psabiehprocinfo.PopAction(CurrentAction);
 
             ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
-            current_procinfo.PushAction(ReRaiseLandingPad);
-            current_procinfo.PushLandingPad(ReRaiseLandingPad);
+            psabiehprocinfo.PushAction(ReRaiseLandingPad);
+            psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
           end;
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
         if assigned(CurrentLandingPad) then
           begin
-            current_procinfo.CreateNewPSABIEHCallsite;
-            current_procinfo.PopLandingPad(current_procinfo.CurrentLandingPad);
-            current_procinfo.PopAction(ReRaiseLandingPad);
+            psabiehprocinfo.CreateNewPSABIEHCallsite;
+            psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
+            psabiehprocinfo.PopAction(ReRaiseLandingPad);
 
-            current_procinfo.PushAction(CurrentAction);
-            current_procinfo.PushLandingPad(CurrentLandingPad);
+            psabiehprocinfo.PushAction(CurrentAction);
+            psabiehprocinfo.PushLandingPad(CurrentLandingPad);
             include(flowcontrol,fc_catching_exceptions);
           end;
       end;
-
+{$endif jvm}
 
 
 begin

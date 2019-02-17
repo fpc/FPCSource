@@ -654,6 +654,7 @@ compiler/ppheap.pas svneol=native#text/plain
 compiler/ppu.pas svneol=native#text/plain
 compiler/procdefutil.pas svneol=native#text/plain
 compiler/procinfo.pas svneol=native#text/plain
+compiler/psabiehpi.pas svneol=native#text/plain
 compiler/pstatmnt.pas svneol=native#text/plain
 compiler/psub.pas svneol=native#text/plain
 compiler/psystem.pas svneol=native#text/plain
