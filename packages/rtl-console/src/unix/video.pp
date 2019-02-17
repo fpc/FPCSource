@@ -58,7 +58,7 @@ var internal_codepage,external_codepage:Tencoding;
                                 implementation
 {*****************************************************************************}
 
-uses  baseunix,termio,strings
+uses  baseunix,termio,strings,unixkvmbase
      {$ifdef linux},linuxvcs{$endif};
 
 {$i video.inc}
@@ -956,18 +956,6 @@ begin
        end;
    end;
   TCSetAttr(1,TCSANOW,tio);
-end;
-
-function UTF8Enabled: Boolean;
-var
-  lang:string;
-begin
-  {$ifdef BEOS}
-  UTF8Enabled := true;
-  exit;
-  {$endif}
-  lang:=upcase(fpgetenv('LANG'));
-  UTF8Enabled := (Pos('.UTF-8', lang) > 0) or (Pos('.UTF8', lang) > 0);
 end;
 
 procedure decide_codepages;

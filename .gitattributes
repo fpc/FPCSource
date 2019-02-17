@@ -7443,6 +7443,7 @@ packages/rtl-console/src/unix/crt.pp svneol=native#text/plain
 packages/rtl-console/src/unix/keyboard.pp svneol=native#text/plain
 packages/rtl-console/src/unix/mouse.pp svneol=native#text/plain
 packages/rtl-console/src/unix/terminfo.pp svneol=native#text/plain
+packages/rtl-console/src/unix/unixkvmbase.pp svneol=native#text/plain
 packages/rtl-console/src/unix/video.pp svneol=native#text/plain
 packages/rtl-console/src/watcom/crt.pp svneol=native#text/plain
 packages/rtl-console/src/win/crt.pp svneol=native#text/plain

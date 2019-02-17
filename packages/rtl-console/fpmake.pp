@@ -100,6 +100,7 @@ begin
        AddInclude('convert.inc',AllUnixOSes);
        AddInclude('nwsys.inc',[netware]);
        AddUnit   ('mouse',[go32v2,msdos]);
+       AddUnit   ('unixkvmbase',AllUnixOSes);
      end;
 
     T:=P.Targets.AddUnit('crt.pp',CrtOSes);
@@ -118,6 +119,8 @@ begin
        AddUnit('video');
        AddUnit('mouse');
      end;
+
+    T:=P.Targets.AddUnit('unixkvmbase.pp',AllUnixOSes);
   end
 end;
 
