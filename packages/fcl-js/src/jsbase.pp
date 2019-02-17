@@ -23,7 +23,7 @@ uses
   {$ifdef pas2js}
   js,
   {$endif}
-  Classes, SysUtils;
+  Classes;
 
 const
   MinSafeIntDouble = -$fffffffffffff-1; // -4503599627370496
