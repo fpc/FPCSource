@@ -24,7 +24,7 @@ unit Pas2jsUseAnalyzer;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes,
   PasUseAnalyzer, PasTree, PasResolver,
   FPPas2Js;
 
