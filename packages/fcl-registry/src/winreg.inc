@@ -31,10 +31,9 @@ end;
 Function PrepKey(Const S : String) : String;
 
 begin
-  If Copy(S, 1, 1)='\' then
-    Result := Copy(Result, 2)
-  else
-    Result := S;
+  Result := S;
+  if (Result <> '') and (Result[1] = '\') then
+    System.Delete(Result, 1, 1);
 end;
 
 Function RelativeKey(Const S : String) : Boolean;
