@@ -24,9 +24,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
+  jstree,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver, PasUseAnalyzer,
-  FPPas2Js, Pas2JsFiler,
-  tcmodules, jstree;
+  Pas2jsUseAnalyzer, FPPas2Js, Pas2JsFiler,
+  tcmodules;
 
 type
 
@@ -34,11 +35,11 @@ type
 
   TCustomTestPrecompile = Class(TCustomTestModule)
   private
-    FAnalyzer: TPasAnalyzer;
+    FAnalyzer: TPas2JSAnalyzer;
     FInitialFlags: TPCUInitialFlags;
     FPCUReader: TPCUReader;
     FPCUWriter: TPCUWriter;
-    FRestAnalyzer: TPasAnalyzer;
+    FRestAnalyzer: TPas2JSAnalyzer;
     procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
       out Count: integer);
     function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
@@ -121,8 +122,8 @@ type
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
   public
-    property Analyzer: TPasAnalyzer read FAnalyzer;
-    property RestAnalyzer: TPasAnalyzer read FRestAnalyzer;
+    property Analyzer: TPas2JSAnalyzer read FAnalyzer;
+    property RestAnalyzer: TPas2JSAnalyzer read FRestAnalyzer;
     property PCUWriter: TPCUWriter read FPCUWriter write FPCUWriter;
     property PCUReader: TPCUReader read FPCUReader write FPCUReader;
     property InitialFlags: TPCUInitialFlags read FInitialFlags;
@@ -155,6 +156,7 @@ type
     procedure TestPC_Proc_Arg;
     procedure TestPC_ProcType;
     procedure TestPC_Proc_Anonymous;
+    procedure TestPC_Proc_ArrayOfConst;
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
     procedure TestPC_ClassConstructor;
@@ -278,7 +280,7 @@ procedure TCustomTestPrecompile.SetUp;
 begin
   inherited SetUp;
   FInitialFlags:=TPCUInitialFlags.Create;
-  FAnalyzer:=TPasAnalyzer.Create;
+  FAnalyzer:=TPas2JSAnalyzer.Create;
   Analyzer.Resolver:=Engine;
   Analyzer.Options:=Analyzer.Options+[paoImplReferences];
   Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
@@ -378,7 +380,7 @@ begin
     end;
 
     // analyze
-    FRestAnalyzer:=TPasAnalyzer.Create;
+    FRestAnalyzer:=TPas2JSAnalyzer.Create;
     FRestAnalyzer.Resolver:=RestResolver;
     try
       RestAnalyzer.AnalyzeModule(RestResolver.RootElement);
@@ -617,6 +619,8 @@ begin
   CheckRestoredReference(Path+'.AssertMsgConstructor',Orig.AssertMsgConstructor,Rest.AssertMsgConstructor);
   CheckRestoredReference(Path+'.RangeErrorClass',Orig.RangeErrorClass,Rest.RangeErrorClass);
   CheckRestoredReference(Path+'.RangeErrorConstructor',Orig.RangeErrorConstructor,Rest.RangeErrorConstructor);
+  CheckRestoredReference(Path+'.SystemTVarRec',Orig.SystemTVarRec,Rest.SystemTVarRec);
+  CheckRestoredReference(Path+'.SystemVarRecs',Orig.SystemVarRecs,Rest.SystemVarRecs);
   CheckRestoredPasScope(Path,Orig,Rest);
 end;
 
@@ -2016,6 +2020,23 @@ begin
   '    begin',
   '      Result:=j*GetMul(1,2)*k;',
   '    end;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Proc_ArrayOfConst;
+begin
+  StartUnit(true,[supTVarRec]);
+  Add([
+  'interface',
+  'procedure Fly(arr: array of const);',
+  'implementation',
+  'procedure Fly(arr: array of const);',
+  'begin',
+  '  if arr[1].VType=1 then ;',
+  '  if arr[2].VInteger=1 then ;',
+  '  Fly([true,0.3]);',
   'end;',
   '']);
   WriteReadUnit;

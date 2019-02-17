@@ -7,7 +7,8 @@ interface
 
 uses
   sysutils, classes, fpjson, contnrs, syncobjs, custhttpapp, fpwebfile, httproute,
-  pas2jscompiler, httpdefs, dirwatch;
+  httpdefs, dirwatch,
+  Pas2JSFSCompiler, Pas2JSCompilerCfg;
 
 Const
   nErrTooManyThreads = -1;
@@ -101,6 +102,7 @@ Type
     function ScheduleCompile(const aProjectFile: String; Options : TStrings = Nil): Integer;
     procedure StartWatch(ADir: String);
     procedure Usage(Msg: String);
+    function GetDefaultMimetypes: string;
   public
     Constructor Create(AOWner : TComponent); override;
     Destructor Destroy; override;
@@ -142,13 +144,14 @@ end;
 procedure TCompileThread.Execute;
 
 Var
-  C : TPas2jsCompiler;
+  C : TPas2JSFSCompiler;
   L : TStrings;
 
 begin
   L:=Nil;
-  C:=TPas2jsCompiler.Create;
+  C:=TPas2JSFSCompiler.Create;
   Try
+    C.ConfigSupport:=TPas2JSFileConfigSupport.Create(C);
     FApp.ReportBuilding(Item);
     L:=TStringList.Create;
     L.Assign(Item.Options);
@@ -259,9 +262,23 @@ begin
   Writeln('-q --quiet          Do not write diagnostic messages');
   Writeln('-w --watch          Watch directory for changes');
   Writeln('-c --compile[=proj] Recompile project if pascal files change. Default project is app.lpr');
+  Writeln('-m --mimetypes=file filename of mimetypes. Default is ',GetDefaultMimetypes);
   Writeln('-s --simpleserver   Only serve files, do not enable compilation.');
   Halt(Ord(Msg<>''));
   {AllowWriteln-}
+end;
+
+function THTTPCompilerApplication.GetDefaultMimetypes: string;
+begin
+  {$ifdef unix}
+  Result:='/etc/mime.types';
+  {$ifdef darwin}
+  if not FileExists(Result) then
+    Result:='/private/etc/apache2/mime.types';
+  {$endif}
+  {$else}
+  Result:=ExtractFilePath(System.ParamStr(0))+'mime.types';
+  {$endif}
 end;
 
 constructor THTTPCompilerApplication.Create(AOWner: TComponent);
@@ -403,7 +420,8 @@ begin
   end;
 end;
 
-Function THTTPCompilerApplication.ScheduleCompile(const aProjectFile : String; Options : TStrings = Nil) : Integer;
+function THTTPCompilerApplication.ScheduleCompile(const aProjectFile: String;
+  Options: TStrings): Integer;
 
 Var
   CI : TCompileItem;
@@ -479,7 +497,7 @@ begin
   AResponse.SendResponse;
 end;
 
-Function THTTPCompilerApplication.HandleCompileOptions(aDir : String) : Boolean;
+function THTTPCompilerApplication.HandleCompileOptions(aDir: String): Boolean;
 
 begin
   Result:=False;
@@ -510,14 +528,14 @@ begin
   Result:=True;
 end;
 
-Function THTTPCompilerApplication.ProcessOptions : Boolean;
+function THTTPCompilerApplication.ProcessOptions: Boolean;
 
 Var
   S,IndexPage,D : String;
 
 begin
   Result:=False;
-  S:=Checkoptions('shqd:ni:p:wP::c',['help','quiet','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver']);
+  S:=Checkoptions('shqd:ni:p:wP::cm:',['help','quiet','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   FServeOnly:=HasOption('s','serve-only');
@@ -526,11 +544,12 @@ begin
   D:=GetOptionValue('d','directory');
   if D='' then
     D:=GetCurrentDir;
-{$ifdef unix}
-  MimeTypesFile:='/etc/mime.types';
-{$else}
-  MimeTypesFile:=ExtractFilePath(System.ParamStr(0))+'mime.types';
-{$endif}
+  if HasOption('m','mimetypes') then
+    MimeTypesFile:=GetOptionValue('m','mimetypes');
+  if MimeTypesFile='' then
+    MimeTypesFile:=GetDefaultMimetypes;
+  if (MimeTypesFile<>'') and not FileExists(MimeTypesFile) then
+    Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
   FBaseDir:=D;
   if not ServeOnly then
     if not HandleCompileOptions(D) then

@@ -170,6 +170,9 @@ unit cgobj;
              @param(cgpara where the parameter will be stored)
           }
           procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);virtual;
+         protected
+          procedure a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation); virtual;
+         public
           {# Pass the value of a parameter, which can be located either in a register or memory location,
              to a routine.
 
@@ -1129,16 +1132,8 @@ implementation
                 end;
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin
-                   if assigned(location^.next) then
-                     internalerror(2010052906);
-                   reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
-                   if (size <> OS_NO) and
-                      (tcgsize2size[size] <= sizeof(aint)) then
-                     a_load_ref_ref(list,size,location^.size,tmpref,ref)
-                   else
-                     { use concatcopy, because the parameter can be larger than }
-                     { what the OS_* constants can handle                       }
-                     g_concatcopy(list,tmpref,ref,sizeleft);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
+                  a_load_ref_cgparalocref(list,size,sizeleft,tmpref,ref,cgpara,location);
                 end;
               LOC_MMREGISTER,LOC_CMMREGISTER:
                 begin
@@ -1153,6 +1148,10 @@ implementation
                      else
                        internalerror(2010053101);
                    end;
+                end;
+              LOC_FPUREGISTER,LOC_CFPUREGISTER:
+                begin
+                  a_loadfpu_ref_reg(list,size,location^.size,tmpref,location^.register);
                 end
               else
                 internalerror(2010053111);
@@ -1162,6 +1161,19 @@ implementation
             location:=location^.next;
           end;
       end;
+
+    procedure tcg.a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation);
+      begin
+        if assigned(location^.next) then
+          internalerror(2010052906);
+        if (sourcesize<>OS_NO) and
+           (tcgsize2size[sourcesize]<=sizeof(aint)) then
+           a_load_ref_ref(list,sourcesize,location^.size,ref,paralocref)
+        else
+          { use concatcopy, because the parameter can be larger than }
+          { what the OS_* constants can handle                       }
+          g_concatcopy(list,ref,paralocref,sizeleft);
+       end;
 
 
     procedure tcg.a_load_loc_cgpara(list : TAsmList;const l:tlocation;const cgpara : TCGPara);
