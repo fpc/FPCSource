@@ -567,10 +567,12 @@ function FPC_psabieh_find_action_record(const info: FPC_psabieh_lsda_header_info
         p:=FPC_read_uleb128 (p, &cs_action);
 
 {$ifdef excdebug}
-        writeln('find action record: cs_start: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,', lp: ', cs_lp,' action ofs: ',cs_action);
+        writeln('find action record: cs_start: $',hexstr(cs_start,sizeof(cs_start)*2),', len: ',cs_len,
+          ' (ip=$',hexstr(info.Start+cs_start,sizeof(PtrUInt)*2),'...$',hexstr(info.Start+cs_start+cs_len,sizeof(PtrUInt)*2),')',
+          ', lp: ', cs_lp,' action ofs: ',cs_action);
 {$endif}
         // The table is sorted, so if we've passed the ip, stop.
-        if ip<(info.Start+cs_start) then
+        if ip<info.Start+cs_start then
           p:=info.action_table
         else if (ip<(info.Start+cs_start+cs_len)) then
           begin
@@ -788,6 +790,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
     writeln('Personality (version = ',version,', actions = $',hexstr(actions,4),') started for wrapper ',hexstr(WrappedException),' = fpc exc ',hexstr(WrappedException^.FObject),
       ', refcount is now ',WrappedException^.refcount);
+    writeln('  ip=$',hexstr(_Unwind_GetIP(context),sizeof(pointer)*2));
 {$endif}
     // Shortcut for phase 2 found handler for domestic exception.
     if (actions=(FPC_UA_CLEANUP_PHASE or FPC_UA_HANDLER_FRAME)) and
@@ -814,7 +817,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
         if not assigned(language_specific_data) then
           begin
 {$ifdef excdebug}
-            writeln('did not find lsda for ip ',hexstr(_Unwind_GetIP(context),sizeof(pointer)*2));
+            writeln('did not find lsda for ip $',hexstr(_Unwind_GetIP(context),sizeof(pointer)*2));
 {$endif}
 
             exit(continue_unwinding(libunwind_exception,context));
@@ -972,9 +975,26 @@ procedure FPC_psabieh_ExceptionCleanUp(reason: FPC_Unwind_Reason_Code; exc:PFPC_
   end;
 
 function PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer): PExceptObject; forward;
+procedure fpc_RaiseException_Internal(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer); forward;
+
+{$ifdef CPUI386}
+{ tweak stack, so we get the correct context, this requires assembly }
+procedure fpc_RaiseException(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer); compilerproc;assembler; nostackframe;
+asm
+   movl AFrame,%ebp
+   movl AnAddr,(%esp)
+   jmpl fpc_RaiseException_Internal
+end;
+{$define PSABI_HANDLESCONTEXT}
+{$endif CPUI386}
 
 {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
+procedure fpc_RaiseException_Internal(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer);
+{$ifndef PSABI_HANDLESCONTEXT}
+  begin
+  end;
 procedure fpc_RaiseException(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer); compilerproc;
+{$endif PSABI_HANDLESCONTEXT}
 var
   _ExceptObjectStack : PExceptObject;
   _ExceptAddrstack : PExceptAddr;
