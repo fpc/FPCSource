@@ -56,13 +56,14 @@ function AddSpecialSequence(const St : string;Proc : Tprocedure) : PTreeElement;
 {*****************************************************************************}
 
 uses
-  Mouse,  Strings,
+  Mouse,  Strings,unixkvmbase,
   termio,baseUnix
   {$ifdef linux},linuxvcs{$endif};
 
 {$i keyboard.inc}
 
 var OldIO,StartTio : TermIos;
+    Utf8KeyboardInputEnabled: Boolean;
 {$ifdef linux}
     is_console:boolean;
     vt_switched_away:boolean;
@@ -1445,6 +1446,7 @@ end;
 
 procedure SysInitKeyboard;
 begin
+  Utf8KeyboardInputEnabled:=UnixKVMBase.UTF8Enabled;
   SetRawMode(true);
 {$ifdef logging}
      assign(f,'keyboard.log');

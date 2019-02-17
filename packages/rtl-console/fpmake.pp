@@ -80,6 +80,7 @@ begin
         AddInclude('nwsys.inc',[netware]);
         AddUnit   ('mouse',AllUnixOSes);
         AddUnit   ('video',[win16]);
+        AddUnit   ('unixkvmbase',AllUnixOSes);
       end;
 
     T:=P.Targets.AddUnit('mouse.pp',MouseOSes);
