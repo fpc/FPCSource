@@ -29,7 +29,8 @@ interface
     uses
       globtype,
       symtype,symdef,
-      aasmbase,aasmdata,nflw,
+      aasmbase,aasmdata,
+      node,nflw,
       pass_2,cgbase,cgutils,ncgutil;
 
     type
@@ -73,6 +74,8 @@ interface
        end;
 
        tcgraisenode = class(traisenode)
+         function pass_1: tnode;override;
+         procedure pass_generate_code;override;
        end;
 
        { Utility class for exception handling state management that is used
@@ -297,9 +300,8 @@ implementation
         action: TPSABIEHAction;
       begin
        cgpara1.init;
-        if exceptframekind<>tek_except
-          { not(fc_catching_exceptions in flowcontrol) and
-           use_cleanup(exceptframekind) } then
+        if not(fc_catching_exceptions in flowcontrol) and
+           use_cleanup(exceptframekind) then
           begin
             pd:=search_system_proc('fpc_resume');
             paramanager.getintparaloc(list,pd,1,cgpara1);
@@ -1649,6 +1651,56 @@ implementation
           end;
          flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
       end;
+
+
+    function tcgraisenode.pass_1: tnode;
+      begin
+        if not(tf_use_psabieh in target_info.flags) or assigned(left) then
+          result:=inherited
+        else
+          begin
+            expectloc:=LOC_VOID;
+            result:=nil;
+          end;
+      end;
+
+
+    procedure tcgraisenode.pass_generate_code;
+      var
+        CurrentLandingPad, CurrentAction, ReRaiseLandingPad: TPSABIEHAction;
+      begin
+        if not(tf_use_psabieh in target_info.flags) then
+          Internalerror(2019021701);
+
+        location_reset(location,LOC_VOID,OS_NO);
+        CurrentLandingPad:=nil;
+        { a reraise must raise the exception to the parent exception frame }
+        if fc_catching_exceptions in flowcontrol then
+          begin
+            current_procinfo.CreateNewPSABIEHCallsite;
+            CurrentLandingPad:=current_procinfo.CurrentLandingPad;
+            if current_procinfo.PopLandingPad(CurrentLandingPad) then
+              exclude(flowcontrol,fc_catching_exceptions);
+            CurrentAction:=current_procinfo.CurrentAction;
+            current_procinfo.PopAction(CurrentAction);
+
+            ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
+            current_procinfo.PushAction(ReRaiseLandingPad);
+            current_procinfo.PushLandingPad(ReRaiseLandingPad);
+          end;
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+        if assigned(CurrentLandingPad) then
+          begin
+            current_procinfo.CreateNewPSABIEHCallsite;
+            current_procinfo.PopLandingPad(current_procinfo.CurrentLandingPad);
+            current_procinfo.PopAction(ReRaiseLandingPad);
+
+            current_procinfo.PushAction(CurrentAction);
+            current_procinfo.PushLandingPad(CurrentLandingPad);
+            include(flowcontrol,fc_catching_exceptions);
+          end;
+      end;
+
 
 
 begin
