@@ -2012,6 +2012,7 @@ type
     function IsClassMethod(El: TPasElement): boolean;
     function IsClassField(El: TPasElement): boolean;
     function GetFunctionType(El: TPasElement): TPasFunctionType;
+    function MethodIsStatic(El: TPasProcedure): boolean;
     function IsMethod(El: TPasProcedure): boolean;
     function IsHelperMethod(El: TPasElement): boolean;
     function IsHelper(El: TPasElement): boolean;
@@ -5898,6 +5899,8 @@ begin
         RaiseMsg(20181231150305,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(Proc),'override'],Proc);
       if Proc.IsDynamic then
         RaiseMsg(20181231150319,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(Proc),'dynamic'],Proc);
+      if Proc.IsStatic then
+        RaiseMsg(20190216214651,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(Proc),'static'],Proc);
       if El.Args.Count>0 then
         RaiseMsg(20181231150404,nXCannotHaveParameters,sXCannotHaveParameters,[GetElementTypeName(Proc)],Proc);
       end;
@@ -5931,7 +5934,7 @@ begin
           RaiseMsg(20190116215823,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'virtual'],Proc);
         if Proc.IsOverride then
           RaiseMsg(20190116215825,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'override'],Proc);
-        if (ObjKind<>okClassHelper) and IsClassMethod(Proc) then
+        if (ObjKind<>okClassHelper) and IsClassMethod(Proc) and not IsClassConDestructor then
           begin
           if not Proc.IsStatic then
             RaiseMsg(20190201153831,nClassMethodsMustBeStaticInX,sClassMethodsMustBeStaticInX,[ObjKindNames[ObjKind]],Proc);
@@ -5972,8 +5975,9 @@ begin
         RaiseMsg(20181218195552,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'abstract'],Proc);
       if Proc.IsForward then
         RaiseMsg(20181218195514,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'forward'],Proc);
-      if IsClassMethod(Proc) then
+      if IsClassMethod(Proc) and not IsClassConDestructor then
         begin
+        // Note: class constructor/destructor must not be static
         if not Proc.IsStatic then
           RaiseMsg(20190106121503,nClassMethodsMustBeStaticInX,sClassMethodsMustBeStaticInX,['records'],Proc);
         end
@@ -6292,8 +6296,9 @@ begin
     begin
     // add 'Self'
     if (DeclProc.ClassType=TPasClassConstructor)
-        or (DeclProc.ClassType=TPasClassDestructor)
-        or (DeclProc.ClassType=TPasClassProcedure)
+        or (DeclProc.ClassType=TPasClassDestructor) then
+      // actually class constructor/destructor are static
+    else if (DeclProc.ClassType=TPasClassProcedure)
         or (DeclProc.ClassType=TPasClassFunction) then
       begin
       if (ClassOrRecScope is TPasClassScope)
@@ -22308,6 +22313,13 @@ begin
     Result:=TPasFunctionType(ProcType)
   else
     Result:=nil;
+end;
+
+function TPasResolver.MethodIsStatic(El: TPasProcedure): boolean;
+begin
+  Result:=(ptmStatic in El.ProcType.Modifiers)
+    or (El.ClassType=TPasClassConstructor)
+    or (El.ClassType=TPasClassDestructor);
 end;
 
 function TPasResolver.IsMethod(El: TPasProcedure): boolean;

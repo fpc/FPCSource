@@ -165,6 +165,7 @@ type
     procedure TestWP_ClassInterface_Typeinfo;
     procedure TestWP_ClassInterface_TGUID;
     procedure TestWP_ClassHelper;
+    procedure TestWP_ClassHelper_ClassConstrucor_Used;
 
     // scope references
     procedure TestSR_Proc_UnitVar;
@@ -3089,6 +3090,63 @@ begin
   'var b: TBird;',
   'begin',
   '  b.Fly;;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ClassHelper_ClassConstrucor_Used;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#TObject_used}TObject = class',
+  '    class constructor {#TObject_Init_used}Init;',
+  '    class destructor {#TObject_Done_used}Done;',
+  '  end;',
+  '  {#TBird_used}TBird = class',
+  '    {#TBird_A_notused}A: word;',
+  '    class constructor {#TBird_Init_used}Init;',
+  '    class destructor {#TBird_Done_used}Done;',
+  '  end;',
+  '  {#TBirdHelper_used}TBirdHelper = class helper for TBird',
+  '    procedure {#TBirdHelper_Fly_used}Fly;',
+  '    class constructor {#TBirdHelper_Init_used}Init;',
+  '    class destructor {#TBirdHelper_Done_used}Done;',
+  '  end;',
+  '  TAnt = class',
+  '    class constructor {#TAnt_Init_notused}Init;',
+  '    class destructor {#TAnt_Done_notused}Done;',
+  '  end;',
+  'class constructor TObject.Init;',
+  'begin',
+  'end;',
+  'class destructor TObject.Done;',
+  'begin',
+  'end;',
+  'class constructor TBird.Init;',
+  'begin',
+  'end;',
+  'class destructor TBird.Done;',
+  'begin',
+  'end;',
+  'procedure TBirdHelper.Fly;',
+  'begin',
+  'end;',
+  'class constructor TBirdHelper.Init;',
+  'begin',
+  'end;',
+  'class destructor TBirdHelper.Done;',
+  'begin',
+  'end;',
+  'class constructor TAnt.Init;',
+  'begin',
+  'end;',
+  'class destructor TAnt.Done;',
+  'begin',
+  'end;',
+  'var b: TBird;',
+  'begin',
+  '  b.Fly;',
   '']);
   AnalyzeWholeProgram;
 end;

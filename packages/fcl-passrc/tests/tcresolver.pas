@@ -504,6 +504,8 @@ type
     Procedure TestAdvRecord_ConstructorNoParamsFail;
     Procedure TestAdvRecord_ClassConstructor;
     Procedure TestAdvRecord_ClassConstructorParamsFail;
+    Procedure TestAdvRecord_ClassConstructor_CallFail;
+    Procedure TestAdvRecord_ClassConstructorDuplicateFail;
     Procedure TestAdvRecord_NestedRecordType;
     Procedure TestAdvRecord_NestedArgConstFail;
     Procedure TestAdvRecord_Property;
@@ -8249,7 +8251,7 @@ begin
   '  TRec = record',
   '    class var w: word;',
   '    class procedure {#a}Create; static;',
-  '    class constructor Create; static;',
+  '    class constructor Create;', // name clash is allowed!
   '  end;',
   'class constructor TRec.Create;',
   'begin',
@@ -8280,6 +8282,46 @@ begin
   'begin',
   '']);
   CheckResolverException('class constructor cannot have parameters',nXCannotHaveParameters);
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassConstructor_CallFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    class constructor Create;',
+  '  end;',
+  'class constructor TRec.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '  TRec.Create;',
+  '']);
+  CheckResolverException('identifier not found "Create"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassConstructorDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    class constructor Create;',
+  '    class constructor Init;',
+  '  end;',
+  'class constructor TRec.Create;',
+  'begin',
+  'end;',
+  'class constructor TRec.Init;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Multiple class constructor in record TRec: Create and Init',
+    nMultipleXinTypeYNameZCAandB);
 end;
 
 procedure TTestResolver.TestAdvRecord_NestedRecordType;
