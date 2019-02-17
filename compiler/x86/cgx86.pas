@@ -3405,7 +3405,10 @@ unit cgx86;
                 inc(regsize,sizeof(aint));
                 hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
                 list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],hreg));
-                current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+localsize));
+                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
+                else
+                  current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
               end;
         end;
 
