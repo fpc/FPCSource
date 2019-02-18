@@ -527,17 +527,29 @@ implementation
       var
         cgpara1: tcgpara;
         pd: tprocdef;
-        action: TPSABIEHAction;
+        action, ReRaiseLandingPad: TPSABIEHAction;
+        psabiehprocinfo: tpsabiehprocinfo;
       begin
        cgpara1.init;
         if not(fc_catching_exceptions in flowcontrol) and
            use_cleanup(exceptframekind) then
           begin
+            psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
+            psabiehprocinfo.CreateNewPSABIEHCallsite;
+
+            ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
+            psabiehprocinfo.PushAction(ReRaiseLandingPad);
+            psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
+
             pd:=search_system_proc('fpc_resume');
             paramanager.getintparaloc(list,pd,1,cgpara1);
             hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_resume',[@cgpara1],nil).resetiftemp
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_resume',[@cgpara1],nil).resetiftemp;
+
+            psabiehprocinfo.CreateNewPSABIEHCallsite;
+            psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
+            psabiehprocinfo.PopAction(ReRaiseLandingPad);
           end
         else
           hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
