@@ -71,13 +71,15 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 3;
+  PCUVersion = 4;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
        - pcsfAncestorResolved
        - removed msIgnoreInterfaces
-    3: changed records from function to objects
+    3: changed records from function to objects (pas2js 1.3)
+    4: precompiled JS of initialization section now only contains the statements,
+       not the whole $init function (pas2js 1.5)
   }
 
   BuiltInNodeName = 'BuiltIn';

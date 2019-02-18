@@ -59,8 +59,9 @@ type
     procedure TestPCU_Overloads;
     procedure TestPCU_Overloads_MDelphi_ModeObjFPC;
     procedure TestPCU_UnitCycle;
-    procedure TestPCU_ClassForward;
-    procedure TestPCU_ClassConstructor;
+    procedure TestPCU_Class_Forward;
+    procedure TestPCU_Class_Constructor;
+    procedure TestPCU_Class_ClassConstructor;
     procedure TestPCU_ClassInterface;
     procedure TestPCU_Namespace;
     procedure TestPCU_CheckVersionMain;
@@ -300,7 +301,7 @@ begin
   CheckPrecompile('test1.pas','src');
 end;
 
-procedure TTestCLI_Precompile.TestPCU_ClassForward;
+procedure TTestCLI_Precompile.TestPCU_Class_Forward;
 begin
   AddUnit('src/system.pp',[
     'type integer = longint;',
@@ -339,7 +340,7 @@ begin
   CheckPrecompile('test1.pas','src');
 end;
 
-procedure TTestCLI_Precompile.TestPCU_ClassConstructor;
+procedure TTestCLI_Precompile.TestPCU_Class_Constructor;
 begin
   AddUnit('src/system.pp',[
     'type integer = longint;',
@@ -369,6 +370,41 @@ begin
     'begin',
     '  TBird.Create;',
     '  TCow.Create;',
+    'end;',
+    '']);
+  AddFile('test1.pas',[
+    'uses unit2;',
+    'begin',
+    '  DoIt;',
+    'end.']);
+  CheckPrecompile('test1.pas','src');
+end;
+
+procedure TTestCLI_Precompile.TestPCU_Class_ClassConstructor;
+begin
+  AddUnit('src/system.pp',[
+    'type integer = longint;',
+    'procedure Writeln; varargs;'],
+    ['procedure Writeln; begin end;']);
+  AddUnit('src/unit1.pp',[
+    'type',
+    '  TObject = class',
+    '    constructor Create;',
+    '  end;',
+    '  TBird = class',
+    '    class constructor Init;',
+    '  end;',
+    ''],[
+    'constructor TObject.Create; begin end;',
+    'class constructor TBird.Init; begin end;',
+    '']);
+  AddUnit('src/unit2.pp',[
+    'uses unit1;',
+    'procedure DoIt;',
+    ''],[
+    'procedure DoIt;',
+    'begin',
+    '  TBird.Create;',
     'end;',
     '']);
   AddFile('test1.pas',[

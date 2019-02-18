@@ -441,7 +441,6 @@ type
     Procedure TestArrayOfConst_TVarRec;
     Procedure TestArrayOfConst_PassBaseTypes;
     Procedure TestArrayOfConst_PassObj;
-    // ToDo: tcfiler TPasModuleScope.SystemTVarRec TPas2JSModuleScope.SystemVarRecs
 
     // record
     Procedure TestRecord_Empty;
@@ -474,7 +473,8 @@ type
     Procedure TestAdvRecord_SubClass;
     Procedure TestAdvRecord_SubInterfaceFail;
     Procedure TestAdvRecord_Constructor;
-    // ToDo: class constructor
+    Procedure TestAdvRecord_ClassConstructor;
+    // ToDo: classconstructor pcu
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -525,6 +525,7 @@ type
     Procedure TestClass_NestedProcClassSelf;
     Procedure TestClass_NestedProcCallInherited;
     Procedure TestClass_TObjectFree;
+    Procedure TestClass_TObjectFree_VarArg;
     Procedure TestClass_TObjectFreeNewInstance;
     Procedure TestClass_TObjectFreeLowerCase;
     Procedure TestClass_TObjectFreeFunctionFail;
@@ -11136,6 +11137,62 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestAdvRecord_ClassConstructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TPoint = record',
+  '    class var x: longint;',
+  '    class procedure Fly; static;',
+  '    class constructor Init;',
+  '  end;',
+  'var count: word;',
+  'class procedure Tpoint.Fly;',
+  'begin',
+  'end;',
+  'class constructor tpoint.init;',
+  'begin',
+  '  count:=count+1;',
+  '  x:=3;',
+  '  tpoint.x:=4;',
+  '  fly;',
+  '  tpoint.fly;',
+  'end;',
+  'var r: TPoint;',
+  'begin',
+  '  r.x:=10;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAdvRecord_ClassConstructor',
+    LinesToStr([ // statements
+    'rtl.recNewT($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  this.Fly = function () {',
+    '  };',
+    '}, true);',
+    'this.count = 0;',
+    'this.r = $mod.TPoint.$new();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '(function () {',
+    '  $mod.count = $mod.count + 1;',
+    '  $mod.TPoint.x = 3;',
+    '  $mod.TPoint.x = 4;',
+    '  $mod.TPoint.Fly();',
+    '  $mod.TPoint.Fly();',
+    '})();',
+    '$mod.TPoint.x = 10;',
+    '']));
+end;
+
 procedure TTestModule.TestClass_TObjectDefaultConstructor;
 begin
   StartProgram(false);
@@ -13982,6 +14039,47 @@ begin
     'rtl.free($mod, "o");',
     'rtl.free($mod.o, "Obj");',
     'rtl.free($mod.a, 1 + 2);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFree_VarArg;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    Obj: tobject;',
+  '    procedure Free;',
+  '  end;',
+  'procedure tobject.free;',
+  'begin',
+  'end;',
+  'procedure DoIt(var o: tobject);',
+  'begin',
+  '  o.free;',
+  '  o.free();',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_TObjectFree_VarArg',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Obj = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.Obj = undefined;',
+    '  };',
+    '  this.Free = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (o) {',
+    '  o.set(rtl.freeLoc(o.get()));',
+    '  o.set(rtl.freeLoc(o.get()));',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

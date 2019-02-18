@@ -218,12 +218,16 @@ const
     );
 
 type
+  TPAOtherCheckedEl = (
+    pocClassConstructor
+    );
 
   { TPasAnalyzer }
 
   TPasAnalyzer = class
   private
-    FChecked: array[TPAUseMode] of TPasAnalyzerKeySet; // tree of TElement
+    FModeChecked: array[TPAUseMode] of TPasAnalyzerKeySet; // tree of TElement
+    FOtherChecked: array[TPAOtherCheckedEl] of TPasAnalyzerKeySet; // tree of TElement
     FOnMessage: TPAMessageEvent;
     FOptions: TPasAnalyzerOptions;
     FOverrideLists: TPasAnalyzerKeySet; // tree of TPAOverrideList sorted for Element
@@ -245,7 +249,8 @@ type
     function PAElementExists(El: TPasElement): boolean; inline;
     procedure CreateTree; virtual;
     function MarkElementAsUsed(El: TPasElement; aClass: TPAElementClass = nil): boolean; // true if new
-    function ElementVisited(El: TPasElement; Mode: TPAUseMode): boolean;
+    function ElementVisited(El: TPasElement; Mode: TPAUseMode): boolean; overload;
+    function ElementVisited(El: TPasElement; OtherCheck: TPAOtherCheckedEl): boolean; overload;
     procedure MarkImplScopeRef(El, RefEl: TPasElement; Access: TPSRefAccess);
     procedure UseElement(El: TPasElement; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
@@ -263,6 +268,7 @@ type
     procedure UseProcedureType(ProcType: TPasProcedureType); virtual;
     procedure UseType(El: TPasType; Mode: TPAUseMode); virtual;
     procedure UseClassOrRecType(El: TPasMembersType; Mode: TPAUseMode); virtual;
+    procedure UseClassConstructor(El: TPasMembersType); virtual;
     procedure UseVariable(El: TPasVariable; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseResourcestring(El: TPasResString); virtual;
@@ -952,9 +958,19 @@ function TPasAnalyzer.ElementVisited(El: TPasElement; Mode: TPAUseMode
 begin
   if El=nil then
     exit(true);
-  if FChecked[Mode].ContainsItem(El) then exit(true);
+  if FModeChecked[Mode].ContainsItem(El) then exit(true);
   Result:=false;
-  FChecked[Mode].Add(El,false);
+  FModeChecked[Mode].Add(El,false);
+end;
+
+function TPasAnalyzer.ElementVisited(El: TPasElement;
+  OtherCheck: TPAOtherCheckedEl): boolean;
+begin
+  if El=nil then
+    exit(true);
+  if FOtherChecked[OtherCheck].ContainsItem(El) then exit(true);
+  Result:=false;
+  FOtherChecked[OtherCheck].Add(El,false);
 end;
 
 procedure TPasAnalyzer.MarkImplScopeRef(El, RefEl: TPasElement;
@@ -1021,6 +1037,8 @@ begin
     El:=El.Parent;
     if not (El is TPasType) then break;
     MarkElementAsUsed(El);
+    if El is TPasMembersType then
+      UseClassConstructor(TPasMembersType(El));
   until false;
 end;
 
@@ -1544,7 +1562,6 @@ begin
   UseExpr(El.format2);
   C:=El.ClassType;
   if (C=TPrimitiveExpr)
-      or (C=TSelfExpr)
       or (C=TBoolConstExpr)
       or (C=TNilExpr) then
     // ok
@@ -1618,7 +1635,7 @@ begin
       RaiseNotSupported(20170403173817,Params);
     end;
     end
-  else if (C=TSelfExpr) or ((C=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)) then
+  else if (C=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent) then
     begin
     if (Expr.CustomData is TResolvedReference) then
       begin
@@ -1942,7 +1959,7 @@ var
   List, ProcList: TFPList;
   o: TObject;
   Map: TPasClassIntfMap;
-  ImplProc, IntfProc: TPasProcedure;
+  ImplProc, IntfProc, Proc: TPasProcedure;
   aClass: TPasClassType;
 begin
   FirstTime:=true;
@@ -1970,7 +1987,7 @@ begin
   ClassScope:=nil;
   IsCOMInterfaceRoot:=false;
 
-  if El is TPasClassType then
+  if El.ClassType=TPasClassType then
     begin
     aClass:=TPasClassType(El);
     if aClass.IsForward then
@@ -2022,37 +2039,44 @@ begin
     Member:=TPasElement(El.Members[i]);
     if FirstTime and (Member is TPasProcedure) then
       begin
+      Proc:=TPasProcedure(Member);
       ProcScope:=Member.CustomData as TPasProcedureScope;
-      if TPasProcedure(Member).IsOverride and (ProcScope.OverriddenProc<>nil) then
+      if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
         begin
         // this is an override
         AddOverride(ProcScope.OverriddenProc,Member);
         if ScopeModule<>nil then
           begin
           // when analyzing a single module, all overrides are assumed to be called
-          UseProcedure(TPasProcedure(Member));
+          UseProcedure(Proc);
           continue;
           end;
+        end
+      else if (Proc.ClassType=TPasClassConstructor)
+          or (Proc.ClassType=TPasClassDestructor) then
+        begin
+        UseProcedure(Proc);
+        continue;
         end;
       if IsCOMInterfaceRoot then
         begin
         case lowercase(Member.Name) of
         'queryinterface':
-          if (TPasProcedure(Member).ProcType.Args.Count=2) then
+          if (Proc.ProcType.Args.Count=2) then
             begin
-            UseProcedure(TPasProcedure(Member));
+            UseProcedure(Proc);
             continue;
             end;
         '_addref':
-          if TPasProcedure(Member).ProcType.Args.Count=0 then
+          if Proc.ProcType.Args.Count=0 then
             begin
-            UseProcedure(TPasProcedure(Member));
+            UseProcedure(Proc);
             continue;
             end;
         '_release':
-          if TPasProcedure(Member).ProcType.Args.Count=0 then
+          if Proc.ProcType.Args.Count=0 then
             begin
-            UseProcedure(TPasProcedure(Member));
+            UseProcedure(Proc);
             continue;
             end;
         end;
@@ -2116,6 +2140,20 @@ begin
         else
           RaiseNotSupported(20180328224632,aClass,GetObjName(o));
         end;
+    end;
+end;
+
+procedure TPasAnalyzer.UseClassConstructor(El: TPasMembersType);
+var
+  i: Integer;
+  Member: TPasElement;
+begin
+  if ElementVisited(El,pocClassConstructor) then exit;
+  for i:=0 to El.Members.Count-1 do
+    begin
+    Member:=TPasElement(El.Members[i]);
+    if (Member.ClassType=TPasClassConstructor) or (Member.ClassType=TPasClassDestructor) then
+      UseProcedure(TPasProcedure(Member));
     end;
 end;
 
@@ -2612,10 +2650,20 @@ end;
 constructor TPasAnalyzer.Create;
 var
   m: TPAUseMode;
+  oc: TPAOtherCheckedEl;
 begin
   CreateTree;
   for m in TPAUseMode do
-    FChecked[m]:=TPasAnalyzerKeySet.Create(
+    FModeChecked[m]:=TPasAnalyzerKeySet.Create(
+      {$ifdef pas2js}
+      @PasElementToHashName
+      {$else}
+      @ComparePointer
+      {$endif}
+      ,nil
+      );
+  for oc in TPAOtherCheckedEl do
+    FOtherChecked[oc]:=TPasAnalyzerKeySet.Create(
       {$ifdef pas2js}
       @PasElementToHashName
       {$else}
@@ -2634,23 +2682,29 @@ end;
 destructor TPasAnalyzer.Destroy;
 var
   m: TPAUseMode;
+  oc: TPAOtherCheckedEl;
 begin
   Clear;
   FreeAndNil(FOverrideLists);
   FreeAndNil(FUsedElements);
   for m in TPAUseMode do
-    FreeAndNil(FChecked[m]);
+    FreeAndNil(FModeChecked[m]);
+  for oc in TPAOtherCheckedEl do
+    FreeAndNil(FOtherChecked[oc]);
   inherited Destroy;
 end;
 
 procedure TPasAnalyzer.Clear;
 var
   m: TPAUseMode;
+  oc: TPAOtherCheckedEl;
 begin
   FOverrideLists.FreeItems;
   FUsedElements.FreeItems;
   for m in TPAUseMode do
-    FChecked[m].Clear;
+    FModeChecked[m].Clear;
+  for oc in TPAOtherCheckedEl do
+    FOtherChecked[oc].Clear;
 end;
 
 procedure TPasAnalyzer.AnalyzeModule(aModule: TPasModule);
@@ -2732,7 +2786,7 @@ end;
 
 function TPasAnalyzer.IsTypeInfoUsed(El: TPasElement): boolean;
 begin
-  Result:=FChecked[paumTypeInfo].ContainsItem(El);
+  Result:=FModeChecked[paumTypeInfo].ContainsItem(El);
 end;
 
 function TPasAnalyzer.IsModuleInternal(El: TPasElement): boolean;
