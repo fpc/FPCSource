@@ -450,7 +450,8 @@ type
     procedure ParseProcBeginBlock(Parent: TProcedureBody);
     procedure ParseProcAsmBlock(Parent: TProcedureBody);
     // Function/Procedure declaration
-    function  ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: TProcType;AVisibility : TPasMemberVisibility = VisDefault): TPasProcedure;
+    function ParseProcedureOrFunctionDecl(Parent: TPasElement;
+      ProcType: TProcType; MustBeGeneric: boolean; AVisibility: TPasMemberVisibility = VisDefault): TPasProcedure;
     procedure ParseArgList(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       EndToken: TToken);
@@ -2300,7 +2301,7 @@ begin
         ProcType:=ptAnonymousFunction;
       try
         ProcExpr:=TProcedureExpr(CreateElement(TProcedureExpr,'',AParent,visPublic));
-        ProcExpr.Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(ProcExpr,ProcType));
+        ProcExpr.Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(ProcExpr,ProcType,false));
         Result:=ProcExpr;
       finally
         if Result=nil then
@@ -3413,7 +3414,7 @@ begin
       SetBlock(declNone);
       SaveComments;
       pt:=GetProcTypeFromToken(CurToken);
-      AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt));
+      AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt, false));
       end;
     tkClass:
       begin
@@ -3423,7 +3424,7 @@ begin
         If CurToken in [tkprocedure,tkFunction,tkConstructor,tkDestructor] then
           begin
           pt:=GetProcTypeFromToken(CurToken,True);
-          AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt));
+          AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt, false));
           end
         else
           CheckToken(tkprocedure);
@@ -3533,9 +3534,8 @@ begin
         end;
       end;
     tkGeneric:
-      begin
-        if CurBlock <> declType then
-          ParseExcSyntaxError;
+      if CurBlock = declType then
+        begin
         TypeName := ExpectIdentifier;
         NamePos:=CurSourcePos;
         List:=TFPList.Create;
@@ -3593,7 +3593,41 @@ begin
             TPasElement(List[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
           List.Free;
         end;
-      end;
+        end
+      else if CurBlock = declNone then
+        begin
+        if msDelphi in CurrentModeswitches then
+          ParseExcSyntaxError; // inconsistency, tkGeneric should be in Scanner.NonTokens
+        SetBlock(declNone);
+        SaveComments;
+        NextToken;
+        case CurToken of
+        tkclass:
+          begin
+          // generic class ...
+          NextToken;
+          if not (CurToken in [tkprocedure,tkfunction]) then
+            ParseExcSyntaxError;
+          // generic class procedure ...
+          pt:=GetProcTypeFromToken(CurToken,true);
+          AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt, true));
+          end;
+        tkprocedure,tkfunction:
+          begin
+          // generic procedure ...
+          SetBlock(declNone);
+          SaveComments;
+          pt:=GetProcTypeFromToken(CurToken);
+          AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt, true));
+          end;
+        else
+          ParseExcSyntaxError;
+        end;
+        end
+      else
+        begin
+        ParseExcSyntaxError;
+        end;
     tkbegin:
       begin
       if Declarations is TProcedureBody then
@@ -6112,7 +6146,8 @@ begin
 end;
 
 function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
-  ProcType: TProcType; AVisibility: TPasMemberVisibility): TPasProcedure;
+  ProcType: TProcType; MustBeGeneric: boolean; AVisibility: TPasMemberVisibility
+  ): TPasProcedure;
 
   function ExpectProcName: string;
 
@@ -6124,13 +6159,15 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
     Result:=ExpectIdentifier;
     //writeln('ExpectProcName ',Parent.Classname);
     if Parent is TImplementationSection then
-    begin
+      begin
       NextToken;
       repeat
         if CurToken=tkDot then
           Result:=Result+'.'+ExpectIdentifier
         else if CurToken=tkLessThan then
           begin // <> can be ignored, we read the list but discard its content
+          if (not MustBeGeneric) and not (msDelphi in CurrentModeswitches) then
+            ParseExcTokenError('('); // e.g. "generic" is missing in mode objfpc
           UnGetToken;
           L:=TFPList.Create;
           Try
@@ -6146,7 +6183,7 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
         NextToken;
       until false;
       UngetToken;
-    end;
+      end;
   end;
 
 var
@@ -6158,6 +6195,8 @@ begin
   case ProcType of
   ptOperator,ptClassOperator:
     begin
+    if MustBeGeneric then
+      ParseExcTokenError('procedure');
     NextToken;
     IsTokenBased:=CurToken<>tkIdentifier;
     if IsTokenBased then
@@ -6169,7 +6208,11 @@ begin
     Name:=OperatorNames[Ot];
     end;
   ptAnonymousProcedure,ptAnonymousFunction:
+    begin
     Name:='';
+    if MustBeGeneric then
+      ParseExcTokenError('generic'); // inconsistency
+    end
   else
     Name:=ExpectProcName;
   end;
@@ -6376,7 +6419,7 @@ begin
         if Not AllowMethods then
           ParseExc(nErrRecordMethodsNotAllowed,SErrRecordMethodsNotAllowed);
         ProcType:=GetProcTypeFromToken(CurToken,isClass);
-        Proc:=ParseProcedureOrFunctionDecl(ARec,ProcType,v);
+        Proc:=ParseProcedureOrFunctionDecl(ARec,ProcType,false,v);
         if Proc.Parent is TPasOverloadedProc then
           TPasOverloadedProc(Proc.Parent).Overloads.Add(Proc)
         else
@@ -6519,7 +6562,7 @@ var
   ProcType: TProcType;
 begin
   ProcType:=GetProcTypeFromToken(CurToken,isClass);
-  Proc:=ParseProcedureOrFunctionDecl(AType,ProcType,AVisibility);
+  Proc:=ParseProcedureOrFunctionDecl(AType,ProcType,false,AVisibility);
   if Proc.Parent is TPasOverloadedProc then
     TPasOverloadedProc(Proc.Parent).Overloads.Add(Proc)
   else
