@@ -534,6 +534,8 @@ implementation
         if not(fc_catching_exceptions in flowcontrol) and
            use_cleanup(exceptframekind) then
           begin
+            { Resume might not be called outside of an landing pad else
+              the unwind is immediatly terminated, so create an empty landing pad }
             psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
             psabiehprocinfo.CreateNewPSABIEHCallsite;
 
