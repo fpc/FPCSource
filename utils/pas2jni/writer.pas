@@ -1853,6 +1853,8 @@ begin
       Fps.WriteLn('var mpi: _TMethodPtrInfo;');
       Fps.WriteLn('begin');
       Fps.IncI;
+      Fps.WriteLn('Result:=nil;');
+      Fps.WriteLn('if (m.Data = nil) and (m.Code = nil) then exit;');
       Fps.WriteLn('_MethodPointersCS.Enter;');
       Fps.WriteLn('try');
       Fps.IncI;
