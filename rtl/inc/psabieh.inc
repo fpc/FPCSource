@@ -981,9 +981,15 @@ procedure fpc_RaiseException_Internal(Obj: TObject; AnAddr: CodePointer; AFrame:
 { tweak stack, so we get the correct context, this requires assembly }
 procedure fpc_RaiseException(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer); compilerproc;assembler; nostackframe;
 asm
-   movl AFrame,%ebp
-   movl AnAddr,(%esp)
-   jmpl fpc_RaiseException_Internal
+  { loading the address makes only sense if a frame is passed, else unwinding is completly mixed up }
+  orl AFrame,AFrame
+  je .L1
+  movl AFrame,%ebp
+  orl AnAddr,AnAddr
+  je .L1
+  movl AnAddr,(%esp)
+.L1:
+  jmpl fpc_RaiseException_Internal
 end;
 {$define PSABI_HANDLESCONTEXT}
 {$endif CPUI386}
