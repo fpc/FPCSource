@@ -3400,9 +3400,15 @@ begin
   'OBJFPC':
     SetMode(msObjfpc,OBJFPCModeSwitches,true,bsObjFPCMode);
   'DELPHI':
+    begin
     SetMode(msDelphi,DelphiModeSwitches,true,bsDelphiMode,[bsPointerMath]);
+    SetNonToken(tkgeneric);
+    end;
   'DELPHIUNICODE':
+    begin
     SetMode(msDelphiUnicode,DelphiUnicodeModeSwitches,true,bsDelphiUnicodeMode,[bsPointerMath]);
+    SetNonToken(tkgeneric);
+    end;
   'TP':
     SetMode(msTP7,TPModeSwitches,false);
   'MACPAS':
