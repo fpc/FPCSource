@@ -3408,7 +3408,10 @@ unit cgx86;
                 if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
                 else
-                  current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
+                  begin
+                    current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
+                    current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
+                  end;
               end;
         end;
 
