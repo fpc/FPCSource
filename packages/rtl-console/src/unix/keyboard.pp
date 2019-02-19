@@ -79,6 +79,8 @@ var
   KeyPut,
   KeySend   : longint;
 
+  PendingEnhancedKeyEvent: TEnhancedKeyEvent;
+
 { Buffered Input routines }
 const
   InSize=256;
@@ -1407,6 +1409,46 @@ begin
    end;
 end;
 
+function EnhShiftState:TEnhancedShiftState;
+const
+  KG_SHIFT     = 0;
+  KG_CTRL      = 2;
+  KG_ALT       = 3;
+  KG_ALTGR     = 1;
+  KG_SHIFTL    = 4;
+  KG_KANASHIFT = 4;
+  KG_SHIFTR    = 5;
+  KG_CTRLL     = 6;
+  KG_CTRLR     = 7;
+  KG_CAPSSHIFT = 8;
+var
+  arg: longint;
+begin
+  EnhShiftState:=[];
+  arg:=6;
+  if fpioctl(StdInputHandle,TIOCLINUX,@arg)=0 then
+   begin
+     if (arg and (1 shl KG_ALT))<>0 then
+       Include(EnhShiftState,essAlt);
+     if (arg and (1 shl KG_CTRL))<>0 then
+       Include(EnhShiftState,essCtrl);
+     if (arg and (1 shl KG_CTRLL))<>0 then
+       Include(EnhShiftState,essLeftCtrl);
+     if (arg and (1 shl KG_CTRLR))<>0 then
+       Include(EnhShiftState,essRightCtrl);
+     { 2 corresponds to AltGr so set both kbAlt and kbCtrl PM }
+     if (arg and (1 shl KG_ALTGR))<>0 then
+       {shiftstate:=shiftstate or (kbAlt or kbCtrl);}
+       Include(EnhShiftState,essRightAlt);
+     if (arg and (1 shl KG_SHIFT))<>0 then
+       Include(EnhShiftState,essShift);
+     if (arg and (1 shl KG_SHIFTL))<>0 then
+       Include(EnhShiftState,essLeftShift);
+     if (arg and (1 shl KG_SHIFTR))<>0 then
+       Include(EnhShiftState,essRightShift);
+   end;
+end;
+
 procedure force_linuxtty;
 
 var s:string[15];
@@ -1446,6 +1488,7 @@ end;
 
 procedure SysInitKeyboard;
 begin
+  PendingEnhancedKeyEvent:=NilEnhancedKeyEvent;
   Utf8KeyboardInputEnabled:=UnixKVMBase.UTF8Enabled;
   SetRawMode(true);
 {$ifdef logging}
@@ -1505,7 +1548,7 @@ begin
 end;
 
 
-function SysGetKeyEvent: TKeyEvent;
+function SysGetEnhancedKeyEvent: TEnhancedKeyEvent;
 
   function EvalScan(b:byte):byte;
   const
@@ -1565,23 +1608,30 @@ var
   MyScan:byte;
   MyChar : char;
   EscUsed,AltPrefixUsed,CtrlPrefixUsed,ShiftPrefixUsed,IsAlt,Again : boolean;
-  SState:byte;
+  SState: TEnhancedShiftState;
 
 begin {main}
+  if PendingEnhancedKeyEvent<>NilEnhancedKeyEvent then
+    begin
+      SysGetEnhancedKeyEvent:=PendingEnhancedKeyEvent;
+      PendingEnhancedKeyEvent:=NilEnhancedKeyEvent;
+      exit;
+    end;
+  SysGetEnhancedKeyEvent:=NilEnhancedKeyEvent;
   MyChar:=Readkey(IsAlt);
   MyScan:=ord(MyChar);
 {$ifdef linux}
   if is_console then
-    SState:=ShiftState
+    SState:=EnhShiftState
   else
 {$endif}
-    Sstate:=0;
+    Sstate:=[];
   CtrlPrefixUsed:=false;
   AltPrefixUsed:=false;
   ShiftPrefixUsed:=false;
   EscUsed:=false;
   if IsAlt then
-    SState:=SState or kbAlt;
+    Include(SState, essAlt);
   repeat
     again:=false;
     if Mychar=#0 then
@@ -1590,7 +1640,7 @@ begin {main}
         if myscan=$01 then
           mychar:=#27;
         { Handle Ctrl-<x>, but not AltGr-<x> }
-        if ((SState and kbCtrl)<>0) and ((SState and kbAlt) = 0)  then
+        if (essCtrl in SState) and (not (essAlt in SState))  then
           case MyScan of
             kbShiftTab: MyScan := kbCtrlTab;
             kbHome..kbDel : { cArrow }
@@ -1601,7 +1651,7 @@ begin {main}
               MyScan:=MyScan+kbCtrlF11-kbF11;
           end
         { Handle Alt-<x>, but not AltGr }
-        else if ((SState and kbAlt)<>0) and ((SState and kbCtrl) = 0) then
+        else if (essAlt in SState) and (not (essCtrl in SState)) then
           case MyScan of
             kbShiftTab: MyScan := kbAltTab;
             kbHome..kbDel : { AltArrow }
@@ -1611,7 +1661,7 @@ begin {main}
             kbF11..KbF12 : { aF11-aF12 }
               MyScan:=MyScan+kbAltF11-kbF11;
           end
-        else if (SState and kbShift)<>0 then
+        else if essShift in SState then
           case MyScan of
             kbIns: MyScan:=kbShiftIns;
             kbDel: MyScan:=kbShiftDel;
@@ -1625,28 +1675,30 @@ begin {main}
             if myscan <= kbShiftEnd then
             begin
                myscan:=ShiftArrow[myscan];
-               sstate:=sstate or kbshift;
+               Include(sstate, essShift);
             end else
             begin
                myscan:=CtrlShiftArrow[myscan];
-               sstate:=sstate or kbshift or kbCtrl;
+               sstate:=sstate + [essShift, essCtrl];
             end;
           end;
         if myscan=kbAltBack then
-          sstate:=sstate or kbalt;
-        if (MyChar<>#0) or (MyScan<>0) or (SState<>0) then
-          SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
-        else
-          SysGetKeyEvent:=0;
+          Include(sstate, essAlt);
+        if (MyChar<>#0) or (MyScan<>0) or (SState<>[]) then
+          begin
+            SysGetEnhancedKeyEvent.AsciiChar:=MyChar;
+            SysGetEnhancedKeyEvent.ShiftState:=SState;
+            SysGetEnhancedKeyEvent.VirtualScanCode:=(MyScan shl 8) or Ord(MyChar);
+          end;
         exit;
       end
     else if MyChar=#27 then
       begin
         if EscUsed then
-          SState:=SState and not kbAlt
+          SState:=SState-[essAlt,essLeftAlt,essRightAlt]
         else
           begin
-            SState:=SState or kbAlt;
+            Include(SState,essAlt);
             Again:=true;
             EscUsed:=true;
           end;
@@ -1654,42 +1706,40 @@ begin {main}
     else if (AltPrefix<>0) and (MyChar=chr(AltPrefix)) then
       begin { ^Z - replace Alt for Linux OS }
         if AltPrefixUsed then
-          begin
-            SState:=SState and not kbAlt;
-          end
+          SState:=SState-[essAlt,essLeftAlt,essRightAlt]
         else
           begin
             AltPrefixUsed:=true;
-            SState:=SState or kbAlt;
+            Include(SState,essAlt);
             Again:=true;
           end;
       end
     else if (CtrlPrefix<>0) and (MyChar=chr(CtrlPrefix)) then
       begin
         if CtrlPrefixUsed then
-          SState:=SState and not kbCtrl
+          SState:=SState-[essCtrl,essLeftCtrl,essRightCtrl]
         else
           begin
             CtrlPrefixUsed:=true;
-            SState:=SState or kbCtrl;
+            Include(SState,essCtrl);
             Again:=true;
           end;
       end
     else if (ShiftPrefix<>0) and (MyChar=chr(ShiftPrefix)) then
       begin
         if ShiftPrefixUsed then
-          SState:=SState and not kbShift
+          SState:=SState-[essShift,essLeftShift,essRightShift]
         else
           begin
             ShiftPrefixUsed:=true;
-            SState:=SState or kbShift;
+            Include(SState,essShift);
             Again:=true;
           end;
       end;
     if not again then
       begin
         MyScan:=EvalScan(ord(MyChar));
-        if ((SState and kbCtrl)<>0) and ((SState and kbAlt) = 0) then
+        if (essCtrl in SState) and (not (essAlt in SState)) then
           begin
             if MyChar=#9 then
               begin
@@ -1697,7 +1747,7 @@ begin {main}
                 MyScan:=kbCtrlTab;
               end;
           end
-        else if ((SState and kbAlt)<>0) and ((SState and kbCtrl) = 0) then
+        else if (essAlt in SState) and (not (essCtrl in SState)) then
           begin
             if MyChar=#9 then
               begin
@@ -1711,7 +1761,7 @@ begin {main}
                 MyChar:=chr(0);
               end;
           end
-        else if (SState and kbShift)<>0 then
+        else if essShift in SState then
           if MyChar=#9 then
             begin
               MyChar:=#0;
@@ -1723,28 +1773,32 @@ begin {main}
         MyChar:=Readkey(IsAlt);
         MyScan:=ord(MyChar);
         if IsAlt then
-          SState:=SState or kbAlt;
+          Include(SState,essAlt);
       end;
     until not Again;
-  if (MyChar<>#0) or (MyScan<>0) or (SState<>0) then
-    SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
-  else
-    SysGetKeyEvent:=0;
+  if (MyChar<>#0) or (MyScan<>0) or (SState<>[]) then
+    begin
+      SysGetEnhancedKeyEvent.AsciiChar:=MyChar;
+      SysGetEnhancedKeyEvent.ShiftState:=SState;
+      SysGetEnhancedKeyEvent.VirtualScanCode:=(MyScan shl 8) or Ord(MyChar);
+    end;
 end;
 
 
-function SysPollKeyEvent: TKeyEvent;
+function SysPollEnhancedKeyEvent: TEnhancedKeyEvent;
 var
-  KeyEvent : TKeyEvent;
+  KeyEvent : TEnhancedKeyEvent;
 begin
-  if keypressed then
+  if PendingEnhancedKeyEvent<>NilEnhancedKeyEvent then
+    SysPollEnhancedKeyEvent:=PendingEnhancedKeyEvent
+  else if keypressed then
     begin
-      KeyEvent:=SysGetKeyEvent;
-      PutKeyEvent(KeyEvent);
-      SysPollKeyEvent:=KeyEvent
+      KeyEvent:=SysGetEnhancedKeyEvent;
+      PendingEnhancedKeyEvent:=KeyEvent;
+      SysPollEnhancedKeyEvent:=KeyEvent;
     end
   else
-    SysPollKeyEvent:=0;
+    SysPollEnhancedKeyEvent:=NilEnhancedKeyEvent;
 end;
 
 
@@ -1769,13 +1823,13 @@ const
   SysKeyboardDriver : TKeyboardDriver = (
     InitDriver : @SysInitKeyBoard;
     DoneDriver : @SysDoneKeyBoard;
-    GetKeyevent : @SysGetKeyEvent;
-    PollKeyEvent : @SysPollKeyEvent;
+    GetKeyevent : Nil;
+    PollKeyEvent : Nil;
     GetShiftState : @SysGetShiftState;
     TranslateKeyEvent : Nil;
     TranslateKeyEventUnicode : Nil;
-    GetEnhancedKeyEvent : Nil;
-    PollEnhancedKeyEvent : Nil;
+    GetEnhancedKeyEvent : @SysGetEnhancedKeyEvent;
+    PollEnhancedKeyEvent : @SysPollEnhancedKeyEvent;
   );
 
 begin
