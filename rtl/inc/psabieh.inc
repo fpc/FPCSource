@@ -1201,8 +1201,9 @@ procedure fpc_ReRaise; [public,alias:'FPC_RERAISE']; compilerproc;
 {$endif FPC_PSABIEH_CPLUSPLUSSUPPORT}
         else
           begin
-            { undo the begin_catch }
-            dec(_ExceptObjectStack^.refcount);
+            { reraise has to reset the refcount, this is also what the
+              generic exception handling does }
+            _ExceptObjectStack^.refcount := 0;
           end;
 
 {$ifdef excdebug}
