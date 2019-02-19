@@ -2062,7 +2062,8 @@ implementation
                  end;
                subn:
                  begin
-                    if (cs_extsyntax in current_settings.moduleswitches) then
+                    if (cs_extsyntax in current_settings.moduleswitches) or
+                       (nf_internal in flags) then
                       begin
                         if is_voidpointer(right.resultdef) then
                         begin
@@ -2378,7 +2379,7 @@ implementation
               begin
                 if (rt=niln) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,'NIL');
-                if not(cs_extsyntax in current_settings.moduleswitches) or
+                if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags))  or
                    (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
                     not(cs_pointermath in current_settings.localswitches) and
                     not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then
@@ -2411,7 +2412,7 @@ implementation
                begin
                  if (lt=niln) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),'NIL',rd.typename);
-                 if not(cs_extsyntax in current_settings.moduleswitches) or
+                 if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags)) or
                    (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
                     not(cs_pointermath in current_settings.localswitches) and
                     not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then
