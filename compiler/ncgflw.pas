@@ -122,6 +122,8 @@ interface
          class procedure end_catch(list: TAsmList); virtual;
          { called for a catch all exception }
          class procedure catch_all_start(list: TAsmList); virtual;
+         { called after the catch all exception has been started with new_exception }
+         class procedure catch_all_add(list: TAsmList); virtual;
          class procedure catch_all_end(list: TAsmList); virtual;
          class procedure cleanupobjectstack(list: TAsmList); virtual;
          class procedure popaddrstack(list: TAsmList); virtual;
@@ -800,6 +802,12 @@ implementation
       end;
 
 
+    class procedure tcgexceptionstatehandler.catch_all_add(list: TAsmList);
+      begin
+        { nothing to do by default }
+      end;
+
+
     class procedure tcgexceptionstatehandler.catch_all_end(list: TAsmList);
       begin
         { nothing to do by default }
@@ -955,6 +963,7 @@ implementation
                  flowcontrol:=trystate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
                  cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,destroytemps);
                  cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_except,doobjectdestroyandreraisestate);
+                 cexceptionstatehandler.catch_all_add(current_asmdata.CurrAsmList);
                  { the flowcontrol from the default except-block must be merged
                    with the flowcontrol flags potentially set by the
                    on-statements handled above (secondpass(right)), as they are
@@ -1422,16 +1431,22 @@ implementation
             CurrentAction:=psabiehprocinfo.CurrentAction;
             psabiehprocinfo.PopAction(CurrentAction);
 
-            ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
-            psabiehprocinfo.PushAction(ReRaiseLandingPad);
-            psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
+            if not(fc_catching_exceptions in flowcontrol) then
+              begin
+                ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
+                psabiehprocinfo.PushAction(ReRaiseLandingPad);
+                psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
+              end;
           end;
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
         if assigned(CurrentLandingPad) then
           begin
             psabiehprocinfo.CreateNewPSABIEHCallsite;
-            psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
-            psabiehprocinfo.PopAction(ReRaiseLandingPad);
+            if not(fc_catching_exceptions in flowcontrol) then
+              begin
+                psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
+                psabiehprocinfo.PopAction(ReRaiseLandingPad);
+              end;
 
             psabiehprocinfo.PushAction(CurrentAction);
             psabiehprocinfo.PushLandingPad(CurrentLandingPad);

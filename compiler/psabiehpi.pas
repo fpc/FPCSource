@@ -140,6 +140,7 @@ implementation
          { called for a catch all exception }
          class procedure catch_all_start(list: TAsmList); override;
          class procedure catch_all_end(list: TAsmList); override;
+         class procedure catch_all_add(list: TAsmList); override;
          class procedure cleanupobjectstack(list: TAsmList); override;
          class procedure popaddrstack(list: TAsmList); override;
        end;
@@ -658,6 +659,12 @@ implementation
     class procedure tpsabiehexceptionstatehandler.catch_all_start(list: TAsmList);
       begin
         catch_all_start_internal(list,true);
+      end;
+
+
+    class procedure tpsabiehexceptionstatehandler.catch_all_add(list: TAsmList);
+      begin
+        (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(nil);
       end;
 
 
