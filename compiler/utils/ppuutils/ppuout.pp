@@ -39,11 +39,14 @@ type
   { TPpuOutput }
   TPpuOutput = class
   private
-    FOutFile: ^Text;
+    FOutFileHandle: THandle;
+    FOutBuf: array[0..10000] of char;
+    FOutBufPos: integer;
     FIndent: integer;
     FIndentSize: integer;
     FIndStr: string;
     FNoIndent: boolean;
+    procedure Flush;
     procedure SetIndent(AValue: integer);
     procedure SetIndentSize(AValue: integer);
   protected
@@ -57,7 +60,7 @@ type
     procedure WriteBool(const AName: string; AValue: boolean); virtual;
     procedure WriteNull(const AName: string); virtual;
   public
-    constructor Create(var OutFile: Text); virtual;
+    constructor Create(OutFileHandle: THandle); virtual;
     destructor Destroy; override;
     procedure Write(const s: string);
     procedure WriteLn(const s: string = '');
@@ -1187,22 +1190,56 @@ begin
   DecI;
 end;
 
-constructor TPpuOutput.Create(var OutFile: Text);
+constructor TPpuOutput.Create(OutFileHandle: THandle);
 begin
-  FOutFile:=@OutFile;
+  FOutFileHandle:=OutFileHandle;
   FIndentSize:=2;
 end;
 
 destructor TPpuOutput.Destroy;
 begin
+  Flush;
   inherited Destroy;
 end;
 
+procedure TPpuOutput.Flush;
+var
+  i, len: integer;
+begin
+  i:=0;
+  while FOutBufPos > 0 do begin
+    len:=FileWrite(FOutFileHandle, FOutBuf[i], FOutBufPos);
+    if len < 0 then
+      raise Exception.CreateFmt('Error writing to file: ', [SysErrorMessage(GetLastOSError)]);
+    Inc(i, len);
+    Dec(FOutBufPos, len);
+  end;
+end;
+
 procedure TPpuOutput.Write(const s: string);
+var
+  ss: string;
+  i, len, len2: integer;
 begin
   if not FNoIndent then
-    System.Write(FOutFile^, FIndStr);
-  System.Write(FOutFile^, s);
+    ss:=FIndStr + s
+  else
+    ss:=s;
+  i:=1;
+  len:=Length(ss);
+  while len > 0 do begin
+    len2:=Length(FOutBuf) - FOutBufPos;
+    if len2 > 0 then begin
+      if len < len2 then
+        len2:=len;
+      Move(ss[i], FOutBuf[FOutBufPos], len2);
+      Inc(FOutBufPos, len2);
+    end;
+    if FOutBufPos = Length(FOutBuf) then
+      Flush;
+    Inc(i, len2);
+    Dec(len, len2);
+  end;
   FNoIndent:=True;
 end;
 
@@ -1228,6 +1265,7 @@ end;
 
 procedure TPpuOutput.Done;
 begin
+  Flush;
 end;
 
 { TPpuUnitDef }

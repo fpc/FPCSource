@@ -4131,12 +4131,12 @@ begin
                   'J':
                     begin
                       nostdout:=True;
-                      pout:=TPpuJsonOutput.Create(Output);
+                      pout:=TPpuJsonOutput.Create(StdOutputHandle);
                     end;
                   'X':
                     begin
                       nostdout:=True;
-                      pout:=TPpuXmlOutput.Create(Output);
+                      pout:=TPpuXmlOutput.Create(StdOutputHandle);
                     end;
                   else
                     begin
