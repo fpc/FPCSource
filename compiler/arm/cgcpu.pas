@@ -2486,6 +2486,11 @@ unit cgcpu;
                (tf_pic_uses_got in target_info.flags) and
                assigned(ref.symbol) then
               begin
+                {$ifdef EXTDEBUG}
+                if not (pi_needs_got in current_procinfo.flags) then
+                	Comment(V_warning,'pi_needs_got not included');
+                {$endif EXTDEBUG}
+                Include(current_procinfo.flags,pi_needs_got);
                 reference_reset(tmpref,4,[]);
                 tmpref.base:=current_procinfo.got;
                 tmpref.index:=tmpreg;
