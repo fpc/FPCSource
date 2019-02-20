@@ -1013,7 +1013,7 @@ const key_sequences:array[0..298] of key_sequence=(
 {$else FREEBSD}
        (char:0;scan:kbCenter;st:#27'[G'),        {linux}
 {$endif FREEBSD}
-       (char:0;scan:kbCenter;st:#27'[E'),        {xterm,gnome}
+       (char:0;scan:kbCenter;st:#27'[E'),        {xterm,gnome3}
        (char:0;scan:kbUp;st:#27'[A'),            {linux,FreeBSD,rxvt}
        (char:0;scan:kbDown;st:#27'[B'),          {linux,FreeBSD,rxvt}
        (char:0;scan:kbRight;st:#27'[C'),         {linux,FreeBSD,rxvt}
