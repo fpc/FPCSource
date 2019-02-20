@@ -2192,8 +2192,6 @@ begin
   Fps.WriteLn('Result:=JNI_ERR;');
   Fps.WriteLn('if vm^^.GetEnv(vm, @env, JNI_VERSION_1_6) <> JNI_OK then exit;');
   Fps.WriteLn('CurJavaVM:=vm;');
-  Fps.WriteLn('_JavaExceptionClass:=env^^.FindClass(env, ''java/lang/Exception'');');
-  Fps.WriteLn('if _JavaExceptionClass = nil then exit;');
 
   d:=TTypeDef.Create(nil, dtType);
   try
@@ -3007,8 +3005,6 @@ begin
     Fps.WriteLn('end;');
 
     Fps.WriteLn;
-    Fps.WriteLn('var _JavaExceptionClass: jclass;');
-    Fps.WriteLn;
     Fps.WriteLn('procedure _HandleJNIException(env: PJNIEnv);');
     Fps.WriteLn('begin');
     Fps.WriteLn('if env^^.ExceptionCheck(env) <> 0 then exit;', 1);
@@ -3016,7 +3012,7 @@ begin
       Fps.WriteLn(Format('%s.%s;', [p.OnExceptionProc.Parent.Name, p.OnExceptionProc.Name]), 1);
       p.OnExceptionProc.SetNotUsed;
     end;
-    Fps.WriteLn('env^^.ThrowNew(env, _JavaExceptionClass, PAnsiChar(Utf8Encode(Exception(ExceptObject).Message)));', 1);
+    Fps.WriteLn('env^^.ThrowNew(env, env^^.FindClass(env, ''java/lang/Exception''), PAnsiChar(Utf8Encode(Exception(ExceptObject).Message)));', 1);
     Fps.WriteLn('end;');
 
     Fps.WriteLn;
