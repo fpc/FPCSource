@@ -2656,7 +2656,7 @@ unit cgcpu;
         if we can keep the original reference while copying }
       function SimpleRef(const ref : treference) : boolean;
         begin
-          result:=((ref.base=NR_PC) and (ref.addressmode=AM_OFFSET) and (ref.refaddr=addr_full)) or
+          result:=((ref.base=NR_PC) and (ref.addressmode=AM_OFFSET) and (ref.refaddr in [addr_full,addr_no])) or
               ((ref.symbol=nil) and
                (ref.addressmode=AM_OFFSET) and
                (((ref.offset>=0) and (ref.offset+len<=31)) or
