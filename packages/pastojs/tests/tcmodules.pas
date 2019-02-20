@@ -806,6 +806,7 @@ type
     procedure TestAssert;
     procedure TestAssert_SysUtils;
     procedure TestObjectChecks;
+    procedure TestOverflowChecks_Int;
     procedure TestRangeChecks_AssignInt;
     procedure TestRangeChecks_AssignIntRange;
     procedure TestRangeChecks_AssignEnum;
@@ -28654,6 +28655,55 @@ begin
     '$mod.o.DoIt();',
     '$mod.b = rtl.asExt($mod.o,$mod.TBird, 1);',
     '$mod.bc = rtl.asExt($mod.c, $mod.TBird, 2);',
+    '']));
+end;
+
+procedure TTestModule.TestOverflowChecks_Int;
+begin
+  Scanner.CurrentBoolSwitches:=Scanner.CurrentBoolSwitches+[bsOverflowChecks];
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'var',
+  '  b: byte;',
+  '  n: nativeint;',
+  '  u: nativeuint;',
+  '  c: currency;',
+  'begin',
+  '  n:=n+n;',
+  '  n:=n-n;',
+  '  n:=n+b;',
+  '  n:=b-n;',
+  '  n:=n*n;',
+  '  n:=n*u;',
+  '  c:=c+b;',
+  '  c:=b+c;',
+  '  c:=c*b;',
+  '  c:=b*c;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestOverflowChecks_Int',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var b = 0;',
+    '  var n = 0;',
+    '  var u = 0;',
+    '  var c = 0;',
+    '  n = rtl.oc(n + n);',
+    '  n = rtl.oc(n - n);',
+    '  n = rtl.oc(n + b);',
+    '  n = rtl.oc(b - n);',
+    '  n = rtl.oc(n * n);',
+    '  n = rtl.oc(n * u);',
+    '  c = rtl.oc(c + (b * 10000));',
+    '  c = rtl.oc((b * 10000) + c);',
+    '  c = rtl.oc(c * b);',
+    '  c = rtl.oc(b * c);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

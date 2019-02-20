@@ -603,6 +603,7 @@ type
     pbifnValEnum,
     pbifnFreeLocalVar,
     pbifnFreeVar,
+    pbifnOverflowCheckInt,
     pbifnProcType_Create,
     pbifnProcType_Equal,
     pbifnProgramMain,
@@ -759,7 +760,8 @@ const
     'valEnum', // rtl.valEnum
     'freeLoc', // rtl.freeLoc
     'free', // rtl.free
-    'createCallback', // rtl.createCallback
+    'oc', //  rtl.oc  pbifnOverflowCheckInt
+    'createCallback', // rtl.createCallback  pbifnProcType_Create
     'eqCallback', // rtl.eqCallback
     '$main',
     'raiseE', // rtl.raiseE
@@ -1224,6 +1226,8 @@ const
   btAllJSValueTypeCastTo = btAllJSInteger
       +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans+[btPointer];
   btAllJSRangeCheckTypes = btAllJSInteger + btAllJSChars;
+  btAllJSOverflowAddSubType = [btIntDouble,btUIntDouble,btCurrency];
+  btAllJSOverflowMultType = [btLongWord,btLongint,btIntDouble,btUIntDouble,btCurrency];
 
   DefaultPasResolverOptions = [
     proFixCaseOfOverrides,
@@ -1745,11 +1749,12 @@ type
       const aName: TJSString): TJSDotMemberExpression; virtual;
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement;
       CheckRightIntfRef: boolean = false): TJSElement; virtual;
-    // range checks
-    Function CreateRangeCheckSt(GetExpr: TJSElement; MinVal, MaxVal: TMaxPrecInt;
+    // range and overflow checks
+    Function CreateOverflowCheckCall(GetExpr: TJSElement; PosEl: TPasElement): TJSCallExpression; virtual;
+    Function CreateRangeCheckCall(GetExpr: TJSElement; MinVal, MaxVal: TMaxPrecInt;
       RTLFunc: TPas2JSBuiltInName; PosEl: TPasElement): TJSCallExpression; virtual;
-    Function CreateRangeCheckSt_TypeRange(aType: TPasType; GetExpr: TJSElement;
-      AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
+    Function CreateRangeCheckCall_TypeRange(aType: TPasType; GetExpr: TJSElement;
+      AContext: TConvertContext; PosEl: TPasElement): TJSCallExpression; virtual;
     // reference
     Function CreateReferencePath(El: TPasElement; AContext : TConvertContext;
       Kind: TRefPathKind; Full: boolean = false; Ref: TResolvedReference = nil): string; virtual;
@@ -6701,117 +6706,117 @@ begin
     C:=BinClasses[El.OpCode];
     if C=nil then
       Case El.OpCode of
-        eopAs :
+      eopAs :
+        begin
+        // "A as B"
+        Call:=CreateCallExpression(El);
+        LeftTypeEl:=LeftResolved.LoTypeEl;
+        RightTypeEl:=RightResolved.LoTypeEl;
+        if LeftTypeEl is TPasClassType then
           begin
-          // "A as B"
-          Call:=CreateCallExpression(El);
-          LeftTypeEl:=LeftResolved.LoTypeEl;
-          RightTypeEl:=RightResolved.LoTypeEl;
-          if LeftTypeEl is TPasClassType then
-            begin
-            if RightTypeEl is TPasClassType then
-              case TPasClassType(LeftTypeEl).ObjKind of
+          if RightTypeEl is TPasClassType then
+            case TPasClassType(LeftTypeEl).ObjKind of
+            okClass:
+              case TPasClassType(RightTypeEl).ObjKind of
               okClass:
-                case TPasClassType(RightTypeEl).ObjKind of
-                okClass:
-                  // ClassInstVar is ClassType
-                  if TPasClassType(RightResolved.LoTypeEl).IsExternal then
-                    // B is external class -> "rtl.asExt(A,B)"
-                    Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnAsExt),El)
-                  else
-                    // otherwise -> "rtl.as(A,B)"
-                    Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnAs),El);
-                okInterface:
-                  begin
-                  // ClassInstVar as IntfType
-                  case TPasClassType(RightTypeEl).InterfaceType of
-                  citCom:
-                    begin
-                    // COM:  $ir.ref(rtl.queryIntfT(objVar,intftype),"id")
-                    Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnIntfQueryIntfT),El);
-                    Call.AddArg(A);
-                    Call.AddArg(B);
-                    Call:=CreateIntfRef(Call,AContext,El);
-                    Result:=Call;
-                    exit;
-                    end;
-                  citCorba:
-                    // CORBA:  rtl.getIntfT(objVar,intftype)
-                    Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnIntfGetIntfT),El);
-                  else RaiseNotSupported(El,AContext,20180401225752);
-                  end;
-                  end
+                // ClassInstVar is ClassType
+                if TPasClassType(RightResolved.LoTypeEl).IsExternal then
+                  // B is external class -> "rtl.asExt(A,B)"
+                  Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnAsExt),El)
                 else
-                  NotSupportedRes(20180327214535);
-                end;
-              okInterface:
-                case TPasClassType(RightTypeEl).ObjKind of
-                okClass:
-                  // IntfVar as ClassType ->  rtl.intfAsClass(intfvar,classtype)
-                  Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnIntfAsClass),El);
-                okInterface:
-                  // IntfVar as IntfType -> "rtl.as(A,B)"
+                  // otherwise -> "rtl.as(A,B)"
                   Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnAs),El);
-                else
-                  NotSupportedRes(20180327214545);
+              okInterface:
+                begin
+                // ClassInstVar as IntfType
+                case TPasClassType(RightTypeEl).InterfaceType of
+                citCom:
+                  begin
+                  // COM:  $ir.ref(rtl.queryIntfT(objVar,intftype),"id")
+                  Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnIntfQueryIntfT),El);
+                  Call.AddArg(A);
+                  Call.AddArg(B);
+                  Call:=CreateIntfRef(Call,AContext,El);
+                  Result:=Call;
+                  exit;
+                  end;
+                citCorba:
+                  // CORBA:  rtl.getIntfT(objVar,intftype)
+                  Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnIntfGetIntfT),El);
+                else RaiseNotSupported(El,AContext,20180401225752);
                 end;
+                end
               else
-                NotSupportedRes(20180327214559);
-              end
-            else if RightTypeEl is TPasClassOfType then
-              begin
-              // ClassInstVar is ClassOfType -> "rtl.as(A,B)"
-              Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnAs),El);
+                NotSupportedRes(20180327214535);
               end;
-            end;
-          Call.AddArg(A);
-          Call.AddArg(B);
-          Result:=Call;
-          exit;
-          end;
-        eopAnd,
-        eopOr,
-        eopXor:
-          begin
-          if aResolver<>nil then
-            begin
-            UseBitwiseOp:=((LeftResolved.BaseType in btAllJSInteger)
-                       or (RightResolved.BaseType in btAllJSInteger));
-            if UseBitwiseOp
-                and (LeftResolved.BaseType in [btIntDouble,btUIntDouble])
-                and (RightResolved.BaseType in [btIntDouble,btUIntDouble]) then
-              aResolver.LogMsg(20190124233439,mtWarning,nBitWiseOperationsAre32Bit,
-                sBitWiseOperationsAre32Bit,[],El);
-            end
-          else
-            UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
-              or (GetExpressionValueType(El.right,AContext)=jstNumber);
-          if UseBitwiseOp then
-            Case El.OpCode of
-              eopAnd : C:=TJSBitwiseAndExpression;
-              eopOr : C:=TJSBitwiseOrExpression;
-              eopXor : C:=TJSBitwiseXOrExpression;
-            end
-          else
-            Case El.OpCode of
-              eopAnd : C:=TJSLogicalAndExpression;
-              eopOr : C:=TJSLogicalOrExpression;
-              eopXor : C:=TJSBitwiseXOrExpression;
+            okInterface:
+              case TPasClassType(RightTypeEl).ObjKind of
+              okClass:
+                // IntfVar as ClassType ->  rtl.intfAsClass(intfvar,classtype)
+                Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnIntfAsClass),El);
+              okInterface:
+                // IntfVar as IntfType -> "rtl.as(A,B)"
+                Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnAs),El);
+              else
+                NotSupportedRes(20180327214545);
+              end;
             else
-              DoError(20161024191234,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,['logical XOR'],El);
+              NotSupportedRes(20180327214559);
+            end
+          else if RightTypeEl is TPasClassOfType then
+            begin
+            // ClassInstVar is ClassOfType -> "rtl.as(A,B)"
+            Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnAs),El);
             end;
           end;
-        eopPower:
+        Call.AddArg(A);
+        Call.AddArg(B);
+        Result:=Call;
+        exit;
+        end;
+      eopAnd,
+      eopOr,
+      eopXor:
+        begin
+        if aResolver<>nil then
           begin
-          Call:=CreateCallExpression(El);
-          Call.Expr:=CreatePrimitiveDotExpr('Math.pow',El);
-          Call.AddArg(A);
-          Call.AddArg(B);
-          Result:=Call;
+          UseBitwiseOp:=((LeftResolved.BaseType in btAllJSInteger)
+                     or (RightResolved.BaseType in btAllJSInteger));
+          if UseBitwiseOp
+              and (LeftResolved.BaseType in [btIntDouble,btUIntDouble])
+              and (RightResolved.BaseType in [btIntDouble,btUIntDouble]) then
+            aResolver.LogMsg(20190124233439,mtWarning,nBitWiseOperationsAre32Bit,
+              sBitWiseOperationsAre32Bit,[],El);
           end
         else
-          if C=nil then
-            DoError(20161024191244,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);
+          UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
+            or (GetExpressionValueType(El.right,AContext)=jstNumber);
+        if UseBitwiseOp then
+          Case El.OpCode of
+            eopAnd : C:=TJSBitwiseAndExpression;
+            eopOr : C:=TJSBitwiseOrExpression;
+            eopXor : C:=TJSBitwiseXOrExpression;
+          end
+        else
+          Case El.OpCode of
+            eopAnd : C:=TJSLogicalAndExpression;
+            eopOr : C:=TJSLogicalOrExpression;
+            eopXor : C:=TJSBitwiseXOrExpression;
+          else
+            DoError(20161024191234,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,['logical XOR'],El);
+          end;
+        end;
+      eopPower:
+        begin
+        Call:=CreateCallExpression(El);
+        Call.Expr:=CreatePrimitiveDotExpr('Math.pow',El);
+        Call.AddArg(A);
+        Call.AddArg(B);
+        Result:=Call;
+        end
+      else
+        if C=nil then
+          DoError(20161024191244,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);
       end;
     if (Result=Nil) and (C<>Nil) then
       begin
@@ -6824,6 +6829,18 @@ begin
         begin
         // convert "a div b" to "Math.floor(a/b)"
         Result:=CreateMathFloor(El,Result);
+        end;
+
+      if (bsOverflowChecks in AContext.ScannerBoolSwitches) and (aResolver<>nil) then
+        case El.OpCode of
+        eopAdd,eopSubtract:
+          if (LeftResolved.BaseType in btAllJSOverflowAddSubType)
+              or (RightResolved.BaseType in btAllJSOverflowAddSubType) then
+            Result:=CreateOverflowCheckCall(Result,El);
+        eopMultiply:
+          if (LeftResolved.BaseType in btAllJSOverflowMultType)
+              or (RightResolved.BaseType in btAllJSOverflowMultType) then
+            Result:=CreateOverflowCheckCall(Result,El);
         end;
       end;
   finally
@@ -6990,6 +7007,9 @@ begin
       if RightResolved.BaseType<>btCurrency then
         B:=CreateMulNumber(El,B,10000);
       TJSBinary(Result).B:=B; B:=nil;
+      if (bsOverflowChecks in AContext.ScannerBoolSwitches)
+        and (El.OpCode in [eopAdd,eopSubtract]) then
+          Result:=CreateOverflowCheckCall(Result,El);
       exit;
       end;
     eopMultiply:
@@ -7002,6 +7022,8 @@ begin
       TJSBinaryExpression(Result).B:=B; B:=nil;
       if (LeftResolved.BaseType=btCurrency) and (RightResolved.BaseType=btCurrency) then
         Result:=CreateDivideNumber(El,Result,10000);
+      if (bsOverflowChecks in AContext.ScannerBoolSwitches) then
+        Result:=CreateOverflowCheckCall(Result,El);
       exit;
       end;
     eopDivide:
@@ -13775,7 +13797,7 @@ var
     GetExpr: TJSElement;
   begin
     GetExpr:=CreateArgumentAccess(Arg,AContext,Arg);
-    AddBodyStatement(CreateRangeCheckSt_TypeRange(aType,GetExpr,AContext,Arg),Arg);
+    AddBodyStatement(CreateRangeCheckCall_TypeRange(aType,GetExpr,AContext,Arg),Arg);
   end;
 
 Var
@@ -17359,7 +17381,7 @@ var
 
     function CreateRgCheck(aType: TPasType): TJSElement;
     begin
-      Result:=CreateRangeCheckSt_TypeRange(aType,
+      Result:=CreateRangeCheckCall_TypeRange(aType,
         CreatePrimitiveDotExpr(SetterArgName,PosEl),AContext,PosEl);
     end;
 
@@ -20467,7 +20489,18 @@ begin
   end;
 end;
 
-function TPasToJSConverter.CreateRangeCheckSt(GetExpr: TJSElement; MinVal,
+function TPasToJSConverter.CreateOverflowCheckCall(GetExpr: TJSElement;
+  PosEl: TPasElement): TJSCallExpression;
+var
+  Call: TJSCallExpression;
+begin
+  Call:=CreateCallExpression(PosEl);
+  Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnOverflowCheckInt),PosEl);
+  Call.AddArg(GetExpr);
+  Result:=Call;
+end;
+
+function TPasToJSConverter.CreateRangeCheckCall(GetExpr: TJSElement; MinVal,
   MaxVal: TMaxPrecInt; RTLFunc: TPas2JSBuiltInName; PosEl: TPasElement
   ): TJSCallExpression;
 var
@@ -20481,9 +20514,9 @@ begin
   Result:=Call;
 end;
 
-function TPasToJSConverter.CreateRangeCheckSt_TypeRange(aType: TPasType;
+function TPasToJSConverter.CreateRangeCheckCall_TypeRange(aType: TPasType;
   GetExpr: TJSElement; AContext: TConvertContext; PosEl: TPasElement
-  ): TJSElement;
+  ): TJSCallExpression;
 var
   Value: TResEvalValue;
 begin
@@ -20496,10 +20529,10 @@ begin
     revkRangeInt:
       case TResEvalRangeInt(Value).ElKind of
         revskEnum, revskInt:
-          Result:=CreateRangeCheckSt(GetExpr,TResEvalRangeInt(Value).RangeStart,
+          Result:=CreateRangeCheckCall(GetExpr,TResEvalRangeInt(Value).RangeStart,
             TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckInt,PosEl);
         revskChar:
-          Result:=CreateRangeCheckSt(GetExpr,TResEvalRangeInt(Value).RangeStart,
+          Result:=CreateRangeCheckCall(GetExpr,TResEvalRangeInt(Value).RangeStart,
             TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckChar,PosEl);
         revskBool: ; // range check not needed
       else
@@ -21200,7 +21233,7 @@ var
 
     function CreateRgCheckSt(aType: TPasType): TJSElement;
     begin
-      Result:=CreateRangeCheckSt_TypeRange(aType,
+      Result:=CreateRangeCheckCall_TypeRange(aType,
         CreatePrimitiveDotExpr(SetterArgName,El),AContext,El);
     end;
 
