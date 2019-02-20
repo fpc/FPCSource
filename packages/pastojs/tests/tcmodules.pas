@@ -816,6 +816,7 @@ type
     procedure TestRangeChecks_ArrayOfRecIndex;
     procedure TestRangeChecks_StringIndex;
     procedure TestRangeChecks_TypecastInt;
+    procedure TestRangeChecks_TypeHelperInt;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -29167,6 +29168,103 @@ begin
     '$mod.sm = rtl.rc(12 + rtl.rc($mod.i, -32768, 32767), -32768, 32767);',
     '$mod.lw = rtl.rc(12 + rtl.rc($mod.i, 0, 4294967295), 0, 4294967295);',
     '$mod.li = rtl.rc(12 + rtl.rc($mod.i, -2147483648, 2147483647), -2147483648, 2147483647);',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_TypeHelperInt;
+begin
+  Scanner.Options:=Scanner.Options+[po_CAssignments];
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  '{$R+}',
+  'type',
+  '  TObject = class',
+  '    FSize: byte;',
+  '    property Size: byte read FSize;',
+  '  end;',
+  '  THelper = type helper for byte',
+  '    procedure SetIt(w: word);',
+  '  end;',
+  'procedure THelper.SetIt(w: word);',
+  'begin',
+  '  Self:=w;',
+  'end;',
+  'function GetIt: byte;',
+  'begin',
+  '  Result.SetIt(2);',
+  'end;',
+  'var',
+  '  b: byte = 3;',
+  '  o: TObject;',
+  'begin',
+  '  b.SetIt(14);',
+  '  with b do SetIt(15);',
+  '  o.Size.SetIt(16);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignInt',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FSize = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.SetIt = function (w) {',
+    '    rtl.rc(w, 0, 65535);',
+    '    this.set(w);',
+    '  };',
+    '});',
+    'this.GetIt = function () {',
+    '  var Result = 0;',
+    '  $mod.THelper.SetIt.call({',
+    '    get: function () {',
+    '        return Result;',
+    '      },',
+    '    set: function (v) {',
+    '        rtl.rc(v, 0, 255);',
+    '        Result = v;',
+    '      }',
+    '  }, 2);',
+    '  return Result;',
+    '};',
+    'this.b = 3;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.SetIt.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.b;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.rc(v, 0, 255);',
+    '      this.p.b = v;',
+    '    }',
+    '}, 14);',
+    'var $with1 = $mod.b;',
+    '$mod.THelper.SetIt.call({',
+    '  get: function () {',
+    '      return $with1;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.rc(v, 0, 255);',
+    '      $with1 = v;',
+    '    }',
+    '}, 15);',
+    '$mod.THelper.SetIt.call({',
+    '  p: $mod.o,',
+    '  get: function () {',
+    '      return this.p.FSize;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.rc(v, 0, 255);',
+    '      this.p.FSize = v;',
+    '    }',
+    '}, 16);',
     '']));
 end;
 

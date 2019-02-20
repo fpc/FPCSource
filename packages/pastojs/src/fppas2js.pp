@@ -400,9 +400,14 @@ Works:
 - array of const, TVarRec
 
 ToDos:
+- range check:
+   type helper self:=
+- overflow check:
+   ?
 - cmd line param to set modeswitch
 - Result:=inherited;
 - asm-block annotate/reference
+  - pas()  test or use or read or write
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - $OPTIMIZATION ON|OFF
 - $optimization REMOVEEMPTYPROCS
@@ -412,14 +417,10 @@ ToDos:
 - static arrays
   - clone multi dim static array
 - RTTI
-  - class property
-- asm: pas() - useful for overloads and protect an identifier from optimization
+  - class property field/static/nonstatic
 - interfaces
   - array of interface
   - record member interface
-- range check:
-   arr[i]:=value  check if value is in range
-   astring[i]:=value check if value is in range
 - 1 as TEnum, ERangeError
 - ifthen<T>
 - stdcall of methods: pass original 'this' as first parameter
@@ -1222,7 +1223,7 @@ const
       +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans;
   btAllJSValueTypeCastTo = btAllJSInteger
       +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans+[btPointer];
-
+  btAllJSRangeCheckTypes = btAllJSInteger + btAllJSChars;
 
   DefaultPasResolverOptions = [
     proFixCaseOfOverrides,
@@ -1744,6 +1745,11 @@ type
       const aName: TJSString): TJSDotMemberExpression; virtual;
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement;
       CheckRightIntfRef: boolean = false): TJSElement; virtual;
+    // range checks
+    Function CreateRangeCheckSt(GetExpr: TJSElement; MinVal, MaxVal: TMaxPrecInt;
+      RTLFunc: TPas2JSBuiltInName; PosEl: TPasElement): TJSCallExpression; virtual;
+    Function CreateRangeCheckSt_TypeRange(aType: TPasType; GetExpr: TJSElement;
+      AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
     // reference
     Function CreateReferencePath(El: TPasElement; AContext : TConvertContext;
       Kind: TRefPathKind; Full: boolean = false; Ref: TResolvedReference = nil): string; virtual;
@@ -13763,47 +13769,13 @@ var
     BodyJS.A:=FirstSt;
   end;
 
-  procedure AddRangeCheck(Arg: TPasArgument; MinVal, MaxVal: TMaxPrecInt;
-    RTLFunc: TPas2JSBuiltInName);
+  procedure AddRangeCheckType(Arg: TPasArgument; aType: TPasType;
+    AContext: TConvertContext);
   var
-    Call: TJSCallExpression;
+    GetExpr: TJSElement;
   begin
-    // use Arg as PosEl, so that user knows which Arg is out of range
-    Call:=CreateCallExpression(Arg);
-    Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(RTLFunc),El);
-    AddBodyStatement(Call,Arg);
-    Call.AddArg(CreateArgumentAccess(Arg,AContext,Arg));
-    Call.AddArg(CreateLiteralNumber(Arg,MinVal));
-    Call.AddArg(CreateLiteralNumber(Arg,MaxVal));
-  end;
-
-  procedure AddRangeCheckType(Arg: TPasArgument; aType: TPasType);
-  var
-    Value: TResEvalValue;
-  begin
-    Value:=AContext.Resolver.EvalTypeRange(aType,[refConst]);
-    if Value=nil then
-      RaiseNotSupported(Arg,AContext,20180424111936,'range checking '+GetObjName(aType));
-    try
-      case Value.Kind of
-      revkRangeInt:
-        case TResEvalRangeInt(Value).ElKind of
-          revskEnum, revskInt:
-            AddRangeCheck(Arg,TResEvalRangeInt(Value).RangeStart,
-              TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckInt);
-          revskChar:
-            AddRangeCheck(Arg,TResEvalRangeInt(Value).RangeStart,
-              TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckChar);
-        end;
-      revkRangeUInt:
-        AddRangeCheck(Arg,TResEvalRangeUInt(Value).RangeStart,
-          TResEvalRangeUInt(Value).RangeEnd,pbifnRangeCheckInt);
-      else
-        RaiseNotSupported(Arg,AContext,20180424112010,'range checking '+Value.AsDebugString);
-      end;
-    finally
-      ReleaseEvalValue(Value);
-    end;
+    GetExpr:=CreateArgumentAccess(Arg,AContext,Arg);
+    AddBodyStatement(CreateRangeCheckSt_TypeRange(aType,GetExpr,AContext,Arg),Arg);
   end;
 
 Var
@@ -13821,7 +13793,6 @@ Var
   Call: TJSCallExpression;
   ClassPath: String;
   ArgResolved: TPasResolverResult;
-  MinVal, MaxVal: TMaxPrecInt;
   Lit: TJSLiteral;
   ConstSrcElems: TJSSourceElements;
   ArgTypeEl, HelperForType: TPasType;
@@ -13926,30 +13897,19 @@ begin
           aResolver.ComputeElement(Arg,ArgResolved,[rcType]);
           ArgTypeEl:=ArgResolved.LoTypeEl;
           if ArgTypeEl=nil then continue;
-          if ArgResolved.BaseType in btAllJSInteger then
-            begin
-            if ArgTypeEl is TPasUnresolvedSymbolRef then
-              begin
-              if not aResolver.GetIntegerRange(ArgResolved.BaseType,MinVal,MaxVal) then
-                RaiseNotSupported(Arg,AContext,20180119192608);
-              AddRangeCheck(Arg,MinVal,MaxVal,pbifnRangeCheckInt);
-              end
-            else if ArgTypeEl.ClassType=TPasRangeType then
-              AddRangeCheckType(Arg,ArgTypeEl);
-            end
-          else if ArgResolved.BaseType in btAllJSChars then
-            AddRangeCheckType(Arg,ArgTypeEl)
+          if ArgResolved.BaseType in btAllJSRangeCheckTypes then
+            AddRangeCheckType(Arg,ArgTypeEl,FuncContext)
           else if ArgResolved.BaseType=btContext then
             begin
             if ArgTypeEl.ClassType=TPasEnumType then
-              AddRangeCheckType(Arg,ArgTypeEl);
+              AddRangeCheckType(Arg,ArgTypeEl,FuncContext);
             end
           else if ArgResolved.BaseType=btRange then
             begin
-            if ArgResolved.SubType in btAllJSChars then
-              AddRangeCheckType(Arg,ArgTypeEl)
+            if ArgResolved.SubType in btAllJSRangeCheckTypes then
+              AddRangeCheckType(Arg,ArgTypeEl,FuncContext)
             else if ArgResolved.SubType=btContext then
-              AddRangeCheckType(Arg,ArgTypeEl)
+              AddRangeCheckType(Arg,ArgTypeEl,FuncContext)
             else
               begin
               {$IFDEF VerbosePas2JS}
@@ -17393,15 +17353,58 @@ var
       end;
   end;
 
-  function CreateRefObj(PosEl: TPasElement;
+  function CreateRefObj(PosEl: TPasElement; PathExpr: TJSElement;
     GetExpr, SetExpr: TJSElement; SetterArgName: string;
-    PathExpr: TJSElement = nil): TJSObjectLiteral;
+    const LeftResolved: TPasResolverResult): TJSObjectLiteral;
+
+    function CreateRgCheck(aType: TPasType): TJSElement;
+    begin
+      Result:=CreateRangeCheckSt_TypeRange(aType,
+        CreatePrimitiveDotExpr(SetterArgName,PosEl),AContext,PosEl);
+    end;
+
   var
     Obj: TJSObjectLiteral;
     ObjLit: TJSObjectLiteralElement;
     FuncSt: TJSFunctionDeclarationStatement;
     RetSt: TJSReturnStatement;
+    TypeEl: TPasType;
+    RgCheck: TJSElement;
+    List: TJSStatementList;
   begin
+    RgCheck:=nil;
+    writeln('AAA1 CreateRefObj SetExpr=',GetObjName(SetExpr),' SetterArgName=',SetterArgName,' ',bsRangeChecks in AContext.ScannerBoolSwitches);
+    if (SetExpr is TJSSimpleAssignStatement)
+        and (SetterArgName<>'')
+        and (bsRangeChecks in AContext.ScannerBoolSwitches) then
+      begin
+      TypeEl:=LeftResolved.LoTypeEl;
+      if TypeEl<>nil then
+        begin
+        if LeftResolved.BaseType in btAllJSRangeCheckTypes then
+          RgCheck:=CreateRgCheck(TypeEl)
+        else if LeftResolved.BaseType=btContext then
+          begin
+          if TypeEl.ClassType=TPasEnumType then
+            RgCheck:=CreateRgCheck(TypeEl);
+          end
+        else if LeftResolved.BaseType=btRange then
+          begin
+          if LeftResolved.SubType in btAllJSRangeCheckTypes then
+            RgCheck:=CreateRgCheck(TypeEl)
+          else if LeftResolved.SubType=btContext then
+            RgCheck:=CreateRgCheck(TypeEl)
+          else
+            begin
+            {$IFDEF VerbosePas2JS}
+            writeln('TPasToJSConverter.CreateCallHelperMethod ',GetResolverResultDbg(LeftResolved));
+            RaiseNotSupported(PosEl,AContext,20190220011900);
+            {$ENDIF}
+            end;
+          end;
+        end;
+      end;
+
     Obj:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,PosEl));
     Result:=Obj;
 
@@ -17429,6 +17432,13 @@ var
     ObjLit.Expr:=FuncSt;
     if SetterArgName<>'' then
       FuncSt.AFunction.Params.Add(SetterArgName);
+    if RgCheck<>nil then
+      begin
+      List:=TJSStatementList(CreateElement(TJSStatementList,PosEl));
+      List.A:=RgCheck;
+      List.B:=SetExpr;
+      SetExpr:=List;
+      end;
     FuncSt.AFunction.Body.A:=SetExpr;
   end;
 
@@ -17440,7 +17450,7 @@ var
     AssignSt: TJSSimpleAssignStatement;
     Arg: TPasArgument;
   begin
-    // implicit Left (e.g. with Left do proc, or Self.proc)
+    // implicit Left (e.g. with Left do proc, or (Self.)proc)
 
     if LeftResolved.IdentEl is TPasArgument then
       begin
@@ -17476,7 +17486,7 @@ var
       SetExpr:=CreateRaisePropReadOnly(PosEl);
       end;
 
-    Result:=CreateRefObj(PosEl,GetExpr,SetExpr,SetterArgName);
+    Result:=CreateRefObj(PosEl,nil,GetExpr,SetExpr,SetterArgName,LeftResolved);
   end;
 
   function CreatePropertyReference(PosEl: TPasElement;
@@ -17549,7 +17559,7 @@ var
     else
       RaiseNotSupported(PosEl,AContext,20190210193605,GetObjName(LeftJS));
 
-    Result:=CreateRefObj(PosEl,GetExpr,SetExpr,SetterArgName,PathExpr);
+    Result:=CreateRefObj(PosEl,PathExpr,GetExpr,SetExpr,SetterArgName,LeftResolved);
   end;
 
   function CreateReference(PosEl: TPasElement;
@@ -18148,7 +18158,7 @@ function TPasToJSConverter.ConvertAssignStatement(El: TPasImplAssign;
     Call.AddArg(CreateLiteralNumber(El.right,MaxVal));
   end;
 
-  function CreateRangeCheckType(AssignSt: TJSElement; aType: TPasType): TJSElement;
+  function ApplyRangeCheck_Type(AssignSt: TJSElement; aType: TPasType): TJSElement;
   var
     Value: TResEvalValue;
   begin
@@ -18166,10 +18176,10 @@ function TPasToJSConverter.ConvertAssignStatement(El: TPasImplAssign;
           revskChar:
             Result:=CreateRangeCheck(AssignSt,TResEvalRangeInt(Value).RangeStart,
               TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckChar);
+          revskBool: ; // maybe check for type?
+        else
+          RaiseNotSupported(El,AContext,20190220003746,'range checking '+Value.AsDebugString);
         end;
-      revkRangeUInt:
-        Result:=CreateRangeCheck(AssignSt,TResEvalRangeUInt(Value).RangeStart,
-          TResEvalRangeUInt(Value).RangeEnd,pbifnRangeCheckInt);
       else
         RaiseNotSupported(El,AContext,20180424111037,'range checking '+Value.AsDebugString);
       end;
@@ -18448,21 +18458,21 @@ begin
             Result:=CreateRangeCheck(Result,MinVal,MaxVal,pbifnRangeCheckInt);
             end
           else if LeftTypeEl.ClassType=TPasRangeType then
-            Result:=CreateRangeCheckType(Result,LeftTypeEl);
+            Result:=ApplyRangeCheck_Type(Result,LeftTypeEl);
           end
         else if AssignContext.LeftResolved.BaseType in btAllJSChars then
-          Result:=CreateRangeCheckType(Result,LeftTypeEl)
+          Result:=ApplyRangeCheck_Type(Result,LeftTypeEl)
         else if AssignContext.LeftResolved.BaseType=btContext then
           begin
           if LeftTypeEl.ClassType=TPasEnumType then
-            Result:=CreateRangeCheckType(Result,LeftTypeEl);
+            Result:=ApplyRangeCheck_Type(Result,LeftTypeEl);
           end
         else if AssignContext.LeftResolved.BaseType=btRange then
           begin
-          if AssignContext.LeftResolved.SubType in btAllJSChars then
-            Result:=CreateRangeCheckType(Result,LeftTypeEl)
+          if AssignContext.LeftResolved.SubType in btAllJSRangeCheckTypes then
+            Result:=ApplyRangeCheck_Type(Result,LeftTypeEl)
           else if AssignContext.LeftResolved.SubType=btContext then
-            Result:=CreateRangeCheckType(Result,LeftTypeEl)
+            Result:=ApplyRangeCheck_Type(Result,LeftTypeEl)
           else
             begin
             {$IFDEF VerbosePas2JS}
@@ -20457,6 +20467,54 @@ begin
   end;
 end;
 
+function TPasToJSConverter.CreateRangeCheckSt(GetExpr: TJSElement; MinVal,
+  MaxVal: TMaxPrecInt; RTLFunc: TPas2JSBuiltInName; PosEl: TPasElement
+  ): TJSCallExpression;
+var
+  Call: TJSCallExpression;
+begin
+  Call:=CreateCallExpression(PosEl);
+  Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(RTLFunc),PosEl);
+  Call.AddArg(GetExpr);
+  Call.AddArg(CreateLiteralNumber(PosEl,MinVal));
+  Call.AddArg(CreateLiteralNumber(PosEl,MaxVal));
+  Result:=Call;
+end;
+
+function TPasToJSConverter.CreateRangeCheckSt_TypeRange(aType: TPasType;
+  GetExpr: TJSElement; AContext: TConvertContext; PosEl: TPasElement
+  ): TJSElement;
+var
+  Value: TResEvalValue;
+begin
+  Result:=nil;
+  Value:=AContext.Resolver.EvalTypeRange(aType,[refConst]);
+  try
+    if Value=nil then
+      RaiseNotSupported(PosEl,AContext,20180424111936,'range checking '+GetObjName(aType));
+    case Value.Kind of
+    revkRangeInt:
+      case TResEvalRangeInt(Value).ElKind of
+        revskEnum, revskInt:
+          Result:=CreateRangeCheckSt(GetExpr,TResEvalRangeInt(Value).RangeStart,
+            TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckInt,PosEl);
+        revskChar:
+          Result:=CreateRangeCheckSt(GetExpr,TResEvalRangeInt(Value).RangeStart,
+            TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckChar,PosEl);
+        revskBool: ; // range check not needed
+      else
+        RaiseNotSupported(PosEl,AContext,20190220002007,'range checking '+Value.AsDebugString);
+      end;
+    else
+      RaiseNotSupported(PosEl,AContext,20180424112010,'range checking '+Value.AsDebugString);
+    end;
+  finally
+    ReleaseEvalValue(Value);
+    if Result=nil then
+      GetExpr.Free;
+  end;
+end;
+
 function TPasToJSConverter.CreateReferencePath(El: TPasElement;
   AContext: TConvertContext; Kind: TRefPathKind; Full: boolean;
   Ref: TResolvedReference): string;
@@ -21138,10 +21196,50 @@ var
     Result:=ParamContext.Setter;
   end;
 
+  function CreateRgCheck(const SetterArgName: string): TJSElement;
+
+    function CreateRgCheckSt(aType: TPasType): TJSElement;
+    begin
+      Result:=CreateRangeCheckSt_TypeRange(aType,
+        CreatePrimitiveDotExpr(SetterArgName,El),AContext,El);
+    end;
+
+  var
+    ArgResolved: TPasResolverResult;
+    TypeEl: TPasType;
+  begin
+    Result:=nil;
+    if TargetArg.ArgType=nil then exit;
+    AContext.Resolver.ComputeElement(TargetArg,ArgResolved,[]);
+    TypeEl:=ArgResolved.LoTypeEl;
+    if TypeEl=nil then exit;
+    if ArgResolved.BaseType in btAllJSRangeCheckTypes then
+      Result:=CreateRgCheckSt(TypeEl)
+    else if ArgResolved.BaseType=btContext then
+      begin
+      if TypeEl.ClassType=TPasEnumType then
+        Result:=CreateRgCheckSt(TypeEl);
+      end
+    else if ArgResolved.BaseType=btRange then
+      begin
+      if ArgResolved.SubType in btAllJSRangeCheckTypes then
+        Result:=CreateRgCheckSt(TypeEl)
+      else if ArgResolved.SubType=btContext then
+        Result:=CreateRgCheckSt(TypeEl)
+      else
+        begin
+        {$IFDEF VerbosePas2JS}
+        writeln('TPasToJSConverter.CreateProcCallArgRef ',GetResolverResultDbg(ArgResolved));
+        RaiseNotSupported(El,AContext,20190220014806);
+        {$ENDIF}
+        end;
+      end;
+  end;
+
 var
   ParamContext: TParamContext;
   FullGetter, GetPathExpr, SetPathExpr, GetExpr, SetExpr, ParamExpr,
-    RHS: TJSElement;
+    RHS, RgCheck: TJSElement;
   AssignSt: TJSSimpleAssignStatement;
   ObjLit: TJSObjectLiteralElement;
   FuncSt: TJSFunctionDeclarationStatement;
@@ -21155,6 +21253,7 @@ var
   FuncContext: TFunctionContext;
   IsCOMIntf, HasCustomSetter: Boolean;
   Call: TJSCallExpression;
+  StList: TJSStatementList;
 begin
   // pass reference -> create a temporary JS object with a getter and setter
   Obj:=nil;
@@ -21165,6 +21264,7 @@ begin
   GetExpr:=nil;
   SetExpr:=nil;
   SetterArgName:=TempRefObjSetterArgName;
+  RgCheck:=nil;
   try
     // create FullGetter and setter
     ParamContext.Access:=caByReference;
@@ -21376,7 +21476,11 @@ begin
             FuncContext.ResultNeedsIntfRelease:=true
           else
             FuncContext.Add_InterfaceRelease(ResolvedEl.IdentEl);
-          end;
+          end
+        else if (SetExpr is TJSSimpleAssignStatement)
+            and (SetterArgName<>'')
+            and (bsRangeChecks in AContext.ScannerBoolSwitches) then
+          RgCheck:=CreateRgCheck(SetterArgName);
         end;
       end
     else if (SetExpr.ClassType=TJSCallExpression) then
@@ -21405,7 +21509,15 @@ begin
     ObjLit.Name:=TempRefObjSetterName;
     FuncSt:=CreateFunctionSt(El);
     ObjLit.Expr:=FuncSt;
-    FuncSt.AFunction.Params.Add(SetterArgName);
+    if SetterArgName<>'' then
+      FuncSt.AFunction.Params.Add(SetterArgName);
+    if RgCheck<>nil then
+      begin
+      StList:=TJSStatementList(CreateElement(TJSStatementList,El));
+      StList.A:=RgCheck;
+      StList.B:=SetExpr;
+      SetExpr:=StList;
+      end;
     FuncSt.AFunction.Body.A:=SetExpr;
     SetExpr:=nil;
 
