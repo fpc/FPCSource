@@ -224,7 +224,7 @@ begin
   'begin',
   'end;',
   'begin',
-  '  specialize IfThen<word>(true,2,3);',
+  //'  specialize IfThen<word>(true,2,3);',
   '']);
   ParseModule;
 end;

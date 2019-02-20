@@ -515,7 +515,7 @@ function(){
     <li><b>Integers overflows</b> at runtime differ from Delphi/FPC, due to the double format.
       For example adding <i>var i: byte = 200; ... i:=i+100;</i> will result in
       <i>i=300</i> instead of <i>i=44</i> as in Delphi/FPC.
-      When range checking <i>{$R+}</i> is enabled <i>i=300</i> will raise an ERangeError.</li>
+      When range checking <i>{$R+}</i> is enabled <i>i:=300</i> will raise an ERangeError.</li>
     <li><b>type cast integer to integer</b>, e.g. <i>byte(aLongInt)</i>
       <ul>
         <li>with range checking enabled: error if outside range</li>
@@ -3102,7 +3102,6 @@ End.
     <li>Package</li>
     <li>Resources</li>
     <li>RTTI extended, $RTTI</li>
-    <li>Runtime checks: Overflow -Co, $Q</li>
     <li>Variant records</li>
     <li>Variants</li>
     </ul>

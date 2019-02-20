@@ -803,6 +803,15 @@ begin
             if (Code=0) and (D=AsNumber) then
               S:=S2;
             end;
+          else
+            if s[i-1]='0' then
+              begin
+              // 1.2340E...
+              S2:=LeftStr(S,i-2)+copy(S,i,length(S));
+              val(S2,D,Code);
+              if (Code=0) and (D=AsNumber) then
+                S:=S2;
+              end;
           end;
           end;
         // chomp default exponent E+000

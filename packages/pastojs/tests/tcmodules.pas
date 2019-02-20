@@ -806,6 +806,7 @@ type
     procedure TestAssert;
     procedure TestAssert_SysUtils;
     procedure TestObjectChecks;
+    procedure TestOverflowChecks_Int;
     procedure TestRangeChecks_AssignInt;
     procedure TestRangeChecks_AssignIntRange;
     procedure TestRangeChecks_AssignEnum;
@@ -816,6 +817,7 @@ type
     procedure TestRangeChecks_ArrayOfRecIndex;
     procedure TestRangeChecks_StringIndex;
     procedure TestRangeChecks_TypecastInt;
+    procedure TestRangeChecks_TypeHelperInt;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -2520,8 +2522,8 @@ begin
   Add('  b2: boolean = true;');
   Add('  d2: double = 5.6;');
   Add('  i3: longint = $707;');
-  Add('  i4: nativeint = 4503599627370495;');
-  Add('  i5: nativeint = -4503599627370495-1;');
+  Add('  i4: nativeint = 9007199254740991;');
+  Add('  i5: nativeint = -9007199254740991-1;');
   Add('  i6: nativeint =   $fffffffffffff;');
   Add('  i7: nativeint = -$fffffffffffff-1;');
   Add('  i8: byte = 00;');
@@ -2543,8 +2545,8 @@ begin
     'this.b2 = true;',
     'this.d2 = 5.6;',
     'this.i3 = 0x707;',
-    'this.i4 = 4503599627370495;',
-    'this.i5 = -4503599627370495-1;',
+    'this.i4 = 9007199254740991;',
+    'this.i5 = -9007199254740991-1;',
     'this.i6 = 0xfffffffffffff;',
     'this.i7 =-0xfffffffffffff-1;',
     'this.i8 = 0;',
@@ -6165,9 +6167,9 @@ begin
   '  fn1_0En12 = -1E-12;',
   '  maxdouble = 1.7e+308;',
   '  mindouble = -1.7e+308;',
-  '  MinSafeIntDouble = -$10000000000000;',
-  '  MinSafeIntDouble2 = -$fffffffffffff-1;',
-  '  MaxSafeIntDouble =   $fffffffffffff;',
+  '  MinSafeIntDouble  = -$1fffffffffffff;',
+  '  MinSafeIntDouble2 = -$20000000000000-1;',
+  '  MaxSafeIntDouble =   $1fffffffffffff;',
   '  DZeroResolution = 1E-12;',
   '  Minus1 = -1E-12;',
   '  EPS = 1E-9;',
@@ -6235,9 +6237,9 @@ begin
     'this.fn1_0En12 = -1E-12;',
     'this.maxdouble = 1.7e+308;',
     'this.mindouble = -1.7e+308;',
-    'this.MinSafeIntDouble = -0x10000000000000;',
-    'this.MinSafeIntDouble2 = -0xfffffffffffff - 1;',
-    'this.MaxSafeIntDouble = 0xfffffffffffff;',
+    'this.MinSafeIntDouble = -0x1fffffffffffff;',
+    'this.MinSafeIntDouble2 = -0x20000000000000 - 1;',
+    'this.MaxSafeIntDouble = 0x1fffffffffffff;',
     'this.DZeroResolution = 1E-12;',
     'this.Minus1 = -1E-12;',
     'this.EPS = 1E-9;',
@@ -6278,11 +6280,11 @@ begin
     '$mod.d = -1E-12;',
     '$mod.d = 1.7E308;',
     '$mod.d = -1.7E308;',
-    '$mod.d = -4503599627370496;',
-    '$mod.d = -4503599627370496;',
-    '$mod.d = -4503599627370496;',
-    '$mod.d = -4503599627370496;',
-    '$mod.d = 4503599627370495;',
+    '$mod.d = -9007199254740991;',
+    '$mod.d = -9007199254740991;',
+    '$mod.d = -9.007199254740992E15;',
+    '$mod.d = -9.007199254740992E15;',
+    '$mod.d = 9007199254740991;',
     '$mod.d = 0.0;',
     '']));
 end;
@@ -6308,15 +6310,15 @@ begin
   ConvertProgram;
   CheckSource('TestIntegerRange',
     LinesToStr([
-    'this.MinInt = -4503599627370496;',
-    'this.MaxInt = 4503599627370495;',
-    'this.a = -4503599627370496 + 4503599627370495;',
+    'this.MinInt = -9007199254740991;',
+    'this.MaxInt = 9007199254740991;',
+    'this.a = -9007199254740991 + 9007199254740991;',
     'this.i = 0;',
     '']),
     LinesToStr([
-    '$mod.i = - -4503599627370496;',
-    '$mod.i = -4503599627370496;',
-    '$mod.i = -4503599627370496 + 4503599627370495;',
+    '$mod.i = - -9007199254740991;',
+    '$mod.i = -9007199254740991;',
+    '$mod.i = -9007199254740991 + 9007199254740991;',
     '']));
 end;
 
@@ -28656,6 +28658,55 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestOverflowChecks_Int;
+begin
+  Scanner.CurrentBoolSwitches:=Scanner.CurrentBoolSwitches+[bsOverflowChecks];
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'var',
+  '  b: byte;',
+  '  n: nativeint;',
+  '  u: nativeuint;',
+  '  c: currency;',
+  'begin',
+  '  n:=n+n;',
+  '  n:=n-n;',
+  '  n:=n+b;',
+  '  n:=b-n;',
+  '  n:=n*n;',
+  '  n:=n*u;',
+  '  c:=c+b;',
+  '  c:=b+c;',
+  '  c:=c*b;',
+  '  c:=b*c;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestOverflowChecks_Int',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var b = 0;',
+    '  var n = 0;',
+    '  var u = 0;',
+    '  var c = 0;',
+    '  n = rtl.oc(n + n);',
+    '  n = rtl.oc(n - n);',
+    '  n = rtl.oc(n + b);',
+    '  n = rtl.oc(b - n);',
+    '  n = rtl.oc(n * n);',
+    '  n = rtl.oc(n * u);',
+    '  c = rtl.oc(c + (b * 10000));',
+    '  c = rtl.oc((b * 10000) + c);',
+    '  c = rtl.oc(c * b);',
+    '  c = rtl.oc(b * c);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestRangeChecks_AssignInt;
 begin
   Scanner.Options:=Scanner.Options+[po_CAssignments];
@@ -29167,6 +29218,103 @@ begin
     '$mod.sm = rtl.rc(12 + rtl.rc($mod.i, -32768, 32767), -32768, 32767);',
     '$mod.lw = rtl.rc(12 + rtl.rc($mod.i, 0, 4294967295), 0, 4294967295);',
     '$mod.li = rtl.rc(12 + rtl.rc($mod.i, -2147483648, 2147483647), -2147483648, 2147483647);',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_TypeHelperInt;
+begin
+  Scanner.Options:=Scanner.Options+[po_CAssignments];
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  '{$R+}',
+  'type',
+  '  TObject = class',
+  '    FSize: byte;',
+  '    property Size: byte read FSize;',
+  '  end;',
+  '  THelper = type helper for byte',
+  '    procedure SetIt(w: word);',
+  '  end;',
+  'procedure THelper.SetIt(w: word);',
+  'begin',
+  '  Self:=w;',
+  'end;',
+  'function GetIt: byte;',
+  'begin',
+  '  Result.SetIt(2);',
+  'end;',
+  'var',
+  '  b: byte = 3;',
+  '  o: TObject;',
+  'begin',
+  '  b.SetIt(14);',
+  '  with b do SetIt(15);',
+  '  o.Size.SetIt(16);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignInt',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FSize = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.SetIt = function (w) {',
+    '    rtl.rc(w, 0, 65535);',
+    '    this.set(w);',
+    '  };',
+    '});',
+    'this.GetIt = function () {',
+    '  var Result = 0;',
+    '  $mod.THelper.SetIt.call({',
+    '    get: function () {',
+    '        return Result;',
+    '      },',
+    '    set: function (v) {',
+    '        rtl.rc(v, 0, 255);',
+    '        Result = v;',
+    '      }',
+    '  }, 2);',
+    '  return Result;',
+    '};',
+    'this.b = 3;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.SetIt.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.b;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.rc(v, 0, 255);',
+    '      this.p.b = v;',
+    '    }',
+    '}, 14);',
+    'var $with1 = $mod.b;',
+    '$mod.THelper.SetIt.call({',
+    '  get: function () {',
+    '      return $with1;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.rc(v, 0, 255);',
+    '      $with1 = v;',
+    '    }',
+    '}, 15);',
+    '$mod.THelper.SetIt.call({',
+    '  p: $mod.o,',
+    '  get: function () {',
+    '      return this.p.FSize;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.rc(v, 0, 255);',
+    '      this.p.FSize = v;',
+    '    }',
+    '}, 16);',
     '']));
 end;
 
