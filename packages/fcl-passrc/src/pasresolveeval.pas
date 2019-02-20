@@ -361,9 +361,9 @@ const
   MinSafeIntSingle = -16777216;
   MaxSafeIntSingle =  16777216;
   MaskUIntSingle = $3fffff;
-  MinSafeIntDouble = -$fffffffffffff-1; // -4503599627370496
-  MaxSafeIntDouble =  $fffffffffffff; //  4503599627370495
-  MaskUIntDouble = $fffffffffffff;
+  MinSafeIntDouble = -$1fffffffffffff; // -9007199254740991 53 bits (52 explicitly stored)
+  MaxSafeIntDouble =  $1fffffffffffff; //  9007199254740991
+  MaskUIntDouble = $1fffffffffffff;
 
 type
   { TResEvalValue }
