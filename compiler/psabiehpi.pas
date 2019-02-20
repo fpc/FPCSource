@@ -465,7 +465,12 @@ implementation
         (current_procinfo as tpsabiehprocinfo).PushAction(action);
         (current_procinfo as tpsabiehprocinfo).PushLandingPad(action);
         if exceptframekind<>tek_except then
-          (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(nil);
+          { no safecall? }
+          if use_cleanup(exceptframekind) then
+            (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(nil)
+          else
+            { if safecall, catch all }
+            (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(tobjectdef(-1));
 
         flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
         if exceptframekind<>tek_except then

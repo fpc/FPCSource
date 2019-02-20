@@ -1354,7 +1354,11 @@ implementation
                    if-branch -> fc_inflowcontrol) }
                  if (tf_safecall_exceptions in target_info.flags) and
                     (current_procinfo.procdef.proccalloption=pocall_safecall) then
-                   handle_safecall_exception
+                   begin
+                     handle_safecall_exception;
+                     { we have to jump immediatly as we have to return the value of FPC_SAFECALL }
+                     hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+                   end
                  else
                    cexceptionstatehandler.handle_reraise(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate,exceptframekind);
                  { we have to load 0 into the execepttemp, else the program thinks an exception happended }
