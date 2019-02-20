@@ -878,7 +878,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..297] of key_sequence=(
+const key_sequences:array[0..298] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
@@ -1000,7 +1000,20 @@ const key_sequences:array[0..297] of key_sequence=(
        (char:0;scan:kbPgUp;st:#27'[5~'),         {linux,Eterm,rxvt}
        (char:0;scan:kbPgUp;st:#27'[I'),          {FreeBSD}
        (char:0;scan:kbPgDn;st:#27'[6~'),         {linux,Eterm,rxvt}
-       (char:0;scan:kbPgDn;st:#27'[G'),          {FreeBSD}
+{$ifdef FREEBSD}
+       (char:0;scan:kbPgDn;st:#27'[G'),          {FreeBSD, conflicts with linux.
+                                                  Note: new FreeBSD versions seem
+                                                  to use xterm-like sequences, so
+                                                  this one is not needed for them.
+                                                  Todo: resolve conflicting sequences
+                                                  according to the TERM variable,
+                                                  instead of using IFDEFs, this way
+                                                  it'll work over SSH across platforms
+                                                  too.}
+{$else FREEBSD}
+       (char:0;scan:kbCenter;st:#27'[G'),        {linux}
+{$endif FREEBSD}
+       (char:0;scan:kbCenter;st:#27'[E'),        {xterm,gnome}
        (char:0;scan:kbUp;st:#27'[A'),            {linux,FreeBSD,rxvt}
        (char:0;scan:kbDown;st:#27'[B'),          {linux,FreeBSD,rxvt}
        (char:0;scan:kbRight;st:#27'[C'),         {linux,FreeBSD,rxvt}
