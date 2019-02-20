@@ -1143,6 +1143,7 @@ procedure TWriter.WriteVar(d: TVarDef; AParent: TDef);
         if (VarType.DefType = dtType) and (TTypeDef(VarType).BasicType in [btByte, btShortInt, btSmallInt]) then
           VarType:=FIntegerType;
         VarOpt:=[voRead];
+        IsUsed:=True;
       end;
       Result:=ad.ElType;
       ad:=TArrayDef(Result);
@@ -1651,11 +1652,14 @@ begin
 
       for i:=0 to u.Count - 1 do begin
         d:=u[i];
-        if (d.DefType = dtType) and (TTypeDef(d).BasicType = btLongInt) then begin
+        if (d.DefType = dtType) and (TTypeDef(d).BasicType = btLongInt) and (Copy(d.Name, 1, 1) <> '$') then begin
           FIntegerType:=d;
           break;
         end;
       end;
+
+      if FIntegerType = nil then
+        raise Exception.Create('LongInt type has not been found in the System unit.');
 
       if LibAutoLoad then begin
         Fjs.WriteLn('static private boolean _JniLibLoaded = false;');
@@ -2041,9 +2045,9 @@ begin
 
       Fjs.WriteLn('private native static long InterfaceCast(long objptr, String objid);');
       Fjs.WriteLn;
-      Fjs.WriteLn('public static class PascalInterface extends PascalObjectEx {');
+      Fjs.WriteLn('public static abstract class PascalInterface extends PascalObjectEx {');
       Fjs.IncI;
-      Fjs.WriteLn('protected void __Init() { }');
+      Fjs.WriteLn('abstract protected void __Init();');
       Fjs.WriteLn('public void __TypeCast(PascalObject obj, String intfId) {');
       Fjs.WriteLn('if (obj != null) {', 1);
       Fjs.WriteLn('if (obj instanceof PascalInterface) {', 2);
