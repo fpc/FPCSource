@@ -38,6 +38,7 @@ type
     char : byte;
     ScanValue : byte;
     CharValue : byte;
+    ShiftValue : TEnhancedShiftState;
     SpecialHandler : Tprocedure;
   end;
 
@@ -733,7 +734,7 @@ begin
     Pa^.Child:=newPtree;
 end;
 
-function DoAddSequence(const St : String; AChar,AScan :byte) : PTreeElement;
+function DoAddSequence(const St : String; AChar,AScan :byte; const AShift: TEnhancedShiftState) : PTreeElement;
 var
   CurPTree,NPT : PTreeElement;
   c : byte;
@@ -797,6 +798,7 @@ begin
 {$endif DEBUG}
           ScanValue:=AScan;
           CharValue:=AChar;
+          ShiftValue:=AShift;
         end;
     end
   else with CurPTree^ do
@@ -804,6 +806,7 @@ begin
       CanBeTerminal:=True;
       ScanValue:=AScan;
       CharValue:=AChar;
+      ShiftValue:=AShift;
     end;
   DoAddSequence:=CurPTree;
 end;
@@ -811,7 +814,7 @@ end;
 
 procedure AddSequence(const St : String; AChar,AScan :byte);inline;
 begin
-  DoAddSequence(St,AChar,AScan);
+  DoAddSequence(St,AChar,AScan,[]);
 end;
 
 { Returns the Child that as c as char if it exists }
@@ -832,7 +835,7 @@ function AddSpecialSequence(const St : string;Proc : Tprocedure) : PTreeElement;
 var
   NPT : PTreeElement;
 begin
-  NPT:=DoAddSequence(St,0,0);
+  NPT:=DoAddSequence(St,0,0,[]);
   NPT^.SpecialHandler:=Proc;
   AddSpecialSequence:=NPT;
 end;
@@ -1235,18 +1238,18 @@ begin
   if copy(fpgetenv('TERM'),1,4)='cons' then
     begin
       {FreeBSD is until now only terminal that uses it for delete.}
-      DoAddSequence(#127,0,kbDel);        {Delete}
-      DoAddSequence(#27#127,0,kbAltDel);  {Alt+delete}
+      DoAddSequence(#127,0,kbDel,[]);              {Delete}
+      DoAddSequence(#27#127,0,kbAltDel,[essAlt]);  {Alt+delete}
     end
   else
     begin
-      DoAddSequence(#127,8,0);            {Backspace}
-      DoAddSequence(#27#127,0,kbAltBack); {Alt+backspace}
+      DoAddSequence(#127,8,0,[]);                  {Backspace}
+      DoAddSequence(#27#127,0,kbAltBack,[essAlt]); {Alt+backspace}
     end;
   { all Esc letter }
   for i:=low(key_sequences) to high(key_sequences) do
     with key_sequences[i] do
-      DoAddSequence(st,char,scan);
+      DoAddSequence(st,char,scan,shift);
 end;
 
 function RawReadKey:char;
