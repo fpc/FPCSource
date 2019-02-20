@@ -596,9 +596,9 @@ var
   s : string;
 begin
   s:='';
+  ntflags:=flags;
   if flags<>0 then
    begin
-     ntflags:=flags;
      first:=true;
      for i:=1to flagopts do
       if (flags and flagopt[i].mask)<>0 then
@@ -1033,6 +1033,9 @@ var
 begin
   with ppufile do
    begin
+     fileindex:=0;
+     line:=0;
+     column:=0;
      {
        info byte layout in bits:
        0-1 - amount of bytes for fileindex
@@ -2393,9 +2396,9 @@ begin
            write(', ');
          write(managementoperatoropt[i].str);
        end;
+     if not first then
+       writeln;
    end;
-  if not first then
-    writeln;
 end;
 
 
