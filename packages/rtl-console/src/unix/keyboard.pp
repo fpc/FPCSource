@@ -1026,6 +1026,7 @@ const key_sequences:array[0..298] of key_sequence=(
        (char:0;scan:kbShiftF1;st:#27'[23~'),     {rxvt}
        (char:0;scan:kbShiftF2;st:#27'[24~'),     {rxvt}
 *)
+(* These seem to be shifted. Probably something changed with linux's default keymaps.
        (char:0;scan:kbShiftF3;st:#27'[25~'),     {linux,rxvt}
        (char:0;scan:kbShiftF4;st:#27'[26~'),     {linux,rxvt}
        (char:0;scan:kbShiftF5;st:#27'[28~'),     {linux,rxvt}
@@ -1033,7 +1034,15 @@ const key_sequences:array[0..298] of key_sequence=(
        (char:0;scan:kbShiftF7;st:#27'[31~'),     {linux,rxvt}
        (char:0;scan:kbShiftF8;st:#27'[32~'),     {linux,rxvt}
        (char:0;scan:kbShiftF9;st:#27'[33~'),     {linux,rxvt}
-       (char:0;scan:kbShiftF10;st:#27'[34~'),    {linux,rxvt}
+       (char:0;scan:kbShiftF10;st:#27'[34~'),    {linux,rxvt}*)
+       (char:0;scan:kbShiftF1;st:#27'[25~'),     {linux}
+       (char:0;scan:kbShiftF2;st:#27'[26~'),     {linux}
+       (char:0;scan:kbShiftF3;st:#27'[28~'),     {linux}
+       (char:0;scan:kbShiftF4;st:#27'[29~'),     {linux}
+       (char:0;scan:kbShiftF5;st:#27'[31~'),     {linux}
+       (char:0;scan:kbShiftF6;st:#27'[32~'),     {linux}
+       (char:0;scan:kbShiftF7;st:#27'[33~'),     {linux}
+       (char:0;scan:kbShiftF8;st:#27'[34~'),     {linux}
        (char:0;scan:kbShiftF11;st:#27'[23$'),    {rxvt}
        (char:0;scan:kbShiftF12;st:#27'[24$'),    {rxvt}
        (char:0;scan:kbShiftF1;st:#27'[11;2~'),   {konsole in vt420pc mode}
