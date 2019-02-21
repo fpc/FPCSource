@@ -536,7 +536,6 @@ implementation
         action, ReRaiseLandingPad: TPSABIEHAction;
         psabiehprocinfo: tpsabiehprocinfo;
       begin
-       cgpara1.init;
         if not(fc_catching_exceptions in flowcontrol) and
            use_cleanup(exceptframekind) then
           begin
@@ -550,18 +549,39 @@ implementation
             psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
 
             pd:=search_system_proc('fpc_resume');
+            cgpara1.init;
             paramanager.getintparaloc(list,pd,1,cgpara1);
             hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_resume',[@cgpara1],nil).resetiftemp;
+            cgpara1.done;
 
             psabiehprocinfo.CreateNewPSABIEHCallsite;
             psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
             psabiehprocinfo.PopAction(ReRaiseLandingPad);
           end
         else
-          hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
-       cgpara1.done;
+          begin
+            psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
+            { empty landing pad needed to avoid immediate termination? }
+            if psabiehprocinfo.landingpadstack.Count=0 then
+              begin
+                psabiehprocinfo.CreateNewPSABIEHCallsite;
+
+                ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
+                psabiehprocinfo.PushAction(ReRaiseLandingPad);
+                psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
+              end
+            else
+              ReRaiseLandingPad:=nil;
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+            if assigned(ReRaiseLandingPad) then
+              begin
+                psabiehprocinfo.CreateNewPSABIEHCallsite;
+                psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
+                psabiehprocinfo.PopAction(ReRaiseLandingPad);
+             end;
+          end;
       end;
 
 
