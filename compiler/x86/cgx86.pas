@@ -3591,7 +3591,7 @@ unit cgx86;
                   localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
+                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
               end
 {$ifdef i8086}
