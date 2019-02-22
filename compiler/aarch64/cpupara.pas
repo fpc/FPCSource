@@ -364,6 +364,24 @@ unit cpupara;
          if not assigned(result.location) or
             not(result.location^.loc in [LOC_REGISTER,LOC_MMREGISTER,LOC_VOID]) then
            internalerror(2014113001);
+         {
+           According to ARM64 ABI: "If the size of the argument is less than 8 bytes then
+           the size of the argument is set to 8 bytes. The effect is as if the argument
+           was copied to the least significant bits of a 64-bit register and the remaining
+           bits filled with unspecified values."
+
+           Therefore at caller side force the ordinal result to be always 64-bit, so it
+           will be stripped to the required size and uneeded bits are discarded.
+
+           This is not required for iOS, where the result is zero/sign extended.
+         }
+         if (target_info.abi<>abi_aarch64_darwin) and
+            (side=callerside) and (result.location^.loc = LOC_REGISTER) and
+            (result.def.size<8) and is_ordinal(result.def) then
+           begin
+             result.location^.size:=OS_64;
+             result.location^.def:=u64inttype;
+           end;
       end;
 
 
@@ -597,14 +615,28 @@ unit cpupara;
                     responsibility to sign or zero-extend arguments having fewer
                     than 32 bits, and that unused bits in a register are
                     unspecified. In iOS, however, the caller must perform such
-                    extensions, up to 32 bits." }
-                 if (target_info.abi=abi_aarch64_darwin) and
-                    (side=callerside) and
-                    is_ordinal(paradef) and
-                    (paradef.size<4) then
+                    extensions, up to 32 bits."
+                    Zero extend an argument at caller side for iOS and
+                    ignore the argument's unspecified high bits at callee side for
+                    all other platforms. }
+                 if (paradef.size<4) and is_ordinal(paradef) then
                    begin
-                     paraloc^.size:=OS_32;
-                     paraloc^.def:=u32inttype;
+                     if target_info.abi=abi_aarch64_darwin then
+                       begin
+                         if side=callerside then
+                           begin
+                             paraloc^.size:=OS_32;
+                             paraloc^.def:=u32inttype;
+                           end;
+                       end
+                     else
+                       begin
+                         if side=calleeside then
+                           begin
+                             paraloc^.size:=OS_32;
+                             paraloc^.def:=u32inttype;
+                           end;
+                       end;
                    end;
 
                  { in case it's a composite, "The argument is passed as though
