@@ -504,7 +504,7 @@ var
   u: UnicodeString;
 
 begin
-  u:=UTF8Decode(Value);
+  u:=Value;
   PutData(Name, PWideChar(u), ByteLength(u), rdExpandString);
 end;
 
@@ -538,7 +538,7 @@ var
   u: UnicodeString;
 
 begin
-  u:=UTF8Decode(Value);
+  u:=Value;
   PutData(Name, PWideChar(u), ByteLength(u), rdString);
 end;
 

@@ -1,11 +1,11 @@
-ï»¿{ %TARGET=win32,win64,wince }
+{ %TARGET=win32,win64,wince }
 
-program tw35060b;
+program tw35060c;
 
 {$apptype console}
 {$assertions on}
 {$ifdef fpc}
-{$codepage utf8}
+{$codepage cp1252}
 {$mode objfpc}
 {$h+}
 {$endif fpc}
@@ -24,7 +24,7 @@ end;
 {$endif}
 
 const
-  ExpectedUtf8Hex = 'C3 A4 C3 AB C3 AF';
+  ExpectedAnsiHex = 'E4 EB EF';
   ExpectedUnicodeHex = '00E4 00EB 00EF';
   BugID = 'FPCBug0035060';
 
@@ -38,7 +38,7 @@ begin
   Result := Trim(Result);
 end;
 
-function Utf8ToHex(const S: String): String;
+function AnsiToHex(const S: String): String;
 var
   i: Integer;
 begin
@@ -48,10 +48,10 @@ begin
   Result := Trim(Result);
 end;
 
-
 procedure CreateKeyInHKCU(const Key: UnicodeString);
 Var
   u: UnicodeString;
+//  name,value: UnicodeString;
   Disposition: Dword;
   Handle: HKEY;
   SecurityAttributes: Pointer; //LPSECURITY_ATTRIBUTES;
@@ -69,31 +69,35 @@ begin
                               SecurityAttributes,
                               Handle,
                               @Disposition);
-  RegCloseKey(Handle);
   Assert(FLastError=ERROR_SUCCESS,format('Creating key "%s" using plain Windows API failed: "%s"',
                                          [String(Key),Trim(SysErrorMessage(FLastError))]));
+
+  //name := UnicodeString('äëï');
+  //value := UnicodeString('äëï');
+  //FLastError:=RegSetValueExW(Handle,PWideChar(name),0,REG_SZ,PWideChar(Value),ByteLength(Value));
+  //writeln('FLastError=',flasterror);
+  //RegCloseKey(Handle);
 end;
 
 
 procedure CreateTestKey;
 const
-  TestKey: UnicodeString = 'Software\'+ UniCodeString(BugID)+ '\Ã¤Ã«Ã¯';
+  TestKey: UnicodeString = 'Software\'+ UniCodeString(BugID)+ '\äëï';
 var
   Len: Integer;
 begin
   Len := Length(TestKey);
-  //Being a bit paranoid here?
   Assert((Len=26) and (Word(TestKey[Len])=$EF) and (Word(TestKey[Len-1])=$EB) and (Word(TestKey[Len-2])=$E4),'Wrong encoding of TestKey');
   CreateKeyInHKCU(TestKey);
 end;
 
 procedure RemoveTestKey;
 const
-  TestKeyFull: UnicodeString = 'Software\'+ UniCodeString(BugID)+ '\Ã¤Ã«Ã¯';
+  TestKeyFull: UnicodeString = 'Software\'+ UniCodeString(BugID)+ '\äëï';
   TestKeyBugID: UnicodeString = 'Software\'+ UniCodeString(BugID);
 var
   Key: UnicodeString;
-  FLastError: LongInt;
+  FLastError: LONG;
 begin
   Key:=TestKeyFull;
   FLastError:=RegDeleteKeyW(HKEY_CURRENT_USER,PWideChar(Key));
@@ -104,44 +108,41 @@ begin
   FLastError:=RegDeleteKeyW(HKEY_CURRENT_USER,PWideChar(Key));
   Assert(FLastError=ERROR_SUCCESS,format('Removing key "%s" using plain Windows API failed: "%s"',
                                          [String(Key),Trim(SysErrorMessage(FLastError))]));
+  writeln('Test keys successfully removed.');
 end;
-
-//End Registry plain API functions
 
 var
   R: TRegistry;
-  Name, S: String;
-  Key: Utf8String;
+  Name, Value, S, Key: String;
   U: UnicodeString;
   B: Boolean;
   Err: Integer;
-  CP: TSystemCodePage;
+
 begin
   CreateTestKey;
+  Name := 'äëï';
+  U := UnicodeString(Name);
+  S := AnsiToHex(Name);
+  Assert(S=ExpectedAnsiHex,format('Name is wrongly encoded: expected: %s, found: %s',[ExpectedAnsiHex,S]));
+  S := UnicodeToHex(U);
+  Assert(S=ExpectedUnicodeHex,format('Name is wrongly encoded: expected: %s, found: %s',[ExpectedUnicodeHex,S]));
+
+  R := TRegistry.Create(KEY_ALL_ACCESS);
   try
-    Name := 'Ã¤Ã«Ã¯';
-    U := UnicodeString(Name);
-    S := Utf8ToHex(Name);
-    Assert(S=ExpectedUtf8Hex,format('Name is wrongly encoded: expected: %s, found: %s',[ExpectedUtf8Hex,S]));
-    S := UnicodeToHex(U);
-    Assert(S=ExpectedUnicodeHex,format('Name is wrongly encoded: expected: %s, found: %s',[ExpectedUnicodeHex,S]));
-
-    R := TRegistry.Create(KEY_ALL_ACCESS);
-    try
-      R.RootKey := HKEY_CURRENT_USER;
-      Key := 'Software\'+BugId+'\'+Name;
-      CP := System.StringCodePage(Key);
-      Assert(CP = 65001,format('The string that contains the key does not have UTF-8 as dynamic code page, but has codepage %d',[CP]));
-      B := R.OpenKeyReadOnly(Key);
-      Err := GetLastOSError;
-      Assert(B,format('OpenKey(''%s'') failed: "%s" [%d]',[Key,Trim(SysErrorMessage(Err)),Err]));
-      writeln(format('OpenKeyReadOnly(''%s''): OK',[Key]));
-    finally
-      R.Free;
-    end;
-
+    R.RootKey := HKEY_CURRENT_USER;
+    Key := 'Software\'+BugId+'\'+Name;
+    B := R.OpenKey(Key,False);
+    Err := GetLastOSError;
+    writeln('B=',B);
+    Assert(B,format('OpenKey(''%s'') failed: "%s" [%d]',[Key,Trim(SysErrorMessage(Err)),Err]));
+    R.WriteString(Name,Name);
+    Value := R.ReadString(Name);
+    SetCodePage(RawByteString(Value), 1252, True);
+    S := AnsiToHex(Value);
+    Assert(S=ExpectedAnsiHex ,format('Found Value="%s" Bytes: %s, expected bytes: %s',[Value,S,ExpectedAnsiHex]));
+    writeln('ReadString value equals WriteString value.');
   finally
+    R.Free;
     RemoveTestKey;
   end;
 end.
-

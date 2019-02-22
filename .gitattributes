@@ -12728,6 +12728,7 @@ tests/test/packages/fcl-db/toolsunit.pas svneol=native#text/plain
 tests/test/packages/fcl-registry/tregistry1.pp svneol=native#text/plain
 tests/test/packages/fcl-registry/tw35060a.pp svneol=native#text/plain
 tests/test/packages/fcl-registry/tw35060b.pp svneol=native#text/plain
+tests/test/packages/fcl-registry/tw35060c.pp svneol=native#text/plain
 tests/test/packages/fcl-xml/thtmlwriter.pp svneol=native#text/plain
 tests/test/packages/fcl-xml/tw22495.pp svneol=native#text/plain
 tests/test/packages/fcl-xml/uw22495.pp svneol=native#text/plain
