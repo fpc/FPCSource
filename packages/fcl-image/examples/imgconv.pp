@@ -156,7 +156,7 @@ begin
     begin
     writeln ('Give filename to read and to write, preceded by filetype:');
     writeln ('X for XPM, P for PNG, B for BMP, J for JPEG, T for TGA,');
-    writeln ('N for PNM (read only), F for TIFF');
+    writeln ('N for PNM (read only), F for TIFF, G for gif (read only)');
     writeln ('example: imgconv X hello.xpm P hello.png');
     writeln ('example: imgconv hello.xpm P hello.png');
     writeln ('Options for');
