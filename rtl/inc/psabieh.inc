@@ -975,32 +975,9 @@ procedure FPC_psabieh_ExceptionCleanUp(reason: FPC_Unwind_Reason_Code; exc:PFPC_
   end;
 
 function PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer): PExceptObject; forward;
-procedure fpc_RaiseException_Internal(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer); forward;
-
-{$ifdef CPUI386}
-{ tweak stack, so we get the correct context, this requires assembly }
-procedure fpc_RaiseException(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer); compilerproc;assembler; nostackframe;
-asm
-  { loading the address makes only sense if a frame is passed, else unwinding is completly mixed up }
-  orl AFrame,AFrame
-  je .L1
-  movl AFrame,%ebp
-  orl AnAddr,AnAddr
-  je .L1
-  movl AnAddr,(%esp)
-.L1:
-  jmpl fpc_RaiseException_Internal
-end;
-{$define PSABI_HANDLESCONTEXT}
-{$endif CPUI386}
 
 {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
-procedure fpc_RaiseException_Internal(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer);
-{$ifndef PSABI_HANDLESCONTEXT}
-  begin
-  end;
 procedure fpc_RaiseException(Obj: TObject; AnAddr: CodePointer; AFrame: Pointer); compilerproc;
-{$endif PSABI_HANDLESCONTEXT}
 var
   _ExceptObjectStack : PExceptObject;
   _ExceptAddrstack : PExceptAddr;

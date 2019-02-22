@@ -16,6 +16,13 @@
  **********************************************************************}
 
 
+{ use a trampoline which pushes the return address for proper unwinding }
+Procedure SignalToHandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
+asm
+  pushl addr
+  jmp HandleErrorAddrFrame
+end;
+
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; UContext: Pucontext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res,fpustate : word;
@@ -82,7 +89,7 @@ begin
     ucontext^.uc_mcontext.eax := res;
     ucontext^.uc_mcontext.edx := ucontext^.uc_mcontext.eip;
     ucontext^.uc_mcontext.ecx := ucontext^.uc_mcontext.ebp;
-    ucontext^.uc_mcontext.eip := ptruint(@HandleErrorAddrFrame);
+    ucontext^.uc_mcontext.eip := ptruint(@SignalToHandleErrorAddrFrame);
   end;
 end;
 
