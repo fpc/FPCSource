@@ -1103,7 +1103,10 @@ implementation
       begin
         oldcrc:=do_crc;
         do_crc:=false;
-        putlongint(d.dataidx);
+        if d.dataidx=-1 then
+          internalerror(2019022201)
+        else
+          putlongint(d.dataidx);
         do_crc:=oldcrc;
       end;
 

@@ -732,6 +732,7 @@ implementation
         newbuiltdefderefs,
         builtdefderefs,
         builtsymderefs: array of boolean;
+        changed: boolean;
       begin
         newbuiltdefderefs:=nil;
         builtdefderefs:=nil;
@@ -749,6 +750,7 @@ implementation
           { current number of registered defs/syms }
           defidmax:=current_module.deflist.count;
           symidmax:=current_module.symlist.count;
+          changed:=false;
 
           { build the derefs for the registered defs we haven't processed yet }
           for i:=0 to DefList.Count-1 do
@@ -761,6 +763,7 @@ implementation
                       def.buildderef;
                       newbuiltdefderefs[i]:=true;
                       builtdefderefs[i]:=true;
+                      changed:=true;
                     end;
                 end;
             end;
@@ -774,6 +777,7 @@ implementation
                     begin
                       sym.buildderef;
                       builtsymderefs[i]:=true;
+                      changed:=true;
                     end;
                 end;
             end;
@@ -784,12 +788,13 @@ implementation
                 begin
                   newbuiltdefderefs[i]:=false;
                   tstoreddef(DefList[i]).buildderefimpl;
+                  changed:=true;
                 end;
             end;
         { stop when no new defs or syms have been registered while processing
           the currently registered ones (defs/syms get added to the module's
           deflist/symlist when they are registered) }
-        until
+        until not changed and 
           (defidmax=current_module.deflist.count) and
           (symidmax=current_module.symlist.count);
       end;
