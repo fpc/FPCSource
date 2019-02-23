@@ -80,7 +80,9 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$endif}
 function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compilerproc;
 procedure FPC_psabi_end_catch; cdecl; compilerproc;
+{$if defined(cpui386) and not defined(cpullvm)}
 Procedure fpc_Resume(exception_object: PFPC_Unwind_Exception); compilerproc;
+{$endif}
 
 { llvm cannot create a catch/cleanup block if there is no call inside the
   try block to a routine that can raise an exception. Hence, we will call

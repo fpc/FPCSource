@@ -47,13 +47,15 @@ interface
         procedure pushlandingpad(pad: taillvm);
         procedure poppad;
         function currlandingpad: taillvm;
+        procedure setup_eh; override;
+        procedure finish_eh; override;
       end;
 
 implementation
 
     uses
       globtype,globals,verbose,systems,
-      symtable;
+      symconst,symtable;
 
 
     constructor tllvmprocinfo.create(aparent: tprocinfo);
@@ -116,6 +118,20 @@ implementation
         if flandingpadstack.Count=0 then
           internalerror(2018051903);
         result:=taillvm(flandingpadstack.last);
+      end;
+
+
+    procedure tllvmprocinfo.setup_eh;
+      begin
+        if po_assembler in procdef.procoptions then
+          inherited;
+      end;
+
+
+    procedure tllvmprocinfo.finish_eh;
+      begin
+        if po_assembler in procdef.procoptions then
+          inherited;
       end;
 
 

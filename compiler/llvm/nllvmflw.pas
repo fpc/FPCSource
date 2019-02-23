@@ -41,7 +41,7 @@ interface
       class procedure get_exception_temps(list: TAsmList; var t: texceptiontemps); override;
       class procedure unget_exception_temps(list: TAsmList; const t: texceptiontemps); override;
       class procedure new_exception(list: TAsmList; const t: texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
-      class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate); override;
+      class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps); override;
       class procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); override;
       class procedure cleanupobjectstack(list: TAsmList); override;
       class procedure popaddrstack(list: TAsmList); override;
@@ -167,7 +167,7 @@ implementation
       end;
 
 
-    class procedure tllvmexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate);
+    class procedure tllvmexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps);
       var
         reg: tregister;
         landingpad: taillvm;
