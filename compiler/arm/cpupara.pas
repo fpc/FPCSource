@@ -30,10 +30,10 @@ unit cpupara;
        globtype,globals,
        aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symtype,symdef,parabase,paramgr;
+       symconst,symtype,symdef,parabase,paramgr,armpara;
 
     type
-       tcpuparamanager = class(tparamanager)
+       tcpuparamanager = class(tarmgenparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;

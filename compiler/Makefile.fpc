@@ -309,7 +309,7 @@ endif
 
 # ARM specific
 ifeq ($(PPC_TARGET),arm)
-override LOCALOPT+=
+override LOCALOPT+=-Fuarmgen
 endif
 
 # mipsel specific
@@ -320,6 +320,11 @@ endif
 # jvm specific
 ifeq ($(PPC_TARGET),jvm)
 override LOCALOPT+=-Fujvm
+endif
+
+# AArch64 specific
+ifeq ($(PPC_TARGET),aarch64)
+override LOCALOPT+=-Fuarmgen
 endif
 
 # i8086 specific
