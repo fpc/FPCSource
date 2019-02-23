@@ -1548,8 +1548,9 @@ implementation
               cg128.a_load128_loc_cgpara(list,l,cgpara)
             else
 {$else cpu64bitalu}
-            { use cg64 only for int64, not for 8 byte records }
-            if (l.size in [OS_64,OS_S64]) and (cgpara.Size in [OS_64,OS_S64]) then
+            { use cg64 only for int64, not for 8 byte records; in particular,
+              filter out records passed in fpu/mm register}
+            if (l.size in [OS_64,OS_S64]) and (cgpara.Size in [OS_64,OS_S64]) and (cgpara.location^.loc=LOC_REGISTER) then
               cg64.a_load64_loc_cgpara(list,l,cgpara)
             else
 {$endif cpu64bitalu}
