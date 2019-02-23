@@ -42,7 +42,7 @@ unit cpupara;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
           procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
           procedure init_values(p: tabstractprocdef; side: tcallercallee; var curintreg,
@@ -778,20 +778,30 @@ unit cpupara;
      end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg, curmmreg: tsuperregister;
         sparesinglereg:tregister;
       begin
-        init_values(p,callerside,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
+        init_values(p,side,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
 
-        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true);
+        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true);
         if (p.proccalloption in cstylearrayofconst) then
-          { just continue loading the parameters in the registers }
-          result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true)
+          begin
+            { just continue loading the parameters in the registers }
+            if assigned(varargspara) then
+              begin
+                if side=callerside then
+                  result:=create_paraloc_info_intern(p,side,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true)
+                else
+                  internalerror(2019021915);
+              end;
+          end
         else
           internalerror(200410231);
+
+        create_funcretloc_info(p,side);
       end;
 
 begin

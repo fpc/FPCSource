@@ -325,6 +325,9 @@ interface
     { # returns true if the procdef has no parameters and no specified return type }
     function is_bareprocdef(pd : tprocdef): boolean;
 
+    { returns true if the procdef is a C-style variadic function }
+    function is_c_variadic(pd: tabstractprocdef): boolean; {$ifdef USEINLINE}inline;{$endif}
+
     { # returns the smallest base integer type whose range encompasses that of
         both ld and rd; if keep_sign_if_equal, then if ld and rd have the same
         signdness, the result will also get that signdness }
@@ -1496,6 +1499,12 @@ implementation
                  (pd.proctypeoption = potype_constructor));
       end;
 
+    function is_c_variadic(pd: tabstractprocdef): boolean;
+      begin
+        result:=
+          (po_varargs in pd.procoptions) or
+          (po_variadic in pd.procoptions);
+      end;
 
     function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
       var

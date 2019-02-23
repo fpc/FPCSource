@@ -42,7 +42,7 @@ unit cpupara;
           function push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
           function ret_in_param(def: tdef; pd: tabstractprocdef):boolean;override;
           function create_paraloc_info(p: tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p: tabstractprocdef; varargspara: tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist):longint;override;
           function get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
           function param_use_paraloc(const cgpara: tcgpara): boolean; override;
          private
@@ -639,12 +639,12 @@ unit cpupara;
      end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef; varargspara: tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist):longint;
       begin
         init_para_alloc_values;
 
         { non-variadic parameters }
-        create_paraloc_info_intern(p,callerside,p.paras,false);
+        create_paraloc_info_intern(p,side,p.paras,false);
         if p.proccalloption in cstylearrayofconst then
           begin
             { on Darwin, we cannot use any registers for variadic parameters }
@@ -654,11 +654,19 @@ unit cpupara;
                 curmmreg:=succ(RS_LAST_MM_PARAM_SUPREG);
               end;
             { continue loading the parameters  }
-            create_paraloc_info_intern(p,callerside,varargspara,true);
+            if assigned(varargspara) then
+              begin
+                if side=callerside then
+                  create_paraloc_info_intern(p,side,varargspara,true)
+                else
+                  internalerror(2019021916);
+              end;
             result:=curstackoffset;
           end
         else
           internalerror(200410231);
+
+        create_funcretloc_info(p,side);
       end;
 
 begin

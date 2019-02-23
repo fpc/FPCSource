@@ -42,7 +42,7 @@ unit cpupara;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;override;
        private
@@ -767,15 +767,22 @@ unit cpupara;
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         parasize : longint;
       begin
         parasize:=0;
         { calculate the registers for the normal parameters }
-        create_stdcall_paraloc_info(p,callerside,p.paras,parasize);
+        create_stdcall_paraloc_info(p,side,p.paras,parasize);
         { append the varargs }
-        create_stdcall_paraloc_info(p,callerside,varargspara,parasize);
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_stdcall_paraloc_info(p,side,varargspara,parasize)
+            else
+              internalerror(2019021926);
+          end;
+        create_funcretloc_info(p,side);
         result:=parasize;
       end;
 

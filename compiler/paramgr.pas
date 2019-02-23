@@ -140,7 +140,7 @@ unit paramgr;
             for the routine that are passed as varargs. It returns
             the size allocated on the stack (including the normal parameters)
           }
-          function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;virtual;abstract;
+          function  create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;virtual;abstract;
 
           function is_stack_paraloc(paraloc: pcgparalocation): boolean;virtual;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);virtual;

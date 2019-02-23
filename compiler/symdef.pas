@@ -5284,7 +5284,10 @@ implementation
         if (side in [callerside,callbothsides]) and
            not(has_paraloc_info in [callerside,callbothsides]) then
           begin
-            callerargareasize:=paramanager.create_paraloc_info(self,callerside);
+            if not is_c_variadic(self) then
+              callerargareasize:=paramanager.create_paraloc_info(self,callerside)
+            else
+              callerargareasize:=paramanager.create_varargs_paraloc_info(self,callerside,nil);
             if has_paraloc_info in [calleeside,callbothsides] then
               has_paraloc_info:=callbothsides
             else
@@ -5293,7 +5296,10 @@ implementation
         if (side in [calleeside,callbothsides]) and
            not(has_paraloc_info in [calleeside,callbothsides]) then
           begin
-            calleeargareasize:=paramanager.create_paraloc_info(self,calleeside);
+            if not is_c_variadic(self) then
+              calleeargareasize:=paramanager.create_paraloc_info(self,calleeside)
+            else
+              callerargareasize:=paramanager.create_varargs_paraloc_info(self,calleeside,nil);
             if has_paraloc_info in [callerside,callbothsides] then
               has_paraloc_info:=callbothsides
             else

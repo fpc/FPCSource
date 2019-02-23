@@ -35,7 +35,7 @@ interface
         function  get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;override;
         function  get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
-        function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
+        function  create_varargs_paraloc_info(p : TAbstractProcDef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                              var curintreg: longint; curfloatreg: tsuperregister; var cur_stack_offset: aword);virtual;abstract;
       end;
@@ -66,7 +66,7 @@ implementation
       end;
 
 
-    function tsparcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tsparcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         curintreg : LongInt;
         curfloatreg : TSuperRegister;
@@ -76,9 +76,15 @@ implementation
         curfloatreg:=RS_F0;
         cur_stack_offset:=0;
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,cur_stack_offset);
+        create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,cur_stack_offset);
         { append the varargs }
-        create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,cur_stack_offset);
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,cur_stack_offset)
+            else
+              internalerror(2019021927);
+          end;
         result:=cur_stack_offset;
       end;
 

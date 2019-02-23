@@ -2016,7 +2016,8 @@ const
      (mask:po_is_block;        str: 'C "Block"'),
      (mask:po_is_auto_getter;  str: 'Automatically generated getter'),
      (mask:po_is_auto_setter;  str: 'Automatically generated setter'),
-     (mask:po_noinline;        str: 'Never inline')
+     (mask:po_noinline;        str: 'Never inline'),
+     (mask:po_variadic;        str: 'C VarArgs with array-of-const para')
   );
 var
   proctypeoption  : tproctypeoption;

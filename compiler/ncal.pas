@@ -4416,7 +4416,7 @@ implementation
 
          { calculate the parameter size needed for this call include varargs if they are available }
          if assigned(varargsparas) then
-           pushedparasize:=paramanager.create_varargs_paraloc_info(procdefinition,varargsparas)
+           pushedparasize:=paramanager.create_varargs_paraloc_info(procdefinition,callerside,varargsparas)
          else
            pushedparasize:=procdefinition.callerargareasize;
 
