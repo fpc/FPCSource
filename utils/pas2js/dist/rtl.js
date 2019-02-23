@@ -2,7 +2,7 @@
 
 var rtl = {
 
-  version: 10301,
+  version: 10501,
 
   quiet: false,
   debug_load_units: false,
@@ -372,18 +372,19 @@ var rtl = {
   tObjectDestroy: "Destroy",
 
   free: function(obj,name){
-    if (obj[name]==null) return;
+    if (obj[name]==null) return null;
     obj[name].$destroy(rtl.tObjectDestroy);
     obj[name]=null;
   },
 
   freeLoc: function(obj){
-    if (obj==null) return;
+    if (obj==null) return null;
     obj.$destroy(rtl.tObjectDestroy);
     return null;
   },
 
   recNewT: function(parent,name,initfn,full){
+    // create new record type
     var t = {};
     if (parent) parent[name] = t;
     function hide(prop){
@@ -441,6 +442,8 @@ var rtl = {
   EInvalidCast: null,
   EAbstractError: null,
   ERangeError: null,
+  EIntOverflow: null,
+  EPropWriteOnly: null,
 
   raiseE: function(typename){
     var t = rtl[typename];
@@ -724,6 +727,12 @@ var rtl = {
   checkMethodCall: function(obj,type){
     if (rtl.isObject(obj) && rtl.is(obj,type)) return;
     rtl.raiseE("EInvalidCast");
+  },
+
+  oc: function(i){
+    // overflow check integer
+    if ((Math.floor(i)===i) && (i>=-0x1fffffffffffff) && (i<=0x1fffffffffffff)) return i;
+    rtl.raiseE('EIntOverflow');
   },
 
   rc: function(i,minval,maxval){

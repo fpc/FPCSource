@@ -177,10 +177,13 @@ const
   nIllegalAssignmentToForLoopVar = 3111;
   nFunctionHidesIdentifier_NonProc = 3112;
   nTypeXCannotBeExtendedByATypeHelper = 3113;
-  nDerivedXMustExtendASubClassY = 3114;
-  nDefaultPropertyNotAllowedInHelperForX = 3115;
-  nHelpersCannotBeUsedAsTypes = 3116;
-  nBitWiseOperationsAre32Bit = 3117;
+  nTypeXCannotBeExtendedByARecordHelper = 3114;
+  nDerivedXMustExtendASubClassY = 3115;
+  nDefaultPropertyNotAllowedInHelperForX = 3116;
+  nHelpersCannotBeUsedAsTypes = 3117;
+  nBitWiseOperationsAre32Bit = 3118;
+  nImplictConversionUnicodeToAnsi = 3119;
+  nWrongTypeXInArrayConstructor = 3120;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -305,10 +308,13 @@ resourcestring
   sCantAssignValuesToConstVariable = 'Can''t assign values to const variable';
   sIllegalAssignmentToForLoopVar = 'Illegal assignment to for-loop variable "%s"';
   sTypeXCannotBeExtendedByATypeHelper = 'Type "%s" cannot be extended by a type helper';
+  sTypeXCannotBeExtendedByARecordHelper = 'Type "%s" cannot be extended by a record helper';
   sDerivedXMustExtendASubClassY = 'Derived %s must extend a subclass of "%s" or the class itself';
   sDefaultPropertyNotAllowedInHelperForX = 'Default property not allowed in helper for %s';
   sHelpersCannotBeUsedAsTypes = 'helpers cannot be used as types';
   sBitWiseOperationsAre32Bit = 'Bitwise operations are 32-bit';
+  sImplictConversionUnicodeToAnsi = 'Implicit string type conversion with potential data loss from "UnicodeString" to "AnsiString"';
+  sWrongTypeXInArrayConstructor = 'Wrong type "%s" in array constructor';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -355,9 +361,9 @@ const
   MinSafeIntSingle = -16777216;
   MaxSafeIntSingle =  16777216;
   MaskUIntSingle = $3fffff;
-  MinSafeIntDouble = -$fffffffffffff-1; // -4503599627370496
-  MaxSafeIntDouble =  $fffffffffffff; //  4503599627370495
-  MaskUIntDouble = $fffffffffffff;
+  MinSafeIntDouble = -$1fffffffffffff; // -9007199254740991 53 bits (52 explicitly stored)
+  MaxSafeIntDouble =  $1fffffffffffff; //  9007199254740991
+  MaskUIntDouble = $1fffffffffffff;
 
 type
   { TResEvalValue }
@@ -721,6 +727,7 @@ type
     {$ifdef FPC_HAS_CPSTRING}
     function CheckValidUTF8(const s: RawByteString; ErrorEl: TPasElement): boolean;
     function GetCodePage(const s: RawByteString): TSystemCodePage;
+    function GetRawByteString(const s: UnicodeString; CodePage: TSystemCodePage; ErrorEl: TPasElement): RawByteString;
     function GetUTF8Str(const s: RawByteString; ErrorEl: TPasElement): String;
     function GetUnicodeStr(const s: RawByteString; ErrorEl: TPasElement): UnicodeString;
     function GetWideChar(const s: RawByteString; out w: WideChar): boolean;
@@ -3580,13 +3587,13 @@ begin
           Result.ElKind:=revskChar
         else if Result.ElKind<>revskChar then
           RaiseNotYetImplemented(20170713201456,El);
-        if StringToOrd(Value,nil)>$ffff then
+        RangeStart:=StringToOrd(Value,nil);
+        if RangeStart>$ffff then
           begin
           // set of string (not of char)
           ReleaseEvalValue(TResEvalValue(Result));
           exit;
           end;
-        RangeStart:=ord(TResEvalString(Value).S[1]);
         RangeEnd:=RangeStart;
         end;
       {$endif}
@@ -4007,6 +4014,7 @@ function TResExprEvaluator.EvalPrimitiveExprString(Expr: TPrimitiveExpr
   {$else}
   begin
     TResEvalUTF16(Result).S:=TResEvalUTF16(Result).S+WideChar(u);
+    if ForceUTF16 then ;
   end;
   {$endif}
 
@@ -4850,6 +4858,10 @@ begin
       RaiseNotYetImplemented(20170601141811,Expr);
     end;
   else
+    {$ifndef FPC_HAS_CPSTRING}
+    if LeftExpr=nil then ; // no Parameter "LeftExpr" not used
+    if RightExpr=nil then ; // no Parameter "RightExpr" not used
+    {$endif}
     RaiseNotYetImplemented(20181219233139,Expr);
   end;
 end;
@@ -4954,6 +4966,33 @@ begin
       if Result=CP_NONE then
         Result:=CP_ACP;
       end;
+    end;
+end;
+
+function TResExprEvaluator.GetRawByteString(const s: UnicodeString;
+  CodePage: TSystemCodePage; ErrorEl: TPasElement): RawByteString;
+var
+  ok: Boolean;
+begin
+  Result:=UTF8Encode(s);
+  if (CodePage=CP_UTF8)
+      or ((DefaultSystemCodePage=CP_UTF8) and ((CodePage=CP_ACP) or (CodePage=CP_NONE))) then
+    begin
+    // to UTF-8
+    SetCodePage(Result,CodePage,false);
+    end
+  else
+    begin
+    // to non UTF-8 -> possible loss
+    ok:=false;
+    try
+      SetCodePage(Result,CodePage,true);
+      ok:=true;
+    except
+    end;
+    if (not ok) or (GetUnicodeStr(Result,ErrorEl)<>s) then
+      LogMsg(20190204165110,mtWarning,nImplictConversionUnicodeToAnsi,
+        sImplictConversionUnicodeToAnsi,[],ErrorEl);
     end;
 end;
 

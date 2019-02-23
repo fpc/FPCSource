@@ -137,7 +137,14 @@ asm
   add di, cx
   dec si
   dec di
-  rep movsb  // todo: movsw
+  dec si
+  dec di
+  shr cx, 1
+  rep movsw
+  adc cx, cx
+  inc si
+  inc di
+  rep movsb
   cld
 
 @@AfterMove:
@@ -183,7 +190,14 @@ asm
   add di, cx
   dec si
   dec di
-  rep movsb  // todo: movsw
+  dec si
+  dec di
+  shr cx, 1
+  rep movsw
+  adc cx, cx
+  inc si
+  inc di
+  rep movsb
   cld
 
 @@AfterMove:
@@ -498,6 +512,38 @@ asm
 @@Done:
 end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+
+
+{$ifndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
+{$define FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
+function fpc_pwidechar_length(p:pwidechar):sizeint;assembler;nostackframe;[public,alias:'FPC_PWIDECHAR_LENGTH']; compilerproc;
+asm
+  mov bx, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov ax, ss:[bx + 2 + extra_param_offset]  // p
+  test ax, ax
+  jz @@Done
+  xchg ax, di
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 2 + extra_param_offset]  // p
+  mov ax, es
+  or ax, di
+  jz @@Done
+{$endif FPC_X86_DATA_NEAR}
+  mov cx, 0FFFFh
+  xor ax, ax
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  repne scasw
+  dec ax
+  dec ax
+  sub ax, cx
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
@@ -1197,33 +1243,21 @@ procedure DetectFPU;
 
 {$ifndef FPC_SYSTEM_HAS_SYSINITFPU}
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
-Procedure SysInitFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localfpucw: word;
-  begin
-    localfpucw:=Default8087CW;
-    asm
-      fninit
-      fldcw   localfpucw
-      fwait
-    end;
+Procedure SysInitFPU; assembler;
+  asm
+    fninit
+    fldcw   Default8087CW
+    fwait
   end;
 
 {$endif ndef FPC_SYSTEM_HAS_SYSINITFPU}
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localfpucw: word;
-  begin
-    localfpucw:=Default8087CW;
-    asm
-      fninit
-      fwait
-      fldcw   localfpucw
-    end;
+Procedure SysResetFPU; assembler;
+  asm
+    fninit
+    fwait
+    fldcw   Default8087CW
   end;
 
 {$I int32p.inc}

@@ -219,13 +219,12 @@ end;
 
 procedure TTestGenerics.TestGenericFunction;
 begin
-  exit; // ToDo
   Add([
   'generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;',
   'begin',
   'end;',
   'begin',
-  '  IfThen<word>(true,2,3);',
+  //'  specialize IfThen<word>(true,2,3);',
   '']);
   ParseModule;
 end;

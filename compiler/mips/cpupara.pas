@@ -73,7 +73,7 @@ interface
         function  get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;override;
         function  get_saved_registers_int(calloption : tproccalloption):TCpuRegisterArray;override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
-        function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
+        function  create_varargs_paraloc_info(p : TAbstractProcDef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
         function  param_use_paraloc(const cgpara: tcgpara): boolean; override;
       private
@@ -490,7 +490,7 @@ implementation
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       begin
         intparareg:=0;
         intparasize:=0;
@@ -498,13 +498,20 @@ implementation
         { Create Function result paraloc }
         create_funcretloc_info(p,callerside);
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,p.paras);
+        create_paraloc_info_intern(p,side,p.paras);
         { append the varargs }
         can_use_float := false;
         { restore correct intparasize value }
         if intparareg < 4 then
           intparasize:=intparareg * 4;
-        create_paraloc_info_intern(p,callerside,varargspara);
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_paraloc_info_intern(p,side,varargspara)
+            else
+              internalerror(2019021922);
+          end;
+        create_funcretloc_info(p,side);
         { We need to return the size allocated on the stack }
         result:=intparasize;
       end;

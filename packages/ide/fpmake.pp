@@ -228,6 +228,10 @@ begin
         
         if CompilerTarget in [powerpc, powerpc64] then
           P.Options.Add('-Fu'+CompilerDir+'/ppcgen');
+
+        if CompilerTarget in [arm, aarch64] then
+          P.Options.Add('-Fu'+CompilerDir+'/armgen');
+
         if CompilerTarget in [sparc, sparc64] then
           begin
               P.Options.Add('-Fu'+CompilerDir+'/sparcgen');

@@ -39,7 +39,7 @@ unit cpupara;
 
           procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
@@ -505,7 +505,7 @@ unit cpupara;
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
         parasize, l: longint;
@@ -517,32 +517,23 @@ unit cpupara;
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
         firstfloatreg:=curfloatreg;
 
-        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset, false);
+        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset, false);
         if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
           begin
-            result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true);
+            if assigned(varargspara) then
+              begin
+                if side=callerside then
+                  result:=create_paraloc_info_intern(p,side,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true)
+                else
+                  internalerror(2019021919);
+                if curfloatreg<>firstfloatreg then
+                  include(varargspara.varargsinfo,va_uses_float_reg);
+              end;
            end
         else
-          begin
-            parasize:=cur_stack_offset;
-            for i:=0 to varargspara.count-1 do
-              begin
-                hp:=tparavarsym(varargspara[i]);
-                hp.paraloc[callerside].alignment:=4;
-                paraloc:=hp.paraloc[callerside].add_location;
-                paraloc^.loc:=LOC_REFERENCE;
-                paraloc^.size:=def_cgsize(hp.vardef);
-                paraloc^.def:=hp.vardef;
-                paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                l:=push_size(hp.varspez,hp.vardef,p.proccalloption);
-                paraloc^.reference.offset:=parasize;
-                parasize:=parasize+l;
-              end;
-            result:=parasize;
-          end;
-        if curfloatreg<>firstfloatreg then
-          include(varargspara.varargsinfo,va_uses_float_reg);
+          internalerror(2019021912);
+        create_funcretloc_info(p,side);
       end;
 
 begin

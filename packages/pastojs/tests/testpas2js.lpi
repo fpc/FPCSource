@@ -32,7 +32,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="12">
       <Unit0>
         <Filename Value="testpas2js.pp"/>
         <IsPartOfProject Value="True"/>
@@ -83,6 +83,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCPrecompile"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="../src/pas2jsuseanalyzer.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2jsUseAnalyzer"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

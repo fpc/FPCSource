@@ -7,7 +7,8 @@ interface
 
 uses
   sysutils, classes, fpjson, contnrs, syncobjs, custhttpapp, fpwebfile, httproute,
-  pas2jscompiler, httpdefs, dirwatch;
+  httpdefs, dirwatch,
+  Pas2JSFSCompiler, Pas2JSCompilerCfg;
 
 Const
   nErrTooManyThreads = -1;
@@ -89,7 +90,10 @@ Type
     FDW : TDirWatcher;
     FStatusList : TFPObjectList;
     FCompiles : TCompiles;
+    FServeOnly  : Boolean;
     procedure AddToStatus(O: TJSONObject);
+    function HandleCompileOptions(aDir: String): Boolean;
+    function ProcessOptions: Boolean;
     Procedure ReportBuilding(AItem : TCompileItem);
     Procedure ReportBuilt(AItem : TCompileItem);
     Procedure AddToStatus(AEntry : TDirectoryEntry; AEvents : TFileEvents);
@@ -98,6 +102,7 @@ Type
     function ScheduleCompile(const aProjectFile: String; Options : TStrings = Nil): Integer;
     procedure StartWatch(ADir: String);
     procedure Usage(Msg: String);
+    function GetDefaultMimetypes: string;
   public
     Constructor Create(AOWner : TComponent); override;
     Destructor Destroy; override;
@@ -108,6 +113,7 @@ Type
     Property ProjectFile : String Read FProjectFile Write FProjectFile;
     Property ConfigFile : String Read FConfigFile Write FConfigFile;
     Property BaseDir : String Read FBaseDir;
+    Property ServeOnly : Boolean Read FServeOnly;
   end;
 
 Implementation
@@ -138,13 +144,14 @@ end;
 procedure TCompileThread.Execute;
 
 Var
-  C : TPas2jsCompiler;
+  C : TPas2JSFSCompiler;
   L : TStrings;
 
 begin
   L:=Nil;
-  C:=TPas2jsCompiler.Create;
+  C:=TPas2JSFSCompiler.Create;
   Try
+    C.ConfigSupport:=TPas2JSFileConfigSupport.Create(C);
     FApp.ReportBuilding(Item);
     L:=TStringList.Create;
     L.Assign(Item.Options);
@@ -255,8 +262,23 @@ begin
   Writeln('-q --quiet          Do not write diagnostic messages');
   Writeln('-w --watch          Watch directory for changes');
   Writeln('-c --compile[=proj] Recompile project if pascal files change. Default project is app.lpr');
+  Writeln('-m --mimetypes=file filename of mimetypes. Default is ',GetDefaultMimetypes);
+  Writeln('-s --simpleserver   Only serve files, do not enable compilation.');
   Halt(Ord(Msg<>''));
   {AllowWriteln-}
+end;
+
+function THTTPCompilerApplication.GetDefaultMimetypes: string;
+begin
+  {$ifdef unix}
+  Result:='/etc/mime.types';
+  {$ifdef darwin}
+  if not FileExists(Result) then
+    Result:='/private/etc/apache2/mime.types';
+  {$endif}
+  {$else}
+  Result:=ExtractFilePath(System.ParamStr(0))+'mime.types';
+  {$endif}
 end;
 
 constructor THTTPCompilerApplication.Create(AOWner: TComponent);
@@ -398,7 +420,8 @@ begin
   end;
 end;
 
-Function THTTPCompilerApplication.ScheduleCompile(const aProjectFile : String; Options : TStrings = Nil) : Integer;
+function THTTPCompilerApplication.ScheduleCompile(const aProjectFile: String;
+  Options: TStrings): Integer;
 
 Var
   CI : TCompileItem;
@@ -474,32 +497,16 @@ begin
   AResponse.SendResponse;
 end;
 
-procedure THTTPCompilerApplication.DoRun;
-
-Var
-  S,IndexPage,D : String;
+function THTTPCompilerApplication.HandleCompileOptions(aDir: String): Boolean;
 
 begin
-  S:=Checkoptions('hqd:ni:p:wP::c',['help','quiet','noindexpage','directory:','port:','indexpage:','watch','project::','config:']);
-  if (S<>'') or HasOption('h','help') then
-    usage(S);
-  Quiet:=HasOption('q','quiet');
+  Result:=False;
   Watch:=HasOption('w','watch');
-  Port:=StrToIntDef(GetOptionValue('p','port'),3000);
-  D:=GetOptionValue('d','directory');
-  if D='' then
-    D:=GetCurrentDir;
-  Log(etInfo,'Listening on port %d, serving files from directory: %s',[Port,D]);
-{$ifdef unix}
-  MimeTypesFile:='/etc/mime.types';
-{$else}
-  MimeTypesFile:=ExtractFilePath(System.ParamStr(0))+'mime.types';
-{$endif}
   if Hasoption('P','project') then
     begin
     ProjectFile:=GetOptionValue('P','project');
     if ProjectFile='' then
-      ProjectFile:=IncludeTrailingPathDelimiter(D)+'app.lpr';
+      ProjectFile:=IncludeTrailingPathDelimiter(aDir)+'app.lpr';
     If Not FileExists(ProjectFile) then
       begin
       Terminate;
@@ -516,11 +523,42 @@ begin
     begin
     if (ProjectFile='') then
       Log(etWarning,'No project file specified, disabling watch.')   ;
-    StartWatch(D);
+    StartWatch(aDir);
     end;
+  Result:=True;
+end;
+
+function THTTPCompilerApplication.ProcessOptions: Boolean;
+
+Var
+  S,IndexPage,D : String;
+
+begin
+  Result:=False;
+  S:=Checkoptions('shqd:ni:p:wP::cm:',['help','quiet','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:']);
+  if (S<>'') or HasOption('h','help') then
+    usage(S);
+  FServeOnly:=HasOption('s','serve-only');
+  Quiet:=HasOption('q','quiet');
+  Port:=StrToIntDef(GetOptionValue('p','port'),3000);
+  D:=GetOptionValue('d','directory');
+  if D='' then
+    D:=GetCurrentDir;
+  if HasOption('m','mimetypes') then
+    MimeTypesFile:=GetOptionValue('m','mimetypes');
+  if MimeTypesFile='' then
+    MimeTypesFile:=GetDefaultMimetypes;
+  if (MimeTypesFile<>'') and not FileExists(MimeTypesFile) then
+    Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
   FBaseDir:=D;
+  if not ServeOnly then
+    if not HandleCompileOptions(D) then
+      exit(False);
   TSimpleFileModule.BaseDir:=IncludeTrailingPathDelimiter(D);
   TSimpleFileModule.OnLog:=@Log;
+  Log(etInfo,'Listening on port %d, serving files from directory: %s',[Port,D]);
+  if ServeOnly then
+    Log(etInfo,'Compile requests will be ignored.');
   If not HasOption('n','noindexpage') then
     begin
     IndexPage:=GetOptionValue('i','indexpage');
@@ -529,8 +567,22 @@ begin
     Log(etInfo,'Using index page %s',[IndexPage]);
     TSimpleFileModule.IndexPageName:=IndexPage;
     end;
-  httprouter.RegisterRoute('$sys/compile',rmPost,@DoRecompile);
-  httprouter.RegisterRoute('$sys/status',rmGet,@DoStatusRequest);
+  Result:=True;
+end;
+
+procedure THTTPCompilerApplication.DoRun;
+
+begin
+  If not ProcessOptions then
+    begin
+    Terminate;
+    exit;
+    end;
+  if not ServeOnly then
+    begin
+    httprouter.RegisterRoute('$sys/compile',rmPost,@DoRecompile);
+    httprouter.RegisterRoute('$sys/status',rmGet,@DoStatusRequest);
+    end;
   TSimpleFileModule.RegisterDefaultRoute;
   inherited;
 end;

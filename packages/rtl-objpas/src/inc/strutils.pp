@@ -20,7 +20,7 @@ unit StrUtils;
 interface
 
 uses
-  SysUtils{, Types};
+  SysUtils, Types;
 
 { ---------------------------------------------------------------------
     Case insensitive search/replace
@@ -35,6 +35,11 @@ Function AnsiMatchText(const AText: string; const AValues: array of string): Boo
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
 Function StartsText(const ASubText, AText: string): Boolean; inline;
 Function EndsText(const ASubText, AText: string): Boolean; inline;
+
+function ResemblesText(const AText, AOther: string): Boolean; inline;
+function ContainsText(const AText, ASubText: string): Boolean; inline;
+function MatchText(const AText: string; const AValues: array of string): Boolean; inline;
+function IndexText(const AText: string; const AValues: array of string): Integer; inline;
 
 { ---------------------------------------------------------------------
     Case sensitive search/replace
@@ -54,6 +59,11 @@ Function IndexStr(const AText: UnicodeString; const AValues: array of UnicodeStr
 Function IndexText(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
 Operator in (const AText: string; const AValues: array of string):Boolean;inline;
 Operator in (const AText: UnicodeString; const AValues: array of UnicodeString):Boolean;inline;
+
+function ContainsStr(const AText, ASubText: string): Boolean; inline;
+function MatchStr(const AText: string; const AValues: array of string): Boolean; inline;
+function IndexStr(const AText: string; const AValues: array of string): Integer; inline;
+
 { ---------------------------------------------------------------------
     Miscellaneous
   ---------------------------------------------------------------------}
@@ -66,6 +76,8 @@ Function RandomFrom(const AValues: array of string): string; overload;
 Function IfThen(AValue: Boolean; const ATrue: string; const AFalse: string = ''): string; overload;
 function NaturalCompareText (const S1 , S2 : string ): Integer ;
 function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThousandSeparator: Char): Integer;
+
+function SplitString(const S, Delimiters: string): TStringDynArray;
 
 { ---------------------------------------------------------------------
     VB emulations.
@@ -146,6 +158,7 @@ type
 
 Const
   AnsiResemblesProc: TCompareTextProc = @SoundexProc;
+  ResemblesProc: TCompareTextProc = @SoundexProc;
 
 { ---------------------------------------------------------------------
     Other functions, based on RxStrUtils.
@@ -245,6 +258,7 @@ Type
                              sraBoyerMoore  // Algorithm optimized for long replacements.
                             );
 
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
 Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
 { We need these for backwards compatibility:
   The compiler will stop searching and convert to ansistring if the widestring version of stringreplace is used.
@@ -563,8 +577,7 @@ begin
   Result:=MatchesCount>0;
 end;
 
-function StringReplaceFast(const S, OldPattern, NewPattern: string;
-  Flags: TReplaceFlags): string;
+function StringReplaceFast(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; out aCount : Integer): string;
 const
   MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
 var
@@ -606,6 +619,7 @@ var
     inc(MatchesCount);
   end;
 begin
+  aCount:=0;
   if (OldPattern='') or (Length(OldPattern)>Length(S)) then begin
     //This cases will never match nothing.
     Result:=S;
@@ -690,7 +704,8 @@ begin
       end;
     end;
   end;
-  //Create room enougth for the result string
+  //Create room enough for the result string
+  aCount:=MatchesCount;
   SetLength(Result,Length(S)-OldPatternSize*MatchesCount+NewPatternSize*MatchesCount);
   MatchIndex:=1;
   MatchTarget:=1;
@@ -746,7 +761,7 @@ end;
 
 *)
 
-function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags): string;
+function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags; out aCount : Integer): string;
 var
   Matches: SizeIntArray;
   OldPatternSize: SizeInt;
@@ -757,6 +772,7 @@ var
   MatchInternal: SizeInt;
   AdvanceIndex: SizeInt;
 begin
+  aCount:=0;
   OldPatternSize:=Length(OldPattern);
   NewPatternSize:=Length(NewPattern);
   if (OldPattern='') or (Length(OldPattern)>Length(S)) then begin
@@ -771,6 +787,7 @@ begin
   end;
 
   MatchesCount:=Length(Matches);
+  aCount:=MatchesCount;
 
   //Create room enougth for the result string
   SetLength(Result,Length(S)-OldPatternSize*MatchesCount+NewPatternSize*MatchesCount);
@@ -800,11 +817,21 @@ end;
 
 function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; Algorithm: TStringReplaceAlgorithm): string;
 
+Var
+  C : Integer;
+
+begin
+  Result:=StringReplace(S, OldPattern, NewPattern, Flags,C,Algorithm);
+end;
+
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+
+
 begin
   Case Algorithm of
-    sraDefault    : Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
-    sraManySmall  : Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags);
-    sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags);
+    sraDefault    : Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags,aCount);
+    sraManySmall  : Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags,aCount);
+    sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags,aCount);
   end;
 end;
 
@@ -927,18 +954,53 @@ begin
   Result := AnsiEndsText(ASubText, AText);
 end;
 
+function ResemblesText(const AText, AOther: string): Boolean;
+begin
+  if Assigned(ResemblesProc) then
+    Result := ResemblesProc(AText, AOther)
+  else
+    Result := False;
+end;
+
+function ContainsText(const AText, ASubText: string): Boolean;
+begin
+  Result := AnsiContainsText(AText, ASubText);
+end;
+
+function MatchText(const AText: string; const AValues: array of string): Boolean;
+begin
+  Result := AnsiMatchText(AText, AValues);
+end;
+
+function IndexText(const AText: string; const AValues: array of string): Integer;
+begin
+  Result := AnsiIndexText(AText, AValues);
+end;
+
+function ContainsStr(const AText, ASubText: string): Boolean;
+begin
+  Result := AnsiContainsStr(AText, ASubText);
+end;
+
+function MatchStr(const AText: string; const AValues: array of string): Boolean;
+begin
+  Result := AnsiMatchStr(AText, AValues);
+end;
+
+function IndexStr(const AText: string; const AValues: array of string): Integer;
+begin
+  Result := AnsiIndexStr(AText, AValues);
+end;
 
 function AnsiReplaceText(const AText, AFromText, AToText: string): string;
 begin
   Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll,rfIgnoreCase]);
 end;
 
-
 function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
 begin
   Result:=(AnsiIndexText(AText,AValues)<>-1)
 end;
-
 
 function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
 begin
@@ -1290,6 +1352,11 @@ begin
     else
       Result := 1;
   end;
+end;
+
+function SplitString(const S, Delimiters: string): TStringDynArray;
+begin
+  Result := S.Split(Delimiters);
 end;
 
 function NaturalCompareText (const S1 , S2 : string ): Integer ;

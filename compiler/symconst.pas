@@ -416,7 +416,10 @@ type
     { procedure is an automatically generated property setter }
     po_is_auto_setter,
     { must never be inlined          by auto-inlining }
-    po_noinline
+    po_noinline,
+    { same as po_varargs, but with an array-of-const parameter instead of with the
+      "varargs" modifier or Mac-Pascal ".." parameter }
+    po_variadic
   );
   tprocoptions=set of tprocoption;
 
@@ -1028,7 +1031,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       'C-style blocks',{po_is_block}
       'po_is_auto_getter',{po_is_auto_getter}
       'po_is_auto_setter',{po_is_auto_setter}
-      'po_noinline'{po_noinline}
+      'po_noinline',{po_noinline}
+      'C-style array-of-const' {po_variadic}
     );
 
 implementation

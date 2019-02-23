@@ -1002,8 +1002,9 @@
      DM_COPY = 2;
      DM_UPDATE = 1;
   { DrawAnimatedRects  }
-     IDANI_OPEN = 1;
-     IDANI_CLOSE = 2;
+     IDANI_OPEN    = 1;
+     IDANI_CLOSE   = 2;
+     IDANI_CAPTION = 3;
   { DrawCaption  }
      DC_ACTIVE   = 1;
      DC_SMALLCAP = 2;
@@ -2233,9 +2234,20 @@
      OBM_ZOOM = 32748;
      OBM_ZOOMD = 32745;
   { LoadLibraryEx  }
-     DONT_RESOLVE_DLL_REFERENCES = 1;
-     LOAD_LIBRARY_AS_DATAFILE = 2;
-     LOAD_WITH_ALTERED_SEARCH_PATH = 8;
+     DONT_RESOLVE_DLL_REFERENCES         = $0001;
+     LOAD_LIBRARY_AS_DATAFILE            = $0002;
+  // reserved for internal LOAD_PACKAGED_LIBRARY: $0004
+     LOAD_WITH_ALTERED_SEARCH_PATH       = $0008;
+     LOAD_IGNORE_CODE_AUTHZ_LEVEL        = $0010;
+     LOAD_LIBRARY_AS_IMAGE_RESOURCE      = $0020;
+     LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE  = $0040;
+     LOAD_LIBRARY_REQUIRE_SIGNED_TARGET  = $0080;
+     LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR    = $0100;
+     LOAD_LIBRARY_SEARCH_APPLICATION_DIR = $0200;
+     LOAD_LIBRARY_SEARCH_USER_DIRS       = $0400;
+     LOAD_LIBRARY_SEARCH_SYSTEM32        = $0800;
+     LOAD_LIBRARY_SEARCH_DEFAULT_DIRS    = $1000;
+
   { LocalAlloc, LocalFlags  }
      LPTR = 64;
      LHND = 66;
@@ -5404,6 +5416,15 @@ Type
      WS_EX_NOACTIVATE     =   $08000000;
 
      C3_LEXICAL     = 1024;
+
+     FLASHW_STOP         = $00000000;
+     FLASHW_CAPTION      = $00000001;
+     FLASHW_TRAY         = $00000002;
+     FLASHW_ALL          = (FLASHW_CAPTION or FLASHW_TRAY);
+     FLASHW_TIMER        = $00000004;
+     FLASHW_TIMERNOFG    = $0000000C;
+
+     CLASS_E_NOTLICENSED   = DWORD($80040112);
 
   { --------------------- old stuff, need to organize! ---------------  }
   { BEGINNING of windowsx.h stuff from old headers:  }

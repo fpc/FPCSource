@@ -78,6 +78,7 @@ begin
         AddInclude('keyscan.inc',AllUnixOSes);
         AddUnit   ('winevent',[win32,win64]);
         AddInclude('nwsys.inc',[netware]);
+        AddUnit   ('mouse',AllUnixOSes);
         AddUnit   ('video',[win16]);
       end;
 
@@ -87,7 +88,7 @@ begin
        AddInclude('mouseh.inc');
        AddInclude('mouse.inc');
        AddUnit   ('winevent',[win32,win64]);
-       AddUnit   ('video',[go32v2,msdos]);
+       AddUnit   ('video',[go32v2,msdos] + AllUnixOSes);
      end;
 
     T:=P.Targets.AddUnit('video.pp',VideoOSes);

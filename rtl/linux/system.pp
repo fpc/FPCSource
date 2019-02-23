@@ -584,6 +584,9 @@ begin
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{$ifdef android}
+  InitStdIOAndroid;
+{$endif android}
 end;
 
 Procedure RestoreOldSignalHandlers;

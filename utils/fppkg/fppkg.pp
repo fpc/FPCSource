@@ -453,8 +453,19 @@ begin
 end;
 
 procedure TMakeTool.ShowVersion;
+var
+  Version: TFPVersion;
 begin
-  Writeln('Version: ', version_major, '.', version_minor, '.', version_micro, '-', version_build);
+  Version := TFPVersion.Create;
+  try
+    Version.Major := version_major;
+    Version.Minor := version_minor;
+    Version.Micro := version_micro;
+    Version.Build := version_build;
+    Writeln('Version: ', Version.AsString);
+  finally
+    Version.Free;
+  end;
 end;
 
 

@@ -543,13 +543,16 @@ ifeq ($(PPC_TARGET),sparc64)
 override LOCALOPT+=-Fusparcgen -Fisparcgen
 endif
 ifeq ($(PPC_TARGET),arm)
-override LOCALOPT+=
+override LOCALOPT+=-Fuarmgen
 endif
 ifeq ($(PPC_TARGET),mipsel)
 override LOCALOPT+=-Fumips
 endif
 ifeq ($(PPC_TARGET),jvm)
 override LOCALOPT+=-Fujvm
+endif
+ifeq ($(PPC_TARGET),aarch64)
+override LOCALOPT+=-Fuarmgen
 endif
 ifeq ($(PPC_TARGET),i8086)
 override LOCALOPT+=-Fux86

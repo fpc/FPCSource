@@ -2225,6 +2225,7 @@
      REG_LINK = 6;
      REG_MULTI_SZ = 7;
      REG_NONE = 0;
+     REG_QWORD = 11;
      REG_RESOURCE_LIST = 8;
      REG_RESOURCE_REQUIREMENTS_LIST = 10;
      REG_SZ = 1;

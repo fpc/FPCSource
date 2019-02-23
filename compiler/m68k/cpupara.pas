@@ -45,7 +45,7 @@ unit cpupara;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
           function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;override;
@@ -675,18 +675,27 @@ unit cpupara;
         inherited createtempparaloc(list,calloption,parasym,can_use_final_stack_loc,cgpara);
       end;
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
       begin
         cur_stack_offset:=0;
 
-        result:=create_stdcall_paraloc_info(p,callerside,p.paras,cur_stack_offset);
+        result:=create_stdcall_paraloc_info(p,side,p.paras,cur_stack_offset);
         if (p.proccalloption in cstylearrayofconst) then
-          { just continue loading the parameters in the registers }
-          result:=create_stdcall_paraloc_info(p,callerside,varargspara,cur_stack_offset)
+          begin
+            { just continue loading the parameters in the registers }
+            if assigned(varargspara) then
+              begin
+                if side=callerside then
+                  result:=create_stdcall_paraloc_info(p,side,varargspara,cur_stack_offset)
+                else
+                  internalerror(2019021923);
+              end;
+          end
         else
           internalerror(200410231);
+        create_funcretloc_info(p,side);
       end;
 
 

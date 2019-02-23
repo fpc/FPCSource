@@ -272,6 +272,7 @@ Type
   public
     procedure Assign(Source: TFPList);
     procedure Sort(Compare: TListSortCompare);
+    procedure Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
     procedure ForEachCall(Proc2call: TListCallback; Arg: Pointer);
     procedure ForEachCall(Proc2call: TListStaticCallback; Arg: Pointer);
   end;
@@ -856,7 +857,9 @@ type
     function IndexOf(const S: string): Integer; override;
     procedure Insert(Index: Integer; const S: string); override;
     procedure Sort; virtual;
+    procedure Sort(SortingAlgorithm: PSortingAlgorithm); virtual;
     procedure CustomSort(CompareFn: TStringListSortCompare);
+    procedure CustomSort(CompareFn: TStringListSortCompare; SortingAlgorithm: PSortingAlgorithm);
     property Duplicates: TDuplicates read GetDuplicates write SetDuplicates;
     property Sorted: Boolean read GetSorted write SetSorted;
     property CaseSensitive: Boolean read FCaseSensitive write SetCaseSensitive;

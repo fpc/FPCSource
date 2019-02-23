@@ -103,7 +103,8 @@ type
   PTestResolverReferenceData = ^TTestResolverReferenceData;
 
   TSystemUnitPart = (
-    supTObject
+    supTObject,
+    supTVarRec
     );
   TSystemUnitParts = set of TSystemUnitPart;
 
@@ -503,6 +504,8 @@ type
     Procedure TestAdvRecord_ConstructorNoParamsFail;
     Procedure TestAdvRecord_ClassConstructor;
     Procedure TestAdvRecord_ClassConstructorParamsFail;
+    Procedure TestAdvRecord_ClassConstructor_CallFail;
+    Procedure TestAdvRecord_ClassConstructorDuplicateFail;
     Procedure TestAdvRecord_NestedRecordType;
     Procedure TestAdvRecord_NestedArgConstFail;
     Procedure TestAdvRecord_Property;
@@ -585,6 +588,7 @@ type
     Procedure TestClass_FuncReturningObjectMember;
     Procedure TestClass_StaticWithoutClassFail;
     Procedure TestClass_SelfInStaticFail;
+    Procedure TestClass_SelfDotInStaticFail;
     Procedure TestClass_PrivateProtectedInSameUnit;
     Procedure TestClass_PrivateInMainBeginFail;
     Procedure TestClass_PrivateInDescendantFail;
@@ -607,6 +611,7 @@ type
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
     Procedure TestClass_Const;
+    Procedure TestClass_ClassMissingVarFail;
     Procedure TestClass_ClassConstFail;
     Procedure TestClass_Enumerator;
     Procedure TestClass_EnumeratorFunc;
@@ -692,7 +697,11 @@ type
     Procedure TestPropertyArgs2;
     Procedure TestPropertyArgsWithDefaultsFail;
     Procedure TestPropertyArgs_StringConstDefault;
-    Procedure TestProperty_Index;
+    Procedure TestClassProperty;
+    Procedure TestClassPropertyNonStaticFail;
+    Procedure TestClassPropertyNonStaticAllow;
+    //Procedure TestClassPropertyStaticMismatchFail;
+    Procedure TestArrayProperty;
     Procedure TestProperty_WrongTypeAsIndexFail;
     Procedure TestProperty_Option_ClassPropertyNonStatic;
     Procedure TestDefaultProperty;
@@ -794,9 +803,14 @@ type
     Procedure TestArray_ConstDynArrayWrite;
     Procedure TestArray_ConstOpenArrayWriteFail;
     Procedure TestArray_ForIn;
+    Procedure TestArray_Arg_AnonymousStaticFail;
+    Procedure TestArray_Arg_AnonymousMultiDimFail;
 
     // array of const
     Procedure TestArrayOfConst;
+    Procedure TestArrayOfConst_PassDynArrayOfIntFail;
+    Procedure TestArrayOfConst_AssignNilFail;
+    Procedure TestArrayOfConst_SetLengthFail;
 
     // static arrays
     Procedure TestArrayIntRange_OutOfRange;
@@ -899,6 +913,7 @@ type
     Procedure TestClassHelper_DefaultClassProperty;
     Procedure TestClassHelper_MultipleScopeHelpers;
     Procedure TestRecordHelper;
+    Procedure TestRecordHelper_ForByteFail;
     Procedure TestRecordHelper_ClassNonStaticFail;
     Procedure TestRecordHelper_InheritedObjFPC;
     Procedure TestRecordHelper_Constructor_NewInstance;
@@ -908,7 +923,10 @@ type
     Procedure TestTypeHelper_Enum;
     Procedure TestTypeHelper_EnumDotValueFail;
     Procedure TestTypeHelper_EnumHelperDotProcFail;
+    Procedure TestTypeHelper_Set;
     Procedure TestTypeHelper_Enumerator;
+    Procedure TestTypeHelper_String;
+    Procedure TestTypeHelper_Boolean;
     Procedure TestTypeHelper_Constructor_NewInstance;
     Procedure TestTypeHelper_InterfaceFail;
 
@@ -2062,6 +2080,20 @@ begin
     '    procedure BeforeDestruction;virtual;',
     '    function Equals(Obj: TObject): boolean; virtual;',
     '    function ToString: String; virtual;',
+    '  end;']);
+    end;
+  if supTVarRec in Parts then
+    begin
+    Intf.AddStrings([
+    'const',
+    '  vtInteger       = 0;',
+    '  vtBoolean       = 1;',
+    'type',
+    '  PVarRec = ^TVarRec;',
+    '  TVarRec = record',
+    '    case VType : sizeint of',
+    '    vtInteger       : (VInteger: Longint);',
+    '    vtBoolean       : (VBoolean: Boolean);',
     '  end;']);
     end;
   Intf.Add('var');
@@ -3399,6 +3431,8 @@ begin
   '  k=chr(97);',
   '  l=ord(a[1]);',
   '  m=low(char)+high(char);',
+  '  n = string(''A'');',
+  '  o = UnicodeString(''A'');',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -8217,7 +8251,7 @@ begin
   '  TRec = record',
   '    class var w: word;',
   '    class procedure {#a}Create; static;',
-  '    class constructor Create; static;',
+  '    class constructor Create;', // name clash is allowed!
   '  end;',
   'class constructor TRec.Create;',
   'begin',
@@ -8248,6 +8282,46 @@ begin
   'begin',
   '']);
   CheckResolverException('class constructor cannot have parameters',nXCannotHaveParameters);
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassConstructor_CallFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    class constructor Create;',
+  '  end;',
+  'class constructor TRec.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '  TRec.Create;',
+  '']);
+  CheckResolverException('identifier not found "Create"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestAdvRecord_ClassConstructorDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TRec = record',
+  '    class constructor Create;',
+  '    class constructor Init;',
+  '  end;',
+  'class constructor TRec.Create;',
+  'begin',
+  'end;',
+  'class constructor TRec.Init;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Multiple class constructor in record TRec: Create and Init',
+    nMultipleXinTypeYNameZCAandB);
 end;
 
 procedure TTestResolver.TestAdvRecord_NestedRecordType;
@@ -10036,6 +10110,23 @@ begin
   CheckResolverException('identifier not found "Self"',nIdentifierNotFound);
 end;
 
+procedure TTestResolver.TestClass_SelfDotInStaticFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class var FLeft: word;');
+  Add('    class function DoIt: word; static;');
+  Add('    class property Left: word read FLeft;');
+  Add('  end;');
+  Add('class function TObject.DoIt: word;');
+  Add('begin');
+  Add('  Result:=Self.Left;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('identifier not found "Self"',nIdentifierNotFound);
+end;
+
 procedure TTestResolver.TestClass_PrivateProtectedInSameUnit;
 begin
   StartProgram(false);
@@ -10742,6 +10833,18 @@ begin
   '  with Cla do if ci=26 then;']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestClass_ClassMissingVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class c: word;',
+  '  end;',
+  'begin']);
+  CheckParserException('Expected "procedure or function"',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestClass_ClassConstFail;
@@ -12173,7 +12276,89 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestProperty_Index;
+procedure TTestResolver.TestClassProperty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetStatic: word; static;',
+  '    class procedure SetStatic(Value: word); static;',
+  '    class property StaticP: word read GetStatic write SetStatic;',
+  '  end;',
+  'class function TObject.GetStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  'end;',
+  'class procedure TObject.SetStatic(Value: word);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassPropertyNonStaticFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetNonStatic: word;',
+  '    class property NonStatic: word read GetNonStatic;',
+  '  end;',
+  'class function TObject.GetNonStatic: word;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sClassPropertyAccessorMustBeStatic,nClassPropertyAccessorMustBeStatic);
+end;
+
+procedure TTestResolver.TestClassPropertyNonStaticAllow;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proClassPropertyNonStatic];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetStatic: word; static;',
+  '    class procedure SetStatic(Value: word); static;',
+  '    class property StaticP: word read GetStatic write SetStatic;',
+  '    class function GetNonStatic: word;',
+  '    class procedure SetNonStatic(Value: word);',
+  '    class property NonStatic: word read GetNonStatic write SetNonStatic;',
+  '  end;',
+  '  TClass = class of TObject;',
+  'class function TObject.GetStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  '  NonStatic:=NonStatic;',
+  'end;',
+  'class procedure TObject.SetStatic(Value: word);',
+  'begin',
+  'end;',
+  'class function TObject.GetNonStatic: word;',
+  'begin',
+  '  StaticP:=StaticP;',
+  '  NonStatic:=NonStatic;',
+  'end;',
+  'class procedure TObject.SetNonStatic(Value: word);',
+  'begin',
+  'end;',
+  'var',
+  '  c: TClass;',
+  '  o: TObject;',
+  'begin',
+  '  c.STaticP:=c.StaticP;',
+  '  o.STaticP:=o.StaticP;',
+  '  c.NonStatic:=c.NonStatic;',
+  '  o.NonStatic:=o.NonStatic;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArrayProperty;
 begin
   StartProgram(false);
   Add('type');
@@ -14201,14 +14386,103 @@ begin
   CheckParamsExpr_pkSet_Markers;
 end;
 
-procedure TTestResolver.TestArrayOfConst;
+procedure TTestResolver.TestArray_Arg_AnonymousStaticFail;
 begin
   StartProgram(false);
   Add([
-  'procedure DoIt(args: array of const);',
-  'begin end;',
+  'procedure DoIt(args: array[1..2] of word);',
+  'begin',
+  'end;',
   'begin']);
-  CheckResolverException('not yet implemented: :TPasArrayType [20171005235610] array of const',nNotYetImplemented);
+  CheckParserException('Expected "of"',nParserExpectTokenError);
+end;
+
+procedure TTestResolver.TestArray_Arg_AnonymousMultiDimFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(args: array of array of word);',
+  'begin',
+  'end;',
+  'begin']);
+  CheckParserException(SParserExpectedIdentifier,nParserExpectedIdentifier);
+end;
+
+procedure TTestResolver.TestArrayOfConst;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'type',
+  '  TArrOfVarRec = array of TVarRec;',
+  'procedure DoIt(args: array of const);',
+  'var',
+  '  i: longint;',
+  '  v: TVarRec;',
+  '  a: TArrOfVarRec;',
+  '  sa: array[1..2] of TVarRec;',
+  'begin',
+  '  DoIt(args);',
+  '  DoIt(a);',
+  '  DoIt([]);',
+  '  DoIt([1]);',
+  '  DoIt([i]);',
+  '  DoIt([true,''foo'',''c'',1.3,nil,@DoIt]);',
+  '  for i:=low(args) to high(args) do begin',
+  '    v:=args[i];',
+  '    case args[i].VType of',
+  '    vtInteger: if length(args)=args[i].VInteger then ;',
+  '    end;',
+  '  end;',
+  '  for v in Args do ;',
+  '  args:=sa;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArrayOfConst_PassDynArrayOfIntFail;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'type',
+  '  TArr = array of word;',
+  'procedure DoIt(args: array of const);',
+  'begin',
+  'end;',
+  'var a: TArr;',
+  'begin',
+  '  DoIt(a)']);
+  CheckResolverException('Incompatible type arg no. 1: Got "TArr", expected "array of const"',
+    nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestArrayOfConst_AssignNilFail;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'type',
+  '  TArr = array of word;',
+  'procedure DoIt(args: array of const);',
+  'begin',
+  '  args:=nil;',
+  'end;',
+  'begin']);
+  CheckResolverException('Incompatible types: got "Nil" expected "array of const"',nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArrayOfConst_SetLengthFail;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'type',
+  '  TArr = array of word;',
+  'procedure DoIt(args: array of const);',
+  'begin',
+  '  SetLength(args,2);',
+  'end;',
+  'begin']);
+  CheckResolverException('Incompatible type arg no. 1: Got "array of const", expected "string or dynamic array variable"',
+    nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestArrayIntRange_OutOfRange;
@@ -16645,6 +16919,20 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestRecordHelper_ForByteFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRecHelper = record helper for byte',
+  '    class var Glob: word;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Type "Byte" cannot be extended by a record helper',nTypeXCannotBeExtendedByARecordHelper);
+end;
+
 procedure TTestResolver.TestRecordHelper_ClassNonStaticFail;
 begin
   StartProgram(false);
@@ -16883,6 +17171,8 @@ begin
   '  f: TFlag;',
   'begin',
   '  f.toString;',
+  '  green.toString;',
+  '  TFlag.green.toString;',
   '  TFlag.Fly;',
   '']);
   ParseProgram;
@@ -16924,6 +17214,38 @@ begin
   CheckResolverException('Cannot access this member from a type helper',nCannotAccessThisMemberFromAX);
 end;
 
+procedure TTestResolver.TestTypeHelper_Set;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TSetOfEnum = set of TEnum;',
+  '  THelper = type helper for TSetOfEnum',
+  '    procedure Fly;',
+  '    class procedure Run; static;',
+  '  end;',
+  'procedure THelper.Fly;',
+  'begin',
+  '  Self:=[];',
+  '  Self:=[green];',
+  '  Include(Self,blue);',
+  'end;',
+  'class procedure THelper.Run;',
+  'begin',
+  'end;',
+  'var s: TSetOfEnum;',
+  'begin',
+  '  s.Fly;',
+  //'  with s do Fly;',
+  '  TSetOfEnum.Run;',
+  //'  with TSetOfEnum do Run;',
+  //'  [green].Fly', not supported
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestTypeHelper_Enumerator;
 begin
   StartProgram(false);
@@ -16955,6 +17277,54 @@ begin
   'begin',
   '  w.GetEnumerator;',
   '  for i in w do {@i2}i2:=i;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_String;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TStringHelper = type helper for String',
+  '    procedure DoIt;',
+  '  end;',
+  '  TCharHelper = type helper for char',
+  '    procedure Fly;',
+  '  end;',
+  'procedure TStringHelper.DoIt;',
+  'begin',
+  '  Self[1]:=Self[2];',
+  'end;',
+  'procedure TCharHelper.Fly;',
+  'begin',
+  '  Self:=''c'';',
+  '  Self:=Self;',
+  'end;',
+  'begin',
+  '  ''abc''.DoIt;',
+  '  ''xyz''.DoIt();',
+  '  ''c''.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Boolean;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for boolean',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure THelper.DoIt;',
+  'begin',
+  '  Self:=not Self;',
+  'end;',
+  'begin',
+  '  false.DoIt;',
+  '  true.DoIt();']);
   ParseProgram;
 end;
 

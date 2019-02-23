@@ -571,6 +571,16 @@ begin
     end;
 end;
 
+procedure TFPCustomCanvas.DrawPixel(const x, y: integer;
+  const newcolor: TFPColor);
+begin
+  case FDrawingMode of
+    dmOpaque: Colors[x,y] := newcolor;
+    dmAlphaBlend: Colors[x,y] := AlphaBlend(Colors[x,y], newcolor);
+    dmCustom: Colors[x,y] := FOnCombineColors(Colors[x,y], newcolor);
+  end;
+end;
+
 procedure TFPCustomCanvas.Erase;
 var
   x,y:Integer;
@@ -784,7 +794,7 @@ begin
     begin
     xx := r - x;
     for t := yi to ym do
-      colors [r,t] := AlphaBlend(colors [r,t], image.colors[xx,t-y]);
+      DrawPixel(r,t, image.colors[xx,t-y]);
     end;
 end;
 

@@ -1115,6 +1115,12 @@ Const
     XFORMCOORDS_CONTAINERTOHIMETRIC       = $8;
     XFORMCOORDS_EVENTCOMPAT               = $10;
 
+    REGCLS_SINGLEUSE      = 0;  // class object only generates one instance
+    REGCLS_MULTIPLEUSE    = 1;  // same class object genereates multiple inst.
+    REGCLS_MULTI_SEPARATE = 2;  // multiple use, but separate control over each
+    REGCLS_SUSPENDED      = 4;  // register is as suspended, will be activated
+    REGCLS_SURROGATE      = 8;  // must be used when a surrogate process
+
 TYPE
     TVarType            = USHORT;
 

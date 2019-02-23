@@ -118,11 +118,15 @@ Var
      { Text file support }
      Procedure AssignFile(out t:Text;p:pchar);
      Procedure AssignFile(out t:Text;c:char);
+     Procedure AssignFile(out t:Text;p:pchar; aCodePage : TSystemCodePage);
+     Procedure AssignFile(out t:Text;c:char; aCodePage : TSystemCodePage);
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out t:Text;const Name:UnicodeString);
+     Procedure AssignFile(out t:Text;const Name:UnicodeString; aCodePage : TSystemCodePage);
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
   {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure AssignFile(out t:Text;const Name:RawByteString);
+     Procedure AssignFile(out t:Text;const Name:RawByteString; aCodePage : TSystemCodePage);
   {$endif FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure CloseFile(Var t:Text);
 {$endif FPC_HAS_FEATURE_TEXTIO}
@@ -215,12 +219,31 @@ begin
   System.Assign (T,p);
 end;
 
+Procedure AssignFile(out t:Text;p:pchar; aCodePage : TSystemCodePage);
+begin
+  System.Assign (T,p);
+  SetTextCodePage(T,aCodePage);
+end;
+
 Procedure AssignFile(out t:Text;c:char);
 begin
   System.Assign (T,c);
 end;
 
+
+Procedure AssignFile(out t:Text;c:char; aCodePage : TSystemCodePage);
+begin
+  System.Assign (T,c);
+  SetTextCodePage(T,aCodePage);
+end;
+
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure AssignFile(out t:Text;const Name:RawBytestring; aCodePage : TSystemCodePage);
+begin
+  System.Assign (T,Name);
+  SetTextCodePage(T,aCodePage);
+end;
+
 Procedure AssignFile(out t:Text;const Name:RawBytestring);
 begin
   System.Assign (T,Name);
@@ -228,6 +251,12 @@ end;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure AssignFile(out t:Text;const Name:UnicodeString; aCodePage : TSystemCodePage);
+begin
+  System.Assign (T,Name);
+  SetTextCodePage(T,aCodePage);
+end;
+
 Procedure AssignFile(out t:Text;const Name:UnicodeString);
 begin
   System.Assign (T,Name);

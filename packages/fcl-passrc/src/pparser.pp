@@ -450,7 +450,8 @@ type
     procedure ParseProcBeginBlock(Parent: TProcedureBody);
     procedure ParseProcAsmBlock(Parent: TProcedureBody);
     // Function/Procedure declaration
-    function  ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: TProcType;AVisibility : TPasMemberVisibility = VisDefault): TPasProcedure;
+    function ParseProcedureOrFunctionDecl(Parent: TPasElement;
+      ProcType: TProcType; MustBeGeneric: boolean; AVisibility: TPasMemberVisibility = VisDefault): TPasProcedure;
     procedure ParseArgList(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       EndToken: TToken);
@@ -1892,32 +1893,42 @@ begin
     case CurToken of
       tkSquaredBraceOpen:
         begin
-          repeat
-            NextToken;
-            if po_arrayrangeexpr in Options then
-              begin
-              RangeExpr:=DoParseExpression(Result);
-              Result.AddRange(RangeExpr);
-              end
-            else if CurToken<>tkSquaredBraceClose then
-               S:=S+CurTokenText;
-            if CurToken=tkSquaredBraceClose then
-              break
-            else if CurToken=tkComma then
-              continue
-            else if po_arrayrangeexpr in Options then
-              ParseExcTokenError(']');
-          until false;
-          Result.IndexRange:=S;
-          ExpectToken(tkOf);
-          Result.ElType := ParseType(Result,CurSourcePos);
+        // static array
+        if Parent is TPasArgument then
+          ParseExcTokenError('of');
+        repeat
+          NextToken;
+          if po_arrayrangeexpr in Options then
+            begin
+            RangeExpr:=DoParseExpression(Result);
+            Result.AddRange(RangeExpr);
+            end
+          else if CurToken<>tkSquaredBraceClose then
+             S:=S+CurTokenText;
+          if CurToken=tkSquaredBraceClose then
+            break
+          else if CurToken=tkComma then
+            continue
+          else if po_arrayrangeexpr in Options then
+            ParseExcTokenError(']');
+        until false;
+        Result.IndexRange:=S;
+        ExpectToken(tkOf);
+        Result.ElType := ParseType(Result,CurSourcePos);
         end;
       tkOf:
         begin
         NextToken;
         if CurToken = tkConst then
+          // array of const
+          begin
+          if not (Parent is TPasArgument) then
+            ParseExcExpectedIdentifier;
+          end
         else
           begin
+          if (CurToken=tkarray) and (Parent is TPasArgument) then
+            ParseExcExpectedIdentifier;
           UngetToken;
           Result.ElType := ParseType(Result,CurSourcePos);
           end;
@@ -2250,7 +2261,11 @@ begin
       end;
     tkfalse, tktrue:    Last:=CreateBoolConstExpr(AParent,pekBoolConst, CurToken=tktrue);
     tknil:              Last:=CreateNilExpr(AParent);
-    tkSquaredBraceOpen: Last:=ParseParams(AParent,pekSet);
+    tkSquaredBraceOpen:
+      begin
+      Last:=ParseParams(AParent,pekSet);
+      UngetToken;
+      end;
     tkinherited:
       begin
       //inherited; inherited function
@@ -2286,7 +2301,7 @@ begin
         ProcType:=ptAnonymousFunction;
       try
         ProcExpr:=TProcedureExpr(CreateElement(TProcedureExpr,'',AParent,visPublic));
-        ProcExpr.Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(ProcExpr,ProcType));
+        ProcExpr.Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(ProcExpr,ProcType,false));
         Result:=ProcExpr;
       finally
         if Result=nil then
@@ -2306,6 +2321,18 @@ begin
         end;
       Last:=CreatePrimitiveExpr(AParent,pekString, '^'+CurTokenText);
       end;
+    tkBraceOpen:
+      begin
+      NextToken;
+      Last:=DoParseExpression(AParent);
+      if not Assigned(Last) then
+        ParseExcSyntaxError;
+      if (CurToken<>tkBraceClose) then
+        begin
+        Last.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+        CheckToken(tkBraceClose);
+        end;
+      end
   else
     ParseExcExpectedIdentifier;
   end;
@@ -2314,13 +2341,7 @@ begin
   ok:=false;
   ISE:=nil;
   try
-    if Last.Kind<>pekSet then NextToken;
-    if not (Last.Kind in [pekNumber,pekString,pekSet,pekIdent,pekSelf,pekNil]) then
-      begin
-      ok:=true;
-      exit;
-      end;
-
+    NextToken;
     Func:=Last;
     repeat
       case CurToken of
@@ -2509,8 +2530,6 @@ const
 Var
   AllowedBinaryOps : Set of TToken;
   SrcPos: TPasSourcePos;
-  ArrParams: TParamsExpr;
-
 begin
   AllowedBinaryOps:=BinaryOP;
   if Not AllowEqual then
@@ -2536,62 +2555,12 @@ begin
           inc(PrefixCnt);
           NextToken;
           end;
-
-        if (CurToken = tkBraceOpen) then
-          begin
-          NextToken;
-          x:=DoParseExpression(AParent);
-          if not Assigned(x) then
-            ParseExcSyntaxError;
-          if (CurToken<>tkBraceClose) then
-            begin
-            x.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-            CheckToken(tkBraceClose);
-            end;
-          NextToken;
-          repeat
-            case CurToken of
-            tkCaret:
-              begin
-              // for expressions like (ppdouble)^^;
-              x:=CreateUnaryExpr(AParent,x, TokenToExprOp(tkCaret));
-              NextToken;
-              end;
-            tkBraceOpen:
-              begin
-              // for expressions like (a+b)(0);
-              ArrParams:=ParseParams(AParent,pekFuncParams,False);
-              ArrParams.Value:=x;
-              x.Parent:=ArrParams;
-              x:=ArrParams;
-              end;
-            tkSquaredBraceOpen:
-              begin
-              // for expressions like (PChar(a)+10)[0];
-              ArrParams:=ParseParams(AParent,pekArrayParams,False);
-              ArrParams.Value:=x;
-              x.Parent:=ArrParams;
-              x:=ArrParams;
-              end;
-            tkDot:
-              begin
-              // for expressions like (TObject(m)).Free;
-              NextToken;
-              x:=CreateBinaryExpr(AParent,x, ParseExprOperand(AParent), TokenToExprOp(tkDot));
-              end
-            else
-              break;
-            end;
-          until false;
-          end
-        else
-          begin
-          x:=ParseExprOperand(AParent);
-          if not Assigned(x) then
-            ParseExcSyntaxError;
-          end;
+        // parse operand
+        x:=ParseExprOperand(AParent);
+        if not Assigned(x) then
+          ParseExcSyntaxError;
         ExpStack.Add(x);
-
+        // apply prefixes
         for i:=1 to PrefixCnt do
           begin
           TempOp:=PopOper(SrcPos);
@@ -3445,7 +3414,7 @@ begin
       SetBlock(declNone);
       SaveComments;
       pt:=GetProcTypeFromToken(CurToken);
-      AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt));
+      AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt, false));
       end;
     tkClass:
       begin
@@ -3455,7 +3424,7 @@ begin
         If CurToken in [tkprocedure,tkFunction,tkConstructor,tkDestructor] then
           begin
           pt:=GetProcTypeFromToken(CurToken,True);
-          AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt));
+          AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt, false));
           end
         else
           CheckToken(tkprocedure);
@@ -3565,9 +3534,8 @@ begin
         end;
       end;
     tkGeneric:
-      begin
-        if CurBlock <> declType then
-          ParseExcSyntaxError;
+      if CurBlock = declType then
+        begin
         TypeName := ExpectIdentifier;
         NamePos:=CurSourcePos;
         List:=TFPList.Create;
@@ -3625,7 +3593,41 @@ begin
             TPasElement(List[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
           List.Free;
         end;
-      end;
+        end
+      else if CurBlock = declNone then
+        begin
+        if msDelphi in CurrentModeswitches then
+          ParseExcSyntaxError; // inconsistency, tkGeneric should be in Scanner.NonTokens
+        SetBlock(declNone);
+        SaveComments;
+        NextToken;
+        case CurToken of
+        tkclass:
+          begin
+          // generic class ...
+          NextToken;
+          if not (CurToken in [tkprocedure,tkfunction]) then
+            ParseExcSyntaxError;
+          // generic class procedure ...
+          pt:=GetProcTypeFromToken(CurToken,true);
+          AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt, true));
+          end;
+        tkprocedure,tkfunction:
+          begin
+          // generic procedure ...
+          SetBlock(declNone);
+          SaveComments;
+          pt:=GetProcTypeFromToken(CurToken);
+          AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt, true));
+          end;
+        else
+          ParseExcSyntaxError;
+        end;
+        end
+      else
+        begin
+        ParseExcSyntaxError;
+        end;
     tkbegin:
       begin
       if Declarations is TProcedureBody then
@@ -4254,17 +4256,8 @@ begin
   if (CurToken=tkAbsolute) then
     begin
     Result:=True;
-    ExpectIdentifier;
-    Location:=CurTokenText;
-    AbsoluteExpr:=CreatePrimitiveExpr(Parent,pekIdent,CurTokenText);
     NextToken;
-    While CurToken=tkDot do
-      begin
-      ExpectIdentifier;
-      Location:=Location+'.'+CurTokenText;
-      AbsoluteExpr:=CreateBinaryExpr(Parent,AbsoluteExpr,CreatePrimitiveExpr(Parent,pekIdent,CurTokenText),eopSubIdent);
-      NextToken;
-      end;
+    Location:=ReadDottedIdentifier(Parent,AbsoluteExpr,true);
     UnGetToken;
     end
   else
@@ -4488,6 +4481,7 @@ procedure TPasParser.OnScannerModeChanged(Sender: TObject;
   NewMode: TModeSwitch; Before: boolean; var Handled: boolean);
 begin
   Engine.ModeChanged(Self,NewMode,Before,Handled);
+  if Sender=nil then ;
 end;
 
 function TPasParser.SaveComments: String;
@@ -5212,20 +5206,9 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
     Param: TPasExpr;
     SrcPos: TPasSourcePos;
   begin
-    ExpectIdentifier;
-    Result := CurTokenString;
-    Expr := CreatePrimitiveExpr(aParent,pekIdent,CurTokenString);
-
-    // read .subident.subident...
-    repeat
-      NextToken;
-      if CurToken <> tkDot then break;
-      SrcPos:=CurTokenPos;
-      ExpectIdentifier;
-      Result := Result + '.' + CurTokenString;
-      AddToBinaryExprChain(Expr,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),
-        eopSubIdent,SrcPos);
-    until false;
+    NextToken;
+    // read ident.subident...
+    Result:=ReadDottedIdentifier(aParent,Expr,true);
 
     // read optional array index
     if CurToken <> tkSquaredBraceOpen then
@@ -6017,7 +6000,10 @@ begin
         end;
       tkEOF:
         CheckToken(tkend);
-      tkAt,tkAtAt,tkBraceOpen,tkIdentifier,tkNumber,tkSquaredBraceOpen,tkMinus,tkPlus,tkinherited:
+      tkAt,tkAtAt,
+      tkIdentifier,tkNumber,tkString,tkfalse,tktrue,tkChar,
+      tkBraceOpen,tkSquaredBraceOpen,
+      tkMinus,tkPlus,tkinherited:
         begin
         // Do not check this here:
         //      if (CurToken=tkAt) and not (msDelphi in CurrentModeswitches) then
@@ -6160,7 +6146,8 @@ begin
 end;
 
 function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
-  ProcType: TProcType; AVisibility: TPasMemberVisibility): TPasProcedure;
+  ProcType: TProcType; MustBeGeneric: boolean; AVisibility: TPasMemberVisibility
+  ): TPasProcedure;
 
   function ExpectProcName: string;
 
@@ -6172,13 +6159,15 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
     Result:=ExpectIdentifier;
     //writeln('ExpectProcName ',Parent.Classname);
     if Parent is TImplementationSection then
-    begin
+      begin
       NextToken;
       repeat
         if CurToken=tkDot then
           Result:=Result+'.'+ExpectIdentifier
         else if CurToken=tkLessThan then
           begin // <> can be ignored, we read the list but discard its content
+          if (not MustBeGeneric) and not (msDelphi in CurrentModeswitches) then
+            ParseExcTokenError('('); // e.g. "generic" is missing in mode objfpc
           UnGetToken;
           L:=TFPList.Create;
           Try
@@ -6194,7 +6183,7 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
         NextToken;
       until false;
       UngetToken;
-    end;
+      end;
   end;
 
 var
@@ -6206,6 +6195,8 @@ begin
   case ProcType of
   ptOperator,ptClassOperator:
     begin
+    if MustBeGeneric then
+      ParseExcTokenError('procedure');
     NextToken;
     IsTokenBased:=CurToken<>tkIdentifier;
     if IsTokenBased then
@@ -6217,7 +6208,11 @@ begin
     Name:=OperatorNames[Ot];
     end;
   ptAnonymousProcedure,ptAnonymousFunction:
+    begin
     Name:='';
+    if MustBeGeneric then
+      ParseExcTokenError('generic'); // inconsistency
+    end
   else
     Name:=ExpectProcName;
   end;
@@ -6424,7 +6419,7 @@ begin
         if Not AllowMethods then
           ParseExc(nErrRecordMethodsNotAllowed,SErrRecordMethodsNotAllowed);
         ProcType:=GetProcTypeFromToken(CurToken,isClass);
-        Proc:=ParseProcedureOrFunctionDecl(ARec,ProcType,v);
+        Proc:=ParseProcedureOrFunctionDecl(ARec,ProcType,false,v);
         if Proc.Parent is TPasOverloadedProc then
           TPasOverloadedProc(Proc.Parent).Overloads.Add(Proc)
         else
@@ -6567,7 +6562,7 @@ var
   ProcType: TProcType;
 begin
   ProcType:=GetProcTypeFromToken(CurToken,isClass);
-  Proc:=ParseProcedureOrFunctionDecl(AType,ProcType,AVisibility);
+  Proc:=ParseProcedureOrFunctionDecl(AType,ProcType,false,AVisibility);
   if Proc.Parent is TPasOverloadedProc then
     TPasOverloadedProc(Proc.Parent).Overloads.Add(Proc)
   else
@@ -6729,7 +6724,12 @@ begin
           CurSection:=stNone
         else
           begin
-          if not haveClass then
+          if haveClass then
+            begin
+            if LastToken=tkclass then
+              ParseExcTokenError('procedure or function');
+            end
+          else
             SaveComments;
           Case CurSection of
           stType:

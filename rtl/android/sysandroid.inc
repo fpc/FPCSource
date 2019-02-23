@@ -215,9 +215,10 @@ end;
 
 const
   IOBufferLength = 512;
-var
+threadvar
   IOBuf : array[0..IOBufferLength] of char;
   IOLen : SizeInt;
+var
   IORedirected: boolean;
 
 procedure OutputIOBuffer(Var F: TextRec);
@@ -235,12 +236,16 @@ end;
 procedure IOWrite(Var F: TextRec);
 var
   i, len : SizeInt;
+  pIOBuf: PAnsiChar;
+  pIOLen: ^SizeInt;
 Begin
+  pIOBuf:=@IOBuf;
+  pIOLen:=@IOLen;
   while F.BufPos>0 do
     begin
       begin
-        if F.BufPos + IOLen > IOBufferLength then
-          len:=IOBufferLength - IOLen
+        if F.BufPos + pIOLen^ > IOBufferLength then
+          len:=IOBufferLength - pIOLen^
         else
           len:=F.BufPos;
         i:=0;
@@ -248,7 +253,7 @@ Begin
           begin
             if F.bufptr^[i] in [#10, #13] then
               begin
-                IOBuf[IOLen]:=#0;
+                pIOBuf[pIOLen^]:=#0;
                 OutputIOBuffer(F);
                 Inc(i);
                 if (i < len) and (F.bufptr^[i - 1] = #13) and (F.bufptr^[i] = #10) then
@@ -256,14 +261,14 @@ Begin
               end
             else
               begin
-                IOBuf[IOLen]:=F.bufptr^[i];
-                Inc(IOLen);
+                pIOBuf[pIOLen^]:=F.bufptr^[i];
+                Inc(pIOLen^);
                 Inc(i);
               end;
           end;
-        IOBuf[IOLen]:=#0;
+        pIOBuf[pIOLen^]:=#0;
       end;
-      if IOLen = IOBufferLength then
+      if pIOLen^ = IOBufferLength then
         OutputIOBuffer(F);
       Dec(F.BufPos, len);
     end;
@@ -309,6 +314,13 @@ begin
   if len = High(DefaultLogTag) then
     Dec(len);
   DefaultLogTag[len + 1]:=#0;
+end;
+
+procedure InitStdIOAndroid;
+begin
+  if not IORedirected then exit;
+  IORedirected:=False;
+  RedirectOutputToSysLog;
 end;
 
 // ************* System init

@@ -240,7 +240,9 @@ Type
     Property Options : TWriteOptions Read FOptions Write SetOptions;
     Property IndentSize : Byte Read FIndentSize Write FIndentSize;
     Property UseUTF8 : Boolean Read GetUseUTF8;
-    property LastChar: WideChar read FLastChar;
+    Property LastChar: WideChar read FLastChar;
+    Property SkipCurlyBrackets : Boolean read FSkipCurlyBrackets write FSkipCurlyBrackets;
+    Property SkipRoundBrackets : Boolean read FSkipRoundBrackets write FSkipRoundBrackets;
   end;
   EJSWriter = Class(Exception);
 
@@ -801,6 +803,15 @@ begin
             if (Code=0) and (D=AsNumber) then
               S:=S2;
             end;
+          else
+            if s[i-1]='0' then
+              begin
+              // 1.2340E...
+              S2:=LeftStr(S,i-2)+copy(S,i,length(S));
+              val(S2,D,Code);
+              if (Code=0) and (D=AsNumber) then
+                S:=S2;
+              end;
           end;
           end;
         // chomp default exponent E+000
@@ -944,10 +955,14 @@ begin
         and (not (A is TJSSourceElements))
         and (not (A is TJSEmptyBlockStatement))
     then
+      begin
+      if FLastChar<>';' then
+        Write(';');
       if C then
-        Write('; ')
+        Write(' ')
       else
-        Writeln(';');
+        Writeln('');
+      end;
     end;
   Writer.CurElement:=LastEl;
   if C then
@@ -1197,17 +1212,15 @@ begin
     Write(S);
     end;
   WriteJS(El.A);
-  if (S='') then
+  S:=El.PostFixOperator;
+  if (S<>'') then
     begin
-    S:=El.PostFixOperator;
-    if (S<>'') then
-      begin
-      Writer.CurElement:=El;
-      if ((S='-') and (FLastChar='-'))
-          or ((S='+') and (FLastChar='+')) then
-        Write(' ');
-      Write(S);
-      end;
+    Writer.CurElement:=El;
+    case S[1] of
+    '+': if FLastChar='+' then Write(' ');
+    '-': if FLastChar='-' then Write(' ');
+    end;
+    Write(S);
     end;
 end;
 
@@ -1240,10 +1253,12 @@ begin
       begin
       if not (LastEl is TJSStatementList) then
         begin
+        if FLastChar<>';' then
+          Write(';');
         if C then
-          Write('; ')
+          Write(' ')
         else
-          Writeln(';');
+          Writeln('');
         end;
       FSkipCurlyBrackets:=True;
       WriteJS(El.B);
@@ -1252,11 +1267,14 @@ begin
     if (not C) and not (LastEl is TJSStatementList) then
       writeln(';');
     end
-  else if Assigned(El.B) then
+  else if Assigned(El.B) and not IsEmptyStatement(El.B) then
     begin
     WriteJS(El.B);
     if (not C) and not (El.B is TJSStatementList) then
-      writeln(';');
+      if FLastChar=';' then
+        writeln('')
+      else
+        writeln(';');
     end;
   if B then
     begin

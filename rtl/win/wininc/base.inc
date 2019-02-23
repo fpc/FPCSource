@@ -543,7 +543,7 @@
    }
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEROP4(fore,back : longint) : DWORD; inline;
+  function MAKEROP4(fore,back : DWord ) : DWORD; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -1025,9 +1025,9 @@ type
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEROP4(fore,back : longint) : DWORD;
+  function MAKEROP4(fore,back : DWOrd ) : DWORD;
     begin
-       MAKEROP4:=DWORD((DWORD(back shl 8) and $FF000000) or DWORD(fore));
+       MAKEROP4:=((back shl 8) and $FF000000) or fore;
     end;
 
   { was #define dname(params) def_expr }
