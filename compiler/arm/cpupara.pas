@@ -45,6 +45,8 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
+          function usemmpararegs(calloption: tproccalloption; variadic: boolean): boolean;
+          function getparaloc(calloption : tproccalloption; p : tdef; isvariadic: boolean) : tcgloc;
           procedure init_values(p: tabstractprocdef; side: tcallercallee; var curintreg,
             curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword;
             var sparesinglereg: tregister);
@@ -131,7 +133,9 @@ unit cpupara;
       end;
 
 
-    function getparaloc(calloption : tproccalloption; p : tdef; isvariadic: boolean) : tcgloc;
+    function tcpuparamanager.getparaloc(calloption : tproccalloption; p : tdef; isvariadic: boolean) : tcgloc;
+      var
+        basedef: tdef;
       begin
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
@@ -161,7 +165,11 @@ unit cpupara;
             classrefdef:
               getparaloc:=LOC_REGISTER;
             recorddef:
-              getparaloc:=LOC_REGISTER;
+              if usemmpararegs(calloption,isvariadic) and
+                 is_hfa(p,basedef) then
+                getparaloc:=LOC_MMREGISTER
+              else
+                getparaloc:=LOC_REGISTER;
             objectdef:
               getparaloc:=LOC_REGISTER;
             stringdef:
@@ -176,6 +184,9 @@ unit cpupara;
             arraydef:
               if is_dynamic_array(p) then
                 getparaloc:=LOC_REGISTER
+              else if usemmpararegs(calloption,isvariadic) and
+                 is_hfa(p,basedef) then
+                getparaloc:=LOC_MMREGISTER
               else
                 getparaloc:=LOC_REFERENCE;
             setdef:
@@ -229,12 +240,19 @@ unit cpupara;
       var
         i: longint;
         sym: tsym;
+        basedef: tdef;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
         case def.typ of
           recorddef:
             begin
+              if usemmpararegs(pd.proccalloption,is_c_variadic(pd)) and
+                 is_hfa(def,basedef) then
+                begin
+                  result:=false;
+                  exit;
+                end;
               result:=def.size>4;
               if not result and
                  (target_info.abi in [abi_default,abi_armeb]) then
@@ -327,11 +345,13 @@ unit cpupara;
 
       var
         nextintreg,nextfloatreg,nextmmreg : tsuperregister;
-        paradef : tdef;
+        paradef,
+        hfabasedef : tdef;
         paraloc : pcgparalocation;
         stack_offset : aword;
         hp : tparavarsym;
         loc : tcgloc;
+        hfabasesize  : tcgsize;
         paracgsize   : tcgsize;
         paralen : longint;
         i : integer;
@@ -355,6 +375,31 @@ unit cpupara;
                paraloc^.reference.index:=NR_STACK_POINTER_REG;
                paraloc^.reference.offset:=stack_offset;
                inc(stack_offset,4);
+            end;
+        end;
+
+
+      procedure updatemmregs(paradef, basedef: tdef);
+        var
+          regsavailable,
+          regsneeded: longint;
+          basesize: asizeint;
+        begin
+          basesize:=basedef.size;
+          regsneeded:=paradef.size div basesize;
+          regsavailable:=ord(RS_D7)-ord(nextmmreg)+1;
+          case basesize of
+            4:
+              regsavailable:=regsavailable*2+ord(sparesinglereg<>NR_NO);
+            8:
+              ;
+            else
+              internalerror(2019022301);
+          end;
+          if regsavailable<regsneeded then
+            begin
+              nextmmreg:=succ(RS_D7);
+              sparesinglereg:=NR_NO;
             end;
         end;
 
@@ -428,6 +473,18 @@ unit cpupara;
              hp.paraloc[side].intsize:=paralen;
              hp.paraloc[side].def:=paradef;
              firstparaloc:=true;
+
+             if (loc=LOC_MMREGISTER) and
+                is_hfa(paradef,hfabasedef) then
+               begin
+                 updatemmregs(paradef,hfabasedef);
+                 hfabasesize:=def_cgsize(hfabasedef);
+               end
+             else
+               begin
+                 hfabasedef:=nil;
+                 hfabasesize:=OS_NO;
+               end;
 
 {$ifdef EXTDEBUG}
              if paralen=0 then
@@ -514,10 +571,18 @@ unit cpupara;
                       end;
                     LOC_MMREGISTER:
                       begin
-                        paraloc^.size:=paracgsize;
-                        paraloc^.def:=paradef;
+                        if assigned(hfabasedef) then
+                          begin
+                            paraloc^.def:=hfabasedef;
+                            paraloc^.size:=hfabasesize;
+                          end
+                        else
+                          begin
+                            paraloc^.size:=paracgsize;
+                            paraloc^.def:=paradef;
+                          end;
                         if (nextmmreg<=RS_D7) or
-                           ((paraloc^.size = OS_F32) and
+                           ((paraloc^.size=OS_F32) and
                             (sparesinglereg<>NR_NO)) then
                           begin
                             paraloc^.loc:=LOC_MMREGISTER;
@@ -642,35 +707,53 @@ unit cpupara;
 
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
-        paraloc : pcgparalocation;
+        paraloc: pcgparalocation;
         retcgsize  : tcgsize;
+        basedef: tdef;
+        i: longint;
+        mmreg: tregister;
       begin
          if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
            exit;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
-        if result.def.typ=floatdef then
+        basedef:=nil;
+        if (result.def.typ=floatdef) or
+           is_hfa(result.def,basedef) then
           begin
-            if (target_info.abi=abi_eabihf) or (p.proccalloption=pocall_hardfloat) then
+            if usemmpararegs(p.proccalloption,is_c_variadic(p)) then
               begin
-                paraloc^.loc:=LOC_MMREGISTER;
+                if assigned(basedef) then
+                  begin
+                    for i:=2 to result.def.size div basedef.size do
+                      result.add_location;
+                    retcgsize:=def_cgsize(basedef);
+                  end
+                else
+                  basedef:=result.def;
                 case retcgsize of
                   OS_64,
                   OS_F64:
                     begin
-                      paraloc^.register:=NR_MM_RESULT_REG;
+                      mmreg:=NR_MM_RESULT_REG
                     end;
                   OS_32,
                   OS_F32:
                     begin
-                      paraloc^.register:=NR_S0;
+                      mmreg:=NR_S0;
                     end;
                   else
                     internalerror(2012032501);
                 end;
-                paraloc^.size:=retcgsize;
-                paraloc^.def:=result.def;
+                repeat
+                  paraloc^.loc:=LOC_MMREGISTER;
+                  paraloc^.register:=mmreg;
+                  inc(mmreg);
+                  paraloc^.size:=retcgsize;
+                  paraloc^.def:=basedef;
+                  paraloc:=paraloc^.next;
+                until not assigned(paraloc);
               end
             else if (p.proccalloption in [pocall_softfloat]) or
                (cs_fp_emulation in current_settings.moduleswitches) or
@@ -761,6 +844,14 @@ unit cpupara;
                 end;
               end;
           end;
+      end;
+
+
+    function tcpuparamanager.usemmpararegs(calloption: tproccalloption; variadic: boolean): boolean;
+      begin
+        result:=
+         ((target_info.abi=abi_eabihf) or (calloption=pocall_hardfloat)) and
+          (not variadic);
       end;
 
 
