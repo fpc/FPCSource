@@ -474,7 +474,6 @@ type
     Procedure TestAdvRecord_SubInterfaceFail;
     Procedure TestAdvRecord_Constructor;
     Procedure TestAdvRecord_ClassConstructor;
-    // ToDo: classconstructor pcu
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
