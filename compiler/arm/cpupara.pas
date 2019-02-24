@@ -512,13 +512,11 @@ unit cpupara;
                            firstparaloc and
                            (paradef.alignment=8) then
                           begin
+                            hp.paraloc[side].Alignment:=8;
                             if (nextintreg in [RS_R1,RS_R3]) then
                               inc(nextintreg)
                             else if nextintreg>RS_R3 then
-                              begin
-                                stack_offset:=align(stack_offset,8);
-                                hp.paraloc[side].Alignment:=8;
-                              end;
+                              stack_offset:=align(stack_offset,8);
                           end;
                         if nextintreg<=RS_R3 then
                           begin
