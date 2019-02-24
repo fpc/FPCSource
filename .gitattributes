@@ -2304,6 +2304,7 @@ packages/fcl-db/src/sqldb/postgres/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/postgres/pqconnection.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/postgres/pqeventmonitor.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/sqldb.pp svneol=native#text/plain
+packages/fcl-db/src/sqldb/sqldbini.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/sqldblib.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/sqlite/Makefile svneol=native#text/plain
 packages/fcl-db/src/sqldb/sqlite/Makefile.fpc svneol=native#text/plain
