@@ -166,6 +166,8 @@ type
     procedure TestWP_ClassInterface_TGUID;
     procedure TestWP_ClassHelper;
     procedure TestWP_ClassHelper_ClassConstrucor_Used;
+    procedure TestWP_Attributes;
+    procedure TestWP_Attributes_ForwardClass;
 
     // scope references
     procedure TestSR_Proc_UnitVar;
@@ -3147,6 +3149,57 @@ begin
   'var b: TBird;',
   'begin',
   '  b.Fly;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_Attributes;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '    constructor {#TObject_Create_notused}Create;',
+  '  end;',
+  '  {#TCustomAttribute_used}TCustomAttribute = class',
+  '  end;',
+  '  {#RedAttribute_used}RedAttribute = class(TCustomAttribute)',
+  '    constructor {#Red_A_used}Create(Id: word = 3; Deep: boolean = false); overload;',
+  '    constructor {#Red_B_notused}Create(Size: double); overload;',
+  '  end;',
+  '  {#Red_notused}Red = word;',
+  'constructor TObject.Create; begin end;',
+  'constructor RedAttribute.Create(Id: word; Deep: boolean); begin end;',
+  'constructor RedAttribute.Create(Size: double); begin end;',
+  'var',
+  '  [NotExisting]',
+  '  [Red]',
+  '  o: TObject;',
+  'begin',
+  '  if typeinfo(o)=nil then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_Attributes_ForwardClass;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '    constructor {#TObject_Create_used}Create;',
+  '  end;',
+  '  {#TCustomAttribute_used}TCustomAttribute = class',
+  '  end;',
+  '  [TCustom]',
+  '  TBird = class;',
+  '  TMyInt = word;',
+  '  TBird = class end;',
+  'constructor TObject.Create; begin end;',
+  'begin',
+  '  if typeinfo(TBird)=nil then ;',
   '']);
   AnalyzeWholeProgram;
 end;

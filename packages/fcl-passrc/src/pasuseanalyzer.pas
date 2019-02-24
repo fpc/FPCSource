@@ -255,6 +255,7 @@ type
     procedure UseElement(El: TPasElement; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseTypeInfo(El: TPasElement); virtual;
+    procedure UseAttributes(El: TPasElement); virtual;
     function UseModule(aModule: TPasModule; Mode: TPAUseMode): boolean; virtual;
     procedure UseSection(Section: TPasSection; Mode: TPAUseMode); virtual;
     procedure UseImplBlock(Block: TPasImplBlock; Mark: boolean); virtual;
@@ -1116,6 +1117,8 @@ begin
       for i:=0 to Members.Count-1 do
         begin
         Member:=TPasElement(Members[i]);
+        if Member.ClassType=TPasAttributes then
+          continue;
         if IsUsed(Member) then
           UseTypeInfo(Member);
         end;
@@ -1129,6 +1132,8 @@ begin
     for i:=0 to Members.Count-1 do
       begin
       Member:=TPasElement(Members[i]);
+      if Member.ClassType=TPasAttributes then
+        continue; // attributes are never used directly
       UseSubEl(Member);
       end;
     end
@@ -1151,6 +1156,18 @@ begin
     end;
 
   UseElement(El,rraNone,true);
+
+  UseAttributes(El);
+end;
+
+procedure TPasAnalyzer.UseAttributes(El: TPasElement);
+var
+  Calls: TPasExprArray;
+  i: Integer;
+begin
+  Calls:=Resolver.GetAttributeCallsEl(El);
+  for i:=0 to length(Calls)-1 do
+    UseExpr(Calls[i]);
 end;
 
 function TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode): boolean;
@@ -1281,6 +1298,8 @@ begin
       end
     else if C=TPasResString then
       UseResourcestring(TPasResString(Decl))
+    else if C=TPasAttributes then
+      // attributes are never used directly
     else
       RaiseNotSupported(20170306165213,Decl);
     end;
@@ -1469,6 +1488,12 @@ begin
     Access:=Ref.Access;
     MarkImplScopeRef(El,Decl,ResolvedToPSRefAccess[Access]);
     UseElement(Decl,Access,false);
+
+    if Ref.Context<>nil then
+      begin
+      if Ref.Context.ClassType=TResolvedRefCtxAttrProc then
+        UseProcedure(TResolvedRefCtxAttrProc(Ref.Context).Proc);
+      end;
 
     if Resolver.IsNameExpr(El) then
       begin
@@ -2082,7 +2107,10 @@ begin
         end;
         //writeln('TPasAnalyzer.UseClassType ',El.FullName,' ',Mode,' ',Member.Name);
         end;
-      end;
+      end
+    else if Member.ClassType=TPasAttributes then
+      continue; // attributes are never used directly
+
     if AllPublished and (Member.Visibility=visPublished) then
       begin
       // include published
@@ -2461,6 +2489,7 @@ var
   Usage: TPAElement;
   i: Integer;
   Member: TPasElement;
+  Members: TFPList;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitTypeHints ',GetElModName(El));
@@ -2483,21 +2512,22 @@ begin
     exit;
     end;
   // emit hints for sub elements
+  Members:=nil;
   C:=El.ClassType;
   if C=TPasRecordType then
-    begin
-    for i:=0 to TPasRecordType(El).Members.Count-1 do
-      EmitVariableHints(TObject(TPasRecordType(El).Members[i]) as TPasVariable);
-    end
+    Members:=TPasRecordType(El).Members
   else if C=TPasClassType then
     begin
     if TPasClassType(El).IsForward then exit;
-    for i:=0 to TPasClassType(El).Members.Count-1 do
+    Members:=TPasClassType(El).Members;
+    end;
+  if Members<>nil then
+    for i:=0 to Members.Count-1 do
       begin
-      Member:=TPasElement(TPasClassType(El).Members[i]);
+      Member:=TPasElement(Members[i]);
+      if Member.ClassType=TPasAttributes then continue;
       EmitElementHints(Member);
       end;
-    end;
 end;
 
 procedure TPasAnalyzer.EmitVariableHints(El: TPasVariable);

@@ -149,6 +149,7 @@ type
     procedure CheckParserException(Msg: string; MsgNumber: integer);
     procedure CheckAccessMarkers; virtual;
     procedure CheckParamsExpr_pkSet_Markers; virtual;
+    procedure CheckAttributeMarkers; virtual;
     procedure GetSrc(Index: integer; out SrcLines: TStringList; out aFilename: string);
     function FindElementsAt(aFilename: string; aLine, aStartCol, aEndCol: integer): TFPList;// list of TPasElement
     function FindElementsAt(aMarker: PSrcMarker; ErrorOnNoElements: boolean = true): TFPList;// list of TPasElement
@@ -931,7 +932,10 @@ type
     Procedure TestTypeHelper_InterfaceFail;
 
     // attributes
-    Procedure TestAttributes_Ignore;
+    Procedure TestAttributes_Globals;
+    Procedure TestAttributes_NonConstParam_Fail;
+    Procedure TestAttributes_UnknownAttrWarning;
+    Procedure TestAttributes_Members;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -1837,6 +1841,107 @@ begin
           end;
         if TParamsExpr=nil then
           RaiseErrorAtSrcMarker('missing paramsexpr at "#'+aMarker^.Identifier+'"',aMarker);
+      finally
+        Elements.Free;
+      end;
+      end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TCustomTestResolver.CheckAttributeMarkers;
+// check markers of the form {#Attr__ClassMarker__ConstructorMarker[__OptionalName]}
+var
+  aMarker, ClassMarker, ConstructorMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+  s, ClassMarkerName, ConstructorMarkerName: String;
+  p: SizeInt;
+  ExpectedClass: TPasClassType;
+  ExpectedConstrucor, ActualConstructor: TPasConstructor;
+begin
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    s:=aMarker^.Identifier;
+    if SameText(LeftStr(s,6),'Attr__') then
+      begin
+      //writeln('TCustomTestResolver.CheckAttributeMarkers ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+      Delete(s,1,6);
+      p:=Pos('__',s);
+      if p<1 then
+        RaiseErrorAtSrcMarker('missing second __ at "#'+aMarker^.Identifier+'"',aMarker);
+      ClassMarkerName:=LeftStr(s,p-1);
+      Delete(s,1,p+1);
+      p:=Pos('__',s);
+      if p<1 then
+        ConstructorMarkerName:=s
+      else
+        ConstructorMarkerName:=copy(s,1,p-1);
+
+      // find attribute class at ClassMarkerName
+      ClassMarker:=FindSrcLabel(ClassMarkerName);
+      if ClassMarker=nil then
+        RaiseErrorAtSrcMarker('ClassMarker "'+ClassMarkerName+'" not found at "#'+aMarker^.Identifier+'"',aMarker);
+      ExpectedClass:=nil;
+      Elements:=FindElementsAt(ClassMarker);
+      try
+        for i:=0 to Elements.Count-1 do
+          begin
+          El:=TPasElement(Elements[i]);
+          if El is TPasClassType then
+            begin
+            ExpectedClass:=TPasClassType(El);
+            break;
+            end;
+          end;
+        if ExpectedClass=nil then
+          RaiseErrorAtSrcMarker('ClassMarker "'+ClassMarkerName+'" at "#'+aMarker^.Identifier+'" has no TPasClassType',aMarker);
+      finally
+        Elements.Free;
+      end;
+
+      // find constructor at ConstructorMarkerName
+      ConstructorMarker:=FindSrcLabel(ConstructorMarkerName);
+      if ConstructorMarker=nil then
+        RaiseErrorAtSrcMarker('ConstructorMarker "'+ConstructorMarkerName+'" not found at "#'+aMarker^.Identifier+'"',aMarker);
+      ExpectedConstrucor:=nil;
+      Elements:=FindElementsAt(ConstructorMarker);
+      try
+        for i:=0 to Elements.Count-1 do
+          begin
+          El:=TPasElement(Elements[i]);
+          if El is TPasConstructor then
+            begin
+            ExpectedConstrucor:=TPasConstructor(El);
+            break;
+            end;
+          end;
+        if ExpectedConstrucor=nil then
+          RaiseErrorAtSrcMarker('ConstructorMarker "'+ConstructorMarkerName+'" at "#'+aMarker^.Identifier+'" has no TPasConstructor',aMarker);
+      finally
+        Elements.Free;
+      end;
+
+      Elements:=FindElementsAt(aMarker);
+      try
+        for i:=0 to Elements.Count-1 do
+          begin
+          El:=TPasElement(Elements[i]);
+          //writeln('TCustomTestResolver.CheckAttributeMarkers ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+          if not (El.CustomData is TResolvedReference) then continue;
+          Ref:=TResolvedReference(El.CustomData);
+          if Ref.Declaration<>ExpectedClass then
+            RaiseErrorAtSrcMarker('Ref.Declaration at "#'+aMarker^.Identifier+'", expected "'+ExpectedClass.FullName+'" but found "'+Ref.Declaration.FullName+'", El='+GetObjName(El),aMarker);
+          if not (Ref.Context is TResolvedRefCtxAttrProc) then
+            RaiseErrorAtSrcMarker('Ref.Context at "#'+aMarker^.Identifier+'", expected "TResolvedRefCtxAttrConstructor" but found "'+GetObjName(Ref.Context)+'", El='+GetObjName(El),aMarker);
+          ActualConstructor:=TResolvedRefCtxAttrProc(Ref.Context).Proc;
+          if ActualConstructor<>ExpectedConstrucor then
+            RaiseErrorAtSrcMarker('Ref.Context.Proc at "#'+aMarker^.Identifier+'", expected "'+ExpectedConstrucor.FullName+'" but found "'+ActualConstructor.FullName+'", El='+GetObjName(El),aMarker);
+          break;
+          end;
       finally
         Elements.Free;
       end;
@@ -17422,32 +17527,107 @@ begin
   CheckResolverException('Type "IUnknown" cannot be extended by a type helper',nTypeXCannotBeExtendedByATypeHelper);
 end;
 
-procedure TTestResolver.TestAttributes_Ignore;
+procedure TTestResolver.TestAttributes_Globals;
 begin
   StartProgram(false);
   Add([
-  '{$modeswitch IgnoreAttributes}',
+  '{$modeswitch prefixedattributes}',
   'type',
-  '  [custom1, custom2(1+3,''foo'')] [mod1.custom3]',
   '  TObject = class',
-  '    [custom5()] FS: string;',
-  '    [customProp] property S: string read FS;',
+  '    constructor {#TObject_Create}Create;',
   '  end;',
-  '  TOnGetCellClass = procedure(Sender: TObject; ACol, ARow:',
-  '   longint; var CellClassType: TObject) of object;',
-  '  [Attr]',
-  '  TBird = class(TObject)',
+  '  {#Custom}TCustomAttribute = class',
   '  end;',
-  '[Attr]',
-  'procedure DoA; forward;',
-  '[Attr]',
-  'procedure DoA; begin end;',
+  '  {#Red}RedAttribute = class(TCustomAttribute)',
+  '    constructor {#Red_A}Create(Id: word = 3; Deep: boolean = false); overload;',
+  '    constructor {#Red_B}Create(Size: double); overload;',
+  '  end;',
+  '  Red = word;',
+  'constructor TObject.Create; begin end;',
+  'constructor RedAttribute.Create(Id: word; Deep: boolean); begin end;',
+  'constructor RedAttribute.Create(Size: double); begin end;',
   'var',
-  '  [custom6]',
+  '  [{#Attr__Custom__TObject_Create}TCustom]',
+  '  [{#Attr__Red__Red_A__1}Red,afile.{#Attr__Red__Red_A__2}Red]',
+  '  o: TObject;',
+  'const',
+  '  [{#Attr__Red__Red_B}RedAttribute(1.3)]',
+  '  c = 3;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckAttributeMarkers;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestAttributes_NonConstParam_Fail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '    constructor Create(w: word);',
+  '  end;',
+  '  TCustomAttribute = class',
+  '  end;',
+  'constructor TObject.Create(w: word);',
+  'begin',
+  'end;',
+  'var',
+  '  w: word;',
+  '  [TCustom(w)]',
+  '  o: TObject;',
+  'begin',
+  '']);
+  CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
+end;
+
+procedure TTestResolver.TestAttributes_UnknownAttrWarning;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TCustomAttribute = class',
+  '  end;',
+  'var',
+  '  [Red]',
   '  o: TObject;',
   'begin',
   '']);
   ParseProgram;
+  CheckResolverHint(mtWarning,nUnknownCustomAttributeX,'Unknown custom attribute "Red"');
+end;
+
+procedure TTestResolver.TestAttributes_Members;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '    constructor {#create}Create;',
+  '  end;',
+  '  {#custom}TCustomAttribute = class',
+  '  end;',
+  '  TMyClass = class',
+  '    [{#attr__custom__create__cl}TCustom]',
+  '    Field: word;',
+  '  end;',
+  '  TMyRecord = record',
+  '    [{#attr__custom__create__rec}TCustom]',
+  '    Field: word;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckAttributeMarkers;
 end;
 
 initialization
