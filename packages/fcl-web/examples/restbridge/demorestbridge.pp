@@ -1,3 +1,18 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2019 by the Free Pascal development team
+
+    SQLDB REST rest bridge demo applocation.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 program demorestbridge;
 
 {$mode objfpc}{$H+}
@@ -87,7 +102,7 @@ begin
     FAuth.DefaultPassword:='secret';
     FAuth.AuthenticateUserSQL.Text:='select uID from users where (uLogin=:UserName) and (uPassword=:Password)';
     FDisp.DispatchOptions:=FDisp.DispatchOptions+[rdoConnectionInURL,rdoCustomView,rdoHandleCORS];
-    FDisp.ExposeDatabase(TPQConnectionDef.TypeName,'localhost','expensetracker','FPC','Shimrod',Nil,[foFilter,foInInsert,foInUpdate,foOrderByDesc]);
+    FDisp.ExposeDatabase(TPQConnectionDef.TypeName,'localhost','expensetracker','me','secret',Nil,[foFilter,foInInsert,foInUpdate,foOrderByDesc]);
     With FDisp.Schemas[0].Schema.Resources do
       begin
       FindResourceByName('users').Fields.FindByFieldName('uID').GeneratorName:='seqUsersID';

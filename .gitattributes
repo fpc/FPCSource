@@ -3316,6 +3316,7 @@ packages/fcl-web/examples/jsonrpc/extdirect/extdemo.lpr svneol=native#text/plain
 packages/fcl-web/examples/jsonrpc/extdirect/extdirect.in svneol=native#text/plain
 packages/fcl-web/examples/jsonrpc/extdirect/wmext.lfm svneol=native#text/plain
 packages/fcl-web/examples/jsonrpc/extdirect/wmext.pp svneol=native#text/plain
+packages/fcl-web/examples/restbridge/README.txt svneol=native#text/plain
 packages/fcl-web/examples/restbridge/delphiclient/frmmain.dfm svneol=native#text/plain
 packages/fcl-web/examples/restbridge/delphiclient/frmmain.pas svneol=native#text/plain
 packages/fcl-web/examples/restbridge/delphiclient/sqldbrestclient.dpr svneol=native#text/plain
@@ -3323,6 +3324,8 @@ packages/fcl-web/examples/restbridge/delphiclient/sqldbrestclient.dproj svneol=n
 packages/fcl-web/examples/restbridge/delphiclient/sqldbrestclient.res -text
 packages/fcl-web/examples/restbridge/demorestbridge.lpi svneol=native#text/plain
 packages/fcl-web/examples/restbridge/demorestbridge.pp svneol=native#text/plain
+packages/fcl-web/examples/restbridge/expenses-data.sql svneol=native#text/plain
+packages/fcl-web/examples/restbridge/expenses-pq.sql svneol=native#text/plain
 packages/fcl-web/examples/routing-session/routingsessiondemo.lpi svneol=native#text/plain
 packages/fcl-web/examples/routing-session/routingsessiondemo.lpr svneol=native#text/plain
 packages/fcl-web/examples/routing/README svneol=native#text/plain
