@@ -121,7 +121,11 @@ implementation
       parabase,paramgr,
       hlcgobj,
       pass_2,
-      ncgflw;
+      ncgflw
+{$ifdef i386}
+      ,aasmcpu
+{$endif i386}
+      ;
 
 
     type
@@ -616,6 +620,7 @@ implementation
             hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_resume',[@cgpara1],nil).resetiftemp;
+            { we do not have to clean up the stack, we never return }
             cgpara1.done;
 
             psabiehprocinfo.CreateNewPSABIEHCallsite(list);
@@ -708,6 +713,11 @@ implementation
         paramanager.getintparaloc(list, pd, 1, paraloc1);
         hlcg.a_load_reg_cgpara(list,voidpointertype,wrappedexception,paraloc1);
         begincatchres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+{$ifdef i386}
+        { fpc_psabi_begin_catch is cdecl, not sure how to do this properly }
+        current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,4,NR_ESP));
+{$endif i386}
+
         location_reset(exceptloc, LOC_REGISTER, def_cgsize(begincatchres.def));
         exceptloc.register:=hlcg.getaddressregister(list, begincatchres.def);
         hlcg.gen_load_cgpara_loc(list, begincatchres.def, begincatchres, exceptloc, true);
