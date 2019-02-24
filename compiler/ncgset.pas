@@ -82,9 +82,9 @@ interface
           function GetBranchLabel(Block: TNode; out _Label: TAsmLabel): Boolean;
 
           function  blocklabel(id:longint):tasmlabel;
-          procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);virtual;
+          procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);virtual;
           function  has_jumptable : boolean;virtual;
-          procedure genjumptable(hp : pcaselabel;min_,max_ : aint); virtual;
+          procedure genjumptable(hp : pcaselabel;min_,max_ : int64); virtual;
           procedure genlinearlist(hp : pcaselabel); virtual;
           procedure genlinearcmplist(hp : pcaselabel); virtual;
 
@@ -613,7 +613,7 @@ implementation
       end;
 
 
-    procedure tcgcasenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
+    procedure tcgcasenode.optimizevalues(var max_linear_list:int64;var max_dist:qword);
       begin
         { no changes by default }
       end;
@@ -626,7 +626,7 @@ implementation
       end;
 
 
-    procedure tcgcasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
+    procedure tcgcasenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
       begin
         internalerror(200209161);
       end;
@@ -827,7 +827,7 @@ implementation
 {$endif}
 {$endif cpuhighleveltarget}
                   begin
-                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, aint(t^._low.svalue),hregister, blocklabel(t^.blockid));
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(t^._low),hregister, blocklabel(t^.blockid));
                   end;
                 { Reset last here, because we've only checked for one value and need to compare
                   for the next range both the lower and upper bound }
@@ -934,7 +934,7 @@ implementation
 {$endif}
 {$endif cpuhighleveltarget}
                        begin
-                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(t^._low.svalue), hregister,
+                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, tcgint(t^._low), hregister,
                            elselabel);
                        end;
                   end;
@@ -1026,7 +1026,7 @@ implementation
 {$endif}
 {$endif cpuhighleveltarget}
                   begin
-                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, aint(t^._high.svalue), hregister, blocklabel(t^.blockid));
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, tcgint(t^._high.svalue), hregister, blocklabel(t^.blockid));
                   end;
 
                 last:=t^._high;
@@ -1165,8 +1165,8 @@ implementation
          distv,
          lv,hv,
          max_label: tconstexprint;
-         max_linear_list : aint;
-         max_dist : aword;
+         max_linear_list : int64;
+         max_dist : qword;
          ShortcutElse: Boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);

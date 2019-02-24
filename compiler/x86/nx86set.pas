@@ -37,7 +37,7 @@ interface
 
       tx86casenode = class(tcgcasenode)
          function  has_jumptable : boolean;override;
-         procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
+         procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
          procedure genlinearlist(hp : pcaselabel);override;
          procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);override;
       end;
@@ -66,7 +66,7 @@ implementation
       end;
 
 
-    procedure tx86casenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
+    procedure tx86casenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
       var
         table : tasmlabel;
         last : TConstExprInt;
@@ -78,30 +78,30 @@ implementation
         labeltyp: taiconst_type;
         AlmostExhaustive: Boolean;
         lv, hv: TConstExprInt;
-        ExhaustiveLimit, Range, x, oldmin : aint;
+        ExhaustiveLimit, Range, x, oldmin : int64;
 
       const
         ExhaustiveLimitBase = 32;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
-            i : aint;
+            i : TConstExprInt;
           begin
             if assigned(t^.less) then
               genitem(list,t^.less);
 
             { fill possible hole }
-            i:=last.svalue+1;
-            while i<=t^._low.svalue-1 do
+            i:=last+1;
+            while i<=t^._low-1 do
               begin
                 list.concat(Tai_const.Create_type_sym(labeltyp,elselabel));
-                inc(i);
+                i:=i+1;
               end;
-            i:=t^._low.svalue;
-            while i<=t^._high.svalue do
+            i:=t^._low;
+            while i<=t^._high do
               begin
                 list.concat(Tai_const.Create_type_sym(labeltyp,blocklabel(t^.blockid)));
-                inc(i);
+                i:=i+1;
               end;
             last:=t^._high;
             if assigned(t^.greater) then

@@ -34,9 +34,9 @@ unit ncpuset;
     type
        tcpucasenode = class(tcgcasenode)
          protected
-           procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
+           procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);override;
            function has_jumptable : boolean;override;
-           procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
+           procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
        end;
 
 
@@ -50,7 +50,7 @@ unit ncpuset;
       cgbase,cgutils,cgobj,
       defutil,procinfo;
 
-    procedure tcpucasenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
+    procedure tcpucasenode.optimizevalues(var max_linear_list:int64;var max_dist:qword);
       begin
         { give the jump table a higher priority }
         max_dist:=(max_dist*3) div 2;
@@ -63,7 +63,7 @@ unit ncpuset;
       end;
 
 
-    procedure tcpucasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
+    procedure tcpucasenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
       var
         base,
         table : tasmlabel;
@@ -74,22 +74,22 @@ unit ncpuset;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
-            i : aint;
+            i : TConstExprInt;
           begin
             if assigned(t^.less) then
               genitem(list,t^.less);
             { fill possible hole }
-            i:=last.svalue+1;
-            while i<=t^._low.svalue-1 do
+            i:=last+1;
+            while i<=t^._low-1 do
               begin
                 list.concat(Tai_const.Create_rel_sym(aitconst_ptr,base,elselabel));
-                inc(i);
+                i:=i+1;
               end;
-            i:=t^._low.svalue;
-            while i<=t^._high.svalue do
+            i:=t^._low;
+            while i<=t^._high do
               begin
                 list.concat(Tai_const.Create_rel_sym(aitconst_ptr,base,blocklabel(t^.blockid)));
-                inc(i);
+                i:=i+1;
               end;
             last:=t^._high;
             if assigned(t^.greater) then
