@@ -724,8 +724,8 @@ implementation
 {$endif aarch64}
               if withattributes then
                  if first then
-                   encodedstr:=encodedstr+' sret'
-                 else { we can add some other attributes to optimise things,}
+                   encodedstr:=encodedstr+' sret noalias nocapture'
+                 else
                    encodedstr:=encodedstr+' noalias nocapture';
             end
           else if not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
@@ -752,7 +752,7 @@ implementation
                     vs_value,
                     vs_const:
                       begin
-                        encodedstr:=encodedstr+' nocapture dereferenceable('
+                        encodedstr:=encodedstr+' dereferenceable('
                       end;
                     vs_var,
                     vs_out,
@@ -760,7 +760,7 @@ implementation
                       begin
                         { while normally these are not nil, it is technically possible
                           to pass nil via ptrtype(nil)^ }
-                        encodedstr:=encodedstr+' nocapture dereferenceable_or_null('
+                        encodedstr:=encodedstr+' dereferenceable_or_null('
                       end;
                     else
                       internalerror(2018120801);
