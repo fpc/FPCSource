@@ -118,7 +118,8 @@ implementation
     fmodule,
     symtable,symconst,symsym,
     llvmsym,hlcgobj,
-    defutil,blockutl,cgbase,paramgr;
+    defutil,blockutl,cgbase,paramgr,
+    cpubase;
 
 
 {******************************************************************
@@ -923,6 +924,7 @@ implementation
         retloc: pcgparalocation;
         usedef: tdef;
         valueext: tllvmvalueextension;
+        paraslots,
         i: longint;
         sizeleft: asizeint;
       begin
@@ -983,7 +985,19 @@ implementation
               end
             end
           else
-            retdeflist[i]:=retloc^.def;
+            begin
+              if retloc^.def.typ<>floatdef then
+                begin
+                  paraslots:=sizeleft div cgpara.Alignment;
+                  if (paraslots>1) and
+                     ((paraslots*cgpara.Alignment)=sizeleft) then
+                    retdeflist[i]:=carraydef.getreusable(cgsize_orddef(int_cgsize(cgpara.Alignment)),paraslots)
+                  else
+                    retdeflist[i]:=retloc^.def;
+                end
+              else
+                retdeflist[i]:=retloc^.def;
+            end;
           inc(i);
           retloc:=retloc^.next;
         until not assigned(retloc);
