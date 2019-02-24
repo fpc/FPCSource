@@ -25,7 +25,7 @@ end;
 
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; UContext: Pucontext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
-  res,fpustate : word;
+  res,fpustate,MMState : word;
 begin
   res:=0;
   case sig of
@@ -34,35 +34,59 @@ begin
         { this is not allways necessary but I don't know yet
           how to tell if it is or not PM }
         res:=200;
-        if assigned(ucontext^.uc_mcontext.fpstate) then
+        if SigInfo^.si_code<>FPE_INTDIV then
           begin
-            FpuState:=ucontext^.uc_mcontext.fpstate^.sw;
-            if (FpuState and FPU_ExceptionMask) <> 0 then
+            if assigned(ucontext^.uc_mcontext.fpstate) then
               begin
-                { first check the more precise options }
-                if (FpuState and FPU_DivisionByZero)<>0 then
-                  res:=200
-                else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
-                  res:=207
-                else if (FpuState and FPU_Overflow)<>0 then
-                  res:=205
-                else if (FpuState and FPU_Underflow)<>0 then
-                  res:=206
-                else if (FpuState and FPU_Denormal)<>0 then
-                  res:=216
-                else
-                  res:=207;  {'Coprocessor Error'}
-              end;
-            with ucontext^.uc_mcontext.fpstate^ do
-              begin
-                { Reset Status word }
-                sw:=sw and not FPU_ExceptionMask;
-                { Restoree default control word }
-                cw:=Default8087CW;
-                { Reset Tag word to $ffff for all empty }
-                tag:=$ffff;
-              end;
-           end;
+                FpuState:=ucontext^.uc_mcontext.fpstate^.sw;
+                if (FpuState and FPU_ExceptionMask) <> 0 then
+                  begin
+                    { first check the more precise options }
+                    if (FpuState and FPU_DivisionByZero)<>0 then
+                      res:=208
+                    else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
+                      res:=207
+                    else if (FpuState and FPU_Overflow)<>0 then
+                      res:=205
+                    else if (FpuState and FPU_Underflow)<>0 then
+                      res:=206
+                    else if (FpuState and FPU_Denormal)<>0 then
+                      res:=216
+                    else
+                      res:=207;  {'Coprocessor Error'}
+                  end;
+                { SSE data? }
+                if ucontext^.uc_mcontext.fpstate^.magic<>$ffff then
+                  begin
+                    MMState:=ucontext^.uc_mcontext.fpstate^.mxcsr;
+                    if (MMState and MM_ExceptionMask)<>0 then
+                      begin
+                        { first check the more precise options }
+                        if (MMState and MM_DivisionByZero)<>0 then
+                          res:=208
+                        else if (MMState and MM_Invalid)<>0 Then
+                          res:=207
+                        else if (MMState and MM_Overflow)<>0 then
+                          res:=205
+                        else if (MMState and MM_Underflow)<>0 then
+                          res:=206
+                        else if (MMState and MM_Denormal)<>0 then
+                          res:=216
+                        else
+                          res:=207;  {'Coprocessor Error'}
+                      end;
+                  end;
+                with ucontext^.uc_mcontext.fpstate^ do
+                  begin
+                    { Reset Status word }
+                    sw:=sw and not FPU_ExceptionMask;
+                    { Restoree default control word }
+                    cw:=Default8087CW;
+                    { Reset Tag word to $ffff for all empty }
+                    tag:=$ffff;
+                  end;
+               end;
+          end;
       end;
     SIGBUS:
       res:=214;
