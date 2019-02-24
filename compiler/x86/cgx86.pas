@@ -3416,6 +3416,7 @@ unit cgx86;
         end;
 
       begin
+        regsize:=0;
 {$ifdef i8086}
         { Win16 callback/exported proc prologue support.
           Since callbacks can be called from different modules, DS on entry may be
