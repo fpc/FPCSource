@@ -34,7 +34,7 @@ unit psabiehpi;
       globtype,
       { symtable }
       symconst,symtype,symdef,symsym,
-      node,
+      node,nutils,
       { aasm }
       cpubase,cgbase,cgutils,
       aasmbase,aasmdata,aasmtai,
@@ -55,13 +55,22 @@ unit psabiehpi;
          compiled.
        }
        tpsabiehprocinfo = class(tcgprocinfo)
-         { psabieh stuff, might be subject to be moved elsewhere }
-         { gcc exception table list that belongs to this routine }
+         { set if the procedure needs exception tables because it
+           has exception generating nodes }
+         CreateExceptionTable: Boolean;
+
+         { if a procedure needs exception tables, this is the outmost landing pad
+           with "no action", covering everything not covered by other landing pads
+           since a procedure which has one landing pad need to be covered completely by landing pads }
+         OutmostLandingPad: TPSABIEHAction;
+
          callsite_table_data,
          action_table_data,
          gcc_except_table_data : TAsmList;
          typefilterlistlabel,typefilterlistlabelref,
-         callsitetablestart,callsitetableend : TAsmLabel;
+         callsitetablestart,callsitetableend,
+         { first label which must be inserted into the entry code }
+         entrycallsitestart,
          callsitelaststart : TAsmLabel;
          typefilterlist,
          landingpadstack,
@@ -81,7 +90,7 @@ unit psabiehpi;
          procedure PushLandingPad(action: TPSABIEHAction);
          function CurrentLandingPad: TPSABIEHAction;inline;
          function PopLandingPad(action: TPSABIEHAction): boolean;
-         procedure CreateNewPSABIEHCallsite;
+         procedure CreateNewPSABIEHCallsite(list: TAsmList);
          { adds a new type to the type filter list and returns its index
            be aware, that this method can also handle catch all filters so it
            is valid to pass nil }
@@ -89,6 +98,10 @@ unit psabiehpi;
          procedure set_eh_info; override;
          procedure setup_eh; override;
          procedure finish_eh; override;
+         procedure start_eh(list : TAsmList); override;
+         procedure end_eh(list : TAsmList); override;
+
+         function find_exception_handling(var n: tnode; para: pointer): foreachnoderesult; virtual;
        end;
 
 implementation
@@ -226,8 +239,10 @@ implementation
         include(flags,pi_has_except_table_data);
         if CurrentAction<>action then
           internalerror(2019021006);
-        { no further actions follow, finalize table }
-        if landingpadstack.count>0 then
+        { no further actions follow, finalize table
+          we check for >1 as the outmost landing pad has no action, so
+          we can ignore it }
+        if landingpadstack.count>1 then
           begin
             current_asmdata.getlabel(curpos,alt_data);
             action.actionlist.concat(tai_label.create(curpos));
@@ -262,7 +277,7 @@ implementation
       end;
 
 
-    procedure tpsabiehprocinfo.CreateNewPSABIEHCallsite;
+    procedure tpsabiehprocinfo.CreateNewPSABIEHCallsite(list : TAsmList);
       var
         callsiteend : TAsmLabel;
       begin
@@ -278,7 +293,7 @@ implementation
 {$endif debug_eh}
             callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,TDwarfAsmCFI(current_asmdata.AsmCFI).get_frame_start,callsitelaststart));
             current_asmdata.getlabel(callsiteend,alt_eh_end);
-            current_asmdata.CurrAsmList.concat(tai_label.create(callsiteend));
+            list.concat(tai_label.create(callsiteend));
             callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,callsitelaststart,callsiteend));
             { landing pad? }
             if assigned(CurrentLandingPad.landingpad) then
@@ -290,19 +305,25 @@ implementation
               begin
                 callsite_table_data.concat(tai_const.Create_rel_sym_offset(aitconst_uleb128bit,callsitetableend,CurrentLandingPad.actiontablelabel,1));
 {$ifdef debug_eh}
-                current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('New call site '+tostr(CurrentCallSiteNumber)+', action table index = '+tostr(landingpadstack.count-1))));
+                list.concat(tai_comment.Create(strpnew('New call site '+tostr(CurrentCallSiteNumber)+', action table index = '+tostr(landingpadstack.count-1))));
 {$endif debug_eh}
               end
             else
               begin
                 callsite_table_data.concat(tai_const.Create_uleb128bit(0));
 {$ifdef debug_eh}
-                current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('New call site '+tostr(CurrentCallSiteNumber)+', no action')));
+                list.concat(tai_comment.Create(strpnew('New call site '+tostr(CurrentCallSiteNumber)+', no action')));
 {$endif debug_eh}
-              end
+              end;
+            current_asmdata.getlabel(callsitelaststart,alt_eh_begin);
+            list.concat(tai_label.create(callsitelaststart));
+          end
+        else
+          begin
+            current_asmdata.getlabel(entrycallsitestart,alt_eh_begin);
+            callsitelaststart:=entrycallsitestart
           end;
-        current_asmdata.getlabel(callsitelaststart,alt_eh_begin);
-        current_asmdata.CurrAsmList.concat(tai_label.create(callsitelaststart));
+
         Inc(CurrentCallSiteNumber);
       end;
 
@@ -337,10 +358,21 @@ implementation
       end;
 
 
+    function tpsabiehprocinfo.find_exception_handling(var n: tnode; para: pointer): foreachnoderesult;
+      begin
+        if n.nodetype in [tryfinallyn,tryexceptn,raisen,onn] then
+          Result:=fen_norecurse_true
+        else
+          Result:=fen_false;
+        end;
+
+
     procedure tpsabiehprocinfo.setup_eh;
       var
         gcc_except_table: tai_section;
       begin
+        CreateExceptionTable:=foreachnode(code,@find_exception_handling,nil);
+
         gcc_except_table_data:=TAsmList.Create;
         callsite_table_data:=TAsmList.Create;
         action_table_data:=TAsmList.Create;
@@ -362,6 +394,16 @@ implementation
 
         callsite_table_data.concat(tai_label.create(callsitetablestart));
         cexceptionstatehandler:=tpsabiehexceptionstatehandler;
+
+        if CreateExceptionTable then
+          begin
+            CreateNewPSABIEHCallsite(current_asmdata.CurrAsmList);
+
+            OutmostLandingPad:=TPSABIEHAction.Create(nil);
+            PushAction(OutmostLandingPad);
+            PushLandingPad(OutmostLandingPad);
+            OutmostLandingPad.AddAction(nil);
+          end;
       end;
 
 
@@ -430,6 +472,26 @@ implementation
       end;
 
 
+    procedure tpsabiehprocinfo.start_eh(list: TAsmList);
+      begin
+       inherited start_eh(list);
+       if CreateExceptionTable then
+         list.insert(tai_label.create(entrycallsitestart));
+      end;
+
+
+    procedure tpsabiehprocinfo.end_eh(list: TAsmList);
+      begin
+       inherited end_eh(list);
+       if CreateExceptionTable then
+         begin
+           CreateNewPSABIEHCallsite(list);
+           PopLandingPad(CurrentLandingPad);
+           PopAction(OutmostLandingPad);
+         end;
+      end;
+
+
     class procedure tpsabiehexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
       begin
         tg.gethltemp(list,ossinttype,ossinttype.size,tt_persistent,t.reasonbuf);
@@ -461,7 +523,7 @@ implementation
             exceptstate.finallycodelabel:=nil;
             action:=TPSABIEHAction.Create(exceptstate.exceptionlabel);
           end;
-        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite;
+        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite(list);
         (current_procinfo as tpsabiehprocinfo).PushAction(action);
         (current_procinfo as tpsabiehprocinfo).PushLandingPad(action);
         if exceptframekind<>tek_except then
@@ -505,8 +567,6 @@ implementation
       var
         reg: TRegister;
       begin
-        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite;
-        (current_procinfo as tpsabiehprocinfo).PopLandingPad((current_procinfo as tpsabiehprocinfo).CurrentLandingPad);
         if exceptframekind<>tek_except then
           begin
             { record that no exception happened in the reason buf, in case we are in a try block of a finally statement }
@@ -517,14 +577,15 @@ implementation
         inherited;
         if exceptframekind=tek_except then
           hlcg.a_jmp_always(list,endlabel);
+        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite(list);
+        (current_procinfo as tpsabiehprocinfo).PopLandingPad((current_procinfo as tpsabiehprocinfo).CurrentLandingPad);
       end;
 
 
     class procedure tpsabiehexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint;
       endexceptlabel: tasmlabel; onlyfree: boolean);
       begin
-        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite;
-//        inherited free_exception(list, t, s, a, endexceptlabel, onlyfree);
+        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite(list);
       end;
 
 
@@ -542,11 +603,12 @@ implementation
             { Resume might not be called outside of an landing pad else
               the unwind is immediatly terminated, so create an empty landing pad }
             psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
-            psabiehprocinfo.CreateNewPSABIEHCallsite;
+            psabiehprocinfo.CreateNewPSABIEHCallsite(list);
 
             ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
             psabiehprocinfo.PushAction(ReRaiseLandingPad);
             psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
+            ReRaiseLandingPad.AddAction(nil);
 
             pd:=search_system_proc('fpc_resume');
             cgpara1.init;
@@ -556,7 +618,7 @@ implementation
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_resume',[@cgpara1],nil).resetiftemp;
             cgpara1.done;
 
-            psabiehprocinfo.CreateNewPSABIEHCallsite;
+            psabiehprocinfo.CreateNewPSABIEHCallsite(list);
             psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
             psabiehprocinfo.PopAction(ReRaiseLandingPad);
           end
@@ -566,7 +628,7 @@ implementation
             { empty landing pad needed to avoid immediate termination? }
             if psabiehprocinfo.landingpadstack.Count=0 then
               begin
-                psabiehprocinfo.CreateNewPSABIEHCallsite;
+                psabiehprocinfo.CreateNewPSABIEHCallsite(list);
 
                 ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
                 psabiehprocinfo.PushAction(ReRaiseLandingPad);
@@ -577,7 +639,7 @@ implementation
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
             if assigned(ReRaiseLandingPad) then
               begin
-                psabiehprocinfo.CreateNewPSABIEHCallsite;
+                psabiehprocinfo.CreateNewPSABIEHCallsite(list);
                 psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
                 psabiehprocinfo.PopAction(ReRaiseLandingPad);
              end;
@@ -701,9 +763,7 @@ implementation
 
     class procedure tpsabiehexceptionstatehandler.cleanupobjectstack(list: TAsmList);
       begin
-        // inherited cleanupobjectstack(list);
-//!!! some catch all clause needed?
-//!!!        internalerror(2019021004)
+        { there is nothing to do }
       end;
 
 

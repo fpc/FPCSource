@@ -731,6 +731,8 @@ implementation
          exitlabel: tasmlabel;
       begin
          current_asmdata.getjumplabel(exitlabel);
+         { add an catch all action clause, at least psabieh needs this }
+         catch_all_add(list);
          end_try_block(list,tek_except,t,entrystate,exitlabel);
          emit_except_label(current_asmdata.CurrAsmList,tek_except,entrystate,t);
          { don't generate line info for internal cleanup }
@@ -1424,11 +1426,13 @@ implementation
 
         location_reset(location,LOC_VOID,OS_NO);
         CurrentLandingPad:=nil;
+        CurrentAction:=nil;
+        ReRaiseLandingPad:=nil;
         psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
         { a reraise must raise the exception to the parent exception frame }
         if fc_catching_exceptions in flowcontrol then
           begin
-            psabiehprocinfo.CreateNewPSABIEHCallsite;
+            psabiehprocinfo.CreateNewPSABIEHCallsite(current_asmdata.CurrAsmList);
             CurrentLandingPad:=psabiehprocinfo.CurrentLandingPad;
             if psabiehprocinfo.PopLandingPad(CurrentLandingPad) then
               exclude(flowcontrol,fc_catching_exceptions);
@@ -1445,7 +1449,7 @@ implementation
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
         if assigned(CurrentLandingPad) then
           begin
-            psabiehprocinfo.CreateNewPSABIEHCallsite;
+            psabiehprocinfo.CreateNewPSABIEHCallsite(current_asmdata.CurrAsmList);
             if not(fc_catching_exceptions in flowcontrol) then
               begin
                 psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);

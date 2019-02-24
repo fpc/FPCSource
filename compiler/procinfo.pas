@@ -184,6 +184,10 @@ unit procinfo;
 
           procedure setup_eh; virtual;
           procedure finish_eh; virtual;
+          { called to insert needed eh info into the entry code }
+          procedure start_eh(list : TAsmList); virtual;
+          { called to insert needed eh info into the exit code }
+          procedure end_eh(list : TAsmList); virtual;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -345,6 +349,18 @@ implementation
 
 
     procedure tprocinfo.finish_eh;
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.start_eh(list: TAsmList);
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.end_eh(list: TAsmList);
       begin
         { no action by default }
       end;
