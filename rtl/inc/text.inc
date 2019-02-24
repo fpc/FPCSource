@@ -1858,6 +1858,8 @@ procedure fpc_Read_Text_Char_intern(var f : Text; out c: char); iocheck; [extern
 function fpc_GetBuf_Text(var f : Text) : pchar; iocheck; compilerproc;
 Begin
   Result:=@TextRec(f).Bufptr^[TextRec(f).BufEnd];
+  if TextRec(f).mode=fmOutput then
+    exit;
   If not CheckRead(f) then
     exit;
   If TextRec(f).BufPos>=TextRec(f).BufEnd Then

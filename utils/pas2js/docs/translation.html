@@ -595,8 +595,8 @@ End.
       <li><i>Double := Currency</i> -> <i>Double = Currency/10000</i></li>
       <li><i>Currency := Double</i> -> <i>Currency = Math.floor(Double*10000)</i></li>
       <li><i>JSValue := Currency</i> -> <i>JSValue = Currency/10000</i></li>
-      <li>Keep in mind that a double has only 52 bits for the number, so calculating
-      values greater than 450,359,962,737 might give a different result than in Delphi/FPC.
+      <li>Keep in mind that a double has only 54 bits for the number, so calculating
+      values greater than 900,719,925,474 might give a different result than in Delphi/FPC.
       See SysUtils.MinCurrency/MaxCurrency</li>
     </ul>
     </div>
@@ -1606,11 +1606,19 @@ function(){
     <li><i>Class.$unitname</i> is the unit name. E.g. <i>TClassA.$unitname == 'MyModule'</i>.</li>
     <li>The "<i>is</i>"-operator is implemented using "<i>isPrototypeOf</i>". Note that "<i>instanceof</i>" cannot be used, because classes are JS objects.</li>
     <li>The "<i>as</i>" operator is implemented as <i>rtl.as(Object,Class)</i>.</li>
-    <li>Supported: constructor, destructor, private, protected, public,
-      strict private, strict protected, class vars, class methods,
-      class constructor, external methods,
-      virtual, override, abstract, call inherited, assigned(), type cast,
-      overloads, reintroduce, sealed class, nested types.</li>
+    <li>Supported:
+      <ul>
+      <li>constructor, destructor</li>
+      <li>private, protected, public, strict private, strict protected</li>
+      <li>class vars, const, nested types</li>
+      <li>methods, class methods, class constructor, external methods</li>
+      <li>method modifiers overload, reintroduce, virtual, override, abstract, static, external name</li>
+      <li>call inherited</li>
+      <li>assigned()</li>
+      <li>type cast</li>
+      <li>class sealed, class abstract</li>
+      </ul>
+      </li>
     <li>Not supported: class destructor</li>
     <li>Property:
       <ul>
@@ -1619,7 +1627,7 @@ function(){
       stored modifier, index modifier.</li>
       <li>Not supported: getter/setter to an array element,
       e.g. <i>property A: char read FArray[0];</i> </li>
-      <li>Class property getter/setter are not static as in Delphi.</li>
+      <li>Class property getter/setter can be static or non static. Delphi: must be static.</li>
       <li>The <i>Index</i> modifier supports any constant, e.g. a string, while
       Delphi only allows an ordinal (longint). -2147483648 is not a special
       number in pas2js. Overriding a property with an index property is allowed
@@ -1918,8 +1926,8 @@ function(){
 
     <div class="section">
     <h2 id="attributes">Translating attributes</h2>
-    Attributes are not yet implemented. To make porting code easier there
-    is a <i>{$modeswitch ignoreattributes}</i>, that ignores attributes.
+    Attributes are stored in the TTypeInfo objects as streams stored in an array.
+    See the <i>TypInfo</i> function <i>GetRTTIAttributes</i> for details.
     </div>
 
     <div class="section">
@@ -3035,8 +3043,8 @@ End.
       <li>SmallInt - signed 16-bit</li>
       <li>LongWord - unsigned 32-bit</li>
       <li>LongInt - signed 32-bit</li>
-      <li>NativeUInt - unsigned 52-bit</li>
-      <li>NativeInt - signed 53-bit</li>
+      <li>NativeUInt - unsigned 53-bit</li>
+      <li>NativeInt - signed 54-bit</li>
     </ul>
     Notes:
     <ul>
@@ -3088,7 +3096,6 @@ End.
     <div class="section">
     <h2 id="notsupportedelements">Not supported elements</h2>
     <ul>
-    <li>Attributes</li>
     <li>Class destructor</li>
     <li>Enums with custom values</li>
     <li>Generics</li>

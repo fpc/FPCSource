@@ -32,8 +32,8 @@ interface
 
     type
       tx8664casenode = class(tx86casenode)
-         procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
-         procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
+         procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);override;
+         procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
       end;
 
 
@@ -53,7 +53,7 @@ implementation
                             TX8664CASENODE
 *****************************************************************************}
 
-    procedure tx8664casenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
+    procedure tx8664casenode.optimizevalues(var max_linear_list:int64;var max_dist:qword);
       begin
         inc(max_linear_list,9);
       end;
@@ -61,7 +61,7 @@ implementation
 
     { Always generate position-independent jump table, it is twice less in size at a price
       of two extra instructions (which shouldn't cause more slowdown than pipeline trashing) }
-    procedure tx8664casenode.genjumptable(hp : pcaselabel; min_,max_ : aint);
+    procedure tx8664casenode.genjumptable(hp : pcaselabel; min_,max_ : int64);
       var
         last: TConstExprInt;
         tablelabel: TAsmLabel;
@@ -80,22 +80,22 @@ implementation
 
       procedure genitem(t : pcaselabel);
         var
-          i : aint;
+          i : TConstExprInt;
         begin
           if assigned(t^.less) then
             genitem(t^.less);
           { fill possible hole }
-          i:=last.svalue+1;
-          while i<=t^._low.svalue-1 do
+          i:=last+1;
+          while i<=t^._low-1 do
             begin
               jtlist.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,elselabel));
-              inc(i);
+              i:=i+1;
             end;
-          i:=t^._low.svalue;
-          while i<=t^._high.svalue do
+          i:=t^._low;
+          while i<=t^._high do
             begin
               jtlist.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,blocklabel(t^.blockid)));
-              inc(i);
+              i:=i+1;
             end;
           last:=t^._high;
           if assigned(t^.greater) then

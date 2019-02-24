@@ -681,6 +681,7 @@ type
     pbivnRTTIInt_MinValue,
     pbivnRTTIInt_OrdType,
     pbivnRTTILocal, // $r
+    pbivnRTTIMemberAttributes,
     pbivnRTTIMethodKind, // tTypeInfoMethodVar has methodkind
     pbivnRTTIPointer_RefType,
     pbivnRTTIProcFlags,
@@ -689,6 +690,7 @@ type
     pbivnRTTIPropIndex,
     pbivnRTTIPropStored,
     pbivnRTTISet_CompType,
+    pbivnRTTITypeAttributes,
     pbivnSelf,
     pbivnTObjectDestroy,
     pbivnWith,
@@ -714,10 +716,10 @@ type
 
 const
   Pas2JSBuiltInNames: array[TPas2JSBuiltInName] of string = (
-    'arrayConcat', // rtl.arrayConcat
-    'arrayConcatN', // rtl.arrayConcatN
-    'arrayCopy', // rtl.arrayCopy
-    'arrayEq', // rtl.arrayEq
+    'arrayConcat', // rtl.arrayConcat    pbifnArray_Concat
+    'arrayConcatN', // rtl.arrayConcatN   pbifnArray_ConcatN
+    'arrayCopy', // rtl.arrayCopy      pbifnArray_Copy
+    'arrayEq', // rtl.arrayEq          pbifnArray_Equal
     'length', // rtl.length
     'arraySetLength', // rtl.arraySetLength
     '$clone',
@@ -836,37 +838,39 @@ const
     'enumtype',
     'maxvalue',
     'minvalue',
-    'ordtype',
-    '$r',
-    'methodkind',
-    'reftype',
-    'flags',
-    'procsig',
-    'Default',
-    'index',
-    'stored',
-    'comptype',
-    '$Self',
-    'tObjectDestroy', // rtl.tObjectDestroy
-    '$with',
-    '$a',
-    'NativeInt',
-    'tTypeInfo', // rtl.
-    'tTypeInfoClass', // rtl.
-    'tTypeInfoClassRef', // rtl.
-    'tTypeInfoDynArray', // rtl.
-    'tTypeInfoEnum', // rtl.
-    'tTypeInfoHelper', // rtl.
-    'tTypeInfoInteger', // rtl.
-    'tTypeInfoInterface', // rtl.
-    'tTypeInfoMethodVar', // rtl.
-    'tTypeInfoPointer', // rtl.
-    'tTypeInfoProcVar', // rtl.
-    'tTypeInfoRecord', // rtl.
-    'tTypeInfoRefToProcVar', // rtl.
-    'tTypeInfoSet', // rtl.
-    'tTypeInfoStaticArray', // rtl.
-    'NativeUInt'
+    'ordtype', // pbivnRTTIInt_OrdType
+    '$r', // pbivnRTTILocal
+    'attr', // pbivnRTTIMemberAttributes
+    'methodkind', // pbivnRTTIMethodKind
+    'reftype', // pbivnRTTIPointer_RefType
+    'flags', // pbivnRTTIProcFlags
+    'procsig', // pbivnRTTIProcVar_ProcSig
+    'Default', // pbivnRTTIPropDefault
+    'index', // pbivnRTTIPropIndex
+    'stored', // pbivnRTTIPropStored
+    'comptype', // pbivnRTTISet_CompType
+    'attr', // pbivnRTTITypeAttributes
+    '$Self', // pbivnSelf
+    'tObjectDestroy', // rtl.tObjectDestroy  pbivnTObjectDestroy
+    '$with', // pbivnWith
+    '$a', // pbitnAnonymousPostfix
+    'NativeInt', // pbitnIntDouble
+    'tTypeInfo', // pbitnTI
+    'tTypeInfoClass', // pbitnTIClass
+    'tTypeInfoClassRef', // pbitnTIClassRef
+    'tTypeInfoDynArray', // pbitnTIDynArray
+    'tTypeInfoEnum', // pbitnTIEnum
+    'tTypeInfoHelper', // pbitnTIHelper
+    'tTypeInfoInteger', // pbitnTIInteger
+    'tTypeInfoInterface', // pbitnTIInterface
+    'tTypeInfoMethodVar', // pbitnTIMethodVar
+    'tTypeInfoPointer', // pbitnTIPointer
+    'tTypeInfoProcVar', // pbitnTIProcVar
+    'tTypeInfoRecord', // pbitnTIRecord
+    'tTypeInfoRefToProcVar', // pbitnTIRefToProcVar
+    'tTypeInfoSet', // pbitnTISet
+    'tTypeInfoStaticArray', // pbitnTIStaticArray
+    'NativeUInt' // pbitnUIntDouble
     );
 
   // reserved words, not usable as identifiers, not even as sub identifiers
@@ -1161,7 +1165,7 @@ const
     msExternalClass,
     msTypeHelpers,
     msArrayOperators,
-    msIgnoreAttributes,
+    msPrefixedAttributes,
     msOmitRTTI,
     msMultipleScopeHelpers];
 
@@ -1824,10 +1828,16 @@ type
       AContext: TConvertContext); virtual;
     Function CreateRTTINewType(El: TPasType; const CallFuncName: string;
       IsForward: boolean; AContext: TConvertContext; out ObjLit: TJSObjectLiteral): TJSCallExpression; virtual;
-    Function CreateRTTIMemberField(V: TPasVariable; AContext: TConvertContext): TJSElement; virtual;
-    Function CreateRTTIMemberMethod(Proc: TPasProcedure; AContext: TConvertContext): TJSElement; virtual;
-    Function CreateRTTIMemberProperty(Prop: TPasProperty; AContext: TConvertContext): TJSElement; virtual;
+    Function CreateRTTIAttributes(const Attr: TPasExprArray; PosEl: TPasElement; aContext: TConvertContext): TJSElement; virtual;
+    Function CreateRTTIMemberField(Members: TFPList; Index: integer;
+      AContext: TConvertContext): TJSElement; virtual;
+    Function CreateRTTIMemberMethod(Members: TFPList; Index: integer;
+      AContext: TConvertContext): TJSElement; virtual;
+    Function CreateRTTIMemberProperty(Members: TFPList; Index: integer;
+      AContext: TConvertContext): TJSElement; virtual;
     Procedure CreateRTTIAnonymous(El: TPasType; AContext: TConvertContext); virtual;
+    Function CreateRTTIMembers(El: TPasMembersType; Src: TJSSourceElements;
+      FuncContext: TFunctionContext; RTTIExpr: TJSElement; NeedLocalVar: boolean): boolean; virtual;
     // create elements for interfaces
     Procedure AddIntfDelegations(ClassEl: TPasElement; Prop: TPasProperty;
       FinishedGUIDs: TStringList; ObjLit: TJSObjectLiteral; aContext: TFunctionContext);
@@ -12621,6 +12631,8 @@ begin
         AddResourceString(TPasResString(P));
         continue;
         end
+      else if C=TPasAttributes then
+        // ToDo
       else
         RaiseNotSupported(P as TPasElement,AContext,20161024191434);
       Add(E,P);
@@ -12885,6 +12897,9 @@ begin
           else if C.InheritsFrom(TPasProcedure) then
             continue
           else if C=TPasMethodResolution then
+            continue
+          else if C=TPasAttributes then
+            // ToDo
             continue
           else
             RaiseNotSupported(P,FuncContext,20161221233338);
@@ -14969,65 +14984,24 @@ procedure TPasToJSConverter.CreateRecordRTTI(El: TPasRecordType;
 var
   ObjLit: TJSObjectLiteral;
   Call: TJSCallExpression;
-  ok: Boolean;
-  i: Integer;
-  P: TPasElement;
-  VarSt: TJSVariableStatement;
-  NewEl: TJSElement;
-  C: TClass;
+  HasRTTIMembers: Boolean;
 begin
-  ok:=false;
   Call:=nil;
-  VarSt:=nil;
   try
     // module.$rtti.$Record("typename",{});
     Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewRecord),false,FuncContext,ObjLit);
     if ObjLit=nil then
       RaiseInconsistency(20190105141430,El);
 
-    // add $r to local vars, to avoid name clashes and for nicer debugging
-    FuncContext.AddLocalVar(GetBIName(pbivnRTTILocal),nil);
-
-    For i:=0 to El.Members.Count-1 do
-      begin
-      P:=TPasElement(El.Members[i]);
-      if P.Visibility in [visPrivate,visStrictPrivate] then
-        continue;
-      if not IsElementUsed(P) then continue;
-      NewEl:=nil;
-      C:=P.ClassType;
-      if C=TPasVariable then
-        NewEl:=CreateRTTIMemberField(TPasVariable(P),FuncContext)
-      else if C.InheritsFrom(TPasProcedure) then
-        NewEl:=CreateRTTIMemberMethod(TPasProcedure(P),FuncContext)
-      else if C=TPasProperty then
-        NewEl:=CreateRTTIMemberProperty(TPasProperty(P),FuncContext)
-      else if C.InheritsFrom(TPasType) then
-        continue
-      else
-        DoError(20190105142236,nSymbolCannotBePublished,sSymbolCannotBePublished,[],P);
-      if NewEl=nil then
-        continue; // e.g. abstract or external proc
-      // add RTTI element
-      if VarSt=nil then
-        begin
-        // add "var $r = module.$rtti.$Record..."
-        VarSt:=CreateVarStatement(GetBIName(pbivnRTTILocal),Call,El);
-        Call:=nil;
-        AddToSourceElements(Src,VarSt);
-        end;
-      AddToSourceElements(Src,NewEl);
-      end;
-    if Call<>nil then
+    HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,Call,false);
+    if not HasRTTIMembers then
       begin
       // no published members, add "module.$rtti.$Record..."
       AddToSourceElements(Src,Call);
-      Call:=nil;
       end;
 
-    ok:=true;
+    Call:=nil;
   finally
-    if not ok then
       Call.Free;
   end;
 end;
@@ -15620,61 +15594,37 @@ end;
 
 procedure TPasToJSConverter.AddClassRTTI(El: TPasClassType;
   Src: TJSSourceElements; FuncContext: TFunctionContext);
-
-  function IsMemberNeeded(aMember: TPasElement): boolean;
-  begin
-    Result:=IsElementUsed(aMember);
-  end;
-
 var
-  HasRTTIMembers: Boolean;
-  i: Integer;
-  P: TPasElement;
-  NewEl: TJSElement;
-  VarSt: TJSVariableStatement;
-  C: TClass;
+  HasRTTIMembers, NeedLocalVar: Boolean;
+  RTTIExpr, AttrJS: TJSElement;
+  Attr: TPasExprArray;
+  AssignSt: TJSAssignStatement;
 begin
-  // add $r to local vars, to avoid name clashes and for nicer debugging
-  FuncContext.AddLocalVar(GetBIName(pbivnRTTILocal),nil);
+  AttrJS:=nil;
+  // this.$rtti
+  RTTIExpr:=CreateMemberExpression(['this',GetBIName(pbivnRTTI)]);
+  try
+    Attr:=FuncContext.Resolver.GetAttributeCallsEl(El);
+    AttrJS:=CreateRTTIAttributes(Attr,El,FuncContext);
+    NeedLocalVar:=AttrJS<>nil;
 
-  HasRTTIMembers:=false;
-  For i:=0 to El.Members.Count-1 do
-    begin
-    P:=TPasElement(El.Members[i]);
-    //writeln('TPasToJSConverter.ConvertClassType RTTI El[',i,']=',GetObjName(P));
-    if El.ObjKind=okInterface then
-      // all interface methods are published
-    else if P.Visibility<>visPublished then
-      continue;
-    if not IsMemberNeeded(P) then continue;
-    NewEl:=nil;
-    C:=P.ClassType;
-    if C=TPasVariable then
-      NewEl:=CreateRTTIMemberField(TPasVariable(P),FuncContext)
-    else if C.InheritsFrom(TPasProcedure) then
-      NewEl:=CreateRTTIMemberMethod(TPasProcedure(P),FuncContext)
-    else if C=TPasProperty then
-      NewEl:=CreateRTTIMemberProperty(TPasProperty(P),FuncContext)
-    else if C.InheritsFrom(TPasType) then
-      continue
-    else if C=TPasMethodResolution then
-      continue
-    else
-      DoError(20170409202315,nSymbolCannotBePublished,sSymbolCannotBePublished,[],P);
-    if NewEl=nil then
-      continue; // e.g. abstract or external proc
-    // add RTTI element
-    if not HasRTTIMembers then
+    HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,RTTIExpr,NeedLocalVar);
+    if HasRTTIMembers then
+      RTTIExpr:=nil;
+
+    if AttrJS<>nil then
       begin
-      // add "var $r = this.$rtti"
-      VarSt:=CreateVarStatement(GetBIName(pbivnRTTILocal),
-        CreateMemberExpression(['this',GetBIName(pbivnRTTI)]),El);
-      AddToSourceElements(Src,VarSt);
-
-      HasRTTIMembers:=true;
+      // $r.attr = [];
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      AddToSourceElements(Src,AssignSt);
+      AssignSt.LHS:=CreateMemberExpression([GetBIName(pbivnRTTILocal),GetBIName(pbivnRTTITypeAttributes)]);
+      AssignSt.Expr:=AttrJS;
+      AttrJS:=nil;
       end;
-    AddToSourceElements(Src,NewEl);
-    end;
+  finally
+    AttrJS.Free;
+    RTTIExpr.Free;
+  end;
 end;
 
 procedure TPasToJSConverter.AddClassConstructors(FuncContext: TFunctionContext;
@@ -16402,9 +16352,15 @@ var
   RttiPath, TypeName: String;
   Call: TJSCallExpression;
   aModule: TPasModule;
+  aResolver: TPas2JSResolver;
+  Attr: TPasExprArray;
+  AttrJS: TJSElement;
+  ObjLitEl: TJSObjectLiteralElement;
 begin
   Result:=nil;
   ObjLit:=nil;
+
+  aResolver:=AContext.Resolver;
   // get module path
   aModule:=El.GetModule;
   if aModule=nil then
@@ -16430,7 +16386,18 @@ begin
       // add {}
       ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
       Call.AddArg(ObjLit);
+
+      Attr:=aResolver.GetAttributeCallsEl(El);
+      AttrJS:=CreateRTTIAttributes(Attr,El,AContext);
+      if AttrJS<>nil then
+        begin
+        // attr: [...]
+        ObjLitEl:=ObjLit.Elements.AddElement;
+        ObjLitEl.Name:=TJSString(GetBIName(pbivnRTTITypeAttributes));
+        ObjLitEl.Expr:=AttrJS;
+        end;
       end;
+
     Result:=Call;
   finally
     if Result=nil then
@@ -16438,36 +16405,164 @@ begin
   end;
 end;
 
-function TPasToJSConverter.CreateRTTIMemberField(V: TPasVariable;
-  AContext: TConvertContext): TJSElement;
-// create $r.addField("varname",typeinfo);
+function TPasToJSConverter.CreateRTTIAttributes(const Attr: TPasExprArray;
+  PosEl: TPasElement; aContext: TConvertContext): TJSElement;
+// create [Attr1Class,'Attr1ProcName',[Attr1Params],...]
 var
+  AttrArrayLit, ParamsArrayLit: TJSArrayLiteral;
+  i, j: Integer;
+  Expr, ParamExpr: TPasExpr;
+  aResolver: TPas2JSResolver;
+  Ref: TResolvedReference;
+  AttrClass, ConstrParent: TPasClassType;
+  aConstructor: TPasConstructor;
+  aName: String;
+  Params: TPasExprArray;
+  Value: TResEvalValue;
+  JSExpr: TJSElement;
+begin
+  Result:=nil;
+  aResolver:=aContext.Resolver;
+  AttrArrayLit:=nil;
+  try
+    for i:=0 to length(Attr)-1 do
+      begin
+      Expr:=Attr[i];
+      if Expr is TParamsExpr then
+        Expr:=TParamsExpr(Expr).Value;
+      if (Expr is TBinaryExpr) and (TBinaryExpr(Expr).OpCode=eopSubIdent) then
+        Expr:=TBinaryExpr(Expr).right;
+      if not aResolver.IsNameExpr(Expr) then
+        RaiseNotSupported(Expr,aContext,20190222182742,GetObjName(Expr));
+      // attribute class
+      Ref:=Expr.CustomData as TResolvedReference;
+      if Ref=nil then
+        // unknown attribute -> silently skip (delphi 10.3 compatible)
+        continue;
+      AttrClass:=Ref.Declaration as TPasClassType;
+      if AttrClass.IsAbstract then
+        continue; // silently skip abstract class (Delphi 10.3 compatible)
+      // attribute constructor name as string
+      if not (Ref.Context is TResolvedRefCtxAttrProc) then
+        RaiseNotSupported(Expr,aContext,20190223085831,GetObjName(Expr));
+      aConstructor:=TResolvedRefCtxAttrProc(Ref.Context).Proc;
+      if aConstructor.IsAbstract then
+        continue; // silently skip abstract method (Delphi 10.3 compatible)
+      ConstrParent:=aConstructor.Parent as TPasClassType;
+      if ConstrParent.HelperForType<>nil then
+        aResolver.RaiseMsg(20190223220134,nXExpectedButYFound,sXExpectedButYFound,
+          ['class method','helper method'],Expr);
+      aName:=TransformVariableName(aConstructor,aContext);
+
+      if AttrArrayLit=nil then
+        AttrArrayLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,PosEl));
+
+      // add class reference  pas.system.TCustomAttribute
+      AttrArrayLit.AddElement(CreateReferencePathExpr(AttrClass,aContext));
+      // add constructor name 'Create$1'
+      AttrArrayLit.AddElement(CreateLiteralString(PosEl,aName));
+      // add attribute params as [] if needed
+      ParamsArrayLit:=nil;
+      Expr:=Attr[i];
+      if Expr is TParamsExpr then
+        begin
+        Params:=TParamsExpr(Expr).Params;
+        for j:=0 to length(Params)-1 do
+          begin
+          ParamExpr:=Params[j];
+          Value:=aResolver.Eval(ParamExpr,[]);
+          if Value<>nil then
+            try
+              JSExpr:=ConvertConstValue(Value,aContext,PosEl);
+            finally
+              ReleaseEvalValue(Value);
+            end
+          else
+            JSExpr:=ConvertExpression(ParamExpr,aContext);
+          if ParamsArrayLit=nil then
+            begin
+            ParamsArrayLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,PosEl));
+            AttrArrayLit.AddElement(ParamsArrayLit);
+            end;
+          ParamsArrayLit.AddElement(JSExpr);
+          end;
+        end;
+      end;
+    Result:=AttrArrayLit;
+  finally
+    if Result=nil then
+      AttrArrayLit.Free;
+  end;
+end;
+
+function TPasToJSConverter.CreateRTTIMemberField(Members: TFPList;
+  Index: integer; AContext: TConvertContext): TJSElement;
+// create $r.addField("varname",typeinfo);
+// create $r.addField("varname",typeinfo,options);
+var
+  V: TPasVariable;
   Call: TJSCallExpression;
+  OptionsEl: TJSObjectLiteral;
+
+  procedure AddOption(const aName: String; JS: TJSElement);
+  var
+    ObjLit: TJSObjectLiteralElement;
+  begin
+    if JS=nil then exit;
+    if OptionsEl=nil then
+      begin
+      OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,V));
+      Call.AddArg(OptionsEl);
+      end;
+    ObjLit:=OptionsEl.Elements.AddElement;
+    ObjLit.Name:=TJSString(aName);
+    ObjLit.Expr:=JS;
+  end;
+
 var
   JSTypeInfo: TJSElement;
   aName: String;
+  aResolver: TPas2JSResolver;
+  Attr: TPasExprArray;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
+  V:=TPasVariable(Members[Index]);
   if (V.VarType<>nil) and (V.VarType.Name='') then
     CreateRTTIAnonymous(V.VarType,AContext);
 
   JSTypeInfo:=CreateTypeInfoRef(V.VarType,AContext,V);
+  OptionsEl:=nil;
   // Note: create JSTypeInfo first, it may raise an exception
   Call:=CreateCallExpression(V);
-  // $r.addField
-  Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTTILocal),GetBIName(pbifnRTTIAddField)]);
-  // param "varname"
-  aName:=TransformVariableName(V,AContext);
-  Call.AddArg(CreateLiteralString(V,aName));
-  // param typeinfo
-  Call.AddArg(JSTypeInfo);
-  Result:=Call;
+  try
+    // $r.addField
+    Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTTILocal),GetBIName(pbifnRTTIAddField)]);
+    // param "varname"
+    aName:=TransformVariableName(V,AContext);
+    Call.AddArg(CreateLiteralString(V,aName));
+    // param typeinfo
+    Call.AddArg(JSTypeInfo);
+
+    // param options if needed as {}
+    // option: attributes
+    Attr:=aResolver.GetAttributeCalls(Members,Index);
+    if length(Attr)>0 then
+      AddOption(GetBIName(pbivnRTTIMemberAttributes),
+                CreateRTTIAttributes(Attr,V,AContext));
+
+    Result:=Call;
+    Call:=nil;
+  finally
+    Call.Free;
+  end;
 end;
 
-function TPasToJSConverter.CreateRTTIMemberMethod(Proc: TPasProcedure;
-  AContext: TConvertContext): TJSElement;
+function TPasToJSConverter.CreateRTTIMemberMethod(Members: TFPList;
+  Index: integer; AContext: TConvertContext): TJSElement;
 // create $r.addMethod("funcname",methodkind,params,resulttype,options)
 var
+  Proc: TPasProcedure;
   OptionsEl: TJSObjectLiteral;
   ResultTypeInfo: TJSElement;
   Call: TJSCallExpression;
@@ -16476,6 +16571,7 @@ var
   var
     ObjLit: TJSObjectLiteralElement;
   begin
+    if JS=nil then exit;
     if OptionsEl=nil then
       begin
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Proc));
@@ -16495,8 +16591,12 @@ var
   ResultEl: TPasResultElement;
   ProcScope, OverriddenProcScope: TPasProcedureScope;
   OverriddenClass: TPasClassType;
+  aResolver: TPas2JSResolver;
+  Attr: TPasExprArray;
 begin
   Result:=nil;
+  Proc:=TPasProcedure(Members[Index]);
+  aResolver:=AContext.Resolver;
   if Proc.IsOverride then
     begin
     ProcScope:=Proc.CustomData as TPasProcedureScope;
@@ -16564,6 +16664,10 @@ begin
       inc(Flags,pfExternal);
     if Flags>0 then
       AddOption(GetBIName(pbivnRTTIProcFlags),CreateLiteralNumber(Proc,Flags));
+    Attr:=aResolver.GetAttributeCalls(Members,Index);
+    if length(Attr)>0 then
+      AddOption(GetBIName(pbivnRTTIMemberAttributes),
+                CreateRTTIAttributes(Attr,Proc,AContext));
 
     Result:=Call;
   finally
@@ -16572,10 +16676,11 @@ begin
   end;
 end;
 
-function TPasToJSConverter.CreateRTTIMemberProperty(Prop: TPasProperty;
-  AContext: TConvertContext): TJSElement;
+function TPasToJSConverter.CreateRTTIMemberProperty(Members: TFPList;
+  Index: integer; AContext: TConvertContext): TJSElement;
 // create  $r.addProperty("propname",flags,result,"getter","setter",{options})
 var
+  Prop: TPasProperty;
   Call: TJSCallExpression;
   OptionsEl: TJSObjectLiteral;
 
@@ -16588,6 +16693,7 @@ var
   var
     ObjLit: TJSObjectLiteralElement;
   begin
+    if JS=nil then exit;
     if OptionsEl=nil then
       begin
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Prop));
@@ -16608,8 +16714,10 @@ var
   StoredResolved, VarTypeResolved: TPasResolverResult;
   StoredValue, PasValue, IndexValue: TResEvalValue;
   aResolver: TPas2JSResolver;
+  Attr: TPasExprArray;
 begin
   Result:=nil;
+  Prop:=TPasProperty(Members[Index]);
   aResolver:=AContext.Resolver;
   OptionsEl:=nil;
   try
@@ -16726,6 +16834,12 @@ begin
       end;
       end;
 
+    // add option "attr"
+    Attr:=aResolver.GetAttributeCalls(Members,Index);
+    if length(Attr)>0 then
+      AddOption(GetBIName(pbivnRTTIMemberAttributes),
+        CreateRTTIAttributes(Attr,Prop,AContext));
+
     Result:=Call;
   finally
     if Result=nil then
@@ -16761,6 +16875,89 @@ begin
     begin
     JS:=ConvertArrayType(TPasArrayType(El),AContext);
     AddToSourceElements(Src,JS);
+    end;
+end;
+
+function TPasToJSConverter.CreateRTTIMembers(El: TPasMembersType;
+  Src: TJSSourceElements; FuncContext: TFunctionContext; RTTIExpr: TJSElement;
+  NeedLocalVar: boolean): boolean;
+type
+  TMemberType = (
+    mtClass,
+    mtInterface,
+    mtRecord
+    );
+
+  procedure CreateLocalvar;
+  var
+    VarSt: TJSVariableStatement;
+  begin
+    if Result then exit;
+    // add "var $r = module.$rtti.$Record..."
+    Result:=true;
+    VarSt:=CreateVarStatement(GetBIName(pbivnRTTILocal),RTTIExpr,El);
+    AddToSourceElements(Src,VarSt);
+  end;
+
+var
+  mt: TMemberType;
+  i: integer;
+  P: TPasElement;
+  C: TClass;
+  NewEl: TJSElement;
+  Members: TFPList;
+begin
+  Result:=false;
+  if El.ClassType=TPasRecordType then
+    mt:=mtRecord
+  else if El.ClassType=TPasClassType then
+    case TPasClassType(El).ObjKind of
+    okInterface: mt:=mtInterface;
+    else mt:=mtClass;
+    end
+  else
+    RaiseNotSupported(El,FuncContext,20190223211808,GetObjName(El));
+
+  // add $r to local vars, to avoid name clashes and for nicer debugging
+  FuncContext.AddLocalVar(GetBIName(pbivnRTTILocal),nil);
+
+  if NeedLocalVar then
+    CreateLocalvar;
+
+  Members:=El.Members;
+  For i:=0 to Members.Count-1 do
+    begin
+    P:=TPasElement(Members[i]);
+    C:=P.ClassType;
+    // check visibility
+    case mt of
+    mtClass:
+      if P.Visibility<>visPublished then continue;
+    mtInterface: ; // all members of an interface are published
+    mtRecord:
+      // a published record publishes all non private members
+      if P.Visibility in [visPrivate,visStrictPrivate] then
+        continue;
+    end;
+    if not IsElementUsed(P) then continue;
+
+    NewEl:=nil;
+    if C=TPasVariable then
+      NewEl:=CreateRTTIMemberField(Members,i,FuncContext)
+    else if C.InheritsFrom(TPasProcedure) then
+      NewEl:=CreateRTTIMemberMethod(Members,i,FuncContext)
+    else if C=TPasProperty then
+      NewEl:=CreateRTTIMemberProperty(Members,i,FuncContext)
+    else if C.InheritsFrom(TPasType)
+        or (C=TPasAttributes) then
+    else
+      DoError(20190105142236,nSymbolCannotBePublished,sSymbolCannotBePublished,[],P);
+    if NewEl=nil then
+      continue; // e.g. abstract or external proc
+    // add RTTI element
+    if not Result then
+      CreateLocalvar;
+    AddToSourceElements(Src,NewEl);
     end;
 end;
 
@@ -17395,7 +17592,6 @@ var
     List: TJSStatementList;
   begin
     RgCheck:=nil;
-    writeln('AAA1 CreateRefObj SetExpr=',GetObjName(SetExpr),' SetterArgName=',SetterArgName,' ',bsRangeChecks in AContext.ScannerBoolSwitches);
     if (SetExpr is TJSSimpleAssignStatement)
         and (SetterArgName<>'')
         and (bsRangeChecks in AContext.ScannerBoolSwitches) then
@@ -22044,8 +22240,9 @@ begin
                 and not aResolver.MethodIsStatic(TPasProcedure(P))) then
             IsFull:=true; // needs $record
           end;
-        continue;
         end
+      else if C=TPasAttributes then
+        // ToDo
       else
         RaiseNotSupported(P,FuncContext,20190105105436);
       if NewEl<>nil then

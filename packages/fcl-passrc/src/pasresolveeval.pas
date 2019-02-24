@@ -184,6 +184,9 @@ const
   nBitWiseOperationsAre32Bit = 3118;
   nImplictConversionUnicodeToAnsi = 3119;
   nWrongTypeXInArrayConstructor = 3120;
+  nUnknownCustomAttributeX = 3121;
+  nAttributeIgnoredBecauseAbstractX = 3122;
+  nCreatingAnInstanceOfAbstractClassY = 3123;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -315,6 +318,9 @@ resourcestring
   sBitWiseOperationsAre32Bit = 'Bitwise operations are 32-bit';
   sImplictConversionUnicodeToAnsi = 'Implicit string type conversion with potential data loss from "UnicodeString" to "AnsiString"';
   sWrongTypeXInArrayConstructor = 'Wrong type "%s" in array constructor';
+  sUnknownCustomAttributeX = 'Unknown custom attribute "%s"';
+  sAttributeIgnoredBecauseAbstractX = 'attribute ignored because abstract %s';
+  sCreatingAnInstanceOfAbstractClassY = 'Creating an instance of abstract class "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -361,7 +367,7 @@ const
   MinSafeIntSingle = -16777216;
   MaxSafeIntSingle =  16777216;
   MaskUIntSingle = $3fffff;
-  MinSafeIntDouble = -$1fffffffffffff; // -9007199254740991 53 bits (52 explicitly stored)
+  MinSafeIntDouble = -$1fffffffffffff; // -9007199254740991 54 bits (52 plus signed bit plus implicit highest bit)
   MaxSafeIntDouble =  $1fffffffffffff; //  9007199254740991
   MaskUIntDouble = $1fffffffffffff;
 

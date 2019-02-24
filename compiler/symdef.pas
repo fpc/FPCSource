@@ -1820,6 +1820,8 @@ implementation
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
+         typesymderef.reset;
+         genericdefderef.reset;
 
          { Don't register forwarddefs, they are disposed at the
            end of an type block }
@@ -2616,6 +2618,7 @@ implementation
          calcsavesize(current_settings.packenum);
          has_jumps:=false;
          basedef:=nil;
+         basedefderef.reset;
          symtable:=tenumsymtable.create(self);
       end;
 
@@ -3127,6 +3130,7 @@ implementation
          inherited create(filedef,true);
          filetyp:=ft_text;
          typedfiledef:=nil;
+         typedfiledefderef.reset;
       end;
 
 
@@ -3355,6 +3359,7 @@ implementation
       begin
         inherited create(dt,true);
         pointeddef:=def;
+        pointeddefderef.reset;
         if df_generic in pointeddef.defoptions then
           include(defoptions,df_generic);
         if df_specialization in pointeddef.defoptions then
@@ -3605,6 +3610,7 @@ implementation
       begin
          inherited create(setdef,doregister);
          elementdef:=def;
+         elementdefderef.reset;
          setmax:=high;
          actual_setalloc:=current_settings.setalloc;
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
@@ -3749,7 +3755,9 @@ implementation
          lowrange:=l;
          highrange:=h;
          rangedef:=def;
+         rangedefderef.reset;
          _elementdef:=nil;
+         _elementdefderef.reset;
          arrayoptions:=[];
          symtable:=tarraysymtable.create(self);
       end;
@@ -4486,6 +4494,7 @@ implementation
          if symtable.refcount=1 then
            symtable.defowner:=self;
          isunion:=false;
+         cloneddefderef.reset;
       end;
 
 
@@ -4818,6 +4827,7 @@ implementation
          proccalloption:=pocall_none;
          procoptions:=[];
          returndef:=voidtype;
+         returndefderef.reset;
          savesize:=sizeof(pint);
          callerargareasize:=0;
          calleeargareasize:=0;
@@ -5623,10 +5633,13 @@ implementation
          extnumber:=$ffff;
          aliasnames:=TCmdStrList.create;
          funcretsym:=nil;
+         funcretsymderef.reset;
+         procsymderef.reset;
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
          struct := nil;
+         structderef.reset;
          import_dll:=nil;
          import_name:=nil;
          import_nr:=0;
@@ -6744,6 +6757,10 @@ implementation
         fcurrent_dispid:=0;
         objecttype:=ot;
         childof:=nil;
+        childofderef.reset;
+        vmt_fieldderef.reset;
+        extendeddefderef.reset;
+        cloneddefderef.reset;
         if objecttype=odt_helper then
           owner.includeoption(sto_has_helper);
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords,
@@ -7794,6 +7811,7 @@ implementation
       begin
         inherited create;
         intfdef:=aintf;
+        intfdefderef.reset;
         IOffset:=-1;
         IType:=etStandard;
         NameMappings:=nil;
