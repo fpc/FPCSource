@@ -7256,6 +7256,7 @@ begin
     aModifier:=lowercase(aClass.Modifiers[i]);
     case aModifier of
     'sealed': IsSealed:=true;
+    'abstract': ;
     else
       RaiseMsg(20170320190619,nIllegalQualifier,sIllegalQualifier,[aClass.Modifiers[i]],aClass);
     end;
@@ -16282,6 +16283,10 @@ begin
         if (TypeEl.ClassType=TPasClassType)
             and (TPasClassType(TypeEl).HelperForType<>nil) then
           TypeEl:=ResolveAliasType(TPasClassType(TypeEl).HelperForType) as TPasType;
+        if (TypeEl.ClassType=TPasClassType) and
+            TPasClassType(TypeEl).IsAbstract then
+          LogMsg(20190224153450,mtWarning,nCreatingAnInstanceOfAbstractClassY,
+            sCreatingAnInstanceOfAbstractClassY,[TypeEl.Name],FindData.ErrorPosEl);
         TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
         if OnlyTypeMembers and (ClassRecScope is TPasClassScope) then
           begin

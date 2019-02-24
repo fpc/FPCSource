@@ -609,6 +609,7 @@ type
     Procedure TestClass_UntypedParam_TypeCast;
     Procedure TestClass_Sealed;
     Procedure TestClass_SealedDescendFail;
+    Procedure TestClass_AbstractCreateFail;
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
     Procedure TestClass_Const;
@@ -10833,6 +10834,26 @@ begin
   Add('begin');
   CheckResolverException(sCannotCreateADescendantOfTheSealedXY,
     nCannotCreateADescendantOfTheSealedXY);
+end;
+
+procedure TTestResolver.TestClass_AbstractCreateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  TNop = class abstract(TObject)',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '  TNop.Create;']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nCreatingAnInstanceOfAbstractClassY,
+    'Creating an instance of abstract class "TNop"');
 end;
 
 procedure TTestResolver.TestClass_VarExternal;
