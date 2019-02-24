@@ -2470,6 +2470,8 @@ begin
       EmitTypeHints(TPasType(Decl))
     else if Decl is TPasProcedure then
       EmitProcedureHints(TPasProcedure(Decl))
+    else if Decl.ClassType=TPasAttributes then
+      // no hints
     else
       begin
       Usage:=FindElement(Decl);
