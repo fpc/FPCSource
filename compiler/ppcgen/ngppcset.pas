@@ -31,9 +31,9 @@ interface
     type
        tgppccasenode = class(tcgcasenode)
          protected
-           procedure optimizevalues(var max_linear_list : aint; var max_dist : aword);override;
+           procedure optimizevalues(var max_linear_list : int64; var max_dist : qword);override;
            function  has_jumptable : boolean;override;
-           procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
+           procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
            procedure genlinearlist(hp : pcaselabel); override;
        end;
 
@@ -57,7 +57,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure tgppccasenode.optimizevalues(var max_linear_list : aint; var max_dist : aword);
+    procedure tgppccasenode.optimizevalues(var max_linear_list : int64; var max_dist : qword);
     begin
       max_linear_list := 10;
     end;
@@ -69,7 +69,7 @@ implementation
       end;
 
 
-    procedure tgppccasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
+    procedure tgppccasenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
       var
         table : tasmlabel;
         last : TConstExprInt;
