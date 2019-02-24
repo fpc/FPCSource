@@ -800,7 +800,9 @@ type
     Procedure TestResourcestringImplementation;
 
     // Attributes
-    Procedure TestAtributes_Ignore;
+    Procedure TestAttributes_Members;
+    Procedure TestAttributes_Types;
+    Procedure TestAttributes_HelperConstructor_Fail;
 
     // Assertions, checks
     procedure TestAssert;
@@ -28494,36 +28496,195 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestAtributes_Ignore;
+procedure TTestModule.TestAttributes_Members;
 begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartProgram(false);
   Add([
-  '{$modeswitch ignoreattributes}',
+  '{$modeswitch PrefixedAttributes}',
   'type',
-  '  [custom1, custom2(1+3,''foo'')] [mod1.custom3]',
   '  TObject = class',
-  '    [custom5()] FS: string;',
-  '    [customProp] property S: string read FS;',
+  '    constructor Create;',
   '  end;',
-  'var',
-  '  [custom6]',
-  '  o: TObject;',
+  '  TCustomAttribute = class',
+  '    constructor Create(Id: word);',
+  '  end;',
+  '  [Missing]',
+  '  TBird = class',
+  '  published',
+  '    [Tcustom]',
+  '    FField: word;',
+  '    [tcustom(14)]',
+  '    property Size: word read FField;',
+  '    [Tcustom(15)]',
+  '    procedure Fly; virtual; abstract;',
+  '  end;',
+  '  TRec = record',
+  '    [Tcustom,tcustom(14)]',
+  '    Size: word;',
+  '  end;',
+  'constructor TObject.Create; begin end;',
+  'constructor TCustomAttribute.Create(Id: word); begin end;',
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestAtributes_Ignore',
+  CheckSource('TestAttributes_Members',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
-    '    this.FS = "";',
     '  };',
     '  this.$final = function () {',
     '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
     '});',
-    'this.o = null;',
+    'rtl.createClass($mod, "TCustomAttribute", $mod.TObject, function () {',
+    '  this.Create$1 = function (Id) {',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.FField = 0;',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("FField", rtl.word, {',
+    '    attr: [$mod.TCustomAttribute, "Create"]',
+    '  });',
+    '  $r.addProperty(',
+    '    "Size",',
+    '    0,',
+    '    rtl.word,',
+    '    "FField",',
+    '    "",',
+    '    {',
+    '      attr: [$mod.TCustomAttribute, "Create$1", [14]]',
+    '    }',
+    '  );',
+    '  $r.addMethod("Fly", 0, null, null, {',
+    '    attr: [$mod.TCustomAttribute, "Create$1", [15]]',
+    '  });',
+    '});',
+    'rtl.recNewT($mod, "TRec", function () {',
+    '  this.Size = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.Size === b.Size;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.Size = s.Size;',
+    '    return this;',
+    '  };',
+    '  var $r = $mod.$rtti.$Record("TRec", {});',
+    '  $r.addField("Size", rtl.word, {',
+    '    attr: [',
+    '        $mod.TCustomAttribute,',
+    '        "Create",',
+    '        $mod.TCustomAttribute,',
+    '        "Create$1",',
+    '        [14]',
+    '      ]',
+    '  });',
+    '});',
     '']),
     LinesToStr([ // $mod.$main
     '']));
+end;
+
+procedure TTestModule.TestAttributes_Types;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$modeswitch PrefixedAttributes}',
+  'type',
+  '  TObject = class',
+  '    constructor Create(Id: word);',
+  '  end;',
+  '  TCustomAttribute = class',
+  '  end;',
+  '  [TCustom(1)]',
+  '  TMyClass = class',
+  '  end;',
+  '  [TCustom(2)]',
+  '  TRec = record',
+  '  end;',
+  '  [TCustom(3)]',
+  '  TInt = type word;',
+  'constructor TObject.Create(Id: word);',
+  'begin',
+  'end;',
+  'var p: pointer;',
+  'begin',
+  '  p:=typeinfo(TMyClass);',
+  '  p:=typeinfo(TRec);',
+  '  p:=typeinfo(TInt);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAttributes_Types',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function (Id) {',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TCustomAttribute", $mod.TObject, function () {',
+    '});',
+    'rtl.createClass($mod, "TMyClass", $mod.TObject, function () {',
+    '  var $r = this.$rtti;',
+    '  $r.attr = [$mod.TCustomAttribute, "Create", [1]];',
+    '});',
+    'rtl.recNewT($mod, "TRec", function () {',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  $mod.$rtti.$Record("TRec", {',
+    '    attr: [$mod.TCustomAttribute, "Create", [2]]',
+    '  });',
+    '});',
+    '$mod.$rtti.$inherited("TInt", rtl.word, {',
+    '  attr: [$mod.TCustomAttribute, "Create", [3]]',
+    '});',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TMyClass"];',
+    '$mod.p = $mod.$rtti["TRec"];',
+    '$mod.p = $mod.$rtti["TInt"];',
+    '']));
+end;
+
+procedure TTestModule.TestAttributes_HelperConstructor_Fail;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$modeswitch PrefixedAttributes}',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  TCustomAttribute = class',
+  '  end;',
+  '  THelper = class helper for TCustomAttribute',
+  '    constructor Create(Id: word);',
+  '  end;',
+  '  [TCustom(3)]',
+  '  TMyInt = word;',
+  'constructor TObject.Create; begin end;',
+  'constructor THelper.Create(Id: word); begin end;',
+  'begin',
+  '  if typeinfo(TMyInt)=nil then ;']);
+  //SetExpectedConverterError('aaa',123);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestAssert;

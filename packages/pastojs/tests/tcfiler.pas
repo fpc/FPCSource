@@ -121,6 +121,7 @@ type
     procedure CheckRestoredMethodResolution(const Path: string; Orig, Rest: TPasMethodResolution); virtual;
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
+    procedure CheckRestoredAttributes(const Path: string; Orig, Rest: TPasAttributes); virtual;
   public
     property Analyzer: TPas2JSAnalyzer read FAnalyzer;
     property RestAnalyzer: TPas2JSAnalyzer read FRestAnalyzer;
@@ -163,7 +164,7 @@ type
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
     procedure TestPC_ClassInterface;
-    procedure TestPC_IgnoreAttributes;
+    procedure TestPC_Attributes;
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -1181,6 +1182,8 @@ begin
     CheckRestoredModule(Path,TPasModule(Orig),TPasModule(Rest))
   else if C.InheritsFrom(TPasSection) then
     CheckRestoredSection(Path,TPasSection(Orig),TPasSection(Rest))
+  else if C=TPasAttributes then
+    CheckRestoredAttributes(Path,TPasAttributes(Orig),TPasAttributes(Rest))
   else
     Fail(Path+': unknown class '+C.ClassName);
 
@@ -1568,6 +1571,12 @@ begin
     Fail(Path+'.OperatorType Orig='+PCUOperatorTypeNames[Orig.OperatorType]+' Rest='+PCUOperatorTypeNames[Rest.OperatorType]);
   AssertEquals(Path+'.TokenBased',Orig.TokenBased,Rest.TokenBased);
   CheckRestoredProcedure(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredAttributes(const Path: string;
+  Orig, Rest: TPasAttributes);
+begin
+  CheckRestoredPasExprArray(Path+'.Calls',Orig.Calls,Rest.Calls);
 end;
 
 { TTestPrecompile }
@@ -2213,22 +2222,35 @@ begin
   WriteReadUnit;
 end;
 
-procedure TTestPrecompile.TestPC_IgnoreAttributes;
+procedure TTestPrecompile.TestPC_Attributes;
 begin
   StartUnit(false);
   Add([
   'interface',
-  '{$modeswitch ignoreattributes}',
+  '{$modeswitch PrefixedAttributes}',
   'type',
-  '  [custom1, custom2(1+3,''foo'')] [mod1.custom3]',
   '  TObject = class',
-  '    [custom5()] FS: string;',
-  '    [customProp] property S: string read FS;',
+  '    constructor Create;',
+  '  end;',
+  '  TCustomAttribute = class',
+  '    constructor Create(Id: word);',
+  '  end;',
+  '  [Missing]',
+  '  TBird = class',
+  '    [TCustom]',
+  '    FField: word;',
+  '  end;',
+  '  TRec = record',
+  '    [TCustom]',
+  '    Size: word;',
   '  end;',
   'var',
-  '  [custom6]',
+  '  [TCustom, TCustom(3)]',
   '  o: TObject;',
   'implementation',
+  '[TCustom]',
+  'constructor TObject.Create; begin end;',
+  'constructor TCustomAttribute.Create(Id: word); begin end;',
   'end.',
   '']);
   WriteReadUnit;
