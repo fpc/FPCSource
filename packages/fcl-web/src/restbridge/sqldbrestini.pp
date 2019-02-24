@@ -50,7 +50,8 @@ Type
                           dioDisableSchemas,        // Do not enable schemas
                           dioSkipWriteConnections,  // Do not write connection definitions
                           dioSkipWriteSchemas,      // Do not Read schema definitions
-                          dioSkipBasicAuth          // Do not read/write basic auth data.
+                          dioSkipBasicAuth,         // Do not read/write basic auth data.
+                          dioSkipStringConfig       // Do not read strings config
                           );
   TDispatcherIniOptions = set of TDispatcherIniOption;
 
@@ -73,6 +74,20 @@ Type
     Procedure SaveToIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TDispatcherIniOptions); overload;
   end;
 
+  { TRestStringsConfigHelper }
+
+  TRestStringsConfigHelper = class helper for TRestStringsConfig
+  Public
+    Procedure LoadFromIni(Const aIni: TCustomIniFile); overload;
+    Procedure LoadFromIni(Const aIni: TCustomIniFile; ASection : String); overload;
+    Procedure LoadFromFile(Const aFileName : String); overload;
+    Procedure LoadFromFile(Const aFileName : String; Const ASection : String); overload;
+    Procedure SaveToFile(Const aFileName : String);overload;
+    Procedure SaveToFile(Const aFileName : String; Const ASection : String);overload;
+    Procedure SaveToIni(Const aIni: TCustomIniFile); overload;
+    Procedure SaveToIni(Const aIni: TCustomIniFile; ASection : String); overload;
+  end;
+
 
 Function StrToOutputOptions(S : String) : TRestOutputOptions;
 Function StrToDispatcherOptions(S : String) : TRestDispatcherOptions;
@@ -85,6 +100,7 @@ Var
   TrivialEncryptKey : String = 'SQLDB';
   DefaultConnectionSection : String = 'Connection';
   DefaultDispatcherSection : String = 'Dispatcher';
+  DefaultStringsConfigSection : String = 'Dispatcher_strings';
 
 implementation
 
@@ -170,6 +186,86 @@ Function ConnectionIniOptionsToStr(Options : TConnectionIniOptions): String;
 
 begin
   Result:=SetToString(PTypeInfo(TypeInfo(TConnectionIniOptions)),Integer(Options),false);
+end;
+
+{ TRestStringsConfigHelper }
+
+procedure TRestStringsConfigHelper.LoadFromIni(const aIni: TCustomIniFile);
+begin
+  LoadFromIni(aIni,DefaultStringsConfigSection);
+end;
+
+procedure TRestStringsConfigHelper.LoadFromIni(const aIni: TCustomIniFile; ASection: String);
+
+Var
+  T : TRestStringProperty;
+  N : String;
+  S : UTF8String;
+
+begin
+  For T in TRestStringProperty do
+    begin
+    Str(T,N);
+    Delete(N,1,2);
+    S:=aIni.ReadString(aSection, N, GetRestString(T));
+    SetRestString(T,S);
+    end;
+end;
+
+procedure TRestStringsConfigHelper.LoadFromFile(const aFileName: String);
+begin
+  LoadFromFile(aFileName,DefaultStringsConfigSection);
+end;
+
+procedure TRestStringsConfigHelper.LoadFromFile(const aFileName: String; const ASection: String);
+Var
+  Ini : TCustomIniFile;
+
+begin
+  Ini:=TMeminiFile.Create(aFileName);
+  try
+    LoadFromIni(Ini,aSection);
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure TRestStringsConfigHelper.SaveToFile(const aFileName: String);
+begin
+  SaveToFile(aFileName,DefaultStringsConfigSection);
+end;
+
+procedure TRestStringsConfigHelper.SaveToFile(const aFileName: String; const ASection: String);
+Var
+  Ini : TCustomIniFile;
+
+begin
+  Ini:=TMeminiFile.Create(aFileName);
+  try
+    SaveToIni(Ini,aSection);
+    Ini.UpdateFile;
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure TRestStringsConfigHelper.SaveToIni(const aIni: TCustomIniFile);
+begin
+  SaveToini(aIni,DefaultStringsConfigSection);
+end;
+
+procedure TRestStringsConfigHelper.SaveToIni(const aIni: TCustomIniFile; ASection: String);
+Var
+  T : TRestStringProperty;
+  N : String;
+
+begin
+  For T in TRestStringProperty do
+    begin
+    Str(T,N);
+    Delete(N,1,2);
+    aIni.WriteString(aSection, N, GetRestString(T));
+    end;
 end;
 
 
@@ -327,6 +423,8 @@ begin
       Self.Authenticator:=BA;
       end;
     end;
+  if not (dioSkipStringConfig in aOptions) then
+    Strings.LoadFromIni(aIni,aSection+'_strings');
 end;
 
 procedure TSQLDBRestDispatcherHelper.LoadFromFile(const aFileName: String; aOptions: TDispatcherIniOptions);
@@ -361,6 +459,7 @@ begin
   Ini:=TMeminiFile.Create(aFileName);
   try
     SaveToIni(Ini,aSection,aOptions);
+    Ini.UpdateFile;
   finally
     Ini.Free;
   end;
@@ -396,7 +495,8 @@ begin
       TRestBasicAuthenticator(Authenticator).SaveToIni(aIni,BAN,[]);
       aIni.WriteString(aSection,KeyBasicAuth,BAN);
       end;
-  Aini.UpdateFile;
+  if not (dioSkipStringConfig in aOptions) then
+    Strings.SaveToIni(aIni,aSection+'_strings');
 end;
 
 { TSQLDBRestConnectionHelper }
@@ -512,6 +612,7 @@ begin
   Ini:=TMeminiFile.Create(aFileName);
   try
     SaveToini(Ini,aSection,aOptions);
+    Ini.UpdateFile;
   finally
     Ini.Free;
   end;
