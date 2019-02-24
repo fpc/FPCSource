@@ -668,9 +668,12 @@ implementation
 
     procedure llvmaddencodedparaloctype(hp: tparavarsym; proccalloption: tproccalloption; withparaname, withattributes: boolean; var first: boolean; var encodedstr: TSymStr);
       var
+        para: PCGPara;
         paraloc: PCGParaLocation;
+        side: tcallercallee;
         signext: tllvmvalueextension;
         usedef: tdef;
+        firstloc: boolean;
       begin
         if (proccalloption in cdecl_pocalls) and
            is_array_of_const(hp.vardef) then
@@ -682,20 +685,17 @@ implementation
             encodedstr:=encodedstr+'...';
             exit
           end;
-        if withparaname then
-          begin
-            { don't add parameters that don't take up registers or stack space;
-              clang doesn't either and some LLVM backends don't support them }
-            if hp.paraloc[calleeside].isempty then
-              exit;
-            paraloc:=hp.paraloc[calleeside].location
-          end
+        if not withparaname then
+          side:=callerside
         else
-          begin
-            if hp.paraloc[callerside].isempty then
-              exit;
-            paraloc:=hp.paraloc[callerside].location;
-          end;
+          side:=calleeside;
+        { don't add parameters that don't take up registers or stack space;
+          clang doesn't either and some LLVM backends don't support them }
+        if hp.paraloc[side].isempty then
+          exit;
+        para:=@hp.paraloc[side];
+        paraloc:=para^.location;
+        firstloc:=true;
         repeat
           usedef:=paraloc^.def;
           llvmextractvalueextinfo(hp.vardef,usedef,signext);
@@ -732,7 +732,14 @@ implementation
              llvmbyvalparaloc(paraloc) then
             begin
               if withattributes then
-                encodedstr:=encodedstr+'* byval'
+                begin
+                  encodedstr:=encodedstr+'* byval';
+                  if firstloc and
+                     (para^.alignment<>std_param_align) then
+                    begin
+                      encodedstr:=encodedstr+' align '+tostr(para^.alignment);
+                    end;
+                end
               else
                 encodedstr:=encodedstr+'*';
             end
@@ -778,6 +785,7 @@ implementation
               encodedstr:=encodedstr+' '+llvmasmsymname(paraloc^.llvmloc.sym);
             end;
           paraloc:=paraloc^.next;
+          firstloc:=false;
           first:=false;
         until not assigned(paraloc);
       end;
