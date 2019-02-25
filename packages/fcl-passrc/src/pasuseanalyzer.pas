@@ -1475,6 +1475,7 @@ var
   ModScope: TPasModuleScope;
   Access: TResolvedRefAccess;
   SubEl: TPasElement;
+  ParamsExpr: TParamsExpr;
 begin
   if El=nil then exit;
   // Note: expression itself is not marked, but it can reference identifiers
@@ -1527,7 +1528,8 @@ begin
         case BuiltInProc.BuiltIn of
         bfExit:
           begin
-          if El.Parent is TParamsExpr then
+          ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
+          if ParamsExpr<>nil then
             begin
             Params:=(El.Parent as TParamsExpr).Params;
             if length(Params)=1 then
@@ -1546,7 +1548,10 @@ begin
           end;
         bfTypeInfo:
           begin
-          Params:=(El.Parent as TParamsExpr).Params;
+          ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
+          if ParamsExpr=nil then
+            RaiseNotSupported(20190225150136,El);
+          Params:=ParamsExpr.Params;
           if length(Params)<>1 then
             RaiseNotSupported(20180226144217,El.Parent);
           Resolver.ComputeElement(Params[0],ParamResolved,[rcNoImplicitProc]);
