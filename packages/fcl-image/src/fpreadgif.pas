@@ -303,8 +303,8 @@ begin
       end;
     until (B = 0)  or (Stream.Position>=Stream.Size);
     
-    if Stream.Position>=Stream.Size then 
-      Exit(False);
+   { if Stream.Position>=Stream.Size then 
+      Exit(False); }
 
     Progress(psRunning, trunc(100.0 * (Stream.position / Stream.size)),
              False, Rect(0,0,0,0), '', ContProgress);
@@ -323,8 +323,8 @@ begin
       end;
     until (B = 0) or (Stream.Position>=Stream.Size);
     
-    if Stream.Position>=Stream.Size then
-       Exit(False);
+   { if Stream.Position>=Stream.Size then
+       Exit(False); }
               
 
     Progress(psRunning, trunc(100.0 * (Stream.position / Stream.size)),

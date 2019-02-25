@@ -31,7 +31,7 @@ interface
 
     type
       ti386casenode = class(tx86casenode)
-         procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
+         procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);override;
       end;
 
 
@@ -44,7 +44,7 @@ implementation
                             TI386CASENODE
 *****************************************************************************}
 
-    procedure ti386casenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
+    procedure ti386casenode.optimizevalues(var max_linear_list:int64;var max_dist:qword);
       begin
         { a jump table crashes the pipeline! }
         if current_settings.optimizecputype=cpu_386 then

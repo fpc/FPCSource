@@ -1520,6 +1520,13 @@ implementation
             internalerror(2015052202);
         end;
 
+        if (pd.proccalloption in cdecl_pocalls) and
+           (pd.paras.count>0) and
+           is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef) then
+          begin
+            include(pd.procoptions,po_variadic);
+          end;
+
         { file types can't be function results }
         if assigned(pd) and
            (pd.returndef.typ=filedef) then

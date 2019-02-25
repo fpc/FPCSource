@@ -8016,19 +8016,21 @@ end;
 
 procedure TBuildEngine.Clean(APackage: TPackage; ACPU: TCPU; AOS: TOS);
 Var
-  List : TStringList;
+  List,List2 : TStringList;
   DirectoryList : TStringList;
   RemainingList : TStrings;
   i : longint;
 begin
-  List:=TStringList.Create;
+  List:=TUnsortedDuplicatesStringList.Create;
+  List.Duplicates:=DupIgnore;
   try
     List.Add(APackage.GetUnitConfigOutputFilename(ACPU,AOS));
     APackage.GetCleanFiles(List,ACPU,AOS);
     if (List.Count>0) then
       begin
       CmdDeleteFiles(List);
-      DirectoryList := TStringList.Create;
+      DirectoryList:=TUnsortedDuplicatesStringList.Create;
+      DirectoryList.Duplicates:=DupIgnore;
       try
         GetDirectoriesFromFilelist(List,DirectoryList);
         CmdRemoveDirs(DirectoryList);
@@ -8049,9 +8051,18 @@ begin
             Installer.Log(vlWarning,Format(SWarnRemovedNonEmptyDirectory,[APackage.Directory+APackage.GetBinOutputDir(ACPU,AOS)]));
             DirectoryList.Add(APackage.GetBinOutputDir(ACPU,AOS));
             RemainingList := TStringList.Create;
+            List2:=TStringList.Create;
             SearchFiles(AllFilesMask, APackage.GetBinOutputDir(ACPU,AOS), true, RemainingList);
             for i:=0 to RemainingList.Count-1 do
-              Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+              begin
+                if ExtractFileExt(Remaininglist[i])=PPUExt then
+                  Installer.log(vlDebug,format('File %s still present, add corresponding entry to fpmake',[RemainingList[i]]))
+                else
+                  Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+                List2.Add(IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(ACPU,AOS))+Remaininglist[i]);
+              end;
+            CmdDeleteFiles(List2);
+            List2.Free;
             RemainingList.Free;
             CmdRemoveTrees(DirectoryList);
             DirectoryList.Clear;
@@ -8062,9 +8073,18 @@ begin
             Installer.Log(vlWarning,Format(SWarnRemovedNonEmptyDirectory,[APackage.Directory+APackage.GetUnitsOutputDir(ACPU,AOS)]));
             DirectoryList.Add(APackage.GetUnitsOutputDir(ACPU,AOS));
             RemainingList := TStringList.Create;
+            List2:=TStringList.Create;
             SearchFiles(AllFilesMask, APackage.GetUnitsOutputDir(ACPU,AOS), true, RemainingList);
             for i:=0 to RemainingList.Count-1 do
-              Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+              begin
+                if ExtractFileExt(Remaininglist[i])=PPUExt then
+                  Installer.log(vlDebug,format('File %s still present, add corresponding entry to fpmake',[RemainingList[i]]))
+                else
+                  Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+                List2.Add(IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(ACPU,AOS))+RemainingList[i]);
+              end;
+            CmdDeleteFiles(List2);
+            List2.free;
             RemainingList.Free;
             CmdRemoveTrees(DirectoryList);
             DirectoryList.Clear;

@@ -100,8 +100,11 @@ unit cpupi;
       begin
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
-            if pi_uses_threadvar in flags then
+            if (pi_uses_threadvar in flags) and (tf_section_threadvars in target_info.flags) then
               begin
+                { FIXME: It is better to use an imaginary register for GOT and
+                  if EBX is needed for some reason just allocate EBX and
+                  copy GOT into it before its usage. }
                 cg.getcpuregister(list,NR_EBX);
                 got := NR_EBX;
               end

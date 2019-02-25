@@ -3177,9 +3177,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
-         { Use of FPC_EMPTYCHAR label requires setting pi_needs_got flag }
-         if (cs_create_pic in current_settings.moduleswitches) then
-           include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -3604,9 +3601,6 @@ implementation
       begin
          first_ansistring_to_pchar:=nil;
          expectloc:=LOC_REGISTER;
-         { Use of FPC_EMPTYCHAR label requires setting pi_needs_got flag }
-         if (cs_create_pic in current_settings.moduleswitches) then
-           include(current_procinfo.flags,pi_needs_got);
       end;
 
 

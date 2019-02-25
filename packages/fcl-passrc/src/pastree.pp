@@ -339,14 +339,15 @@ type
   public
     Declarations: TFPList; // list of TPasElement
     // Declarations contains all the following:
+    Attributes, // TPasAttributes
+    Classes,    // TPasClassType, TPasRecordType
+    Consts,     // TPasConst
+    ExportSymbols,// TPasExportSymbol
+    Functions,  // TPasProcedure
+    Properties, // TPasProperty
     ResStrings, // TPasResString
     Types,      // TPasType, except TPasClassType, TPasRecordType
-    Consts,     // TPasConst
-    Classes,    // TPasClassType, TPasRecordType
-    Functions,  // TPasProcedure
-    Variables,  // TPasVariable, not descendants
-    Properties, // TPasProperty
-    ExportSymbols  // TPasExportSymbol
+    Variables   // TPasVariable, not descendants
       : TFPList;
   end;
 
@@ -979,6 +980,18 @@ type
     Function DefaultValue : string;
   end;
 
+  { TPasAttributes }
+
+  TPasAttributes = class(TPasElement)
+  public
+    destructor Destroy; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+    procedure AddCall(Expr: TPasExpr);
+  public
+    Calls: TPasExprArray;
+  end;
+
   TProcType = (ptProcedure, ptFunction,
                ptOperator, ptClassOperator,
                ptConstructor, ptDestructor,
@@ -1218,6 +1231,17 @@ type
       const Arg: Pointer); override;
   end;
 
+  { TPasMethodResolution }
+
+  TPasMethodResolution = class(TPasElement)
+  public
+    destructor Destroy; override;
+  public
+    ProcClass: TPasProcedureClass;
+    InterfaceName: TPasExpr;
+    InterfaceProc: TPasExpr;
+    ImplementationProc: TPasExpr;
+  end;
 
   TPasImplBlock = class;
 
@@ -1231,18 +1255,6 @@ type
       const Arg: Pointer); override;
   public
     Body: TPasImplBlock;
-  end;
-
-  { TPasMethodResolution }
-
-  TPasMethodResolution = class(TPasElement)
-  public
-    destructor Destroy; override;
-  public
-    ProcClass: TPasProcedureClass;
-    InterfaceName: TPasExpr;
-    InterfaceProc: TPasExpr;
-    ImplementationProc: TPasExpr;
   end;
 
   { TPasProcedureImpl - used by mkxmlrpc, not by pparser }
@@ -1769,6 +1781,36 @@ begin
   end;
 end;
 {$ENDIF}
+
+{ TPasAttributes }
+
+destructor TPasAttributes.Destroy;
+var
+  i: Integer;
+begin
+  for i:=0 to length(Calls)-1 do
+    Calls[i].Release{$IFDEF CheckPasTreeRefCount}('TPasAttributes.Destroy'){$ENDIF};
+  inherited Destroy;
+end;
+
+procedure TPasAttributes.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+var
+  i: Integer;
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  for i:=0 to length(Calls)-1 do
+    ForEachChildCall(aMethodCall,Arg,Calls[i],false);
+end;
+
+procedure TPasAttributes.AddCall(Expr: TPasExpr);
+var
+  i : Integer;
+begin
+  i:=Length(Calls);
+  SetLength(Calls, i+1);
+  Calls[i]:=Expr;
+end;
 
 { TPasMethodResolution }
 
@@ -2740,14 +2782,15 @@ constructor TPasDeclarations.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Declarations := TFPList.Create;
+  Attributes := TFPList.Create;
+  Classes := TFPList.Create;
+  Consts := TFPList.Create;
+  ExportSymbols := TFPList.Create;
+  Functions := TFPList.Create;
+  Properties := TFPList.Create;
   ResStrings := TFPList.Create;
   Types := TFPList.Create;
-  Consts := TFPList.Create;
-  Classes := TFPList.Create;
-  Functions := TFPList.Create;
   Variables := TFPList.Create;
-  Properties := TFPList.Create;
-  ExportSymbols := TFPList.Create;
 end;
 
 destructor TPasDeclarations.Destroy;
@@ -2756,14 +2799,15 @@ var
   Child: TPasElement;
 begin
   {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy START');{$ENDIF}
-  FreeAndNil(ExportSymbols);
-  FreeAndNil(Properties);
   FreeAndNil(Variables);
-  FreeAndNil(Functions);
-  FreeAndNil(Classes);
-  FreeAndNil(Consts);
   FreeAndNil(Types);
   FreeAndNil(ResStrings);
+  FreeAndNil(Properties);
+  FreeAndNil(Functions);
+  FreeAndNil(ExportSymbols);
+  FreeAndNil(Consts);
+  FreeAndNil(Classes);
+  FreeAndNil(Attributes);
   {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy Declarations');{$ENDIF}
   for i := 0 to Declarations.Count - 1 do
     begin

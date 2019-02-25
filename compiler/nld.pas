@@ -400,9 +400,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REFERENCE;
-         if (cs_create_pic in current_settings.moduleswitches) and
-           not(symtableentry.typ in [paravarsym,localvarsym]) then
-           include(current_procinfo.flags,pi_needs_got);
 
          case symtableentry.typ of
             absolutevarsym :
@@ -424,9 +421,6 @@ implementation
                 else
                   if (tabstractvarsym(symtableentry).varspez=vs_const) then
                     expectloc:=LOC_CREFERENCE;
-                if (target_info.system=system_powerpc_darwin) and
-                   ([vo_is_dll_var,vo_is_external] * tabstractvarsym(symtableentry).varoptions <> []) then
-                  include(current_procinfo.flags,pi_needs_got);
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
                   begin
@@ -1383,9 +1377,6 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 

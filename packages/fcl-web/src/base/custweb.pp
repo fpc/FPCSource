@@ -733,6 +733,7 @@ begin
   FWebHandler.Free;
   if assigned(FEventLog) then
     FEventLog.Free;
+  Inherited;
 end;
 
 procedure TCustomWebApplication.CreateForm(AClass: TComponentClass; out Reference);

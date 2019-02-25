@@ -1093,10 +1093,6 @@ implementation
         { temps which are immutable do not need to be initialized/finalized }
         if (tempinfo^.typedef.needs_inittable) and not(ti_const in tempflags) then
           include(current_procinfo.flags,pi_needs_implicit_finally);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           is_rtti_managed_type(tempinfo^.typedef) then
-          include(current_procinfo.flags,pi_needs_got);
         if assigned(tempinfo^.withnode) then
           firstpass(tempinfo^.withnode);
         if assigned(tempinfo^.tempinitcode) then

@@ -210,9 +210,9 @@ implementation
               { escape dollars }
               '$':
                  result:=result+'$$';
-              { ^ is used as placeholder for a single dollar (reference to
+              { ` is used as placeholder for a single dollar (reference to
                  argument to the inline assembly) }
-              '^':
+              '`':
                  result:=result+'$';
               #0..#31,
               #127..#255,

@@ -416,8 +416,11 @@ unit cpubase;
           R_MMREGISTER:
             begin
               case s of
+                { records passed in MM registers }
+                OS_32,
                 OS_F32:
                   cgsize2subreg:=R_SUBFS;
+                OS_64,
                 OS_F64:
                   cgsize2subreg:=R_SUBFD;
                 else

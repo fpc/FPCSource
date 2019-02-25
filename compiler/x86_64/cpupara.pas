@@ -46,7 +46,7 @@ unit cpupara;
           function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
           function get_saved_registers_mm(calloption: tproccalloption):tcpuregisterarray;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
        end;
 
@@ -1946,7 +1946,7 @@ unit cpupara;
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         intparareg,mmparareg,
         parasize : longint;
@@ -1958,11 +1958,18 @@ unit cpupara;
         else
           parasize:=0;
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,p.paras,intparareg,mmparareg,parasize,false);
+        create_paraloc_info_intern(p,side,p.paras,intparareg,mmparareg,parasize,false);
         { append the varargs }
-        create_paraloc_info_intern(p,callerside,varargspara,intparareg,mmparareg,parasize,true);
-        { store used no. of SSE registers, that needs to be passed in %AL }
-        varargspara.mmregsused:=mmparareg;
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_paraloc_info_intern(p,side,varargspara,intparareg,mmparareg,parasize,true)
+            else
+              internalerror(2019021917);
+            { store used no. of SSE registers, that needs to be passed in %AL }
+            varargspara.mmregsused:=mmparareg;
+          end;
+        create_funcretloc_info(p,side);
         result:=parasize;
       end;
 

@@ -293,9 +293,8 @@ type
     msArrayOperators,      { use Delphi compatible array operators instead of custom ones ("+") }
     msExternalClass,       { Allow external class definitions }
     msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
-    msIgnoreAttributes,    { workaround til resolver/converter supports attributes }
     msOmitRTTI,            { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
-    msMultipleScopeHelpers { off=only one helper per type, on=all }
+    msMultiHelpers         { off=only one helper per type, on=all }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -1038,9 +1037,8 @@ const
     'ARRAYOPERATORS',
     'EXTERNALCLASS',
     'PREFIXEDATTRIBUTES',
-    'IGNOREATTRIBUTES',
     'OMITRTTI',
-    'MULTIPLESCOPEHELPERS'
+    'MULTIHELPERS'
     );
 
   LetterSwitchNames: array['A'..'Z'] of string=(

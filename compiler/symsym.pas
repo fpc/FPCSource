@@ -753,6 +753,7 @@ implementation
       begin
          inherited create(namespacesym,n,true);
          unitsym:=nil;
+         unitsymderef.reset;
       end;
 
     constructor tnamespacesym.ppuload(ppufile:tcompilerppufile);
@@ -1333,7 +1334,9 @@ implementation
          index:=0;
          default:=0;
          propdef:=nil;
+         propdefderef.reset;
          indexdef:=nil;
+         indexdefderef.reset;
          parast:=nil;
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=tpropaccesslist.create;
@@ -1590,6 +1593,7 @@ implementation
       begin
          inherited create(st,n,doregister);
          vardef:=def;
+         vardefderef.reset;
          varspez:=vsp;
          varstate:=vs_declared;
          varoptions:=vopts;
@@ -1839,6 +1843,7 @@ implementation
          fillchar(localloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
          defaultconstsym:=nil;
+         defaultconstsymderef.reset;
       end;
 
 
@@ -1897,6 +1902,7 @@ implementation
     constructor tstaticvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
       begin
          inherited create(staticvarsym,n,vsp,def,vopts,doregister);
+         fieldvarsymderef.reset;
 {$ifdef symansistr}
          _mangledname:='';
 {$else symansistr}
@@ -2298,6 +2304,7 @@ implementation
          consttyp:=t;
          value.valueord:=v;
          constdef:=def;
+         constdefderef.reset;
       end;
 
 
@@ -2308,6 +2315,7 @@ implementation
          consttyp:=t;
          value.valueordptr:=v;
          constdef:=def;
+         constdefderef.reset;
       end;
 
 
@@ -2318,6 +2326,7 @@ implementation
          consttyp:=t;
          value.valueptr:=v;
          constdef:=def;
+         constdefderef.reset;
       end;
 
 
@@ -2331,6 +2340,7 @@ implementation
            constdef:=def
          else
            constdef:=carraydef.getreusable(cansichartype,l);
+         constdefderef.reset;
          value.len:=l;
       end;
 
@@ -2342,6 +2352,7 @@ implementation
          consttyp:=t;
          pcompilerwidestring(value.valueptr):=pw;
          constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pw));
+         constdefderef.reset;
          value.len:=getlengthwidestring(pw);
       end;
 
@@ -2532,6 +2543,7 @@ implementation
       begin
          inherited create(enumsym,n,true);
          definition:=def;
+         definitionderef.reset;
          value:=v;
       end;
 
@@ -2576,6 +2588,7 @@ implementation
       begin
         inherited create(typesym,n,doregister);
         typedef:=def;
+        typedefderef.reset;
         { register the typesym for the definition }
         if assigned(typedef) and
            (typedef.typ<>errordef) and

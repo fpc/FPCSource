@@ -45,8 +45,7 @@ type
 
     procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
     function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
-    function create_varargs_paraloc_info(p: tabstractprocdef; varargspara:
-      tvarargsparalist): longint; override;
+    function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
     function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
 
   private
@@ -743,7 +742,7 @@ implemented
   end;
 end;
 
-function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
+function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee;
   varargspara: tvarargsparalist): longint;
 var
   cur_stack_offset: aword;
@@ -756,33 +755,28 @@ begin
   init_values(curintreg, curfloatreg, curmmreg, cur_stack_offset);
   firstfloatreg := curfloatreg;
 
-  result := create_paraloc_info_intern(p, callerside, p.paras, curintreg,
+  result := create_paraloc_info_intern(p, side, p.paras, curintreg,
     curfloatreg, curmmreg, cur_stack_offset, false);
-  if (p.proccalloption in cstylearrayofconst) then begin
-    { just continue loading the parameters in the registers }
-    result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
-      curfloatreg, curmmreg, cur_stack_offset, true);
-    { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
-    if (result < 64) then
-      result := 64;
-  end else begin
-    parasize := cur_stack_offset;
-    for i := 0 to varargspara.count - 1 do begin
-      hp := tparavarsym(varargspara[i]);
-      hp.paraloc[callerside].alignment := 8;
-      paraloc := hp.paraloc[callerside].add_location;
-      paraloc^.loc := LOC_REFERENCE;
-      paraloc^.size := def_cgsize(hp.vardef);
-      paraloc^.def := hp.vardef;
-      paraloc^.reference.index := NR_STACK_POINTER_REG;
-      l := push_size(hp.varspez, hp.vardef, p.proccalloption);
-      paraloc^.reference.offset := parasize;
-      parasize := parasize + l;
-    end;
-    result := parasize;
-  end;
-  if curfloatreg <> firstfloatreg then
-    include(varargspara.varargsinfo, va_uses_float_reg);
+  if (p.proccalloption in cstylearrayofconst) then
+    begin
+      { just continue loading the parameters in the registers }
+      if assigned(varargspara) then
+        begin
+          if side=callerside then
+            result := create_paraloc_info_intern(p, side, varargspara, curintreg,
+              curfloatreg, curmmreg, cur_stack_offset, true)
+          else
+            internalerror(2019021920);
+          if curfloatreg <> firstfloatreg then
+            include(varargspara.varargsinfo, va_uses_float_reg);
+        end;
+      { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
+      if (result < 64) then
+        result := 64;
+    end
+  else
+    internalerror(2019021911);
+  create_funcretloc_info(p, side);
 end;
 
 function tcpuparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;

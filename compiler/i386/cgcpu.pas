@@ -261,10 +261,6 @@ unit cgcpu;
                                 reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint),[]);
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
-{$ifdef EXTDEBUG}
-				if not (pi_needs_got in current_procinfo.flags) then
-				  Comment(V_warning,'pi_needs_got not included');
-{$endif EXTDEBUG}
                                 include(current_procinfo.flags,pi_needs_got);
                                 list.concat(taicpu.op_ref(A_PUSH,S_L,tmpref));
                               end
@@ -548,7 +544,10 @@ unit cgcpu;
             if not (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
                 { Use ECX as a temp register by default }
-                tmpreg:=NR_ECX;
+                if current_procinfo.got = NR_EBX then
+                  tmpreg:=NR_EBX
+                else
+                  tmpreg:=NR_ECX;
                 { Allocate registers used for parameters to make sure they
                   never allocated during this PIC init code }
                 for i:=0 to current_procinfo.procdef.paras.Count - 1 do

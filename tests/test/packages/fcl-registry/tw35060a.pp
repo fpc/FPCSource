@@ -48,15 +48,6 @@ begin
   Result := Trim(Result);
 end;
 
-
-//Creating and removing Keys using plain Windows W-API
-function PrepKeyW(Const S : UnicodeString) : pWideChar;
-begin
-  Result:=PWideChar(S);
-  If Result^='\' then
-    Inc(Result);
-end;
-
 procedure CreateKeyInHKCU(const Key: UnicodeString);
 Var
   u: UnicodeString;
@@ -66,7 +57,7 @@ Var
   FLastError: LongInt;
 begin
   SecurityAttributes := Nil;
-  u:=PrepKeyW(Key);
+  u:=Key;
   Handle := 0;
   FLastError:=RegCreateKeyExW(HKEY_CURRENT_USER,
                               PWideChar(u),
@@ -103,12 +94,12 @@ var
   Key: UnicodeString;
   FLastError: LongInt;
 begin
-  Key:=PRepKeyW(TestKeyFull);
+  Key:=TestKeyFull;
   FLastError:=RegDeleteKeyW(HKEY_CURRENT_USER,PWideChar(Key));
   Assert(FLastError=ERROR_SUCCESS,format('Removing key "%s" using plain Windows API failed: "%s"',
                                          [String(Key),Trim(SysErrorMessage(FLastError))]));
 
-  Key:=PRepKeyW(TestKeyBugID);
+  Key:=TestKeyBugID;
   FLastError:=RegDeleteKeyW(HKEY_CURRENT_USER,PWideChar(Key));
   Assert(FLastError=ERROR_SUCCESS,format('Removing key "%s" using plain Windows API failed: "%s"',
                                          [String(Key),Trim(SysErrorMessage(FLastError))]));
