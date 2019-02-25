@@ -67,19 +67,19 @@ threadvar
 
 function MaskExceptions: dword;
 begin
-{$ifdef cpux86_64}
+{$if defined(cpux86_64) or defined(cpui386)}
   Result:=GetMXCSR;
   SetMXCSR(Result or %0000000010000000 {MM_MaskInvalidOp} or %0001000000000000 {MM_MaskPrecision});
 {$else}
   Result:=0;
-{$endif cpux86_64}
+{$endif}
 end;
 
 procedure UnmaskExceptions(oldmask: dword);
 begin
-{$ifdef cpux86_64}
+{$if defined(cpux86_64) or defined(cpui386)}
   SetMXCSR(oldmask);
-{$endif cpux86_64}
+{$endif}
 end;
 
 function OpenConverter(const name: ansistring): PUConverter;
