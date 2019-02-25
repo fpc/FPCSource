@@ -1474,8 +1474,9 @@ unit rgobj;
       adj : psuperregisterworklist;
       maxlength,p,i :word;
       minweight: longint;
-      dist,
-      maxdist: Double;
+      {$ifdef SPILLING_NEW}
+      dist: Double;
+      {$endif}
     begin
 {$ifdef SPILLING_NEW}
       { This new approach for selecting the next spill candidate takes care of the weight of a register:
