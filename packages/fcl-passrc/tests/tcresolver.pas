@@ -609,6 +609,7 @@ type
     Procedure TestClass_UntypedParam_TypeCast;
     Procedure TestClass_Sealed;
     Procedure TestClass_SealedDescendFail;
+    Procedure TestClass_Abstract;
     Procedure TestClass_AbstractCreateFail;
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
@@ -9703,40 +9704,42 @@ end;
 procedure TTestResolver.TestClassCallInherited;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    procedure {#TOBJ_ProcA}ProcA(vI: longint); virtual;');
-  Add('    procedure {#TOBJ_ProcB}ProcB(vJ: longint); virtual;');
-  Add('  end;');
-  Add('  {#A}TClassA = class');
-  Add('    procedure {#A_ProcA}ProcA({#i1}vI: longint); override;');
-  Add('    procedure {#A_ProcB}ProcB(vJ: longint); override;');
-  Add('    procedure {#A_ProcC}ProcC; virtual;');
-  Add('  end;');
-  Add('procedure TObject.ProcA(vi: longint);');
-  Add('begin');
-  Add('  inherited; // ignore, do not raise error');
-  Add('end;');
-  Add('procedure TObject.ProcB(vj: longint);');
-  Add('begin');
-  Add('end;');
-  Add('procedure TClassA.ProcA(vi: longint);');
-  Add('begin');
-  Add('  {@A_ProcA}ProcA({@i1}vI);');
-  Add('  {@TOBJ_ProcA}inherited;');
-  Add('  inherited {@TOBJ_ProcA}ProcA({@i1}vI);');
-  Add('  {@A_ProcB}ProcB({@i1}vI);');
-  Add('  inherited {@TOBJ_ProcB}ProcB({@i1}vI);');
-  Add('end;');
-  Add('procedure TClassA.ProcB(vJ: longint);');
-  Add('begin');
-  Add('end;');
-  Add('procedure TClassA.ProcC;');
-  Add('begin');
-  Add('  inherited; // ignore, do not raise error');
-  Add('end;');
-  Add('begin');
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure {#TOBJ_ProcA}ProcA(vI: longint); virtual;',
+  '    procedure {#TOBJ_ProcB}ProcB(vJ: longint); virtual;',
+  '  end;',
+  '  {#A}TClassA = class',
+  '    procedure {#A_ProcA}ProcA({#i1}vI: longint); override;',
+  '    procedure {#A_ProcB}ProcB(vJ: longint); override;',
+  '    procedure {#A_ProcC}ProcC; virtual;',
+  '  end;',
+  'procedure TObject.ProcA(vi: longint);',
+  'begin',
+  '  inherited; // ignore, do not raise error',
+  'end;',
+  'procedure TObject.ProcB(vj: longint);',
+  'begin',
+  'end;',
+  'procedure TClassA.ProcA(vi: longint);',
+  'begin',
+  '  {@A_ProcA}ProcA({@i1}vI);',
+  '  {@TOBJ_ProcA}inherited;',
+  '  inherited {@TOBJ_ProcA}ProcA({@i1}vI);',
+  '  {@A_ProcB}ProcB({@i1}vI);',
+  '  inherited {@TOBJ_ProcB}ProcB({@i1}vI);',
+  'end;',
+  'procedure TClassA.ProcB(vJ: longint);',
+  'begin',
+  'end;',
+  'procedure TClassA.ProcC;',
+  'begin',
+  '  inherited; // ignore, do not raise error',
+  'end;',
+  'begin']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClassCallInheritedNoParamsAbstractFail;
@@ -10834,6 +10837,32 @@ begin
   Add('begin');
   CheckResolverException(sCannotCreateADescendantOfTheSealedXY,
     nCannotCreateADescendantOfTheSealedXY);
+end;
+
+procedure TTestResolver.TestClass_Abstract;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  TNop = class abstract(TObject)',
+  '  end;',
+  '  TBird = class(TNop)',
+  '    constructor Create(w: word);',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'constructor TBird.Create(w: word);',
+  'begin',
+  '  inherited Create;',
+  'end;',
+  'begin',
+  '  TBird.Create;']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClass_AbstractCreateFail;
