@@ -27,6 +27,7 @@ type
     procedure TestKey;
     procedure TestStrings;
     procedure TestUnicodeStrings;
+    procedure TestUnicodeStrings2;
   end;
 
 implementation
@@ -346,6 +347,34 @@ begin
   Co:=CreateConf('test.json');
   try
     AssertEquals('UTF8 string read/Write',utf8str,utf8encode(Co.GetValue('a','')));
+    AssertEquals('UTF8 path read/Write','something',Co.GetValue(utf8path,'something'));
+  finally
+    DeleteConf(Co,True);
+  end;
+end;
+
+procedure TTestJSONConfig.TestUnicodeStrings2;
+
+Const
+  utf8str = 'Größe ÄÜÖ ㎰ す 가';
+  utf8path = 'Größe/す가';
+
+Var
+  Co : TJSONCOnfig;
+
+
+begin
+  Co:=CreateConf('test.json');
+  try
+    Co.SetValue('/проверка',utf8str);
+    Co.SetValue(utf8path,'something');
+    Co.Flush;
+  finally
+    co.Free;
+  end;
+  Co:=CreateConf('test.json');
+  try
+    AssertEquals('UTF8 string read/Write',utf8str,utf8encode(Co.GetValue('/проверка','')));
     AssertEquals('UTF8 path read/Write','something',Co.GetValue(utf8path,'something'));
   finally
     DeleteConf(Co,True);
