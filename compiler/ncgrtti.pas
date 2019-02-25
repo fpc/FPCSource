@@ -2022,9 +2022,6 @@ implementation
       begin
         s:=def.rtti_mangledname(rt)+suffix;
         result:=current_asmdata.RefAsmSymbol(s,AT_DATA,indirect);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           assigned(current_procinfo) then
-          include(current_procinfo.flags,pi_needs_got);
         if def.owner.moduleid<>current_module.moduleid then
           current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_DATA);
       end;

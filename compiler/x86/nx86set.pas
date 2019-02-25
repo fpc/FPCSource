@@ -176,6 +176,7 @@ implementation
             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,current_procinfo.got,jumpreg);
             emit_reg(A_JMP,S_NO,jumpreg);
+            include(current_procinfo.flags,pi_needs_got);
           end
         else
           emit_ref(A_JMP,S_NO,href);

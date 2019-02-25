@@ -297,11 +297,6 @@ implementation
                 include(current_procinfo.flags,pi_needs_implicit_finally);
                 include(current_procinfo.flags,pi_do_call);
               end;
-            if (tparavarsym(p).varspez in [vs_value,vs_out]) and
-               (cs_create_pic in current_settings.moduleswitches) and
-               (tf_pic_uses_got in target_info.flags) and
-               is_rtti_managed_type(tparavarsym(p).vardef) then
-              include(current_procinfo.flags,pi_needs_got);
           end;
       end;
 
@@ -316,10 +311,6 @@ implementation
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
             include(current_procinfo.flags,pi_do_call);
-            if is_rtti_managed_type(tlocalvarsym(p).vardef) and
-              (cs_create_pic in current_settings.moduleswitches) and
-              (tf_pic_uses_got in target_info.flags) then
-              include(current_procinfo.flags,pi_needs_got);
           end;
       end;
 

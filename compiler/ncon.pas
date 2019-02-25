@@ -465,8 +465,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
-         if (cs_create_pic in current_settings.moduleswitches) then
-           include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -868,9 +866,6 @@ implementation
           end
         else
           expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (expectloc <> LOC_CONSTANT) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1160,9 +1155,6 @@ implementation
           expectloc:=LOC_CONSTANT
          else
           expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (expectloc <> LOC_CONSTANT) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1254,9 +1246,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-          (tf_pic_uses_got in target_info.flags) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
