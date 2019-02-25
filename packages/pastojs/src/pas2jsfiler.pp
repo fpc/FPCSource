@@ -172,7 +172,7 @@ const
     'ExternalClass',
     'PrefixedAttributes',
     'OmitRTTI',
-    'MultipleScopeHelpers'
+    'MultiHelpers'
     ); // Dont forget to update ModeSwitchToInt !
 
   PCUDefaultBoolSwitches: TBoolSwitches = [
@@ -1394,7 +1394,7 @@ begin
     // msIgnoreInterfaces: Result:=46;
     // msIgnoreAttributes: Result:=47;
     msOmitRTTI: Result:=48;
-    msMultipleScopeHelpers: Result:=49;
+    msMultiHelpers: Result:=49;
   end;
 end;
 
@@ -4954,6 +4954,8 @@ begin
     begin
     s:=Names[i];
     Found:=false;
+    if (FileVersion<5) and (SameText(s,'multiplescopehelpers')) then
+      s:=PCUModeSwitchNames[msMultiHelpers];
     for f in TModeSwitch do
       if s=PCUModeSwitchNames[f] then
         begin

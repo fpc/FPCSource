@@ -17096,7 +17096,7 @@ begin
             Scope.Add(HelperScope);
             HelperScope:=HelperScope.AncestorScope;
             end;
-          if not (msMultipleScopeHelpers in CurrentParser.CurrentModeswitches) then
+          if not (msMultiHelpers in CurrentParser.CurrentModeswitches) then
             break;
           end;
         end;

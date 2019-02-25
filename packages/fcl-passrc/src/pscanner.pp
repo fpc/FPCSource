@@ -294,7 +294,7 @@ type
     msExternalClass,       { Allow external class definitions }
     msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
     msOmitRTTI,            { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
-    msMultipleScopeHelpers { off=only one helper per type, on=all }
+    msMultiHelpers         { off=only one helper per type, on=all }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -1038,7 +1038,7 @@ const
     'EXTERNALCLASS',
     'PREFIXEDATTRIBUTES',
     'OMITRTTI',
-    'MULTIPLESCOPEHELPERS'
+    'MULTIHELPERS'
     );
 
   LetterSwitchNames: array['A'..'Z'] of string=(

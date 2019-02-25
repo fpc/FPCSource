@@ -1167,7 +1167,7 @@ const
     msArrayOperators,
     msPrefixedAttributes,
     msOmitRTTI,
-    msMultipleScopeHelpers];
+    msMultiHelpers];
 
   msAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings

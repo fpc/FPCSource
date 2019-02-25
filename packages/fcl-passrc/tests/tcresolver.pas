@@ -914,7 +914,7 @@ type
     Procedure TestClassHelper_ReintroduceHides_CallFail;
     Procedure TestClassHelper_DefaultProperty;
     Procedure TestClassHelper_DefaultClassProperty;
-    Procedure TestClassHelper_MultipleScopeHelpers;
+    Procedure TestClassHelper_MultiHelpers;
     Procedure TestRecordHelper;
     Procedure TestRecordHelper_ForByteFail;
     Procedure TestRecordHelper_ClassNonStaticFail;
@@ -16992,11 +16992,11 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassHelper_MultipleScopeHelpers;
+procedure TTestResolver.TestClassHelper_MultiHelpers;
 begin
   StartProgram(false);
   Add([
-  '{$modeswitch multiplescopehelpers}',
+  '{$modeswitch multihelpers}',
   'type',
   '  TObject = class',
   '  end;',
