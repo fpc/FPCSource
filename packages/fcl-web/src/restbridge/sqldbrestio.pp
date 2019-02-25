@@ -85,6 +85,7 @@ Type
   private
     FValues : Array[TRestStringProperty] of UTF8String;
     function GetRestPropName(AIndex: Integer): UTF8String;
+    function IsRestStringStored(AIndex: Integer): Boolean;
     procedure SetRestPropName(AIndex: Integer; AValue: UTF8String);
   Public
     Class Function GetDefaultString(aString : TRestStringProperty) :UTF8String;
@@ -93,43 +94,43 @@ Type
     Procedure Assign(aSource : TPersistent); override;
   Published
     // Indexes here MUST match TRestProperty
-    Property RESTDateFormat : UTF8String Index ord(rpDateFormat) Read GetRestPropName Write SetRestPropName;
-    Property RESTDateTimeFormat : UTF8String Index ord(rpDateTimeFormat)  Read GetRestPropName Write SetRestPropName;
-    Property RESTTimeFormat : UTF8String Index ord(rpTimeFormat)  Read GetRestPropName Write SetRestPropName;
-    Property DataProperty : UTF8String Index ord(rpDataRoot) Read GetRestPropName Write SetRestPropName;
-    Property MetaDataRoot : UTF8String Index ord(rpMetaDataRoot) Read GetRestPropName Write SetRestPropName;
-    Property ErrorProperty : UTF8String Index ord(rpErrorRoot) Read GetRestPropName Write SetRestPropName;
-    Property FieldNameProperty : UTF8String Index ord(rpFieldNameProp) Read GetRestPropName Write SetRestPropName;
-    Property FieldTypeProperty : UTF8String Index ord(rpFieldTypeProp) Read GetRestPropName Write SetRestPropName;
-    Property DateFormatProperty : UTF8String Index ord(rpFieldDateFormatProp) Read GetRestPropName Write SetRestPropName;
-    Property MaxLenProperty : UTF8String Index ord(rpFieldMaxLenProp) Read GetRestPropName Write SetRestPropName;
-    Property HumanReadableParam : UTF8String Index ord(rpHumanReadable) Read GetRestPropName Write SetRestPropName;
-    Property FieldListParam : UTF8String Index ord(rpFieldList) Read GetRestPropName Write SetRestPropName;
-    Property ExcludeFieldListParam : UTF8String Index ord(rpExcludeFieldList) Read GetRestPropName Write SetRestPropName;
-    Property ConnectionParam : UTF8String Index Ord(rpConnection) Read GetRestPropName Write SetRestPropName;
-    Property ResourceParam : UTF8String Index ord(rpResource) Read GetRestPropName Write SetRestPropName;
-    Property IncludeMetadataParam : UTF8String Index ord(rpIncludeMetadata) Read GetRestPropName Write SetRestPropName;
-    Property SparseParam : UTF8String Index Ord(rpSparse) Read GetRestPropName Write SetRestPropName;
-    Property RowName : UTF8String Index Ord(rpRowName) Read GetRestPropName Write SetRestPropName;
-    Property MetadataFields : UTF8String Index Ord(rpMetadataFields) Read GetRestPropName Write SetRestPropName;
-    Property MetadataField : UTF8String Index Ord(rpMetadataField) Read GetRestPropName Write SetRestPropName;
-    Property ErrorCode : UTF8String Index ord(rpErrorCode) Read GetRestPropName Write SetRestPropName;
-    Property ErrorMessage : UTF8String Index ord(rpErrorMessage) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamEqual : UTF8String Index ord(rpFilterEqual) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamLessThan : UTF8String Index ord(rpFilterLessThan) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamGreaterThan : UTF8String Index ord(rpFilterGreaterThan) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamLessThanEqual : UTF8String Index ord(rpFilterLessThanEqual) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamGreaterThanEqual : UTF8String Index ord(rpFilterGreaterThanEqual) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamIsNull : UTF8String Index ord(rpFilterIsNull) Read GetRestPropName Write SetRestPropName;
-    Property LimitParam : UTF8string Index ord(rpLimit) Read GetRestPropName Write SetRestPropName;
-    Property OffsetParam : UTF8string Index ord(rpOffset) Read GetRestPropName Write SetRestPropName;
-    Property SortParam : UTF8string Index ord(rpOrderBy) Read GetRestPropName Write SetRestPropName;
-    Property MetadataResourceName : UTF8string Index ord(rpMetadataResourceName) Read GetRestPropName Write SetRestPropName;
-    Property InputFormatParam : UTF8string Index ord(rpInputFormat) Read GetRestPropName Write SetRestPropName;
-    Property OutputFormatParam : UTF8string Index ord(rpOutputFormat) Read GetRestPropName Write SetRestPropName;
-    Property CustomViewResourceName : UTF8string Index ord(rpCustomViewResourceName) Read GetRestPropName Write SetRestPropName;
-    Property CustomViewSQLParam : UTF8string Index ord(rpCustomViewSQLParam) Read GetRestPropName Write SetRestPropName;
-    Property XMLDocumentRoot : UTF8string Index ord(rpXMLDocumentRoot) Read GetRestPropName Write SetRestPropName;
+    Property RESTDateFormat : UTF8String Index ord(rpDateFormat) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property RESTDateTimeFormat : UTF8String Index ord(rpDateTimeFormat)  Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property RESTTimeFormat : UTF8String Index ord(rpTimeFormat)  Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property DataProperty : UTF8String Index ord(rpDataRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetaDataRoot : UTF8String Index ord(rpMetaDataRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ErrorProperty : UTF8String Index ord(rpErrorRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FieldNameProperty : UTF8String Index ord(rpFieldNameProp) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FieldTypeProperty : UTF8String Index ord(rpFieldTypeProp) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property DateFormatProperty : UTF8String Index ord(rpFieldDateFormatProp) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MaxLenProperty : UTF8String Index ord(rpFieldMaxLenProp) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property HumanReadableParam : UTF8String Index ord(rpHumanReadable) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FieldListParam : UTF8String Index ord(rpFieldList) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ExcludeFieldListParam : UTF8String Index ord(rpExcludeFieldList) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ConnectionParam : UTF8String Index Ord(rpConnection) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ResourceParam : UTF8String Index ord(rpResource) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property IncludeMetadataParam : UTF8String Index ord(rpIncludeMetadata) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property SparseParam : UTF8String Index Ord(rpSparse) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property RowName : UTF8String Index Ord(rpRowName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetadataFields : UTF8String Index Ord(rpMetadataFields) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetadataField : UTF8String Index Ord(rpMetadataField) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ErrorCode : UTF8String Index ord(rpErrorCode) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ErrorMessage : UTF8String Index ord(rpErrorMessage) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamEqual : UTF8String Index ord(rpFilterEqual) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamLessThan : UTF8String Index ord(rpFilterLessThan) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamGreaterThan : UTF8String Index ord(rpFilterGreaterThan) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamLessThanEqual : UTF8String Index ord(rpFilterLessThanEqual) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamGreaterThanEqual : UTF8String Index ord(rpFilterGreaterThanEqual) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamIsNull : UTF8String Index ord(rpFilterIsNull) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property LimitParam : UTF8string Index ord(rpLimit) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property OffsetParam : UTF8string Index ord(rpOffset) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property SortParam : UTF8string Index ord(rpOrderBy) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetadataResourceName : UTF8string Index ord(rpMetadataResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property InputFormatParam : UTF8string Index ord(rpInputFormat) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property OutputFormatParam : UTF8string Index ord(rpOutputFormat) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property CustomViewResourceName : UTF8string Index ord(rpCustomViewResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property CustomViewSQLParam : UTF8string Index ord(rpCustomViewSQLParam) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property XMLDocumentRoot : UTF8string Index ord(rpXMLDocumentRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
   end;
 
   { TRestStreamer }
@@ -489,6 +490,16 @@ begin
   Result:=FValues[TRestStringProperty(AIndex)];
   if (Result='') then
     Result:=DefaultPropertyNames[TRestStringProperty(AIndex)]
+end;
+
+function TRestStringsConfig.IsRestStringStored(AIndex: Integer): Boolean;
+
+Var
+  V : UTF8String;
+
+begin
+  V:=FValues[TRestStringProperty(AIndex)];
+  Result:=(V<>'') and (V<>DefaultPropertyNames[TRestStringProperty(AIndex)]);
 end;
 
 procedure TRestStringsConfig.SetRestPropName(AIndex: Integer; AValue: UTF8String);
