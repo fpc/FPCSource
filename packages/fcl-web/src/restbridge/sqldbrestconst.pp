@@ -44,6 +44,7 @@ Resourcestring
   SErrMissingDocumentRoot = 'Missing document root';
   SErrInvalidCDSMissingElement = 'Invalid CDS Data packet: missing %s element';
   SErrNoResourceDataFound = 'Failed to find resource data in input';
+  SErrNoRESTDispatcher = 'No REST bridge dispatcher assigned to handle request!';
 
 Const
   DefaultAuthenticationRealm = 'REST API Server';

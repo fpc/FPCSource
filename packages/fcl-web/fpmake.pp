@@ -373,6 +373,12 @@ begin
       AddUnit('sqldbrestschema');
       AddUnit('sqldbrestconst');
       end;
+    T:=P.Targets.AddUnit('sqldbrestmodule.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestbridge');
+      AddUnit('sqldbrestconst');
+      end;
     
 {$ifndef ALLPACKAGES}
     Run;

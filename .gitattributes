@@ -3469,6 +3469,7 @@ packages/fcl-web/src/restbridge/sqldbrestdata.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestini.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestio.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestjson.pp svneol=native#text/plain
+packages/fcl-web/src/restbridge/sqldbrestmodule.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestschema.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestxml.pp svneol=native#text/plain
 packages/fcl-web/src/webdata/Makefile svneol=native#text/plain
