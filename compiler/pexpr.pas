@@ -1400,9 +1400,7 @@ implementation
                                 (current_procinfo.procdef.struct=structh))) then
                               Message(parser_e_only_class_members)
                             else
-                              Message(parser_e_only_class_members_via_class_ref)
-                          else if isobjecttype then
-                            Message(parser_e_only_static_members_via_object_type);
+                              Message(parser_e_only_class_members_via_class_ref);
                           p1:=csubscriptnode.create(sym,p1);
                         end;
                    end;
