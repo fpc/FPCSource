@@ -16286,7 +16286,7 @@ begin
         TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
         if OnlyTypeMembers and (ClassRecScope is TPasClassScope) then
           begin
-          if TPasClassType(TypeEl).IsAbstract then
+          if (TypeEl.ClassType=TPasClassType) and TPasClassType(TypeEl).IsAbstract then
             LogMsg(20190224153450,mtWarning,nCreatingAnInstanceOfAbstractClassY,
               sCreatingAnInstanceOfAbstractClassY,[TypeEl.Name],FindData.ErrorPosEl)
           else
