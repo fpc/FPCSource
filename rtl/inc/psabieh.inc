@@ -1017,7 +1017,7 @@ end;
 function __cxa_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; external;
 {$endif FPC_PSABIEH_CPLUSPLUSSUPPORT}
 
-function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compilerproc;
+function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; compilerproc;
   var
     ExceptWrapper: PExceptObject;
     _ExceptObjectStack : PExceptObject;

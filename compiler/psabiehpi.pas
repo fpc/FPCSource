@@ -695,6 +695,8 @@ implementation
         paraloc1.init;
         rttidef:=nil;
         rttisym:=nil;
+        wrappedexception:=hlcg.getaddressregister(list,voidpointertype);
+        hlcg.a_load_reg_reg(list,voidpointertype,voidpointertype,NR_FUNCTION_RESULT_REG,wrappedexception);
         if add_catch then
           begin
             if assigned(excepttype) then
@@ -726,17 +728,10 @@ implementation
         else
           (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(tobjectdef(-1));
 
-        wrappedexception:=hlcg.getaddressregister(list,voidpointertype);
-
         pd:=search_system_proc('fpc_psabi_begin_catch');
         paramanager.getintparaloc(list, pd, 1, paraloc1);
         hlcg.a_load_reg_cgpara(list,voidpointertype,wrappedexception,paraloc1);
         begincatchres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
-{$ifdef i386}
-        { fpc_psabi_begin_catch is cdecl, not sure how to do this properly }
-        current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,4,NR_ESP));
-{$endif i386}
-
         location_reset(exceptloc, LOC_REGISTER, def_cgsize(begincatchres.def));
         exceptloc.register:=hlcg.getaddressregister(list, begincatchres.def);
         hlcg.gen_load_cgpara_loc(list, begincatchres.def, begincatchres, exceptloc, true);

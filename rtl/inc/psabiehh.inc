@@ -78,7 +78,7 @@ function _FPC_psabieh_personality_v0(state: FPC_Unwind_State; libunwind_exceptio
 {$else}
 function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Action; exceptionClass: qword; libunwind_exception: PFPC_Unwind_Exception; context: PFPC_Unwind_Context): FPC_Unwind_Reason_Code; cdecl; public;
 {$endif}
-function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; cdecl; compilerproc;
+function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; compilerproc;
 procedure FPC_psabi_end_catch; cdecl; compilerproc;
 {$if defined(cpui386) and not defined(cpullvm)}
 Procedure fpc_Resume(exception_object: PFPC_Unwind_Exception); compilerproc;
