@@ -630,12 +630,12 @@ implementation
                 psabiehprocinfo.PushLandingPad(psabiehprocinfo.NoAction);
               end;
 
-            pd:=search_system_proc('fpc_resume');
+            pd:=search_system_proc('_unwind_resume');
             cgpara1.init;
             paramanager.getintparaloc(list,pd,1,cgpara1);
             hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_resume',[@cgpara1],nil).resetiftemp;
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'_unwind_resume',[@cgpara1],nil).resetiftemp;
             { we do not have to clean up the stack, we never return }
             cgpara1.done;
 

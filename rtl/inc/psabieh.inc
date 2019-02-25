@@ -1204,18 +1204,6 @@ procedure fpc_ReRaise; [public,alias:'FPC_RERAISE']; compilerproc;
     RunError(217);
   end;
 
-
-{$if defined(cpui386) and not defined(cpullvm)}
-{$define FPC_SYSTEM_HAS_RESUME}
-procedure fpc_Resume(exception_object: PFPC_Unwind_Exception); [public,alias:'FPC_RESUME']; compilerproc; assembler; nostackframe;
-  asm
-    popl %ecx
-    pushl %eax
-    pushl %ecx
-    jmp _Unwind_Resume
-  end;
-{$endif}
-
 {$define FPC_SYSTEM_HAS_RAISENESTED}
 procedure fpc_raise_nested;compilerproc;
   var
