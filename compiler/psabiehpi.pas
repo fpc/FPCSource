@@ -64,6 +64,9 @@ unit psabiehpi;
            since a procedure which has one landing pad need to be covered completely by landing pads }
          OutmostLandingPad: TPSABIEHAction;
 
+         { This is a "no action" action for re-use, normally equal to OutmostLandingPad }
+         NoAction: TPSABIEHAction;
+
          callsite_table_data,
          action_table_data,
          gcc_except_table_data : TAsmList;
@@ -83,6 +86,7 @@ unit psabiehpi;
          procedure PushAction(action: TPSABIEHAction);
          function CurrentAction: TPSABIEHAction;inline;
          function PopAction(action: TPSABIEHAction): boolean;
+         function FinalizeAndPopAction(action: TPSABIEHAction): boolean;
          { a landing pad is also an action, however, when the landing pad is popped from the stack
            the area covered by this landing pad ends, i.e. it is popped at the beginning of the finally/except clause,
            the action above is popped at the end of the finally/except clause, so if on clauses add new types, they
@@ -237,6 +241,15 @@ implementation
 
 
     function tpsabiehprocinfo.PopAction(action: TPSABIEHAction): boolean;
+      begin
+        if CurrentAction<>action then
+          internalerror(2019022501);
+        actionstack.count:=actionstack.count-1;
+        result:=actionstack.count=0;
+      end;
+
+
+    function tpsabiehprocinfo.FinalizeAndPopAction(action: TPSABIEHAction): boolean;
       var
         curpos: tasmlabel;
       begin
@@ -404,6 +417,7 @@ implementation
             CreateNewPSABIEHCallsite(current_asmdata.CurrAsmList);
 
             OutmostLandingPad:=TPSABIEHAction.Create(nil);
+            NoAction:=OutmostLandingPad;
             PushAction(OutmostLandingPad);
             PushLandingPad(OutmostLandingPad);
             OutmostLandingPad.AddAction(nil);
@@ -491,7 +505,7 @@ implementation
          begin
            CreateNewPSABIEHCallsite(list);
            PopLandingPad(CurrentLandingPad);
-           PopAction(OutmostLandingPad);
+           FinalizeAndPopAction(OutmostLandingPad);
          end;
       end;
 
@@ -505,7 +519,7 @@ implementation
     class procedure tpsabiehexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
       begin
         tg.ungettemp(list,t.reasonbuf);
-        (current_procinfo as tpsabiehprocinfo).PopAction((current_procinfo as tpsabiehprocinfo).CurrentAction);
+        (current_procinfo as tpsabiehprocinfo).FinalizeAndPopAction((current_procinfo as tpsabiehprocinfo).CurrentAction);
       end;
 
 
@@ -589,7 +603,7 @@ implementation
     class procedure tpsabiehexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint;
       endexceptlabel: tasmlabel; onlyfree: boolean);
       begin
-        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite(list);
+        { nothing to do }
       end;
 
 
@@ -607,12 +621,14 @@ implementation
             { Resume might not be called outside of an landing pad else
               the unwind is immediatly terminated, so create an empty landing pad }
             psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
-            psabiehprocinfo.CreateNewPSABIEHCallsite(list);
 
-            ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
-            psabiehprocinfo.PushAction(ReRaiseLandingPad);
-            psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
-            ReRaiseLandingPad.AddAction(nil);
+            if psabiehprocinfo.landingpadstack.count>1 then
+              begin
+                psabiehprocinfo.CreateNewPSABIEHCallsite(list);
+
+                psabiehprocinfo.PushAction(psabiehprocinfo.NoAction);
+                psabiehprocinfo.PushLandingPad(psabiehprocinfo.NoAction);
+              end;
 
             pd:=search_system_proc('fpc_resume');
             cgpara1.init;
@@ -623,9 +639,12 @@ implementation
             { we do not have to clean up the stack, we never return }
             cgpara1.done;
 
-            psabiehprocinfo.CreateNewPSABIEHCallsite(list);
-            psabiehprocinfo.PopLandingPad(psabiehprocinfo.CurrentLandingPad);
-            psabiehprocinfo.PopAction(ReRaiseLandingPad);
+            if psabiehprocinfo.landingpadstack.count>1 then
+              begin
+                psabiehprocinfo.CreateNewPSABIEHCallsite(list);
+                psabiehprocinfo.PopLandingPad(psabiehprocinfo.NoAction);
+                psabiehprocinfo.PopAction(psabiehprocinfo.NoAction);
+              end;
           end
         else
           begin
@@ -635,7 +654,7 @@ implementation
               begin
                 psabiehprocinfo.CreateNewPSABIEHCallsite(list);
 
-                ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
+                ReRaiseLandingPad:=psabiehprocinfo.NoAction;
                 psabiehprocinfo.PushAction(ReRaiseLandingPad);
                 psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
               end

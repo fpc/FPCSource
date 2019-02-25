@@ -1437,11 +1437,11 @@ implementation
             if psabiehprocinfo.PopLandingPad(CurrentLandingPad) then
               exclude(flowcontrol,fc_catching_exceptions);
             CurrentAction:=psabiehprocinfo.CurrentAction;
-            psabiehprocinfo.PopAction(CurrentAction);
+            psabiehprocinfo.FinalizeAndPopAction(CurrentAction);
 
             if not(fc_catching_exceptions in flowcontrol) then
               begin
-                ReRaiseLandingPad:=TPSABIEHAction.Create(nil);
+                ReRaiseLandingPad:=psabiehprocinfo.NoAction;
                 psabiehprocinfo.PushAction(ReRaiseLandingPad);
                 psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
               end;
