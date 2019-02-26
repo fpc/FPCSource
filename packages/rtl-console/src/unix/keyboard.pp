@@ -1470,7 +1470,7 @@ begin
               if not(ch in ['a'..'z','A'..'N','P'..'Z','0'..'9','-','+','_','=']) then
                 begin
                   if intail=0 then
-                    intail:=insize
+                    intail:=insize-1
                   else
                     dec(intail);
                   inbuf[intail]:=ch;
