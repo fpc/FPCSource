@@ -1646,6 +1646,7 @@ begin
   '  s = ''abc'';', // string lit
   '  c: char = s[1];', // array params
   '  a: array[1..2] of longint = (3,4);', // anonymous array, range, array values
+  '  PI: Double; external name ''Math.PI'';',
   'resourcestring',
   '  rs = ''rs'';',
   'implementation']);

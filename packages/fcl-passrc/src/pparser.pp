@@ -3909,7 +3909,7 @@ begin
             NextToken;
             if not (CurToken in [tkChar,tkString,tkIdentifier]) then
               ParseExcTokenError(TokenInfos[tkString]);
-            Result.ExportName:=DoParseExpression(Parent);
+            Result.ExportName:=DoParseExpression(Result);
             Result.IsConst:=true; // external const is readonly
             end
           else if CurToken=tkSemicolon then
