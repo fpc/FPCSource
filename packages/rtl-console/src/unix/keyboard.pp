@@ -1670,7 +1670,7 @@ var
   MyScan:byte;
   MyChar : char;
   MyKey: TEnhancedKeyEvent;
-  EscUsed,AltPrefixUsed,CtrlPrefixUsed,ShiftPrefixUsed,IsAlt,Again : boolean;
+  EscUsed,AltPrefixUsed,CtrlPrefixUsed,ShiftPrefixUsed,Again : boolean;
   SState: TEnhancedShiftState;
 
 begin {main}
@@ -1694,8 +1694,6 @@ begin {main}
   AltPrefixUsed:=false;
   ShiftPrefixUsed:=false;
   EscUsed:=false;
-  if IsAlt then
-    Include(SState, essAlt);
   repeat
     again:=false;
     if Mychar=#0 then
@@ -1839,8 +1837,6 @@ begin {main}
         MyKey:=ReadKey;
         MyChar:=MyKey.AsciiChar;
         MyScan:=ord(MyChar);
-        if IsAlt then
-          Include(SState,essAlt);
       end;
     until not Again;
   if (MyChar<>#0) or (MyScan<>0) or (SState<>[]) then
