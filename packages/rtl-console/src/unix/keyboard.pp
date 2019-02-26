@@ -1404,7 +1404,7 @@ end;
 {$endif linux}
 
 
-function ReadKey(var IsAlt : boolean):TEnhancedKeyEvent;
+function ReadKey:TEnhancedKeyEvent;
 var
   store    : array [0..8] of char;
   arrayind : byte;
@@ -1433,7 +1433,6 @@ var
   NPT,NNPT : PTreeElement;
   k: TEnhancedKeyEvent;
 begin
-  IsAlt:=false;
 {Check Buffer first}
   if KeySend<>KeyPut then
    begin
@@ -1682,7 +1681,7 @@ begin {main}
       exit;
     end;
   SysGetEnhancedKeyEvent:=NilEnhancedKeyEvent;
-  MyKey:=ReadKey(IsAlt);
+  MyKey:=ReadKey;
   MyChar:=MyKey.AsciiChar;
   MyScan:=ord(MyChar);
 {$ifdef linux}
@@ -1701,7 +1700,7 @@ begin {main}
     again:=false;
     if Mychar=#0 then
       begin
-{        MyScan:=ord(ReadKey(IsAlt));}
+{        MyScan:=ord(ReadKey);}
         MyScan:=MyKey.VirtualScanCode shr 8;
         if myscan=$01 then
           mychar:=#27;
@@ -1836,8 +1835,8 @@ begin {main}
       end
     else
       begin
-        {MyChar:=Readkey(IsAlt);}
-        MyKey:=ReadKey(IsAlt);
+        {MyChar:=Readkey;}
+        MyKey:=ReadKey;
         MyChar:=MyKey.AsciiChar;
         MyScan:=ord(MyChar);
         if IsAlt then
