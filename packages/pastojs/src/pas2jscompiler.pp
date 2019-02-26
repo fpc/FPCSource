@@ -387,6 +387,7 @@ type
     function ReadContinue: boolean; // true=finished
     function ReaderState: TPas2jsReaderState;
     procedure CreateJS;
+    procedure EmitModuleHints;
     function GetPasFirstSection: TPasSection;
     function GetPasImplSection: TPasSection;
     function GetPasMainUsesClause: TPasUsesClause;
@@ -1479,13 +1480,6 @@ procedure TPas2jsCompilerFile.CreateJS;
 begin
   //writeln('TPas2jsCompilerFile.CreateJS START ',UnitFilename,' JS=',GetObjName(FJSModule));
   try
-    // show hints only for units that are actually converted
-    if (PCUSupport=nil) or not PCUSupport.HasReader then
-      begin
-      //writeln('TPas2jsCompilerFile.CreateJS ',UnitFilename);
-      UseAnalyzer.EmitModuleHints(PasModule);
-      end;
-
     // convert
     CreateConverter;
     Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
@@ -1505,6 +1499,27 @@ begin
   //writeln('TPas2jsCompilerFile.CreateJS END ',UnitFilename,' JS=',GetObjName(FJSModule));
 end;
 
+procedure TPas2jsCompilerFile.EmitModuleHints;
+begin
+  try
+    // show hints only for units with sources
+    if (PCUSupport=nil) or not PCUSupport.HasReader then
+      begin
+      //writeln('TPas2jsCompilerFile.EmitModuleHints ',UnitFilename);
+      UseAnalyzer.EmitModuleHints(PasModule);
+      end;
+  except
+    on E: ECompilerTerminate do
+      raise;
+    on E: Exception do
+      HandleException(E);
+    {$IFDEF pas2js}
+    else
+      HandleJSException('[20190226183324] TPas2jsCompilerFile.EmitModuleHints File="'+UnitFilename+'"',
+                        JSExceptValue);
+    {$ENDIF}
+  end;
+end;
 
 function TPas2jsCompilerFile.GetPasFirstSection: TPasSection;
 var
@@ -1971,10 +1986,16 @@ procedure TPas2jsCompiler.CreateJavaScript(aFile: TPas2jsCompilerFile;
 
 begin
   //writeln('TPas2jsCompiler.CreateJavaScript ',aFile.UnitFilename,' JS=',GetObjName(aFile.JSModule),' Need=',aFile.NeedBuild);
-  if (aFile.JSModule<>nil) or (not aFile.NeedBuild) then exit;
+  if aFile.JSModule<>nil then exit; // already created
+
   // check each file only once
   if Checked.ContainsItem(aFile) then exit;
   Checked.Add(aFile);
+
+  // emit module hints
+  aFile.EmitModuleHints;
+
+  if not aFile.NeedBuild then exit;
 
   Log.LogMsg(nCompilingFile,[FullFormatPath(aFile.UnitFilename)],'',0,0,
     not (coShowLineNumbers in Options));

@@ -2265,6 +2265,13 @@ end;
 
 procedure TTestUseAnalyzer.TestWP_UnitInitialization;
 begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i: longint;',
+    '']),
+    LinesToStr([
+    '']));
+
   AddModuleWithIntfImplSrc('unit1.pp',
     LinesToStr([
     'uses unit2;',
@@ -2272,13 +2279,6 @@ begin
     LinesToStr([
     'initialization',
     'i:=2;']));
-
-  AddModuleWithIntfImplSrc('unit2.pp',
-    LinesToStr([
-    'var i: longint;',
-    '']),
-    LinesToStr([
-    '']));
 
   StartProgram(true);
   Add('uses unit1;');
