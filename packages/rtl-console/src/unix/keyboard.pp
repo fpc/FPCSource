@@ -1401,6 +1401,7 @@ var
   store    : array [0..8] of char;
   arrayind : byte;
   NPT,NNPT : PTreeElement;
+  SState: TEnhancedShiftState;
 
 
     procedure RestoreArray;
@@ -1413,6 +1414,7 @@ var
           k := NilEnhancedKeyEvent;
           k.AsciiChar := store[i];
           k.VirtualScanCode := Ord(k.AsciiChar);
+          k.ShiftState := SState;
           { todo: how to set the other fields? }
           PushKey(k);
         end;
@@ -1436,6 +1438,13 @@ begin
      fpSelect (StdInputHandle+1,@fdsin,nil,nil,nil);
    end;
   k:=NilEnhancedKeyEvent;
+{$ifdef linux}
+  if is_console then
+    SState:=EnhShiftState
+  else
+{$endif}
+    SState:=[];
+  k.ShiftState:=SState;
   ch:=ttyRecvChar;
   k.AsciiChar:=ch;
   NPT:=RootTree[ch];
