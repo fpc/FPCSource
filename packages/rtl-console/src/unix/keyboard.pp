@@ -1396,11 +1396,8 @@ end;
 
 function ReadKey(var IsAlt : boolean):TEnhancedKeyEvent;
 var
-  ch       : char;
-  fdsin    : tfdSet;
   store    : array [0..8] of char;
   arrayind : byte;
-  NPT,NNPT : PTreeElement;
   SState: TEnhancedShiftState;
 
 
@@ -1421,6 +1418,9 @@ var
       end;
 
 var
+  ch       : char;
+  fdsin    : tfdSet;
+  NPT,NNPT : PTreeElement;
   k: TEnhancedKeyEvent;
 begin
   IsAlt:=false;
