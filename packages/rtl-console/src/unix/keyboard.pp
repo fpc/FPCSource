@@ -1489,13 +1489,8 @@ begin
                if NPT^.CanBeTerminal and
                   assigned(NPT^.SpecialHandler) then
                  break;
-             End;
-           if ch<>#0 then
-             begin
-               store[arrayind]:=ch;
-               inc(arrayind);
-             end;
-           if not assigned(NNPT) then
+             End
+           else
              begin
                if ch<>#0 then
                  begin
@@ -1507,6 +1502,11 @@ begin
                    InBuf[InTail]:=ch;
                  end;
                break;
+             end;
+           if ch<>#0 then
+             begin
+               store[arrayind]:=ch;
+               inc(arrayind);
              end;
         end;
       if assigned(NPT) and NPT^.CanBeTerminal then
