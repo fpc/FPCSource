@@ -414,6 +414,16 @@ begin
     InTail:=0;
 end;
 
+{ returns an already read character back into InBuf }
+procedure PutBackIntoInBuf(ch: Char);
+begin
+  If InTail=0 then
+    InTail:=InSize-1
+  else
+    Dec(InTail);
+  InBuf[InTail]:=ch;
+end;
+
 procedure PushKey(const Ch:TEnhancedKeyEvent);
 var
   Tmp : Longint;
@@ -1469,11 +1479,7 @@ begin
               {Alt+O cannot be used in this situation, it can be a function key.}
               if not(ch in ['a'..'z','A'..'N','P'..'Z','0'..'9','-','+','_','=']) then
                 begin
-                  if intail=0 then
-                    intail:=insize-1
-                  else
-                    dec(intail);
-                  inbuf[intail]:=ch;
+                  PutBackIntoInBuf(ch);
                   ch:=#27;
                 end
               else
@@ -1492,15 +1498,9 @@ begin
              End
            else
              begin
+               { Put that unused char back into InBuf? }
                if ch<>#0 then
-                 begin
-                   { Put that unused char back into InBuf }
-                   If InTail=0 then
-                     InTail:=InSize-1
-                   else
-                     Dec(InTail);
-                   InBuf[InTail]:=ch;
-                 end;
+                 PutBackIntoInBuf(ch);
                break;
              end;
            if ch<>#0 then
