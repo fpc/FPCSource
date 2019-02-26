@@ -1745,11 +1745,13 @@ procedure TTestPrecompile.TestPC_Record;
 begin
   StartUnit(false);
   Add([
+  '{$ModeSwitch externalclass}',
   'interface',
   'type',
   '  TRec = record',
   '    i: longint;',
   '    s: string;',
+  '    b: boolean external name ''ext'';',
   '  end;',
   '  P = pointer;', // alias type to built-in type
   '  TArrOfRec = array of TRec;',
