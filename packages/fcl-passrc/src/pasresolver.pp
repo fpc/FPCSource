@@ -9205,7 +9205,8 @@ begin
       end
     else if LTypeEl.ClassType=TPasEnumType then
       begin
-      if LeftResolved.IdentEl is TPasEnumType then
+      if (LeftResolved.IdentEl is TPasType)
+          and (ResolveAliasType(TPasType(LeftResolved.IdentEl)).ClassType=TPasEnumType) then
         begin
         // e.g. TShiftState.ssAlt
         DotScope:=PushEnumDotScope(TPasEnumType(LTypeEl));
