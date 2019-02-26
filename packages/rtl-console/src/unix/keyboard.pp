@@ -76,7 +76,7 @@ var OldIO,StartTio : TermIos;
 const
   KeyBufferSize = 20;
 var
-  KeyBuffer : Array[0..KeyBufferSize-1] of Char;
+  KeyBuffer : Array[0..KeyBufferSize-1] of TEnhancedKeyEvent;
   KeyPut,
   KeySend   : longint;
 
@@ -414,7 +414,7 @@ begin
     InTail:=0;
 end;
 
-procedure PushKey(Ch:char);
+procedure PushKey(const Ch:TEnhancedKeyEvent);
 var
   Tmp : Longint;
 begin
@@ -429,7 +429,7 @@ begin
 End;
 
 
-function PopKey:char;
+function PopKey:TEnhancedKeyEvent;
 begin
   If KeyPut<>KeySend Then
    begin
@@ -439,15 +439,15 @@ begin
       KeySend:=0;
    End
   Else
-   PopKey:=#0;
+   PopKey:=NilEnhancedKeyEvent;
 End;
 
 
-procedure PushExt(b:byte);
+{procedure PushExt(b:byte);
 begin
   PushKey(#0);
   PushKey(chr(b));
-end;
+end;}
 
 
 const
@@ -1257,11 +1257,11 @@ var
   fdsin    : tfdSet;
 begin
   {Check Buffer first}
-  if KeySend<>KeyPut then
+{  if KeySend<>KeyPut then
    begin
      RawReadKey:=PopKey;
      exit;
-   end;
+   end;}
   {Wait for Key}
   if not sysKeyPressed then
    begin
@@ -1296,7 +1296,7 @@ begin
 end;
 
 
-function ReadKey(var IsAlt : boolean):char;
+function ReadKey(var IsAlt : boolean):TEnhancedKeyEvent;
 var
   ch       : char;
   fdsin    : tfdSet;
@@ -1308,11 +1308,20 @@ var
     procedure RestoreArray;
       var
         i : byte;
+        k : TEnhancedKeyEvent;
       begin
         for i:=0 to arrayind-1 do
-          PushKey(store[i]);
+        begin
+          k := NilEnhancedKeyEvent;
+          k.AsciiChar := store[i];
+          k.VirtualScanCode := Ord(k.AsciiChar);
+          { todo: how to set the other fields? }
+          PushKey(k);
+        end;
       end;
 
+var
+  k: TEnhancedKeyEvent;
 begin
   IsAlt:=false;
 {Check Buffer first}
@@ -1328,10 +1337,12 @@ begin
      fpFD_SET (StdInputHandle,fdsin);
      fpSelect (StdInputHandle+1,@fdsin,nil,nil,nil);
    end;
+  k:=NilEnhancedKeyEvent;
   ch:=ttyRecvChar;
+  k.AsciiChar:=ch;
   NPT:=RootTree[ch];
   if not assigned(NPT) then
-    PushKey(ch)
+    PushKey(k)
   else
     begin
       fpFD_ZERO(fdsin);
@@ -1396,12 +1407,27 @@ begin
           if assigned(NPT^.SpecialHandler) then
             begin
               NPT^.SpecialHandler;
-              PushExt(0);
+{              PushExt(0);}
+              k.AsciiChar := #0;
+              k.UnicodeChar := WideChar(#0);
+              k.VirtualScanCode := 0;
+              PushKey(k);
             end
           else if NPT^.CharValue<>0 then
-            PushKey(chr(NPT^.CharValue))
+            begin
+{              PushKey(chr(NPT^.CharValue))}
+              k.AsciiChar := chr(NPT^.CharValue);
+              k.VirtualScanCode := Ord(k.AsciiChar);
+              PushKey(k);
+            end
           else if NPT^.ScanValue<>0 then
-            PushExt(NPT^.ScanValue);
+            begin
+{              PushExt(NPT^.ScanValue);}
+              k.AsciiChar := #0;
+              k.UnicodeChar := WideChar(#0);
+              k.VirtualScanCode := NPT^.ScanValue shl 8;
+              PushKey(k);
+            end;
         end
       else
         RestoreArray;
@@ -1633,6 +1659,7 @@ const
 var
   MyScan:byte;
   MyChar : char;
+  MyKey: TEnhancedKeyEvent;
   EscUsed,AltPrefixUsed,CtrlPrefixUsed,ShiftPrefixUsed,IsAlt,Again : boolean;
   SState: TEnhancedShiftState;
 
@@ -1644,7 +1671,8 @@ begin {main}
       exit;
     end;
   SysGetEnhancedKeyEvent:=NilEnhancedKeyEvent;
-  MyChar:=Readkey(IsAlt);
+  MyKey:=ReadKey(IsAlt);
+  MyChar:=MyKey.AsciiChar;
   MyScan:=ord(MyChar);
 {$ifdef linux}
   if is_console then
@@ -1662,7 +1690,8 @@ begin {main}
     again:=false;
     if Mychar=#0 then
       begin
-        MyScan:=ord(ReadKey(IsAlt));
+{        MyScan:=ord(ReadKey(IsAlt));}
+        MyScan:=MyKey.VirtualScanCode shr 8;
         if myscan=$01 then
           mychar:=#27;
         { Handle Ctrl-<x>, but not AltGr-<x> }
@@ -1796,7 +1825,9 @@ begin {main}
       end
     else
       begin
-        MyChar:=Readkey(IsAlt);
+        {MyChar:=Readkey(IsAlt);}
+        MyKey:=ReadKey(IsAlt);
+        MyChar:=MyKey.AsciiChar;
         MyScan:=ord(MyChar);
         if IsAlt then
           Include(SState,essAlt);
