@@ -598,5 +598,6 @@ end;
 
 Initialization
   RegisterTests([TTestCLI_Precompile]);
+  RegisterPCUFormat;
 end.
 
