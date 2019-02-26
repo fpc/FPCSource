@@ -1436,6 +1436,7 @@ type
     ScannerModeSwitches: TModeSwitches;
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); virtual;
     function GetRootModule: TPasModule;
+    function GetRootContext: TConvertContext;
     function GetNonDotContext: TConvertContext;
     function GetFunctionContext: TFunctionContext;
     function GetLocalName(El: TPasElement): string; virtual;
@@ -1456,6 +1457,9 @@ type
   TRootContext = Class(TConvertContext)
   public
     ResourceStrings: TJSVarDeclaration;
+    GlobalClassMethods: TArrayOfPasProcedure;
+    procedure AddGlobalClassMethod(p: TPasProcedure);
+    destructor Destroy; override;
   end;
 
   { TFCLocalIdentifier }
@@ -1622,12 +1626,11 @@ type
     {$ENDIF}
   private
     FGlobals: TPasToJSConverterGlobals;
-    FGlobalClassMethods: TArrayOfPasProcedure;
     FOnIsElementUsed: TPas2JSIsElementUsedEvent;
     FOnIsTypeInfoUsed: TPas2JSIsElementUsedEvent;
     FOptions: TPasToJsConverterOptions;
     FReservedWords: TJSReservedWordList; // sorted with CompareStr
-    Procedure AddGlobalClassMethod(P: TPasProcedure);
+    Procedure AddGlobalClassMethod(aContext: TConvertContext; P: TPasProcedure);
     Function CreatePrimitiveDotExpr(Path: string; PosEl: TPasElement): TJSElement;
     Function CreateSubDeclJSNameExpr(El: TPasElement; JSName: string;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement;
@@ -1874,7 +1877,7 @@ type
     Function ConvertRepeatStatement(El: TPasImplRepeatUntil; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertForStatement(El: TPasImplForLoop; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertFinalizationSection(El: TFinalizationSection; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertInitializationSection(El: TInitializationSection; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertInitializationSection(El: TPasModule; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSimpleStatement(El: TPasImplSimple; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertWithStatement(El: TPasImplWithDo; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertTryStatement(El: TPasImplTry; AContext: TConvertContext ): TJSElement; virtual;
@@ -2126,6 +2129,23 @@ begin
     Result:=Result+h;
     end;
   Result:='['+Result+']';
+end;
+
+{ TRootContext }
+
+procedure TRootContext.AddGlobalClassMethod(p: TPasProcedure);
+begin
+  {$IF defined(fpc) and (FPC_FULLVERSION<30101)}
+  SetLength(GlobalClassMethods,length(GlobalClassMethods)+1);
+  GlobalClassMethods[length(GlobalClassMethods)-1]:=P;
+  {$ELSE}
+  Insert(P,GlobalClassMethods,length(GlobalClassMethods));
+  {$ENDIF}
+end;
+
+destructor TRootContext.Destroy;
+begin
+  inherited Destroy;
 end;
 
 { TPasToJSConverterGlobals }
@@ -5831,6 +5851,13 @@ begin
     Result:=nil;
 end;
 
+function TConvertContext.GetRootContext: TConvertContext;
+begin
+  Result:=Self;
+  while Result.Parent<>nil do
+    Result:=Result.Parent;
+end;
+
 function TConvertContext.GetNonDotContext: TConvertContext;
 begin
   Result:=Self;
@@ -6005,14 +6032,15 @@ begin
   Result:=FGlobals.BuiltInNames[bin];
 end;
 
-procedure TPasToJSConverter.AddGlobalClassMethod(P: TPasProcedure);
+procedure TPasToJSConverter.AddGlobalClassMethod(aContext: TConvertContext;
+  P: TPasProcedure);
+var
+  RootContext: TConvertContext;
 begin
-  {$IF defined(fpc) and (FPC_FULLVERSION<30101)}
-  SetLength(FGlobalClassMethods,length(FGlobalClassMethods)+1);
-  FGlobalClassMethods[length(FGlobalClassMethods)-1]:=P;
-  {$ELSE}
-  Insert(P,FGlobalClassMethods,length(FGlobalClassMethods));
-  {$ENDIF}
+  RootContext:=aContext.GetRootContext;
+  if not (RootContext is TRootContext) then
+    DoError(20190226232141,RootContext.ClassName);
+  TRootContext(RootContext).AddGlobalClassMethod(P);
 end;
 
 procedure TPasToJSConverter.AddToSourceElements(Src: TJSSourceElements;
@@ -12945,7 +12973,8 @@ begin
           else if (C=TPasClassConstructor)
               or (C=TPasClassDestructor) then
             begin
-            AddGlobalClassMethod(TPasProcedure(P));
+              writeln('FFF2 TPasToJSConverter.ConvertClassType ',GetObjName(P));
+            AddGlobalClassMethod(AContext,TPasProcedure(P));
             continue;
             end;
           NewEl:=ConvertProcedure(TPasProcedure(P),FuncContext);
@@ -14079,11 +14108,12 @@ begin
     end;
 end;
 
-function TPasToJSConverter.ConvertInitializationSection(
-  El: TInitializationSection; AContext: TConvertContext): TJSElement;
+function TPasToJSConverter.ConvertInitializationSection(El: TPasModule;
+  AContext: TConvertContext): TJSElement;
 var
   FDS: TJSFunctionDeclarationStatement;
   FuncContext: TFunctionContext;
+  PosEl: TPasElement;
 
   function CreateBody: TJSFunctionBody;
   var
@@ -14093,12 +14123,12 @@ var
     Result:=FuncDef.Body;
     if Result=nil then
       begin
-      Result:=TJSFunctionBody(CreateElement(TJSFunctionBody,El));
+      Result:=TJSFunctionBody(CreateElement(TJSFunctionBody,PosEl));
       FuncDef.Body:=Result;
-      Result.A:=TJSSourceElements(CreateElement(TJSSourceElements, El));
+      Result.A:=TJSSourceElements(CreateElement(TJSSourceElements, PosEl));
       end;
     if FuncContext=nil then
-      FuncContext:=TFunctionContext.Create(El,Result,AContext);
+      FuncContext:=TFunctionContext.Create(PosEl,Result,AContext);
   end;
 
 var
@@ -14109,65 +14139,80 @@ var
   Scope: TPas2JSInitialFinalizationScope;
   Line, Col: integer;
   Lit: TJSLiteral;
+  Section: TInitializationSection;
+  RootContext: TRootContext;
 begin
   // create: '$mod.$init=function(){}'
   Result:=nil;
-  Scope:=TPas2JSInitialFinalizationScope(El.CustomData);
 
-  IsMain:=(El.Parent<>nil) and (El.Parent is TPasProgram);
+  Section:=El.InitializationSection;
+  if Section<>nil then
+    begin
+    PosEl:=Section;
+    Scope:=TPas2JSInitialFinalizationScope(Section.CustomData);
+    end
+  else
+    begin
+    PosEl:=El;
+    Scope:=nil;
+    end;
+
+  IsMain:=(El is TPasProgram);
   if IsMain then
     FunName:=GetBIName(pbifnProgramMain)
   else
     FunName:=GetBIName(pbifnUnitInit);
   NeedRTLCheckVersion:=IsMain and (coRTLVersionCheckMain in Options);
 
+  RootContext:=AContext.GetRootContext as TRootContext;
   FuncContext:=nil;
-  AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+  AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
   try
     // $mod.$init =
     AssignSt.LHS:=CreateMemberExpression([GetBIName(pbivnModule),FunName]);
     // = function(){...}
-    FDS:=CreateFunctionSt(El,false);
+    FDS:=CreateFunctionSt(PosEl,false);
     AssignSt.Expr:=FDS;
     Body:=FDS.AFunction.Body;
 
     // first convert main/initialization statements
-    if Scope.JS<>'' then
-      begin
-      S:=TrimRight(Scope.JS);
-      if S<>'' then
+    if Section<>nil then
+      if Scope.JS<>'' then
+        begin
+        S:=TrimRight(Scope.JS);
+        if S<>'' then
+          begin
+          Body:=CreateBody;
+          // use precompiled JS
+          TPasResolver.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
+          Lit:=TJSLiteral.Create(Line,Col,El.SourceFilename);
+          Lit.Value.CustomValue:=StrToJSString(S);
+          Body.A:=Lit;
+          end;
+        end
+      else if Section.Elements.Count>0 then
         begin
         Body:=CreateBody;
-        // use precompiled JS
-        TPasResolver.UnmangleSourceLineNumber(El.Parent.SourceLinenumber,Line,Col);
-        Lit:=TJSLiteral.Create(Line,Col,El.Parent.SourceFilename);
-        Lit.Value.CustomValue:=StrToJSString(S);
-        Body.A:=Lit;
-        end;
-      end
-    else if El.Elements.Count>0 then
-      begin
-      Body:=CreateBody;
-      // Note: although the rtl sets 'this' as the module, the function can
-      //   simply refer to $mod, so no need to set ThisPas here
-      Body.A:=ConvertImplBlockElements(El,FuncContext,false);
-      FuncContext.BodySt:=Body.A;
+        // Note: although the rtl sets 'this' as the module, the function can
+        //   simply refer to $mod, so no need to set ThisPas here
+        Body.A:=ConvertImplBlockElements(Section,FuncContext,false);
+        FuncContext.BodySt:=Body.A;
 
-      AddInterfaceReleases(FuncContext,El);
-      Body.A:=FuncContext.BodySt;
+        AddInterfaceReleases(FuncContext,PosEl);
+        Body.A:=FuncContext.BodySt;
 
-      // store precompiled JS
-      if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
-        begin
-        Scope.JS:=TrimRight(CreatePrecompiledJS(Body.A));
-        if Scope.JS='' then
-          Scope.JS:=' '; // store the information, that there is an empty initialization section
-        end;
-      end
-    else if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
-      Scope.JS:=' '; // store the information, that there is an empty initialization section
+        // store precompiled JS
+        if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
+          begin
+          Scope.JS:=TrimRight(CreatePrecompiledJS(Body.A));
+          if Scope.JS='' then
+            Scope.JS:=' '; // store the information, that there is an empty initialization section
+          end;
+        end
+      else if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
+        Scope.JS:=' '; // store the information, that there is an empty initialization section
 
-    if length(FGlobalClassMethods)>0 then
+    if length(RootContext.GlobalClassMethods)>0 then
       begin
       // prepend class constructors (which one depends on WPO)
       Body:=CreateBody;
@@ -14588,10 +14633,14 @@ end;
 
 procedure TPasToJSConverter.CreateInitSection(El: TPasModule;
   Src: TJSSourceElements; AContext: TConvertContext);
+var
+  RootContext: TRootContext;
 begin
+  RootContext:=AContext.GetRootContext as TRootContext;
   // add initialization section
-  if Assigned(El.InitializationSection) then
-    AddToSourceElements(Src,ConvertInitializationSection(El.InitializationSection,AContext));
+  if Assigned(El.InitializationSection)
+      or (length(RootContext.GlobalClassMethods)>0) then
+    AddToSourceElements(Src,ConvertInitializationSection(El,AContext));
   // finalization: not supported
   if Assigned(El.FinalizationSection) then
     raise Exception.Create('TPasToJSConverter.ConvertInitializationSection: finalization section is not supported');
@@ -15636,13 +15685,16 @@ var
   St: TJSElement;
   Call: TJSCallExpression;
   Bracket: TJSUnaryBracketsExpression;
+  RootContext: TRootContext;
 begin
+  RootContext:=TRootContext(FuncContext.GetRootContext);
   First:=nil;
   Last:=nil;
   try
-    for i:=0 to length(FGlobalClassMethods)-1 do
+    writeln('FFF1 TPasToJSConverter.AddClassConstructors ',length(RootContext.GlobalClassMethods));
+    for i:=0 to length(RootContext.GlobalClassMethods)-1 do
       begin
-      Proc:=FGlobalClassMethods[i];
+      Proc:=RootContext.GlobalClassMethods[i];
       St:=ConvertProcedure(Proc,FuncContext);
       // create direct call  ( function(){} )();
       Bracket:=TJSUnaryBracketsExpression(CreateElement(TJSUnaryBracketsExpression,PosEl));
@@ -18232,7 +18284,7 @@ begin
   else if (El.ClassType=TPasImplBeginBlock) then
     Result:=ConvertBeginEndStatement(TPasImplBeginBlock(El),AContext,true)
   else if (El.ClassType=TInitializationSection) then
-    Result:=ConvertInitializationSection(TInitializationSection(El),AContext)
+    Result:=ConvertInitializationSection(TPasModule(El.Parent),AContext)
   else if (El.ClassType=TFinalizationSection) then
     Result:=ConvertFinalizationSection(TFinalizationSection(El),AContext)
   else if (El.ClassType=TPasImplTry) then
@@ -22231,7 +22283,7 @@ begin
         begin
         if (C=TPasClassConstructor)
            or (C=TPasClassDestructor) then
-          AddGlobalClassMethod(TPasProcedure(P))
+          AddGlobalClassMethod(AContext,TPasProcedure(P))
         else
           begin
           Methods.Add(P);

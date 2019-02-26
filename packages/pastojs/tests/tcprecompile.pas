@@ -137,6 +137,10 @@ begin
       if not CheckSrcDiff(OrigSrc,NewSrc,s) then
         begin
         WriteSources;
+        writeln('TCustomTestCLI_Precompile.CheckPrecompile OrigSrc==================');
+        writeln(OrigSrc);
+        writeln('TCustomTestCLI_Precompile.CheckPrecompile NewSrc==================');
+        writeln(NewSrc);
         Fail('test1.js: '+s);
         end;
       end;
@@ -392,11 +396,14 @@ begin
     '    constructor Create;',
     '  end;',
     '  TBird = class',
-    '    class constructor Init;',
+    '    class constructor InitBird;',
     '  end;',
     ''],[
     'constructor TObject.Create; begin end;',
-    'class constructor TBird.Init; begin end;',
+    'class constructor TBird.InitBird;',
+    'begin',
+    '  exit;',
+    'end;',
     '']);
   AddUnit('src/unit2.pp',[
     'uses unit1;',
