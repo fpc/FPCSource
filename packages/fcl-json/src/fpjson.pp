@@ -3171,10 +3171,10 @@ begin
     {$else}
     With Elements[i] do
       Case VType of
-        vtChar       : AName:=VChar;
-        vtString     : AName:=vString^;
+        vtChar       : AName:=TJSONUnicodeStringType(VChar);
+        vtString     : AName:=TJSONUnicodeStringType(vString^);
         vtAnsiString : AName:=UTF8Decode(StrPas(VPChar));
-        vtPChar      : AName:=StrPas(VPChar);
+        vtPChar      : AName:=TJSONUnicodeStringType(StrPas(VPChar));
       else
         DoError(SErrNameMustBeString,[I+1]);
       end;
