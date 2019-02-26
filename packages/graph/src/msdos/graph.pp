@@ -173,6 +173,14 @@ const
      pop ds
    end;
 
+ Procedure InitInt10hMode(mode : byte);
+   begin
+     if DontClearGraphMemory then
+       CallInt10(mode or $80)
+     else
+       CallInt10(mode);
+   end;
+
 {************************************************************************}
 {*                   720x348x2 Hercules mode routines                   *}
 {************************************************************************}
@@ -192,10 +200,14 @@ begin
   for I := 0 to 11 do
     PortW[$3B4] := I or (RegValues[I] shl 8);
   Port[$3B8] := 10; { display page 0, graphic mode, display on }
-//  DosMemFillChar($B000, 0, 65536, #0);
   asm
-    mov ax, $B000
+{$ifdef FPC_MM_HUGE}
+    mov ax, SEG SegB000
     mov es, ax
+    mov es, es:[SegB000]
+{$else FPC_MM_HUGE}
+    mov es, [SegB000]
+{$endif FPC_MM_HUGE}
     mov cx, 32768
     xor di, di
     xor ax, ax
@@ -554,23 +566,27 @@ var
 procedure SetCGAPalette(CGAPaletteID: Byte); assembler;
 asm
   mov ax,CGAPaletteID
-  push bp
   mov bl, al
   mov bh, 1
   mov ah, 0Bh
+  push ds
+  push bp
   int 10h
   pop bp
+  pop ds
 end;
 
 procedure SetCGABorder(CGABorder: Byte); assembler;
 asm
   mov ax,CGABorder
-  push bp
   mov bl, al
   mov bh, 0
   mov ah, 0Bh
+  push ds
+  push bp
   int 10h
   pop bp
+  pop ds
 end;
 
 procedure SetBkColorCGA320(ColorNum: ColorType);
@@ -588,10 +604,7 @@ end;
 
 procedure InitCGA320C0;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(0);
   SetCGABorder(16);
@@ -600,10 +613,7 @@ end;
 
 procedure InitCGA320C1;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(1);
   SetCGABorder(16);
@@ -612,10 +622,7 @@ end;
 
 procedure InitCGA320C2;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(2);
   SetCGABorder(0);
@@ -624,10 +631,7 @@ end;
 
 procedure InitCGA320C3;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(3);
   SetCGABorder(0);
@@ -920,10 +924,7 @@ end;
 
 procedure InitCGA640;
 begin
-  if DontClearGraphMemory then
-    CallInt10($86)
-  else
-    CallInt10($06);
+  InitInt10hMode($06);
   VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
@@ -1231,10 +1232,7 @@ end;
 
 procedure InitMCGA640;
 begin
-  if DontClearGraphMemory then
-    CallInt10($91)
-  else
-    CallInt10($11);
+  InitInt10hMode($11);
   VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
@@ -1530,20 +1528,14 @@ end;
 
   Procedure Init640x200x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($8e)
-      else
-        CallInt10($e);
+      InitInt10hMode($e);
       VideoOfs := 0;
     end;
 
 
    Procedure Init640x350x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($90)
-      else
-        CallInt10($10);
+      InitInt10hMode($10);
       VideoOfs := 0;
     end;
 
@@ -1551,10 +1543,7 @@ end;
 
   Procedure Init640x480x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($92)
-      else
-        CallInt10($12);
+      InitInt10hMode($12);
       VideoOfs := 0;
     end;
 
@@ -1587,67 +1576,73 @@ end;
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
    end;
 {$else asmgraph}
- Procedure PutPixel16(X,Y : smallint; Pixel: ColorType);
-  Begin
-    { verify clipping and then convert to absolute coordinates...}
-    if ClipPixels then
-    begin
-      if (X < 0) or (X > ViewWidth) then
-        exit;
-      if (Y < 0) or (Y > ViewHeight) then
-        exit;
-    end;
-    X:= X + StartXViewPort;
-    Y:= Y + StartYViewPort;
-      asm
+ Procedure PutPixel16(X,Y : smallint; Pixel: ColorType); assembler;
+  asm
+    mov  si, [X]
+    mov  bx, [Y]
+    cmp  byte ptr [ClipPixels], 0
+    je   @@ClipDone
+
+    test si, si
+    js   @@Done
+    test bx, bx
+    js   @@Done
+    cmp  si, [ViewWidth]
+    jg   @@Done
+    cmp  bx, [ViewHeight]
+    jg   @@Done
+
+@@ClipDone:
+    add  si, [StartXViewPort]
+    add  bx, [StartYViewPort]
 {$ifdef FPC_MM_HUGE}
-        mov  ax, SEG SegA000
-        mov  es, ax
-        mov  es, es:[SegA000]
+    mov  ax, SEG SegA000
+    mov  es, ax
+    mov  es, es:[SegA000]
 {$else FPC_MM_HUGE}
-        mov  es, [SegA000]
+    mov  es, [SegA000]
 {$endif FPC_MM_HUGE}
-        { enable the set / reset function and load the color }
-        mov  dx, 3ceh
-        mov  ax, 0f01h
-        out  dx, ax
-        { setup set/reset register }
-        mov  ah, byte ptr [Pixel]
-        xor  al, al
-        out  dx, ax
-        { setup the bit mask register }
-        mov  al, 8
-        { load the bitmask register }
-        mov  cl, byte ptr [X]
-        and  cl, 07h
-        mov  ah, 80h
-        shr  ah, cl
-        out  dx, ax
-        { get the x index and divide by 8 for 16-color }
-        mov  ax,[X]
-        mov  cl, 3
-        shr  ax, cl
-        xchg ax, si
-        { determine the address }
-        mov  ax,80
-        mov  bx,[Y]
-        mul  bx
-        add  ax,si
-        mov  di,ax
-        add  di, [VideoOfs]
-        { send the data through the display memory through set/reset }
-        mov  bl,es:[di]
-        mov  es:[di],bl
+    { enable the set / reset function and load the color }
+    mov  dx, 3ceh
+    mov  ax, 0f01h
+    out  dx, ax
+    { setup set/reset register }
+    mov  ah, byte ptr [Pixel]
+    xor  al, al
+    out  dx, ax
+    { setup the bit mask register }
+    mov  al, 8
+    { load the bitmask register }
+    mov  cx, si
+    and  cl, 07h
+    mov  ah, 80h
+    shr  ah, cl
+    out  dx, ax
+    { get the x index and divide by 8 for 16-color }
+    mov  cl, 3
+    shr  si, cl
+    { determine the address }
+    inc  cx               { CL=4 }
+    shl  bx, cl
+    mov  di, bx
+    shl  di, 1
+    shl  di, 1
+    add  di, bx
+    add  di, si
+    add  di, [VideoOfs]
+    { send the data through the display memory through set/reset }
+    mov  bl,es:[di]
+    stosb
 
-        { reset for formal vga operation }
-        mov  ax,0ff08h
-        out  dx,ax
+    { reset for formal vga operation }
+    mov  ax,0ff08h
+    out  dx,ax
 
-        { restore enable set/reset register }
-        mov  ax,0001h
-        out  dx,ax
-      end ['AX','BX','CX','DX','SI','DI'];
-   end;
+    { restore enable set/reset register }
+    mov  ax,0001h
+    out  dx,ax
+@@Done:
+  end;
 {$endif asmgraph}
 
 
@@ -1673,20 +1668,6 @@ end;
 {$else asmgraph}
  Function GetPixel16(X,Y: smallint):ColorType;assembler;
   asm
-    mov   ax, [X]          { Get X address                    }
-    add   ax, [StartXViewPort]
-    mov   di, ax
-    mov   cl, 3
-    shr   ax, cl
-    xchg  ax, cx
-
-    mov   ax, 80
-    mov   bx, [Y]
-    add   bx, [StartYViewPort]
-    mul   bx
-    add   ax,cx
-    mov   si,ax            { SI = correct offset into video segment }
-
 {$ifdef FPC_MM_HUGE}
     mov   ax, SEG SegA000
     mov   es, ax
@@ -1694,66 +1675,76 @@ end;
 {$else FPC_MM_HUGE}
     mov   es, [SegA000]
 {$endif FPC_MM_HUGE}
-    add   si,[VideoOfs]    { Point to correct page offset... }
-
     mov   dx,03ceh
-    mov   ax,0004h
+    mov   ax,0304h
     out   dx,ax
     inc   dx
 
-    xchg  ax, di
-    and   ax,0007h
-    mov   cl,07
-    sub   cl,al
-    mov   bl,cl
+    mov   di, [X]          { Get X address                    }
+    add   di, [StartXViewPort]
+    mov   ax, di
+    mov   cl, 3
+    shr   di, cl
 
-    { read plane 0 }
-    mov   al,es:[si]       { read display memory }
-    shr   al,cl
-    and   al,01h
-    mov   ah,al            { save bit in AH       }
+    mov   bx, [Y]
+    add   bx, [StartYViewPort]
+    inc   cx               { CL=4 }
+    shl   bx, cl           { BX=16*(Y+StartYViewPort)*16 }
+    mov   si, bx           { SI=16*(Y+StartYViewPort)*16 }
+    shl   si, 1            { SI=32*(Y+StartYViewPort)*32 }
+    shl   si, 1            { SI=64*(Y+StartYViewPort)*64 }
+    add   si, bx           { SI=(64+16)*(Y+StartYViewPort)=80*(Y+StartYViewPort) }
+    add   si, di           { SI=correct offset into video segment }
+    add   si, [VideoOfs]   { Point to correct page offset... }
 
-    { read plane 1 }
-    mov   al,1             { Select plane to read }
-    out   dx,al
-    mov   al,es:[si]
-    shr   al,cl
-    and   al,01h
-    shl   al,1
-    or    ah,al            { save bit in AH      }
+    xchg  ax, cx           { 1 byte shorter than 'mov cx, ax' }
+    and   cl,7
+
+    mov   bh, 080h
+    shr   bh, cl
+
+    { read plane 3 }
+    mov   ah,es:[si]       { read display memory }
+    and   ah,bh            { save bit in AH       }
 
     { read plane 2 }
     mov   al,2             { Select plane to read }
     out   dx,al
-    mov   al,es:[si]
-    shr   al,cl
-    and   al,01h
-    shl   al,1
-    shl   al,1
-    or    ah,al            { save bit in AH       }
+    mov   bl,es:[si]
+    and   bl,bh
+    rol   ah,1
+    or    ah,bl            { save bit in AH      }
 
-    { read plane 3 }
-    mov   al,3             { Select plane to read }
+    { read plane 1 }
+    dec   ax               { Select plane to read }
     out   dx,al
-    mov   al,es:[si]
-    shr   al,cl
-    and   al,01h
-    shl   al,1
-    shl   al,1
-    shl   al,1
-    or    ah,al            { save bit in AH       }
+    mov   bl,es:[si]
+    and   bl,bh
+    rol   ah,1
+    or    ah,bl            { save bit in AH       }
 
-    mov   al,ah            { 16-bit pixel in AX   }
-    xor   ah,ah
+    { read plane 0 }
+    dec   ax               { Select plane to read }
+    out   dx,al
+    seges lodsb
+    and   al,bh
+    rol   ah,1
+    or    al,ah            { add previous bits from AH into AL }
+
+    inc   cx
+    rol   al,cl            { 16-bit pixel in AX   }
+    { 1 byte shorter than 'xor ah, ah'; will always set ah to 0, because sign(al)=0 }
+    cbw
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
-    xor   dx,dx
+    { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
+    cwd
 {$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
   end;
 {$endif asmgraph}
 
 Procedure GetScanLine16(x1, x2, y: smallint; var data);
 
-var dummylong: longint;
+var dummy: word;
     Offset, count, count2, amount, index: word;
     plane: byte;
 Begin
@@ -1766,17 +1757,17 @@ Begin
 {$ifdef logging}
   LogLn('Offset: '+HexStr(offset,4)+' - ' + strf(offset));
 {$Endif logging}
-  { first get enough pixels so offset is 32bit aligned }
+  { first get enough pixels so offset is 16bit aligned }
   amount := 0;
   index := 0;
-  If ((x1 and 31) <> 0) Or
-     ((x2-x1+1) < 32) Then
+  If ((x1 and 15) <> 0) Or
+     ((x2-x1+1) < 16) Then
     Begin
-      If ((x2-x1+1) >= 32+32-(x1 and 31)) Then
-        amount := 32-(x1 and 31)
+      If ((x2-x1+1) >= 16+16-(x1 and 15)) Then
+        amount := 16-(x1 and 15)
       Else amount := x2-x1+1;
 {$ifdef logging}
-      LogLn('amount to align to 32bits or to get all: ' + strf(amount));
+      LogLn('amount to align to 16bits or to get all: ' + strf(amount));
 {$Endif logging}
       For count := 0 to amount-1 do
         WordArray(Data)[Count] := getpixel16(x1-StartXViewPort+Count,y);
@@ -1795,46 +1786,42 @@ Begin
   { first get everything from plane 3 (4th plane) }
   PortW[$3ce] := $0304;
   Count := 0;
-  For Count := 1 to (amount shr 5) Do
+  For Count := 1 to (amount shr 4) Do
     Begin
-      dummylong := MemL[SegA000:offset+(Count-1)*4];
-      dummylong :=
-        ((dummylong and $ff) shl 24) or
-        ((dummylong and $ff00) shl 8) or
-        ((dummylong and $ff0000) shr 8) or
-        ((dummylong and $ff000000) shr 24);
-      For Count2 := 31 downto 0 Do
+      dummy := MemW[SegA000:offset+(Count-1)*2];
+      dummy :=
+        ((dummy and $ff) shl 8) or
+        ((dummy and $ff00) shr 8);
+      For Count2 := 15 downto 0 Do
         Begin
-          WordArray(Data)[index+Count2] := DummyLong and 1;
-          DummyLong := DummyLong shr 1;
+          WordArray(Data)[index+Count2] := Dummy and 1;
+          Dummy := Dummy shr 1;
         End;
-      Inc(Index, 32);
+      Inc(Index, 16);
     End;
 { Now get the data from the 3 other planes }
   plane := 3;
   Repeat
-    Dec(Index,Count*32);
+    Dec(Index,Count*16);
     Dec(plane);
     Port[$3cf] := plane;
     Count := 0;
-    For Count := 1 to (amount shr 5) Do
+    For Count := 1 to (amount shr 4) Do
       Begin
-        dummylong := MemL[SegA000:offset+(Count-1)*4];
-        dummylong :=
-          ((dummylong and $ff) shl 24) or
-          ((dummylong and $ff00) shl 8) or
-          ((dummylong and $ff0000) shr 8) or
-          ((dummylong and $ff000000) shr 24);
-        For Count2 := 31 downto 0 Do
+        dummy := MemW[SegA000:offset+(Count-1)*2];
+        dummy :=
+          ((dummy and $ff) shl 8) or
+          ((dummy and $ff00) shr 8);
+        For Count2 := 15 downto 0 Do
           Begin
             WordArray(Data)[index+Count2] :=
-              (WordArray(Data)[index+Count2] shl 1) or (DummyLong and 1);
-            DummyLong := DummyLong shr 1;
+              (WordArray(Data)[index+Count2] shl 1) or (Dummy and 1);
+            Dummy := Dummy shr 1;
           End;
-        Inc(Index, 32);
+        Inc(Index, 16);
       End;
   Until plane = 0;
-  amount := amount and 31;
+  amount := amount and 15;
   Dec(index);
 {$ifdef Logging}
   LogLn('Last array index written to: '+strf(index));
@@ -1845,32 +1832,32 @@ Begin
     WordArray(Data)[index+Count] := getpixel16(x1+index+Count,y);
 {$ifdef logging}
   inc(x1,startXViewPort);
-  LogLn('First 32 bytes gotten with getscanline16: ');
-  If x2-x1+1 >= 32 Then
-    Count2 := 32
+  LogLn('First 16 bytes gotten with getscanline16: ');
+  If x2-x1+1 >= 16 Then
+    Count2 := 16
   Else Count2 := x2-x1+1;
   For Count := 0 to Count2-1 Do
     Log(strf(WordArray(Data)[Count])+' ');
   LogLn('');
-  If x2-x1+1 >= 32 Then
+  If x2-x1+1 >= 16 Then
     Begin
-      LogLn('Last 32 bytes gotten with getscanline16: ');
-      For Count := 31 downto 0 Do
+      LogLn('Last 16 bytes gotten with getscanline16: ');
+      For Count := 15 downto 0 Do
       Log(strf(WordArray(Data)[x2-x1-Count])+' ');
     End;
   LogLn('');
   GetScanLineDefault(x1-StartXViewPort,x2-StartXViewPort,y,Data);
-  LogLn('First 32 bytes gotten with getscanlinedef: ');
-  If x2-x1+1 >= 32 Then
-    Count2 := 32
+  LogLn('First 16 bytes gotten with getscanlinedef: ');
+  If x2-x1+1 >= 16 Then
+    Count2 := 16
   Else Count2 := x2-x1+1;
   For Count := 0 to Count2-1 Do
     Log(strf(WordArray(Data)[Count])+' ');
   LogLn('');
-  If x2-x1+1 >= 32 Then
+  If x2-x1+1 >= 16 Then
     Begin
-      LogLn('Last 32 bytes gotten with getscanlinedef: ');
-      For Count := 31 downto 0 Do
+      LogLn('Last 16 bytes gotten with getscanlinedef: ');
+      For Count := 15 downto 0 Do
       Log(strf(WordArray(Data)[x2-x1-Count])+' ');
     End;
   LogLn('');
@@ -1958,27 +1945,28 @@ End;
     { setup the bit mask register }
     mov  al, 8
     { load the bitmask register }
-    mov  cl, [X]
+    mov  si, [X]
+    mov  cx, si
     and  cl, 07h
     mov  ah, 80h
     shr  ah, cl
     out  dx, ax
     { get the x index and divide by 8 for 16-color }
-    mov  ax, [X]
     mov  cl, 3
-    shr  ax, cl
-    push ax
+    shr  si, cl
     { determine the address }
-    mov  ax, 80
-    mov  si, [Y]
-    mul  si
-    pop  cx
-    add  ax,cx
-    mov  di,ax
+    mov  bx, [Y]
+    inc  cx               { CL=4 }
+    shl  bx, cl
+    mov  di, bx
+    shl  di, 1
+    shl  di, 1
+    add  di, bx
+    add  di, si
+    add  di, [VideoOfs]   { add correct page }
     { send the data through the display memory through set/reset }
-    add  di,[VideoOfs]   { add correct page }
     mov  al,es:[di]
-    mov  es:[di],al
+    stosb
 
     { reset for formal vga operation }
     mov  ax,0ff08h
@@ -2147,12 +2135,11 @@ End;
   End;
 
 
- procedure SetVisual200(page: word);
-  { four page support... }
+ procedure SetVisual200_350(page: word);
   begin
     if page > HardwarePages then exit;
     asm
-      mov ax,[page]    { only lower byte is supPorted. }
+      mov al, byte ptr [page]    { only lower byte is supported. }
       mov ah,05h
       push ds
       push bp
@@ -2173,21 +2160,6 @@ End;
     else
       VideoOfs := 0;
     end;
-  end;
-
- procedure SetVisual350(page: word);
-  { one page supPort... }
-  begin
-    if page > HardwarePages then exit;
-    asm
-      mov ax,[page]    { only lower byte is supPorted. }
-      mov ah,05h
-      push ds
-      push bp
-      int 10h
-      pop bp
-      pop ds
-    end ['DX','CX','BX','AX','SI','DI'];
   end;
 
  procedure SetActive350(page: word);
@@ -2211,11 +2183,7 @@ End;
 
  Procedure Init320;
     begin
-      if DontClearGraphMemory then
-        CallInt10($93)
-      else
-        CallInt10($13);
-      VideoOfs := 0;
+      InitInt10hMode($13);
     end;
 
 
@@ -2239,13 +2207,6 @@ End;
 {$else asmgraph}
  Procedure PutPixel320(X,Y : smallint; Pixel: ColorType); assembler;
   asm
-{$ifdef FPC_MM_HUGE}
-    mov    ax, SEG SegA000
-    mov    es, ax
-    mov    es, es:[SegA000]
-{$else FPC_MM_HUGE}
-    mov    es, [SegA000]
-{$endif FPC_MM_HUGE}
     mov    ax, [Y]
     mov    di, [X]
     cmp    byte ptr [ClipPixels], 0
@@ -2261,6 +2222,13 @@ End;
     jg     @@Done
 
 @@ClipDone:
+{$ifdef FPC_MM_HUGE}
+    mov    bx, SEG SegA000
+    mov    es, bx
+    mov    es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov    es, [SegA000]
+{$endif FPC_MM_HUGE}
     add    ax, [StartYViewPort]
     add    di, [StartXViewPort]
     xchg   ah, al            { The value of Y must be in AH }
@@ -2294,24 +2262,23 @@ End;
 {$endif FPC_MM_HUGE}
     mov    ax, [Y]
     add    ax, [StartYViewPort]
-    mov    di, [X]
-    add    di, [StartXViewPort]
+    mov    si, [X]
+    add    si, [StartXViewPort]
     xchg   ah, al            { The value of Y must be in AH }
-    add    di, ax
+    add    si, ax
     shr    ax, 1
     shr    ax, 1
-    add    di, ax
-    xor    ax, ax
-    mov    al,es:[di]
-    mov    word ptr @Result,ax
+    add    si, ax
+    seges  lodsb
+    xor    ah, ah
 {$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
-    mov    word ptr @Result+2, 0
+    { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
+    cwd
 {$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
   end;
 {$endif asmgraph}
 
 
-{$undef asmgraph}
 {$ifndef asmgraph}
  Procedure DirectPutPixel320(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
@@ -2319,7 +2286,7 @@ End;
      dummy: Byte;
  begin
    dummy := CurrentColor;
-   offset := y * 320 + x + VideoOfs;
+   offset := y * 320 + x;
    case CurrentWriteMode of
      XorPut: dummy := dummy xor Mem[Sega000:offset];
      OrPut: dummy := dummy or Mem[Sega000:offset];
@@ -2330,7 +2297,6 @@ End;
  end;
 {$else asmgraph}
  Procedure DirectPutPixel320(X,Y : smallint); assembler;
-{ note: still needs or/and/notput support !!!!! (JM) }
  asm
 {$ifdef FPC_MM_HUGE}
    mov    ax, SEG SegA000
@@ -2343,16 +2309,35 @@ End;
    mov    di, [X]
    xchg   ah, al            { The value of Y must be in AH }
    add    di, ax
-   shr    ax, 2
+   shr    ax, 1
+   shr    ax, 1
    add    di, ax
-{   add    di, [VideoOfs] no multiple pages support in 320*200*256 }
-   mov    ax, [CurrentColor]
-   cmp    [CurrentWriteMode],XORPut   { check write mode   }
-   jne    @MOVMode
-   mov    ah,es:[di]        { read the byte...             }
-   xor    al,ah             { xor it and return value into AL }
-@MovMode:
-   mov    es:[di], al
+   mov    al, byte ptr [CurrentColor]
+   { check write mode   }
+   mov    bl, byte ptr [CurrentWriteMode]
+   cmp    bl, NormalPut
+   jne    @@1
+   stosb
+   jmp    @Done
+@@1:
+   cmp    bl, XorPut
+   jne    @@2
+   xor    es:[di], al
+   jmp    @Done
+@@2:
+   cmp    bl, OrPut
+   jne    @@3
+   or     es:[di], al
+   jmp    @Done
+@@3:
+   cmp    bl, AndPut
+   jne    @NotPutMode
+   and    es:[di], al
+   jmp    @Done
+@NotPutMode:
+   not    al
+   stosb
+@Done:
  end;
 {$endif asmgraph}
 
@@ -2360,13 +2345,11 @@ End;
  procedure SetVisual320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  procedure SetActive320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  {************************************************************************}
@@ -2374,10 +2357,56 @@ End;
  {************************************************************************}
 const CrtAddress: word = 0;
 
+{$ifndef asmgraph}
  procedure InitModeX;
-  begin
+   begin
+     {see if we are using color-/monochrome display}
+     if (Port[$3CC] and 1) <> 0 then
+       CrtAddress := $3D4  { color }
+     else
+       CrtAddress := $3B4; { monochrome }
+
+     InitInt10hMode($13);
+
+     Port[$3C4] := $04;  {select memory-mode-register at sequencer port }
+                         { bit 3 := 0: don't chain the 4 planes         }
+                         { bit 2 := 1: no odd/even mechanism            }
+     Port[$3C5] := (Port[$3C5] and $F7) or $04;
+
+     Port[$3C4] := $02; {s.a.: address sequencer reg. 2 (=map-mask),... }
+     Port[$3C5] := $0F; {...and allow access to all 4 bit maps          }
+
+     { starting with segment A000h, set 8000h logical words = 4*8000h
+       physical words (because of 4 bitplanes) to 0                     }
+     asm
+{$ifdef FPC_MM_HUGE}
+       MOV AX,SEG SegA000
+       MOV ES,AX
+       MOV ES,ES:[SegA000]
+{$else FPC_MM_HUGE}
+       MOV ES, [SegA000]
+{$endif FPC_MM_HUGE}
+       XOR DI,DI
+       XOR AX,AX
+       MOV CX,8000h
+       CLD
+       REP STOSW
+     end ['AX','CX','DI'];
+
+     {address the underline-location-register at the CRT-controller
+      port, read out the according data register:                       }
+     Port[CRTAddress] := $14;
+     {bit 6:=0: no double word addressing scheme in video RAM           }
+     Port[CRTAddress+1] := Port[CRTAddress+1] and $BF;
+
+     Port[CRTAddress] := $17; {select mode control register             }
+     {bit 6 := 1: memory access scheme=linear bit array                 }
+     Port[CRTAddress+1] := Port[CRTAddress+1] or $40;
+   end;
+{$else asmgraph}
+ procedure InitModeX; assembler;
    asm
-     {see if we are using color-/monochorme display}
+     {see if we are using color-/monochrome display}
      MOV DX,3CCh  {use output register:     }
      IN AL,DX
      TEST AL,1    {is it a color display?    }
@@ -2388,10 +2417,9 @@ const CrtAddress: word = 0;
      MOV CRTAddress,DX
 
      MOV  AX, 0013h
-     MOV  BL, DontClearGraphMemory
-     OR   BL,BL
-     JZ   @L2
-     OR   AX, 080h
+     CMP  BYTE PTR [DontClearGraphMemory],0
+     JE   @L2
+     OR   AL, 080h
   @L2:
      push ds
      push bp
@@ -2406,19 +2434,29 @@ const CrtAddress: word = 0;
      AND AL,0F7h    {bit 3 := 0: don't chain the 4 planes}
      OR  AL,04      {bit 2 := 1: no odd/even mechanism }
      OUT DX,AL      {activate new settings    }
-     MOV DX,03C4h   {s.a.: address sequencer reg. 2 (=map-mask),...   }
+     DEC DX         {s.a.: address sequencer reg. 2 (=map-mask),...   }
      MOV AL,02
      OUT DX,AL
      INC DX
      MOV AL,0Fh     {...and allow access to all 4 bit maps            }
      OUT DX,AL
-     MOV AX,[SegA000]  {starting with segment A000h, set 8000h logical     }
-     MOV ES,AX      {words = 4*8000h physical words (because of 4     }
-     XOR DI,DI      {bitplanes) to 0                                  }
+
+     {starting with segment A000h, set 8000h logical   }
+     {words = 4*8000h physical words (because of 4     }
+     {bitplanes) to 0                                  }
+{$ifdef FPC_MM_HUGE}
+     MOV AX,SEG SegA000
+     MOV ES,AX
+     MOV ES,ES:[SegA000]
+{$else FPC_MM_HUGE}
+     MOV ES, [SegA000]
+{$endif FPC_MM_HUGE}
+     XOR DI,DI
      XOR AX,AX
      MOV CX,8000h
      CLD
      REP STOSW
+
      MOV DX,CRTAddress  {address the underline-location-register at }
      MOV AL,14h         {the CRT-controller Port, read out the according      }
      OUT DX,AL          {data register:                            }
@@ -2433,86 +2471,63 @@ const CrtAddress: word = 0;
      IN  AL,DX
      OR  AL,40h     {bit 6 := 1: memory access scheme=linear bit array      }
      OUT DX,AL
-  end ['DX','BX','CX','AX','SI','DI'];
- end;
-
-
- Function GetPixelX(X,Y: smallint): ColorType;
-{$ifndef asmgraph}
- var offset: word;
+  end;
 {$endif asmgraph}
+
+
+{$ifndef asmgraph}
+ function GetPixelX(X,Y: smallint): ColorType;
+  var offset: word;
   begin
-     X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
-     offset := y * 80 + x shr 2 + VideoOfs;
-     PortW[$3ce] := ((x and 3) shl 8) + 4;
-     GetPixelX := Mem[SegA000:offset];
+    X := X + StartXViewPort;
+    Y := Y + StartYViewPort;
+    offset := y * 80 + x shr 2 + VideoOfs;
+    PortW[$3ce] := ((x and 3) shl 8) + 4;
+    GetPixelX := Mem[SegA000:offset];
+  end;
 {$else asmgraph}
-    asm
-  {$ifndef fpc}
-     mov di,[Y]                   ; (* DI = Y coordinate                 *)
-     (* Multiply by 80 start *)
-     mov bx, di
-     shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-     shl bx, 4
-     add di, bx                   ;  (* Multiply Value by 80             *)
-     (* End multiply by 80  *)
-     mov cx, [X]
-     mov ax, cx
-    {DI = Y * LINESIZE, BX = X, coordinates admissible}
-     shr ax, 1                    ; (* Faster on 286/86 machines         *)
-     shr ax, 1
-     add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
-     add di, [VideoOfs]  ; (* Pointing at start of Active page *)
+ function GetPixelX(X,Y: smallint): ColorType; assembler;
+  asm
+{$ifdef FPC_MM_HUGE}
+    mov ax, SEG SegA000
+    mov es, ax
+    mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov es, [SegA000]
+{$endif FPC_MM_HUGE}
+    mov si,[Y]                   ; (* SI = Y coordinate                 *)
+    add si,[StartYViewPort]
+    (* Multiply by 80 start *)
+    mov cl, 4
+    shl si, cl
+    mov bx, si
+    shl si, 1
+    shl si, 1
+    add si, bx                   ;  (* Multiply Value by 80             *)
+    (* End multiply by 80  *)
+    mov cx, [X]
+    add cx, [StartXViewPort]
+    mov ax, cx
+    {SI = Y * LINESIZE, CX = X, coordinates admissible}
+    shr ax, 1                    ; (* Faster on 286/86 machines         *)
+    shr ax, 1
+    add si, ax                ; {SI = Y * LINESIZE + (X SHR 2) }
+    add si, [VideoOfs]  ; (* Pointing at start of Active page *)
     (* Select plane to use *)
-    mov dx, 03c4h
-    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-    and cl, 03h               ; (* Get Plane Bits                   *)
-    shl ah, cl                ; (* Get Plane Select Value           *)
+    mov dx, 03ceh
+    mov al, 4
+    and cl, 03h
+    mov ah, cl
     out dx, ax
-   (* End selection of plane *)
-    mov es,[SegA000]
-    mov al, ES:[DI]
+    (* End selection of plane *)
+    seges lodsb
     xor ah, ah
-    mov @Result, ax
-  {$else fpc}
-     push eax
-     push ebx
-     push ecx
-     push edx
-     push edi
-     movzx edi,[Y]                   ; (* DI = Y coordinate                 *)
-     (* Multiply by 80 start *)
-     mov ebx, edi
-     shl edi, 6                    ; (* Faster on 286/386/486 machines    *)
-     shl ebx, 4
-     add edi, ebx                   ;  (* Multiply Value by 80             *)
-     (* End multiply by 80  *)
-     movzx ecx, [X]
-     movzx eax, [Y]
-    {DI = Y * LINESIZE, BX = X, coordinates admissible}
-     shr eax, 2
-     add edi, eax                ; {DI = Y * LINESIZE + (X SHR 2) }
-     add edi, [VideoOfs]  ; (* Pointing at start of Active page *)
-    (* Select plane to use *)
-    mov dx, 03c4h
-    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-    and cl, 03h               ; (* Get Plane Bits                   *)
-    shl ah, cl                ; (* Get Plane Select Value           *)
-    out dx, ax
-   (* End selection of plane *)
-    mov ax, fs:[edi+$a0000]
-    mov @Result, ax
-    pop edi
-    pop edx
-    pop ecx
-    pop ebx
-    pop eax
-  {$endif fpc}
-   end;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
+    cwd
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  end;
 {$endif asmgraph}
- end;
 
  procedure SetVisualX(page: word);
   { 4 page supPort... }
@@ -2548,10 +2563,6 @@ const CrtAddress: word = 0;
     { Now Set Display Starting Address                     }
   end;
 
-{$ifdef fpc}
-  {$undef asmgraph}
-{$endif fpc}
-
   begin
     Case page of
       0: SetVisibleStart(0);
@@ -2576,10 +2587,9 @@ const CrtAddress: word = 0;
    end;
   end;
 
- Procedure PutPixelX(X,Y: smallint; color:ColorType);
 {$ifndef asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:ColorType);
  var offset: word;
-{$endif asmgraph}
   begin
     { verify clipping and then convert to absolute coordinates...}
     if ClipPixels then
@@ -2591,60 +2601,69 @@ const CrtAddress: word = 0;
     end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
     offset := y * 80 + x shr 2 + VideoOfs;
     PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
     Mem[SegA000:offset] := color;
-{$else asmgraph}
-     asm
-      push ax
-      push bx
-      push cx
-      push dx
-      push es
-      push di
-      mov di,[Y]                   ; (* DI = Y coordinate                 *)
-      (* Multiply by 80 start *)
-      mov bx, di
-      shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-      shl bx, 4
-      add di, bx                   ;  (* Multiply Value by 80             *)
-      (* End multiply by 80  *)
-      mov cx, [X]
-      mov ax, cx
-      {DI = Y * LINESIZE, BX = X, coordinates admissible}
-      shr ax, 2
-      add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
-      add di, [VideoOfs]        ; (* Pointing at start of Active page *)
-      (* Select plane to use *)
-      mov dx, 03c4h
-      mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-      and cl, 03h               ; (* Get Plane Bits                   *)
-      shl ah, cl                ; (* Get Plane Select Value           *)
-      out dx, ax
-      (* End selection of plane *)
-      mov es,[SegA000]
-      mov ax,[Color]            ; { only lower byte is used. }
-      cmp [CurrentWriteMode],XORPut   { check write mode   }
-      jne @MOVMode
-      mov ah,es:[di]        { read the byte...             }
-      xor al,ah             { xor it and return value into AL }
-    @MovMode:
-      mov es:[di], al
-      pop di
-      pop es
-      pop dx
-      pop cx
-      pop bx
-      pop ax
-    end;
-{$endif asmgraph}
   end;
+{$else asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:ColorType); assembler;
+  asm
+    mov ax, [X]
+    mov di, [Y]                  ; (* DI = Y coordinate                 *)
+
+    cmp byte ptr [ClipPixels], 0
+    je @@ClipDone
+
+    test   ax, ax
+    js     @@Done
+    test   di, di
+    js     @@Done
+    cmp    ax, [ViewWidth]
+    jg     @@Done
+    cmp    di, [ViewHeight]
+    jg     @@Done
+
+@@ClipDone:
+{$ifdef FPC_MM_HUGE}
+    mov bx, SEG SegA000
+    mov es, bx
+    mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov es, [SegA000]
+{$endif FPC_MM_HUGE}
+    add di, [StartYViewPort]
+    (* Multiply by 80 start *)
+    mov cl, 4
+    shl di, cl
+    mov bx, di
+    shl di, 1
+    shl di, 1
+    add di, bx                   ;  (* Multiply Value by 80             *)
+    (* End multiply by 80  *)
+    add ax, [StartXViewPort]
+    mov cx, ax
+    {DI = Y * LINESIZE, CX = X, coordinates admissible}
+    shr ax, 1
+    shr ax, 1
+    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
+    add di, [VideoOfs]        ; (* Pointing at start of Active page *)
+    (* Select plane to use *)
+    mov dx, 03c4h
+    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
+    and cl, 03h               ; (* Get Plane Bits                   *)
+    shl ah, cl                ; (* Get Plane Select Value           *)
+    out dx, ax
+    (* End selection of plane *)
+    mov al, byte ptr [Color]  ; { only lower byte is used. }
+    stosb
+@@Done:
+  end;
+{$endif asmgraph}
 
 
+{$ifndef asmgraph}
  Procedure DirectPutPixelX(X,Y: smallint);
  { x,y -> must be in global coordinates. No clipping. }
-{$ifndef asmgraph}
  Var offset: Word;
      dummy: Byte;
  begin
@@ -2672,31 +2691,29 @@ const CrtAddress: word = 0;
    Mem[Sega000: offset] := Dummy;
  end;
 {$else asmgraph}
-{ note: still needs or/and/notput support !!!!! (JM) }
- Assembler;
+ Procedure DirectPutPixelX(X,Y: smallint); assembler;
  asm
-   push ax
-   push bx
-   push cx
-   push dx
-   push es
-   push di
-{$IFDEF REGCALL}
-   mov cl, al
-   mov di, dx
-{$ELSE REGCALL}
-   mov cx, [X]
-   mov ax, cx
+{$ifdef FPC_MM_HUGE}
+   mov bx, SEG SegA000
+   mov es, bx
+   mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
+   mov es, [SegA000]
+{$endif FPC_MM_HUGE}
    mov di, [Y]                   ; (* DI = Y coordinate                 *)
-{$ENDIF REGCALL}
  (* Multiply by 80 start *)
+   mov cl, 4
+   shl di, cl
    mov bx, di
-   shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-   shl bx, 4
+   shl di, 1
+   shl di, 1
    add di, bx                   ;  (* Multiply Value by 80             *)
  (* End multiply by 80  *)
-  {DI = Y * LINESIZE, BX = X, coordinates admissible}
-   shr ax, 2
+   mov cx, [X]
+   mov ax, cx
+  {DI = Y * LINESIZE, CX = X, coordinates admissible}
+   shr ax, 1
+   shr ax, 1
    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
    add di, [VideoOfs]        ; (* Pointing at start of Active page *)
  (* Select plane to use *)
@@ -2706,20 +2723,52 @@ const CrtAddress: word = 0;
    shl ah, cl                ; (* Get Plane Select Value           *)
    out dx, ax
  (* End selection of plane *)
-   mov es,[SegA000]
-   mov ax,[CurrentColor]     ; { only lower byte is used. }
-   cmp [CurrentWriteMode],XORPut   { check write mode   }
-   jne @MOVMode
-   mov ah,es:[di]        { read the byte...             }
-   xor al,ah             { xor it and return value into AL }
- @MovMode:
-   mov es:[di], al
-   pop di
-   pop es
-   pop dx
-   pop cx
-   pop bx
-   pop ax
+   mov al, byte ptr [CurrentColor] ; { only lower byte is used. }
+   { check write mode   }
+   mov    bl, byte ptr [CurrentWriteMode]
+   cmp    bl, NormalPut
+   jne    @@1
+   { NormalPut }
+   stosb
+   jmp    @Done
+@@1:
+   cmp    bl, XorPut
+   jne    @@2
+   { XorPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   xor    es:[di], bh
+   jmp    @Done
+@@2:
+   cmp    bl, OrPut
+   jne    @@3
+   { OrPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   or     es:[di], bh
+   jmp    @Done
+@@3:
+   cmp    bl, AndPut
+   jne    @NotPutMode
+   { AndPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   and    es:[di], bh
+   jmp    @Done
+@NotPutMode:
+   { NotPut }
+   not    al
+   stosb
+@Done:
  end;
 {$endif asmgraph}
 
@@ -3369,7 +3418,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 199;
          mode.HardwarePages := 3;
-         mode.SetVisualPage := @SetVisual200;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive200;
          mode.InitMode := @Init640x200x16;
          mode.XAspect := 4500;
@@ -3384,7 +3433,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 349;
          mode.HardwarePages := 1;
-         mode.SetVisualPage := @SetVisual350;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive350;
          mode.InitMode := @Init640x350x16;
          mode.XAspect := 7750;
@@ -3542,7 +3591,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 199;
          mode.HardwarePages := 3;
-         mode.SetVisualPage := @SetVisual200;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive200;
          mode.InitMode := @Init640x200x16;
          mode.XAspect := 4500;
@@ -3557,7 +3606,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 349;
          mode.HardwarePages := 1;
-         mode.SetVisualPage := @SetVisual350;
+         mode.SetVisualPage := @SetVisual200_350;
          mode.SetActivePage := @SetActive350;
          mode.InitMode := @Init640x350x16;
          mode.XAspect := 7750;
