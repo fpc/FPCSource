@@ -1296,6 +1296,104 @@ begin
 end;
 
 
+{$ifdef linux}
+function ShiftState:byte;
+
+var arg:longint;
+
+begin
+  shiftstate:=0;
+  arg:=6;
+  if fpioctl(StdInputHandle,TIOCLINUX,@arg)=0 then
+   begin
+     if (arg and 8)<>0 then
+      shiftstate:=kbAlt;
+     if (arg and 4)<>0 then
+      inc(shiftstate,kbCtrl);
+     { 2 corresponds to AltGr so set both kbAlt and kbCtrl PM }
+     if (arg and 2)<>0 then
+      shiftstate:=shiftstate or (kbAlt or kbCtrl);
+     if (arg and 1)<>0 then
+      inc(shiftstate,kbShift);
+   end;
+end;
+
+function EnhShiftState:TEnhancedShiftState;
+const
+  KG_SHIFT     = 0;
+  KG_CTRL      = 2;
+  KG_ALT       = 3;
+  KG_ALTGR     = 1;
+  KG_SHIFTL    = 4;
+  KG_KANASHIFT = 4;
+  KG_SHIFTR    = 5;
+  KG_CTRLL     = 6;
+  KG_CTRLR     = 7;
+  KG_CAPSSHIFT = 8;
+var
+  arg: longint;
+begin
+  EnhShiftState:=[];
+  arg:=6;
+  if fpioctl(StdInputHandle,TIOCLINUX,@arg)=0 then
+   begin
+     if (arg and (1 shl KG_ALT))<>0 then
+       Include(EnhShiftState,essAlt);
+     if (arg and (1 shl KG_CTRL))<>0 then
+       Include(EnhShiftState,essCtrl);
+     if (arg and (1 shl KG_CTRLL))<>0 then
+       Include(EnhShiftState,essLeftCtrl);
+     if (arg and (1 shl KG_CTRLR))<>0 then
+       Include(EnhShiftState,essRightCtrl);
+     { 2 corresponds to AltGr so set both kbAlt and kbCtrl PM }
+     if (arg and (1 shl KG_ALTGR))<>0 then
+       {shiftstate:=shiftstate or (kbAlt or kbCtrl);}
+       Include(EnhShiftState,essRightAlt);
+     if (arg and (1 shl KG_SHIFT))<>0 then
+       Include(EnhShiftState,essShift);
+     if (arg and (1 shl KG_SHIFTL))<>0 then
+       Include(EnhShiftState,essLeftShift);
+     if (arg and (1 shl KG_SHIFTR))<>0 then
+       Include(EnhShiftState,essRightShift);
+   end;
+end;
+
+procedure force_linuxtty;
+
+var s:string[15];
+    handle:sizeint;
+    thistty:string;
+
+begin
+  is_console:=false;
+  if vcs_device<>-1 then
+    begin
+       { running on a tty, find out whether locally or remotely }
+      thistty:=ttyname(stdinputhandle);
+      if (copy(thistty,1,8)<>'/dev/tty') or not (thistty[9] in ['0'..'9']) then
+        begin
+          {Running from Midnight Commander or something... Bypass it.}
+          str(vcs_device,s);
+          handle:=fpopen('/dev/tty'+s,O_RDWR);
+          fpioctl(stdinputhandle,TIOCNOTTY,nil);
+          {This will currently only work when the user is root :(}
+          fpioctl(handle,TIOCSCTTY,nil);
+          if errno<>0 then
+            exit;
+          fpclose(stdinputhandle);
+          fpclose(stdoutputhandle);
+          fpclose(stderrorhandle);
+          fpdup2(handle,stdinputhandle);
+          fpdup2(handle,stdoutputhandle);
+          fpdup2(handle,stderrorhandle);
+          fpclose(handle);
+        end;
+      is_console:=true;
+    end;
+end;
+{$endif linux}
+
+
 function ReadKey(var IsAlt : boolean):TEnhancedKeyEvent;
 var
   ch       : char;
@@ -1439,102 +1537,6 @@ begin
   ReadKey:=PopKey;
 End;
 
-{$ifdef linux}
-function ShiftState:byte;
-
-var arg:longint;
-
-begin
-  shiftstate:=0;
-  arg:=6;
-  if fpioctl(StdInputHandle,TIOCLINUX,@arg)=0 then
-   begin
-     if (arg and 8)<>0 then
-      shiftstate:=kbAlt;
-     if (arg and 4)<>0 then
-      inc(shiftstate,kbCtrl);
-     { 2 corresponds to AltGr so set both kbAlt and kbCtrl PM }
-     if (arg and 2)<>0 then
-      shiftstate:=shiftstate or (kbAlt or kbCtrl);
-     if (arg and 1)<>0 then
-      inc(shiftstate,kbShift);
-   end;
-end;
-
-function EnhShiftState:TEnhancedShiftState;
-const
-  KG_SHIFT     = 0;
-  KG_CTRL      = 2;
-  KG_ALT       = 3;
-  KG_ALTGR     = 1;
-  KG_SHIFTL    = 4;
-  KG_KANASHIFT = 4;
-  KG_SHIFTR    = 5;
-  KG_CTRLL     = 6;
-  KG_CTRLR     = 7;
-  KG_CAPSSHIFT = 8;
-var
-  arg: longint;
-begin
-  EnhShiftState:=[];
-  arg:=6;
-  if fpioctl(StdInputHandle,TIOCLINUX,@arg)=0 then
-   begin
-     if (arg and (1 shl KG_ALT))<>0 then
-       Include(EnhShiftState,essAlt);
-     if (arg and (1 shl KG_CTRL))<>0 then
-       Include(EnhShiftState,essCtrl);
-     if (arg and (1 shl KG_CTRLL))<>0 then
-       Include(EnhShiftState,essLeftCtrl);
-     if (arg and (1 shl KG_CTRLR))<>0 then
-       Include(EnhShiftState,essRightCtrl);
-     { 2 corresponds to AltGr so set both kbAlt and kbCtrl PM }
-     if (arg and (1 shl KG_ALTGR))<>0 then
-       {shiftstate:=shiftstate or (kbAlt or kbCtrl);}
-       Include(EnhShiftState,essRightAlt);
-     if (arg and (1 shl KG_SHIFT))<>0 then
-       Include(EnhShiftState,essShift);
-     if (arg and (1 shl KG_SHIFTL))<>0 then
-       Include(EnhShiftState,essLeftShift);
-     if (arg and (1 shl KG_SHIFTR))<>0 then
-       Include(EnhShiftState,essRightShift);
-   end;
-end;
-
-procedure force_linuxtty;
-
-var s:string[15];
-    handle:sizeint;
-    thistty:string;
-
-begin
-  is_console:=false;
-  if vcs_device<>-1 then
-    begin
-       { running on a tty, find out whether locally or remotely }
-      thistty:=ttyname(stdinputhandle);
-      if (copy(thistty,1,8)<>'/dev/tty') or not (thistty[9] in ['0'..'9']) then
-        begin
-          {Running from Midnight Commander or something... Bypass it.}
-          str(vcs_device,s);
-          handle:=fpopen('/dev/tty'+s,O_RDWR);
-          fpioctl(stdinputhandle,TIOCNOTTY,nil);
-          {This will currently only work when the user is root :(}
-          fpioctl(handle,TIOCSCTTY,nil);
-          if errno<>0 then
-            exit;
-          fpclose(stdinputhandle);
-          fpclose(stdoutputhandle);
-          fpclose(stderrorhandle);
-          fpdup2(handle,stdinputhandle);
-          fpdup2(handle,stdoutputhandle);
-          fpdup2(handle,stderrorhandle);
-          fpclose(handle);
-        end;
-      is_console:=true;
-    end;
-end;
-{$endif linux}
 
 { Exported functions }
 
