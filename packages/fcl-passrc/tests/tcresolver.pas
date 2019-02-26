@@ -3682,25 +3682,30 @@ end;
 procedure TTestResolver.TestEnums;
 begin
   StartProgram(false);
-  Add('type {#TFlag}TFlag = ({#Red}Red, {#Green}Green, {#Blue}Blue);');
-  Add('var');
-  Add('  {#f}{=TFlag}f: TFlag;');
-  Add('  {#v}{=TFlag}v: TFlag = Green;');
-  Add('  {#i}i: longint;');
-  Add('begin');
-  Add('  {@f}f:={@Red}Red;');
-  Add('  {@f}f:={@v}v;');
-  Add('  if {@f}f={@Red}Red then ;');
-  Add('  if {@f}f={@v}v then ;');
-  Add('  if {@f}f>{@v}v then ;');
-  Add('  if {@f}f<{@v}v then ;');
-  Add('  if {@f}f>={@v}v then ;');
-  Add('  if {@f}f<={@v}v then ;');
-  Add('  if {@f}f<>{@v}v then ;');
-  Add('  if ord({@f}f)<>ord({@Red}Red) then ;');
-  Add('  {@f}f:={@TFlag}TFlag.{@Red}Red;');
-  Add('  {@f}f:={@TFlag}TFlag({@i}i);');
-  Add('  {@i}i:=longint({@f}f);');
+  Add([
+  'type',
+  '  {#TFlag}TFlag = ({#Red}Red, {#Green}Green, {#Blue}Blue);',
+  '  {#TAlias}TAlias = TFlag;',
+  'var',
+  '  {#f}{=TFlag}f: TFlag;',
+  '  {#v}{=TFlag}v: TFlag = Green;',
+  '  {#i}i: longint;',
+  'begin',
+  '  {@f}f:={@Red}Red;',
+  '  {@f}f:={@v}v;',
+  '  if {@f}f={@Red}Red then ;',
+  '  if {@f}f={@v}v then ;',
+  '  if {@f}f>{@v}v then ;',
+  '  if {@f}f<{@v}v then ;',
+  '  if {@f}f>={@v}v then ;',
+  '  if {@f}f<={@v}v then ;',
+  '  if {@f}f<>{@v}v then ;',
+  '  if ord({@f}f)<>ord({@Red}Red) then ;',
+  '  {@f}f:={@TFlag}TFlag.{@Red}Red;',
+  '  {@f}f:={@TFlag}TFlag({@i}i);',
+  '  {@i}i:=longint({@f}f);',
+  '  {@f}f:={@TAlias}TAlias.{@Green}Green;',
+  '']);
   ParseProgram;
 end;
 

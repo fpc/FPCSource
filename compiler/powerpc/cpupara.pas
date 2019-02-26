@@ -650,8 +650,6 @@ unit cpupara;
                   result:=create_paraloc_info_intern(p,side,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true)
                 else
                   internalerror(2019021921);
-                if curfloatreg<>firstfloatreg then
-                  include(varargspara.varargsinfo,va_uses_float_reg);
               end;
             { varargs routines have to reserve at least 32 bytes for the AIX abi }
             if (target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) and
@@ -660,6 +658,8 @@ unit cpupara;
            end
         else
           internalerror(2019021710);
+        if curfloatreg<>firstfloatreg then
+          include(varargspara.varargsinfo,va_uses_float_reg);
         create_funcretloc_info(p,side);
       end;
 
