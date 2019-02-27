@@ -1799,7 +1799,6 @@ begin {main}
       end
     else
       begin
-        {MyChar:=Readkey;}
         MyKey:=ReadKey;
         MyChar:=MyKey.AsciiChar;
         MyScan:=ord(MyChar);
