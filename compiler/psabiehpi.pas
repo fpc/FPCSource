@@ -121,11 +121,10 @@ implementation
       symtable,
       defutil,
       tgobj,
-      cgobj,
+      cgobj,cgexcept,
       parabase,paramgr,
       hlcgobj,
-      pass_2,
-      ncgflw
+      pass_2
 {$ifdef i386}
       ,aasmcpu
 {$endif i386}
