@@ -1667,7 +1667,6 @@ begin {main}
     again:=false;
     if Mychar=#0 then
       begin
-{        MyScan:=ord(ReadKey);}
         MyScan:=MyKey.VirtualScanCode shr 8;
         { Handle Ctrl-<x>, but not AltGr-<x> }
         if (essCtrl in SState) and (not (essAlt in SState))  then
