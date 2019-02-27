@@ -1759,45 +1759,42 @@ begin {main}
             Again:=true;
           end;
       end;
-    if not again then
-      begin
-        MyScan:=EvalScan(ord(MyChar));
-        if (essCtrl in SState) and (not (essAlt in SState)) then
-          begin
-            if MyChar=#9 then
-              begin
-                MyChar:=#0;
-                MyScan:=kbCtrlTab;
-              end;
-          end
-        else if (essAlt in SState) and (not (essCtrl in SState)) then
-          begin
-            if MyChar=#9 then
-              begin
-                MyChar:=#0;
-                MyScan:=kbAltTab;
-              end
-            else
-              begin
-                if MyScan in [$02..$0D] then
-                  inc(MyScan,$76);
-                MyChar:=chr(0);
-              end;
-          end
-        else if essShift in SState then
-          if MyChar=#9 then
-            begin
-              MyChar:=#0;
-              MyScan:=kbShiftTab;
-            end;
-      end
-    else
+    if again then
       begin
         MyKey:=ReadKey;
         MyChar:=MyKey.AsciiChar;
         MyScan:=MyKey.VirtualScanCode shr 8;
       end;
-    until not Again;
+  until not Again;
+  MyScan:=EvalScan(ord(MyChar));
+  if (essCtrl in SState) and (not (essAlt in SState)) then
+    begin
+      if MyChar=#9 then
+        begin
+          MyChar:=#0;
+          MyScan:=kbCtrlTab;
+        end;
+    end
+  else if (essAlt in SState) and (not (essCtrl in SState)) then
+    begin
+      if MyChar=#9 then
+        begin
+          MyChar:=#0;
+          MyScan:=kbAltTab;
+        end
+      else
+        begin
+          if MyScan in [$02..$0D] then
+            inc(MyScan,$76);
+          MyChar:=chr(0);
+        end;
+    end
+  else if essShift in SState then
+    if MyChar=#9 then
+      begin
+        MyChar:=#0;
+        MyScan:=kbShiftTab;
+      end;
   if (MyChar<>#0) or (MyScan<>0) or (SState<>[]) then
     begin
       SysGetEnhancedKeyEvent.AsciiChar:=MyChar;
