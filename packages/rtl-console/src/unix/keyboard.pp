@@ -1495,17 +1495,11 @@ begin
               k.VirtualScanCode := 0;
               PushKey(k);
             end
-          else if NPT^.CharValue<>0 then
+          else if (NPT^.CharValue<>0) or (NPT^.ScanValue<>0) then
             begin
               k.AsciiChar := chr(NPT^.CharValue);
-              k.VirtualScanCode := Ord(k.AsciiChar);
-              PushKey(k);
-            end
-          else if NPT^.ScanValue<>0 then
-            begin
-              k.AsciiChar := #0;
-              k.UnicodeChar := WideChar(#0);
-              k.VirtualScanCode := NPT^.ScanValue shl 8;
+              k.UnicodeChar := WideChar(NPT^.CharValue);
+              k.VirtualScanCode := (NPT^.ScanValue shl 8) or Ord(k.AsciiChar);
               PushKey(k);
             end;
         end
