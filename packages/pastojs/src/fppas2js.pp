@@ -12973,7 +12973,7 @@ begin
           else if (C=TPasClassConstructor)
               or (C=TPasClassDestructor) then
             begin
-              writeln('FFF2 TPasToJSConverter.ConvertClassType ',GetObjName(P));
+//              writeln('FFF2 TPasToJSConverter.ConvertClassType ',GetObjName(P));
             AddGlobalClassMethod(AContext,TPasProcedure(P));
             continue;
             end;
