@@ -15691,7 +15691,7 @@ begin
   First:=nil;
   Last:=nil;
   try
-    writeln('FFF1 TPasToJSConverter.AddClassConstructors ',length(RootContext.GlobalClassMethods));
+//    writeln('FFF1 TPasToJSConverter.AddClassConstructors ',length(RootContext.GlobalClassMethods));
     for i:=0 to length(RootContext.GlobalClassMethods)-1 do
       begin
       Proc:=RootContext.GlobalClassMethods[i];
