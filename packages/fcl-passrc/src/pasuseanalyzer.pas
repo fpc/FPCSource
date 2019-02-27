@@ -1778,6 +1778,9 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseProcedure ',GetElModName(Proc));
   {$ENDIF}
+  if Proc.Parent is TPasMembersType then
+    UseClassOrRecType(TPasMembersType(Proc.Parent),paumElement);
+
   UseScopeReferences(ProcScope.References);
 
   UseProcedureType(Proc.ProcType);
@@ -2011,7 +2014,7 @@ begin
     RaiseInconsistency(20170414152143,IntToStr(ord(Mode)));
   end;
   {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.UseClassType ',GetElModName(El),' ',Mode,' First=',FirstTime);
+  writeln('TPasAnalyzer.UseClassOrRecType ',GetElModName(El),' ',Mode,' First=',FirstTime);
   {$ENDIF}
   aClass:=nil;
   ClassScope:=nil;

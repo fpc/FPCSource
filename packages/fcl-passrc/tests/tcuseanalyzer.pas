@@ -168,6 +168,7 @@ type
     procedure TestWP_ClassHelper_ClassConstrucor_Used;
     procedure TestWP_Attributes;
     procedure TestWP_Attributes_ForwardClass;
+    procedure TestWP_Attributes_Params;
 
     // scope references
     procedure TestSR_Proc_UnitVar;
@@ -3200,6 +3201,37 @@ begin
   'constructor TObject.Create; begin end;',
   'begin',
   '  if typeinfo(TBird)=nil then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_Attributes_Params;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '    constructor {#TObject_Create_notused}Create;',
+  '    destructor {#TObject_Destroy_used}Destroy; virtual;',
+  '  end;',
+  '  {#TCustomAttribute_used}TCustomAttribute = class',
+  '  end;',
+  '  {#BigAttribute_used}BigAttribute = class(TCustomAttribute)',
+  '    constructor {#Big_A_used}Create(Id: word = 3); overload;',
+  '    destructor {#Big_B_used}Destroy; override;',
+  '  end;',
+  'constructor TObject.Create; begin end;',
+  'destructor TObject.Destroy; begin end;',
+  'constructor BigAttribute.Create(Id: word); begin end;',
+  'destructor BigAttribute.Destroy; begin end;',
+  'var',
+  '  [Big(3)]',
+  '  o: TObject;',
+  '  a: TCustomAttribute;',
+  'begin',
+  '  if typeinfo(o)=nil then ;',
+  '  a.Destroy;',
   '']);
   AnalyzeWholeProgram;
 end;
