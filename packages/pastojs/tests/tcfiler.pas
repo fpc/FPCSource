@@ -1646,6 +1646,7 @@ begin
   '  s = ''abc'';', // string lit
   '  c: char = s[1];', // array params
   '  a: array[1..2] of longint = (3,4);', // anonymous array, range, array values
+  '  PI: Double; external name ''Math.PI'';',
   'resourcestring',
   '  rs = ''rs'';',
   'implementation']);
@@ -1745,11 +1746,13 @@ procedure TTestPrecompile.TestPC_Record;
 begin
   StartUnit(false);
   Add([
+  '{$ModeSwitch externalclass}',
   'interface',
   'type',
   '  TRec = record',
   '    i: longint;',
   '    s: string;',
+  '    b: boolean external name ''ext'';',
   '  end;',
   '  P = pointer;', // alias type to built-in type
   '  TArrOfRec = array of TRec;',
@@ -2359,5 +2362,6 @@ end;
 
 Initialization
   RegisterTests([TTestPrecompile]);
+  RegisterPCUFormat;
 end.
 

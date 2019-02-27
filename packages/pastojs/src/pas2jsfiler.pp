@@ -1047,6 +1047,9 @@ type
 
 var
   PrecompileFormats: TPas2JSPrecompileFormats = nil;
+  PCUFormat: TPas2JSPrecompileFormat = nil;
+
+procedure RegisterPCUFormat;
 
 function ComparePointer(Data1, Data2: Pointer): integer;
 function ComparePCUSrcFiles(File1, File2: Pointer): integer;
@@ -1072,6 +1075,12 @@ function dbgmem(const s: string): string; overload;
 function dbgmem(p: PChar; Cnt: integer): string; overload;
 
 implementation
+
+procedure RegisterPCUFormat;
+begin
+  if PCUFormat=nil then
+    PCUFormat:=PrecompileFormats.Add('pcu','all used pcu must match exactly',TPCUReader,TPCUWriter);
+end;
 
 function ComparePointer(Data1, Data2: Pointer): integer;
 begin
@@ -7926,6 +7935,8 @@ end;
 
 procedure TPas2JSPrecompileFormats.Clear;
 begin
+  if (PCUFormat<>nil) and (FItems.IndexOf(PCUFormat)>=0) then
+    PCUFormat:=nil;
   FItems.Clear;
 end;
 
@@ -7997,7 +8008,6 @@ end;
 
 initialization
   PrecompileFormats:=TPas2JSPrecompileFormats.Create;
-  PrecompileFormats.Add('pcu','all used pcu must match exactly',TPCUReader,TPCUWriter);
 finalization
   PrecompileFormats.Free;
   PrecompileFormats:=nil;

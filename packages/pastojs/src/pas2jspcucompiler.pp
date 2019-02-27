@@ -402,11 +402,19 @@ Var
 begin
   if PrecompileFormats.Count>0 then
   begin
-    writeHelpLine('   -JU<x>: Create precompiled units in format x.');
-    for i:=0 to PrecompileFormats.Count-1 do
-      with PrecompileFormats[i] do
-        writeHelpLine('     -JU'+Ext+': '+Description);
-    writeHelpLine('     -JU-: Disable prior -JU<x> option. Do not create precompiled units.');
+    if PrecompileFormats.Count>1 then
+    begin
+      writeHelpLine('   -JU<x>: Create precompiled units in format x.');
+      for i:=0 to PrecompileFormats.Count-1 do
+        with PrecompileFormats[i] do
+          writeHelpLine('     -JU'+Ext+':  '+Description);
+      writeHelpLine('     -JU-: Disable prior -JU<x> option. Do not create precompiled units.');
+    end else
+    begin
+      with PrecompileFormats[0] do
+        writeHelpLine('   -JU'+Ext+': Create precompiled units using '+Description);
+      writeHelpLine('   -JU-  : Disable prior -JU<x> option. Do not create precompiled units.');
+    end;
   end;
 end;
 

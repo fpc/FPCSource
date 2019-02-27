@@ -473,7 +473,8 @@ type
     Procedure TestAdvRecord_SubClass;
     Procedure TestAdvRecord_SubInterfaceFail;
     Procedure TestAdvRecord_Constructor;
-    Procedure TestAdvRecord_ClassConstructor;
+    Procedure TestAdvRecord_ClassConstructor_Program;
+    Procedure TestAdvRecord_ClassConstructor_Unit;
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -11140,7 +11141,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestAdvRecord_ClassConstructor;
+procedure TTestModule.TestAdvRecord_ClassConstructor_Program;
 begin
   StartProgram(false);
   Add([
@@ -11168,7 +11169,7 @@ begin
   '  r.x:=10;',
   '']);
   ConvertProgram;
-  CheckSource('TestAdvRecord_ClassConstructor',
+  CheckSource('TestAdvRecord_ClassConstructor_Program',
     LinesToStr([ // statements
     'rtl.recNewT($mod, "TPoint", function () {',
     '  this.x = 0;',
@@ -11193,6 +11194,62 @@ begin
     '  $mod.TPoint.Fly();',
     '})();',
     '$mod.TPoint.x = 10;',
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_ClassConstructor_Unit;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TPoint = record',
+  '    class var x: longint;',
+  '    class procedure Fly; static;',
+  '    class constructor Init;',
+  '  end;',
+  'implementation',
+  'var count: word;',
+  'class procedure Tpoint.Fly;',
+  'begin',
+  'end;',
+  'class constructor tpoint.init;',
+  'begin',
+  '  count:=count+1;',
+  '  x:=3;',
+  '  tpoint.x:=4;',
+  '  fly;',
+  '  tpoint.fly;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestAdvRecord_ClassConstructor_Unit',
+    LinesToStr([ // statements
+    'var $impl = $mod.$impl;',
+    'rtl.recNewT($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  this.Fly = function () {',
+    '  };',
+    '}, true);',
+    '']),
+    LinesToStr([ // $mod.$init
+    '(function () {',
+    '  $impl.count = $impl.count + 1;',
+    '  $mod.TPoint.x = 3;',
+    '  $mod.TPoint.x = 4;',
+    '  $mod.TPoint.Fly();',
+    '  $mod.TPoint.Fly();',
+    '})();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$impl.count = 0;',
     '']));
 end;
 
