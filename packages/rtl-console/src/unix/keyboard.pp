@@ -1652,7 +1652,7 @@ begin {main}
   SysGetEnhancedKeyEvent:=NilEnhancedKeyEvent;
   MyKey:=ReadKey;
   MyChar:=MyKey.AsciiChar;
-  MyScan:=ord(MyChar);
+  MyScan:=MyKey.VirtualScanCode shr 8;
 {$ifdef linux}
   if is_console then
     SState:=EnhShiftState
@@ -1667,7 +1667,6 @@ begin {main}
     again:=false;
     if Mychar=#0 then
       begin
-        MyScan:=MyKey.VirtualScanCode shr 8;
         { Handle Ctrl-<x>, but not AltGr-<x> }
         if (essCtrl in SState) and (not (essAlt in SState))  then
           case MyScan of
@@ -1801,7 +1800,7 @@ begin {main}
       begin
         MyKey:=ReadKey;
         MyChar:=MyKey.AsciiChar;
-        MyScan:=ord(MyChar);
+        MyScan:=MyKey.VirtualScanCode shr 8;
       end;
     until not Again;
   if (MyChar<>#0) or (MyScan<>0) or (SState<>[]) then
