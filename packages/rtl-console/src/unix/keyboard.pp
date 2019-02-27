@@ -453,13 +453,6 @@ begin
 End;
 
 
-{procedure PushExt(b:byte);
-begin
-  PushKey(#0);
-  PushKey(chr(b));
-end;}
-
-
 const
   AltKeyStr  : string[38]='qwertyuiopasdfghjklzxcvbnm1234567890-=';
   AltCodeStr : string[38]=#016#017#018#019#020#021#022#023#024#025#030#031#032#033#034#035#036#037#038+
@@ -1513,7 +1506,6 @@ begin
           if assigned(NPT^.SpecialHandler) then
             begin
               NPT^.SpecialHandler;
-{              PushExt(0);}
               k.AsciiChar := #0;
               k.UnicodeChar := WideChar(#0);
               k.VirtualScanCode := 0;
@@ -1521,14 +1513,12 @@ begin
             end
           else if NPT^.CharValue<>0 then
             begin
-{              PushKey(chr(NPT^.CharValue))}
               k.AsciiChar := chr(NPT^.CharValue);
               k.VirtualScanCode := Ord(k.AsciiChar);
               PushKey(k);
             end
           else if NPT^.ScanValue<>0 then
             begin
-{              PushExt(NPT^.ScanValue);}
               k.AsciiChar := #0;
               k.UnicodeChar := WideChar(#0);
               k.VirtualScanCode := NPT^.ScanValue shl 8;
