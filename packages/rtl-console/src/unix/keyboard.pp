@@ -976,7 +976,7 @@ const key_sequences:array[0..298] of key_sequence=(
        (char:0;scan:kbF10;shift:[];st:#27'Ox'),                   {vt100}
        (char:0;scan:kbF11;shift:[];st:#27'Oy'),                   {vt100}
        (char:0;scan:kbF12;shift:[];st:#27'Oz'),                   {vt100}
-       (char:0;scan:kbEsc;shift:[];st:#27'[0~'),                  {if linux keyboard patched, escape
+       (char:27;scan:kbEsc;shift:[];st:#27'[0~'),                 {if linux keyboard patched, escape
                                                                    returns this}
        (char:0;scan:kbIns;shift:[];st:#27'[2~'),                  {linux,Eterm,rxvt}
        (char:0;scan:kbDel;shift:[];st:#27'[3~'),                  {linux,Eterm,rxvt}
