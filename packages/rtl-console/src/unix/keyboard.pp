@@ -864,7 +864,8 @@ begin
 end;
 
 type  key_sequence=packed record
-        char,scan:byte;
+        char:0..127;
+        scan:byte;
         shift:TEnhancedShiftState;
         st:string[7];
       end;
