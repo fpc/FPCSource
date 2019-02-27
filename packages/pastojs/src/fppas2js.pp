@@ -12973,7 +12973,6 @@ begin
           else if (C=TPasClassConstructor)
               or (C=TPasClassDestructor) then
             begin
-//              writeln('FFF2 TPasToJSConverter.ConvertClassType ',GetObjName(P));
             AddGlobalClassMethod(AContext,TPasProcedure(P));
             continue;
             end;
@@ -15691,7 +15690,6 @@ begin
   First:=nil;
   Last:=nil;
   try
-//    writeln('FFF1 TPasToJSConverter.AddClassConstructors ',length(RootContext.GlobalClassMethods));
     for i:=0 to length(RootContext.GlobalClassMethods)-1 do
       begin
       Proc:=RootContext.GlobalClassMethods[i];

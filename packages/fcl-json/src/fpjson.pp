@@ -3183,7 +3183,11 @@ begin
       DoError(SErrNameMustBeString,[I+1]);
     Inc(I);
     J:=VarRecToJSON(Elements[i],'Object');
+    {$IFDEF FPC_HAS_CPSTRING}
     Add(UTF8Encode(AName),J);
+    {$ELSE}
+    Add(AName,J);
+    {$ENDIF}
     Inc(I);
     end;
 end;
