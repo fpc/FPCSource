@@ -1653,12 +1653,7 @@ begin {main}
   MyKey:=ReadKey;
   MyChar:=MyKey.AsciiChar;
   MyScan:=MyKey.VirtualScanCode shr 8;
-{$ifdef linux}
-  if is_console then
-    SState:=EnhShiftState
-  else
-{$endif}
-    Sstate:=[];
+  Sstate:=MyKey.ShiftState;
   CtrlPrefixUsed:=false;
   AltPrefixUsed:=false;
   ShiftPrefixUsed:=false;
