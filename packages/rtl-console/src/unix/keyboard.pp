@@ -453,22 +453,6 @@ begin
 End;
 
 
-const
-  AltKeyStr  : string[38]='qwertyuiopasdfghjklzxcvbnm1234567890-=';
-  AltCodeStr : string[38]=#016#017#018#019#020#021#022#023#024#025#030#031#032#033#034#035#036#037#038+
-                          #044#045#046#047#048#049#050#120#121#122#123#124#125#126#127#128#129#130#131;
-function FAltKey(ch:char):byte;
-var
-  Idx : longint;
-begin
-  Idx:=Pos(ch,AltKeyStr);
-  if Idx>0 then
-   FAltKey:=byte(AltCodeStr[Idx])
-  else
-   FAltKey:=0;
-End;
-
-
 { This one doesn't care about keypresses already processed by readkey  }
 { and waiting in the KeyBuffer, only about waiting keypresses at the   }
 { TTYLevel (including ones that are waiting in the TTYRecvChar buffer) }
