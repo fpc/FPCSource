@@ -388,39 +388,42 @@ implementation
       var
         gcc_except_table: tai_section;
       begin
-        CreateExceptionTable:=foreachnode(code,@find_exception_handling,nil);
-
-        gcc_except_table_data:=TAsmList.Create;
-        callsite_table_data:=TAsmList.Create;
-        action_table_data:=TAsmList.Create;
-        actionstack:=TFPList.Create;
-        landingpadstack:=TFPList.Create;
-        typefilterlist:=TFPList.Create;
-        gcc_except_table:=new_section(gcc_except_table_data,sec_gcc_except_table,'',0);
-        gcc_except_table.secflags:=SF_A;
-        gcc_except_table.secprogbits:=SPB_PROGBITS;
-        if not(current_asmdata.AsmCFI is TDwarfAsmCFI) then
-          internalerror(2019021003);
-{$ifdef debug_eh}
-        gcc_except_table_data.concat(tai_comment.Create(strpnew('gcc_except_table for '+procdef.fullprocname(true))));
-{$endif debug_eh}
-        current_asmdata.getlabel(TDwarfAsmCFI(current_asmdata.AsmCFI).LSDALabel,alt_data);
-
-        current_asmdata.getlabel(callsitetablestart,alt_data);
-        current_asmdata.getlabel(callsitetableend,alt_data);
-
-        callsite_table_data.concat(tai_label.create(callsitetablestart));
-        cexceptionstatehandler:=tpsabiehexceptionstatehandler;
-
-        if CreateExceptionTable then
+        if tf_use_psabieh in target_info.flags then
           begin
-            CreateNewPSABIEHCallsite(current_asmdata.CurrAsmList);
+            CreateExceptionTable:=foreachnode(code,@find_exception_handling,nil);
 
-            OutmostLandingPad:=TPSABIEHAction.Create(nil);
-            NoAction:=OutmostLandingPad;
-            PushAction(OutmostLandingPad);
-            PushLandingPad(OutmostLandingPad);
-            OutmostLandingPad.AddAction(nil);
+            gcc_except_table_data:=TAsmList.Create;
+            callsite_table_data:=TAsmList.Create;
+            action_table_data:=TAsmList.Create;
+            actionstack:=TFPList.Create;
+            landingpadstack:=TFPList.Create;
+            typefilterlist:=TFPList.Create;
+            gcc_except_table:=new_section(gcc_except_table_data,sec_gcc_except_table,'',0);
+            gcc_except_table.secflags:=SF_A;
+            gcc_except_table.secprogbits:=SPB_PROGBITS;
+            if not(current_asmdata.AsmCFI is TDwarfAsmCFI) then
+              internalerror(2019021003);
+{$ifdef debug_eh}
+            gcc_except_table_data.concat(tai_comment.Create(strpnew('gcc_except_table for '+procdef.fullprocname(true))));
+ {$endif debug_eh}
+            current_asmdata.getlabel(TDwarfAsmCFI(current_asmdata.AsmCFI).LSDALabel,alt_data);
+
+            current_asmdata.getlabel(callsitetablestart,alt_data);
+            current_asmdata.getlabel(callsitetableend,alt_data);
+
+            callsite_table_data.concat(tai_label.create(callsitetablestart));
+            cexceptionstatehandler:=tpsabiehexceptionstatehandler;
+
+            if CreateExceptionTable then
+              begin
+                CreateNewPSABIEHCallsite(current_asmdata.CurrAsmList);
+
+                OutmostLandingPad:=TPSABIEHAction.Create(nil);
+                NoAction:=OutmostLandingPad;
+                PushAction(OutmostLandingPad);
+                PushLandingPad(OutmostLandingPad);
+                OutmostLandingPad.AddAction(nil);
+              end;
           end;
       end;
 
@@ -429,7 +432,7 @@ implementation
       var
         i: Integer;
       begin
-        if (tf_use_psabieh in target_info.flags) then
+        if tf_use_psabieh in target_info.flags then
           begin
             if pi_has_except_table_data in flags then
               begin
