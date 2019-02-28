@@ -263,7 +263,7 @@ type
     Procedure TestInteger;
     Procedure TestIntegerRange;
     Procedure TestIntegerTypecasts;
-    Procedure TestBitwiseAndNativeIntWarn;
+    Procedure TestBitwiseShlNativeIntWarn;
     Procedure TestCurrency;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -3080,24 +3080,36 @@ end;
 procedure TTestModule.TestBitwiseOperators;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  vA,vB,vC:longint;');
-  Add('begin');
-  Add('  va:=vb and vc;');
-  Add('  va:=vb or vc;');
-  Add('  va:=vb xor vc;');
-  Add('  va:=vb shl vc;');
-  Add('  va:=vb shr vc;');
-  Add('  va:=3 and vc;');
-  Add('  va:=(vb and vc) or (va and vb);');
-  Add('  va:=not vb;');
+  Add([
+  'var',
+  '  vA,vB,vC:longint;',
+  '  X,Y,Z: nativeint;',
+  'begin',
+  '  va:=vb and vc;',
+  '  va:=vb or vc;',
+  '  va:=vb xor vc;',
+  '  va:=vb shl vc;',
+  '  va:=vb shr vc;',
+  '  va:=3 and vc;',
+  '  va:=(vb and vc) or (va and vb);',
+  '  va:=not vb;',
+  '  X:=Y and Z;',
+  '  X:=Y and va;',
+  '  X:=Y or Z;',
+  '  X:=Y or va;',
+  '  X:=Y xor Z;',
+  '  X:=Y xor va;',
+  '']);
   ConvertProgram;
   CheckSource('TestBitwiseOperators',
     LinesToStr([ // statements
     'this.vA = 0;',
     'this.vB = 0;',
-    'this.vC = 0;'
-    ]),
+    'this.vC = 0;',
+    'this.X = 0;',
+    'this.Y = 0;',
+    'this.Z = 0;',
+    '']),
     LinesToStr([ // this.$main
     '$mod.vA = $mod.vB & $mod.vC;',
     '$mod.vA = $mod.vB | $mod.vC;',
@@ -3106,8 +3118,14 @@ begin
     '$mod.vA = $mod.vB >>> $mod.vC;',
     '$mod.vA = 3 & $mod.vC;',
     '$mod.vA = ($mod.vB & $mod.vC) | ($mod.vA & $mod.vB);',
-    '$mod.vA = ~$mod.vB;'
-    ]));
+    '$mod.vA = ~$mod.vB;',
+    '$mod.X = rtl.and($mod.Y, $mod.Z);',
+    '$mod.X = $mod.Y & $mod.vA;',
+    '$mod.X = rtl.or($mod.Y, $mod.Z);',
+    '$mod.X = rtl.or($mod.Y, $mod.vA);',
+    '$mod.X = rtl.xor($mod.Y, $mod.Z);',
+    '$mod.X = rtl.xor($mod.Y, $mod.vA);',
+    '']));
 end;
 
 procedure TTestModule.TestPrgProcVar;
@@ -6414,25 +6432,24 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestBitwiseAndNativeIntWarn;
+procedure TTestModule.TestBitwiseShlNativeIntWarn;
 begin
   StartProgram(false);
   Add([
   'var',
-  '  i,j: nativeint;',
+  '  i: nativeint;',
   'begin',
-  '  i:=i and j;',
+  '  i:=i shl 3;',
   '']);
   ConvertProgram;
-  CheckSource('TestBitwiseAndNativeIntWarn',
+  CheckSource('TestBitwiseShlNativeIntWarn',
     LinesToStr([
     'this.i = 0;',
-    'this.j = 0;',
     '']),
     LinesToStr([
-    '$mod.i = $mod.i & $mod.j;',
+    '$mod.i = $mod.i << 3;',
     '']));
-  CheckHint(mtWarning,nBitWiseOperationsAre32Bit,sBitWiseOperationsAre32Bit);
+  CheckHint(mtWarning,nBitWiseOperationIs32Bit,sBitWiseOperationIs32Bit);
 end;
 
 procedure TTestModule.TestCurrency;

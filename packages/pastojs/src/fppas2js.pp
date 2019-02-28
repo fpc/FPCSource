@@ -520,6 +520,7 @@ const
   nCantCallExtBracketAccessor = 4025;
   nJSNewNotSupported = 4026;
   nHelperClassMethodForExtClassMustBeStatic = 4027;
+  nBitWiseOperationIs32Bit = 4028;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -549,6 +550,7 @@ resourcestring
   sCantCallExtBracketAccessor = 'cannot call external bracket accessor, use a property instead';
   sJSNewNotSupported = 'Pascal class does not support the "new" constructor';
   sHelperClassMethodForExtClassMustBeStatic = 'Helper class method for external class must be static';
+  sBitWiseOperationIs32Bit = 'Bitwise operation is 32-bit';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -566,6 +568,9 @@ type
     pbifnArray_Static_Clone,
     pbifnAs,
     pbifnAsExt,
+    pbifnBitwiseNativeIntAnd,
+    pbifnBitwiseNativeIntOr,
+    pbifnBitwiseNativeIntXor,
     pbifnCheckMethodCall,
     pbifnCheckVersion,
     pbifnClassInstanceFree,
@@ -725,6 +730,9 @@ const
     '$clone',
     'as', // rtl.as
     'asExt', // rtl.asExt
+    'and', // pbifnBitwiseNativeIntAnd,
+    'or', // pbifnBitwiseNativeIntOr,
+    'xor', // pbifnBitwiseNativeIntXor,
     'checkMethodCall',
     'checkVersion',
     '$destroy',
@@ -6812,9 +6820,7 @@ begin
         Result:=Call;
         exit;
         end;
-      eopAnd,
-      eopOr,
-      eopXor:
+      eopAnd:
         begin
         if aResolver<>nil then
           begin
@@ -6823,26 +6829,74 @@ begin
           if UseBitwiseOp
               and (LeftResolved.BaseType in [btIntDouble,btUIntDouble])
               and (RightResolved.BaseType in [btIntDouble,btUIntDouble]) then
-            aResolver.LogMsg(20190124233439,mtWarning,nBitWiseOperationsAre32Bit,
-              sBitWiseOperationsAre32Bit,[],El);
+            begin
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnBitwiseNativeIntAnd)]);
+            Call.AddArg(A);
+            Call.AddArg(B);
+            Result:=Call;
+            exit;
+            end;
           end
         else
           UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
             or (GetExpressionValueType(El.right,AContext)=jstNumber);
         if UseBitwiseOp then
-          Case El.OpCode of
-            eopAnd : C:=TJSBitwiseAndExpression;
-            eopOr : C:=TJSBitwiseOrExpression;
-            eopXor : C:=TJSBitwiseXOrExpression;
+          C:=TJSBitwiseAndExpression
+        else
+          C:=TJSLogicalAndExpression;
+        end;
+      eopOr:
+        begin
+        if aResolver<>nil then
+          begin
+          UseBitwiseOp:=((LeftResolved.BaseType in btAllJSInteger)
+                     or (RightResolved.BaseType in btAllJSInteger));
+          if UseBitwiseOp
+              and ((LeftResolved.BaseType in [btIntDouble,btUIntDouble])
+                or (RightResolved.BaseType in [btIntDouble,btUIntDouble])) then
+            begin
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnBitwiseNativeIntOr)]);
+            Call.AddArg(A);
+            Call.AddArg(B);
+            Result:=Call;
+            exit;
+            end;
           end
         else
-          Case El.OpCode of
-            eopAnd : C:=TJSLogicalAndExpression;
-            eopOr : C:=TJSLogicalOrExpression;
-            eopXor : C:=TJSBitwiseXOrExpression;
-          else
-            DoError(20161024191234,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,['logical XOR'],El);
-          end;
+          UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
+            or (GetExpressionValueType(El.right,AContext)=jstNumber);
+        if UseBitwiseOp then
+          C:=TJSBitwiseOrExpression
+        else
+          C:=TJSLogicalOrExpression;
+        end;
+      eopXor:
+        begin
+        if aResolver<>nil then
+          begin
+          UseBitwiseOp:=((LeftResolved.BaseType in btAllJSInteger)
+                     or (RightResolved.BaseType in btAllJSInteger));
+          if UseBitwiseOp
+              and ((LeftResolved.BaseType in [btIntDouble,btUIntDouble])
+                or (RightResolved.BaseType in [btIntDouble,btUIntDouble])) then
+            begin
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnBitwiseNativeIntXor)]);
+            Call.AddArg(A);
+            Call.AddArg(B);
+            Result:=Call;
+            exit;
+            end;
+          end
+        else
+          UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
+            or (GetExpressionValueType(El.right,AContext)=jstNumber);
+        if UseBitwiseOp then
+          C:=TJSBitwiseXOrExpression
+        else
+          C:=TJSBitwiseXOrExpression;
         end;
       eopPower:
         begin
@@ -6851,7 +6905,7 @@ begin
         Call.AddArg(A);
         Call.AddArg(B);
         Result:=Call;
-        end
+        end;
       else
         if C=nil then
           DoError(20161024191244,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);
@@ -6863,11 +6917,17 @@ begin
       R.B:=B; B:=nil;
       Result:=R;
 
-      if El.OpCode=eopDiv then
+      case El.OpCode of
+      eopDiv:
         begin
         // convert "a div b" to "Math.floor(a/b)"
         Result:=CreateMathFloor(El,Result);
         end;
+      eopShl,eopShr:
+        if (aResolver<>nil) and (LeftResolved.BaseType in [btIntDouble,btUIntDouble]) then
+          aResolver.LogMsg(20190228220225,mtWarning,nBitWiseOperationIs32Bit,
+            sBitWiseOperationIs32Bit,[],El);
+      end;
 
       if (bsOverflowChecks in AContext.ScannerBoolSwitches) and (aResolver<>nil) then
         case El.OpCode of
