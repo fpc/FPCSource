@@ -1456,7 +1456,8 @@ var
               if not IsValidUtf8ContinuationByte(ch) then
                 exit;
               CodePoint:=(Ord(ch) and %00111111) or CodePoint;
-              if (CodePoint>=$800) and (CodePoint<=$FFFF) then
+              if ((CodePoint>=$800) and (CodePoint<=$D7FF)) or
+                 ((CodePoint>=$E000) and (CodePoint<=$FFFF)) then
                 ReadUtf8:=CodePoint;
             end;
           4:begin
