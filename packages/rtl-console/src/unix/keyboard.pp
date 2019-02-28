@@ -1382,7 +1382,30 @@ end;
 {$endif linux}
 
 
+function DetectUtf8ByteSequenceStart(ch: Char): LongInt;
+begin
+  if Ord(ch)<128 then
+    DetectUtf8ByteSequenceStart:=1
+  else if (Ord(ch) and %11100000)=%11000000 then
+    DetectUtf8ByteSequenceStart:=2
+  else if (Ord(ch) and %11110000)=%11100000 then
+    DetectUtf8ByteSequenceStart:=3
+  else if (Ord(ch) and %11111000)=%11110000 then
+    DetectUtf8ByteSequenceStart:=4
+  else
+    DetectUtf8ByteSequenceStart:=0;
+end;
+
+
+function IsValidUtf8ContinuationByte(ch: Char): Boolean;
+begin
+  IsValidUtf8ContinuationByte:=(Ord(ch) and %11000000)=%10000000;
+end;
+
+
 function ReadKey:TEnhancedKeyEvent;
+const
+  ReplacementAsciiChar='?';
 var
   store    : array [0..8] of char;
   arrayind : byte;
@@ -1405,11 +1428,63 @@ var
         end;
       end;
 
+    function ReadUtf8(ch: Char): LongInt;
+      const
+        ErrorCharacter = $FFFD; { U+FFFD = REPLACEMENT CHARACTER }
+      var
+        CodePoint: LongInt;
+      begin
+        ReadUtf8:=ErrorCharacter;
+        case DetectUtf8ByteSequenceStart(ch) of
+          1: ReadUtf8:=Ord(ch);
+          2:begin
+              CodePoint:=(Ord(ch) and %00011111) shl 6;
+              ch:=ttyRecvChar;
+              if not IsValidUtf8ContinuationByte(ch) then
+                exit;
+              CodePoint:=(Ord(ch) and %00111111) or CodePoint;
+              if (CodePoint>=$80) and (CodePoint<=$7FF) then
+                ReadUtf8:=CodePoint;
+            end;
+          3:begin
+              CodePoint:=(Ord(ch) and %00001111) shl 12;
+              ch:=ttyRecvChar;
+              if not IsValidUtf8ContinuationByte(ch) then
+                exit;
+              CodePoint:=((Ord(ch) and %00111111) shl 6) or CodePoint;
+              ch:=ttyRecvChar;
+              if not IsValidUtf8ContinuationByte(ch) then
+                exit;
+              CodePoint:=(Ord(ch) and %00111111) or CodePoint;
+              if (CodePoint>=$800) and (CodePoint<=$FFFF) then
+                ReadUtf8:=CodePoint;
+            end;
+          4:begin
+              CodePoint:=(Ord(ch) and %00000111) shl 18;
+              ch:=ttyRecvChar;
+              if not IsValidUtf8ContinuationByte(ch) then
+                exit;
+              CodePoint:=((Ord(ch) and %00111111) shl 12) or CodePoint;
+              ch:=ttyRecvChar;
+              if not IsValidUtf8ContinuationByte(ch) then
+                exit;
+              CodePoint:=((Ord(ch) and %00111111) shl 6) or CodePoint;
+              ch:=ttyRecvChar;
+              if not IsValidUtf8ContinuationByte(ch) then
+                exit;
+              CodePoint:=(Ord(ch) and %00111111) or CodePoint;
+              if (CodePoint>=$10000) and (CodePoint<=$10FFFF) then
+                ReadUtf8:=CodePoint;
+            end;
+        end;
+      end;
+
 var
   ch       : char;
   fdsin    : tfdSet;
   NPT,NNPT : PTreeElement;
   k: TEnhancedKeyEvent;
+  UnicodeCodePoint: LongInt;
 begin
 {Check Buffer first}
   if KeySend<>KeyPut then
@@ -1436,7 +1511,35 @@ begin
   k.AsciiChar:=ch;
   NPT:=RootTree[ch];
   if not assigned(NPT) then
-    PushKey(k)
+    begin
+      if Utf8KeyboardInputEnabled then
+        begin
+          UnicodeCodePoint:=ReadUtf8(ch);
+          if UnicodeCodePoint<=$FFFF then
+            begin
+              { Code point is in the Basic Multilingual Plane (BMP)
+                -> encode as single WideChar }
+              k.UnicodeChar:=WideChar(UnicodeCodePoint);
+              if UnicodeCodePoint<=127 then
+                k.AsciiChar:=Chr(UnicodeCodePoint)
+              else
+                k.AsciiChar:=ReplacementAsciiChar;
+              PushKey(k);
+            end
+          else if UnicodeCodePoint<=$10FFFF then
+            begin
+              { Code point from the Supplementary Planes (U+010000..U+10FFFF)
+                -> encode as a surrogate pair of WideChars (as in UTF-16) }
+              k.UnicodeChar:=WideChar(((UnicodeCodePoint-$10000) shr 10)+$D800);
+              k.AsciiChar:=ReplacementAsciiChar;
+              PushKey(k);
+              k.UnicodeChar:=WideChar(((UnicodeCodePoint-$10000) and %1111111111)+$DC00);
+              PushKey(k);
+            end;
+        end
+      else
+        PushKey(k);
+    end
   else
     begin
       fpFD_ZERO(fdsin);
