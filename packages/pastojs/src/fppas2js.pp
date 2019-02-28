@@ -18200,7 +18200,7 @@ begin
 
     // append args
     ProcType:=Proc.ProcType;
-    if Expr.Parent is TParamsExpr then
+    if (Expr.Parent is TParamsExpr) and (TParamsExpr(Expr.Parent).Value=Expr) then
       ParamsExpr:=TParamsExpr(Expr.Parent)
     else
       ParamsExpr:=nil;
@@ -21352,7 +21352,7 @@ begin
         begin
         // pass set with argDefault  -> create reference   rtl.refSet(right)
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateProcedureCallArg create reference of SET variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+        writeln('TPasToJSConverter.CreateProcCallArg create reference of SET variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
         {$ENDIF}
         Result:=CreateReferencedSet(El,Result);
         end;
@@ -21430,7 +21430,7 @@ begin
               begin
               // pass record with argDefault ->  "TGuid.$clone(RightRecord)"
               {$IFDEF VerbosePas2JS}
-              writeln('TPasToJSConverter.CreateProcedureCallArg clone RECORD TGuid variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+              writeln('TPasToJSConverter.CreateProcCallArg clone RECORD TGuid variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
               {$ENDIF}
               Result:=CreateRecordCallClone(El,TPasRecordType(ArgTypeEl),Result,AContext);
               end;
@@ -21499,7 +21499,7 @@ begin
           begin
           // pass record with argDefault ->  "RightRecord.$clone(RightRecord)"
           {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.CreateProcedureCallArg clone RECORD variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+          writeln('TPasToJSConverter.CreateProcCallArg clone RECORD variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
           {$ENDIF}
           Result:=CreateRecordCallClone(El,TPasRecordType(ExprTypeEl),Result,AContext);
           end;
@@ -21623,7 +21623,7 @@ begin
     // ParamContext.Getter is the last part of the FullGetter
     // FullSetter is created from FullGetter by replacing the Getter with the Setter
     {$IFDEF VerbosePas2JS}
-    writeln('TPasToJSConverter.CreateProcedureCallArg VAR FullGetter=',GetObjName(FullGetter),' Setter=',GetObjName(ParamContext.Setter),' ',GetResolverResultDbg(ResolvedEl));
+    writeln('TPasToJSConverter.CreateProcCallArgRef VAR El=',GetObjName(El),' FullGetter=',GetObjName(FullGetter),' Setter=',GetObjName(ParamContext.Setter),' ',GetResolverResultDbg(ResolvedEl));
     {$ENDIF}
 
     // create "{p:path,get:function(){return this.p.Getter},set:function(v){this.p.Setter(v);}}"
@@ -21768,10 +21768,14 @@ begin
     else
       begin
       {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.CreateProcedureCallArg FullGetter=',GetObjName(FullGetter),' Setter=',GetObjName(ParamContext.Setter));
+      writeln('TPasToJSConverter.CreateProcCallArgRef FullGetter=',GetObjName(FullGetter),' Setter=',GetObjName(ParamContext.Setter));
       {$ENDIF}
       RaiseNotSupported(El,AContext,20170213230336);
       end;
+
+    {$IFDEF VerbosePas2JS}
+    //writeln('TPasToJSConverter.CreateProcCallArgRef GetExpr=',GetObjName(GetExpr),' SetExpr=',GetObjName(SetExpr),' SetterArgName=',SetterArgName);
+    {$ENDIF}
 
     if (SetExpr.ClassType=TJSPrimaryExpressionIdent)
         or (SetExpr.ClassType=TJSDotMemberExpression)
@@ -21826,6 +21830,10 @@ begin
       // has already the form  Func(v)
     else
       RaiseInconsistency(20170213225940,El);
+
+    {$IFDEF VerbosePas2JS}
+    //writeln('TPasToJSConverter.CreateProcCallArgRef created full SetExpr=',GetObjName(SetExpr),' SetterArgName=',SetterArgName);
+    {$ENDIF}
 
     // add   p:GetPathExpr
     AddVar(TempRefGetPathName,GetPathExpr);

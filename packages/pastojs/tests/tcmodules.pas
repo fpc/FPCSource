@@ -676,6 +676,7 @@ type
     Procedure TestTypeHelper_ClassMethod;
     Procedure TestTypeHelper_Constructor;
     Procedure TestTypeHelper_Word;
+    Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_StringChar;
     Procedure TestTypeHelper_Array;
     Procedure TestTypeHelper_EnumType;
@@ -22890,6 +22891,64 @@ begin
     '      rtl.raiseE("EPropReadOnly");',
     '    }',
     '}, 123);',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_Double;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  Float = type double;',
+  '  THelper = type helper for double',
+  '    const NPI = 3.141592;',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelper.ToStr: String;',
+  'begin',
+  'end;',
+  'procedure DoIt(s: string);',
+  'begin',
+  'end;',
+  'var f: Float;',
+  'begin',
+  '  DoIt(f.toStr);',
+  '  DoIt(f.toStr());',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_Double',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.NPI = 3.141592;',
+    '  this.ToStr = function () {',
+    '    var Result = "";',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.DoIt = function (s) {',
+    '};',
+    'this.f = 0.0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.THelper.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.f;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.f = v;',
+    '    }',
+    '}));',
+    '$mod.DoIt($mod.THelper.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.f;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.f = v;',
+    '    }',
+    '}));',
     '']));
 end;
 
