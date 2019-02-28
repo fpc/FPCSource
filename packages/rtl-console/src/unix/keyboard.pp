@@ -1742,6 +1742,7 @@ const
 var
   MyScan:byte;
   MyChar : char;
+  MyUniChar: WideChar;
   MyKey: TEnhancedKeyEvent;
   EscUsed,AltPrefixUsed,CtrlPrefixUsed,ShiftPrefixUsed,Again : boolean;
   SState: TEnhancedShiftState;
@@ -1756,6 +1757,7 @@ begin {main}
   SysGetEnhancedKeyEvent:=NilEnhancedKeyEvent;
   MyKey:=ReadKey;
   MyChar:=MyKey.AsciiChar;
+  MyUniChar:=MyKey.UnicodeChar;
   MyScan:=MyKey.VirtualScanCode shr 8;
   Sstate:=MyKey.ShiftState;
   CtrlPrefixUsed:=false;
@@ -1811,9 +1813,10 @@ begin {main}
           end;
         if myscan=kbAltBack then
           Include(sstate, essAlt);
-        if (MyChar<>#0) or (MyScan<>0) or (SState<>[]) then
+        if (MyChar<>#0) or (MyUniChar<>WideChar(0)) or (MyScan<>0) or (SState<>[]) then
           begin
             SysGetEnhancedKeyEvent.AsciiChar:=MyChar;
+            SysGetEnhancedKeyEvent.UnicodeChar:=MyUniChar;
             SysGetEnhancedKeyEvent.ShiftState:=SState;
             SysGetEnhancedKeyEvent.VirtualScanCode:=(MyScan shl 8) or Ord(MyChar);
           end;
@@ -1867,6 +1870,7 @@ begin {main}
       begin
         MyKey:=ReadKey;
         MyChar:=MyKey.AsciiChar;
+        MyUniChar:=MyKey.UnicodeChar;
         MyScan:=MyKey.VirtualScanCode shr 8;
       end;
   until not Again;
@@ -1876,6 +1880,7 @@ begin {main}
       if MyChar=#9 then
         begin
           MyChar:=#0;
+          MyUniChar:=WideChar(0);
           MyScan:=kbCtrlTab;
         end;
     end
@@ -1884,6 +1889,7 @@ begin {main}
       if MyChar=#9 then
         begin
           MyChar:=#0;
+          MyUniChar:=WideChar(0);
           MyScan:=kbAltTab;
         end
       else
@@ -1891,17 +1897,20 @@ begin {main}
           if MyScan in [$02..$0D] then
             inc(MyScan,$76);
           MyChar:=chr(0);
+          MyUniChar:=WideChar(0);
         end;
     end
   else if essShift in SState then
     if MyChar=#9 then
       begin
         MyChar:=#0;
+        MyUniChar:=WideChar(0);
         MyScan:=kbShiftTab;
       end;
-  if (MyChar<>#0) or (MyScan<>0) or (SState<>[]) then
+  if (MyChar<>#0) or (MyUniChar<>WideChar(0)) or (MyScan<>0) or (SState<>[]) then
     begin
       SysGetEnhancedKeyEvent.AsciiChar:=MyChar;
+      SysGetEnhancedKeyEvent.UnicodeChar:=MyUniChar;
       SysGetEnhancedKeyEvent.ShiftState:=SState;
       SysGetEnhancedKeyEvent.VirtualScanCode:=(MyScan shl 8) or Ord(MyChar);
     end;
