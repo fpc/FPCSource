@@ -6686,6 +6686,7 @@ var
   ModeSwitches: TModeSwitches;
   aResolver: TPas2JSResolver;
   LeftTypeEl, RightTypeEl: TPasType;
+  OldAccess: TCtxAccess;
 begin
   Result:=Nil;
   aResolver:=AContext.Resolver;
@@ -6704,14 +6705,8 @@ begin
       end;
   end;
 
-  if AContext.Access<>caRead then
-    begin
-    {$IFDEF VerbosePas2JS}
-    writeln('TPasToJSConverter.ConvertBinaryExpression OpCode=',El.OpCode,' AContext.Access=',AContext.Access);
-    {$ENDIF}
-    DoError(20170209152633,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El);
-    end;
-
+  OldAccess:=AContext.Access;
+  AContext.Access:=caRead;
   Call:=nil;
   A:=ConvertExpression(El.left,AContext);
   B:=nil;
@@ -6942,6 +6937,7 @@ begin
         end;
       end;
   finally
+    AContext.Access:=OldAccess;
     if Result=nil then
       begin
       A.Free;
@@ -21610,6 +21606,7 @@ begin
     ParamContext.Arg:=TargetArg;
     ParamContext.Expr:=El;
     ParamContext.ResolvedExpr:=ResolvedEl;
+    writeln('AAA1 TPasToJSConverter.CreateProcCallArgRef ',GetObjName(El));
     FullGetter:=ConvertExpression(El,ParamContext);
     // FullGetter is now a full JS expression to retrieve the value.
     if ParamContext.ReusingReference then
@@ -21767,10 +21764,17 @@ begin
       end
     else
       begin
-      {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.CreateProcCallArgRef FullGetter=',GetObjName(FullGetter),' Setter=',GetObjName(ParamContext.Setter));
-      {$ENDIF}
-      RaiseNotSupported(El,AContext,20170213230336);
+      // getter is the result of an operation
+
+      // create "p:FullGetter"
+      AddVar(TempRefParamName,FullGetter);
+      FullGetter:=nil;
+
+      // GetExpr  "this.a"
+      GetExpr:=CreatePrimitiveDotExpr('this.'+TempRefParamName,El);
+
+      // SetExpr  "raise EPropReadOnly"
+      SetExpr:=CreateRaisePropReadOnly(El);
       end;
 
     {$IFDEF VerbosePas2JS}
