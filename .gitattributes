@@ -7647,6 +7647,7 @@ packages/rtl-objpas/Makefile.fpc svneol=native#text/plain
 packages/rtl-objpas/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/rtl-objpas/fpmake.pp svneol=native#text/plain
 packages/rtl-objpas/src/common/varutils.pp svneol=native#text/plain
+packages/rtl-objpas/src/i386/invoke.inc svneol=native#text/pascal
 packages/rtl-objpas/src/inc/convutil.inc svneol=native#text/plain
 packages/rtl-objpas/src/inc/convutil.pp svneol=native#text/plain
 packages/rtl-objpas/src/inc/convutils.pp svneol=native#text/plain

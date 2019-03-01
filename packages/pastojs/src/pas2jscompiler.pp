@@ -53,7 +53,7 @@ const
 const
   nOptionIsEnabled = 101; sOptionIsEnabled = 'Option "%s" is %s';
   nSyntaxModeIs = 102; sSyntaxModeIs = 'Syntax mode is %s';
-  nMacroDefined = 103; sMacroDefined = 'Macro defined: %s';
+  // was: nMacroDefined = 103
   // 104 in unit Pas2JSFS
   // 105 in unit Pas2JSFS
   nNameValue = 106; sNameValue = '%s: %s';
@@ -88,7 +88,7 @@ const
   nSrcMapBaseDirIs = 135; sSrcMapBaseDirIs = 'source map "local base directory" is %s';
   nUnitFileNotFound = 136; sUnitFileNotFound = 'unit file not found %s';
   nClassInterfaceStyleIs = 137; sClassInterfaceStyleIs = 'Class interface style is %s';
-  nMacroXSetToY = 138; sMacroXSetToY = 'Macro %s set to %s';
+  // was nMacroXSetToY = 138
   nPostProcessorInfoX = 139; sPostProcessorInfoX = 'Post processor: %s';
   nPostProcessorRunX = 140; sPostProcessorRunX = 'Run post processor: %s';
   nPostProcessorFailX = 141; sPostProcessorFailX = 'Post processor failed: %s';
@@ -2713,7 +2713,7 @@ begin
   LastMsgNumber:=-1;
   r(mtInfo,nOptionIsEnabled,sOptionIsEnabled);
   r(mtInfo,nSyntaxModeIs,sSyntaxModeIs);
-  r(mtInfo,nMacroDefined,sMacroDefined);
+  LastMsgNumber:=-1; // was nMacroDefined 103
   r(mtInfo,nUsingPath,sUsingPath);
   r(mtNote,nFolderNotFound,sFolderNotFound);
   r(mtInfo,nNameValue,sNameValue);
@@ -2748,7 +2748,7 @@ begin
   r(mtInfo,nSrcMapBaseDirIs,sSrcMapBaseDirIs);
   r(mtFatal,nUnitFileNotFound,sUnitFileNotFound);
   r(mtInfo,nClassInterfaceStyleIs,sClassInterfaceStyleIs);
-  r(mtInfo,nMacroXSetToY,sMacroXSetToY);
+  LastMsgNumber:=-1; ;// was nMacroXSetToY 138
   r(mtInfo,nPostProcessorInfoX,sPostProcessorInfoX);
   r(mtInfo,nPostProcessorRunX,sPostProcessorRunX);
   r(mtError,nPostProcessorFailX,sPostProcessorFailX);
@@ -4392,9 +4392,9 @@ begin
     S:=Defines[i];
     M:=TMacroDef(Defines.Objects[i]);
     if M<>nil then
-      Log.LogMsgIgnoreFilter(nMacroXSetToY,[S,QuoteStr(M.Value)])
+      Log.Log(mtInfo,SafeFormat(SLogMacroXSetToY,[S,QuoteStr(M.Value)]),nLogMacroXSetToY,'',0,0,false)
     else
-      Log.LogMsgIgnoreFilter(nMacroDefined,[S]);
+      Log.Log(mtInfo,SafeFormat(SLogMacroDefined,[S]),nLogMacroDefined,'',0,0,false)
     end;
   for pbi in TPas2JSBuiltInName do
     if Pas2JSBuiltInNames[pbi]<>ConverterGlobals.BuiltInNames[pbi] then
