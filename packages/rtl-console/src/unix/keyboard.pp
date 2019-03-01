@@ -195,8 +195,8 @@ const
     (tab:8; idx:$42; oldtab:0; oldidx:$42; oldval:0; newval:0),
     (tab:8; idx:$43; oldtab:0; oldidx:$43; oldval:0; newval:0),
     (tab:8; idx:$44; oldtab:0; oldidx:$44; oldval:0; newval:0),
-    (tab:8; idx:$45; oldtab:0; oldidx:$45; oldval:0; newval:0),
-    (tab:8; idx:$46; oldtab:0; oldidx:$46; oldval:0; newval:0),
+    (tab:8; idx:$57; oldtab:0; oldidx:$57; oldval:0; newval:0),
+    (tab:8; idx:$58; oldtab:0; oldidx:$58; oldval:0; newval:0),
     {This prevents the shift+function keys outputting strings, so
      the kernel will the codes for the non-shifted function
      keys. This is desired because normally shift+f1/f2 will output the
@@ -211,8 +211,8 @@ const
     (tab:1; idx:$42; oldtab:0; oldidx:$42; oldval:0; newval:0),
     (tab:1; idx:$43; oldtab:0; oldidx:$43; oldval:0; newval:0),
     (tab:1; idx:$44; oldtab:0; oldidx:$44; oldval:0; newval:0),
-    (tab:1; idx:$45; oldtab:0; oldidx:$45; oldval:0; newval:0),
-    (tab:1; idx:$46; oldtab:0; oldidx:$46; oldval:0; newval:0)
+    (tab:1; idx:$57; oldtab:0; oldidx:$57; oldval:0; newval:0),
+    (tab:1; idx:$58; oldtab:0; oldidx:$58; oldval:0; newval:0)
   );
 
  KDGKBENT=$4B46;
