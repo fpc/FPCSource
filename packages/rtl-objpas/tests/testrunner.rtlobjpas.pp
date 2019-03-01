@@ -8,6 +8,8 @@ program testrunner.rtlobjpas;
 {.$define useffi}
 {$if defined(CPUX64) and defined(WINDOWS)}
 {$define testinvoke}
+{$elseif defined(CPUI386)}
+{$define testinvoke}
 {$else}
 {$ifdef useffi}
 {$define testinvoke}
