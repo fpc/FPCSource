@@ -183,7 +183,7 @@ type
 const
   kbdchange:array[0..35] of chgentry=(
     {This prevents the alt+function keys from switching consoles.
-     We code the F1..F12 sequences into ALT+F1..ALT+12, we check
+     We code the F1..F12 sequences into ALT+F1..ALT+F12, we check
      the shiftstates separetely anyway.}
     (tab:8; idx:$3b; oldtab:0; oldidx:$3b; oldval:0; newval:0),
     (tab:8; idx:$3c; oldtab:0; oldidx:$3c; oldval:0; newval:0),
