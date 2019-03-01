@@ -283,6 +283,10 @@ TYPE
                 CharCode: Char;                       { Char code }
                 ScanCode: Byte;                       { Scan code }
 {$endif not ENDIAN_BIG}
+                UnicodeChar: WideChar;                { Unicode char code.
+                          Code points from the Supplementary Planes (U+010000 to
+                          U+10FFFF) are encoded as 2 consecutive key events,
+                          forming an UTF-16 surrogate pair. }
                 KeyShift: byte));                     { Shift states }
         evMessage: (                                  { ** MESSAGE EVENT ** }
           Command: Sw_Word;                              { Message command }
@@ -1135,6 +1139,7 @@ begin
      Event.CharCode:=chr(keycode and $ff);
      Event.ScanCode:=keycode shr 8;
 {$endif ENDIAN_LITTLE}
+     Event.UnicodeChar:=key.UnicodeChar;
      Event.KeyShift:=ConvertEnhancedToLegacyShiftState(key.ShiftState);
    end
   else
