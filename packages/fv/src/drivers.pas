@@ -1081,15 +1081,13 @@ end;
 {---------------------------------------------------------------------------}
 procedure GetKeyEvent (Var Event: TEvent);
 var
-  key      : TKeyEvent;
+  key      : TEnhancedKeyEvent;
   keycode  : Word;
-  keyshift : byte;
 begin
-  if Keyboard.PollKeyEvent<>0 then
+  if Keyboard.PollEnhancedKeyEvent<>NilEnhancedKeyEvent then
    begin
-     key:=Keyboard.GetKeyEvent;
-     keycode:=Keyboard.GetKeyEventCode(key);
-     keyshift:=KeyBoard.GetKeyEventShiftState(key);
+     key:=Keyboard.GetEnhancedKeyEvent;
+     keycode:=key.VirtualScanCode;
      // some kbds still honour old XT E0 prefix. (org IBM ps/2, win98?) bug #8978
      if (keycode and $FF = $E0) and
         (byte(keycode shr 8) in
@@ -1097,7 +1095,7 @@ begin
           keycode := keycode and $FF00;
 
      { fixup shift-keys }
-     if keyshift and kbShift<>0 then
+     if essShift in key.ShiftState then
        begin
          case keycode of
            $5200 : keycode:=kbShiftIns;
@@ -1107,7 +1105,7 @@ begin
          end;
        end
      { fixup ctrl-keys }
-     else if keyshift and kbCtrl<>0 then
+     else if essCtrl in key.ShiftState then
        begin
          case keycode of
            $5200,
@@ -1117,7 +1115,7 @@ begin
          end;
        end
      { fixup alt-keys }
-     else if keyshift and kbAlt<>0 then
+     else if essAlt in key.ShiftState then
        begin
          case keycode of
            $0e08,
@@ -1137,7 +1135,7 @@ begin
      Event.CharCode:=chr(keycode and $ff);
      Event.ScanCode:=keycode shr 8;
 {$endif ENDIAN_LITTLE}
-     Event.KeyShift:=keyshift;
+     Event.KeyShift:=ConvertEnhancedToLegacyShiftState(key.ShiftState);
    end
   else
    Event.What:=evNothing;
