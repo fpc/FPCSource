@@ -545,6 +545,9 @@ endif
 ifeq ($(PPC_TARGET),arm)
 override LOCALOPT+=-Fuarmgen
 endif
+ifeq ($(PPC_TARGET),armeb)
+override LOCALOPT+=-Fuarmgen
+endif
 ifeq ($(PPC_TARGET),mipsel)
 override LOCALOPT+=-Fumips
 endif

@@ -422,9 +422,9 @@ type
           { true if string is in the container }
           function Find(const s:TCmdStr):TCmdStrListItem;
           { inserts an item }
-          procedure InsertItem(item:TCmdStrListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
+          procedure InsertItem(item:TCmdStrListItem);
           { concats an item }
-          procedure ConcatItem(item:TCmdStrListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
+          procedure ConcatItem(item:TCmdStrListItem);
           property Doubles:boolean read FDoubles write FDoubles;
        end;
 

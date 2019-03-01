@@ -767,8 +767,6 @@ begin
               curfloatreg, curmmreg, cur_stack_offset, true)
           else
             internalerror(2019021920);
-          if curfloatreg <> firstfloatreg then
-            include(varargspara.varargsinfo, va_uses_float_reg);
         end;
       { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
       if (result < 64) then
@@ -776,6 +774,8 @@ begin
     end
   else
     internalerror(2019021911);
+  if curfloatreg <> firstfloatreg then
+    include(varargspara.varargsinfo, va_uses_float_reg);
   create_funcretloc_info(p, side);
 end;
 

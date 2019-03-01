@@ -242,9 +242,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
-         if (left.nodetype=typen) and
-            (cs_create_pic in current_settings.moduleswitches) then
-           include(current_procinfo.flags,pi_needs_got);
          if left.nodetype<>typen then
            begin
              if (is_objc_class_or_protocol(left.resultdef) or

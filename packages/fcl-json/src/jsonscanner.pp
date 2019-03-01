@@ -28,7 +28,7 @@ uses SysUtils, Classes;
 resourcestring
   SErrInvalidCharacter = 'Invalid character at line %d, pos %d: ''%s''';
   SUnterminatedComment = 'Unterminated comment at line %d, pos %d: ''%s''';
-  SErrOpenString = 'string exceeds end of line';
+  SErrOpenString = 'string exceeds end of line %d';
 
 type
 
@@ -331,7 +331,7 @@ begin
                       u1:=u2;
                       end
                     end;
-              #0  : Error(SErrOpenString);
+              #0  : Error(SErrOpenString,[FCurRow]);
             else
               Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
             end;
@@ -355,11 +355,11 @@ begin
           else
             MaybeAppendUnicode;
           if FTokenStr[0] = #0 then
-            Error(SErrOpenString);
+            Error(SErrOpenString,[FCurRow]);
           Inc(FTokenStr);
           end;
         if FTokenStr[0] = #0 then
-          Error(SErrOpenString);
+          Error(SErrOpenString,[FCurRow]);
         MaybeAppendUnicode;
         SectionLength := FTokenStr - TokenStart;
         SetLength(FCurTokenString, OldLength + SectionLength);

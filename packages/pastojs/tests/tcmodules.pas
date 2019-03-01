@@ -263,7 +263,7 @@ type
     Procedure TestInteger;
     Procedure TestIntegerRange;
     Procedure TestIntegerTypecasts;
-    Procedure TestBitwiseAndNativeIntWarn;
+    Procedure TestBitwiseShlNativeIntWarn;
     Procedure TestCurrency;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -473,7 +473,8 @@ type
     Procedure TestAdvRecord_SubClass;
     Procedure TestAdvRecord_SubInterfaceFail;
     Procedure TestAdvRecord_Constructor;
-    Procedure TestAdvRecord_ClassConstructor;
+    Procedure TestAdvRecord_ClassConstructor_Program;
+    Procedure TestAdvRecord_ClassConstructor_Unit;
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -675,6 +676,7 @@ type
     Procedure TestTypeHelper_ClassMethod;
     Procedure TestTypeHelper_Constructor;
     Procedure TestTypeHelper_Word;
+    Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_StringChar;
     Procedure TestTypeHelper_Array;
     Procedure TestTypeHelper_EnumType;
@@ -3079,24 +3081,36 @@ end;
 procedure TTestModule.TestBitwiseOperators;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  vA,vB,vC:longint;');
-  Add('begin');
-  Add('  va:=vb and vc;');
-  Add('  va:=vb or vc;');
-  Add('  va:=vb xor vc;');
-  Add('  va:=vb shl vc;');
-  Add('  va:=vb shr vc;');
-  Add('  va:=3 and vc;');
-  Add('  va:=(vb and vc) or (va and vb);');
-  Add('  va:=not vb;');
+  Add([
+  'var',
+  '  vA,vB,vC:longint;',
+  '  X,Y,Z: nativeint;',
+  'begin',
+  '  va:=vb and vc;',
+  '  va:=vb or vc;',
+  '  va:=vb xor vc;',
+  '  va:=vb shl vc;',
+  '  va:=vb shr vc;',
+  '  va:=3 and vc;',
+  '  va:=(vb and vc) or (va and vb);',
+  '  va:=not vb;',
+  '  X:=Y and Z;',
+  '  X:=Y and va;',
+  '  X:=Y or Z;',
+  '  X:=Y or va;',
+  '  X:=Y xor Z;',
+  '  X:=Y xor va;',
+  '']);
   ConvertProgram;
   CheckSource('TestBitwiseOperators',
     LinesToStr([ // statements
     'this.vA = 0;',
     'this.vB = 0;',
-    'this.vC = 0;'
-    ]),
+    'this.vC = 0;',
+    'this.X = 0;',
+    'this.Y = 0;',
+    'this.Z = 0;',
+    '']),
     LinesToStr([ // this.$main
     '$mod.vA = $mod.vB & $mod.vC;',
     '$mod.vA = $mod.vB | $mod.vC;',
@@ -3105,8 +3119,14 @@ begin
     '$mod.vA = $mod.vB >>> $mod.vC;',
     '$mod.vA = 3 & $mod.vC;',
     '$mod.vA = ($mod.vB & $mod.vC) | ($mod.vA & $mod.vB);',
-    '$mod.vA = ~$mod.vB;'
-    ]));
+    '$mod.vA = ~$mod.vB;',
+    '$mod.X = rtl.and($mod.Y, $mod.Z);',
+    '$mod.X = $mod.Y & $mod.vA;',
+    '$mod.X = rtl.or($mod.Y, $mod.Z);',
+    '$mod.X = rtl.or($mod.Y, $mod.vA);',
+    '$mod.X = rtl.xor($mod.Y, $mod.Z);',
+    '$mod.X = rtl.xor($mod.Y, $mod.vA);',
+    '']));
 end;
 
 procedure TTestModule.TestPrgProcVar;
@@ -6413,25 +6433,24 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestBitwiseAndNativeIntWarn;
+procedure TTestModule.TestBitwiseShlNativeIntWarn;
 begin
   StartProgram(false);
   Add([
   'var',
-  '  i,j: nativeint;',
+  '  i: nativeint;',
   'begin',
-  '  i:=i and j;',
+  '  i:=i shl 3;',
   '']);
   ConvertProgram;
-  CheckSource('TestBitwiseAndNativeIntWarn',
+  CheckSource('TestBitwiseShlNativeIntWarn',
     LinesToStr([
     'this.i = 0;',
-    'this.j = 0;',
     '']),
     LinesToStr([
-    '$mod.i = $mod.i & $mod.j;',
+    '$mod.i = $mod.i << 3;',
     '']));
-  CheckHint(mtWarning,nBitWiseOperationsAre32Bit,sBitWiseOperationsAre32Bit);
+  CheckHint(mtWarning,nBitWiseOperationIs32Bit,sBitWiseOperationIs32Bit);
 end;
 
 procedure TTestModule.TestCurrency;
@@ -11140,7 +11159,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestAdvRecord_ClassConstructor;
+procedure TTestModule.TestAdvRecord_ClassConstructor_Program;
 begin
   StartProgram(false);
   Add([
@@ -11168,7 +11187,7 @@ begin
   '  r.x:=10;',
   '']);
   ConvertProgram;
-  CheckSource('TestAdvRecord_ClassConstructor',
+  CheckSource('TestAdvRecord_ClassConstructor_Program',
     LinesToStr([ // statements
     'rtl.recNewT($mod, "TPoint", function () {',
     '  this.x = 0;',
@@ -11193,6 +11212,62 @@ begin
     '  $mod.TPoint.Fly();',
     '})();',
     '$mod.TPoint.x = 10;',
+    '']));
+end;
+
+procedure TTestModule.TestAdvRecord_ClassConstructor_Unit;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TPoint = record',
+  '    class var x: longint;',
+  '    class procedure Fly; static;',
+  '    class constructor Init;',
+  '  end;',
+  'implementation',
+  'var count: word;',
+  'class procedure Tpoint.Fly;',
+  'begin',
+  'end;',
+  'class constructor tpoint.init;',
+  'begin',
+  '  count:=count+1;',
+  '  x:=3;',
+  '  tpoint.x:=4;',
+  '  fly;',
+  '  tpoint.fly;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestAdvRecord_ClassConstructor_Unit',
+    LinesToStr([ // statements
+    'var $impl = $mod.$impl;',
+    'rtl.recNewT($mod, "TPoint", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  this.Fly = function () {',
+    '  };',
+    '}, true);',
+    '']),
+    LinesToStr([ // $mod.$init
+    '(function () {',
+    '  $impl.count = $impl.count + 1;',
+    '  $mod.TPoint.x = 3;',
+    '  $mod.TPoint.x = 4;',
+    '  $mod.TPoint.Fly();',
+    '  $mod.TPoint.Fly();',
+    '})();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$impl.count = 0;',
     '']));
 end;
 
@@ -22816,6 +22891,84 @@ begin
     '      rtl.raiseE("EPropReadOnly");',
     '    }',
     '}, 123);',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_Double;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  Float = type double;',
+  '  THelper = type helper for double',
+  '    const NPI = 3.141592;',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelper.ToStr: String;',
+  'begin',
+  'end;',
+  'procedure DoIt(s: string);',
+  'begin',
+  'end;',
+  'var f: Float;',
+  'begin',
+  '  DoIt(f.toStr);',
+  '  DoIt(f.toStr());',
+  '  (f*f).toStr;',
+  '  DoIt((f*f).toStr);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_Double',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.NPI = 3.141592;',
+    '  this.ToStr = function () {',
+    '    var Result = "";',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.DoIt = function (s) {',
+    '};',
+    'this.f = 0.0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.THelper.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.f;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.f = v;',
+    '    }',
+    '}));',
+    '$mod.DoIt($mod.THelper.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.f;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.f = v;',
+    '    }',
+    '}));',
+    '$mod.THelper.ToStr.call({',
+    '  a: $mod.f * $mod.f,',
+    '  get: function () {',
+    '      return this.a;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '});',
+    '$mod.DoIt($mod.THelper.ToStr.call({',
+    '  a: $mod.f * $mod.f,',
+    '  get: function () {',
+    '      return this.a;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '}));',
     '']));
 end;
 

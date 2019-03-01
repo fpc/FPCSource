@@ -55,8 +55,6 @@ implementation
 
     procedure tarmloadnode.generate_threadvar_access(gvs: tstaticvarsym);
       var
-        paraloc1 : tcgpara;
-        pd: tprocdef;
         href: treference;
         hregister : tregister;
         handled: boolean;

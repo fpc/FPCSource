@@ -9205,7 +9205,8 @@ begin
       end
     else if LTypeEl.ClassType=TPasEnumType then
       begin
-      if LeftResolved.IdentEl is TPasEnumType then
+      if (LeftResolved.IdentEl is TPasType)
+          and (ResolveAliasType(TPasType(LeftResolved.IdentEl)).ClassType=TPasEnumType) then
         begin
         // e.g. TShiftState.ssAlt
         DotScope:=PushEnumDotScope(TPasEnumType(LTypeEl));
@@ -16283,23 +16284,25 @@ begin
         if (TypeEl.ClassType=TPasClassType)
             and (TPasClassType(TypeEl).HelperForType<>nil) then
           TypeEl:=ResolveAliasType(TPasClassType(TypeEl).HelperForType) as TPasType;
-        if (TypeEl.ClassType=TPasClassType) and
-            TPasClassType(TypeEl).IsAbstract then
-          LogMsg(20190224153450,mtWarning,nCreatingAnInstanceOfAbstractClassY,
-            sCreatingAnInstanceOfAbstractClassY,[TypeEl.Name],FindData.ErrorPosEl);
         TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
         if OnlyTypeMembers and (ClassRecScope is TPasClassScope) then
           begin
-          AbstractProcs:=TPasClassScope(ClassRecScope).AbstractProcs;
-          if (length(AbstractProcs)>0) then
+          if (TypeEl.ClassType=TPasClassType) and TPasClassType(TypeEl).IsAbstract then
+            LogMsg(20190224153450,mtWarning,nCreatingAnInstanceOfAbstractClassY,
+              sCreatingAnInstanceOfAbstractClassY,[TypeEl.Name],FindData.ErrorPosEl)
+          else
             begin
-            if IsClassOf then
-              // aClass.Create: do not warn
-            else
-              for i:=0 to length(AbstractProcs)-1 do
-                LogMsg(20171227110746,mtWarning,nConstructingClassXWithAbstractMethodY,
-                  sConstructingClassXWithAbstractMethodY,
-                  [TypeEl.Name,AbstractProcs[i].Name],FindData.ErrorPosEl);
+            AbstractProcs:=TPasClassScope(ClassRecScope).AbstractProcs;
+            if (length(AbstractProcs)>0) then
+              begin
+              if IsClassOf then
+                // aClass.Create: do not warn
+              else
+                for i:=0 to length(AbstractProcs)-1 do
+                  LogMsg(20171227110746,mtWarning,nConstructingClassXWithAbstractMethodY,
+                    sConstructingClassXWithAbstractMethodY,
+                    [TypeEl.Name,AbstractProcs[i].Name],FindData.ErrorPosEl);
+              end;
             end;
           end;
         end;
@@ -17094,7 +17097,7 @@ begin
             Scope.Add(HelperScope);
             HelperScope:=HelperScope.AncestorScope;
             end;
-          if not (msMultipleScopeHelpers in CurrentParser.CurrentModeswitches) then
+          if not (msMultiHelpers in CurrentParser.CurrentModeswitches) then
             break;
           end;
         end;

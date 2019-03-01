@@ -902,10 +902,7 @@ unit cgx86;
                { darwin's assembler doesn't want @PLT after call symbols }
                not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
               begin
-{$ifdef i386}
-                include(current_procinfo.flags,pi_needs_got);
-{$endif i386}
-                r.refaddr:=addr_pic
+                r.refaddr:=addr_pic;
               end
             else
               r.refaddr:=addr_full;

@@ -2496,7 +2496,7 @@ begin
       vtChar       : Result:=CreateJSON(VChar);
       vtExtended   : Result:=CreateJSON(VExtended^);
       vtString     : Result:=CreateJSON(vString^);
-      vtAnsiString : Result:=CreateJSON(AnsiString(vAnsiString));
+      vtAnsiString : Result:=CreateJSON(UTF8Decode(StrPas(VPChar)));
       vtPChar      : Result:=CreateJSON(StrPas(VPChar));
       vtPointer    : If (VPointer<>Nil) then
                        TJSONData.DoError(SErrPointerNotNil,[SourceType])
@@ -3153,7 +3153,7 @@ constructor TJSONObject.Create(const Elements: array of {$ifdef pas2js}jsvalue{$
 
 Var
   I : integer;
-  AName : String;
+  AName : TJSONUnicodeStringType;
   J : TJSONData;
 
 begin
@@ -3171,10 +3171,10 @@ begin
     {$else}
     With Elements[i] do
       Case VType of
-        vtChar       : AName:=VChar;
-        vtString     : AName:=vString^;
-        vtAnsiString : AName:=(AnsiString(vAnsiString));
-        vtPChar      : AName:=StrPas(VPChar);
+        vtChar       : AName:=TJSONUnicodeStringType(VChar);
+        vtString     : AName:=TJSONUnicodeStringType(vString^);
+        vtAnsiString : AName:=UTF8Decode(StrPas(VPChar));
+        vtPChar      : AName:=TJSONUnicodeStringType(StrPas(VPChar));
       else
         DoError(SErrNameMustBeString,[I+1]);
       end;
@@ -3183,7 +3183,11 @@ begin
       DoError(SErrNameMustBeString,[I+1]);
     Inc(I);
     J:=VarRecToJSON(Elements[i],'Object');
+    {$IFDEF FPC_HAS_CPSTRING}
+    Add(UTF8Encode(AName),J);
+    {$ELSE}
     Add(AName,J);
+    {$ENDIF}
     Inc(I);
     end;
 end;

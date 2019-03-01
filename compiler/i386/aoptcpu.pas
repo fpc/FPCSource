@@ -131,7 +131,6 @@ function WriteOk : Boolean;
   end;
 
 var
-  l : longint;
   p,hp1,hp2 : tai;
   hp3,hp4: tai;
   v:aint;

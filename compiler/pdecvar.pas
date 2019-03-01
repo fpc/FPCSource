@@ -1591,14 +1591,13 @@ implementation
          sc : TFPObjectList;
          i  : longint;
          hs,sorg : string;
-         hdef,casetype,tmpdef : tdef;
+         hdef,casetype : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : longint;
          usedalign,
          maxalignment,startvarrecalign,
          maxpadalign, startpadalign: shortint;
-         stowner : tdef;
          pt : tnode;
          fieldvs   : tfieldvarsym;
          hstaticvs : tstaticvarsym;
