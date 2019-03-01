@@ -78,6 +78,7 @@ const
   nIllegalStateForWarnDirective = 1027;
   nErrIncludeLimitReached = 1028;
   nMisplacedGlobalCompilerSwitch = 1029;
+  nLogMacroXSetToY = 1030;
 
 // resourcestring patterns of messages
 resourcestring
@@ -112,6 +113,7 @@ resourcestring
   SIllegalStateForWarnDirective = 'Illegal state "%s" for $WARN directive';
   SErrIncludeLimitReached = 'Include file limit reached';
   SMisplacedGlobalCompilerSwitch = 'Misplaced global compiler switch, ignored';
+  SLogMacroXSetToY = 'Macro %s set to %s';
 
 type
   TMessageType = (
@@ -4853,7 +4855,7 @@ begin
     end;
   Result:=true;
   if (not Quiet) and LogEvent(sleConditionals) then
-    DoLog(mtInfo,nLogMacroDefined,sLogMacroDefined,[aName])
+    DoLog(mtInfo,nLogMacroXSetToY,SLogMacroXSetToY,[aName,aValue])
 end;
 
 function TPascalScanner.RemoveMacro(const aName: String; Quiet: boolean
