@@ -1065,6 +1065,30 @@ var rtl = {
     return 0;
   },
 
+  and: function(a,b){
+    var hi = 0x80000000;
+    var low = 0x7fffffff;
+    var h = (a / hi) & (b / hi);
+    var l = (a & low) & (b & low);
+    return h*hi + l;
+  },
+
+  or: function(a,b){
+    var hi = 0x80000000;
+    var low = 0x7fffffff;
+    var h = (a / hi) | (b / hi);
+    var l = (a & low) | (b & low);
+    return h*hi + l;
+  },
+
+  xor: function(a,b){
+    var hi = 0x80000000;
+    var low = 0x7fffffff;
+    var h = (a / hi) ^ (b / hi);
+    var l = (a & low) ^ (b & low);
+    return h*hi + l;
+  },
+
   initRTTI: function(){
     if (rtl.debug_rtti) rtl.debug('initRTTI');
 

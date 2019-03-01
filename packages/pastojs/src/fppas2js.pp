@@ -520,6 +520,7 @@ const
   nCantCallExtBracketAccessor = 4025;
   nJSNewNotSupported = 4026;
   nHelperClassMethodForExtClassMustBeStatic = 4027;
+  nBitWiseOperationIs32Bit = 4028;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -549,6 +550,7 @@ resourcestring
   sCantCallExtBracketAccessor = 'cannot call external bracket accessor, use a property instead';
   sJSNewNotSupported = 'Pascal class does not support the "new" constructor';
   sHelperClassMethodForExtClassMustBeStatic = 'Helper class method for external class must be static';
+  sBitWiseOperationIs32Bit = 'Bitwise operation is 32-bit';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -566,6 +568,9 @@ type
     pbifnArray_Static_Clone,
     pbifnAs,
     pbifnAsExt,
+    pbifnBitwiseNativeIntAnd,
+    pbifnBitwiseNativeIntOr,
+    pbifnBitwiseNativeIntXor,
     pbifnCheckMethodCall,
     pbifnCheckVersion,
     pbifnClassInstanceFree,
@@ -725,6 +730,9 @@ const
     '$clone',
     'as', // rtl.as
     'asExt', // rtl.asExt
+    'and', // pbifnBitwiseNativeIntAnd,
+    'or', // pbifnBitwiseNativeIntOr,
+    'xor', // pbifnBitwiseNativeIntXor,
     'checkMethodCall',
     'checkVersion',
     '$destroy',
@@ -6678,6 +6686,7 @@ var
   ModeSwitches: TModeSwitches;
   aResolver: TPas2JSResolver;
   LeftTypeEl, RightTypeEl: TPasType;
+  OldAccess: TCtxAccess;
 begin
   Result:=Nil;
   aResolver:=AContext.Resolver;
@@ -6696,14 +6705,8 @@ begin
       end;
   end;
 
-  if AContext.Access<>caRead then
-    begin
-    {$IFDEF VerbosePas2JS}
-    writeln('TPasToJSConverter.ConvertBinaryExpression OpCode=',El.OpCode,' AContext.Access=',AContext.Access);
-    {$ENDIF}
-    DoError(20170209152633,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El);
-    end;
-
+  OldAccess:=AContext.Access;
+  AContext.Access:=caRead;
   Call:=nil;
   A:=ConvertExpression(El.left,AContext);
   B:=nil;
@@ -6812,9 +6815,7 @@ begin
         Result:=Call;
         exit;
         end;
-      eopAnd,
-      eopOr,
-      eopXor:
+      eopAnd:
         begin
         if aResolver<>nil then
           begin
@@ -6823,26 +6824,74 @@ begin
           if UseBitwiseOp
               and (LeftResolved.BaseType in [btIntDouble,btUIntDouble])
               and (RightResolved.BaseType in [btIntDouble,btUIntDouble]) then
-            aResolver.LogMsg(20190124233439,mtWarning,nBitWiseOperationsAre32Bit,
-              sBitWiseOperationsAre32Bit,[],El);
+            begin
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnBitwiseNativeIntAnd)]);
+            Call.AddArg(A);
+            Call.AddArg(B);
+            Result:=Call;
+            exit;
+            end;
           end
         else
           UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
             or (GetExpressionValueType(El.right,AContext)=jstNumber);
         if UseBitwiseOp then
-          Case El.OpCode of
-            eopAnd : C:=TJSBitwiseAndExpression;
-            eopOr : C:=TJSBitwiseOrExpression;
-            eopXor : C:=TJSBitwiseXOrExpression;
+          C:=TJSBitwiseAndExpression
+        else
+          C:=TJSLogicalAndExpression;
+        end;
+      eopOr:
+        begin
+        if aResolver<>nil then
+          begin
+          UseBitwiseOp:=((LeftResolved.BaseType in btAllJSInteger)
+                     or (RightResolved.BaseType in btAllJSInteger));
+          if UseBitwiseOp
+              and ((LeftResolved.BaseType in [btIntDouble,btUIntDouble])
+                or (RightResolved.BaseType in [btIntDouble,btUIntDouble])) then
+            begin
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnBitwiseNativeIntOr)]);
+            Call.AddArg(A);
+            Call.AddArg(B);
+            Result:=Call;
+            exit;
+            end;
           end
         else
-          Case El.OpCode of
-            eopAnd : C:=TJSLogicalAndExpression;
-            eopOr : C:=TJSLogicalOrExpression;
-            eopXor : C:=TJSBitwiseXOrExpression;
-          else
-            DoError(20161024191234,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,['logical XOR'],El);
-          end;
+          UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
+            or (GetExpressionValueType(El.right,AContext)=jstNumber);
+        if UseBitwiseOp then
+          C:=TJSBitwiseOrExpression
+        else
+          C:=TJSLogicalOrExpression;
+        end;
+      eopXor:
+        begin
+        if aResolver<>nil then
+          begin
+          UseBitwiseOp:=((LeftResolved.BaseType in btAllJSInteger)
+                     or (RightResolved.BaseType in btAllJSInteger));
+          if UseBitwiseOp
+              and ((LeftResolved.BaseType in [btIntDouble,btUIntDouble])
+                or (RightResolved.BaseType in [btIntDouble,btUIntDouble])) then
+            begin
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnBitwiseNativeIntXor)]);
+            Call.AddArg(A);
+            Call.AddArg(B);
+            Result:=Call;
+            exit;
+            end;
+          end
+        else
+          UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
+            or (GetExpressionValueType(El.right,AContext)=jstNumber);
+        if UseBitwiseOp then
+          C:=TJSBitwiseXOrExpression
+        else
+          C:=TJSBitwiseXOrExpression;
         end;
       eopPower:
         begin
@@ -6851,7 +6900,7 @@ begin
         Call.AddArg(A);
         Call.AddArg(B);
         Result:=Call;
-        end
+        end;
       else
         if C=nil then
           DoError(20161024191244,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);
@@ -6863,11 +6912,17 @@ begin
       R.B:=B; B:=nil;
       Result:=R;
 
-      if El.OpCode=eopDiv then
+      case El.OpCode of
+      eopDiv:
         begin
         // convert "a div b" to "Math.floor(a/b)"
         Result:=CreateMathFloor(El,Result);
         end;
+      eopShl,eopShr:
+        if (aResolver<>nil) and (LeftResolved.BaseType in [btIntDouble,btUIntDouble]) then
+          aResolver.LogMsg(20190228220225,mtWarning,nBitWiseOperationIs32Bit,
+            sBitWiseOperationIs32Bit,[],El);
+      end;
 
       if (bsOverflowChecks in AContext.ScannerBoolSwitches) and (aResolver<>nil) then
         case El.OpCode of
@@ -6882,6 +6937,7 @@ begin
         end;
       end;
   finally
+    AContext.Access:=OldAccess;
     if Result=nil then
       begin
       A.Free;
@@ -18140,7 +18196,7 @@ begin
 
     // append args
     ProcType:=Proc.ProcType;
-    if Expr.Parent is TParamsExpr then
+    if (Expr.Parent is TParamsExpr) and (TParamsExpr(Expr.Parent).Value=Expr) then
       ParamsExpr:=TParamsExpr(Expr.Parent)
     else
       ParamsExpr:=nil;
@@ -21292,7 +21348,7 @@ begin
         begin
         // pass set with argDefault  -> create reference   rtl.refSet(right)
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateProcedureCallArg create reference of SET variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+        writeln('TPasToJSConverter.CreateProcCallArg create reference of SET variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
         {$ENDIF}
         Result:=CreateReferencedSet(El,Result);
         end;
@@ -21370,7 +21426,7 @@ begin
               begin
               // pass record with argDefault ->  "TGuid.$clone(RightRecord)"
               {$IFDEF VerbosePas2JS}
-              writeln('TPasToJSConverter.CreateProcedureCallArg clone RECORD TGuid variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+              writeln('TPasToJSConverter.CreateProcCallArg clone RECORD TGuid variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
               {$ENDIF}
               Result:=CreateRecordCallClone(El,TPasRecordType(ArgTypeEl),Result,AContext);
               end;
@@ -21439,7 +21495,7 @@ begin
           begin
           // pass record with argDefault ->  "RightRecord.$clone(RightRecord)"
           {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.CreateProcedureCallArg clone RECORD variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+          writeln('TPasToJSConverter.CreateProcCallArg clone RECORD variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
           {$ENDIF}
           Result:=CreateRecordCallClone(El,TPasRecordType(ExprTypeEl),Result,AContext);
           end;
@@ -21550,6 +21606,7 @@ begin
     ParamContext.Arg:=TargetArg;
     ParamContext.Expr:=El;
     ParamContext.ResolvedExpr:=ResolvedEl;
+    writeln('AAA1 TPasToJSConverter.CreateProcCallArgRef ',GetObjName(El));
     FullGetter:=ConvertExpression(El,ParamContext);
     // FullGetter is now a full JS expression to retrieve the value.
     if ParamContext.ReusingReference then
@@ -21563,7 +21620,7 @@ begin
     // ParamContext.Getter is the last part of the FullGetter
     // FullSetter is created from FullGetter by replacing the Getter with the Setter
     {$IFDEF VerbosePas2JS}
-    writeln('TPasToJSConverter.CreateProcedureCallArg VAR FullGetter=',GetObjName(FullGetter),' Setter=',GetObjName(ParamContext.Setter),' ',GetResolverResultDbg(ResolvedEl));
+    writeln('TPasToJSConverter.CreateProcCallArgRef VAR El=',GetObjName(El),' FullGetter=',GetObjName(FullGetter),' Setter=',GetObjName(ParamContext.Setter),' ',GetResolverResultDbg(ResolvedEl));
     {$ENDIF}
 
     // create "{p:path,get:function(){return this.p.Getter},set:function(v){this.p.Setter(v);}}"
@@ -21707,11 +21764,22 @@ begin
       end
     else
       begin
-      {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.CreateProcedureCallArg FullGetter=',GetObjName(FullGetter),' Setter=',GetObjName(ParamContext.Setter));
-      {$ENDIF}
-      RaiseNotSupported(El,AContext,20170213230336);
+      // getter is the result of an operation
+
+      // create "p:FullGetter"
+      AddVar(TempRefParamName,FullGetter);
+      FullGetter:=nil;
+
+      // GetExpr  "this.a"
+      GetExpr:=CreatePrimitiveDotExpr('this.'+TempRefParamName,El);
+
+      // SetExpr  "raise EPropReadOnly"
+      SetExpr:=CreateRaisePropReadOnly(El);
       end;
+
+    {$IFDEF VerbosePas2JS}
+    //writeln('TPasToJSConverter.CreateProcCallArgRef GetExpr=',GetObjName(GetExpr),' SetExpr=',GetObjName(SetExpr),' SetterArgName=',SetterArgName);
+    {$ENDIF}
 
     if (SetExpr.ClassType=TJSPrimaryExpressionIdent)
         or (SetExpr.ClassType=TJSDotMemberExpression)
@@ -21766,6 +21834,10 @@ begin
       // has already the form  Func(v)
     else
       RaiseInconsistency(20170213225940,El);
+
+    {$IFDEF VerbosePas2JS}
+    //writeln('TPasToJSConverter.CreateProcCallArgRef created full SetExpr=',GetObjName(SetExpr),' SetterArgName=',SetterArgName);
+    {$ENDIF}
 
     // add   p:GetPathExpr
     AddVar(TempRefGetPathName,GetPathExpr);

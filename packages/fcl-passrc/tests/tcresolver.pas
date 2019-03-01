@@ -930,6 +930,7 @@ type
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_String;
     Procedure TestTypeHelper_Boolean;
+    Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_Constructor_NewInstance;
     Procedure TestTypeHelper_InterfaceFail;
 
@@ -17485,6 +17486,30 @@ begin
   'begin',
   '  false.DoIt;',
   '  true.DoIt();']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Double;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  Float = type double;',
+  '  THelper = type helper for float',
+  '    const NPI = 3.141592;',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelper.ToStr: String;',
+  'begin',
+  'end;',
+  'var',
+  '  a,b: Float;',
+  '  s: string;',
+  'begin',
+  '  s:=(a * b.NPI).ToStr;',
+  '  s:=(a * float.NPI).ToStr;',
+  '']);
   ParseProgram;
 end;
 

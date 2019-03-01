@@ -181,7 +181,7 @@ const
   nDerivedXMustExtendASubClassY = 3115;
   nDefaultPropertyNotAllowedInHelperForX = 3116;
   nHelpersCannotBeUsedAsTypes = 3117;
-  nBitWiseOperationsAre32Bit = 3118;
+  // free 3118
   nImplictConversionUnicodeToAnsi = 3119;
   nWrongTypeXInArrayConstructor = 3120;
   nUnknownCustomAttributeX = 3121;
@@ -315,7 +315,7 @@ resourcestring
   sDerivedXMustExtendASubClassY = 'Derived %s must extend a subclass of "%s" or the class itself';
   sDefaultPropertyNotAllowedInHelperForX = 'Default property not allowed in helper for %s';
   sHelpersCannotBeUsedAsTypes = 'helpers cannot be used as types';
-  sBitWiseOperationsAre32Bit = 'Bitwise operations are 32-bit';
+  // was 3118
   sImplictConversionUnicodeToAnsi = 'Implicit string type conversion with potential data loss from "UnicodeString" to "AnsiString"';
   sWrongTypeXInArrayConstructor = 'Wrong type "%s" in array constructor';
   sUnknownCustomAttributeX = 'Unknown custom attribute "%s"';
