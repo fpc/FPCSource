@@ -246,4 +246,8 @@ function PollEnhancedKeyEvent: TEnhancedKeyEvent;
 { Checks if a keyevent is available, and returns it if one is found. If no
   event is pending, it returns 0 }
 
+function ConvertEnhancedToLegacyShiftState(const ShiftState: TEnhancedShiftState): Byte;
+{ Converts an enhanced shift state (as in TEnhancedKeyEvent.ShiftState) to a
+  legacy shift state (as returned by GetShiftState or GetKeyEventShiftState) }
+
 operator = (const a, b: TEnhancedKeyEvent) res: Boolean;
