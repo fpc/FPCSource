@@ -181,7 +181,7 @@ type
  end;
 
 const
-  kbdchange:array[0..23] of chgentry=(
+  kbdchange:array[0..35] of chgentry=(
     {This prevents the alt+function keys from switching consoles.
      We code the F1..F12 sequences into ALT+F1..ALT+12, we check
      the shiftstates separetely anyway.}
@@ -212,7 +212,23 @@ const
     (tab:1; idx:$43; oldtab:0; oldidx:$43; oldval:0; newval:0),
     (tab:1; idx:$44; oldtab:0; oldidx:$44; oldval:0; newval:0),
     (tab:1; idx:$57; oldtab:0; oldidx:$57; oldval:0; newval:0),
-    (tab:1; idx:$58; oldtab:0; oldidx:$58; oldval:0; newval:0)
+    (tab:1; idx:$58; oldtab:0; oldidx:$58; oldval:0; newval:0),
+    {This maps ctrl+function keys outputting strings to the regular
+     F1..F12 keys also, because they no longer produce an ASCII
+     output at all in most modern linux keymaps. We obtain the
+     shift state separately.}
+    (tab:4; idx:$3b; oldtab:0; oldidx:$3b; oldval:0; newval:0),
+    (tab:4; idx:$3c; oldtab:0; oldidx:$3c; oldval:0; newval:0),
+    (tab:4; idx:$3d; oldtab:0; oldidx:$3d; oldval:0; newval:0),
+    (tab:4; idx:$3e; oldtab:0; oldidx:$3e; oldval:0; newval:0),
+    (tab:4; idx:$3f; oldtab:0; oldidx:$3f; oldval:0; newval:0),
+    (tab:4; idx:$40; oldtab:0; oldidx:$40; oldval:0; newval:0),
+    (tab:4; idx:$41; oldtab:0; oldidx:$41; oldval:0; newval:0),
+    (tab:4; idx:$42; oldtab:0; oldidx:$42; oldval:0; newval:0),
+    (tab:4; idx:$43; oldtab:0; oldidx:$43; oldval:0; newval:0),
+    (tab:4; idx:$44; oldtab:0; oldidx:$44; oldval:0; newval:0),
+    (tab:4; idx:$57; oldtab:0; oldidx:$57; oldval:0; newval:0),
+    (tab:4; idx:$58; oldtab:0; oldidx:$58; oldval:0; newval:0)
   );
 
  KDGKBENT=$4B46;
