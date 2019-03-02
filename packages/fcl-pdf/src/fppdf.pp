@@ -882,7 +882,8 @@ type
 
 
   TPDFImageCompression = (icNone, icDeflate, icJPEG);
-
+  TPDFImageStreamOption = (isoCompressed,isoTransparent);
+  TPDFImageStreamOptions = set of TPDFImageStreamOption;
 
   TPDFImageItem = Class(TCollectionItem)
   private
@@ -904,7 +905,8 @@ type
     Function WriteStream(const AStreamedData: TBytes; AStream: TStream): int64; virtual;
   Public
     Destructor Destroy; override;
-    Procedure CreateStreamedData(AUseCompression, AUseTransparency: Boolean);
+    Procedure CreateStreamedData(AUseCompression: Boolean); overload;
+    Procedure CreateStreamedData(aOptions : TPDFImageStreamOptions); overload;
     procedure SetStreamedMask(const AValue: TBytes; const ACompression: TPDFImageCompression);
     Function WriteImageStream(AStream: TStream): int64;
     Function WriteMaskStream(AStream: TStream): int64;
@@ -1078,6 +1080,7 @@ type
     function IndexOfGlobalXRef(const AValue: string): integer;
     Function FindGlobalXRef(Const AName : String) : TPDFXRef;
     Function GlobalXRefByName(Const AName : String) : TPDFXRef;
+    Function ImageStreamOptions : TPDFImageStreamOptions;
     Property GlobalXRefs[AIndex : Integer] : TPDFXRef Read GetX;
     Property GlobalXRefCount : Integer Read GetXC;
     Property CurrentColor: string Read FCurrentColor Write FCurrentColor;
@@ -2845,15 +2848,22 @@ begin
 end;
 
 function TPDFImageItem.GetStreamed: TBytes;
+
+Var
+  Opts : TPDFImageStreamOptions;
+
 begin
+  Opts:=[];
   if Length(FStreamed)=0 then
-  begin
+    begin
     if Collection.Owner is TPDFDocument then
-      CreateStreamedData(poCompressImages in TPDFDocument(Collection.Owner).Options,
-        poUseImageTransparency in TPDFDocument(Collection.Owner).Options)
+      begin
+      Opts:=TPDFDocument(Collection.Owner).ImageStreamOptions;
+      end
     else
-      CreateStreamedData(True,True);
-  end;
+      Opts:=[isoCompressed,isoTransparent];
+    end;
+  CreateStreamedData(Opts);
   Result:=FStreamed;
 end;
 
@@ -2912,8 +2922,14 @@ begin
   inherited Destroy;
 end;
 
-procedure TPDFImageItem.CreateStreamedData(AUseCompression,
-  AUseTransparency: Boolean);
+procedure TPDFImageItem.CreateStreamedData(AUseCompression: Boolean);
+
+begin
+  CreateStreamedData([isoCompressed]);
+end;
+
+Procedure TPDFImageItem.CreateStreamedData(aOptions : TPDFImageStreamOptions);
+
 
   function NeedsTransparency: Boolean;
   var
@@ -2928,11 +2944,11 @@ procedure TPDFImageItem.CreateStreamedData(AUseCompression,
     Result:=False;
   end;
 
-  procedure CreateSream(out MS: TMemoryStream; out Str: TStream;
+  procedure CreateStream(out MS: TMemoryStream; out Str: TStream;
     out Compression: TPDFImageCompression);
   begin
     MS := TMemoryStream.Create;
-    if AUseCompression then
+    if (isoCompressed in aOptions) then
       begin
       Compression := icDeflate;
       Str := Tcompressionstream.create(cldefault, MS);
@@ -2966,15 +2982,15 @@ begin
   FillMem(@CWhite, SizeOf(CWhite), $FF);
   FWidth:=Image.Width;
   FHeight:=Image.Height;
-  CreateMask:=AUseTransparency and NeedsTransparency;
+  CreateMask:=(isoTransparent in aOptions) and NeedsTransparency;
   MS := nil;
   Str := nil;
   MSMask := nil;
   StrMask := nil;
   try
-    CreateSream(MS, Str, FCompression);
+    CreateStream(MS, Str, FCompression);
     if CreateMask then
-      CreateSream(MSMask, StrMask, FCompressionMask);
+      CreateStream(MSMask, StrMask, FCompressionMask);
     for Y:=0 to FHeight-1 do
       for X:=0 to FWidth-1 do
         begin
@@ -3178,7 +3194,7 @@ begin
     IP.Image:=I;
     if Not KeepImage then
       begin
-      IP.CreateStreamedData(poCompressImages in Owner.Options, poUseImageTransparency in Owner.Options);
+      IP.CreateStreamedData(Owner.ImageStreamOptions);
       IP.FImage:=Nil; // not through property, that would clear the image
       i.Free;
       end;
@@ -5350,6 +5366,15 @@ begin
   Result:=FindGlobalXRef(AName);
   if Result=Nil then
     Raise EPDF.CreateFmt(rsErrNoGlobalDict,[AName]);
+end;
+
+function TPDFDocument.ImageStreamOptions: TPDFImageStreamOptions;
+begin
+  Result:=[];
+  if (poCompressImages in Options) then
+    Include(Result,isoCompressed);
+  if (poUseImageTransparency in Options) then
+    Include(Result,isoTransparent);
 end;
 
 function TPDFDocument.CreateLineStyles: TPDFLineStyleDefs;
