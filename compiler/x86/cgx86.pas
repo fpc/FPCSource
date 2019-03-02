@@ -3722,7 +3722,7 @@ unit cgx86;
           end;
         current_asmdata.asmcfi.cfa_restore(list,NR_EBP);
         current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_ESP);
-        current_asmdata.asmcfi.cfa_def_cfa_offset(list,4);
+        current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
       end;
 
 
