@@ -87,7 +87,7 @@ begin
       y1 := top;
     if ( y2 > bottom ) then // bottom side needs to be clipped
       y2 := bottom;
-    if (x1 > x2) or (y1 < y2) then
+    if (x1 > x2) or (y1 > y2) then
       ClearRect;
     end;
 end;
