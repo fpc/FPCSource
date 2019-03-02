@@ -5846,6 +5846,7 @@ var
   ptm: TProcTypeModifier;
   ObjKind: TPasObjKind;
   ParentBody: TProcedureBody;
+  HelperForType: TPasType;
 begin
   if El.Parent is TPasProcedure then
     Proc:=TPasProcedure(El.Parent)
@@ -5940,19 +5941,28 @@ begin
         {if msDelphi in CurrentParser.CurrentModeswitches then
           begin
           // Delphi allows virtual/override in class helpers
-          // But this works differently to normal virtual/override and
-          // requires helpers to be TInterfacedObject
+          // But using them crashes in Delphi 10.3
+          // -> do not support them
           end
         }
         if Proc.IsVirtual then
           RaiseMsg(20190116215823,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'virtual'],Proc);
         if Proc.IsOverride then
           RaiseMsg(20190116215825,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'override'],Proc);
-        if (ObjKind<>okClassHelper) and IsClassMethod(Proc) and not IsClassConDestructor then
+        HelperForType:=ResolveAliasType(TPasClassType(Proc.Parent).HelperForType);
+        if (not Proc.IsStatic) and IsClassMethod(Proc) and not IsClassConDestructor then
           begin
-          if not Proc.IsStatic then
+          // non static class methods require a class
+          if (not (HelperForType.ClassType=TPasClassType))
+              or (TPasClassType(HelperForType).ObjKind<>okClass) then
             RaiseMsg(20190201153831,nClassMethodsMustBeStaticInX,sClassMethodsMustBeStaticInX,[ObjKindNames[ObjKind]],Proc);
           end;
+        if Proc.ClassType=TPasDestructor then
+          RaiseMsg(20190302151019,nXIsNotSupported,sXIsNotSupported,['destructor'],Proc);
+        if (Proc.ClassType=TPasConstructor)
+            and (HelperForType.ClassType=TPasClassType)
+            and (TPasClassType(HelperForType).ObjKind<>okClass) then
+          RaiseMsg(20190302151514,nXIsNotSupported,sXIsNotSupported,['constructor'],Proc);
         end;
       end;
       if Proc.IsAbstract then
@@ -6345,7 +6355,8 @@ begin
         SelfType:=TPasClassType(SelfType).HelperForType;
         end;
       LoSelfType:=ResolveAliasType(SelfType);
-      if LoSelfType is TPasClassType then
+      if (LoSelfType is TPasClassType)
+          and (TPasClassType(LoSelfType).ObjKind=okClass) then
         SelfArg.Access:=argConst
       else
         SelfArg.Access:=argVar;
@@ -7234,7 +7245,7 @@ begin
       else if ((HelperForType.ClassType=TPasUnresolvedSymbolRef)
           and (HelperForType.CustomData is TResElDataBaseType)) then
       else if (HelperForType.ClassType=TPasClassType)
-          and (TPasClassType(HelperForType).ObjKind=okClass) then
+          and (TPasClassType(HelperForType).ObjKind in [okClass,okInterface]) then
         begin
         if TPasClassType(HelperForType).IsForward then
           RaiseMsg(20190116200940,nTypeXIsNotYetCompletelyDefined,
