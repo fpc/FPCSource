@@ -17769,12 +17769,14 @@ var
   function ConvertImplicitLeftIdentifier(PosEl: TPasElement;
     const LeftResolved: TPasResolverResult): TJSElement;
   var
-    GetExpr, SetExpr: TJSElement;
+    GetExpr, SetExpr, RHS: TJSElement;
     SetterArgName: string;
     AssignSt: TJSSimpleAssignStatement;
     Arg: TPasArgument;
+    TypeEl: TPasType;
+    IsCOMIntf: Boolean;
   begin
-    // implicit Left (e.g. with Left do proc, or (Self.)proc)
+    // implicit Left (e.g. "with Left do proc", or "Proc")
 
     if LeftResolved.IdentEl is TPasArgument then
       begin
@@ -17795,13 +17797,26 @@ var
     if rrfWritable in LeftResolved.Flags then
       begin
       // SetExpr  "ImplicitLeft = v"
+      TypeEl:=LeftResolved.LoTypeEl;
+      IsCOMIntf:=(TypeEl is TPasClassType)
+             and (TPasClassType(TypeEl).ObjKind=okInterface)
+             and (TPasClassType(TypeEl).InterfaceType=citCom);
       SetExpr:=ConvertLeftExpr;
       SetterArgName:=TempRefObjSetterArgName;
       FindAvailableLocalName(SetterArgName,SetExpr);
-      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
-      AssignSt.LHS:=SetExpr;
-      AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,PosEl);
-      SetExpr:=AssignSt;
+      RHS:=CreatePrimitiveDotExpr(SetterArgName,PosEl);
+      if IsCOMIntf then
+        begin
+        // create   rtl.setIntfP(path,"IntfVar",v)
+        SetExpr:=CreateAssignComIntfVar(LeftResolved,SetExpr,RHS,AContext,PosEl);
+        end
+      else
+        begin
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
+        AssignSt.LHS:=SetExpr;
+        AssignSt.Expr:=RHS;
+        SetExpr:=AssignSt;
+        end;
       end
     else
       begin
@@ -17818,10 +17833,12 @@ var
   var
     Prop: TPasProperty;
     OldAccess: TCtxAccess;
-    GetExpr, SetExpr, LeftJS, PathExpr: TJSElement;
+    GetExpr, SetExpr, LeftJS, PathExpr, RHS: TJSElement;
     DotExpr: TJSDotMemberExpression;
     AssignSt: TJSSimpleAssignStatement;
     SetterArgName, aName: String;
+    TypeEl: TPasType;
+    IsCOMIntf: Boolean;
   begin
     // explicit Left is property
     // path.Prop.Proc or Prop.Proc
@@ -17834,6 +17851,11 @@ var
     {$IFDEF VerbosePas2JS}
     writeln('CreatePropertyReference LeftJS=',GetObjName(LeftJS));
     {$ENDIF}
+
+    TypeEl:=LeftResolved.LoTypeEl;
+    IsCOMIntf:=(TypeEl is TPasClassType)
+           and (TPasClassType(TypeEl).ObjKind=okInterface)
+           and (TPasClassType(TypeEl).InterfaceType=citCom);
 
     PathExpr:=nil;
     SetterArgName:='';
@@ -17856,17 +17878,28 @@ var
       aName:=String(DotExpr.Name);
       DotExpr.Free;
       GetExpr:=CreateMemberExpression(['this',TempRefGetPathName,aName]);
-      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
+      SetterArgName:=TempRefObjSetterArgName;
+      RHS:=CreatePrimitiveDotExpr(SetterArgName,PosEl);
       if vmClass in Prop.VarModifiers then
         // assign class field -> always use class path
-        AssignSt.LHS:=CreateDotExpression(PosEl,
+        SetExpr:=CreateDotExpression(PosEl,
            CreateReferencePathExpr(Prop.Parent,AContext),
            CreatePrimitiveDotExpr(aName,PosEl))
       else
-        AssignSt.LHS:=CreateMemberExpression(['this',TempRefGetPathName,aName]);
-      SetExpr:=AssignSt;
-      SetterArgName:=TempRefObjSetterArgName;
-      AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,PosEl);
+        SetExpr:=CreateMemberExpression(['this',TempRefGetPathName,aName]);
+      if IsCOMIntf then
+        begin
+        // create   rtl.setIntfP(path,"IntfVar",v)
+        SetExpr:=CreateAssignComIntfVar(LeftResolved,SetExpr,RHS,AContext,PosEl);
+        end
+      else
+        begin
+        // create  SetExpr=v
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
+        AssignSt.LHS:=SetExpr;
+        SetExpr:=AssignSt;
+        AssignSt.Expr:=RHS;
+        end;
       end
     else if LeftJS.ClassType=TJSCallExpression then
       begin
@@ -17907,9 +17940,8 @@ var
   end;
 
 var
-  Helper: TPasClassType;
   aResolver: TPas2JSResolver;
-  HelperForType, LoTypeEl: TPasType;
+  LoTypeEl: TPasType;
   Bin: TBinaryExpr;
   LeftResolved: TPasResolverResult;
   SelfJS: TJSElement;
@@ -17931,8 +17963,8 @@ begin
   {$ENDIF}
   Result:=nil;
   aResolver:=AContext.Resolver;
-  Helper:=Proc.Parent as TPasClassType;
-  HelperForType:=aResolver.ResolveAliasType(Helper.HelperForType);
+  //Helper:=Proc.Parent as TPasClassType;
+  //HelperForType:=aResolver.ResolveAliasType(Helper.HelperForType);
   IsStatic:=aResolver.MethodIsStatic(Proc);
   WithExprScope:=nil;
   SelfScope:=nil;
@@ -18067,14 +18099,12 @@ begin
       // normal method, neither static nor class method
       if IdentEl is TPasType then
         RaiseNotSupported(PosEl,AContext,20190201170843);
-      if (LoTypeEl is TPasClassType) and (rrfReadable in LeftResolved.Flags) then
+      if (LoTypeEl is TPasClassType) and (rrfReadable in LeftResolved.Flags)
+          and (TPasClassType(LoTypeEl).ObjKind=okClass) then
         begin
         // ClassInstance.HelperCall -> HelperType.HelperCall.call(ClassInstance,args?)
         SelfJS:=ConvertLeftExpr;
         end
-      else if HelperForType.ClassType=TPasClassType then
-        // only class helper can help a class
-        RaiseNotSupported(PosEl,AContext,20190203171241)
       else if (LoTypeEl is TPasRecordType) and (rrfReadable in LeftResolved.Flags) then
         begin
         // RecordInstance.HelperCall -> HelperType.HelperCall.call(RecordInstance,args?)
@@ -18088,7 +18118,8 @@ begin
             or (C=TPasConst)
             or (C=TPasProperty)
             or (C=TPasResultElement)
-            or (C=TPasEnumValue) then
+            or (C=TPasEnumValue)
+            or (C=TPasClassType) then
           begin
           // Left.HelperCall -> HelperType.HelperCall.call({get,set},args?)
           SelfJS:=CreateReference(PosEl,LeftResolved);
@@ -18117,11 +18148,14 @@ begin
       if not (rrfNewInstance in Ref.Flags) then
         RaiseNotSupported(PosEl,AContext,20190206151901);
       // new instance
-      if (LoTypeEl<>nil) and ((LoTypeEl.ClassType=TPasClassType)
-          or (LoTypeEl.ClassType=TPasClassOfType)) then
+      if (LoTypeEl<>nil)
+          and ((LoTypeEl.ClassType=TPasClassType)
+            or (LoTypeEl.ClassType=TPasClassOfType)) then
         begin
         // aClassVarOrType.HelperCall(args)
         //  -> aClassVarOrType.$create(HelperType.HelperCall,[args])
+        if (LoTypeEl.ClassType=TPasClassType) and (TPasClassType(LoTypeEl).ObjKind<>okClass) then
+          RaiseNotSupported(PosEl,AContext,20190302154215,GetElementTypeName(LoTypeEl));
         Call:=CreateCallExpression(PosEl);
         SelfJS:=ConvertLeftExpr;
         Call.Expr:=CreateDotExpression(PosEl,SelfJS,
