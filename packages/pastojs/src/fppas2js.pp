@@ -21640,7 +21640,6 @@ begin
     ParamContext.Arg:=TargetArg;
     ParamContext.Expr:=El;
     ParamContext.ResolvedExpr:=ResolvedEl;
-    writeln('AAA1 TPasToJSConverter.CreateProcCallArgRef ',GetObjName(El));
     FullGetter:=ConvertExpression(El,ParamContext);
     // FullGetter is now a full JS expression to retrieve the value.
     if ParamContext.ReusingReference then
