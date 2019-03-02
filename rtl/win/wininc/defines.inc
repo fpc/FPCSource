@@ -6365,6 +6365,7 @@ const
     CONSOLE_WINDOWED_MODE = 2;    
 
 
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
