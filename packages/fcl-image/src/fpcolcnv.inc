@@ -296,7 +296,7 @@ begin
 end;
 *)
 
-function AlphaBlend(color1, color2: TFPColor): TFPColor;
+function AlphaBlend(const color1, color2: TFPColor): TFPColor;
 var
   factor1, factor2: single;
 begin
