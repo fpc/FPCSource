@@ -4459,14 +4459,11 @@ begin
       FCurTextBlock.FGColor := FLastFGColor;
     if FLastBGColor <> clNone then
       FCurTextBlock.BGColor := FLastBGColor;
+    if (([htBold,htItalic] * FTextBlockState)=[]) then
+      lNewFontName:=Font.Name
+    else
+      lNewFontName:=gTTFontCache.FindPostScriptFontname(Font.Name, htBold in FTextBlockState, htItalic in FTextBlockState);
 
-    lNewFontName := Font.Name;
-    if [htBold, htItalic] <= FTextBlockState then // test if it is a sub-set of FTextBlockState
-      lNewFontName := lNewFontName + '-BoldItalic'
-    else if htBold in FTextBlockState then
-      lNewFontName := lNewFontName + '-Bold'
-    else if htItalic in FTextBlockState then
-      lNewFontName := lNewFontName + '-Italic';
     FCurTextBlock.FontName := lNewFontName;
 
     FCurTextBlock.Width := TextWidth(FCurTextBlock.Text);
