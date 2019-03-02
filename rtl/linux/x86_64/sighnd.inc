@@ -16,6 +16,13 @@
  **********************************************************************}
 
 
+{ use a trampoline which pushes the return address for proper unwinding }
+Procedure SignalToHandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
+asm
+  pushq addr
+  jmp HandleErrorAddrFrame
+end;
+
 const
   FPU_All = $7f;
 
@@ -106,7 +113,12 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
     end;
     reenable_signal(sig);
     if res<>0 then
-      HandleErrorAddrFrame(res,pointer(SigContext^.rip),pointer(SigContext^.rbp));
+      begin
+        SigContext^.rdi := res;
+        SigContext^.rsi := SigContext^.rip;
+        SigContext^.rdx := SigContext^.rbp;
+        SigContext^.rip := ptruint(@SignalToHandleErrorAddrFrame);
+      end;
   end;
 
 
