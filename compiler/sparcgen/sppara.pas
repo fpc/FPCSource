@@ -85,6 +85,8 @@ implementation
             else
               internalerror(2019021927);
           end;
+        { Create Function result paraloc }
+        create_funcretloc_info(p,side);
         result:=cur_stack_offset;
       end;
 
