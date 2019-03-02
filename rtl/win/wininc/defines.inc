@@ -1258,6 +1258,12 @@
      DMDFO_STRETCH = 1;
      DMDFO_CENTER  = 2;
 
+
+   LOCALE_NAME_USER_DEFAULT : pwidechar = nil;
+   LOCALE_NAME_INVARIANT : pwidechar = '';
+   LOCALE_NAME_SYSTEM_DEFAULT : pwidechar = '!x-sys-default-locale';
+
+
   //
   // Predefined Resource Types
   //
