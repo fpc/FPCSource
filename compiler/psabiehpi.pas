@@ -441,7 +441,13 @@ implementation
 
                 if typefilterlist.count>0 then
                   begin
+{$if defined(CPU64BITADDR)}
+                    gcc_except_table_data.concat(tai_const.create_8bit(DW_EH_PE_udata8));
+{$elseif defined(CPU32BITADDR)}
                     gcc_except_table_data.concat(tai_const.create_8bit(DW_EH_PE_udata4));
+{$elseif defined(CPU16BITADDR}
+                    gcc_except_table_data.concat(tai_const.create_8bit(DW_EH_PE_udata2));
+{$endif}
                     current_asmdata.getlabel(typefilterlistlabel,alt_data);
                     current_asmdata.getlabel(typefilterlistlabelref,alt_data);
                     gcc_except_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,typefilterlistlabel,typefilterlistlabelref));
@@ -479,7 +485,7 @@ implementation
                         if assigned(typefilterlist[i]) then
                           gcc_except_table_data.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(tobjectdef(typefilterlist[i]).vmt_mangledname, AT_DATA)))
                         else
-                          gcc_except_table_data.concat(tai_const.Create_32bit(0));
+                          gcc_except_table_data.concat(tai_const.Create_sym(nil));
                       end;
                     { the types are resolved by the negative offset, so the label must be written after all types }
                     gcc_except_table_data.concat(tai_label.create(typefilterlistlabelref));
@@ -721,7 +727,7 @@ implementation
 {$if defined(i386)}
             hlcg.a_cmp_const_reg_label (list,osuinttype,OC_EQ,typeindex+1,NR_FUNCTION_RESULT64_HIGH_REG,catchstartlab);
 {$elseif defined(x86_64)}
-            hlcg.a_cmp_const_reg_label (list,osuinttype,OC_EQ,typeindex+1,NR_RDX,catchstartlab);
+            hlcg.a_cmp_const_reg_label (list,s32inttype,OC_EQ,typeindex+1,NR_EDX,catchstartlab);
 {$else}
             { we need to find a way to fix this in a generic way }
             Internalerror(2019021008);
