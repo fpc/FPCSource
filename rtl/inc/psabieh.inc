@@ -418,7 +418,7 @@ function FPC_psabieh_parse_lsda_header(context: PFPC_Unwind_Context; p: PByte; o
 {$ifdef __ARM_EABI_UNWINDER__}
 function FPC_psabieh_Unwind_decode_target2(ptr: PtrUInt {_Unwind_Word}):  PtrUInt {_Unwind_Word}; inline;
   begin
-    result:=PPtrUInt(ptr)^;;
+    result:=PPtrUInt(ptr)^;
     // Zero values are always NULL.
     if result<>0 then
       begin
