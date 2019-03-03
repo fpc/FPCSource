@@ -22,7 +22,7 @@ uses
   Classes, SysUtils, DB, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth;
 
 Type
-  TRestDispatcherOption = (rdoConnectionInURL,rdoExposeMetadata,rdoCustomView,rdoHandleCORS);
+  TRestDispatcherOption = (rdoConnectionInURL,rdoExposeMetadata,rdoCustomView,rdoHandleCORS,rdoAccessCheckNeedsDB);
   TRestDispatcherOptions = set of TRestDispatcherOption;
 
 Const
@@ -227,6 +227,10 @@ Type
     function ExtractRestOperation(aRequest: TRequest;AccessControl : Boolean = false): TRestoperation; virtual;
     function FindRestResource(aResource: UTF8String): TSQLDBRestResource; virtual;
     function AllowRestResource(aIO : TRestIO): Boolean; virtual;
+    function AllowRestOperation(aIO: TRestIO): Boolean; virtual;
+    // Called twice: once before connection is established, once after.
+    // checks rdoAccessCheckNeedsDB and availability of connection
+    function CheckResourceAccess(IO: TRestIO): Boolean;
     function ExtractRestResourceName(IO: TRestIO): UTF8String; virtual;
     // Override if you want to create non-sqldb based resources
     function CreateSpecialResourceDataset(IO: TRestIO; AOwner: TComponent): TDataset; virtual;
@@ -634,10 +638,10 @@ begin
     Result:=IO.Request.QueryFields.Values[Strings.ResourceParam];
 end;
 
-function TSQLDBRestDispatcher.AllowRestResource( aIO: TRestIO): Boolean;
+function TSQLDBRestDispatcher.AllowRestResource(aIO: TRestIO): Boolean;
 
 begin
-  Result:=True;
+  Result:=aIO.Resource.AllowResource(aIO.RestContext);
   if Assigned(FOnAllowResource) then
     FOnAllowResource(Self,aIO.Request,aIO.ResourceName,Result);
 end;
@@ -1188,6 +1192,8 @@ begin
     Try
       if not AuthenticateRequest(IO,True) then
         exit;
+      if Not CheckResourceAccess(IO) then
+        exit;
       DoHandleEvent(True,IO);
       H:=CreateDBHandler(IO);
       if IsSpecialResource(IO.Resource) then
@@ -1265,6 +1271,33 @@ begin
   Result:=TSQLDBRestSchemaList.Create(TSQLDBRestSchemaRef);
 end;
 
+function TSQLDBRestDispatcher.AllowRestOperation(aIO: TRestIO): Boolean;
+
+begin
+  Result:=(aIO.Operation in aIO.Resource.GetAllowedOperations(aIO.RestContext));
+end;
+
+Function TSQLDBRestDispatcher.CheckResourceAccess(IO : TRestIO) : Boolean;
+
+Var
+  NeedDB : Boolean;
+
+begin
+  NeedDB:=(rdoAccessCheckNeedsDB in DispatchOptions);
+  Result:=NeedDB<>Assigned(IO.Connection);
+  if Result then
+    exit;
+  Result:=AllowRestResource(IO);
+  if not Result then
+    CreateErrorContent(IO,403,'Forbidden')
+  else
+    begin
+    Result:=AllowRestOperation(IO);
+    if not Result then
+      CreateErrorContent(IO,405,'Method not allowed')
+    end;
+end;
+
 procedure TSQLDBRestDispatcher.DoHandleRequest(IO : TRestIO);
 
 var
@@ -1290,8 +1323,6 @@ begin
         Resource:=FindRestResource(ResourceName);
       if Resource=Nil then
         CreateErrorContent(IO,404,'Invalid resource')
-      else if Not (Operation in Resource.AllowedOperations) then
-        CreateErrorContent(IO,405,'Method not allowed')
       else
         begin
         IO.SetResource(Resource);
@@ -1303,9 +1334,7 @@ begin
           else
             CreateErrorContent(IO,500,Format(SErrNoconnection,[GetConnectionName(IO)]));
           end
-        else if not AllowRestResource(IO) then
-          CreateErrorContent(IO,403,'Forbidden')
-        else
+        else if CheckResourceAccess(IO) then
           if Operation=roOptions then
             HandleCORSRequest(Connection,IO)
           else

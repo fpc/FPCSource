@@ -532,7 +532,7 @@ Var
   i : Integer;
 
 begin
-  Result:=IO.Resource.AllowRecord(D);
+  Result:=IO.Resource.AllowRecord(IO.RestContext,D);
   if not Result then
     exit;
   O.StartRow;
@@ -598,7 +598,7 @@ begin
   if (Result=Nil) then
     begin
     GetLimitOffset(aLimit,aOffset);
-    Result:=FResource.GetDataset(aFieldList,GetOrderByFieldArray,aLimit,aOffset);
+    Result:=FResource.GetDataset(IO.RestContext,aFieldList,GetOrderByFieldArray,aLimit,aOffset);
     end;
 end;
 
@@ -731,7 +731,7 @@ begin
       D.Free;
     end;
   // Give user a chance to look at it.
-  FResource.CheckParams(roPost,aParams);
+  FResource.CheckParams(io.RestContext,roPost,aParams);
   // Save so it can be used in GetWHereID for return
   FPostParams:=TParams.Create(TParam);
   FPostParams.Assign(aParams);
@@ -797,7 +797,7 @@ begin
     S.SQL.Text:=SQL;
     SetPostParams(S.Params,OldData.Fields);
     // Give user a chance to look at it.
-    FResource.CheckParams(roPut,S.Params);
+    FResource.CheckParams(io.RestContext,roPut,S.Params);
     S.Execute;
     S.Transaction.Commit;
   finally

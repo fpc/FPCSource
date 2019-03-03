@@ -21,10 +21,8 @@ interface
 uses
   Classes, SysUtils, fpjson, sqldb, db, httpdefs, sqldbrestschema;
 
-Type
-  TVariableSource = (vsNone,vsQuery,vsContent,vsRoute,vsHeader);
-  TVariableSources = Set of TVariableSource;
 
+Type
   TRestOutputOption = (ooMetadata,ooSparse,ooHumanReadable);
   TRestOutputOptions = Set of TRestOutputOption;
 
@@ -37,6 +35,8 @@ Const
 
 
 Type
+  TRestIO = Class;
+
   TRestStringProperty = (rpDateFormat,
                          rpDateTimeFormat,
                          rpTimeFormat,
@@ -192,6 +192,17 @@ Type
   end;
   TRestOutputStreamerClass = class of TRestOutputStreamer;
 
+  { TRestContext }
+
+  TRestContext = Class(TBaseRestContext)
+  Private
+    FIO : TRestIO;
+  Protected
+    property IO : TRestIO Read FIO;
+  Public
+    Function GetVariable(Const aName : UTF8String; aSources : TVariableSources; Out aValue : UTF8String) : Boolean; override;
+  end;
+
   { TRestIO }
 
   TRestIO = Class
@@ -205,11 +216,13 @@ Type
     FResource: TSQLDBRestResource;
     FResourceName: UTF8String;
     FResponse: TResponse;
+    FRestContext: TRestContext;
     FRestStrings: TRestStringsConfig;
     FSchema: UTF8String;
     FTrans: TSQLTransaction;
     FContentStream : TStream;
-    FUserID: String;
+    function GetUserID: String;
+    procedure SetUserID(AValue: String);
   Protected
   Public
     Constructor Create(aRequest : TRequest; aResponse : TResponse); virtual;
@@ -229,6 +242,7 @@ Type
     function GetRequestOutputOptions(aDefault: TRestOutputOptions): TRestOutputOptions;
     function GetLimitOffset(aEnforceLimit: Int64; out aLimit, aOffset: Int64): boolean;
     // Create error response in output
+    function CreateRestContext: TRestContext; virtual;
     Procedure CreateErrorResponse;
     Property Operation : TRestOperation Read FOperation;
     // Not owned by TRestIO
@@ -242,11 +256,12 @@ Type
     Property RESTInput : TRestInputStreamer read FInput;
     Property RESTOutput : TRestOutputStreamer read FOutput;
     Property RequestContentStream : TStream Read FContentStream;
+    Property RestContext : TRestContext Read FRestContext;
     // For informative purposes
     Property ResourceName : UTF8String Read FResourceName;
     Property Schema : UTF8String Read FSchema;
     Property ConnectionName : UTF8String Read FCOnnection;
-    Property UserID : String Read FUserID Write FUserID;
+    Property UserID : String Read GetUserID Write SetUserID;
   end;
   TRestIOClass = Class of TRestIO;
 
@@ -343,6 +358,13 @@ Const
     'sql',             { rpCustomViewSQLParam }
     'datapacket'       { rpXMLDocumentRoot}
   );
+
+{ TRestContext }
+
+function TRestContext.GetVariable(const aName: UTF8String; aSources : TVariableSources; out aValue: UTF8String): Boolean;
+begin
+  Result:=FIO.GetVariable(aName,aValue,aSources)<>vsNone;
+end;
 
 { TStreamerDefList }
 
@@ -713,15 +735,29 @@ begin
   GetVariable(aName,aVal);
 end;
 
+procedure TRestIO.SetUserID(AValue: String);
+begin
+  if (UserID=AValue) then Exit;
+  FRestContext.UserID:=AValue;
+end;
+
+function TRestIO.GetUserID: String;
+begin
+  Result:=FRestContext.UserID;
+end;
+
 constructor TRestIO.Create(aRequest: TRequest; aResponse: TResponse);
 begin
   FRequest:=aRequest;
   FResponse:=aResponse;
   FContentStream:=TStringStream.Create(aRequest.Content);
+  FRestContext:=CreateRestContext;
+  FRestContext.FIO:=Self;
 end;
 
 destructor TRestIO.Destroy;
 begin
+  FreeAndNil(FRestContext);
   if Assigned(FInput) then
     Finput.FOnGetVar:=Nil;
   if Assigned(Foutput) then
@@ -730,6 +766,12 @@ begin
   FreeAndNil(Finput);
   FreeAndNil(Foutput);
   inherited Destroy;
+end;
+
+function TRestIO.CreateRestContext : TRestContext;
+
+begin
+  Result:=TRestContext.Create;
 end;
 
 function TRestIO.GetVariable(const aName: UTF8String; out aVal: UTF8String;
@@ -780,7 +822,8 @@ begin
   Result:=GetVariable(aName+FRestStrings.GetRestString(FilterStrings[aFilter]),aValue,[vsQuery]);
 end;
 
-Class function TRestIO.StrToNullBoolean(S: String; Strict: Boolean): TNullBoolean;
+class function TRestIO.StrToNullBoolean(S: String; Strict: Boolean
+  ): TNullBoolean;
 
 begin
   result:=nbNone;
@@ -810,7 +853,8 @@ begin
     Result:=StrToNullBoolean(S,aStrict);
 end;
 
-Function TRestIO.GetRequestOutputOptions(aDefault : TRestOutputOptions) : TRestOutputOptions;
+function TRestIO.GetRequestOutputOptions(aDefault: TRestOutputOptions
+  ): TRestOutputOptions;
 
   Procedure CheckParam(aName : String; aOption: TRestOutputOption);
   begin
