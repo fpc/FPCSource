@@ -530,7 +530,7 @@ begin
     begin
     if (scoClearOnRead in aOptions) then
        ClearValues;
-    ConnectionType:=ReadString(ASection,KeyType,ConnectionType;
+    ConnectionType:=ReadString(ASection,KeyType,ConnectionType);
     HostName:=ReadString(ASection,KeyHost,HostName);
     DatabaseName:=ReadString(ASection,KeyDatabaseName,DatabaseName);
     UserName:=ReadString(ASection,KeyUserName,UserName);
