@@ -181,7 +181,7 @@ const
   nDerivedXMustExtendASubClassY = 3115;
   nDefaultPropertyNotAllowedInHelperForX = 3116;
   nHelpersCannotBeUsedAsTypes = 3117;
-  // free 3118
+  nMessageHandlersInvalidParams = 3118;
   nImplictConversionUnicodeToAnsi = 3119;
   nWrongTypeXInArrayConstructor = 3120;
   nUnknownCustomAttributeX = 3121;
@@ -315,7 +315,7 @@ resourcestring
   sDerivedXMustExtendASubClassY = 'Derived %s must extend a subclass of "%s" or the class itself';
   sDefaultPropertyNotAllowedInHelperForX = 'Default property not allowed in helper for %s';
   sHelpersCannotBeUsedAsTypes = 'helpers cannot be used as types';
-  // was 3118
+  sMessageHandlersInvalidParams = 'Message handlers can take only one call by ref. parameter';
   sImplictConversionUnicodeToAnsi = 'Implicit string type conversion with potential data loss from "UnicodeString" to "AnsiString"';
   sWrongTypeXInArrayConstructor = 'Wrong type "%s" in array constructor';
   sUnknownCustomAttributeX = 'Unknown custom attribute "%s"';
