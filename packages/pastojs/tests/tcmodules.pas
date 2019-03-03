@@ -531,6 +531,8 @@ type
     Procedure TestClass_TObjectFreeFunctionFail;
     Procedure TestClass_TObjectFreePropertyFail;
     Procedure TestClass_ForIn;
+    Procedure TestClass_Message;
+    Procedure TestClass_Message_DuplicateIntFail;
 
     // class of
     Procedure TestClassOf_Create;
@@ -14345,6 +14347,58 @@ begin
     '  $in1 = rtl.freeLoc($in1)',
     '};',
     '']));
+end;
+
+procedure TTestModule.TestClass_Message;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Fly(var Msg); virtual; abstract; message 2;',
+  '    procedure Run; overload; virtual; abstract;',
+  '    procedure Run(var Msg); overload; message ''Fast'';',
+  '  end;',
+  'procedure TObject.Run(var Msg);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_Message',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Run$1 = function (Msg) {',
+    '  };',
+    '  this.$msgint = {',
+    '    "2": "Fly"',
+    '  };',
+    '  this.$msgstr = {',
+    '    Fast: "Run$1"',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_Message_DuplicateIntFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Fly(var Msg); virtual; abstract; message 3;',
+  '    procedure Run(var Msg); virtual; abstract; message 1+2;',
+  '  end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Duplicate message id "3" at test1.pp(5,56)',nDuplicateMessageIdXAtY);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestClassOf_Create;

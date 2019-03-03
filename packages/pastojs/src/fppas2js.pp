@@ -521,6 +521,7 @@ const
   nJSNewNotSupported = 4026;
   nHelperClassMethodForExtClassMustBeStatic = 4027;
   nBitWiseOperationIs32Bit = 4028;
+  nDuplicateMessageIdXAtY = 4029;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -551,6 +552,7 @@ resourcestring
   sJSNewNotSupported = 'Pascal class does not support the "new" constructor';
   sHelperClassMethodForExtClassMustBeStatic = 'Helper class method for external class must be static';
   sBitWiseOperationIs32Bit = 'Bitwise operation is 32-bit';
+  sDuplicateMessageIdXAtY = 'Duplicate message id "%s" at %s';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -559,6 +561,7 @@ const
 
 type
   TPas2JSBuiltInName = (
+    // functions
     pbifnArray_Concat,
     pbifnArray_ConcatN,
     pbifnArray_Copy,
@@ -660,12 +663,15 @@ type
     pbifnSpaceLeft,
     pbifnStringSetLength,
     pbifnUnitInit,
+    // variables
     pbivnExceptObject,
     pbivnIntfExprRefs,
     pbivnIntfGUID,
     pbivnIntfKind,
     pbivnIntfMaps,
     pbivnImplementation,
+    pbivnMessageInt,
+    pbivnMessageStr,
     pbivnLoop,
     pbivnLoopEnd,
     pbivnLoopIn,
@@ -699,6 +705,7 @@ type
     pbivnSelf,
     pbivnTObjectDestroy,
     pbivnWith,
+    // types
     pbitnAnonymousPostfix,
     pbitnIntDouble,
     pbitnTI,
@@ -828,6 +835,8 @@ const
     '$kind',
     '$intfmaps',
     '$impl',
+    '$msgint', // pbivnMessageInt
+    '$msgstr', // pbivnMessageStr
     '$l',
     '$end',
     '$in',
@@ -1108,12 +1117,16 @@ type
     JS: string; // Option coStoreProcJS
   end;
 
+  TMessageIdToProc_List = TStringList;
+
   { TPas2JSClassScope }
 
   TPas2JSClassScope = class(TPasClassScope)
   public
     NewInstanceFunction: TPasClassFunction;
     GUID: string;
+    MsgIntToProc, MsgStrToProc: TMessageIdToProc_List; // temporary lists, not stored by filer!
+    destructor Destroy; override;
   end;
 
   { TPas2JSProcedureScope }
@@ -1393,6 +1406,8 @@ type
     function HasStaticArrayCloneFunc(Arr: TPasArrayType): boolean;
     function IsTGUID(TypeEl: TPasRecordType): boolean; override;
     function GetAssignGUIDString(TypeEl: TPasRecordType; Expr: TPasExpr; out GUID: TGuid): boolean;
+    procedure AddMessageStr(var MsgToProc: TMessageIdToProc_List; const S: string; Proc: TPasProcedure);
+    procedure AddMessageIdToClassScope(Proc: TPasProcedure); virtual;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -1813,6 +1828,8 @@ type
     Procedure AddClassRTTI(El: TPasClassType; Src: TJSSourceElements;
       FuncContext: TFunctionContext);
     Procedure AddClassConstructors(FuncContext: TFunctionContext; PosEl: TPasElement);
+    Procedure AddClassMessageIds(El: TPasClassType; Src: TJSSourceElements;
+      FuncContext: TFunctionContext; pbivn: TPas2JSBuiltInName);
     // misc
     Function CreateCallback(Expr: TPasExpr; ResolvedEl: TPasResolverResult;
       AContext: TConvertContext): TJSElement; virtual;
@@ -2137,6 +2154,15 @@ begin
     Result:=Result+h;
     end;
   Result:='['+Result+']';
+end;
+
+{ TPas2JSClassScope }
+
+destructor TPas2JSClassScope.Destroy;
+begin
+  FreeAndNil(MsgIntToProc);
+  FreeAndNil(MsgStrToProc);
+  inherited Destroy;
 end;
 
 { TRootContext }
@@ -3807,7 +3833,7 @@ begin
 
     for pm in Proc.Modifiers do
       if (not (pm in [pmVirtual, pmAbstract, pmOverride,
-                      pmOverload, pmReintroduce,
+                      pmOverload, pmMessage, pmReintroduce,
                       pmInline, pmAssembler, pmPublic,
                       pmExternal, pmForward])) then
         RaiseNotYetImplemented(20170208142159,El,'modifier '+ModifierNames[pm]);
@@ -3822,6 +3848,22 @@ begin
     if (Proc.PublicName<>nil) then
       RaiseMsg(20170324150417,nPasElementNotSupported,sPasElementNotSupported,
         ['public name'],Proc.PublicName);
+
+    // modifier dispid
+    if Proc.DispIDExpr<>nil then
+      RaiseMsg(20190303225224,nPasElementNotSupported,sPasElementNotSupported,
+        ['dispid'],Proc.DispIDExpr);
+
+    // modifier message
+    if Proc.MessageExpr<>nil then
+      begin
+      if (not (Proc.Parent is TPasClassType))
+          or (TPasClassType(Proc.Parent).ObjKind<>okClass) then
+        RaiseMsg(20190303231445,nInvalidXModifierY,sInvalidXModifierY,['message','at non class method'],Proc.MessageExpr);
+      if TPasClassType(Proc.Parent).IsExternal then
+        RaiseMsg(20190304002235,nInvalidXModifierY,sInvalidXModifierY,['message','in external class'],Proc.MessageExpr);
+      AddMessageIdToClassScope(Proc);
+      end;
 
     if Proc.Parent is TPasMembersType then
       begin
@@ -5261,21 +5303,22 @@ begin
   if Expr=nil then
     RaiseInternalError(20170215123600);
   Value:=Eval(Expr,[refAutoConst],StoreCustomData);
-  try
-    case Value.Kind of
-    {$IFDEF FPC_HAS_CPSTRING}
-    revkString: Result:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,Expr);
-    revkUnicodeString: Result:=UTF8Encode(TResEvalUTF16(Value).S);
-    {$ELSE}
-    revkUnicodeString: Result:=TResEvalUTF16(Value).S;
-    {$ENDIF}
-    else
-      str(Value.Kind,Result);
-      RaiseXExpectedButYFound(20170211221121,'string literal',Result,Expr);
+  if Value<>nil then
+    try
+      case Value.Kind of
+      {$IFDEF FPC_HAS_CPSTRING}
+      revkString: Result:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,Expr);
+      revkUnicodeString: Result:=UTF8Encode(TResEvalUTF16(Value).S);
+      {$ELSE}
+      revkUnicodeString: Result:=TResEvalUTF16(Value).S;
+      {$ENDIF}
+      else
+        str(Value.Kind,Result);
+        RaiseXExpectedButYFound(20170211221121,'string literal',Result,Expr);
+      end;
+    finally
+      ReleaseEvalValue(Value);
     end;
-  finally
-    ReleaseEvalValue(Value);
-  end;
 
   if NotEmpty and (Result='') then
     RaiseXExpectedButYFound(20170321085318,'string literal','empty',Expr);
@@ -5370,6 +5413,55 @@ begin
     if not TryStringToGUID(GUIDStr,GUID) then
       RaiseXExpectedButYFound(20180415092351,'GUID string literal',Value.AsString,Expr);
     Result:=true;
+  finally
+    ReleaseEvalValue(Value);
+  end;
+end;
+
+procedure TPas2JSResolver.AddMessageStr(var MsgToProc: TMessageIdToProc_List;
+  const S: string; Proc: TPasProcedure);
+var
+  i: Integer;
+begin
+  if MsgToProc=nil then
+    MsgToProc:=TMessageIdToProc_List.Create
+  else
+    begin
+    // check duplicate
+    for i:=0 to MsgToProc.Count-1 do
+      if MsgToProc[i]=S then
+        RaiseMsg(20190303233647,nDuplicateMessageIdXAtY,sDuplicateMessageIdXAtY,
+          [S,GetElementSourcePosStr(TPasProcedure(MsgToProc.Objects[i]).MessageExpr)],Proc.MessageExpr);
+    end;
+  MsgToProc.AddObject(S,Proc);
+end;
+
+procedure TPas2JSResolver.AddMessageIdToClassScope(Proc: TPasProcedure);
+var
+  AClass: TPasClassType;
+  ClassScope: TPas2JSClassScope;
+  Expr: TPasExpr;
+  Value: TResEvalValue;
+begin
+  AClass:=TPasClassType(Proc.Parent);
+  ClassScope:=TPas2JSClassScope(AClass.CustomData);
+  Expr:=Proc.MessageExpr;
+  Value:=Eval(Expr,[refConst]);
+  if Value=nil then
+    RaiseMsg(20190303225651,nIllegalExpressionAfterX,sIllegalExpressionAfterX,['message modifier'],Expr);
+  try
+    case Value.Kind of
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString:
+      AddMessageStr(ClassScope.MsgStrToProc,ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,Expr),Proc);
+    {$ENDIF}
+    revkUnicodeString:
+      AddMessageStr(ClassScope.MsgStrToProc,String(TResEvalUTF16(Value).S),Proc);
+    revkInt:
+      AddMessageStr(ClassScope.MsgIntToProc,IntToStr(TResEvalInt(Value).Int),Proc);
+    else
+      RaiseXExpectedButYFound(20190303225849,'integer constant',Value.AsString,Expr);
+    end;
   finally
     ReleaseEvalValue(Value);
   end;
@@ -12823,11 +12915,14 @@ var
   C: TClass;
   AssignSt: TJSSimpleAssignStatement;
   NeedInitFunction, HasConstructor: Boolean;
+  Proc: TPasProcedure;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertClassType START ',GetObjName(El));
   {$ENDIF}
+  aResolver:=AContext.Resolver;
   if not (El.ObjKind in [okClass,okInterface,okClassHelper,okRecordHelper,okTypeHelper]) then
     RaiseNotSupported(El,AContext,20170927183645);
   if El.Parent is TProcedureBody then
@@ -12850,6 +12945,8 @@ begin
       Ancestor:=nil;
       IsTObject:=(El.ObjKind=okClass) and SameText(El.Name,'TObject');
       end;
+    FreeAndNil(Scope.MsgIntToProc);
+    FreeAndNil(Scope.MsgStrToProc);
     end
   else
     begin
@@ -13012,6 +13109,7 @@ begin
           NewEl:=nil;
           C:=P.ClassType;
           if not (P is TPasProcedure) then continue;
+          Proc:=TPasProcedure(P);
           if IsTObject and (C=TPasDestructor) then
             begin
             DestructorName:=TransformVariableName(P,AContext);
@@ -13029,10 +13127,12 @@ begin
           else if (C=TPasClassConstructor)
               or (C=TPasClassDestructor) then
             begin
-            AddGlobalClassMethod(AContext,TPasProcedure(P));
+            AddGlobalClassMethod(AContext,Proc);
             continue;
-            end;
-          NewEl:=ConvertProcedure(TPasProcedure(P),FuncContext);
+            end
+          else if (Proc.MessageExpr<>nil) and (aResolver<>nil) then
+            aResolver.AddMessageIdToClassScope(Proc);
+          NewEl:=ConvertProcedure(Proc,FuncContext);
           if NewEl=nil then
             continue; // e.g. abstract or external proc
           AddToSourceElements(Src,NewEl);
@@ -13041,13 +13141,16 @@ begin
           AddHelperConstructor(El,Src,FuncContext);
         end;
 
-      // add interfaces
-      if (El.ObjKind=okClass) and (AContext.Resolver<>nil) then
-        AddClassSupportedInterfaces(El,Src,FuncContext);
-
-      // add RTTI init function
-      if AContext.Resolver<>nil then
+      if aResolver<>nil then
+        begin
+        // add interfaces
+        if (El.ObjKind=okClass) then
+          AddClassSupportedInterfaces(El,Src,FuncContext);
+        AddClassMessageIds(El,Src,FuncContext,pbivnMessageInt);
+        AddClassMessageIds(El,Src,FuncContext,pbivnMessageStr);
+        // add RTTI init function
         AddClassRTTI(El,Src,FuncContext);
+        end;
 
       end;// end of init function
 
@@ -15762,6 +15865,44 @@ begin
   finally
     First.Free;
   end;
+end;
+
+procedure TPasToJSConverter.AddClassMessageIds(El: TPasClassType;
+  Src: TJSSourceElements; FuncContext: TFunctionContext;
+  pbivn: TPas2JSBuiltInName);
+// $msgint = { id1:"proc1name", id2: "proc2name" ... }
+var
+  Scope: TPas2JSClassScope;
+  List: TMessageIdToProc_List;
+  i: Integer;
+  AssignSt: TJSSimpleAssignStatement;
+  ObjLit: TJSObjectLiteral;
+  LitEl: TJSObjectLiteralElement;
+  Proc: TPasProcedure;
+begin
+  Scope:=TPas2JSClassScope(El.CustomData);
+  case pbivn of
+  pbivnMessageInt: List:=Scope.MsgIntToProc;
+  pbivnMessageStr: List:=Scope.MsgStrToProc;
+  else
+    RaiseNotSupported(El,FuncContext,20190304001209,GetBIName(pbivn));
+  end;
+  if (List=nil) or (List.Count=0) then exit;
+
+  // this.$msgint = {}
+  AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+  AddToSourceElements(Src,AssignSt);
+  AssignSt.LHS:=CreateMemberExpression(['this',GetBIName(pbivn)]);
+  ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+  AssignSt.Expr:=ObjLit;
+
+  for i:=0 to List.Count-1 do
+    begin
+    LitEl:=ObjLit.Elements.AddElement;
+    LitEl.Name:=TJSString(List[i]);
+    Proc:=TPasProcedure(List.Objects[i]);
+    LitEl.Expr:=CreateLiteralJSString(Proc,TJSString(TransformVariableName(Proc,FuncContext)));
+    end;
 end;
 
 function TPasToJSConverter.CreateCallback(Expr: TPasExpr;

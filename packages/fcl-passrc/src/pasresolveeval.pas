@@ -187,6 +187,7 @@ const
   nUnknownCustomAttributeX = 3121;
   nAttributeIgnoredBecauseAbstractX = 3122;
   nCreatingAnInstanceOfAbstractClassY = 3123;
+  nIllegalExpressionAfterX = 3124;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -321,6 +322,7 @@ resourcestring
   sUnknownCustomAttributeX = 'Unknown custom attribute "%s"';
   sAttributeIgnoredBecauseAbstractX = 'attribute ignored because abstract %s';
   sCreatingAnInstanceOfAbstractClassY = 'Creating an instance of abstract class "%s"';
+  sIllegalExpressionAfterX = 'illegal expression after %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
