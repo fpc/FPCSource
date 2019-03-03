@@ -3710,19 +3710,22 @@ unit cgx86;
         else
           begin
 {$if defined(x86_64)}
+            current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_RSP);
             list.Concat(taicpu.op_reg_reg(A_MOV,S_Q,NR_RBP,NR_RSP));
+            current_asmdata.asmcfi.cfa_restore(list,NR_RBP);
+            current_asmdata.asmcfi.cfa_def_cfa_offset(list,8);
             list.Concat(taicpu.op_reg(A_POP,S_Q,NR_RBP));
 {$elseif defined(i386)}
+            current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_ESP);
             list.Concat(taicpu.op_reg_reg(A_MOV,S_L,NR_EBP,NR_ESP));
+            current_asmdata.asmcfi.cfa_restore(list,NR_EBP);
+            current_asmdata.asmcfi.cfa_def_cfa_offset(list,4);
             list.Concat(taicpu.op_reg(A_POP,S_L,NR_EBP));
 {$elseif defined(i8086)}
             list.Concat(taicpu.op_reg_reg(A_MOV,S_W,NR_BP,NR_SP));
             list.Concat(taicpu.op_reg(A_POP,S_W,NR_BP));
 {$endif}
           end;
-        current_asmdata.asmcfi.cfa_restore(list,NR_EBP);
-        current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_ESP);
-        current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
       end;
 
 
