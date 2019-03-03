@@ -93,7 +93,7 @@ const
       RS_FRAME_POINTER_REG = RS_RBP;
       NR_FRAME_POINTER_REG = NR_RBP;
       { Return address for DWARF }
-      NR_RETURN_ADDRESS_REG = NR_EIP;
+      NR_RETURN_ADDRESS_REG = NR_RIP;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
