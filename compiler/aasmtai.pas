@@ -89,7 +89,9 @@ interface
           ait_llvmdecl, { llvm symbol declaration (global/external variable, external procdef) }
 {$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
-          ait_seh_directive
+          ait_seh_directive,
+          { Dwarf CFI directive }
+          ait_cfi
           );
 
         taiconst_type = (
@@ -221,6 +223,7 @@ interface
           'llvmalias',
           'llvmdecl',
 {$endif}
+          'cfi',
           'seh_directive'
           );
 
@@ -321,7 +324,8 @@ interface
 {$ifdef llvm}
                      ait_llvmdecl,
 {$endif llvm}
-                     ait_seh_directive
+                     ait_seh_directive,
+                     ait_cfi
                     ];
 
 

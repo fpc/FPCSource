@@ -167,7 +167,9 @@ interface
               error will be generated if a package file is compiled }
             tf_supports_packages,
             { use PSABI/Dwarf-based "zero cost" exception handling }
-            tf_use_psabieh
+            tf_use_psabieh,
+            { use high level cfi directives to generate call frame information }
+            tf_use_hlcfi
        );
 
        psysteminfo = ^tsysteminfo;

@@ -32,7 +32,7 @@ interface
 
     uses
       globtype,globals,
-      aasmbase,aasmtai,aasmdata,
+      aasmbase,aasmtai,aasmdata,aasmcfi,
       assemble;
 
     type
@@ -68,6 +68,7 @@ interface
         setcount: longint;
         procedure WriteDecodedSleb128(a: int64);
         procedure WriteDecodedUleb128(a: qword);
+        procedure WriteCFI(hp: tai_cfi_base);
         function NextSetLabel: string;
        protected
         InstrWriter: TCPUInstrWriter;
@@ -594,6 +595,39 @@ implementation
               writer.AsmWrite(',');
             writer.AsmWrite(tostr(buf[i]));
           end;
+      end;
+
+
+    procedure TGNUAssembler.WriteCFI(hp: tai_cfi_base);
+      begin
+        writer.AsmWrite(cfi2str[hp.cfityp]);
+        case hp.cfityp of
+          cfi_startproc,
+          cfi_endproc:
+            ;
+          cfi_undefined,
+          cfi_restore,
+          cfi_def_cfa_register:
+            begin
+              writer.AsmWrite(' ');
+              writer.AsmWrite(gas_regname(tai_cfi_op_reg(hp).reg1));
+            end;
+          cfi_def_cfa_offset:
+            begin
+              writer.AsmWrite(' ');
+              writer.AsmWrite(tostr(tai_cfi_op_val(hp).val1));
+            end;
+          cfi_offset:
+            begin
+              writer.AsmWrite(' ');
+              writer.AsmWrite(gas_regname(tai_cfi_op_reg_val(hp).reg1));
+              writer.AsmWrite(',');
+              writer.AsmWrite(tostr(tai_cfi_op_reg_val(hp).val));
+            end;
+          else
+            internalerror(2019030203);
+        end;
+        writer.AsmLn;
       end;
 
 
@@ -1430,6 +1464,10 @@ implementation
                  writer.AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
                    std_regname(tai_varloc(hp).newlocation)));
                writer.AsmLn;
+             end;
+           ait_cfi:
+             begin
+               WriteCFI(tai_cfi_base(hp));
              end;
            else
              internalerror(2006012201);
