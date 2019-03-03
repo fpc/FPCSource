@@ -10668,6 +10668,8 @@ end;
 procedure TFPReportData.Open;
 
 begin
+  if IsOpened then
+    exit;
   if Assigned(FOnOpen) then
     FOnOpen(Self);
   DoOpen;
@@ -12456,11 +12458,11 @@ begin
   TFPReportDataFooterBand.RegisterElement;
   TFPReportColumnHeaderBand.RegisterElement;
   TFPReportColumnFooterBand.RegisterElement;
-  TFPReportMemo.RegisterElement;
-  TFPReportImage.RegisterElement;
-  TFPReportCheckbox.RegisterElement;
-  TFPReportShape.RegisterElement;
-  TFPReportPage.RegisterElement;
+  TFPReportMemo.RegisterElement.Standard:=True;
+  TFPReportImage.RegisterElement.Standard:=True;
+  TFPReportCheckbox.RegisterElement.Standard:=True;
+  TFPReportShape.RegisterElement.Standard:=True;
+  TFPReportPage.RegisterElement.Standard:=True;
 end;
 
 initialization
