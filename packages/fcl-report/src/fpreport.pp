@@ -12458,11 +12458,11 @@ begin
   TFPReportDataFooterBand.RegisterElement;
   TFPReportColumnHeaderBand.RegisterElement;
   TFPReportColumnFooterBand.RegisterElement;
-  TFPReportMemo.RegisterElement.Standard:=True;
-  TFPReportImage.RegisterElement.Standard:=True;
-  TFPReportCheckbox.RegisterElement.Standard:=True;
-  TFPReportShape.RegisterElement.Standard:=True;
-  TFPReportPage.RegisterElement.Standard:=True;
+  TFPReportMemo.RegisterElement.FStandard:=True;
+  TFPReportImage.RegisterElement.FStandard:=True;
+  TFPReportCheckbox.RegisterElement.FStandard:=True;
+  TFPReportShape.RegisterElement.FStandard:=True;
+  TFPReportPage.RegisterElement.FStandard:=True;
 end;
 
 initialization
