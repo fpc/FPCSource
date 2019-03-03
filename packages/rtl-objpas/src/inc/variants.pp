@@ -2488,7 +2488,7 @@ begin
   DoOleVarFromVar(TVarData(aDest), TVarData(aSource));
 end;
 
-procedure sysolevarfromint(var Dest : olevariant; const Source : LongInt; const range : ShortInt);
+procedure sysolevarfromint(var Dest : olevariant; const Source : Int64; const range : ShortInt);
 begin
   DoVarClearIfComplex(TVarData(Dest));
   with TVarData(Dest) do begin
