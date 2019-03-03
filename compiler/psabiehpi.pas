@@ -67,6 +67,8 @@ unit psabiehpi;
          { This is a "no action" action for re-use, normally equal to OutmostLandingPad }
          NoAction: TPSABIEHAction;
 
+         { label to language specific data }
+         LSDALabel : TAsmLabel;
          callsite_table_data,
          action_table_data,
          gcc_except_table_data : TAsmList;
@@ -307,13 +309,13 @@ implementation
             else
               callsite_table_data.concat(tai_comment.Create(strpnew('Call site '+tostr(CurrentCallSiteNumber)+', no action')));
 {$endif debug_eh}
-            callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,TDwarfAsmCFI(current_asmdata.AsmCFI).get_frame_start,callsitelaststart));
+            callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,current_asmdata.AsmCFI.get_frame_start,callsitelaststart));
             current_asmdata.getlabel(callsiteend,alt_eh_end);
             list.concat(tai_label.create(callsiteend));
             callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,callsitelaststart,callsiteend));
             { landing pad? }
             if assigned(CurrentLandingPad.landingpad) then
-              callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,TDwarfAsmCFI(current_asmdata.AsmCFI).get_frame_start,CurrentLandingPad.landingpad))
+              callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,current_asmdata.AsmCFI.get_frame_start,CurrentLandingPad.landingpad))
             else
               callsite_table_data.concat(tai_const.Create_uleb128bit(0));
             { action number set? if yes, concat }
@@ -364,7 +366,9 @@ implementation
       begin
         inherited set_eh_info;
         if (tf_use_psabieh in target_info.flags) and not(pi_has_except_table_data in flags) then
-          (current_asmdata.AsmCFI as TDwarfAsmCFI).LSDALabel:=nil;
+          LSDALabel:=nil
+        else
+          current_asmdata.AsmCFI.get_cfa_list.concat(tdwarfitem.create_sym(DW_Set_LSDALabel,doe_32bit,LSDALabel));
       end;
 
 
@@ -400,12 +404,10 @@ implementation
             gcc_except_table:=new_section(gcc_except_table_data,sec_gcc_except_table,'',0);
             gcc_except_table.secflags:=SF_A;
             gcc_except_table.secprogbits:=SPB_PROGBITS;
-            if not(current_asmdata.AsmCFI is TDwarfAsmCFI) then
-              internalerror(2019021003);
 {$ifdef debug_eh}
             gcc_except_table_data.concat(tai_comment.Create(strpnew('gcc_except_table for '+procdef.fullprocname(true))));
  {$endif debug_eh}
-            current_asmdata.getlabel(TDwarfAsmCFI(current_asmdata.AsmCFI).LSDALabel,alt_data);
+            current_asmdata.getlabel(LSDALabel,alt_data);
 
             current_asmdata.getlabel(callsitetablestart,alt_data);
             current_asmdata.getlabel(callsitetableend,alt_data);
@@ -435,7 +437,7 @@ implementation
           begin
             if pi_has_except_table_data in flags then
               begin
-                gcc_except_table_data.concat(tai_label.create(TDwarfAsmCFI(current_asmdata.AsmCFI).LSDALabel));
+                gcc_except_table_data.concat(tai_label.create(LSDALabel));
                 { landing pad base is relative to procedure start, so write an omit }
                 gcc_except_table_data.concat(tai_const.create_8bit(DW_EH_PE_omit));
 
@@ -500,9 +502,9 @@ implementation
 
     procedure tpsabiehprocinfo.start_eh(list: TAsmList);
       begin
-       inherited start_eh(list);
-       if CreateExceptionTable then
-         list.insert(tai_label.create(entrycallsitestart));
+        inherited start_eh(list);
+        if CreateExceptionTable then
+          list.insert(tai_label.create(entrycallsitestart));
       end;
 
 

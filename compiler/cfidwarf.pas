@@ -75,13 +75,13 @@ interface
         data_alignment_factor : shortint;
         property DwarfList:TlinkedList read FDwarfList;
       public
-        LSDALabel : TAsmLabel;
         use_eh_frame : boolean;
         constructor create;override;
         destructor destroy;override;
         procedure generate_code(list:TAsmList);override;
 
-        function get_frame_start: TAsmLabel;
+        function get_frame_start: TAsmLabel;override;
+        function get_cfa_list : TAsmList;override;
 
         { operations }
         procedure start_frame(list:TAsmList);override;
@@ -436,8 +436,6 @@ implementation
         current_asmdata.getlabel(FFrameEndLabel,alt_dbgframe);
         FLastloclabel:=get_frame_start;
         list.concat(tai_label.create(get_frame_start));
-        if assigned(LSDALabel) then
-          DwarfList.concat(tdwarfitem.create_sym(DW_Set_LSDALabel,doe_32bit,LSDALabel));
         DwarfList.concat(tdwarfitem.create_reloffset(DW_CFA_start_frame,doe_32bit,get_frame_start,FFrameEndLabel));
       end;
 
@@ -447,6 +445,12 @@ implementation
         if not(assigned(FFrameStartLabel)) then
           current_asmdata.getlabel(FFrameStartLabel,alt_dbgframe);
         Result:=FFrameStartLabel;
+      end;
+
+
+    function TDwarfAsmCFI.get_cfa_list: TAsmList;
+      begin
+       Result:=TAsmList(DwarfList);
       end;
 
 

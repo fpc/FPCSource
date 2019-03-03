@@ -165,6 +165,8 @@ interface
         procedure cfa_restore(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);virtual;
+        function get_frame_start: TAsmLabel;virtual;
+        function get_cfa_list : TAsmList;virtual;
       end;
       TAsmCFIClass=class of TAsmCFI;
 
@@ -308,6 +310,18 @@ implementation
 
     procedure TAsmCFI.cfa_def_cfa_offset(list:TAsmList;ofs:longint);
       begin
+      end;
+
+
+    function TAsmCFI.get_frame_start: TAsmLabel;
+      begin
+        Result:=nil;
+      end;
+
+
+    function TAsmCFI.get_cfa_list: TAsmList;
+      begin
+        Result:=nil;
       end;
 
 {*****************************************************************************
