@@ -1664,7 +1664,7 @@ type
     destructor  Destroy; override;
     class function ReportKindToResultType(const AType: TFPReportFieldKind): TResultType;
     Function StreamToReportElements(aStream : TStream) : TFPObjectList;
-    Procedure Clear;
+    Procedure Clear(ClearData : Boolean = True);
     Procedure SaveDataToNames;
     Procedure RestoreDataFromNames;
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
@@ -8520,7 +8520,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TFPCustomReport.Clear;
+procedure TFPCustomReport.Clear(ClearData : Boolean = True);
 
 Var
   P : TFPReportCustomPage;
@@ -8535,7 +8535,8 @@ begin
   FIsFirstPass := False;
   // Collections
   FreeAndNil(FExpr); // Special case, recreated on run
-  FReportData.Clear;
+  if ClearData then
+    FReportData.Clear;
   if Assigned(FPages) then
     begin
     While PageCount>0 do
