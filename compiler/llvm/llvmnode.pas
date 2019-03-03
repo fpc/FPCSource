@@ -40,6 +40,7 @@ implementation
     nllvmadd,nllvmbas,nllvmcal,nllvmcnv,nllvmcon,nllvmflw,nllvminl,nllvmld,
     nllvmmat,nllvmmem,nllvmtcon,nllvmutil,
     llvmpara,llvmpi,
-    symllvm;
+    symllvm,
+    llvmcfi;
 
 end.

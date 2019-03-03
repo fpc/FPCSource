@@ -1405,7 +1405,7 @@ implementation
                WriteTypedConstData(tai_abstracttypedconst(hp));
              end
           else
-            internalerror(2019012001);
+            internalerror(2019012010);
         end;
       end;
 
@@ -1438,7 +1438,7 @@ implementation
                current_asmdata.asmlists[hal].Empty then
               continue;
             writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-            if hal<>al_pure_assembler then
+            if not(hal in [al_pure_assembler,al_dwarf_frame]) then
               writetree(current_asmdata.asmlists[hal])
             else
               begin
