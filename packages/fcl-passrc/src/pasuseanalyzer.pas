@@ -1037,9 +1037,10 @@ begin
   repeat
     El:=El.Parent;
     if not (El is TPasType) then break;
-    MarkElementAsUsed(El);
-    if El is TPasMembersType then
-      UseClassConstructor(TPasMembersType(El));
+    UseType(TPasType(El),paumElement);
+    //MarkElementAsUsed(El);
+    //if El is TPasMembersType then
+    //  UseClassConstructor(TPasMembersType(El));
   until false;
 end;
 
@@ -2005,6 +2006,9 @@ begin
     else
       begin
       if ElementVisited(El,Mode) then exit;
+      // this class has been used (e.g. paumElement), which marked ancestors
+      // and published members
+      // -> now mark all members paumAllPasUsable
       FirstTime:=false;
       end;
     end;
@@ -2031,8 +2035,6 @@ begin
       end;
 
     ClassScope:=aClass.CustomData as TPasClassScope;
-    if ClassScope=nil then
-      exit; // ClassScope can be nil if msIgnoreInterfaces
 
     if FirstTime then
       begin
