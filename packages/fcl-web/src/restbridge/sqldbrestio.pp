@@ -133,6 +133,75 @@ Type
     Property XMLDocumentRoot : UTF8string Index ord(rpXMLDocumentRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
   end;
 
+  TRestStatus = (rsError,                   // Internal logic/unexpected error (500)
+                 rsGetOK,                   // GET command completed OK (200)
+                 rsPostOK,                  // POST command completed OK (204)
+                 rsPutOK,                   // PUT command completed OK (200)
+                 rsDeleteOK,                // DELETE command completed OK (204)
+                 rsInvalidParam,            // Something wrong/missing in Query parameters (400)
+                 rsCORSOK,                  // CORS request completed OK (200)
+                 rsCORSNotAllowed,          // CORS request not allowed (403)
+                 rsUnauthorized,            // Authentication failed (401)
+                 rsResourceNotAllowed,      // Resource request not allowed (403)
+                 rsRestOperationNotAllowed, // Resource operation (method) not allowed (405)
+                 rsInvalidMethod,           // Invalid HTTP method (400)
+                 rsUnknownResource,         // Unknown resource (404)
+                 rsNoResourceSpecified,     // Unable to determine resource (404)
+                 rsNoConnectionSpecified,   // Unable to determine connection for (400)
+                 rsRecordNotFound,          // Query did not return record for single resource (404)
+                 rsInvalidContent           // Invalid content for POST/PUT operation (400)
+
+                 );
+  TRestStatuses = set of TRestStatus;
+
+  { TRestStatusConfig }
+
+  TRestStatusConfig = Class(TPersistent)
+  private
+    FStatus : Array[TRestStatus] of Word;
+    function GetStatus(AIndex: Integer): Word;
+    function IsStatusStored(AIndex: Integer): Boolean;
+    procedure SetStatus(AIndex: Integer; AValue: Word);
+  Public
+    Procedure Assign(aSource : TPersistent); override;
+    function GetStatusCode(aStatus : TRestStatus): Word;
+  Published
+    // Internal logic/unexpected error (500)
+    Property Error : Word Index Ord(rsError) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // GET command completed OK (200)
+    Property GetOK : Word Index Ord(rsGetOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // POST command completed OK (204)
+    Property PostOK : Word Index Ord(rsPostOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // PUT command completed OK (200)
+    Property PutOK : Word Index Ord(rsPutOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // DELETE command completed OK (204)
+    Property DeleteOK : Word Index Ord(rsDeleteOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Something wrong/missing in Query parameters (400)
+    Property InvalidParam : Word Index Ord(rsInvalidParam) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // CORS request completed OK (200)
+    Property CORSOK : Word Index Ord(rsCORSOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // CORS request not allowed (403)
+    Property CORSNotAllowed : Word Index Ord(rsCORSNotAllowed) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Authentication failed (401)
+    Property Unauthorized : Word Index Ord(rsUnauthorized) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Resource request not allowed (403)
+    Property ResourceNotAllowed : Word Index Ord(rsResourceNotAllowed) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Resource operation (method) not allowed (405)
+    Property RestOperationNotAllowed : Word Index Ord(rsRestOperationNotAllowed) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Invalid HTTP method (400)
+    Property InvalidMethod : Word Index Ord(rsInvalidMethod) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Unknown resource (404)
+    Property UnknownResource : Word Index Ord(rsUnknownResource) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Unable to determine resource (404)
+    Property NoResourceSpecified : Word Index Ord(rsNoResourceSpecified) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Unable to determine connection for (400)
+    Property NoConnectionSpecified : Word Index Ord(rsNoConnectionSpecified) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Query did not return record for single resource (404)
+    Property RecordNotFound : Word Index Ord(rsRecordNotFound) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Invalid content for POST/PUT operation (400)
+    Property InvalidContent : Word Index Ord(rsInvalidContent) Read GetStatus Write SetStatus Stored IsStatusStored;
+  end;
+
   { TRestStreamer }
 
   TRestStreamer = Class(TObject)
@@ -140,12 +209,14 @@ Type
     FStream: TStream;
     FOnGetVar : TRestGetVariableEvent;
     FStrings: TRestStringsConfig;
+    FStatuses : TRestStatusConfig;
   Public
     // Registry
     Class Function GetContentType : String; virtual;
-    Constructor Create(aStream : TStream;aStrings : TRestStringsConfig;aOnGetVar : TRestGetVariableEvent);
+    Constructor Create(aStream : TStream;aStrings : TRestStringsConfig;aStatus : TRestStatusConfig; aOnGetVar : TRestGetVariableEvent);
     Function GetString(aString : TRestStringProperty) : UTF8String;
     Property Strings : TRestStringsConfig Read FStrings;
+    Property Statuses : TRestStatusConfig Read FStatuses;
     procedure InitStreaming; virtual; abstract;
     Function GetVariable(const aName : UTF8String) : UTF8String;
     Property Stream : TStream Read FStream;
@@ -217,6 +288,7 @@ Type
     FResourceName: UTF8String;
     FResponse: TResponse;
     FRestContext: TRestContext;
+    FRestStatuses: TRestStatusConfig;
     FRestStrings: TRestStringsConfig;
     FSchema: UTF8String;
     FTrans: TSQLTransaction;
@@ -233,6 +305,7 @@ Type
     Procedure SetResource(aResource : TSQLDBRestResource);
     procedure SetOperation(aOperation : TRestOperation);
     Procedure SetRestStrings(aValue : TRestStringsConfig);
+    Procedure SetRestStatuses(aValue : TRestStatusConfig);
     // Get things
     class function StrToNullBoolean(S: String; Strict: Boolean): TNullBoolean;
     Procedure DoGetVariable(Sender : TObject; Const aName : UTF8String; Out aVal : UTF8String);
@@ -252,6 +325,7 @@ Type
     Property Transaction : TSQLTransaction Read FTrans Write FTrans;
     Property Resource : TSQLDBRestResource Read FResource;
     Property RestStrings : TRestStringsConfig Read FRestStrings;
+    Property RestStatuses : TRestStatusConfig Read FRestStatuses;
     // owned by TRestIO
     Property RESTInput : TRestInputStreamer read FInput;
     Property RESTOutput : TRestOutputStreamer read FOutput;
@@ -358,6 +432,73 @@ Const
     'sql',             { rpCustomViewSQLParam }
     'datapacket'       { rpXMLDocumentRoot}
   );
+  DefaultStatuses : Array[TRestStatus] of Word = (
+    500, { rsError }
+    200, { rsGetOK }
+    201, { rsPostOK }
+    200, { rsPutOK }
+    204, { rsDeleteOK }
+    400, { rsInvalidParam }
+    200, { rsCORSOK}
+    403, { rsCORSNotallowed}
+    401, { rsUnauthorized }
+    403, { rsResourceNotAllowed }
+    405, { rsRestOperationNotAllowed }
+    400, { rsInvalidMethod }
+    404, { rsUnknownResource }
+    404, { rsNoResourceSpecified }
+    400, { rsNoConnectionSpecified }
+    404, { rsRecordNotFound }
+    400  { rsInvalidContent }
+  );
+
+{ TRestStatusConfig }
+
+function TRestStatusConfig.GetStatus(AIndex: Integer): Word;
+begin
+  Result:=GetStatusCode(TRestStatus(aIndex));
+end;
+
+function TRestStatusConfig.IsStatusStored(AIndex: Integer): Boolean;
+
+Var
+  W : Word;
+
+begin
+  W:=FStatus[TRestStatus(aIndex)];
+  Result:=(W<>0) and (W<>DefaultStatuses[TRestStatus(aIndex)]);
+end;
+
+procedure TRestStatusConfig.SetStatus(AIndex: Integer; AValue: Word);
+begin
+  if (aValue<>DefaultStatuses[TRestStatus(aIndex)]) then
+    aValue:=0;
+  FStatus[TRestStatus(aIndex)]:=aValue;
+end;
+
+procedure TRestStatusConfig.Assign(aSource: TPersistent);
+
+Var
+  C : TRestStatusConfig;
+  S : TRestStatus;
+
+begin
+  if aSource is TRestStatusConfig then
+    begin
+    C:=aSource as TRestStatusConfig;
+    for S in TRestStatus do
+      FStatus[S]:=C.FStatus[S];
+    end
+  else
+    inherited Assign(aSource);
+end;
+
+function TRestStatusConfig.GetStatusCode(aStatus: TRestStatus): Word;
+begin
+  Result:=FStatus[aStatus];
+  if Result=0 then
+    Result:=DefaultStatuses[aStatus];
+end;
 
 { TRestContext }
 
@@ -582,7 +723,7 @@ begin
     On E : Exception do
       begin
       S:=Format('Error formatting string "%s" with %d arguments. Original code: %d',[Fmt,Length(Args),aCode]);
-      aCode:=500;
+      aCode:=Statuses.GetStatusCode(rsError);
       end;
   end;
   CreateErrorContent(aCode,S);
@@ -630,11 +771,12 @@ end;
 
 { TRestStreamer }
 
-constructor TRestStreamer.Create(aStream: TStream; aStrings: TRestStringsConfig; aOnGetVar: TRestGetVariableEvent);
+constructor TRestStreamer.Create(aStream: TStream; aStrings: TRestStringsConfig; aStatus : TRestStatusConfig; aOnGetVar: TRestGetVariableEvent);
 begin
   FStream:=aStream;
   FOnGetVar:=aOnGetVar;
   FStrings:=aStrings;
+  FStatuses:=aStatus;
 end;
 
 function TRestStreamer.GetString(aString: TRestStringProperty): UTF8String;
@@ -727,6 +869,11 @@ end;
 procedure TRestIO.SetRestStrings(aValue: TRestStringsConfig);
 begin
   FRestStrings:=aValue;
+end;
+
+procedure TRestIO.SetRestStatuses(aValue: TRestStatusConfig);
+begin
+  FRestStatuses:=aValue;
 end;
 
 procedure TRestIO.DoGetVariable(Sender: TObject; const aName: UTF8String; out
@@ -886,11 +1033,11 @@ begin
   if Not Result then
     Exit;
   if (S<>'') and not TryStrToInt64(S,aLimit) then
-    Raise ESQLDBRest.CreateFmt(400,SErrInvalidParam,[P]);
+    Raise ESQLDBRest.CreateFmt(RestStatuses.GetStatusCode(rsInvalidParam),SErrInvalidParam,[P]);
   P:=RestStrings.GetRestString(rpOffset);
   if GetVariable(P,S,[vsQuery])<>vsNone then
     if (S<>'') and not TryStrToInt64(S,aOffset) then
-      Raise ESQLDBRest.CreateFmt(400,SErrInvalidParam,[P]);
+      Raise ESQLDBRest.CreateFmt(RestStatuses.GetStatusCode(rsInvalidParam),SErrInvalidParam,[P]);
   if (aEnforceLimit>0) and (aLimit>aEnforceLimit) then
     aLimit:=aEnforceLimit;
 end;

@@ -150,7 +150,7 @@ begin
   Result:='';
   if (IO.GetVariable('ID',Qry,[vsQuery,vsRoute,vsHeader])=vsNone) or (Qry='') then
     if not Assigned(PostParams) then
-      raise ESQLDBRest.Create(400,SErrNoKeyParam);
+      raise ESQLDBRest.Create(IO.RestStatuses.GetStatusCode(rsInvalidParam),SErrNoKeyParam);
   L:=FResource.GetFieldArray(flWhereKey);
   SetLength(FilteredFields,Length(L));
   for I:=0 to Length(L)-1 do
@@ -203,7 +203,7 @@ begin
           Case IO.StrToNullBoolean(Qry,True) of
             nbTrue : Result:=Result+Format('(%s IS NULL)',[RF.FieldName]);
             nbFalse : Result:=Result+Format('(%s IS NOT NULL)',[RF.FieldName]);
-            nbNone :  Raise ESQLDBRest.CreateFmt(400,SErrInvalidBooleanForField,[RF.PublicName])
+            nbNone :  Raise ESQLDBRest.CreateFmt(IO.RestStatuses.GetStatusCode(rsInvalidParam),SErrInvalidBooleanForField,[RF.PublicName])
           end;
         end;
   SetLength(FilteredFields,aLen);
@@ -252,11 +252,11 @@ begin
       While (J>=0) and Not SameText(L[J].PublicName,FN) do
         Dec(J);
       if J<0 then
-        Raise ESQLDBRest.CreateFmt(400,SErrInvalidSortField,[FN]);
+        Raise ESQLDBRest.CreateFmt(IO.RestStatuses.GetStatusCode(rsInvalidParam),SErrInvalidSortField,[FN]);
       F:=L[J];
       if Desc then
         if not (foOrderByDesc in F.Options) then
-          Raise ESQLDBRest.CreateFmt(400,SErrInvalidSortDescField,[FN]);
+          Raise ESQLDBRest.CreateFmt(IO.RestStatuses.GetStatusCode(rsInvalidParam),SErrInvalidSortDescField,[FN]);
       AddField(I-1,F,Desc)
       end;
     end;
@@ -447,7 +447,7 @@ begin
       begin
       P:=aQuery.Params.FindParam(FilterParamPrefix[FF.Operation]+F.FieldName);
       if not Assigned(P) then
-        Raise ESQLDBRest.CreateFmt(500,SErrFilterParamNotFound,[F.PublicName]);
+        Raise ESQLDBRest.CreateFmt(IO.RestStatuses.GetStatusCode(rsError),SErrFilterParamNotFound,[F.PublicName]);
       if Assigned(FF.ValueParam) then
         P.Value:=FF.ValueParam.Value
       else
@@ -481,7 +481,7 @@ begin
         if (D<>Nil) then
           SetParamFromData(P,F,D)
         else if (aOperation in [roDelete]) then
-          Raise ESQLDBRest.CreateFmt(400,SErrMissingParameter,[P.Name])
+          Raise ESQLDBRest.CreateFmt(IO.RestStatuses.GetStatusCode(rsInvalidParam),SErrMissingParameter,[P.Name])
         else
           P.Clear;
       finally
@@ -508,7 +508,7 @@ begin
   if aLimit=0 then
     exit;
   if Not (IO.Connection is TSQLConnector) then
-    Raise ESQLDBRest.Create(500,SErrLimitNotSupported);
+    Raise ESQLDBRest.Create(IO.RestStatuses.GetStatusCode(rsError),SErrLimitNotSupported);
   CT:=lowerCase(TSQLConnector(IO.Connection).ConnectorType);
   if Copy(CT,1,5)='mysql' then
     CT:='mysql';
@@ -656,7 +656,7 @@ end;
 procedure TSQLDBRestDBHandler.DoNotFound;
 
 begin
-  IO.Response.Code:=404;
+  IO.Response.Code:=IO.RestStatuses.GetStatusCode(rsRecordNotFound);
   IO.Response.CodeText:='NOT FOUND';  // Do not localize
   IO.CreateErrorResponse;
 end;
@@ -768,7 +768,7 @@ Var
 begin
   // We do this first, so we don't run any unnecessary queries
   if not IO.RESTInput.SelectObject(0) then
-    raise ESQLDBRest.Create(400, SErrNoResourceDataFound);
+    raise ESQLDBRest.Create(IO.RestStatuses.GetStatusCode(rsInvalidParam), SErrNoResourceDataFound);
   InsertNewRecord;
   // Now build response
   FieldList:=BuildFieldList(False);
@@ -814,7 +814,7 @@ Var
 begin
   // We do this first, so we don't run any unnecessary queries
   if not IO.RESTInput.SelectObject(0) then
-    Raise ESQLDBRest.Create(400,SErrNoResourceDataFound);
+    Raise ESQLDBRest.Create(IO.RestStatuses.GetStatusCode(rsInvalidParam),SErrNoResourceDataFound);
   // Get the original record.
   FieldList:=BuildFieldList(True);
   D:=GetDatasetForResource(FieldList,True);

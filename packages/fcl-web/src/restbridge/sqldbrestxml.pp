@@ -158,13 +158,13 @@ begin
       end;
   end;
   if (FXML=Nil)  then
-    Raise ESQLDBRest.CreateFmt(400,SErrInvalidXMLInput,[Msg]);
+    Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsInvalidContent),SErrInvalidXMLInput,[Msg]);
   FPacket:=FXML.DocumentElement;
   NN:=UTF8Decode(GetString(rpXMLDocumentRoot));
   if (NN<>'') then
     begin
     if FPacket.NodeName<>NN then
-      Raise ESQLDBRest.CreateFmt(400,SErrInvalidXMLInput,[SErrMissingDocumentRoot]);
+      Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsInvalidContent),SErrInvalidXMLInput,[SErrMissingDocumentRoot]);
     NN:=UTF8Decode(GetString(rpDataRoot));
     N:=FPacket.FindNode(NN);
     end
@@ -178,7 +178,7 @@ begin
       N:=Nil
     end;
   if Not (Assigned(N) and (N is TDOMelement)) then
-    Raise ESQLDBRest.CreateFmt(400,SErrInvalidXMLInputMissingElement,[NN]);
+    Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsInvalidContent),SErrInvalidXMLInputMissingElement,[NN]);
   FData:=(N as TDOMelement);
 end;
 
@@ -211,7 +211,7 @@ end;
 procedure TXMLOutputStreamer.StartRow;
 begin
   if (FRow<>Nil) then
-    Raise ESQLDBRest.Create(500,SErrDoubleRowStart);
+    Raise ESQLDBRest.Create(Statuses.GetStatusCode(rsError),SErrDoubleRowStart);
   FRow:=FXML.CreateElement(UTF8Decode(GetString(rpRowName)));
   FData.AppendChild(FRow);
 end;
@@ -226,7 +226,7 @@ begin
   Result:=Nil;
   F:=aPair.DBField;;
   If (aPair.RestField.FieldType=rftUnknown) then
-    raise ESQLDBRest.CreateFmt(500,SErrUnsupportedRestFieldType, [aPair.RestField.PublicName]);
+    raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsError),SErrUnsupportedRestFieldType, [aPair.RestField.PublicName]);
   If (F.IsNull) then
     Exit;
   S:=FieldToString(aPair.RestField.FieldType,F);
@@ -243,7 +243,7 @@ Var
 begin
   N:=aPair.RestField.PublicName;
   if FRow=Nil then
-    Raise ESQLDBRest.CreateFmt(500,SErrFieldWithoutRow,[N]);
+    Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsError),SErrFieldWithoutRow,[N]);
   D:=FieldToXML(aPair);
   if (D=Nil) and (not HasOption(ooSparse)) then
     D:=FXML.CreateElement(UTF8Decode(aPair.RestField.PublicName));

@@ -192,11 +192,13 @@ Type
     FSchemas: TSQLDBRestSchemaList;
     FListRoute: THTTPRoute;
     FItemRoute: THTTPRoute;
+    FStatus: TRestStatusConfig;
     FStrings: TRestStringsConfig;
     procedure SetActive(AValue: Boolean);
     procedure SetAuthenticator(AValue: TRestAuthenticator);
     procedure SetConnections(AValue: TSQLDBRestConnectionList);
     procedure SetSchemas(AValue: TSQLDBRestSchemaList);
+    procedure SetStatus(AValue: TRestStatusConfig);
     procedure SetStrings(AValue: TRestStringsConfig);
   Protected
     // Auxiliary methods.
@@ -207,6 +209,7 @@ Type
     Function CreateConnectionList : TSQLDBRestConnectionList; virtual;
     Function CreateSchemaList : TSQLDBRestSchemaList; virtual;
     function CreateRestStrings: TRestStringsConfig; virtual;
+    function CreateRestStatusConfig: TRestStatusConfig; virtual;
     function CreateDBHandler(IO: TRestIO): TSQLDBRestDBHandler; virtual;
     function CreateInputStreamer(IO: TRestIO): TRestInputStreamer; virtual;
     function CreateOutputStreamer(IO: TRestIO): TRestOutputStreamer; virtual;
@@ -277,6 +280,8 @@ Type
     Property DefaultConnection : UTF8String Read FDefaultConnection Write FDefaultConnection;
     // Input/Output strings configuration
     Property Strings : TRestStringsConfig Read FStrings Write SetStrings;
+    // HTTP Status codes configuration
+    Property Statuses : TRestStatusConfig Read FStatus Write SetStatus;
     // default Output options, modifiable by query.
     Property OutputOptions : TRestOutputOptions Read FOutputOptions Write FOutputOptions Default allOutputOptions;
     // Set this to allow only this input format.
@@ -428,6 +433,12 @@ begin
   FSchemas.Assign(AValue);
 end;
 
+procedure TSQLDBRestDispatcher.SetStatus(AValue: TRestStatusConfig);
+begin
+  if FStatus=AValue then Exit;
+  FStatus.Assign(AValue);
+end;
+
 procedure TSQLDBRestDispatcher.SetStrings(AValue: TRestStringsConfig);
 begin
   if FStrings=AValue then Exit;
@@ -523,8 +534,8 @@ begin
     aName:='json';
   D:=TStreamerFactory.Instance.FindStreamerByName(rstInput,aName);
   if (D=Nil) then
-    Raise ESQLDBRest.CreateFmt(400,SErrUnknownOrUnSupportedFormat,[aName]);
-  Result:=TRestInputStreamer(D.MyClass.Create(IO.RequestContentStream,Fstrings,@IO.DoGetVariable));
+    Raise ESQLDBRest.CreateFmt(FStatus.GetStatusCode(rsInvalidParam),SErrUnknownOrUnSupportedFormat,[aName]);
+  Result:=TRestInputStreamer(D.MyClass.Create(IO.RequestContentStream,Fstrings,FStatus,@IO.DoGetVariable));
 end;
 
 function TSQLDBRestDispatcher.CreateOutputStreamer(IO : TRestIO): TRestOutputStreamer;
@@ -539,8 +550,8 @@ begin
     aName:='json';
   D:=TStreamerFactory.Instance.FindStreamerByName(rstOutput,aName);
   if (D=Nil) then
-    Raise ESQLDBRest.CreateFmt(400,SErrUnknownOrUnSupportedFormat,[aName]);
-  Result:=TRestOutputStreamer(D.MyClass.Create(IO.Response.ContentStream,Fstrings,@IO.DoGetVariable));
+    Raise ESQLDBRest.CreateFmt(FStatus.GetStatusCode(rsInvalidParam),SErrUnknownOrUnSupportedFormat,[aName]);
+  Result:=TRestOutputStreamer(D.MyClass.Create(IO.Response.ContentStream,Fstrings,FStatus,@IO.DoGetVariable));
 end;
 
 
@@ -558,6 +569,7 @@ begin
     // Set up output
     Result.Response.ContentStream:=TMemoryStream.Create;
     Result.Response.FreeContentStream:=True;
+    Result.SetRestStatuses(FStatus);
     Result.SetRestStrings(FStrings);
     aInput:=CreateInputStreamer(Result);
     aoutPut:=CreateOutPutStreamer(Result);
@@ -610,6 +622,7 @@ begin
   FSchemas:=CreateSchemaList;
   FOutputOptions:=allOutputOptions;
   FDispatchOptions:=DefaultDispatcherOptions;
+  FStatus:=CreateRestStatusConfig;
 end;
 
 destructor TSQLDBRestDispatcher.Destroy;
@@ -621,6 +634,7 @@ begin
   FreeAndNil(FSchemas);
   FreeAndNil(FConnections);
   FreeAndNil(FStrings);
+  FreeAndNil(FStatus);
   inherited Destroy;
 end;
 
@@ -628,6 +642,11 @@ function TSQLDBRestDispatcher.CreateRestStrings : TRestStringsConfig;
 
 begin
   Result:=TRestStringsConfig.Create
+end;
+
+function TSQLDBRestDispatcher.CreateRestStatusConfig: TRestStatusConfig;
+begin
+  Result:=TRestStatusConfig.Create;
 end;
 
 function TSQLDBRestDispatcher.ExtractRestResourceName(IO: TRestIO): UTF8String;
@@ -921,18 +940,18 @@ end;
 procedure TSQLDBRestDispatcher.SetDefaultResponsecode(IO : TRestIO);
 
 Const
-  DefaultCodes : Array[TRestOperation] of Integer = (500,200,201,200,204,200,200);
+  DefaultCodes : Array[TRestOperation] of TRestStatus = (rsError,rsGetOK,rsPOSTOK,rsPUTOK,rsDeleteOK,rsCORSOK,rsGetOK);
   DefaultTexts : Array[TRestOperation] of string = ('Internal Error','OK','Created','OK','No content','OK','OK');
 
 Var
-  aCode : Integer;
+  aCode : TRestStatus;
   aText : String;
 
 begin
   aCode:=DefaultCodes[IO.Operation];
   aText:=DefaultTexts[IO.Operation];
   if IO.Response.Code=0 then
-    IO.Response.Code:=aCode;
+    IO.Response.Code:=FStatus.GetStatusCode(aCode);
   if (IO.Response.CodeText='') then
     IO.Response.CodeText:=aText;
 end;
@@ -1106,7 +1125,7 @@ Var
 begin
   ST:=IO.Connection.GetStatementInfo(aSQL).StatementType;
   if (st<>stSelect) then
-    Raise ESQLDBRest.Create(400,'Only SELECT SQL is allowed for custom view'); // Should never happen.
+    raise ESQLDBRest.Create(FStatus.GetStatusCode(rsInvalidParam), SErrOnlySELECTSQLAllowedInCustomView); // Should never happen.
   Q:=TRestSQLQuery.Create(aOwner);
   try
     Q.DataBase:=IO.Connection;
@@ -1134,13 +1153,13 @@ begin
   else if (IO.Resource=FMetadataDetailResource) then
     begin
     if IO.GetVariable('ID',RN,[vsRoute,vsQuery])=vsNone then
-      Raise ESQLDBRest.Create(500,'Could not find resource name'); // Should never happen.
+      raise ESQLDBRest.Create(FStatus.GetStatusCode(rsError), SErrCouldNotFindResourceName); // Should never happen.
     Result:=CreateMetadataDetailDataset(IO,RN,AOwner)
     end
   else   if (IO.Resource=FCustomViewResource) then
     begin
     if IO.GetVariable(FStrings.GetRestString(rpCustomViewSQLParam),RN,[vsRoute,vsQuery])=vsNone then
-      Raise ESQLDBRest.Create(400,'Could not find SQL statement for custom view'); // Should never happen.
+      raise ESQLDBRest.Create(FStatus.GetStatusCode(rsInvalidParam), SErrNoSQLStatement); // Should never happen.
     Result:=CreateCustomViewDataset(IO,RN,aOwner);
     end
 
@@ -1159,7 +1178,7 @@ begin
     Allowed:=(ExtractRestOperation(IO.Request,True) in ([roUnknown]+IO.Resource.AllowedOperations));
   if not Allowed then
     begin
-    IO.Response.Code:=403;
+    IO.Response.Code:=FStatus.GetStatusCode(rsCORSNotAllowed);
     IO.Response.CodeText:='FORBIDDEN';
     IO.CreateErrorResponse;
     end
@@ -1171,7 +1190,7 @@ begin
     IO.Response.SetCustomHeader('Access-Control-Allow-Origin',S);
     S:=IO.Resource.GetHTTPAllow;
     IO.Response.SetCustomHeader('Access-Control-Allow-Methods',S);
-    IO.Response.Code:=200;
+    IO.Response.Code:=FStatus.GetStatusCode(rsCORSOK);
     IO.Response.CodeText:='OK';
     end;
 end;
@@ -1277,7 +1296,7 @@ begin
   Result:=(aIO.Operation in aIO.Resource.GetAllowedOperations(aIO.RestContext));
 end;
 
-Function TSQLDBRestDispatcher.CheckResourceAccess(IO : TRestIO) : Boolean;
+function TSQLDBRestDispatcher.CheckResourceAccess(IO: TRestIO): Boolean;
 
 Var
   NeedDB : Boolean;
@@ -1289,12 +1308,12 @@ begin
     exit;
   Result:=AllowRestResource(IO);
   if not Result then
-    CreateErrorContent(IO,403,'Forbidden')
+    CreateErrorContent(IO,FStatus.GetStatusCode(rsResourceNotAllowed),'FORBIDDEN')
   else
     begin
     Result:=AllowRestOperation(IO);
     if not Result then
-      CreateErrorContent(IO,405,'Method not allowed')
+      CreateErrorContent(IO,FStatus.GetStatusCode(rsRestOperationNotAllowed),'METHOD NOT ALLOWED')
     end;
 end;
 
@@ -1309,20 +1328,20 @@ var
 begin
   Operation:=ExtractRestOperation(IO.Request);
   if (Operation=roUnknown) then
-    CreateErrorContent(IO,400,'Invalid method')
+    CreateErrorContent(IO,FStatus.GetStatusCode(rsInvalidMethod),'INVALID METHOD')
   else
     begin
     IO.SetOperation(Operation);
     ResourceName:=ExtractRestResourceName(IO);
     if (ResourceName='') then
-      CreateErrorContent(IO,404,'Invalid resource')
+      CreateErrorContent(IO,FStatus.GetStatusCode(rsNoResourceSpecified),'INVALID RESOURCE')
     else
       begin
       Resource:=FindSpecialResource(IO,ResourceName);
       If Resource=Nil then
         Resource:=FindRestResource(ResourceName);
       if Resource=Nil then
-        CreateErrorContent(IO,404,'Invalid resource')
+        CreateErrorContent(IO,FStatus.GetStatusCode(rsUnknownResource),'NOT FOUND')
       else
         begin
         IO.SetResource(Resource);
@@ -1330,9 +1349,9 @@ begin
         if Connection=Nil then
           begin
           if (rdoConnectionInURL in DispatchOptions) then
-            CreateErrorContent(IO,400,Format(SErrNoconnection,[GetConnectionName(IO)]))
+            CreateErrorContent(IO,FStatus.GetStatusCode(rsNoConnectionSpecified),Format(SErrNoconnection,[GetConnectionName(IO)]))
           else
-            CreateErrorContent(IO,500,Format(SErrNoconnection,[GetConnectionName(IO)]));
+            CreateErrorContent(IO,FStatus.GetStatusCode(rsError), Format(SErrNoconnection,[GetConnectionName(IO)]));
           end
         else if CheckResourceAccess(IO) then
           if Operation=roOptions then
@@ -1394,7 +1413,7 @@ begin
         end;
       if (Code=0) then
         begin
-        Code:=500;
+        Code:=FStatus.GetStatusCode(rsError);
         Msg:=Format(SErrUnexpectedException,[E.ClassName,E.Message]);
         end;
       IO.Response.Code:=Code;
@@ -1406,7 +1425,7 @@ begin
   except
     on Ex : exception do
      begin
-     IO.Response.Code:=500;
+     IO.Response.Code:=FStatus.GetStatusCode(rsError);
      IO.Response.CodeText:=Format('Unexpected exception %s while handling original exception %s : "%s" (Original: "%s")',[Ex.ClassName,E.ClassName,Ex.Message,E.Message]);
      end;
   end;
