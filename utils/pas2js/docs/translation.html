@@ -798,9 +798,9 @@ function(){
     <ul>
       <li>Local variables become local JavaScript variables: <i>var l = 0;</i>.</li>
       <li>Local constants become JavaScript variables in the unit/program implementation section.</li>
-      <li>Overloaded functions are given an unique name by appending $1, $2, ...<br>
-      Overloading is always on. You don't need to add the <i>overload</i> modifier.</li>
-      <li>Supported: default values, local types, FuncName:=</li>
+      <li>Local types are elevated to module.</li>
+      <li>Overloaded functions are given an unique name by appending $1, $2, ...</li>
+      <li>Supported: default values, const/var/out/default, FuncName:=</li>
     </ul>
     </div>
 
@@ -1612,7 +1612,8 @@ function(){
       <li>private, protected, public, strict private, strict protected</li>
       <li>class vars, const, nested types</li>
       <li>methods, class methods, class constructor, external methods</li>
-      <li>method modifiers overload, reintroduce, virtual, override, abstract, static, external name</li>
+      <li>method modifiers overload, reintroduce, virtual, override, abstract,
+      static, external name, message integer, message string</li>
       <li>call inherited</li>
       <li>assigned()</li>
       <li>type cast</li>

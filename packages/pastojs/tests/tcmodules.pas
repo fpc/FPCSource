@@ -531,6 +531,8 @@ type
     Procedure TestClass_TObjectFreeFunctionFail;
     Procedure TestClass_TObjectFreePropertyFail;
     Procedure TestClass_ForIn;
+    Procedure TestClass_Message;
+    Procedure TestClass_Message_DuplicateIntFail;
 
     // class of
     Procedure TestClassOf_Create;
@@ -681,6 +683,7 @@ type
     Procedure TestTypeHelper_Array;
     Procedure TestTypeHelper_EnumType;
     Procedure TestTypeHelper_SetType;
+    Procedure TestTypeHelper_InterfaceType;
 
     // proc types
     Procedure TestProcType;
@@ -9992,6 +9995,7 @@ begin
   '  doit(vc,vc,vl,vl);',
   '  doit(vv,vv,vv,vv);',
   '  doit(vl,vl,vl,vl);',
+  //'  TRecord(U).i:=3;',
   'end;',
   'var i: TRecord;',
   'begin',
@@ -14344,6 +14348,58 @@ begin
     '  $in1 = rtl.freeLoc($in1)',
     '};',
     '']));
+end;
+
+procedure TTestModule.TestClass_Message;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Fly(var Msg); virtual; abstract; message 2;',
+  '    procedure Run; overload; virtual; abstract;',
+  '    procedure Run(var Msg); overload; message ''Fast'';',
+  '  end;',
+  'procedure TObject.Run(var Msg);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_Message',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Run$1 = function (Msg) {',
+    '  };',
+    '  this.$msgint = {',
+    '    "2": "Fly"',
+    '  };',
+    '  this.$msgstr = {',
+    '    Fast: "Run$1"',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_Message_DuplicateIntFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Fly(var Msg); virtual; abstract; message 3;',
+  '    procedure Run(var Msg); virtual; abstract; message 1+2;',
+  '  end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Duplicate message id "3" at test1.pp(5,56)',nDuplicateMessageIdXAtY);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestClassOf_Create;
@@ -23284,6 +23340,134 @@ begin
     '      this.p.s = v;',
     '    }',
     '}, $mod.TEnum.blue));',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_InterfaceType;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  '{$modeswitch typehelpers}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '  end;',
+  '  THelper = type helper for IUnknown',
+  '    procedure Fly(e: byte = 123);',
+  '    class procedure Run; static;',
+  '  end;',
+  'var',
+  '  i: IUnknown;',
+  '  o: TObject;',
+  'procedure THelper.Fly(e: byte);',
+  'begin',
+  '  i:=Self;',
+  '  o:=Self as TObject;',
+  '  Self:=nil;',
+  '  Self:=i;',
+  '  Self:=o;',
+  '  with Self do begin',
+  '    Fly;',
+  '    Fly();',
+  '  end;',
+  'end;',
+  'class procedure THelper.Run;',
+  'var l: IUnknown;',
+  'begin',
+  '  l.Fly;',
+  '  l.Fly();',
+  'end;',
+  'begin',
+  '  i.Fly;',
+  '  i.Fly();',
+  '  i.Run;',
+  '  i.Run();',
+  '  IUnknown.Run;',
+  '  IUnknown.Run();',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_InterfaceType',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.Fly = function (e) {',
+    '    var $ir = rtl.createIntfRefs();',
+    '    try {',
+    '      rtl.setIntfP($mod, "i", this.get());',
+    '      $mod.o = rtl.intfAsClass(this.get(), $mod.TObject);',
+    '      this.set(null);',
+    '      this.set($mod.i);',
+    '      this.set($ir.ref(1, rtl.queryIntfT($mod.o, $mod.IUnknown)));',
+    '      var $with1 = this.get();',
+    '      $mod.THelper.Fly.call(this, 123);',
+    '      $mod.THelper.Fly.call(this, 123);',
+    '    } finally {',
+    '      $ir.free();',
+    '    };',
+    '  };',
+    '  this.Run = function () {',
+    '    var l = null;',
+    '    try {',
+    '      $mod.THelper.Fly.call({',
+    '        get: function () {',
+    '            return l;',
+    '          },',
+    '        set: function (v) {',
+    '            l = rtl.setIntfL(l, v);',
+    '          }',
+    '      }, 123);',
+    '      $mod.THelper.Fly.call({',
+    '        get: function () {',
+    '            return l;',
+    '          },',
+    '        set: function (v) {',
+    '            l = rtl.setIntfL(l, v);',
+    '          }',
+    '      }, 123);',
+    '    } finally {',
+    '      rtl._Release(l);',
+    '    };',
+    '  };',
+    '});',
+    'this.i = null;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.Fly.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.setIntfP(this.p, "i", v);',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.Fly.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.setIntfP(this.p, "i", v);',
+    '    }',
+    '}, 123);',
+    '$mod.THelper.Run();',
+    '$mod.THelper.Run();',
+    '$mod.THelper.Run();',
+    '$mod.THelper.Run();',
     '']));
 end;
 

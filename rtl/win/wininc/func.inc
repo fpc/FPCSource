@@ -137,6 +137,7 @@ function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external
 function GetThreadSelectorEntry(hThread:HANDLE; dwSelector:DWORD; lpSelectorEntry:LPLDT_ENTRY):WINBOOL; external 'kernel32' name 'GetThreadSelectorEntry';
 function GetLastError:DWORD; external 'kernel32' name 'GetLastError';
 procedure SetLastError(dwErrCode:DWORD); external 'kernel32' name 'SetLastError';
+function GetErrorMode : DWORD; stdcall; external 'kernel32' name 'GetErrorMode';
 function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:ULONG_PTR; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
 function SetErrorMode(uMode:UINT):UINT; external 'kernel32' name 'SetErrorMode';
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:PTRUINT; lpNumberOfBytesRead:PPTRUINT):WINBOOL; external 'kernel32' name 'ReadProcessMemory';
@@ -1062,6 +1063,7 @@ function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _par
 function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external 'shell32' name 'SHGetPathFromIDList';
 function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external 'shell32' name 'SHGetSpecialFolderLocation';
 function FlashWindowEx(pfwi : PFLASHWINFO) : BOOL; stdcall; external 'user32' name 'FlashWindowEx';
+function EnumTimeFormatsEx(TimeFormatsExEnum : TIMEFMT_ENUMPROCEX; LocaleName : LPCWSTR;Flags : DWORD;AppData : LPARAM) : BOOL; external 'kernel32' name 'EnumTimeFormatsEx';
 
 { was missing, bug report 1808 PM }
 {

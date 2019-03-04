@@ -2652,6 +2652,7 @@ packages/fcl-passrc/tests/testpassrc.lpi svneol=native#text/plain
 packages/fcl-passrc/tests/testpassrc.lpr svneol=native#text/plain
 packages/fcl-pdf/Makefile svneol=native#text/plain
 packages/fcl-pdf/Makefile.fpc svneol=native#text/plain
+packages/fcl-pdf/examples/diamond.png -text svneol=unset#image/png
 packages/fcl-pdf/examples/poppy.jpg -text
 packages/fcl-pdf/examples/testfppdf.lpi svneol=native#text/plain
 packages/fcl-pdf/examples/testfppdf.lpr svneol=native#text/plain
@@ -11830,6 +11831,7 @@ tests/tbs/tb0651.pp svneol=native#text/pascal
 tests/tbs/tb0652.pp svneol=native#text/pascal
 tests/tbs/tb0653.pp svneol=native#text/plain
 tests/tbs/tb0654.pp svneol=native#text/plain
+tests/tbs/tb0655.pp svneol=native#text/pascal
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/tb610.pp svneol=native#text/pascal
 tests/tbs/tb613.pp svneol=native#text/plain

@@ -22,7 +22,6 @@ uses
   Classes, SysUtils, db, sqldb, fpjson;
 
 Type
-
   TRestFieldType = (rftUnknown,rftInteger,rftLargeInt,rftFloat,rftDate,rftTime,rftDateTime,rftString,rftBoolean,rftBlob);
   TRestFieldTypes = set of TRestFieldType;
 
@@ -41,6 +40,8 @@ Type
   TFieldListKind = (flSelect,flInsert,flInsertParams,flUpdate,flWhereKey,flFilter,flOrderby);
   TFieldListKinds = set of TFieldListKind;
 
+  TVariableSource = (vsNone,vsQuery,vsContent,vsRoute,vsHeader);
+  TVariableSources = Set of TVariableSource;
 
 Const
   AllRestOperations = [Succ(Low(TRestOperation))..High(TRestOperation)];
@@ -50,6 +51,22 @@ Const
   JSONConnectionsRoot = 'connections';
 
 Type
+
+  { TBaseRestContext }
+
+  TBaseRestContext = Class(TObject)
+  private
+    FData: TObject;
+    FUserID: UTF8String;
+  Public
+    // Call this to get a HTTP Query variable, header,...
+    Function GetVariable(Const aName : UTF8String; aSources : TVariableSources; Out aValue : UTF8String) : Boolean; virtual; abstract;
+    // This will be set when calling.
+    Property UserID : UTF8String Read FUserID Write FUserID;
+    // You can attach data to this if you want to. It will be kept for the duration of the request.
+    // You are responsible for freeing this data, though.
+    Property Data : TObject Read FData Write FData;
+  end;
 
   { ESQLDBRest }
 
@@ -68,7 +85,8 @@ Type
   end;
 
   TSQLDBRestSchema = Class;
-
+  TSQLDBRestCustomBusinessProcessor = Class;
+  TSQLDBRestBusinessProcessor = Class;
 
   { TSQLDBRestField }
 
@@ -131,21 +149,26 @@ Type
   TSQLDBRestFieldListClass = Class of TSQLDBRestFieldList;
 
   { TSQLDBRestResource }
-  TSQLDBRestGetDatasetEvent = Procedure (aSender : TObject; aFieldList : TRestFieldPairArray; aOrderBy : TRestFieldOrderPairArray; aLimit, aOffset : Int64; Var aDataset : TDataset) of object;
-  TSQLDBRestCheckParamsEvent = Procedure (aSender : TObject; aOperation : TRestOperation; Params : TParams) of object;
-  TSQLDBRestAllowRecordEvent = Procedure (aSender : TObject; aDataSet : TDataset; var allowRecord : Boolean) of object;
+  TSQLDBRestGetDatasetEvent = Procedure (aSender : TObject; aContext : TBaseRestContext; aFieldList : TRestFieldPairArray; aOrderBy : TRestFieldOrderPairArray; aLimit, aOffset : Int64; Var aDataset : TDataset) of object;
+  TSQLDBRestCheckParamsEvent = Procedure (aSender : TObject; aContext : TBaseRestContext; aOperation : TRestOperation; Params : TParams) of object;
+  TSQLDBRestAllowRecordEvent = Procedure (aSender : TObject; aContext : TBaseRestContext; aDataSet : TDataset; var allowRecord : Boolean) of object;
+  TSQLDBRestAllowResourceEvent = Procedure (aSender : TObject; aContext : TBaseRestContext; var allowResource : Boolean) of object;
+  TSQLDBRestAllowedOperationsEvent = Procedure (aSender : TObject; aContext : TBaseRestContext; var aOperations : TRestOperations) of object;
   TProcessIdentifier = Function (const S: UTF8String): UTF8String of object;
 
   TSQLDBRestResource = class(TCollectionItem)
   private
+    FBusinessProcessor: TSQLDBRestCustomBusinessProcessor;
     FAllowedOperations: TRestOperations;
     FConnectionName: UTF8String;
     FEnabled: Boolean;
     FFields: TSQLDBRestFieldList;
     FInMetadata: Boolean;
+    FOnAllowedOperations: TSQLDBRestAllowedOperationsEvent;
     FOnAllowRecord: TSQLDBRestAllowRecordEvent;
     FOnCheckParams: TSQLDBRestCheckParamsEvent;
     FOnGetDataset: TSQLDBRestGetDatasetEvent;
+    FOnResourceAllowed: TSQLDBRestAllowResourceEvent;
     FResourceName: UTF8String;
     FTableName: UTF8String;
     FSQL : Array[TSQLKind] of TStrings;
@@ -165,18 +188,21 @@ Type
   Public
     Constructor Create(ACollection: TCollection); override;
     Destructor Destroy; override;
-    Procedure CheckParams(aOperation : TRestoperation; P : TParams);
-    Function GetDataset(aFieldList : TRestFieldPairArray; aOrderBy : TRestFieldOrderPairArray; aLimit, aOffset : Int64) : TDataset;
+    Procedure CheckParams(aContext : TBaseRestContext; aOperation : TRestoperation; P : TParams);
+    Function GetDataset(aContext : TBaseRestContext; aFieldList : TRestFieldPairArray; aOrderBy : TRestFieldOrderPairArray; aLimit, aOffset : Int64) : TDataset;
     Function GetSchema : TSQLDBRestSchema;
     function GenerateDefaultSQL(aKind: TSQLKind): UTF8String; virtual;
     Procedure Assign(Source: TPersistent); override;
-    Function AllowRecord(aDataset : TDataset) : Boolean;
+    Function AllowRecord(aContext : TBaseRestContext; aDataset : TDataset) : Boolean;
+    Function AllowResource(aContext : TBaseRestContext) : Boolean;
+    Function GetAllowedOperations(aContext : TBaseRestContext) : TRestOperations;
     Function GetHTTPAllow : String; virtual;
     function GetFieldList(aListKind: TFieldListKind): UTF8String;
     function GetFieldArray(aListKind: TFieldListKind): TSQLDBRestFieldArray;
     Function GetResolvedSQl(aKind : TSQLKind; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = '') : UTF8String;
     Procedure PopulateFieldsFromFieldDefs(Defs : TFieldDefs; aIndexFields : TStringArray; aProcessIdentifier : TProcessIdentifier; aMinFieldOpts : TRestFieldOptions);
     Property SQL [aKind : TSQLKind] : TStrings Read GetSQLTyped;
+    Property BusinessProcessor : TSQLDBRestCustomBusinessProcessor Read FBusinessProcessor;
   Published
     Property Fields : TSQLDBRestFieldList Read FFields Write SetFields;
     Property Enabled : Boolean Read FEnabled Write FEnabled default true;
@@ -189,6 +215,8 @@ Type
     Property SQLInsert : TStrings Index 1 Read GetSQL Write SetSQL;
     Property SQLUpdate : TStrings Index 2 Read GetSQL Write SetSQL;
     Property SQLDelete : TStrings Index 3 Read GetSQL Write SetSQL;
+    Property OnResourceAllowed : TSQLDBRestAllowResourceEvent Read FOnResourceAllowed Write FOnResourceAllowed;
+    Property OnAllowedOperations : TSQLDBRestAllowedOperationsEvent Read FOnAllowedOperations Write FOnAllowedOperations;
     Property OnGetDataset : TSQLDBRestGetDatasetEvent Read FOnGetDataset Write FOnGetDataset;
     Property OnCheckParams : TSQLDBRestCheckParamsEvent Read FOnCheckParams Write FOnCheckParams;
     Property OnAllowRecord : TSQLDBRestAllowRecordEvent Read FOnAllowRecord Write FOnAllowRecord;
@@ -222,14 +250,21 @@ Type
   private
     FConnectionName: UTF8String;
     FResources: TSQLDBRestResourceList;
+    FProcessors : TFPList;
     procedure SetResources(AValue: TSQLDBRestResourceList);
   Protected
     function CreateResourceList: TSQLDBRestResourceList; virtual;
     function GetPrimaryIndexFields(Q: TSQLQuery): TStringArray; virtual;
     function ProcessIdentifier(const S: UTF8String): UTF8String; virtual;
+    Function AttachProcessor(aProcessor : TSQLDBRestCustomBusinessProcessor) : Boolean; Virtual;
+    Function DetachProcessor(aProcessor : TSQLDBRestCustomBusinessProcessor) : Boolean; Virtual;
+    Procedure AttachAllProcessors; virtual;
+    Procedure DetachAllProcessors; virtual;
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
+    Procedure RemoveBusinessProcessor(aProcessor : TSQLDBRestCustomBusinessProcessor);
+    Procedure AddBusinessProcessor(aProcessor : TSQLDBRestCustomBusinessProcessor);
     Procedure SaveToFile(Const aFileName : UTF8String);
     Procedure SaveToStream(Const aStream : TStream);
     function AsJSON(const aPropName: UTF8String=''): TJSONData;
@@ -247,12 +282,149 @@ Type
   TCustomViewResource = Class(TSQLDBRestResource)
   end;
 
+  { TSQLDBRestCustomBusinessProcessor }
+
+  TSQLDBRestCustomBusinessProcessor = Class(TComponent)
+  private
+    FResource: TSQLDBRestResource;
+    FResourceName: UTF8String;
+    procedure SetResourceName(AValue: UTF8String);
+  Protected
+    Function GetSchema : TSQLDBRestSchema; virtual;
+    Function GetAllowedOperations(aContext : TBaseRestContext; aDefault : TRestOperations) : TRestOperations; virtual; abstract;
+    Function AllowResource(aContext : TBaseRestContext) : Boolean; virtual; abstract;
+    Procedure CheckParams(aContext : TBaseRestContext; aOperation : TRestoperation; P : TParams); virtual; abstract;
+    Function GetDataset(aContext : TBaseRestContext; aFieldList : TRestFieldPairArray; aOrderBy : TRestFieldOrderPairArray; aLimit, aOffset : Int64) : TDataset; virtual;abstract;
+    Function AllowRecord(aContext : TBaseRestContext;aDataset : TDataset) : Boolean; virtual; abstract;
+  Public
+    Property Resource : TSQLDBRestResource Read FResource;
+    Property ResourceName : UTF8String Read FResourceName Write SetResourceName;
+  end;
+
+  { TSQLDBRestBusinessProcessor }
+  TOnGetHTTPAllow = Procedure(Sender : TObject; Var aHTTPAllow) of object;
+
+  TSQLDBRestBusinessProcessor = class(TSQLDBRestCustomBusinessProcessor)
+  private
+    FOnAllowedOperations: TSQLDBRestAllowedOperationsEvent;
+    FOnAllowRecord: TSQLDBRestAllowRecordEvent;
+    FOnCheckParams: TSQLDBRestCheckParamsEvent;
+    FOnGetDataset: TSQLDBRestGetDatasetEvent;
+    FOnResourceAllowed: TSQLDBRestAllowResourceEvent;
+    FSchema: TSQLDBRestSchema;
+    procedure SetSchema(AValue: TSQLDBRestSchema);
+  Protected
+    Function GetSchema : TSQLDBRestSchema; override;
+    Function AllowResource(aContext : TBaseRestContext) : Boolean; override;
+    Function GetAllowedOperations(aContext : TBaseRestContext; aDefault : TRestOperations) : TRestOperations; override;
+    Procedure CheckParams(aContext : TBaseRestContext; aOperation : TRestoperation; P : TParams); override;
+    Function GetDataset(aContext : TBaseRestContext; aFieldList : TRestFieldPairArray; aOrderBy : TRestFieldOrderPairArray; aLimit, aOffset : Int64) : TDataset; override;
+    Function AllowRecord(aContext : TBaseRestContext; aDataset : TDataset) : Boolean; override;
+  Published
+    Property Schema : TSQLDBRestSchema Read GetSchema Write SetSchema;
+    Property ResourceName;
+    Property OnGetDataset : TSQLDBRestGetDatasetEvent Read FOnGetDataset Write FOnGetDataset;
+    Property OnCheckParams : TSQLDBRestCheckParamsEvent Read FOnCheckParams Write FOnCheckParams;
+    Property OnAllowResource : TSQLDBRestAllowResourceEvent Read FOnResourceAllowed Write FOnResourceAllowed;
+    Property OnAllowedOperations : TSQLDBRestAllowedOperationsEvent Read FOnAllowedOperations Write FOnAllowedOperations;
+    Property OnAllowRecord : TSQLDBRestAllowRecordEvent Read FOnAllowRecord Write FOnAllowRecord;
+  end;
+
 Const
   TypeNames : Array[TRestFieldType] of string = ('?','int','bigint','float','date','time','datetime','string','bool','blob');
 
 implementation
 
 uses strutils, fpjsonrtti,dbconst, sqldbrestconst;
+
+{ TSQLDBRestCustomBusinessProcessor }
+
+procedure TSQLDBRestCustomBusinessProcessor.SetResourceName(AValue: UTF8String);
+
+Var
+  S : TSQLDBRestSchema;
+
+begin
+  if FResourceName=AValue then Exit;
+  // Reregister, so the attachment happens to the correct resource
+  S:=GetSchema;
+  If (FResourceName<>'') and Assigned(S) then
+    S.RemoveBusinessProcessor(Self);
+  FResourceName:=AValue;
+  S:=GetSchema;
+  If (FResourceName<>'') and Assigned(S) then
+    S.AddBusinessProcessor(Self);
+end;
+
+function TSQLDBRestCustomBusinessProcessor.GetSchema: TSQLDBRestSchema;
+
+begin
+  Result:=Nil;
+end;
+
+{ TSQLDBRestBusinessProcessor }
+
+procedure TSQLDBRestBusinessProcessor.SetSchema(AValue: TSQLDBRestSchema);
+begin
+  if FSchema=AValue then Exit;
+  if Assigned(FSchema) and (ResourceName<>'') then
+    begin
+    FSchema.RemoveBusinessProcessor(Self);
+    FSchema.RemoveFreeNotification(Self);
+    end;
+  FSchema:=AValue;
+  if Assigned(FSchema) and (ResourceName<>'') then
+    begin
+    FSchema.AddBusinessProcessor(Self);
+    FSchema.FreeNotification(Self);
+    end
+end;
+
+function TSQLDBRestBusinessProcessor.GetSchema: TSQLDBRestSchema;
+begin
+  Result:=FSchema;
+end;
+
+function TSQLDBRestBusinessProcessor.AllowResource(aContext: TBaseRestContext
+  ): Boolean;
+begin
+  Result:=True;
+  if Assigned(FOnResourceAllowed) then
+    FOnResourceAllowed(Self,aContext,Result);
+
+end;
+
+function TSQLDBRestBusinessProcessor.GetAllowedOperations(
+  aContext: TBaseRestContext; aDefault: TRestOperations): TRestOperations;
+begin
+  Result:=aDefault;
+  if Assigned(FOnAllowedOperations) then
+    FOnAllowedOperations(Self,aContext,Result);
+end;
+
+procedure TSQLDBRestBusinessProcessor.CheckParams(aContext: TBaseRestContext;
+  aOperation: TRestoperation; P: TParams);
+begin
+  if Assigned(FOnCheckParams) then
+    FOnCheckParams(Self,aContext,aOperation,P);
+end;
+
+function TSQLDBRestBusinessProcessor.GetDataset(aContext : TBaseRestContext;
+  aFieldList: TRestFieldPairArray; aOrderBy: TRestFieldOrderPairArray; aLimit,
+  aOffset: Int64): TDataset;
+begin
+  Result:=nil;
+  if Assigned(FOnGetDataset) then
+    FOnGetDataset(Self,aContext,aFieldList,aOrderBy,aLimit,aOffset,Result);
+end;
+
+function TSQLDBRestBusinessProcessor.AllowRecord(aContext : TBaseRestContext; aDataset: TDataset): Boolean;
+begin
+  Result:=True;
+  if Assigned(FOnAllowRecord) then
+    FOnAllowRecord(Self,acontext,aDataset,Result);
+end;
+
 
 
 { ESQLDBRest }
@@ -285,9 +457,10 @@ constructor TSQLDBRestSchema.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FResources:=CreateResourceList;
+  FProcessors:=TFPList.Create;
 end;
 
-Function TSQLDBRestSchema.CreateResourceList :  TSQLDBRestResourceList;
+function TSQLDBRestSchema.CreateResourceList: TSQLDBRestResourceList;
 
 begin
   Result:=TSQLDBRestResourceList.Create(Self,TSQLDBRestResource);
@@ -295,8 +468,24 @@ end;
 
 destructor TSQLDBRestSchema.Destroy;
 begin
+  FreeAndNil(FProcessors);
   FreeAndNil(FResources);
   inherited Destroy;
+end;
+
+procedure TSQLDBRestSchema.RemoveBusinessProcessor(
+  aProcessor: TSQLDBRestCustomBusinessProcessor);
+
+begin
+  DetachProcessor(aProcessor);
+  FProcessors.Remove(aProcessor);
+end;
+
+procedure TSQLDBRestSchema.AddBusinessProcessor(
+  aProcessor: TSQLDBRestCustomBusinessProcessor);
+begin
+  FProcessors.Remove(aProcessor);
+  AttachProcessor(aProcessor);
 end;
 
 procedure TSQLDBRestSchema.SaveToFile(const aFileName: UTF8String);
@@ -371,16 +560,69 @@ begin
   J:=aData as TJSONObject;
   Resources.FromJSON(J,JSONResourcesRoot);
   ConnectionName:=J.Get(aPropName,'');
+  AttachAllProcessors;
 end;
 
-Function TSQLDBRestSchema.ProcessIdentifier(Const S : UTF8String) : UTF8String;
+function TSQLDBRestSchema.ProcessIdentifier(const S: UTF8String): UTF8String;
 
 begin
   Result:=S;
 end;
 
+function TSQLDBRestSchema.AttachProcessor(aProcessor: TSQLDBRestCustomBusinessProcessor): Boolean;
 
-Function TSQLDBRestSchema.GetPrimaryIndexFields(Q : TSQLQuery) : TStringArray;
+Var
+  Res : TSQLDBRestResource;
+
+begin
+  if aProcessor.ResourceName='' then
+    exit;
+  Res:=FResources.FindResourceByName(aProcessor.ResourceName);
+  Result:=Assigned(Res);
+  if Result then
+    begin
+    Res.FBusinessProcessor:=aProcessor;
+    aProcessor.FResource:=Res;
+    end;
+end;
+
+function TSQLDBRestSchema.DetachProcessor(aProcessor: TSQLDBRestCustomBusinessProcessor): Boolean;
+Var
+  Res : TSQLDBRestResource;
+
+begin
+  if aProcessor.ResourceName='' then
+    exit;
+  Res:=FResources.FindResourceByName(aProcessor.ResourceName);
+  Result:=Assigned(Res);
+  if Result then
+    begin
+    Res.FBusinessProcessor:=Nil;
+    aProcessor.FResource:=Nil;
+    end;
+end;
+
+procedure TSQLDBRestSchema.AttachAllProcessors;
+
+Var
+  I : integer;
+
+begin
+  For I:=0 to FProcessors.Count-1 do
+    AttachProcessor(TSQLDBRestCustomBusinessProcessor(FProcessors[i]));
+end;
+
+procedure TSQLDBRestSchema.DetachAllProcessors;
+Var
+  I : integer;
+
+begin
+  For I:=0 to FProcessors.Count-1 do
+    DetachProcessor(TSQLDBRestCustomBusinessProcessor(FProcessors[i]));
+end;
+
+
+function TSQLDBRestSchema.GetPrimaryIndexFields(Q: TSQLQuery): TStringArray;
 
 Var
   C,I : Integer;
@@ -434,7 +676,8 @@ begin
   end;
 end;
 
-procedure TSQLDBRestSchema.PopulateResources(aConn: TSQLConnection; aTables : Array of string; aMinFieldOpts : TRestFieldOptions = []);
+procedure TSQLDBRestSchema.PopulateResources(aConn: TSQLConnection;
+  aTables: array of string; aMinFieldOpts: TRestFieldOptions);
 
 Var
   L : TStringList;
@@ -676,6 +919,7 @@ begin
   Result:=FSQL[aKind];
 end;
 
+
 procedure TSQLDBRestResource.SetFields(AValue: TSQLDBRestFieldList);
 begin
   if FFields=AValue then Exit;
@@ -713,23 +957,29 @@ Var
   K : TSQLKind;
 
 begin
+  If Assigned(FBusinessProcessor) then
+    FBusinessProcessor.FResource:=Nil;
   FreeAndNil(FFields);
   for K in TSQLKind do
     FreeAndNil(FSQL[K]);
   inherited Destroy;
 end;
 
-procedure TSQLDBRestResource.CheckParams(aOperation: TRestoperation; P: TParams);
+procedure TSQLDBRestResource.CheckParams(aContext : TBaseRestContext; aOperation: TRestoperation; P: TParams);
 begin
   if Assigned(FOnCheckParams) then
-    FOnCheckParams(Self,aOperation,P);
+    FOnCheckParams(Self,aContext,aOperation,P)
+  else if Assigned(FBusinessProcessor) then
+    FBusinessProcessor.CheckParams(aContext,aOperation,P)
 end;
 
-function TSQLDBRestResource.GetDataset(aFieldList: TRestFieldPairArray; aOrderBy: TRestFieldOrderPairArray; aLimit, aOffset: Int64): TDataset;
+function TSQLDBRestResource.GetDataset(aContext : TBaseRestContext; aFieldList: TRestFieldPairArray; aOrderBy: TRestFieldOrderPairArray; aLimit, aOffset: Int64): TDataset;
 begin
   Result:=Nil;
   If Assigned(FOnGetDataset) then
-    FOnGetDataset(Self,aFieldList,aOrderBy,aLimit,aOffset,Result);
+    FOnGetDataset(Self,aContext,aFieldList,aOrderBy,aLimit,aOffset,Result)
+  else if Assigned(FBusinessProcessor) then
+    Result:=FBusinessProcessor.GetDataset(aContext,aFieldList,aOrderBy,aLimit,aOffset);
 end;
 
 function TSQLDBRestResource.GetSchema: TSQLDBRestSchema;
@@ -763,11 +1013,32 @@ begin
     inherited Assign(Source);
 end;
 
-function TSQLDBRestResource.AllowRecord(aDataset: TDataset): Boolean;
+function TSQLDBRestResource.AllowRecord(aContext : TBaseRestContext; aDataset: TDataset): Boolean;
 begin
   Result:=True;
   if Assigned(FOnAllowRecord) then
-    FOnAllowRecord(Self,aDataset,Result);
+    FOnAllowRecord(Self,aContext,aDataset,Result)
+  else if Assigned(FBusinessProcessor) then
+    Result:=FBusinessProcessor.AllowRecord(aContext,aDataset);
+end;
+
+function TSQLDBRestResource.AllowResource(aContext : TBaseRestContext): Boolean;
+begin
+  Result:=True;
+  If Assigned(FOnResourceAllowed) then
+    FOnResourceAllowed(Self,aContext,Result)
+  else If Assigned(FBusinessProcessor) then
+    Result:=FBusinessProcessor.AllowResource(aContext);
+end;
+
+function TSQLDBRestResource.GetAllowedOperations(aContext: TBaseRestContext
+  ): TRestOperations;
+begin
+  Result:=AllowedOperations;
+  if Assigned(FOnAllowedOperations) then
+    FOnAllowedOperations(Self,aContext,Result)
+  else if Assigned(FBusinessProcessor) then
+    Result:=FBusinessProcessor.GetAllowedOperations(aContext,Result);
 end;
 
 function TSQLDBRestResource.GetHTTPAllow: String;

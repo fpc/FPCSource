@@ -3795,6 +3795,7 @@ begin
       Obj.Add('Alias',El.AliasName);
     DefProcMods:=GetDefaultProcModifiers(El);
     WriteProcedureModifiers(Obj,'PMods',El.Modifiers,DefProcMods);
+    WriteExpr(Obj,El,'Msg',El.MessageExpr,aContext);
     if (El.MessageName<>'') or (El.MessageType<>pmtNone) then
       begin
       Obj.Add('Message',El.MessageName);
@@ -7574,6 +7575,7 @@ begin
     El.LibrarySymbolName:=ReadExpr(Obj,El,'LibName',aContext);
     El.DispIDExpr:=ReadExpr(Obj,El,'DispId',aContext);
     ReadString(Obj,'Alias',El.AliasName,El);
+    El.MessageExpr:=ReadExpr(Obj,El,'Msg',aContext);
     if ReadString(Obj,'Message',s,El) then
       begin
       El.MessageName:=s;

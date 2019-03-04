@@ -2488,12 +2488,25 @@ begin
   DoOleVarFromVar(TVarData(aDest), TVarData(aSource));
 end;
 
-procedure sysolevarfromint(var Dest : olevariant; const Source : LongInt; const range : ShortInt);
+procedure sysolevarfromint(var Dest : olevariant; const Source : Int64; const range : ShortInt);
 begin
   DoVarClearIfComplex(TVarData(Dest));
+  { 64-bit values have their own types, all smaller ones are stored as signed 32-bit value }
   with TVarData(Dest) do begin
-    vInteger := Source;
-    vType := varInteger;
+    case range of
+      -8: begin
+        vInt64 := Int64(Source);
+        vType := varInt64;
+      end;
+      8: begin
+        vQWord := QWord(Source);
+        vType := varQWord;
+      end;
+      else begin
+        vInteger := LongInt(Source);
+        vType := varInteger;
+      end;
+    end;
   end;
 end;
 

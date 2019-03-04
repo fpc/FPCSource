@@ -9385,6 +9385,18 @@ type
     CONSOLE_READCONSOLE_CONTROL = _CONSOLE_READCONSOLE_CONTROL;
     PCONSOLE_READCONSOLE_CONTROL = ^_CONSOLE_READCONSOLE_CONTROL;
 
+
+    COMPUTER_NAME_FORMAT =  (
+          ComputerNameNetBIOS=0,
+          ComputerNameDnsHostname,
+          ComputerNameDnsDomain,
+          ComputerNameDnsFullyQualified,
+          ComputerNamePhysicalNetBIOS,
+          ComputerNamePhysicalDnsHostname,
+          ComputerNamePhysicalDnsDomain,
+          ComputerNamePhysicalDnsFullyQualified,
+          ComputerNameMax=31);
+    TCOMPUTER_NAME_FORMAT = COMPUTER_NAME_FORMAT;
 {$pop}
 {$endif read_interface}
 

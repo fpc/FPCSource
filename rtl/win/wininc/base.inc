@@ -748,6 +748,8 @@
      PFNPROCESSPOLICIESA = function (_para1:HWND; _para2:LPCSTR; _para3:LPCSTR; _para4:LPCSTR; _para5:DWORD):WINBOOL;stdcall;
      PFNPROCESSPOLICIESW = function (_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:DWORD):WINBOOL;stdcall;
      PFNPROCESSPOLICIES  = function (_para1:HWND; _para2:LPCTSTR; _para3:LPCTSTR; _para4:LPCTSTR; _para5:DWORD):WINBOOL;stdcall;
+     TIMEFMT_ENUMPROCEX  = function (TimeFormat : LPWSTR; AppData : LPARAM) : BOOL; stdcall;
+
   (*  Not convertable by H2PAS
   #define SECURITY_NULL_SID_AUTHORITY     {0,0,0,0,0,0}
   #define SECURITY_WORLD_SID_AUTHORITY    {0,0,0,0,0,1}

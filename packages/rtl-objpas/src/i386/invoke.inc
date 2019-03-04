@@ -21,6 +21,8 @@ function ReturnResultInParam(aType: PTypeInfo): Boolean;
 var
   td: PTypeData;
 begin
+  { Only on Win32 structured types of sizes 1, 2 and 4 are returned directly
+    instead of a result parameter }
   Result := False;
   if Assigned(aType) then begin
     case aType^.Kind of
@@ -33,12 +35,20 @@ begin
       tkDynArray:
         Result := True;
       tkArray: begin
+{$ifdef win32}
         td := GetTypeData(aType);
         Result := not (td^.ArrayData.Size in [1, 2, 4]);
+{$else}
+        Result := True;
+{$endif}
       end;
       tkRecord: begin
+{$ifdef win32}
         td := GetTypeData(aType);
         Result := not (td^.RecSize in [1, 2, 4]);
+{$else}
+        Result := True;
+{$endif}
       end;
       tkSet: begin
         td := GetTypeData(aType);

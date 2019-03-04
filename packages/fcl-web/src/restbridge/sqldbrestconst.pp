@@ -45,6 +45,10 @@ Resourcestring
   SErrInvalidCDSMissingElement = 'Invalid CDS Data packet: missing %s element';
   SErrNoResourceDataFound = 'Failed to find resource data in input';
   SErrNoRESTDispatcher = 'No REST bridge dispatcher assigned to handle request!';
+  SErrCouldNotFindResourceName = 'Could not find resource name';
+  SErrNoSQLStatement = 'Could not find SQL statement for custom view';
+  SErrOnlySELECTSQLAllowedInCustomView = 'Only SELECT SQL is allowed for '
+    +'custom view';
 
 Const
   DefaultAuthenticationRealm = 'REST API Server';

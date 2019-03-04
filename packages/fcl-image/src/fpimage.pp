@@ -286,7 +286,7 @@ function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor
 function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
 *)
 
-function AlphaBlend(color1, color2: TFPColor): TFPColor;
+function AlphaBlend(const color1, color2: TFPColor): TFPColor;
 
 function FPColor (r,g,b,a:word) : TFPColor;
 function FPColor (r,g,b:word) : TFPColor;
@@ -561,7 +561,7 @@ FuzzyDepth: word = 4): TFPCustomImage;
 { HTML Color support. RRGGBB or color name. Only W3 color names s are supported}
 
 function TryHtmlToFPColor(const S: String; out FPColor: TFPColor): Boolean;
-function HtmlToFPColorDef(const S: String; out FPColor: TFpColor; Def: TFPColor): TFPColor;
+function HtmlToFPColorDef(const S: String; out FPColor: TFpColor; const Def: TFPColor): TFPColor;
 function HtmlToFPColor(const S: String): TFPColor;
 
 
@@ -613,12 +613,12 @@ begin
             (c.Alpha = d.Alpha);
 end;
 
-function GetFullColorData (color:TFPColor) : TColorData;
+function GetFullColorData (const color:TFPColor) : TColorData;
 begin
   result := PColorData(@color)^;
 end;
 
-function SetFullColorData (color:TColorData) : TFPColor;
+function SetFullColorData (const color:TColorData) : TFPColor;
 begin
   result := PFPColor (@color)^;
 end;
@@ -760,7 +760,7 @@ begin
   end;
 end;
 
-function HtmlToFPColorDef(const S: String; out FPColor: TFpColor; Def: TFPColor): TFPColor;
+function HtmlToFPColorDef(const S: String; out FPColor: TFpColor; const Def: TFPColor): TFPColor;
 begin
   if not TryHtmlToFPColor(S, Result) then
     Result := Def;

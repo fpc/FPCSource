@@ -620,6 +620,8 @@ type
     Procedure TestClass_EnumeratorFunc;
     Procedure TestClass_ForInPropertyStaticArray;
     Procedure TestClass_TypeAlias;
+    Procedure TestClass_Message;
+    Procedure TestClass_Message_MissingParamFail;
 
     // published
     Procedure TestClass_PublishedClassVarFail;
@@ -932,7 +934,8 @@ type
     Procedure TestTypeHelper_Boolean;
     Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_Constructor_NewInstance;
-    Procedure TestTypeHelper_InterfaceFail;
+    Procedure TestTypeHelper_Interface;
+    Procedure TestTypeHelper_Interface_ConstructorFail;
 
     // attributes
     Procedure TestAttributes_Globals;
@@ -11117,6 +11120,42 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_Message;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  FlyId = 2;',
+  '  RunStr = ''Fast'';',
+  'type',
+  '  TObject = class',
+  '    procedure Fly(var msg); message 3+FlyId;',
+  '    procedure Run(var msg); virtual; abstract; message ''prefix''+RunStr;',
+  '  end;',
+  'procedure TObject.Fly(var msg);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_Message_MissingParamFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Fly; message 3;',
+  '  end;',
+  'procedure TObject.Fly;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sMessageHandlersInvalidParams,nMessageHandlersInvalidParams);
+end;
+
 procedure TTestResolver.TestClass_PublishedClassVarFail;
 begin
   StartProgram(false);
@@ -17593,18 +17632,69 @@ begin
     end;
 end;
 
-procedure TTestResolver.TestTypeHelper_InterfaceFail;
+procedure TTestResolver.TestTypeHelper_Interface;
 begin
   StartProgram(false);
   Add([
   '{$modeswitch typehelpers}',
   'type',
-  '  IUnknown = interface end;',
-  '  THelper = type helper for IUnknown',
+  '  IUnknown = interface',
+  '    function GetSizes(Index: word): word;',
+  '    procedure SetSizes(Index: word; value: word);',
   '  end;',
+  '  TObject = class(IUnknown)',
+  '    function GetSizes(Index: word): word; virtual; abstract;',
+  '    procedure SetSizes(Index: word; value: word); virtual; abstract;',
+  '  end;',
+  '  THelper = type helper for IUnknown',
+  '    procedure Fly;',
+  '    class procedure Run; static;',
+  '    property Sizes[Index: word]: word read GetSizes write SetSizes; default;',
+  '  end;',
+  'var',
+  '  i: IUnknown;',
+  '  o: TObject;',
+  'procedure THelper.Fly;',
+  'begin',
+  '  i:=Self;',
+  '  o:=Self as TObject;',
+  '  Self:=nil;',
+  '  Self:=i;',
+  '  Self:=o;',
+  'end;',
+  'class procedure THelper.Run;',
+  'begin',
+  'end;',
+  'begin',
+  '  i.Fly;',
+  '  i.Fly();',
+  '  i.Run;',
+  '  i.Run();',
+  '  i.Sizes[3]:=i.Sizes[4];',
+  '  i[5]:=i[6];',
+  '  IUnknown.Run;',
+  '  IUnknown.Run();',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Interface_ConstructorFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  THelper = type helper for IUnknown',
+  '    constructor Fly;',
+  '  end;',
+  'constructor THelper.Fly;',
+  'begin',
+  'end;',
   'begin',
   '']);
-  CheckResolverException('Type "IUnknown" cannot be extended by a type helper',nTypeXCannotBeExtendedByATypeHelper);
+  CheckResolverException('constructor is not supported',nXIsNotSupported);
 end;
 
 procedure TTestResolver.TestAttributes_Globals;
