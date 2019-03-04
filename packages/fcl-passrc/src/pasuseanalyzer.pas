@@ -2115,6 +2115,11 @@ begin
         end;
         //writeln('TPasAnalyzer.UseClassType ',El.FullName,' ',Mode,' ',Member.Name);
         end;
+      if Proc.MessageExpr<>nil then
+        begin
+        UseProcedure(Proc);
+        continue;
+        end;
       end
     else if Member.ClassType=TPasAttributes then
       continue; // attributes are never used directly

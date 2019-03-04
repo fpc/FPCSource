@@ -9995,6 +9995,7 @@ begin
   '  doit(vc,vc,vl,vl);',
   '  doit(vv,vv,vv,vv);',
   '  doit(vl,vl,vl,vl);',
+  //'  TRecord(U).i:=3;',
   'end;',
   'var i: TRecord;',
   'begin',
