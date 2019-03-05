@@ -745,7 +745,9 @@ function(){
         JS object. Since Pas2js 1.3 only values are copied,
         keeping the object, so pointer of record is compatible.</li>
       <li>Since record types are JS objects it is possible to typecast a record type
-      to the JS Object, e.g. TJSObject(TPoint)</li>
+      to the JS Object, e.g. <i>TJSObject(TPoint)</i>.
+      Note that you cannot typecast directly to a <i>TJSObject</i> descendant.
+      You can use <i>TJSWindow(TJSObject(aRecord))</i>.</li>
       <li>A pointer of record is simply a reference.
         <ul>
           <li><i>p:=@r</i> translates to <i>p=r</i></li>
@@ -1818,7 +1820,8 @@ function(){
         <li>ClassType(IntfVar) - can be unrelated, nil if invalid</li>
         <li>IntfType(ObjVar) - nil if not found,
           COM: if ObjVar has delegate uses _AddRef</li>
-        <li>TJSObject(IntfTypeOrVar)</li>
+        <li>TJSObject(IntfTypeOrVar). Note that you cannot typecast directly
+        to a <i>TJSObject</i> descendant. You can use <i>TJSWindow(TJSObject(IntfType))</i>.</li>
         <li>jsvalue(intfvar)</li>
       </ul>
     <li>Assign operator:</li>
@@ -2703,7 +2706,9 @@ End.
       call <i>aJSString.fromCharCode()</i>.</li>
       <li>An external class can descend from another external class.</li>
       <li>Since class types are JS objects it is possible to typecast a class type
-      to the JS Object, e.g. TJSObject(TObject)</li>
+      to the JS Object, e.g. <i>TJSObject(TObject)</i>.
+      Note that you cannot typecast directly to a <i>TJSObject</i> descendant.
+      You can use <i>TJSWindow(TJSObject(aRecord))</i>.</li>
       <li>You can typecast function addresses and function references to JS
       function, e.g. <i>TJSFunction(@SomeProc)</i>, <i>TJSFunction(OnClick)</i>.
       Keep in mind that typecasting a method address creates a function wrapper
