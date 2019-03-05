@@ -317,7 +317,7 @@ var ahkl : HKL;
    while i<$100 do
      begin
        // <MSDN>
-       // For keyboard layouts that use the right-hand ALT key as ashift key
+       // For keyboard layouts that use the right-hand ALT key as a shift key
        // (for example, the French keyboard layout), the shift state is
        // represented by the value 6, because the right-hand ALT key is
        // converted internally into CTRL+ALT.
