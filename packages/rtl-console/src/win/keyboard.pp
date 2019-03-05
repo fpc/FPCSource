@@ -256,7 +256,13 @@ begin
     GUI apps get an WM_INPUTLANGCHANGE message in the case the keyboard layout
     changes, but unfortunately, console apps get no such notification. Therefore
     we must check and update our idea of the current keyboard layout on every
-    key event we receive. :( }
+    key event we receive. :(
+
+    Note: This doesn't actually work, due to this Windows bug:
+      https://github.com/Microsoft/console/issues/83
+    Since Microsoft considers this an open bug, and since there's no known
+    workaround, we still poll the keyboard layout, in hope that some day
+    Microsoft might fix this and issue a Windows Update. }
   UpdateKeyboardLayoutInfo(False);
 
   with ir.Event.KeyEvent do
