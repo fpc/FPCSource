@@ -149,6 +149,33 @@ begin
   transShiftState := b;
 end;
 
+procedure CheckAltGr;
+
+var ahkl : HKL;
+    i    : integer;
+
+ begin
+   HasAltGr:=false;
+
+   ahkl:=GetKeyboardLayout(0);
+   i:=$20;
+   while i<$100 do
+     begin
+       // <MSDN>
+       // For keyboard layouts that use the right-hand ALT key as a shift key
+       // (for example, the French keyboard layout), the shift state is
+       // represented by the value 6, because the right-hand ALT key is
+       // converted internally into CTRL+ALT.
+       // </MSDN>
+      if (HIBYTE(VkKeyScanEx(chr(i),ahkl))=6) then
+        begin
+          HasAltGr:=true;
+          break;
+        end;
+     inc(i);
+    end;
+end;
+
 
 { The event-Handler thread from the unit event will call us if a key-event
   is available }
@@ -301,33 +328,6 @@ begin
                end;
             end;
          end;
-    end;
-end;
-
-procedure CheckAltGr;
-
-var ahkl : HKL;
-    i    : integer;
-
- begin
-   HasAltGr:=false;
-
-   ahkl:=GetKeyboardLayout(0);
-   i:=$20;
-   while i<$100 do
-     begin
-       // <MSDN>
-       // For keyboard layouts that use the right-hand ALT key as a shift key
-       // (for example, the French keyboard layout), the shift state is
-       // represented by the value 6, because the right-hand ALT key is
-       // converted internally into CTRL+ALT.
-       // </MSDN>
-      if (HIBYTE(VkKeyScanEx(chr(i),ahkl))=6) then
-        begin
-          HasAltGr:=true;
-          break;
-        end;
-     inc(i);
     end;
 end;
 
