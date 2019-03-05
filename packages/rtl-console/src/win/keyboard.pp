@@ -161,16 +161,31 @@ procedure HandleKeyboard(var ir:INPUT_RECORD);
   var b : TEnhancedShiftState;
   begin
     b := [];
-    if ControlKeyState and SHIFT_PRESSED <> 0 then  { win32 makes no difference between left and right shift }
-      Include(b,essShift);
-    if ControlKeyState and LEFT_CTRL_PRESSED <> 0 then
-      b:=b+[essCtrl,essLeftCtrl];
-    if ControlKeyState and RIGHT_CTRL_PRESSED <> 0 then
-      b:=b+[essCtrl,essRightCtrl];
+    { Ctrl + Right Alt = AltGr }
+    if HasAltGr and (ControlKeyState and RIGHT_ALT_PRESSED <> 0) and
+                    ((ControlKeyState and LEFT_CTRL_PRESSED <> 0) or
+                     (ControlKeyState and RIGHT_CTRL_PRESSED <> 0)) then
+      begin
+        Include(b, essAltGr);
+        { if it's the right ctrl key, then we know it's RightCtrl+AltGr }
+        if ControlKeyState and RIGHT_CTRL_PRESSED <> 0 then
+          b:=b+[essCtrl,essRightCtrl];
+        { if it's the left ctrl key, unfortunately, we can't distinguish between
+          LeftCtrl+AltGr and AltGr alone, so we assume AltGr only }
+      end
+    else
+      begin
+        if ControlKeyState and LEFT_CTRL_PRESSED <> 0 then
+          b:=b+[essCtrl,essLeftCtrl];
+        if ControlKeyState and RIGHT_ALT_PRESSED <> 0 then
+          b:=b+[essAlt,essRightAlt];
+        if ControlKeyState and RIGHT_CTRL_PRESSED <> 0 then
+          b:=b+[essCtrl,essRightCtrl];
+      end;
     if ControlKeyState and LEFT_ALT_PRESSED <> 0 then
       b:=b+[essAlt,essLeftAlt];
-    if ControlKeyState and RIGHT_ALT_PRESSED <> 0 then
-      b:=b+[essAlt,essRightAlt];
+    if ControlKeyState and SHIFT_PRESSED <> 0 then  { win32 makes no difference between left and right shift }
+      Include(b,essShift);
     if ControlKeyState and NUMLOCK_ON <> 0 then
       Include(b,essNumLockOn);
     if ControlKeyState and CAPSLOCK_ON <> 0 then
@@ -951,7 +966,7 @@ begin
       Key.AsciiChar := WideCharToOemCpChar(t.ev.UnicodeChar);
       Key.VirtualScanCode := byte (Key.AsciiChar) + (t.ev.wVirtualScanCode shl 8);
       Key.ShiftState := t.ShiftState;
-      if (essAlt in t.ShiftState) and rightistruealt(t.ev.dwControlKeyState) then
+      if essAlt in t.ShiftState then
         Key.VirtualScanCode := Key.VirtualScanCode and $FF00;
 {$else not USEKEYCODES}
       Key.UnicodeChar := t.ev.UnicodeChar;
@@ -1002,7 +1017,7 @@ begin
     { Reset Ascii-Char if Alt+Key, fv needs that, may be we
       need it for other special keys too
       18 Sept 1999 AD: not for right Alt i.e. for AltGr+ß = \ on german keyboard }
-    if (essAlt in t.ShiftState) and rightistruealt(t.ev.dwControlKeyState) or
+    if (essAlt in t.ShiftState) or
     (*
       { yes, we need it for cursor keys, 25=left, 26=up, 27=right,28=down}
       {aggg, this will not work because esc is also virtualKeyCode 27!!}
@@ -1018,44 +1033,42 @@ begin
     {and translate to dos-scancodes to make fv happy, we will convert this
      back in translateKeyEvent}
 
-     if rightistruealt(t.ev.dwControlKeyState) then {not for alt-gr}
-     if (t.ev.wVirtualScanCode >= low (DosTT)) and
-        (t.ev.wVirtualScanCode <= high (dosTT)) then
-     begin
-       b := 0;
-       if essAlt in t.ShiftState then
-         b := DosTT[t.ev.wVirtualScanCode].a
-       else
-       if essCtrl in t.ShiftState then
-         b := DosTT[t.ev.wVirtualScanCode].c
-       else
-       if essShift in t.ShiftState then
-         b := DosTT[t.ev.wVirtualScanCode].s
-       else
-         b := DosTT[t.ev.wVirtualScanCode].n;
-       if b <> 0 then
-         Key.VirtualScanCode := (Key.VirtualScanCode and $00FF) or (cardinal (b) shl 8);
-     end;
+    if (t.ev.wVirtualScanCode >= low (DosTT)) and
+       (t.ev.wVirtualScanCode <= high (dosTT)) then
+    begin
+      b := 0;
+      if essAlt in t.ShiftState then
+        b := DosTT[t.ev.wVirtualScanCode].a
+      else
+      if essCtrl in t.ShiftState then
+        b := DosTT[t.ev.wVirtualScanCode].c
+      else
+      if essShift in t.ShiftState then
+        b := DosTT[t.ev.wVirtualScanCode].s
+      else
+        b := DosTT[t.ev.wVirtualScanCode].n;
+      if b <> 0 then
+        Key.VirtualScanCode := (Key.VirtualScanCode and $00FF) or (cardinal (b) shl 8);
+    end;
 
-     {Alt-0 to Alt-9}
-     if rightistruealt(t.ev.dwControlKeyState) then {not for alt-gr}
-       if (t.ev.wVirtualScanCode >= low (DosTT09)) and
-          (t.ev.wVirtualScanCode <= high (dosTT09)) then
-       begin
-         b := 0;
-         if essAlt in t.ShiftState then
-           b := DosTT09[t.ev.wVirtualScanCode].a
-         else
-         if essCtrl in t.ShiftState then
-           b := DosTT09[t.ev.wVirtualScanCode].c
-         else
-         if essShift in t.ShiftState then
-           b := DosTT09[t.ev.wVirtualScanCode].s
-         else
-           b := DosTT09[t.ev.wVirtualScanCode].n;
-         if b <> 0 then
-           Key.VirtualScanCode := cardinal (b) shl 8;
-       end;
+    {Alt-0 to Alt-9}
+    if (t.ev.wVirtualScanCode >= low (DosTT09)) and
+       (t.ev.wVirtualScanCode <= high (dosTT09)) then
+    begin
+      b := 0;
+      if essAlt in t.ShiftState then
+        b := DosTT09[t.ev.wVirtualScanCode].a
+      else
+      if essCtrl in t.ShiftState then
+        b := DosTT09[t.ev.wVirtualScanCode].c
+      else
+      if essShift in t.ShiftState then
+        b := DosTT09[t.ev.wVirtualScanCode].s
+      else
+        b := DosTT09[t.ev.wVirtualScanCode].n;
+      if b <> 0 then
+        Key.VirtualScanCode := cardinal (b) shl 8;
+    end;
   end;
   TranslateEnhancedKeyEvent := Key;
 end;
