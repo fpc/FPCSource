@@ -1234,7 +1234,7 @@ type
     SubType: TResolverBaseType; // for btSet, btArrayLit, btArrayOrSet, btRange
     IdentEl: TPasElement; // if set then this specific identifier is the value, can be a type
     LoTypeEl: TPasType; // can be nil for const expression, all alias resolved
-    HiTypeEl: TPasType; // same as BaseTypeEl, except alias types are not resolved
+    HiTypeEl: TPasType; // same as LoTypeEl, except alias types are not resolved
     ExprEl: TPasExpr;
     Flags: TPasResolverResultFlags;
   end;
@@ -1438,7 +1438,7 @@ type
     procedure OnFindFirst(El: TPasElement; ElScope, StartScope: TPasScope;
       FindFirstElementData: Pointer; var Abort: boolean); virtual;
     procedure OnFindCallElements(El: TPasElement; ElScope, StartScope: TPasScope;
-      FindProcsData: Pointer; var Abort: boolean); virtual; // find candidates for Name(params)
+      FindCallElData: Pointer; var Abort: boolean); virtual; // find candidates for Name(params)
     procedure OnFindProc(El: TPasElement; ElScope, StartScope: TPasScope;
       FindProcData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
@@ -4373,9 +4373,9 @@ begin
 end;
 
 procedure TPasResolver.OnFindCallElements(El: TPasElement; ElScope,
-  StartScope: TPasScope; FindProcsData: Pointer; var Abort: boolean);
+  StartScope: TPasScope; FindCallElData: Pointer; var Abort: boolean);
 var
-  Data: PFindCallElData absolute FindProcsData;
+  Data: PFindCallElData absolute FindCallElData;
   Proc, PrevProc: TPasProcedure;
   Distance: integer;
   BuiltInProc: TResElDataBuiltInProc;
@@ -4680,7 +4680,7 @@ var
   end;
 
 begin
-  //writeln('TPasResolver.OnFindProcSameSignature START ',El.Name,':',GetElementTypeName(El),' itself=',El=Data^.Proc);
+  //writeln('TPasResolver.OnFindProc START ',El.Name,':',GetElementTypeName(El),' itself=',El=Data^.Proc);
   if not (El is TPasProcedure) then
     begin
     // identifier is not a proc
@@ -4732,7 +4732,7 @@ begin
     end;
 
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.OnFindProcSameSignature ',GetTreeDbg(El,2));
+  writeln('TPasResolver.OnFindProc ',GetTreeDbg(El,2));
   {$ENDIF}
   Store:=CheckOverloadProcCompatibility(Data^.Proc,Proc);
   if Data^.Kind=fpkSameSignature then
@@ -20198,18 +20198,25 @@ begin
         end;
       exit;
       end;
+    if (Param.ArgType=nil) then
+      exit(cExact); // untyped argument
     if (ParamResolved.BaseType=ExprResolved.BaseType) then
       begin
       if msDelphi in CurrentParser.CurrentModeswitches then
         begin
+        // Delphi allows passing alias, but not type alias to a var arg
         if IsSameType(ParamResolved.HiTypeEl,ExprResolved.HiTypeEl,prraSimple) then
           exit(cExact);
         end
       else if IsSameType(ParamResolved.LoTypeEl,ExprResolved.LoTypeEl,prraNone) then
-        exit(cExact);
+        begin
+        // ObjFPC allows passing type alias to a var arg, but simple alias wins
+        if IsSameType(ParamResolved.HiTypeEl,ExprResolved.HiTypeEl,prraSimple) then
+          exit(cExact)
+        else
+          exit(cAliasExact);
+        end;
       end;
-    if (Param.ArgType=nil) then
-      exit(cExact); // untyped argument
     if RaiseOnError then
       RaiseIncompatibleTypeRes(20170216152452,nIncompatibleTypeArgNoVarParamMustMatchExactly,
         [IntToStr(ParamNo+1)],ExprResolved,ParamResolved,
@@ -22137,6 +22144,8 @@ begin
     exit(TPasArgument(IdentEl).ArgType<>nil)
   else if IdentEl.ClassType=TPasResultElement then
     exit(TPasResultElement(IdentEl).ResultType<>nil)
+  else if IdentEl is TPasType then
+    Result:=true
   else
     Result:=false;
 end;

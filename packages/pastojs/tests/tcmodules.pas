@@ -263,7 +263,8 @@ type
     Procedure TestInteger;
     Procedure TestIntegerRange;
     Procedure TestIntegerTypecasts;
-    Procedure TestBitwiseShlNativeIntWarn;
+    Procedure TestInteger_BitwiseShrNativeInt;
+    Procedure TestInteger_BitwiseShlNativeInt;
     Procedure TestCurrency;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -6436,24 +6437,59 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestBitwiseShlNativeIntWarn;
+procedure TTestModule.TestInteger_BitwiseShrNativeInt;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  i,j: nativeint;',
+  'begin',
+  '  i:=i shr 0;',
+  '  i:=i shr 1;',
+  '  i:=i shr 3;',
+  '  i:=i shr 54;',
+  '  i:=j shr i;',
+  '']);
+  ConvertProgram;
+  CheckResolverUnexpectedHints;
+  CheckSource('TestInteger_BitwiseShrNativeInt',
+    LinesToStr([
+    'this.i = 0;',
+    'this.j = 0;',
+    '']),
+    LinesToStr([
+    '$mod.i = $mod.i;',
+    '$mod.i = Math.floor($mod.i / 2);',
+    '$mod.i = Math.floor($mod.i / 8);',
+    '$mod.i = 0;',
+    '$mod.i = rtl.shr($mod.j, $mod.i);',
+    '']));
+end;
+
+procedure TTestModule.TestInteger_BitwiseShlNativeInt;
 begin
   StartProgram(false);
   Add([
   'var',
   '  i: nativeint;',
   'begin',
-  '  i:=i shl 3;',
+  '  i:=i shl 0;',
+  '  i:=i shl 54;',
+  '  i:=123456789012 shl 1;',
+  '  i:=i shl 1;',
   '']);
   ConvertProgram;
-  CheckSource('TestBitwiseShlNativeIntWarn',
+  CheckResolverUnexpectedHints;
+  CheckSource('TestInteger_BitwiseShrNativeInt',
     LinesToStr([
     'this.i = 0;',
     '']),
     LinesToStr([
-    '$mod.i = $mod.i << 3;',
+    '$mod.i = $mod.i;',
+    '$mod.i = 0;',
+    '$mod.i = 246913578024;',
+    '$mod.i = rtl.shl($mod.i, 1);',
     '']));
-  CheckHint(mtWarning,nBitWiseOperationIs32Bit,sBitWiseOperationIs32Bit);
 end;
 
 procedure TTestModule.TestCurrency;

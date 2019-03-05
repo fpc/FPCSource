@@ -149,7 +149,7 @@ resourcestring
   rsNoSearchPathDefined = 'No search path was defined';
   rsNoFontFileName = 'The FileName property is empty, so we can''t load font data.';
   rsMissingFontFile = 'The font file <%s> can''t be found.';
-  SErrFontNotFound = 'The font <%s> can can''t be found';
+  SErrFontNotFound = 'The font <%s> can''t be found';
 
 var
   uFontCacheList: TFPFontCacheList;
