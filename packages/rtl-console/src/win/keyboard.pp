@@ -176,6 +176,11 @@ var ahkl : HKL;
     end;
 end;
 
+procedure UpdateKeyboardLayoutInfo;
+begin
+  KeyBoardLayout:=GetKeyboardLayout(0);
+  CheckAltGr;
+end;
 
 { The event-Handler thread from the unit event will call us if a key-event
   is available }
@@ -237,6 +242,20 @@ var
    altc : char;
    addThis: boolean;
 begin
+  { Since Windows supports switching between different input locales, the
+    current input locale might change, while the app is still running. In
+    fact, this is the default configuration for languages, that use a Non
+    Latin script (e.g. Cyrillic, Greek, etc.) - they use this feature to
+    switch between Latin and the Non Latin layout. But Windows in general
+    can be configured to switch between any number of different keyboard
+    layouts, so it's not a feature, limited only to Non Latin scripts.
+
+    GUI apps get an WM_INPUTLANGCHANGE message in the case the keyboard layout
+    changes, but unfortunately, console apps get no such notification. Therefore
+    we must check and update our idea of the current keyboard layout on every
+    key event we receive. :( }
+  UpdateKeyboardLayoutInfo;
+
   with ir.Event.KeyEvent do
     begin
        { key up events are ignored (except alt) }
