@@ -149,37 +149,40 @@ begin
   transShiftState := b;
 end;
 
-procedure CheckAltGr;
+procedure UpdateKeyboardLayoutInfo(Force: Boolean);
+var
+  NewKeyboardLayout: HKL;
 
-var ahkl : HKL;
-    i    : integer;
+  procedure CheckAltGr;
+  var i: integer;
+  begin
+    HasAltGr:=false;
 
- begin
-   HasAltGr:=false;
-
-   ahkl:=GetKeyboardLayout(0);
-   i:=$20;
-   while i<$100 do
-     begin
-       // <MSDN>
-       // For keyboard layouts that use the right-hand ALT key as a shift key
-       // (for example, the French keyboard layout), the shift state is
-       // represented by the value 6, because the right-hand ALT key is
-       // converted internally into CTRL+ALT.
-       // </MSDN>
-      if (HIBYTE(VkKeyScanEx(chr(i),ahkl))=6) then
-        begin
-          HasAltGr:=true;
-          break;
-        end;
-     inc(i);
+    i:=$20;
+    while i<$100 do
+      begin
+        // <MSDN>
+        // For keyboard layouts that use the right-hand ALT key as a shift key
+        // (for example, the French keyboard layout), the shift state is
+        // represented by the value 6, because the right-hand ALT key is
+        // converted internally into CTRL+ALT.
+        // </MSDN>
+        if (HIBYTE(VkKeyScanEx(chr(i),KeyBoardLayout))=6) then
+          begin
+            HasAltGr:=true;
+            break;
+          end;
+      inc(i);
     end;
-end;
+  end;
 
-procedure UpdateKeyboardLayoutInfo;
 begin
-  KeyBoardLayout:=GetKeyboardLayout(0);
-  CheckAltGr;
+  NewKeyBoardLayout:=GetKeyboardLayout(0);
+  if force or (NewKeyboardLayout <> KeyBoardLayout) then
+    begin
+      KeyBoardLayout:=NewKeyboardLayout;
+      CheckAltGr;
+    end;
 end;
 
 { The event-Handler thread from the unit event will call us if a key-event
@@ -254,7 +257,7 @@ begin
     changes, but unfortunately, console apps get no such notification. Therefore
     we must check and update our idea of the current keyboard layout on every
     key event we receive. :( }
-  UpdateKeyboardLayoutInfo;
+  UpdateKeyboardLayoutInfo(False);
 
   with ir.Event.KeyEvent do
     begin
@@ -355,7 +358,7 @@ end;
 
 procedure SysInitKeyboard;
 begin
-   KeyBoardLayout:=GetKeyboardLayout(0);
+   UpdateKeyboardLayoutInfo(True);
    lastShiftState := 0;
    FlushConsoleInputBuffer(StdInputHandle);
    newKeyEvent := CreateEvent (nil,        // address of security attributes
@@ -373,7 +376,6 @@ begin
 
    nextkeyevent:=0;
    nextfreekeyevent:=0;
-   checkaltgr;
    SetKeyboardEventHandler (@HandleKeyboard);
    Inited:=true;
 end;
