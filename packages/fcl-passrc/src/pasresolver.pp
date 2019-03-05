@@ -4800,7 +4800,8 @@ begin
             begin
             // Delphi/FPC do not give a message when hiding a non virtual method
             // -> emit Hint with other message id
-            if (Data^.Proc.Parent is TPasMembersType) then
+            if (Data^.Proc.Parent is TPasMembersType)
+                and (Proc.Visibility<>visStrictPrivate) then
               begin
               ProcScope:=Proc.CustomData as TPasProcedureScope;
               if (ProcScope.ImplProc<>nil)  // not abstract, external
@@ -4811,6 +4812,9 @@ begin
               else if (Proc is TPasConstructor)
                   and (Data^.Proc.ClassType=Proc.ClassType) then
                 // do not give a hint for hiding a constructor
+              else if (Proc.Visibility=visPrivate)
+                  and (Proc.GetModule<>Data^.Proc.GetModule) then
+                // a private private is hidden by definition -> no hint
               else
                 LogMsg(20171118214523,mtHint,
                   nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,

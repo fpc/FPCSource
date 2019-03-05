@@ -557,6 +557,7 @@ type
     Procedure TestClass_MethodOverloadUnit;
     Procedure TestClass_HintMethodHidesNonVirtualMethod;
     Procedure TestClass_HintMethodHidesNonVirtualMethodWithoutBody_NoHint;
+    Procedure TestClass_NoHintMethodHidesPrivateMethod;
     Procedure TestClass_MethodReintroduce;
     Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_ConstructorHidesAncestorWarning;
@@ -9505,6 +9506,30 @@ begin
   '  b.DoIt(3);']);
   ParseProgram;
   CheckResolverUnexpectedHints(true);
+end;
+
+procedure TTestResolver.TestClass_NoHintMethodHidesPrivateMethod;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  strict private',
+  '    procedure DoIt(p: pointer);',
+  '  end;',
+  '  TBird = class',
+  '    procedure DoIt(i: longint);',
+  '  end;',
+  'procedure TObject.DoIt(p: pointer);',
+  'begin',
+  '  if p=nil then ;',
+  'end;',
+  'procedure TBird.DoIt(i: longint); begin end;',
+  'var b: TBird;',
+  'begin',
+  '  b.DoIt(3);']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClass_MethodReintroduce;

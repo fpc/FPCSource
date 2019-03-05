@@ -3700,6 +3700,7 @@ procedure TTestModule.TestProc_Asm;
 begin
   StartProgram(false);
   Add([
+  '{$mode delphi}',
   'function DoIt: longint;',
   'begin;',
   '  asm',
@@ -3714,6 +3715,10 @@ begin
   '    s = ''end'';',
   '    s = "end";',
   '  end;',
+  'end;',
+  'procedure Fly;',
+  'asm',
+  '  return;',
   'end;',
   'begin']);
   ConvertProgram;
