@@ -127,6 +127,9 @@ begin
             ConvertEnhancedToLegacyShiftState:=ConvertEnhancedToLegacyShiftState or kbRightShift;
         end;
     end;
+  { AltGr triggers both kbAlt and kbCtrl in the legacy shift state }
+  if essAltGr in ShiftState then
+    ConvertEnhancedToLegacyShiftState:=ConvertEnhancedToLegacyShiftState or (kbAlt or kbCtrl);
 end;
 
 

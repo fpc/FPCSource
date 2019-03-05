@@ -64,6 +64,7 @@ type
     essAlt,
     essLeftAlt,
     essRightAlt,
+    essAltGr,
     essCapsLockPressed,
     essCapsLockOn,
     essNumLockPressed,

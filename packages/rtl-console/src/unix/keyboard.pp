@@ -1349,10 +1349,8 @@ begin
        Include(EnhShiftState,essLeftCtrl);
      if (arg and (1 shl KG_CTRLR))<>0 then
        Include(EnhShiftState,essRightCtrl);
-     { 2 corresponds to AltGr so set both kbAlt and kbCtrl PM }
      if (arg and (1 shl KG_ALTGR))<>0 then
-       {shiftstate:=shiftstate or (kbAlt or kbCtrl);}
-       Include(EnhShiftState,essRightAlt);
+       Include(EnhShiftState,essAltGr);
      if (arg and (1 shl KG_SHIFT))<>0 then
        Include(EnhShiftState,essShift);
      if (arg and (1 shl KG_SHIFTL))<>0 then
