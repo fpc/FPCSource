@@ -55,16 +55,16 @@ type
   possibily having the same name (but different value). }
 
   TEnhancedShiftStateElement = (
-    essShift,
+    essShift,             { either Left or Right Shift is pressed }
     essLeftShift,
     essRightShift,
-    essCtrl,
+    essCtrl,              { either Left or Right Ctrl is pressed }
     essLeftCtrl,
     essRightCtrl,
-    essAlt,
+    essAlt,               { either Left or Right Alt is pressed, but *not* AltGr }
     essLeftAlt,
-    essRightAlt,
-    essAltGr,
+    essRightAlt,          { only on keyboard layouts, without AltGr }
+    essAltGr,             { only on keyboard layouts, with AltGr instead of Right Alt }
     essCapsLockPressed,
     essCapsLockOn,
     essNumLockPressed,
@@ -73,6 +73,56 @@ type
     essScrollLockOn
   );
   TEnhancedShiftState = set of TEnhancedShiftStateElement;
+  { Note: not all consoles are able to distinguish between Left and Right Shift,
+    Ctrl and Alt.
+
+    Valid examples:
+                               [essShift] - Either Left or Right Shift is
+                                            pressed. Console is NOT able to
+                                            distinguish between Left and Right
+                                            Shift.
+                  [essShift,essLeftShift] - Left Shift is pressed. Console CAN
+                                            distinguish between Left and Right
+                                            Shift.
+                 [essShift,essRightShift] - Right shift is pressed. Console CAN
+                                            distinguish between Left and Right
+                                            Shift.
+    [essShift,essLeftShift,essRightShift] - Both Left Shift and Right Shift are
+                                            pressed. Console CAN distinguish
+                                            between Left and Right Shift.
+
+    Invalid examples (it is a bug, if a console driver ever generates these):
+                  [essLeftShift] - missing essShift
+                 [essRightShift] - missing essShift
+    [essLeftShift,essRightShift] - missing essShift
+
+    Exactly the same principle applies to essCtrl, essLeftCtrl and essRightCtrl.
+
+    For Alt, it depends on whether the current keyboard layout has a Right Alt
+    or an AltGr key. If it's Right Alt, then essAltGr will not be seen, and the
+    same principle described above applies to essAlt, essLeftAlt and
+    essRightAlt. If the keyboard layout has an AltGr key, instead of Right Alt,
+    then essRightAlt is not generated. The AltGr key generates only essAltGr,
+    without essAlt, so for keyboards with AltGr instead of Right Alt:
+
+    [essAltGr] - AltGr is pressed.
+    [essAlt,essLeftAlt] - Left Alt is pressed.
+    [essAlt,essLeftAlt, essAltGr] - Both Left Alt and AltGr are pressed.
+    [essAlt,essAltGr] - Both (usually Left) Alt and AltGr are pressed, but the
+                        console is unable to distinguish between Left Alt and
+                        Right Alt (if it existed and was not marked AltGr - in
+                        theory it is possible for someone to make a keyboard
+                        with three separate keys: Left Alt, Right Alt and AltGr).
+    [essAlt,essLeftAlt,essRightAlt,essAltGr] - The keyboard has three separate
+                                               keys: Left Alt, Right Alt and
+                                               AltGr and they are all pressed.
+
+    Note that Windows handles AltGr internally as Left Ctrl+Right Alt, which we
+    detect and convert to essAltGr, but this makes it impossible to distinguish
+    between Left Ctrl+AltGr and only AltGr, since there's no way to tell whether
+    the Left Ctrl that Windows report is dummy or real, so we always assume it's
+    dummy and remove it from the shift state, if AltGr was pressed.
+  }
 
   TEnhancedKeyEvent = record
     VirtualKeyCode: Word;    { device-independent identifier of the key }
