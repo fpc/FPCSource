@@ -4711,8 +4711,13 @@ begin
           begin
           // give a hint
           if Data^.Proc.Parent is TPasMembersType then
-            LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier_NonProc,sFunctionHidesIdentifier,
-              [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+            begin
+            if El.Visibility=visStrictPrivate then
+            else if (El.Visibility=visPrivate) and (El.GetModule<>Data^.Proc.GetModule) then
+            else
+              LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier_NonProc,sFunctionHidesIdentifier,
+                [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+            end;
           end;
       fpkMethod:
         // method hides a non proc
@@ -4800,11 +4805,14 @@ begin
             begin
             // Delphi/FPC do not give a message when hiding a non virtual method
             // -> emit Hint with other message id
-            if (Data^.Proc.Parent is TPasMembersType)
-                and (Proc.Visibility<>visStrictPrivate) then
+            if (Data^.Proc.Parent is TPasMembersType) then
               begin
               ProcScope:=Proc.CustomData as TPasProcedureScope;
-              if (ProcScope.ImplProc<>nil)  // not abstract, external
+              if (Proc.Visibility=visStrictPrivate)
+                  or ((Proc.Visibility=visPrivate)
+                    and (Proc.GetModule<>Data^.Proc.GetModule)) then
+                // a private private is hidden by definition -> no hint
+              else if (ProcScope.ImplProc<>nil)  // not abstract, external
                   and (not ProcHasImplElements(ProcScope.ImplProc)) then
                 // hidden method has implementation, but no statements -> useless
                 // -> do not give a hint for hiding this useless method
@@ -4812,13 +4820,13 @@ begin
               else if (Proc is TPasConstructor)
                   and (Data^.Proc.ClassType=Proc.ClassType) then
                 // do not give a hint for hiding a constructor
-              else if (Proc.Visibility=visPrivate)
-                  and (Proc.GetModule<>Data^.Proc.GetModule) then
-                // a private private is hidden by definition -> no hint
               else
+                begin
+                //writeln('TPasResolver.OnFindProc Proc=',Proc.PathName,' Data^.Proc=',Data^.Proc.PathName,' ',Proc.Visibility);
                 LogMsg(20171118214523,mtHint,
                   nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
                   [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+                end;
               end;
             end;
           Abort:=true;

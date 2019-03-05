@@ -9510,21 +9510,38 @@ end;
 
 procedure TTestResolver.TestClass_NoHintMethodHidesPrivateMethod;
 begin
-  StartProgram(false);
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  private',
+    '    procedure DoIt(p: pointer);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TObject.DoIt(p: pointer);',
+    'begin',
+    '  if p=nil then ;',
+    'end;',
+    '']) );
+  StartProgram(true);
   Add([
+  'uses unit2;',
   'type',
-  '  TObject = class',
+  '  TAnimal = class',
   '  strict private',
-  '    procedure DoIt(p: pointer);',
+  '    procedure Fly(p: pointer);',
   '  end;',
-  '  TBird = class',
+  '  TBird = class(TAnimal)',
   '    procedure DoIt(i: longint);',
+  '    procedure Fly(b: boolean);',
   '  end;',
-  'procedure TObject.DoIt(p: pointer);',
+  'procedure TAnimal.Fly(p: pointer);',
   'begin',
   '  if p=nil then ;',
   'end;',
   'procedure TBird.DoIt(i: longint); begin end;',
+  'procedure TBird.Fly(b: boolean); begin end;',
   'var b: TBird;',
   'begin',
   '  b.DoIt(3);']);
