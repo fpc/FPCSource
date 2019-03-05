@@ -2857,13 +2857,11 @@ begin
   if Length(FStreamed)=0 then
     begin
     if Collection.Owner is TPDFDocument then
-      begin
-      Opts:=TPDFDocument(Collection.Owner).ImageStreamOptions;
-      end
+      Opts:=TPDFDocument(Collection.Owner).ImageStreamOptions
     else
       Opts:=[isoCompressed,isoTransparent];
+    CreateStreamedData(Opts);
     end;
-  CreateStreamedData(Opts);
   Result:=FStreamed;
 end;
 
