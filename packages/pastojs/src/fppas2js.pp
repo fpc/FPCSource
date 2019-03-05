@@ -7010,10 +7010,6 @@ begin
         // convert "a div b" to "Math.floor(a/b)"
         Result:=CreateMathFloor(El,Result);
         end;
-      eopShl,eopShr:
-        if (aResolver<>nil) and (LeftResolved.BaseType in [btIntDouble,btUIntDouble]) then
-          aResolver.LogMsg(20190228220225,mtWarning,nBitWiseOperationIs32Bit,
-            sBitWiseOperationIs32Bit,[],El);
       end;
 
       if (bsOverflowChecks in AContext.ScannerBoolSwitches) and (aResolver<>nil) then
@@ -7095,6 +7091,7 @@ var
   SNE: TJSEqualityExpressionSNE;
   JSBinClass: TJSBinaryClass;
   ResolvedEl: TPasResolverResult;
+  AInt, BInt: TMaxPrecInt;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
@@ -7165,6 +7162,61 @@ begin
     Call.AddArg(A); A:=nil;
     Call.AddArg(B); B:=nil;
     exit;
+    end
+  else if El.OpCode in [eopShl,eopShr] then
+    begin
+    if LeftResolved.BaseType in [btIntDouble,btUIntDouble] then
+      begin
+      // BigInt shl/shr   JavaScript bitwise operators only supports 32bit
+      if IsLiteralInteger(B,BInt) then
+        begin
+        // BigInt shl/shr const
+        if BInt>=54 then
+          begin
+          // A shl 54 -> 0
+          // A shr 54 -> 0
+          Result:=CreateLiteralNumber(El,0);
+          FreeAndNil(A);
+          FreeAndNil(B);
+          exit;
+          end
+        else if BInt<=0 then
+          begin
+          // A shl 0 -> A
+          // A shr 0 -> A
+          Result:=A;
+          A:=nil;
+          FreeAndNil(B);
+          exit;
+          end
+        else if IsLiteralInteger(A,AInt) then
+          begin
+          // const shl const  ->  const
+          if El.OpCode=eopShl then
+            AInt:=AInt shl BInt
+          else
+            AInt:=AInt shr BInt;
+          if (AInt>=0) and (AInt<=MaxSafeIntDouble) then
+            begin
+            TJSLiteral(A).Value.AsNumber:=AInt;
+            Result:=A;
+            FreeAndNil(B);
+            exit;
+            end;
+          end
+        else if El.OpCode=eopShr then
+          begin
+          // BigInt shr const -> Math.floor(A/otherconst)
+          Result:=CreateMathFloor(El,CreateDivideNumber(El,A,TMaxPrecInt(1) shl BInt));
+          A:=nil;
+          FreeAndNil(B);
+          exit;
+          end;
+          // ToDo: BigInt shl const
+        end;
+      aResolver.LogMsg(20190228220225,mtWarning,nBitWiseOperationIs32Bit,
+        sBitWiseOperationIs32Bit,[],El);
+      end;
     end
   else if (LeftResolved.BaseType=btCurrency) or (RightResolved.BaseType=btCurrency) then
     begin
