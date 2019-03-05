@@ -198,7 +198,7 @@ const
     (tab:8; idx:$57; oldtab:0; oldidx:$57; oldval:0; newval:0),
     (tab:8; idx:$58; oldtab:0; oldidx:$58; oldval:0; newval:0),
     {This prevents the shift+function keys outputting strings, so
-     the kernel will the codes for the non-shifted function
+     the kernel will send the codes for the non-shifted function
      keys. This is desired because normally shift+f1/f2 will output the
      same string as f11/12. We will get the shift state separately.}
     (tab:1; idx:$3b; oldtab:0; oldidx:$3b; oldval:0; newval:0),
