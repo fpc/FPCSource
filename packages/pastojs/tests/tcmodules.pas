@@ -591,6 +591,7 @@ type
     Procedure TestExternalClass_TypeCastToJSObject;
     Procedure TestExternalClass_TypeCastStringToExternalString;
     Procedure TestExternalClass_TypeCastToJSFunction;
+    Procedure TestExternalClass_TypeCastDelphiUnrelated;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
     Procedure TestExternalClass_BracketAccessor;
     Procedure TestExternalClass_BracketAccessor_Call;
@@ -16585,6 +16586,43 @@ begin
     '  f = rtl.createCallback(o, "DoIt");',
     '  f = fi.bind(null, 4);',
     '  return Result;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastDelphiUnrelated;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object'' end;',
+  '  TJSWindow = class external name ''Window''(TJSObject)',
+  '    procedure Open;',
+  '  end;',
+  '  TJSEventTarget = class external name ''Event''(TJSObject)',
+  '    procedure Execute;',
+  '  end;',
+  'procedure Fly;',
+  'var',
+  '  w: TJSWindow;',
+  '  e: TJSEventTarget;',
+  'begin',
+  '  w:=TJSWindow(e);',
+  '  e:=TJSEventTarget(w);',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastDelphiUnrelated',
+    LinesToStr([ // statements
+    'this.Fly = function () {',
+    '  var w = null;',
+    '  var e = null;',
+    '  w = e;',
+    '  e = w;',
     '};',
     '']),
     LinesToStr([ // $mod.$main

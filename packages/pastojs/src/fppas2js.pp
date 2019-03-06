@@ -5064,6 +5064,14 @@ begin
                   or IsExternalClass_Name(ToClass,'Object') then
                 // TJSFunction(@Proc) or TJSFunction(ProcVar)
                 exit(cExact);
+              end
+            else if FromTypeEl.ClassType=TPasClassType then
+              begin
+              if TPasClassType(FromTypeEl).IsExternal
+                  and (msDelphi in CurrentParser.CurrentModeswitches)
+                  and not (bsObjectChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
+                // ExtClass(ExtClass)  -> allow in mode delphi and no objectchecks
+                exit(cAliasExact); // $mode delphi
               end;
             end;
           end;
