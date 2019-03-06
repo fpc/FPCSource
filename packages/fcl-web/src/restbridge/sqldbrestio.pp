@@ -708,6 +708,8 @@ procedure TRestOutputStreamer.SetOutputOptions(AValue: TRestOutputOptions);
 begin
   if FOutputOptions=AValue then Exit;
   FOutputOptions:=AValue;
+  if RequireMetadata then
+    Include(FOutputOptions,ooMetadata);
 end;
 
 procedure TRestOutputStreamer.CreateErrorContent(aCode: Integer;
