@@ -2733,9 +2733,9 @@ begin
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   FCurFilename := AFilename;
   AddFile(FCurFilename);
-{$IFDEF HASFS}
+  {$IFDEF HASFS}
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(FCurFilename));
-{$ENDIF}
+  {$ENDIF}
   if LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(AFileName)],True);
 end;
