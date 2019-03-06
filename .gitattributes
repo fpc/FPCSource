@@ -3460,6 +3460,7 @@ packages/fcl-web/src/jsonrpc/fpextdirect.pp svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/fpjsonrpc.pp svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/readme.txt svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/webjsonrpc.pp svneol=native#text/plain
+packages/fcl-web/src/restbridge/sqldbrestado.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestauth.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestauthini.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestbridge.pp svneol=native#text/plain
