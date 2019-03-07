@@ -1936,7 +1936,7 @@ type
   end;
   tprocopt=record
     mask : tprocoption;
-    str  : string[31];
+    str  : string[34];
   end;
 const
   {proccalloptionStr  is also in globtype unit }
