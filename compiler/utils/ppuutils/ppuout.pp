@@ -1210,7 +1210,7 @@ begin
   while FOutBufPos > 0 do begin
     len:=FileWrite(FOutFileHandle, FOutBuf[i], FOutBufPos);
     if len < 0 then
-      raise Exception.CreateFmt('Error writing to file: ', [ {$if declared(GetLastOSError) } SysErrorMessage(GetLastOSError) {$else} 'I/O error' {$endif} ]);
+      raise Exception.CreateFmt('Error writing to file: %s', [ {$if declared(GetLastOSError) } SysErrorMessage(GetLastOSError) {$else} 'I/O error' {$endif} ]);
     Inc(i, len);
     Dec(FOutBufPos, len);
   end;
