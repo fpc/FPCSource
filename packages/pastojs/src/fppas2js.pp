@@ -8038,16 +8038,18 @@ var
   var
     Call: TJSCallExpression;
   begin
-    if AssignContext=nil then exit;
-    if AssignContext.LeftResolved.LoTypeEl is TPasRecordType then
+    if AssignContext<>nil then
       begin
-      // aRecord:=right  ->  aRecord.$assign(right)
-      Call:=CreateCallExpression(El);
-      AssignContext.Call:=Call;
-      Call.Expr:=CreateDotNameExpr(El,Result,TJSString(GetBIName(pbifnRecordAssign)));
-      Call.AddArg(AssignContext.RightSide);
-      AssignContext.RightSide:=nil;
-      Result:=Call;
+      if AssignContext.LeftResolved.LoTypeEl is TPasRecordType then
+        begin
+        // aRecord:=right  ->  aRecord.$assign(right)
+        Call:=CreateCallExpression(El);
+        AssignContext.Call:=Call;
+        Call.Expr:=CreateDotNameExpr(El,Result,TJSString(GetBIName(pbifnRecordAssign)));
+        Call.AddArg(AssignContext.RightSide);
+        AssignContext.RightSide:=nil;
+        Result:=Call;
+        end;
       end;
   end;
 
@@ -8163,8 +8165,8 @@ begin
     end;
     end; // property redirect
 
-  if (AContext.Access=caAssign)
-      and aResolver.IsClassField(Decl) then
+  if aResolver.IsClassField(Decl)
+      and (AContext.Access in [caAssign,caByReference]) then
     begin
     // writing a class var  -> aClass.VarName
     PathExpr:=CreateReferencePathExpr(Decl.Parent,AContext);
