@@ -56,6 +56,7 @@ Type
     constructor Create(ACollection: TCollection); override;
     Destructor Destroy; override;
     Procedure Assign(Source: TPersistent); override;
+    Procedure ConfigConnection(aConn : TSQLConnection); virtual;
   Published
     // Always use this connection instance
     Property SingleConnection : TSQLConnection Read FConnection Write SetConnection;
@@ -879,14 +880,7 @@ begin
     if (Result=Nil) then
       begin
       Result:=CreateConnection;
-      Result.CharSet:=aConnection.CharSet;
-      Result.HostName:=aConnection.HostName;
-      Result.DatabaseName:=aConnection.DatabaseName;
-      Result.UserName:=aConnection.UserName;
-      Result.Password:=aConnection.Password;
-      Result.Params:=Aconnection.Params;
-      if Result is TRestSQLConnector then
-        TRestSQLConnector(Result).ConnectorType:=aConnection.ConnectionType;
+      aConnection.ConfigConnection(Result);
       aConnection.SingleConnection:=Result;
       end;
     end;
@@ -1859,6 +1853,18 @@ begin
     end
   else
     inherited Assign(Source);
+end;
+
+procedure TSQLDBRestConnection.ConfigConnection(aConn: TSQLConnection);
+begin
+  aConn.CharSet:=Self.CharSet;
+  aConn.HostName:=Self.HostName;
+  aConn.DatabaseName:=Self.DatabaseName;
+  aConn.UserName:=Self.UserName;
+  aConn.Password:=Self.Password;
+  aConn.Params:=Self.Params;
+  if aConn is TSQLConnector then
+    TSQLConnector(aConn).ConnectorType:=Self.ConnectionType;
 end;
 
 
