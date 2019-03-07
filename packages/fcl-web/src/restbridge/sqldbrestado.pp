@@ -151,7 +151,6 @@ procedure TADOInputStreamer.InitStreaming;
 
 Var
   Msg : String;
-  N : TDomNode;
   NN : UnicodeString;
 
 begin
