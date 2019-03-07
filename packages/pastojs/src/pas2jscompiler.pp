@@ -129,6 +129,7 @@ type
     coUseStrict,
     coWriteDebugLog,
     coWriteMsgToStdErr,
+    coPrecompile, // create precompile file
     // optimizations
     coEnumValuesAsNumbers,
     coKeepNotUsedPrivates,
@@ -180,6 +181,7 @@ const
     'Use strict',
     'Write pas2jsdebug.log',
     'Write messages to StdErr',
+    'Create precompiled units',
     'Enum values as numbers',
     'Keep not used private declarations',
     'Keep not used declarations (WPO)',
@@ -1309,7 +1311,6 @@ begin
 end;
 
 function TPas2jsCompilerFile.IsUnitReadFromPCU: Boolean;
-
 begin
   Result:=Assigned(PCUSupport) and PCUSupport.HasReader;
 end;
@@ -1337,7 +1338,8 @@ begin
     {$IFDEF ReallyVerbose}
     writeln('TPas2jsCompilerFile.ReaderFinished analyzed ',UnitFilename,' ScopeModule=',GetObjName(UseAnalyzer.ScopeModule));
     {$ENDIF}
-    if Assigned(PCUSupport) and Not PCUSupport.HasReader then
+    if Assigned(PCUSupport) and Not PCUSupport.HasReader
+        and (coPrecompile in Compiler.Options) then
       PCUSupport.WritePCU;
   except
     on E: ECompilerTerminate do
@@ -2771,7 +2773,6 @@ end;
 
 procedure TPas2JSConfigSupport.LoadConfig(Const aFileName: String);
 type
-
   TSkip = (
     skipNone,
     skipIf,
@@ -2982,17 +2983,14 @@ begin
 end;
 
 procedure TPas2jsCompiler.HandleOptionPCUFormat(aValue: String);
-
 begin
-  ParamFatal('No PCU support in this compiler for '+aValue);
+  ParamFatal('No support in this compiler for precompiled format '+aValue);
 end;
 
 function TPas2jsCompiler.HandleOptionPaths(C: Char; aValue: String;
   FromCmdLine: Boolean): Boolean;
-
 Var
   ErrorMsg: String;
-
 begin
   Result:=True;
   case c of
@@ -3007,10 +3005,8 @@ begin
 end;
 
 function TPas2jsCompiler.HandleOptionOptimization(C: Char; aValue: String): Boolean;
-
 Var
   Enable: Boolean;
-
 begin
   Result:=True;
   case C of
@@ -4053,7 +4049,6 @@ begin
     RaiseInternalError(20170504161340,'internal error: TPas2jsCompiler.Run FileCount>0');
 
   try
-
     // set working directory, need by all relative filenames
     SetWorkingDir(aWorkingDir);
 
