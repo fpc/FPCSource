@@ -160,7 +160,9 @@ Type
     Class Var FIOClass : TRestIOClass;
     Class Var FDBHandlerClass : TSQLDBRestDBHandlerClass;
   private
+    FCORSAllowCredentials: Boolean;
     FCORSAllowedOrigins: String;
+    FCORSMaxAge: Integer;
     FDispatchOptions: TRestDispatcherOptions;
     FInputFormat: String;
     FCustomViewResource : TSQLDBRestResource;
@@ -252,6 +254,7 @@ Type
     // General HTTP handling
     procedure DoRegisterRoutes; virtual;
     procedure DoHandleEvent(IsBefore : Boolean;IO: TRestIO); virtual;
+    function ResolvedCORSAllowedOrigins: String; virtual;
     procedure HandleCORSRequest(aConnection: TSQLDBRestConnection; IO: TRestIO); virtual;
     procedure HandleResourceRequest(aConnection : TSQLDBRestConnection; IO: TRestIO); virtual;
     procedure DoHandleRequest(IO: TRestIO); virtual;
@@ -296,6 +299,10 @@ Type
     Property EnforceLimit : Integer Read FEnforceLimit Write FEnforceLimit;
     // Domains that are allowed to use this REST service
     Property CORSAllowedOrigins: String Read FCORSAllowedOrigins  Write FCORSAllowedOrigins;
+    // Access-Control-Max-Age header value. Set to zero not to send the header
+    Property CORSMaxAge : Integer Read FCORSMaxAge Write FCORSMaxAge;
+    // Access-Control-Allow-Credentials header value. Set to zero not to send the header
+    Property CORSAllowCredentials : Boolean Read FCORSAllowCredentials Write FCORSAllowCredentials;
     // Called when Basic authentication is sufficient.
     Property OnBasicAuthentication : TBasicAuthenticationEvent Read FOnBasicAuthentication Write FOnBasicAuthentication;
     // Allow a particular resource or not.
@@ -623,6 +630,8 @@ begin
   FOutputOptions:=allOutputOptions;
   FDispatchOptions:=DefaultDispatcherOptions;
   FStatus:=CreateRestStatusConfig;
+  FCORSMaxAge:=SecsPerDay;
+  FCORSAllowCredentials:=True;
 end;
 
 destructor TSQLDBRestDispatcher.Destroy;
@@ -683,7 +692,10 @@ Var
 begin
   Result:=TSQLDBRestResource.Create(Nil);
   Result.ResourceName:='metaData';
-  Result.AllowedOperations:=[roGet];
+  if rdoHandleCORS in DispatchOptions then
+    Result.AllowedOperations:=[roGet,roOptions,roHead]
+  else
+    Result.AllowedOperations:=[roGet,roHead];
   Result.Fields.AddField('name',rftString,[foRequired]);
   Result.Fields.AddField('schemaName',rftString,[foRequired]);
   for O in TRestOperation do
@@ -704,7 +716,10 @@ Var
 begin
   Result:=TSQLDBRestResource.Create(Nil);
   Result.ResourceName:='metaDataField';
-  Result.AllowedOperations:=[roGet];
+  if rdoHandleCORS in DispatchOptions then
+    Result.AllowedOperations:=[roGet,roOptions,roHead]
+  else
+    Result.AllowedOperations:=[roGet,roHead];
   Result.Fields.AddField('name',rftString,[]);
   Result.Fields.AddField('type',rftString,[]);
   Result.Fields.AddField('maxlen',rftInteger,[]);
@@ -1162,7 +1177,14 @@ begin
       raise ESQLDBRest.Create(FStatus.GetStatusCode(rsInvalidParam), SErrNoSQLStatement); // Should never happen.
     Result:=CreateCustomViewDataset(IO,RN,aOwner);
     end
+end;
 
+function TSQLDBRestDispatcher.ResolvedCORSAllowedOrigins: String;
+
+begin
+  Result:=FCORSAllowedOrigins;
+  if Result='' then
+     Result:='*';
 end;
 
 procedure TSQLDBRestDispatcher.HandleCORSRequest(aConnection : TSQLDBRestConnection; IO : TRestIO);
@@ -1184,12 +1206,13 @@ begin
     end
   else
     begin
-    S:=FCORSAllowedOrigins;
-    if S='' then
-      S:='*';
-    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',S);
+    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins);
     S:=IO.Resource.GetHTTPAllow;
     IO.Response.SetCustomHeader('Access-Control-Allow-Methods',S);
+    IO.Response.SetCustomHeader('Access-Control-Allow-Headers','x-requested-with, content-type, authorization');
+    if CorsMaxAge>0 then
+      IO.Response.SetCustomHeader('Access-Control-Max-Age',IntToStr(CorsMaxAge));
+    IO.Response.SetCustomHeader('Access-Control-Allow-Credentials',BoolToStr(CORSAllowCredentials,'true','false'));
     IO.Response.Code:=FStatus.GetStatusCode(rsCORSOK);
     IO.Response.CodeText:='OK';
     end;
@@ -1209,6 +1232,8 @@ begin
   try
     IO.SetConn(Conn,TR);
     Try
+      if (rdoHandleCORS in DispatchOptions) then
+        IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins);
       if not AuthenticateRequest(IO,True) then
         exit;
       if Not CheckResourceAccess(IO) then
