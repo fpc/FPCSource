@@ -167,6 +167,16 @@ TYPE
         d_unused2     : cuint32;                        // reserved
         d_name        : array[0..255] of char;          // name, null terminated
    end;
+{$elseif defined(openbsd)}
+   dirent  = record
+        d_fileno      : ino_t;
+        d_off         : off_t;
+        d_reclen      : cuint16;                        // length of this record
+        d_type        : cuint8;                         // file type, see below
+        d_namlen      : cuint8;                         // length of string in d_name
+        d_padding     : array[0..3] of cuint8;
+        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+   end;
 {$else}
    dirent  = record
         d_fileno      : cuint32;                        // file number of entry
