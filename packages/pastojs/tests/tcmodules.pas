@@ -591,6 +591,7 @@ type
     Procedure TestExternalClass_TypeCastToJSObject;
     Procedure TestExternalClass_TypeCastStringToExternalString;
     Procedure TestExternalClass_TypeCastToJSFunction;
+    Procedure TestExternalClass_TypeCastDelphiUnrelated;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
     Procedure TestExternalClass_BracketAccessor;
     Procedure TestExternalClass_BracketAccessor_Call;
@@ -3700,6 +3701,7 @@ procedure TTestModule.TestProc_Asm;
 begin
   StartProgram(false);
   Add([
+  '{$mode delphi}',
   'function DoIt: longint;',
   'begin;',
   '  asm',
@@ -3714,6 +3716,10 @@ begin
   '    s = ''end'';',
   '    s = "end";',
   '  end;',
+  'end;',
+  'procedure Fly;',
+  'asm',
+  '  return;',
   'end;',
   'begin']);
   ConvertProgram;
@@ -3730,8 +3736,11 @@ begin
     '  s = ''end'';',
     '  s = "end";',
     '  return Result;',
-    '};'
-    ]),
+    '};',
+    'this.Fly = function () {',
+    '  return;',
+    '};',
+    '']),
     LinesToStr([
     ''
     ]));
@@ -12008,7 +12017,7 @@ begin
   '    class var vI: longint;',
   '    class var Sub: TObject;',
   '    constructor Create;',
-  '    class function GetIt(Par: longint): tobject;',
+  '    class function GetIt(var Par: longint): tobject;',
   '  end;',
   'constructor tobject.create;',
   'begin',
@@ -12016,12 +12025,13 @@ begin
   '  Self.vi:=Self.vi+1;',
   '  inc(vi);',
   'end;',
-  'class function tobject.getit(par: longint): tobject;',
+  'class function tobject.getit(var par: longint): tobject;',
   'begin',
-  '  vi:=vi+par;',
-  '  Self.vi:=Self.vi+par;',
+  '  vi:=vi+3;',
+  '  Self.vi:=Self.vi+4;',
   '  inc(vi);',
   '  Result:=self.sub;',
+  '  GetIt(vi);',
   'end;',
   'var Obj: tobject;',
   'begin',
@@ -12049,10 +12059,19 @@ begin
     '  };',
     '  this.GetIt = function(Par){',
     '    var Result = null;',
-    '    $mod.TObject.vI = this.vI + Par;',
-    '    $mod.TObject.vI = this.vI + Par;',
+    '    $mod.TObject.vI = this.vI + 3;',
+    '    $mod.TObject.vI = this.vI + 4;',
     '    $mod.TObject.vI += 1;',
     '    Result = this.Sub;',
+    '    this.GetIt({',
+    '      p: $mod.TObject,',
+    '      get: function () {',
+    '          return this.p.vI;',
+    '        },',
+    '      set: function (v) {',
+    '          this.p.vI = v;',
+    '        }',
+    '    });',
     '    return Result;',
     '  };',
     '});',
@@ -16577,6 +16596,43 @@ begin
     '  f = rtl.createCallback(o, "DoIt");',
     '  f = fi.bind(null, 4);',
     '  return Result;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastDelphiUnrelated;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object'' end;',
+  '  TJSWindow = class external name ''Window''(TJSObject)',
+  '    procedure Open;',
+  '  end;',
+  '  TJSEventTarget = class external name ''Event''(TJSObject)',
+  '    procedure Execute;',
+  '  end;',
+  'procedure Fly;',
+  'var',
+  '  w: TJSWindow;',
+  '  e: TJSEventTarget;',
+  'begin',
+  '  w:=TJSWindow(e);',
+  '  e:=TJSEventTarget(w);',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastDelphiUnrelated',
+    LinesToStr([ // statements
+    'this.Fly = function () {',
+    '  var w = null;',
+    '  var e = null;',
+    '  w = e;',
+    '  e = w;',
     '};',
     '']),
     LinesToStr([ // $mod.$main

@@ -557,6 +557,7 @@ type
     Procedure TestClass_MethodOverloadUnit;
     Procedure TestClass_HintMethodHidesNonVirtualMethod;
     Procedure TestClass_HintMethodHidesNonVirtualMethodWithoutBody_NoHint;
+    Procedure TestClass_NoHintMethodHidesPrivateMethod;
     Procedure TestClass_MethodReintroduce;
     Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_ConstructorHidesAncestorWarning;
@@ -933,6 +934,7 @@ type
     Procedure TestTypeHelper_String;
     Procedure TestTypeHelper_Boolean;
     Procedure TestTypeHelper_Double;
+    Procedure TestTypeHelper_DoubleAlias;
     Procedure TestTypeHelper_Constructor_NewInstance;
     Procedure TestTypeHelper_Interface;
     Procedure TestTypeHelper_Interface_ConstructorFail;
@@ -9507,6 +9509,47 @@ begin
   CheckResolverUnexpectedHints(true);
 end;
 
+procedure TTestResolver.TestClass_NoHintMethodHidesPrivateMethod;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  private',
+    '    procedure DoIt(p: pointer);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TObject.DoIt(p: pointer);',
+    'begin',
+    '  if p=nil then ;',
+    'end;',
+    '']) );
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'type',
+  '  TAnimal = class',
+  '  strict private',
+  '    procedure Fly(p: pointer);',
+  '  end;',
+  '  TBird = class(TAnimal)',
+  '    procedure DoIt(i: longint);',
+  '    procedure Fly(b: boolean);',
+  '  end;',
+  'procedure TAnimal.Fly(p: pointer);',
+  'begin',
+  '  if p=nil then ;',
+  'end;',
+  'procedure TBird.DoIt(i: longint); begin end;',
+  'procedure TBird.Fly(b: boolean); begin end;',
+  'var b: TBird;',
+  'begin',
+  '  b.DoIt(3);']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestClass_MethodReintroduce;
 begin
   StartProgram(false);
@@ -17541,6 +17584,32 @@ begin
 end;
 
 procedure TTestResolver.TestTypeHelper_Double;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  Float = double;',
+  '  THelper = type helper for float',
+  '    const NPI = 3.141592;',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelper.ToStr: String;',
+  'begin',
+  'end;',
+  'var',
+  '  a,b: Float;',
+  '  s: string;',
+  'begin',
+  '  s:=(a * b.NPI).ToStr;',
+  '  s:=(a * float.NPI).ToStr;',
+  '  s:=float.NPI.ToStr;',
+  '  s:=3.2.ToStr;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_DoubleAlias;
 begin
   StartProgram(false);
   Add([

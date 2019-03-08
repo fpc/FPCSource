@@ -3326,7 +3326,9 @@ packages/fcl-web/examples/restbridge/delphiclient/sqldbrestclient.res -text
 packages/fcl-web/examples/restbridge/demorestbridge.lpi svneol=native#text/plain
 packages/fcl-web/examples/restbridge/demorestbridge.pp svneol=native#text/plain
 packages/fcl-web/examples/restbridge/expenses-data.sql svneol=native#text/plain
+packages/fcl-web/examples/restbridge/expenses-fb.sql svneol=native#text/plain
 packages/fcl-web/examples/restbridge/expenses-pq.sql svneol=native#text/plain
+packages/fcl-web/examples/restbridge/expenses-sqlite.sql svneol=native#text/plain
 packages/fcl-web/examples/routing-session/routingsessiondemo.lpi svneol=native#text/plain
 packages/fcl-web/examples/routing-session/routingsessiondemo.lpr svneol=native#text/plain
 packages/fcl-web/examples/routing/README svneol=native#text/plain
@@ -3460,6 +3462,7 @@ packages/fcl-web/src/jsonrpc/fpextdirect.pp svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/fpjsonrpc.pp svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/readme.txt svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/webjsonrpc.pp svneol=native#text/plain
+packages/fcl-web/src/restbridge/sqldbrestado.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestauth.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestauthini.pp svneol=native#text/plain
 packages/fcl-web/src/restbridge/sqldbrestbridge.pp svneol=native#text/plain

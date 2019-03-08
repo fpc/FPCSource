@@ -126,11 +126,13 @@ Constructor TLinkerBSD.Create;
 begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
-   if not(target_info.system in systems_darwin) then
-     LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true)
-   else
+   if target_info.system in systems_darwin then
      { Mac OS X doesn't have a /lib }
      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib',true)
+   else if target_info.system in systems_openbsd then
+     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib;${X11BASE}/lib;${LOCALBASE}/lib',true)
+   else
+     LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
 
 
@@ -682,7 +684,8 @@ begin
      { when we have -static for the linker the we also need libgcc }
      if (cs_link_staticflag in current_settings.globalswitches) then
       LinkRes.Add('-lgcc');
-     if linkdynamic and (Info.DynamicLinker<>'') then
+     if linkdynamic and (Info.DynamicLinker<>'') and
+        not(target_info.system in systems_openbsd) then
       LinkRes.AddFileName(Info.DynamicLinker);
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
@@ -798,8 +801,7 @@ begin
    end;
 
 { Use -nopie on OpenBSD }
-  if (target_info.system in systems_openbsd) and
-     (target_info.system <> system_x86_64_openbsd) then
+  if (target_info.system in systems_openbsd) then
     Info.ExtraOptions:=Info.ExtraOptions+' -nopie';
 
 { -N seems to be needed on NetBSD/earm }

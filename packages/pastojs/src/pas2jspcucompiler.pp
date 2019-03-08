@@ -81,7 +81,8 @@ Type
   Protected
     procedure WritePrecompiledFormats; override;
     function CreateCompilerFile(const PasFileName, PCUFilename: String): TPas2jsCompilerFile; override;
-    procedure HandleOptionPCUFormat(Value: string) ; override;
+    procedure HandleOptionPCUFormat(Value: string); override;
+    property PrecompileFormat: TPas2JSPrecompileFormat read FPrecompileFormat;
   end;
 
 implementation
@@ -436,6 +437,7 @@ begin
     PF:=PrecompileFormats[i];
     if not SameText(Value,PF.Ext) then continue;
     FPrecompileFormat:=PrecompileFormats[i];
+    Options:=Options+[coPrecompile];
     Found:=true;
   end;
   if not Found then
@@ -445,13 +447,13 @@ end;
 { TPas2jsPCUCompilerFile }
 
 function TPas2jsPCUCompilerFile.CreatePCUSupport: TPCUSupport;
-
 Var
   PF: TPas2JSPrecompileFormat;
-
 begin
   // Note that if no format was preset, no files will be written
   PF:=(Compiler as TPas2jsPCUCompiler).FPrecompileFormat;
+  if (PF=nil) and (PrecompileFormats.Count>0) then
+    PF:=PrecompileFormats[0];
   if PF<>Nil then
     Result:=TFilerPCUSupport.Create(Self,PF)
   else
