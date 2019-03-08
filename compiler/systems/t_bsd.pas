@@ -684,7 +684,8 @@ begin
      { when we have -static for the linker the we also need libgcc }
      if (cs_link_staticflag in current_settings.globalswitches) then
       LinkRes.Add('-lgcc');
-     if linkdynamic and (Info.DynamicLinker<>'') then
+     if linkdynamic and (Info.DynamicLinker<>'') and
+        not(target_info.system in systems_openbsd) then
       LinkRes.AddFileName(Info.DynamicLinker);
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
