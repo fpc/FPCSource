@@ -195,6 +195,11 @@ TYPE
         dd_size   : clong;        // amount of data returned by getdirentries
         dd_buf    : pchar;        // data buffer
         dd_len    : cint;         // size of data buffer
+{$ifdef openbsd}
+        dd_curpos : off_t;
+        dd_lock   : pointer;
+        dd_rewind : clong;
+{$else not openbsd}
 {$ifdef netbsdpowerpc}
         dd_pad1   : cint;
         dd_seek   : cint64;        // magic cookie returned by getdirentries
@@ -207,6 +212,7 @@ TYPE
         __dd_lock : pthread_mutex_t; // for thread locking
         __dd_td : pointer;        // telldir position recording
 {$endif}
+{$endif not openbsd}
    end;
    TDir    = dir;
    pDir    = ^dir;
