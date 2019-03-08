@@ -146,8 +146,19 @@ TYPE
    pStat = ^stat;
 
   { directory services }
-{$ifndef darwin_new_iostructs}
-{$ifdef dragonfly}
+{$if defined(darwin_new_iostructs)}
+   {$packrecords 4}
+   { available on Mac OS X 10.6 and later, and used by all iPhoneOS versions }
+   dirent  = record
+        d_fileno      : cuint64;                        // file number of entry
+        d_seekoff     : cuint64;                        // seek offset (optional, used by servers)
+        d_reclen      : cuint16;                        // length of this record
+        d_namlen      : cuint16;                        // length of string in d_name
+        d_type        : cuint8;                         // file type, see below
+        d_name        : array[0..PATH_MAX-1] of char;        // name must be no longer than this
+   end;
+   {$packrecords c}
+{$elseif defined(dragonfly)}
    dirent  = record
         d_fileno      : ino_t;                          // file number of entry
         d_namlen      : cuint16;                        // strlen (d_name)
@@ -165,19 +176,6 @@ TYPE
         d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
    end;
 {$endif}
-{$else not darwin_new_iostructs}
-   {$packrecords 4}
-   { available on Mac OS X 10.6 and later, and used by all iPhoneOS versions }
-   dirent  = record
-        d_fileno      : cuint64;                        // file number of entry
-        d_seekoff     : cuint64;                        // seek offset (optional, used by servers)
-        d_reclen      : cuint16;                        // length of this record
-        d_namlen      : cuint16;                        // length of string in d_name
-        d_type        : cuint8;                         // file type, see below
-        d_name        : array[0..PATH_MAX-1] of char;        // name must be no longer than this
-   end;
-   {$packrecords c}
-{$endif darwin_new_iostructs}
    TDirent = dirent;
    pDirent = ^dirent;
 
