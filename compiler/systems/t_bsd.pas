@@ -126,11 +126,13 @@ Constructor TLinkerBSD.Create;
 begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
-   if not(target_info.system in systems_darwin) then
-     LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true)
-   else
+   if target_info.system in systems_darwin then
      { Mac OS X doesn't have a /lib }
      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib',true)
+   else if target_info.system in systems_openbsd then
+     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib;${X11BASE}/lib;${LOCALBASE}/lib',true)
+   else
+     LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
 
 
