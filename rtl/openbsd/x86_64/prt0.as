@@ -76,7 +76,8 @@ ___start:
 	addq	$1, %rax
 	movq	%rax, __progname(%rip)
 .L6:
-	movq	$__progname_storage, -16(%rbp)
+	leaq	__progname_storage(%rip), %rax
+	movq	%rax, -16(%rbp)
 	jmp	.L7
 .L8:
 	movq	__progname(%rip), %rcx
@@ -91,13 +92,14 @@ ___start:
 	movzbl	(%rax), %eax
 	testb	%al, %al
 	je	.L9
-	movq	$__progname_storage+255, %rax
+	leaq	__progname_storage+255(%rbp), %rax
 	cmpq	%rax, -16(%rbp)
 	jb	.L8
 .L9:
+	leaq	__progname_storage(%rip), %rax
+	movq	%rax, __progname(%rip)
 	movq	-16(%rbp), %rax
 	movb	$0, (%rax)
-	movq	$__progname_storage, __progname(%rip)
 .L2:
 	# movl	$_mcleanup, %edi
 	# call	atexit
