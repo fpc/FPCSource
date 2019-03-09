@@ -187,7 +187,7 @@ _strrchr:
         .comm   operatingsystem_parameter_envp,8,8
         .comm   operatingsystem_parameter_argc,8,8
         .comm   operatingsystem_parameter_argv,8,8
-	.section	.eh_frame,"a",@progbits
+	.section	.eh_frame,"a",@unwind
 .Lframe1:
 	.long	.LECIE1-.LSCIE1
 .LSCIE1:
