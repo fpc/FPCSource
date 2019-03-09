@@ -92,7 +92,7 @@ ___start:
 	movzbl	(%rax), %eax
 	testb	%al, %al
 	je	.L9
-	leaq	__progname_storage+255(%rbp), %rax
+	leaq	__progname_storage+255(%rip), %rax
 	cmpq	%rax, -16(%rbp)
 	jb	.L8
 .L9:
