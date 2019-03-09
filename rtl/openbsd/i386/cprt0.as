@@ -6,6 +6,14 @@
 	.ascii "OpenBSD\0"
 	.long	0
 	.previous
+	.section ".note.openbsd.ident", "a"
+	.p2align 2
+	.long	8
+	.long	4
+	.long	1
+	.ascii "OpenBSD\0"
+	.long	0
+	.previous
 	.file	"crt0.c"
 gcc2_compiled.:
 .data
@@ -108,7 +116,7 @@ ___start:
 	movb $0,(%edx)
 	movl $__progname_storage,__progname
 .L3:
-	call __init
+#	call __init
 	subl $16,%esp
 	pushl %eax
 	movl 8(%ebp),%eax
