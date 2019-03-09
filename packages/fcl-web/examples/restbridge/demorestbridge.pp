@@ -23,8 +23,7 @@ uses
   {$ENDIF}{$ENDIF}
   Classes, SysUtils, CustApp, sqldbrestbridge, fphttpapp, IBConnection, odbcconn, mysql55conn, mysql56conn, pqconnection,
   mssqlconn, oracleconnection, sqldbrestxml, sqldbrestio, sqldbrestschema, sqldbrestdata, sqldbrestjson, sqldbrestcsv, sqldbrestcds,
-  sqldbrestconst, sqldbrestauth, sqldbrestini, sqldb, sqldbrestauthini
-  ;
+  sqldbrestado,  sqldbrestconst, sqldbrestauth, sqldbrestini, sqldb, sqldbrestauthini;
 
 type
   { TXMLSQLDBRestDispatcher }
