@@ -34,6 +34,7 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    Class Function ForBufDataset: Boolean; virtual;
     Function SelectObject(aIndex : Integer) : Boolean; override;
     function GetContentField(aName: UTF8string): TJSONData; override;
     procedure InitStreaming; override;
@@ -53,6 +54,7 @@ Type
     FRow : TDOMElement;
     FRowData: TDOMElement;
   Protected
+    Class Function ForBufDataset: Boolean; virtual;
     Procedure SetOutputOptions(AValue: TRestOutputOptions); override;
   Public
     procedure EndData; override;
@@ -72,6 +74,20 @@ Type
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
     procedure InitStreaming; override;
+  end;
+
+  { TBufDatasetOutputStreamer }
+
+  TBufDatasetOutputStreamer = Class(TCDSOutputStreamer)
+  Protected
+    Class Function ForBufDataset: Boolean; override;
+  end;
+
+  { TBufDatasetInputStreamer }
+
+  TBufDatasetInputStreamer = Class(TCDSInputStreamer)
+  Protected
+    Class Function ForBufDataset: Boolean; override;
   end;
 
 implementation
@@ -98,6 +114,20 @@ Const
     'bin.hex:Binary' {rftBlob}
   );
 
+{ TBufDatasetInputStreamer }
+
+class function TBufDatasetInputStreamer.ForBufDataset: Boolean;
+begin
+  Result:=True;
+end;
+
+{ TBufDatasetOutputStreamer }
+
+class function TBufDatasetOutputStreamer.ForBufDataset: Boolean;
+begin
+  Result:=True;
+end;
+
 { TCDSInputStreamer }
 
 destructor TCDSInputStreamer.Destroy;
@@ -109,6 +139,11 @@ end;
 class function TCDSInputStreamer.GetContentType: String;
 begin
   Result:='text/xml';
+end;
+
+class function TCDSInputStreamer.ForBufDataset: Boolean;
+begin
+  Result:=False;
 end;
 
 function TCDSInputStreamer.SelectObject(aIndex: Integer): Boolean;
@@ -182,6 +217,11 @@ end;
 
 { TCDSOutputStreamer }
 
+class function TCDSOutputStreamer.ForBufDataset: Boolean;
+begin
+  Result:=False;
+end;
+
 procedure TCDSOutputStreamer.SetOutputOptions(AValue: TRestOutputOptions);
 begin
   Include(AValue,ooMetadata); // We always need metadata
@@ -242,6 +282,7 @@ begin
   FRow[UTF8Decode(N)]:=UTF8Decode(S);
 end;
 
+
 procedure TCDSOutputStreamer.WriteMetadata(aFieldList: TRestFieldPairArray);
 
 Var
@@ -269,7 +310,11 @@ begin
          ML:=P.RestField.MaxLen;
          if ML=0 then
            ML:=255;
-         F['WIDTH']:=Utf8Decode(IntToStr(P.RestField.MaxLen));
+         if ForBufDataset then
+           F['width']:=Utf8Decode(IntToStr(P.RestField.MaxLen))
+         else
+           F['WIDTH']:=Utf8Decode(IntToStr(P.RestField.MaxLen));
+
          end;
       if (ST<>'') then
         F['subtype']:=ST;
@@ -315,6 +360,8 @@ end;
 
 Initialization
   TCDSInputStreamer.RegisterStreamer('cds');
+  TBufDatasetInputStreamer.RegisterStreamer('buf');
   TCDSOutputStreamer.RegisterStreamer('cds');
+  TBufDatasetOutputStreamer.RegisterStreamer('buf');
 end.
 
