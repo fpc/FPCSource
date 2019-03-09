@@ -198,7 +198,21 @@ end;
 procedure TXMLOutputStreamer.FinalizeOutput;
 
 begin
-  xmlwrite.WriteXML(FXML,Stream);
+{$IFNDEF VER3_0}
+  if Not (ooHumanReadable in OutputOptions) then
+    begin
+    With TDOMWriter.Create(Stream,FXML) do
+      try
+        LineBreak:='';
+        IndentSize:=0;
+        WriteNode(FXML);
+      finally
+        Free;
+      end;
+    end
+  else
+{$ENDIF}
+    xmlwrite.WriteXML(FXML,Stream);
   FreeAndNil(FXML);
 end;
 
