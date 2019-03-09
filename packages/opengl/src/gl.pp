@@ -2263,7 +2263,7 @@ initialization
   LoadOpenGL('/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib');
   {$elseif defined(MorphOS)}
   InitTinyGLLibrary;
-  {$elseif defined(haiku)}
+  {$elseif defined(haiku) or defined(OpenBSD)}
   LoadOpenGL('libGL.so');
   {$else}
   LoadOpenGL('libGL.so.1');

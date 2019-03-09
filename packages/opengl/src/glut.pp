@@ -765,7 +765,7 @@ initialization
   LoadGlut('glut.dll');
   {$elseif defined(darwin)}
   LoadGlut('/System/Library/Frameworks/GLUT.framework/GLUT');
-  {$elseif defined(haiku)}
+  {$elseif defined(haiku) or defined(OpenBSD)}
   LoadGlut('libglut.so');
   {$elseif defined(MORPHOS)}
   {nothing}

@@ -73,7 +73,7 @@ Const
   GLU_Lib = 'opengl.dll';
 {$elseif defined(darwin)}
   GLU_LIB =  '/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib';
-{$elseif defined(haiku)}
+{$elseif defined(haiku) or defined(OpenBSD)}
   GLU_LIB = 'libGLU.so';
 {$elseif defined(MorphOS)}
   GLU_LIB = 'tinygl.library';
