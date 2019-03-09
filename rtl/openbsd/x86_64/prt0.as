@@ -210,7 +210,7 @@ _strrchr:
 	.long	.LEFDE1-.LASFDE1
 .LASFDE1:
 	.long	.LASFDE1-.Lframe1
-	.long	.LFB9
+	.long	.LFB9-.
 	.long	.LFE9-.LFB9
 	.uleb128 0x0
 	.byte	0x4
@@ -229,7 +229,7 @@ _strrchr:
 	.long	.LEFDE3-.LASFDE3
 .LASFDE3:
 	.long	.LASFDE3-.Lframe1
-	.long	.LFB10
+	.long	.LFB10-.
 	.long	.LFE10-.LFB10
 	.uleb128 0x0
 	.byte	0x4
