@@ -346,6 +346,7 @@ type
     Procedure TestAnonymousProc_ExceptOn;
     Procedure TestAnonymousProc_Nested;
     Procedure TestAnonymousProc_NestedAssignResult;
+    Procedure TestAnonymousProc_Class;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -4738,6 +4739,47 @@ begin
     '  };',
     '  return Result;',
     '};',
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_Class;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProc = reference to procedure;',
+  '  TObject = class',
+  '    Size: word;',
+  '    function GetIt: TProc;',
+  '  end;',
+  'function TObject.GetIt: TProc;',
+  'begin',
+  '  Result:=procedure',
+  '    begin',
+  '      Size:=Size;',
+  '    end;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_Class',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Size = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetIt = function () {',
+    '    var $Self = this;',
+    '    var Result = null;',
+    '    Result = function () {',
+    '      $Self.Size = $Self.Size;',
+    '    };',
+    '    return Result;',
+    '  };',
+    '});',
     '']),
     LinesToStr([
     '']));
