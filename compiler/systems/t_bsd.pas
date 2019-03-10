@@ -789,7 +789,9 @@ begin
 
    if(not(target_info.system in systems_darwin) and
       (cs_profile in current_settings.moduleswitches)) or
-     ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
+     ((Info.DynamicLinker<>'') and
+      ((not SharedLibFiles.Empty) or
+       (target_info.system in systems_openbsd))) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
   if CShared Then
