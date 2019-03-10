@@ -101,11 +101,11 @@ ___start:
 	movq	-16(%rbp), %rax
 	movb	$0, (%rax)
 .L2:
-	leaq	_mcleanup(%rip), %rdi
+	movq	_mcleanup@GOTPCREL(%rip), %rdi
 	call	atexit
-	leaq	_etext(%rip), %rsi
+	movq	_etext@GOTPCREL(%rip), %rsi
 	leaq	_eprol(%rip), %rdi
-	call	monstartup
+	call	monstartup@plt
 	movl	$0, %eax
 	call	_init
 	movq	environ(%rip), %rdx
