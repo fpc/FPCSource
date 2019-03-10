@@ -6,9 +6,8 @@ unit httpcompiler;
 interface
 
 uses
-  sysutils, classes, fpjson, contnrs, syncobjs, custhttpapp, fpwebfile, httproute,
-  httpdefs, dirwatch,
-  Pas2JSFSCompiler, Pas2JSCompilerCfg;
+  sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp,
+  fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler, Pas2JSCompilerCfg;
 
 Const
   nErrTooManyThreads = -1;
@@ -101,8 +100,10 @@ Type
     procedure DoRecompile(ARequest: TRequest; AResponse: TResponse);
     function ScheduleCompile(const aProjectFile: String; Options : TStrings = Nil): Integer;
     procedure StartWatch(ADir: String);
-    procedure Usage(Msg: String);
-    function GetDefaultMimetypes: string;
+  protected
+    procedure Usage(Msg: String); virtual;
+    function GetDefaultMimeTypesFile: string; virtual;
+    procedure LoadDefaultMimeTypes; virtual;
   public
     Constructor Create(AOWner : TComponent); override;
     Destructor Destroy; override;
@@ -262,13 +263,13 @@ begin
   Writeln('-q --quiet          Do not write diagnostic messages');
   Writeln('-w --watch          Watch directory for changes');
   Writeln('-c --compile[=proj] Recompile project if pascal files change. Default project is app.lpr');
-  Writeln('-m --mimetypes=file filename of mimetypes. Default is ',GetDefaultMimetypes);
+  Writeln('-m --mimetypes=file filename of mimetypes. Default is ',GetDefaultMimeTypesFile);
   Writeln('-s --simpleserver   Only serve files, do not enable compilation.');
   Halt(Ord(Msg<>''));
   {AllowWriteln-}
 end;
 
-function THTTPCompilerApplication.GetDefaultMimetypes: string;
+function THTTPCompilerApplication.GetDefaultMimeTypesFile: string;
 begin
   {$ifdef unix}
   Result:='/etc/mime.types';
@@ -279,6 +280,22 @@ begin
   {$else}
   Result:=ExtractFilePath(System.ParamStr(0))+'mime.types';
   {$endif}
+end;
+
+procedure THTTPCompilerApplication.LoadDefaultMimeTypes;
+begin
+  MimeTypes.AddType('application/xhtml+xml','xhtml;xht');
+  MimeTypes.AddType('text/html','htmll;htm');
+  MimeTypes.AddType('text/plain','txt');
+  MimeTypes.AddType('application/javascript','js');
+  MimeTypes.AddType('text/plain','map');
+  MimeTypes.AddType('application/json','json');
+  MimeTypes.AddType('image/png','png');
+  MimeTypes.AddType('image/jpeg','jpeg;jpg');
+  MimeTypes.AddType('image/gif','gif');
+  MimeTypes.AddType('image/jp2','jp2');
+  MimeTypes.AddType('image/tiff','tiff;tif');
+  MimeTypes.AddType('application/pdf','pdf');
 end;
 
 constructor THTTPCompilerApplication.Create(AOWner: TComponent);
@@ -547,8 +564,15 @@ begin
   if HasOption('m','mimetypes') then
     MimeTypesFile:=GetOptionValue('m','mimetypes');
   if MimeTypesFile='' then
-    MimeTypesFile:=GetDefaultMimetypes;
-  if (MimeTypesFile<>'') and not FileExists(MimeTypesFile) then
+    begin
+    MimeTypesFile:=GetDefaultMimeTypesFile;
+    if not FileExists(MimeTypesFile) then
+      begin
+      MimeTypesFile:='';
+      LoadDefaultMimeTypes;
+      end;
+    end
+  else if not FileExists(MimeTypesFile) then
     Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
   FBaseDir:=D;
   if not ServeOnly then

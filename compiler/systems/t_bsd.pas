@@ -789,7 +789,9 @@ begin
 
    if(not(target_info.system in systems_darwin) and
       (cs_profile in current_settings.moduleswitches)) or
-     ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
+     ((Info.DynamicLinker<>'') and
+      ((not SharedLibFiles.Empty) or
+       (target_info.system in systems_openbsd))) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
   if CShared Then
@@ -800,8 +802,9 @@ begin
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
    end;
 
-{ Use -nopie on OpenBSD }
-  if (target_info.system in systems_openbsd) then
+{ Use -nopie on OpenBSD if PIC support is turned off }
+  if (target_info.system in systems_openbsd) and
+     not(cs_create_pic in current_settings.moduleswitches) then
     Info.ExtraOptions:=Info.ExtraOptions+' -nopie';
 
 { -N seems to be needed on NetBSD/earm }

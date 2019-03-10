@@ -98,7 +98,7 @@ begin
   fp := nil;
   try
     case mode of
-      fopenread: fp  := TFileStream.Create(strpas(filename), fmOpenRead);
+      fopenread: fp  := TFileStream.Create(strpas(filename), fmOpenRead or fmShareDenyWrite);
       fopenwrite: fp := TFileStream.Create(strpas(filename), fmCreate);
       fappendwrite:
       begin

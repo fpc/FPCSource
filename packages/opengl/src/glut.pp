@@ -759,25 +759,19 @@ end;
 
 initialization
 
-  {$IFDEF Windows}
+  {$if defined(Windows)}
   LoadGlut('glut32.dll');
-  {$ELSE}
-  {$IFDEF OS2}
+  {$elseif defined(OS2)}
   LoadGlut('glut.dll');
-  {$ELSE OS2}
-  {$ifdef darwin}
+  {$elseif defined(darwin)}
   LoadGlut('/System/Library/Frameworks/GLUT.framework/GLUT');
-  {$else}
-  {$IFDEF haiku}
+  {$elseif defined(haiku) or defined(OpenBSD)}
   LoadGlut('libglut.so');
-  {$ELSE}
-  {$IFNDEF MORPHOS}
+  {$elseif defined(MORPHOS)}
+  {nothing}
+  {$else}
   LoadGlut('libglut.so.3');
-  {$ENDIF}
-  {$ENDIF}
   {$endif}
-  {$ENDIF OS2}
-  {$ENDIF}
 
 finalization
 

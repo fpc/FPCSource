@@ -108,7 +108,7 @@ ___start:
 	movb $0,(%edx)
 	movl $__progname_storage,__progname
 .L3:
-	call __init
+#	call __init
 	subl $16,%esp
 	pushl %eax
 	movl 8(%ebp),%eax
