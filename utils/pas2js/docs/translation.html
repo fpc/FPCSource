@@ -65,6 +65,7 @@
     <a href="#functiontype">Translating function types</a><br>
     <a href="#absolute">Translating var modifier absolute</a><br>
     <a href="#assert">Translating assert()</a><br>
+    <a href="#dispatch">TObject.Dispatch</a><br>
     <a href="#calljavascript">Calling JavaScript from Pascal</a><br>
     <a href="#asm">The asm block</a><br>
     <a href="#assembler">The procedure modifier assembler</a><br>
@@ -630,8 +631,8 @@ End.
       <tbody>
         <tr>
           <th>Pascal</th>
-          <th>JS Pas2js 1.2</th>
           <th>JS Pas2js 1.3</th>
+          <th>JS Pas2js 1.2</th>
         </tr>
         <tr>
           <td>
@@ -651,36 +652,6 @@ Initialization
   r:=s;
   if r=s then ;
 End.
-</pre>
-          </td>
-          <td>
-<pre>rtl.module("MyModule",
-["System"],
-function(){
-  var $mod = this;
-  this.TMyRecord = function(s) {
-    if (s){
-      this.i = s.i;
-      this.s = s.s;
-      this.d = s.d;
-    } else {
-      this.i = 0;
-      this.s = "";
-      this.d = 0.0;
-    };
-    this.$equal = function (b) {
-      return (this.i == b.i) &&
-        (this.s == b.i) && (this.d == b.d);
-    };
-  };
-  this.r = new this.TMyRecord();
-  $mod.$init = function() {
-    $mod.r.i=123;
-    $mod.r = new $mod.TMyRecord($mod.s);
-    if ($mod.r.$equal($mod.s)) ;
-  },
-},
-[]);
 </pre>
           </td>
           <td>
@@ -708,6 +679,36 @@ function(){
     $mod.r.i=123;
     $mod.r.$assign($mod.s);
     if ($mod.r.$eq($mod.s)) ;
+  },
+},
+[]);
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  this.TMyRecord = function(s) {
+    if (s){
+      this.i = s.i;
+      this.s = s.s;
+      this.d = s.d;
+    } else {
+      this.i = 0;
+      this.s = "";
+      this.d = 0.0;
+    };
+    this.$equal = function (b) {
+      return (this.i == b.i) &&
+        (this.s == b.i) && (this.d == b.d);
+    };
+  };
+  this.r = new this.TMyRecord();
+  $mod.$init = function() {
+    $mod.r.i=123;
+    $mod.r = new $mod.TMyRecord($mod.s);
+    if ($mod.r.$equal($mod.s)) ;
   },
 },
 []);
@@ -756,6 +757,9 @@ function(){
           <li><i>Dispose(PointerOfRecord)</i> Sets the variable to null if possible.</li>
         </ul>
       </li>
+      <li>Passing a record to an untyped arguments (e.g. ''TObject.Dispatch(var Msg)'')
+        passes the record JS object directly, not creating a temporary reference object.</li>
+      <li>Typecasting RecordType(UntypedArgument) returns the argument, i.e. no conversion.</li>
     </ul>
     </div>
 
@@ -2265,6 +2269,21 @@ End.
       disable with <i>{$C-}</i> or <i>{$Assertions off}</i></li>
     </ul>
     </div>
+
+    <div class="section">
+    <h2 id="dispatch">TObject.Dispatch</h2>
+    The procedure modifier '''message''' and the ''TObject.Dispatch'' works
+    similar to FPC/Delphi, as it expects a record of a specific format and
+    ''Dispatch'' calls the method with that message number or string.<br>
+    The procedure modifier '''message &lt;integer&gt;''' adds an entry to the
+    ''$msgint'' object, and modifier '''message &lt;string&gt;''' adds an entry
+    to the ''$msgstr'' object.<br>
+    The '''TObject.Dispatch''' expects as argument a record with an integer
+    field ''Msg'' (case sensitive).<br>
+    The '''TObject.DispatchStr''' expects as argument a record with a string
+    field ''MsgStr'' (case sensitive).<br>
+    </div>
+
 
     <div class="section">
     <h2 id="calljavascript">Calling JavaScript from Pascal</h2>

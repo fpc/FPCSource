@@ -792,11 +792,11 @@ const
     'rc',  // rtl.rc
     'rcCharAt',  // rtl.rcCharAt
     'rcSetCharAt',  // rtl.rcSetCharAt
-    '$assign',
-    '$clone',
-    'recNewT',
-    '$eq',
-    '$new',
+    '$assign', // pbifnRecordAssign
+    '$clone', // pbifnRecordClone
+    'recNewT', // pbifnRecordNew
+    '$eq', // pbifnRecordEqual
+    '$new', // pbifnRecordNew
     'addField',
     'addFields',
     'addMethod',
@@ -5110,7 +5110,7 @@ begin
       else if C=TPasRecordType then
         begin
         // typecast to recordtype
-        if FromResolved.BaseType=btNone then
+        if FromResolved.BaseType=btUntyped then
           // recordtype(untyped) -> ok
         else if FromResolved.BaseType=btContext then
           begin
@@ -9516,7 +9516,7 @@ var
   Param, Value: TPasExpr;
   JSBaseType: TPas2jsBaseType;
   C: TClass;
-  aName: String;
+  aName, ArgName: String;
   aClassTypeEl: TPasClassType;
   ParamTypeEl, TypeEl: TPasType;
   NeedIntfRef: Boolean;
@@ -9665,6 +9665,15 @@ begin
       Param:=El.Params[0];
       aResolver.ComputeElement(Param,ParamResolved,[]);
       ParamTypeEl:=ParamResolved.LoTypeEl;
+
+      if (C=TPasRecordType) and (ParamResolved.BaseType=btUntyped)
+          and (ParamResolved.IdentEl is TPasArgument) then
+        begin
+        // RecordType(UntypedArg) -> UntypedArg
+        ArgName:=TransformArgName(TPasArgument(ParamResolved.IdentEl),AContext);
+        Result:=CreatePrimitiveDotExpr(ArgName,El);
+        exit;
+        end;
 
       Result:=ConvertExpression(Param,AContext);
 
@@ -21594,6 +21603,9 @@ begin
 
   aResolver.ComputeElement(El,ExprResolved,ExprFlags);
 
+  if (TargetArg.ArgType=nil) and (ExprResolved.LoTypeEl is TPasRecordType) then
+    NeedVar:=false; // pass aRecord to UntypedArg -> no reference needed
+
   // consider TargetArg access
   if NeedVar then
     Result:=CreateProcCallArgRef(El,ExprResolved,TargetArg,AContext)
@@ -22077,7 +22089,7 @@ begin
         // create  SetExpr.$assign(v)
         Call:=CreateCallExpression(El);
         Call.Expr:=CreateDotNameExpr(El,SetExpr,
-                                       TJSString(GetBIName(pbifnRecordAssign)));
+                                     TJSString(GetBIName(pbifnRecordAssign)));
         Call.AddArg(RHS);
         SetExpr:=Call;
         end
@@ -22232,6 +22244,40 @@ begin
   TypeEl:=AContext.Resolver.ResolveAliasType(Arg.ArgType);
   IsRecord:=TypeEl is TPasRecordType;
 
+  if AContext.Access=caAssign then
+    begin
+    AssignContext:=AContext.AccessContext as TAssignContext;
+    if IsRecord then
+      begin
+      // aRecordArg:=right  ->  "aRecordArg.$assign(right)"
+      if AssignContext.Call<>nil then
+        RaiseNotSupported(Arg,AContext,20190105174026);
+      Result:=CreateSetter(GetBIName(pbifnRecordAssign),AssignContext);
+      exit;
+      end
+    else if (Arg.ArgType=nil)
+        and (AssignContext.RightResolved.LoTypeEl is TPasRecordType)
+        and (rrfReadable in AssignContext.RightResolved.Flags) then
+      begin
+      // UntypedArg:=aRecordVar  ->  "UntypedArg.$assign(right)"
+      // Note: records are passed directly to Untyped parameters
+      if AssignContext.Call<>nil then
+        RaiseNotSupported(Arg,AContext,20190311140048);
+      Result:=CreateSetter(GetBIName(pbifnRecordAssign),AssignContext);
+      exit;
+      end;
+    end
+  else if IsRecord and (AContext is TParamContext) then
+    begin
+    ParamContext:=TParamContext(AContext);
+    if ParamContext.ResolvedExpr.BaseType=btUntyped then
+      begin
+      // pass aRecordVar to UntypedArg -> pass aRecordVar directly, no temp ref object
+      Result:=CreatePrimitiveDotExpr(ArgName,PosEl);
+      exit;
+      end;
+    end;
+
   if (Arg.Access in [argVar,argOut]) and not IsRecord then
     begin
     // Arg is a reference object
@@ -22266,18 +22312,6 @@ begin
       else
         RaiseNotSupported(Arg,AContext,20170214120739);
     end;
-    end
-  else if AContext.Access=caAssign then
-    begin
-    AssignContext:=AContext.AccessContext as TAssignContext;
-    if AssignContext.LeftResolved.LoTypeEl is TPasRecordType then
-      begin
-      // aRecordArg:=right  ->  "aRecordArg.$assign(right)"
-      if AssignContext.Call<>nil then
-        RaiseNotSupported(Arg,AContext,20190105174026);
-      Result:=CreateSetter(GetBIName(pbifnRecordAssign),AssignContext);
-      exit;
-      end;
     end;
   Result:=CreatePrimitiveDotExpr(ArgName,PosEl);
 end;
