@@ -65,7 +65,7 @@
     <a href="#functiontype">Translating function types</a><br>
     <a href="#absolute">Translating var modifier absolute</a><br>
     <a href="#assert">Translating assert()</a><br>
-    <a href="#dispatch">TObject.Dispatch</a><br>
+    <a href="#dispatch">Dispatch messages</a><br>
     <a href="#calljavascript">Calling JavaScript from Pascal</a><br>
     <a href="#asm">The asm block</a><br>
     <a href="#assembler">The procedure modifier assembler</a><br>
@@ -2271,17 +2271,37 @@ End.
     </div>
 
     <div class="section">
-    <h2 id="dispatch">TObject.Dispatch</h2>
-    The procedure modifier '''message''' and the ''TObject.Dispatch'' works
+    <h2 id="dispatch">Dispatch messages</h2>
+    The procedure modifier <b>message</b> and the <b>Dispatch</b> works
     similar to FPC/Delphi, as it expects a record of a specific format and
-    ''Dispatch'' calls the method with that message number or string.<br>
-    The procedure modifier '''message &lt;integer&gt;''' adds an entry to the
-    ''$msgint'' object, and modifier '''message &lt;string&gt;''' adds an entry
-    to the ''$msgstr'' object.<br>
-    The '''TObject.Dispatch''' expects as argument a record with an integer
-    field ''Msg'' (case sensitive).<br>
-    The '''TObject.DispatchStr''' expects as argument a record with a string
-    field ''MsgStr'' (case sensitive).<br>
+    <b>Dispatch</b> calls the method with that message number or string.<br>
+    The procedure modifier <i>message &lt;integer&gt;</i> adds an entry to the
+    <i>$msgint</i> object, and modifier <i>message &lt;string&gt;</i> adds an entry
+    to the <i>$msgstr</i> object.<br>
+    Two new directives <i>{$DispatchField fieldname}</i> and <i>{$DispatchStrField fieldname}</i>
+    were added. Insert these directives in front of your dispatch methods
+    to let the compiler check all methods with message modifiers whether they
+    pass a record with the right field. For example:
+<pre>
+TMyComponent = class
+  {$DispatchField Msg}
+  procedure Dispatch(var aMessage); virtual;
+  {$DispatchStrField MsgStr}
+  procedure DispatchStr(var aMessage); virtual;
+end;
+TMouseDownMsg = record
+  Id: integer; // Id instead of Msg, works in FPC, but not in pas2js
+  x,y: integer;
+end;
+TMouseUpMsg = record
+  MsgStr: string;
+  X,Y: integer;
+end;
+TWinControl = class
+  procedure MouseDownMsg(var Msg: TMouseDownMsg); message 3; // warning: Dispatch requires record field Msg
+  procedure MouseUpMsg(var Msg: TMouseUpMsg); message 'up'; // ok, record with string field name MsgStr
+end;
+</pre>
     </div>
 
 
