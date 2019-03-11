@@ -522,6 +522,7 @@ const
   nHelperClassMethodForExtClassMustBeStatic = 4027;
   nBitWiseOperationIs32Bit = 4028;
   nDuplicateMessageIdXAtY = 4029;
+  nDispatchRequiresX = 4030;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -553,6 +554,7 @@ resourcestring
   sHelperClassMethodForExtClassMustBeStatic = 'Helper class method for external class must be static';
   sBitWiseOperationIs32Bit = 'Bitwise operation is 32-bit';
   sDuplicateMessageIdXAtY = 'Duplicate message id "%s" at %s';
+  sDispatchRequiresX = 'Dispatch requires %s';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -1129,7 +1131,13 @@ type
   public
     NewInstanceFunction: TPasClassFunction;
     GUID: string;
-    MsgIntToProc, MsgStrToProc: TMessageIdToProc_List; // temporary lists, not stored by filer!
+    // Dispatch and message modifiers:
+    DispatchProc: TPasProcedure;
+    DispatchField: String;
+    DispatchStrProc: TPasProcedure;
+    DispatchStrField: String;
+    MsgIntToProc, MsgStrToProc: TMessageIdToProc_List; // // not stored by filer
+  public
     destructor Destroy; override;
   end;
 
@@ -1194,10 +1202,10 @@ const
     msOmitRTTI,
     msMultiHelpers];
 
-  msAllPas2jsBoolSwitchesReadOnly = [
+  bsAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings
     ];
-  msAllPas2jsBoolSwitches = msAllPas2jsBoolSwitchesReadOnly+[
+  bsAllPas2jsBoolSwitches = bsAllPas2jsBoolSwitchesReadOnly+[
     bsAssertions,
     bsRangeChecks,
     bsWriteableConst,
@@ -1209,6 +1217,13 @@ const
     bsMacro,
     bsScopedEnums,
     bsObjectChecks
+    ];
+
+  vsAllPas2jsValueSwitchesReadOnly = [];
+  vsAllPas2jsValueSwitches = vsAllPas2jsValueSwitchesReadOnly+[
+    vsInterfaces,
+    vsDispatchField,
+    vsDispatchStrField
     ];
 
   // default parser+scanner options
@@ -1417,8 +1432,9 @@ type
     function HasStaticArrayCloneFunc(Arr: TPasArrayType): boolean;
     function IsTGUID(TypeEl: TPasRecordType): boolean; override;
     function GetAssignGUIDString(TypeEl: TPasRecordType; Expr: TPasExpr; out GUID: TGuid): boolean;
+    procedure CheckDispatchField(Proc: TPasProcedure; Switch: TValueSwitch);
     procedure AddMessageStr(var MsgToProc: TMessageIdToProc_List; const S: string; Proc: TPasProcedure);
-    procedure AddMessageIdToClassScope(Proc: TPasProcedure); virtual;
+    procedure AddMessageIdToClassScope(Proc: TPasProcedure; EmitHints: boolean); virtual;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -3567,6 +3583,10 @@ begin
     until false;
     end;
   end;
+
+  // clear
+  Scope.MsgIntToProc:=nil;
+  Scope.MsgStrToProc:=nil;
   //writeln('TPas2JSResolver.FinishClassType END ',GetObjName(El));
 end;
 
@@ -3818,7 +3838,7 @@ procedure TPas2JSResolver.FinishProcedureType(El: TPasProcedureType);
 var
   Proc: TPasProcedure;
   pm: TProcedureModifier;
-  ExtName: String;
+  ExtName, s: String;
   C: TClass;
   AClassOrRec: TPasMembersType;
   ClassOrRecScope: TPasClassOrRecordScope;
@@ -3882,7 +3902,7 @@ begin
         RaiseMsg(20190303231445,nInvalidXModifierY,sInvalidXModifierY,['message','at non class method'],Proc.MessageExpr);
       if TPasClassType(Proc.Parent).IsExternal then
         RaiseMsg(20190304002235,nInvalidXModifierY,sInvalidXModifierY,['message','in external class'],Proc.MessageExpr);
-      AddMessageIdToClassScope(Proc);
+      AddMessageIdToClassScope(Proc,true);
       end;
 
     if Proc.Parent is TPasMembersType then
@@ -3978,6 +3998,27 @@ begin
                   sHelperClassMethodForExtClassMustBeStatic,[],El);
               if El.ClassType=TPasConstructor then
                 RaiseNotYetImplemented(20190206153655,El);
+              end;
+            end;
+          end;
+        if (Proc.ClassType=TPasProcedure) and (Proc.ProcType.Args.Count=1) then
+          begin
+          if SameText(Proc.Name,'Dispatch') then
+            begin
+            s:=CurrentParser.Scanner.CurrentValueSwitch[vsDispatchField];
+            if s<>'' then
+              begin
+              ClassScope.DispatchField:=s;
+              ClassScope.DispatchProc:=Proc;
+              end;
+            end
+          else if SameText(Proc.Name,'DispatchStr') then
+            begin
+            s:=CurrentParser.Scanner.CurrentValueSwitch[vsDispatchStrField];
+            if s<>'' then
+              begin
+              ClassScope.DispatchStrField:=s;
+              ClassScope.DispatchStrProc:=Proc;
               end;
             end;
           end;
@@ -5446,6 +5487,88 @@ begin
   end;
 end;
 
+procedure TPas2JSResolver.CheckDispatchField(Proc: TPasProcedure;
+  Switch: TValueSwitch);
+var
+  ProcScope: TPas2JSProcedureScope;
+  ClassScope: TPas2JSClassScope;
+  FieldName: String;
+  Args, Members: TFPList;
+  Arg: TPasArgument;
+  ArgType: TPasType;
+  i: Integer;
+  Member: TPasElement;
+  MemberResolved: TPasResolverResult;
+begin
+  Args:=Proc.ProcType.Args;
+  if Args.Count<>1 then
+    RaiseNotYetImplemented(20190311213959,Proc);
+  Arg:=TPasArgument(Args[0]);
+  if Arg.ArgType=nil then
+    exit; // untyped arg
+
+  ProcScope:=TPas2JSProcedureScope(Proc.CustomData);
+  ClassScope:=TPas2JSClassScope(ProcScope.ClassRecScope);
+  FieldName:='';
+  while ClassScope<>nil do
+    begin
+    case Switch of
+    vsDispatchField:
+      if ClassScope.DispatchField<>'' then
+        begin
+        FieldName:=ClassScope.DispatchField;
+        break;
+        end;
+    vsDispatchStrField:
+      if ClassScope.DispatchStrField<>'' then
+        begin
+        FieldName:=ClassScope.DispatchStrField;
+        break;
+        end;
+    else
+      RaiseNotYetImplemented(20190311213650,Proc,'');
+    end;
+    ClassScope:=ClassScope.AncestorScope as TPas2JSClassScope;
+    end;
+  if FieldName='' then exit;
+
+  // there is a Dispatch(str) method with a directive -> check field
+  ArgType:=ResolveAliasType(Arg.ArgType);
+  if not (ArgType is TPasMembersType) then
+    begin
+    LogMsg(20190311214257,mtWarning,nDispatchRequiresX,sDispatchRequiresX,['record type'],Arg);
+    exit;
+    end;
+  Members:=TPasMembersType(ArgType).Members;
+  for i:=0 to Members.Count-1 do
+    begin
+    Member:=TPasElement(Members[i]);
+    if SameText(Member.Name,FieldName) then
+      begin
+      if Member.ClassType<>TPasVariable then
+        begin
+        LogMsg(20190311215218,mtWarning,nDispatchRequiresX,sDispatchRequiresX,['field variable "'+FieldName+'"'],Arg);
+        exit;
+        end;
+      // field found -> check type
+      ComputeElement(TPasVariable(Member).VarType,MemberResolved,[rcType],Arg);
+      if not (MemberResolved.BaseType in btAllJSInteger) then
+        begin
+        LogMsg(20190311215215,mtWarning,nDispatchRequiresX,sDispatchRequiresX,['integer field "'+FieldName+'"'],Arg);
+        exit;
+        end;
+      // check name case
+      if Member.Name<>FieldName then
+        begin
+        LogMsg(20190311221651,mtWarning,nDispatchRequiresX,sDispatchRequiresX,['field name to match exactly "'+FieldName+'"'],Arg);
+        exit;
+        end;
+      exit;
+      end;
+    end;
+  LogMsg(20190311214710,mtWarning,nDispatchRequiresX,sDispatchRequiresX,['record field "'+FieldName+'"'],Arg);
+end;
+
 procedure TPas2JSResolver.AddMessageStr(var MsgToProc: TMessageIdToProc_List;
   const S: string; Proc: TPasProcedure);
 var
@@ -5464,7 +5587,8 @@ begin
   MsgToProc.AddObject(S,Proc);
 end;
 
-procedure TPas2JSResolver.AddMessageIdToClassScope(Proc: TPasProcedure);
+procedure TPas2JSResolver.AddMessageIdToClassScope(Proc: TPasProcedure;
+  EmitHints: boolean);
 var
   AClass: TPasClassType;
   ClassScope: TPas2JSClassScope;
@@ -5481,12 +5605,24 @@ begin
     case Value.Kind of
     {$ifdef FPC_HAS_CPSTRING}
     revkString:
+      begin
       AddMessageStr(ClassScope.MsgStrToProc,ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,Expr),Proc);
+      if EmitHints then
+        CheckDispatchField(Proc,vsDispatchStrField);
+      end;
     {$ENDIF}
     revkUnicodeString:
+      begin
       AddMessageStr(ClassScope.MsgStrToProc,String(TResEvalUTF16(Value).S),Proc);
+      if EmitHints then
+        CheckDispatchField(Proc,vsDispatchStrField);
+      end;
     revkInt:
+      begin
       AddMessageStr(ClassScope.MsgIntToProc,IntToStr(TResEvalInt(Value).Int),Proc);
+      if EmitHints then
+        CheckDispatchField(Proc,vsDispatchField);
+      end
     else
       RaiseXExpectedButYFound(20190303225849,'integer constant',Value.AsString,Expr);
     end;
@@ -13240,7 +13376,7 @@ begin
             continue;
             end
           else if (Proc.MessageExpr<>nil) and (aResolver<>nil) then
-            aResolver.AddMessageIdToClassScope(Proc);
+            aResolver.AddMessageIdToClassScope(Proc,false);
           NewEl:=ConvertProcedure(Proc,FuncContext);
           if NewEl=nil then
             continue; // e.g. abstract or external proc

@@ -1044,9 +1044,11 @@ begin
   Scanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
   Scanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
   Scanner.CurrentModeSwitches:=GetInitialModeSwitches;
-  Scanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
-  Scanner.ReadOnlyBoolSwitches:=msAllPas2jsBoolSwitchesReadOnly;
+  Scanner.AllowedBoolSwitches:=bsAllPas2jsBoolSwitches;
+  Scanner.ReadOnlyBoolSwitches:=bsAllPas2jsBoolSwitchesReadOnly;
   Scanner.CurrentBoolSwitches:=GetInitialBoolSwitches;
+  Scanner.AllowedValueSwitches:=vsAllPas2jsValueSwitches;
+  Scanner.ReadOnlyValueSwitches:=vsAllPas2jsValueSwitchesReadOnly;
   Scanner.CurrentValueSwitch[vsInterfaces]:=InterfaceTypeNames[Compiler.InterfaceType];
   if coAllowCAssignments in Compiler.Options then
     Scanner.Options:=Scanner.Options+[po_cassignments];

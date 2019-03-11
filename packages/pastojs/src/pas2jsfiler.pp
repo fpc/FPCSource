@@ -853,6 +853,8 @@ type
     procedure Set_ClassScope_NewInstanceFunction(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassScope_DirectAncestor(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassScope_DefaultProperty(RefEl: TPasElement; Data: TObject);
+    procedure Set_ClassScope_DispatchProc(RefEl: TPasElement; Data: TObject);
+    procedure Set_ClassScope_DispatchStrProc(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassIntfMap_Intf(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassType_AncestorType(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassType_HelperForType(RefEl: TPasElement; Data: TObject);
@@ -971,6 +973,7 @@ type
     procedure ReadClassIntfMapProcs(Obj: TJSONObject; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
     procedure ReadClassIntfMap(Obj: TJSONObject; Scope: TPas2JSClassScope; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
     procedure ReadClassScopeInterfaces(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
+    procedure ReadClassScopeDispatchProcs(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
     procedure ReadClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope; aContext: TPCUReaderContext); virtual;
     procedure ReadClassType(Obj: TJSONObject; El: TPasClassType; aContext: TPCUReaderContext); virtual;
     procedure ReadArgument(Obj: TJSONObject; El: TPasArgument; aContext: TPCUReaderContext); virtual;
@@ -3494,6 +3497,13 @@ begin
       AddReferenceToArray(Arr,Scope.AbstractProcs[i]);
     end;
 
+  AddReferenceToObj(Obj,'DispatchProc',Scope.DispatchProc);
+  if Scope.DispatchField<>'' then
+    Obj.Add('DispatchField',Scope.DispatchField);
+  AddReferenceToObj(Obj,'DispatchStrProc',Scope.DispatchStrProc);
+  if Scope.DispatchStrField<>'' then
+    Obj.Add('DispatchStrField',Scope.DispatchStrField);
+
   if Scope.GUID<>'' then
     Obj.Add('SGUID',Scope.GUID);
 
@@ -4333,6 +4343,28 @@ begin
     Scope.DefaultProperty:=TPasProperty(RefEl) // no AddRef
   else
     RaiseMsg(20180214115044,Scope.Element,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_ClassScope_DispatchProc(RefEl: TPasElement;
+  Data: TObject);
+var
+  Scope: TPas2JSClassScope absolute Data;
+begin
+  if RefEl is TPasProcedure then
+    Scope.DispatchProc:=TPasProcedure(RefEl) // no AddRef
+  else
+    RaiseMsg(20190311220755,Scope.Element,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_ClassScope_DispatchStrProc(RefEl: TPasElement;
+  Data: TObject);
+var
+  Scope: TPas2JSClassScope absolute Data;
+begin
+  if RefEl is TPasProcedure then
+    Scope.DispatchStrProc:=TPasProcedure(RefEl) // no AddRef
+  else
+    RaiseMsg(20190311220757,Scope.Element,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.Set_ClassIntfMap_Intf(RefEl: TPasElement; Data: TObject);
@@ -7002,6 +7034,18 @@ begin
     end;
 end;
 
+procedure TPCUReader.ReadClassScopeDispatchProcs(Obj: TJSONObject;
+  Scope: TPas2JSClassScope);
+var
+  El: TPasClassType;
+begin
+  El:=TPasClassType(Scope.Element);
+  ReadString(Obj,'DispatchField',Scope.DispatchField,El);
+  ReadString(Obj,'DispatchStrField',Scope.DispatchStrField,El);
+  ReadElementReference(Obj,Scope,'DispatchProc',@Set_ClassScope_DispatchProc);
+  ReadElementReference(Obj,Scope,'DispatchStrProc',@Set_ClassScope_DispatchStrProc);
+end;
+
 procedure TPCUReader.ReadClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope;
   aContext: TPCUReaderContext);
 var
@@ -7098,10 +7142,13 @@ begin
   ReadElementList(Obj,El,'Members',El.Members,
     {$IFDEF CheckPasTreeRefCount}'TPasClassType.Members'{$ELSE}true{$ENDIF},
     aContext);
+
+
   if Scope<>nil then
     begin
     ReadClassScopeAbstractProcs(Obj,Scope);
     ReadClassScopeInterfaces(Obj,Scope);
+    ReadClassScopeDispatchProcs(Obj,Scope);
 
     if El.ObjKind in okAllHelpers then
       begin
