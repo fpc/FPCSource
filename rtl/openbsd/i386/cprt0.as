@@ -141,7 +141,7 @@ ___start:
 	xorl  %ebp,%ebp
 	call main
 	pushl %eax
-	call exit
+	call exit@PLT
         .p2align 2,0x90
 
 .globl _haltproc
