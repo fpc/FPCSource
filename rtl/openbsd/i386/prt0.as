@@ -80,16 +80,17 @@ ___start:
 	pushl $47
 	pushl %ebx
 	call _strrchr
-	movl %eax,__progname
+	movl __progname@GOT(%edi),%ecx
+	movl %eax,(%ecx)
 	addl $16,%esp
 	testl %eax,%eax
 	jne .L4
-	movl %ebx,__progname
+	movl %ebx,(%ecx)
 	jmp .L5
 	.p2align 4,,7
 .L4:
 	incl %eax
-	movl %eax,__progname
+	movl %eax,(%ecx)
 .L5:
 	movl __progname_storage@GOT(%edi),%edx
 	jmp .L12
@@ -97,10 +98,12 @@ ___start:
 .L9:
 	movb (%eax),%al
 	movb %al,(%edx)
-	incl __progname
+	movl __progname@GOT(%edi),%ecx
+	incl (%ecx)
 	incl %edx
 .L12:
-	movl __progname,%eax
+	movl __progname@GOT(%edi),%ecx
+	movl (%ecx),%eax
 	cmpb $0,(%eax)
 	je .L7
 	movl __progname_storage@GOT(%edi),%ecx
