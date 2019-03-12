@@ -64,10 +64,15 @@ ___start:
 	subl $16,%esp
 	pushl %esi
 	pushl %ebx
+	call fpc_geteipasecx
+	addl $_GLOBAL_OFFSET_TABLE_,%ecx
+	movl %ecx,%edi
 	movl 12(%ebp),%esi
 	movl 16(%ebp),%eax
-	movl %eax,environ
-	movl %eax,operatingsystem_parameter_envp
+	movl environ@GOT(%edi),%ecx
+	movl %eax,(%ecx)
+	movl operatingsystem_parameter_envp@GOT(%edi),%ecx
+	movl %eax,(%ecx)
 	movl (%esi),%ebx
 	testl %ebx,%ebx
 	je .L3
@@ -86,7 +91,7 @@ ___start:
 	incl %eax
 	movl %eax,__progname
 .L5:
-	movl $__progname_storage,%edx
+	movl __progname_storage@GOT(%edi),%edx
 	jmp .L12
 	.p2align 4,,7
 .L9:
@@ -98,7 +103,9 @@ ___start:
 	movl __progname,%eax
 	cmpb $0,(%eax)
 	je .L7
-	cmpl $__progname_storage+255,%edx
+	movl __progname_storage@GOT(%edi),%ecx
+	addl $255,%ecx
+	cmpl %ecx,%edx
 	jb .L9
 .L7:
 	movb $0,(%edx)
