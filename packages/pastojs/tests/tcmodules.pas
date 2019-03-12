@@ -533,8 +533,9 @@ type
     Procedure TestClass_TObjectFreeFunctionFail;
     Procedure TestClass_TObjectFreePropertyFail;
     Procedure TestClass_ForIn;
-    Procedure TestClass_Message;
+    Procedure TestClass_DispatchMessage;
     Procedure TestClass_Message_DuplicateIntFail;
+    Procedure TestClass_DispatchMessage_WrongFieldNameFail;
 
     // class of
     Procedure TestClassOf_Create;
@@ -1297,9 +1298,12 @@ begin
   aScanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
   aScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
 
-  aScanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
-  aScanner.ReadOnlyBoolSwitches:=msAllPas2jsBoolSwitchesReadOnly;
-  aScanner.CurrentBoolSwitches:=msAllPas2jsBoolSwitchesReadOnly+[bsHints,bsNotes,bsWarnings,bsWriteableConst];
+  aScanner.AllowedBoolSwitches:=bsAllPas2jsBoolSwitches;
+  aScanner.ReadOnlyBoolSwitches:=bsAllPas2jsBoolSwitchesReadOnly;
+  aScanner.CurrentBoolSwitches:=bsAllPas2jsBoolSwitchesReadOnly+[bsHints,bsNotes,bsWarnings,bsWriteableConst];
+
+  aScanner.AllowedValueSwitches:=vsAllPas2jsValueSwitches;
+  aScanner.ReadOnlyValueSwitches:=vsAllPas2jsValueSwitchesReadOnly;
 
   aScanner.OnLog:=@OnScannerLog;
 
@@ -14419,17 +14423,31 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClass_Message;
+procedure TTestModule.TestClass_DispatchMessage;
 begin
   StartProgram(false);
   Add([
   'type',
   '  TObject = class',
+  '    {$DispatchField DispInt}',
+  '    procedure Dispatch(var Msg); virtual; abstract;',
+  '    {$DispatchStrField DispStr}',
+  '    procedure DispatchStr(var Msg); virtual; abstract;',
+  '  end;',
+  '  THopMsg = record',
+  '    DispInt: longint;',
+  '  end;',
+  '  TPutMsg = record',
+  '    DispStr: string;',
+  '  end;',
+  '  TBird = class',
   '    procedure Fly(var Msg); virtual; abstract; message 2;',
   '    procedure Run; overload; virtual; abstract;',
   '    procedure Run(var Msg); overload; message ''Fast'';',
+  '    procedure Hop(var Msg: THopMsg); virtual; abstract; message 3;',
+  '    procedure Put(var Msg: TPutMsg); virtual; abstract; message ''foo'';',
   '  end;',
-  'procedure TObject.Run(var Msg);',
+  'procedure TBird.Run(var Msg);',
   'begin',
   'end;',
   'begin',
@@ -14442,13 +14460,37 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
+    '});',
+    'rtl.recNewT($mod, "THopMsg", function () {',
+    '  this.DispInt = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.DispInt === b.DispInt;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.DispInt = s.DispInt;',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.recNewT($mod, "TPutMsg", function () {',
+    '  this.DispStr = "";',
+    '  this.$eq = function (b) {',
+    '    return this.DispStr === b.DispStr;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.DispStr = s.DispStr;',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
     '  this.Run$1 = function (Msg) {',
     '  };',
     '  this.$msgint = {',
-    '    "2": "Fly"',
+    '    "2": "Fly",',
+    '    "3": "Hop"',
     '  };',
     '  this.$msgstr = {',
-    '    Fast: "Run$1"',
+    '    Fast: "Run$1",',
+    '    foo: "Put"',
     '  };',
     '});',
     '']),
@@ -14469,6 +14511,27 @@ begin
   '']);
   SetExpectedPasResolverError('Duplicate message id "3" at test1.pp(5,56)',nDuplicateMessageIdXAtY);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_DispatchMessage_WrongFieldNameFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    {$dispatchfield Msg}',
+  '    procedure Dispatch(var Msg); virtual; abstract;',
+  '  end;',
+  '  TFlyMsg = record',
+  '    FlyId: longint;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Fly(var Msg: TFlyMsg); virtual; abstract; message 3;',
+  '  end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckHint(mtWarning,nDispatchRequiresX,'Dispatch requires record field "Msg"');
 end;
 
 procedure TTestModule.TestClassOf_Create;
