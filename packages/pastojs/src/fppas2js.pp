@@ -1132,9 +1132,7 @@ type
     NewInstanceFunction: TPasClassFunction;
     GUID: string;
     // Dispatch and message modifiers:
-    DispatchProc: TPasProcedure;
     DispatchField: String;
-    DispatchStrProc: TPasProcedure;
     DispatchStrField: String;
     MsgIntToProc, MsgStrToProc: TMessageIdToProc_List; // // not stored by filer
   public
@@ -3620,6 +3618,10 @@ begin
 
   Scope:=TPas2JSClassScope(aClass.CustomData);
   if Scope=nil then exit;
+
+  Scope.DispatchField:=CurrentParser.Scanner.CurrentValueSwitch[vsDispatchField];
+  Scope.DispatchStrField:=CurrentParser.Scanner.CurrentValueSwitch[vsDispatchStrField];
+
   IntfList:=aClass.Interfaces;
   GUIDs:=TStringList.Create;
   try
@@ -3838,7 +3840,7 @@ procedure TPas2JSResolver.FinishProcedureType(El: TPasProcedureType);
 var
   Proc: TPasProcedure;
   pm: TProcedureModifier;
-  ExtName, s: String;
+  ExtName: String;
   C: TClass;
   AClassOrRec: TPasMembersType;
   ClassOrRecScope: TPasClassOrRecordScope;
@@ -3998,27 +4000,6 @@ begin
                   sHelperClassMethodForExtClassMustBeStatic,[],El);
               if El.ClassType=TPasConstructor then
                 RaiseNotYetImplemented(20190206153655,El);
-              end;
-            end;
-          end;
-        if (Proc.ClassType=TPasProcedure) and (Proc.ProcType.Args.Count=1) then
-          begin
-          if SameText(Proc.Name,'Dispatch') then
-            begin
-            s:=CurrentParser.Scanner.CurrentValueSwitch[vsDispatchField];
-            if s<>'' then
-              begin
-              ClassScope.DispatchField:=s;
-              ClassScope.DispatchProc:=Proc;
-              end;
-            end
-          else if SameText(Proc.Name,'DispatchStr') then
-            begin
-            s:=CurrentParser.Scanner.CurrentValueSwitch[vsDispatchStrField];
-            if s<>'' then
-              begin
-              ClassScope.DispatchStrField:=s;
-              ClassScope.DispatchStrProc:=Proc;
               end;
             end;
           end;
@@ -5552,11 +5533,20 @@ begin
         end;
       // field found -> check type
       ComputeElement(TPasVariable(Member).VarType,MemberResolved,[rcType],Arg);
-      if not (MemberResolved.BaseType in btAllJSInteger) then
-        begin
-        LogMsg(20190311215215,mtWarning,nDispatchRequiresX,sDispatchRequiresX,['integer field "'+FieldName+'"'],Arg);
-        exit;
-        end;
+      case Switch of
+      vsDispatchField:
+        if not (MemberResolved.BaseType in btAllJSInteger) then
+          begin
+          LogMsg(20190311215215,mtWarning,nDispatchRequiresX,sDispatchRequiresX,['integer field "'+FieldName+'"'],Arg);
+          exit;
+          end;
+      vsDispatchStrField:
+        if not (MemberResolved.BaseType in btAllJSStrings) then
+          begin
+          LogMsg(20190312125025,mtWarning,nDispatchRequiresX,sDispatchRequiresX,['string field "'+FieldName+'"'],Arg);
+          exit;
+          end;
+      end;
       // check name case
       if Member.Name<>FieldName then
         begin

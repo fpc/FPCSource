@@ -749,9 +749,7 @@ begin
 
   CheckRestoredReference(Path+'.NewInstanceFunction',Orig.NewInstanceFunction,Rest.NewInstanceFunction);
   AssertEquals(Path+'.GUID',Orig.GUID,Rest.GUID);
-  CheckRestoredReference(Path+'.DispatchProc',Orig.DispatchProc,Rest.DispatchProc);
   AssertEquals(Path+'.DispatchField',Orig.DispatchField,Rest.DispatchField);
-  CheckRestoredReference(Path+'.DispatchStrProc',Orig.DispatchStrProc,Rest.DispatchStrProc);
   AssertEquals(Path+'.DispatchStrField',Orig.DispatchStrField,Rest.DispatchStrField);
 
   CheckRestoredObject('.Interfaces',Orig.Interfaces,Rest.Interfaces);
@@ -2154,11 +2152,9 @@ begin
   Add([
   'interface',
   'type',
+  '  {$DispatchField DispInt}',
+  '  {$DispatchStrField DispStr}',
   '  TObject = class',
-  '    {$DispatchField DispInt}',
-  '    procedure Dispatch(var Msg); virtual; abstract;',
-  '    {$DispatchStrField DispStr}',
-  '    procedure DispatchStr(var Msg); virtual; abstract;',
   '  end;',
   '  THopMsg = record',
   '    DispInt: longint;',

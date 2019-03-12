@@ -2274,34 +2274,39 @@ End.
     <h2 id="dispatch">Dispatch messages</h2>
     The procedure modifier <b>message</b> and the <b>Dispatch</b> works
     similar to FPC/Delphi, as it expects a record of a specific format and
-    <b>Dispatch</b> calls the method with that message number or string.<br>
-    The procedure modifier <i>message &lt;integer&gt;</i> adds an entry to the
-    <i>$msgint</i> object, and modifier <i>message &lt;string&gt;</i> adds an entry
-    to the <i>$msgstr</i> object.<br>
-    Two new directives <i>{$DispatchField fieldname}</i> and <i>{$DispatchStrField fieldname}</i>
-    were added. Insert these directives in front of your dispatch methods
-    to let the compiler check all methods with message modifiers whether they
-    pass a record with the right field. For example:
+    <b><i>TObject.Dispatch</i></b> calls the corresponding method with that
+    message number or string.<br>
+    The procedure modifier <i>message &lt;integer&gt;</i> adds an entry to
+    hidden <i>YourClass.$msgint</i> object, while the modifier
+    <i>message &lt;string&gt;</i> adds an entry to the hidden
+    <i>YourClass.$msgstr</i> object.<br>
+    Two new directives <b><i>{$DispatchField fieldname}</i></b> and
+    <b><i>{$DispatchStrField fieldname}</i></b> were added. Insert these
+    directives in front of your class declaration to let the compiler check all
+    methods with message modifiers of this class and its descendants whether they
+    pass a record with the required field. For example:
 <pre>
-TMyComponent = class
-  {$DispatchField Msg}
-  procedure Dispatch(var aMessage); virtual;
+  {$DispatchField Msg} // enable checking message methods for record field name "Msg"
   {$DispatchStrField MsgStr}
-  procedure DispatchStr(var aMessage); virtual;
-end;
-TMouseDownMsg = record
-  Id: integer; // Id instead of Msg, works in FPC, but not in pas2js
-  x,y: integer;
-end;
-TMouseUpMsg = record
-  MsgStr: string;
-  X,Y: integer;
-end;
-TWinControl = class
-  procedure MouseDownMsg(var Msg: TMouseDownMsg); message 3; // warning: Dispatch requires record field Msg
-  procedure MouseUpMsg(var Msg: TMouseUpMsg); message 'up'; // ok, record with string field name MsgStr
-end;
+  TObject = class
+    procedure Dispatch(var aMessage); virtual;
+    procedure DispatchStr(var aMessage); virtual;
+  end;
+  TMouseDownMsg = record
+    Id: integer; // Id instead of Msg, works in FPC, but not in pas2js
+    x,y: integer;
+  end;
+  TMouseUpMsg = record
+    MsgStr: string;
+    X,Y: integer;
+  end;
+  TWinControl = class
+    procedure MouseDownMsg(var Msg: TMouseDownMsg); message 3; // warning: Dispatch requires record field Msg
+    procedure MouseUpMsg(var Msg: TMouseUpMsg); message 'up'; // ok, record with string field name MsgStr
+  end;
 </pre>
+    Note that descendant classes can override the <i>$DispatchField</i> or
+    disable the check using <i>{$DispatchField -}</i>.
     </div>
 
 
