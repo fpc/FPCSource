@@ -112,21 +112,28 @@ ___start:
 	jb .L9
 .L7:
 	movb $0,(%edx)
-	movl $__progname_storage,__progname
+	pushl %eax
+	movl __progname_storage@GOT(%edi),%eax
+	movl __progname@GOT(%edi),%ecx
+	movl %eax,(%ecx)
+	popl %eax
 .L3:
 #	call __init
 	subl $16,%esp
 	pushl %eax
 	movl 8(%ebp),%eax
-	movl %eax,operatingsystem_parameter_argc
-	movl %esi,operatingsystem_parameter_argv
+	movl operatingsystem_parameter_argc@GOT(%edi),%ecx
+	movl %eax,(%ecx)
+	movl operatingsystem_parameter_argv@GOT(%edi),%ecx
+	movl %esi,(%ecx)
 	popl %eax
 #	pushl environ
 #	pushl %esi
 #	pushl 8(%ebp)
+	movl ___fpucw@GOT(%edi),%ecx
 	finit
 	fwait
-	fldcw ___fpucw
+	fldcw (%ecx)
 	xorl  %ebp,%ebp
 	call main
 #	pushl %eax
@@ -138,9 +145,12 @@ ___start:
 .type _haltproc,@function
 
 _haltproc:
-           mov $1,%eax
-           movzwl operatingsystem_result,%ebx
+           call fpc_geteipasebx
+           addl $_GLOBAL_OFFSET_TABLE_,%ebx
+           movl operatingsystem_result@GOT(%ebx),%ebx
+           movzwl (%ebx),%ebx
            pushl %ebx
+           mov $1,%eax
            call .Lactualsyscall
            addl  $4,%esp
            jmp   _haltproc
