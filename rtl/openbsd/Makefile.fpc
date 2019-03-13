@@ -9,8 +9,8 @@ main=rtl
 fpcpackage=y
 
 [target]
-loaders=prt0 cprt0 dllprt0
-units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings syscall baseunix \
+loaders=$(LOADERS)
+units=$(SYSTEMUNIT) $(SYSINIT_UNITS) uuchar objpas macpas iso7185 extpas strings syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
       $(CPU_UNITS) dos rtlconsts \
       sysutils sortbase fgl classes typinfo math \
@@ -82,11 +82,18 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
+CPU_UNITS=
+SYSINIT_UNITS=
+
+LOADERS=prt0 cprt0 dllprt0
+
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
+SYSINIT_UNITS=si_prc si_c si_dll
 endif
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
+SYSINIT_UNITS=si_prc si_c si_dll
 endif
 
 # Paths
@@ -133,6 +140,20 @@ cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 
 dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
         $(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
+
+
+#
+# $(SYSINIT_UNITS) Units
+#
+si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+si_c$(PPUEXT) : si_c.pp si_intf.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+si_dll$(PPUEXT) : si_dll.pp si_intf.inc $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
 
 #
 # System Units (System, Objpas, Strings)
