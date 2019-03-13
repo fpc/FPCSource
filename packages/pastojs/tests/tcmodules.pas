@@ -455,7 +455,7 @@ type
     Procedure TestRecordElementFromFuncResult_AsParams;
     Procedure TestRecordElementFromWith_AsParams;
     Procedure TestRecord_Equal;
-    Procedure TestRecord_TypeCastJSValueToRecord;
+    Procedure TestRecord_JSValue;
     Procedure TestRecord_VariantFail;
     Procedure TestRecord_FieldArray;
     Procedure TestRecord_Const;
@@ -10355,20 +10355,28 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestRecord_TypeCastJSValueToRecord;
+procedure TTestModule.TestRecord_JSValue;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TRecord = record');
-  Add('    i: longint;');
-  Add('  end;');
-  Add('var');
-  Add('  Jv: jsvalue;');
-  Add('  Rec: trecord;');
-  Add('begin');
-  Add('  rec:=trecord(jv);');
+  Add([
+  'type',
+  '  TRecord = record',
+  '    i: longint;',
+  '  end;',
+  'procedure Fly(d: jsvalue; const c: jsvalue);',
+  'begin',
+  'end;',
+  'var',
+  '  Jv: jsvalue;',
+  '  Rec: trecord;',
+  'begin',
+  '  rec:=trecord(jv);',
+  '  jv:=rec;',
+  '  Fly(rec,rec);',
+  '  Fly(@rec,@rec);',
+  '']);
   ConvertProgram;
-  CheckSource('TestRecord_TypeCastJSValueToRecord',
+  CheckSource('TestRecord_JSValue',
     LinesToStr([ // statements
     'rtl.recNewT($mod, "TRecord", function () {',
     '  this.i = 0;',
@@ -10380,11 +10388,16 @@ begin
     '    return this;',
     '  };',
     '});',
+    'this.Fly = function (d, c) {',
+    '};',
     'this.Jv = undefined;',
     'this.Rec = $mod.TRecord.$new();',
     '']),
     LinesToStr([
     '$mod.Rec.$assign(rtl.getObject($mod.Jv));',
+    '$mod.Jv = $mod.Rec;',
+    '$mod.Fly($mod.TRecord.$clone($mod.Rec), $mod.Rec);',
+    '$mod.Fly($mod.Rec, $mod.Rec);',
     '']));
 end;
 
