@@ -462,36 +462,36 @@ type
   TPas2jsCompiler = class
   private
     FAllJSIntoMainJS: Boolean;
-    FConverterGlobals: TPasToJSConverterGlobals;
     FCompilerExe: string;
+    FConfigSupport: TPas2JSConfigSupport;
+    FConverterGlobals: TPasToJSConverterGlobals;
     FDefines: TStrings; // Objects can be TMacroDef
-    FFS: TPas2jsFS;
-    FOwnsFS: boolean;
     FFiles: TPasAnalyzerKeySet; // set of TPas2jsCompilerFile, key is UnitFilename
-    FReadingModules: TFPList; // list of TPas2jsCompilerFile ordered by uses sections
+    FFS: TPas2jsFS;
     FHasShownEncoding: boolean;
     FHasShownLogo: boolean;
+    FInsertFilenames: TStringList;
+    FInterfaceType: TPasClassInterfaceType;
     FLog: TPas2jsLogger;
     FMainFile: TPas2jsCompilerFile;
-    FMainJSFileResolved: String;
-    FMainJSFileIsResolved: Boolean;
     FMainJSFile: String;
+    FMainJSFileIsResolved: Boolean;
+    FMainJSFileResolved: String;
     FMainSrcFile: String;
     FMode: TP2jsMode;
+    FNamespaces: TStringList;
+    FNamespacesFromCmdLine: integer;
     FOptions: TP2jsCompilerOptions;
+    FOwnsFS: boolean;
     FParamMacros: TPas2jsMacroEngine;
+    FPostProcessorSupport: TPas2JSPostProcessorSupport;
+    FPrecompileGUID: TGUID;
+    FReadingModules: TFPList; // list of TPas2jsCompilerFile ordered by uses sections
+    FRTLVersionCheck: TP2jsRTLVersionCheck;
+    FSrcMapBaseDir: string;
     FSrcMapSourceRoot: string;
     FUnits: TPasAnalyzerKeySet; // set of TPas2jsCompilerFile, key is PasUnitName
     FWPOAnalyzer: TPas2JSAnalyzer;
-    FInterfaceType: TPasClassInterfaceType;
-    FPrecompileGUID: TGUID;
-    FInsertFilenames: TStringList;
-    FNamespaces: TStringList;
-    FNamespacesFromCmdLine: integer;
-    FConfigSupport: TPas2JSConfigSupport;
-    FSrcMapBaseDir: string;
-    FRTLVersionCheck: TP2jsRTLVersionCheck;
-    FPostProcessorSupport: TPas2JSPostProcessorSupport;
     procedure AddInsertJSFilename(const aFilename: string);
     Procedure AddNamespaces(const Paths: string; FromCmdLine: boolean);
     function GetDefaultNamespace: String;
@@ -4404,22 +4404,20 @@ begin
 end;
 
 procedure TPas2jsCompiler.WriteUsedTools;
-
 begin
-  If Assigned(FPostProcessorSupport) then
+  if Assigned(FPostProcessorSupport) then
     FPostProcessorSupport.WriteUsedTools;
 end;
 
 procedure TPas2jsCompiler.WriteFoldersAndSearchPaths;
-
-Var
+var
   I: integer;
-
 begin
+  Log.LogMsgIgnoreFilter(nNameValue,['Compiler exe',QuoteStr(CompilerExe)]);
   FS.WriteFoldersAndSearchPaths;
   for i:=0 to Namespaces.Count-1 do
-    Log.LogMsgIgnoreFilter(nUsingPath,['unit scope',Namespaces[i]]);
-  Log.LogMsgIgnoreFilter(nNameValue,['output file',QuoteStr(MainJSFile)]);
+    Log.LogMsgIgnoreFilter(nUsingPath,['Unit scope',Namespaces[i]]);
+  Log.LogMsgIgnoreFilter(nNameValue,['Output file',QuoteStr(MainJSFile)]);
 end;
 
 procedure TPas2jsCompiler.WriteInfo;
