@@ -22,6 +22,7 @@ interface
 
 implementation
 
+{$i si_impl.inc}
 {$i si_dll.inc}
 
 end.
