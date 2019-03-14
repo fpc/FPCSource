@@ -254,16 +254,54 @@ End;
 
 
 procedure TLinkerBSD.InitSysInitUnitName;
+var
+  cprtobj,
+  gprtobj : string[80];
 begin
   if target_info.system in systems_darwin then
     begin
       { for darwin: always link dynamically against libc }
       linklibc := true;
+      reorder:=reorderentries;
+      prtobj:='';
       SysInitUnit:='sysinit';
     end
   else
     begin
       linklibc:=ModulesLinkToLibc;
+      if current_module.islibrary and
+         (target_info.system in systems_bsd) then
+        begin
+          prtobj:='dllprt0';
+          cprtobj:='dllprt0';
+          gprtobj:='dllprt0';
+        end
+      else
+        begin
+          prtobj:='prt0';
+          cprtobj:='cprt0';
+          gprtobj:='gprt0';
+        end;
+      // this one is a bit complex.
+      // Only reorder for now if -XL or -XO params are given
+      // or when -Xf.
+      reorder:= linklibc and
+                (
+                  ReorderEntries
+                   or
+                  (cs_link_pthread in current_settings.globalswitches));
+      if cs_profile in current_settings.moduleswitches then
+       begin
+         prtobj:=gprtobj;
+         AddSharedLibrary('c');
+         LibrarySuffix:='p';
+         linklibc:=true;
+       end
+      else
+       begin
+         if linklibc then
+          prtobj:=cprtobj;
+       end;
     end;
 end;
 
@@ -422,8 +460,6 @@ Var
   linkres      : TLinkRes;
   FilesList    : TLinkRes;
   i            : longint;
-  cprtobj,
-  gprtobj      : string[80];
   HPath        : TCmdStrListItem;
   s,s1,s2      : TCmdStr;
   linkdynamic  : boolean;
@@ -438,40 +474,7 @@ begin
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      if isdll and
-         (target_info.system in systems_bsd) then
-        begin
-          prtobj:='dllprt0';
-          cprtobj:='dllprt0';
-          gprtobj:='dllprt0';
-        end
-      else
-        begin
-          prtobj:='prt0';
-          cprtobj:='cprt0';
-          gprtobj:='gprt0';
-        end;
       linkdynamic:=not(SharedLibFiles.empty);
-      // this one is a bit complex.
-      // Only reorder for now if -XL or -XO params are given
-      // or when -Xf.
-      reorder:= linklibc and
-                (
-                  ReorderEntries
-                   or
-                  (cs_link_pthread in current_settings.globalswitches));
-      if cs_profile in current_settings.moduleswitches then
-       begin
-         prtobj:=gprtobj;
-         AddSharedLibrary('c');
-         LibrarySuffix:='p';
-         linklibc:=true;
-       end
-      else
-       begin
-         if linklibc then
-          prtobj:=cprtobj;
-       end;
       // after this point addition of shared libs not allowed.
     end
   else
@@ -483,8 +486,6 @@ begin
       else
         AddSharedLibrary('SystemStubs_profile');
 {$endif MACOSX104ORHIGHER}
-      reorder:=reorderentries;
-      prtobj:='';
     end;
 
   if reorder Then
