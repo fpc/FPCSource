@@ -256,7 +256,9 @@ End;
 procedure TLinkerBSD.InitSysInitUnitName;
 var
   cprtobj,
-  gprtobj : string[80];
+  gprtobj,
+  si_cprt,
+  si_gprt : string[80];
 begin
   if target_info.system in systems_darwin then
     begin
@@ -275,12 +277,18 @@ begin
           prtobj:='dllprt0';
           cprtobj:='dllprt0';
           gprtobj:='dllprt0';
+          SysInitUnit:='si_dll';
+          si_cprt:='si_dll';
+          si_gprt:='si_dll';
         end
       else
         begin
           prtobj:='prt0';
           cprtobj:='cprt0';
           gprtobj:='gprt0';
+          SysInitUnit:='si_prc';
+          si_cprt:='si_c';
+          si_gprt:='si_g';
         end;
       // this one is a bit complex.
       // Only reorder for now if -XL or -XO params are given
@@ -293,6 +301,7 @@ begin
       if cs_profile in current_settings.moduleswitches then
        begin
          prtobj:=gprtobj;
+         SysInitUnit:=si_gprt;
          AddSharedLibrary('c');
          LibrarySuffix:='p';
          linklibc:=true;
@@ -300,7 +309,10 @@ begin
       else
        begin
          if linklibc then
-          prtobj:=cprtobj;
+           begin
+             prtobj:=cprtobj;
+             SysInitUnit:=si_cprt;
+           end;
        end;
     end;
 end;
