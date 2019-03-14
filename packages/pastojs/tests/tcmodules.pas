@@ -680,6 +680,7 @@ type
     Procedure TestTypeHelper_ClassProperty;
     Procedure TestTypeHelper_ClassProperty_Array;
     Procedure TestTypeHelper_ClassMethod;
+    Procedure TestTypeHelper_ExtClassMethodFail;
     Procedure TestTypeHelper_Constructor;
     Procedure TestTypeHelper_Word;
     Procedure TestTypeHelper_Double;
@@ -21197,12 +21198,15 @@ begin
   Add([
   '{$modeswitch externalclass}',
   'type',
+  '  TFly = function(w: word): word of object;',
   '  TExtA = class external name ''ExtObj''',
   '    procedure Run(w: word = 10);',
   '  end;',
   '  THelper = class helper for TExtA',
   '    function Foo(w: word = 1): word;',
+  '    function Fly(w: word = 2): word; external name ''Fly'';',
   '  end;',
+  'var p: TFly;',
   'function THelper.foo(w: word): word;',
   'begin',
   '  Run;',
@@ -21214,22 +21218,32 @@ begin
   '  Self.Foo;',
   '  Self.Foo();',
   '  Self.Foo(13);',
+  '  Fly;',
+  '  Fly();',
   '  with Self do begin',
   '    Foo;',
   '    Foo();',
   '    Foo(14);',
+  '    Fly;',
+  '    Fly();',
   '  end;',
+  '  p:=@Fly;',
   'end;',
   'var Obj: TExtA;',
   'begin',
   '  obj.Foo;',
   '  obj.Foo();',
   '  obj.Foo(21);',
+  '  obj.Fly;',
+  '  obj.Fly();',
   '  with obj do begin',
   '    Foo;',
   '    Foo();',
   '    Foo(22);',
+  '    Fly;',
+  '    Fly();',
   '  end;',
+  '  p:=@obj.Fly;',
   '']);
   ConvertProgram;
   CheckSource('TestExtClassHelper_Method_Call',
@@ -21246,22 +21260,33 @@ begin
     '    $mod.THelper.Foo.call(this, 1);',
     '    $mod.THelper.Foo.call(this, 1);',
     '    $mod.THelper.Foo.call(this, 13);',
+    '    this.Fly(2);',
+    '    this.Fly(2);',
     '    $mod.THelper.Foo.call(this, 1);',
     '    $mod.THelper.Foo.call(this, 1);',
     '    $mod.THelper.Foo.call(this, 14);',
+    '    this.Fly(2);',
+    '    this.Fly(2);',
+    '    $mod.p = rtl.createCallback(this, "Fly");',
     '    return Result;',
     '  };',
     '});',
+    'this.p = null;',
     'this.Obj = null;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.THelper.Foo.call($mod.Obj, 1);',
     '$mod.THelper.Foo.call($mod.Obj, 1);',
     '$mod.THelper.Foo.call($mod.Obj, 21);',
+    '$mod.Obj.Fly(2);',
+    '$mod.Obj.Fly(2);',
     'var $with1 = $mod.Obj;',
     '$mod.THelper.Foo.call($with1, 1);',
     '$mod.THelper.Foo.call($with1, 1);',
     '$mod.THelper.Foo.call($with1, 22);',
+    '$with1.Fly(2);',
+    '$with1.Fly(2);',
+    '$mod.p = rtl.createCallback($mod.Obj, "Fly");',
     '']));
 end;
 
@@ -23020,6 +23045,23 @@ begin
     '$mod.THelper.DoStatic();',
     '$mod.THelper.DoStatic();',
     '']));
+end;
+
+procedure TTestModule.TestTypeHelper_ExtClassMethodFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for word',
+  '    procedure Run; external name ''Run'';',
+  '  end;',
+  'var w: word;',
+  'begin',
+  '  w.Run;',
+  '']);
+  SetExpectedPasResolverError('Not supported: external method in type helper',nNotSupportedX);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestTypeHelper_Constructor;

@@ -1455,6 +1455,8 @@ type
     function IsForInExtArray(Loop: TPasImplForLoop; const VarResolved,
       InResolved: TPasResolverResult; out ArgResolved, LengthResolved,
       PropResultResolved: TPasResolverResult): boolean;
+    function IsHelperMethod(El: TPasElement): boolean; override;
+    function IsHelperForMember(El: TPasElement): boolean;
   end;
 
 //------------------------------------------------------------------------------
@@ -3987,19 +3989,25 @@ begin
                 RaiseMsg(20180329141108,nInvalidXModifierY,
                   sInvalidXModifierY,[Proc.ElementTypeName,ModifierNames[pm]],Proc);
             end;
-          okClassHelper:
+          okClassHelper,okRecordHelper,okTypeHelper:
             begin
             HelperForType:=ResolveAliasType(AClass.HelperForType);
-            if HelperForType.ClassType<>TPasClassType then
-              RaiseNotYetImplemented(20190201165157,El);
-            if TPasClassType(HelperForType).IsExternal then
+            if HelperForType.ClassType=TPasClassType then
               begin
-              // method of a class helper for external class
-              if IsClassMethod(El) and not (ptmStatic in El.Modifiers) then
-                RaiseMsg(20190201165259,nHelperClassMethodForExtClassMustBeStatic,
-                  sHelperClassMethodForExtClassMustBeStatic,[],El);
-              if El.ClassType=TPasConstructor then
-                RaiseNotYetImplemented(20190206153655,El);
+              if TPasClassType(HelperForType).IsExternal then
+                begin
+                // method of a class helper for external class
+                if IsClassMethod(El) and not (ptmStatic in El.Modifiers) then
+                  RaiseMsg(20190201165259,nHelperClassMethodForExtClassMustBeStatic,
+                    sHelperClassMethodForExtClassMustBeStatic,[],El);
+                if El.ClassType=TPasConstructor then
+                  RaiseNotYetImplemented(20190206153655,El);
+                end;
+              end;
+            if Proc.IsExternal then
+              begin
+              if not (HelperForType is TPasMembersType) then
+                RaiseMsg(20190314225457,nNotSupportedX,sNotSupportedX,['external method in type helper'],El);
               end;
             end;
           end;
@@ -5884,6 +5892,26 @@ begin
 
   //writeln('IsForInExtArray VarResolved=',GetResolverResultDbg(VarResolved),' PropResultResolved=',GetResolverResultDbg(PropResultResolved));
   CheckAssignResCompatibility(VarResolved,PropResultResolved,Loop.VariableName,true);
+end;
+
+function TPas2JSResolver.IsHelperMethod(El: TPasElement): boolean;
+begin
+  Result:=inherited IsHelperMethod(El);
+  if not Result then exit;
+  Result:=not TPasProcedure(El).IsExternal;
+end;
+
+function TPas2JSResolver.IsHelperForMember(El: TPasElement): boolean;
+begin
+  if (El=nil) or (El.Parent=nil) or (El.Parent.ClassType<>TPasClassType)
+      or (TPasClassType(El.Parent).HelperForType=nil) then
+    exit(false);
+  if El is TPasProcedure then
+    Result:=TPasProcedure(El).IsExternal
+  else if El is TPasVariable then
+    Result:=vmExternal in TPasVariable(El).VarModifiers
+  else
+    Result:=true;
 end;
 
 { TParamContext }
@@ -7896,7 +7924,8 @@ begin
   if aResolver.IsHelper(RightRefDecl.Parent) then
     begin
     // LeftJS.HelperMember
-    if RightRefDecl is TPasVariable then
+    if (RightRefDecl is TPasVariable)
+        and not (vmExternal in TPasVariable(RightRefDecl).VarModifiers) then
       begin
       // LeftJS.HelperField  -> HelperType.HelperField
       if Assigned(OnConvertRight) then
@@ -7907,7 +7936,10 @@ begin
       end
     else if RightRefDecl is TPasProcedure then
       begin
-      if rrfNoImplicitCallWithoutParams in RightRef.Flags then
+      Proc:=TPasProcedure(RightRefDecl);
+      if Proc.IsExternal then
+        // normal call
+      else if rrfNoImplicitCallWithoutParams in RightRef.Flags then
         begin
         Result:=CreateReferencePathExpr(RightRefDecl,AContext);
         exit;
@@ -7915,7 +7947,6 @@ begin
       else
         begin
         // call helper method
-        Proc:=TPasProcedure(RightRefDecl);
         Result:=CreateCallHelperMethod(Proc,El,AContext);
         exit;
         end;
@@ -8295,7 +8326,7 @@ begin
         Decl:=aResolver.GetPasPropertySetter(Prop);
         if Decl is TPasProcedure then
           begin
-          if aResolver.IsHelper(Decl.Parent) then
+          if aResolver.IsHelperMethod(Decl) then
             begin
             Result:=CreateCallHelperMethod(TPasProcedure(Decl),El,AContext);
             exit;
@@ -9768,7 +9799,7 @@ begin
       end
     else if C.InheritsFrom(TPasProcedure) then
       begin
-      if aResolver.IsHelper(Decl.Parent) then
+      if aResolver.IsHelperMethod(Decl) then
         begin
         // calling a helper method
         Result:=CreateCallHelperMethod(TPasProcedure(Decl),El.Value,AContext);
@@ -16187,7 +16218,7 @@ begin
     Result:=CreateReferencePathExpr(Proc,AContext);
     exit;
     end;
-  IsHelper:=aResolver.IsHelper(Proc.Parent);
+  IsHelper:=aResolver.IsHelperMethod(Proc);
   NeedClass:=aResolver.IsClassMethod(Proc) and not aResolver.MethodIsStatic(Proc);
 
   // an of-object method -> create "rtl.createCallback(Target,func)"
@@ -16599,7 +16630,7 @@ begin
   if Decl is TPasFunction then
     begin
     // call function
-    if aResolver.IsHelper(Decl.Parent) then
+    if aResolver.IsHelperMethod(Decl) then
       begin
       if (Expr=nil) then
         // implicit property read, e.g. enumerator property Current
@@ -21304,9 +21335,16 @@ var
   begin
     if (Ref=nil) or (Ref.WithExprScope=nil) then exit(false);
     Parent:=El.Parent;
-    if (Parent<>nil) and (Parent.ClassType=TPasClassType)
+    if (Parent.ClassType=TPasClassType)
         and (TPasClassType(Parent).HelperForType<>nil) then
-      exit(false);
+      begin
+      // e.g. with Obj do HelperMethod
+      if aResolver.IsHelperForMember(El) then
+        // e.g. with Obj do HelperExternalMethod  -> Obj.HelperCall
+      else
+        // e.g. with Obj do HelperMethod  -> THelper.HelperCall
+        exit(false);
+      end;
     Result:=true;
   end;
 
@@ -21403,6 +21441,8 @@ var
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
+  if SameText(El.Name,'Fly') then
+    writeln('AAA1 TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
   //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
   //AContext.WriteStack;
   {$ENDIF}
@@ -21484,6 +21524,7 @@ begin
   else
     begin
     // need full path
+      writeln('AAA2 TPasToJSConverter.CreateReferencePath ');
     if El.Parent=nil then
       RaiseNotSupported(El,AContext,20170201172141,GetObjName(El));
     El:=ImplToDecl(El);
@@ -21493,38 +21534,26 @@ begin
       begin
       ParentEl:=ImplToDecl(ParentEl);
 
+      IsClassRec:=(ParentEl.ClassType=TPasClassType)
+               or (ParentEl.ClassType=TPasRecordType);
+
       // check if ParentEl has a JS var
       ShortName:=AContext.GetLocalName(ParentEl);
       //writeln('TPasToJSConverter.CreateReferencePath El=',GetObjName(El),' ParentEl=',GetObjName(ParentEl),' ShortName=',ShortName);
 
-      IsClassRec:=(ParentEl.ClassType=TPasClassType)
-               or (ParentEl.ClassType=TPasRecordType);
-
-      if (ShortName<>'') and not IsClassRec then
-        begin
-        Prepend(Result,ShortName);
-        break;
-        end
-      else if ParentEl.ClassType=TImplementationSection then
-        begin
-        // element is in an implementation section (not program/library section)
-        // in other unit -> use pas.unitname.$impl
-        FoundModule:=El.GetModule;
-        if FoundModule=nil then
-          RaiseInconsistency(20161024192755,El);
-        Prepend(Result,TransformModuleName(FoundModule,true,AContext)
-           +'.'+GetBIName(pbivnImplementation));
-        break;
-        end
-      else if ParentEl is TPasModule then
-        begin
-        // element is in an unit interface or program/library section
-        Prepend(Result,TransformModuleName(TPasModule(ParentEl),true,AContext));
-        break;
-        end
-      else if IsClassRec then
+      if IsClassRec then
         begin
         // parent is a class or record declaration
+          writeln('AAA3 TPasToJSConverter.CreateReferencePath ',GetObjName(ParentEl));
+        if (ParentEl.ClassType=TPasClassType)
+            and (TPasClassType(ParentEl).HelperForType<>nil)
+            and aResolver.IsHelperForMember(El) then
+          begin
+          // redirect to helper-for-type
+          ParentEl:=aResolver.ResolveAliasType(TPasClassType(ParentEl).HelperForType);
+          ShortName:=AContext.GetLocalName(ParentEl);
+          end;
+
         if Full then
           Prepend(Result,ParentEl.Name)
         else
@@ -21541,8 +21570,10 @@ begin
             Prepend(Result,ParentEl.Name)
           else if (ParentEl.ClassType=TPasClassType)
               and (TPasClassType(ParentEl).HelperForType<>nil) then
+            begin
             // helpers have no self
-            Prepend(Result,ParentEl.Name)
+            Prepend(Result,ParentEl.Name);
+            end
           else if (SelfContext<>nil)
               and IsA(TPasType(SelfContext.ThisPas),TPasMembersType(ParentEl)) then
             begin
@@ -21574,6 +21605,28 @@ begin
           if ShortName<>'' then
             break;
           end;
+        end
+      else if (ShortName<>'') then
+        begin
+        Prepend(Result,ShortName);
+        break;
+        end
+      else if ParentEl.ClassType=TImplementationSection then
+        begin
+        // element is in an implementation section (not program/library section)
+        // in other unit -> use pas.unitname.$impl
+        FoundModule:=El.GetModule;
+        if FoundModule=nil then
+          RaiseInconsistency(20161024192755,El);
+        Prepend(Result,TransformModuleName(FoundModule,true,AContext)
+           +'.'+GetBIName(pbivnImplementation));
+        break;
+        end
+      else if ParentEl is TPasModule then
+        begin
+        // element is in an unit interface or program/library section
+        Prepend(Result,TransformModuleName(TPasModule(ParentEl),true,AContext));
+        break;
         end
       else if ParentEl.ClassType=TPasEnumType then
         begin
