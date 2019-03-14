@@ -355,7 +355,7 @@ override FPCOPT+=-Ur
 endif
 CPU_UNITS=
 SYSINIT_UNITS=
-LOADERS=prt0 cprt0 dllprt0
+LOADERS=prt0 cprt0 dllprt0 openbsd_ident
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
 SYSINIT_UNITS=si_prc si_c si_dll
@@ -3265,6 +3265,8 @@ cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
+openbsd_ident$(OEXT) : $(CPU_TARGET)/openbsd_ident.as
+	$(AS) -o $(UNITTARGETDIRPREFIX)openbsd_ident$(OEXT) $(CPU_TARGET)/openbsd_ident.as
 si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 si_c$(PPUEXT) : si_c.pp si_intf.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
