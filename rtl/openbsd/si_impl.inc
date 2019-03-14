@@ -1,9 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2019 by Free Pascal development team
-
-    This file implements the startup code for OpenBSD programs that
-    don't link to the C library.
+    Copyright (c) 2015 by Sven Barth, member of the Free Pascal development
+    team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,16 +12,4 @@
 
  **********************************************************************}
 
-
-unit si_prc;
-
-interface
-
-{$i si_intf.inc}
-
-implementation
-
-{$i si_impl.inc}
-{$i si_prc.inc}
-
-end.
+procedure PascalMain; external name 'PASCALMAIN';
