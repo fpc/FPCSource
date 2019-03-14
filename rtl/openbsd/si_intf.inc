@@ -15,6 +15,7 @@
  **********************************************************************}
 
 {$SMARTLINK OFF}
+{$GOTO ON}
 
 var
   operatingsystem_parameter_envp: ppchar; public name 'operatingsystem_parameter_envp';

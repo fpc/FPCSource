@@ -16,9 +16,11 @@
 
 {$asmmode gas}
 
+var
+  _etext: Byte; external name '_etext';
+  _eprol: Byte; external name '_eprol';
+
 procedure _mcleanup; external name '_mcleanup';
-procedure _etext; external name '_etext';
-procedure _eprol; external name '_eprol';
 procedure atexit; external name 'atexit';
 procedure monstartup; external name 'monstartup';
 procedure _init; external name '_init';
@@ -104,7 +106,7 @@ procedure _FPC_proc___start; assembler; nostackframe; public name '___start';
     movq    _mcleanup@GOTPCREL(%rip), %rdi
     call    atexit
     movq    _etext@GOTPCREL(%rip), %rsi
-    leaq    _eprol(%rip), %rdi
+    movq    _eprol(%rip), %rdi
     call    monstartup@plt
     movl    $0, %eax
     call    _init
@@ -167,4 +169,8 @@ function _strrchr(str: PChar; character: LongInt): PChar; assembler; nostackfram
 .L12:
     movq    -16(%rbp), %rax
     leave
+  end;
+
+procedure MD_EPROL_LABEL; assembler; nostackframe; public name '_eprol';
+  asm
   end;
