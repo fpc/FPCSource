@@ -13,3 +13,6 @@
  **********************************************************************}
 
 procedure PascalMain; external name 'PASCALMAIN';
+
+var
+  operatingsystem_result: longint; external name 'operatingsystem_result';

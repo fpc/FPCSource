@@ -118,7 +118,7 @@ procedure _FPC_proc___start; assembler; nostackframe; public name '___start';
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
   asm
     movq    $1,%rax
-    movzwq  operatingsystem_result(%rip),%rbx
+    movl    operatingsystem_result(%rip),%ebx
     pushq   %rbx
     call    .Lactualsyscall
     addq    $8,%rsp
