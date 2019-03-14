@@ -60,6 +60,9 @@ implementation
     private
       LdSupportsNoResponseFile : boolean;
       LibrarySuffix : Char;
+      prtobj : string[80];
+      ReOrder : Boolean;
+      linklibc : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
       function GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
       Function GetDarwinPrtobjName(isdll: boolean): TCmdStr;
@@ -393,15 +396,12 @@ Var
   FilesList    : TLinkRes;
   i            : longint;
   cprtobj,
-  gprtobj,
-  prtobj       : string[80];
+  gprtobj      : string[80];
   HPath        : TCmdStrListItem;
   s,s1,s2      : TCmdStr;
-  linkdynamic,
-  linklibc     : boolean;
+  linkdynamic  : boolean;
   Fl1,Fl2      : Boolean;
   IsDarwin     : Boolean;
-  ReOrder      : Boolean;
 
 begin
   WriteResponseFile:=False;
