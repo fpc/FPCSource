@@ -571,7 +571,7 @@ begin
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
-  if prtobj<>'' then
+  if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
   if linklibc and
