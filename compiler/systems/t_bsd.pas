@@ -76,6 +76,27 @@ implementation
     end;
 
 
+function ModulesLinkToLibc:boolean;
+var
+  hp: tmodule;
+begin
+  { This is called very early, ImportLibraryList is not yet merged into linkothersharedlibs.
+    The former contains library names qualified with prefix and suffix (coming from
+    "external 'c' name 'foo' declarations), the latter contains raw names (from "$linklib c"
+    directives). }
+  hp:=tmodule(loaded_units.first);
+  while assigned(hp) do
+    begin
+      result:=Assigned(hp.ImportLibraryList.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext));
+      if result then break;
+      result:=hp.linkothersharedlibs.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext);
+      if result then break;
+      result:=hp.linkothersharedlibs.find('c');
+      if result then break;
+      hp:=tmodule(hp.next);
+    end;
+end;
+
 
 {*****************************************************************************
                              TIMPORTLIBDARWIN
@@ -235,9 +256,15 @@ End;
 procedure TLinkerBSD.InitSysInitUnitName;
 begin
   if target_info.system in systems_darwin then
-    SysInitUnit:='sysinit'
+    begin
+      { for darwin: always link dynamically against libc }
+      linklibc := true;
+      SysInitUnit:='sysinit';
+    end
   else
-    inherited InitSysInitUnitName;
+    begin
+      linklibc:=ModulesLinkToLibc;
+    end;
 end;
 
 
@@ -425,7 +452,6 @@ begin
           gprtobj:='gprt0';
         end;
       linkdynamic:=not(SharedLibFiles.empty);
-      linklibc:=(SharedLibFiles.Find('c')<>nil);
       // this one is a bit complex.
       // Only reorder for now if -XL or -XO params are given
       // or when -Xf.
@@ -450,8 +476,6 @@ begin
     end
   else
     begin
-      { for darwin: always link dynamically against libc }
-      linklibc := true;
 {$ifdef MACOSX104ORHIGHER}
       { not sure what this is for, but gcc always links against it }
       if not(cs_profile in current_settings.moduleswitches) then
