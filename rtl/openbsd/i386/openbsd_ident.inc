@@ -1,4 +1,4 @@
-{$asmmode gas}
+{$asmmode att}
 
 procedure OpenBSDIdentTag;nostackframe;assembler;
   asm
