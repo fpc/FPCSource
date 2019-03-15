@@ -285,7 +285,7 @@ end;
 procedure THTTPCompilerApplication.LoadDefaultMimeTypes;
 begin
   MimeTypes.AddType('application/xhtml+xml','xhtml;xht');
-  MimeTypes.AddType('text/html','htmll;htm');
+  MimeTypes.AddType('text/html','html;htm');
   MimeTypes.AddType('text/plain','txt');
   MimeTypes.AddType('application/javascript','js');
   MimeTypes.AddType('text/plain','map');

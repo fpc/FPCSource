@@ -60,6 +60,9 @@ implementation
     private
       LdSupportsNoResponseFile : boolean;
       LibrarySuffix : Char;
+      prtobj : string[80];
+      ReOrder : Boolean;
+      linklibc : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
       function GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
       Function GetDarwinPrtobjName(isdll: boolean): TCmdStr;
@@ -72,6 +75,27 @@ implementation
       procedure InitSysInitUnitName; override;
     end;
 
+
+function ModulesLinkToLibc:boolean;
+var
+  hp: tmodule;
+begin
+  { This is called very early, ImportLibraryList is not yet merged into linkothersharedlibs.
+    The former contains library names qualified with prefix and suffix (coming from
+    "external 'c' name 'foo' declarations), the latter contains raw names (from "$linklib c"
+    directives). }
+  hp:=tmodule(loaded_units.first);
+  while assigned(hp) do
+    begin
+      result:=Assigned(hp.ImportLibraryList.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext));
+      if result then break;
+      result:=hp.linkothersharedlibs.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext);
+      if result then break;
+      result:=hp.linkothersharedlibs.find('c');
+      if result then break;
+      hp:=tmodule(hp.next);
+    end;
+end;
 
 
 {*****************************************************************************
@@ -230,11 +254,67 @@ End;
 
 
 procedure TLinkerBSD.InitSysInitUnitName;
+var
+  cprtobj,
+  gprtobj,
+  si_cprt,
+  si_gprt : string[80];
 begin
   if target_info.system in systems_darwin then
-    SysInitUnit:='sysinit'
+    begin
+      { for darwin: always link dynamically against libc }
+      linklibc := true;
+      reorder:=reorderentries;
+      prtobj:='';
+      SysInitUnit:='sysinit';
+    end
   else
-    inherited InitSysInitUnitName;
+    begin
+      linklibc:=ModulesLinkToLibc;
+      if current_module.islibrary and
+         (target_info.system in systems_bsd) then
+        begin
+          prtobj:='dllprt0';
+          cprtobj:='dllprt0';
+          gprtobj:='dllprt0';
+          SysInitUnit:='si_dll';
+          si_cprt:='si_dll';
+          si_gprt:='si_dll';
+        end
+      else
+        begin
+          prtobj:='prt0';
+          cprtobj:='cprt0';
+          gprtobj:='gprt0';
+          SysInitUnit:='si_prc';
+          si_cprt:='si_c';
+          si_gprt:='si_g';
+        end;
+      // this one is a bit complex.
+      // Only reorder for now if -XL or -XO params are given
+      // or when -Xf.
+      reorder:= linklibc and
+                (
+                  ReorderEntries
+                   or
+                  (cs_link_pthread in current_settings.globalswitches));
+      if cs_profile in current_settings.moduleswitches then
+       begin
+         prtobj:=gprtobj;
+         SysInitUnit:=si_gprt;
+         AddSharedLibrary('c');
+         LibrarySuffix:='p';
+         linklibc:=true;
+       end
+      else
+       begin
+         if linklibc then
+           begin
+             prtobj:=cprtobj;
+             SysInitUnit:=si_cprt;
+           end;
+       end;
+    end;
 end;
 
 
@@ -392,16 +472,11 @@ Var
   linkres      : TLinkRes;
   FilesList    : TLinkRes;
   i            : longint;
-  cprtobj,
-  gprtobj,
-  prtobj       : string[80];
   HPath        : TCmdStrListItem;
   s,s1,s2      : TCmdStr;
-  linkdynamic,
-  linklibc     : boolean;
+  linkdynamic  : boolean;
   Fl1,Fl2      : Boolean;
   IsDarwin     : Boolean;
-  ReOrder      : Boolean;
 
 begin
   WriteResponseFile:=False;
@@ -411,47 +486,11 @@ begin
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      if isdll and
-         (target_info.system in systems_bsd) then
-        begin
-          prtobj:='dllprt0';
-          cprtobj:='dllprt0';
-          gprtobj:='dllprt0';
-        end
-      else
-        begin
-          prtobj:='prt0';
-          cprtobj:='cprt0';
-          gprtobj:='gprt0';
-        end;
       linkdynamic:=not(SharedLibFiles.empty);
-      linklibc:=(SharedLibFiles.Find('c')<>nil);
-      // this one is a bit complex.
-      // Only reorder for now if -XL or -XO params are given
-      // or when -Xf.
-      reorder:= linklibc and
-                (
-                  ReorderEntries
-                   or
-                  (cs_link_pthread in current_settings.globalswitches));
-      if cs_profile in current_settings.moduleswitches then
-       begin
-         prtobj:=gprtobj;
-         AddSharedLibrary('c');
-         LibrarySuffix:='p';
-         linklibc:=true;
-       end
-      else
-       begin
-         if linklibc then
-          prtobj:=cprtobj;
-       end;
       // after this point addition of shared libs not allowed.
     end
   else
     begin
-      { for darwin: always link dynamically against libc }
-      linklibc := true;
 {$ifdef MACOSX104ORHIGHER}
       { not sure what this is for, but gcc always links against it }
       if not(cs_profile in current_settings.moduleswitches) then
@@ -459,8 +498,6 @@ begin
       else
         AddSharedLibrary('SystemStubs_profile');
 {$endif MACOSX104ORHIGHER}
-      reorder:=reorderentries;
-      prtobj:='';
     end;
 
   if reorder Then
@@ -571,7 +608,7 @@ begin
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
-  if prtobj<>'' then
+  if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
   if linklibc and
