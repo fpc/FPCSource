@@ -37,7 +37,6 @@ begin
   DefaultRunAllTests:=True;
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;
-  Application.Title:='Pascal to Javascript converter tests';
   Application.Run;
   Application.Free;
 end.
