@@ -4820,6 +4820,13 @@ begin
               else if (Proc is TPasConstructor)
                   and (Data^.Proc.ClassType=Proc.ClassType) then
                 // do not give a hint for hiding a constructor
+              else if Store then
+                begin
+                // method hides ancestor method with same signature
+                LogMsg(20190316152656,mtHint,
+                  nMethodHidesNonVirtualMethodExactly,sMethodHidesNonVirtualMethodExactly,
+                  [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+                end
               else
                 begin
                 //writeln('TPasResolver.OnFindProc Proc=',Proc.PathName,' Data^.Proc=',Data^.Proc.PathName,' ',Proc.Visibility);
