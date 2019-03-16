@@ -1,7 +1,8 @@
-program tw35187;
-
+{ %target=win32,win64,linux }
 { %cpu=i386,x86_64 }
 { %opt=-O1 }
+
+program tw35187;
 
 { NOTE: SIGSEGV won't trigger if GetMem is used because it allocates pages from a large pre-reserved heap. [Kit] }
 
