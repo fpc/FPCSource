@@ -557,7 +557,6 @@ type
     Procedure TestClass_MethodOverloadUnit;
     Procedure TestClass_HintMethodHidesNonVirtualMethod;
     Procedure TestClass_HintMethodHidesNonVirtualMethodWithoutBody_NoHint;
-    Procedure TestClass_HintMethodHidesNonVirtualMethodExact;
     Procedure TestClass_NoHintMethodHidesPrivateMethod;
     Procedure TestClass_MethodReintroduce;
     Procedure TestClass_MethodOverloadArrayOfTClass;
@@ -640,6 +639,7 @@ type
     // external class
     Procedure TestExternalClass;
     Procedure TestExternalClass_Descendant;
+    Procedure TestExternalClass_HintMethodHidesNonVirtualMethodExact;
 
     // class of
     Procedure TestClassOf;
@@ -9510,31 +9510,6 @@ begin
   CheckResolverUnexpectedHints(true);
 end;
 
-procedure TTestResolver.TestClass_HintMethodHidesNonVirtualMethodExact;
-begin
-  StartProgram(false);
-  Add([
-  '{$modeswitch externalclass}',
-  'type',
-  '  TJSObject = class external name ''JSObject''',
-  '    procedure DoIt(p: pointer);',
-  '  end;',
-  '  TBird = class external name ''Bird''(TJSObject)',
-  '    procedure DoIt(p: pointer);',
-  '  end;',
-  'procedure TJSObject.DoIt(p: pointer);',
-  'begin',
-  '  if p=nil then ;',
-  'end;',
-  'procedure TBird.DoIt(p: pointer); begin end;',
-  'var b: TBird;',
-  'begin',
-  '  b.DoIt(nil);']);
-  ParseProgram;
-  CheckResolverHint(mtHint,nMethodHidesNonVirtualMethodExactly,
-   'method hides identifier at "afile.pp(5,19)". Use reintroduce');
-end;
-
 procedure TTestResolver.TestClass_NoHintMethodHidesPrivateMethod;
 begin
   AddModuleWithIntfImplSrc('unit2.pas',
@@ -11420,6 +11395,31 @@ begin
   Add('  end;');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestExternalClass_HintMethodHidesNonVirtualMethodExact;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''JSObject''',
+  '    procedure DoIt(p: pointer);',
+  '  end;',
+  '  TBird = class external name ''Bird''(TJSObject)',
+  '    procedure DoIt(p: pointer);',
+  '  end;',
+  'procedure TJSObject.DoIt(p: pointer);',
+  'begin',
+  '  if p=nil then ;',
+  'end;',
+  'procedure TBird.DoIt(p: pointer); begin end;',
+  'var b: TBird;',
+  'begin',
+  '  b.DoIt(nil);']);
+  ParseProgram;
+  CheckResolverHint(mtHint,nMethodHidesNonVirtualMethodExactly,
+   'method hides identifier at "afile.pp(5,19)". Use reintroduce');
 end;
 
 procedure TTestResolver.TestClassOf;
