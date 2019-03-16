@@ -1121,10 +1121,11 @@ implementation
             pd.visibility:=vis_public;
             { result type }
             pd.returndef:=obj;
-            { calling convention, self, ... (not for advanced records, for those
-              this is handled later) }
-            if obj.typ=recorddef then
-              handle_calling_convention(pd,[hcc_declaration,hcc_check])
+            { calling convention }
+            if assigned(current_structdef) or
+               (assigned(pd.owner.defowner) and
+                (pd.owner.defowner.typ=recorddef)) then
+              handle_calling_convention(pd,hcc_default_actions_intf_struct)
             else
               handle_calling_convention(pd,hcc_default_actions_intf);
             { register forward declaration with procsym }

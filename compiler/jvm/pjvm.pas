@@ -322,6 +322,7 @@ implementation
         vmtbuilder:=TVMTBuilder.Create(enumclass);
         vmtbuilder.generate_vmt;
         vmtbuilder.free;
+        insert_struct_hidden_paras(enumclass);
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
         current_structdef:=old_current_structdef;
@@ -376,8 +377,6 @@ implementation
           then wraps them and calls through to JLRMethod.invoke }
         methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
         finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
-        insert_self_and_vmt_para(methoddef);
-        insert_funcret_para(methoddef);
         methoddef.synthetickind:=tsk_jvm_procvar_invoke;
         methoddef.calcparas;
 
@@ -411,8 +410,6 @@ implementation
             symtablestack.push(pvintf.symtable);
             methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
             finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
-            insert_self_and_vmt_para(methoddef);
-            insert_funcret_para(methoddef);
             { can't be final/static/private/protected, and must be virtual
               since it's an interface method }
             methoddef.procoptions:=methoddef.procoptions-[po_staticmethod,po_finalmethod];
@@ -436,6 +433,7 @@ implementation
         vmtbuilder:=TVMTBuilder.Create(pvclass);
         vmtbuilder.generate_vmt;
         vmtbuilder.free;
+        insert_struct_hidden_paras(pvclass);
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
       end;
@@ -477,7 +475,7 @@ implementation
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the virtual class method }
-        wrapperpd:=tprocdef(pd.getcopy);
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_normal_no_hidden,''));
         { this one is not virtual nor override }
         exclude(wrapperpd.procoptions,po_virtualmethod);
         exclude(wrapperpd.procoptions,po_overridingmethod);
@@ -508,8 +506,8 @@ implementation
         wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
-        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal,''));
-        wrapperpv.calcparas;
+        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal_no_hidden,''));
+        handle_calling_convention(wrapperpv,hcc_default_actions_intf);
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }
         jvm_create_procvar_class_intern('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv,true);
@@ -551,11 +549,6 @@ implementation
           in callnodes, we will have to replace the calls to virtual
           constructors with calls to the wrappers) }
         finish_copied_procdef(wrapperpd,pd.procsym.realname+'__fpcvirtconstrwrapper__',pd.owner,tabstractrecorddef(pd.owner.defowner));
-        { since it was a bare copy, insert the self parameter (we can't just
-          copy the vmt parameter from the constructor, that's different) }
-        insert_self_and_vmt_para(wrapperpd);
-        insert_funcret_para(wrapperpd);
-        wrapperpd.calcparas;
         { implementation: call through to the constructor
           Exception: if the current class is abstract, do not call the
             constructor, since abstract class cannot be constructed (and the
