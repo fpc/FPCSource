@@ -10129,9 +10129,10 @@ begin
     pekArrayParams:
       begin
       ComputeElement(Params.Value,ValueResolved,[]);
-      if IsDynArray(ValueResolved.LoTypeEl,false) then
-        // an element of a dynamic array is independent of the array variable
-        // an element of an open array depends on the argument
+      if IsDynArray(ValueResolved.LoTypeEl,false)
+          or (ValueResolved.BaseType=btPointer) then
+        // when accessing an element of a dynamic array the array is read
+        AccessExpr(Params.Value,rraRead)
       else
         AccessExpr(Params.Value,Access);
       // Note: an element of an open or static array or a string is connected to the variable
