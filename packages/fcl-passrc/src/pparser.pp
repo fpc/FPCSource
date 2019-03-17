@@ -4866,21 +4866,24 @@ begin
     end;
   pmMessage:
     begin
-    Repeat
-      NextToken;
-      If CurToken<>tkSemicolon then
-        begin
-        if Parent is TPasProcedure then
-          TPasProcedure(Parent).MessageName:=CurtokenString;
-        If (CurToken=tkString) and (Parent is TPasProcedure) then
-          TPasProcedure(Parent).Messagetype:=pmtString;
-        end;
-    until CurToken = tkSemicolon;
-    UngetToken;
+    NextToken;
+    E:=DoParseExpression(Parent);
+    TPasProcedure(Parent).MessageExpr:=E;
+    if E is TPrimitiveExpr then
+      begin
+      TPasProcedure(Parent).MessageName:=TPrimitiveExpr(E).Value;
+      case E.Kind of
+      pekNumber, pekUnary: TPasProcedure(Parent).Messagetype:=pmtInteger;
+      pekString: TPasProcedure(Parent).Messagetype:=pmtString;
+      end;
+      end;
+    if CurToken = tkSemicolon then
+      UngetToken;
     end;
   pmDispID:
     begin
-    TPasProcedure(Parent).DispIDExpr:=DoParseExpression(Parent,Nil);
+    NextToken;
+    TPasProcedure(Parent).DispIDExpr:=DoParseExpression(Parent);
     if CurToken = tkSemicolon then
       UngetToken;
     end;

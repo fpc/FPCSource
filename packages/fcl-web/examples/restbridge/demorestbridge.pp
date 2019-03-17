@@ -23,8 +23,7 @@ uses
   {$ENDIF}{$ENDIF}
   Classes, SysUtils, CustApp, sqldbrestbridge, fphttpapp, IBConnection, odbcconn, mysql55conn, mysql56conn, pqconnection,
   mssqlconn, oracleconnection, sqldbrestxml, sqldbrestio, sqldbrestschema, sqldbrestdata, sqldbrestjson, sqldbrestcsv, sqldbrestcds,
-  sqldbrestconst, sqldbrestauth, sqldbrestini, sqldb, sqldbrestauthini
-  ;
+  sqldbrestado,  sqldbrestconst, sqldbrestauth, sqldbrestini, sqldb, sqldbrestauthini;
 
 type
   { TXMLSQLDBRestDispatcher }
@@ -57,7 +56,7 @@ function TXMLSQLDBRestDispatcher.CreateOutputStreamer(IO: TRestIO): TRestOutputS
 begin
   io.Response.ContentStream:=TMemoryStream.Create;
   io.Response.FreeContentStream:=True;
-  Result:=TXMLOutputStreamer.Create(IO.Response.ContentStream,Strings,@IO.DoGetVariable);
+  Result:=TXMLOutputStreamer.Create(IO.Response.ContentStream,Strings,Statuses, @IO.DoGetVariable);
 end;
 
 { TRestServerDemoApplication }
@@ -91,18 +90,22 @@ begin
     Exit;
   end;
   Port:=3000;
-  FDisp:=TSQLDBRestDispatcher.Create(Self);
+  if HasOption('x','xml-only') then
+    FDisp:=TXMLSQLDBRestDispatcher.Create(Self)
+  else
+    FDisp:=TSQLDBRestDispatcher.Create(Self);
   if HasOption('c', 'config') then
     FDisp.LoadFromFile(GetOptionValue('c', 'config'),[dioSkipReadSchemas])
   else
     begin
     // create a Default setup
     FAuth:=TRestBasicAuthenticator.Create(Self);
+    // This is not the DB user !
     FAuth.DefaultUserName:='me';
     FAuth.DefaultPassword:='secret';
     FAuth.AuthenticateUserSQL.Text:='select uID from users where (uLogin=:UserName) and (uPassword=:Password)';
-    FDisp.DispatchOptions:=FDisp.DispatchOptions+[rdoConnectionInURL,rdoCustomView,rdoHandleCORS];
-    FDisp.ExposeDatabase(TPQConnectionDef.TypeName,'localhost','expensetracker','me','secret',Nil,[foFilter,foInInsert,foInUpdate,foOrderByDesc]);
+    FDisp.DispatchOptions:=FDisp.DispatchOptions+[rdoCustomView,rdoHandleCORS];
+    FDisp.ExposeDatabase(TPQConnectionDef.TypeName,'localhost','expensetracker','You','YourSecret',Nil,[foFilter,foInInsert,foInUpdate,foOrderByDesc]);
     With FDisp.Schemas[0].Schema.Resources do
       begin
       FindResourceByName('users').Fields.FindByFieldName('uID').GeneratorName:='seqUsersID';
@@ -146,6 +149,7 @@ begin
   Writeln('-c --config=File      Read config from .ini file');
   Writeln('-m --max-requests=N   Server at most N requests, then quit.');
   Writeln('-s --saveconfig=File  Write config to .ini file (ignored when -c or --config is used)');
+  Writeln('-x --xml-only         Only allow XML requests)');
 end;
 
 var

@@ -971,6 +971,7 @@ type
     procedure ReadClassIntfMapProcs(Obj: TJSONObject; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
     procedure ReadClassIntfMap(Obj: TJSONObject; Scope: TPas2JSClassScope; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
     procedure ReadClassScopeInterfaces(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
+    procedure ReadClassScopeDispatchProcs(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
     procedure ReadClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope; aContext: TPCUReaderContext); virtual;
     procedure ReadClassType(Obj: TJSONObject; El: TPasClassType; aContext: TPCUReaderContext); virtual;
     procedure ReadArgument(Obj: TJSONObject; El: TPasArgument; aContext: TPCUReaderContext); virtual;
@@ -3494,6 +3495,11 @@ begin
       AddReferenceToArray(Arr,Scope.AbstractProcs[i]);
     end;
 
+  if Scope.DispatchField<>'' then
+    Obj.Add('DispatchField',Scope.DispatchField);
+  if Scope.DispatchStrField<>'' then
+    Obj.Add('DispatchStrField',Scope.DispatchStrField);
+
   if Scope.GUID<>'' then
     Obj.Add('SGUID',Scope.GUID);
 
@@ -3795,6 +3801,7 @@ begin
       Obj.Add('Alias',El.AliasName);
     DefProcMods:=GetDefaultProcModifiers(El);
     WriteProcedureModifiers(Obj,'PMods',El.Modifiers,DefProcMods);
+    WriteExpr(Obj,El,'Msg',El.MessageExpr,aContext);
     if (El.MessageName<>'') or (El.MessageType<>pmtNone) then
       begin
       Obj.Add('Message',El.MessageName);
@@ -7001,6 +7008,16 @@ begin
     end;
 end;
 
+procedure TPCUReader.ReadClassScopeDispatchProcs(Obj: TJSONObject;
+  Scope: TPas2JSClassScope);
+var
+  El: TPasClassType;
+begin
+  El:=TPasClassType(Scope.Element);
+  ReadString(Obj,'DispatchField',Scope.DispatchField,El);
+  ReadString(Obj,'DispatchStrField',Scope.DispatchStrField,El);
+end;
+
 procedure TPCUReader.ReadClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope;
   aContext: TPCUReaderContext);
 var
@@ -7097,10 +7114,13 @@ begin
   ReadElementList(Obj,El,'Members',El.Members,
     {$IFDEF CheckPasTreeRefCount}'TPasClassType.Members'{$ELSE}true{$ENDIF},
     aContext);
+
+
   if Scope<>nil then
     begin
     ReadClassScopeAbstractProcs(Obj,Scope);
     ReadClassScopeInterfaces(Obj,Scope);
+    ReadClassScopeDispatchProcs(Obj,Scope);
 
     if El.ObjKind in okAllHelpers then
       begin
@@ -7574,6 +7594,7 @@ begin
     El.LibrarySymbolName:=ReadExpr(Obj,El,'LibName',aContext);
     El.DispIDExpr:=ReadExpr(Obj,El,'DispId',aContext);
     ReadString(Obj,'Alias',El.AliasName,El);
+    El.MessageExpr:=ReadExpr(Obj,El,'Msg',aContext);
     if ReadString(Obj,'Message',s,El) then
       begin
       El.MessageName:=s;

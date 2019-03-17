@@ -557,6 +557,7 @@ type
     Procedure TestClass_MethodOverloadUnit;
     Procedure TestClass_HintMethodHidesNonVirtualMethod;
     Procedure TestClass_HintMethodHidesNonVirtualMethodWithoutBody_NoHint;
+    Procedure TestClass_NoHintMethodHidesPrivateMethod;
     Procedure TestClass_MethodReintroduce;
     Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_ConstructorHidesAncestorWarning;
@@ -620,6 +621,8 @@ type
     Procedure TestClass_EnumeratorFunc;
     Procedure TestClass_ForInPropertyStaticArray;
     Procedure TestClass_TypeAlias;
+    Procedure TestClass_Message;
+    Procedure TestClass_Message_MissingParamFail;
 
     // published
     Procedure TestClass_PublishedClassVarFail;
@@ -636,6 +639,7 @@ type
     // external class
     Procedure TestExternalClass;
     Procedure TestExternalClass_Descendant;
+    Procedure TestExternalClass_HintMethodHidesNonVirtualMethodExact;
 
     // class of
     Procedure TestClassOf;
@@ -931,8 +935,10 @@ type
     Procedure TestTypeHelper_String;
     Procedure TestTypeHelper_Boolean;
     Procedure TestTypeHelper_Double;
+    Procedure TestTypeHelper_DoubleAlias;
     Procedure TestTypeHelper_Constructor_NewInstance;
-    Procedure TestTypeHelper_InterfaceFail;
+    Procedure TestTypeHelper_Interface;
+    Procedure TestTypeHelper_Interface_ConstructorFail;
 
     // attributes
     Procedure TestAttributes_Globals;
@@ -6418,14 +6424,26 @@ begin
   '  TAliasValue = TValue;',
   '  TColor = type TAliasValue;',
   '  TAliasColor = TColor;',
-  'procedure DoIt(i: TAliasValue); external;',
-  'procedure DoIt(i: TAliasColor); external;',
+  'procedure {#a}DoIt(i: TAliasValue); external;',
+  'procedure {#b}DoIt(i: TAliasColor); external;',
+  'procedure {#c}Fly(var i: TAliasValue); external;',
+  'procedure {#d}Fly(var i: TAliasColor); external;',
   'var',
   '  v: TAliasValue;',
   '  c: TAliasColor;',
   'begin',
-  '  DoIt(v);',
-  '  DoIt(c);',
+  '  {@a}DoIt(v);',
+  '  {@a}DoIt(TAliasValue(c));',
+  '  {@a}DoIt(TValue(c));',
+  '  {@b}DoIt(c);',
+  '  {@b}DoIt(TAliasColor(v));',
+  '  {@b}DoIt(TColor(v));',
+  '  {@c}Fly(v);',
+  '  {@c}Fly(TAliasValue(c));',
+  '  {@c}Fly(TValue(c));',
+  '  {@d}Fly(c);',
+  '  {@d}Fly(TAliasColor(v));',
+  '  {@d}Fly(TColor(v));',
   '']);
   ParseProgram;
 end;
@@ -9492,6 +9510,47 @@ begin
   CheckResolverUnexpectedHints(true);
 end;
 
+procedure TTestResolver.TestClass_NoHintMethodHidesPrivateMethod;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  private',
+    '    procedure DoIt(p: pointer);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TObject.DoIt(p: pointer);',
+    'begin',
+    '  if p=nil then ;',
+    'end;',
+    '']) );
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'type',
+  '  TAnimal = class',
+  '  strict private',
+  '    procedure Fly(p: pointer);',
+  '  end;',
+  '  TBird = class(TAnimal)',
+  '    procedure DoIt(i: longint);',
+  '    procedure Fly(b: boolean);',
+  '  end;',
+  'procedure TAnimal.Fly(p: pointer);',
+  'begin',
+  '  if p=nil then ;',
+  'end;',
+  'procedure TBird.DoIt(i: longint); begin end;',
+  'procedure TBird.Fly(b: boolean); begin end;',
+  'var b: TBird;',
+  'begin',
+  '  b.DoIt(3);']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestClass_MethodReintroduce;
 begin
   StartProgram(false);
@@ -11117,6 +11176,42 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_Message;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  FlyId = 2;',
+  '  RunStr = ''Fast'';',
+  'type',
+  '  TObject = class',
+  '    procedure Fly(var msg); message 3+FlyId;',
+  '    procedure Run(var msg); virtual; abstract; message ''prefix''+RunStr;',
+  '  end;',
+  'procedure TObject.Fly(var msg);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_Message_MissingParamFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Fly; message 3;',
+  '  end;',
+  'procedure TObject.Fly;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sMessageHandlersInvalidParams,nMessageHandlersInvalidParams);
+end;
+
 procedure TTestResolver.TestClass_PublishedClassVarFail;
 begin
   StartProgram(false);
@@ -11300,6 +11395,31 @@ begin
   Add('  end;');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestExternalClass_HintMethodHidesNonVirtualMethodExact;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''JSObject''',
+  '    procedure DoIt(p: pointer);',
+  '  end;',
+  '  TBird = class external name ''Bird''(TJSObject)',
+  '    procedure DoIt(p: pointer);',
+  '  end;',
+  'procedure TJSObject.DoIt(p: pointer);',
+  'begin',
+  '  if p=nil then ;',
+  'end;',
+  'procedure TBird.DoIt(p: pointer); begin end;',
+  'var b: TBird;',
+  'begin',
+  '  b.DoIt(nil);']);
+  ParseProgram;
+  CheckResolverHint(mtHint,nMethodHidesNonVirtualMethodExactly,
+   'method hides identifier at "afile.pp(5,19)". Use reintroduce');
 end;
 
 procedure TTestResolver.TestClassOf;
@@ -12873,7 +12993,8 @@ begin
   '  end;',
   'begin']);
   ParseProgram;
-  CheckResolverHint(mtHint,nFunctionHidesIdentifier_NonVirtualMethod,'function hides identifier at "afile.pp(4,19)". Use overload or reintroduce');
+  CheckResolverHint(mtHint,nMethodHidesNonVirtualMethodExactly,
+    'method hides identifier at "afile.pp(4,19)". Use reintroduce');
 end;
 
 procedure TTestResolver.TestClassInterface_OverloadNoHint;
@@ -17495,6 +17616,32 @@ begin
   Add([
   '{$modeswitch typehelpers}',
   'type',
+  '  Float = double;',
+  '  THelper = type helper for float',
+  '    const NPI = 3.141592;',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelper.ToStr: String;',
+  'begin',
+  'end;',
+  'var',
+  '  a,b: Float;',
+  '  s: string;',
+  'begin',
+  '  s:=(a * b.NPI).ToStr;',
+  '  s:=(a * float.NPI).ToStr;',
+  '  s:=float.NPI.ToStr;',
+  '  s:=3.2.ToStr;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_DoubleAlias;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
   '  Float = type double;',
   '  THelper = type helper for float',
   '    const NPI = 3.141592;',
@@ -17593,18 +17740,69 @@ begin
     end;
 end;
 
-procedure TTestResolver.TestTypeHelper_InterfaceFail;
+procedure TTestResolver.TestTypeHelper_Interface;
 begin
   StartProgram(false);
   Add([
   '{$modeswitch typehelpers}',
   'type',
-  '  IUnknown = interface end;',
-  '  THelper = type helper for IUnknown',
+  '  IUnknown = interface',
+  '    function GetSizes(Index: word): word;',
+  '    procedure SetSizes(Index: word; value: word);',
   '  end;',
+  '  TObject = class(IUnknown)',
+  '    function GetSizes(Index: word): word; virtual; abstract;',
+  '    procedure SetSizes(Index: word; value: word); virtual; abstract;',
+  '  end;',
+  '  THelper = type helper for IUnknown',
+  '    procedure Fly;',
+  '    class procedure Run; static;',
+  '    property Sizes[Index: word]: word read GetSizes write SetSizes; default;',
+  '  end;',
+  'var',
+  '  i: IUnknown;',
+  '  o: TObject;',
+  'procedure THelper.Fly;',
+  'begin',
+  '  i:=Self;',
+  '  o:=Self as TObject;',
+  '  Self:=nil;',
+  '  Self:=i;',
+  '  Self:=o;',
+  'end;',
+  'class procedure THelper.Run;',
+  'begin',
+  'end;',
+  'begin',
+  '  i.Fly;',
+  '  i.Fly();',
+  '  i.Run;',
+  '  i.Run();',
+  '  i.Sizes[3]:=i.Sizes[4];',
+  '  i[5]:=i[6];',
+  '  IUnknown.Run;',
+  '  IUnknown.Run();',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Interface_ConstructorFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  THelper = type helper for IUnknown',
+  '    constructor Fly;',
+  '  end;',
+  'constructor THelper.Fly;',
+  'begin',
+  'end;',
   'begin',
   '']);
-  CheckResolverException('Type "IUnknown" cannot be extended by a type helper',nTypeXCannotBeExtendedByATypeHelper);
+  CheckResolverException('constructor is not supported',nXIsNotSupported);
 end;
 
 procedure TTestResolver.TestAttributes_Globals;

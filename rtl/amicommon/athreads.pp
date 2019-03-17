@@ -741,6 +741,7 @@ end;
 Type  PINTRTLEvent = ^TINTRTLEvent;
       TINTRTLEvent = record
         isset: boolean;
+        Sem: TSignalSemaphore; // Semaphore to protect the whole stuff
       end;
 
 Function intRTLEventCreate: PRTLEvent;
@@ -749,6 +750,8 @@ var p:pintrtlevent;
 
 begin
   new(p);
+  p^.isset:=false;
+  InitSemaphore(@p^.Sem);
   result:=PRTLEVENT(p);
 end;
 
@@ -766,7 +769,9 @@ var p:pintrtlevent;
 
 begin
   p:=pintrtlevent(aevent);
+  ObtainSemaphore(@p^.Sem);
   p^.isset:=true;
+  ReleaseSemaphore(@p^.Sem);
 end;
 
 
@@ -775,7 +780,9 @@ var p:pintrtlevent;
 
 begin
   p:=pintrtlevent(aevent);
+  ObtainSemaphore(@p^.Sem);
   p^.isset:=false;
+  ReleaseSemaphore(@p^.Sem);
 end;
 
 
@@ -784,7 +791,15 @@ var p:pintrtlevent;
 
 begin
   p:=pintrtlevent(aevent);
+  ObtainSemaphore(@p^.Sem);
+  while not p^.isset do 
+    begin
+      ReleaseSemaphore(@p^.Sem);
+      DOSDelay(1);
+      ObtainSemaphore(@p^.Sem);
+    end;
   p^.isset:=false;
+  ReleaseSemaphore(@p^.Sem);
 end;
 
 procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
@@ -792,6 +807,17 @@ var
   p : pintrtlevent;
 begin
   p:=pintrtlevent(aevent);
+  timeout:=timeout div 20; // DOSDelay expects (1/50 seconds)
+  ObtainSemaphore(@p^.Sem);
+  while (not p^.isset) and (timeout > 0) do
+    begin
+      ReleaseSemaphore(@p^.Sem);
+      DOSDelay(1);
+      dec(timeout);
+      ObtainSemaphore(@p^.Sem);
+    end;
+  p^.isset:=false;
+  ReleaseSemaphore(@p^.Sem);
 end;
 
 

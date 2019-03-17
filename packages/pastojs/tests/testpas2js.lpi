@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <ProjectOptions>
-    <Version Value="11"/>
+  <ProjectOptions BuildModesCount="1">
+    <Version Value="12"/>
     <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="Pascal to Javascript converter tests"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -12,7 +17,7 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <BuildModes Count="1">
+    <BuildModes>
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
     <PublishOptions>
@@ -97,7 +102,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../src;../../fcl-js/src;../../fcl-passrc/src;../../pastojs/tests"/>
+      <OtherUnitFiles Value="../src;../../fcl-js/src;../../fcl-json/src;../../fcl-passrc/src;../../pastojs/tests"/>
       <UnitOutputDirectory Value="lib"/>
     </SearchPaths>
     <CodeGeneration>

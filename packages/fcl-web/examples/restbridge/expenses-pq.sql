@@ -1,4 +1,4 @@
-drop table ExpenseTypes;
+create sequence seqExpenseTypesID;
 create table ExpenseTypes (
   etID bigint not null default nextval('seqExpenseTypesID'),
   etName varchar(50) not null,
@@ -24,8 +24,6 @@ create table Projects (
   pDescription varchar(100) not null,
   pActive boolean not null default true
 );
-
-create sequence seqExpenseTypesID;
 
 create sequence seqExpenseID;
 drop table Expenses;

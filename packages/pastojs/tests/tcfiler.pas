@@ -161,6 +161,7 @@ type
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
     procedure TestPC_ClassConstructor;
+    procedure TestPC_ClassDispatchMessage;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
     procedure TestPC_ClassInterface;
@@ -748,6 +749,8 @@ begin
 
   CheckRestoredReference(Path+'.NewInstanceFunction',Orig.NewInstanceFunction,Rest.NewInstanceFunction);
   AssertEquals(Path+'.GUID',Orig.GUID,Rest.GUID);
+  AssertEquals(Path+'.DispatchField',Orig.DispatchField,Rest.DispatchField);
+  AssertEquals(Path+'.DispatchStrField',Orig.DispatchStrField,Rest.DispatchStrField);
 
   CheckRestoredObject('.Interfaces',Orig.Interfaces,Rest.Interfaces);
   if Orig.Interfaces<>nil then
@@ -2140,6 +2143,38 @@ begin
   'end;',
   'end.'
   ]);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_ClassDispatchMessage;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  {$DispatchField DispInt}',
+  '  {$DispatchStrField DispStr}',
+  '  TObject = class',
+  '  end;',
+  '  THopMsg = record',
+  '    DispInt: longint;',
+  '  end;',
+  '  TPutMsg = record',
+  '    DispStr: string;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Fly(var Msg); virtual; abstract; message 2;',
+  '    procedure Run; overload; virtual; abstract;',
+  '    procedure Run(var Msg); overload; message ''Fast'';',
+  '    procedure Hop(var Msg: THopMsg); virtual; abstract; message 3;',
+  '    procedure Put(var Msg: TPutMsg); virtual; abstract; message ''foo'';',
+  '  end;',
+  'implementation',
+  'procedure TBird.Run(var Msg);',
+  'begin',
+  'end;',
+  'end.',
+  '']);
   WriteReadUnit;
 end;
 

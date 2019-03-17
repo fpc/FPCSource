@@ -101,6 +101,8 @@ type
     procedure TestM_Hint_ParameterNotUsedTypecast;
     procedure TestM_Hint_OutParam_No_AssignedButNeverUsed;
     procedure TestM_Hint_ArgPassed_No_ParameterNotUsed;
+    procedure TestM_Hint_ArrayArg_No_ParameterNotUsed;
+    procedure TestM_Hint_ArrayArg_No_ParameterNotUsed2;
     procedure TestM_Hint_InheritedWithoutParams;
     procedure TestM_Hint_LocalVariableNotUsed;
     procedure TestM_HintsOff_LocalVariableNotUsed;
@@ -1602,6 +1604,42 @@ begin
   'end;',
   'begin',
   '  AssertFalse(true);',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ArrayArg_No_ParameterNotUsed;
+begin
+  StartProgram(false);
+  Add([
+  'type TArr = array of boolean;',
+  'procedure Fly(a: TArr);',
+  'begin',
+  '  a[1]:=true;',
+  'end;',
+  'begin',
+  '  Fly(nil);',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ArrayArg_No_ParameterNotUsed2;
+begin
+  StartProgram(false);
+  Add([
+  'type {#Tarr_used}TArr = array of boolean;',
+  'procedure {#Run_used}Run({#b_used}b: boolean);',
+  'begin',
+  '  if b then ;',
+  'end;',
+  'procedure {#Fly_used}Fly({#a_used}a: TArr);',
+  'begin',
+  '  Run(a[1]);',
+  'end;',
+  'begin',
+  '  Fly(nil);',
   '']);
   AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;

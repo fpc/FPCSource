@@ -143,6 +143,7 @@ type
     procedure TestUS_Program_FU;
     procedure TestUS_Program_FU_o;
     procedure TestUS_Program_FE_o;
+    procedure TestUS_IncludeSameDir;
 
     procedure TestUS_UsesInFile;
     procedure TestUS_UsesInFile_Duplicate;
@@ -693,6 +694,27 @@ begin
   Compile(['test1.pas','-FElib','-ofoo.js']);
   AssertNotNull('lib/system.js not found',FindFile('lib/system.js'));
   AssertNotNull('foo.js not found',FindFile('foo.js'));
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_IncludeSameDir;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('sub/defines.inc',[
+    '{$Define foo}',
+    '']);
+  AddUnit('sub/unit1.pas',
+  ['{$I defines.inc}',
+   '{$ifdef foo}',
+   'var a: longint;',
+   '{$endif}'],
+  ['']);
+  AddFile('test1.pas',[
+    'uses unit1;',
+    'begin',
+    '  a:=3;',
+    'end.']);
+  AddDir('lib');
+  Compile(['test1.pas','-Fusub','-FElib','-ofoo.js']);
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile;

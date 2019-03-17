@@ -349,7 +349,7 @@ const
 
 procedure TFreeTypeFont.DrawChar (x,y:integer; data:PByteArray; pitch, width, height:integer);
 
-  procedure Combine (canv:TFPCustomCanvas; x,y:integer; c : TFPColor; t:longword);
+  procedure Combine (canv:TFPCustomCanvas; x,y:integer; const c : TFPColor; t:longword);
   var
     pixelcolor: TFPColor;
   begin

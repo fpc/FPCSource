@@ -3484,44 +3484,44 @@ unit aoptx86;
                       MatchOpType(taicpu(hp1),top_const,top_reg) and
                       (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
                       begin
-                        taicpu(p).opcode := A_MOV;
+                        //taicpu(p).opcode := A_MOV;
                         case taicpu(p).opsize Of
                           S_BL:
                             begin
                               DebugMsg(SPeepholeOptimization + 'var13',p);
-                              taicpu(p).changeopsize(S_L);
+                              taicpu(hp1).changeopsize(S_L);
                               taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ff);
                             end;
                           S_WL:
                             begin
                               DebugMsg(SPeepholeOptimization + 'var14',p);
-                              taicpu(p).changeopsize(S_L);
+                              taicpu(hp1).changeopsize(S_L);
                               taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ffff);
                             end;
                           S_BW:
                             begin
                               DebugMsg(SPeepholeOptimization + 'var15',p);
-                              taicpu(p).changeopsize(S_W);
+                              taicpu(hp1).changeopsize(S_W);
                               taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ff);
                             end;
 {$ifdef x86_64}
                           S_BQ:
                             begin
                               DebugMsg(SPeepholeOptimization + 'var16',p);
-                              taicpu(p).changeopsize(S_Q);
+                              taicpu(hp1).changeopsize(S_Q);
                               taicpu(hp1).loadConst(
                                 0, taicpu(hp1).oper[0]^.val and $ff);
                             end;
                           S_WQ:
                             begin
                               DebugMsg(SPeepholeOptimization + 'var17',p);
-                              taicpu(p).changeopsize(S_Q);
+                              taicpu(hp1).changeopsize(S_Q);
                               taicpu(hp1).loadConst(0, taicpu(hp1).oper[0]^.val and $ffff);
                             end;
                           S_LQ:
                             begin
                               DebugMsg(SPeepholeOptimization + 'var18',p);
-                              taicpu(p).changeopsize(S_Q);
+                              taicpu(hp1).changeopsize(S_Q);
                               taicpu(hp1).loadConst(
                                 0, taicpu(hp1).oper[0]^.val and $ffffffff);
                             end;

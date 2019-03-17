@@ -257,7 +257,7 @@ type
     function FindCustomJSFileName(const aFilename: string): String; override;
     function FindUnitJSFileName(const aUnitFilename: string): String; override;
     function FindUnitFileName(const aUnitname, InFilename, ModuleDir: string; out IsForeign: boolean): String; override;
-    function FindIncludeFileName(const aFilename: string): String; override;
+    function FindIncludeFileName(const aFilename, ModuleDir: string): String; override;
     function AddIncludePaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function AddUnitPaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function AddSrcUnitPaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
@@ -1494,6 +1494,7 @@ procedure TPas2jsFilesCache.WriteFoldersAndSearchPaths;
 var
   i: Integer;
 begin
+  WriteFolder('working directory',GetCurrentDirPJ);
   for i:=0 to ForeignUnitPaths.Count-1 do
     WriteFolder('foreign unit path',ForeignUnitPaths[i]);
   for i:=0 to UnitPaths.Count-1 do
@@ -1812,7 +1813,8 @@ begin
     UsePointDirectory, true, RelPath);
 end;
 
-function TPas2jsFilesCache.FindIncludeFileName(const aFilename: string): String;
+function TPas2jsFilesCache.FindIncludeFileName(const aFilename,
+  ModuleDir: string): String;
 
   function SearchCasedInIncPath(const Filename: string): string;
   var
@@ -1820,9 +1822,9 @@ function TPas2jsFilesCache.FindIncludeFileName(const aFilename: string): String;
   begin
     // file name is relative
     // first search in the same directory as the unit
-    if BaseDirectory<>'' then
+    if ModuleDir<>'' then
       begin
-      Result:=BaseDirectory+Filename;
+      Result:=IncludeTrailingPathDelimiter(ModuleDir)+Filename;
       if SearchLowUpCase(Result) then exit;
       end;
     // then search in include path

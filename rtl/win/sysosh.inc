@@ -22,7 +22,7 @@ type
   THandle = DWord;
   ULONG_PTR = DWord;
 {$endif CPU64}
-  TThreadID = THandle;
+  TThreadID = DWord;
   SIZE_T = ULONG_PTR;
 
   { the fields of this record are os dependent  }

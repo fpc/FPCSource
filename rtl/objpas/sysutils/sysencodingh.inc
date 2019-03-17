@@ -45,6 +45,7 @@ type
   strict protected
     FIsSingleByte: Boolean;
     FMaxCharSize: Integer;
+    class procedure FreeEncodings;
     function GetByteCount(Chars: PUnicodeChar; CharCount: Integer): Integer; overload; virtual; abstract;
     function GetBytes(Chars: PUnicodeChar; CharCount: Integer; Bytes: PByte; ByteCount: Integer): Integer; overload; virtual; abstract;
     function GetCharCount(Bytes: PByte; ByteCount: Integer): Integer; overload; virtual; abstract;
@@ -54,7 +55,6 @@ type
     function GetCodePage: Cardinal; virtual; abstract;
     function GetEncodingName: UnicodeString; virtual; abstract;
   public
-    class procedure FreeEncodings;
     function Clone: TEncoding; virtual;
     class function Convert(Source, Destination: TEncoding; const Bytes: TBytes): TBytes; overload;
     class function Convert(Source, Destination: TEncoding; const Bytes: TBytes; StartIndex, Count: Integer): TBytes; overload;

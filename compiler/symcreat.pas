@@ -352,7 +352,7 @@ implementation
             end;
           { if we get here, we did not find it in the current objectdef ->
             add }
-          childpd:=tprocdef(parentpd.getcopy);
+          childpd:=tprocdef(parentpd.getcopyas(procdef,pc_normal_no_hidden,''));
           { get rid of the import name for inherited virtual class methods,
             it has to be regenerated rather than amended }
           if [po_classmethod,po_virtualmethod]<=childpd.procoptions then

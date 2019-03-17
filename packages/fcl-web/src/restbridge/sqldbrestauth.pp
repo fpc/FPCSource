@@ -236,7 +236,7 @@ begin
     IO.UserID:=UID
   else
     begin
-    IO.Response.Code:=401;
+    IO.Response.Code:=IO.RestStatuses.GetStatusCode(rsUnauthorized);
     IO.Response.CodeText:=SUnauthorized;
     IO.Response.WWWAuthenticate:=Format('BASIC Realm: "%s"',[AuthenticationRealm]);
     end;

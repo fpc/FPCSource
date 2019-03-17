@@ -33,7 +33,8 @@ type
     FRawJPEG,
     FImageCompression,
     FTextCompression,
-    FFontCompression: boolean;
+    FFontCompression,
+    FImageTransparency: boolean;
     FNoFontEmbedding: boolean;
     FAddMetadata : Boolean;
     FSubsetFontEmbedding: boolean;
@@ -93,6 +94,8 @@ begin
     Include(lOpts,poCompressText);
   if FImageCompression then
     Include(lOpts,poCompressImages);
+  if FImageTransparency then
+    Include(lOpts,poUseImageTransparency);
   if FRawJPEG then
     Include(lOpts,poUseRawJPEG);
   if FAddMetadata then
@@ -302,7 +305,7 @@ procedure TPDFTestApp.SimpleImage(D: TPDFDocument; APage: integer);
 Var
   P: TPDFPage;
   FtTitle: integer;
-  IDX: Integer;
+  IDX, IDX_Diamond: Integer;
   W, H: Integer;
 begin
   P := D.Pages[APage];
@@ -323,6 +326,10 @@ begin
   { full size image }
   P.DrawImageRawSize(25, 130, W, H, IDX);  // left-bottom coordinate of image
   P.WriteText(145, 90, '[Full size (defined in pixels)]');
+  P.WriteText(145, 95, '+alpha-transparent overlay (if enabled)');
+
+  IDX_Diamond := D.Images.AddFromFile('diamond.png',False);
+  P.DrawImageRawSize(30, 125, D.Images[IDX_Diamond].Width, D.Images[IDX_Diamond].Height, IDX_Diamond);
 
   { quarter size image }
   P.DrawImageRawSize(25, 190, W shr 1, H shr 1, IDX); // could also have used: Integer(W div 2), Integer(H div 2)
@@ -817,6 +824,7 @@ begin
   FFontCompression := BoolFlag('f',true);
   FTextCompression := BoolFlag('t',False);
   FImageCompression := BoolFlag('i',False);
+  FImageTransparency := BoolFlag('t',False);
   FAddMetadata :=  BoolFlag('m',False);
   FRawJPEG:=BoolFlag('j',False);
 
@@ -881,6 +889,8 @@ begin
           '                disables compression. A value of 1 enables compression.');
   writeln('    -j <0|1>    Toggle use of JPEG. A value of 0' + LineEnding +
           '                disables use of JPEG images. A value of 1 writes jpeg file as-is');
+  writeln('    -t <0|1>    Toggle image transparency support. A value of 0' + LineEnding +
+          '                disables transparency. A value of 1 enables transparency.');
   writeln('');
 end;
 
