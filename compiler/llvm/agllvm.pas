@@ -339,10 +339,13 @@ implementation
              owner.writer.AsmWrite(' byval');
            if para^.sret then
              owner.writer.AsmWrite(' sret');
-           if para^.alignment<>std_param_align then
+           { For byval, this means "alignment on the stack" and of the passed source data.
+             For other pointer parameters, this means "alignment of the passed source data" }
+           if (para^.alignment<>std_param_align) or
+              (para^.alignment<0) then
              begin
                owner.writer.AsmWrite(' align ');
-               owner.writer.AsmWrite(tostr(para^.alignment));
+               owner.writer.AsmWrite(tostr(abs(para^.alignment)));
              end;
            case para^.typ of
              top_reg:

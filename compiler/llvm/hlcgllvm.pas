@@ -1197,8 +1197,8 @@ implementation
       if indivalign then
         begin
           paramanager.getintparaloc(list,pd,4,volatilepara);
-          destpara.Alignment:=dest.alignment;
-          sourcepara.Alignment:=source.alignment;
+          destpara.Alignment:=-dest.alignment;
+          sourcepara.Alignment:=-source.alignment;
         end
       else
         begin

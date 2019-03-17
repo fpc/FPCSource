@@ -106,7 +106,7 @@ unit parabase;
           Location  : PCGParalocation;
           IntSize   : tcgint; { size of the total location in bytes }
           DefDeref  : tderef;
-          Alignment : ShortInt;
+          Alignment : ShortInt; { in case of LLVM, a negative alignment mean: force write the alignment }
           Size      : TCGSize;  { Size of the parameter included in all locations }
           Temporary : boolean;  { created on the fly, no permanent references exist to this somewhere that will cause it to be disposed }
           constructor init;
