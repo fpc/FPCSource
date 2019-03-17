@@ -708,6 +708,9 @@ begin
 {$ifdef jvm}
       'J',
 {$endif}
+{$ifdef llvm}
+      'L',
+{$endif}
       '*' : show:=true;
      end;
      if show then
@@ -1290,6 +1293,31 @@ begin
                         break;
                       end;
 {$endif arm}
+{$ifdef llvm}
+                    'L':
+                      begin
+                        l:=j+1;
+                        while l<=length(More) do
+                          begin
+                            case More[l] of
+                              'v':
+                                begin
+                                  init_settings.llvmversion:=llvmversion2enum(copy(More,l+1,length(More)));
+                                  if init_settings.llvmversion=llvmver_invalid then
+                                    begin
+                                      IllegalPara(opt);
+                                    end;
+                                  l:=length(More)+1;
+                                end
+                              else
+                                begin
+                                  IllegalPara(opt);
+                                end;
+                            end;
+                          end;
+                        j:=l;
+                      end;
+{$endif llvm}
                     'n' :
                       If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.globalswitches,cs_link_nolink)

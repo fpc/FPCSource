@@ -19,6 +19,9 @@
 
  ****************************************************************************
 }
+
+{$i fpcdefs.inc}
+
 Unit llvminfo;
 
 Interface
@@ -29,25 +32,35 @@ uses
 Type
    { possible supported processors for this target }
    tllvmversion =
-      ({ may add older/newer versions if required/appropriate }
+      (llvmver_invalid,
+      { may add older/newer versions if required/appropriate }
        llvmver_3_3,
-       llvmver_3_4_0,
-       llvmver_3_4_1,
-       llvmver_3_4_2,
-       llvmver_3_5_0,
-       llvmver_3_5_1,
-       llvmver_3_5_2,
-       llvmver_3_6_0,
-       llvmver_3_6_1,
-       llvmver_3_6_2,
-       llvmver_3_7_0,
-       llvmver_3_8_0,
-       llvmver_3_9_0,
+       llvmver_3_4,
+       llvmver_3_5,
+       llvmver_3_6,
        { Xcode versions use snapshots of LLVM and don't correspond to released
          versions of llvm (they don't ship with the llvm utilities either, but
-         they do come with Clang, which can also be used to some extent instead
-         of opt/llc) }
-       llvmver_xc_6_4
+         they do come with Clang, which can be used instead of opt/llc) }
+       llvmver_xc_6_4,
+       llvmver_3_7,
+       llvmver_xc_7_0,
+       llvmver_xc_7_1,
+       llvmver_xc_7_2,
+       llvmver_3_8,
+       llvmver_xc_7_3,
+       llvmver_3_9,
+       llvmver_xc_8_0,
+       llvmver_xc_8_1,
+       llvmver_xc_8_2,
+       llvmver_4_0,
+       llvmver_xc_9_0,
+       llvmver_5_0,
+       llvmver_xc_9_1,
+       llvmver_xc_9_2,
+       llvmver_xc_9_3,
+       llvmver_6_0,
+       llvmver_xc_10_0,
+       llvmver_7_0
       );
 
 type
@@ -56,44 +69,67 @@ type
      llvmflag_linker_private,      { have linker_private linkage type (later versions use global in combination with hidden visibility) }
      llvmflag_load_getelptr_type,  { the return type of loads and the base type of getelementptr must be specified }
      llvmflag_call_no_ptr,         { with direct calls, the function type is not a function pointer }
-     llvmflag_alias_double_type    { with "alias" declarations, have to print both aliasee and aliasee* types }
+     llvmflag_alias_double_type,   { with "alias" declarations, have to print both aliasee and aliasee* types }
+     llvmflag_fembed_bitcode       { support embedding bitcode in object files }
    );
    tllvmversionflags = set of tllvmversionflag;
 
 Const
    llvmversionstr : array[tllvmversion] of string[14] = (
-     'LLVM-3.3',
-     'LLVM-3.4.0',
-     'LLVM-3.4.1',
-     'LLVM-3.4.2',
-     'LLVM-3.5.0',
-     'LLVM-3.5.1',
-     'LLVM-3.5.2',
-     'LLVM-3.6.0',
-     'LLVM-3.6.1',
-     'LLVM-3.6.2',
-     'LLVM-3.7.0',
-     'LLVM-3.8.0',
-     'LLVM-3.9.0',
-     'LLVM-Xcode-6.4' { somewhere around LLVM 3.6.0 }
+     '',
+     '3.3',
+     '3.4',
+     '3.5',
+     '3.6',
+     'Xcode-6.4',
+     '3.7',
+     'Xcode-7.0',
+     'Xcode-7.1',
+     'Xcode-7.2',
+     '3.8',
+     'Xcode-7.3',
+     '3.9',
+     'Xcode-8.0',
+     'Xcode-8.1',
+     'Xcode-8.2',
+     '4.0',
+     'Xcode-9.0',
+     '5.0',
+     'Xcode-9.1',
+     'Xcode-9.2',
+     'Xcode-9.3',
+     '6.0',
+     'Xcode-10.0',
+     '7.0'
    );
 
    llvmversion_properties: array[tllvmversion] of tllvmversionflags =
      (
-       { llvmver_3_3    } [llvmflag_metadata_keyword,llvmflag_linker_private],
-       { llvmver_3_4_0  } [llvmflag_metadata_keyword,llvmflag_linker_private],
-       { llvmver_3_4_1  } [llvmflag_metadata_keyword,llvmflag_linker_private],
-       { llvmver_3_4_2  } [llvmflag_metadata_keyword,llvmflag_linker_private],
-       { llvmver_3_5_0  } [llvmflag_metadata_keyword],
-       { llvmver_3_5_1  } [llvmflag_metadata_keyword],
-       { llvmver_3_5_2  } [llvmflag_metadata_keyword],
-       { llvmver_3_6_0  } [],
-       { llvmver_3_6_1  } [],
-       { llvmver_3_6_2  } [],
-       { llvmver_3_7_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
-       { llvmver_3_8_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type],
-       { llvmver_3_9_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type],
-       { llvmver_xc_6_4 } [llvmflag_metadata_keyword]
+       { invalid         } [],
+       { llvmver_3_3     } [llvmflag_metadata_keyword,llvmflag_linker_private],
+       { llvmver_3_4     } [llvmflag_metadata_keyword,llvmflag_linker_private],
+       { llvmver_3_5     } [llvmflag_metadata_keyword],
+       { llvmver_3_6     } [],
+       { llvmver_xc_6_4  } [llvmflag_metadata_keyword],
+       { llvmver_3_7     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
+       { llvmver_xc_7_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
+       { llvmver_xc_7_1  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
+       { llvmver_xc_7_2  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
+       { llvmver_3_8     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type],
+       { llvmver_xc_7_3  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type],
+       { llvmver_3_9     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_xc_8_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_xc_8_1  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_xc_8_2  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_4_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_xc_9_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_5_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_xc_9_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_xc_9_1  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_xc_9_2  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_6_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_xc_10_0 } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_7_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode]
      );
 
    { Supported optimizations, only used for information }
@@ -110,6 +146,18 @@ Const
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
+   function llvmversion2enum(const s: string): tllvmversion;
+
 Implementation
+
+  function llvmversion2enum(const s: string): tllvmversion;
+    begin
+      for result:=succ(low(llvmversionstr)) to high(llvmversionstr) do
+        begin
+          if s=llvmversionstr[result] then
+            exit;
+        end;
+      result:=llvmver_invalid;
+    end;
 
 end.
