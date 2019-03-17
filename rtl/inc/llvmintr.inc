@@ -15,6 +15,8 @@
 
 
 procedure llvm_memcpy64(dest, source: pointer; len: qword; align: cardinal; isvolatile: LLVMBool1); compilerproc; external name 'llvm.memcpy.p0i8.p0i8.i64';
+{ LLVM 7.0+, alignment specified as part of the dest and source parameters }
+procedure llvm_memcpy64_indivalign(dest, source: pointer; len: qword; isvolatile: LLVMBool1); compilerproc; external name 'llvm.memcpy.p0i8.p0i8.i64';
 
 function llvm_frameaddress(level: longint): pointer; compilerproc; external name 'llvm.frameaddress';
 

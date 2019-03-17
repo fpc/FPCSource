@@ -70,7 +70,8 @@ type
      llvmflag_load_getelptr_type,  { the return type of loads and the base type of getelementptr must be specified }
      llvmflag_call_no_ptr,         { with direct calls, the function type is not a function pointer }
      llvmflag_alias_double_type,   { with "alias" declarations, have to print both aliasee and aliasee* types }
-     llvmflag_fembed_bitcode       { support embedding bitcode in object files }
+     llvmflag_fembed_bitcode,      { support embedding bitcode in object files }
+     llvmflag_memcpy_indiv_align   { memcpy intrinsic supports separate alignment for source and dest }
    );
    tllvmversionflags = set of tllvmversionflag;
 
@@ -129,7 +130,7 @@ Const
        { llvmver_xc_9_2  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
        { llvmver_6_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
        { llvmver_xc_10_0 } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
-       { llvmver_7_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode]
+       { llvmver_7_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align]
      );
 
    { Supported optimizations, only used for information }
