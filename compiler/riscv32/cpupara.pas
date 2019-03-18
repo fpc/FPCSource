@@ -329,13 +329,7 @@ unit cpupara;
             begin
               hp:=tparavarsym(paras[i]);
               paradef := hp.vardef;
-              { Syscall for Morphos can have already a paraloc set }
-              if (vo_has_explicit_paraloc in hp.varoptions) then
-                begin
-                  if not(vo_is_syscall_lib in hp.varoptions) then
-                    internalerror(200412153);
-                  continue;
-                end;
+
               hp.paraloc[side].reset;
               { currently only support C-style array of const }
               if (p.proccalloption in cstylearrayofconst) and

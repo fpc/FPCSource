@@ -512,10 +512,8 @@ implementation
         until not try_to_consume(_SEMICOLON);
 
         if explicit_paraloc then
-          begin
-            pd.has_paraloc_info:=callerside;
-            include(pd.procoptions,po_explicitparaloc);
-          end;
+          include(pd.procoptions,po_explicitparaloc);
+
         { remove parasymtable from stack }
         sc.free;
         { reset object options }
