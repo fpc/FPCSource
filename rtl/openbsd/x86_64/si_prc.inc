@@ -134,32 +134,13 @@ procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
     movq    $-1,%rax
   end;
 
-function _strrchr(str: PChar; character: LongInt): PChar; assembler; nostackframe; public name '_strrchr';
-  asm
-    pushq   %rbp
-    movq    %rsp, %rbp
-    movq    %rdi, -24(%rbp)
-    movb    %sil, -25(%rbp)
-    movq    $0, -8(%rbp)
-.L13:
-    movq    -24(%rbp), %rdx
-    movzbl  (%rdx), %eax
-    cmpb    -25(%rbp), %al
-    jne     .L14
-    movq    -24(%rbp), %rax
-    movq    %rax, -8(%rbp)
-.L14:
-    movq    -24(%rbp), %rdx
-    movzbl  (%rdx), %eax
-    testb   %al, %al
-    jne     .L16
-    movq    -8(%rbp), %rax
-    movq    %rax, -16(%rbp)
-    jmp     .L12
-.L16:
-    addq    $1, -24(%rbp)
-    jmp     .L13
-.L12:
-    movq    -16(%rbp), %rax
-    leave
+function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
+  begin
+    _strrchr:=nil;
+    repeat
+      if str^=Chr(character) then
+        _strrchr:=str;
+      if str^<>#0 then
+        Inc(str);
+    until str^=#0;
   end;
