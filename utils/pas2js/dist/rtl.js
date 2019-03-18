@@ -1103,7 +1103,7 @@ var rtl = {
     if (a<0) a += rtl.hiInt;
     if (b<=0) return a;
     if (b>54) return 0;
-    var r = a * (2**b);
+    var r = a * Mat.pow(2,b);
     if (r <= rtl.hiInt) return r;
     return r % rtl.hiInt;
   },
