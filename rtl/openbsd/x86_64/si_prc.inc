@@ -40,12 +40,12 @@ procedure _FPC_proc___start; assembler; nostackframe; public name '___start';
     pushq   %rbp
     movq    %rsp, %rbp
     subq    $64, %rsp
-    movl    %edi, -20(%rbp)
-    movq    %rsi, -32(%rbp)
+    movl    %edi, -20(%rbp)  { argc }
+    movq    %rsi, -32(%rbp)  { argv }
     movq    %rdx, -40(%rbp)  { environment }
-    movq    %rcx, -48(%rbp)
-    movq    %r8, -56(%rbp)
-    movq    %r9, -64(%rbp)
+    movq    %rcx, -48(%rbp)  { ??? }
+    movq    %r8, -56(%rbp)   { ??? }
+    movq    %r9, -64(%rbp)   { ??? }
     movq    -40(%rbp), %rax
     movq    %rax, environ(%rip)
     movq    %rax,operatingsystem_parameter_envp(%rip)
