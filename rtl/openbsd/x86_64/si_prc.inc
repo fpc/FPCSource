@@ -42,7 +42,7 @@ procedure _FPC_proc___start; assembler; nostackframe; public name '___start';
     subq    $64, %rsp
     movl    %edi, -20(%rbp)
     movq    %rsi, -32(%rbp)
-    movq    %rdx, -40(%rbp)
+    movq    %rdx, -40(%rbp)  { environment }
     movq    %rcx, -48(%rbp)
     movq    %r8, -56(%rbp)
     movq    %r9, -64(%rbp)
