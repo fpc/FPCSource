@@ -35,7 +35,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
 procedure _FPC_proc_haltproc; forward;
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); public name '___start';
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord);
   var
     I: SizeUInt;
   begin
