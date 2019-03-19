@@ -2062,7 +2062,8 @@ type
     property    ShapeType;
     property    Orientation;
     property    CornerRadius;
-    property    Color;
+    property    Color; 
+    property    StretchMode;
   end;
 
 
@@ -5176,8 +5177,13 @@ begin
 end;
 
 procedure TFPReportCustomShape.RecalcLayout;
+var
+  h: TFPReportUnits;
 begin
-  // Do nothing
+  if StretchMode = smDontStretch then
+    exit;
+  h := Layout.Height;
+  ApplyStretchMode(h);
 end;
 
 procedure TFPReportCustomShape.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
