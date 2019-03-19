@@ -29,6 +29,7 @@ var
 function atexit(proc: TCdeclProcedure): cint; cdecl; external name 'atexit';
 procedure monstartup(lowpc, highpc: u_long); cdecl; external name 'monstartup';}
 procedure __init; cdecl; external name '__init';
+procedure c_exit(exit_code: cint); cdecl; noreturn; external name 'exit';
 
 procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
 
@@ -46,7 +47,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
     jmp     _FPC_proc___start
   end;
 
-procedure _FPC_proc_haltproc; forward;
+procedure _FPC_proc_haltproc; noreturn; forward;
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
 procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); public name '___start';
@@ -82,23 +83,9 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
     end;
   end;
 
-procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
-  asm
-    movq    $1,%rax
-    movl    operatingsystem_result(%rip),%ebx
-    pushq   %rbx
-    call    .Lactualsyscall
-    addq    $8,%rsp
-    jmp     _FPC_proc_haltproc
-
-.Lactualsyscall:
-    int     $0x80
-    jb      .LErrorcode
-    xor     %rbx,%rbx
-    ret
-.LErrorcode:
-    movq    %rax,%rbx
-    movq    $-1,%rax
+procedure _FPC_proc_haltproc; noreturn; public name '_haltproc';
+  begin
+    c_exit(operatingsystem_result);
   end;
 
 function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
