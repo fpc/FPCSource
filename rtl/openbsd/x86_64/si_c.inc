@@ -78,14 +78,11 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
     monstartup(u_long(@_eprol),u_long(@_etext));}
     __init;
     PascalMain;
-    asm
-      jmp     _FPC_proc_haltproc
-    end;
+    c_exit(operatingsystem_result);
   end;
 
 procedure _FPC_proc_haltproc; noreturn; public name '_haltproc';
   begin
-    c_exit(operatingsystem_result);
   end;
 
 function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
