@@ -64,11 +64,7 @@ begin
     FDataset.RemoveFreeNotification(Self);
   FDataSet:=AValue;
   if Assigned(FDataset) then
-    begin
     FDataset.FreeNotification(Self);
-//    if FDataset.Active then
-//      InitFieldDefs;
-    end;
 end;
 
 function TFPReportDatasetData.GetIsOpened: boolean;
