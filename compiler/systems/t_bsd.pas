@@ -616,7 +616,10 @@ begin
    begin
      if librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
-     if cs_create_pic in current_settings.moduleswitches then
+     if ((cs_create_pic in current_settings.moduleswitches) and
+         not (target_info.system in systems_openbsd)) or
+        (current_module.islibrary and
+         (target_info.system in systems_openbsd)) then
        begin
          if librarysearchpath.FindFile('crtbeginS.o',false,s) then
            LinkRes.AddFileName(s);
@@ -740,7 +743,10 @@ begin
   if linklibc and
      not IsDarwin Then
    begin
-     if cs_create_pic in current_settings.moduleswitches then
+     if ((cs_create_pic in current_settings.moduleswitches) and
+         not (target_info.system in systems_openbsd)) or
+        (current_module.islibrary and
+         (target_info.system in systems_openbsd)) then
        Fl1:=librarysearchpath.FindFile('crtendS.o',false,s1)
      else
        Fl1:=librarysearchpath.FindFile('crtend.o',false,s1);

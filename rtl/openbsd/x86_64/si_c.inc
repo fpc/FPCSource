@@ -28,7 +28,7 @@ var
 procedure _mcleanup; cdecl; external name '_mcleanup';
 function atexit(proc: TCdeclProcedure): cint; cdecl; external name 'atexit';
 procedure monstartup(lowpc, highpc: u_long); cdecl; external name 'monstartup';
-procedure _init; cdecl; external name '_init';
+procedure __init; cdecl; external name '__init';
 
 procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
 
@@ -75,7 +75,7 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
       end;
     atexit(@_mcleanup);
     monstartup(u_long(@_eprol),u_long(@_etext));
-    _init;
+    __init;
     PascalMain;
     asm
       jmp     _FPC_proc_haltproc
