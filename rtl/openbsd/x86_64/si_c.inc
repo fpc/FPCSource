@@ -30,7 +30,7 @@ function atexit(proc: TCdeclProcedure): cint; cdecl; external name 'atexit';
 procedure monstartup(lowpc, highpc: u_long); cdecl; external name 'monstartup';
 procedure _init; cdecl; external name '_init';
 
-procedure _FPC_proc___start; forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
@@ -49,82 +49,37 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
 procedure _FPC_proc_haltproc; forward;
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
-procedure _FPC_proc___start; assembler; nostackframe; public name '___start';
-  asm
-    pushq   %rbp
-    movq    %rsp, %rbp
-    subq    $64, %rsp
-    movl    %edi, -20(%rbp)  { argc }
-    movq    %rsi, -32(%rbp)  { argv }
-    movq    %rdx, -40(%rbp)  { environment }
-    movq    %rcx, -48(%rbp)  { ??? }
-    movq    %r8, -56(%rbp)   { ??? }
-    movq    %r9, -64(%rbp)   { ??? }
-    movq    -40(%rbp), %rax
-    movq    %rax, environ(%rip)
-    movq    %rax,operatingsystem_parameter_envp(%rip)
-    movq    -32(%rbp), %rax
-    movq    (%rax), %rax
-    movq    %rax, -8(%rbp)
-    cmpq    $0, -8(%rbp)
-    je      .L2
-    movq    -8(%rbp), %rdi
-    movl    $47, %esi
-    call    _strrchr
-    movq    %rax, __progname(%rip)
-    movq    __progname(%rip), %rax
-    testq   %rax, %rax
-    jne     .L4
-    movq    -8(%rbp), %rax
-    movq    %rax, __progname(%rip)
-    jmp     .L6
-.L4:
-    movq    __progname(%rip), %rax
-    addq    $1, %rax
-    movq    %rax, __progname(%rip)
-.L6:
-    leaq    __progname_storage(%rip), %rax
-    movq    %rax, -16(%rbp)
-    jmp     .L7
-.L8:
-    movq    __progname(%rip), %rcx
-    movzbl  (%rcx), %edx
-    movq    -16(%rbp), %rax
-    movb    %dl, (%rax)
-    addq    $1, -16(%rbp)
-    leaq    1(%rcx), %rax
-    movq    %rax, __progname(%rip)
-.L7:
-    movq    __progname(%rip), %rax
-    movzbl  (%rax), %eax
-    testb   %al, %al
-    je      .L9
-    leaq    __progname_storage+255(%rip), %rax
-    cmpq    %rax, -16(%rbp)
-    jb      .L8
-.L9:
-    leaq    __progname_storage(%rip), %rax
-    movq    %rax, __progname(%rip)
-    movq    -16(%rbp), %rax
-    movb    $0, (%rax)
-.L2:
-    movq    _mcleanup@GOTPCREL(%rip), %rdi
-    call    atexit
-    movq    _etext@GOTPCREL(%rip), %rsi
-    movq    _eprol(%rip), %rdi
-    call    monstartup@plt
-    movl    $0, %eax
-    call    _init
-    movq    environ(%rip), %rdx
-    movq    -32(%rbp), %rsi
-    movl    -20(%rbp), %edi
-    movq    %rdi,operatingsystem_parameter_argc(%rip)
-    movq    %rsi,operatingsystem_parameter_argv(%rip)
-    movl    $0, %eax
-    call    PASCALMAIN
-    // movl    %eax, %edi
-    // call    exit
-    jmp     _FPC_proc_haltproc
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); public name '___start';
+  var
+    I: SizeUInt;
+  begin
+    environ:=envp;
+    operatingsystem_parameter_envp:=envp;
+    operatingsystem_parameter_argc:=argc;
+    operatingsystem_parameter_argv:=argv;
+    if argv[0]<>nil then
+      begin
+        __progname:=_strrchr(argv[0], Ord('/'));
+        if __progname<>nil then
+          Inc(__progname)
+        else
+          __progname:=argv[0];
+        I:=Low(__progname_storage);
+        while (I<High(__progname_storage)) and (__progname[I]<>#0) do
+          begin
+            __progname_storage[I]:=__progname[I-Low(__progname_storage)];
+            Inc(I);
+          end;
+        __progname_storage[I]:=#0;
+        __progname:=@__progname_storage;
+      end;
+    atexit(@_mcleanup);
+    monstartup(u_long(@_eprol),u_long(@_etext));
+    _init;
+    PascalMain;
+    asm
+      jmp     _FPC_proc_haltproc
+    end;
   end;
 
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
