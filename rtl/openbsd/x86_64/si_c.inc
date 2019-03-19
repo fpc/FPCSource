@@ -18,12 +18,12 @@
 
 type
   cint = LongInt;
-  u_long = QWord;
-  TCdeclProcedure = procedure; cdecl;
+{  u_long = QWord;
+  TCdeclProcedure = procedure; cdecl;}
 
-var
+{var
   _etext: Byte; external name '_etext';
-  _eprol: Byte; external name '_eprol';
+  _eprol: Byte; external name '_eprol';}
 
 {procedure _mcleanup; cdecl; external name '_mcleanup';
 function atexit(proc: TCdeclProcedure): cint; cdecl; external name 'atexit';
@@ -83,6 +83,7 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
 
 procedure _FPC_proc_haltproc; noreturn; public name '_haltproc';
   begin
+    c_exit(operatingsystem_result);
   end;
 
 function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
@@ -96,6 +97,6 @@ function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr'
     until str^=#0;
   end;
 
-procedure MD_EPROL_LABEL; assembler; nostackframe; public name '_eprol';
+{procedure MD_EPROL_LABEL; assembler; nostackframe; public name '_eprol';
   asm
-  end;
+  end;}
