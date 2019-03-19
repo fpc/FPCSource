@@ -53,7 +53,7 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
         I:=Low(__progname_storage);
         while (I<High(__progname_storage)) and (__progname[I]<>#0) do
           begin
-            __progname_storage[I]:=__progname[I];
+            __progname_storage[I]:=__progname[I-Low(__progname_storage)];
             Inc(I);
           end;
         __progname_storage[I]:=#0;
