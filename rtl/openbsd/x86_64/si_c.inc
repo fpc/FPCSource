@@ -16,14 +16,19 @@
 
 {$asmmode gas}
 
+type
+  cint = LongInt;
+  u_long = QWord;
+  TCdeclProcedure = procedure; cdecl;
+
 var
   _etext: Byte; external name '_etext';
   _eprol: Byte; external name '_eprol';
 
-procedure _mcleanup; external name '_mcleanup';
-procedure atexit; external name 'atexit';
-procedure monstartup; external name 'monstartup';
-procedure _init; external name '_init';
+procedure _mcleanup; cdecl; external name '_mcleanup';
+function atexit(proc: TCdeclProcedure): cint; cdecl; external name 'atexit';
+procedure monstartup(lowpc, highpc: u_long); cdecl; external name 'monstartup';
+procedure _init; cdecl; external name '_init';
 
 procedure _FPC_proc___start; forward;
 
