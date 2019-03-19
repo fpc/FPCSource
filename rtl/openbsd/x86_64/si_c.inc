@@ -25,9 +25,9 @@ var
   _etext: Byte; external name '_etext';
   _eprol: Byte; external name '_eprol';
 
-procedure _mcleanup; cdecl; external name '_mcleanup';
+{procedure _mcleanup; cdecl; external name '_mcleanup';
 function atexit(proc: TCdeclProcedure): cint; cdecl; external name 'atexit';
-procedure monstartup(lowpc, highpc: u_long); cdecl; external name 'monstartup';
+procedure monstartup(lowpc, highpc: u_long); cdecl; external name 'monstartup';}
 procedure __init; cdecl; external name '__init';
 
 procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
@@ -73,8 +73,8 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
         __progname_storage[I]:=#0;
         __progname:=@__progname_storage;
       end;
-    atexit(@_mcleanup);
-    monstartup(u_long(@_eprol),u_long(@_etext));
+{    atexit(@_mcleanup);
+    monstartup(u_long(@_eprol),u_long(@_etext));}
     __init;
     PascalMain;
     asm
