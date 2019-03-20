@@ -18,7 +18,7 @@
 
 procedure _init; external name '_init';
 
-procedure _FPC_proc___start; forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
@@ -37,98 +37,35 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
 procedure _FPC_proc_haltproc; forward;
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
-procedure _FPC_proc___start; assembler; nostackframe;
-  asm
-    pushq   %rbp
-    movq    %rsp, %rbp
-    subq    $64, %rsp
-    movl    %edi, -20(%rbp)  { argc }
-    movq    %rsi, -32(%rbp)  { argv }
-    movq    %rdx, -40(%rbp)  { environment }
-    movq    %rcx, -48(%rbp)  { ??? }
-    movq    %r8, -56(%rbp)   { ??? }
-    movq    %r9, -64(%rbp)   { ??? }
-    movq    environ@GOTPCREL(%rip), %rdx
-    movq    -40(%rbp), %rax
-    movq    %rax, (%rdx)
-    movq    operatingsystem_parameter_envp@GOTPCREL(%rip), %rdx
-    movq    -40(%rbp), %rax
-    movq    %rax, (%rdx)
-
-    movl    -20(%rbp), %eax
-    movslq  %eax,%rdx
-    movq    operatingsystem_parameter_argc@GOTPCREL(%rip), %rax
-    movq    %rdx, (%rax)
-    movq    operatingsystem_parameter_argv@GOTPCREL(%rip), %rdx
-    movq    -32(%rbp), %rax
-    movq    %rax, (%rdx)
-    movq    -32(%rbp), %rax
-    movq    (%rax), %rax
-    movq    %rax, -8(%rbp)
-    cmpq    $0, -8(%rbp)
-    je      .L2
-    movq    -8(%rbp), %rdi
-    movl    $47, %esi
-    call    _strrchr
-    movq    %rax, %rdx
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    %rdx, (%rax)
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    (%rax), %rax
-    testq   %rax, %rax
-    jne     .L4
-    movq    __progname@GOTPCREL(%rip), %rdx
-    movq    -8(%rbp), %rax
-    movq    %rax, (%rdx)
-    jmp     .L6
-.L4:
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    (%rax), %rax
-    leaq    1(%rax), %rdx
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    %rdx, (%rax)
-.L6:
-    movq    __progname_storage@GOTPCREL(%rip), %rax
-    movq    %rax, -16(%rbp)
-    jmp     .L7
-.L8:
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    (%rax), %rcx
-    movzbl  (%rcx), %edx
-    movq    -16(%rbp), %rax
-    movb    %dl, (%rax)
-    addq    $1, -16(%rbp)
-    leaq    1(%rcx), %rdx
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    %rdx, (%rax)
-.L7:
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    (%rax), %rax
-    movzbl  (%rax), %eax
-    testb   %al, %al
-    je      .L9
-    movq    __progname_storage@GOTPCREL(%rip), %rax
-    leaq    255(%rax), %rax
-    cmpq    %rax, -16(%rbp)
-    jb      .L8
-.L9:
-    movq    -16(%rbp), %rax
-    movb    $0, (%rax)
-    movq    __progname@GOTPCREL(%rip), %rdx
-    movq    __progname_storage@GOTPCREL(%rip), %rax
-    movq    %rax, (%rdx)
-.L2:
-    movl    $0, %eax
-    call    _init@PLT
-    movq    environ@GOTPCREL(%rip), %rax
-    movq    (%rax), %rdx
-    movq    -32(%rbp), %rsi
-    movl    -20(%rbp), %edi
-    movl    $0, %eax
-    call    PASCALMAIN@PLT
-    // movl    %eax, %edi
-    // call    exit
-    jmp     _FPC_proc_haltproc@PLT
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord);
+  var
+    I: SizeUInt;
+  begin
+    environ:=envp;
+    operatingsystem_parameter_envp:=envp;
+    operatingsystem_parameter_argc:=argc;
+    operatingsystem_parameter_argv:=argv;
+    if argv[0]<>nil then
+      begin
+        __progname:=_strrchr(argv[0], Ord('/'));
+        if __progname<>nil then
+          Inc(__progname)
+        else
+          __progname:=argv[0];
+        I:=Low(__progname_storage);
+        while (I<High(__progname_storage)) and (__progname[I]<>#0) do
+          begin
+            __progname_storage[I]:=__progname[I-Low(__progname_storage)];
+            Inc(I);
+          end;
+        __progname_storage[I]:=#0;
+        __progname:=@__progname_storage;
+      end;
+    _init;
+    PascalMain;
+    asm
+      jmp     _FPC_proc_haltproc@PLT
+    end;
   end;
 
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
