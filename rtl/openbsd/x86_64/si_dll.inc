@@ -22,55 +22,18 @@ procedure _init; external name '_init';
 procedure _init; weakexternal name '_init';
 {$endif VER3_0}
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
-
-procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
-  asm
-    movq    %rbx,%r9
-    movq    %rcx,%r8
-    movq    %rdx,%rcx
-    movq    (%rsp),%rdi
-    leaq    16(%rsp,%rdi,8),%rdx
-    leaq    8(%rsp),%rsi
-    subq    $8,%rsp
-    andq    $0xFFFFFFFFFFFFFFF0,%rsp
-    addq    $8,%rsp
-    jmp     _FPC_proc___start
-  end;
-
-procedure _FPC_proc_haltproc; forward;
-function _strrchr(str: PChar; character: LongInt): PChar; forward;
-
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord);
+procedure _FPC_shared_lib_start; cdecl; public name 'FPC_LIB_START';
   var
     I: SizeUInt;
   begin
-    environ:=envp;
-    operatingsystem_parameter_envp:=envp;
-    operatingsystem_parameter_argc:=argc;
-    operatingsystem_parameter_argv:=argv;
-    if argv[0]<>nil then
-      begin
-        __progname:=_strrchr(argv[0], Ord('/'));
-        if __progname<>nil then
-          Inc(__progname)
-        else
-          __progname:=argv[0];
-        I:=Low(__progname_storage);
-        while (I<High(__progname_storage)) and (__progname[I]<>#0) do
-          begin
-            __progname_storage[I]:=__progname[I-Low(__progname_storage)];
-            Inc(I);
-          end;
-        __progname_storage[I]:=#0;
-        __progname:=@__progname_storage;
-      end;
+    { todo: figure out if there's any way to obtain these in OpenBSD shared libraries }
+    environ:=nil;
+    operatingsystem_parameter_envp:=nil;
+    operatingsystem_parameter_argc:=0;
+    operatingsystem_parameter_argv:=nil;
     if Assigned(@_init) then
       _init;
     PascalMain;
-    asm
-      jmp     _FPC_proc_haltproc@PLT
-    end;
   end;
 
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
@@ -91,15 +54,3 @@ procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
     movq    %rax,%rbx
     movq    $-1,%rax
   end;
-
-function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
-  begin
-    _strrchr:=nil;
-    repeat
-      if str^=Chr(character) then
-        _strrchr:=str;
-      if str^<>#0 then
-        Inc(str);
-    until str^=#0;
-  end;
-
