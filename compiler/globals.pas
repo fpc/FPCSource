@@ -892,6 +892,30 @@ implementation
          end;
 
 {$endif mswindows}
+{$ifdef openbsd}
+       function GetOpenBSDLocalBase: ansistring;
+         var
+           envvalue: pchar;
+         begin
+           envvalue := GetEnvPChar('LOCALBASE');
+           if assigned(envvalue) then
+             Result:=envvalue
+           else
+             Result:='/usr/local';
+           FreeEnvPChar(envvalue);
+         end;
+       function GetOpenBSDX11Base: ansistring;
+         var
+           envvalue: pchar;
+         begin
+           envvalue := GetEnvPChar('X11BASE');
+           if assigned(envvalue) then
+             Result:=envvalue
+           else
+             Result:='/usr/X11R6';
+           FreeEnvPChar(envvalue);
+         end;
+{$endif openbsd}
        var
          envstr: string;
          envvalue: pchar;
@@ -924,6 +948,10 @@ implementation
          ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
          ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
 {$endif mswindows}
+{$ifdef openbsd}
+         Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
+         Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
+{$endif openbsd}
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do

@@ -154,7 +154,7 @@ begin
      { Mac OS X doesn't have a /lib }
      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib',true)
    else if target_info.system in systems_openbsd then
-     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib;${X11BASE}/lib;${LOCALBASE}/lib',true)
+     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib;$OPENBSD_X11BASE/lib;$OPENBSD_LOCALBASE/lib',true)
    else
      LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
