@@ -16,7 +16,11 @@
 
 {$asmmode gas}
 
+{$ifdef VER3_0}
 procedure _init; external name '_init';
+{$else VER3_0}
+procedure _init; weakexternal name '_init';
+{$endif VER3_0}
 
 procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
 
@@ -61,7 +65,8 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
         __progname_storage[I]:=#0;
         __progname:=@__progname_storage;
       end;
-    _init;
+    if Assigned(@_init) then
+      _init;
     PascalMain;
     asm
       jmp     _FPC_proc_haltproc@PLT
