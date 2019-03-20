@@ -23,8 +23,6 @@ procedure _init; weakexternal name '_init';
 {$endif VER3_0}
 
 procedure _FPC_shared_lib_start; cdecl; public name 'FPC_LIB_START';
-  var
-    I: SizeUInt;
   begin
     { todo: figure out if there's any way to obtain these in OpenBSD shared libraries }
     environ:=nil;
