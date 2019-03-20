@@ -16,11 +16,6 @@
 
 {$asmmode gas}
 
-type
-  cint = LongInt;
-{  u_long = QWord;
-  TCdeclProcedure = procedure; cdecl;}
-
 {var
   _etext: Byte; external name '_etext';
   _eprol: Byte; external name '_eprol';}
