@@ -34,21 +34,12 @@ procedure _FPC_shared_lib_start; cdecl; public name 'FPC_LIB_START';
     PascalMain;
   end;
 
-procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
+{ this routine is only called when the halt() routine of the RTL embedded in
+  the shared library is called }
+procedure _FPC_shared_lib_haltproc; cdecl; assembler; nostackframe; public name '_haltproc';
   asm
     movq    $1,%rax
-    movl    operatingsystem_result(%rip),%ebx
-    pushq   %rbx
-    call    .Lactualsyscall
-    addq    $8,%rsp
-    jmp     _FPC_proc_haltproc
-
-.Lactualsyscall:
-    int     $0x80
-    jb      .LErrorcode
-    xor     %rbx,%rbx
-    ret
-.LErrorcode:
-    movq    %rax,%rbx
-    movq    $-1,%rax
+    movl    operatingsystem_result(%rip),%edi
+    syscall
+    jmp     _FPC_shared_lib_haltproc
   end;
