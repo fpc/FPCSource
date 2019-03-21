@@ -68,20 +68,9 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
   asm
     movq    $1,%rax
-    movl    operatingsystem_result(%rip),%ebx
-    pushq   %rbx
-    call    .Lactualsyscall
-    addq    $8,%rsp
+    movl    operatingsystem_result(%rip),%edi
+    syscall
     jmp     _FPC_proc_haltproc
-
-.Lactualsyscall:
-    int     $0x80
-    jb      .LErrorcode
-    xor     %rbx,%rbx
-    ret
-.LErrorcode:
-    movq    %rax,%rbx
-    movq    $-1,%rax
   end;
 
 function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
