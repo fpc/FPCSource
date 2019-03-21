@@ -173,8 +173,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES $FILELIST';
-             DllCmd[1]:='ld $TARGET $EMUL $OPT -shared -L. -o $EXE $CATRES $FILELIST'
+             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE $CATRES $FILELIST';
+             DllCmd[1]:='ld $TARGET $EMUL $OPT $MAP -shared -L. -o $EXE $CATRES $FILELIST'
            end
          else
            begin
@@ -193,22 +193,22 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
+               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
+             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
              else
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
            end
        end
      else
        begin
-         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
-         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP $MAP -L. -o $EXE $RES';
+         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME $MAP -shared -L. -o $EXE $RES';
        end;
      if not(target_info.system in systems_darwin) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
@@ -773,6 +773,7 @@ function TLinkerBSD.MakeExecutable:boolean;
 var
   binstr,
   cmdstr,
+  mapstr,
   targetstr,
   emulstr,
   extdbgbinstr,
@@ -794,6 +795,9 @@ begin
   DynLinkStr:='';
   GCSectionsStr:='';
   linkscript:=nil;
+  mapstr:='';
+  if (cs_link_map in current_settings.globalswitches) then
+    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
@@ -863,6 +867,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
+  Replace(cmdstr,'$MAP',mapstr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   if (LdSupportsNoResponseFile) and (source_info.system in systems_all_windows) then
@@ -940,6 +945,7 @@ var
   linkscript: TAsmScript;
   binstr,
   cmdstr,
+  mapstr,
   targetstr,
   emulstr,
   extdbgbinstr,
@@ -950,6 +956,7 @@ var
 begin
   MakeSharedLibrary:=false;
   GCSectionsStr:='';
+  mapstr:='';
   linkscript:=nil;
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
@@ -964,6 +971,9 @@ begin
       GCSectionsStr:='--gc-sections' }
     else
       GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
+
+  if (cs_link_map in current_settings.globalswitches) then
+    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
 
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
@@ -1003,6 +1013,7 @@ begin
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
+  Replace(cmdstr,'$MAP',mapstr);
   if (target_info.system in systems_darwin) then
     Replace(cmdstr,'$PRTOBJ',GetDarwinPrtobjName(true));
   BinStr:=FindUtil(utilsprefix+BinStr);
