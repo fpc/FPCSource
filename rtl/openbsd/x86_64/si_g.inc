@@ -22,7 +22,7 @@ var
 
 procedure _mcleanup; cdecl; external name '_mcleanup';
 function atexit(proc: TCdeclProcedure): cint; cdecl; external name 'atexit';
-procedure monstartup(lowpc, highpc: u_long); cdecl; external name 'monstartup';
+procedure _monstartup(lowpc, highpc: u_long); cdecl; external name '_monstartup';
 procedure __init; cdecl; external name '__init';
 procedure c_exit(exit_code: cint); cdecl; noreturn; external name 'exit';
 
@@ -70,7 +70,7 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
         __progname:=@__progname_storage;
       end;
     atexit(@_mcleanup);
-    monstartup(u_long(@_eprol),u_long(@_etext));
+    _monstartup(u_long(@_eprol),u_long(@_etext));
     __init;
     PascalMain;
     c_exit(operatingsystem_result);
