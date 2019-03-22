@@ -340,16 +340,9 @@ BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 TARGETPROCINC=$(RTL)/openbsd/$(CPU_TARGET)
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
-else
-SYSTEMUNIT=sysbsd
-LINUXUNIT=
-override FPCOPT+=-dUNIX
-PRT0=prt0_10
-endif
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
