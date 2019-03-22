@@ -14,4 +14,42 @@
 
  **********************************************************************}
 
+{$asmmode att}
 
+{$ifdef VER3_0}
+procedure _init; external name '_init';
+{$else VER3_0}
+procedure _init; weakexternal name '_init';
+{$endif VER3_0}
+
+procedure _FPC_shared_lib_start; cdecl; public name 'FPC_LIB_START';
+  begin
+    { todo: figure out if there's any way to obtain these in OpenBSD shared libraries }
+    environ:=nil;
+    operatingsystem_parameter_envp:=nil;
+    operatingsystem_parameter_argc:=0;
+    operatingsystem_parameter_argv:=nil;
+    if Assigned(@_init) then
+      _init;
+    PascalMain;
+  end;
+
+{ this routine is only called when the halt() routine of the RTL embedded in
+  the shared library is called }
+procedure _FPC_shared_lib_haltproc; cdecl; public name '_haltproc';
+  var
+    ExitCode: LongInt;
+  begin
+    ExitCode:=operatingsystem_result;
+    asm
+.Lendless:
+      pushl   ExitCode
+      mov     $1,%eax
+      call    .Lactualsyscall
+      jmp     .Lendless
+
+.Lactualsyscall:
+      int     $0x80
+      ret
+    end;
+  end;
