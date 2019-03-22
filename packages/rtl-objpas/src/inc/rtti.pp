@@ -1332,13 +1332,13 @@ begin
                  end;
     tkBool     : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
-                     otUByte: result.FData.FAsSByte := ShortInt(System.PBoolean(ABuffer)^);
-                     otUWord: result.FData.FAsUWord := Byte(PBoolean16(ABuffer)^);
-                     otULong: result.FData.FAsULong := SmallInt(PBoolean32(ABuffer)^);
+                     otUByte: result.FData.FAsUByte := Byte(System.PBoolean(ABuffer)^);
+                     otUWord: result.FData.FAsUWord := Word(PBoolean16(ABuffer)^);
+                     otULong: result.FData.FAsULong := DWord(PBoolean32(ABuffer)^);
                      otUQWord: result.FData.FAsUInt64 := QWord(PBoolean64(ABuffer)^);
-                     otSByte: result.FData.FAsSByte := Word(PByteBool(ABuffer)^);
-                     otSWord: result.FData.FAsSWord := LongInt(PWordBool(ABuffer)^);
-                     otSLong: result.FData.FAsSLong := LongWord(PLongBool(ABuffer)^);
+                     otSByte: result.FData.FAsSByte := ShortInt(PByteBool(ABuffer)^);
+                     otSWord: result.FData.FAsSWord := SmallInt(PWordBool(ABuffer)^);
+                     otSLong: result.FData.FAsSLong := LongInt(PLongBool(ABuffer)^);
                      otSQWord: result.FData.FAsSInt64 := Int64(PQWordBool(ABuffer)^);
                    end;
                  end;
