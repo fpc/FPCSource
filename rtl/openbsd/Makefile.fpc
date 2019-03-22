@@ -85,7 +85,7 @@ endif
 CPU_UNITS=
 SYSINIT_UNITS=
 
-LOADERS=prt0 cprt0 dllprt0
+LOADERS=prt0 cprt0
 
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
@@ -137,9 +137,6 @@ prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
         $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
-
-dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 
 
 #
