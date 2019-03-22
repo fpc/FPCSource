@@ -32,7 +32,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
     jmp     _FPC_proc___start
   end;
 
-procedure _FPC_proc_haltproc; forward;
+procedure _FPC_proc_haltproc; cdecl; forward;
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
 procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord);
@@ -65,7 +65,7 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
     end;
   end;
 
-procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_proc_haltproc; cdecl; assembler; nostackframe; public name '_haltproc';
   asm
     movq    $1,%rax
     movl    operatingsystem_result(%rip),%edi

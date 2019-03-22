@@ -19,7 +19,7 @@
 procedure __init; cdecl; external name '__init';
 procedure c_exit(exit_code: cint); cdecl; noreturn; external name 'exit';
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); cdecl; forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
@@ -35,10 +35,9 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
     jmp     _FPC_proc___start
   end;
 
-procedure _FPC_proc_haltproc; noreturn; forward;
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord);
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); cdecl;
   var
     I: SizeUInt;
   begin
@@ -67,7 +66,7 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
     c_exit(operatingsystem_result);
   end;
 
-procedure _FPC_proc_haltproc; noreturn; public name '_haltproc';
+procedure _FPC_proc_haltproc; cdecl; noreturn; public name '_haltproc';
   begin
     c_exit(operatingsystem_result);
   end;
