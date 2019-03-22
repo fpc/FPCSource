@@ -84,6 +84,7 @@ Resourcestring
   SUsage84  = '  -s            skip the creation of a backup-file.';
   SUsage87  = '  -p            force directory creation.';
   SUsage90  = '  -v            be verbose.';
+  SUsage95  = '  -V            show version.';
   Susage100 = '  -0            use built in fpc.cfg template (default)';
   Susage110 = '  -1            use built in fp.cfg template';
   Susage120 = '  -2            use built in fp.ini template';
@@ -333,6 +334,7 @@ begin
   Writeln(SUsage84);
   Writeln(SUsage87);
   Writeln(SUsage90);
+  Writeln(SUsage95);
   Writeln(SUsage100);
   Writeln(SUsage110);
   Writeln(SUsage120);
