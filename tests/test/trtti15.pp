@@ -24,6 +24,7 @@ type
     function Test7(arg1: LongInt; arg2: String): String; pascal;
     {$endif}
     function Test8(arg1: LongInt; arg2: String): String; cdecl;
+    procedure Test9(var arg1; out arg2; constref arg3);
     property T: LongInt read Test2;
     property T2: LongInt read Test2;
   end;
@@ -52,10 +53,15 @@ begin
     ErrorHalt('Expected parameter name %s, but got %s', [aName, aParam^.Name]);
   if aParam^.Flags <> aFlags then
     ErrorHalt('Expected parameter flags %s, but got %s', [HexStr(Word(aFlags), 4), HexStr(Word(aParam^.Flags), 4)]);
-  if not Assigned(aParam^.ParamType) then
-    ErrorHalt('Expected parameter type %s, but got Nil', [aTypeInfo^.Name]);
-  if aParam^.ParamType^ <> aTypeInfo then
-    ErrorHalt('Expected parameter type %s, but got %s', [aTypeInfo^.Name, aParam^.ParamType^^.Name]);
+  if Assigned(aTypeInfo) then begin
+    if not Assigned(aParam^.ParamType) then
+      ErrorHalt('Expected parameter type %s, but got Nil', [aTypeInfo^.Name]);
+    if aParam^.ParamType^ <> aTypeInfo then
+      ErrorHalt('Expected parameter type %s, but got %s', [aTypeInfo^.Name, aParam^.ParamType^^.Name]);
+  end else begin
+    if Assigned(aParam^.ParamType) then
+      ErrorHalt('Expected Nil parameter type, but got %s', [aParam^.ParamType^^.Name])
+  end;
 end;
 
 type
@@ -221,6 +227,12 @@ begin
           MakeParam('$self', [pfHidden, pfSelf, pfAddress], TypeInfo(ITest)),
           MakeParam('arg1', [], TypeInfo(LongInt)),
           MakeParam('arg2', [], TypeInfo(String))
+        ]),
+      MakeMethod('Test9', DefaultCallingConvention, mkProcedure, Nil, [
+          MakeParam('$self', [pfHidden, pfSelf, pfAddress], TypeInfo(ITest)),
+          MakeParam('arg1', [pfVar], Nil),
+          MakeParam('arg2', [pfOut], Nil),
+          MakeParam('arg3', [pfConstRef], Nil)
         ])
     ]);
 end.
