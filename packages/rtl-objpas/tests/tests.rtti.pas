@@ -1329,61 +1329,85 @@ var
 
   value: TValue;
 begin
+  u8:=245;
   TValue.Make(@u8, TypeInfo(UInt8), value);
   CheckEquals(1, value.DataSize, 'Size of UInt8 differs');
+  u16:=789;
   TValue.Make(@u16, TypeInfo(UInt16), value);
   CheckEquals(2, value.DataSize, 'Size of UInt16 differs');
+  u32:=568789;
   TValue.Make(@u32, TypeInfo(UInt32), value);
   CheckEquals(4, value.DataSize, 'Size of UInt32 differs');
+  u64:=$abdcefadbcef;
   TValue.Make(@u64, TypeInfo(UInt64), value);
   CheckEquals(8, value.DataSize, 'Size of UInt64 differs');
+  s8:=-32;
   TValue.Make(@s8, TypeInfo(Int8), value);
   CheckEquals(1, value.DataSize, 'Size of Int8 differs');
+  s16:=-5345;
   TValue.Make(@s16, TypeInfo(Int16), value);
   CheckEquals(2, value.DataSize, 'Size of Int16 differs');
+  s32:=-234567;
   TValue.Make(@s32, TypeInfo(Int32), value);
   CheckEquals(4, value.DataSize, 'Size of Int32 differs');
+  s64:=23456789012;
   TValue.Make(@s64, TypeInfo(Int64), value);
   CheckEquals(8, value.DataSize, 'Size of Int64 differs');
+  b8:=false;
   TValue.Make(@b8, TypeInfo(Boolean), value);
   CheckEquals(1, value.DataSize, 'Size of Boolean differs');
 {$ifdef fpc}
+  b16:=true;
   TValue.Make(@b16, TypeInfo(Boolean16), value);
   CheckEquals(2, value.DataSize, 'Size of Boolean16 differs');
+  b32:=false;
   TValue.Make(@b32, TypeInfo(Boolean32), value);
   CheckEquals(4, value.DataSize, 'Size of Boolean32 differs');
+  b64:=true;
   TValue.Make(@b64, TypeInfo(Boolean64), value);
   CheckEquals(8, value.DataSize, 'Size of Boolean64 differs');
 {$endif}
+  bl8:=true;
   TValue.Make(@bl8, TypeInfo(ByteBool), value);
   CheckEquals(1, value.DataSize, 'Size of ByteBool differs');
+  bl16:=false;
   TValue.Make(@bl16, TypeInfo(WordBool), value);
   CheckEquals(2, value.DataSize, 'Size of WordBool differs');
+  bl32:=false;
   TValue.Make(@bl32, TypeInfo(LongBool), value);
   CheckEquals(4, value.DataSize, 'Size of LongBool differs');
 {$ifdef fpc}
+  bl64:=true;
   TValue.Make(@bl64, TypeInfo(QWordBool), value);
   CheckEquals(8, value.DataSize, 'Size of QWordBool differs');
 {$endif}
+  f32:=4.567;
   TValue.Make(@f32, TypeInfo(Single), value);
   CheckEquals(4, value.DataSize, 'Size of Single differs');
+  f64:=-3456.678;
   TValue.Make(@f64, TypeInfo(Double), value);
   CheckEquals(8, value.DataSize, 'Size of Double differs');
 {$ifdef FPC_HAS_TYPE_EXTENDED}
+  f80:=-2345.678;
   TValue.Make(@f80, TypeInfo(Extended), value);
   CheckEquals(10, value.DataSize, 'Size of Extended differs');
 {$endif}
+  fcu:=56.78;
   TValue.Make(@fcu, TypeInfo(Currency), value);
   CheckEquals(SizeOf(Currency), value.DataSize, 'Size of Currency differs');
+  fco:=456;
   TValue.Make(@fco, TypeInfo(Comp), value);
   CheckEquals(SizeOf(Comp), value.DataSize, 'Size of Comp differs');
   ss := '';
   TValue.Make(@ss, TypeInfo(ShortString), value);
   CheckEquals(254, value.DataSize, 'Size ofShortString differs');
+  sa:= '';
   TValue.Make(@sa, TypeInfo(AnsiString), value);
   CheckEquals(SizeOf(Pointer), value.DataSize, 'Size of AnsiString differs');
+  sw := '';
   TValue.Make(@sw, TypeInfo(WideString), value);
   CheckEquals(SizeOf(Pointer), value.DataSize, 'Size of WideString differs');
+  su:='';
   TValue.Make(@su, TypeInfo(UnicodeString), value);
   CheckEquals(SizeOf(Pointer), value.DataSize, 'Size of UnicodeString differs');
   o := TTestValueClass.Create;
@@ -1393,6 +1417,7 @@ begin
   c := TObject;
   TValue.Make(@c, TypeInfo(TClass), value);
   CheckEquals(SizeOf(Pointer), value.DataSize, 'Size of TClass differs');
+  i := Nil;
   TValue.Make(@i, TypeInfo(IInterface), value);
   CheckEquals(SizeOf(Pointer), value.DataSize, 'Size of IInterface differs');
   TValue.Make(@t, TypeInfo(TTestRecord), value);
@@ -1407,8 +1432,10 @@ begin
   CheckEquals(SizeOf(TArrayOfLongintStatic), value.DataSize, 'Size of TArrayOfLongintStatic differs');
   TValue.Make(@ad, TypeInfo(TArrayOfLongintDyn), value);
   CheckEquals(SizeOf(TArrayOfLongintDyn), value.DataSize, 'Size of TArrayOfLongintDyn differs');
+  e:=low(TTestEnum);
   TValue.Make(@e, TypeInfo(TTestEnum), value);
   CheckEquals(SizeOf(TTestEnum), value.DataSize, 'Size of TTestEnum differs');
+  s:=[low(TTestEnum),high(TTestEnum)];
   TValue.Make(@s, TypeInfo(TTestSet), value);
   CheckEquals(SizeOf(TTestSet), value.DataSize, 'Size of TTestSet differs');
   p := Nil;
