@@ -18,7 +18,7 @@
  * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 
-  Checked with syscall.h release tags from 2.0 to 6.0 2016/06/27
+  Checked with syscall.h release tags from 2.0 to 6.1 2016/09/04
 
 }
 
@@ -64,7 +64,7 @@ Const
 (* 35 *)    syscall_nr_fchflags = 35;
 (* 36 *)    syscall_nr_sync = 36;
 (* 37 *)    syscall_nr_kill = 37; (* up to 5.8 release *)
-(* 37 *)    syscall_nr_o58_kill_58 = 37; (* from 5.9 release *)
+(* 37 *)    syscall_nr_o58_kill_58 = 37; (* from 5.9 up to 6.0 release *)
 (* 38 *)    syscall_nr_stat_55 = 38; (* from 5.5 release *)
 (* 39 *)    syscall_nr_getppid = 39;
 (* 40 *)    syscall_nr_lstat_55 = 40; (* from 5.5 release *)
