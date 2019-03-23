@@ -63,7 +63,7 @@ Const
 (* 34 *)    syscall_nr_chflags = 34;
 (* 35 *)    syscall_nr_fchflags = 35;
 (* 36 *)    syscall_nr_sync = 36;
-(* 37 *)    syscall_nr_kill = 37; (* up to 5.8 release *)
+(* 37 *)    syscall_nr_kill_20 = 37; (* up to 5.8 release *)
 (* 37 *)    syscall_nr_o58_kill_58 = 37; (* from 5.9 up to 6.0 release *)
 (* 38 *)    syscall_nr_stat_55 = 38; (* from 5.5 release *)
 (* 39 *)    syscall_nr_getppid = 39;
@@ -372,6 +372,7 @@ var
   syscall_nr_shmctl : longint = syscall_nr_shmctl_36;
   syscall_nr_shmget : longint = syscall_nr_shmget_36;
   syscall_nr_getdirentries : longint = syscall_nr_getdirentries_20;
+  syscall_nr_kill : longint = syscall_nr_kill_59;
 { The variables above need to be changed at startup }
 
 {$define FPC_HAS_SETSYSNR_INC}
