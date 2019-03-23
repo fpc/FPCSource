@@ -18,7 +18,7 @@
  * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 
-  Checked with syscall.h release tags from 2.0 to 6.3 2017/12/12
+  Checked with syscall.h release tags from 2.0 to 6.4 2018/07/30
 
 }
 
@@ -158,6 +158,7 @@ Const
 (* 112 *)    syscall_nr_sendsyslog2_59 = 112; (* 5.9 release only *)
 (* 112 *)    syscall_nr_sendsyslog_60 = 112; (* from 6.0 release *)
 (* 113 *)    syscall_nr_fktrace = 113; (* from 6.2 release *)
+(* 114 *)    syscall_nr_unveil_64 = 114; (* from 6.4 release *)
 (* 115 *)    syscall_nr_vtrace = 115; (* up to 2.7 release *)
 (* 116 *)    syscall_nr_gettimeofday_20 = 116; (* up to 5.4 release *)
 (* 117 *)    syscall_nr_getrusage_20 = 117; (* up to 5.4 release *)
