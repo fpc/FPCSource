@@ -18,7 +18,7 @@
  * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 
-  Checked with syscall.h release tags from 2.0 to 5.6 2014/10/14
+  Checked with syscall.h release tags from 2.0 to 5.7 2015/02/09
 
 }
 
@@ -131,6 +131,7 @@ Const
 (* 91 *)    syscall_nr_nanosleep_55 = 91; (* from  5.5 release *)
 (* 92 *)    syscall_nr_fcntl = 92;
 (* 93 *)    syscall_nr_select_20 = 93; (* up to 5.4 release *)
+(* 93 *)    syscall_nr_accept4_57 = 93;  (* from 5.7 release *)
 (* 94 *)    syscall_nr___thrsleep_55 = 94; (* from 5.5 release *)
 (* 95 *)    syscall_nr_fsync = 95;
 (* 96 *)    syscall_nr_setpriority = 96;
@@ -138,10 +139,13 @@ Const
 (* 98 *)    syscall_nr_connect = 98;
 (* 99 *)    syscall_nr_getdents = 99;
 (* 100 *)    syscall_nr_getpriority = 100;
+(* 101 *)    syscall_nr_pipe2_57 = 101; (* from 5.7 release *)
+(* 102 *)    syscall_nr_dup3_57 = 102; (* from 5.7 release *)
 (* 103 *)    syscall_nr_sigreturn = 103;
 (* 104 *)    syscall_nr_bind = 104;
 (* 105 *)    syscall_nr_setsockopt = 105;
 (* 106 *)    syscall_nr_listen = 106;
+(* 107 *)    syscall_nr_chflagsat_57 = 107; (* from 5.7 release *)
 (* 109 *)    syscall_nr_ppoll = 109;
 (* 110 *)    syscall_nr_pselect = 110;
 (* 111 *)    syscall_nr_sigsuspend = 111;
