@@ -18,7 +18,7 @@
  * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 
-  Checked with syscall.h release tags from 2.0 to 5.7 2015/02/09
+  Checked with syscall.h release tags from 2.0 to 5.8 2015/07/20
 
 }
 
@@ -124,6 +124,7 @@ Const
 (* 85 *)    syscall_nr_swapon = 85; (* up to 3.3 release *)
 (* 85 *)    syscall_nr_futimens_55 = 85; (* from  5.5 release *)
 (* 86 *)    syscall_nr_getitimer_20 = 86; (* up to 5.4 release *)
+(* 86 *)    syscall_nr_kbind_58 = 86; (* from 5.8 release *)
 (* 87 *)    syscall_nr_clock_gettime_55 = 87; (* from  5.5 release *)
 (* 88 *)    syscall_nr_clock_settime_55 = 88; (* from  5.5 release *)
 (* 89 *)    syscall_nr_clock_getres_55 = 89; (* from  5.5 release *)
@@ -146,6 +147,7 @@ Const
 (* 105 *)    syscall_nr_setsockopt = 105;
 (* 106 *)    syscall_nr_listen = 106;
 (* 107 *)    syscall_nr_chflagsat_57 = 107; (* from 5.7 release *)
+(* 108 *)    syscall_nr_tame_58 = 108; (* from 5.8 release *)
 (* 109 *)    syscall_nr_ppoll = 109;
 (* 110 *)    syscall_nr_pselect = 110;
 (* 111 *)    syscall_nr_sigsuspend = 111;
