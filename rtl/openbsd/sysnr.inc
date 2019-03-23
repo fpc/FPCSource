@@ -18,7 +18,7 @@
  * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 
-  Checked with syscall.h release tags from 2.0 to 6.2 2017/09/25
+  Checked with syscall.h release tags from 2.0 to 6.3 2017/12/12
 
 }
 
