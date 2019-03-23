@@ -18,7 +18,7 @@
  * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 
-  Checked with syscall.h release tags from 2.0 to 5.9 2015/11/24
+  Checked with syscall.h release tags from 2.0 to 6.0 2016/06/27
 
 }
 
@@ -78,7 +78,8 @@ Const
 (* 46 *)    syscall_nr_sigaction = 46;
 (* 47 *)    syscall_nr_getgid = 47;
 (* 48 *)    syscall_nr_sigprocmask = 48;
-(* 49 *)    syscall_nr_getlogin = 49;
+(* 49 *)    syscall_nr_getlogin = 49; (* up to release 5.9 *)
+(* 49 *)    syscall_nr_getlogin59_60 = 49; (* from release 6.0 *)
 (* 50 *)    syscall_nr_setlogin = 50;
 (* 51 *)    syscall_nr_acct = 51;
 (* 52 *)    syscall_nr_sigpending = 52;
@@ -120,7 +121,7 @@ Const
 (* 81 *)    syscall_nr_getpgrp = 81;
 (* 82 *)    syscall_nr_setpgid = 82;
 (* 83 *)    syscall_nr_setitimer_20 = 83; (* up to 5.4 release *)
-(* 83 *)    syscall_nr_sendsyslog = 83; (* from 5.6 release *)
+(* 83 *)    syscall_nr_sendsyslog = 83; (* from 5.6 up to 5.9 release *)
 (* 84 *)    syscall_nr_utimensat_55 = 84; (* from 5.5 release *)
 (* 85 *)    syscall_nr_swapon = 85; (* up to 3.3 release *)
 (* 85 *)    syscall_nr_futimens_55 = 85; (* from  5.5 release *)
@@ -153,7 +154,8 @@ Const
 (* 109 *)    syscall_nr_ppoll = 109;
 (* 110 *)    syscall_nr_pselect = 110;
 (* 111 *)    syscall_nr_sigsuspend = 111;
-(* 112 *)    syscall_nr_sendsyslog2_59 = 112; (* from 5.9 release *)
+(* 112 *)    syscall_nr_sendsyslog2_59 = 112; (* 5.9 release only *)
+(* 112 *)    syscall_nr_sendsyslog_60 = 112; (* from 6.0 release *)
 (* 115 *)    syscall_nr_vtrace = 115; (* up to 2.7 release *)
 (* 116 *)    syscall_nr_gettimeofday_20 = 116; (* up to 5.4 release *)
 (* 117 *)    syscall_nr_getrusage_20 = 117; (* up to 5.4 release *)
@@ -177,6 +179,7 @@ Const
 (* 137 *)    syscall_nr_rmdir = 137;
 (* 138 *)    syscall_nr_utimes_20 = 138; (* up to 5.4 release *)
 (* 140 *)    syscall_nr_adjtime = 140;
+(* 141 *)    syscall_nr_getlogin_r_60 = 141; (* from 6.0 release *)
 (* 147 *)    syscall_nr_setsid = 147;
 (* 148 *)    syscall_nr_quotactl = 148;
 (* 155 *)    syscall_nr_nfssvc = 155;
