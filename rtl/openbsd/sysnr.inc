@@ -18,7 +18,7 @@
  * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 
-  Checked with syscall.h release tags from 2.0 to 5.8 2015/07/20
+  Checked with syscall.h release tags from 2.0 to 5.9 2015/11/24
 
 }
 
@@ -63,7 +63,8 @@ Const
 (* 34 *)    syscall_nr_chflags = 34;
 (* 35 *)    syscall_nr_fchflags = 35;
 (* 36 *)    syscall_nr_sync = 36;
-(* 37 *)    syscall_nr_kill = 37;
+(* 37 *)    syscall_nr_kill = 37; (* up to 5.8 release *)
+(* 37 *)    syscall_nr_o58_kill_58 = 37; (* from 5.9 release *)
 (* 38 *)    syscall_nr_stat_55 = 38; (* from 5.5 release *)
 (* 39 *)    syscall_nr_getppid = 39;
 (* 40 *)    syscall_nr_lstat_55 = 40; (* from 5.5 release *)
@@ -147,17 +148,21 @@ Const
 (* 105 *)    syscall_nr_setsockopt = 105;
 (* 106 *)    syscall_nr_listen = 106;
 (* 107 *)    syscall_nr_chflagsat_57 = 107; (* from 5.7 release *)
-(* 108 *)    syscall_nr_tame_58 = 108; (* from 5.8 release *)
+(* 108 *)    syscall_nr_tame_58 = 108; (* 5.8 release only *)
+(* 108 *)    syscall_nr_pledge_59 = 108; (* from 5.9 release *)
 (* 109 *)    syscall_nr_ppoll = 109;
 (* 110 *)    syscall_nr_pselect = 110;
 (* 111 *)    syscall_nr_sigsuspend = 111;
+(* 112 *)    syscall_nr_sendsyslog2_59 = 112; (* from 5.9 release *)
 (* 115 *)    syscall_nr_vtrace = 115; (* up to 2.7 release *)
 (* 116 *)    syscall_nr_gettimeofday_20 = 116; (* up to 5.4 release *)
 (* 117 *)    syscall_nr_getrusage_20 = 117; (* up to 5.4 release *)
 (* 118 *)    syscall_nr_getsockopt = 118;
+(* 119 *)    syscall_nr_thrkill = 119; (* from 5.9 release *)
 (* 120 *)    syscall_nr_readv = 120;
 (* 121 *)    syscall_nr_writev = 121;
 (* 122 *)    syscall_nr_settimeofday_20 = 122; (* up to 5.4 release *)
+(* 122 *)    syscall_nr_kill_59 = 122; (* from 5.9 release *)
 (* 123 *)    syscall_nr_fchown = 123;
 (* 124 *)    syscall_nr_fchmod = 124;
 (* 126 *)    syscall_nr_setreuid = 126;
@@ -210,7 +215,8 @@ Const
 (* 199 *)    syscall_nr_lseek = 199;
 (* 200 *)    syscall_nr_truncate = 200;
 (* 201 *)    syscall_nr_ftruncate = 201;
-(* 202 *)    syscall_nr___sysctl = 202;
+(* 202 *)    syscall_nr___sysctl = 202; (* up to 5.8 release *)
+(* 202 *)    syscall_nr_sysctl_59 = 202; (* from 5.9 release *)
 (* 203 *)    syscall_nr_mlock = 203;
 (* 204 *)    syscall_nr_munlock = 204;
 (* 205 *)    syscall_nr_undelete = 205;
