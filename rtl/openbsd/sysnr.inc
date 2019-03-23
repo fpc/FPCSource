@@ -123,7 +123,7 @@ Const
 (* 84 *)    syscall_nr_utimensat_55 = 84; (* from 5.5 release *)
 (* 85 *)    syscall_nr_swapon = 85; (* up to 3.3 release *)
 (* 85 *)    syscall_nr_futimens_55 = 85; (* from  5.5 release *)
-(* 86 *)    syscall_nr_getitimer_20 = 86;
+(* 86 *)    syscall_nr_getitimer_20 = 86; (* up to 5.4 release *)
 (* 87 *)    syscall_nr_clock_gettime_55 = 87; (* from  5.5 release *)
 (* 88 *)    syscall_nr_clock_settime_55 = 88; (* from  5.5 release *)
 (* 89 *)    syscall_nr_clock_getres_55 = 89; (* from  5.5 release *)
@@ -145,7 +145,7 @@ Const
 (* 109 *)    syscall_nr_ppoll = 109;
 (* 110 *)    syscall_nr_pselect = 110;
 (* 111 *)    syscall_nr_sigsuspend = 111;
-(* 115 *)    syscall_nr_vtrace = 115;
+(* 115 *)    syscall_nr_vtrace = 115; (* up to 2.7 release *)
 (* 116 *)    syscall_nr_gettimeofday_20 = 116; (* up to 5.4 release *)
 (* 117 *)    syscall_nr_getrusage_20 = 117; (* up to 5.4 release *)
 (* 118 *)    syscall_nr_getsockopt = 118;
@@ -185,10 +185,10 @@ Const
 (* 181 *)    syscall_nr_setgid = 181;
 (* 182 *)    syscall_nr_setegid = 182;
 (* 183 *)    syscall_nr_seteuid = 183;
-(* 184 *)    syscall_nr_lfs_bmapv = 184;
-(* 185 *)    syscall_nr_lfs_markv = 185;
-(* 186 *)    syscall_nr_lfs_segclean = 186;
-(* 187 *)    syscall_nr_lfs_segwait = 187;
+(* 184 *)    syscall_nr_lfs_bmapv = 184; (* up to 5.1 release *)
+(* 185 *)    syscall_nr_lfs_markv = 185; (* up to 5.1 release *)
+(* 186 *)    syscall_nr_lfs_segclean = 186; (* up to 5.1 release *)
+(* 187 *)    syscall_nr_lfs_segwait = 187; (* up to 5.1 release *)
 (* 188 *)    syscall_nr_stat_20 = 188; (* up to 3.5 release *)
 (* 189 *)    syscall_nr_fstat_20 = 189; (* up to 3.5 release *)
 (* 190 *)    syscall_nr_lstat_20 = 190; (* up to 3.5 release *)
@@ -216,8 +216,8 @@ Const
 (* 220 *)    syscall_nr___semctl_20 = 220; (* up to 2.3 release *)
 (* 220 *)    syscall_nr___osemctl = 220; (* from 2.4 up to 2.9 release *)
 (* 221 *)    syscall_nr_semget = 221;
-(* 222 *)    syscall_nr_semop_20 = 222;
-(* 223 *)    syscall_nr_semconfig = 223;
+(* 222 *)    syscall_nr_semop_20 = 222; (* up to 4.9 release *)
+(* 223 *)    syscall_nr_semconfig = 223; (* up to 2.6 release *)
 (* 224 *)    syscall_nr_msgctl_20 = 224; (* up to 2.3 release *)
 (* 224 *)    syscall_nr_omsgctl = 224; (* from 2.4 up to 2.9 release *)
 (* 225 *)    syscall_nr_msgget = 225;
@@ -233,7 +233,7 @@ Const
 (* 234 *)    syscall_nr_clock_getres_20 = 234; (* up to 5.4 release *)
 (* 240 *)    syscall_nr_nanosleep_20 = 240; (* up to 5.4 release *)
 (* 250 *)    syscall_nr_minherit = 250;
-(* 251 *)    syscall_nr_rfork = 251;
+(* 251 *)    syscall_nr_rfork = 251; (* up to 5.1 release *)
 (* 252 *)    syscall_nr_poll = 252;
 (* 253 *)    syscall_nr_issetugid = 253;
 (* 254 *)    syscall_nr_lchown = 254;
@@ -303,7 +303,7 @@ Const
 (* 313 *)    syscall_nr_faccessat = 313;
 (* 314 *)    syscall_nr_fchmodat = 314;
 (* 315 *)    syscall_nr_fchownat = 315;
-(* 316 *)    syscall_nr_fstatat_50 = 316; (* from 5.0 release *)
+(* 316 *)    syscall_nr_fstatat_50 = 316; (* from 5.0 release up to 5.4 release *)
 (* 317 *)    syscall_nr_linkat = 317;
 (* 318 *)    syscall_nr_mkdirat = 318;
 (* 319 *)    syscall_nr_mkfifoat = 319;
@@ -313,8 +313,8 @@ Const
 (* 323 *)    syscall_nr_renameat = 323;
 (* 324 *)    syscall_nr_symlinkat = 324;
 (* 325 *)    syscall_nr_unlinkat = 325;
-(* 326 *)    syscall_nr_utimensat_50 = 326;
-(* 327 *)    syscall_nr_futimens_50 = 327;
+(* 326 *)    syscall_nr_utimensat_50 = 326; (* up to 5.4 release *)
+(* 327 *)    syscall_nr_futimens_50 = 327; (* up to 5.4 release *)
 (* 328 *)    syscall_nr___tfork_51 = 328; (* 5.1 release only *)
 (* 329 *)    syscall_nr___set_tcb = 329;
 (* 330 *)    syscall_nr___get_tcb = 330;
