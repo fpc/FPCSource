@@ -18,7 +18,7 @@
  * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 
-  Checked with syscall.h release tags from 2.0 to 6.1 2016/09/04
+  Checked with syscall.h release tags from 2.0 to 6.2 2017/09/25
 
 }
 
@@ -79,7 +79,7 @@ Const
 (* 47 *)    syscall_nr_getgid = 47;
 (* 48 *)    syscall_nr_sigprocmask = 48;
 (* 49 *)    syscall_nr_getlogin = 49; (* up to release 5.9 *)
-(* 49 *)    syscall_nr_getlogin59_60 = 49; (* from release 6.0 *)
+(* 49 *)    syscall_nr_getlogin59_60 = 49; (* from release 6.0 up to 6.1 *)
 (* 50 *)    syscall_nr_setlogin = 50;
 (* 51 *)    syscall_nr_acct = 51;
 (* 52 *)    syscall_nr_sigpending = 52;
@@ -122,6 +122,7 @@ Const
 (* 82 *)    syscall_nr_setpgid = 82;
 (* 83 *)    syscall_nr_setitimer_20 = 83; (* up to 5.4 release *)
 (* 83 *)    syscall_nr_sendsyslog = 83; (* from 5.6 up to 5.9 release *)
+(* 83 *)    syscall_nr_futex_62 = 83; (* from 6.2 release *)
 (* 84 *)    syscall_nr_utimensat_55 = 84; (* from 5.5 release *)
 (* 85 *)    syscall_nr_swapon = 85; (* up to 3.3 release *)
 (* 85 *)    syscall_nr_futimens_55 = 85; (* from  5.5 release *)
@@ -156,6 +157,7 @@ Const
 (* 111 *)    syscall_nr_sigsuspend = 111;
 (* 112 *)    syscall_nr_sendsyslog2_59 = 112; (* 5.9 release only *)
 (* 112 *)    syscall_nr_sendsyslog_60 = 112; (* from 6.0 release *)
+(* 113 *)    syscall_nr_fktrace = 113; (* from 6.2 release *)
 (* 115 *)    syscall_nr_vtrace = 115; (* up to 2.7 release *)
 (* 116 *)    syscall_nr_gettimeofday_20 = 116; (* up to 5.4 release *)
 (* 117 *)    syscall_nr_getrusage_20 = 117; (* up to 5.4 release *)
