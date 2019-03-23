@@ -87,6 +87,9 @@ TYPE
         st_qspare1    : cint64;            // was recursive change detect
         st_qspare2    : cint64;
 {$else dragonfly}
+{$ifdef openbsd}
+        st_mode       : mode_t;            // inode protection mode
+{$endif openbsd}
         st_dev        : dev_t;             // inode's device
 {$ifdef darwin_new_iostructs}
         st_mode       : mode_t;            // inode protection mode
@@ -99,16 +102,15 @@ TYPE
         st_ino        : ino_t;             // inode's number
 {$else not netbsd}
         st_ino        : ino_t;             // inode's number
+{$ifndef openbsd}
         st_mode       : mode_t;            // inode protection mode
+{$endif not openbsd}
 {$endif not netbsd}
         st_nlink      : nlink_t;           // number of hard links
 {$endif}
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
-{$ifdef openbsd}
-        st_padd0      : cint;
-{$endif}
         st_atime      : time_t;            // time of last access
         st_atimensec  : clong;             // nsec of last access
         st_mtime      : time_t;            // time of last data modification
@@ -154,6 +156,16 @@ TYPE
         d_unused2     : cuint32;                        // reserved
         d_name        : array[0..255] of char;          // name, null terminated
    end;
+{$elseif defined(openbsd)}
+   dirent  = record
+        d_fileno      : ino_t;
+        d_off         : off_t;
+        d_reclen      : cuint16;                        // length of this record
+        d_type        : cuint8;                         // file type, see below
+        d_namlen      : cuint8;                         // length of string in d_name
+        d_padding     : array[0..3] of cuint8;
+        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+   end;
 {$else}
    dirent  = record
         d_fileno      : cuint32;                        // file number of entry
@@ -185,6 +197,11 @@ TYPE
         dd_size   : clong;        // amount of data returned by getdirentries
         dd_buf    : pchar;        // data buffer
         dd_len    : cint;         // size of data buffer
+{$ifdef openbsd}
+        dd_curpos : off_t;
+        dd_lock   : pointer;
+        dd_rewind : clong;
+{$else not openbsd}
 {$ifdef netbsdpowerpc}
         dd_pad1   : cint;
         dd_seek   : cint64;        // magic cookie returned by getdirentries
@@ -197,6 +214,7 @@ TYPE
         __dd_lock : pthread_mutex_t; // for thread locking
         __dd_td : pointer;        // telldir position recording
 {$endif}
+{$endif not openbsd}
    end;
    TDir    = dir;
    pDir    = ^dir;

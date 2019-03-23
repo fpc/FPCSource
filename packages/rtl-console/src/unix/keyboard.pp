@@ -118,7 +118,7 @@ procedure SetRawMode(b:boolean);
 var Tio:Termios;
 
 begin
-  TCGetAttr(1,Tio);
+  TCGetAttr(0,Tio);
   if b then
    begin
      {Standard output now needs #13#10.}
@@ -132,7 +132,7 @@ begin
       {Standard output normally needs just a linefeed.}
       settextlineending(output,#10);
     end;
-  TCsetattr(1,TCSANOW,Tio);
+  TCsetattr(0,TCSANOW,Tio);
 end;
 
 {$ifdef linux}
