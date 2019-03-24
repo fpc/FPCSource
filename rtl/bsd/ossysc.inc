@@ -220,9 +220,6 @@ begin
   dispose(dirp);
 end;
 
-var
-  use_getdirentries_syscall : boolean = true;
-
 function Fpreaddir(dirp : pdir) : pdirent; [public, alias : 'FPC_SYSC_READDIR'];
 
 {Different from Linux, Readdir on BSD is based on Getdents, due to the
@@ -234,20 +231,8 @@ with blockmode have this higher?}
 function readbuffer:longint;
 
 var retval :longint;
-{$ifdef FPC_USE_GETDIRENTRIES_SYSCALL}
-    basepp : pointer;
-    basep : clong;
-{$endif FPC_USE_GETDIRENTRIES_SYSCALL}
 begin
-{$ifdef FPC_USE_GETDIRENTRIES_SYSCALL}
-   basepp:=@basep;
- if use_getdirentries_syscall then
-   Retval:=do_syscall(syscall_nr_getdirentries,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)},TSysParam(basepp))
- else
  Retval:=do_syscall(syscall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
-{$else not FPC_USE_GETDIRENTRIES_SYSCALL}
- Retval:=do_syscall(syscall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
-{$endif not FPC_USE_GETDIRENTRIES_SYSCALL}
    dirp^.dd_rewind:=TSysParam(dirp^.dd_buf);
    if retval=0 then
     begin

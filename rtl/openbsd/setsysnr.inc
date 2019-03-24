@@ -9,8 +9,6 @@
 {$endif FPC_COMPILING_SYSCALL_UNIT}
 
 {$ifndef FPC_IS_SYSTEM}
-var
-  use_getdirentries_syscall : boolean = true;
 
 function geterrno:longint; external name 'FPC_SYS_GETERRNO';
 procedure seterrno(err:longint); external name 'FPC_SYS_SETERRNO';
@@ -68,7 +66,6 @@ Begin
     begin
       { FIXME: what should we do here? }
       syscall_nr_getdirentries := -1;
-      use_getdirentries_syscall:=false;
     end;
 
 end;

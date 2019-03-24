@@ -259,5 +259,4 @@ var
 { The variables above need to be changed at startup }
 
 {$define FPC_HAS_SETSYSNR_INC}
-{$define FPC_USE_GETDIRENTRIES_SYSCALL}
 
