@@ -73,7 +73,8 @@ Type
                          rpOutputFormat,
                          rpCustomViewResourceName,
                          rpCustomViewSQLParam,
-                         rpXMLDocumentRoot
+                         rpXMLDocumentRoot,
+                         rpConnectionResourceName
                          );
   TRestStringProperties = Set of TRestStringProperty;
 
@@ -131,6 +132,7 @@ Type
     Property CustomViewResourceName : UTF8string Index ord(rpCustomViewResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property CustomViewSQLParam : UTF8string Index ord(rpCustomViewSQLParam) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property XMLDocumentRoot : UTF8string Index ord(rpXMLDocumentRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ConnectionResourceName : UTF8string Index ord(rpConnectionResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
   end;
 
   TRestStatus = (rsError,                   // Internal logic/unexpected error (500)
@@ -430,7 +432,8 @@ Const
     'fmt',             { rpOutputFormat }
     'customview',      { rpCustomViewResourceName }
     'sql',             { rpCustomViewSQLParam }
-    'datapacket'       { rpXMLDocumentRoot}
+    'datapacket',      { rpXMLDocumentRoot}
+    '_connection'      { rpConnectionResourceName }
   );
   DefaultStatuses : Array[TRestStatus] of Word = (
     500, { rsError }

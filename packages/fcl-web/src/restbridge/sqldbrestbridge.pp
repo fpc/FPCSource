@@ -22,7 +22,7 @@ uses
   Classes, SysUtils, DB, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth;
 
 Type
-  TRestDispatcherOption = (rdoConnectionInURL,rdoExposeMetadata,rdoCustomView,rdoHandleCORS,rdoAccessCheckNeedsDB);
+  TRestDispatcherOption = (rdoConnectionInURL,rdoExposeMetadata,rdoCustomView,rdoHandleCORS,rdoAccessCheckNeedsDB,rdoConnectionResource);
   TRestDispatcherOptions = set of TRestDispatcherOption;
 
 Const
@@ -45,6 +45,7 @@ Type
     FPassword: UTF8String;
     FPort: Word;
     FRole: UTF8String;
+    FSchemaName: UTF8String;
     FUserName: UTF8String;
     FNotifier : TComponent;
     function GetName: UTF8String;
@@ -52,6 +53,8 @@ Type
     procedure SetParams(AValue: TStrings);
   Protected
     Function GetDisplayName: string; override;
+    // For use in the REST Connection resource
+    Property SchemaName : UTF8String Read FSchemaName Write FSchemaName;
   Public
     constructor Create(ACollection: TCollection); override;
     Destructor Destroy; override;
@@ -92,9 +95,9 @@ Type
     procedure SetConn(aIndex : integer; AValue: TSQLDBRestConnection);
   Public
     // Index of connection by name (case insensitive)
-    Function IndexOfConnection(const aName : string) : Integer;
+    Function IndexOfConnection(const aName : UTF8string) : Integer;
     // Find connection by name (case insensitive), nil if none found
-    Function FindConnection(const aName : string) :  TSQLDBRestConnection;
+    Function FindConnection(const aName : UTF8string) :  TSQLDBRestConnection;
     // Add new instance, setting basic properties. Return new instance
     Function AddConnection(Const AType,aHostName,aDatabaseName,aUserName,aPassword : UTF8String) : TSQLDBRestConnection;
     // Save connection definitions to JSON file.
@@ -142,6 +145,7 @@ Type
     procedure SetSchema(aIndex : Integer; AValue: TSQLDBRestSchemaRef);
   Public
     Function AddSchema (aSchema : TSQLDBRestSchema) : TSQLDBRestSchemaRef;
+    Function IndexOfSchema(aSchemaName : String) : Integer;
     Property Schemas[aIndex :Integer] : TSQLDBRestSchemaRef Read GetSchema Write SetSchema;default;
   end;
 
@@ -161,6 +165,7 @@ Type
     Class Var FIOClass : TRestIOClass;
     Class Var FDBHandlerClass : TSQLDBRestDBHandlerClass;
   private
+    FAdminUserIDs: TStrings;
     FCORSAllowCredentials: Boolean;
     FCORSAllowedOrigins: String;
     FCORSMaxAge: Integer;
@@ -169,6 +174,7 @@ Type
     FCustomViewResource : TSQLDBRestResource;
     FMetadataResource : TSQLDBRestResource;
     FMetadataDetailResource : TSQLDBRestResource;
+    FConnectionResource : TSQLDBRestResource;
     FActive: Boolean;
     FAfterDelete: TRestOperationEvent;
     FAfterGet: TRestOperationEvent;
@@ -195,16 +201,23 @@ Type
     FSchemas: TSQLDBRestSchemaList;
     FListRoute: THTTPRoute;
     FItemRoute: THTTPRoute;
+    FConnectionsRoute: THTTPRoute;
+    FConnectionItemRoute: THTTPRoute;
+    FMetadataRoute: THTTPRoute;
+    FMetadataItemRoute: THTTPRoute;
     FStatus: TRestStatusConfig;
     FStrings: TRestStringsConfig;
     procedure SetActive(AValue: Boolean);
+    procedure SetAdminUserIDS(AValue: TStrings);
     procedure SetAuthenticator(AValue: TRestAuthenticator);
     procedure SetConnections(AValue: TSQLDBRestConnectionList);
+    procedure SetDispatchOptions(AValue: TRestDispatcherOptions);
     procedure SetSchemas(AValue: TSQLDBRestSchemaList);
     procedure SetStatus(AValue: TRestStatusConfig);
     procedure SetStrings(AValue: TRestStringsConfig);
   Protected
     // Auxiliary methods.
+    Procedure Loaded; override;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function FindConnection(IO: TRestIO): TSQLDBRestConnection;
     // Factory methods. Override these to customize various helper classes.
@@ -222,6 +235,13 @@ Type
     function GetConnectionName(IO: TRestIO): UTF8String;
     function GetSQLConnection(aConnection: TSQLDBRestConnection; Out aTransaction : TSQLTransaction): TSQLConnection; virtual;
     procedure DoneSQLConnection(aConnection: TSQLDBRestConnection; AConn: TSQLConnection; aTransaction : TSQLTransaction); virtual;
+    // Connections dataset API
+    procedure ConnectionsToDataset(D: TDataset); virtual;
+    procedure DoConnectionDelete(DataSet: TDataSet); virtual;
+    procedure DoConnectionPost(DataSet: TDataSet);virtual;
+    procedure DatasetToConnection(D: TDataset; C: TSQLDBRestConnection); virtual;
+    procedure ConnectionToDataset(C: TSQLDBRestConnection; D: TDataset); virtual;
+    procedure DoConnectionResourceAllowed(aSender: TObject; aContext: TBaseRestContext; var allowResource: Boolean);
     // Error handling
     procedure CreateErrorContent(IO: TRestIO; aCode: Integer; AExtraMessage: UTF8String); virtual;
     procedure HandleException(E: Exception; IO: TRestIO); virtual;
@@ -245,8 +265,10 @@ Type
     // Special resources for Metadata handling
     function CreateMetadataDataset(IO: TRestIO; AOwner: TComponent): TDataset; virtual;
     function CreateMetadataDetailDataset(IO: TRestIO; Const aResourceName : String; AOwner: TComponent): TDataset; virtual;
+    function CreateConnectionDataset(IO: TRestIO; AOwner: TComponent): TDataset; virtual;
     function CreateMetadataDetailResource: TSQLDBRestResource;  virtual;
     function CreateMetadataResource: TSQLDBRestResource; virtual;
+    Function CreateConnectionResource : TSQLDBRestResource; virtual;
     // Custom view handling
     function CreateCustomViewResource: TSQLDBRestResource; virtual;
     function CreateCustomViewDataset(IO: TRestIO; const aSQL: String; AOwner: TComponent): TDataset;
@@ -266,6 +288,8 @@ Type
     Destructor Destroy; override;
     procedure RegisterRoutes;
     procedure UnRegisterRoutes;
+    procedure HandleMetadataRequest(aRequest : TRequest; aResponse : TResponse);
+    procedure HandleConnRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleRequest(aRequest : TRequest; aResponse : TResponse);
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : Array of String; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
@@ -281,6 +305,8 @@ Type
     // Base URL
     property BasePath : UTF8String Read FBaseURL Write FBaseURL;
     // Default connection to use if none is detected from request/schema
+    // This connection will also be used to authenticate the user for connection API,
+    // so it must be set if you use SQL to authenticate the user.
     Property DefaultConnection : UTF8String Read FDefaultConnection Write FDefaultConnection;
     // Input/Output strings configuration
     Property Strings : TRestStringsConfig Read FStrings Write SetStrings;
@@ -293,7 +319,7 @@ Type
     // Set this to allow only this output format.
     Property OutputFormat : String Read FOutputFormat Write FOutputFormat;
     // Dispatcher options
-    Property DispatchOptions : TRestDispatcherOptions Read FDispatchOptions Write FDispatchOptions default DefaultDispatcherOptions;
+    Property DispatchOptions : TRestDispatcherOptions Read FDispatchOptions Write SetDispatchOptions default DefaultDispatcherOptions;
     // Authenticator for requests
     Property Authenticator : TRestAuthenticator Read FAuthenticator Write SetAuthenticator;
     // If >0, Enforce a limit on output results.
@@ -304,6 +330,8 @@ Type
     Property CORSMaxAge : Integer Read FCORSMaxAge Write FCORSMaxAge;
     // Access-Control-Allow-Credentials header value. Set to zero not to send the header
     Property CORSAllowCredentials : Boolean Read FCORSAllowCredentials Write FCORSAllowCredentials;
+    // UserIDs of the user(s) that are allowed to see and modify the connection resource.
+    Property AdminUserIDs : TStrings Read FAdminUserIDs Write SetAdminUserIDS;
     // Called when Basic authentication is sufficient.
     Property OnBasicAuthentication : TBasicAuthenticationEvent Read FOnBasicAuthentication Write FOnBasicAuthentication;
     // Allow a particular resource or not.
@@ -406,6 +434,13 @@ begin
   Result.Enabled:=True;
 end;
 
+function TSQLDBRestSchemaList.IndexOfSchema(aSchemaName: String): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and Not (Assigned(GetSchema(Result).Schema) and SameText(GetSchema(Result).Schema.Name,aSchemaName)) do
+    Dec(Result);
+end;
+
 { TSQLDBRestDispatcher }
 
 procedure TSQLDBRestDispatcher.SetConnections(AValue: TSQLDBRestConnectionList);
@@ -414,15 +449,39 @@ begin
   FConnections.Assign(AValue);
 end;
 
+procedure TSQLDBRestDispatcher.SetDispatchOptions(AValue: TRestDispatcherOptions);
+
+begin
+  if (rdoConnectionResource in aValue) then
+    Include(aValue,rdoConnectionInURL);
+  if FDispatchOptions=AValue then Exit;
+  FDispatchOptions:=AValue;
+end;
+
+procedure TSQLDBRestDispatcher.DoConnectionResourceAllowed(aSender: TObject;
+  aContext: TBaseRestContext; var allowResource: Boolean);
+begin
+  AllowResource:=(AdminUserIDs.Count=0) or  (AdminUserIDs.IndexOf(aContext.UserID)<>-1);
+end;
+
 procedure TSQLDBRestDispatcher.SetActive(AValue: Boolean);
 begin
-  if FActive=AValue then Exit;
-  if AValue then
-    DoRegisterRoutes
-  else
-    UnRegisterRoutes;
+  if FActive=AValue then
+    Exit;
+  if Not (csLoading in ComponentState) then
+    begin
+    if AValue then
+      DoRegisterRoutes
+    else
+      UnRegisterRoutes;
+    end;
   FActive:=AValue;
+end;
 
+procedure TSQLDBRestDispatcher.SetAdminUserIDS(AValue: TStrings);
+begin
+  if FAdminUserIDs=AValue then Exit;
+  FAdminUserIDs.Assign(AValue);
 end;
 
 procedure TSQLDBRestDispatcher.SetAuthenticator(AValue: TRestAuthenticator);
@@ -453,18 +512,51 @@ begin
   FStrings.Assign(AValue);
 end;
 
+procedure TSQLDBRestDispatcher.Loaded;
+begin
+  inherited Loaded;
+  if FActive then
+    RegisterRoutes;
+end;
+
+procedure TSQLDBRestDispatcher.HandleConnRequest(aRequest : TRequest; aResponse : TResponse);
+
+begin
+  aRequest.RouteParams['resource']:=Strings.ConnectionResourceName;
+  HandleRequest(aRequest,aResponse);
+end;
+
+procedure TSQLDBRestDispatcher.HandleMetadataRequest(aRequest: TRequest;
+  aResponse: TResponse);
+begin
+  aRequest.RouteParams['resource']:=Strings.MetadataResourceName;
+  HandleRequest(aRequest,aResponse);
+end;
+
 procedure TSQLDBRestDispatcher.DoRegisterRoutes;
 
 Var
-  Res : String;
+  Res,C : UTF8String;
 
 begin
   Res:=IncludeHTTPPathDelimiter(BasePath);
-  if rdoConnectionInURL in DispatchOptions then
+  if (rdoConnectionResource in DispatchOptions) then
+    begin
+    C:=Strings.GetRestString(rpConnectionResourceName);
+    FConnectionsRoute:=HTTPRouter.RegisterRoute(res+C,@HandleConnRequest);
+    FConnectionItemRoute:=HTTPRouter.RegisterRoute(res+C+'/:id',@HandleConnRequest);
+    end;
+  if (rdoConnectionInURL in DispatchOptions) then
+    begin
+    C:=Strings.GetRestString(rpMetadataResourceName);
+    FMetadataRoute:=HTTPRouter.RegisterRoute(res+C,@HandleMetaDataRequest);
+    FMetadataItemRoute:=HTTPRouter.RegisterRoute(res+C+'/:id',@HandleMetaDataRequest);
     Res:=Res+':connection/';
+    end;
   Res:=Res+':resource';
   FListRoute:=HTTPRouter.RegisterRoute(res,@HandleRequest);
   FItemRoute:=HTTPRouter.RegisterRoute(Res+'/:id',@HandleRequest);
+
 end;
 
 function TSQLDBRestDispatcher.GetInputFormat(IO : TRestIO) : String;
@@ -633,14 +725,17 @@ begin
   FStatus:=CreateRestStatusConfig;
   FCORSMaxAge:=SecsPerDay;
   FCORSAllowCredentials:=True;
+  FAdminUserIDs:=TStringList.Create;
 end;
 
 destructor TSQLDBRestDispatcher.Destroy;
 begin
   Authenticator:=Nil;
+  FreeAndNil(FAdminUserIDs);
   FreeAndNil(FCustomViewResource);
   FreeAndNil(FMetadataResource);
   FreeAndNil(FMetadataDetailResource);
+  FreeAndNil(FConnectionResource);
   FreeAndNil(FSchemas);
   FreeAndNil(FConnections);
   FreeAndNil(FStrings);
@@ -692,13 +787,13 @@ Var
 
 begin
   Result:=TSQLDBRestResource.Create(Nil);
-  Result.ResourceName:='metaData';
+  Result.ResourceName:=Strings.GetRestString(rpMetadataResourceName);
   if rdoHandleCORS in DispatchOptions then
     Result.AllowedOperations:=[roGet,roOptions,roHead]
   else
     Result.AllowedOperations:=[roGet,roHead];
-  Result.Fields.AddField('name',rftString,[foRequired]);
-  Result.Fields.AddField('schemaName',rftString,[foRequired]);
+  Result.Fields.AddField('name',rftString,[foRequired]).MaxLen:=255;
+  Result.Fields.AddField('schemaName',rftString,[foRequired]).MaxLen:=255;
   for O in TRestOperation do
     if O<>roUnknown then
       begin
@@ -706,6 +801,34 @@ begin
       delete(S,1,2);
       Result.Fields.AddField(S,rftBoolean,[foRequired]);
       end;
+end;
+
+function TSQLDBRestDispatcher.CreateConnectionResource: TSQLDBRestResource;
+Var
+  O : TRestOperation;
+  S : String;
+  Def : TRestFieldOptions;
+
+begin
+  Def:=[foInInsert,foInUpdate,foFilter];
+  Result:=TSQLDBRestResource.Create(Nil);
+  Result.ResourceName:=Strings.GetRestString(rpConnectionResourceName);
+  Result.AllowedOperations:=[roGet,roPut,roPost,roDelete];
+  if rdoHandleCORS in DispatchOptions then
+    Result.AllowedOperations:=Result.AllowedOperations+[roOptions,roHead];
+  Result.Fields.AddField('name',rftString,Def+[foInKey,foRequired]);
+  Result.Fields.AddField('dbType',rftString,Def+[foRequired]);
+  Result.Fields.AddField('dbName',rftString,Def+[foRequired]);
+  Result.Fields.AddField('dbHostName',rftString,Def);
+  Result.Fields.AddField('dbUserName',rftString,Def);
+  Result.Fields.AddField('dbPassword',rftString,Def);
+  Result.Fields.AddField('dbCharSet',rftString,Def);
+  Result.Fields.AddField('dbRole',rftString,Def);
+  Result.Fields.AddField('dbPort',rftInteger,Def);
+  Result.Fields.AddField('enabled',rftBoolean,Def);
+  Result.Fields.AddField('expose',rftBoolean,Def);
+  Result.Fields.AddField('exposeSchemaName',rftString,Def);
+  Result.OnResourceAllowed:=@DoConnectionResourceAllowed;
 end;
 
 function TSQLDBRestDispatcher.CreateMetadataDetailResource: TSQLDBRestResource;
@@ -721,10 +844,10 @@ begin
     Result.AllowedOperations:=[roGet,roOptions,roHead]
   else
     Result.AllowedOperations:=[roGet,roHead];
-  Result.Fields.AddField('name',rftString,[]);
-  Result.Fields.AddField('type',rftString,[]);
+  Result.Fields.AddField('name',rftString,[]).MaxLen:=255;
+  Result.Fields.AddField('type',rftString,[]).MaxLen:=20;
   Result.Fields.AddField('maxlen',rftInteger,[]);
-  Result.Fields.AddField('format',rftString,[]);
+  Result.Fields.AddField('format',rftString,[]).MaxLen:=50;
   for O in TRestFieldOption do
     begin
     Str(O,S);
@@ -741,11 +864,19 @@ function TSQLDBRestDispatcher.FindSpecialResource(IO : TRestIO; aResource: UTF8S
     Result:=(rdoCustomView in DispatchOptions)
             and SameText(aResource,Strings.GetRestString(rpCustomViewResourceName));
   end;
+
   Function IsMetadata : Boolean;inline;
 
   begin
     Result:=(rdoExposeMetadata in DispatchOptions)
             and SameText(aResource,Strings.GetRestString(rpMetaDataResourceName));
+  end;
+
+  Function IsConnection : Boolean;inline;
+
+  begin
+    Result:=(rdoConnectionResource in DispatchOptions)
+            and SameText(aResource,Strings.GetRestString(rpConnectionResourceName));
   end;
 
 Var
@@ -758,6 +889,12 @@ begin
     if FCustomViewResource=Nil then
       FCustomViewResource:=CreateCustomViewResource;
     Result:=FCustomViewResource;
+    end
+  else if IsConnection then
+    begin
+    if FConnectionResource=Nil then
+      FConnectionResource:=CreateConnectionResource;
+    Result:=FConnectionResource;
     end
   else If isMetadata then
     if (IO.GetVariable('ID',N,[vsRoute,vsQuery])=vsNone) then
@@ -775,7 +912,6 @@ begin
         Result:=FMetadataDetailResource;
         end;
       end
-
 end;
 
 function TSQLDBRestDispatcher.FindRestResource(aResource: UTF8String): TSQLDBRestResource;
@@ -872,6 +1008,10 @@ function TSQLDBRestDispatcher.GetSQLConnection(
   ): TSQLConnection;
 
 begin
+  Result:=Nil;
+  aTransaction:=Nil;
+  if aConnection=Nil then
+    exit;
   Result:=aConnection.SingleConnection;
   if (Result=Nil) then
     begin
@@ -973,6 +1113,7 @@ begin
   if not Result then exit;
   Result:=(aResource=FMetadataResource) or
           (aResource=FMetadataDetailResource) or
+          (aResource=FConnectionResource) or
           (aResource=FCustomViewResource);
 end;
 
@@ -1124,6 +1265,166 @@ begin
   end;
 end;
 
+procedure TSQLDBRestDispatcher.DatasetToConnection(D: TDataset; C : TSQLDBRestConnection);
+
+begin
+  C.Name:=UTF8Encode(D.FieldByName('name').AsWideString);
+  C.ConnectionType:=D.FieldByName('dbType').AsString;
+  C.DatabaseName:=UTF8Encode(D.FieldByName('dbName').AsWideString);
+  C.HostName:=D.FieldByName('dbHostName').AsString;
+  C.UserName:=UTF8Encode(D.FieldByName('dbUserName').AsWideString);
+  C.Password:=UTF8Encode(D.FieldByName('dbPassword').AsWideString);
+  C.CharSet:=D.FieldByName('dbCharSet').AsString;
+  C.Role:=D.FieldByName('dbRole').AsString;
+  C.Port:=D.FieldByName('dbPort').AsInteger;
+  C.Enabled:=D.FieldByName('enabled').AsBoolean;
+  if D.FieldByName('expose').AsBoolean then
+    C.SchemaName:=D.FieldByName('exposeSchemaName').AsString;
+end;
+
+procedure TSQLDBRestDispatcher.ConnectionToDataset(C : TSQLDBRestConnection;D: TDataset);
+
+begin
+  D.FieldByName('key').AsWideString:=UTF8Decode(C.Name);
+  D.FieldByName('name').AsWideString:=UTF8Decode(C.Name);
+  D.FieldByName('dbType').AsString:=C.ConnectionType;
+  D.FieldByName('dbName').AsWideString:=UTF8Decode(C.DatabaseName);
+  D.FieldByName('dbHostName').AsString:=C.HostName;
+  D.FieldByName('dbUserName').AsWideString:=UTF8Decode(C.UserName);
+  D.FieldByName('dbPassword').AsWideString:=UTF8Decode(C.Password);
+  D.FieldByName('dbCharSet').AsString:=C.CharSet;
+  D.FieldByName('dbRole').AsString:=C.Role;
+  D.FieldByName('dbPort').AsInteger:=C.Port;
+  D.FieldByName('enabled').AsBoolean:=C.Enabled;
+  D.FieldByName('expose').AsBoolean:=(C.SchemaName<>'');
+  D.FieldByName('exposeSchemaName').AsString:=C.SchemaName;
+end;
+
+procedure TSQLDBRestDispatcher.ConnectionsToDataset(D: TDataset);
+
+Var
+  C : TSQLDBRestConnection;
+  I : Integer;
+
+begin
+  For I:=0 to Connections.Count-1 do
+    begin
+    C:=Connections[i];
+    D.Append;
+    ConnectionToDataset(C,D);
+    D.Post;
+    end;
+end;
+
+procedure TSQLDBRestDispatcher.DoConnectionDelete(DataSet: TDataSet);
+
+Var
+  I,J : Integer;
+  C : TSQLDBRestConnection;
+
+
+begin
+  I:=Connections.IndexOfConnection(UTF8Encode(Dataset.FieldByName('name').AsWideString));
+  if I<>-1 then
+    begin
+    C:=Connections[i];
+    if C.SingleConnection<>Nil then
+      DoneSQLConnection(C,C.SingleConnection,Nil);
+    if C.SchemaName<>'' then
+      begin
+      J:=Schemas.IndexOfSchema(C.SchemaName);
+      if J<>-1 then
+        begin
+        Schemas[J].Schema.Free;
+        Schemas[J].Schema:=Nil;
+        end;
+      Schemas.Delete(J);
+      end;
+    Connections.Delete(I);
+    end
+  else
+    Raise ESQLDBRest.Create(404,'NOT FOUND');
+end;
+
+procedure TSQLDBRestDispatcher.DoConnectionPost(DataSet: TDataSet);
+
+Var
+  isNew : Boolean;
+  C : TSQLDBRestConnection;
+  N : UTF8String;
+  UN : UnicodeString;
+  S : TSQLDBRestSchema;
+  Conn : TSQLConnection;
+
+begin
+  IsNew:=Dataset.State=dsInsert;
+  if IsNew then
+    C:=Connections.Add as TSQLDBRestConnection
+  else
+    begin
+    UN:=Dataset.FieldByName('key').AsString;
+//    C:=Connections[Dataset.RecNo-1];
+    C:=Connections.FindConnection(Utf8Encode(UN));
+    if (C=Nil) then
+      Raise ESQLDBRest.Create(404,'NOT FOUND');
+    end;
+  if Assigned(C.SingleConnection) then
+    DoneSQLConnection(C,C.SingleConnection,Nil);
+  DatasetToConnection(Dataset,C);
+  if (Dataset.FieldByName('expose').AsBoolean) and isNew then
+    begin
+    N:=C.SchemaName;
+    if N='' then
+      N:=C.Name+'schema';
+    if (Schemas.IndexOfSchema(N)<>-1) then
+      Raise ESQLDBRest.Create(400,'DUPLICATE SCHEMA');
+    try
+      S:=ExposeConnection(C,Nil);
+    except
+      if IsNew then
+        C.Free;
+      Raise;
+    end;
+    S.Name:=N;
+    end;
+end;
+
+function TSQLDBRestDispatcher.CreateConnectionDataset(IO: TRestIO; AOwner: TComponent): TDataset;
+Var
+  BD :  TRestBufDataset;
+
+begin
+  if IO=Nil then exit;
+  BD:=TRestBufDataset.Create(aOwner);
+  try
+    Result:=BD;
+    // Key field is not exposed
+    Result.FieldDefs.add('key',ftWidestring,255);
+    Result.FieldDefs.add('name',ftWidestring,255);
+    Result.FieldDefs.add('dbType',ftString,20);
+    Result.FieldDefs.add('dbName',ftWideString,255);
+    Result.FieldDefs.add('dbHostName',ftString,255);
+    Result.FieldDefs.add('dbUserName',ftWideString,255);
+    Result.FieldDefs.add('dbPassword',ftWideString,255);
+    Result.FieldDefs.add('dbCharSet',ftString,50);
+    Result.FieldDefs.add('dbRole',ftString,255);
+    Result.FieldDefs.add('dbPort',ftInteger,0);
+    Result.FieldDefs.add('enabled',ftBoolean,0);
+    Result.FieldDefs.add('expose',ftBoolean,0);
+    Result.FieldDefs.add('exposeSchemaName',ftWideString,255);
+    BD.CreateDataset;
+    ConnectionsToDataset(BD);
+    BD.IndexDefs.Add('uName','name',[ixUnique]);
+    BD.IndexName:='uName';
+    BD.First;
+    BD.BeforePost:=@DoConnectionPost;
+    BD.BeforeDelete:=@DoConnectionDelete;
+  except
+    BD.Free;
+    Raise;
+  end;
+end;
+
 function TSQLDBRestDispatcher.CreateCustomViewDataset(IO: TRestIO;
   const aSQL: String; AOwner: TComponent): TDataset;
 
@@ -1159,6 +1460,8 @@ begin
   Result:=Nil;
   if (IO.Resource=FMetadataResource) then
     Result:=CreateMetadataDataset(IO,AOwner)
+  else if (IO.Resource=FConnectionResource) then
+    Result:=CreateConnectionDataset(IO,AOwner)
   else if (IO.Resource=FMetadataDetailResource) then
     begin
     if IO.GetVariable('ID',RN,[vsRoute,vsQuery])=vsNone then
@@ -1220,6 +1523,7 @@ Var
   H : TSQLDBRestDBHandler;
   l,o : Int64;
 
+
 begin
   H:=Nil;
   Conn:=GetSQLConnection(aConnection,Tr);
@@ -1243,7 +1547,8 @@ begin
         end;
       H.ExecuteOperation;
       DoHandleEvent(False,IO);
-      tr.Commit;
+      if Assigned(TR) then
+        TR.Commit;
       SetDefaultResponseCode(IO);
     except
       TR.RollBack;
@@ -1365,7 +1670,7 @@ begin
         begin
         IO.SetResource(Resource);
         Connection:=FindConnection(IO);
-        if Connection=Nil then
+        if (Connection=Nil) and not IsSpecialResource(Resource) then
           begin
           if (rdoConnectionInURL in DispatchOptions) then
             CreateErrorContent(IO,FStatus.GetStatusCode(rsNoConnectionSpecified),Format(SErrNoconnection,[GetConnectionName(IO)]))
@@ -1396,7 +1701,12 @@ procedure TSQLDBRestDispatcher.UnRegisterRoutes;
 begin
   Un(FListRoute);
   Un(FItemRoute);
+  Un(FConnectionItemRoute);
+  Un(FConnectionsRoute);
+  Un(FMetadataItemRoute);
+  Un(FMetadataRoute);
 end;
+
 
 procedure TSQLDBRestDispatcher.RegisterRoutes;
 begin
@@ -1651,7 +1961,7 @@ begin
   Items[aIndex]:=aValue;
 end;
 
-function TSQLDBRestConnectionList.IndexOfConnection(const aName: string
+function TSQLDBRestConnectionList.IndexOfConnection(const aName: UTF8string
   ): Integer;
 begin
   Result:=Count-1;
@@ -1659,7 +1969,7 @@ begin
     Dec(Result);
 end;
 
-function TSQLDBRestConnectionList.FindConnection(const aName: string): TSQLDBRestConnection;
+function TSQLDBRestConnectionList.FindConnection(const aName: UTF8string): TSQLDBRestConnection;
 Var
   Idx : Integer;
 
@@ -1849,6 +2159,8 @@ begin
     Role:=C.Role;
     DatabaseName:=C.DatabaseName;
     ConnectionType:=C.ConnectionType;
+    Port:=C.Port;
+    SchemaName:=C.SchemaName;
     Params.Assign(C.Params);
     end
   else

@@ -47,11 +47,14 @@ Type
     FResource : TSQLDBRestResource;
     FOwnsResource : Boolean;
     procedure SetExternalDataset(AValue: TDataset);
-    function StreamRecord(O: TRestOutputStreamer; D: TDataset; FieldList: TRestFieldPairArray): Boolean;
   Protected
+    function StreamRecord(O: TRestOutputStreamer; D: TDataset; FieldList: TRestFieldPairArray): Boolean; virtual;
+    function FindExistingRecord(D: TDataset): Boolean;
     procedure CreateResourceFromDataset(D: TDataset); virtual;
     procedure DoNotFound; virtual;
     procedure SetPostParams(aParams: TParams; Old : TFields = Nil);virtual;
+    procedure SetPostFields(aFields: TFields);virtual;
+    procedure SetFieldFromData(DataField: TField; ResField: TSQLDBRestField; D: TJSONData); virtual;
     procedure InsertNewRecord; virtual;
     procedure UpdateExistingRecord(OldData: TDataset); virtual;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -81,7 +84,7 @@ Type
     Function GetLimitOffset(out aLimit, aOffset: Int64) : Boolean; virtual;
     Procedure Init(aIO: TRestIO; aStrings : TRestStringsConfig;AQueryClass : TSQLQueryClass); virtual;
     Procedure ExecuteOperation;
-    Function StreamDataset(O: TRestOutputStreamer; D: TDataset; FieldList: TRestFieldPairArray) : Int64;
+    Function StreamDataset(O: TRestOutputStreamer; D: TDataset; FieldList: TRestFieldPairArray; CurrentOnly : Boolean = False) : Int64;
     procedure SetParamFromData(P: TParam; F: TSQLDBRestField; D: TJSONData); virtual;
     function GetDataForParam(P: TParam; F: TSQLDBRestField; Sources : TVariableSources = AllVariableSources): TJSONData; virtual;
     Function GetString(aString : TRestStringProperty) : UTF8String;
@@ -98,7 +101,7 @@ Type
 
 implementation
 
-uses strutils, dateutils, base64, sqldbrestconst;
+uses strutils, variants, dateutils, base64, sqldbrestconst;
 
 
 Const
@@ -170,7 +173,8 @@ begin
     end;
 end;
 
-function TSQLDBRestDBHandler.GetWhere(Out FilteredFields : TRestFilterPairArray): UTF8String;
+function TSQLDBRestDBHandler.GetWhere(out FilteredFields: TRestFilterPairArray
+  ): UTF8String;
 
 Const
   MaxFilterCount = 1+ Ord(High(TRestFieldFilter)) - Ord(Low(TRestFieldFilter));
@@ -350,7 +354,8 @@ begin
   end;
 end;
 
-Function TSQLDBRestDBHandler.GetDataForParam(P : TParam; F : TSQLDBRestField; Sources : TVariableSources = AllVariableSources) : TJSONData;
+function TSQLDBRestDBHandler.GetDataForParam(P: TParam; F: TSQLDBRestField;
+  Sources: TVariableSources): TJSONData;
 
 Var
   vs : TVariableSource;
@@ -380,7 +385,8 @@ begin
     end;
 end;
 
-Procedure TSQLDBRestDBHandler.SetParamFromData(P : TParam; F : TSQLDBRestField; D : TJSONData);
+procedure TSQLDBRestDBHandler.SetParamFromData(P: TParam; F: TSQLDBRestField;
+  D: TJSONData);
 
 begin
   if not Assigned(D) then
@@ -408,7 +414,8 @@ begin
     P.AsString:=D.AsString;
 end;
 
-Function TSQLDBRestDBHandler.FindFieldForParam(aOperation : TRestOperation; P : TParam) : TSQLDBRestField;
+function TSQLDBRestDBHandler.FindFieldForParam(aOperation: TRestOperation;
+  P: TParam): TSQLDBRestField;
 
 Var
   N : UTF8String;
@@ -490,13 +497,14 @@ begin
     end;
 end;
 
-Function TSQLDBRestDBHandler.GetLimitOffset(Out aLimit,aOffset : Int64) : Boolean;
+function TSQLDBRestDBHandler.GetLimitOffset(out aLimit, aOffset: Int64
+  ): Boolean;
 
 begin
   Result:=IO.GetLimitOffset(EnforceLimit,aLimit,aoffset);
 end;
 
-Function TSQLDBRestDBHandler.GetLimit : UTF8String;
+function TSQLDBRestDBHandler.GetLimit: UTF8String;
 
 var
   aOffset, aLimit : Int64;
@@ -526,7 +534,8 @@ begin
 end;
 
 
-Function TSQLDBRestDBHandler.StreamRecord(O : TRestOutputStreamer; D : TDataset; FieldList : TRestFieldPairArray) : Boolean;
+function TSQLDBRestDBHandler.StreamRecord(O: TRestOutputStreamer; D: TDataset;
+  FieldList: TRestFieldPairArray): Boolean;
 
 Var
   i : Integer;
@@ -541,7 +550,8 @@ begin
   O.EndRow;
 end;
 
-Function TSQLDBRestDBHandler.StreamDataset(O : TRestOutputStreamer; D : TDataset; FieldList : TRestFieldPairArray) : Int64;
+function TSQLDBRestDBHandler.StreamDataset(O: TRestOutputStreamer; D: TDataset;
+  FieldList: TRestFieldPairArray; CurrentOnly : Boolean = False): Int64;
 
 Var
   aLimit,aOffset : Int64;
@@ -569,25 +579,31 @@ begin
   if O.HasOption(ooMetadata) then
     O.WriteMetadata(FieldList);
   O.StartData;
-  if EmulateOffsetLimit then
-    While (aOffset>0) and not D.EOF do
-      begin
-      D.Next;
-      Dec(aOffset);
-      end;
-  While not (D.EOF or LimitReached) do
+  if CurrentOnly then
+    StreamRecord(O,D,FieldList)
+  else
     begin
-    If StreamRecord(O,D,FieldList) then
+    if EmulateOffsetLimit then
+      While (aOffset>0) and not D.EOF do
+        begin
+        D.Next;
+        Dec(aOffset);
+        end;
+    While not (D.EOF or LimitReached) do
       begin
-      Dec(aLimit);
-      inc(Result);
+      If StreamRecord(O,D,FieldList) then
+        begin
+        Dec(aLimit);
+        inc(Result);
+        end;
+      D.Next;
       end;
-    D.Next;
     end;
   O.EndData;
 end;
 
-Function TSQLDBRestDBHandler.GetSpecialDatasetForResource(aFieldList : TRestFieldPairArray) :  TDataset;
+function TSQLDBRestDBHandler.GetSpecialDatasetForResource(
+  aFieldList: TRestFieldPairArray): TDataset;
 
 
 Var
@@ -612,7 +628,7 @@ begin
     FExternalDataset.FreeNotification(Self);
 end;
 
-Function TSQLDBRestDBHandler.SpecialResource : Boolean;
+function TSQLDBRestDBHandler.SpecialResource: Boolean;
 
 begin
   Result:=(ExternalDataset<>Nil) or Assigned(FResource.OnGetDataset);
@@ -689,11 +705,75 @@ begin
   end;
 end;
 
-Function TSQLDBRestDBHandler.GetGeneratorValue(Const aGeneratorName : String) : Int64;
+function TSQLDBRestDBHandler.GetGeneratorValue(const aGeneratorName: String
+  ): Int64;
 
 begin
   Result:=IO.Connection.GetNextValue(aGeneratorName,1);
 end;
+
+procedure TSQLDBRestDBHandler.SetPostFields(aFields : TFields);
+
+Var
+  I : Integer;
+  FData : TField;
+  D : TJSONData;
+  RF : TSQLDBRestField;
+  V : UTF8string;
+
+begin
+  // Another approach would be to create params for all fields,
+  // call setPostParams, and copy field data from all set params
+  // That would allow the use of checkparams...
+  For I:=0 to aFields.Count-1 do
+    try
+      D:=Nil;
+      FData:=aFields[i];
+      RF:=FResource.Fields.FindByFieldName(FData.FieldName);
+      if (RF<>Nil) then
+        begin
+        if (RF.GeneratorName<>'')  then // Only when doing POST
+          D:=TJSONInt64Number.Create(GetGeneratorValue(RF.GeneratorName))
+        else
+          D:=IO.RESTInput.GetContentField(RF.PublicName);
+        end
+      else if IO.GetVariable(FData.Name,V,[vsContent,vsQuery])<>vsNone then
+        D:=TJSONString.Create(V);
+      if (D<>Nil) then
+        SetFieldFromData(FData,RF,D); // Use new value, if any
+    finally
+      D.Free;
+    end;
+end;
+
+procedure TSQLDBRestDBHandler.SetFieldFromData(DataField: TField; ResField: TSQLDBRestField; D: TJSONData);
+
+begin
+  if not Assigned(D) then
+    DataField.Clear
+  else if Assigned(ResField) then
+    Case ResField.FieldType of
+      rftInteger : DataField.AsInteger:=D.AsInteger;
+      rftLargeInt : DataField.AsLargeInt:=D.AsInt64;
+      rftFloat : DataField.AsFloat:=D.AsFloat;
+      rftDate : DataField.AsDateTime:=ScanDateTime(GetString(rpDateFormat),D.AsString);
+      rftTime : DataField.AsDateTime:=ScanDateTime(GetString(rpTimeFormat),D.AsString);
+      rftDateTime : DataField.AsDateTime:=ScanDateTime(GetString(rpDateTimeFormat),D.AsString);
+      rftString : DataField.AsString:=D.AsString;
+      rftBoolean : DataField.AsBoolean:=D.AsBoolean;
+      rftBlob :
+{$IFNDEF VER3_0}
+         DataField.AsString:=BytesOf(DecodeStringBase64(D.AsString));
+{$ELSE}
+         DataField.AsString:=DecodeStringBase64(D.AsString);
+{$ENDIF}
+    else
+      DataField.AsString:=D.AsString;
+    end
+  else
+    DataField.AsString:=D.AsString;
+end;
+
 
 procedure TSQLDBRestDBHandler.SetPostParams(aParams : TParams; Old : TFields = Nil);
 
@@ -712,7 +792,7 @@ begin
       FOld:=Nil;
       P:=aParams[i];
       F:=FResource.Fields.FindByFieldName(P.Name);
-      If Assigned(Fold) then
+      If Assigned(Old) then
         Fold:=Old.FindField(P.Name);
       if (F<>Nil) then
         begin
@@ -744,19 +824,33 @@ Var
   SQL : UTF8String;
 
 begin
-  SQL:=FResource.GetResolvedSQl(skInsert,'','','');
-  S:=TSQLStatement.Create(Self);
-  try
-    S.Database:=IO.Connection;
-    S.Transaction:=IO.Transaction;
-    S.SQL.Text:=SQL;
-    SetPostParams(S.Params);
-    S.Execute;
-    PostParams.Assign(S.Params);
-    S.Transaction.Commit;
-  Finally
-    S.Free;
-  end;
+  if Assigned(ExternalDataset) then
+    begin
+    ExternalDataset.Append;
+    SetPostFields(ExternalDataset.Fields);
+    try
+      ExternalDataset.Post;
+    except
+      ExternalDataset.Cancel;
+      Raise;
+    end
+    end
+  else
+    begin
+    SQL:=FResource.GetResolvedSQl(skInsert,'','','');
+    S:=TSQLStatement.Create(Self);
+    try
+      S.Database:=IO.Connection;
+      S.Transaction:=IO.Transaction;
+      S.SQL.Text:=SQL;
+      SetPostParams(S.Params);
+      S.Execute;
+      PostParams.Assign(S.Params);
+      S.Transaction.Commit;
+    Finally
+      S.Free;
+    end;
+    end;
 end;
 
 procedure TSQLDBRestDBHandler.DoHandlePost;
@@ -789,20 +883,68 @@ Var
   SQl : String;
 
 begin
-  SQL:=FResource.GetResolvedSQl(skUpdate,'','','');
-  S:=TSQLStatement.Create(Self);
-  try
-    S.Database:=IO.Connection;
-    S.Transaction:=IO.Transaction;
-    S.SQL.Text:=SQL;
-    SetPostParams(S.Params,OldData.Fields);
-    // Give user a chance to look at it.
-    FResource.CheckParams(io.RestContext,roPut,S.Params);
-    S.Execute;
-    S.Transaction.Commit;
-  finally
-    S.Free;
-  end;
+  if (OldData=ExternalDataset) then
+    begin
+    ExternalDataset.Edit;
+    try
+      SetPostFields(ExternalDataset.Fields);
+      ExternalDataset.Post;
+    except
+      ExternalDataset.Cancel;
+      Raise;
+    end
+    end
+  else
+    begin
+    SQL:=FResource.GetResolvedSQl(skUpdate,'','','');
+    S:=TSQLStatement.Create(Self);
+    try
+      S.Database:=IO.Connection;
+      S.Transaction:=IO.Transaction;
+      S.SQL.Text:=SQL;
+      SetPostParams(S.Params,OldData.Fields);
+      // Give user a chance to look at it.
+      FResource.CheckParams(io.RestContext,roPut,S.Params);
+      S.Execute;
+      S.Transaction.Commit;
+    finally
+      S.Free;
+    end;
+    end;
+end;
+
+Function TSQLDBRestDBHandler.FindExistingRecord(D : TDataset) : Boolean;
+
+Var
+  KeyFields : String;
+  FieldList : TRestFilterPairArray;
+  FP : TRestFilterPair;
+  V : Variant;
+  I : Integer;
+
+begin
+  D.Open;
+  if D<>ExternalDataset then
+    Result:=Not (D.BOF and D.EOF)
+  else
+    begin
+    GetIDWhere(FieldList);
+    V:=VarArrayCreate([0,Length(FieldList)-1],varVariant);
+    KeyFields:='';
+    I:=0;
+    For FP in FieldList do
+      begin
+      if KeyFields<>'' then
+        KeyFields:=KeyFields+';';
+      KeyFields:=KeyFields+FP.Field.FieldName;
+      if Assigned(FP.ValueParam) then
+        V[i]:=FP.ValueParam.Value
+      else
+        V[i]:=FP.Value;
+      Inc(i);
+      end;
+    Result:=D.Locate(KeyFields,V,[loCaseInsensitive]);
+    end;
 end;
 
 procedure TSQLDBRestDBHandler.DoHandlePut;
@@ -819,18 +961,20 @@ begin
   FieldList:=BuildFieldList(True);
   D:=GetDatasetForResource(FieldList,True);
   try
-    D.Open;
-    if (D.BOF and D.EOF) then
+    if not FindExistingRecord(D) then
       begin
       DoNotFound;
       exit;
       end;
     UpdateExistingRecord(D);
     // Now build response
-    FreeAndNil(D);
-    FieldList:=BuildFieldList(False);
-    D:=GetDatasetForResource(FieldList,True);
-    D.Open;
+    if D<>ExternalDataset then
+      begin;
+      FreeAndNil(D);
+      D:=GetDatasetForResource(FieldList,True);
+      FieldList:=BuildFieldList(False);
+      D.Open;
+      end;
     IO.RESTOutput.OutputOptions:=IO.RESTOutput.OutputOptions-[ooMetadata];
     StreamDataset(IO.RESTOutput,D,FieldList);
   finally
@@ -863,17 +1007,27 @@ Var
   FilteredFields : TRestFilterPairArray;
 
 begin
-  aWhere:=GetIDWhere(FilteredFields);
-  SQL:=FResource.GetResolvedSQl(skDelete,aWhere,'');
-  Q:=CreateQuery(SQL);
-  try
-    FillParams(roDelete,Q,FilteredFields);
-    Q.ExecSQL;
-    if Q.RowsAffected<>1 then
+  if Assigned(ExternalDataset) then
+    begin
+    If FindExistingRecord(ExternalDataset) then
+      ExternalDataset.Delete
+    else
       DoNotFound;
-  finally
-    Q.Free;
-  end;
+    end
+  else
+    begin
+    aWhere:=GetIDWhere(FilteredFields);
+    SQL:=FResource.GetResolvedSQl(skDelete,aWhere,'');
+    Q:=CreateQuery(SQL);
+    try
+      FillParams(roDelete,Q,FilteredFields);
+      Q.ExecSQL;
+      if Q.RowsAffected<>1 then
+        DoNotFound;
+    finally
+      Q.Free;
+    end;
+    end;
 end;
 
 end.

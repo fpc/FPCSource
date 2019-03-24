@@ -197,7 +197,7 @@ Type
     Function AllowResource(aContext : TBaseRestContext) : Boolean;
     Function GetAllowedOperations(aContext : TBaseRestContext) : TRestOperations;
     Function GetHTTPAllow : String; virtual;
-    function GetFieldList(aListKind: TFieldListKind): UTF8String;
+    function GetFieldList(aListKind: TFieldListKind; ASep : String = ''): UTF8String;
     function GetFieldArray(aListKind: TFieldListKind): TSQLDBRestFieldArray;
     Function GetResolvedSQl(aKind : TSQLKind; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = '') : UTF8String;
     Procedure PopulateFieldsFromFieldDefs(Defs : TFieldDefs; aIndexFields : TStringArray; aProcessIdentifier : TProcessIdentifier; aMinFieldOpts : TRestFieldOptions);
@@ -1064,7 +1064,7 @@ begin
       AddR(Methods[O]);
 end;
 
-function TSQLDBRestResource.GetFieldList(aListKind : TFieldListKind) : UTF8String;
+function TSQLDBRestResource.GetFieldList(aListKind : TFieldListKind; ASep : String = '') : UTF8String;
 
 Const
   SepComma = ', ';
@@ -1072,7 +1072,7 @@ Const
   SepSpace = ' ';
 
 Const
-  Seps : Array[TFieldListKind] of string = (sepComma,sepComma,sepComma,sepComma,sepAnd,sepSpace,sepComma);
+  DefaultSeps : Array[TFieldListKind] of string = (sepComma,sepComma,sepComma,sepComma,sepAnd,sepSpace,sepComma);
 
 Const
   Wheres = [flWhereKey];
@@ -1080,15 +1080,20 @@ Const
   UseEqual = Wheres+[flUpdate];
 
 Var
-  Term,Res,Prefix : UTF8String;
+  Sep,Term,Res,Prefix : UTF8String;
   I : Integer;
   F : TSQLDBRestField;
 
 begin
   Prefix:='';
+  Sep:=aSep;
+  if Sep='' then
+    begin
+    Sep:=DefaultSeps[aListKind];
+    If aListKind in Colons then
+      Prefix:=':';
+    end;
   Res:='';
-  If aListKind in Colons then
-    Prefix:=':';
   For I:=0 to Fields.Count-1 do
     begin
     Term:='';
@@ -1096,7 +1101,7 @@ begin
     if F.UseInFieldList(aListKind) then
       begin
       Term:=Prefix+F.FieldName;
-      if aListKind in UseEqual then
+      if (aSep='') and (aListKind in UseEqual) then
         begin
         Term := F.FieldName+' = '+Term;
         if (aListKind in Wheres) then
@@ -1106,7 +1111,7 @@ begin
     if (Term<>'') then
       begin
       If (Res<>'') then
-        Res:=Res+Seps[aListKind];
+        Res:=Res+Sep;
       Res:=Res+Term;
       end;
     end;
