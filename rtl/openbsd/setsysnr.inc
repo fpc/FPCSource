@@ -62,10 +62,5 @@ Begin
 
   version:=version_major * 1000 + version_minor;
 
-  if version >= 5005 then
-    begin
-      { FIXME: what should we do here? }
-      syscall_nr_getdirentries := -1;
-    end;
-
+  { version-specific checks and setting of compatibility flags can be inserted here }
 end;

@@ -255,7 +255,6 @@ Const
 var
   syscall_nr_waitpid : longint = syscall_nr_wait4;  // 7, added: ease of notation purposes
   
-  syscall_nr_getdirentries : longint = {syscall_nr_getdirentries_20}-1;
 { The variables above need to be changed at startup }
 
 {$define FPC_HAS_SETSYSNR_INC}
