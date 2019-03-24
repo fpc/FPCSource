@@ -763,7 +763,7 @@ begin
       rftBoolean : DataField.AsBoolean:=D.AsBoolean;
       rftBlob :
 {$IFNDEF VER3_0}
-         DataField.AsString:=BytesOf(DecodeStringBase64(D.AsString));
+         DataField.AsBytes:=BytesOf(DecodeStringBase64(D.AsString));
 {$ELSE}
          DataField.AsString:=DecodeStringBase64(D.AsString);
 {$ENDIF}
