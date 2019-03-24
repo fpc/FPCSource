@@ -10,7 +10,6 @@
 
 {$ifndef FPC_IS_SYSTEM}
 var
-  use_openbsd_getdirentries_49 : boolean = false;
   use_getdirentries_syscall : boolean = true;
 
 function geterrno:longint; external name 'FPC_SYS_GETERRNO';

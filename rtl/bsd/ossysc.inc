@@ -221,7 +221,6 @@ begin
 end;
 
 var
-  use_openbsd_getdirentries_49 : boolean = false;
   use_getdirentries_syscall : boolean = true;
 
 function Fpreaddir(dirp : pdir) : pdirent; [public, alias : 'FPC_SYSC_READDIR'];
@@ -237,19 +236,10 @@ function readbuffer:longint;
 var retval :longint;
 {$ifdef FPC_USE_GETDIRENTRIES_SYSCALL}
     basepp : pointer;
-{$ifdef FPC_USE_GETDIRENTRIES_I49_SYSCALL}
-  { OpenBSD i49 getDirEntries system call uses off_t type for last parameter }
-    basep_off_t : off_t;
-{$endif not FPC_USE_GETDIRENTRIES_I49_SYSCALL}
     basep : clong;
 {$endif FPC_USE_GETDIRENTRIES_SYSCALL}
 begin
 {$ifdef FPC_USE_GETDIRENTRIES_SYSCALL}
-{$ifdef FPC_USE_GETDIRENTRIES_I49_SYSCALL}
- if use_openbsd_getdirentries_49 then
-   basepp:=@basep_off_t
- else
-{$endif FPC_USE_GETDIRENTRIES_I49_SYSCALL}
    basepp:=@basep;
  if use_getdirentries_syscall then
    Retval:=do_syscall(syscall_nr_getdirentries,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)},TSysParam(basepp))
