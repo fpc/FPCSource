@@ -147,7 +147,7 @@ TYPE
 
   { directory services }
 {$ifndef darwin_new_iostructs}
-{$ifdef dragonfly}
+{$if defined(dragonfly)}
    dirent  = record
         d_fileno      : ino_t;                          // file number of entry
         d_namlen      : cuint16;                        // strlen (d_name)
