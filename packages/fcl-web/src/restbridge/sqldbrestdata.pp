@@ -653,6 +653,7 @@ begin
   SQL:=FResource.GetResolvedSQl(skSelect,aWhere,aOrderBy,aLimit);
   Q:=CreateQuery(SQL);
   Try
+    Q.UsePrimaryKeyAsKey:=False;
     FillParams(roGet,Q,WhereFilterList);
     Result:=Q;
   except

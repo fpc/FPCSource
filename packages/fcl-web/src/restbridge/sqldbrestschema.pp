@@ -332,6 +332,7 @@ Type
 
 Const
   TypeNames : Array[TRestFieldType] of string = ('?','int','bigint','float','date','time','datetime','string','bool','blob');
+  RestMethods : Array[TRestOperation] of string = ('','GET','POST','PUT','DELETE','OPTIONS','HEAD');
 
 implementation
 
@@ -1051,8 +1052,6 @@ function TSQLDBRestResource.GetHTTPAllow: String;
     Result:=Result+S;
   end;
 
-Const
-  Methods : Array[TRestOperation] of string = ('','GET','POST','PUT','DELETE','OPTIONS','HEAD');
 
 Var
   O : TRestOperation;
@@ -1061,7 +1060,7 @@ begin
   Result:='';
   For O in TRestOperation do
     if (O<>roUnknown) and (O in AllowedOperations) then
-      AddR(Methods[O]);
+      AddR(RestMethods[O]);
 end;
 
 function TSQLDBRestResource.GetFieldList(aListKind : TFieldListKind; ASep : String = '') : UTF8String;

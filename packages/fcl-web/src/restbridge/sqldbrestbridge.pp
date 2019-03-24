@@ -19,14 +19,34 @@ unit sqldbrestbridge;
 interface
 
 uses
-  Classes, SysUtils, DB, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth;
+  Classes, SysUtils, DB, SqlTypes, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth;
 
 Type
-  TRestDispatcherOption = (rdoConnectionInURL,rdoExposeMetadata,rdoCustomView,rdoHandleCORS,rdoAccessCheckNeedsDB,rdoConnectionResource);
+  TRestDispatcherOption = (rdoConnectionInURL,     // Route includes connection :Connection/:Resource[/:ID]
+                           rdoExposeMetadata,      // expose metadata resource /metadata[/:Resource]
+                           rdoCustomView,          // Expose custom view /customview
+                           rdoHandleCORS,          // Handle CORS requests
+                           rdoAccessCheckNeedsDB,  // Authenticate after connection to database was made.
+                           rdoConnectionResource   // Enable connection managament through /_connection[/:Conn] resource
+                           // rdoServerInfo        // Enable querying server info through /_serverinfo  resource
+                           );
+
   TRestDispatcherOptions = set of TRestDispatcherOption;
+  TRestDispatcherLogOption = (rloUser,           // Include username in log messages, when available
+                              rtloHTTP,          // Log HTTP request (remote, URL)
+                              rloResource,       // Log resource requests (operation, resource)
+                              rloConnection,     // Log database connections (connect to database)
+                              rloAuthentication, // Log authentication attempt
+                              rloSQL,            // Log SQL statements. (not on user-supplied connection)
+                              rloResultStatus    // Log result status.
+                             );
+  TRestDispatcherLogOptions = Set of TRestDispatcherLogOption;
 
 Const
   DefaultDispatcherOptions = [rdoExposeMetadata];
+  AllDispatcherLogOptions = [Low(TRestDispatcherLogOption)..High(TRestDispatcherLogOption)];
+  DefaultDispatcherLogOptions = AllDispatcherLogOptions-[rloSQL];
+  DefaultLogSQLOptions = LogAllEvents;
 
 Type
 
@@ -159,6 +179,7 @@ Type
   TRestExceptionEvent = Procedure(Sender : TObject; aRequest : TRequest; Const AResource : string; E : Exception) of object;
   TRestOperationEvent = Procedure(Sender : TObject; aConn: TSQLConnection; aResource : TSQLDBRestResource) of object;
   TRestGetFormatEvent = Procedure(Sender : TObject; aRest : TRequest; var aFormat : String) of object;
+  TRestLogEvent = Procedure(Sender : TObject; aType : TRestDispatcherLogOption; Const aMessage : UTF8String) of object;
 
   TSQLDBRestDispatcher = Class(TComponent)
   Private
@@ -169,9 +190,11 @@ Type
     FCORSAllowCredentials: Boolean;
     FCORSAllowedOrigins: String;
     FCORSMaxAge: Integer;
+    FDBLogOptions: TDBEventTypes;
     FDispatchOptions: TRestDispatcherOptions;
     FInputFormat: String;
     FCustomViewResource : TSQLDBRestResource;
+    FLogOptions: TRestDispatcherLogOptions;
     FMetadataResource : TSQLDBRestResource;
     FMetadataDetailResource : TSQLDBRestResource;
     FConnectionResource : TSQLDBRestResource;
@@ -196,6 +219,7 @@ Type
     FOnGetConnectionName: TGetConnectionNameEvent;
     FOnGetInputFormat: TRestGetFormatEvent;
     FOnGetOutputFormat: TRestGetFormatEvent;
+    FOnLog: TRestLogEvent;
     FOutputFormat: String;
     FOutputOptions: TRestOutputoptions;
     FSchemas: TSQLDBRestSchemaList;
@@ -216,6 +240,12 @@ Type
     procedure SetStatus(AValue: TRestStatusConfig);
     procedure SetStrings(AValue: TRestStringsConfig);
   Protected
+    // Logging
+    Function MustLog(aLog : TRestDispatcherLogOption) : Boolean; inline;
+    procedure DoSQLLog(Sender: TObject; EventType: TDBEventType;  const Msg: String); virtual;
+    procedure DoLog(aLog: TRestDispatcherLogOption; IO : TRestIO; const aMessage: UTF8String);  virtual;
+    procedure DoLog(aLog: TRestDispatcherLogOption; IO : TRestIO; const Fmt: UTF8String;
+      Args: array of const);
     // Auxiliary methods.
     Procedure Loaded; override;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -332,6 +362,10 @@ Type
     Property CORSAllowCredentials : Boolean Read FCORSAllowCredentials Write FCORSAllowCredentials;
     // UserIDs of the user(s) that are allowed to see and modify the connection resource.
     Property AdminUserIDs : TStrings Read FAdminUserIDs Write SetAdminUserIDS;
+    // Logging options
+    Property LogOptions : TRestDispatcherLogOptions Read FLogOptions write FLogOptions default DefaultDispatcherLogOptions;
+    // SQL Log options. Only for connections managed by RestDispatcher
+    Property LogSQLOptions : TDBEventTypes Read FDBLogOptions write FDBLogOptions default DefaultLogSQLOptions;
     // Called when Basic authentication is sufficient.
     Property OnBasicAuthentication : TBasicAuthenticationEvent Read FOnBasicAuthentication Write FOnBasicAuthentication;
     // Allow a particular resource or not.
@@ -362,9 +396,14 @@ Type
     Property BeforeDelete : TRestOperationEvent Read FBeforeDelete Write FBeforeDelete;
     // Called After a DELETE request.
     Property AfterDelete : TRestOperationEvent Read FAfterDelete Write FAfterDelete;
+    // Called when logging
+    Property OnLog : TRestLogEvent Read FOnLog Write FOnLog;
   end;
 
-
+Const
+  LogNames : Array[TRestDispatcherLogOption] of string = (
+    'User','HTTP','Resource','Connection','Authentication','SQL','Result'
+  );
 
 implementation
 
@@ -464,6 +503,7 @@ begin
   AllowResource:=(AdminUserIDs.Count=0) or  (AdminUserIDs.IndexOf(aContext.UserID)<>-1);
 end;
 
+
 procedure TSQLDBRestDispatcher.SetActive(AValue: Boolean);
 begin
   if FActive=AValue then
@@ -512,6 +552,68 @@ begin
   FStrings.Assign(AValue);
 end;
 
+function TSQLDBRestDispatcher.MustLog(aLog: TRestDispatcherLogOption): Boolean;
+begin
+  Result:=aLog in FLogOptions;
+end;
+
+procedure TSQLDBRestDispatcher.DoSQLLog(Sender: TObject;  EventType: TDBEventType; const Msg: String);
+
+Const
+  EventNames : Array [TDBEventType] of string =
+    ('Custom','Prepare', 'Execute', 'Fetch', 'Commit', 'RollBack', 'ParamValue', 'ActualSQL');
+
+Var
+  aMsg : UTF8String;
+
+begin
+  if not MustLog(rloSQl) then // avoid string ops
+    exit;
+  aMsg:=EventNames[EventType]+': '+Msg;
+  if Sender is TRestIO then
+    DoLog(rloSQL,TRestIO(Sender),aMsg)
+  else
+    DoLog(rloSQL,Nil,aMsg)
+end;
+
+procedure TSQLDBRestDispatcher.DoLog(aLog: TRestDispatcherLogOption; IO: TRestIO; const aMessage: UTF8String);
+
+Var
+  aMsg : UTF8String;
+
+begin
+  aMsg:='';
+  if MustLog(aLog) and Assigned(FOnLog) then
+     begin
+     if MustLog(rloUser) and Assigned(IO) then
+       begin
+       if IO.UserID='' then
+         aMsg:='(User: ?) '
+       else
+         aMsg:=Format('(User: %s) ',[IO.UserID]);
+       end;
+     aMsg:=aMsg+aMessage;
+     FOnLog(Self,aLog,aMsg);
+     end;
+end;
+
+procedure TSQLDBRestDispatcher.DoLog(aLog: TRestDispatcherLogOption;IO: TRestIO;
+  const Fmt: UTF8String; Args: array of const);
+
+Var
+  S : UTF8string;
+
+begin
+  if not MustLog(aLog) then exit; // avoid expensive format
+  try
+    S:=Format(fmt,Args); // Encode ?
+  except
+    on E : exception do
+      S:=Format('Error "%s" formatting "%s" with %d arguments: %s',[E.ClassName,Fmt,Length(Args),E.Message])
+  end;
+  DoLog(aLog,IO,S);
+end;
+
 procedure TSQLDBRestDispatcher.Loaded;
 begin
   inherited Loaded;
@@ -526,9 +628,29 @@ begin
   HandleRequest(aRequest,aResponse);
 end;
 
-procedure TSQLDBRestDispatcher.HandleMetadataRequest(aRequest: TRequest;
-  aResponse: TResponse);
+procedure TSQLDBRestDispatcher.HandleMetadataRequest(aRequest: TRequest;aResponse: TResponse);
+
+Var
+  LogMsg,UN : UTF8String;
+
 begin
+  if MustLog(rtloHTTP) then
+    begin
+    LogMsg:='';
+    With aRequest do
+      begin
+      UN:=RemoteHost;
+      if (UN='') then
+        UN:=RemoteAddr;
+      if (UN<>'') then
+        LogMsg:='From: '+UN+'; ';
+      LogMsg:=LogMsg+'URL: '+URL;
+      end;
+    UN:=TRestBasicAuthenticator.ExtractUserName(aRequest);
+    if (UN<>'?') then
+      LogMsg:='User: '+UN+LogMsg;
+    DoLog(rtloHTTP,Nil,LogMsg);
+    end;
   aRequest.RouteParams['resource']:=Strings.MetadataResourceName;
   HandleRequest(aRequest,aResponse);
 end;
@@ -722,6 +844,8 @@ begin
   FSchemas:=CreateSchemaList;
   FOutputOptions:=allOutputOptions;
   FDispatchOptions:=DefaultDispatcherOptions;
+  FLogOptions:=DefaultDispatcherLogOptions;
+  FDBLogOptions:=DefaultLogSQLOptions;
   FStatus:=CreateRestStatusConfig;
   FCORSMaxAge:=SecsPerDay;
   FCORSAllowCredentials:=True;
@@ -805,8 +929,6 @@ end;
 
 function TSQLDBRestDispatcher.CreateConnectionResource: TSQLDBRestResource;
 Var
-  O : TRestOperation;
-  S : String;
   Def : TRestFieldOptions;
 
 begin
@@ -1354,7 +1476,6 @@ Var
   N : UTF8String;
   UN : UnicodeString;
   S : TSQLDBRestSchema;
-  Conn : TSQLConnection;
 
 begin
   IsNew:=Dataset.State=dsInsert;
@@ -1362,7 +1483,7 @@ begin
     C:=Connections.Add as TSQLDBRestConnection
   else
     begin
-    UN:=Dataset.FieldByName('key').AsString;
+    UN:=UTF8Decode(Dataset.FieldByName('key').AsString);
 //    C:=Connections[Dataset.RecNo-1];
     C:=Connections.FindConnection(Utf8Encode(UN));
     if (C=Nil) then
@@ -1525,11 +1646,23 @@ Var
 
 
 begin
+  if MustLog(rloResource) then
+    DoLog(rloResource,IO,'Resource: %s; Operation: %s',[IO.ResourceName,RestMethods[IO.Operation]]);
   H:=Nil;
   Conn:=GetSQLConnection(aConnection,Tr);
   try
     IO.SetConn(Conn,TR);
     Try
+      if MustLog(rloConnection) then
+         if Assigned(Conn)  then
+           DoLog(rloConnection,IO,'Using connection to Host: %s; Database: %s',[Conn.HostName,Conn.DatabaseName])
+         else
+           DoLog(rloConnection,IO,'Resource %s does not require connection',[IO.ResourceName]);
+      if MustLog(rloSQL) then
+        begin
+        Conn.LogEvents:=LogSQLOptions;
+        Conn.OnLog:=@IO.DoSQLLog;
+        end;
       if (rdoHandleCORS in DispatchOptions) then
         IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins);
       if not AuthenticateRequest(IO,True) then
@@ -1766,6 +1899,7 @@ Var
   B : TRestBasicAuthenticator;
   A : TRestAuthenticator;
 
+
 begin
   A:=Nil;
   B:=Nil;
@@ -1783,7 +1917,14 @@ begin
       begin
       Result:=(A.NeedConnection<>Delayed);
       If Not Result then
-        Result:=A.AuthenticateRequest(IO)
+        begin
+        Result:=A.AuthenticateRequest(IO);
+        if MustLog(rloAuthentication) then
+          if Result then
+            DoLog(rloAuthentication,IO,'Authenticated user: %s',[IO.UserID])
+          else
+            DoLog(rloAuthentication,IO,'Authentication failed for user: %s',[TRestBasicAuthenticator.ExtractUserName(IO.Request)]);
+        end;
       end;
   finally
     if Assigned(B) then
@@ -1816,6 +1957,7 @@ begin
       // First output, then input
       IO.RestOutput.InitStreaming;
       IO.RestInput.InitStreaming;
+      IO.OnSQLLog:=@Self.DoSQLLog;
       if AuthenticateRequest(IO,False) then
         DoHandleRequest(IO)
     except
@@ -1823,12 +1965,19 @@ begin
         HandleException(E,IO);
     end;
   Finally
+    // Make sure there is a document in case of error
+    if (aResponse.ContentStream.Size=0) and Not ((aResponse.Code div 100)=2) then
+      IO.RESTOutput.CreateErrorContent(aResponse.Code,aResponse.CodeText);
     if Not (IO.Operation in [roOptions,roHEAD]) then
       IO.RestOutput.FinalizeOutput;
     aResponse.ContentStream.Position:=0;
     aResponse.ContentLength:=aResponse.ContentStream.Size;
+
     if not aResponse.ContentSent then
       aResponse.SendContent;
+    if MustLog(rloResultStatus) then
+        DoLog(rloResultStatus,IO,'Resource: %s; Operation: %s; Status: %d; Text: %s',[IO.ResourceName,RestMethods[IO.Operation],aResponse.Code,aResponse.CodeText]);
+
     IO.Free;
   end;
 end;

@@ -277,17 +277,18 @@ Type
   end;
 
   { TRestIO }
+  TSQLLogNotifyEvent = Procedure (Sender : TObject; EventType : TDBEventType; Const Msg : String) of object;
 
   TRestIO = Class
   private
     FConn: TSQLConnection;
     FCOnnection: UTF8String;
     FInput: TRestInputStreamer;
+    FOnSQLLog: TSQLLogNotifyEvent;
     FOperation: TRestOperation;
     FOutput: TRestOutputStreamer;
     FRequest: TRequest;
     FResource: TSQLDBRestResource;
-    FResourceName: UTF8String;
     FResponse: TResponse;
     FRestContext: TRestContext;
     FRestStatuses: TRestStatusConfig;
@@ -295,12 +296,15 @@ Type
     FSchema: UTF8String;
     FTrans: TSQLTransaction;
     FContentStream : TStream;
+    function GetResourceName: UTF8String;
     function GetUserID: String;
     procedure SetUserID(AValue: String);
   Protected
   Public
     Constructor Create(aRequest : TRequest; aResponse : TResponse); virtual;
     Destructor Destroy; override;
+    // Log callback for SQL. Rerouted here, because we need IO
+    procedure DoSQLLog(Sender: TSQLConnection;  EventType: TDBEventType; const Msg: String);
     // Set things.
     Procedure SetIO(aInput : TRestInputStreamer;aOutput : TRestOutputStreamer);
     Procedure SetConn(aConn : TSQLConnection; ATrans : TSQLTransaction);
@@ -334,10 +338,12 @@ Type
     Property RequestContentStream : TStream Read FContentStream;
     Property RestContext : TRestContext Read FRestContext;
     // For informative purposes
-    Property ResourceName : UTF8String Read FResourceName;
+    Property ResourceName : UTF8String Read GetResourceName;
     Property Schema : UTF8String Read FSchema;
     Property ConnectionName : UTF8String Read FCOnnection;
     Property UserID : String Read GetUserID Write SetUserID;
+    // For logging
+    Property OnSQLLog :TSQLLogNotifyEvent Read FOnSQLLog Write FOnSQLLog;
   end;
   TRestIOClass = Class of TRestIO;
 
@@ -898,6 +904,14 @@ begin
   Result:=FRestContext.UserID;
 end;
 
+function TRestIO.GetResourceName: UTF8String;
+begin
+  if Assigned(FResource) then
+    Result:=FResource.ResourceName
+  else
+    Result:='?';
+end;
+
 constructor TRestIO.Create(aRequest: TRequest; aResponse: TResponse);
 begin
   FRequest:=aRequest;
@@ -918,6 +932,13 @@ begin
   FreeAndNil(Finput);
   FreeAndNil(Foutput);
   inherited Destroy;
+end;
+
+procedure TRestIO.DoSQLLog(Sender: TSQLConnection; EventType: TDBEventType;  const Msg: String);
+
+begin
+  If Assigned(OnSQLLog) then
+    FOnSQLLog(Self,EventType,Msg);
 end;
 
 function TRestIO.CreateRestContext : TRestContext;
