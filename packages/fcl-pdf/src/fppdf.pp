@@ -1026,6 +1026,7 @@ type
     procedure SetFonts(AValue: TPDFFontDefs);
     procedure SetInfos(AValue: TPDFInfos);
     procedure SetLineStyles(AValue: TPDFLineStyleDefs);
+    Procedure SetOptions(aValue : TPDFOptions);
   protected
     // Create all kinds of things, virtual so they can be overridden to create descendents instead
     function CreatePDFPages: TPDFPages; virtual;
@@ -1126,7 +1127,7 @@ type
     Property ObjectCount : Integer Read FObjectCount;
     Property LineCapStyle: TPDFLineCapStyle Read FLineCapStyle Write FLineCapStyle;
   Published
-    Property Options : TPDFOptions Read FOptions Write FOPtions;
+    Property Options : TPDFOptions Read FOptions Write SetOptions;
     Property LineStyles : TPDFLineStyleDefs Read FLineStyleDefs Write SetLineStyles;
     property PageLayout: TPDFPageLayout read FPageLayout write FPageLayout default lSingle;
     Property Infos : TPDFInfos Read FInfos Write SetInfos;
@@ -4486,6 +4487,14 @@ procedure TPDFDocument.SetInfos(AValue: TPDFInfos);
 begin
   if FInfos=AValue then Exit;
   FInfos.Assign(AValue);
+end;
+
+procedure TPDFDocument.SetOptions(AValue: TPDFOptions);
+begin
+  if FOptions=AValue then Exit;
+  if (poNoEmbeddedFonts in  aValue) then
+    Exclude(aValue,poSubsetFont);
+  FOptions:=aValue;
 end;
 
 procedure TPDFDocument.SetLineStyles(AValue: TPDFLineStyleDefs);
