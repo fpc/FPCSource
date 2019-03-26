@@ -434,6 +434,11 @@ begin
     FPONotifyObservers(Self,ooChange,Nil);
 end;
 
+procedure TCollection.Move(const Index1, index2: integer);
+begin
+  Items[Index1].Index:=Index2;
+end;
+
 
 {****************************************************************************}
 {*                             TOwnedCollection                             *}
