@@ -1687,14 +1687,30 @@ var
   s: string;
   lst: TTextMappingList;
   lFont: TTFFileInfo;
+  lWidthIndex: integer;
 begin
   s := '';
   lst := Document.Fonts[EmbeddedFontNum].TextMapping;
   lst.Sort;
   lFont := Document.Fonts[EmbeddedFontNum].FTrueTypeFile;
-  // use decimal values for the output
+
+  {$IFDEF gdebug}
+  System.WriteLn('****** isFixedPitch = ', BoolToStr(lFont.PostScript.isFixedPitch > 0, True));
+  System.WriteLn('****** Head.UnitsPerEm := ', lFont.Head.UnitsPerEm );
+  System.WriteLn('****** HHead.numberOfHMetrics := ', lFont.HHead.numberOfHMetrics );
+  {$ENDIF}
+
+  { NOTE: Monospaced fonts may not have a width for every glyph
+          the last one is for subsequent glyphs.  }
   for i := 0 to lst.Count-1 do
-    s :=  s + Format(' %d [%d]', [ lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lst[i].GlyphID].AdvanceWidth)]);
+  begin
+    if lst[i].GlyphID < lFont.HHead.numberOfHMetrics then
+      lWidthIndex := lst[i].GlyphID
+    else
+      lWidthIndex := lFont.HHead.numberOfHMetrics-1;
+    s :=  s + Format(' %d [%d]', [lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lWidthIndex].AdvanceWidth)])
+  end;
+
   WriteString(s, AStream);
 end;
 
