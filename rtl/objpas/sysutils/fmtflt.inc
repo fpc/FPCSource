@@ -369,18 +369,21 @@ begin
       'e', 'E':
         begin
         ToResult(C); // Always needed
-        Inc(I);
-        if I<=Section.Length then
+        if IsScientific then
           begin
-          C:=Section[I];
-          if (C in ['+','-']) then
+          Inc(I);
+          if I<=Section.Length then
             begin
-            AddToResult(FormatExponent(C,FV.Exponent-DecimalPos+1));
-            // Skip rest
-            while (I<SectionLength) and (Section[i+1]='0') do
-              Inc(I);
+            C:=Section[I];
+            if (C in ['+','-']) then
+              begin
+              AddToResult(FormatExponent(C,FV.Exponent-DecimalPos+1));
+              // Skip rest
+              while (I<SectionLength) and (Section[i+1]='0') do
+                Inc(I);
+              end;
             end;
-          end;
+          end;  
         end;
       else
         ToResult(C);
