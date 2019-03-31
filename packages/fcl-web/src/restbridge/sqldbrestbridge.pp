@@ -900,7 +900,10 @@ function TSQLDBRestDispatcher.CreateCustomViewResource: TSQLDBRestResource;
 begin
   Result:=TCustomViewResource.Create(Nil);
   Result.ResourceName:=FStrings.GetRestString(rpCustomViewResourceName);
-  Result.AllowedOperations:=[roGet];
+  if rdoHandleCORS in DispatchOptions then
+    Result.AllowedOperations:=[roGet,roOptions,roHead]
+  else
+    Result.AllowedOperations:=[roGet,roHead];
 end;
 
 function TSQLDBRestDispatcher.CreateMetadataResource: TSQLDBRestResource;
@@ -1658,7 +1661,7 @@ begin
            DoLog(rloConnection,IO,'Using connection to Host: %s; Database: %s',[Conn.HostName,Conn.DatabaseName])
          else
            DoLog(rloConnection,IO,'Resource %s does not require connection',[IO.ResourceName]);
-      if MustLog(rloSQL) then
+      if assigned(Conn) and MustLog(rloSQL) then
         begin
         Conn.LogEvents:=LogSQLOptions;
         Conn.OnLog:=@IO.DoSQLLog;
