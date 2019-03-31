@@ -633,16 +633,33 @@ Type
 
 
   constructor TFileStream.Create(const AFileName: rawbytestring; Mode: Word; Rights: Cardinal);
+    {$ifdef Windows}
+    function FixLongFilename(const Fn: RawByteString): RawByteString;
+    begin
+      Result := Fn;
+      if (Length(Fn)>MAX_PATH) and not ((Pos('\\?\', Fn)=1) or (Pos('\\.\', Fn)=1) or (Pos('\\?\UNC\', Fn)=1)) then
+        begin
+          if (Pos('\\', Fn)=1) and (length(FN)>2) then
+            Insert('?\UNC\',Result,3)
+          else
+            Result:='\\?\'+Fn;
+        end;
+    end;
+    {$endif}
 
   Var
     H : Thandle;
 
   begin
+    {$ifdef Windows}
+    FFileName:=FixLongFilename(AFileName);
+    {$else}
     FFileName:=AFileName;
+    {$endif}
     If (Mode and fmCreate) > 0 then
-      H:=FileCreate(AFileName,Mode,Rights)
+      H:=FileCreate(FFileName,Mode,Rights)
     else
-      H:=FileOpen(AFileName,Mode);
+      H:=FileOpen(FFileName,Mode);
 
     If (THandle(H)=feInvalidHandle) then
       If Mode=fmcreate then
