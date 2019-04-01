@@ -2496,7 +2496,7 @@ begin
   FindGlobalComponentList:=nil;
   IntConstList := TThreadList.Create;
   ClassList := TThreadList.Create;
-  ClassAliasList := TStringList.Create;
+  ClassAliasList := nil;
   { on unix this maps to a simple rw synchornizer }
   GlobalNameSpace := TMultiReadExclusiveWriteSynchronizer.Create;
   RegisterInitComponentHandler(TComponent,@DefaultInitHandler);
