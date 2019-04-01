@@ -22,6 +22,8 @@ type
     procedure TestDoubleWrite;
     procedure bug16395;
     procedure TestAdv;
+    procedure TestStringList;
+    Procedure TestInt64;
   end;
 
 implementation
@@ -170,6 +172,53 @@ begin
   DoRegTest2;
 {$endif windows}
 end;
+
+Procedure TTestBasics.TestStringList;
+
+Var
+  SL : TStringList;
+  I : Integer;
+
+begin
+  With TRegistry.Create do
+    try
+      RootKey:=HKEY_CURRENT_USER;
+      OpenKey('Software/Test',True);
+      SL:=TstringList.Create;
+      For I:=0 to 10 do
+        SL.Add(IntToStr(I));
+      WriteStringList('me',SL);
+      SL.Clear;
+      ReadStringList('me',SL);
+      For I:=0 to 10 do
+        AssertEquals('String '+IntToStr(i),IntToStr(I),SL[I]);
+    finally
+      Free;
+    end;
+end;
+
+
+procedure TTestBasics.TestInt64;
+
+  
+
+Var
+  Def,I64 : Int64;
+    
+begin
+  def:=MaxInt*1024; 
+  With TRegistry.Create do
+    try
+      RootKey:=HKEY_CURRENT_USER;
+      OpenKey('Software/Test',True);
+      WriteInt64('you',Def);
+      I64:=ReadInt64('you');
+      AssertEquals('Value written and read',Def,I64);
+    finally
+      Free;
+    end;  
+end;
+
 
 initialization
   RegisterTest(TTestBasics);
