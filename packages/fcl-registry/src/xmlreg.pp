@@ -27,7 +27,7 @@ uses
 
 Type
 
-  TDataType = (dtUnknown,dtDWORD,dtString,dtBinary,dtStrings);
+  TDataType = (dtUnknown,dtDWORD,dtString,dtBinary,dtStrings,dtQWord);
   TDataInfo = record
     DataType : TDataType;
     DataSize : Integer;
@@ -324,6 +324,7 @@ Var
   U : UnicodeString;
   HasData: Boolean;
   D : DWord;
+  Q : QWord;
   
 begin
   //writeln('TXmlRegistry.DoGetValueData: Name=',Name,' IsUnicode=',IsUnicode);
@@ -349,6 +350,12 @@ begin
                   Result:=HasData and TryStrToDWord(String(DataNode.NodeValue),D) and (DataSize>=NS);
                   if Result then
                     PCardinal(@Data)^:=D;
+                  end;
+        dtQWORD : begin   // DataNode is required
+                  NS:=SizeOf(QWORD);
+                  Result:=HasData and TryStrToQWord(String(DataNode.NodeValue),Q) and (DataSize>=NS);
+                  if Result then
+                    PUInt64(@Data)^:=Q;
                   end;
         dtString : // DataNode is optional
                    if HasData then
@@ -414,6 +421,7 @@ begin
 
     Case DataType of
       dtDWORD : SW:=UnicodeString(IntToStr(PCardinal(@Data)^));
+      dtQWORD : SW:=UnicodeString(IntToStr(PUInt64(@Data)^));
       dtString : begin
                  if IsUnicode then
                    SW:=UnicodeString(PUnicodeChar(@Data))

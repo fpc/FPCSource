@@ -36,6 +36,7 @@ begin
     rdInteger               : Result := dtDword;
     rdBinary                : Result := dtBinary;
     rdMultiString           : Result := dtStrings;
+    rdInt64                 : Result := dtQword;
   else
     Raise ERegistryException.CreateFmt(SErrTypeNotSupported,[GetEnumName(TypeInfo(TRegDataType),Ord(RegData))]);
   end;
@@ -47,6 +48,7 @@ begin
   Case DataType of
     dtUnknown: Result:=rdUnknown;
     dtDword  : Result:=rdInteger;
+    dtQword  : Result:=rdInt64;
     dtString : Result:=rdString;
     dtBinary : Result:=rdBinary;
     dtStrings : Result:=rdMultiString;
