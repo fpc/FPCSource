@@ -172,22 +172,17 @@ end;
 const DIRBLKSIZ=1024;
 
 
+function Fpfstat(fd : cint; var sb : stat): cint; forward;
+
 function Fpopendir(dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
 
 var
   fd:longint;
   st:stat;
   ptr:pdir;
+  save_errno:cint;
 begin
   Fpopendir:=nil;
-  if Fpstat(dirname,st)<0 then
-   exit;
-{ Is it a dir ? }
-  if not((st.st_mode and $f000)=$4000)then
-   begin
-     errno:=ESysENOTDIR;
-     exit
-   end;
 { Open it}
   fd:=Fpopen(dirname,O_RDONLY,438);
   if fd<0 then
@@ -195,15 +190,35 @@ begin
     Errno:=-1;
     exit;
    End;
+  if FpFStat(fd,st)<0 then
+   begin
+    save_errno:=errno;
+    FpClose(fd);
+    errno:=save_errno;
+    exit;
+   end;
+{ Is it a dir ? }
+  if not((st.st_mode and $f000)=$4000)then
+   begin
+     FpClose(fd);
+     errno:=ESysENOTDIR;
+     exit
+   end;
   new(ptr);
   if ptr=nil then
    Begin
+    FpClose(fd);
     Errno:=1;
     exit;
    End;
   Getmem(ptr^.dd_buf,2*DIRBLKSIZ);
   if ptr^.dd_buf=nil then
-   exit;
+   begin
+    dispose(ptr);
+    FpClose(fd);
+    Errno:=1;
+    exit;
+   end;
   ptr^.dd_fd:=fd;
   ptr^.dd_loc:=-1;
   ptr^.dd_rewind:=ptrint(ptr^.dd_buf);
