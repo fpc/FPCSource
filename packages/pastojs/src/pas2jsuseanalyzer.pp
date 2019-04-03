@@ -13,8 +13,13 @@
 
  **********************************************************************
 
-  Abstract:
-    Extends the FCL Pascal use analyzer for the language subset of pas2js.
+Abstract:
+  Extends the FCL Pascal use analyzer for the language subset of pas2js.
+
+Works:
+- Array of Const marks function System.VarRecs()
+- TPascalDescendantOfExt.Create marks class method NewInstance
+
 }
 unit Pas2jsUseAnalyzer;
 
@@ -35,6 +40,7 @@ type
   TPas2JSAnalyzer = class(TPasAnalyzer)
   public
     procedure UseExpr(El: TPasExpr); override;
+    procedure UseConstructor(Proc: TPasConstructor; PosEl: TPasElement); virtual;
   end;
 
 implementation
@@ -86,10 +92,34 @@ begin
     Ref:=TResolvedReference(El.CustomData);
     Decl:=Ref.Declaration;
     if Decl is TPasProcedure then
-      CheckArgs(TPasProcedure(Decl).ProcType.Args)
+      begin
+      CheckArgs(TPasProcedure(Decl).ProcType.Args);
+      if Decl.ClassType=TPasConstructor then
+        UseConstructor(TPasConstructor(Decl),El);
+      end
     else if Decl.ClassType=TPasProperty then
       CheckArgs(Resolver.GetPasPropertyArgs(TPasProperty(Decl)));
     end;
+end;
+
+procedure TPas2JSAnalyzer.UseConstructor(Proc: TPasConstructor;
+  PosEl: TPasElement);
+var
+  ClassScope: TPas2JSClassScope;
+begin
+  if Proc.Parent.ClassType=TPasClassType then
+    begin
+    ClassScope:=TPasClassType(Proc.Parent).CustomData as TPas2JSClassScope;
+    repeat
+      if ClassScope.NewInstanceFunction<>nil then
+        begin
+        UseProcedure(ClassScope.NewInstanceFunction);
+        break;
+        end;
+      ClassScope:=ClassScope.AncestorScope as TPas2JSClassScope;
+    until ClassScope=nil;
+    end;
+  if PosEl=nil then ;
 end;
 
 end.
