@@ -10,8 +10,8 @@ fpcpackage=y
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) $(SYSINIT_UNITS) uuchar objpas macpas iso7185 extpas strings syscall baseunix \
-      $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
+units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc uuchar objpas macpas iso7185 extpas strings syscall baseunix \
+      $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
       $(CPU_UNITS) dos rtlconsts \
       sysutils sortbase fgl classes typinfo math \
       charset cpall character getopts heaptrc lineinfo lnfodwrf \
@@ -237,7 +237,7 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 dl$(PPUEXT) : $(UNIXINC)/dl.pp ctypes$(PPUEXT) objpas$(PPUEXT)
