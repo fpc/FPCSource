@@ -481,9 +481,10 @@ type
     property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
 
-  EInsufficientRtti = class(Exception);
-  EInvocationError = class(Exception);
-  ENonPublicType = class(Exception);
+  ERtti = class(Exception);
+  EInsufficientRtti = class(ERtti);
+  EInvocationError = class(ERtti);
+  ENonPublicType = class(ERtti);
 
   TFunctionCallParameter = record
     ValueRef: Pointer;
