@@ -523,19 +523,14 @@ type
   PByteBool = ^ByteBool;
   PQWordBool = ^QWordBool;
 var
-  stackarea: array of PtrUInt;
-  stackptr: Pointer;
-  regs: array[0..3] of PtrUInt;
   i, argidx, ofs: LongInt;
-  val: PtrUInt;
   td: PTypeData;
-  argcount, resreg, refargs: SizeInt;
+  argcount: SizeInt;
 begin
   fResultInParam := ReturnResultInParam(fResultType);
 
   ofs := 0;
   argidx := 0;
-  refargs := 0;
   argcount := Length(fArgs);
   if fResultInParam then begin
     if fcfStatic in fFlags then
