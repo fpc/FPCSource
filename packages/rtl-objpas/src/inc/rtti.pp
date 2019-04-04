@@ -1984,7 +1984,7 @@ begin
         if Assigned(aArgs[unhidden].TypeInfo) and not aArgs[unhidden].IsArray and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
           raise EInvocationError.CreateFmt(SErrInvokeArrayArgExpected, [param.Name, aName]);
       end else if not (pfHidden in param.Flags) then begin
-        if aArgs[unhidden].Kind <> param.ParamType.TypeKind then
+        if Assigned(param.ParamType) and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
           raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, [param.Name, aName]);
       end;
     end;
@@ -2014,7 +2014,10 @@ begin
 
   for i := 0 to High(aParams) do begin
     param := aParams[i];
-    args[i].Info.ParamType := param.ParamType.FTypeInfo;
+    if Assigned(param.ParamType) then
+      args[i].Info.ParamType := param.ParamType.FTypeInfo
+    else
+      args[i].Info.ParamType := Nil;
     args[i].Info.ParamFlags := param.Flags;
     args[i].Info.ParaLocs := Nil;
 
@@ -2535,7 +2538,10 @@ begin
       Assert((i < Length(fArgs)) and (pfHigh in fArgs[i].ParamFlags), 'Expected high parameter after open array parameter');
       TValue.MakeOpenArray(aArgs[i - 1], SizeInt(aArgs[i]), fArgs[i].ParamType, args[argidx]);
     end else if not (pfHidden in fArgs[i].ParamFlags) or (pfSelf in fArgs[i].ParamFlags) then begin
-      TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx]);
+      if Assigned(fArgs[i].ParamType) then
+        TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx])
+      else
+        TValue.Make(@aArgs[i], TypeInfo(Pointer), args[argidx]);
     end;
 
     Inc(i);
@@ -2727,7 +2733,10 @@ begin
   params := GetParameters(True);
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
-    args[i].ParamType := params[i].ParamType.FTypeInfo;
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
     args[i].ParamFlags := params[i].Flags;
     args[i].ParaLocs := Nil;
     if pfResult in params[i].Flags then
@@ -2759,7 +2768,10 @@ begin
   params := GetParameters(True);
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
-    args[i].ParamType := params[i].ParamType.FTypeInfo;
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
     args[i].ParamFlags := params[i].Flags;
     args[i].ParaLocs := Nil;
     if pfResult in params[i].Flags then
@@ -2794,6 +2806,7 @@ var
   total, visible, i: SizeInt;
   ptr: PByte;
   paramtypes: PPPTypeInfo;
+  paramtype: PTypeInfo;
   context: TRttiContext;
   obj: TRttiObject;
 begin
@@ -2850,7 +2863,11 @@ begin
         if Assigned(obj) then
           FParamsAll[i] := obj as TRttiMethodTypeParameter
         else begin
-          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtypes[i]^);
+          if Assigned(paramtypes[i]) then
+            paramtype := paramtypes[i]^
+          else
+            paramtype := Nil;
+          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
           context.AddObject(FParamsAll[i]);
         end;
 
