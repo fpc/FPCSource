@@ -220,12 +220,9 @@ begin
               Result := @ffi_type_double;
             ftExtended:
               Result := @ffi_type_longdouble;
+            { Comp and Currency are passed as Int64 (ToDo: on all platforms?) }
             ftComp:
-  {$ifndef FPC_HAS_TYPE_EXTENDED}
               Result := @ffi_type_sint64;
-  {$else}
-              Result := @ffi_type_longdouble;
-  {$endif}
             ftCurr:
               Result := @ffi_type_sint64;
           end;
@@ -400,6 +397,12 @@ procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterAr
     WriteStr(Result, aCallConv);
   end;
 
+{ on X86 platforms Currency and Comp results are passed by the X87 if the
+  Extended type is available }
+{$if (defined(CPUI8086) or defined(CPUI386) or defined(CPUX86_64)) and defined(FPC_HAS_TYPE_EXTENDED) and (not defined(FPC_COMP_IS_INT64) or not defined(FPC_CURRENCY_IS_INT64))}
+{$define USE_EXTENDED_AS_COMP_CURRENCY_RES}
+{$endif}
+
 var
   abi: ffi_abi;
   argtypes: array of pffi_type;
@@ -409,6 +412,10 @@ var
   i, arglen, argoffset, retidx, argstart: LongInt;
   cif: ffi_cif;
   retparam: Boolean;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+  restypedata: PTypeData;
+  resextended: Extended;
+{$endif}
 begin
   if Assigned(aResultType) and not Assigned(aResultValue) then
     raise EInvocationError.Create(SErrInvokeResultTypeNoValue);
@@ -483,18 +490,61 @@ begin
     argvalues[retidx] := ValueToFFIValue(aResultValue, aResultType^.Kind, [], True);
     rtype := @ffi_type_void;
     rvalue := Nil;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    restypedata := Nil;
+{$endif}
   end else begin
-    rtype := TypeInfoToFFIType(aResultType, []);
-    if Assigned(aResultType) then
-      rvalue := aResultValue
-    else
-      rvalue := Nil;
+    rvalue := Nil;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    { special case for Comp/Currency as such arguments are passed as Int64,
+      but the result is handled through the X87 }
+    if Assigned(aResultType) and (aResultType^.Kind = tkFloat) then begin
+      restypedata := GetTypeData(aResultType);
+      case restypedata^.FloatType of
+{$ifndef FPC_CURRENCY_IS_INT64}
+        ftCurr: begin
+          rtype := @ffi_type_longdouble;
+          rvalue := @resextended;
+        end;
+{$endif}
+{$ifndef FPC_COMP_IS_INT64}
+        ftComp: begin
+          rtype := @ffi_type_longdouble;
+          rvalue := @resextended;
+        end;
+{$endif}
+      end;
+    end else
+      restypedata := Nil;
+{$endif}
+    if not Assigned(rvalue) then begin
+      rtype := TypeInfoToFFIType(aResultType, []);
+      if Assigned(aResultType) then
+        rvalue := aResultValue
+      else
+        rvalue := Nil;
+    end;
   end;
 
   if ffi_prep_cif(@cif, abi, arglen, rtype, @argtypes[0]) <> FFI_OK then
     raise EInvocationError.Create(SErrInvokeFailed);
 
   ffi_call(@cif, ffi_fn(aCodeAddress), rvalue, @argvalues[0]);
+
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+  if Assigned(restypedata) then begin
+    case restypedata^.FloatType of
+{$ifndef FPC_CURRENCY_IS_INT64}
+      ftCurr:
+        PCurrency(aResultValue)^ := Currency(resextended) / 10000;
+{$endif}
+{$ifndef FPC_COMP_IS_INT64}
+      ftComp:
+        PComp(aResultValue)^ := Comp(resextended);
+{$endif}
+    end;
+  end;
+{$endif}
 end;
 
 const
