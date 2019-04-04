@@ -276,7 +276,8 @@ begin
         else
           raise EInvocationError.CreateFmt(SErrTypeKindNotSupported, [TypeKindName]);
       end;
-  end;
+  end else if aFlags * [pfOut, pfVar, pfConst, pfConstRef] <> [] then
+    Result := @ffi_type_pointer;
 end;
 
 function ValueToFFIValue(constref aValue: Pointer; aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Pointer;
@@ -292,7 +293,8 @@ begin
   Result := aValue;
   if (aKind = tkSString) or
       (aIsResult and (aKind in ResultTypeNeedsIndirection)) or
-      (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) then
+      (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) or
+      ((aKind = tkUnknown) and (pfConst in aFlags)) then
     Result := @aValue;
 end;
 
@@ -412,6 +414,7 @@ var
   i, arglen, argoffset, retidx, argstart: LongInt;
   cif: ffi_cif;
   retparam: Boolean;
+  kind: TTypeKind;
 {$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
   restypedata: PTypeData;
   resextended: Extended;
@@ -473,7 +476,11 @@ begin
 
   if not (fcfStatic in aFlags) and retparam then begin
     argtypes[0] := TypeInfoToFFIType(aArgs[0].Info.ParamType, aArgs[0].Info.ParamFlags);
-    argvalues[0] := ValueToFFIValue(aArgs[0].ValueRef, aArgs[0].Info.ParamType^.Kind, aArgs[0].Info.ParamFlags, False);
+    if Assigned(aArgs[0].Info.ParamType) then
+      kind := aArgs[0].Info.ParamType^.Kind
+    else
+      kind := tkUnknown;
+    argvalues[0] := ValueToFFIValue(aArgs[0].ValueRef, kind, aArgs[0].Info.ParamFlags, False);
     if retparam then
       Inc(retidx);
     argstart := 1;
@@ -482,7 +489,11 @@ begin
 
   for i := Low(aArgs) + argstart to High(aArgs) do begin
     argtypes[i - Low(aArgs) + Low(argtypes) + argoffset] := TypeInfoToFFIType(aArgs[i].Info.ParamType, aArgs[i].Info.ParamFlags);
-    argvalues[i - Low(aArgs) + Low(argtypes) + argoffset] := ValueToFFIValue(aArgs[i].ValueRef, aArgs[i].Info.ParamType^.Kind, aArgs[i].Info.ParamFlags, False);
+    if Assigned(aArgs[i].Info.ParamType) then
+      kind := aArgs[i].Info.ParamType^.Kind
+    else
+      kind := tkUnknown;
+    argvalues[i - Low(aArgs) + Low(argtypes) + argoffset] := ValueToFFIValue(aArgs[i].ValueRef, kind, aArgs[i].Info.ParamFlags, False);
   end;
 
   if retparam then begin
