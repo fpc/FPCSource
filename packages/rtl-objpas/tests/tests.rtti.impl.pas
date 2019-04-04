@@ -27,6 +27,7 @@ type
     OutputArgs: array of TValue;
     ResultValue: TValue;
     InOutMapping: array of SizeInt;
+    InputUntypedTypes: array of PTypeInfo;
 
 {$ifdef fpc}
     procedure OnHandleInvokable(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
@@ -71,6 +72,7 @@ type
   TTestMethod18 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended of object;
   TTestMethod19 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp of object;
   TTestMethod20 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency of object;
+  TTestMethod21 = procedure(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4) of object;
 
   TTestProc1 = procedure;
   TTestProc2 = function(aArg1: SizeInt): SizeInt;
@@ -92,6 +94,7 @@ type
   TTestProc18 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended;
   TTestProc19 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
   TTestProc20 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
+  TTestProc21 = procedure(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4);
 
 const
   SingleArg1: Single = 1.23;
@@ -227,7 +230,10 @@ begin
   SetLength(InputArgs, Length(aArgs));
   for i := 0 to High(aArgs) do begin
     Status('Arg %d: %p %p', [i, aArgs[i].GetReferenceToRawData, PPointer(aArgs[i].GetReferenceToRawData)^]);
-    InputArgs[i] := CopyValue(aArgs[i]);
+    if Assigned(InputUntypedTypes[i]) then
+      TValue.Make(PPointer(aArgs[i].GetReferenceToRawData)^, InputUntypedTypes[i], InputArgs[i])
+    else
+      InputArgs[i] := CopyValue(aArgs[i]);
   end;
   Status('Setting output args');
   { Note: account for Self }
@@ -251,6 +257,7 @@ var
   impl: TMethodImplementation;
   mrec: TMethod;
   name: String;
+  params: array of TRttiParameter;
 begin
   name := aTypeInfo^.Name;
 
@@ -266,12 +273,21 @@ begin
     CheckEquals(Length(aOutputArgs), Length(aInOutMapping), 'Invalid in/out mapping');
     Check(Length(aOutputArgs) <= Length(aInputArgs), 'Output args not part of input args');
 
+    params := method.GetParameters;
+
     { arguments might be modified by Invoke (Note: Copy() does not uniquify the
       IValueData of managed types) }
     SetLength(input, Length(aInputArgs) + 1);
+    SetLength(InputUntypedTypes, Length(aInputArgs) + 1);
     input[0] := GetPointerValue(Self);
-    for i := 0 to High(aInputArgs) do
+    InputUntypedTypes[0] := Nil;
+    for i := 0 to High(aInputArgs) do begin
       input[i + 1] := CopyValue(aInputArgs[i]);
+      if not Assigned(params[i].ParamType) then
+        InputUntypedTypes[i + 1] := aInputArgs[i].TypeInfo
+      else
+        InputUntypedTypes[i + 1] := Nil;
+    end;
 
     impl := method.CreateImplementation({$ifdef fpc}@{$endif}OnHandleInvokable);
     CheckNotNull(impl, 'Method implementation is Nil');
@@ -318,6 +334,7 @@ var
   impl: TMethodImplementation;
   name: String;
   cp: CodePointer;
+  params: array of TRttiParameter;
 begin
   name := aTypeInfo^.Name;
 
@@ -333,11 +350,19 @@ begin
     CheckEquals(Length(aOutputArgs), Length(aInOutMapping), 'Invalid in/out mapping');
     Check(Length(aOutputArgs) <= Length(aInputArgs), 'Output args not part of input args');
 
+    params := proc.GetParameters;
+
     { arguments might be modified by Invoke (Note: Copy() does not uniquify the
       IValueData of managed types) }
     SetLength(input, Length(aInputArgs));
-    for i := 0 to High(aInputArgs) do
+    SetLength(InputUntypedTypes, Length(aInputArgs));
+    for i := 0 to High(aInputArgs) do begin
       input[i] := CopyValue(aInputArgs[i]);
+      if not Assigned(params[i].ParamType) then
+        InputUntypedTypes[i] := aInputArgs[i].TypeInfo
+      else
+        InputUntypedTypes[i] := Nil;
+    end;
 
     impl := proc.CreateImplementation({$ifdef fpc}@{$endif}OnHandleInvokable);
     CheckNotNull(impl, 'Method implementation is Nil');
@@ -476,6 +501,25 @@ begin
     GetCurrencyValue(CurrencyAddArg1), GetCurrencyValue(CurrencyAddArg2), GetCurrencyValue(CurrencyAddArg3), GetCurrencyValue(CurrencyAddArg4), GetCurrencyValue(CurrencyAddArg5),
     GetCurrencyValue(CurrencyAddArg6), GetCurrencyValue(CurrencyAddArg7), GetCurrencyValue(CurrencyAddArg8), GetCurrencyValue(CurrencyAddArg9), GetCurrencyValue(CurrencyAddArg10)
   ], [], [], GetCurrencyValue(CurrencyAddRes));
+
+  {$ifdef fpc}specialize{$endif}GenDoMethodImpl<TTestMethod21>([
+    GetIntValue(1234), GetIntValue(4321), GetIntValue(0), GetIntValue(9876)
+  ], [
+    GetIntValue(5678), GetIntValue(6789)
+  ], [0, 1], TValue.Empty);
+
+  {$ifdef fpc}specialize{$endif}GenDoMethodImpl<TTestMethod21>([
+    GetAnsiString('Alpha'), GetAnsiString('Beta'), GetAnsiString(''), GetAnsiString('Delta')
+  ], [
+    GetAnsiString('Gamma'), GetAnsiString('Epsilon')
+  ], [0, 1], TValue.Empty);
+
+  { for some reason this fails, though it fails in Delphi as well :/ }
+  {{$ifdef fpc}specialize{$endif}GenDoMethodImpl<TTestMethod21>([
+    GetShortString('Alpha'), GetShortString('Beta'), GetShortString(''), GetShortString('Delta')
+  ], [
+    GetShortString('Gamma'), GetShortString('Epsilon')
+  ], [0, 1], TValue.Empty);}
 end;
 
 procedure TTestImpl.TestProcVars;
@@ -569,6 +613,25 @@ begin
     GetCurrencyValue(CurrencyAddArg1), GetCurrencyValue(CurrencyAddArg2), GetCurrencyValue(CurrencyAddArg3), GetCurrencyValue(CurrencyAddArg4), GetCurrencyValue(CurrencyAddArg5),
     GetCurrencyValue(CurrencyAddArg6), GetCurrencyValue(CurrencyAddArg7), GetCurrencyValue(CurrencyAddArg8), GetCurrencyValue(CurrencyAddArg9), GetCurrencyValue(CurrencyAddArg10)
   ], [], [], GetCurrencyValue(CurrencyAddRes));
+
+  {$ifdef fpc}specialize{$endif}GenDoProcImpl<TTestProc21>([
+    GetIntValue(1234), GetIntValue(4321), GetIntValue(0), GetIntValue(9876)
+  ], [
+    GetIntValue(5678), GetIntValue(6789)
+  ], [0, 1], TValue.Empty);
+
+  {$ifdef fpc}specialize{$endif}GenDoProcImpl<TTestProc21>([
+    GetAnsiString('Alpha'), GetAnsiString('Beta'), GetAnsiString(''), GetAnsiString('Delta')
+  ], [
+    GetAnsiString('Gamma'), GetAnsiString('Epsilon')
+  ], [0, 1], TValue.Empty);
+
+  { for some reason this fails, though it fails in Delphi as well :/ }
+  {{$ifdef fpc}specialize{$endif}GenDoProcImpl<TTestProc21>([
+    GetShortString('Alpha'), GetShortString('Beta'), GetShortString(''), GetShortString('Delta')
+  ], [
+    GetShortString('Gamma'), GetShortString('Epsilon')
+  ], [0, 1], TValue.Empty);}
 end;
 {$endif}
 
