@@ -405,7 +405,7 @@ var
   argtypes: array of pffi_type;
   argvalues: array of Pointer;
   rtype: pffi_type;
-  rvalue: ffi_arg;
+  rvalue: Pointer;
   i, arglen, argoffset, retidx, argstart: LongInt;
   cif: ffi_cif;
   retparam: Boolean;
@@ -482,17 +482,19 @@ begin
     argtypes[retidx] := TypeInfoToFFIType(aResultType, []);
     argvalues[retidx] := ValueToFFIValue(aResultValue, aResultType^.Kind, [], True);
     rtype := @ffi_type_void;
+    rvalue := Nil;
   end else begin
     rtype := TypeInfoToFFIType(aResultType, []);
+    if Assigned(aResultType) then
+      rvalue := aResultValue
+    else
+      rvalue := Nil;
   end;
 
   if ffi_prep_cif(@cif, abi, arglen, rtype, @argtypes[0]) <> FFI_OK then
     raise EInvocationError.Create(SErrInvokeFailed);
 
-  ffi_call(@cif, ffi_fn(aCodeAddress), @rvalue, @argvalues[0]);
-
-  if Assigned(aResultType) and not retparam then
-    FFIValueToValue(@rvalue, aResultValue, aResultType);
+  ffi_call(@cif, ffi_fn(aCodeAddress), rvalue, @argvalues[0]);
 end;
 
 const
