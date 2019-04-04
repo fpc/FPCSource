@@ -195,6 +195,8 @@ begin
       AddRegArg(PtrUInt(aArgs[i].ValueRef))
     else if aArgs[i].Info.ParamFlags * [pfOut, pfVar, pfConstRef] <> [] then
       AddRegArg(PtrUInt(aArgs[i].ValueRef))
+    else if (pfConst in aArgs[i].Info.ParamFlags) and not Assigned(aArgs[i].Info.ParamType) then
+      AddRegArg(PtrUInt(aArgs[i].ValueRef))
     else begin
       td := GetTypeData(aArgs[i].Info.ParamType);
       case aArgs[i].Info.ParamType^.Kind of

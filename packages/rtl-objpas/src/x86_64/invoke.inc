@@ -165,6 +165,8 @@ begin
       val := PtrUInt(aArgs[i].ValueRef)
     else if aArgs[i].Info.ParamFlags * [pfOut, pfVar, pfConstRef] <> [] then
       val := PtrUInt(aArgs[i].ValueRef)
+    else if (pfConst in aArgs[i].Info.ParamFlags) and not Assigned(aArgs[i].Info.ParamType) then
+      val := PtrUInt(aArgs[i].ValueRef)
     else begin
       td := GetTypeData(aArgs[i].Info.ParamType);
       case aArgs[i].Info.ParamType^.Kind of
@@ -558,6 +560,8 @@ begin
     if pfArray in fArgs[i].ParamFlags then
       fArgInfos[argidx].Deref := True
     else if fArgs[i].ParamFlags * [pfOut, pfVar, pfConstRef] <> [] then
+      fArgInfos[argidx].Deref := True
+    else if (pfConst in fArgs[i].ParamFlags) and not Assigned(fArgs[i].ParamType) then
       fArgInfos[argidx].Deref := True
     else begin
       td := GetTypeData(fArgs[i].ParamType);
