@@ -63,7 +63,7 @@ TYPE
 
   { file characteristics services }
    stat    = record { the types are real}
-{$ifdef dragonfly}
+{$if defined(dragonfly)}
         st_ino        : ino_t;             // inode's number
         st_nlink      : nlink_t;           // number of hard links
         st_dev        : dev_t;             // inode's device
@@ -86,10 +86,28 @@ TYPE
         st_lspare     : cint32;
         st_qspare1    : cint64;            // was recursive change detect
         st_qspare2    : cint64;
-{$else dragonfly}
-{$ifdef openbsd}
+{$elseif defined(openbsd)}
         st_mode       : mode_t;            // inode protection mode
-{$endif openbsd}
+        st_dev        : dev_t;             // inode's device
+        st_ino        : ino_t;             // inode's number
+        st_nlink      : nlink_t;           // number of hard links
+        st_uid        : uid_t;             // user ID of the file's owner
+        st_gid        : gid_t;             // group ID of the file's group
+        st_rdev       : dev_t;             // device type
+        st_atime      : time_t;            // time of last access
+        st_atimensec  : clong;             // nsec of last access
+        st_mtime      : time_t;            // time of last data modification
+        st_mtimensec  : clong;             // nsec of last data modification
+        st_ctime      : time_t;            // time of last file status change
+        st_ctimensec  : clong;             // nsec of last file status change
+        st_size       : off_t;             // file size, in bytes
+        st_blocks     : cint64;            // blocks allocated for file
+        st_blksize    : cint32;            // optimal blocksize for I/O
+        st_flags      : cuint32;           // user defined flags for file
+        st_gen        : cuint32;           // file generation number
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
+{$else}
         st_dev        : dev_t;             // inode's device
 {$ifdef darwin_new_iostructs}
         st_mode       : mode_t;            // inode protection mode
@@ -102,9 +120,7 @@ TYPE
         st_ino        : ino_t;             // inode's number
 {$else not netbsd}
         st_ino        : ino_t;             // inode's number
-{$ifndef openbsd}
         st_mode       : mode_t;            // inode protection mode
-{$endif not openbsd}
 {$endif not netbsd}
         st_nlink      : nlink_t;           // number of hard links
 {$endif not darwin_new_iostructs}
@@ -135,12 +151,8 @@ TYPE
 {$ifndef NetBSD}
         st_lspare     : cint32;
 {$endif}
-{$ifdef openbsd}
-        st_birthtime  : time_t;            // File creation time
-        st_birthtimensec : clong;          // nsec of file creation time
-{$endif}
         st_qspare     : array[0..1] Of cint64;
-{$endif dragonfly}
+{$endif}
    end;
    TStat = stat;
    pStat = ^stat;
