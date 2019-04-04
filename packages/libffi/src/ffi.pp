@@ -269,7 +269,7 @@ const
 const
   ffilibrary = 'ffi';
 
-{$if defined(CPUX86) and not defined(WIN64)}
+{$if defined(CPUI8086) or defined(CPUI386) or (defined(CPUX86_64) and not defined(WIN64))}
   { Note: we can not use FPC_HAS_TYPE_EXTENDED here as libffi won't have the
           corresponding type no matter what }
   {$define HAVE_LONG_DOUBLE}
