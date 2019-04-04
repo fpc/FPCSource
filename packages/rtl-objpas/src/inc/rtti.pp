@@ -1642,6 +1642,9 @@ begin
     tkQWord   : result := IntToStr(AsUInt64);
     tkInt64   : result := IntToStr(AsInt64);
     tkBool    : result := BoolToStr(AsBoolean, True);
+    tkPointer : result := '(pointer @ ' + HexStr(FData.FAsPointer) + ')';
+    tkInterface : result := '(interface @ ' + HexStr(PPointer(FData.FValueData.GetReferenceToRawData)^) + ')';
+    tkInterfaceRaw : result := '(raw interface @ ' + HexStr(FData.FAsPointer) + ')';
   else
     result := '';
   end;
