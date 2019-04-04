@@ -95,7 +95,7 @@ TYPE
         st_mode       : mode_t;            // inode protection mode
         st_nlink      : nlink_t;           // number of hard links
         st_ino        : ino_t;             // inode's number
-{$else}
+{$else not darwin_new_iostructs}
 {$ifdef netbsd_use_stat30}
      { order is inverted for better alignment probably }
         st_mode       : mode_t;            // inode protection mode
@@ -107,7 +107,7 @@ TYPE
 {$endif not openbsd}
 {$endif not netbsd}
         st_nlink      : nlink_t;           // number of hard links
-{$endif}
+{$endif not darwin_new_iostructs}
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
