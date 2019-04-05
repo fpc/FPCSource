@@ -1653,7 +1653,25 @@ implementation
         left:=nil;
         { create a set constructor tree }
         arrayconstructor_to_set(hp);
-        result:=hp;
+        if is_emptyset(hp) then
+          begin
+            { enforce the result type for an empty set }
+            hp.resultdef:=resultdef;
+            result:=hp;
+          end
+        else if hp.resultdef<>resultdef then
+          begin
+            { the set might contain a subrange element (e.g. through a variable),
+              thus we need to insert another type conversion }
+            if nf_explicit in flags then
+              result:=ctypeconvnode.create_explicit(hp,totypedef)
+            else if nf_internal in flags then
+              result:=ctypeconvnode.create_internal(hp,totypedef)
+            else
+              result:=ctypeconvnode.create(hp,totypedef);
+          end
+        else
+          result:=hp;
       end;
 
 
