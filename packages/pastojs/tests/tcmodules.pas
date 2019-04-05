@@ -16019,6 +16019,7 @@ begin
   Add('  A: texta;');
   Add('begin');
   Add('  a:=texta.new;');
+  Add('  a:=texta(texta.new);');
   Add('  a:=texta.new();');
   Add('  a:=texta.new(1);');
   Add('  with texta do begin');
@@ -16035,6 +16036,7 @@ begin
     'this.A = null;',
     '']),
     LinesToStr([ // $mod.$main
+    '$mod.A = new ExtA();',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA(1,2);',

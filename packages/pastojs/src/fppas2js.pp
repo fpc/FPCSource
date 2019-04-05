@@ -7849,7 +7849,7 @@ begin
   else if aResolver.IsExternalClassConstructor(RightRefDecl) then
     begin
     // e.g. mod.ExtClass.new;
-    if El.Parent is TParamsExpr then
+    if (El.Parent is TParamsExpr) and (TParamsExpr(El.Parent).Value=El) then
       // Note: ExtClass.new() is handled in ConvertFuncParams
       RaiseNotSupported(El,AContext,20190116135818);
     Result:=ConvertExternalConstructor(El.left,RightRef,nil,AContext);
