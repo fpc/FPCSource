@@ -298,6 +298,8 @@ begin
         AddStackArg(PtrUInt(aArgs[stackargs[i]].ValueRef))
       else if aArgs[stackargs[i]].Info.ParamFlags * [pfOut, pfVar, pfConstRef] <> [] then
         AddStackArg(PtrUInt(aArgs[stackargs[i]].ValueRef))
+      else if (pfConst in aArgs[stackargs[i]].Info.ParamFlags) and not Assigned(aArgs[stackargs[i]].Info.ParamType) then
+        AddStackArg(PtrUInt(aArgs[stackargs[i]].ValueRef))
       else begin
         td := GetTypeData(aArgs[stackargs[i]].Info.ParamType);
         case aArgs[stackargs[i]].Info.ParamType^.Kind of
