@@ -82,7 +82,7 @@ implementation
         end;
 
       begin
-         current_module.flags:=current_module.flags or uf_has_exports;
+         include(current_module.moduleflags,mf_has_exports);
          DefString:='';
          InternalProcName:='';
          consume(_EXPORTS);

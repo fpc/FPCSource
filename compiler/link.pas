@@ -374,22 +374,22 @@ Implementation
       begin
         with hp do
          begin
-           if (flags and uf_has_resourcefiles)<>0 then
+           if mf_has_resourcefiles in moduleflags then
              HasResources:=true;
-           if (flags and uf_has_exports)<>0 then
+           if mf_has_exports in moduleflags then
              HasExports:=true;
          { link unit files }
-           if (flags and uf_no_link)=0 then
+           if (headerflags and uf_no_link)=0 then
             begin
               { create mask which unit files need linking }
               mask:=link_always;
               { static linking ? }
               if (cs_link_static in current_settings.globalswitches) then
                begin
-                 if (flags and uf_static_linked)=0 then
+                 if (headerflags and uf_static_linked)=0 then
                   begin
                     { if smart not avail then try static linking }
-                    if (flags and uf_smart_linked)<>0 then
+                    if (headerflags and uf_smart_linked)<>0 then
                      begin
                        Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
                        mask:=mask or link_smart;
@@ -404,10 +404,10 @@ Implementation
 
               if (cs_link_smart in current_settings.globalswitches) then
                begin
-                 if (flags and uf_smart_linked)=0 then
+                 if (headerflags and uf_smart_linked)=0 then
                   begin
                     { if smart not avail then try static linking }
-                    if (flags and uf_static_linked)<>0 then
+                    if (headerflags and uf_static_linked)<>0 then
                      begin
                        { if not create_smartlink_library, then smart linking happens using the
                          regular object files
@@ -425,10 +425,10 @@ Implementation
               { shared linking }
               if (cs_link_shared in current_settings.globalswitches) then
                begin
-                 if (flags and uf_shared_linked)=0 then
+                 if (headerflags and uf_shared_linked)=0 then
                   begin
                     { if shared not avail then try static linking }
-                    if (flags and uf_static_linked)<>0 then
+                    if (headerflags and uf_static_linked)<>0 then
                      begin
                        Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
                        mask:=mask or link_static;

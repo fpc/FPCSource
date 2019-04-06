@@ -43,41 +43,18 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 206;
+  CurrentPPUVersion = 207;
+  CurrentPPULongVersion = 1;
 
 { unit flags }
-  uf_init                = $000001; { unit has initialization section }
-  uf_finalize            = $000002; { unit has finalization section   }
   uf_big_endian          = $000004;
-//uf_has_browser         = $000010;
   uf_in_library          = $000020; { is the file in another file than <ppufile>.* ? }
   uf_smart_linked        = $000040; { the ppu can be smartlinked }
   uf_static_linked       = $000080; { the ppu can be linked static }
   uf_shared_linked       = $000100; { the ppu can be linked shared }
-//uf_local_browser       = $000200;
-  uf_checkpointer_called = $000200; { Unit uses experimental checkpointer test code }
   uf_no_link             = $000400; { unit has no .o generated, but can still have external linking! }
-  uf_has_resourcestrings = $000800; { unit has resource string section }
   uf_little_endian       = $001000;
-  uf_release             = $002000; { unit was compiled with -Ur option }
-  uf_threadvars          = $004000; { unit has threadvars }
   uf_fpu_emulation       = $008000; { this unit was compiled with fpu emulation on }
-  uf_has_stabs_debuginfo = $010000; { this unit has stabs debuginfo generated }
-  uf_local_symtable      = $020000; { this unit has a local symtable stored }
-  uf_uses_variants       = $040000; { this unit uses variants }
-  uf_has_resourcefiles   = $080000; { this unit has external resources (using $R directive)}
-  uf_has_exports         = $100000; { this module or a used unit has exports }
-  uf_has_dwarf_debuginfo = $200000; { this unit has dwarf debuginfo generated }
-  uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
-  uf_classinits          = $800000; { this unit has class constructors/destructors }
-  uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
-  uf_i8086_far_code     = $2000000; { this unit uses an i8086 memory model with far code (i.e. medium, large or huge) }
-  uf_i8086_far_data     = $4000000; { this unit uses an i8086 memory model with far data (i.e. compact or large) }
-  uf_i8086_huge_data    = $8000000; { this unit uses an i8086 memory model with huge data (i.e. huge) }
-  uf_i8086_cs_equals_ds = $10000000; { this unit uses an i8086 memory model with CS=DS (i.e. tiny) }
-  uf_package_deny       = $20000000; { this unit must not be part of a package }
-  uf_package_weak       = $40000000; { this unit may be completely contained in a package }
-  uf_i8086_ss_equals_ds = $80000000; { this unit uses an i8086 memory model with SS=DS (i.e. tiny, small or medium) }
 
 type
   { bestreal is defined based on the target architecture }

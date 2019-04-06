@@ -116,7 +116,7 @@ implementation
           Message(parser_e_no_paras_for_class_constructor);
         consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_constructor);
-        current_module.flags:=current_module.flags or uf_classinits;
+        include(current_module.moduleflags,mf_classinits);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,astruct);
@@ -238,7 +238,7 @@ implementation
           Message(parser_e_no_paras_for_class_destructor);
         consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_destructor);
-        current_module.flags:=current_module.flags or uf_classinits;
+        include(current_module.moduleflags,mf_classinits);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,astruct);

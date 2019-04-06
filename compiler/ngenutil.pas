@@ -114,8 +114,8 @@ interface
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
       class procedure InsertInitFinalTable;
      protected
-      class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal); virtual;
-      class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal); virtual;
+      class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
+      class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag); virtual;
 
       class procedure insert_init_final_table(entries:tfplist); virtual;
 
@@ -477,7 +477,7 @@ implementation
                TSymtable(current_module.globalsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
              TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
              { insert class constructors  }
-             if (current_module.flags and uf_classinits) <> 0 then
+             if mf_classinits in current_module.moduleflags then
                append_struct_initfinis(current_module, potype_class_constructor, stat);
            end;
          { units have seperate code for initilization and finalization }
@@ -501,7 +501,7 @@ implementation
          potype_unitfinalize:
            begin
              { insert class destructors  }
-             if (current_module.flags and uf_classinits) <> 0 then
+             if mf_classinits in current_module.moduleflags then
                append_struct_initfinis(current_module, potype_class_destructor, stat);
              { this is also used for initialization of variables in a
                program which does not have a globalsymtable }
@@ -954,17 +954,17 @@ implementation
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         if (hp.u.flags and (uf_init or uf_finalize))<>0 then
+         if (hp.u.moduleflags * [mf_init,mf_finalize])<>[] then
            begin
              new(entry);
              entry^.module:=hp.u;
              entry^.initpd:=nil;
              entry^.finipd:=nil;
-             if (hp.u.flags and uf_init)<>0 then
+             if mf_init in hp.u.moduleflags then
                entry^.initfunc:=make_mangledname('INIT$',hp.u.globalsymtable,'')
              else
                entry^.initfunc:='';
-             if (hp.u.flags and uf_finalize)<>0 then
+             if mf_finalize in hp.u.moduleflags then
                entry^.finifunc:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'')
              else
                entry^.finifunc:='';
@@ -974,17 +974,17 @@ implementation
        end;
 
       { Insert initialization/finalization of the program }
-      if (current_module.flags and (uf_init or uf_finalize))<>0 then
+      if (current_module.moduleflags * [mf_init,mf_finalize])<>[] then
         begin
           new(entry);
           entry^.module:=current_module;
           entry^.initpd:=nil;
           entry^.finipd:=nil;
-          if (current_module.flags and uf_init)<>0 then
+          if mf_init in current_module.moduleflags then
             entry^.initfunc:=make_mangledname('INIT$',current_module.localsymtable,'')
           else
             entry^.initfunc:='';
-          if (current_module.flags and uf_finalize)<>0 then
+          if mf_finalize in current_module.moduleflags then
             entry^.finifunc:=make_mangledname('FINALIZE$',current_module.localsymtable,'')
           else
             entry^.finifunc:='';
@@ -1160,7 +1160,7 @@ implementation
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         if (hp.u.flags and uf_threadvars)=uf_threadvars then
+         if mf_threadvars in hp.u.moduleflags then
            begin
              sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,true);
              tcb.emit_tai(
@@ -1172,7 +1172,7 @@ implementation
          hp:=tused_unit(hp.next);
        end;
       { Add program threadvars, if any }
-      if (current_module.flags and uf_threadvars)=uf_threadvars then
+      if mf_threadvars in current_module.moduleflags then
         begin
           sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,true);
           tcb.emit_tai(
@@ -1245,7 +1245,7 @@ implementation
            sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
            current_asmdata.asmlists[al_globals].concatlist(
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,sizeof(pint)));
-           current_module.flags:=current_module.flags or uf_threadvars;
+           include(current_module.moduleflags,mf_threadvars);
            current_module.add_public_asmsym(sym);
          end
        else
@@ -1254,7 +1254,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal);
+  class procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag);
     var
       hp: tused_unit;
       tcb: ttai_typedconstbuilder;
@@ -1273,7 +1273,7 @@ implementation
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         if (hp.u.flags and unitflag)=unitflag then
+         if unitflag in hp.u.moduleflags then
           begin
             tcb.emit_tai(
               Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0),
@@ -1283,7 +1283,7 @@ implementation
          hp:=tused_unit(hp.next);
        end;
       { Add items from program, if any }
-      if (current_module.flags and unitflag)=unitflag then
+      if unitflag in current_module.moduleflags then
        begin
          tcb.emit_tai(
            Tai_const.Createname(make_mangledname(prefix,current_module.localsymtable,''),0),
@@ -1306,7 +1306,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal);
+  class procedure tnodeutils.InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag);
     var
       s: string;
       item: TTCInitItem;
@@ -1344,31 +1344,31 @@ implementation
           current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rawdatadef),
           rawdatadef,sec_data,s,sizeof(pint)));
       tcb.free;
-      current_module.flags:=current_module.flags or unitflag;
+      include(current_module.moduleflags,unitflag);
     end;
 
 
   class procedure tnodeutils.InsertWideInits;
     begin
-      InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,uf_wideinits);
+      InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,mf_wideinits);
     end;
 
 
   class procedure tnodeutils.InsertResStrInits;
     begin
-      InsertRuntimeInits('RESSTRINITS',current_asmdata.ResStrInits,uf_resstrinits);
+      InsertRuntimeInits('RESSTRINITS',current_asmdata.ResStrInits,mf_resstrinits);
     end;
 
 
   class procedure tnodeutils.InsertWideInitsTablesTable;
     begin
-      InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',uf_wideinits);
+      InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',mf_wideinits);
     end;
 
 
   class procedure tnodeutils.InsertResStrTablesTable;
     begin
-      InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',uf_resstrinits);
+      InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',mf_resstrinits);
     end;
 
 
@@ -1389,7 +1389,7 @@ implementation
       countplaceholder:=tcb.emit_placeholder(sizesinttype);
       while assigned(hp) do
         begin
-          If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
+          if mf_has_resourcestrings in hp.moduleflags then
             begin
               tcb.emit_tai(Tai_const.Create_sym(
                 ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,[tcdssso_register_asmsym,tcdssso_use_indirect])),
