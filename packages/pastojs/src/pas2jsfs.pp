@@ -31,14 +31,15 @@ uses
   Classes, SysUtils, PScanner, fpjson;
 
 const // Messages
+  nUsingPath = 104; sUsingPath = 'Using %s: "%s"';
+  nFolderNotFound = 105; sFolderNotFound = '%s not found: %s';
+
   nIncludeSearch = 201; sIncludeSearch = 'Include file search: %s';
   nUnitSearch = 202; sUnitSearch = 'Unitsearch: %s';
   nSearchingFileFound = 203; sSearchingFileFound = 'Searching file: %s... found';
   nSearchingFileNotFound = 204; sSearchingFileNotFound = 'Searching file: %s... not found';
   nDuplicateFileFound = 205; sDuplicateFileFound = 'Duplicate file found: "%s" and "%s"';
   nCustomJSFileNotFound = 206; sCustomJSFileNotFound = 'custom JS file not found: "%s"';
-  nUsingPath = 104; sUsingPath = 'Using %s: "%s"';
-  nFolderNotFound = 105; sFolderNotFound = '%s not found: %s';
 
 Type
   // Forward definitions
