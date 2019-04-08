@@ -1915,6 +1915,7 @@ var
   i: Integer;
   aFilename: String;
 begin
+  //writeln('TPas2jsFilesCache.FindUnitFileName "',aUnitname,'" ModuleDir="',ModuleDir,'"');
   Result:='';
   IsForeign:=false;
   SearchedDirs:=TStringList.Create;

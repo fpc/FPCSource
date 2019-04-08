@@ -3191,6 +3191,8 @@ end;
 procedure TPas2JSResolver.AddRecordType(El: TPasRecordType);
 begin
   inherited;
+  if El.Name='' then
+    RaiseNotYetImplemented(20190408224556,El,'anonymous record type');
   if El.Parent is TProcedureBody then
     // local record
     AddElevatedLocal(El);

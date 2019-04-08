@@ -461,6 +461,7 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
+    Procedure TestRecord_AnonymousFail;
     // ToDo: RTTI of local record
     // ToDo: pcu local record, name clash and rtti
 
@@ -10599,6 +10600,18 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '']));
+end;
+
+procedure TTestModule.TestRecord_AnonymousFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  r: record x: word end;',
+  'begin']);
+  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] anonymous record type',
+    nNotYetImplemented);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestAdvRecord_Function;
