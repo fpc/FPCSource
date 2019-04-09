@@ -1989,6 +1989,7 @@
      SM_DIGITIZER            = 94; // win7+ 
      SM_MAXIMUMTOUCHES       = 95; // win7+   
 
+
      SM_REMOTESESSION        = $1000; // WinXP+
      SM_SHUTTINGDOWN         = $2000; // WinXP+
      SM_REMOTECONTROL        = $2001; // WinXP+
@@ -1996,6 +1997,7 @@
      SM_CONVERTIBLESLATEMODE = $2003; // WinXP+
      SM_SYSTEMDOCKED         = $2004; // WinXP+
 
+     ARW_BOTTOMLEFT = 0;
      ARW_BOTTOMRIGHT = $1;
      ARW_HIDE = $8;
      ARW_TOPLEFT = $2;
