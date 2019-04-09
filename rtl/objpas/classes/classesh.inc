@@ -663,8 +663,12 @@ type
     Function GetValueFromIndex(Index: Integer): string;
     Procedure SetValueFromIndex(Index: Integer; const Value: string);
     Procedure CheckSpecialChars;
-    Class Function GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
-    Function GetNextLinebreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+    Class Function GetNextLine (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
+    Function GetNextLinebreak (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
+    {$IF (SizeOf(Integer) < SizeOf(SizeInt)) }
+    class function GetNextLine(const Value: string; var S: string; var P: Integer) : Boolean; deprecated;
+    function GetNextLineBreak(const Value: string; var S: string; var P: Integer) : Boolean; deprecated;
+    {$IFEND}
   public
     constructor Create;
     destructor Destroy; override;
