@@ -17471,6 +17471,7 @@ utils/h2pas/converu.pas svneol=native#text/plain
 utils/h2pas/fpmake.pp svneol=native#text/plain
 utils/h2pas/h2pas.pas svneol=native#text/plain
 utils/h2pas/h2pas.y svneol=native#text/plain
+utils/h2pas/h2paschk.pas svneol=native#text/plain
 utils/h2pas/h2paspp.pas svneol=native#text/plain
 utils/h2pas/h2plexlib.pas svneol=native#text/plain
 utils/h2pas/h2poptions.pas svneol=native#text/plain
