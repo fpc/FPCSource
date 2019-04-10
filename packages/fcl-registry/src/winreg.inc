@@ -187,6 +187,7 @@ function TRegistry.GetKeyInfo(out Value: TRegKeyInfo): Boolean;
 var
   winFileTime: Windows.FILETIME;
   sysTime: TSystemTime;
+  LocalFileTime: Windows.FILETIME;
 begin
   FillChar(Value, SizeOf(Value), 0);
   With Value do
@@ -196,9 +197,9 @@ begin
               lpdword(@MaxDataLen),nil,@winFileTime);
     Result:=FLastError=ERROR_SUCCESS;          
     end;          
-  if Result then
+  if Result and FileTimeToLocalFileTime(@winFileTime, @LocalFileTime) and
+    FileTimeToSystemTime(@LocalFileTime, @sysTime) then
   begin
-    FileTimeToSystemTime(@winFileTime, @sysTime);
     Value.FileTime := SystemTimeToDateTime(sysTime);
   end;
 end;
