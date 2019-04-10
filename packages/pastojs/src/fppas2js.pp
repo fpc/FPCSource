@@ -3191,8 +3191,13 @@ end;
 procedure TPas2JSResolver.AddRecordType(El: TPasRecordType);
 begin
   inherited;
-  if El.Name='' then
+  if (El.Name='') and (El.Parent.ClassType<>TPasVariant) then
+    begin
+    {$IFDEF VerbosePas2JS}
+    writeln('TPas2JSResolver.AddRecordType ',GetObjName(El.Parent));
+    {$ENDIF}
     RaiseNotYetImplemented(20190408224556,El,'anonymous record type');
+    end;
   if El.Parent is TProcedureBody then
     // local record
     AddElevatedLocal(El);
@@ -6585,15 +6590,17 @@ end;
 
 function TPasToJSConverter.CreateFreeOrNewInstanceExpr(Ref: TResolvedReference;
   AContext: TConvertContext): TJSCallExpression;
-// create "$create("funcname");"
+// class: create "$create("ProcName")"
+// record: create "$new().ProcName()"
 var
-  C: TJSCallExpression;
+  C, SubCall: TJSCallExpression;
   Proc: TPasProcedure;
   ProcScope: TPasProcedureScope;
   ClassRecScope: TPasClassOrRecordScope;
   ClassOrRec: TPasElement;
   ArgEx: TJSLiteral;
-  FunName: String;
+  FunName, ProcName: String;
+  DotExpr: TJSDotMemberExpression;
 begin
   Result:=nil;
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr Ref.Declaration=',GetObjName(Ref.Declaration));
@@ -6609,16 +6616,33 @@ begin
     RaiseInconsistency(20170125191923,ClassOrRec);
   C:=CreateCallExpression(Ref.Element);
   try
-    // add "$create()"
-    if rrfNewInstance in Ref.Flags then
-      FunName:=GetBIName(pbifnClassInstanceNew)
+    ProcName:=TransformVariableName(Proc,AContext);
+    if ClassOrRec.ClassType=TPasRecordType then
+      begin
+      // create "path.$new()"
+      FunName:=CreateReferencePath(Proc,AContext,rpkPathWithDot,false,Ref)+GetBIName(pbifnRecordNew);
+      SubCall:=CreateCallExpression(Ref.Element);
+      SubCall.Expr:=CreatePrimitiveDotExpr(FunName,Ref.Element);
+      // append ".ProcName"
+      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,Ref.Element));
+      DotExpr.MExpr:=SubCall;
+      DotExpr.Name:=TJSString(ProcName);
+      // as call: "path.$new().ProcName()"
+      C.Expr:=DotExpr;
+      end
     else
-      FunName:=GetBIName(pbifnClassInstanceFree);
-    FunName:=CreateReferencePath(Proc,AContext,rpkPathWithDot,false,Ref)+FunName;
-    C.Expr:=CreatePrimitiveDotExpr(FunName,Ref.Element);
-    // parameter: "funcname"
-    ArgEx := CreateLiteralString(Ref.Element,TransformVariableName(Proc,AContext));
-    C.AddArg(ArgEx);
+      begin
+      // add "$create()"
+      if rrfNewInstance in Ref.Flags then
+        FunName:=GetBIName(pbifnClassInstanceNew)
+      else
+        FunName:=GetBIName(pbifnClassInstanceFree);
+      FunName:=CreateReferencePath(Proc,AContext,rpkPathWithDot,false,Ref)+FunName;
+      C.Expr:=CreatePrimitiveDotExpr(FunName,Ref.Element);
+      // parameter: "ProcName"
+      ArgEx := CreateLiteralString(Ref.Element,ProcName);
+      C.AddArg(ArgEx);
+      end;
     Result:=C;
   finally
     if Result=nil then
@@ -8288,10 +8312,16 @@ begin
     if TargetProcType.Args.Count>0 then
       begin
       // add default parameters:
-      // insert array parameter [], e.g. this.TObject.$create("create",[])
-      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
-      CreateProcedureCallArgs(ArrLit.Elements,nil,TargetProcType,AContext);
-      Call.AddArg(ArrLit);
+      if Decl.Parent.ClassType=TPasRecordType then
+        // insert default parameters, e.g. TRecord.$new().create(1,2,3)
+        CreateProcedureCallArgs(Call.Args.Elements,nil,TargetProcType,AContext)
+      else
+        begin
+        // insert array parameter [], e.g. TObject.$create("create",[])
+        ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+        CreateProcedureCallArgs(ArrLit.Elements,nil,TargetProcType,AContext);
+        Call.AddArg(ArrLit);
+        end;
       end;
     exit;
     end;
@@ -9653,7 +9683,8 @@ var
       end;
     if Call=nil then
       Call:=CreateFreeOrNewInstanceExpr(Ref,AContext);
-    if rrfNewInstance in Ref.Flags then
+    if (rrfNewInstance in Ref.Flags)
+        and (Ref.Declaration.Parent.ClassType=TPasClassType) then
       begin
       // insert array parameter [], e.g. this.TObject.$create("create",[])
       JsArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));

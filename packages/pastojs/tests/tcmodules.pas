@@ -11221,6 +11221,7 @@ begin
   'var r: TPoint;',
   'begin',
   '  r:=TPoint.Create(1,2);',
+  '  with TPoint do r:=Create(1,2);',
   '  r.Create(3);',
   '  r:=r.Create(4);',
   '']);
@@ -11247,7 +11248,9 @@ begin
     'this.r = $mod.TPoint.$new();',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.r.$assign($mod.TPoint.$create("Create", [1, 2]));',
+    '$mod.r.$assign($mod.TPoint.$new().Create(1, 2));',
+    'var $with1 = $mod.TPoint;',
+    '$mod.r.$assign($with1.$new().Create(1, 2));',
     '$mod.r.Create(3, -1);',
     '$mod.r.$assign($mod.r.Create(4, -1));',
     '']));
@@ -21560,7 +21563,7 @@ begin
     'rtl.createHelper($mod, "THelper", null, function () {',
     '  this.NewHlp = function (w) {',
     '    this.Create(2);',
-    '    $mod.TRec.$create("Create", [3]);',
+    '    $mod.TRec.$new().Create(3);',
     '    $mod.THelper.NewHlp.call(this, 4);',
     '    $mod.THelper.$new("NewHlp", [5]);',
     '    return this;',
