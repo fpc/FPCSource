@@ -499,7 +499,7 @@ Procedure CreateFile;
 
 Var
   Fout : Text;
-  S,BFN : String;
+  S,BFN,ODir : String;
   I : Integer;
 
 begin
@@ -527,7 +527,8 @@ begin
     else
       Writeln(Format(SBackupCreated,[ExtractFileName(OutputFileName),ExtractFileName(BFN)]));
     end;
-  if (OutputFileName<>'') and not DirectoryExists(ExtractFilePath(OutputFileName)) then
+  ODir:=ExtractFilePath(OutputFileName);
+  if (OutputFileName<>'') and (ODir<>'') and not DirectoryExists(ODir) then
     begin
     if CreateDir then
       begin
