@@ -1,4 +1,4 @@
-{ Author: Mattias Gaertner  2018  mattias@freepascal.org
+{ Author: Mattias Gaertner  2019  mattias@freepascal.org
 
 Abstract:
   TPas2jsCompiler is the wheel boss of the pas2js compiler.
