@@ -88,7 +88,7 @@ const
   nSrcMapBaseDirIs = 135; sSrcMapBaseDirIs = 'source map "local base directory" is %s';
   nUnitFileNotFound = 136; sUnitFileNotFound = 'unit file not found %s';
   nClassInterfaceStyleIs = 137; sClassInterfaceStyleIs = 'Class interface style is %s';
-  // was nMacroXSetToY = 138
+  nHandlingEnvOpts = 138; sHandlingEnvOpts = 'handling environment options %s';
   nPostProcessorInfoX = 139; sPostProcessorInfoX = 'Post processor: %s';
   nPostProcessorRunX = 140; sPostProcessorRunX = 'Run post processor: %s';
   nPostProcessorFailX = 141; sPostProcessorFailX = 'Post processor failed: %s';
@@ -549,6 +549,7 @@ type
     // params, cfg files
     FCurParam: string;
     procedure LoadConfig(CfgFilename: string);
+    procedure ReadEnvironment;
     procedure ReadParam(Param: string; Quick, FromCmdLine: boolean);
     procedure ReadSingleLetterOptions(const Param: string; p: integer;
       const Allowed: string; out Enabled, Disabled: string);
@@ -1673,30 +1674,211 @@ begin
   // if Result=nil resolver will give a nice error position, so don't do it here
 end;
 
-{ TPas2jsCompiler }
+{ TPas2JSConfigSupport }
 
-procedure TPas2jsCompiler.SetFS(AValue: TPas2jsFS);
+procedure TPas2JSConfigSupport.CfgSyntaxError(const Msg: string);
 begin
-  if FFS=AValue then Exit;
-  FOwnsFS:=false;
-  FFS:=AValue;
+  Compiler.Log.Log(mtError,Msg,0,CurrentCfgFilename,CurrentCfgLineNumber,0);
+  Compiler.Terminate(ExitCodeErrorInConfig);
 end;
 
-function TPas2jsCompiler.GetFileCount: integer;
-begin
-  Result:=FFiles.Count;
-end;
-
-function TPas2jsCompiler.GetDefaultNamespace: String;
+procedure TPas2JSConfigSupport.LoadConfig(Const aFileName: String);
+type
+  TSkip = (
+    skipNone,
+    skipIf,
+    skipElse
+  );
+const
+  IdentChars = ['a'..'z','A'..'Z','_','0'..'9'];
 var
-  C: TClass;
+  Line: String;
+  l, p, StartP: integer;
+
+  function GetWord: String;
+  begin
+    StartP:=p;
+    while (p<=l) and ((Line[p] in IdentChars) or (Line[p]>#127)) do inc(p);
+    Result:=copy(Line,StartP,p-StartP);
+    while (p<=l) and (Line[p] in [' ',#9]) do inc(p);
+  end;
+
+  procedure DebugCfgDirective(const s: string);
+  begin
+    Compiler.Log.LogMsg(nCfgDirective,[QuoteStr(Line),s],CurrentCfgFilename,CurrentCfgLineNumber,1,false);
+  end;
+
+var
+  OldCfgFilename, Directive, aName, Expr: String;
+  aFile: TSourceLineReader;
+  IfLvl, SkipLvl, OldCfgLineNumber: Integer;
+  Skip: TSkip;
 begin
-  Result:='';
-  if FMainFile=nil then exit;
-  if FMainFile.PasModule=nil then exit;
-  C:=FMainFile.PasModule.ClassType;
-  if (C=TPasProgram) or (C=TPasLibrary) or (C=TPasPackage) then
-    Result:=FMainFile.PascalResolver.DefaultNameSpace;
+  if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
+    Compiler.Log.LogMsgIgnoreFilter(nReadingOptionsFromFile,[QuoteStr(aFilename)]);
+  IfLvl:=0;
+  SkipLvl:=0;
+  Skip:=skipNone;
+  aFile:=nil;
+  try
+    OldCfgFilename:=FCurrentCfgFilename;
+    FCurrentCfgFilename:=aFilename;
+    OldCfgLineNumber:=FCurrentCfgLineNumber;
+    aFile:=GetReader(aFileName);
+    while not aFile.IsEOF do begin
+      Line:=aFile.ReadLine;
+      FCurrentCfgLineNumber:=aFile.LineNumber;
+      if Compiler.ShowDebug then
+        Compiler.Log.LogMsgIgnoreFilter(nInterpretingFileOption,[QuoteStr(Line)]);
+      if Line='' then continue;
+      l:=length(Line);
+      p:=1;
+      while (p<=l) and (Line[p] in [' ',#9]) do inc(p);
+      if p>l then continue; // empty line
+
+      if (p<=l) and (Line[p]='#') then
+      begin
+        // cfg directive
+        inc(p);
+        if (p>l) or (Line[p] in [#0,#9,' ','-']) then continue; // comment
+        Directive:=lowercase(GetWord);
+        case Directive of
+        'ifdef','ifndef':
+          begin
+            inc(IfLvl);
+            if Skip=skipNone then
+            begin
+              aName:=GetWord;
+              if Compiler.IsDefined(aName)=(Directive='ifdef') then
+              begin
+                // execute block
+                if Compiler.ShowDebug then
+                  DebugCfgDirective('true -> execute');
+              end else begin
+                // skip block
+                if Compiler.ShowDebug then
+                  DebugCfgDirective('false -> skip');
+                SkipLvl:=IfLvl;
+                Skip:=skipIf;
+              end;
+            end;
+          end;
+        'if':
+          begin
+            inc(IfLvl);
+            if Skip=skipNone then
+            begin
+              Expr:=copy(Line,p,length(Line));
+              if ConditionEvaluator.Eval(Expr) then
+              begin
+                // execute block
+                if Compiler.ShowDebug then
+                  DebugCfgDirective('true -> execute');
+              end else begin
+                // skip block
+                if Compiler.ShowDebug then
+                  DebugCfgDirective('false -> skip');
+                SkipLvl:=IfLvl;
+                Skip:=skipIf;
+              end;
+            end;
+          end;
+        'else':
+          begin
+            if IfLvl=0 then
+              CfgSyntaxError('"'+Directive+'" without #ifdef');
+            if (Skip=skipElse) and (IfLvl=SkipLvl) then
+              CfgSyntaxError('"there was already an #else');
+            if (Skip=skipIf) and (IfLvl=SkipLvl) then
+            begin
+              // if-block was skipped -> execute else block
+              if Compiler.ShowDebug then
+                DebugCfgDirective('execute');
+              SkipLvl:=0;
+              Skip:=skipNone;
+            end else if Skip=skipNone then
+            begin
+              // if-block was executed -> skip else block
+              if Compiler.ShowDebug then
+                DebugCfgDirective('skip');
+              Skip:=skipElse;
+              SkipLvl:=IfLvl;
+            end;
+          end;
+        'elseif':
+          begin
+            if IfLvl=0 then
+              CfgSyntaxError('"'+Directive+'" without #ifdef');
+            if (Skip=skipIf) and (IfLvl=SkipLvl) then
+            begin
+              // if-block was skipped -> try this elseif
+              Expr:=copy(Line,p,length(Line));
+              if ConditionEvaluator.Eval(Expr) then
+              begin
+                // execute elseif block
+                if Compiler.ShowDebug then
+                  DebugCfgDirective('true -> execute');
+                SkipLvl:=0;
+                Skip:=skipNone;
+              end else begin
+                // skip elseif block
+                if Compiler.ShowDebug then
+                  DebugCfgDirective('false -> skip');
+              end;
+            end else if Skip=skipNone then
+            begin
+              // if-block was executed -> skip without test
+              if Compiler.ShowDebug then
+                DebugCfgDirective('no test -> skip');
+              Skip:=skipIf;
+            end;
+          end;
+        'endif':
+          begin
+            if IfLvl=0 then
+              CfgSyntaxError('"'+Directive+'" without #ifdef');
+            dec(IfLvl);
+            if IfLvl<SkipLvl then
+            begin
+              // end block
+              if Compiler.ShowDebug then
+                DebugCfgDirective('end block');
+              SkipLvl:=0;
+              Skip:=skipNone;
+            end;
+          end;
+        'error':
+          Compiler.ParamFatal('user defined: '+copy(Line,p,length(Line)))
+        else
+          if Skip=skipNone then
+            CfgSyntaxError('unknown directive "#'+Directive+'"')
+          else
+            DebugCfgDirective('skipping unknown directive');
+        end;
+      end else if Skip=skipNone then
+      begin
+        // option line
+        Line:=copy(Line,p,length(Line));
+        Compiler.ReadParam(Line,false,false);
+      end;
+    end;
+  finally
+    FCurrentCfgFilename:=OldCfgFilename;
+    FCurrentCfgLineNumber:=OldCfgLineNumber;
+    aFile.Free;
+  end;
+  if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
+    Compiler.Log.LogMsgIgnoreFilter(nEndOfReadingConfigFile,[QuoteStr(aFilename)]);
+end;
+
+procedure TPas2JSConfigSupport.LoadDefaultConfig;
+var
+  aFileName: string;
+
+begin
+  aFileName:=FindDefaultConfig;
+  if aFileName<>'' then
+    LoadConfig(aFilename);
 end;
 
 procedure TPas2JSConfigSupport.ConditionEvalLog(Sender: TCondDirectiveEvaluator;
@@ -1734,6 +1916,32 @@ begin
 
   if Sender=nil then ;
   Result:=false;
+end;
+
+{ TPas2jsCompiler }
+
+procedure TPas2jsCompiler.SetFS(AValue: TPas2jsFS);
+begin
+  if FFS=AValue then Exit;
+  FOwnsFS:=false;
+  FFS:=AValue;
+end;
+
+function TPas2jsCompiler.GetFileCount: integer;
+begin
+  Result:=FFiles.Count;
+end;
+
+function TPas2jsCompiler.GetDefaultNamespace: String;
+var
+  C: TClass;
+begin
+  Result:='';
+  if FMainFile=nil then exit;
+  if FMainFile.PasModule=nil then exit;
+  C:=FMainFile.PasModule.ClassType;
+  if (C=TPasProgram) or (C=TPasLibrary) or (C=TPasPackage) then
+    Result:=FMainFile.PascalResolver.DefaultNameSpace;
 end;
 
 procedure TPas2jsCompiler.Compile(StartTime: TDateTime);
@@ -2752,7 +2960,7 @@ begin
   r(mtInfo,nSrcMapBaseDirIs,sSrcMapBaseDirIs);
   r(mtFatal,nUnitFileNotFound,sUnitFileNotFound);
   r(mtInfo,nClassInterfaceStyleIs,sClassInterfaceStyleIs);
-  LastMsgNumber:=-1; ;// was nMacroXSetToY 138
+  r(mtInfo,nHandlingEnvOpts,sHandlingEnvOpts);
   r(mtInfo,nPostProcessorInfoX,sPostProcessorInfoX);
   r(mtInfo,nPostProcessorRunX,sPostProcessorRunX);
   r(mtError,nPostProcessorFailX,sPostProcessorFailX);
@@ -2762,215 +2970,29 @@ begin
   Pas2jsPParser.RegisterMessages(Log);
 end;
 
-procedure TPas2JSConfigSupport.CfgSyntaxError(const Msg: string);
-begin
-  Compiler.Log.Log(mtError,Msg,0,CurrentCfgFilename,CurrentCfgLineNumber,0);
-  Compiler.Terminate(ExitCodeErrorInConfig);
-end;
-
 procedure TPas2jsCompiler.LoadConfig(CfgFilename: string);
 begin
   ConfigSupport.LoadConfig(CfgFileName);
 end;
 
-procedure TPas2JSConfigSupport.LoadConfig(Const aFileName: String);
-type
-  TSkip = (
-    skipNone,
-    skipIf,
-    skipElse
-  );
-const
-  IdentChars = ['a'..'z','A'..'Z','_','0'..'9'];
+procedure TPas2jsCompiler.ReadEnvironment;
 var
-  Line: String;
-  l, p, StartP: integer;
-
-  function GetWord: String;
-  begin
-    StartP:=p;
-    while (p<=l) and ((Line[p] in IdentChars) or (Line[p]>#127)) do inc(p);
-    Result:=copy(Line,StartP,p-StartP);
-    while (p<=l) and (Line[p] in [' ',#9]) do inc(p);
-  end;
-
-  procedure DebugCfgDirective(const s: string);
-  begin
-    Compiler.Log.LogMsg(nCfgDirective,[QuoteStr(Line),s],CurrentCfgFilename,CurrentCfgLineNumber,1,false);
-  end;
-
-var
-  OldCfgFilename, Directive, aName, Expr: String;
-  aFile: TSourceLineReader;
-  IfLvl, SkipLvl, OldCfgLineNumber: Integer;
-  Skip: TSkip;
+  s: String;
+  List: TStrings;
 begin
-  if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
-    Compiler.Log.LogMsgIgnoreFilter(nReadingOptionsFromFile,[QuoteStr(aFilename)]);
-  IfLvl:=0;
-  SkipLvl:=0;
-  Skip:=skipNone;
-  aFile:=nil;
+  s:=GetEnvironmentVariable('PAS2JS_OPTS');
+  if s='' then exit;
+  if ShowDebug then
+    Log.LogMsgIgnoreFilter(nHandlingEnvOpts,['PAS2JS_OPTS=['+s+']']);
+  List:=TStringList.Create;
   try
-    OldCfgFilename:=FCurrentCfgFilename;
-    FCurrentCfgFilename:=aFilename;
-    OldCfgLineNumber:=FCurrentCfgLineNumber;
-    aFile:=GetReader(aFileName);
-    while not aFile.IsEOF do begin
-      Line:=aFile.ReadLine;
-      FCurrentCfgLineNumber:=aFile.LineNumber;
-      if Compiler.ShowDebug then
-        Compiler.Log.LogMsgIgnoreFilter(nInterpretingFileOption,[QuoteStr(Line)]);
-      if Line='' then continue;
-      l:=length(Line);
-      p:=1;
-      while (p<=l) and (Line[p] in [' ',#9]) do inc(p);
-      if p>l then continue; // empty line
-
-      if (p<=l) and (Line[p]='#') then
-      begin
-        // cfg directive
-        inc(p);
-        if (p>l) or (Line[p] in [#0,#9,' ','-']) then continue; // comment
-        Directive:=lowercase(GetWord);
-        case Directive of
-        'ifdef','ifndef':
-          begin
-            inc(IfLvl);
-            if Skip=skipNone then
-            begin
-              aName:=GetWord;
-              if Compiler.IsDefined(aName)=(Directive='ifdef') then
-              begin
-                // execute block
-                if Compiler.ShowDebug then
-                  DebugCfgDirective('true -> execute');
-              end else begin
-                // skip block
-                if Compiler.ShowDebug then
-                  DebugCfgDirective('false -> skip');
-                SkipLvl:=IfLvl;
-                Skip:=skipIf;
-              end;
-            end;
-          end;
-        'if':
-          begin
-            inc(IfLvl);
-            if Skip=skipNone then
-            begin
-              Expr:=copy(Line,p,length(Line));
-              if ConditionEvaluator.Eval(Expr) then
-              begin
-                // execute block
-                if Compiler.ShowDebug then
-                  DebugCfgDirective('true -> execute');
-              end else begin
-                // skip block
-                if Compiler.ShowDebug then
-                  DebugCfgDirective('false -> skip');
-                SkipLvl:=IfLvl;
-                Skip:=skipIf;
-              end;
-            end;
-          end;
-        'else':
-          begin
-            if IfLvl=0 then
-              CfgSyntaxError('"'+Directive+'" without #ifdef');
-            if (Skip=skipElse) and (IfLvl=SkipLvl) then
-              CfgSyntaxError('"there was already an #else');
-            if (Skip=skipIf) and (IfLvl=SkipLvl) then
-            begin
-              // if-block was skipped -> execute else block
-              if Compiler.ShowDebug then
-                DebugCfgDirective('execute');
-              SkipLvl:=0;
-              Skip:=skipNone;
-            end else if Skip=skipNone then
-            begin
-              // if-block was executed -> skip else block
-              if Compiler.ShowDebug then
-                DebugCfgDirective('skip');
-              Skip:=skipElse;
-              SkipLvl:=IfLvl;
-            end;
-          end;
-        'elseif':
-          begin
-            if IfLvl=0 then
-              CfgSyntaxError('"'+Directive+'" without #ifdef');
-            if (Skip=skipIf) and (IfLvl=SkipLvl) then
-            begin
-              // if-block was skipped -> try this elseif
-              Expr:=copy(Line,p,length(Line));
-              if ConditionEvaluator.Eval(Expr) then
-              begin
-                // execute elseif block
-                if Compiler.ShowDebug then
-                  DebugCfgDirective('true -> execute');
-                SkipLvl:=0;
-                Skip:=skipNone;
-              end else begin
-                // skip elseif block
-                if Compiler.ShowDebug then
-                  DebugCfgDirective('false -> skip');
-              end;
-            end else if Skip=skipNone then
-            begin
-              // if-block was executed -> skip without test
-              if Compiler.ShowDebug then
-                DebugCfgDirective('no test -> skip');
-              Skip:=skipIf;
-            end;
-          end;
-        'endif':
-          begin
-            if IfLvl=0 then
-              CfgSyntaxError('"'+Directive+'" without #ifdef');
-            dec(IfLvl);
-            if IfLvl<SkipLvl then
-            begin
-              // end block
-              if Compiler.ShowDebug then
-                DebugCfgDirective('end block');
-              SkipLvl:=0;
-              Skip:=skipNone;
-            end;
-          end;
-        'error':
-          Compiler.ParamFatal('user defined: '+copy(Line,p,length(Line)))
-        else
-          if Skip=skipNone then
-            CfgSyntaxError('unknown directive "#'+Directive+'"')
-          else
-            DebugCfgDirective('skipping unknown directive');
-        end;
-      end else if Skip=skipNone then
-      begin
-        // option line
-        Line:=copy(Line,p,length(Line));
-        Compiler.ReadParam(Line,false,false);
-      end;
-    end;
+    SplitCmdLineParams(s,List);
+    for s in List do
+      if s<>'' then
+        ReadParam(s,false,false);
   finally
-    FCurrentCfgFilename:=OldCfgFilename;
-    FCurrentCfgLineNumber:=OldCfgLineNumber;
-    aFile.Free;
+    List.Free;
   end;
-  if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
-    Compiler.Log.LogMsgIgnoreFilter(nEndOfReadingConfigFile,[QuoteStr(aFilename)]);
-end;
-
-procedure TPas2JSConfigSupport.LoadDefaultConfig;
-
-var
-  aFileName: string;
-
-begin
-  aFileName:=FindDefaultConfig;
-  if aFileName<>'' then
-    LoadConfig(aFilename);
 end;
 
 procedure TPas2jsCompiler.ParamFatal(Msg: string);
@@ -4067,6 +4089,9 @@ begin
     // read default config
     if Assigned(ConfigSupport) and not SkipDefaultConfig then
       ConfigSupport.LoadDefaultConfig;
+
+    // read env PAS2JS_OPTS
+    ReadEnvironment;
 
     // read command line parameters
     for i:=0 to ParamList.Count-1 do
