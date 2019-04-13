@@ -43,7 +43,13 @@ type
 {$endif Test_Double_checksum}
 
 const
+  { only update this version if something change in the tppuheader:
+     * the unit flags listed below
+     * the format of the header itslf
+    This number cannot become bigger than 255 (it's stored in a byte) }
   CurrentPPUVersion = 207;
+  { for any other changes to the ppu format, increase this version number
+    (it's a cardinal) }
   CurrentPPULongVersion = 1;
 
 { unit flags }
