@@ -447,7 +447,8 @@ unit cpupara;
             { syscall for AROS can have already a paraloc set }
             if (vo_has_explicit_paraloc in hp.varoptions) then
               begin
-                if not(vo_is_syscall_lib in hp.varoptions) then
+                { on AROS-i386, only the libbase can have explicit paraloc }
+                if not (vo_is_syscall_lib in hp.varoptions) then
                   internalerror(2016090105);
                 if p.proccalloption in pushleftright_pocalls then
                   dec(i)

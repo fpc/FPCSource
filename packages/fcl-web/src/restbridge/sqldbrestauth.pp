@@ -65,6 +65,7 @@ Type
     Constructor Create(AOwner :TComponent); override;
     Destructor Destroy; override;
     class function ExtractUserNamePassword(Req: TRequest; out UN, PW: UTF8String): Boolean;
+    class function ExtractUserName(Req: TRequest) : UTF8String;
     Function NeedConnection : Boolean; override;
     function DoAuthenticateRequest(IO : TRestIO) : Boolean; override;
   Published
@@ -133,13 +134,14 @@ begin
   Result:=HaveAuthSQL and (AuthConnection=Nil);
 end;
 
-Function TRestBasicAuthenticator.HaveAuthSQL : Boolean;
+function TRestBasicAuthenticator.HaveAuthSQL: Boolean;
 
 begin
   Result:=(FAuthSQL.Count>0) and (Trim(FAuthSQL.Text)<>'');
 end;
 
-function TRestBasicAuthenticator.AuthenticateUserUsingSQl(IO : TRestIO; Const UN,PW : UTF8String; Out UID : UTF8String) : Boolean;
+function TRestBasicAuthenticator.AuthenticateUserUsingSQl(IO: TRestIO;
+  const UN, PW: UTF8String; out UID: UTF8String): Boolean;
 
 Var
   Conn : TSQLConnection;
@@ -179,7 +181,8 @@ begin
   end;
 end;
 
-Class Function TRestBasicAuthenticator.ExtractUserNamePassword(Req : TRequest; Out UN,PW : UTF8String) : Boolean;
+class function TRestBasicAuthenticator.ExtractUserNamePassword(Req: TRequest;
+  out UN, PW: UTF8String): Boolean;
 
 Var
   S,A : String;
@@ -204,7 +207,17 @@ begin
     end;
 end;
 
-function TRestBasicAuthenticator.DoAuthenticateRequest(io: TRestIO): Boolean;
+class function TRestBasicAuthenticator.ExtractUserName(Req: TRequest): UTF8String;
+
+Var
+  PW : UTF8String;
+
+begin
+  if not ExtractUserNamePassword(Req,Result,PW) then
+    Result:='?';
+end;
+
+function TRestBasicAuthenticator.DoAuthenticateRequest(IO: TRestIO): Boolean;
 
 Var
   UID,UN,PW : UTF8String;

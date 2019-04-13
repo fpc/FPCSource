@@ -76,6 +76,7 @@ type
     procedure TestWPO_Class_OmitPropertyGetter2;
     procedure TestWPO_Class_OmitPropertySetter1;
     procedure TestWPO_Class_OmitPropertySetter2;
+    procedure TestWPO_Class_KeepNewInstance;
     procedure TestWPO_CallInherited;
     procedure TestWPO_UseUnit;
     procedure TestWPO_ArrayOfConst_Use;
@@ -721,6 +722,56 @@ begin
     '']),
     LinesToStr([
     '$mod.o.SetFoo(true);',
+    '']));
+end;
+
+procedure TTestOptimizations.TestWPO_Class_KeepNewInstance;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExt = class external name ''Object''',
+  '  end;',
+  '  TBird = class(TExt)',
+  '  protected',
+  '    class function NewInstance(fnname: string; const paramarray): TBird; virtual;',
+  '  public',
+  '    constructor Create;',
+  '  end;',
+  'class function TBird.NewInstance(fnname: string; const paramarray): TBird;',
+  'begin',
+  '  asm',
+  '  Result = Object.create();',
+  '  end;',
+  'end;',
+  'constructor TBird.Create;',
+  'begin',
+  '  inherited;',
+  'end;',
+  'begin',
+  '  TBird.Create;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestWPO_Class_KeepNewInstance',
+    LinesToStr([
+    'rtl.createClassExt($mod, "TBird", Object, "NewInstance", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.NewInstance = function (fnname, paramarray) {',
+    '    var Result = null;',
+    '    Result = Object.create();',
+    '    return Result;',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '$mod.TBird.$create("Create");',
     '']));
 end;
 

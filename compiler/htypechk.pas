@@ -192,6 +192,7 @@ interface
     procedure set_unique(p : tnode);
 
     function  valid_for_formal_var(p : tnode; report_errors: boolean) : boolean;
+    function  valid_for_formal_constref(p : tnode; report_errors: boolean) : boolean;
     function  valid_for_formal_const(p : tnode; report_errors: boolean) : boolean;
     function  valid_for_var(p:tnode; report_errors: boolean):boolean;
     function  valid_for_assignment(p:tnode; report_errors: boolean):boolean;
@@ -1940,6 +1941,13 @@ implementation
     function  valid_for_formal_var(p : tnode; report_errors: boolean) : boolean;
       begin
         valid_for_formal_var:=valid_for_assign(p,[valid_void,valid_range],report_errors);
+      end;
+
+
+    function  valid_for_formal_constref(p : tnode; report_errors: boolean) : boolean;
+      begin
+        valid_for_formal_constref:=(p.resultdef.typ=formaldef) or
+          valid_for_assign(p,[valid_void,valid_range],report_errors);
       end;
 
 

@@ -37,6 +37,21 @@ type
 { TMyApplication }
 
 procedure TMyApplication.DumpGlyphIndex;
+
+  procedure PrintGlyphWidth(const aIndex: UInt32);
+  var
+    lWidthIndex: integer;
+  begin
+    { NOTE: Monospaced fonts may not have a width for every glyph
+            the last one is for subsequent glyphs.  }
+    if aIndex < FFontFile.HHead.numberOfHMetrics then
+      lWidthIndex := FFontFile.Chars[aIndex]
+    else
+      lWidthIndex := FFontFile.HHead.numberOfHMetrics-1;
+
+    Writeln(Format('  %3d = %d', [FFontFile.Chars[aIndex], TFriendClass(FFontFile).ToNatural(FFontFile.Widths[lWidthIndex].AdvanceWidth)]));
+  end;
+
 begin
   Writeln('FHHead.numberOfHMetrics = ', FFontFile.HHead.numberOfHMetrics);
   Writeln('Length(Chars[]) = ', Length(FFontFile.Chars));
@@ -47,9 +62,9 @@ begin
   Writeln('  U+0048 (H) = ', Format('%d  (%0:4.4x)', [FFontFile.Chars[$0048]]));
   writeln;
   Writeln('Glyph widths:');
-  Writeln('  3 = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0020]].AdvanceWidth));
-  Writeln('  4 = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0021]].AdvanceWidth));
-  Writeln('  H = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0048]].AdvanceWidth));
+  PrintGlyphWidth($0020);
+  PrintGlyphWidth($0021);
+  PrintGlyphWidth($0048);
 end;
 
 function TMyApplication.GetGlyphIndices(const AText: UnicodeString): TTextMappingList;
@@ -121,6 +136,7 @@ begin
   end;
 
   FFontFile.LoadFromFile(self.GetOptionValue('f'));
+  Writeln('Postscript.IsFixedPitch = ', BoolToStr(FFontFile.PostScript.isFixedPitch > 0, True));
   DumpGlyphIndex;
 
   // test #1

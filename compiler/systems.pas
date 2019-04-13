@@ -350,13 +350,13 @@ interface
        systems_indirect_entry_information = systems_darwin+[system_i386_win32,system_x86_64_win64,system_x86_64_linux];
 
        { all systems for which weak linking has been tested/is supported }
-       systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
+       systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android + systems_openbsd;
 
        systems_internal_sysinit = [system_i386_win32,system_x86_64_win64,
                                    system_i386_linux,system_powerpc64_linux,system_sparc64_linux,system_x86_64_linux,
                                    system_m68k_atari,system_m68k_palmos,
                                    system_i386_haiku,system_x86_64_haiku,
-                                   system_x86_64_openbsd
+                                   system_i386_openbsd,system_x86_64_openbsd
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use garbage collection for reference-counted types }

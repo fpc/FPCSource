@@ -3387,7 +3387,7 @@ implementation
         bind: tasmsymbind;
         lang: tdwarf_source_language;
       begin
-        current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
+        include(current_module.moduleflags,mf_has_dwarf_debuginfo);
         storefilepos:=current_filepos;
         current_filepos:=current_module.mainfilepos;
 
@@ -3631,7 +3631,7 @@ implementation
         hp:=tmodule(loaded_units.first);
         while assigned(hp) do
           begin
-            If ((hp.flags and uf_has_dwarf_debuginfo)=uf_has_dwarf_debuginfo) and not assigned(hp.package) then
+            If (mf_has_dwarf_debuginfo in hp.moduleflags) and not assigned(hp.package) then
               begin
                 list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',hp.localsymtable,''),0));
                 list.concat(Tai_const.Createname(make_mangledname('DEBUGEND',hp.localsymtable,''),0));

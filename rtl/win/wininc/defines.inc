@@ -1989,6 +1989,14 @@
      SM_DIGITIZER            = 94; // win7+ 
      SM_MAXIMUMTOUCHES       = 95; // win7+   
 
+
+     SM_REMOTESESSION        = $1000; // WinXP+
+     SM_SHUTTINGDOWN         = $2000; // WinXP+
+     SM_REMOTECONTROL        = $2001; // WinXP+
+     SM_CARETBLINKINGENABLED = $2002; // WinXP+
+     SM_CONVERTIBLESLATEMODE = $2003; // WinXP+
+     SM_SYSTEMDOCKED         = $2004; // WinXP+
+
      ARW_BOTTOMLEFT = 0;
      ARW_BOTTOMRIGHT = $1;
      ARW_HIDE = $8;
@@ -2309,12 +2317,18 @@
      MB_ICONSTOP = $10;
      MB_OKCANCEL = $1;
      MB_RETRYCANCEL = $5;
+     MB_CANCELTRYCONTINUE = $6;
      MB_SERVICE_NOTIFICATION = $40000;
      MB_SETFOREGROUND = $10000;
      MB_SYSTEMMODAL = $1000;
      MB_TASKMODAL = $2000;
      MB_YESNO = $4;
      MB_YESNOCANCEL = $3;
+     MB_TYPEMASK = $0000000F;
+     MB_ICONMASK = $000000F0;
+     MB_DEFMASK  = $00000F00;
+     MB_MODEMASK = $00003000;
+     MB_MISCMASK = $0000C000;
      IDABORT = 3;
      IDCANCEL = 2;
      IDCLOSE = 8;

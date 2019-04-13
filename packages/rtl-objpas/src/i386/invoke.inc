@@ -195,6 +195,8 @@ begin
       AddRegArg(PtrUInt(aArgs[i].ValueRef))
     else if aArgs[i].Info.ParamFlags * [pfOut, pfVar, pfConstRef] <> [] then
       AddRegArg(PtrUInt(aArgs[i].ValueRef))
+    else if (pfConst in aArgs[i].Info.ParamFlags) and not Assigned(aArgs[i].Info.ParamType) then
+      AddRegArg(PtrUInt(aArgs[i].ValueRef))
     else begin
       td := GetTypeData(aArgs[i].Info.ParamType);
       case aArgs[i].Info.ParamType^.Kind of
@@ -295,6 +297,8 @@ begin
       if pfArray in aArgs[stackargs[i]].Info.ParamFlags then
         AddStackArg(PtrUInt(aArgs[stackargs[i]].ValueRef))
       else if aArgs[stackargs[i]].Info.ParamFlags * [pfOut, pfVar, pfConstRef] <> [] then
+        AddStackArg(PtrUInt(aArgs[stackargs[i]].ValueRef))
+      else if (pfConst in aArgs[stackargs[i]].Info.ParamFlags) and not Assigned(aArgs[stackargs[i]].Info.ParamType) then
         AddStackArg(PtrUInt(aArgs[stackargs[i]].ValueRef))
       else begin
         td := GetTypeData(aArgs[stackargs[i]].Info.ParamType);

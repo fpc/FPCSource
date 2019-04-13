@@ -123,12 +123,12 @@ implementation
     { Insert the used object file for this unit in the used list for this unit }
       begin
         current_module.linkunitofiles.add(current_module.objfilename,link_static);
-        current_module.flags:=current_module.flags or uf_static_linked;
+        current_module.headerflags:=current_module.headerflags or uf_static_linked;
 
         if create_smartlink_library then
          begin
            current_module.linkunitstaticlibs.add(current_module.staticlibfilename ,link_smart);
-           current_module.flags:=current_module.flags or uf_smart_linked;
+           current_module.headerflags:=current_module.headerflags or uf_smart_linked;
          end;
       end;
 
@@ -163,13 +163,12 @@ implementation
         if not CheckResourcesUsed then exit;
 
         hp:=tused_unit(usedunits.first);
-        found:=((current_module.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-        If not found then
-          While Assigned(hp) and not found do
-            begin
-            Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+        found:=mf_has_resourcefiles in current_module.moduleflags;
+        while Assigned(hp) and not found do
+          begin
+            found:=mf_has_resourcefiles in hp.u.moduleflags;
             hp:=tused_unit(hp.next);
-            end;
+          end;
         CheckResourcesUsed:=found;
       end;
 
@@ -210,7 +209,7 @@ implementation
       begin
         { Do we need the variants unit? Skip this
           for VarUtils unit for bootstrapping }
-        if (current_module.flags and uf_uses_variants=0) or
+        if not(mf_uses_variants in current_module.moduleflags) or
            (current_module.modulename^='VARUTILS') then
           exit;
         { Variants unit already loaded? }
@@ -722,16 +721,16 @@ implementation
 {$endif i386 or sparcgen}
       end;
 
-    function gen_implicit_initfinal(flag:word;st:TSymtable):tcgprocinfo;
+    function gen_implicit_initfinal(flag:tmoduleflag;st:TSymtable):tcgprocinfo;
       begin
         { create procdef }
         case flag of
-          uf_init :
+          mf_init :
             begin
               result:=create_main_proc(make_mangledname('',current_module.localsymtable,'init_implicit$'),potype_unitinit,st);
               result.procdef.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
             end;
-          uf_finalize :
+          mf_finalize :
             begin
               result:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize_implicit$'),potype_unitfinalize,st);
               result.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
@@ -1227,7 +1226,7 @@ type
                  release_proc_symbol(init_procinfo.procdef);
                  release_main_proc(init_procinfo);
                end;
-             init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
+             init_procinfo:=gen_implicit_initfinal(mf_init,current_module.localsymtable);
            end;
          if (force_init_final or cnodeutils.force_final) and
             (
@@ -1241,7 +1240,7 @@ type
                  release_proc_symbol(finalize_procinfo.procdef);
                  release_main_proc(finalize_procinfo);
                end;
-             finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
+             finalize_procinfo:=gen_implicit_initfinal(mf_finalize,current_module.localsymtable);
            end;
 
          { Now both init and finalize bodies are read and it is known
@@ -1255,7 +1254,7 @@ type
                begin
                  init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
                  init_procinfo.generate_code;
-                 current_module.flags:=current_module.flags or uf_init;
+                 include(current_module.moduleflags,mf_init);
                end
              else
                release_proc_symbol(init_procinfo.procdef);
@@ -1270,7 +1269,7 @@ type
                begin
                  finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
                  finalize_procinfo.generate_code;
-                 current_module.flags:=current_module.flags or uf_finalize;
+                 include(current_module.moduleflags,mf_finalize);
                end
              else
                release_proc_symbol(finalize_procinfo.procdef);
@@ -1352,8 +1351,9 @@ type
            insertobjectfile
          else
            begin
-             current_module.flags:=current_module.flags or uf_no_link;
-             current_module.flags:=current_module.flags and not (uf_has_stabs_debuginfo or uf_has_dwarf_debuginfo);
+             current_module.headerflags:=current_module.headerflags or uf_no_link;
+             exclude(current_module.moduleflags,mf_has_stabs_debuginfo);
+             exclude(current_module.moduleflags,mf_has_dwarf_debuginfo);
            end;
 
          if ag then
@@ -1643,7 +1643,7 @@ type
            begin
              if (hp<>current_module) and not assigned(hp.package) then
                begin
-                 if (hp.flags and uf_package_deny) <> 0 then
+                 if mf_package_deny in hp.moduleflags then
                    message1(package_e_unit_deny_package,hp.realmodulename^);
                  { part of the package's used, aka contained units? }
                  uu:=tused_unit(current_module.used_units.first);
@@ -1686,13 +1686,13 @@ type
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
          if force_init_final or cnodeutils.force_init then
-           {init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable)};
+           {init_procinfo:=gen_implicit_initfinal(mf_init,current_module.localsymtable)};
 
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-            ((current_module.flags and uf_has_exports)<>0) then
+            (mf_has_exports in current_module.moduleflags) then
            current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',current_module.localsymtable,''),0));
 
          { all labels must be defined before generating code }
@@ -2191,13 +2191,13 @@ type
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
          if force_init_final or cnodeutils.force_init then
-           init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
+           init_procinfo:=gen_implicit_initfinal(mf_init,current_module.localsymtable);
 
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-            ((current_module.flags and uf_has_exports)<>0) then
+            (mf_has_exports in current_module.moduleflags) then
            current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',current_module.localsymtable,''),0));
 
          if (force_init_final or cnodeutils.force_final) and
@@ -2212,7 +2212,7 @@ type
                  release_proc_symbol(finalize_procinfo.procdef);
                  release_main_proc(finalize_procinfo);
                end;
-             finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
+             finalize_procinfo:=gen_implicit_initfinal(mf_finalize,current_module.localsymtable);
            end;
 
           { the finalization routine of libraries is generic (and all libraries need to }
@@ -2233,7 +2233,7 @@ type
          if assigned(init_procinfo) then
            begin
              { initialization can be implicit only }
-             current_module.flags:=current_module.flags or uf_init;
+             include(current_module.moduleflags,mf_init);
              init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
              init_procinfo.generate_code;
              init_procinfo.resetprocdef;
@@ -2247,7 +2247,7 @@ type
                begin
                  finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
                  finalize_procinfo.generate_code;
-                 current_module.flags:=current_module.flags or uf_finalize;
+                 include(current_module.moduleflags,mf_finalize);
                end;
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
@@ -2414,10 +2414,10 @@ type
                  hp:=tmodule(loaded_units.first);
                  while assigned(hp) do
                   begin
-                    if (hp<>sysinitmod) and (hp.flags and uf_in_library=0) then
+                    if (hp<>sysinitmod) and ((hp.headerflags and uf_in_library)=0) then
                       begin
                         linker.AddModuleFiles(hp);
-                        if (hp.flags and uf_checkpointer_called)<>0 then
+                        if mf_checkpointer_called in hp.moduleflags then
                           program_uses_checkpointer:=true;
                       end;
                     hp2:=tmodule(hp.next);

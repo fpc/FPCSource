@@ -127,21 +127,9 @@ ___start:
 
 _haltproc:
            movq $1,%rax
-           movzwq operatingsystem_result(%rip),%rbx
-           pushq   %rbx
-           call .Lactualsyscall
-           addq  $8,%rsp
+           movzwq operatingsystem_result(%rip),%rdi
+           syscall
            jmp   _haltproc
-
-.Lactualsyscall:
-         int $0x80
-         jb .LErrorcode
-         xor %rbx,%rbx
-         ret
-.LErrorcode:
-         movq  %rax,%rbx
-         movq  $-1,%rax
-	 ret
 .LFE9:
 	.size	___start, .-___start
 	.type	_strrchr, @function

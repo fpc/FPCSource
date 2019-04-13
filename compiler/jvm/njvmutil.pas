@@ -404,7 +404,7 @@ implementation
           { class constructors are automatically handled by the JVM }
 
           { call the unit init code and make it external }
-          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
+          if (hp.u.moduleflags*[mf_init,mf_finalize])<>[] then
             begin
               { trigger init code by referencing the class representing the
                 unit; if necessary, it will register the fini code to run on

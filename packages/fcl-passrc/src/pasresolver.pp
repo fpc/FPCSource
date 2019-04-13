@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     Pascal resolver
-    Copyright (c) 2018  Mattias Gaertner  mattias@freepascal.org
+    Copyright (c) 2019  Mattias Gaertner  mattias@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

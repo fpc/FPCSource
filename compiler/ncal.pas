@@ -1321,10 +1321,14 @@ implementation
 
                      case parasym.varspez of
                        vs_var,
-                       vs_constref,
                        vs_out :
                          begin
                            if not valid_for_formal_var(left,true) then
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                         end;
+                       vs_constref:
+                         begin
+                           if not valid_for_formal_constref(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                        vs_const :

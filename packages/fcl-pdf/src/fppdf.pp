@@ -1026,6 +1026,7 @@ type
     procedure SetFonts(AValue: TPDFFontDefs);
     procedure SetInfos(AValue: TPDFInfos);
     procedure SetLineStyles(AValue: TPDFLineStyleDefs);
+    Procedure SetOptions(aValue : TPDFOptions);
   protected
     // Create all kinds of things, virtual so they can be overridden to create descendents instead
     function CreatePDFPages: TPDFPages; virtual;
@@ -1126,7 +1127,7 @@ type
     Property ObjectCount : Integer Read FObjectCount;
     Property LineCapStyle: TPDFLineCapStyle Read FLineCapStyle Write FLineCapStyle;
   Published
-    Property Options : TPDFOptions Read FOptions Write FOPtions;
+    Property Options : TPDFOptions Read FOptions Write SetOptions;
     Property LineStyles : TPDFLineStyleDefs Read FLineStyleDefs Write SetLineStyles;
     property PageLayout: TPDFPageLayout read FPageLayout write FPageLayout default lSingle;
     Property Infos : TPDFInfos Read FInfos Write SetInfos;
@@ -1686,14 +1687,30 @@ var
   s: string;
   lst: TTextMappingList;
   lFont: TTFFileInfo;
+  lWidthIndex: integer;
 begin
   s := '';
   lst := Document.Fonts[EmbeddedFontNum].TextMapping;
   lst.Sort;
   lFont := Document.Fonts[EmbeddedFontNum].FTrueTypeFile;
-  // use decimal values for the output
+
+  {$IFDEF gdebug}
+  System.WriteLn('****** isFixedPitch = ', BoolToStr(lFont.PostScript.isFixedPitch > 0, True));
+  System.WriteLn('****** Head.UnitsPerEm := ', lFont.Head.UnitsPerEm );
+  System.WriteLn('****** HHead.numberOfHMetrics := ', lFont.HHead.numberOfHMetrics );
+  {$ENDIF}
+
+  { NOTE: Monospaced fonts may not have a width for every glyph
+          the last one is for subsequent glyphs.  }
   for i := 0 to lst.Count-1 do
-    s :=  s + Format(' %d [%d]', [ lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lst[i].GlyphID].AdvanceWidth)]);
+  begin
+    if lst[i].GlyphID < lFont.HHead.numberOfHMetrics then
+      lWidthIndex := lst[i].GlyphID
+    else
+      lWidthIndex := lFont.HHead.numberOfHMetrics-1;
+    s :=  s + Format(' %d [%d]', [lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lWidthIndex].AdvanceWidth)])
+  end;
+
   WriteString(s, AStream);
 end;
 
@@ -4486,6 +4503,14 @@ procedure TPDFDocument.SetInfos(AValue: TPDFInfos);
 begin
   if FInfos=AValue then Exit;
   FInfos.Assign(AValue);
+end;
+
+procedure TPDFDocument.SetOptions(AValue: TPDFOptions);
+begin
+  if FOptions=AValue then Exit;
+  if (poNoEmbeddedFonts in  aValue) then
+    Exclude(aValue,poSubsetFont);
+  FOptions:=aValue;
 end;
 
 procedure TPDFDocument.SetLineStyles(AValue: TPDFLineStyleDefs);

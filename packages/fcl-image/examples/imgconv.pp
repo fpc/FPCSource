@@ -17,7 +17,7 @@ program ImgConv;
 
 {_$define UseFile}
 
-uses FPWriteXPM, FPWritePNG, FPWriteBMP,fpreadgif,
+uses FPWriteXPM, FPWritePNG, FPWriteBMP,fpreadgif,fptiffcmn,
      FPReadXPM, FPReadPNG, FPReadBMP, fpreadjpeg,fpwritejpeg,
      fpreadtga,fpwritetga,fpreadpnm,fpwritepnm, fpreadtiff, fpwritetiff,
      {$ifndef UseFile}classes,{$endif}
@@ -132,6 +132,19 @@ begin
       writeln ('Grayscale ',Grayscale, ' - Indexed ',Indexed,
                ' - WordSized ',WordSized,' - UseAlpha ',UseAlpha);
       end
+  else if (t[1] = 'F') then
+    with (Writer as TFPWriterTiff) do
+      begin
+      if pos ('G', t) > 0 then
+         begin
+         Img.Extra[TiffPhotoMetric]:='0';
+         if Pos('8',T)>0 then
+           Img.Extra[TiffGrayBits]:='8'
+         else if Pos('16',T)>0 then
+           Img.Extra[TiffGrayBits]:='16';
+         Writeln(TiffPhotoMetric,': 0 ',TiffGrayBits,': ',Img.Extra[TiffGrayBits]);
+         end;
+      end
   else if (t[1] = 'X') then
     begin
     if length(t) > 1 then
@@ -162,6 +175,8 @@ begin
     writeln ('Options for');
     writeln ('  PNG :  G : grayscale, A : use alpha, ');
     writeln ('         I : Indexed in palette, W : Word sized.');
+    writeln ('  TIFF :  G16 write grayscale 16 bits/pixel');
+    writeln ('          G8 write grayscale 16 bits/pixel');
     writeln ('  XPM :  Number of chars to use for 1 pixel');
     writeln ('  The color size of an XPM can be set after the X as 1,2,3 or 4');
     writeln ('example: imgconv hello.xpm PIA hello.png');

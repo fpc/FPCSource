@@ -127,8 +127,8 @@ implementation
   {$ifdef cpufpemu}
      { check if floating point emulation is on?
        fpu emulation isn't unit levelwise because it affects calling convention }
-     if ((pcpfile.header.common.flags and uf_fpu_emulation)<>0) xor
-          (cs_fp_emulation in current_settings.moduleswitches) then
+     if ((uf_fpu_emulation and pcpfile.header.common.flags)<>0) <>
+        (cs_fp_emulation in current_settings.moduleswitches) then
        begin
          pcpfile.free;
          pcpfile:=nil;
@@ -137,9 +137,6 @@ implementation
        end;
   {$endif cpufpemu}
 
-    { Load values to be access easier }
-      //flags:=pcpfile.header.common.flags;
-      //crc:=pcpfile.header.checksum;
     { Show Debug info }
       Message1(package_u_pcp_time,filetimestring(pcpfiletime));
       Message1(package_u_pcp_flags,tostr(pcpfile.header.common.flags{flags}));

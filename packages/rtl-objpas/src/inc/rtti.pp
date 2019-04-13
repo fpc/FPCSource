@@ -399,6 +399,7 @@ type
   TRttiMethod = class(TRttiMember)
   private
     FString: String;
+    function GetFlags: TFunctionCallFlags;
   protected
     function GetCallingConvention: TCallConv; virtual; abstract;
     function GetCodeAddress: CodePointer; virtual; abstract;
@@ -429,6 +430,9 @@ type
     function Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue;
+    { Note: once "reference to" is supported these will be replaced by a single method }
+    function CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod): TMethodImplementation;
+    function CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackProc): TMethodImplementation;
   end;
 
   TRttiStructuredType = class(TRttiType)
@@ -481,9 +485,10 @@ type
     property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
 
-  EInsufficientRtti = class(Exception);
-  EInvocationError = class(Exception);
-  ENonPublicType = class(Exception);
+  ERtti = class(Exception);
+  EInsufficientRtti = class(ERtti);
+  EInvocationError = class(ERtti);
+  ENonPublicType = class(ERtti);
 
   TFunctionCallParameter = record
     ValueRef: Pointer;
@@ -1332,13 +1337,13 @@ begin
                  end;
     tkBool     : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
-                     otUByte: result.FData.FAsSByte := ShortInt(System.PBoolean(ABuffer)^);
-                     otUWord: result.FData.FAsUWord := Byte(PBoolean16(ABuffer)^);
-                     otULong: result.FData.FAsULong := SmallInt(PBoolean32(ABuffer)^);
+                     otUByte: result.FData.FAsUByte := Byte(System.PBoolean(ABuffer)^);
+                     otUWord: result.FData.FAsUWord := Word(PBoolean16(ABuffer)^);
+                     otULong: result.FData.FAsULong := DWord(PBoolean32(ABuffer)^);
                      otUQWord: result.FData.FAsUInt64 := QWord(PBoolean64(ABuffer)^);
-                     otSByte: result.FData.FAsSByte := Word(PByteBool(ABuffer)^);
-                     otSWord: result.FData.FAsSWord := LongInt(PWordBool(ABuffer)^);
-                     otSLong: result.FData.FAsSLong := LongWord(PLongBool(ABuffer)^);
+                     otSByte: result.FData.FAsSByte := ShortInt(PByteBool(ABuffer)^);
+                     otSWord: result.FData.FAsSWord := SmallInt(PWordBool(ABuffer)^);
+                     otSLong: result.FData.FAsSLong := LongInt(PLongBool(ABuffer)^);
                      otSQWord: result.FData.FAsSInt64 := Int64(PQWordBool(ABuffer)^);
                    end;
                  end;
@@ -1642,6 +1647,9 @@ begin
     tkQWord   : result := IntToStr(AsUInt64);
     tkInt64   : result := IntToStr(AsInt64);
     tkBool    : result := BoolToStr(AsBoolean, True);
+    tkPointer : result := '(pointer @ ' + HexStr(FData.FAsPointer) + ')';
+    tkInterface : result := '(interface @ ' + HexStr(PPointer(FData.FValueData.GetReferenceToRawData)^) + ')';
+    tkInterfaceRaw : result := '(raw interface @ ' + HexStr(FData.FAsPointer) + ')';
   else
     result := '';
   end;
@@ -1984,7 +1992,7 @@ begin
         if Assigned(aArgs[unhidden].TypeInfo) and not aArgs[unhidden].IsArray and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
           raise EInvocationError.CreateFmt(SErrInvokeArrayArgExpected, [param.Name, aName]);
       end else if not (pfHidden in param.Flags) then begin
-        if aArgs[unhidden].Kind <> param.ParamType.TypeKind then
+        if Assigned(param.ParamType) and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
           raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, [param.Name, aName]);
       end;
     end;
@@ -2014,7 +2022,10 @@ begin
 
   for i := 0 to High(aParams) do begin
     param := aParams[i];
-    args[i].Info.ParamType := param.ParamType.FTypeInfo;
+    if Assigned(param.ParamType) then
+      args[i].Info.ParamType := param.ParamType.FTypeInfo
+    else
+      args[i].Info.ParamType := Nil;
     args[i].Info.ParamFlags := param.Flags;
     args[i].Info.ParaLocs := Nil;
 
@@ -2535,7 +2546,10 @@ begin
       Assert((i < Length(fArgs)) and (pfHigh in fArgs[i].ParamFlags), 'Expected high parameter after open array parameter');
       TValue.MakeOpenArray(aArgs[i - 1], SizeInt(aArgs[i]), fArgs[i].ParamType, args[argidx]);
     end else if not (pfHidden in fArgs[i].ParamFlags) or (pfSelf in fArgs[i].ParamFlags) then begin
-      TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx]);
+      if Assigned(fArgs[i].ParamType) then
+        TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx])
+      else
+        TValue.Make(@aArgs[i], TypeInfo(Pointer), args[argidx]);
     end;
 
     Inc(i);
@@ -2598,6 +2612,13 @@ end;
 function TRttiMethod.GetHasExtendedInfo: Boolean;
 begin
   Result := False;
+end;
+
+function TRttiMethod.GetFlags: TFunctionCallFlags;
+begin
+  Result := [];
+  if IsStatic then
+    Include(Result, fcfStatic);
 end;
 
 function TRttiMethod.GetParameters: specialize TArray<TRttiParameter>;
@@ -2704,6 +2725,76 @@ begin
   Result := Rtti.Invoke(Name, addr, CallingConvention, IsStatic, aInstance, aArgs, GetParameters(True), ReturnType);
 end;
 
+function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod): TMethodImplementation;
+var
+  params: specialize TArray<TRttiParameter>;
+  args: specialize TArray<TFunctionCallParameterInfo>;
+  res: PTypeInfo;
+  restype: TRttiType;
+  resinparam: Boolean;
+  i: SizeInt;
+begin
+  if not Assigned(aCallback) then
+    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
+
+  resinparam := False;
+  params := GetParameters(True);
+  SetLength(args, Length(params));
+  for i := 0 to High(params) do begin
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
+    args[i].ParamFlags := params[i].Flags;
+    args[i].ParaLocs := Nil;
+    if pfResult in params[i].Flags then
+      resinparam := True;
+  end;
+
+  restype := GetReturnType;
+  if Assigned(restype) and not resinparam then
+    res := restype.FTypeInfo
+  else
+    res := Nil;
+
+  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, aUserData, aCallback);
+end;
+
+function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackProc): TMethodImplementation;
+var
+  params: specialize TArray<TRttiParameter>;
+  args: specialize TArray<TFunctionCallParameterInfo>;
+  res: PTypeInfo;
+  restype: TRttiType;
+  resinparam: Boolean;
+  i: SizeInt;
+begin
+  if not Assigned(aCallback) then
+    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
+
+  resinparam := False;
+  params := GetParameters(True);
+  SetLength(args, Length(params));
+  for i := 0 to High(params) do begin
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
+    args[i].ParamFlags := params[i].Flags;
+    args[i].ParaLocs := Nil;
+    if pfResult in params[i].Flags then
+      resinparam := True;
+  end;
+
+  restype := GetReturnType;
+  if Assigned(restype) and not resinparam then
+    res := restype.FTypeInfo
+  else
+    res := Nil;
+
+  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, aUserData, aCallback);
+end;
+
 { TRttiInvokableType }
 
 function TRttiInvokableType.GetParameters: specialize TArray<TRttiParameter>;
@@ -2727,7 +2818,10 @@ begin
   params := GetParameters(True);
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
-    args[i].ParamType := params[i].ParamType.FTypeInfo;
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
     args[i].ParamFlags := params[i].Flags;
     args[i].ParaLocs := Nil;
     if pfResult in params[i].Flags then
@@ -2759,7 +2853,10 @@ begin
   params := GetParameters(True);
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
-    args[i].ParamType := params[i].ParamType.FTypeInfo;
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
     args[i].ParamFlags := params[i].Flags;
     args[i].ParaLocs := Nil;
     if pfResult in params[i].Flags then
@@ -2794,6 +2891,7 @@ var
   total, visible, i: SizeInt;
   ptr: PByte;
   paramtypes: PPPTypeInfo;
+  paramtype: PTypeInfo;
   context: TRttiContext;
   obj: TRttiObject;
 begin
@@ -2850,7 +2948,11 @@ begin
         if Assigned(obj) then
           FParamsAll[i] := obj as TRttiMethodTypeParameter
         else begin
-          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtypes[i]^);
+          if Assigned(paramtypes[i]) then
+            paramtype := paramtypes[i]^
+          else
+            paramtype := Nil;
+          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
           context.AddObject(FParamsAll[i]);
         end;
 

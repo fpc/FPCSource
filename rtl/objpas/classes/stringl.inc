@@ -325,7 +325,7 @@ end;
 
 
 Procedure TStrings.SetDelimitedText(const AValue: string);
-var i,j:integer;
+var i,j: SizeInt;
     aNotFirst:boolean;
 begin
  CheckSpecialChars;
@@ -542,7 +542,7 @@ end;
 Function TStrings.GetTextStr: string;
 
 Var P : Pchar;
-    I,L,NLS : Longint;
+    I,L,NLS : SizeInt;
     S,NL : String;
 
 begin
@@ -608,66 +608,101 @@ begin
   // Empty.
 end;
 
-Class Function TStrings.GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+Class Function TStrings.GetNextLine (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
 
-Var 
-  PS : PChar;
-  IP,L : Integer;
+var
+  LengthOfValue: SizeInt;
+  StartPos, FuturePos: SizeInt;
+
+begin
+  LengthOfValue := Length(Value);
+  StartPos := P;
+  if (StartPos <= 0) or (StartPos > LengthOfValue) then // True for LengthOfValue <= 0
+    begin
+    S := '';
+    Exit(False);
+    end;
+  FuturePos := StartPos;
+  while (FuturePos <= LengthOfValue) and not (Value[FuturePos] in [#10, #13]) do
+    Inc(FuturePos);
+  // If we use S := Copy(Value, StartPos, FuturePos - StartPos); then compiler
+  // generate TempS := Copy(...); S := TempS to eliminate side effects and
+  // implicit "try finally" for TempS finalization
+  // When we use SetString then no TempS, no try finally generated,
+  // but we must check case when Value and S is same (side effects)
+  if Pointer(S) = Pointer(Value) then
+    System.Delete(S, FuturePos, High(FuturePos))
+  else
+    begin
+    SetString(S, @Value[StartPos], FuturePos - StartPos);
+    if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #13) then
+      Inc(FuturePos);
+    if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #10) then
+      Inc(FuturePos);
+    end;
+  P := FuturePos;
+  Result := True;
+end;
+
+Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
+
+var
+  StartPos, FuturePos: SizeInt;
   
 begin
-  L:=Length(Value);
-  S:='';
-  Result:=False;
-  If ((L-P)<0) then 
-    exit;
-  if ((L-P)=0) and (not (value[P] in [#10,#13])) Then
-    Begin
-      s:=value[P];
-      inc(P);
-      Exit(True);
-    End;
-  PS:=PChar(Value)+P-1;
-  IP:=P;
-  While ((L-P)>=0) and (not (PS^ in [#10,#13])) do 
+  StartPos := P;
+  if (StartPos <= 0) or (StartPos > Length(Value)) then // True for Length <= 0
     begin
-    P:=P+1;
-    Inc(PS);
+    S := '';
+    Exit(False);
     end;
-  SetLength (S,P-IP);
-  System.Move (Value[IP],Pointer(S)^,P-IP);
-  If (P<=L) and (Value[P]=#13) then 
-    Inc(P);
-  If (P<=L) and (Value[P]=#10) then
-    Inc(P); // Point to character after #10(#13)
-  Result:=True;
+  FuturePos := Pos(FLineBreak, Value, StartPos); // Use PosEx in old RTL
+  // Why we don't use Copy but use SetString read in GetNextLine
+  if FuturePos = 0 then // No line breaks
+    begin
+    FuturePos := Length(Value) + 1;
+    if Pointer(S) = Pointer(Value) then
+      // Nothing to do
+    else
+      SetString(S, @Value[StartPos], FuturePos - StartPos)
+    end
+  else
+    if Pointer(S) = Pointer(Value) then
+      System.Delete(S, FuturePos, High(FuturePos))
+    else
+      begin
+      SetString(S, @Value[StartPos], FuturePos - StartPos);
+      Inc(FuturePos, Length(FLineBreak));
+      end;
+  P := FuturePos;
+  Result := True;
 end;
 
-Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
-
-Var
-  PS,PC,PP : PChar;
-
+{$IF (SizeOf(Integer) < SizeOf(SizeInt)) }
+class function TStrings.GetNextLine(const Value: string; var S: string; var P: Integer) : Boolean;
+var
+  LP: SizeInt;
 begin
-  S:='';
-  Result:=False;
-  If ((Length(Value)-P)<0) then
-    exit;
-  PS:=@Value[P];
-  PC:=PS;
-  PP:=AnsiStrPos(PS,PChar(FLineBreak));
-  // Stop on #0.
-  While (PC^<>#0) and (PC<>PP) do
-    Inc(PC);
-  P:=P+(PC-PS)+Length(FLineBreak);
-  SetString(S,PS,PC-PS);
-  Result:=True;
+  LP := P;
+  Result := GetNextLine(Value, S, LP);
+  P := LP;
 end;
+
+function TStrings.GetNextLineBreak(const Value: string; var S: string; var P: Integer) : Boolean;
+var
+  LP: SizeInt;
+begin
+  LP := P;
+  Result := GetNextLineBreak(Value, S, LP);
+  P := LP;
+end;
+{$IFEND}
 
 Procedure TStrings.DoSetTextStr(const Value: string; DoClear : Boolean);
 
 Var
   S : String;
-  P : Integer;
+  P : SizeInt;
 
 begin
   Try
@@ -779,13 +814,16 @@ end;
 
 Procedure TStrings.AddStrings(TheStrings: TStrings; ClearFirst : Boolean);
 
-
+Var Runner : longint;
 begin
   beginupdate;
   try
     if ClearFirst then
       Clear;
-    AddStrings(TheStrings);
+    if Count + TheStrings.Count > Capacity then
+      Capacity := Count + TheStrings.Count;
+    For Runner:=0 to TheStrings.Count-1 do
+      self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
   finally
     EndUpdate;
   end;
@@ -793,31 +831,28 @@ end;
 
 Procedure TStrings.AddStrings(TheStrings: TStrings);
 
-Var Runner : longint;
 begin
-  For Runner:=0 to TheStrings.Count-1 do
-    self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
+  AddStrings(TheStrings, False);
 end;
 
 Procedure TStrings.AddStrings(const TheStrings: array of string);
 
-Var Runner : longint;
 begin
-  if Count + High(TheStrings)+1 > Capacity then
-    Capacity := Count + High(TheStrings)+1;
-  For Runner:=Low(TheStrings) to High(TheStrings) do
-    self.Add(Thestrings[Runner]);
+  AddStrings(TheStrings, False);
 end;
 
 Procedure TStrings.AddStrings(const TheStrings: array of string; ClearFirst : Boolean);
 
-
+Var Runner : longint;
 begin
   beginupdate;
   try
     if ClearFirst then
       Clear;
-    AddStrings(TheStrings);
+    if Count + High(TheStrings)+1 > Capacity then
+      Capacity := Count + High(TheStrings)+1;
+    For Runner:=Low(TheStrings) to High(TheStrings) do
+      self.Add(Thestrings[Runner]);
   finally
     EndUpdate;
   end;
@@ -1037,7 +1072,7 @@ Var
   Buffer     : AnsiString;
   BytesRead,
   BufLen,
-  I,BufDelta     : Longint;
+  I,BufDelta     : SizeInt;
 begin
   if not IgnoreEncoding then
     begin
@@ -1082,7 +1117,7 @@ Var
   T              : string;
   BytesRead,
   BufLen,
-  I,BufDelta,
+  I,BufDelta: SizeInt;
   PreambleLength : Longint;
 begin
   // reread into a buffer

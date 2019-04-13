@@ -3,7 +3,7 @@ unit webfilecache;
 {$mode objfpc}
 
 // Enable this to write lots of debugging info to the browser console.
-{ $DEFINE VERBOSEWEBCACHE}
+{$DEFINE VERBOSEWEBCACHE}
 
 interface
 
@@ -94,8 +94,8 @@ type
     function CreateResolver: TPas2jsFSResolver; override;
     function FileExists(const aFileName: String): Boolean; override;
     function FindCustomJSFileName(const aFilename: string): String; override;
-    function FindIncludeFileName(const aFilename: string): String; override;
-    function FindUnitFileName(const aUnitname, InFilename: string; out IsForeign: boolean): String; override;
+    function FindIncludeFileName(const aFilename, ModuleDir: string): String; override;
+    function FindUnitFileName(const aUnitname, InFilename, ModuleDir: string; out IsForeign: boolean): String; override;
     function FindUnitJSFileName(const aUnitFilename: string): String; override;
     function LoadFile(Filename: string; Binary: boolean=false): TPas2jsFile; override;
     procedure SaveToFile(ms: TFPJSStream; Filename: string); override;
@@ -330,10 +330,11 @@ begin
 {$ENDIF}
 end;
 
-function TPas2jsWebFS.FindIncludeFileName(const aFilename: string): String;
+function TPas2jsWebFS.FindIncludeFileName(const aFilename, ModuleDir: string
+  ): String;
 begin
 {$IFDEF VERBOSEWEBCACHE}
-  Writeln(ClassName,': FindIncludeFileName(',aFileName,')');
+  Writeln(ClassName,': FindIncludeFileName(',aFileName,',',ModuleDir,')');
 {$ENDIF}
   Result:=NormalizeFileName(aFileName);
   If not FCache.HasFile(Result) then
@@ -372,10 +373,10 @@ begin
   Result:=TPas2jsWebResolver.Create(Self);
 end;
 
-function TPas2jsWebFS.FindUnitFileName(const aUnitname, InFilename: string; out IsForeign: boolean): String;
+function TPas2jsWebFS.FindUnitFileName(const aUnitname, InFilename, ModuleDir: string; out IsForeign: boolean): String;
 begin
 {$IFDEF VERBOSEWEBCACHE}
-  Writeln(ClassName,': FindUnitFileName(',aUnitName,')');
+  Writeln(ClassName,': FindUnitFileName(',aUnitName,',',InFilename,',',ModuleDir,')');
 {$ENDIF}
   Result:=NormalizeFileName(aUnitName+'.pas');
   isForeign:=False;
@@ -493,7 +494,8 @@ begin
     end;
 end;
 
-Function TPas2jsWebFS.LoadFiles(aList: TStrings; OnLoaded: TLoadFileEvent): Integer;
+function TPas2jsWebFS.LoadFiles(aList: TStrings; OnLoaded: TLoadFileEvent
+  ): Integer;
 
 Var
   i: Integer;
@@ -505,7 +507,8 @@ begin
       Inc(Result);
 end;
 
-function TPas2jsWebFS.LoadFiles(aList: array of String; OnLoaded: TLoadFileEvent): Integer;
+function TPas2jsWebFS.LoadFiles(aList: array of String; OnLoaded: TLoadFileEvent
+  ): integer;
 
 Var
   i: Integer;

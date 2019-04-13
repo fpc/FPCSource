@@ -22,6 +22,9 @@ type
     procedure TestDoubleWrite;
     procedure bug16395;
     procedure TestAdv;
+    procedure TestStringList;
+    Procedure TestInt64;
+    Procedure TestDeleteSubkey;
   end;
 
 implementation
@@ -170,6 +173,118 @@ begin
   DoRegTest2;
 {$endif windows}
 end;
+
+Procedure TTestBasics.TestStringList;
+
+Var
+  SL : TStringList;
+  I : Integer;
+
+begin
+  With TRegistry.Create do
+    try
+      RootKey:=HKEY_CURRENT_USER;
+      OpenKey('Software/Test',True);
+      SL:=TstringList.Create;
+      For I:=0 to 10 do
+        SL.Add(IntToStr(I));
+      WriteStringList('me',SL);
+      SL.Clear;
+      ReadStringList('me',SL);
+      For I:=0 to 10 do
+        AssertEquals('String '+IntToStr(i),IntToStr(I),SL[I]);
+    finally
+      Free;
+    end;
+end;
+
+
+procedure TTestBasics.TestInt64;
+
+  
+
+Var
+  Def,I64 : Int64;
+    
+begin
+  def:=MaxInt*1024; 
+  With TRegistry.Create do
+    try
+      RootKey:=HKEY_CURRENT_USER;
+      OpenKey('Software/Test',True);
+      WriteInt64('you',Def);
+      I64:=ReadInt64('you');
+      AssertEquals('Value written and read',Def,I64);
+    finally
+      Free;
+    end;  
+end;
+
+procedure TTestBasics.TestDeleteSubKey;
+
+const
+  BugID = 'Bug35132';
+  Base = 'Software\' + BugID;
+  One = 'One';
+  OneFull = Base + '\' + One;
+  Two = 'Two';
+  TwoFull = OneFull + '\' + Two;
+
+
+procedure CleanUp(AssertionFailed: Boolean);
+var
+  R: TRegistry;
+  B: Boolean;
+begin
+  R := TRegistry.Create(KEY_ALL_ACCESS);
+  try
+  R.RootKey := HKEY_CURRENT_USER;
+  if R.KeyExists(TwoFull) then
+  begin
+    B := R. DeleteKey(TwoFull);
+    if B then B := R.DeleteKey(OneFull);
+    if B then B := R.DeleteKey(Base);
+    AssertTrue('cleanup OK',B);
+  end;
+  finally
+    R.Free;
+  end;
+end;
+
+var
+  R: TRegistry;
+  B: Boolean;
+begin
+  R := TRegistry.Create(KEY_ALL_ACCESS);
+  try
+    R.RootKey := HKEY_CURRENT_USER;
+
+    B := R.OpenKey(Base, True);
+    AssertTrue(format('OpenKey(''%s'') failed.',[Base]),B);
+
+    B := R.OpenKey('One',True);
+    AssertTrue(format('OpenKey(''%s'') failed.',[OneFull]),B);
+
+    B := R.OpenKey('Two',True);
+    AssertTrue(format('OpenKey(''%s'') failed.',[TwoFull]),B);
+
+    R.CloseKey;
+
+    B := R.KeyExists(TwoFull);
+    AssertTrue(format('KeyExists(''%s'') failed.',[TwoFull]),B);
+
+    R.CloseKey;
+    B := R.OpenKey(Base,False);
+    AssertTrue(format('OpenKey(''%s'') failed.',[Base]),B);
+
+    B := R.DeleteKey('One');
+    AssertFalse(format('DeleteKey(''%s'') should have failed, but it succeeded.',[OneFull]),B);
+  finally
+    R.Free;
+    CleanUp(ExceptObject <> nil);
+  end;
+end;
+
 
 initialization
   RegisterTest(TTestBasics);

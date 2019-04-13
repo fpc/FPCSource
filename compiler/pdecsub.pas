@@ -512,10 +512,8 @@ implementation
         until not try_to_consume(_SEMICOLON);
 
         if explicit_paraloc then
-          begin
-            pd.has_paraloc_info:=callerside;
-            include(pd.procoptions,po_explicitparaloc);
-          end;
+          include(pd.procoptions,po_explicitparaloc);
+
         { remove parasymtable from stack }
         sc.free;
         { reset object options }
@@ -1323,7 +1321,7 @@ implementation
 {
             if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
                not(cs_compilesystem in current_settings.moduleswitches) then
-              current_module.flags:=current_module.flags or uf_uses_variants;
+              include(current_module.moduleflags,mf_uses_variants);
 }
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);

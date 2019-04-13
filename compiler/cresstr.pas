@@ -308,7 +308,7 @@ uses
         resstrs.RegisterResourceStrings;
         if not resstrs.List.Empty then
           begin
-            current_module.flags:=current_module.flags or uf_has_resourcestrings;
+            include(current_module.moduleflags,mf_has_resourcestrings);
             resstrs.CreateResourceStringData;
             resstrs.WriteRSJFile;
           end;

@@ -30,6 +30,7 @@ type
     FCompilerOptions: TCompilerOptions;
     FFpmakeCompilerOptions: TCompilerOptions;
     FCurrentRemoteRepositoryURL: String;
+    FConfigurationFilename: string;
     function IncludeRepositoryTypeForPackageKind(ARepositoryType: TFPRepositoryType;
       APackageKind: TpkgPackageKind): Boolean;
     procedure ScanPackagesOnDisk(ACompilerOptions: TCompilerOptions; APackageKind: TpkgPackageKind; ARepositoryList: TComponentList);
@@ -42,6 +43,7 @@ type
     procedure LeaveFindBrokenpackages;
 
     procedure ClearRepositories(ARepositoryList: TComponentList);
+    function GetConfigurationFilename: string;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -78,6 +80,7 @@ type
     property FpmakeCompilerOptions: TCompilerOptions read FFpmakeCompilerOptions;
     property FPMakeRepositoryList: TComponentList read FFPMakeRepositoryList;
     property RepositoryList: TComponentList read FRepositoryList;
+    property ConfigurationFilename: string read GetConfigurationFilename;
   public
 
   end;
@@ -197,6 +200,7 @@ begin
     pkgglobals.Log(llDebug,SLogGeneratingGlobalConfig,[cfgfile])
   else
     pkgglobals.Log(llDebug,SLogLoadingGlobalConfig,[cfgfile]);
+  FConfigurationFilename := CfgFile;
   // Log configuration
   FOptions.LogValues(llDebug);
 end;
@@ -777,6 +781,11 @@ begin
     Result:=APackage.DownloadURL
   else
     Result:=GetRemoteRepositoryURL(APackage.FileName);
+end;
+
+function TpkgFPpkg.GetConfigurationFilename: string;
+begin
+  Result := FConfigurationFilename;
 end;
 
 end.

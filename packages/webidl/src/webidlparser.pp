@@ -1001,12 +1001,13 @@ begin
   Result:=TIDLDictionaryDefinition(Context.Add(aParent,TIDLDictionaryDefinition,Name));
   Result.ParentName:=ParentName;
   GetToken;
-  Repeat
+  While (CurrentToken<>tkCurlyBraceClose) do
+     begin
      ParseDictionaryMember(Result.Members);
      CheckCurrentTokens([tkSemicolon,tkCurlyBraceClose]);
      if (CurrentToken=tkSemicolon) then
        GetToken;
-  Until (CurrentToken=tkCurlyBraceClose);
+     end;
 end;
 
 function TWebIDLParser.ParseSequenceTypeDef(aParent : TIDLBaseObject): TIDLSequenceTypeDefDefinition;

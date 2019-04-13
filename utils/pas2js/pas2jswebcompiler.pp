@@ -66,7 +66,6 @@ function TPas2JSWebcompiler.DoWriteJSFile(const DestFilename: String; aWriter: T
 
 Var
   S : String;
-  T : String;
 
 begin
 //  Writeln('aWriter',AWriter.BufferLength,', array size ',Length(AWriter.Buffer));
