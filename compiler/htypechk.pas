@@ -627,7 +627,11 @@ implementation
         while count > 0 do
           begin
             parasym:=tparavarsym(pf.parast.SymList[count-1]);
-            if is_boolean(parasym.vardef) then
+            if parasym.typ<>paravarsym then
+              begin
+                dec(count);
+              end
+            else if is_boolean(parasym.vardef) then
               begin
                 if parasym.name='RANGECHECK' then
                   begin
