@@ -26,11 +26,11 @@ unit rarv64gas;
   interface
 
     uses
-      raatt, rarv,
+      raatt, rarvgas, rarv,
       cpubase;
 
     type
-      trv64attreader = class(tattreader)
+      trv64attreader = class(trvattreader)
         actmemoryordering: TMemoryOrdering;
         function is_register(const s: string): boolean; override;
         function is_asmopcode(const s: string):boolean;override;
@@ -413,8 +413,10 @@ unit rarv64gas;
         hl : tasmlabel;
         ofs : aint;
         refaddr: trefaddr;
+        entered_paren: Boolean;
       Begin
         expr:='';
+        entered_paren:=false;
 
         refaddr:=addr_full;
         if actasmtoken=AS_MOD then
@@ -444,6 +446,7 @@ unit rarv64gas;
 
                 consume(AS_ID);
                 consume(AS_LPAREN);
+                entered_paren:=true;
               end;
           end;
 
@@ -472,6 +475,7 @@ unit rarv64gas;
                 BuildReference(oper);
             end;
 
+          AS_DOT,
           AS_ID: { A constant expression, or a Variable ref.  }
             Begin
               if is_fenceflag(actasmpattern) then
@@ -553,7 +557,7 @@ unit rarv64gas;
                   { add a constant expression? }
                   if (actasmtoken=AS_PLUS) then
                    begin
-                     l:=BuildConstExpression(true,false);
+                     l:=BuildConstExpression(true,entered_paren);
                      case oper.opr.typ of
                        OPR_CONSTANT :
                          inc(oper.opr.val,l);

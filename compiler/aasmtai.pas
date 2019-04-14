@@ -368,7 +368,9 @@ interface
           all assemblers. }
         asd_cpu,
         { for the OMF object format }
-        asd_omf_linnum_line
+        asd_omf_linnum_line,
+        { RISC-V }
+        asd_option
       );
 
       TAsmSehDirective=(
@@ -408,7 +410,9 @@ interface
         'code',
         'cpu',
         { for the OMF object format }
-        'omf_line'
+        'omf_line',
+        { RISC-V }
+        'option'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',

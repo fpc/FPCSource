@@ -674,6 +674,7 @@ compiler/riscv/nrvcnv.pas svneol=native#text/plain
 compiler/riscv/nrvcon.pas svneol=native#text/plain
 compiler/riscv/nrvinl.pas svneol=native#text/plain
 compiler/riscv/nrvset.pas svneol=native#text/plain
+compiler/riscv/rarvgas.pas svneol=native#text/plain
 compiler/riscv/rgcpu.pas svneol=native#text/plain
 compiler/riscv32/aoptcpu.pas svneol=native#text/plain
 compiler/riscv32/aoptcpub.pas svneol=native#text/plain
