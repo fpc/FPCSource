@@ -352,7 +352,8 @@ interface
                                    system_i386_linux,system_powerpc64_linux,system_sparc64_linux,system_x86_64_linux,
                                    system_m68k_atari,system_m68k_palmos,
                                    system_i386_haiku,system_x86_64_haiku,
-                                   system_i386_openbsd,system_x86_64_openbsd
+                                   system_i386_openbsd,system_x86_64_openbsd,
+                                   system_riscv32_linux,system_riscv64_linux
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use garbage collection for reference-counted types }
