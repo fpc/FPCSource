@@ -133,6 +133,7 @@ type
     function    StreamToHex(S: TStream): String;
     function    StreamsEqual(S1, S2: TStream): Boolean;
     function    HexToStringStream(S: String): TStringStream;
+    function    HexToMemoryStream(S: String): TMemoryStream;
     property    JSON: TJSONObject read Fjson write SetJSON;
     Property    OwnsJSON : Boolean Read FOwnsJSON Write SetOwnsJSON;
     property    CurrentElement: TJSONObject read FCurrentElement write SetCurrentElement;
@@ -447,17 +448,17 @@ end;
 function TFPReportJSONStreamer.ReadStream(AName: String; AValue: TStream): Boolean;
 var
   S: string;
-  SS: TStringStream;
+  MS : TMemoryStream;
 begin
   S := ReadString(AName, '');
   Result := (S <> '');
   if Result then
   begin
-    SS := HexToStringStream(S);
+    MS := HexToMemoryStream(S);
     try
-      AValue.CopyFrom(SS, 0);
+      AValue.CopyFrom(MS, 0);
     finally
-      SS.Free;
+      MS.Free();
     end;
   end;
 end;
@@ -695,6 +696,39 @@ begin
       Inc(P);
     end;
     Result := TStringStream.Create(T);
+  end;
+end;
+
+function TFPReportJSONStreamer.HexToMemoryStream(S: String): TMemoryStream;
+var
+  T: array of Byte;
+  I, J: integer;
+  B: byte;
+  P: PByte;
+  H: string[3];
+begin
+  Result := nil;
+  SetLength(H, 3);
+  H[1] := '$';
+  if (S <> '') then
+  begin
+    SetLength(T, Length(S) div 2);
+    P := @T[0];
+    I := 1;
+    while I < Length(S) do
+    begin
+      H[2] := S[i];
+      Inc(I);
+      H[3] := S[i];
+      Inc(I);
+      Val(H, B, J);
+      if (J = 0) then
+        P^ := B
+      else
+        P^ := 0;
+      Inc(P);
+    end;
+    Result := TBytesStream.Create(T);
   end;
 end;
 

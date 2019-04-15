@@ -1647,6 +1647,10 @@ Implementation
                      { ai_directive(hp).name can be only 16 or 32, this is checked by the reader }
                      ObjData.ThumbFunc:=tai_directive(hp).name='16';
 {$endif ARM}
+{$ifdef RISCV}
+                   asd_option:
+                     internalerror(2019031701);
+{$endif RISCV}
                    else
                      internalerror(2010011101);
                  end;
@@ -1798,6 +1802,9 @@ Implementation
                      { ignore for now, but should be added}
                      ;
                    asd_code:
+                     { ignore for now, but should be added}
+                     ;
+                   asd_option:
                      { ignore for now, but should be added}
                      ;
 {$ifdef OMFOBJSUPPORT}

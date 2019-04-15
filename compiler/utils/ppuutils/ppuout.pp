@@ -177,6 +177,7 @@ type
     UsedUnits: TPpuContainerDef;
     RefUnits: array of string;
     SourceFiles: TPpuContainerDef;
+    LongVersion: Cardinal;
 
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;

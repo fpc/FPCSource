@@ -3229,13 +3229,11 @@ unit cgx86;
         {$endif}
            system_i386_freebsd,
            system_i386_netbsd,
-//         system_i386_openbsd,
            system_i386_wdosx :
              begin
                 Case target_info.system Of
                  system_i386_freebsd : mcountprefix:='.';
                  system_i386_netbsd : mcountprefix:='__';
-//               system_i386_openbsd : mcountprefix:='.';
                 else
                  mcountPrefix:='';
                 end;
@@ -3262,6 +3260,11 @@ unit cgx86;
            system_x86_64_iphonesim:
              begin
                a_call_name(list,'mcount',false);
+             end;
+           system_i386_openbsd,
+           system_x86_64_openbsd:
+             begin
+               a_call_name(list,'__mcount',false);
              end;
         end;
       end;

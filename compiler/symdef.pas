@@ -590,6 +590,8 @@ interface
          pno_mangledname, pno_noparams);
        tprocnameoptions = set of tprocnameoption;
        tproccopytyp = (pc_normal,
+                       { everything except for hidden parameters }
+                       pc_normal_no_hidden,
                        { always creates a top-level function, removes all
                          special parameters (self, vmt, parentfp, ...) }
                        pc_bareproc,
@@ -5197,7 +5199,7 @@ implementation
                   pvs:=tparavarsym(parast.symlist[j]);
                   { in case of bare proc, don't copy self, vmt or framepointer
                     parameters }
-                  if (copytyp=pc_bareproc) and
+                  if (copytyp in [pc_bareproc,pc_normal_no_hidden]) and
                      (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret]*pvs.varoptions)<>[]) then
                     continue;
                   if paraprefix='' then
@@ -6144,7 +6146,7 @@ implementation
         { don't create aliases for bare copies, nor copy the funcretsym as
           the function result parameter will be inserted again if necessary
           (e.g. if the calling convention is changed) }
-        if copytyp<>pc_bareproc then
+        if not(copytyp in [pc_bareproc,pc_normal_no_hidden]) then
           begin
             tprocdef(result).aliasnames.concatListcopy(aliasnames);
             if assigned(funcretsym) then

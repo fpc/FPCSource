@@ -38,6 +38,7 @@ const
   subentryid          = 2;
   {special}
   iberror             = 0;
+  ibextraheader       = 242;
   ibpputable          = 243;
   ibstartrequireds    = 244;
   ibendrequireds      = 245;

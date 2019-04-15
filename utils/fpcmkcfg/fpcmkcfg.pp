@@ -1,5 +1,6 @@
 {$mode objfpc}
 {$H+}
+{$macro on}
 {
     This file is part of Free Pascal Build tools
     Copyright (c) 2005 by Michael Van Canneyt
@@ -41,6 +42,19 @@ uses
 {$i fppkg.inc}
 {$i default.inc}
 
+{$ifndef package_version_major}
+  {$define package_version_major:=0}
+{$endif}
+{$ifndef package_version_minor}
+  {$define package_version_minor:=0}
+{$endif}
+{$ifndef package_version_micro}
+  {$define package_version_micro:=0}
+{$endif}
+{$ifndef package_version_build}
+  {$define package_version_build:=0}
+{$endif}
+
 Const
   BuildVersion={$I %FPCVERSION%};
   BuildTarget={$I %FPCTARGET%};
@@ -51,6 +65,10 @@ Const
   ExeExt = '.exe';
 {$endif unix}
 
+  version_major = package_version_major;
+  version_minor = package_version_minor;
+  version_micro = package_version_micro;
+  version_build = package_version_build;
 
 Resourcestring
   SUsage00  = 'Usage: %s [options]';
@@ -66,11 +84,15 @@ Resourcestring
   SUsage84  = '  -s            skip the creation of a backup-file.';
   SUsage87  = '  -p            force directory creation.';
   SUsage90  = '  -v            be verbose.';
+  SUsage95  = '  -V            show version.';
   Susage100 = '  -0            use built in fpc.cfg template (default)';
   Susage110 = '  -1            use built in fp.cfg template';
   Susage120 = '  -2            use built in fp.ini template';
   Susage130 = '  -3            use built in fppkg.cfg template';
   Susage140 = '  -4            use built in fppkg default compiler template';
+
+  SVersion  = 'Version: %s';
+
   SErrUnknownOption   = 'Error: Unknown option.';
   SErrArgExpected     = 'Error: Option "%s" requires an argument.';
   SErrIncompletePair  = 'Error: Incomplete name-value pair "%s".';
@@ -312,12 +334,31 @@ begin
   Writeln(SUsage84);
   Writeln(SUsage87);
   Writeln(SUsage90);
+  Writeln(SUsage95);
   Writeln(SUsage100);
   Writeln(SUsage110);
   Writeln(SUsage120);
   Writeln(SUsage130);
   Writeln(SUsage140);
   Halt(1);
+end;
+
+Procedure Version;
+var
+  Version: string;
+begin
+  Version := '';
+  if version_major <> -1 then
+    Version := Version + IntToStr(version_major);
+  if version_minor <> -1 then
+    Version := Version + '.' + IntToStr(version_minor);
+  if version_micro <> -1 then
+    Version := Version + '.' + IntToStr(version_micro);
+  if version_build <> -1 then
+    Version := Version + '-'  + IntToStr(version_build);
+
+  Writeln(Format(SVersion,[Version]));
+  Halt(0);
 end;
 
 Procedure UnknownOption(Const S : String);
@@ -398,6 +439,7 @@ begin
     else
       case S[2] of
         'v' : Verbose:=True;
+        'V' : Version;
         'h' : Usage;
         'b' : ShowBuiltinCommand := true;
         'm' : begin
@@ -457,7 +499,7 @@ Procedure CreateFile;
 
 Var
   Fout : Text;
-  S,BFN : String;
+  S,BFN,ODir : String;
   I : Integer;
 
 begin
@@ -485,7 +527,8 @@ begin
     else
       Writeln(Format(SBackupCreated,[ExtractFileName(OutputFileName),ExtractFileName(BFN)]));
     end;
-  if (OutputFileName<>'') and not DirectoryExists(ExtractFilePath(OutputFileName)) then
+  ODir:=ExtractFilePath(OutputFileName);
+  if (OutputFileName<>'') and (ODir<>'') and not DirectoryExists(ODir) then
     begin
     if CreateDir then
       begin

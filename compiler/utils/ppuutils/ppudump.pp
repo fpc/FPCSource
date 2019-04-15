@@ -211,6 +211,9 @@ type
     ST_FILEINDEX,
     ST_LOADMESSAGES);
 
+  TPpuModuleDef = class(TPpuUnitDef)
+    ModuleFlags: tmoduleflags;
+  end;
 
 var
   ppufile     : tppufile;
@@ -222,7 +225,7 @@ var
   pout: TPpuOutput;
   nostdout: boolean;
   UnitList: TPpuContainerDef;
-  CurUnit: TPpuUnitDef;
+  CurUnit: TPpuModuleDef;
   SkipVersionCheck: boolean;
 
 
@@ -553,41 +556,17 @@ type
     str  : string[30];
   end;
 const
-  flagopts=32;
+  flagopts=8;
   flagopt : array[1..flagopts] of tflagopt=(
-    (mask: $1    ;str:'init'),
-    (mask: $2    ;str:'final'),
     (mask: $4    ;str:'big_endian'),
-    (mask: $8    ;str:'dbx'),
 //    (mask: $10   ;str:'browser'),
     (mask: $20   ;str:'in_library'),
     (mask: $40   ;str:'smart_linked'),
     (mask: $80   ;str:'static_linked'),
     (mask: $100  ;str:'shared_linked'),
-    (mask: $200  ;str:'uses_checkpointer'),
     (mask: $400  ;str:'no_link'),
-    (mask: $800  ;str:'has_resources'),
     (mask: $1000  ;str:'little_endian'),
-    (mask: $2000  ;str:'release'),
-    (mask: $4000  ;str:'local_threadvars'),
-    (mask: $8000  ;str:'fpu_emulation_on'),
-    (mask: $210000  ;str:'has_debug_info'),
-    (mask: $10000  ;str:'stabs_debug_info'),
-    (mask: $200000  ;str:'dwarf_debug_info'),
-    (mask: $20000  ;str:'local_symtable'),
-    (mask: $40000  ;str:'uses_variants'),
-    (mask: $80000  ;str:'has_resourcefiles'),
-    (mask: $100000  ;str:'has_exports'),
-    (mask: $400000  ;str:'has_wideinits'),
-    (mask: $800000  ;str:'has_classinits'),
-    (mask: $1000000 ;str:'has_resstrinits'),
-    (mask: $2000000 ;str:'i8086_far_code'),
-    (mask: $4000000 ;str:'i8086_far_data'),
-    (mask: $8000000 ;str:'i8086_huge_data'),
-    (mask: $10000000;str:'i8086_cs_equals_ds'),
-    (mask: $20000000;str:'package_deny'),
-    (mask: $40000000;str:'package_weak'),
-    (mask: dword($80000000);str:'i8086_ss_equals_ds')
+    (mask: $8000  ;str:'fpu_emulation_on')
   );
 var
   i : longint;
@@ -3726,6 +3705,13 @@ begin
        b:=readentry;
        case b of
 
+         ibextraheader:
+           begin
+             CurUnit.LongVersion:=cardinal(getlongint);
+             Writeln(['LongVersion: ',CurUnit.LongVersion]);
+             getsmallset(CurUnit.ModuleFlags);
+           end;
+
          ibmodulename :
            begin
              CurUnit.Name:=getstring;
@@ -3901,6 +3887,24 @@ begin
 end;
 
 
+function parseextraheader(module: TPpuModuleDef; ppufile: tppufile): boolean;
+var
+  b: byte;
+begin
+  result:=true;
+  if ppuversion>=207 then
+    begin
+      result:=false;
+      b:=ppufile.readentry;
+      if b<>ibextraheader then
+        exit;
+      CurUnit.LongVersion:=cardinal(ppufile.getlongint);
+      Writeln(['LongVersion: ',CurUnit.LongVersion]);
+      ppufile.getsmallset(CurUnit.ModuleFlags);
+      result:=ppufile.EndOfEntry;
+    end;
+end;
+
 procedure dofile (filename : string);
 begin
 { reset }
@@ -3936,8 +3940,13 @@ begin
      exit;
    end;
 
-  CurUnit:=TPpuUnitDef.Create(UnitList);
+  CurUnit:=TPpuModuleDef.Create(UnitList);
   CurUnit.Version:=ppuversion;
+
+  if not parseextraheader(CurUnit, ppufile) then
+    begin
+      WriteError(Format('Unsupported PPU sub-version %d. Expecting PPU sub-version %d.', [CurUnit.LongVersion, CurrentPPULongVersion]));
+    end;
 
 { Write PPU Header Information }
   if (verbose and v_header)<>0 then
@@ -4049,7 +4058,7 @@ begin
   Writeln('Implementation symtable');
   Writeln('----------------------');
   readsymtableoptions('implementation');
-  if (ppufile.header.common.flags and uf_local_symtable)<>0 then
+  if (mf_local_symtable in CurUnit.ModuleFlags) then
    begin
      if (verbose and v_defs)<>0 then
       begin

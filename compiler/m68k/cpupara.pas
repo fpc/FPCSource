@@ -336,11 +336,8 @@ unit cpupara;
 
             { syscall for AmigaOS can have already a paraloc set }
             if (vo_has_explicit_paraloc in hp.varoptions) then
-              begin
-                if not(vo_is_syscall_lib in hp.varoptions) then
-                  internalerror(200506051);
-                continue;
-              end;
+              continue;
+
             hp.paraloc[side].reset;
 
             { currently only support C-style array of const }

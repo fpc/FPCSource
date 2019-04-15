@@ -2062,7 +2062,8 @@ type
     property    ShapeType;
     property    Orientation;
     property    CornerRadius;
-    property    Color;
+    property    Color; 
+    property    StretchMode;
   end;
 
 
@@ -5176,8 +5177,13 @@ begin
 end;
 
 procedure TFPReportCustomShape.RecalcLayout;
+var
+  h: TFPReportUnits;
 begin
-  // Do nothing
+  if StretchMode = smDontStretch then
+    exit;
+  h := Layout.Height;
+  ApplyStretchMode(h);
 end;
 
 procedure TFPReportCustomShape.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
@@ -8601,6 +8607,7 @@ begin
     // local properties
     AWriter.WriteString('Title', Title);
     AWriter.WriteString('Author', Author);
+    AWriter.WriteBoolean('TwoPass',TwoPass);
     AWriter.WriteDateTime('DateCreated', DateCreated);
     // now the design-time images
     AWriter.PushElement('Images');
@@ -8669,6 +8676,7 @@ begin
       inherited ReadElement(AReader);
       FTitle := AReader.ReadString('Title', Title);
       FAuthor := AReader.ReadString('Author', Author);
+      FTwoPass := AReader.ReadBoolean('TwoPass',TwoPass);
       FDateCreated := AReader.ReadDateTime('DateCreated', Now);
 
       E := AReader.FindChild('Images');

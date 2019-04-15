@@ -888,6 +888,7 @@ implementation
                         vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
                         vmtbuilder.generate_vmt;
                         vmtbuilder.free;
+                        insert_struct_hidden_paras(tobjectdef(hdef));
                       end;
 
                     { In case of an objcclass, verify that all methods have a message

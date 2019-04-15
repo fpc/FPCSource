@@ -57,6 +57,8 @@ begin
 
     T:=P.Targets.AddProgram('h2paspp.pas');
 
+    T:=P.Targets.AddProgram('h2paschk.pas');
+
     P.Targets.AddUnit('h2poptions.pas').install:=false;
     P.Targets.AddUnit('h2plexlib.pas').install:=false;
     P.Targets.AddUnit('h2pyacclib.pas').install:=false;

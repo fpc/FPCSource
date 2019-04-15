@@ -359,7 +359,8 @@ override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
 ifeq ($(ARCH),riscv64)
-override LOADERS=prt0 cprt0 dllprt0
+override LOADERS=
+SYSINIT_UNITS=si_prc si_dll si_c
 endif
 ifeq ($(ARCH),mipsel)
 override FPCOPT+=-Ur
@@ -3667,6 +3668,7 @@ ifdef CLEAN_FILES
 	-$(DEL) $(CLEAN_FILES)
 endif
 	-$(DELTREE) units
+	-$(DELTREE) bin
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a

@@ -428,7 +428,7 @@ begin
     for i:=0 to High(ParamPart) do
     begin
       CopyLen:=ParamPart[i].Start-BufIndex;
-      Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+      System.Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
       Inc(NewQueryIndex,CopyLen);
       case ParameterStyle of
         psInterbase : begin
@@ -454,7 +454,7 @@ begin
     end;
     CopyLen:=Length(SQL)+1-BufIndex;
     if CopyLen > 0 then
-      Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+      System.Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
   end
   else
     NewQuery:=SQL;

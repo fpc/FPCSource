@@ -34,6 +34,7 @@ type
     procedure DoMethodInvoke(aInst: TObject; aMethod: TMethod; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     procedure DoProcVarInvoke(aInst: TObject; aProc: CodePointer; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     procedure DoProcInvoke(aInst: TObject; aProc: CodePointer; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
+    procedure DoUntypedInvoke(aInst: TObject; aProc: CodePointer; aMethod: TMethod; aTypeInfo: PTypeInfo; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
 {$ifndef InLazIDE}
     {$ifdef fpc}generic{$endif} procedure GenDoMethodInvoke<T>(aInst: TObject; aMethod: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     {$ifdef fpc}generic{$endif} procedure GenDoProcvarInvoke<T>(aInst: TObject; aProc: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
@@ -65,6 +66,8 @@ type
 
     procedure TestProc;
     procedure TestProcRecs;
+
+    procedure TestUntyped;
   end;
 
 implementation
@@ -697,6 +700,8 @@ type
     function TestRecSize8(aArg1: TTestRecord8): TTestRecord8;
     function TestRecSize9(aArg1: TTestRecord9): TTestRecord9;
     function TestRecSize10(aArg1: TTestRecord10): TTestRecord10;
+
+    procedure TestUntyped(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4);
   end;
   {$M-}
 
@@ -735,9 +740,13 @@ type
     function TestRecSize8(aArg1: TTestRecord8): TTestRecord8;
     function TestRecSize9(aArg1: TTestRecord9): TTestRecord9;
     function TestRecSize10(aArg1: TTestRecord10): TTestRecord10;
+
+    procedure TestUntyped(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4);
   public
     InputArgs: array of TValue;
     OutputArgs: array of TValue;
+    ExpectedArgs: array of TValue;
+    OutArgs: array of TValue;
     ResultValue: TValue;
     CalledMethod: SizeInt;
     InOutMapping: array of SizeInt;
@@ -783,6 +792,8 @@ type
   TMethodTestRecSize9 = function(aArg1: TTestRecord9): TTestRecord9 of object;
   TMethodTestRecSize10 = function(aArg1: TTestRecord10): TTestRecord10 of object;
 
+  TMethodTestUntyped = procedure(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4) of object;
+
   TProcVarTest1 = procedure;
   TProcVarTest2 = function: SizeInt;
   TProcVarTest3 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: SizeInt): SizeInt;
@@ -816,6 +827,8 @@ type
   TProcVarTestRecSize8 = function(aArg1: TTestRecord8): TTestRecord8;
   TProcVarTestRecSize9 = function(aArg1: TTestRecord9): TTestRecord9;
   TProcVarTestRecSize10 = function(aArg1: TTestRecord10): TTestRecord10;
+
+  TProcVarTestUntyped = procedure(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4);
 
 procedure TTestInterfaceClass.Test1;
 begin
@@ -1318,10 +1331,38 @@ begin
   CalledMethod := 10 or RecSizeMarker;
 end;
 
+procedure TTestInterfaceClass.TestUntyped(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4);
+begin
+  if Length(ExpectedArgs) <> 4 then
+    Exit;
+  if Length(OutArgs) <> 2 then
+    Exit;
+
+  SetLength(InputArgs, 4);
+  TValue.Make(@aArg1, ExpectedArgs[0].TypeInfo, InputArgs[0]);
+  TValue.Make(@aArg2, ExpectedArgs[1].TypeInfo, InputArgs[1]);
+  TValue.Make(@aArg3, ExpectedArgs[2].TypeInfo, InputArgs[2]);
+  TValue.Make(@aArg4, ExpectedArgs[3].TypeInfo, InputArgs[3]);
+
+  Move(PPointer(OutArgs[0].GetReferenceToRawData)^, aArg1, OutArgs[0].DataSize);
+  Move(PPointer(OutArgs[1].GetReferenceToRawData)^, aArg2, OutArgs[1].DataSize);
+
+  SetLength(OutputArgs, 2);
+  TValue.Make(@aArg1, ExpectedArgs[0].TypeInfo, OutputArgs[0]);
+  TValue.Make(@aArg2, ExpectedArgs[1].TypeInfo, OutputArgs[1]);
+  SetLength(InOutMapping, 2);
+  InOutMapping[0] := 0;
+  InOutMapping[1] := 1;
+
+  CalledMethod := -1;
+end;
+
 procedure TTestInterfaceClass.Reset;
 begin
   InputArgs := Nil;
   OutputArgs := Nil;
+  ExpectedArgs := Nil;
+  OutArgs := Nil;
   InOutMapping := Nil;
   ResultValue := TValue.Empty;
   CalledMethod := 0;
@@ -1485,6 +1526,11 @@ end;
 function ProcTestRecSize10(aArg1: TTestRecord10): TTestRecord10;
 begin
   Result := TTestInterfaceClass.ProcVarRecInst.TestRecSize10(aArg1);
+end;
+
+procedure ProcTestUntyped(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4);
+begin
+  TTestInterfaceClass.ProcVarInst.TestUntyped(aArg1, aArg2, aArg3, aArg4);
 end;
 
 procedure TTestInvoke.DoIntfInvoke(aIndex: SizeInt; aInputArgs,
@@ -1701,6 +1747,89 @@ begin
 
     res := Rtti.Invoke(aProc, aInputArgs, proc.CallingConvention, restype, True, False);
     CheckEquals(aIndex, cls.CalledMethod, 'Wrong method called for ' + name);
+    Check(EqualValues(cls.ResultValue, res), 'Reported result value differs from returned for ' + name);
+    Check(EqualValues(aResult, res), 'Expected result value differs from returned for ' + name);
+    CheckEquals(Length(aInputArgs), Length(cls.InputArgs), 'Count of input args differs for ' + name);
+    CheckEquals(Length(cls.OutputArgs), Length(cls.InOutMapping), 'Count of output args and in-out-mapping differs for ' + name);
+    CheckEquals(Length(aOutputArgs), Length(cls.OutputArgs), 'Count of output args differs for ' + name);
+    for i := 0 to High(aInputArgs) do begin
+      Check(EqualValues(input[i], cls.InputArgs[i]), Format('Input argument %d differs for %s', [i + 1, name]));
+    end;
+    for i := 0 to High(aOutputArgs) do begin
+      Check(EqualValues(aOutputArgs[i], cls.OutputArgs[i]), Format('Output argument %d differs for %s', [i + 1, name]));
+      Check(EqualValues(aOutputArgs[i], aInputArgs[cls.InOutMapping[i]]), Format('New output argument %d differs from expected output for %s', [i + 1, name]));
+    end;
+  finally
+    context.Free;
+  end;
+end;
+
+procedure TTestInvoke.DoUntypedInvoke(aInst: TObject; aProc: CodePointer;
+  aMethod: TMethod; aTypeInfo: PTypeInfo; aInputArgs, aOutputArgs: TValueArray;
+  aResult: TValue);
+var
+  cls: TTestInterfaceClass;
+  intf: ITestInterface;
+  name: String;
+  context: TRttiContext;
+  t: TRttiType;
+  callable, res: TValue;
+  proc: TRttiInvokableType;
+  method: TRttiMethod;
+  i: SizeInt;
+  input: array of TValue;
+begin
+  cls := aInst as TTestInterfaceClass;
+  cls.Reset;
+
+  name := 'TestUntyped';
+  TTestInterfaceClass.ProcVarInst := cls;
+
+  context := TRttiContext.Create;
+  try
+    method := Nil;
+    proc := Nil;
+    if Assigned(aProc) then begin
+      TValue.Make(@aProc, aTypeInfo, callable);
+
+      t := context.GetType(aTypeInfo);
+      Check(t is TRttiProcedureType, 'Not a procedure variable: ' + aTypeInfo^.Name);
+      proc := t as TRttiProcedureType;
+    end else if Assigned(aMethod.Code) then begin
+      TValue.Make(@aMethod, aTypeInfo, callable);
+
+      t := context.GetType(aTypeInfo);
+      Check(t is TRttiMethodType, 'Not a method variable: ' + aTypeInfo^.Name);
+      proc := t as TRttiMethodType;
+    end else begin
+      intf := cls;
+
+      TValue.Make(@intf, TypeInfo(intf), callable);
+
+      t := context.GetType(TypeInfo(ITestInterface));
+      method := t.GetMethod(name);
+      Check(Assigned(method), 'Method not found: ' + name);
+    end;
+
+    { arguments might be modified by Invoke (Note: Copy() does not uniquify the
+      IValueData of managed types) }
+    SetLength(input, Length(aInputArgs));
+    SetLength(cls.ExpectedArgs, Length(aInputArgs));
+    for i := 0 to High(input) do begin
+      input[i] := CopyValue(aInputArgs[i]);
+      cls.ExpectedArgs[i] := CopyValue(aInputArgs[i]);
+    end;
+    SetLength(cls.OutArgs, Length(aOutputArgs));
+    for i := 0 to High(cls.OutArgs) do begin
+      cls.OutArgs[i] := CopyValue(aOutputArgs[i]);
+    end;
+
+    if Assigned(proc) then
+      res := proc.Invoke(callable, aInputArgs)
+    else
+      res := method.Invoke(callable, aInputArgs);
+
+    CheckEquals(-1, cls.CalledMethod, 'Wrong method called for ' + name);
     Check(EqualValues(cls.ResultValue, res), 'Reported result value differs from returned for ' + name);
     Check(EqualValues(aResult, res), 'Expected result value differs from returned for ' + name);
     CheckEquals(Length(aInputArgs), Length(cls.InputArgs), 'Count of input args differs for ' + name);
@@ -2377,6 +2506,96 @@ begin
       {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord10>(True));
   finally
     cls.Free;
+  end;
+end;
+
+procedure TTestInvoke.TestUntyped;
+var
+  cls: TTestInterfaceClass;
+begin
+  cls := TTestInterfaceClass.Create;
+  try
+    cls._AddRef;
+
+    DoUntypedInvoke(cls, Nil, Default(TMethod), Nil, [
+      GetIntValue($1234), GetIntValue($4321), GetIntValue($8765), GetIntValue($5678)
+      ], [
+      GetIntValue($4321), GetIntValue($5678)
+      ], TValue.Empty);
+
+    DoUntypedInvoke(cls, Nil, Default(TMethod), Nil, [
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str1'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str2'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str3'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str4')
+      ], [
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('StrVar'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('StrOut')
+      ], TValue.Empty);
+
+    DoUntypedInvoke(cls, Nil, Default(TMethod), Nil, [
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str1'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str2'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str3'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str4')
+      ], [
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('StrVar'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('StrOut')
+      ], TValue.Empty);
+
+    DoUntypedInvoke(cls, Nil, TMethod({$ifdef fpc}@{$endif}cls.TestUntyped), TypeInfo(TMethodTestUntyped), [
+      GetIntValue($1234), GetIntValue($4321), GetIntValue($8765), GetIntValue($5678)
+      ], [
+      GetIntValue($4321), GetIntValue($5678)
+      ], TValue.Empty);
+
+    DoUntypedInvoke(cls, Nil, TMethod({$ifdef fpc}@{$endif}cls.TestUntyped), TypeInfo(TMethodTestUntyped), [
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str1'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str2'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str3'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str4')
+      ], [
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('StrVar'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('StrOut')
+      ], TValue.Empty);
+
+    DoUntypedInvoke(cls, Nil, TMethod({$ifdef fpc}@{$endif}cls.TestUntyped), TypeInfo(TMethodTestUntyped), [
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str1'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str2'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str3'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str4')
+      ], [
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('StrVar'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('StrOut')
+      ], TValue.Empty);
+
+    DoUntypedInvoke(cls, {$ifdef fpc}@{$endif}ProcTestUntyped, Default(TMethod), TypeInfo(TProcVarTestUntyped), [
+      GetIntValue($1234), GetIntValue($4321), GetIntValue($8765), GetIntValue($5678)
+      ], [
+      GetIntValue($4321), GetIntValue($5678)
+      ], TValue.Empty);
+
+    DoUntypedInvoke(cls, {$ifdef fpc}@{$endif}ProcTestUntyped, Default(TMethod), TypeInfo(TProcVarTestUntyped), [
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str1'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str2'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str3'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('Str4')
+      ], [
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('StrVar'),
+      TValue.{$ifdef fpc}specialize{$endif}From<AnsiString>('StrOut')
+      ], TValue.Empty);
+
+    DoUntypedInvoke(cls, {$ifdef fpc}@{$endif}ProcTestUntyped, Default(TMethod), TypeInfo(TProcVarTestUntyped), [
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str1'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str2'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str3'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('Str4')
+      ], [
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('StrVar'),
+      TValue.{$ifdef fpc}specialize{$endif}From<ShortString>('StrOut')
+      ], TValue.Empty);
+  finally
+    cls._Release;
   end;
 end;
 

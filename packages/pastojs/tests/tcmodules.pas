@@ -461,6 +461,7 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
+    Procedure TestRecord_AnonymousFail;
     // ToDo: RTTI of local record
     // ToDo: pcu local record, name clash and rtti
 
@@ -10601,6 +10602,18 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestRecord_AnonymousFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  r: record x: word end;',
+  'begin']);
+  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] anonymous record type',
+    nNotYetImplemented);
+  ConvertProgram;
+end;
+
 procedure TTestModule.TestAdvRecord_Function;
 begin
   StartProgram(false);
@@ -11208,6 +11221,7 @@ begin
   'var r: TPoint;',
   'begin',
   '  r:=TPoint.Create(1,2);',
+  '  with TPoint do r:=Create(1,2);',
   '  r.Create(3);',
   '  r:=r.Create(4);',
   '']);
@@ -11234,7 +11248,9 @@ begin
     'this.r = $mod.TPoint.$new();',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.r.$assign($mod.TPoint.$create("Create", [1, 2]));',
+    '$mod.r.$assign($mod.TPoint.$new().Create(1, 2));',
+    'var $with1 = $mod.TPoint;',
+    '$mod.r.$assign($with1.$new().Create(1, 2));',
     '$mod.r.Create(3, -1);',
     '$mod.r.$assign($mod.r.Create(4, -1));',
     '']));
@@ -16019,6 +16035,7 @@ begin
   Add('  A: texta;');
   Add('begin');
   Add('  a:=texta.new;');
+  Add('  a:=texta(texta.new);');
   Add('  a:=texta.new();');
   Add('  a:=texta.new(1);');
   Add('  with texta do begin');
@@ -16035,6 +16052,7 @@ begin
     'this.A = null;',
     '']),
     LinesToStr([ // $mod.$main
+    '$mod.A = new ExtA();',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA(1,2);',
@@ -21545,7 +21563,7 @@ begin
     'rtl.createHelper($mod, "THelper", null, function () {',
     '  this.NewHlp = function (w) {',
     '    this.Create(2);',
-    '    $mod.TRec.$create("Create", [3]);',
+    '    $mod.TRec.$new().Create(3);',
     '    $mod.THelper.NewHlp.call(this, 4);',
     '    $mod.THelper.$new("NewHlp", [5]);',
     '    return this;',

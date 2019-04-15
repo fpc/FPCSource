@@ -128,7 +128,9 @@ interface
         crc,
         interface_crc,
         indirect_crc  : cardinal;
-        flags         : cardinal;  { the PPU flags }
+        headerflags   : cardinal;  { the PPU header flags }
+        longversion   : cardinal;  { longer version than what fits in the ppu header }
+        moduleflags   : tmoduleflags; { ppu flags that do not need to be known by just reading the ppu header }
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
         moduleid      : longint;
@@ -574,7 +576,9 @@ implementation
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;
-        flags:=0;
+        headerflags:=0;
+        longversion:=0;
+        moduleflags:=[];
         scanner:=nil;
         unitmap:=nil;
         unitmapsize:=0;
@@ -886,7 +890,9 @@ implementation
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;
-        flags:=0;
+        headerflags:=0;
+        longversion:=0;
+        moduleflags:=[];
         mainfilepos.line:=0;
         mainfilepos.column:=0;
         mainfilepos.fileindex:=0;
@@ -1061,7 +1067,7 @@ implementation
                   this is for units with an initialization/finalization }
                 if (unitmap[pu.u.moduleid].refs=0) and
                    pu.in_uses and
-                   ((pu.u.flags and (uf_init or uf_finalize))=0) then
+                   ((pu.u.moduleflags * [mf_init,mf_finalize])=[]) then
                   CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
               end;
             pu:=tused_unit(pu.next);

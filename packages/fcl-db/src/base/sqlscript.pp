@@ -641,28 +641,33 @@ begin
 end;
 
 procedure TCustomSQLScript.DefaultDirectives;
+
+  Procedure Add(S : String);
+  
+  begin
+    if FDirectives.IndexOf(S)=-1 then
+      FDirectives.Add(S);
+  end;
+
 begin
-  With FDirectives do
+  // Insertion order matters as testing for directives will be done with StartsWith
+  if FUseSetTerm then
+    Add('SET TERM');
+  if FUseCommit then
+  begin
+    Add('COMMIT WORK'); {SQL Standard, equivalent to commit}
+    Add('COMMIT RETAIN'); {Firebird/Interbase; probably won't hurt on other dbs}
+    Add('COMMIT'); {Shorthand used in many dbs, e.g. Firebird}
+  end;
+  if FUseDefines then
     begin
-    // Insertion order matters as testing for directives will be done with StartsWith
-    if FUseSetTerm then
-      Add('SET TERM');
-    if FUseCommit then
-    begin
-      Add('COMMIT WORK'); {SQL Standard, equivalent to commit}
-      Add('COMMIT RETAIN'); {Firebird/Interbase; probably won't hurt on other dbs}
-      Add('COMMIT'); {Shorthand used in many dbs, e.g. Firebird}
-    end;
-    if FUseDefines then
-      begin
-      Add('#IFDEF');
-      Add('#IFNDEF');
-      Add('#ELSE');
-      Add('#ENDIF');
-      Add('#DEFINE');
-      Add('#UNDEF');
-      Add('#UNDEFINE');
-      end;
+    Add('#IFDEF');
+    Add('#IFNDEF');
+    Add('#ELSE');
+    Add('#ENDIF');
+    Add('#DEFINE');
+    Add('#UNDEF');
+    Add('#UNDEFINE');
     end;
 end;
 

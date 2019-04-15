@@ -411,7 +411,7 @@ begin
   writeln(t,');');
   close(t);
 {update arraysize}
-  s:=l0(msgsize div maxslen); { we start with 0 }
+  s:=l0((msgsize-1) div maxslen); { we start with 0 }
   assign(f,fn);
   reset(f,1);
   seek(f,22+34+2*eollen+2*length(constname));
