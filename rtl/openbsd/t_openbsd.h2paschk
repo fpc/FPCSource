@@ -12,6 +12,7 @@
 
 @C #include <sys/stat.h>
 @C #include <dirent.h>
+@C #include <poll.h>
 @C #include <stdio.h>
 @C #include <stddef.h>
 @C int main()
@@ -47,6 +48,11 @@
 .d_namlen
 .d_padding,__d_padding
 .d_name
+
+@record pollfd,struct pollfd
+.fd
+.events
+.revents
 
 @C   return 0;
 @C }
