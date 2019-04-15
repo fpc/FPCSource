@@ -1,0 +1,54 @@
+# OpenBSD RTL-to-C structure compatibility checker description file
+#
+# Use
+#   h2paschk t_openbsd.h2paschk
+#
+# ...to generate Pascal and C code, then make sure they both compile and that
+# the Pascal program produces the same output as the C program for each
+# supported architecture.
+
+@Pascal uses baseunix;
+@Pascal begin
+
+@C #include <sys/stat.h>
+@C #include <dirent.h>
+@C #include <stdio.h>
+@C #include <stddef.h>
+@C int main()
+@C {
+
+@record stat,struct stat
+.st_mode
+.st_dev
+.st_ino
+.st_nlink
+.st_uid
+.st_gid
+.st_rdev
+.st_atime
+.st_atimensec
+.st_mtime
+.st_mtimensec
+.st_ctime
+.st_ctimensec
+.st_size
+.st_blocks
+.st_blksize
+.st_flags
+.st_gen
+.st_birthtime,__st_birthtime
+.st_birthtimensec,__st_birthtimensec
+
+@record dirent,struct dirent
+.d_fileno
+.d_off
+.d_reclen
+.d_type
+.d_namlen
+.d_padding,__d_padding
+.d_name
+
+@C   return 0;
+@C }
+
+@Pascal end.

@@ -10277,6 +10277,7 @@ rtl/openbsd/sysctlh.inc svneol=native#text/plain
 rtl/openbsd/sysnr.inc svneol=native#text/plain
 rtl/openbsd/sysofft.inc svneol=native#text/plain
 rtl/openbsd/systypes.inc svneol=native#text/plain
+rtl/openbsd/t_openbsd.h2paschk svneol=native#text/plain
 rtl/openbsd/termio.pp svneol=native#text/plain
 rtl/openbsd/termios.inc svneol=native#text/plain
 rtl/openbsd/termiosproc.inc svneol=native#text/plain
