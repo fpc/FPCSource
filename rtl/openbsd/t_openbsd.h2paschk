@@ -10,9 +10,17 @@
 @Pascal uses baseunix;
 @Pascal begin
 
+@C #include <sys/types.h>
 @C #include <sys/stat.h>
+@C #include <sys/time.h>
+@C #include <sys/times.h>
+@C #include <sys/resource.h>
+@C #include <sys/uio.h>
 @C #include <dirent.h>
 @C #include <poll.h>
+@C #include <utime.h>
+@C #include <fcntl.h>
+@C #include <unistd.h>
 @C #include <stdio.h>
 @C #include <stddef.h>
 @C int main()
@@ -53,6 +61,53 @@
 .fd
 .events
 .revents
+
+@record utimbuf,struct utimbuf
+.actime
+.modtime
+
+@record flock,struct flock
+.l_start
+.l_len
+.l_pid
+.l_type
+.l_whence
+
+@record tms,struct tms
+.tms_utime
+.tms_stime
+.tms_cutime
+.tms_cstime
+
+@record timezone,struct timezone
+.tz_minuteswest
+.tz_dsttime
+
+@record rusage,struct rusage
+.ru_utime
+.ru_stime
+.ru_maxrss
+.ru_ixrss
+.ru_idrss
+.ru_isrss
+.ru_minflt
+.ru_majflt
+.ru_nswap
+.ru_inblock
+.ru_oublock
+.ru_msgsnd
+.ru_msgrcv
+.ru_nsignals
+.ru_nvcsw
+.ru_nivcsw
+
+@record TRLimit,struct rlimit
+.rlim_cur
+.rlim_max
+
+@record iovec,struct iovec
+.iov_base
+.iov_len
 
 @C   return 0;
 @C }
