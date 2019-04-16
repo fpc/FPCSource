@@ -4475,24 +4475,23 @@ implementation
 
   procedure thlcgobj.gen_proc_symbol(list: TAsmList);
     var
-      item,
-      previtem : TCmdStrListItem;
+      firstitem,
+      item: TCmdStrListItem;
     begin
-      previtem:=nil;
-      item := TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
+      item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
+      firstitem:=item;
       while assigned(item) do
         begin
 {$ifdef arm}
           if GenerateThumbCode or GenerateThumb2Code then
             list.concat(tai_directive.create(asd_thumb_func,''));
 {$endif arm}
-          { "double link" all procedure entry symbols via .reference }
-          { directives on darwin, because otherwise the linker       }
-          { sometimes strips the procedure if only on of the symbols }
-          { is referenced                                            }
-          if assigned(previtem) and
+          { alias procedure entry symbols via ".set" on Darwin, otherwise
+            they can be interpreted as all different starting symbols of
+            subsections and be reordered }
+          if (item<>firstitem) and
              (target_info.system in systems_darwin) then
-            list.concat(tai_directive.create(asd_reference,item.str));
+            list.concat(tai_symbolpair.create(spk_set,item.str,firstitem.str));
           if (cs_profile in current_settings.moduleswitches) or
              { smart linking using a library requires to promote
                all non-nested procedures to AB_GLOBAL
@@ -4503,13 +4502,9 @@ implementation
             list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
           else
             list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0,current_procinfo.procdef));
-          if assigned(previtem) and
-             (target_info.system in systems_darwin) then
-            list.concat(tai_directive.create(asd_reference,previtem.str));
           if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
             list.concat(Tai_function_name.create(item.str));
-          previtem:=item;
-          item := TCmdStrListItem(item.next);
+          item:=TCmdStrListItem(item.next);
         end;
       current_procinfo.procdef.procstarttai:=tai(list.last);
     end;

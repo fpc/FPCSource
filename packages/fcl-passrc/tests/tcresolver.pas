@@ -410,6 +410,7 @@ type
     Procedure TestProcOverloadBaseTypeOtherUnit;
     Procedure TestProcOverloadBaseProcNoHint;
     Procedure TestProcOverload_UnitOrderFail;
+    Procedure TestProcOverload_UnitSameSignature;
     Procedure TestProcOverloadDelphiMissingNextOverload;
     Procedure TestProcOverloadDelphiMissingPrevOverload;
     Procedure TestProcOverloadDelphiUnit;
@@ -4650,7 +4651,6 @@ procedure TTestResolver.TestCAssignments;
 begin
   StartProgram(false);
   Parser.Options:=Parser.Options+[po_cassignments];
-  Scanner.Options:=Scanner.Options+[po_cassignments];
   Add('Type');
   Add('  TFlag = (Flag1,Flag2);');
   Add('  TFlags = set of TFlag;');
@@ -4831,7 +4831,6 @@ procedure TTestResolver.TestAssign_Access;
 begin
   StartProgram(false);
   Parser.Options:=Parser.Options+[po_cassignments];
-  Scanner.Options:=Scanner.Options+[po_cassignments];
   Add('var i: longint;');
   Add('begin');
   Add('  {#a1_assign}i:={#a2_read}i;');
@@ -6624,6 +6623,28 @@ begin
   'begin',
   '  Val(s);']);
   CheckResolverException(sIncompatibleTypeArgNo,nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestProcOverload_UnitSameSignature;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'procedure Val(d: string);',
+    '']),
+    LinesToStr([
+    'procedure Val(d: string); begin end;',
+    '']));
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'procedure Val(d: string);',
+  'begin',
+  'end;',
+  'var',
+  '  s: string;',
+  'begin',
+  '  Val(s);']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcOverloadDelphiMissingNextOverload;
@@ -14085,7 +14106,6 @@ end;
 procedure TTestResolver.TestArray_DynArrayConstObjFPC;
 begin
   Parser.Options:=Parser.Options+[po_cassignments];
-  Scanner.Options:=Scanner.Options+[po_cassignments];
   StartProgram(false);
   Add([
   '{$modeswitch arrayoperators}',

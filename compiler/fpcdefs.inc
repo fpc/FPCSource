@@ -275,6 +275,7 @@
 {$endif aarch64}
 
 {$ifdef riscv32}
+  {$define riscv}
   {$define cpu32bit}
   {$define cpu32bitaddr}
   {$define cpu32bitalu}
@@ -287,6 +288,7 @@
 {$endif riscv32}
 
 {$ifdef riscv64}
+  {$define riscv}
   {$define cpu64bit}
   {$define cpu64bitaddr}
   {$define cpu64bitalu}

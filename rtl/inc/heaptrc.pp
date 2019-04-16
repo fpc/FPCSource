@@ -509,8 +509,6 @@ var
 begin
   loc_info := @heap_info;
   try_finish_heap_free_todo_list(loc_info);
-  inc(loc_info^.getmem_size,size);
-  inc(loc_info^.getmem8_size,(size+7) and not 7);
 { Do the real GetMem, but alloc also for the info block }
 {$ifdef cpuarm}
   allocsize:=(size + 3) and not 3+sizeof(theap_mem_info)+extra_info_size;
@@ -529,6 +527,10 @@ begin
     end;
   pp:=pheap_mem_info(p);
   inc(p,sizeof(theap_mem_info));
+  { Update getmem_size and getmem8_size only after successful call 
+    to SysGetMem }
+  inc(loc_info^.getmem_size,size);
+  inc(loc_info^.getmem8_size,(size+7) and not 7);
 { Create the info block }
   pp^.sig:=longword(AllocateSig);
   pp^.todolist:=@loc_info^.heap_free_todo;

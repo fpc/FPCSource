@@ -60,7 +60,8 @@ implementation
        globals,verbose,systems,
        node,
        symbase,symtable,symconst,symtype,symcpu,
-       defcmp;
+       defcmp,
+       pparautl;
 
 
 {*****************************************************************************
@@ -922,6 +923,7 @@ implementation
                   add_new_vmt_entry(tprocdef(def),overridesclasshelper);
               end;
           end;
+        insert_struct_hidden_paras(_class);
         build_interface_mappings;
         if assigned(_class.ImplementedInterfaces) and
            not(is_objc_class_or_protocol(_class)) and
