@@ -322,7 +322,6 @@ implementation
         vmtbuilder:=TVMTBuilder.Create(enumclass);
         vmtbuilder.generate_vmt;
         vmtbuilder.free;
-        insert_struct_hidden_paras(enumclass);
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
         current_structdef:=old_current_structdef;
@@ -433,7 +432,6 @@ implementation
         vmtbuilder:=TVMTBuilder.Create(pvclass);
         vmtbuilder.generate_vmt;
         vmtbuilder.free;
-        insert_struct_hidden_paras(pvclass);
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
       end;
