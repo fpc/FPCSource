@@ -722,6 +722,8 @@ function FrameRgn(_para1:HDC; _para2:HRGN; _para3:HBRUSH; _para4:longint; _para5
 function GetROP2(_para1:HDC):longint; external 'gdi32' name 'GetROP2';
 function GetAspectRatioFilterEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external 'gdi32' name 'GetAspectRatioFilterEx';
 function GetBkColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetBkColor';
+function GetDCBrushColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetDCBrushColor';
+function GetDCPenColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetDCPenColor';
 function GetBkMode(_para1:HDC):longint; external 'gdi32' name 'GetBkMode';
 function GetBitmapBits(_para1:HBITMAP; _para2:LONG; _para3:LPVOID):LONG; external 'gdi32' name 'GetBitmapBits';
 function GetBitmapDimensionEx(_para1:HBITMAP; _para2:LPSIZE):WINBOOL; external 'gdi32' name 'GetBitmapDimensionEx';
