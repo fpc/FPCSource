@@ -794,6 +794,8 @@ function SetMetaRgn(_para1:HDC):longint; external 'gdi32' name 'SetMetaRgn';
 function SelectObject(_para1:HDC; _para2:HGDIOBJ):HGDIOBJ; external 'gdi32' name 'SelectObject';
 function SelectPalette(_para1:HDC; _para2:HPALETTE; _para3:WINBOOL):HPALETTE; external 'gdi32' name 'SelectPalette';
 function SetBkColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetBkColor';
+function SetDCBrushColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetDCBrushColor';
+function SetDCPenColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetDCPenColor';
 function SetBkMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetBkMode';
 function SetBitmapBits(_para1:HBITMAP; _para2:DWORD; _para3:pointer):LONG; external 'gdi32' name 'SetBitmapBits';
 function SetBoundsRect(_para1:HDC; const _para2:RECT; _para3:UINT):UINT; external 'gdi32' name 'SetBoundsRect';
