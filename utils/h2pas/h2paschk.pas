@@ -131,15 +131,15 @@ procedure TH2PasCheckerCodeGen.StartRecord(RecordID: TIdentifier);
 begin
   FCurrentRecord := RecordID;
   Writeln(FLangOutput[lPascal], '  Writeln(''SizeOf(', RecordID[CommLangID], ')='',SizeOf(', RecordID[lPascal], '));');
-  Writeln(FLangOutput[lC], '  printf("SizeOf(', RecordID[CommLangID], ')=%u\n",sizeof(', RecordID[lC], '));');
+  Writeln(FLangOutput[lC], '  printf("SizeOf(', RecordID[CommLangID], ')=%lu\n",sizeof(', RecordID[lC], '));');
 end;
 
 procedure TH2PasCheckerCodeGen.ProcessField(FieldID: TIdentifier);
 begin
   Writeln(FLangOutput[lPascal], '  Writeln(''SizeOf(', FCurrentRecord[CommLangID], '.', FieldID[CommLangID], ')='',SizeOf(', FCurrentRecord[lPascal], '.', FieldID[lPascal], '));');
   Writeln(FLangOutput[lPascal], '  Writeln(''OffsetOf(', FCurrentRecord[CommLangID], ',', FieldID[CommLangID], ')='',PtrUInt(@', FCurrentRecord[lPascal], '(nil^).', FieldID[lPascal], '));');
-  Writeln(FLangOutput[lC], '  printf("SizeOf(', FCurrentRecord[CommLangID], '.', FieldID[CommLangID], ')=%u\n",sizeof(((', FCurrentRecord[lC], '*)0)->', FieldID[lC], '));');
-  Writeln(FLangOutput[lC], '  printf("OffsetOf(', FCurrentRecord[CommLangID], ',', FieldID[CommLangID], ')=%u\n",offsetof(', FCurrentRecord[lC], ',', FieldID[lC], '));');
+  Writeln(FLangOutput[lC], '  printf("SizeOf(', FCurrentRecord[CommLangID], '.', FieldID[CommLangID], ')=%lu\n",sizeof(((', FCurrentRecord[lC], '*)0)->', FieldID[lC], '));');
+  Writeln(FLangOutput[lC], '  printf("OffsetOf(', FCurrentRecord[CommLangID], ',', FieldID[CommLangID], ')=%lu\n",offsetof(', FCurrentRecord[lC], ',', FieldID[lC], '));');
 end;
 
 destructor TH2PasCheckerCodeGen.Destroy;

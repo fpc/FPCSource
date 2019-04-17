@@ -1059,7 +1059,6 @@ uses
                       vmtbuilder:=TVMTBuilder.Create(tobjectdef(result));
                       vmtbuilder.generate_vmt;
                       vmtbuilder.free;
-                      insert_struct_hidden_paras(tobjectdef(result));
                     end;
                   { handle params, calling convention, etc }
                   procvardef:

@@ -1968,6 +1968,7 @@ Implementation
                       strb reg1,[...]
                     }
                     if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_STR, [C_None], [PF_B]) and
                       assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
@@ -1993,6 +1994,7 @@ Implementation
                       uxtb reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
                       (taicpu(hp1).ops = 2) and
@@ -2016,6 +2018,7 @@ Implementation
                       uxtb reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTB, [C_None], [PF_None]) and
                       (taicpu(hp1).ops = 2) and
@@ -2039,8 +2042,8 @@ Implementation
                       uxtb reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
-                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       (taicpu(p).ops=2) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_AND, [C_None], [PF_None]) and
                       (taicpu(hp1).ops=3) and
                       (taicpu(hp1).oper[2]^.typ=top_const) and
@@ -2075,6 +2078,7 @@ Implementation
                       strh reg1,[...]
                     }
                     if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_STR, [C_None], [PF_H]) and
                       RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
@@ -2100,6 +2104,7 @@ Implementation
                       uxth reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
                       (taicpu(hp1).ops=2) and
@@ -2126,6 +2131,7 @@ Implementation
                       uxth reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_AND, [C_None], [PF_None]) and
                       (taicpu(hp1).ops=3) and
