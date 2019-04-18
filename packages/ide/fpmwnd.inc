@@ -38,6 +38,7 @@ begin
       Mode.col:=x;
       Mode.row:=y;
       SetScreenVideoMode(Mode);
+      UpdateRecentFileList; {ensure file menu not go over screen}
       Redraw;
     end;
 end;
