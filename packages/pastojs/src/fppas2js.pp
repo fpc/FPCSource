@@ -2556,6 +2556,13 @@ var
     Result:=false;
   end;
 
+  procedure HandleEscape;
+  begin
+    inc(MyTokenPos);
+    if (MyTokenPos<=l) and (s[MyTokenPos]>#31) then
+      inc(MyTokenPos);
+  end;
+
 begin
   SetCurTokenString('');
   s:=CurLine;
@@ -2574,6 +2581,8 @@ begin
     if MyTokenPos>l then
       if DoEndOfLine then exit;
     case s[MyTokenPos] of
+    '\':
+      HandleEscape;
     '''':
       begin
       inc(MyTokenPos);
@@ -2581,6 +2590,8 @@ begin
         if MyTokenPos>l then
           Error(nErrOpenString,SErrOpenString);
         case s[MyTokenPos] of
+        '\':
+          HandleEscape;
         '''':
           begin
           inc(MyTokenPos);
@@ -2603,6 +2614,8 @@ begin
         if MyTokenPos>l then
           Error(nErrOpenString,SErrOpenString);
         case s[MyTokenPos] of
+        '\':
+          HandleEscape;
         '"':
           begin
           inc(MyTokenPos);
@@ -2613,6 +2626,32 @@ begin
           // string literal missing closing quote
           break;
           end
+        else
+          inc(MyTokenPos);
+        end;
+      until false;
+      end;
+    '`': // template literal
+      begin
+      inc(MyTokenPos);
+      repeat
+        while MyTokenPos>l do
+          if DoEndOfLine then
+            begin
+              writeln('AAA1 TPas2jsPasScanner.ReadNonPascalTillEndToken ',StopAtLineEnd);
+            if not StopAtLineEnd then
+              Error(nErrOpenString,SErrOpenString);
+            exit;
+            end;
+        case s[MyTokenPos] of
+        '\':
+          HandleEscape;
+        '`':
+          begin
+          inc(MyTokenPos);
+          break;
+          end;
+        // Note: template literals can span multiple lines
         else
           inc(MyTokenPos);
         end;
