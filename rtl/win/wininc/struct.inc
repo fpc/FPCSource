@@ -2709,7 +2709,7 @@ Const
        end;
      tagEMRCREATEDIBPATTERNBRUSHPT = EMRCREATEDIBPATTERNBRUSHPT;
      TEMRCREATEDIBPATTERNBRUSHPT = EMRCREATEDIBPATTERNBRUSHPT;
-     PEMRCREATEDIBPATTERNBRUSHPT = EMRCREATEDIBPATTERNBRUSHPT;
+     PEMRCREATEDIBPATTERNBRUSHPT = ^EMRCREATEDIBPATTERNBRUSHPT;
 
      EMRCREATEMONOBRUSH = record
           emr : EMR;
@@ -2874,7 +2874,7 @@ Const
      EMREXTCREATEFONTINDIRECTW = record
           emr : EMR;
           ihFont : DWORD;
-          elfw : EXTLOGFONT;
+          elfw : EXTLOGFONTW;
        end;
      tagEMREXTCREATEFONTINDIRECTW = EMREXTCREATEFONTINDIRECTW;
      TEMREXTCREATEFONTINDIRECTW = EMREXTCREATEFONTINDIRECTW;
@@ -3083,7 +3083,7 @@ Const
        end;
      tagEMRMODIFYWORLDTRANSFORM = EMRMODIFYWORLDTRANSFORM;
      TEMRMODIFYWORLDTRANSFORM = EMRMODIFYWORLDTRANSFORM;
-     PEMRMODIFYWORLDTRANSFORM = EMRMODIFYWORLDTRANSFORM;
+     PEMRMODIFYWORLDTRANSFORM = ^EMRMODIFYWORLDTRANSFORM;
 
      EMROFFSETCLIPRGN = record
           emr : EMR;
@@ -3172,7 +3172,7 @@ Const
           emr : EMR;
           rclBounds : RECTL;
           cpts : DWORD;
-          apts : array[0..0] of POINTL;
+          apts : array[0..0] of POINTS;
        end;
      tagEMRPOLYLINE16 = EMRPOLYLINE16;
      TEMRPOLYLINE16 = EMRPOLYLINE16;
@@ -9385,6 +9385,18 @@ type
     CONSOLE_READCONSOLE_CONTROL = _CONSOLE_READCONSOLE_CONTROL;
     PCONSOLE_READCONSOLE_CONTROL = ^_CONSOLE_READCONSOLE_CONTROL;
 
+
+    COMPUTER_NAME_FORMAT =  (
+          ComputerNameNetBIOS=0,
+          ComputerNameDnsHostname,
+          ComputerNameDnsDomain,
+          ComputerNameDnsFullyQualified,
+          ComputerNamePhysicalNetBIOS,
+          ComputerNamePhysicalDnsHostname,
+          ComputerNamePhysicalDnsDomain,
+          ComputerNamePhysicalDnsFullyQualified,
+          ComputerNameMax=31);
+    TCOMPUTER_NAME_FORMAT = COMPUTER_NAME_FORMAT;
 {$pop}
 {$endif read_interface}
 

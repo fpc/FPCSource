@@ -508,10 +508,15 @@ function GetFileInformationByHandle(hFile: THandle; var lpFileInformation: TByHa
 function GetFileVersionInfoSize(lptstrFilename: PChar; var lpdwHandle: DWORD): DWORD;external 'version' name 'GetFileVersionInfoSizeA';
 function GetFileVersionInfoSizeA(lptstrFilename: LPCSTR; var lpdwHandle: DWORD): DWORD; external 'version' name 'GetFileVersionInfoSizeA';
 function GetFileVersionInfoSizeW(lptstrFilename: LPWSTR; var lpdwHandle: DWORD): DWORD; external 'version' name 'GetFileVersionInfoSizeW';
-// removed because old definition was wrong !
-// function GetFullPathName(lpFileName: PChar; nBufferLength: DWORD; lpBuffer: PChar; var lpFilePart: PChar): DWORD;external 'kernel32' name 'GetFullPathNameA';
-// function GetFullPathNameA(lpFileName: LPCSTR; nBufferLength: DWORD; lpBuffer: LPCSTR; var lpFilePart: LPCSTR): DWORD; external 'kernel32' name 'GetFullPathNameA';
-// function GetFullPathNameW(lpFileName: LPWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'GetFullPathNameW';
+
+{$ifdef Unicode}
+ function GetFullPathName (lpFileName: LPCWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'GetFullPathNameW';
+{$else}
+ function GetFullPathName (lpFileName: LPCSTR;  nBufferLength: DWORD; lpBuffer: LPSTR;  var lpFilePart: LPSTR):  DWORD; external 'kernel32' name 'GetFullPathNameA';
+{$endif}
+ function GetFullPathNameW(lpFileName: LPCWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'GetFullPathNameW';
+ function GetFullPathNameA(lpFileName: LPCSTR;  nBufferLength: DWORD; lpBuffer: LPSTR;  var lpFilePart: LPSTR):  DWORD; external 'kernel32' name 'GetFullPathNameA';
+
 function GetGlyphOutline(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD;external 'gdi32' name 'GetGlyphOutlineA';
 function GetGlyphOutlineA(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD; external 'gdi32' name 'GetGlyphOutlineA';
 function GetGlyphOutlineW(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD; external 'gdi32' name 'GetGlyphOutlineW';
@@ -693,7 +698,7 @@ function MapWindowPoints(hWndFrom, hWndTo: HWND; var lpPoints; cPoints: UINT): I
 function MessageBoxIndirect(const MsgBoxParams: TMsgBoxParams): BOOL;external 'user32' name 'MessageBoxIndirectA';
 function MessageBoxIndirectA(const MsgBoxParams: TMsgBoxParamsA): BOOL; external 'user32' name 'MessageBoxIndirectA';
 //function MessageBoxIndirectW(const MsgBoxParams: TMsgBoxParamsW): BOOL; external 'user32' name 'MessageBoxIndirectW';
-//function ModifyWorldTransform(DC: HDC; const p2: TXForm; p3: DWORD): BOOL; external 'gdi32' name 'ModifyWorldTransform';
+function ModifyWorldTransform(_para1:HDC; var _para2:XFORM; _para3:DWORD):WINBOOL; external 'gdi32' name 'ModifyWorldTransform';
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjects';
 {$ifndef NO_SMART_LINK}
 function MsgWaitForMultipleObjectsEx(nCount: DWORD; var pHandles; dwMilliseconds, dwWakeMask, dwFlags: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjectsEx';
