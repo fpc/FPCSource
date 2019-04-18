@@ -24,6 +24,11 @@ unit intrinsics;
     procedure avr_sleep;[INTERNPROC: in_avr_sleep];
     procedure avr_nop;[INTERNPROC: in_avr_nop];
 
+    { Reads SREG and then disables interrupts, returns contents of SREG }
+    function avr_save: byte;[INTERNPROC: in_avr_save];
+    { Restores SREG }
+    procedure avr_restore(old_sreg: byte); [INTERNPROC: in_avr_restore];
+
   implementation
 
 end.

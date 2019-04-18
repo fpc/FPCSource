@@ -2553,7 +2553,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_INTERNPROC;
-      pd_flags : [pd_interface,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
+      pd_flags : [pd_interface,pd_implemen,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_internproc;
       pocall   : pocall_internproc;
       pooption : [];
