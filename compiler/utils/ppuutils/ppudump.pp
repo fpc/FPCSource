@@ -215,8 +215,14 @@ type
     ModuleFlags: tmoduleflags;
   end;
 
+type
+  tppudumpfile = class(tppufile)
+  protected
+    procedure RaiseAssertion(Code: Longint); override;
+  end;
+
 var
-  ppufile     : tppufile;
+  ppufile     : tppudumpfile;
   ppuversion  : dword;
   space       : string;
   verbose     : longint;
@@ -333,6 +339,12 @@ Begin
   system.Writeln(StdErr, S);
   SetHasErrors;
 End;
+
+procedure tppudumpfile.RaiseAssertion(Code: Longint);
+begin
+  WriteError('Internal Error ' + ToStr(Code));
+  inherited RaiseAssertion(Code);
+end;
 
 Procedure WriteWarning(const S : string);
 var
@@ -3912,7 +3924,7 @@ begin
 { fix filename }
   if pos('.',filename)=0 then
    filename:=filename+'.ppu';
-  ppufile:=tppufile.create(filename);
+  ppufile:=tppudumpfile.create(filename);
   if not ppufile.openfile then
    begin
      WriteError('IO-Error when opening : '+filename+', Skipping');
