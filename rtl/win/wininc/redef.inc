@@ -698,7 +698,7 @@ function MapWindowPoints(hWndFrom, hWndTo: HWND; var lpPoints; cPoints: UINT): I
 function MessageBoxIndirect(const MsgBoxParams: TMsgBoxParams): BOOL;external 'user32' name 'MessageBoxIndirectA';
 function MessageBoxIndirectA(const MsgBoxParams: TMsgBoxParamsA): BOOL; external 'user32' name 'MessageBoxIndirectA';
 //function MessageBoxIndirectW(const MsgBoxParams: TMsgBoxParamsW): BOOL; external 'user32' name 'MessageBoxIndirectW';
-//function ModifyWorldTransform(DC: HDC; const p2: TXForm; p3: DWORD): BOOL; external 'gdi32' name 'ModifyWorldTransform';
+function ModifyWorldTransform(_para1:HDC; var _para2:XFORM; _para3:DWORD):WINBOOL; external 'gdi32' name 'ModifyWorldTransform';
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjects';
 {$ifndef NO_SMART_LINK}
 function MsgWaitForMultipleObjectsEx(nCount: DWORD; var pHandles; dwMilliseconds, dwWakeMask, dwFlags: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjectsEx';
