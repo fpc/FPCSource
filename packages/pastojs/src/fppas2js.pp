@@ -2638,7 +2638,6 @@ begin
         while MyTokenPos>l do
           if DoEndOfLine then
             begin
-              writeln('AAA1 TPas2jsPasScanner.ReadNonPascalTillEndToken ',StopAtLineEnd);
             if not StopAtLineEnd then
               Error(nErrOpenString,SErrOpenString);
             exit;
