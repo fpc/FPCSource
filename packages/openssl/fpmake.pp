@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('openssl');
+    P.Dependencies.Add('fcl-net');
     P.ShortName:='ossl';
     P.Description := 'Interface units for OpenSSL libraries supporting SSL-encrypted network communication.';
 {$ifdef ALLPACKAGES}
@@ -29,6 +30,9 @@ begin
     T:=P.Targets.AddUnit('openssl.pas');
     T:=P.Targets.AddUnit('fpopenssl.pp');
       T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('opensslsockets.pp');
+      T.ResourceStrings:=true;
+      T.Dependencies.AddUnit('openssl');
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('test1.pas');

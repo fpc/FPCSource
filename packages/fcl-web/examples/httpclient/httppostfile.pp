@@ -3,7 +3,7 @@ program httppostfile;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Classes, fphttpclient;
+  SysUtils, Classes, fphttpclient, opensslsockets;
 
 Var
   F : TFileStream;

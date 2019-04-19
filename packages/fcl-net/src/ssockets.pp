@@ -45,24 +45,26 @@ type
 
   TAcceptErrorAction = (aeaRaise,aeaIgnore,aeaStop);
   TSocketStream = Class;
+  TSocketServer = Class;
 
   // Handles all OS calls
 
   { TSocketHandler }
 
   TSocketHandler = Class(TObject)
+  Private
+    FServer: TSocketServer;
     FSocket: TSocketStream;
-    FLastError : integer;
   Protected
+    FLastError : integer;
     Procedure SetSocket(const AStream: TSocketStream); virtual;
     Procedure CheckSocket;
   Public
     constructor Create; virtual;
     // Called after the connect call succeded. Returns True to continue, false to close connection.
     function Connect: boolean; virtual;
-    // Called after the accept call succeded.
+    // Called after the accept call succeded on the NEW client socket
     function Accept : Boolean; virtual;
-
     Function Close : Boolean; virtual;
     function Shutdown(BiDirectional : Boolean): boolean; virtual;
     function Recv(Const Buffer; Count: Integer): Integer; virtual;
@@ -111,6 +113,7 @@ type
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
   TConnectQuery = Procedure (Sender : TObject; ASocket : Longint; Var Allow : Boolean) of Object;
   TOnAcceptError = Procedure (Sender : TObject; ASocket : Longint; E : Exception; Var ErrorAction : TAcceptErrorAction) of Object;
+  TGetClientSocketHandlerEvent = Procedure (Sender : TObject; Out AHandler : TSocketHandler) of object;
 
   { TSocketServer }
 
@@ -118,6 +121,7 @@ type
   Private
     FIdleTimeOut: Cardinal;
     FOnAcceptError: TOnAcceptError;
+    FOnCreateClientSocketHandler: TGetClientSocketHandlerEvent;
     FOnIdle : TNotifyEvent;
     FNonBlocking : Boolean;
     FSocket : longint;
@@ -148,6 +152,7 @@ type
     Function RunIdleLoop : Boolean;
     function GetConnection: TSocketStream; virtual; abstract;
     Function HandleAcceptError(E : ESocketError) : TAcceptErrorAction;
+    Function GetClientSocketHandler(aSocket : Longint) : TSocketHandler; virtual;
     Property Handler : TSocketHandler Read FHandler;
   Public
     Constructor Create(ASocket : Longint; AHandler : TSocketHandler);
@@ -176,6 +181,7 @@ type
     // Accept Timeout in milliseconds.
     // If Different from 0, then there will be an idle loop before accepting new connections, Calling OnIdle if no new connection appeared in the specified timeout.
     Property AcceptIdleTimeOut : Cardinal Read FIdleTimeOut Write FIdleTimeout;
+    Property OnCreateClientSocketHandler : TGetClientSocketHandlerEvent Read FOnCreateClientSocketHandler Write FOnCreateClientSocketHandler;
   end;
 
   { TInetServer }
@@ -255,6 +261,7 @@ type
     Property FileName : String Read FFileName;
   end;
 {$endif}
+
 
 Implementation
 
@@ -378,6 +385,7 @@ Function TSocketHandler.Close: Boolean;
 begin
   Result:=True;
 end;
+
 
 constructor ESocketError.Create(ACode: TSocketErrorType; const MsgArgs: array of const);
 var
@@ -658,6 +666,15 @@ begin
     FOnAcceptError(Self,FSocket,E,Result);
 end;
 
+function TSocketServer.GetClientSocketHandler(aSocket : Longint): TSocketHandler;
+begin
+  If Assigned(FOnCreateClientSocketHandler) then
+    FOnCreateClientSocketHandler(Self,Result)
+  else
+    if Assigned(FHandler) then
+      Result:=TSocketHandlerClass(FHandler.ClassType).Create;
+end;
+
 procedure TSocketServer.StartAccepting;
 
 Var
@@ -856,10 +873,19 @@ end;
 
 Function  TInetServer.SockToStream (ASocket : Longint) : TSocketStream;
 
+Var
+  H : TSocketHandler;
+
 begin
-  Result:=TInetSocket.Create(ASocket);
+  H:=GetClientSocketHandler(aSocket);
+  Result:=TInetSocket.Create(ASocket,H);
   (Result as TInetSocket).FHost:='';
   (Result as TInetSocket).FPort:=FPort;
+  if Not H.Accept then
+    begin
+    H.Shutdown(False);
+    FreeAndNil(Result);
+    end;
 end;
 
 Function TInetServer.Accept : Longint;
@@ -882,7 +908,7 @@ begin
     If R=ESysEWOULDBLOCK then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket]);
 {$endif}
-  if (Result<0) or Not (FAccepting and FHandler.Accept) then
+  if (Result<0) or Not FAccepting then
     begin
     If (Result>=0) then
       CloseSocket(Result);

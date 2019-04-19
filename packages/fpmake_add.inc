@@ -139,5 +139,6 @@
   add_libfontconfig(ADirectory+IncludeTrailingPathDelimiter('libfontconfig'));
   add_fcl_report(ADirectory+IncludeTrailingPathDelimiter('fcl-report'));
   add_webidl(ADirectory+IncludeTrailingPathDelimiter('webidl'));
+  add_gnutls(ADirectory+IncludeTrailingPathDelimiter('gnutls'));
   add_ide(ADirectory+IncludeTrailingPathDelimiter('ide'));
   
