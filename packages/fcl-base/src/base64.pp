@@ -425,6 +425,8 @@ var
   Outstream : TStringStream;
   Decoder   : TBase64DecodingStream;
 begin
+  if Length(s)=0 then
+    Exit('');
   SD:=S;
   while Length(Sd) mod 4 > 0 do 
     SD := SD + '=';

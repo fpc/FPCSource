@@ -1664,7 +1664,7 @@ type
     destructor  Destroy; override;
     class function ReportKindToResultType(const AType: TFPReportFieldKind): TResultType;
     Function StreamToReportElements(aStream : TStream) : TFPObjectList;
-    Procedure Clear;
+    Procedure Clear(ClearData : Boolean = True);
     Procedure SaveDataToNames;
     Procedure RestoreDataFromNames;
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
@@ -2062,7 +2062,8 @@ type
     property    ShapeType;
     property    Orientation;
     property    CornerRadius;
-    property    Color;
+    property    Color; 
+    property    StretchMode;
   end;
 
 
@@ -4459,14 +4460,11 @@ begin
       FCurTextBlock.FGColor := FLastFGColor;
     if FLastBGColor <> clNone then
       FCurTextBlock.BGColor := FLastBGColor;
+    if (([htBold,htItalic] * FTextBlockState)=[]) then
+      lNewFontName:=Font.Name
+    else
+      lNewFontName:=gTTFontCache.FindPostScriptFontname(Font.Name, htBold in FTextBlockState, htItalic in FTextBlockState);
 
-    lNewFontName := Font.Name;
-    if [htBold, htItalic] <= FTextBlockState then // test if it is a sub-set of FTextBlockState
-      lNewFontName := lNewFontName + '-BoldItalic'
-    else if htBold in FTextBlockState then
-      lNewFontName := lNewFontName + '-Bold'
-    else if htItalic in FTextBlockState then
-      lNewFontName := lNewFontName + '-Italic';
     FCurTextBlock.FontName := lNewFontName;
 
     FCurTextBlock.Width := TextWidth(FCurTextBlock.Text);
@@ -5179,8 +5177,13 @@ begin
 end;
 
 procedure TFPReportCustomShape.RecalcLayout;
+var
+  h: TFPReportUnits;
 begin
-  // Do nothing
+  if StretchMode = smDontStretch then
+    exit;
+  h := Layout.Height;
+  ApplyStretchMode(h);
 end;
 
 procedure TFPReportCustomShape.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
@@ -8523,7 +8526,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TFPCustomReport.Clear;
+procedure TFPCustomReport.Clear(ClearData : Boolean = True);
 
 Var
   P : TFPReportCustomPage;
@@ -8538,7 +8541,8 @@ begin
   FIsFirstPass := False;
   // Collections
   FreeAndNil(FExpr); // Special case, recreated on run
-  FReportData.Clear;
+  if ClearData then
+    FReportData.Clear;
   if Assigned(FPages) then
     begin
     While PageCount>0 do
@@ -8603,6 +8607,7 @@ begin
     // local properties
     AWriter.WriteString('Title', Title);
     AWriter.WriteString('Author', Author);
+    AWriter.WriteBoolean('TwoPass',TwoPass);
     AWriter.WriteDateTime('DateCreated', DateCreated);
     // now the design-time images
     AWriter.PushElement('Images');
@@ -8671,6 +8676,7 @@ begin
       inherited ReadElement(AReader);
       FTitle := AReader.ReadString('Title', Title);
       FAuthor := AReader.ReadString('Author', Author);
+      FTwoPass := AReader.ReadBoolean('TwoPass',TwoPass);
       FDateCreated := AReader.ReadDateTime('DateCreated', Now);
 
       E := AReader.FindChild('Images');
@@ -10671,6 +10677,8 @@ end;
 procedure TFPReportData.Open;
 
 begin
+  if IsOpened then
+    exit;
   if Assigned(FOnOpen) then
     FOnOpen(Self);
   DoOpen;
@@ -12459,11 +12467,11 @@ begin
   TFPReportDataFooterBand.RegisterElement;
   TFPReportColumnHeaderBand.RegisterElement;
   TFPReportColumnFooterBand.RegisterElement;
-  TFPReportMemo.RegisterElement;
-  TFPReportImage.RegisterElement;
-  TFPReportCheckbox.RegisterElement;
-  TFPReportShape.RegisterElement;
-  TFPReportPage.RegisterElement;
+  TFPReportMemo.RegisterElement.FStandard:=True;
+  TFPReportImage.RegisterElement.FStandard:=True;
+  TFPReportCheckbox.RegisterElement.FStandard:=True;
+  TFPReportShape.RegisterElement.FStandard:=True;
+  TFPReportPage.RegisterElement.FStandard:=True;
 end;
 
 initialization

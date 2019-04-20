@@ -69,7 +69,8 @@ type
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
-  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts, poPageOriginAtTop, poSubsetFont, poMetadataEntry, poNoTrailerID);
+  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts,
+    poPageOriginAtTop, poSubsetFont, poMetadataEntry, poNoTrailerID, poUseImageTransparency);
   TPDFOptions = set of TPDFOption;
 
   EPDF = Class(Exception);
@@ -881,7 +882,8 @@ type
 
 
   TPDFImageCompression = (icNone, icDeflate, icJPEG);
-
+  TPDFImageStreamOption = (isoCompressed,isoTransparent);
+  TPDFImageStreamOptions = set of TPDFImageStreamOption;
 
   TPDFImageItem = Class(TCollectionItem)
   private
@@ -889,22 +891,33 @@ type
     FOwnsImage: Boolean;
     FStreamed: TBytes;
     FCompression: TPDFImageCompression;
+    FStreamedMask: TBytes;
+    FCompressionMask: TPDFImageCompression;
     FWidth,FHeight : Integer;
+    function GetHasMask: Boolean;
     function GetHeight: Integer;
     function GetStreamed: TBytes;
+    function GetStreamedMask: TBytes;
     function GetWidth: Integer;
     procedure SetImage(AValue: TFPCustomImage);
     procedure SetStreamed(AValue: TBytes);
+  Protected
+    Function WriteStream(const AStreamedData: TBytes; AStream: TStream): int64; virtual;
   Public
     Destructor Destroy; override;
-    Procedure CreateStreamedData(AUseCompression: Boolean);
-    Function WriteImageStream(AStream: TStream): int64; virtual;
+    Procedure CreateStreamedData(AUseCompression: Boolean); overload;
+    Procedure CreateStreamedData(aOptions : TPDFImageStreamOptions); overload;
+    procedure SetStreamedMask(const AValue: TBytes; const ACompression: TPDFImageCompression);
+    Function WriteImageStream(AStream: TStream): int64;
+    Function WriteMaskStream(AStream: TStream): int64;
     function Equals(AImage: TFPCustomImage): boolean; reintroduce;
     Property Image : TFPCustomImage Read FImage Write SetImage;
     Property StreamedData : TBytes Read GetStreamed Write SetStreamed;
+    Property StreamedMask : TBytes Read GetStreamedMask;
     Property OwnsImage : Boolean Read FOwnsImage Write FOwnsImage;
     Property Width : Integer Read GetWidth;
     Property Height : Integer Read GetHeight;
+    Property HasMask : Boolean read GetHasMask;
   end;
 
 
@@ -1013,6 +1026,7 @@ type
     procedure SetFonts(AValue: TPDFFontDefs);
     procedure SetInfos(AValue: TPDFInfos);
     procedure SetLineStyles(AValue: TPDFLineStyleDefs);
+    Procedure SetOptions(aValue : TPDFOptions);
   protected
     // Create all kinds of things, virtual so they can be overridden to create descendents instead
     function CreatePDFPages: TPDFPages; virtual;
@@ -1053,7 +1067,10 @@ type
     procedure CreateToUnicode(const AFontNum: integer);virtual;
     procedure CreateFontFileEntry(const AFontNum: integer);virtual;
     procedure CreateCIDSet(const AFontNum: integer); virtual;
-    procedure CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);virtual;
+    procedure CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer;
+      out ImageDict: TPDFDictionary);virtual;
+    procedure CreateImageMaskEntry(ImgWidth, ImgHeight, NumImg: integer;
+      ImageDict: TPDFDictionary);virtual;
     function CreateAnnotEntry(const APageNum, AnnotNum: integer): integer; virtual;
     function CreateCIDToGIDMap(const AFontNum: integer): integer; virtual;
     procedure CreatePageStream(APage : TPDFPage; PageNum: integer);
@@ -1064,6 +1081,7 @@ type
     function IndexOfGlobalXRef(const AValue: string): integer;
     Function FindGlobalXRef(Const AName : String) : TPDFXRef;
     Function GlobalXRefByName(Const AName : String) : TPDFXRef;
+    Function ImageStreamOptions : TPDFImageStreamOptions;
     Property GlobalXRefs[AIndex : Integer] : TPDFXRef Read GetX;
     Property GlobalXRefCount : Integer Read GetXC;
     Property CurrentColor: string Read FCurrentColor Write FCurrentColor;
@@ -1109,7 +1127,7 @@ type
     Property ObjectCount : Integer Read FObjectCount;
     Property LineCapStyle: TPDFLineCapStyle Read FLineCapStyle Write FLineCapStyle;
   Published
-    Property Options : TPDFOptions Read FOptions Write FOPtions;
+    Property Options : TPDFOptions Read FOptions Write SetOptions;
     Property LineStyles : TPDFLineStyleDefs Read FLineStyleDefs Write SetLineStyles;
     property PageLayout: TPDFPageLayout read FPageLayout write FPageLayout default lSingle;
     Property Infos : TPDFInfos Read FInfos Write SetInfos;
@@ -1669,14 +1687,30 @@ var
   s: string;
   lst: TTextMappingList;
   lFont: TTFFileInfo;
+  lWidthIndex: integer;
 begin
   s := '';
   lst := Document.Fonts[EmbeddedFontNum].TextMapping;
   lst.Sort;
   lFont := Document.Fonts[EmbeddedFontNum].FTrueTypeFile;
-  // use decimal values for the output
+
+  {$IFDEF gdebug}
+  System.WriteLn('****** isFixedPitch = ', BoolToStr(lFont.PostScript.isFixedPitch > 0, True));
+  System.WriteLn('****** Head.UnitsPerEm := ', lFont.Head.UnitsPerEm );
+  System.WriteLn('****** HHead.numberOfHMetrics := ', lFont.HHead.numberOfHMetrics );
+  {$ENDIF}
+
+  { NOTE: Monospaced fonts may not have a width for every glyph
+          the last one is for subsequent glyphs.  }
   for i := 0 to lst.Count-1 do
-    s :=  s + Format(' %d [%d]', [ lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lst[i].GlyphID].AdvanceWidth)]);
+  begin
+    if lst[i].GlyphID < lFont.HHead.numberOfHMetrics then
+      lWidthIndex := lst[i].GlyphID
+    else
+      lWidthIndex := lFont.HHead.numberOfHMetrics-1;
+    s :=  s + Format(' %d [%d]', [lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lWidthIndex].AdvanceWidth)])
+  end;
+
   WriteString(s, AStream);
 end;
 
@@ -2831,15 +2865,27 @@ begin
 end;
 
 function TPDFImageItem.GetStreamed: TBytes;
+
+Var
+  Opts : TPDFImageStreamOptions;
+
 begin
+  Opts:=[];
   if Length(FStreamed)=0 then
-  begin
+    begin
     if Collection.Owner is TPDFDocument then
-      CreateStreamedData(poCompressImages in TPDFDocument(Collection.Owner).Options)
+      Opts:=TPDFDocument(Collection.Owner).ImageStreamOptions
     else
-      CreateStreamedData(True);
-  end;
+      Opts:=[isoCompressed,isoTransparent];
+    CreateStreamedData(Opts);
+    end;
   Result:=FStreamed;
+end;
+
+function TPDFImageItem.GetStreamedMask: TBytes;
+begin
+  GetStreamed; // calls CreateStreamedData
+  Result:=FStreamedMask;
 end;
 
 function TPDFImageItem.GetHeight: Integer;
@@ -2865,6 +2911,25 @@ begin
   FStreamed:=AValue;
 end;
 
+procedure TPDFImageItem.SetStreamedMask(const AValue: TBytes;
+  const ACompression: TPDFImageCompression);
+begin
+  If AValue=FStreamedMask then exit;
+  SetLength(FStreamedMask,0);
+  FStreamedMask:=AValue;
+  FCompressionMask:=ACompression;
+end;
+
+function TPDFImageItem.WriteImageStream(AStream: TStream): int64;
+begin
+  Result:=WriteStream(FStreamed, AStream);
+end;
+
+function TPDFImageItem.WriteMaskStream(AStream: TStream): int64;
+begin
+  Result:=WriteStream(FStreamedMask, AStream);
+end;
+
 destructor TPDFImageItem.Destroy;
 begin
   if FOwnsImage then
@@ -2873,59 +2938,106 @@ begin
 end;
 
 procedure TPDFImageItem.CreateStreamedData(AUseCompression: Boolean);
+
+begin
+  CreateStreamedData([isoCompressed]);
+end;
+
+Procedure TPDFImageItem.CreateStreamedData(aOptions : TPDFImageStreamOptions);
+
+
+  function NeedsTransparency: Boolean;
+  var
+    Y, X: Integer;
+  begin
+    for Y:=0 to FHeight-1 do
+      for X:=0 to FWidth-1 do
+        begin
+        if Image.Colors[x,y].alpha < $FFFF then // has alpha channel
+          Exit(True);
+        end;
+    Result:=False;
+  end;
+
+  procedure CreateStream(out MS: TMemoryStream; out Str: TStream;
+    out Compression: TPDFImageCompression);
+  begin
+    MS := TMemoryStream.Create;
+    if (isoCompressed in aOptions) then
+      begin
+      Compression := icDeflate;
+      Str := Tcompressionstream.create(cldefault, MS);
+      end
+    else
+      begin
+      Compression := icNone;
+      Str := MS;
+      end;
+  end;
+
+  procedure StreamToBuffer(const MS: TMemoryStream; var Str: TStream; out Buffer: TBytes);
+  begin
+    if Str<>MS then
+      Str.Free;
+    Str := nil;
+    SetLength(Buffer, MS.Size);
+    MS.Position := 0;
+    if MS.Size>0 then
+      MS.ReadBuffer(Buffer[0], MS.Size);
+  end;
+
 Var
   X,Y : Integer;
   C : TFPColor;
-  MS : TMemoryStream;
-  Str : TStream;
+  MS,MSMask : TMemoryStream;
+  Str,StrMask : TStream;
   CWhite : TFPColor; // white color
+  CreateMask : Boolean;
 begin
   FillMem(@CWhite, SizeOf(CWhite), $FF);
   FWidth:=Image.Width;
   FHeight:=Image.Height;
+  CreateMask:=(isoTransparent in aOptions) and NeedsTransparency;
+  MS := nil;
   Str := nil;
-  MS := TMemoryStream.Create;
+  MSMask := nil;
+  StrMask := nil;
   try
-    if AUseCompression then
-      begin
-      FCompression := icDeflate;
-      Str := Tcompressionstream.create(cldefault, MS)
-      end
-    else
-      begin
-      FCompression := icNone;
-      Str := MS;
-      end;
+    CreateStream(MS, Str, FCompression);
+    if CreateMask then
+      CreateStream(MSMask, StrMask, FCompressionMask);
     for Y:=0 to FHeight-1 do
       for X:=0 to FWidth-1 do
         begin
         C:=Image.Colors[x,y];
-        if C.alpha < $FFFF then // remove alpha channel - assume white background
+        if CreateMask then
+          StrMask.WriteByte(C.Alpha shr 8)
+        else
+        if (C.alpha < $FFFF) then // remove alpha channel - assume white background
           C := AlphaBlend(CWhite, C);
 
         Str.WriteByte(C.Red shr 8);
         Str.WriteByte(C.Green shr 8);
         Str.WriteByte(C.Blue shr 8);
         end;
-    if Str<>MS then
-      Str.Free;
-    Str := nil;
-    SetLength(FStreamed, MS.Size);
-    MS.Position := 0;
-    if MS.Size>0 then
-      MS.ReadBuffer(FStreamed[0], MS.Size);
+    StreamToBuffer(MS, Str, FStreamed);
+    if CreateMask then
+      StreamToBuffer(MSMask, StrMask, FStreamedMask);
   finally
     Str.Free;
+    StrMask.Free;
     MS.Free;
+    MSMask.Free;
   end;
 end;
 
-function TPDFImageItem.WriteImageStream(AStream: TStream): int64;
+function TPDFImageItem.WriteStream(const AStreamedData: TBytes;
+  AStream: TStream): int64;
 var
   Img : TBytes;
 begin
   TPDFObject.WriteString(CRLF+'stream'+CRLF,AStream);
-  Img:=StreamedData;
+  Img:=AStreamedData;
   Result:=Length(Img);
   AStream.WriteBuffer(Img[0],Result);
   TPDFObject.WriteString(CRLF, AStream);
@@ -2954,6 +3066,11 @@ begin
         Result := False;
         Exit;
       end;
+end;
+
+function TPDFImageItem.GetHasMask: Boolean;
+begin
+  Result := Length(FStreamedMask)>0;
 end;
 
 { TPDFImages }
@@ -3092,7 +3209,7 @@ begin
     IP.Image:=I;
     if Not KeepImage then
       begin
-      IP.CreateStreamedData(poCompressImages in Owner.Options);
+      IP.CreateStreamedData(Owner.ImageStreamOptions);
       IP.FImage:=Nil; // not through property, that would clear the image
       i.Free;
       end;
@@ -4055,6 +4172,22 @@ begin
         begin
           if (E.FKey.Name='Name') then
           begin
+            if (TPDFObject(E.Value) is TPDFName) and (TPDFName(E.Value).Name[1]='M') then
+            begin
+              NumImg:=StrToInt(Copy(TPDFName(E.Value).Name, 2, Length(TPDFName(E.Value).Name) - 1));
+              // write image stream length in xobject dictionary
+              ISize:=Length(Document.Images[NumImg].StreamedMask);
+              D:=Document.GlobalXRefs[AObject].Dict;
+              D.AddInteger('Length',ISize);
+              LastElement.Write(AStream);
+              case Document.Images[NumImg].FCompressionMask of
+                icJPEG: WriteString('/Filter /DCTDecode'+CRLF, AStream);
+                icDeflate: WriteString('/Filter /FlateDecode'+CRLF, AStream);
+              end;
+              WriteString('>>', AStream);
+              // write image stream in xobject dictionary
+              Document.Images[NumImg].WriteMaskStream(AStream);
+            end else
             if (TPDFObject(E.Value) is TPDFName) and (TPDFName(E.Value).Name[1]='I') then
             begin
               NumImg:=StrToInt(Copy(TPDFName(E.Value).Name, 2, Length(TPDFName(E.Value).Name) - 1));
@@ -4370,6 +4503,14 @@ procedure TPDFDocument.SetInfos(AValue: TPDFInfos);
 begin
   if FInfos=AValue then Exit;
   FInfos.Assign(AValue);
+end;
+
+procedure TPDFDocument.SetOptions(AValue: TPDFOptions);
+begin
+  if FOptions=AValue then Exit;
+  if (poNoEmbeddedFonts in  aValue) then
+    Exclude(aValue,poSubsetFont);
+  FOptions:=aValue;
 end;
 
 procedure TPDFDocument.SetLineStyles(AValue: TPDFLineStyleDefs);
@@ -5087,24 +5228,25 @@ begin
   lXRef.FStream.AddItem(TPDFCIDSet.Create(self, AFontNum));
 end;
 
-procedure TPDFDocument.CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);
+procedure TPDFDocument.CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer;
+  out ImageDict: TPDFDictionary);
 var
   N: TPDFName;
-  IDict,ADict: TPDFDictionary;
+  ADict: TPDFDictionary;
   i: integer;
   lXRef: integer;
 begin
   lXRef := GlobalXRefCount; // reference to be used later
 
-  IDict:=CreateGlobalXRef.Dict;
-  IDict.AddName('Type','XObject');
-  IDict.AddName('Subtype','Image');
-  IDict.AddInteger('Width',ImgWidth);
-  IDict.AddInteger('Height',ImgHeight);
-  IDict.AddName('ColorSpace','DeviceRGB');
-  IDict.AddInteger('BitsPerComponent',8);
+  ImageDict:=CreateGlobalXRef.Dict;
+  ImageDict.AddName('Type','XObject');
+  ImageDict.AddName('Subtype','Image');
+  ImageDict.AddInteger('Width',ImgWidth);
+  ImageDict.AddInteger('Height',ImgHeight);
+  ImageDict.AddName('ColorSpace','DeviceRGB');
+  ImageDict.AddInteger('BitsPerComponent',8);
   N:=CreateName('I'+IntToStr(NumImg)); // Needed later
-  IDict.AddElement('Name',N);
+  ImageDict.AddElement('Name',N);
 
   // now find where we must add the image xref - we are looking for "Resources"
   for i := 1 to GlobalXRefCount-1 do
@@ -5123,6 +5265,27 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TPDFDocument.CreateImageMaskEntry(ImgWidth, ImgHeight,
+  NumImg: integer; ImageDict: TPDFDictionary);
+var
+  N: TPDFName;
+  MDict: TPDFDictionary;
+  lXRef: integer;
+begin
+  lXRef := GlobalXRefCount; // reference to be used later
+
+  MDict:=CreateGlobalXRef.Dict;
+  MDict.AddName('Type','XObject');
+  MDict.AddName('Subtype','Image');
+  MDict.AddInteger('Width',ImgWidth);
+  MDict.AddInteger('Height',ImgHeight);
+  MDict.AddName('ColorSpace','DeviceGray');
+  MDict.AddInteger('BitsPerComponent',8);
+  N:=CreateName('M'+IntToStr(NumImg)); // Needed later
+  MDict.AddElement('Name',N);
+  ImageDict.AddReference('SMask', lXRef);
 end;
 
 function TPDFDocument.CreateAnnotEntry(const APageNum, AnnotNum: integer): integer;
@@ -5226,6 +5389,15 @@ begin
   Result:=FindGlobalXRef(AName);
   if Result=Nil then
     Raise EPDF.CreateFmt(rsErrNoGlobalDict,[AName]);
+end;
+
+function TPDFDocument.ImageStreamOptions: TPDFImageStreamOptions;
+begin
+  Result:=[];
+  if (poCompressImages in Options) then
+    Include(Result,isoCompressed);
+  if (poUseImageTransparency in Options) then
+    Include(Result,isoTransparent);
 end;
 
 function TPDFDocument.CreateLineStyles: TPDFLineStyleDefs;
@@ -5492,9 +5664,14 @@ end;
 procedure TPDFDocument.CreateImageEntries;
 Var
   I : Integer;
+  IDict : TPDFDictionary;
 begin
   for i:=0 to Images.Count-1 do
-    CreateImageEntry(Images[i].Width,Images[i].Height,i);
+    begin
+    CreateImageEntry(Images[i].Width,Images[i].Height,i,IDict);
+    if Images[i].HasMask then
+      CreateImageMaskEntry(Images[i].Width,Images[i].Height,i,IDict);
+    end;
 end;
 
 procedure TPDFDocument.CreateAnnotEntries(const APageNum: integer; const APageDict: TPDFDictionary);
