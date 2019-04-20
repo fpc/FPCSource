@@ -397,7 +397,7 @@ type
           constructor Create(const s:TCmdStr);
           destructor  Destroy;override;
           function GetCopy:TLinkedListItem;override;
-          function Str:TCmdStr; {$ifdef CCLASSESINLINE}inline;{$endif}
+          property Str: TCmdStr read FPStr;
        end;
 
        { string container }
@@ -2380,12 +2380,6 @@ end;
     destructor TCmdStrListItem.Destroy;
       begin
         FPStr:='';
-      end;
-
-
-    function TCmdStrListItem.Str:TCmdStr;
-      begin
-        Str:=FPStr;
       end;
 
 
