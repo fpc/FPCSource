@@ -2356,6 +2356,7 @@ packages/fcl-fpcunit/src/xmltestreport.pp svneol=native#text/plain
 packages/fcl-image/Makefile svneol=native#text/plain
 packages/fcl-image/Makefile.fpc svneol=native#text/plain
 packages/fcl-image/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/fcl-image/examples/DejaVuLGCSans.ttf -text
 packages/fcl-image/examples/Makefile svneol=native#text/plain
 packages/fcl-image/examples/Makefile.fpc svneol=native#text/plain
 packages/fcl-image/examples/createbarcode.lpi svneol=native#text/plain
@@ -2363,6 +2364,8 @@ packages/fcl-image/examples/createbarcode.lpr svneol=native#text/plain
 packages/fcl-image/examples/createqrcode.lpi svneol=native#text/plain
 packages/fcl-image/examples/createqrcode.pp svneol=native#text/plain
 packages/fcl-image/examples/drawing.pp svneol=native#text/plain
+packages/fcl-image/examples/edit-clear.png -text svneol=unset#image/png
+packages/fcl-image/examples/fpcanvasalphadraw.pp svneol=native#text/plain
 packages/fcl-image/examples/imgconv.pp svneol=native#text/plain
 packages/fcl-image/examples/interpoldemo.pp svneol=native#text/plain
 packages/fcl-image/examples/pattern.png -text svneol=unset#image/png
