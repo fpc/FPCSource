@@ -169,7 +169,9 @@ interface
             { use PSABI/Dwarf-based "zero cost" exception handling }
             tf_use_psabieh,
             { use high level cfi directives to generate call frame information }
-            tf_use_hlcfi
+            tf_use_hlcfi,
+            { supports symbol order file (to ensure symbols in vectorised sections are kept in the correct order) }
+            tf_supports_symbolorderfile
        );
 
        psysteminfo = ^tsysteminfo;

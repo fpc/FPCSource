@@ -722,6 +722,8 @@ function FrameRgn(_para1:HDC; _para2:HRGN; _para3:HBRUSH; _para4:longint; _para5
 function GetROP2(_para1:HDC):longint; external 'gdi32' name 'GetROP2';
 function GetAspectRatioFilterEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external 'gdi32' name 'GetAspectRatioFilterEx';
 function GetBkColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetBkColor';
+function GetDCBrushColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetDCBrushColor';
+function GetDCPenColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetDCPenColor';
 function GetBkMode(_para1:HDC):longint; external 'gdi32' name 'GetBkMode';
 function GetBitmapBits(_para1:HBITMAP; _para2:LONG; _para3:LPVOID):LONG; external 'gdi32' name 'GetBitmapBits';
 function GetBitmapDimensionEx(_para1:HBITMAP; _para2:LPSIZE):WINBOOL; external 'gdi32' name 'GetBitmapDimensionEx';
@@ -792,6 +794,8 @@ function SetMetaRgn(_para1:HDC):longint; external 'gdi32' name 'SetMetaRgn';
 function SelectObject(_para1:HDC; _para2:HGDIOBJ):HGDIOBJ; external 'gdi32' name 'SelectObject';
 function SelectPalette(_para1:HDC; _para2:HPALETTE; _para3:WINBOOL):HPALETTE; external 'gdi32' name 'SelectPalette';
 function SetBkColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetBkColor';
+function SetDCBrushColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetDCBrushColor';
+function SetDCPenColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetDCPenColor';
 function SetBkMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetBkMode';
 function SetBitmapBits(_para1:HBITMAP; _para2:DWORD; _para3:pointer):LONG; external 'gdi32' name 'SetBitmapBits';
 function SetBoundsRect(_para1:HDC; const _para2:RECT; _para3:UINT):UINT; external 'gdi32' name 'SetBoundsRect';
@@ -836,7 +840,7 @@ function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _par
 function PolyPolyline(_para1:HDC; var _para2:POINT; var _para3:DWORD; _para4:DWORD):WINBOOL; external 'gdi32' name 'PolyPolyline';
 function GetWorldTransform(_para1:HDC; _para2:LPXFORM):WINBOOL; external 'gdi32' name 'GetWorldTransform';
 function SetWorldTransform(_para1:HDC; var _para2:XFORM):WINBOOL; external 'gdi32' name 'SetWorldTransform';
-function ModifyWorldTransform(_para1:HDC; var _para2:XFORM; _para3:DWORD):WINBOOL; external 'gdi32' name 'ModifyWorldTransform';
+function ModifyWorldTransform(_para1:HDC; _para2:PXFORM; _para3:DWORD):WINBOOL; external 'gdi32' name 'ModifyWorldTransform';
 function CombineTransform(_para1:LPXFORM; var _para2:XFORM; var _para3:XFORM):WINBOOL; external 'gdi32' name 'CombineTransform';
 function CreateDIBSection(_para1:HDC; var _para2:BITMAPINFO; _para3:UINT; var _para4:pointer; _para5:HANDLE;_para6:DWORD):HBITMAP; external 'gdi32' name 'CreateDIBSection';
 function GetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external 'gdi32' name 'GetDIBColorTable';

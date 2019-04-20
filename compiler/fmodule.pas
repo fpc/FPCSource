@@ -169,7 +169,8 @@ interface
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
-        resourcefiles : TCmdStrList;
+        resourcefiles,
+        linkorderedsymbols : TCmdStrList;
         linkunitofiles,
         linkunitstaticlibs,
         linkunitsharedlibs,
@@ -564,6 +565,7 @@ implementation
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
         resourcefiles:=TCmdStrList.Create;
+        linkorderedsymbols:=TCmdStrList.Create;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs:=TLinkContainer.Create;
         linkunitsharedlibs:=TLinkContainer.Create;
@@ -685,6 +687,7 @@ implementation
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
+        linkorderedsymbols.Free;
         linkunitofiles.Free;
         linkunitstaticlibs.Free;
         linkunitsharedlibs.Free;
@@ -841,6 +844,8 @@ implementation
         dependent_units:=TLinkedList.Create;
         resourcefiles.Free;
         resourcefiles:=TCmdStrList.Create;
+        linkorderedsymbols.Free;
+        linkorderedsymbols:=TCmdStrList.Create;;
         pendingspecializations.free;
         pendingspecializations:=tfphashobjectlist.create(false);
         if assigned(waitingforunit) and

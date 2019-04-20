@@ -7327,6 +7327,8 @@ packages/ptc/src/win32/base/win32windowd.inc svneol=native#text/plain
 packages/ptc/src/win32/base/windows.ico -text
 packages/ptc/src/win32/directx/p_ddraw.pp svneol=native#text/plain
 packages/ptc/src/win32/directx/p_dinput.pp svneol=native#text/plain
+packages/ptc/src/win32/directx/t_ddraw.h2paschk svneol=native#text/plain
+packages/ptc/src/win32/directx/t_dinput.h2paschk svneol=native#text/plain
 packages/ptc/src/win32/directx/win32directxcheck.inc svneol=native#text/plain
 packages/ptc/src/win32/directx/win32directxconsoled.inc svneol=native#text/plain
 packages/ptc/src/win32/directx/win32directxconsolei.inc svneol=native#text/plain
