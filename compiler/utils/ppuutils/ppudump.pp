@@ -3840,6 +3840,10 @@ begin
            if not silent then
              ReadContainer('Resource file: ');
 
+         iborderedsymbols:
+           if not silent then
+             ReadContainer('Ordered symbol: ');
+
          iberror :
            begin
              WriteError('Error in PPU');
