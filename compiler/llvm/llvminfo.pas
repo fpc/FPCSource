@@ -33,15 +33,14 @@ Type
    { possible supported processors for this target }
    tllvmversion =
       (llvmver_invalid,
-      { may add older/newer versions if required/appropriate }
        llvmver_3_3,
        llvmver_3_4,
        llvmver_3_5,
-       llvmver_3_6,
        { Xcode versions use snapshots of LLVM and don't correspond to released
          versions of llvm (they don't ship with the llvm utilities either, but
          they do come with Clang, which can be used instead of opt/llc) }
        llvmver_xc_6_4,
+       llvmver_3_6,
        llvmver_3_7,
        llvmver_xc_7_0,
        llvmver_xc_7_1,
@@ -60,7 +59,10 @@ Type
        llvmver_xc_9_3,
        llvmver_6_0,
        llvmver_xc_10_0,
-       llvmver_7_0
+       llvmver_xc_10_1,
+       llvmver_7_0,
+       llvmver_7_1,
+       llvmver_8_0
       );
 
 type
@@ -81,8 +83,8 @@ Const
      '3.3',
      '3.4',
      '3.5',
-     '3.6',
      'Xcode-6.4',
+     '3.6',
      '3.7',
      'Xcode-7.0',
      'Xcode-7.1',
@@ -101,7 +103,10 @@ Const
      'Xcode-9.3',
      '6.0',
      'Xcode-10.0',
-     '7.0'
+     'Xcode-10.1',
+     '7.0',
+     '7.1',
+     '8.0'
    );
 
    llvmversion_properties: array[tllvmversion] of tllvmversionflags =
@@ -110,8 +115,8 @@ Const
        { llvmver_3_3     } [llvmflag_metadata_keyword,llvmflag_linker_private],
        { llvmver_3_4     } [llvmflag_metadata_keyword,llvmflag_linker_private],
        { llvmver_3_5     } [llvmflag_metadata_keyword],
-       { llvmver_3_6     } [],
        { llvmver_xc_6_4  } [llvmflag_metadata_keyword],
+       { llvmver_3_6     } [],
        { llvmver_3_7     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
        { llvmver_xc_7_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
        { llvmver_xc_7_1  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
@@ -130,7 +135,10 @@ Const
        { llvmver_xc_9_2  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
        { llvmver_6_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
        { llvmver_xc_10_0 } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
-       { llvmver_7_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align]
+       { llvmver_xc_10_1 } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
+       { llvmver_7_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align],
+       { llvmver_7_1     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align],
+       { llvmver_8_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align]
      );
 
    { Supported optimizations, only used for information }
