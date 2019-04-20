@@ -775,7 +775,7 @@ end;
 
 Procedure ReadContainer(const prefix:string);
 {
-  Read a serie of strings and write to the screen starting every line
+  Read a series of strings and write to the screen starting every line
   with prefix
 }
 begin
@@ -3838,7 +3838,7 @@ begin
 
          ibresources :
            if not silent then
-             ReadLinkContainer('Resource file: ');
+             ReadContainer('Resource file: ');
 
          iberror :
            begin
