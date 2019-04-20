@@ -1318,6 +1318,15 @@ begin
                                          else
                                            exclude(init_settings.moduleswitches,cs_lto);
                                        end;
+                                     'ltonosystem':
+                                         begin
+                                           if not disable then
+                                             begin
+                                               include(init_settings.globalswitches,cs_lto_nosystem);
+                                             end
+                                           else
+                                             exclude(init_settings.globalswitches,cs_lto_nosystem);
+                                         end;
                                     else
                                       begin
                                         IllegalPara(opt);

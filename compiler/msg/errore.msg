@@ -3843,6 +3843,7 @@ S*2Aas_Assemble using GNU AS
 A*2CI<x>_Select instruction set on ARM: ARM or THUMB
 L*2CL<x>_LLVM code generation options
 L*3CLflto_Enable Link-time optimisation (needed both when compiling units and programs/libraries)
+L*3CLfltonosystem_Disable LTO for the system unit (needed with at least Xcode 10.2 and earlier due to linker bugs)
 L*3CLv<x>_LLVM target version: 3.3, 3.4, .., Xcode-6.4, .., Xcode-10.0, 7.0
 **2Cn_Omit linking stage
 P*2CN_Generate nil-pointer checks (AIX-only)

@@ -391,7 +391,9 @@ Implementation
               mask:=link_always;
               { lto linking ?}
               if (cs_lto in current_settings.moduleswitches) and
-                 ((headerflags and uf_lto_linked)<>0) then
+                 ((headerflags and uf_lto_linked)<>0) and
+                 (not(cs_lto_nosystem in init_settings.globalswitches) or
+                  (hp.modulename^<>'SYSTEM')) then
                 begin
                   mask:=mask or link_lto;
                 end
