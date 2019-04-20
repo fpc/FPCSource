@@ -1050,6 +1050,9 @@ var
   d,s   : TCmdStr;
   hs    : TCmdStr;
   unicodemapping : punicodemap;
+{$ifdef llvm}
+  disable: boolean;
+{$endif}
 begin
   if opt='' then
    exit;
@@ -1300,6 +1303,28 @@ begin
                         while l<=length(More) do
                           begin
                             case More[l] of
+                              'f':
+                                begin
+                                  More:=copy(More,l+1,length(More));
+                                  disable:=Unsetbool(More,length(More)-1,opt,false);
+                                  case More of
+                                    'lto':
+                                       begin
+                                         if not disable then
+                                           begin
+                                             include(init_settings.moduleswitches,cs_lto);
+                                             LTOExt:='.bc';
+                                           end
+                                         else
+                                           exclude(init_settings.moduleswitches,cs_lto);
+                                       end;
+                                    else
+                                      begin
+                                        IllegalPara(opt);
+                                      end;
+                                  end;
+                                  l:=length(more)+1;
+                                end;
                               'v':
                                 begin
                                   init_settings.llvmversion:=llvmversion2enum(copy(More,l+1,length(More)));

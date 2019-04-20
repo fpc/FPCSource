@@ -80,6 +80,12 @@ interface
       TLLVMClangAssember=class(TLLVMAssember)
       public
        function MakeCmdLine: TCmdStr; override;
+       function DoAssemble: boolean; override;
+       function RerunAssembler: boolean; override;
+      protected
+       function DoPipe: boolean; override;
+      private
+       fnextpass: byte;
       end;
 
 
@@ -1540,8 +1546,24 @@ implementation
 
     function TLLVMClangAssember.MakeCmdLine: TCmdStr;
       var
+        wpostr,
         optstr: TCmdStr;
       begin
+        wpostr:='';
+        if cs_lto in current_settings.moduleswitches then
+          begin
+            case fnextpass of
+              0:
+                begin
+                  ObjFileName:=ChangeFileExt(ObjFileName,'.bc');
+                  wpostr:=' -flto';
+                end;
+              1:
+                begin
+                  ObjFileName:=ChangeFileExt(ObjFileName,'.o');
+                end;
+            end;
+          end;
         result:=inherited;
         { standard optimization flags for llc -- todo: this needs to be split
           into a call to opt and one to llc }
@@ -1553,6 +1575,7 @@ implementation
           optstr:='-O1'
         else
           optstr:='-O0';
+        optstr:=optstr+wpostr;
         { stack frame elimination }
         if not(cs_opt_stackframe in current_settings.optimizerswitches) then
           optstr:=optstr+' -fno-omit-frame-pointer'
@@ -1580,6 +1603,30 @@ implementation
           optstr:=optstr+' -m'+fputypestrllvm[current_settings.fputype];
 
         replace(result,'$OPT',optstr);
+        inc(fnextpass);
+      end;
+
+
+    function TLLVMClangAssember.DoAssemble: boolean;
+      begin
+        fnextpass:=0;
+        result:=inherited;
+      end;
+
+
+    function TLLVMClangAssember.RerunAssembler: boolean;
+      begin
+        result:=
+          (cs_lto in current_settings.moduleswitches) and
+          (fnextpass<=1);
+      end;
+
+
+    function TLLVMClangAssember.DoPipe: boolean;
+      begin
+        result:=
+          not(cs_lto in current_settings.moduleswitches) and
+          inherited;
       end;
 
 

@@ -130,6 +130,11 @@ implementation
            current_module.linkunitstaticlibs.add(current_module.staticlibfilename ,link_smart);
            current_module.headerflags:=current_module.headerflags or uf_smart_linked;
          end;
+        if cs_lto in current_settings.moduleswitches then
+          begin
+            current_module.linkunitofiles.add(ChangeFileExt(current_module.objfilename,LTOExt),link_lto);
+            current_module.headerflags:=current_module.headerflags or uf_lto_linked;
+          end;
       end;
 
 

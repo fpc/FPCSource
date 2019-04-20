@@ -156,9 +156,12 @@ interface
         function single2str(d : single) : string; virtual;
         function double2str(d : double) : string; virtual;
         function extended2str(e : extended) : string; virtual;
-        Function DoPipe:boolean;
+        Function DoPipe:boolean; virtual;
 
         function CreateNewAsmWriter: TExternalAssemblerOutputFile; virtual;
+
+        {# Return true if the external assembler should run again }
+        function RerunAssembler: boolean; virtual;
       public
 
         {# Returns the complete path and executable name of the assembler
@@ -878,7 +881,7 @@ Implementation
 
     Function TExternalAssembler.DoAssemble:boolean;
       begin
-        DoAssemble:=true;
+        result:=true;
         if DoPipe then
          exit;
         if not(cs_asm_extern in current_settings.globalswitches) then
@@ -892,13 +895,13 @@ Implementation
            Message1(exec_i_assembling,name);
          end;
 
-        if CallAssembler(FindAssembler,MakeCmdLine) then
-         writer.RemoveAsm
+        repeat
+          result:=CallAssembler(FindAssembler,MakeCmdLine)
+        until not(result) or not RerunAssembler;
+        if result then
+          writer.RemoveAsm
         else
-         begin
-            DoAssemble:=false;
-            GenerateError;
-         end;
+          GenerateError;
       end;
 
 
@@ -973,6 +976,12 @@ Implementation
            Replace(result,'$BIGOBJ','-mbig-obj');
 
          Replace(result,'$EXTRAOPT',asmextraopt);
+      end;
+
+
+    function TExternalAssembler.RerunAssembler: boolean;
+      begin
+        result:=false;
       end;
 
 

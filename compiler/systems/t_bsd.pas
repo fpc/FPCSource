@@ -174,8 +174,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -L. -o $EXE $CATRES $FILELIST';
-             DllCmd[1]:='ld $TARGET $EMUL $OPT $MAP $ORDERSYMS -shared -L. -o $EXE $CATRES $FILELIST'
+             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -L. -o $EXE $CATRES $FILELIST';
+             DllCmd[1]:='ld $TARGET $EMUL $OPT $MAP $LTO $ORDERSYMS -shared -L. -o $EXE $CATRES $FILELIST'
            end
          else
            begin
@@ -194,22 +194,22 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
+               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
+             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $ORDERSYMS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
              else
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $ORDERSYMS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
            end
        end
      else
        begin
-         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -L. -o $EXE $RES';
-         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME $MAP $ORDERSYMS -shared -L. -o $EXE $RES';
+         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -L. -o $EXE $RES';
+         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME $MAP $LTO $ORDERSYMS -shared -L. -o $EXE $RES';
        end;
      if not(target_info.system in systems_darwin) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
@@ -803,6 +803,7 @@ var
   emulstr,
   extdbgbinstr,
   extdbgcmdstr,
+  ltostr,
   ordersymfile: TCmdStr;
   linkscript: TAsmScript;
   DynLinkStr : string[60];
@@ -822,6 +823,7 @@ begin
   GCSectionsStr:='';
   linkscript:=nil;
   mapstr:='';
+  ltostr:='';
   if (cs_link_map in current_settings.globalswitches) then
     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
@@ -875,6 +877,16 @@ begin
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
    end;
 
+  { add custom LTO library if using custom clang }
+  if (target_info.system in systems_darwin) and
+     (cs_lto in current_settings.moduleswitches) and
+     not(cs_link_on_target in current_settings.globalswitches) and
+     (utilsdirectory<>'') and
+     FileExists(utilsdirectory+'/../lib/libLTO.dylib',true) then
+    begin
+      ltostr:='-lto_library '+maybequoted(utilsdirectory+'/../lib/libLTO.dylib');
+    end;
+
 { Use -nopie on OpenBSD if PIC support is turned off }
   if (target_info.system in systems_openbsd) and
      not(cs_create_pic in current_settings.moduleswitches) then
@@ -899,6 +911,7 @@ begin
   Replace(cmdstr,'$MAP',mapstr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$LTO',ltostr);
   if ordersymfile<>'' then
     begin
       if target_info.system in systems_darwin then
@@ -987,6 +1000,7 @@ var
   binstr,
   cmdstr,
   mapstr,
+  ltostr,
   ordersymfile,
   targetstr,
   emulstr,
@@ -1019,6 +1033,16 @@ begin
 
   if (cs_link_map in current_settings.globalswitches) then
     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
+
+  { add custom LTO library if using custom clang }
+  if (target_info.system in systems_darwin) and
+     (cs_lto in current_settings.moduleswitches) and
+     not(cs_link_on_target in current_settings.globalswitches) and
+     (utilsdirectory<>'') and
+     FileExists(utilsdirectory+'/../lib/libLTO.dylib',true) then
+    begin
+      ltostr:='-lto_library '+maybequoted(utilsdirectory+'/../lib/libLTO.dylib');
+    end;
 
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
@@ -1059,6 +1083,7 @@ begin
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
   Replace(cmdstr,'$MAP',mapstr);
+  Replace(cmdstr,'$LTO',ltostr);
   if ordersymfile<>'' then
     begin
       if target_info.system in systems_darwin then

@@ -58,6 +58,7 @@ const
   uf_smart_linked        = $000040; { the ppu can be smartlinked }
   uf_static_linked       = $000080; { the ppu can be linked static }
   uf_shared_linked       = $000100; { the ppu can be linked shared }
+  uf_lto_linked          = $000200; { the ppu can be used with LTO }
   uf_no_link             = $000400; { unit has no .o generated, but can still have external linking! }
   uf_little_endian       = $001000;
   uf_fpu_emulation       = $008000; { this unit was compiled with fpu emulation on }

@@ -399,6 +399,7 @@ interface
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
+      LTOExt: TCmdStr = '';
 
     const
       default_settings : TSettings = (

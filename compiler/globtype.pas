@@ -195,7 +195,9 @@ interface
          cs_huge_code,
          cs_win16_smartcallbacks,
          { Record usage of checkpointer experimental feature }
-         cs_checkpointer_called
+         cs_checkpointer_called,
+         { enable link time optimisation (both unit code generation and optimising the whole program/library) }
+         cs_lto
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -797,6 +799,7 @@ interface
        link_static  = $2;
        link_smart   = $4;
        link_shared  = $8;
+       link_lto     = $10;
 
     type
       { a message state }
