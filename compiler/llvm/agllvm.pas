@@ -1571,17 +1571,7 @@ implementation
           optstr:=optstr+' -static'
         else
           optstr:=optstr+' -mdynamic-no-pic';
-        if target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) then
-          begin
-            if MacOSXVersionMin<>'' then
-              optstr:=optstr+' -mmacosx-version-min='+MacOSXVersionMin
-          end
-        else if target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim] then
-          begin
-            if iPhoneOSVersionMin<>'' then
-              optstr:=optstr+' -mios-version-min='+iPhoneOSVersionMin;
-          end
-        else
+        if not(target_info.system in systems_darwin) then
           begin
             optstr:=optstr+' --target='+llvm_target_name;
           end;
@@ -1614,7 +1604,7 @@ implementation
 
           idtxt  : 'LLVM-CLANG';
           asmbin : 'clang';
-          asmcmd: '$OPT -c -o $OBJ $ASM';
+          asmcmd: '$OPT $DARWINVERSION -c -o $OBJ $ASM';
           supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_aarch64_linux,system_arm_linux];
           flags : [af_smartlink_sections];
           labelprefix : 'L';
