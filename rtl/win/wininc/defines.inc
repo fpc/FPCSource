@@ -6377,8 +6377,8 @@ const
 
 
     CONSOLE_FULLSCREEN_MODE = 1;    
-    CONSOLE_WINDOWED_MODE = 2;    
-
+    CONSOLE_WINDOWED_MODE   = 2;    
+    PROCESS_NAME_NATIVE     = 1;
 
 
 {$endif read_interface}
