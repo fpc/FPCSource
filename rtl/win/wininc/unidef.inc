@@ -473,6 +473,7 @@ function FindFirstFileEx(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;l
 // winver>$0600 
 function FindFirstFileTransacted(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external 'kernel32' name 'FindFirstFileTransactedW';
 function GetComputerNameEx(NameType:COMPUTER_NAME_FORMAT;lpbuffer:LPWSTR;nSize:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetComputerNameExW';
+function QueryFullProcessImageName(hProcess:THandle;dwFlags:DWord; lpexename :lpwstr;lpdwsize:pdword):BOOL; stdcall; external 'kernel32.dll' name 'QueryFullProcessImageNameW';
 {$endif read_interface}
 
 
