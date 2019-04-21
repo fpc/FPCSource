@@ -1320,7 +1320,7 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function GetConsoleWindow:HWND;stdcall;external 'kernel32' name 'GetConsoleWindow';
   function GetConsoleProcessList(lpdwProcessList:LPDWORD; dwProcessCount:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleProcessList';
   function ReadDirectoryChangesW(hDirectory: HANDLE; lpBuffer: LPVOID;nBufferLength: DWORD; bWatchSubtree: BOOL; dwNotifyFilter: DWORD;lpBytesReturned: LPDWORD;lpOverlapped: LPOVERLAPPED;lpCompletionRoutine: LPOVERLAPPED_COMPLETION_ROUTINE): BOOL; stdcall; external 'kernel32' name 'ReadDirectoryChangesW';  
-
+  function IsDebuggerPresent : BOOL; stdcall; external 'kernel32.dll' name 'IsDebuggerPresent';
 {$endif read_interface}
 
 
