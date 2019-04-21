@@ -230,11 +230,6 @@ interface
     function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
 
-    function LengthUleb128(a: qword) : byte;
-    function LengthSleb128(a: int64) : byte;
-    function EncodeUleb128(a: qword;out buf) : byte;
-    function EncodeSleb128(a: int64;out buf) : byte;
-
     function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
 
     { dummy default noop callback }
@@ -280,109 +275,6 @@ implementation
                  (cs_Create_smart in current_settings.moduleswitches) and
                  (tf_smartlink_library in target_info.flags)
                 );
-      end;
-
-
-    function LengthUleb128(a: qword) : byte;
-      begin
-        result:=0;
-        repeat
-          a := a shr 7;
-          inc(result);
-          if a=0 then
-            break;
-        until false;
-      end;
-
-
-    function LengthSleb128(a: int64) : byte;
-      var
-        b, size: byte;
-        asign : int64;
-        neg, more: boolean;
-      begin
-        more := true;
-        neg := a < 0;
-        size := sizeof(a)*8;
-        result:=0;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if neg then
-            begin
-              { Use a variable to be sure that the correct or mask is generated }
-              asign:=1;
-              asign:=asign shl (size - 7);
-              a := a or -asign;
-            end;
-          if (((a = 0) and
-               (b and $40 = 0)) or
-              ((a = -1) and
-               (b and $40 <> 0))) then
-            more := false;
-          inc(result);
-          if not(more) then
-            break;
-        until false;
-      end;
-
-
-    function EncodeUleb128(a: qword;out buf) : byte;
-      var
-        b: byte;
-        pbuf : pbyte;
-      begin
-        result:=0;
-        pbuf:=@buf;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if a<>0 then
-            b := b or $80;
-          pbuf^:=b;
-          inc(pbuf);
-          inc(result);
-          if a=0 then
-            break;
-        until false;
-      end;
-
-
-    function EncodeSleb128(a: int64;out buf) : byte;
-      var
-        b, size: byte;
-        asign : int64;
-        neg, more: boolean;
-        pbuf : pbyte;
-      begin
-        more := true;
-        neg := a < 0;
-        size := sizeof(a)*8;
-        result:=0;
-        pbuf:=@buf;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if neg then
-            begin
-              { Use a variable to be sure that the correct or mask is generated }
-              asign:=1;
-              asign:=asign shl (size - 7);
-              a := a or -asign;
-            end;
-          if (((a = 0) and
-               (b and $40 = 0)) or
-              ((a = -1) and
-               (b and $40 <> 0))) then
-            more := false
-          else
-            b := b or $80;
-          pbuf^:=b;
-          inc(pbuf);
-          inc(result);
-          if not(more) then
-            break;
-        until false;
       end;
 
 
