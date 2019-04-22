@@ -1321,6 +1321,8 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function GetConsoleProcessList(lpdwProcessList:LPDWORD; dwProcessCount:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleProcessList';
   function ReadDirectoryChangesW(hDirectory: HANDLE; lpBuffer: LPVOID;nBufferLength: DWORD; bWatchSubtree: BOOL; dwNotifyFilter: DWORD;lpBytesReturned: LPDWORD;lpOverlapped: LPOVERLAPPED;lpCompletionRoutine: LPOVERLAPPED_COMPLETION_ROUTINE): BOOL; stdcall; external 'kernel32' name 'ReadDirectoryChangesW';  
   function IsDebuggerPresent : BOOL; stdcall; external 'kernel32.dll' name 'IsDebuggerPresent';
+  function Wow64DisableWow64FsRedirection(RedirectionState : ppointer) : BOOL; stdcall;   external 'kernel32.dll' name 'Wow64DisableWow64FsRedirection';
+  function Wow64RevertWow64FsRedirection(RedirectionState : pointer) : BOOL; stdcall; external 'kernel32.dll' name 'Wow64RevertWow64FsRedirection';
 {$endif read_interface}
 
 
