@@ -361,8 +361,16 @@ begin
 end;
 
 destructor TParser.Destroy;
+
+Var
+  aCount : Integer;
+
 begin
-  fStream.Position:=SourcePos;
+  if fToken=toWString then
+    aCount:=Length(fLastTokenWStr)*2
+  else
+    aCount:=Length(fLastTokenStr);
+  fStream.Position:=SourcePos-aCount;
   FreeMem(fBuf);
 end;
 
