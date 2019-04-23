@@ -44,9 +44,14 @@ procedure RegisterClassAlias(AClass: TPersistentClass; const Alias: string);
   var
     I : integer;
   begin
-    i := ClassAliasList.IndexOf(Alias);
-    if I = -1 then
-      ClassAliasList.AddObject( Alias, TObject(AClass) );
+    ClassList.LockList;
+    try
+      i := ClassAliasList.IndexOf(Alias);
+      if I = -1 then
+        ClassAliasList.AddObject( Alias, TObject(AClass) );
+    finally
+      ClassList.UnlockList;
+    end;
   end;
 
 
