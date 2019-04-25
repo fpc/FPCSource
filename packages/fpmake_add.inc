@@ -11,6 +11,7 @@
   add_cocoaint(ADirectory+IncludeTrailingPathDelimiter('cocoaint'));
   add_dblib(ADirectory+IncludeTrailingPathDelimiter('dblib'));
   add_dbus(ADirectory+IncludeTrailingPathDelimiter('dbus'));
+  add_libmagic(ADirectory+IncludeTrailingPathDelimiter('libmagic'));
   add_dts(ADirectory+IncludeTrailingPathDelimiter('dts'));
   add_fastcgi(ADirectory+IncludeTrailingPathDelimiter('fastcgi'));
   add_fcl_async(ADirectory+IncludeTrailingPathDelimiter('fcl-async'));
