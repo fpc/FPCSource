@@ -7,20 +7,80 @@
 syscall_header=/usr/include/syscall.h
 fpc_sysnr=./sysnr.inc
 
-os=`uname -s`
+i=0
+for arg in $* ; do
+  let i++
+  echo "Handling arg $i, \"$arg\""
+  if [ "${arg//=}" != "$arg" ] ; then
+    echo "Evaluating $arg"
+    eval $arg
+  elif [ "$arg" == "-v" ] ; then
+    verbose=1
+  else
+    echo "arg not handled!"
+  fi
+done
 
-if [ "$os" == "OpenBSD" ] ; then
+start_pwd=`pwd`
+start_dir=`basename $start_pwd`
+
+if [ -d "rtl" ] ; then
+  echo "Entering rtl directory"
+  cd rtl
+fi
+
+os=`uname -s | tr [:upper:] [:lower:] `
+now_pwd=`pwd`
+now_dir=`basename $now_pwd`
+if [ -d "$os" ] ; then
+  echo "Entering $os directory"
+  cd $os
+fi
+
+if [ "$os" == "openbsd" ] ; then
   c_syscall_header=sys/syscall.h
 else
   c_syscall_header=syscall.h
 fi
 
-if ! [ -f $fpc_sysnr ] ; then
-  cpu=`fpc -iTP`
-  fpc_sysnr=./$cpu/sysnr.inc
+if [ -z "$FPC" ] ; then
+  FPC=fpc
 fi
 
-verbose=0
+if [ ! -f $fpc_sysnr ] ; then
+  cpu=`$FPC -iTP`
+  if [ "${cpu//sparc/}" != "$cpu" ] ; then
+    cpu=sparcgen
+  fi
+  fpc_sysnr=./$cpu/sysnr.inc
+  if [ ! -f "$fpc_sysnr" ] ; then
+    fpc_sysnr=`ls -1 ./${cpu}*/sysnr.inc| head -1`
+  fi
+  if [ ! -f "$fpc_sysnr" ] ; then
+    if [ "${cpu//sparc/}" != "$cpu" ] ; then
+      cpu=sparcgen
+    fi
+    fpc_sysnr=./$cpu/sysnr.inc
+    if [ ! -f "$fpc_sysnr" ] ; then
+      echo "sysnr.inc file not found, try again in rtl/$os directory"
+      exit
+    fi
+  fi
+fi
+
+if [ -f "$fpc_sysnr" ] ; then
+  echo "Checking $fpc_sysnr content for Free Pascal syscall numbers"
+  fpc_sysnr_dir=`dirname $fpc_sysnr `
+  sysnr_includes=`grep -o '{\$i  *[a-z_A-Z0-9/.]*' $fpc_sysnr | sed 's:.*{\$i *:'$fpc_sysnr_dir/: `
+  if [ -n "$sysnr_includes" ] ; then
+    echo "Found $sysnr_includes include files"
+    fpc_sysnr="$fpc_sysnr $sysnr_includes"
+  fi
+fi
+
+if [ -z "$verbose" ] ; then
+  verbose=0
+fi
 
 os=`uname -s`
 
@@ -39,22 +99,59 @@ EOF
 # Can be overwritten by setting CC variable
 # But I don't know if other compilers also generate
 # .i files with --save-temps option
-if [ "$CC" == "" ] ; then
+if [ -z "$CC" ] ; then
   CC=gcc
 fi
 
+cpu=`$FPC -iTP`
+is_16=0
+is_32=0
+is_64=0
+case $cpu in
+  aarch64)   is_64=1;;
+  alpha)     is_32=1;;
+  arm)       is_32=1;;
+  avr)       is_16=1;;
+  i386)      is_32=1;;
+  i8086)     is_16=1;;
+  ia64)      is_64=1;;
+  jvm)       is_32=1;;
+  m68k)      is_32=1;;
+  mips)      is_32=1;;
+  mipsel)    is_32=1;;
+  powerpc)   is_32=1;;
+  powerpc64) is_64=1;;
+  riscv32)   is_32=1;;
+  riscv64)   is_64=1;;
+  sparc)     is_32=1;;
+  sparc64)   is_64=1;;
+  vis)       is_32=1;;
+  x86_64)    is_64=1;;
+esac
+
+if [ $is_64 -eq 1 ] ; then
+  CC_OPT="$CC_OPT -m64"
+fi
+if [ $is_32 -eq 1 ] ;then
+  CC_OPT="$CC_OPT -m32"
+fi
+
 # Use gcc with --save-temps option to create .i file
-$CC --save-temps -o test-syscall ./test-syscall.c
+echo "Calling $CC $CC_OPT --save-temps -o test-syscall ./test-syscall.c"
+$CC $CC_OPT --save-temps -o ./test-syscall ./test-syscall.c
 res=$?
 if [ $res -ne 0 ] ; then
   echo "Call to $CC failed"
   exit
+else
+  rm -f ./test-syscall.c ./test-syscall
 fi
 # list of errno.h headers listed
 syscall_headers=` sed -n "s:.*\"\(.*/.*\.h\)\".*:\1:p" test-syscall.i |sort | uniq`
-echo "Headers found are \"$syscall_headers\""
+rm -f test-syscall.*
+echo "C syscall headers files found are \"$syscall_headers\""
 
-if [ "$syscall_headers" != "" ] ; then
+if [ -n "$syscall_headers" ] ; then
   syscall_header="$syscall_headers"
 fi
 
@@ -70,15 +167,54 @@ fi
 
 # You should only need to change the variables above
 
-sed -n "s:^[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\).*:check_syscall_number ${syscall_prefix}\1 \2:p" ${fpc_sysnr} > check_sys_list.sh
-sed -n "s:^.*define[[:space:]]*${syscall_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*\\([0-9]*\\).*:check_syscall_number_reverse ${fpc_syscall_prefix}\1 \2:p" ${syscall_header} > check_sys_list_reverse.sh
- 
+cat > parse.awk <<EOF
+BEGIN {IGNORECASE = 1;
+enable=1;
+macro="";
+incfile="";
+cpu= "cpu" proc;
+}
+/\{\\\$i / { incfile=\$2;
+  print "Include file  " incfile " found"; }
+/\{\\\$ifdef / { macro=\$2; print "ifdef " macro " found\n";
+  if ( macro == cpu ) { enable=1; print "// Macro " macro " found at line " FNR; } else {enable=0;};
+  }
+/\{\\\$ifndef / { macro=\$2; print "ifndef " macro " found\n";
+  if ( macro == cpu ) { enable=0; print "// Macro " macro " found at line " FNR; } else {enable=1;};
+  }
+/\{\\\$else/ { if (enable == 1) {enable=0;} else {enable = 1;}}
+/\{\\\$endif/ {enable=1;}
+/.*/ { if (enable == 1) { print \$0;} }
+EOF
 
-function check_syscall_number ()
+if [ -z "$AWK" ] ; then
+  AWK=`which gawk`
+fi
+
+if [ -z "$AWK" ] ; then
+  AWK=`which awk`
+fi
+
+$AWK -v proc=$cpu -f parse.awk ${fpc_sysnr} | sed -n "s:^[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \1 \2 \"\3\":p" > check_sys_list.sh
+
+sed -n "s:^.*#[[:space:]]*define[[:space:]]*${syscall_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_in_fpc_rtl \1 \2 \"\3\":p" ${syscall_header} > check_sys_list_reverse.sh
+ 
+forward_count=0
+forward_ok_count=0
+forward_failure_count=0
+
+function check_c_syscall_number_from_fpc_rtl ()
 {
-  sys=$1
+  bare_sys=$1
+  sys=${syscall_prefix}$bare_sys
   value=$2
+  comment="$3"
+  if [[ ! ( ( -n "$value" ) && ( $value -ge 0 ) ) ]] ; then
+    echo "Computing $2 value"
+    let value=$2
+  fi
   obsolete=0
+  let forward_count++
   if [[ "$value" =~ ^[0-9]+$ ]] ; then
     eval $sys=\$$value
     if [ $verbose -ne 0 ] ; then
@@ -95,8 +231,39 @@ function check_syscall_number ()
   if [ $verbose -ne 0 ] ; then
     echo Testing $sys value $value
   fi
-  found=`sed -n "/#define[[:space:]]*${sys}[^A-Za-z0-9_]/p" ${syscall_header}`
-  val=`sed -n "s:#define[[:space:]]*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9]*\).*:\1:p" ${syscall_header}`
+  let froward_count++
+  found=`sed -n "/#[[:space:]]*define[[:space:]]*${sys}[^A-Za-z0-9_]/p" ${syscall_header}`
+  val=`sed -n "s:#[[:space:]]*define[[:space:]]*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9]*\).*:\1:p" ${syscall_header}`
+# Test C file to grab all loaded headers
+cat > test-syscall-${bare_sys}.c <<EOF
+#include <${c_syscall_header}>
+#include <stdio.h>
+
+int
+main ()
+{
+  printf ("%d\n", $sys);
+  return 0;
+}
+EOF
+  $CC $CC_OPT -o ./test_$bare_sys test-syscall-${bare_sys}.c
+  C_COMP_RES=$?
+  if [ $C_COMP_RES -eq 0 ] ; then
+    CC_value=`./test_$bare_sys`
+    if [ "$value" != "$CC_value" ] ; then
+      echo "$CC returns $CC_value, while $value is expected"
+      let forward_failure_count++
+      return
+    else
+      rm -f ./test_$bare_sys
+    fi
+    rm -f ./test-syscall-${bare_sys}.c
+  else
+    echo "$CC failed to compile code containing $sys syscall number $value"
+    let forward_failure_count++
+    return
+  fi
+
   if [ $verbose -ne 0 ] ; then
     echo Test for $sys found \"${found}\" \"${value}\" \"${val}\"
   fi
@@ -104,34 +271,63 @@ function check_syscall_number ()
     if [ $verbose -ne 0 ] ; then
       echo ${sys} value ${val} is correct
     fi
+    let forward_ok_count++
   else
-    if [ "${val}" == "" ] ; then
-      found=`sed -n "/#define.*[^A-Za-z0-9_]${value}$/p" ${syscall_header}`
-      if [ "${found}" == "" ] ; then
+    if [ -z "${val}" ] ; then
+      found=`sed -n ".*define[[:space:]].*[^A-Za-z0-9_][[:space:]]${value}$/p" ${syscall_header}`
+      if [ -z "${found}" ] ; then
         found=`sed -n "s:\/\* ${value} is compa:/* ${value} is compa:p" ${syscall_header}`
-        if [ "$found" != "" ] ; then
+        if [ -n "$found" ] ; then
           obsolete=1
         fi
       fi
     fi
-    if [ "$found" == "" ] ; then
+    if [ -z "$found" ] ; then
       found=`grep -n -w $value ${syscall_header}`
     fi
     if [ $obsolete -eq 1 ] ; then
-      echo Warning: ${sys} expected ${value}, is obsolete line is \"${found}\"
+      echo Warning: ${bare_sys} expected ${value}, is obsolete line is \"${found}\"
     else
-      echo Problem: ${sys} expected ${value}, line is \"${found}\", val found is \"${val}\"
+      echo Problem: ${bare_sys} expected ${value}, line is \"${found}\", val found is \"${val}\"
     fi
+    let forward_failure_count++
   fi
 }
 
-function check_syscall_number_reverse ()
+reverse_count=0
+reverse_ok_count=0
+reverse_failure_count=0
+add_file=./add_missing_syscalls.inc
+suggested_addition_count=0
+echo "{ Generated by check_rtl_sys.sh script }" > $add_file
+
+function check_c_syscall_number_in_fpc_rtl ()
 {
-  sys=$1
+  bare_sys=$1
+  sys=${fpc_syscall_prefix}${bare_sys}
   value=$2
+  comment="$3"
+  if [ $verbose -ne 0 ] ; then
+    echo "Full comment is \"$comment \""
+  fi
+  if [ "${comment/*\/\*/}" != "$comment" ] ; then
+    comment="${comment/*\/\*/}"
+    if [ $verbose -ne 0 ] ; then
+      echo "comment is \"$comment \""
+    fi
+    comment="${comment/\*\/*/}"
+    if [ $verbose -ne 0 ] ; then
+      echo "comment is \"$comment \""
+    fi
+    comment=`echo $comment | sed 's:^[[:space:]]*\(.*\)[[:space:]]*$:\1' `
+    if [ $verbose -ne 0 ] ; then
+      echo "comment is \"$comment \""
+    fi
+  fi
   if [ $verbose -ne 0 ] ; then
     echo Testing syscall header entry $sys value $value
   fi
+  let reverse_count++
   found=`sed -n "/.*${sys}/p" ${fpc_sysnr}`
   val=`sed -n "s:.*${sys}[ \t]*=[ \t]*\([0-9]*\).*:\1:p" ${fpc_sysnr}`
   if [ $verbose -ne 0 ] ; then
@@ -141,14 +337,24 @@ function check_syscall_number_reverse ()
     if [ $verbose -ne 0 ] ; then
       echo ${sys} value ${val} is correct
     fi
+    let reverse_ok_count++
   else
-    if [ "${val}" == "" ] ; then
-      found=`sed -n "/#define.*[^A-Za-z0-9_]${value}$/p" ${syscall_header}`
-      if [ "${found}" == "" ] ; then
-        found=`sed -n "s:\/\* ${value} is compa: ${value} is compa:p" ${syscall_header}`
+    if [ -z "${val}" ] ; then
+      found=`sed -n "/#[[:space:]]*define.*[^A-Za-z0-9_][[:space:]]*${value}([[:space:]]|$)/p" ${syscall_header}`
+      if [ -z "${found}" ] ; then
+        found=`sed -n "s:\/\*.*i[[:space:]]${value} is compa: ${value} is compa:p" ${syscall_header}`
       fi
     fi
-    echo Problem: ${sys} expected ${value}, line is \"${found}\", val found is \"${val}\"
+    echo "Problem: ${bare_sys} expected ${value}, line is \"${found}\", val found is \"${val}\""
+    if [ -n "$comment" ] ; then
+      echo "    ${fpc_syscall_prefix}${bare_sys} = ${value}; { $comment }" >> $add_file
+      echo "Suggest adding:  ${fpc_syscall_prefix}${bare_sys} = ${value}; { $comment }"
+    else
+      echo "    ${fpc_syscall_prefix}${bare_sys} = ${value};" >> $add_file
+      echo "Suggest adding:  ${fpc_syscall_prefix}${bare_sys} = ${value};"
+    fi
+    let suggested_addition_count++
+    let reverse_failure_count++
   fi
 }
 
@@ -157,8 +363,15 @@ function check_syscall_number_reverse ()
 # to system define 
 set -f
 
-echo "Checking values from \"${fpc_sysnr}\" in \"${syscall_header}\""
+echo "Checking values from \"${fpc_sysnr}\" in C syscall headers"
 source ./check_sys_list.sh
-echo "Checking if values in \"${syscall_header}\" are missing in \"${fpc_sysnr}\""
+echo "Checking if values in C syscall headers are in \"${fpc_sysnr}\""
 source ./check_sys_list_reverse.sh
-
+echo "Forward counts: OK=$forward_ok_count, failures=$forward_failure_count, total=$forward_count"
+echo "Reverse counts: OK=$reverse_ok_count, failures=$reverse_failure_count, total=$reverse_count"
+if [ $suggested_addition_count -gt 0 ] ; then
+  echo "Missing $suggested_addition_count syscall numbers in $add_file"
+else
+ rm $add_file
+fi
+rm ./check_sys_list.sh ./check_sys_list_reverse.sh ./parse.awk
