@@ -496,6 +496,7 @@ function GetConsoleAliasExesLengthW:DWORD;stdcall;external 'kernel32' name 'GetC
 function GetConsoleAliasesW(AliasBuffer:LPWSTR; AliasBufferLength:DWORD; ExeName:LPWSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesW';
 function GetConsoleAliasExesW(ExeNameBuffer:LPWSTR; ExeNameBufferLength:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesW';
 function GetComputerNameExW(NameType:COMPUTER_NAME_FORMAT;lpbuffer:LPWSTR;nSize:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetComputerNameExW';
+function QueryFullProcessImageNameW(hProcess:THandle;dwFlags:DWord; lpexename :lpwstr;lpdwsize:pdword):BOOL; stdcall; external 'kernel32.dll' name 'QueryFullProcessImageNameW';
 {$endif read_interface}
 
 
