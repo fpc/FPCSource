@@ -231,7 +231,6 @@ function check_c_syscall_number_from_fpc_rtl ()
   if [ $verbose -ne 0 ] ; then
     echo Testing $sys value $value
   fi
-  let froward_count++
   found=`sed -n "/#[[:space:]]*define[[:space:]]*${sys}[^A-Za-z0-9_]/p" ${syscall_header}`
   val=`sed -n "s:#[[:space:]]*define[[:space:]]*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9]*\).*:\1:p" ${syscall_header}`
 # Test C file to grab all loaded headers
