@@ -1325,6 +1325,7 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function Wow64EnableWow64FsRedirection(Wow64FsEnableRedirection:BYTE) : BOOL; stdcall;   external 'kernel32.dll' name 'Wow64EnableWow64FsRedirection';
   function Wow64RevertWow64FsRedirection(RedirectionState : pointer) : BOOL; stdcall; external 'kernel32.dll' name 'Wow64RevertWow64FsRedirection';
   function IsWow64Process(hProcess:THandle; Wow64Process:PBOOL):BOOL;stdcall; external 'kernel32.dll' name 'IsWow64Process';
+  function GetPhysicallyInstalledSystemMemory(TotalMemoryInKilobytes: PULONGLONG ):BOOL; stdcall; external 'kernel32.dll' name 'GetPhysicallyInstalledSystemMemory';
 {$endif read_interface}
 
 
