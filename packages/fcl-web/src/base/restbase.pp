@@ -717,7 +717,7 @@ begin
         TStringArray(AP)[I]:=AValue.Strings[i];
         end;
     else
-      Raise ERESTAPI.CreateFmt('%s: unsupported array element type : ',[ClassName,GetEnumName(TypeInfo(TTypeKind),Ord(ET^.Kind))]);
+      Raise ERESTAPI.CreateFmt('%s: unsupported array element type : %s',[ClassName,GetEnumName(TypeInfo(TTypeKind),Ord(ET^.Kind))]);
     end;
     end;
 end;
@@ -1041,7 +1041,7 @@ begin
     For I:=0 to Length(TStringArray(AP))-1 do
       A.Add(TJSONString.Create(TStringArray(AP)[I]));
   else
-    Raise ERESTAPI.CreateFmt('%s: unsupported array element type : ',[ClassName,GetEnumName(TypeInfo(TTypeKind),Ord(ET^.Kind))]);
+    Raise ERESTAPI.CreateFmt('%s: unsupported array element type : %s',[ClassName,GetEnumName(TypeInfo(TTypeKind),Ord(ET^.Kind))]);
   end;
 end;
 
