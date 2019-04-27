@@ -120,6 +120,14 @@ end;
 
 function TThread.WaitFor: Integer;
 begin
+  if MainThreadID=GetCurrentThreadID then
+    {
+     FFinished is set after DoTerminate, which does a synchronize of OnTerminate,
+     so make sure synchronize works (or indeed any other synchronize that may be
+     in progress)
+    }
+    while not FFinished do
+      CheckSynchronize(100);
+
   result:=WaitForThreadTerminate(FThreadID,0);
-  FFinished:=(result = 0);
 end;
