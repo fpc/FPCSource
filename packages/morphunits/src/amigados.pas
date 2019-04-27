@@ -546,7 +546,7 @@ type
   PErrorString = ^TErrorString;
   TErrorString = packed record
     estr_Nums: PLongInt;
-    estr_Byte: PByte;
+    estr_Strings: PByte;
   end;
 
 type
@@ -852,7 +852,7 @@ type
           ap_Reserved  : ShortInt;
           ap_Strlen    : SmallInt;
           ap_Info      : TFileInfoBlock;
-          ap_Buf       : Array[0..0] of Char;
+          ap_Buf       : Array[0..1] of Char;
           { * an_Buf continues * }
         );
   end;
