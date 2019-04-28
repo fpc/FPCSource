@@ -440,6 +440,14 @@ Function LocalTimeToUniversal(LT: TDateTime; TZOffset: Integer): TDateTime;
 function ScanDateTime(const Pattern:string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime; overload;
 function ScanDateTime(const Pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
 
+// ISO 8601 Date/Time formatting
+
+function DateToISO8601(const ADate: TDateTime; AInputIsUTC: Boolean = True): string;
+Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean): TDateTime;
+Function ISO8601ToDateDef(const DateString: string; ReturnUTC : Boolean; aDefault : TDateTime): TDateTime;
+Function TryISO8601ToDate(const DateString: string; ReturnUTC : Boolean;out ADateTime: TDateTime) : Boolean;
+
+
 implementation
 
 uses sysconst;
@@ -2676,6 +2684,86 @@ begin
     Result := LT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
   else
     Result := LT;
+end;
+
+Const
+  FmtUTC = 'yyyy"-"mm"-"dd"T"hh":"nn":"ss"."zzz';
+  FmtUTCTZ = 'hh":"mm';
+
+function DateToISO8601(const ADate: TDateTime; AInputIsUTC: Boolean = True): string;
+
+const
+  FmtOffset: string = '%.02d:%.02d';
+  Sign: array[Boolean] of Char = ('+', '-');
+
+var
+  Offset: Integer;
+begin
+  Result := FormatDateTime(FmtUTC, ADate);
+  Offset := GetLocalTimeOffset;
+  if AInputIsUTC or (Offset=0) then
+    Result:=Result+'Z'
+  else
+    begin
+    Result:=Result+Sign[Offset>0];
+    Offset := Abs(Offset);
+    Result:= Result+Format(FmtOffset, [Offset div MinsPerHour, Offset mod MinsPerHour]);
+    end;
+end;
+
+Function TryISO8601ToDate(const DateString: string; ReturnUTC : Boolean;out ADateTime: TDateTime) : Boolean;
+
+
+Var
+  S,TZ : String;
+  Offset,TZOffset : Integer;
+  DTTZ : TDateTime;
+
+begin
+  S:=DateString;
+  If Length(S)>23 then
+    begin
+    S:=Copy(S,1,14);
+    TZ:=Copy(DateString,24);
+    end;
+  aDateTime:=ScanDatetime(fmtUTC,DateString);
+  Result:=aDateTime<>0;
+  if (not Result)  then
+    Exit;
+  // Determine TZ offset. We're forgiving if no TZ info was present.
+  if (TZ='Z') or (TZ='') then
+    TZOffset:=0
+  else
+    begin
+    Result:=TZ[1] in ['+','-'];
+    if Not Result then
+      Exit;
+    DTTZ:=ScanDateTime(FmtUTCTZ,Copy(TZ,2,5));
+    TZOffset:=MinutesBetween(DTTZ,0);
+    if (TZ[1]='+') then
+      TZOffset:=-TZOffset;
+    end;
+  aDateTime:=IncMinute(aDateTime,TZOffSet);
+  // offset for UTC or not
+  if ReturnUTC then
+    Offset:=0
+  else
+    OffSet:=-GetLocalTimeOffset;
+  aDateTime:=IncMinute(aDateTime,Offset);
+end;
+
+Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean): TDateTime;
+
+begin
+  if not TryISO8601ToDate(DateString,ReturnUTC,Result) then
+    Raise EConvertError.CreateFmt(SErrInvalidTimeStamp,[DateString]);
+end;
+
+Function ISO8601ToDateDef(const DateString: string; ReturnUTC : Boolean; aDefault : TDateTime): TDateTime;
+
+begin
+  if not TryISO8601ToDate(DateString,ReturnUTC,Result) then
+    Result:=aDefault;
 end;
 
 {$else}
