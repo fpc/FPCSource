@@ -17,7 +17,6 @@
 unit serial;
 
 interface
-{$PACKRECORDS 2}
 
 uses
   exec;

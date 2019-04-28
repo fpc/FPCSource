@@ -781,8 +781,8 @@ type
   TAnimHeader = record
     ah_Operation: Byte;
     ah_Mask: Byte;
-    ah_Height: Word;
     ah_Width: Word;
+    ah_Height: Word;    
     ah_Left: SmallInt;
     ah_Top: SmallInt;
     ah_AbsTime: LongWord;
