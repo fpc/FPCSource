@@ -140,8 +140,8 @@ const
 
 
 type
-  PUtilityBase = ^TUtilityName;
-  TUtilityName = packed record
+  PUtilityBase = ^TUtilityBase;
+  TUtilityBase = packed record
     ub_LibNode : TLibrary;
     ub_Language: Byte;
     ub_Reserved: Byte;
