@@ -2433,7 +2433,7 @@ Type
         ViewInitX,
         ViewInitY       : smallint;        { View initial offset values      }
 
-        EnableCLI       : Boolean;      { CLI availability switch }
+        EnableCLI       : WordBool;      { CLI availability switch }
 
     { printer configurations }
         PrinterType     : Word;        { printer type                     }
@@ -3905,8 +3905,8 @@ Type
    pSGWork = ^tSGWork;
    tSGWork = record
     { set up when gadget is first activated    }
-    Gad       : pGadget;         { the contestant itself        }   { Gadget in C-Includes }
-    StrInfo   : pStringInfo;     { easy access to sinfo         }   { StrInfo in C-Includes }
+    Gadget     : pGadget;         { the contestant itself        }   { Gadget in C-Includes }
+    StringInfo : pStringInfo;     { easy access to sinfo         }   { StrInfo in C-Includes }
     WorkBuffer : STRPTR;           { intuition's planned result   }
     PrevBuffer : STRPTR;           { what was there before        }
     Modes      : ULONG;          { current mode                 }
@@ -3919,7 +3919,7 @@ Type
     Actions    : ULONG;          { what Intuition will do       }
     LongInt_   : Longint;          { temp storage for longint     }
 
-    GInfo      : pGadgetInfo;    { see cghooks.h                }   { GadgetInfo in C-Includes }
+    GadgetInfo      : pGadgetInfo;    { see cghooks.h                }   { GadgetInfo in C-Includes }
     EditOp     : Word;            { from constants below         }
    END;
 
