@@ -160,11 +160,12 @@ begin
 {$IFNDEF FPC_FEXPAND_SYSUTILS}
 (* Allow both '/' and '\' as directory separators *)
 (* by converting all to the native one.           *)
+{$push}
 {$warnings off}
 	  for I := 1 to Length (Pa) do
 	    if CharInSet(Pa [I], AllowDirectorySeparators)  then
 	      Pa [I] := DirectorySeparator;
-{$warnings on}
+{$pop}
 {$ENDIF not FPC_FEXPAND_SYSUTILS}
 
 (* PathStart is amount of characters to strip to get beginning *)
