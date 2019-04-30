@@ -70,7 +70,7 @@ type
      { iterator to walk over all individual items in the aggregate }
      tadeenumerator = class(tobject)
       private
-       fvalues: tfplist;
+       fvalues: tfpobjectlist;
        fvaluespos: longint;
        function getcurrent: tai_abstracttypedconst;
       public
@@ -81,7 +81,7 @@ type
      end;
 
     protected
-     fvalues: tfplist;
+     fvalues: tfpobjectlist;
      fisstring: boolean;
 
      { converts the existing data to a single tai_string }
@@ -744,7 +744,7 @@ implementation
      begin
        inherited;
        fisstring:=false;
-       fvalues:=tfplist.create;
+       fvalues:=tfpobjectlist.create(true);
      end;
 
 
@@ -831,8 +831,6 @@ implementation
      var
        ai: tai_abstracttypedconst;
      begin
-       for ai in self do
-          ai.free;
        fvalues.free;
        inherited destroy;
      end;
