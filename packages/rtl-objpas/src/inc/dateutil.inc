@@ -2723,7 +2723,7 @@ end;
 
 function TryISOStrToDate(const aString: string; out outDate: TDateTime): Boolean;
 var
-  xYear, xMonth, xDay: Integer;
+  xYear, xMonth, xDay: LongInt;
 begin
   case Length(aString) of
     8: Result :=
@@ -2746,7 +2746,7 @@ end;
 
 function TryISOStrToTime(const aString: string; Out outTime: TDateTime): Boolean;
 var
-  xHour, xMinute, xSecond, xMillisecond, xLength: Integer;
+  xHour, xMinute, xSecond, xMillisecond, xLength: LongInt;
 begin
   Result := True;
   xLength := Length(aString);
@@ -2860,7 +2860,7 @@ end;
 Function TryISOTZStrToTZOffset(TZ : String; Out TZOffset : Integer) : boolean;
 
 Var
-  H,M : Integer;
+  H,M : LongInt;
 
 begin
   Result:=(TZ='Z') or (TZ='');
