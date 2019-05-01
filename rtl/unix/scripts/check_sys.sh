@@ -37,11 +37,10 @@ if [ -d "$os" ] ; then
   cd $os
 fi
 
-if [ "$os" == "openbsd" ] ; then
-  c_syscall_header=sys/syscall.h
-else
-  c_syscall_header=syscall.h
-fi
+case "$os" in
+  freebsd|openbsd|netbsd) c_syscall_header=sys/syscall.h;;
+  "*")  c_syscall_header=syscall.h;;
+esac
 
 if [ -z "$FPC" ] ; then
   FPC=fpc
@@ -188,14 +187,18 @@ cpu= "cpu" proc;
 EOF
 
 if [ -z "$AWK" ] ; then
-  AWK=`which gawk`
+  AWK=`which gawk 2> /dev/null`
 fi
 
 if [ -z "$AWK" ] ; then
-  AWK=`which awk`
+  AWK=`which awk 2> /dev/null`
 fi
 
-$AWK -v proc=$cpu -f parse.awk ${fpc_sysnr} | sed -n "s:^[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \1 \2 \"\3\":p" > check_sys_list.sh
+if [ -n "$AWK" ] ; then
+	$AWK -v proc=$cpu -f parse.awk ${fpc_sysnr} | sed -n "s:^\(.*\)*[ \t})][ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \3 \"\1 \4\":p" > check_sys_list.sh
+else
+  sed -n "s:^\(.*\)*[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \3 \"\1 \4\":p" > check_sys_list.sh
+fi
 
 sed -n "s:^.*#[[:space:]]*define[[:space:]]*${syscall_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_in_fpc_rtl \1 \2 \"\3\":p" ${syscall_header} > check_sys_list_reverse.sh
  
@@ -245,7 +248,7 @@ main ()
   return 0;
 }
 EOF
-  $CC $CC_OPT -o ./test_$bare_sys test-syscall-${bare_sys}.c
+  $CC $CC_OPT -o ./test_$bare_sys test-syscall-${bare_sys}.c > ./test_${bare_sys}.comp-log 2>&1
   C_COMP_RES=$?
   if [ $C_COMP_RES -eq 0 ] ; then
     CC_value=`./test_$bare_sys`
@@ -256,7 +259,7 @@ EOF
     else
       rm -f ./test_$bare_sys
     fi
-    rm -f ./test-syscall-${bare_sys}.c
+    rm -f ./test-syscall-${bare_sys}.c ./test-${bare_sys}.comp-log
   else
     echo "$CC failed to compile code containing $sys syscall number $value"
     let forward_failure_count++
