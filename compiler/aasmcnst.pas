@@ -57,7 +57,7 @@ type
     protected
      fval: tai;
     public
-     constructor create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+     constructor create(_def: tdef; _val: tai);
      destructor destroy; override;
      property val: tai read fval write setval;
    end;
@@ -640,9 +640,9 @@ implementation
       end;
 
 
-   constructor tai_simpletypedconst.create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+   constructor tai_simpletypedconst.create(_def: tdef; _val: tai);
      begin
-       inherited create(_adetyp,_def);
+       inherited create(tck_simple,_def);
        fval:=_val;
      end;
 
@@ -710,7 +710,7 @@ implementation
        { the "nil" def will be replaced with an array def of the appropriate
          size once we're finished adding data, so we don't create intermediate
          arraydefs all the time }
-       fvalues.add(tai_simpletypedconst.create(tck_simple,nil,newstr));
+       fvalues.add(tai_simpletypedconst.create(nil,newstr));
      end;
 
    procedure tai_aggregatetypedconst.add_to_string(strtai: tai_string; othertai: tai);

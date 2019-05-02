@@ -169,7 +169,7 @@ implementation
       if d<>def then
         internalerror(2015091002);
       oldconst:=agginfo.aggai.replacevalueatpos(
-        tai_simpletypedconst.create(tck_simple,d,ai),pos
+        tai_simpletypedconst.create(d,ai),pos
       );
       oldconst.free;
     end;
@@ -256,7 +256,7 @@ implementation
 
   function tllvmtai_typedconstbuilder.wrap_with_type(p: tai; def: tdef): tai;
     begin
-      result:=tai_simpletypedconst.create(tck_simple,def,p);
+      result:=tai_simpletypedconst.create(def,p);
     end;
 
 
@@ -293,7 +293,7 @@ implementation
         begin
           kind:=tck_simple;
           { finalise the queued expression }
-          ai:=tai_simpletypedconst.create(kind,def,p);
+          ai:=tai_simpletypedconst.create(def,p);
           { set the new index to -1, so we internalerror should we try to
             add anything further }
           update_queued_tai(def,ai,ai,-1);
@@ -304,7 +304,7 @@ implementation
           fqueued_tai:=nil;
         end
       else
-        stc:=tai_simpletypedconst.create(tck_simple,def,p);
+        stc:=tai_simpletypedconst.create(def,p);
       info:=tllvmaggregateinformation(curagginfo);
       { these elements can be aggregates themselves, e.g. a shortstring can
         be emitted as a series of bytes and string data arrays }
@@ -358,7 +358,7 @@ implementation
       fillbytes:=info.prepare_next_field(def);
       while fillbytes>0 do
         begin
-          info.aggai.insertvaluebeforepos(tai_simpletypedconst.create(tck_simple,u8inttype,tai_const.create_8bit(0)),info.anonrecalignpos);
+          info.aggai.insertvaluebeforepos(tai_simpletypedconst.create(u8inttype,tai_const.create_8bit(0)),info.anonrecalignpos);
           dec(fillbytes);
         end;
     end;
