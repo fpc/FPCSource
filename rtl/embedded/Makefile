@@ -2577,6 +2577,7 @@ ifdef CLEAN_FILES
 	-$(DEL) $(CLEAN_FILES)
 endif
 	-$(DELTREE) units
+	-$(DELTREE) bin
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
@@ -2743,8 +2744,6 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-	$(COMPILER) $<
-	$(COMPILER) $<
 consoleio$(PPUEXT) : consoleio.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 heapmgr$(PPUEXT) : heapmgr.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -2752,10 +2751,7 @@ heapmgr$(PPUEXT) : heapmgr.pp $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-	$(COMPILER) $<
 objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-	$(COMPILER) $<
 	$(COMPILER) $<
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) sysconst$(PPUEXT) heapmgr$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
