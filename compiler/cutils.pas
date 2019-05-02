@@ -180,6 +180,11 @@ interface
 
     Function nextafter(x,y:double):double;
 
+    function LengthUleb128(a: qword) : byte;
+    function LengthSleb128(a: int64) : byte;
+    function EncodeUleb128(a: qword;out buf) : byte;
+    function EncodeSleb128(a: int64;out buf) : byte;
+
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
     ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
@@ -1629,6 +1634,91 @@ implementation
     nextafter:=x;
 
     end;
+
+
+    function LengthUleb128(a: qword) : byte;
+      begin
+        result:=0;
+        repeat
+          a := a shr 7;
+          inc(result);
+          if a=0 then
+            break;
+        until false;
+      end;
+
+
+    function LengthSleb128(a: int64) : byte;
+      var
+        b, size: byte;
+        more: boolean;
+      begin
+        more := true;
+        size := sizeof(a)*8;
+        result:=0;
+        repeat
+          b := a and $7f;
+          a := SarInt64(a, 7);
+
+          if (
+            ((a = 0) and (b and $40 = 0)) or
+            ((a = -1) and (b and $40 <> 0))
+          ) then
+            more := false;
+          inc(result);
+          if not(more) then
+            break;
+        until false;
+      end;
+
+
+    function EncodeUleb128(a: qword;out buf) : byte;
+      var
+        b: byte;
+        pbuf : pbyte;
+      begin
+        result:=0;
+        pbuf:=@buf;
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if a<>0 then
+            b := b or $80;
+          pbuf^:=b;
+          inc(pbuf);
+          inc(result);
+          if a=0 then
+            break;
+        until false;
+      end;
+
+
+    function EncodeSleb128(a: int64;out buf) : byte;
+      var
+        b, size: byte;
+        more: boolean;
+        pbuf : pbyte;
+      begin
+        more := true;
+        size := sizeof(a)*8;
+        result:=0;
+        pbuf:=@buf;
+        repeat
+          b := a and $7f;
+          a := SarInt64(a, 7);
+
+          if (
+            ((a = 0) and (b and $40 = 0)) or
+            ((a = -1) and (b and $40 <> 0))
+          ) then
+            more := false
+          else
+            b := b or $80;
+          pbuf^:=b;
+          inc(pbuf);
+          inc(result);
+        until not more;
+      end;
 
 
 initialization

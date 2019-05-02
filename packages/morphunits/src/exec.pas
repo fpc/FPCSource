@@ -1071,7 +1071,7 @@ type
     lib_Node    : TNode;
     lib_Flags   : Byte;
     lib_pad     : Byte;
-    lib_MegSize : Word;
+    lib_NegSize : Word;
     lib_PosSize : Word;
     lib_Version : Word;
     lib_Revision: Word;
@@ -1418,7 +1418,7 @@ type
     PortList    : TList;
     TaskReady   : TList;
     TaskWait    : TList;
-    SoftInts    : Array[0..5] Of TSoftIntList;
+    SoftInts    : Array[0..4] Of TSoftIntList;
     LastAlert   : Array[0..3] Of LongInt;
 
     VBlankFrequency     : Byte;

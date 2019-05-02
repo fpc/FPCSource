@@ -8,8 +8,11 @@
 # supported architecture.
 
 @Pascal uses baseunix;
+@Pascal {$i ptypes.inc}
+@Pascal {$i ostypes.inc}
 @Pascal begin
 
+# Adds support for M_PIl constant inside math.h header
 @C #include <sys/types.h>
 @C #include <sys/stat.h>
 @C #include <sys/time.h>
@@ -23,8 +26,65 @@
 @C #include <unistd.h>
 @C #include <stdio.h>
 @C #include <stddef.h>
+@C #include <fcntl.h>
+@C #include <pthread.h>
+@C #include <netdb.h>
+@C #include <semaphore.h>
+@C #include <wchar.h>
+@C #include <math.h>
 @C int main()
 @C {
+
+@type dev_t
+@type gid_t
+@type ino_t
+@type mode_t
+@type nlink_t
+@type off_t
+@type pid_t
+@type size_t
+@type ssize_t
+@type uid_t
+@type wint_t
+@type clock_t
+@type time_t
+@type socklen_t
+
+@record timeval,struct timeval
+.tv_sec
+.tv_usec
+
+@record timespec,struct timespec
+.tv_sec
+.tv_nsec
+
+@type pthread_t
+@type pthread_attr_t
+@type pthread_mutex_t
+@type pthread_mutexattr_t
+@type pthread_cond_t
+@type pthread_condattr_t
+@type pthread_key_t
+@type pthread_rwlock_t
+@type pthread_rwlockattr_t
+@type sem_t
+@type rlim_t
+
+@record pthread_once_t,struct pthread_once
+.state
+.mutex
+
+@constant O_RDONLY
+@constant O_WRONLY
+@constant O_RDWR
+@constant O_CREAT
+@constant O_EXCL
+@constant O_TRUNC
+@constant O_NOCTTY
+@constant O_APPEND
+@constant O_NONBLOCK
+
+@floatconstant PI,M_PI
 
 @record stat,struct stat
 .st_mode

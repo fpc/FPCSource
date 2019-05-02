@@ -2313,6 +2313,7 @@ function StringCodePage(const S: UnicodeString): TSystemCodePage; overload;
   end;
 
 
+{$push}
 {$warnings off}
 function StubUnicodeCase(const s : UnicodeString) : UnicodeString;
   begin
@@ -2333,7 +2334,7 @@ function StubCompareWideString(const s1, s2 : WideString; Options : TCompareOpti
   begin
     unimplementedunicodestring;
   end;
-{$warnings on}
+{$pop}
 
 procedure initunicodestringmanager;
   begin

@@ -129,7 +129,29 @@ type
     _p1,
     _p2     : APTR;       // system reserved
     reserved: LongInt;    // system use
-    Flags   : LongInt;    // only exists in layer allocation
+  end;
+  PLayer_Info = ^TLayer_Info;
+  TLayer_Info = record
+    Top_Layer: Player;
+    check_lp: PLayer;
+    Obs: PClipRect;
+    FreeClipRects: PClipRect;
+
+    PrivateReserve1: LongInt;
+    PrivateReserve2: LongInt;
+
+    Lock: TSignalSemaphore;
+    gs_Head: TMinList;
+
+    PrivateReserve3: SmallInt;
+    PrivateReserve4: APTR;
+
+    Flags: Word;               // LIFLG_SUPPORTS_OFFSCREEN_LAYERS
+    fatten_count: ShortInt;
+    LockLayersCount: ShortInt;
+    PrivateReserve5: SmallInt;
+    BlankHook: APTR;
+    LayerInfo_extra: APTR;
   end;
 
 
@@ -275,12 +297,12 @@ type
       NxtList: PCopList;
       );
     1:(
-      VWaitPos: SmallInt; // vertical wait position
       DestAddr: SmallInt; // destination Pointer
+      DestData: SmallInt; // data to send
       );
     2:(
+      VWaitPos: SmallInt; // vertical wait position
       HWaitPos: SmallInt; // horizontal wait position
-      DestData: SmallInt; // data to send
       );
   end;
 
@@ -288,7 +310,7 @@ type
   PCprList = ^TCprList;
   TCprList = record
     Next: PCprList;
-    Start: Word;         // start of copper list
+    Start: PWord;         // start of copper list
     MaxCount: SmallInt;  // number of long instructions
   end;
 
@@ -1903,9 +1925,9 @@ type
     VBCounter: LongWord;
 
     HashTableSemaphore: PSignalSemaphore;  // Semaphore for hash_table access, private in fact
-
-    ChunkyToPlanarPtr: PLongWord;  // HWEmul[0];
-    HWEmul: array[1..8] of PLongWord;
+    case boolean of
+      true: ( ChunkyToPlanarPtr: PLongWord;);  // HWEmul[0];
+      false: (HWEmul: array[0..8] of PLongWord;);
   end;
 
 const

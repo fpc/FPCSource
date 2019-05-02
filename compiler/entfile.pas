@@ -609,13 +609,13 @@ end;
 
 function tentryfile.getbyte:byte;
 begin
-  if entryidx+1>entry.size then
+  if entryidx>=entry.size then
    begin
      error:=true;
      result:=0;
      exit;
    end;
-  if bufsize-bufidx>=1 then
+  if bufidx<bufsize then
     begin
       result:=pbyte(@buf[bufidx])^;
       inc(bufidx);

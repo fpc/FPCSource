@@ -484,6 +484,43 @@ Implementation
                             result:=true;
                           end;
                       end;
+                A_SBRS,
+                A_SBRC:
+                  begin
+                    {
+                      Turn
+                        in rx, y
+                        sbr* rx, z
+                      Into
+                        sbi* y, z
+                    }
+                    if (taicpu(p).ops=2) and
+                       (taicpu(p).oper[0]^.typ=top_reg) and
+                       assigned(FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(p.next))) and
+                       GetLastInstruction(p,hp1) and
+                       (hp1.typ=ait_instruction) and
+                       (taicpu(hp1).opcode=A_IN) and
+                       (taicpu(hp1).ops=2) and
+                       (taicpu(hp1).oper[1]^.typ=top_const) and
+                       (taicpu(hp1).oper[1]^.val in [0..31]) and
+                       MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^.reg) and
+                       (not RegModifiedBetween(taicpu(p).oper[0]^.reg, hp1, p)) then
+                      begin
+                        if taicpu(p).opcode=A_SBRS then
+                          taicpu(p).opcode:=A_SBIS
+                        else
+                          taicpu(p).opcode:=A_SBIC;
+
+                        taicpu(p).loadconst(0, taicpu(hp1).oper[1]^.val);
+
+                        DebugMsg('Peephole InSbrx2Sbix performed', p);
+
+                        asml.Remove(hp1);
+                        hp1.free;
+
+                        result:=true;
+                      end;
+                  end;
                 A_ANDI:
                   begin
                     {

@@ -1471,7 +1471,7 @@ type
     ViewInitX,
     ViewInitY: SmallInt;   // View initial offset values
 
-    EnableCLI: LongBool;   // CLI availability switch
+    EnableCLI: WordBool;   // CLI availability switch
 
   // printer configurations
     PrinterType: Word;     // printer type
@@ -1663,11 +1663,11 @@ type
                             Screens are then maintained in a front to back order using Screen.NextScreen  }
     Flags: LongWord;      // see definitions below
 {$ifdef AROS_BINCOMPAT}
-    MouseX,
-    MouseY: SmallInt;      // mouse position relative to View
-{$else}
     MouseY,
     MouseX: SmallInt;      // mouse position relative to View
+{$else}
+    MouseX,
+    MouseY: SmallInt;      // mouse position relative to View
 {$endif}
 
     Seconds: LongWord;     // timestamp of most current input event

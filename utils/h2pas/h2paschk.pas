@@ -48,6 +48,9 @@ program h2paschk;
 .blue
 .alpha
 
+@TYPE size_t
+@CONSTANT O_RW
+
 @C   return 0;
 @C }
 
@@ -91,6 +94,20 @@ type
     procedure DoneLangOutputs;
 
     procedure StartRecord(RecordID: TIdentifier);
+    procedure HandleType(TypeID: TIdentifier);
+    procedure HandleConstant(ConstantID: TIdentifier;PascalType,PascalHexStrSize,CType,CFormat : string);
+    procedure HandleConstant(ConstantID: TIdentifier);
+    procedure HandleConstantU8(ConstantID: TIdentifier);
+    procedure HandleConstantU16(ConstantID: TIdentifier);
+    procedure HandleConstantU32(ConstantID: TIdentifier);
+    procedure HandleConstantU64(ConstantID: TIdentifier);
+    procedure HandleSignedConstant(ConstantID: TIdentifier;PascalType,CType,CFormat : string);
+    procedure HandleSignedConstant(ConstantID: TIdentifier);
+    procedure HandleConstantS8(ConstantID: TIdentifier);
+    procedure HandleConstantS16(ConstantID: TIdentifier);
+    procedure HandleConstantS32(ConstantID: TIdentifier);
+    procedure HandleConstantS64(ConstantID: TIdentifier);
+    procedure HandleFloatConstant(ConstantID: TIdentifier);
     procedure ProcessField(FieldID: TIdentifier);
   public
     destructor Destroy; override;
@@ -127,11 +144,86 @@ begin
     DoneLangOutput(Lang);
 end;
 
+
+procedure TH2PasCheckerCodeGen.HandleType(TypeID: TIdentifier);
+begin
+  Writeln(FLangOutput[lPascal], '  Writeln(''SizeOf(', TypeID[CommLangID], ')='',SizeOf(', TypeID[lPascal], '));');
+  Writeln(FLangOutput[lC], '  printf("SizeOf(', TypeID[CommLangID], ')=%lu\n",sizeof(', TypeID[lC], '));');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstant(ConstantID: TIdentifier;PascalType,PascalHexStrSize,CType,CFormat : string);
+begin
+  Writeln(FLangOutput[lPascal], '  Writeln(''Unsigned value Of(', ConstantID[CommLangID], ')=0x'',hexstr(',PascalType,'(', ConstantID[lPascal], '),',PascalHexStrSize,'));');
+  Writeln(FLangOutput[lC], '  printf("Unsigned value Of(', ConstantID[CommLangID], ')=0x',CFormat,'\n",(',CType,') ', ConstantID[lC], ');');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleSignedConstant(ConstantID: TIdentifier;PascalType,CType,CFormat : string);
+begin
+  Writeln(FLangOutput[lPascal], '  Writeln(''Signed value Of(', ConstantID[CommLangID], ')='',',PascalType,'(', ConstantID[lPascal],'));');
+  Writeln(FLangOutput[lC], '  printf("Signed value Of(', ConstantID[CommLangID], ')=',CFormat,'\n",(',CType,') ', ConstantID[lC],');');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleFloatConstant(ConstantID: TIdentifier);
+begin
+  Writeln(FLangOutput[lPascal], '  Writeln(''Value Of(', ConstantID[CommLangID], ')='',',ConstantID[lPascal],':25:25);');
+  Writeln(FLangOutput[lC], '  printf("Value Of(', ConstantID[CommLangID], ')=%0.25f\n",',ConstantID[lC],');');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstant(ConstantID: TIdentifier);
+begin
+  HandleConstant(ConstantID,'qword','16','unsigned long long','%016llx');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstantU8(ConstantID: TIdentifier);
+begin
+  HandleConstant(ConstantID,'byte','2','unsigned char','%02x');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstantU16(ConstantID: TIdentifier);
+begin
+  HandleConstant(ConstantID,'word','4','unsigned short','%04x');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstantU32(ConstantID: TIdentifier);
+begin
+  HandleConstant(ConstantID,'dword','8','unsigned int','%08x');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstantU64(ConstantID: TIdentifier);
+begin
+  HandleConstant(ConstantID,'qword','16','unsigned int','%016llx');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleSignedConstant(ConstantID: TIdentifier);
+begin
+  HandleSignedConstant(ConstantID,'int64','signed long long','%lld');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstantS8(ConstantID: TIdentifier);
+begin
+  HandleSignedConstant(ConstantID,'int8','signed char','%d');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstantS16(ConstantID: TIdentifier);
+begin
+  HandleSignedConstant(ConstantID,'int16','signed short','%d');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstantS32(ConstantID: TIdentifier);
+begin
+  HandleSignedConstant(ConstantID,'int32','signed int','%d');
+end;
+
+procedure TH2PasCheckerCodeGen.HandleConstantS64(ConstantID: TIdentifier);
+begin
+  HandleSignedConstant(ConstantID,'int64','unsigned int','%lld');
+end;
+
+
 procedure TH2PasCheckerCodeGen.StartRecord(RecordID: TIdentifier);
 begin
   FCurrentRecord := RecordID;
-  Writeln(FLangOutput[lPascal], '  Writeln(''SizeOf(', RecordID[CommLangID], ')='',SizeOf(', RecordID[lPascal], '));');
-  Writeln(FLangOutput[lC], '  printf("SizeOf(', RecordID[CommLangID], ')=%lu\n",sizeof(', RecordID[lC], '));');
+  HandleType(RecordID);
 end;
 
 procedure TH2PasCheckerCodeGen.ProcessField(FieldID: TIdentifier);
@@ -156,6 +248,30 @@ var
   I: Integer;
   ID: TIdentifier;
   Lang: TLanguage;
+
+  procedure ReadID;
+  begin
+    if Pos(',', InS) >= 1 then
+    begin
+      for Lang in TLanguage do
+      begin
+        if Pos(',', InS) >= 1 then
+        begin
+          ID[Lang] := Copy(InS, 1, Pos(',', InS) - 1);
+          Delete(InS, 1, Pos(',', InS));
+        end
+        else
+        begin
+          ID[Lang] := InS;
+          InS := '';
+        end;
+      end;
+    end
+    else
+      for Lang in TLanguage do
+        ID[Lang] := InS;
+  end;
+
 begin
   FInFileName := InFileName;
   AssignFile(InF, InFileName);
@@ -192,27 +308,69 @@ begin
                   Writeln(FLangOutput[lPascal], InS);
                 '@C':
                   Writeln(FLangOutput[lC], InS);
+                '@FLOATCONSTANT':
+                  begin
+                    ReadID;
+                    HandleFloatConstant(ID);
+                  end;
+                '@CONSTANT':
+                  begin
+                    ReadID;
+                    HandleConstant(ID);
+                  end;
+                '@CONSTANT_U8':
+                  begin
+                    ReadID;
+                    HandleConstantU8(ID);
+                  end;
+                '@CONSTANT_U16':
+                  begin
+                    ReadID;
+                    HandleConstantU16(ID);
+                  end;
+                '@CONSTANT_U32':
+                  begin
+                    ReadID;
+                    HandleConstantU32(ID);
+                  end;
+                '@CONSTANT_U64':
+                  begin
+                    ReadID;
+                    HandleConstantU64(ID);
+                  end;
+                '@CONSTANT_S':
+                  begin
+                    ReadID;
+                    HandleSignedConstant(ID);
+                  end;
+                '@CONSTANT_S8':
+                  begin
+                    ReadID;
+                    HandleConstantS8(ID);
+                  end;
+                '@CONSTANT_S16':
+                  begin
+                    ReadID;
+                    HandleConstantS16(ID);
+                  end;
+                '@CONSTANT_S32':
+                  begin
+                    ReadID;
+                    HandleConstantU32(ID);
+                  end;
+                '@CONSTANT_S64':
+                  begin
+                    ReadID;
+                    HandleConstantS64(ID);
+                  end;
+                '@TYPE':
+                  begin
+                    ReadID;
+                    HandleType(ID);
+                  end;
                 '@RECORD':
                   begin
-                    if Pos(',', InS) >= 1 then
-                    begin
-                      for Lang in TLanguage do
-                      begin
-                        if Pos(',', InS) >= 1 then
-                        begin
-                          ID[Lang] := Copy(InS, 1, Pos(',', InS) - 1);
-                          Delete(InS, 1, Pos(',', InS));
-                        end
-                        else
-                        begin
-                          ID[Lang] := InS;
-                          InS := '';
-                        end;
-                      end;
-                    end
-                    else
-                      for Lang in TLanguage do
-                        ID[Lang] := InS;
+                    ReadID;
                     StartRecord(ID);
                   end;
                 else
@@ -222,25 +380,7 @@ begin
           '.':
             begin
               Delete(InS, 1, 1);
-              if Pos(',', InS) >= 1 then
-              begin
-                for Lang in TLanguage do
-                begin
-                  if Pos(',', InS) >= 1 then
-                  begin
-                    ID[Lang] := Copy(InS, 1, Pos(',', InS) - 1);
-                    Delete(InS, 1, Pos(',', InS));
-                  end
-                  else
-                  begin
-                    ID[Lang] := InS;
-                    InS := '';
-                  end;
-                end;
-              end
-              else
-                for Lang in TLanguage do
-                  ID[Lang] := InS;
+              ReadID;
               ProcessField(ID);
             end;
         end;

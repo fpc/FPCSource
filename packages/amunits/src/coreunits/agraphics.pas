@@ -134,7 +134,6 @@ type
         _p1,
         _p2     : Pointer;    { system reserved }
         reserved : Longint;     { system use }
-        Flags   : Longint;      { only exists in layer allocation }
     end;
 
     pLayer = ^tLayer;
@@ -158,7 +157,7 @@ type
         cr2,
         crnew           : pClipRect;  { used by dedice }
         SuperSaveClipRects : pClipRect; { preallocated cr's }
-        cliprects      : pClipRect;  { system use during refresh }
+        _cliprects      : pClipRect;  { system use during refresh }
         LayerInfo       : Pointer;      { points to head of the list }
         Lock            : tSignalSemaphore;
         BackFill        : pHook;
@@ -391,8 +390,8 @@ type
     pCopList = ^tCopList;
     tCopList = record
         Next    : pCopList;     { next block for this copper list }
-        CopList : pCopList;    { system use }
-        ViewPort : Pointer;    { system use }
+        _CopList : pCopList;    { system use }
+        _ViewPort : Pointer;    { system use }
         CopIns  : pCopIns;    { start of this block }
         CopPtr  : pCopIns;    { intermediate ptr }
         CopLStart : psmallint;     { mrgcop fills this in for Long Frame}
@@ -418,8 +417,8 @@ type
         fm0      : array [0..1] of word;
         diwstart : array [0..9] of word;
         bplcon2  : array [0..1] of word;
-        sprfix   : array [0..(2*8)] of word;
-        sprstrtup : Array [0..(2*8*2)] of Word;
+        sprfix   : array [0..(2*8-1)] of word;
+        sprstrtup : Array [0..(2*8*2-1)] of Word;
         wait14    : array [0..1] of word;
         norm_hblank : array [0..1] of word;
         jump        : array [0..1] of word;
@@ -1147,7 +1146,7 @@ Type
     pColorMap = ^tColorMap;
     tColorMap = record
         Flags   : Byte;
-        CType   : Byte;         { This is "Type" in C includes }
+        Type_   : Byte;         { This is "Type" in C includes }
         Count   : Word;
         ColorTable      : Pointer;
         cm_vpe  : pViewPortExtra;
@@ -1739,7 +1738,7 @@ Type
 
   pQueryHeader = ^tQueryHeader;
   tQueryHeader = record
-   tructID,                    { datachunk type identifier }
+   StructID,                    { datachunk type identifier }
    DisplayID,                  { copy of display record key   }
    SkipID,                     { TAG_SKIP -- see tagitems.h }
    Length  :  ULONG;         { length of local data in double-longwords }
@@ -1878,7 +1877,7 @@ Type
         Header  : tQueryHeader;
         Vec     : Pointer;
         Data    : Pointer;
-        vi_Type : WORD;               { Type in C Includes }
+        Type_ : WORD;               { Type in C Includes }
         pad     : Array[0..2] of WORD;
         reserved : Array[0..1] of ULONG;
  end;
