@@ -143,6 +143,8 @@ interface
         also for the linker }
       class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); virtual;
 
+      class procedure GenerateObjCImageInfo; virtual;
+
      strict protected
       class procedure add_main_procdef_paras(pd: tdef); virtual;
     end;
@@ -1555,6 +1557,26 @@ implementation
   class procedure tnodeutils.RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean);
     begin
       { don't do anything by default }
+    end;
+
+
+  class procedure tnodeutils.GenerateObjCImageInfo;
+    var
+      tcb: ttai_typedconstbuilder;
+    begin
+      { first 4 bytes contain version information about this section (currently version 0),
+        next 4 bytes contain flags (currently only regarding whether the code in the object
+        file supports or requires garbage collection)
+      }
+      tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
+      tcb.emit_ord_const(0,u64inttype);
+      current_asmdata.asmlists[al_objc_data].concatList(
+        tcb.get_final_asmlist(
+          current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'_OBJC_IMAGE_INFO',AB_LOCAL,AT_DATA,u64inttype),
+          u64inttype,sec_objc_image_info,'_OBJC_IMAGE_INFO',sizeof(pint)
+        )
+      );
+      tcb.free;
     end;
 
 

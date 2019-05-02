@@ -27,7 +27,7 @@ interface
 
   uses
     globtype,cclasses,
-    aasmbase,aasmdata,ngenutil,
+    aasmbase,aasmdata,aasmllvmmetadata, ngenutil,
     symtype,symconst,symsym,symdef;
 
 
@@ -39,6 +39,7 @@ interface
      public
       class procedure InsertObjectInfo; override;
       class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
+      class procedure GenerateObjCImageInfo; override;
     end;
 
 
@@ -49,13 +50,13 @@ implementation
       aasmtai,cpubase,llvmbase,aasmllvm,
       aasmcnst,nllvmtcon,
       symbase,symtable,defutil,
-      llvmtype;
+      llvmtype,
+      objcasm;
 
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
     var
       asmsym: tasmsymbol;
       field1, field2: tsym;
-      tcb: ttai_typedconstbuilder;
     begin
       if sym.globalasmsym then
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA,sym.vardef)
@@ -192,6 +193,54 @@ implementation
              (last.sym<>sym) then
           current_module.llvmusedsyms.Add(TTypedAsmSym.Create(sym,def))
         end;
+    end;
+
+
+  class procedure tllvmnodeutils.GenerateObjCImageInfo;
+    var
+      llvmmoduleflags,
+       objcmoduleflag: tai_llvmbasemetadatanode;
+      objcabiversion: longint;
+    begin
+      llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags');
+      current_asmdata.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
+
+      { Objective-C ABI version }
+      if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_x86_64_darwin]) or
+         (CompareVersionStrings(MacOSXVersionMin,'10.5')>=0) then
+        objcabiversion:=2
+      else
+        objcabiversion:=1;
+      objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Version')));
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(objcabiversion)));
+      llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
+      current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+
+      { image info version }
+      objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Version')));
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
+      llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
+      current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+
+      { image info section }
+      objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Section')));
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info))));
+      llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
+      current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+
+      { garbage collection }
+      objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Garbage Collection')));
+      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
+      llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
+      current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
     end;
 
 
