@@ -39,7 +39,7 @@ fi
 
 case "$os" in
   freebsd|openbsd|netbsd) c_syscall_header=sys/syscall.h;;
-  "*")  c_syscall_header=syscall.h;;
+  *)  c_syscall_header=syscall.h;;
 esac
 
 if [ -z "$FPC" ] ; then
@@ -130,9 +130,14 @@ esac
 
 if [ $is_64 -eq 1 ] ; then
   CC_OPT="$CC_OPT -m64"
-fi
-if [ $is_32 -eq 1 ] ;then
+  CPUBITS=64
+elif [ $is_32 -eq 1 ] ;then
   CC_OPT="$CC_OPT -m32"
+  CPUBITS=32
+elif [ $is_16 -eq 1 ] ; then
+  CPUBITS=16
+else
+  CPUBITS=unknown
 fi
 
 # Use gcc with --save-temps option to create .i file
@@ -166,24 +171,72 @@ fi
 
 # You should only need to change the variables above
 
-cat > parse.awk <<EOF
+awkfile=preproc.awk
+tmp_fpc_sysnr=tmp-sysnr-${cpu}.inc
+
+c_syscall_source=test-syscall-${cpu}.c
+
+# Test C file to grab all loaded headers
+# must be called with -DSYS_MACRO=$sys
+cat > $c_syscall_source <<EOF
+#include <${c_syscall_header}>
+#include <stdio.h>
+
+int
+main ()
+{
+  printf ("%d\n", (int) SYS_MACRO);
+  return 0;
+}
+EOF
+
+cat > $awkfile <<EOF
 BEGIN {IGNORECASE = 1;
 enable=1;
 macro="";
 incfile="";
 cpu= "cpu" proc;
+cpubits= "cpu" cpubits;
 }
 /\{\\\$i / { incfile=\$2;
   print "Include file  " incfile " found"; }
-/\{\\\$ifdef / { macro=\$2; print "ifdef " macro " found\n";
-  if ( macro == cpu ) { enable=1; print "// Macro " macro " found at line " FNR; } else {enable=0;};
+/\{\\\$ifdef / { macro=gensub("[^A-Za-z_0-9].*","","",\$2);
+  if ( (macro == cpu) || (macro == cpubits)) { enable=1;
+    print "// ifdef " macro " found and accepted at line " FNR;
+  } else {enable=0;
+    print "// ifdef " macro " found and rejected at line " FNR;
+  };
   }
-/\{\\\$ifndef / { macro=\$2; print "ifndef " macro " found\n";
-  if ( macro == cpu ) { enable=0; print "// Macro " macro " found at line " FNR; } else {enable=1;};
+/\{\\\$ifndef / { macro=gensub("[^A-Za-z_0-9].*","","",\$2);
+  if ( (macro == cpu) || (macro == cpubits) ) { enable=0;
+   print "// ifndef " macro " found and rejected at line " FNR;
+ } else {enable=1;
+   print "// ifndef " macro " found and accepted at line " FNR;
+ };
   }
 /\{\\\$else/ { if (enable == 1) {enable=0;} else {enable = 1;}}
+/.*/ { if (enable == 1) {
+  wholeline=\$0;
+  code=gensub("{.*}","","g",\$0);
+  code=gensub("[(][*].*[*][)]","","g",code);
+  comments=gensub(code,"","",\$0);
+  comments1=gensub(".*({.*}).*","\1","g",comments);
+  if (comments == comments1)
+    comments1="";
+  comments2=gensub(".*[(][*].*[*][)]).*","\1","g",comments);
+  if (comments == comments2)
+    comments2="";
+  comments3=gensub(".*//","","",comments);
+  if (comments == comments3)
+    comments3="";
+  all_comments= comments1 comments2 comments3;
+  if (all_comments != "")
+    print code "// " comments1 comments2 comments3 ;
+  else
+    print code;
+  } 
+}
 /\{\\\$endif/ {enable=1;}
-/.*/ { if (enable == 1) { print \$0;} }
 EOF
 
 if [ -z "$AWK" ] ; then
@@ -195,10 +248,13 @@ if [ -z "$AWK" ] ; then
 fi
 
 if [ -n "$AWK" ] ; then
-	$AWK -v proc=$cpu -f parse.awk ${fpc_sysnr} | sed -n "s:^\(.*\)*[ \t})][ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \3 \"\1 \4\":p" > check_sys_list.sh
-else
-  sed -n "s:^\(.*\)*[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \3 \"\1 \4\":p" > check_sys_list.sh
+  echo "Preprocessing ${fpc_sysnr} to $tmp_fpc_sysnr"
+  echo "$AWK -v proc=$cpu -v cpubits=$CPUBITS -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr"
+  $AWK -v proc=$cpu -v cpubits=$CPUBITS -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr
+  fpc_sysnr=$tmp_fpc_sysnr
 fi
+sed -n "s:^\(.*\)*[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \3 \"\1 \4\":p" $fpc_sysnr > check_sys_list.sh
+
 
 sed -n "s:^.*#[[:space:]]*define[[:space:]]*${syscall_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_in_fpc_rtl \1 \2 \"\3\":p" ${syscall_header} > check_sys_list_reverse.sh
  
@@ -231,37 +287,24 @@ function check_c_syscall_number_from_fpc_rtl ()
   fi
   # Remember this value for later
   eval $sys=$value
-  if [ $verbose -ne 0 ] ; then
-    echo Testing $sys value $value
-  fi
+  echo -en "Testing $sys value $value                    \r"
   found=`sed -n "/#[[:space:]]*define[[:space:]]*${sys}[^A-Za-z0-9_]/p" ${syscall_header}`
   val=`sed -n "s:#[[:space:]]*define[[:space:]]*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9]*\).*:\1:p" ${syscall_header}`
-# Test C file to grab all loaded headers
-cat > test-syscall-${bare_sys}.c <<EOF
-#include <${c_syscall_header}>
-#include <stdio.h>
-
-int
-main ()
-{
-  printf ("%d\n", $sys);
-  return 0;
-}
-EOF
-  $CC $CC_OPT -o ./test_$bare_sys test-syscall-${bare_sys}.c > ./test_${bare_sys}.comp-log 2>&1
+  $CC $CC_OPT -DSYS_MACRO=${syscall_prefix}${bare_sys} -o ./test_c_${bare_sys} $c_syscall_source > ./test_${bare_sys}.comp-log 2>&1
   C_COMP_RES=$?
   if [ $C_COMP_RES -eq 0 ] ; then
-    CC_value=`./test_$bare_sys`
+    CC_value=`./test_c_${bare_sys} `
     if [ "$value" != "$CC_value" ] ; then
       echo "$CC returns $CC_value, while $value is expected"
       let forward_failure_count++
       return
     else
-      rm -f ./test_$bare_sys
+      rm -f ./test_c_${bare_sys}
     fi
-    rm -f ./test-syscall-${bare_sys}.c ./test-${bare_sys}.comp-log
+    rm -f ./test-${bare_sys}.comp-log
   else
     echo "$CC failed to compile code containing $sys syscall number $value"
+    echo "$CC $CC_OPT -DSYS_MACRO=${syscall_prefix}${bare_sys} -o ./test_c_${bare_sys} $c_syscall_source > ./test_${bare_sys}.comp-log 2>&1"
     let forward_failure_count++
     return
   fi
@@ -307,8 +350,32 @@ function check_c_syscall_number_in_fpc_rtl ()
 {
   bare_sys=$1
   sys=${fpc_syscall_prefix}${bare_sys}
+  c_sys=${syscall_prefix}${bare_sys}
   value=$2
   comment="$3"
+  echo -en "Testing $sys value $value                        \r"
+  $CC $CC_OPT -DSYS_MACRO=${c_sys} -o ./test_c_${bare_sys} $c_syscall_source > ./test_${bare_sys}.comp-log 2>&1
+  C_COMP_RES=$?
+  if [ $C_COMP_RES -eq 0 ] ; then
+    rm ./test_${bare_sys}.comp-log
+    CC_value=`./test_c_${bare_sys} `
+    if [ "$value" != "$CC_value" ] ; then
+      echo "For sys=$sys, $CC returns $CC_value, while $value is expected"
+      let reverse_failure_count++
+      return
+    else
+      rm -f ./test_c_$bare_sys
+    fi
+  else
+    # if C syscall is not accepted do nothing
+    #echo "For sys=$sys, $CC compilation failed"
+    #cat ./test_${bare_sys}.comp-log
+    # let reverse_failure_count++
+    rm -f ./test_c_${bare_sys}
+    rm ./test_${bare_sys}.comp-log
+    return
+  fi
+
   if [ $verbose -ne 0 ] ; then
     echo "Full comment is \"$comment \""
   fi
@@ -376,4 +443,7 @@ if [ $suggested_addition_count -gt 0 ] ; then
 else
  rm $add_file
 fi
-rm ./check_sys_list.sh ./check_sys_list_reverse.sh ./parse.awk
+rm ./check_sys_list.sh ./check_sys_list_reverse.sh ./$awkfile
+if [ -f "$tmp_fpc_sysnr" ] ; then
+  echo   rm $tmp_fpc_sysnr
+fi
