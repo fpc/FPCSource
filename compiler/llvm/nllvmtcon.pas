@@ -163,15 +163,12 @@ implementation
 
 
   procedure tllvmtypedconstplaceholder.replace(ai: tai; d: tdef);
-    var
-      oldconst: tai_abstracttypedconst;
     begin
       if d<>def then
         internalerror(2015091002);
-      oldconst:=agginfo.aggai.replacevalueatpos(
+      agginfo.aggai.replacevalueatpos(
         tai_simpletypedconst.create(d,ai),pos
       );
-      oldconst.free;
     end;
 
 

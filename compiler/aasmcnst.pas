@@ -93,7 +93,7 @@ type
      procedure addvalue(val: tai_abstracttypedconst);
      function valuecount: longint;
      procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
-     function replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+     procedure replacevalueatpos(val: tai_abstracttypedconst; pos: longint);
      { change the type to a record, regardless of how the aggregate was created;
        the size of the original type and the record must match }
      procedure changetorecord(_def: trecorddef);
@@ -794,9 +794,9 @@ implementation
      end;
 
 
-   function tai_aggregatetypedconst.replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+   procedure tai_aggregatetypedconst.replacevalueatpos(val: tai_abstracttypedconst; pos: longint);
      begin
-       result:=tai_abstracttypedconst(fvalues[pos]);
+       { since fvalues owns its elements, it will automatically free the old value }
        fvalues[pos]:=val;
      end;
 
