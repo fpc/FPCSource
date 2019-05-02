@@ -16,6 +16,7 @@
  **********************************************************************}
 
 const
+  syscall_nr_restart_syscall = 0;
   syscall_nr_exit = 1;
   syscall_nr_fork = 2;
   syscall_nr_read = 3;
@@ -283,6 +284,11 @@ const
   syscall_nr_fadvise64_64 = 254;
 {$endif}
   syscall_nr_rtas = 255;
+  syscall_nr_sys_debug_setcontext = 256;
+  syscall_nr_migrate_pages = 258;
+  syscall_nr_mbind = 259;
+  syscall_nr_get_mempolicy = 260;
+  syscall_nr_set_mempolicy = 261;
   syscall_nr_mq_open = 262;
   syscall_nr_mq_unlink = 263;
   syscall_nr_mq_timedsend = 264;
@@ -300,8 +306,8 @@ const
   syscall_nr_inotify_add_watch = 276;
   syscall_nr_inotify_rm_watch = 277;
   syscall_nr_spu_run          = 278;
-  syscall_nr_spu_create       = 278;
-  syscall_nr_pselect6         = 289;
+  syscall_nr_spu_create       = 279;
+  syscall_nr_pselect6         = 280;
   syscall_nr_ppoll            = 281;
   syscall_nr_unshare          = 282;
   syscall_nr_splice           = 283;
@@ -312,7 +318,11 @@ const
   syscall_nr_mknodat          = 288;
   syscall_nr_fchownat         = 289;
   syscall_nr_futimesat        = 290;
-  syscall_nr_sys_fstatat64    = 291;
+{$ifdef cpu32}
+  syscall_nr_fstatat64        = 291;
+{$else}
+  syscall_nr_newfstatat       = 291;
+{$endif}
   syscall_nr_unlinkat         = 292;
   syscall_nr_renameat         = 293;
   syscall_nr_linkat           = 294;
@@ -326,8 +336,67 @@ const
   syscall_nr_getcpu           = 302;
   syscall_nr_epoll_pwait      = 303;
   syscall_nr_utimensat        = 304;
-  syscall_nr_fallocate        = 305;
-  syscall_nr_signalfd         = 306;
-  syscall_nr_timerfd          = 307;
-  syscall_nr_eventfd          = 308;
-  syscall_nr_sync_file_range2 = 309;
+  syscall_nr_signalfd         = 305;
+  syscall_nr_timerfd_create   = 306;
+  syscall_nr_eventfd          = 307;
+  syscall_nr_sync_file_range2 = 308;
+  syscall_nr_fallocate        = 309;
+  syscall_nr_subpage_prot     = 310;
+  syscall_nr_timerfd_settime  = 311;
+  syscall_nr_timerfd_gettime  = 312;
+  syscall_nr_signalfd4        = 313;
+  syscall_nr_eventfd2         = 314;
+  syscall_nr_epoll_create1    = 315;
+  syscall_nr_dup3             = 316;
+  syscall_nr_pipe2            = 317;
+  syscall_nr_inotify_init1    = 318;
+  syscall_nr_perf_event_open  = 319;
+  syscall_nr_preadv           = 320;
+  syscall_nr_pwritev          = 321;
+  syscall_nr_rt_tgsigqueueinfo = 322;
+  syscall_nr_fanotify_init    = 323;
+  syscall_nr_fanotify_mark    = 324;
+  syscall_nr_prlimit64        = 325;
+  syscall_nr_socket           = 326;
+  syscall_nr_bind             = 327;
+  syscall_nr_connect          = 328;
+  syscall_nr_listen           = 329;
+  syscall_nr_accept           = 330;
+  syscall_nr_getsockname      = 331;
+  syscall_nr_getpeername      = 332;
+  syscall_nr_socketpair       = 333;
+  syscall_nr_send             = 334;
+  syscall_nr_sendto           = 335;
+  syscall_nr_recv             = 336;
+  syscall_nr_recvfrom         = 337;
+  syscall_nr_shutdown         = 338;
+  syscall_nr_setsockopt       = 339;
+  syscall_nr_getsockopt       = 340;
+  syscall_nr_sendmsg          = 341;
+  syscall_nr_recvmsg          = 342;
+  syscall_nr_recvmmsg         = 343;
+  syscall_nr_accept4          = 344;
+  syscall_nr_name_to_handle_at = 345;
+  syscall_nr_open_by_handle_at = 346;
+  syscall_nr_clock_adjtime    = 347;
+  syscall_nr_syncfs           = 348;
+  syscall_nr_sendmmsg         = 349;
+  syscall_nr_setns            = 350;
+  syscall_nr_process_vm_readv = 351;
+  syscall_nr_process_vm_writev = 352;
+  syscall_nr_finit_module     = 353;
+  syscall_nr_kcmp             = 354;
+  syscall_nr_sched_setattr    = 355;
+  syscall_nr_sched_getattr    = 356;
+  syscall_nr_renameat2        = 357;
+  syscall_nr_seccomp          = 358;
+  syscall_nr_getrandom        = 359;
+  syscall_nr_memfd_create     = 360;
+  syscall_nr_bpf              = 361;
+  syscall_nr_execveat         = 362;
+  syscall_nr_switch_endian    = 363;
+  syscall_nr_userfaultfd      = 364;
+  syscall_nr_membarrier       = 365;
+  syscall_nr_mlock2           = 378;
+  syscall_nr_copy_file_range  = 379;
+
