@@ -87,6 +87,9 @@ interface
           ait_llvmins, { llvm instruction }
           ait_llvmalias, { alias for a symbol }
           ait_llvmdecl, { llvm symbol declaration (global/external variable, external procdef) }
+          ait_llvmmetadatanode, (* llvm metadata node: !id = !{type value, ...} *)
+          ait_llvmmetadatareftypedconst, { reference to metadata inside a metadata constant }
+          ait_llvmmetadatarefoperand, { llvm metadata referece: !metadataname !id }
 {$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
           ait_seh_directive,
@@ -222,6 +225,9 @@ interface
           'llvmins',
           'llvmalias',
           'llvmdecl',
+          'llvmmetadata',
+          'llvmmetadatareftc',
+          'llvmmetadatarefop',
 {$endif}
           'cfi',
           'seh_directive'
@@ -323,6 +329,9 @@ interface
 {$endif JVM}
 {$ifdef llvm}
                      ait_llvmdecl,
+                     ait_llvmmetadatanode,
+                     ait_llvmmetadatareftypedconst,
+                     ait_llvmmetadatarefoperand,
 {$endif llvm}
                      ait_seh_directive,
                      ait_cfi

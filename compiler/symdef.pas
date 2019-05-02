@@ -1150,6 +1150,12 @@ interface
        objc_fastenumeration      : tobjectdef;
        objc_fastenumerationstate : trecorddef;
 
+{$ifdef llvm}
+       { llvm types }
+       { a unique def to identify any kind of metadata }
+       llvm_metadatatype         : tdef;
+{$endif llvm}
+
        { Java base types }
        { java.lang.Object }
        java_jlobject             : tobjectdef;

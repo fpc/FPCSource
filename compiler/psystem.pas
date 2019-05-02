@@ -619,6 +619,11 @@ implementation
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[],true));
         nestedprocpointertype:=crecorddef.create('',hrecst);
         addtype('$nestedprocpointer',nestedprocpointertype);
+{$ifdef llvm}
+        llvm_metadatatype:=cpointerdef.create(voidtype);
+        { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
+        addtype('$metadata',llvm_metadatatype);
+{$endif}
         symtablestack.pop(systemunit);
       end;
 
@@ -734,6 +739,9 @@ implementation
           end;
         loadtype('methodpointer',methodpointertype);
         loadtype('nestedprocpointer',nestedprocpointertype);
+{$ifdef llvm}
+        loadtype('metadata',llvm_metadatatype);
+{$endif}
         loadtype('HRESULT',hresultdef);
         loadtype('TTYPEKIND',typekindtype);
         set_default_int_types;

@@ -30,7 +30,7 @@ interface
       globtype,globals,systems,
       aasmbase,aasmtai,aasmdata,
       assemble,
-      aasmllvm;
+      aasmllvm, aasmllvmmetadata;
 
     type
       TLLVMInstrWriter = class;
@@ -61,7 +61,7 @@ interface
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
         procedure WriteRealConst(hp: tai_realconst; do_line: boolean);
         procedure WriteOrdConst(hp: tai_const);
-        procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
+        procedure WriteTai(const replaceforbidden: boolean; const do_line, inmetadata: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
        public
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         procedure WriteTree(p:TAsmList);override;
@@ -376,7 +376,7 @@ implementation
                  hp:=para^.ai;
                  owner.writer.AsmWrite(fstr);
                  fstr:='';
-                 owner.WriteTai(false,false,tmpinline,tmpasmblock,hp);
+                 owner.WriteTai(false,false,para^.def=llvm_metadatatype,tmpinline,tmpasmblock,hp);
                end;
              { empty records }
              top_undef:
@@ -436,7 +436,6 @@ implementation
 
    function TLLVMInstrWriter.getopstr(const o:toper; refwithalign: boolean) : TSymStr;
      var
-       hs : ansistring;
        hp: tai;
        tmpinline: cardinal;
        tmpasmblock: boolean;
@@ -499,7 +498,7 @@ implementation
                  hp:=o.ai;
                  owner.writer.AsmWrite(fstr);
                  fstr:='';
-                 owner.WriteTai(false,false,tmpinline,tmpasmblock,hp);
+                 owner.WriteTai(false,false,false,tmpinline,tmpasmblock,hp);
                end;
              result:='';
            end;
@@ -838,7 +837,7 @@ implementation
               WriteSourceLine(hp as tailineinfo);
           end;
 
-         WriteTai(replaceforbidden, do_line, InlineLevel, asmblock, hp);
+         WriteTai(replaceforbidden, do_line, false, InlineLevel, asmblock, hp);
          hp:=tai(hp.next);
        end;
     end;
@@ -971,7 +970,7 @@ implementation
       end;
 
 
-    procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
+    procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line, inmetadata: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
 
       procedure WriteLinkageVibilityFlags(bind: TAsmSymBind);
         begin
@@ -1021,20 +1020,34 @@ implementation
         end;
 
 
-      procedure WriteTypedConstData(hp: tai_abstracttypedconst);
+      procedure WriteTypedConstData(hp: tai_abstracttypedconst; metadata: boolean);
         var
           p: tai_abstracttypedconst;
           pval: tai;
           defstr: TSymStr;
           first, gotstring: boolean;
         begin
-          defstr:=llvmencodetypename(hp.def);
+          if hp.def<>llvm_metadatatype then
+            begin
+              defstr:=llvmencodetypename(hp.def)
+            end
+          else
+            begin
+              defstr:=''
+            end;
           { write the struct, array or simple type }
           case hp.adetyp of
             tck_record:
               begin
-                writer.AsmWrite(defstr);
-                writer.AsmWrite(' <{');
+                if not(metadata) then
+                  begin
+                    writer.AsmWrite(defstr);
+                    writer.AsmWrite(' <{');
+                  end
+                else
+                  begin
+                    writer.AsmWrite(' !{');
+                  end;
                 first:=true;
                 for p in tai_aggregatetypedconst(hp) do
                   begin
@@ -1042,19 +1055,29 @@ implementation
                       writer.AsmWrite(', ')
                     else
                       first:=false;
-                    WriteTypedConstData(p);
+                    WriteTypedConstData(p,metadata);
                   end;
-                writer.AsmWrite('}>');
+                if not(metadata) then
+                  begin
+                    writer.AsmWrite('}>');
+                  end
+                else
+                  begin
+                    writer.AsmWrite('}');
+                  end;
               end;
             tck_array:
               begin
-                writer.AsmWrite(defstr);
+                if not(metadata) then
+                  begin
+                    writer.AsmWrite(defstr);
+                  end;
                 first:=true;
                 gotstring:=false;
                 for p in tai_aggregatetypedconst(hp) do
                   begin
                     if not first then
-                      writer.AsmWrite(',')
+                      writer.AsmWrite(', ')
                     else
                       begin
                         writer.AsmWrite(' ');
@@ -1065,31 +1088,63 @@ implementation
                           end
                         else
                           begin
-                            writer.AsmWrite('[');
+                            if not metadata then
+                              begin
+                                writer.AsmWrite('[');
+                              end
+                            else
+                              begin
+                                writer.AsmWrite('!{');
+                              end;
                           end;
                         first:=false;
                       end;
                     { cannot concat strings and other things }
                     if gotstring and
+                       not metadata and
                        ((tai_abstracttypedconst(p).adetyp<>tck_simple) or
                         (tai_simpletypedconst(p).val.typ<>ait_string)) then
                       internalerror(2014062701);
-                    WriteTypedConstData(p);
+                    WriteTypedConstData(p,metadata);
                   end;
                 if not gotstring then
-                  writer.AsmWrite(']');
+                  begin
+                    if not metadata then
+                      begin
+                        writer.AsmWrite(']');
+                      end
+                    else
+                      begin
+                        writer.AsmWrite('}');
+                      end;
+                  end;
               end;
             tck_simple:
               begin
                 pval:=tai_simpletypedconst(hp).val;
-                if pval.typ<>ait_string then
+                if (pval.typ<>ait_string) and
+                   (defstr<>'') then
                   begin
                     writer.AsmWrite(defstr);
                     writer.AsmWrite(' ');
                   end;
-                WriteTai(replaceforbidden,do_line,InlineLevel,asmblock,pval);
+                WriteTai(replaceforbidden,do_line,metadata,InlineLevel,asmblock,pval);
               end;
           end;
+        end;
+
+      procedure WriteLlvmMetadataNode(hp: tai_llvmbasemetadatanode);
+        begin
+          { must only appear at the top level }
+          if fdecllevel<>0 then
+            internalerror(2019050111);
+          writer.AsmWrite('!');
+          writer.AsmWrite(tai_llvmbasemetadatanode(hp).name);
+          writer.AsmWrite(' =');
+          inc(fdecllevel);
+          WriteTypedConstData(hp,true);
+          writer.AsmLn;
+          dec(fdecllevel);
         end;
 
       var
@@ -1162,7 +1217,10 @@ implementation
             begin
               if fdecllevel=0 then
                 internalerror(2016120201);
-              writer.AsmWrite('c"');
+              if not inmetadata then
+                writer.AsmWrite('c"')
+              else
+                writer.AsmWrite('!"');
               for i:=1 to tai_string(hp).len do
                begin
                  ch:=tai_string(hp).str[i-1];
@@ -1278,7 +1336,7 @@ implementation
                       hp2:=tai(taillvmdecl(hp).initdata.first);
                       while assigned(hp2) do
                         begin
-                          WriteTai(replaceforbidden,do_line,InlineLevel,asmblock,hp2);
+                          WriteTai(replaceforbidden,do_line,inmetadata,InlineLevel,asmblock,hp2);
                           hp2:=tai(hp2.next);
                         end;
                       dec(fdecllevel);
@@ -1327,6 +1385,28 @@ implementation
                 end;
               writer.AsmWrite('* ');
               writer.AsmWriteln(LlvmAsmSymName(taillvmalias(hp).oldsym));
+            end;
+          ait_llvmmetadatanode:
+            begin
+              WriteLlvmMetadataNode(tai_llvmbasemetadatanode(hp));
+            end;
+          ait_llvmmetadatareftypedconst:
+            begin
+              { must only appear as an element in a typed const }
+              if fdecllevel=0 then
+                internalerror(2019050110);
+              writer.AsmWrite('!');
+              writer.AsmWrite(tai_llvmbasemetadatanode(tai_llvmmetadatareftypedconst(hp).val).name);
+            end;
+          ait_llvmmetadatarefoperand:
+            begin
+              { must only appear as an operand }
+              if fdecllevel=0 then
+                internalerror(2019050110);
+              writer.AsmWrite('!');
+              writer.AsmWrite(tai_llvmmetadatareferenceoperand(hp).id);
+              writer.AsmWrite(' !');
+              writer.AsmWrite(tai_llvmmetadatareferenceoperand(hp).value.name);
             end;
           ait_symbolpair:
             begin
@@ -1411,7 +1491,7 @@ implementation
             end;
            ait_typedconst:
              begin
-               WriteTypedConstData(tai_abstracttypedconst(hp));
+               WriteTypedConstData(tai_abstracttypedconst(hp),false);
              end
           else
             internalerror(2019012010);
@@ -1435,7 +1515,6 @@ implementation
     procedure TLLVMAssember.WriteAsmList;
       var
         hal : tasmlisttype;
-        i: longint;
         a: TExternalAssembler;
         decorator: TLLVMModuleInlineAssemblyDecorator;
       begin

@@ -191,6 +191,9 @@ implementation
         if def.stab_number<>0 then
           exit;
         def.stab_number:=1;
+        { this is an internal llvm type }
+        if def=llvm_metadatatype then
+          exit;
         if def.dbg_state=dbg_state_unused then
           begin
             def.dbg_state:=dbg_state_used;
