@@ -43,6 +43,7 @@
         st_mtime  : clong;
         st_mtime_nsec : culong;
         st_ctime  : clong;
+        st_ctime_nsec : culong;
         __unused3_ : culong;
         __unused4_ : culong;
         __unused5_ : culong;
