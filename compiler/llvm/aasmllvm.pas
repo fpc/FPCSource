@@ -113,13 +113,13 @@ interface
         constructor cleanupclause;
 
         { e.g. dst = call retsize name (paras) }
-        constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
+        constructor call_size_name_paras(callpd: tdef;cc: tproccalloption;dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
         { e.g. dst = call retsize reg (paras) }
-        constructor call_size_reg_paras(callpd: tdef; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
+        constructor call_size_reg_paras(callpd: tdef; cc: tproccalloption; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
         { e.g. dst = invoke retsize name (paras) to label <normal label> unwind label <exception label> }
-        constructor invoke_size_name_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef;name: tasmsymbol; paras: tfplist; retlab, exceptlab:TAsmLabel);
+        constructor invoke_size_name_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef;name: tasmsymbol; paras: tfplist; retlab, exceptlab:TAsmLabel);
         { e.g. dst = invoke retsize reg (paras) to label <normal label> unwind label <exception label> }
-        constructor invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab:TAsmLabel);
+        constructor invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab:TAsmLabel);
 
         { e.g. dst := extractvalue srcsize src, 0 (note: no type for the index) }
         constructor extract(op: tllvmop; dst: tregister; srcsize: tdef; src: tregister; idx: longint);
@@ -1128,7 +1128,7 @@ uses
       end;
 
 
-    constructor taillvm.call_size_name_paras(callpd: tdef; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
+    constructor taillvm.call_size_name_paras(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
       begin
         create_llvm(la_call);
         ops:=6;
@@ -1139,33 +1139,33 @@ uses
           is generated, because the alias declaration may occur anywhere }
         loaddef(0,retsize);
         loadreg(1,dst);
-        loadcallingconvention(2,tabstractprocdef(callpd).proccalloption);
+        loadcallingconvention(2,cc);
         loaddef(3,callpd);
         loadsymbol(4,name,0);
         loadparas(5,paras);
       end;
 
 
-    constructor taillvm.call_size_reg_paras(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
+    constructor taillvm.call_size_reg_paras(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
       begin
         create_llvm(la_call);
         ops:=6;
         loaddef(0,retsize);
         loadreg(1,dst);
-        loadcallingconvention(2,tabstractprocdef(callpd).proccalloption);
+        loadcallingconvention(2,cc);
         loaddef(3,callpd);
         loadreg(4,reg);
         loadparas(5,paras);
       end;
 
 
-    constructor taillvm.invoke_size_name_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; name: tasmsymbol; paras: tfplist; retlab, exceptlab: TAsmLabel);
+    constructor taillvm.invoke_size_name_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; name: tasmsymbol; paras: tfplist; retlab, exceptlab: TAsmLabel);
       begin
         create_llvm(la_invoke);
         ops:=8;
         loaddef(0,retsize);
         loadreg(1,dst);
-        loadcallingconvention(2,tabstractprocdef(callpd).proccalloption);
+        loadcallingconvention(2,cc);
         loaddef(3,callpd);
         loadsymbol(4,name,0);
         loadparas(5,paras);
@@ -1174,13 +1174,13 @@ uses
       end;
 
 
-    constructor taillvm.invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab: TAsmLabel);
+    constructor taillvm.invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab: TAsmLabel);
       begin
         create_llvm(la_invoke);
         ops:=8;
         loaddef(0,retsize);
         loadreg(1,dst);
-        loadcallingconvention(2,tabstractprocdef(callpd).proccalloption);
+        loadcallingconvention(2,cc);
         loaddef(3,callpd);
         loadreg(4,reg);
         loadparas(5,paras);
