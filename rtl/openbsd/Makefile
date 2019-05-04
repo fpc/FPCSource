@@ -355,14 +355,14 @@ override FPCOPT+=-Ur
 endif
 CPU_UNITS=
 SYSINIT_UNITS=
-LOADERS=prt0 cprt0 dllprt0 openbsd_ident
+LOADERS=prt0 cprt0 dllprt0
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
-SYSINIT_UNITS=si_prc si_c si_dll
+SYSINIT_UNITS=si_prc si_c si_dll si_g
 endif
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
-SYSINIT_UNITS=si_prc si_c si_dll
+SYSINIT_UNITS=si_prc si_c si_dll si_g
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
@@ -3014,7 +3014,6 @@ ifdef CLEAN_FILES
 	-$(DEL) $(CLEAN_FILES)
 endif
 	-$(DELTREE) units
-	-$(DELTREE) bin
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
@@ -3176,13 +3175,13 @@ cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
-openbsd_ident$(OEXT) : $(CPU_TARGET)/openbsd_ident.as
-	$(AS) -o $(UNITTARGETDIRPREFIX)openbsd_ident$(OEXT) $(CPU_TARGET)/openbsd_ident.as
-si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
+si_prc$(PPUEXT) : si_prc.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-si_c$(PPUEXT) : si_c.pp si_intf.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
+si_c$(PPUEXT) : si_c.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-si_dll$(PPUEXT) : si_dll.pp si_intf.inc $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)
+si_dll$(PPUEXT) : si_dll.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+si_g$(PPUEXT) : si_g.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp

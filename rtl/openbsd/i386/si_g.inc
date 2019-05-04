@@ -1,7 +1,9 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2015 by Sven Barth, member of the Free Pascal development
-    team.
+    Copyright (c) 2019 by Free Pascal development team
+
+    This file implements parts of the startup code for OpenBSD
+    programs, compiled with gprof support.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,11 +14,3 @@
 
  **********************************************************************}
 
-{$IFNDEF VER3_0}
-  {$I openbsd_ident.inc}
-{$ENDIF VER3_0}
-
-procedure PascalMain; external name 'PASCALMAIN';
-
-var
-  operatingsystem_result: longint; external name 'operatingsystem_result';

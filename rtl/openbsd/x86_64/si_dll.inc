@@ -16,119 +16,22 @@
 
 {$asmmode gas}
 
+{$ifdef VER3_0}
 procedure _init; external name '_init';
+{$else VER3_0}
+procedure _init; weakexternal name '_init';
+{$endif VER3_0}
 
-procedure _FPC_proc___start; forward;
-
-procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
-  asm
-    movq    %rbx,%r9
-    movq    %rcx,%r8
-    movq    %rdx,%rcx
-    movq    (%rsp),%rdi
-    leaq    16(%rsp,%rdi,8),%rdx
-    leaq    8(%rsp),%rsi
-    subq    $8,%rsp
-    andq    $0xFFFFFFFFFFFFFFF0,%rsp
-    addq    $8,%rsp
-    jmp     _FPC_proc___start
-  end;
-
-procedure _FPC_proc_haltproc; forward;
-function _strrchr(str: PChar; character: LongInt): PChar; forward;
-
-procedure _FPC_proc___start; assembler; nostackframe; public name '___start';
-  asm
-    pushq   %rbp
-    movq    %rsp, %rbp
-    subq    $64, %rsp
-    movl    %edi, -20(%rbp)
-    movq    %rsi, -32(%rbp)
-    movq    %rdx, -40(%rbp)
-    movq    %rcx, -48(%rbp)
-    movq    %r8, -56(%rbp)
-    movq    %r9, -64(%rbp)
-    movq    environ@GOTPCREL(%rip), %rdx
-    movq    -40(%rbp), %rax
-    movq    %rax, (%rdx)
-    movq    operatingsystem_parameter_envp@GOTPCREL(%rip), %rdx
-    movq    -40(%rbp), %rax
-    movq    %rax, (%rdx)
-
-    movl    -20(%rbp), %eax
-    movslq  %eax,%rdx
-    movq    operatingsystem_parameter_argc@GOTPCREL(%rip), %rax
-    movq    %rdx, (%rax)
-    movq    operatingsystem_parameter_argv@GOTPCREL(%rip), %rdx
-    movq    -32(%rbp), %rax
-    movq    %rax, (%rdx)
-    movq    -32(%rbp), %rax
-    movq    (%rax), %rax
-    movq    %rax, -8(%rbp)
-    cmpq    $0, -8(%rbp)
-    je      .L2
-    movq    -8(%rbp), %rdi
-    movl    $47, %esi
-    call    _strrchr
-    movq    %rax, %rdx
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    %rdx, (%rax)
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    (%rax), %rax
-    testq   %rax, %rax
-    jne     .L4
-    movq    __progname@GOTPCREL(%rip), %rdx
-    movq    -8(%rbp), %rax
-    movq    %rax, (%rdx)
-    jmp     .L6
-.L4:
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    (%rax), %rax
-    leaq    1(%rax), %rdx
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    %rdx, (%rax)
-.L6:
-    movq    __progname_storage@GOTPCREL(%rip), %rax
-    movq    %rax, -16(%rbp)
-    jmp     .L7
-.L8:
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    (%rax), %rcx
-    movzbl  (%rcx), %edx
-    movq    -16(%rbp), %rax
-    movb    %dl, (%rax)
-    addq    $1, -16(%rbp)
-    leaq    1(%rcx), %rdx
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    %rdx, (%rax)
-.L7:
-    movq    __progname@GOTPCREL(%rip), %rax
-    movq    (%rax), %rax
-    movzbl  (%rax), %eax
-    testb   %al, %al
-    je      .L9
-    movq    __progname_storage@GOTPCREL(%rip), %rax
-    leaq    255(%rax), %rax
-    cmpq    %rax, -16(%rbp)
-    jb      .L8
-.L9:
-    movq    -16(%rbp), %rax
-    movb    $0, (%rax)
-    movq    __progname@GOTPCREL(%rip), %rdx
-    movq    __progname_storage@GOTPCREL(%rip), %rax
-    movq    %rax, (%rdx)
-.L2:
-    movl    $0, %eax
-    call    _init@PLT
-    movq    environ@GOTPCREL(%rip), %rax
-    movq    (%rax), %rdx
-    movq    -32(%rbp), %rsi
-    movl    -20(%rbp), %edi
-    movl    $0, %eax
-    call    PASCALMAIN@PLT
-    // movl    %eax, %edi
-    // call    exit
-    jmp     _FPC_proc_haltproc@PLT
+procedure _FPC_shared_lib_start; cdecl; public name 'FPC_LIB_START';
+  begin
+    { todo: figure out if there's any way to obtain these in OpenBSD shared libraries }
+    environ:=nil;
+    operatingsystem_parameter_envp:=nil;
+    operatingsystem_parameter_argc:=0;
+    operatingsystem_parameter_argv:=nil;
+    if Assigned(@_init) then
+      _init;
+    PascalMain;
   end;
 
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
@@ -149,34 +52,3 @@ procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
     movq    %rax,%rbx
     movq    $-1,%rax
   end;
-
-function _strrchr(str: PChar; character: LongInt): PChar; assembler; nostackframe; public name '_strrchr';
-  asm
-    pushq   %rbp
-    movq    %rsp, %rbp
-    movq    %rdi, -24(%rbp)
-    movb    %sil, -25(%rbp)
-    movq    $0, -8(%rbp)
-.L13:
-    movq    -24(%rbp), %rdx
-    movzbl  (%rdx), %eax
-    cmpb    -25(%rbp), %al
-    jne     .L14
-    movq    -24(%rbp), %rax
-    movq    %rax, -8(%rbp)
-.L14:
-    movq    -24(%rbp), %rdx
-    movzbl  (%rdx), %eax
-    testb   %al, %al
-    jne     .L16
-    movq    -8(%rbp), %rax
-    movq    %rax, -16(%rbp)
-    jmp     .L12
-.L16:
-    addq    $1, -24(%rbp)
-    jmp     .L13
-.L12:
-    movq    -16(%rbp), %rax
-    leave
-  end;
-

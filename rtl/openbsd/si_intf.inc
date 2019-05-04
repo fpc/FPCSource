@@ -17,6 +17,16 @@
 {$SMARTLINK OFF}
 {$GOTO ON}
 
+type
+  cint = LongInt;
+{$if defined(cpu64)}
+  culong = QWord;
+{$else}
+  culong = LongWord;
+{$endif}
+  u_long = culong;
+  TCdeclProcedure = procedure; cdecl;
+
 var
   operatingsystem_parameter_envp: ppchar; public name 'operatingsystem_parameter_envp';
   operatingsystem_parameter_argc: longint; public name 'operatingsystem_parameter_argc';
