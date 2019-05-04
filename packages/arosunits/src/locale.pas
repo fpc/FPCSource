@@ -12,7 +12,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$PACKRECORDS 2}
 
 unit locale;
 

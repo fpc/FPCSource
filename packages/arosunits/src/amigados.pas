@@ -848,12 +848,6 @@ type
     dl_DiskType: LongInt; // 'DOS', etc
     dl_unused: BPTR;
     dl_Name: BSTR;        // bptr to bcpl name
-{$ifdef aros}
-  {$ifndef AROS_DOS_PACKETS}
-    dl_Reserved: array[0..5] of IPTR;
-    dl_AROS: TDosListAROSExt;
-  {$endif}
-{$endif}
   end;
 
 { device structure (same as the DeviceNode structure in filehandler.h) }
@@ -874,12 +868,6 @@ type
     dvi_GlobVec: BSTR;
 {$endif}
     dvi_Name: BSTR;
-{$ifdef aros}
-  {$ifndef AROS_DOS_PACKETS}
-    dvi_Reserved: array[0..5] of IPTR;
-    dvi_AROS: TDosListAROSExt;
-  {$endif}
-{$endif}
   end;
 
 const
@@ -1165,12 +1153,6 @@ type
                              * vector for you.
                              }
     dn_Name: BSTR;         { the node name, e.g. '\3','D','F','3' }
-{$ifdef aros}
-  {$ifndef AROS_DOS_PACKETS}
-    dn_Reserved: array[0..5] of IPTR;  // Private extensions Should not be used in user land code.
-    dn_AROS: TDosListAROSExt;
-  {$endif}
-{$endif}
   end;
 
 type
@@ -1518,39 +1500,16 @@ type
   TDosLibrary = record
     dl_lib: TLibrary;
     dl_Root: PRootNode;      // Pointer to RootNode, described below }
-{$ifdef AROS_BINCOMPAT}
+
     dl_GV: APTR;             // Pointer to BCPL global vector       }
     dl_A2: LongInt;          // Private register dump of DOS        }
     dl_A5: LongInt;
     dl_A6: LongInt;
-{$endif}
+
     dl_Errors: PErrorString;    // pointer to array of error msgs
     dl_TimeReq: PTimeRequest;   // private pointer to timer request
     dl_UtilityBase  : PLibrary; // private ptr to utility library
     dl_IntuitionBase : PLibrary;
-{ These were AROS-specific private fields. At the moment they are mostly not used
-  and are present only for binary compatibility with programs that used dl_Flags
-  (Directory Opus for example). Do not try to use them in any way!}
-{$ifdef aros}
-    dl_TimerBase: PDevice;
-    dl_TimerIO: TTimeRequest;
-    dl_DevInfo: PDosList;
-    dl_SysBase: PExecBase;
-    dl_SegList: BPTR;
-    dl_NulHandler: PDevice;
-    dl_NulLock: PUnit;
-  // LDDemon (library loader) private data
-    dl_LDObjectsListSigSem: TSignalSemaphore;
-    dl_LDObjectsList: TList;
-    dl_LDHandler: TInterrupt;
-    dl_LDDemonPort: PMsgPort;
-    dl_LDDemonTask: PProcess;
-    dl_LDReturn: ULONG;
-    //* AROS-specific and private. Can go away in future.
-    dl_SYSLock: BPTR;
-    // The flags are ORed with RootNode^.rn_Flags. See below for definitions.
-    dl_Flags: ULONG;
-{$endif}
   end;
 
 const
