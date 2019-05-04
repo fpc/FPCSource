@@ -340,22 +340,15 @@ BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 TARGETPROCINC=$(RTL)/openbsd/$(CPU_TARGET)
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
-else
-SYSTEMUNIT=sysbsd
-LINUXUNIT=
-override FPCOPT+=-dUNIX
-PRT0=prt0_10
-endif
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 CPU_UNITS=
 SYSINIT_UNITS=
-LOADERS=prt0 cprt0 dllprt0
+LOADERS=prt0 cprt0
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
 SYSINIT_UNITS=si_prc si_c si_dll si_g
@@ -3014,6 +3007,7 @@ ifdef CLEAN_FILES
 	-$(DEL) $(CLEAN_FILES)
 endif
 	-$(DELTREE) units
+	-$(DELTREE) bin
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
@@ -3173,8 +3167,6 @@ prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
-dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
-	$(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 si_prc$(PPUEXT) : si_prc.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 si_c$(PPUEXT) : si_c.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
