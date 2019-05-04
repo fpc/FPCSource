@@ -9,9 +9,6 @@
 {$endif FPC_COMPILING_SYSCALL_UNIT}
 
 {$ifndef FPC_IS_SYSTEM}
-var
-  use_openbsd_getdirentries_49 : boolean = false;
-  use_getdirentries_syscall : boolean = true;
 
 function geterrno:longint; external name 'FPC_SYS_GETERRNO';
 procedure seterrno(err:longint); external name 'FPC_SYS_SETERRNO';
@@ -65,11 +62,5 @@ Begin
 
   version:=version_major * 1000 + version_minor;
 
-  if version >= 5005 then
-    begin
-      { FIXME: what should we do here? }
-      syscall_nr_getdirentries := -1;
-      use_getdirentries_syscall:=false;
-    end;
-
+  { version-specific checks and setting of compatibility flags can be inserted here }
 end;
