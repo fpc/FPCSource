@@ -12,6 +12,8 @@
 
  **********************************************************************}
 
+{$LINK openbsd_ident}
+
 procedure PascalMain; external name 'PASCALMAIN';
 
 var
