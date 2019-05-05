@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 2018 by Michael Van Canneyt
+    Copyright (c) 2019 by Michael Van Canneyt
 
     Pascal to Javascript converter class.
 
@@ -1455,6 +1455,8 @@ type
     function IsForInExtArray(Loop: TPasImplForLoop; const VarResolved,
       InResolved: TPasResolverResult; out ArgResolved, LengthResolved,
       PropResultResolved: TPasResolverResult): boolean;
+    function IsHelperMethod(El: TPasElement): boolean; override;
+    function IsHelperForMember(El: TPasElement): boolean;
   end;
 
 //------------------------------------------------------------------------------
@@ -2554,6 +2556,13 @@ var
     Result:=false;
   end;
 
+  procedure HandleEscape;
+  begin
+    inc(MyTokenPos);
+    if (MyTokenPos<=l) and (s[MyTokenPos]>#31) then
+      inc(MyTokenPos);
+  end;
+
 begin
   SetCurTokenString('');
   s:=CurLine;
@@ -2572,6 +2581,8 @@ begin
     if MyTokenPos>l then
       if DoEndOfLine then exit;
     case s[MyTokenPos] of
+    '\':
+      HandleEscape;
     '''':
       begin
       inc(MyTokenPos);
@@ -2579,6 +2590,8 @@ begin
         if MyTokenPos>l then
           Error(nErrOpenString,SErrOpenString);
         case s[MyTokenPos] of
+        '\':
+          HandleEscape;
         '''':
           begin
           inc(MyTokenPos);
@@ -2601,6 +2614,8 @@ begin
         if MyTokenPos>l then
           Error(nErrOpenString,SErrOpenString);
         case s[MyTokenPos] of
+        '\':
+          HandleEscape;
         '"':
           begin
           inc(MyTokenPos);
@@ -2611,6 +2626,32 @@ begin
           // string literal missing closing quote
           break;
           end
+        else
+          inc(MyTokenPos);
+        end;
+      until false;
+      end;
+    '`': // template literal
+      begin
+      inc(MyTokenPos);
+      repeat
+        while MyTokenPos>l do
+          if DoEndOfLine then
+            begin
+              writeln('AAA1 TPas2jsPasScanner.ReadNonPascalTillEndToken ',StopAtLineEnd);
+            if not StopAtLineEnd then
+              Error(nErrOpenString,SErrOpenString);
+            exit;
+            end;
+        case s[MyTokenPos] of
+        '\':
+          HandleEscape;
+        '`':
+          begin
+          inc(MyTokenPos);
+          break;
+          end;
+        // Note: template literals can span multiple lines
         else
           inc(MyTokenPos);
         end;
@@ -3189,6 +3230,13 @@ end;
 procedure TPas2JSResolver.AddRecordType(El: TPasRecordType);
 begin
   inherited;
+  if (El.Name='') and (El.Parent.ClassType<>TPasVariant) then
+    begin
+    {$IFDEF VerbosePas2JS}
+    writeln('TPas2JSResolver.AddRecordType ',GetObjName(El.Parent));
+    {$ENDIF}
+    RaiseNotYetImplemented(20190408224556,El,'anonymous record type');
+    end;
   if El.Parent is TProcedureBody then
     // local record
     AddElevatedLocal(El);
@@ -3987,19 +4035,25 @@ begin
                 RaiseMsg(20180329141108,nInvalidXModifierY,
                   sInvalidXModifierY,[Proc.ElementTypeName,ModifierNames[pm]],Proc);
             end;
-          okClassHelper:
+          okClassHelper,okRecordHelper,okTypeHelper:
             begin
             HelperForType:=ResolveAliasType(AClass.HelperForType);
-            if HelperForType.ClassType<>TPasClassType then
-              RaiseNotYetImplemented(20190201165157,El);
-            if TPasClassType(HelperForType).IsExternal then
+            if HelperForType.ClassType=TPasClassType then
               begin
-              // method of a class helper for external class
-              if IsClassMethod(El) and not (ptmStatic in El.Modifiers) then
-                RaiseMsg(20190201165259,nHelperClassMethodForExtClassMustBeStatic,
-                  sHelperClassMethodForExtClassMustBeStatic,[],El);
-              if El.ClassType=TPasConstructor then
-                RaiseNotYetImplemented(20190206153655,El);
+              if TPasClassType(HelperForType).IsExternal then
+                begin
+                // method of a class helper for external class
+                if IsClassMethod(El) and not (ptmStatic in El.Modifiers) then
+                  RaiseMsg(20190201165259,nHelperClassMethodForExtClassMustBeStatic,
+                    sHelperClassMethodForExtClassMustBeStatic,[],El);
+                if El.ClassType=TPasConstructor then
+                  RaiseNotYetImplemented(20190206153655,El);
+                end;
+              end;
+            if Proc.IsExternal then
+              begin
+              if not (HelperForType is TPasMembersType) then
+                RaiseMsg(20190314225457,nNotSupportedX,sNotSupportedX,['external method in type helper'],El);
               end;
             end;
           end;
@@ -5886,6 +5940,26 @@ begin
   CheckAssignResCompatibility(VarResolved,PropResultResolved,Loop.VariableName,true);
 end;
 
+function TPas2JSResolver.IsHelperMethod(El: TPasElement): boolean;
+begin
+  Result:=inherited IsHelperMethod(El);
+  if not Result then exit;
+  Result:=not TPasProcedure(El).IsExternal;
+end;
+
+function TPas2JSResolver.IsHelperForMember(El: TPasElement): boolean;
+begin
+  if (El=nil) or (El.Parent=nil) or (El.Parent.ClassType<>TPasClassType)
+      or (TPasClassType(El.Parent).HelperForType=nil) then
+    exit(false);
+  if El is TPasProcedure then
+    Result:=TPasProcedure(El).IsExternal
+  else if El is TPasVariable then
+    Result:=vmExternal in TPasVariable(El).VarModifiers
+  else
+    Result:=true;
+end;
+
 { TParamContext }
 
 constructor TParamContext.Create(PasEl: TPasElement; JSEl: TJSElement;
@@ -6555,15 +6629,17 @@ end;
 
 function TPasToJSConverter.CreateFreeOrNewInstanceExpr(Ref: TResolvedReference;
   AContext: TConvertContext): TJSCallExpression;
-// create "$create("funcname");"
+// class: create "$create("ProcName")"
+// record: create "$new().ProcName()"
 var
-  C: TJSCallExpression;
+  C, SubCall: TJSCallExpression;
   Proc: TPasProcedure;
   ProcScope: TPasProcedureScope;
   ClassRecScope: TPasClassOrRecordScope;
   ClassOrRec: TPasElement;
   ArgEx: TJSLiteral;
-  FunName: String;
+  FunName, ProcName: String;
+  DotExpr: TJSDotMemberExpression;
 begin
   Result:=nil;
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr Ref.Declaration=',GetObjName(Ref.Declaration));
@@ -6579,16 +6655,33 @@ begin
     RaiseInconsistency(20170125191923,ClassOrRec);
   C:=CreateCallExpression(Ref.Element);
   try
-    // add "$create()"
-    if rrfNewInstance in Ref.Flags then
-      FunName:=GetBIName(pbifnClassInstanceNew)
+    ProcName:=TransformVariableName(Proc,AContext);
+    if ClassOrRec.ClassType=TPasRecordType then
+      begin
+      // create "path.$new()"
+      FunName:=CreateReferencePath(Proc,AContext,rpkPathWithDot,false,Ref)+GetBIName(pbifnRecordNew);
+      SubCall:=CreateCallExpression(Ref.Element);
+      SubCall.Expr:=CreatePrimitiveDotExpr(FunName,Ref.Element);
+      // append ".ProcName"
+      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,Ref.Element));
+      DotExpr.MExpr:=SubCall;
+      DotExpr.Name:=TJSString(ProcName);
+      // as call: "path.$new().ProcName()"
+      C.Expr:=DotExpr;
+      end
     else
-      FunName:=GetBIName(pbifnClassInstanceFree);
-    FunName:=CreateReferencePath(Proc,AContext,rpkPathWithDot,false,Ref)+FunName;
-    C.Expr:=CreatePrimitiveDotExpr(FunName,Ref.Element);
-    // parameter: "funcname"
-    ArgEx := CreateLiteralString(Ref.Element,TransformVariableName(Proc,AContext));
-    C.AddArg(ArgEx);
+      begin
+      // add "$create()"
+      if rrfNewInstance in Ref.Flags then
+        FunName:=GetBIName(pbifnClassInstanceNew)
+      else
+        FunName:=GetBIName(pbifnClassInstanceFree);
+      FunName:=CreateReferencePath(Proc,AContext,rpkPathWithDot,false,Ref)+FunName;
+      C.Expr:=CreatePrimitiveDotExpr(FunName,Ref.Element);
+      // parameter: "ProcName"
+      ArgEx := CreateLiteralString(Ref.Element,ProcName);
+      C.AddArg(ArgEx);
+      end;
     Result:=C;
   finally
     if Result=nil then
@@ -7821,7 +7914,7 @@ begin
   else if aResolver.IsExternalClassConstructor(RightRefDecl) then
     begin
     // e.g. mod.ExtClass.new;
-    if El.Parent is TParamsExpr then
+    if (El.Parent is TParamsExpr) and (TParamsExpr(El.Parent).Value=El) then
       // Note: ExtClass.new() is handled in ConvertFuncParams
       RaiseNotSupported(El,AContext,20190116135818);
     Result:=ConvertExternalConstructor(El.left,RightRef,nil,AContext);
@@ -7896,7 +7989,8 @@ begin
   if aResolver.IsHelper(RightRefDecl.Parent) then
     begin
     // LeftJS.HelperMember
-    if RightRefDecl is TPasVariable then
+    if (RightRefDecl is TPasVariable)
+        and not (vmExternal in TPasVariable(RightRefDecl).VarModifiers) then
       begin
       // LeftJS.HelperField  -> HelperType.HelperField
       if Assigned(OnConvertRight) then
@@ -7907,7 +8001,10 @@ begin
       end
     else if RightRefDecl is TPasProcedure then
       begin
-      if rrfNoImplicitCallWithoutParams in RightRef.Flags then
+      Proc:=TPasProcedure(RightRefDecl);
+      if Proc.IsExternal then
+        // normal call
+      else if rrfNoImplicitCallWithoutParams in RightRef.Flags then
         begin
         Result:=CreateReferencePathExpr(RightRefDecl,AContext);
         exit;
@@ -7915,7 +8012,6 @@ begin
       else
         begin
         // call helper method
-        Proc:=TPasProcedure(RightRefDecl);
         Result:=CreateCallHelperMethod(Proc,El,AContext);
         exit;
         end;
@@ -8255,10 +8351,16 @@ begin
     if TargetProcType.Args.Count>0 then
       begin
       // add default parameters:
-      // insert array parameter [], e.g. this.TObject.$create("create",[])
-      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
-      CreateProcedureCallArgs(ArrLit.Elements,nil,TargetProcType,AContext);
-      Call.AddArg(ArrLit);
+      if Decl.Parent.ClassType=TPasRecordType then
+        // insert default parameters, e.g. TRecord.$new().create(1,2,3)
+        CreateProcedureCallArgs(Call.Args.Elements,nil,TargetProcType,AContext)
+      else
+        begin
+        // insert array parameter [], e.g. TObject.$create("create",[])
+        ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+        CreateProcedureCallArgs(ArrLit.Elements,nil,TargetProcType,AContext);
+        Call.AddArg(ArrLit);
+        end;
       end;
     exit;
     end;
@@ -8295,7 +8397,7 @@ begin
         Decl:=aResolver.GetPasPropertySetter(Prop);
         if Decl is TPasProcedure then
           begin
-          if aResolver.IsHelper(Decl.Parent) then
+          if aResolver.IsHelperMethod(Decl) then
             begin
             Result:=CreateCallHelperMethod(TPasProcedure(Decl),El,AContext);
             exit;
@@ -9620,7 +9722,8 @@ var
       end;
     if Call=nil then
       Call:=CreateFreeOrNewInstanceExpr(Ref,AContext);
-    if rrfNewInstance in Ref.Flags then
+    if (rrfNewInstance in Ref.Flags)
+        and (Ref.Declaration.Parent.ClassType=TPasClassType) then
       begin
       // insert array parameter [], e.g. this.TObject.$create("create",[])
       JsArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
@@ -9768,7 +9871,7 @@ begin
       end
     else if C.InheritsFrom(TPasProcedure) then
       begin
-      if aResolver.IsHelper(Decl.Parent) then
+      if aResolver.IsHelperMethod(Decl) then
         begin
         // calling a helper method
         Result:=CreateCallHelperMethod(TPasProcedure(Decl),El.Value,AContext);
@@ -16187,7 +16290,7 @@ begin
     Result:=CreateReferencePathExpr(Proc,AContext);
     exit;
     end;
-  IsHelper:=aResolver.IsHelper(Proc.Parent);
+  IsHelper:=aResolver.IsHelperMethod(Proc);
   NeedClass:=aResolver.IsClassMethod(Proc) and not aResolver.MethodIsStatic(Proc);
 
   // an of-object method -> create "rtl.createCallback(Target,func)"
@@ -16599,7 +16702,7 @@ begin
   if Decl is TPasFunction then
     begin
     // call function
-    if aResolver.IsHelper(Decl.Parent) then
+    if aResolver.IsHelperMethod(Decl) then
       begin
       if (Expr=nil) then
         // implicit property read, e.g. enumerator property Current
@@ -21304,9 +21407,16 @@ var
   begin
     if (Ref=nil) or (Ref.WithExprScope=nil) then exit(false);
     Parent:=El.Parent;
-    if (Parent<>nil) and (Parent.ClassType=TPasClassType)
+    if (Parent.ClassType=TPasClassType)
         and (TPasClassType(Parent).HelperForType<>nil) then
-      exit(false);
+      begin
+      // e.g. with Obj do HelperMethod
+      if aResolver.IsHelperForMember(El) then
+        // e.g. with Obj do HelperExternalMethod  -> Obj.HelperCall
+      else
+        // e.g. with Obj do HelperMethod  -> THelper.HelperCall
+        exit(false);
+      end;
     Result:=true;
   end;
 
@@ -21493,38 +21603,25 @@ begin
       begin
       ParentEl:=ImplToDecl(ParentEl);
 
+      IsClassRec:=(ParentEl.ClassType=TPasClassType)
+               or (ParentEl.ClassType=TPasRecordType);
+
       // check if ParentEl has a JS var
       ShortName:=AContext.GetLocalName(ParentEl);
       //writeln('TPasToJSConverter.CreateReferencePath El=',GetObjName(El),' ParentEl=',GetObjName(ParentEl),' ShortName=',ShortName);
 
-      IsClassRec:=(ParentEl.ClassType=TPasClassType)
-               or (ParentEl.ClassType=TPasRecordType);
-
-      if (ShortName<>'') and not IsClassRec then
-        begin
-        Prepend(Result,ShortName);
-        break;
-        end
-      else if ParentEl.ClassType=TImplementationSection then
-        begin
-        // element is in an implementation section (not program/library section)
-        // in other unit -> use pas.unitname.$impl
-        FoundModule:=El.GetModule;
-        if FoundModule=nil then
-          RaiseInconsistency(20161024192755,El);
-        Prepend(Result,TransformModuleName(FoundModule,true,AContext)
-           +'.'+GetBIName(pbivnImplementation));
-        break;
-        end
-      else if ParentEl is TPasModule then
-        begin
-        // element is in an unit interface or program/library section
-        Prepend(Result,TransformModuleName(TPasModule(ParentEl),true,AContext));
-        break;
-        end
-      else if IsClassRec then
+      if IsClassRec then
         begin
         // parent is a class or record declaration
+        if (ParentEl.ClassType=TPasClassType)
+            and (TPasClassType(ParentEl).HelperForType<>nil)
+            and aResolver.IsHelperForMember(El) then
+          begin
+          // redirect to helper-for-type
+          ParentEl:=aResolver.ResolveAliasType(TPasClassType(ParentEl).HelperForType);
+          ShortName:=AContext.GetLocalName(ParentEl);
+          end;
+
         if Full then
           Prepend(Result,ParentEl.Name)
         else
@@ -21541,8 +21638,10 @@ begin
             Prepend(Result,ParentEl.Name)
           else if (ParentEl.ClassType=TPasClassType)
               and (TPasClassType(ParentEl).HelperForType<>nil) then
+            begin
             // helpers have no self
-            Prepend(Result,ParentEl.Name)
+            Prepend(Result,ParentEl.Name);
+            end
           else if (SelfContext<>nil)
               and IsA(TPasType(SelfContext.ThisPas),TPasMembersType(ParentEl)) then
             begin
@@ -21574,6 +21673,28 @@ begin
           if ShortName<>'' then
             break;
           end;
+        end
+      else if (ShortName<>'') then
+        begin
+        Prepend(Result,ShortName);
+        break;
+        end
+      else if ParentEl.ClassType=TImplementationSection then
+        begin
+        // element is in an implementation section (not program/library section)
+        // in other unit -> use pas.unitname.$impl
+        FoundModule:=El.GetModule;
+        if FoundModule=nil then
+          RaiseInconsistency(20161024192755,El);
+        Prepend(Result,TransformModuleName(FoundModule,true,AContext)
+           +'.'+GetBIName(pbivnImplementation));
+        break;
+        end
+      else if ParentEl is TPasModule then
+        begin
+        // element is in an unit interface or program/library section
+        Prepend(Result,TransformModuleName(TPasModule(ParentEl),true,AContext));
+        break;
         end
       else if ParentEl.ClassType=TPasEnumType then
         begin

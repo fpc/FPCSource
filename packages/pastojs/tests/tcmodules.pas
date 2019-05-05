@@ -461,6 +461,7 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
+    Procedure TestRecord_AnonymousFail;
     // ToDo: RTTI of local record
     // ToDo: pcu local record, name clash and rtti
 
@@ -680,6 +681,7 @@ type
     Procedure TestTypeHelper_ClassProperty;
     Procedure TestTypeHelper_ClassProperty_Array;
     Procedure TestTypeHelper_ClassMethod;
+    Procedure TestTypeHelper_ExtClassMethodFail;
     Procedure TestTypeHelper_Constructor;
     Procedure TestTypeHelper_Word;
     Procedure TestTypeHelper_Double;
@@ -3720,6 +3722,11 @@ begin
   '    // end',
   '    s = ''end'';',
   '    s = "end";',
+  '    s = "foo\"bar";',
+  '    s = ''a\''b'';',
+  '    s =  `${expr}\`-"-''-`;',
+  '    s = `multi',
+  'line`;',
   '  end;',
   'end;',
   'procedure Fly;',
@@ -3740,6 +3747,11 @@ begin
     '  // end',
     '  s = ''end'';',
     '  s = "end";',
+    '  s = "foo\"bar";',
+    '  s = ''a\''b'';',
+    '  s =  `${expr}\`-"-''-`;',
+    '  s = `multi',
+    'line`;',
     '  return Result;',
     '};',
     'this.Fly = function () {',
@@ -10600,6 +10612,18 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestRecord_AnonymousFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  r: record x: word end;',
+  'begin']);
+  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] anonymous record type',
+    nNotYetImplemented);
+  ConvertProgram;
+end;
+
 procedure TTestModule.TestAdvRecord_Function;
 begin
   StartProgram(false);
@@ -11207,6 +11231,7 @@ begin
   'var r: TPoint;',
   'begin',
   '  r:=TPoint.Create(1,2);',
+  '  with TPoint do r:=Create(1,2);',
   '  r.Create(3);',
   '  r:=r.Create(4);',
   '']);
@@ -11233,7 +11258,9 @@ begin
     'this.r = $mod.TPoint.$new();',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.r.$assign($mod.TPoint.$create("Create", [1, 2]));',
+    '$mod.r.$assign($mod.TPoint.$new().Create(1, 2));',
+    'var $with1 = $mod.TPoint;',
+    '$mod.r.$assign($with1.$new().Create(1, 2));',
     '$mod.r.Create(3, -1);',
     '$mod.r.$assign($mod.r.Create(4, -1));',
     '']));
@@ -16018,6 +16045,7 @@ begin
   Add('  A: texta;');
   Add('begin');
   Add('  a:=texta.new;');
+  Add('  a:=texta(texta.new);');
   Add('  a:=texta.new();');
   Add('  a:=texta.new(1);');
   Add('  with texta do begin');
@@ -16034,6 +16062,7 @@ begin
     'this.A = null;',
     '']),
     LinesToStr([ // $mod.$main
+    '$mod.A = new ExtA();',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA(1,2);',
@@ -21197,12 +21226,15 @@ begin
   Add([
   '{$modeswitch externalclass}',
   'type',
+  '  TFly = function(w: word): word of object;',
   '  TExtA = class external name ''ExtObj''',
   '    procedure Run(w: word = 10);',
   '  end;',
   '  THelper = class helper for TExtA',
   '    function Foo(w: word = 1): word;',
+  '    function Fly(w: word = 2): word; external name ''Fly'';',
   '  end;',
+  'var p: TFly;',
   'function THelper.foo(w: word): word;',
   'begin',
   '  Run;',
@@ -21214,22 +21246,32 @@ begin
   '  Self.Foo;',
   '  Self.Foo();',
   '  Self.Foo(13);',
+  '  Fly;',
+  '  Fly();',
   '  with Self do begin',
   '    Foo;',
   '    Foo();',
   '    Foo(14);',
+  '    Fly;',
+  '    Fly();',
   '  end;',
+  '  p:=@Fly;',
   'end;',
   'var Obj: TExtA;',
   'begin',
   '  obj.Foo;',
   '  obj.Foo();',
   '  obj.Foo(21);',
+  '  obj.Fly;',
+  '  obj.Fly();',
   '  with obj do begin',
   '    Foo;',
   '    Foo();',
   '    Foo(22);',
+  '    Fly;',
+  '    Fly();',
   '  end;',
+  '  p:=@obj.Fly;',
   '']);
   ConvertProgram;
   CheckSource('TestExtClassHelper_Method_Call',
@@ -21246,22 +21288,33 @@ begin
     '    $mod.THelper.Foo.call(this, 1);',
     '    $mod.THelper.Foo.call(this, 1);',
     '    $mod.THelper.Foo.call(this, 13);',
+    '    this.Fly(2);',
+    '    this.Fly(2);',
     '    $mod.THelper.Foo.call(this, 1);',
     '    $mod.THelper.Foo.call(this, 1);',
     '    $mod.THelper.Foo.call(this, 14);',
+    '    this.Fly(2);',
+    '    this.Fly(2);',
+    '    $mod.p = rtl.createCallback(this, "Fly");',
     '    return Result;',
     '  };',
     '});',
+    'this.p = null;',
     'this.Obj = null;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.THelper.Foo.call($mod.Obj, 1);',
     '$mod.THelper.Foo.call($mod.Obj, 1);',
     '$mod.THelper.Foo.call($mod.Obj, 21);',
+    '$mod.Obj.Fly(2);',
+    '$mod.Obj.Fly(2);',
     'var $with1 = $mod.Obj;',
     '$mod.THelper.Foo.call($with1, 1);',
     '$mod.THelper.Foo.call($with1, 1);',
     '$mod.THelper.Foo.call($with1, 22);',
+    '$with1.Fly(2);',
+    '$with1.Fly(2);',
+    '$mod.p = rtl.createCallback($mod.Obj, "Fly");',
     '']));
 end;
 
@@ -21520,7 +21573,7 @@ begin
     'rtl.createHelper($mod, "THelper", null, function () {',
     '  this.NewHlp = function (w) {',
     '    this.Create(2);',
-    '    $mod.TRec.$create("Create", [3]);',
+    '    $mod.TRec.$new().Create(3);',
     '    $mod.THelper.NewHlp.call(this, 4);',
     '    $mod.THelper.$new("NewHlp", [5]);',
     '    return this;',
@@ -23020,6 +23073,23 @@ begin
     '$mod.THelper.DoStatic();',
     '$mod.THelper.DoStatic();',
     '']));
+end;
+
+procedure TTestModule.TestTypeHelper_ExtClassMethodFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for word',
+  '    procedure Run; external name ''Run'';',
+  '  end;',
+  'var w: word;',
+  'begin',
+  '  w.Run;',
+  '']);
+  SetExpectedPasResolverError('Not supported: external method in type helper',nNotSupportedX);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestTypeHelper_Constructor;

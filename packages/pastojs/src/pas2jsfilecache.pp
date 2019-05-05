@@ -1494,7 +1494,7 @@ procedure TPas2jsFilesCache.WriteFoldersAndSearchPaths;
 var
   i: Integer;
 begin
-  WriteFolder('working directory',GetCurrentDirPJ);
+  WriteFolder('working directory',BaseDirectory);
   for i:=0 to ForeignUnitPaths.Count-1 do
     WriteFolder('foreign unit path',ForeignUnitPaths[i]);
   for i:=0 to UnitPaths.Count-1 do
@@ -1915,6 +1915,7 @@ var
   i: Integer;
   aFilename: String;
 begin
+  //writeln('TPas2jsFilesCache.FindUnitFileName "',aUnitname,'" ModuleDir="',ModuleDir,'"');
   Result:='';
   IsForeign:=false;
   SearchedDirs:=TStringList.Create;

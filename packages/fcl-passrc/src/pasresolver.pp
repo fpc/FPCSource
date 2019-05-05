@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     Pascal resolver
-    Copyright (c) 2018  Mattias Gaertner  mattias@freepascal.org
+    Copyright (c) 2019  Mattias Gaertner  mattias@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -1443,7 +1443,7 @@ type
       FindProcData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
     function FindProcSameSignature(const ProcName: string; Proc: TPasProcedure;
-      Scope: TPasScope): TPasProcedure;
+      Scope: TPasIdentifierScope; OnlyLocal: boolean): TPasProcedure;
   protected
     procedure SetCurrentParser(AValue: TPasParser); override;
     procedure ScannerWarnDirective(Sender: TObject; Identifier: string;
@@ -2024,7 +2024,7 @@ type
     function GetFunctionType(El: TPasElement): TPasFunctionType;
     function MethodIsStatic(El: TPasProcedure): boolean;
     function IsMethod(El: TPasProcedure): boolean;
-    function IsHelperMethod(El: TPasElement): boolean;
+    function IsHelperMethod(El: TPasElement): boolean; virtual;
     function IsHelper(El: TPasElement): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
@@ -4820,6 +4820,13 @@ begin
               else if (Proc is TPasConstructor)
                   and (Data^.Proc.ClassType=Proc.ClassType) then
                 // do not give a hint for hiding a constructor
+              else if Store then
+                begin
+                // method hides ancestor method with same signature
+                LogMsg(20190316152656,mtHint,
+                  nMethodHidesNonVirtualMethodExactly,sMethodHidesNonVirtualMethodExactly,
+                  [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+                end
               else
                 begin
                 //writeln('TPasResolver.OnFindProc Proc=',Proc.PathName,' Data^.Proc=',Data^.Proc.PathName,' ',Proc.Visibility);
@@ -4864,7 +4871,8 @@ begin
 end;
 
 function TPasResolver.FindProcSameSignature(const ProcName: string;
-  Proc: TPasProcedure; Scope: TPasScope): TPasProcedure;
+  Proc: TPasProcedure; Scope: TPasIdentifierScope; OnlyLocal: boolean
+  ): TPasProcedure;
 var
   FindData: TFindProcData;
   Abort: boolean;
@@ -4874,7 +4882,10 @@ begin
   FindData.Args:=Proc.ProcType.Args;
   FindData.Kind:=fpkSameSignature;
   Abort:=false;
-  Scope.IterateElements(ProcName,Scope,@OnFindProc,@FindData,Abort);
+  if OnlyLocal then
+    Scope.IterateLocalElements(ProcName,Scope,@OnFindProc,@FindData,Abort)
+  else
+    Scope.IterateElements(ProcName,Scope,@OnFindProc,@FindData,Abort);
   Result:=FindData.Found;
 end;
 
@@ -5853,7 +5864,7 @@ var
   DeclProc, Proc, ParentProc: TPasProcedure;
   Abort, HasDots, IsClassConDestructor: boolean;
   DeclProcScope, ProcScope: TPasProcedureScope;
-  ParentScope: TPasScope;
+  ParentScope: TPasIdentifierScope;
   pm: TProcedureModifier;
   ptm: TProcTypeModifier;
   ObjKind: TPasObjKind;
@@ -6093,13 +6104,15 @@ begin
     if (ProcName<>'') and ProcNeedsBody(Proc) then
       begin
       // check if there is a forward declaration
-      ParentScope:=GetParentLocalScope;
+      //writeln('TPasResolver.FinishProcedureType ',GetObjName(TopScope),' ',GetObjName(Scopes[ScopeCount-2]));
+      ParentScope:=GetParentLocalScope as TPasIdentifierScope;
       //writeln('TPasResolver.FinishProcedureType FindForward2 ParentScope=',GetObjName(ParentScope),'=',GetObjName(ParentScope.Element),' Proc=',GetObjName(Proc),' at ',GetElementSourcePosStr(Proc));
-      DeclProc:=FindProcSameSignature(ProcName,Proc,ParentScope);
+      DeclProc:=FindProcSameSignature(ProcName,Proc,ParentScope,true);
       //writeln('TPasResolver.FinishProcedureType FindForward3 DeclProc=',GetObjName(DeclProc),' Proc.Parent=',GetObjName(Proc.Parent));
+      //if DeclProc<>nil then writeln('TPasResolver.FinishProcedureType DeclProc at ',GetElementSourcePosStr(DeclProc));
       if (DeclProc=nil) and (Proc.Parent.ClassType=TImplementationSection) then
         DeclProc:=FindProcSameSignature(ProcName,Proc,
-          (Proc.GetModule.InterfaceSection.CustomData) as TPasScope);
+          (Proc.GetModule.InterfaceSection.CustomData) as TPasIdentifierScope,true);
       //writeln('TPasResolver.FinishProcedureType FindForward4 ',GetObjName(DeclProc),' at ',GetElementSourcePosStr(DeclProc));
       if (DeclProc<>nil) then
         begin
@@ -6326,7 +6339,7 @@ begin
   else if ImplProc.ClassType=TPasClassDestructor then
     DeclProc:=ClassOrRecScope.ClassDestructor
   else
-    DeclProc:=FindProcSameSignature(ProcName,ImplProc,ClassOrRecScope);
+    DeclProc:=FindProcSameSignature(ProcName,ImplProc,ClassOrRecScope,false);
   if DeclProc=nil then
     RaiseIdentifierNotFound(20170216151720,ImplProc.Name,ImplProc.ProcType);
   DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
@@ -8997,7 +9010,7 @@ begin
       exit;
     InhScope:=PushInheritedScope(TPasMembersType(AncestorScope.Element),true,nil);
     end;
-  AncestorProc:=FindProcSameSignature(DeclProc.Name,DeclProc,InhScope);
+  AncestorProc:=FindProcSameSignature(DeclProc.Name,DeclProc,InhScope,false);
   PopScope;
   if AncestorProc=nil then
     // 'inherited;' without ancestor DeclProc is silently ignored
@@ -9689,7 +9702,8 @@ begin
   if DeclEl is TPasProcedure then
     begin
     Proc:=TPasProcedure(DeclEl);
-    if (Access=rraAssign) and (Proc.ProcType is TPasFunctionType)
+    if (Access=rraAssign)
+        and (Proc.ProcType is TPasFunctionType)
         and (Params.Parent.ClassType=TPasImplAssign)
         and (TPasImplAssign(Params.Parent).left=Params) then
       begin
@@ -9705,6 +9719,7 @@ begin
         end;
       end;
     end;
+
   ComputeElement(NameExpr,ResolvedEl,[rcSetReferenceFlags]);
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveArrayParamsExprName NameExp=',GetObjName(NameExpr),' ',GetResolverResultDbg(ResolvedEl));
@@ -9715,11 +9730,33 @@ end;
 procedure TPasResolver.ResolveArrayParamsArgs(Params: TParamsExpr;
   const ResolvedValue: TPasResolverResult; Access: TResolvedRefAccess);
 
+  procedure ReadAccessParamValue;
+  var
+    Left: TPasExpr;
+    Ref: TResolvedReference;
+  begin
+    if Access=rraAssign then
+      begin
+      // ArrayStringPointer[]:=
+      // -> writing the element needs reading the value
+      Left:=Params.Value;
+      if (Left is TBinaryExpr) and (TBinaryExpr(Left).OpCode=eopSubIdent) then
+        Left:=TBinaryExpr(Left).right;
+      if Left.CustomData is TResolvedReference then
+        begin
+        Ref:=TResolvedReference(Left.CustomData);
+        if Ref.Access=rraAssign then
+          Ref.Access:=rraReadAndAssign;
+        end;
+      end;
+  end;
+
   function CheckStringOrPointerIndex(IsStringIndex: boolean): boolean;
   var
     ArgExp: TPasExpr;
     ResolvedArg: TPasResolverResult;
   begin
+    ReadAccessParamValue;
     if not IsStringIndex then
       begin
       // pointer
@@ -9788,6 +9825,7 @@ begin
       if ResolvedValue.IdentEl is TPasType then
         RaiseMsg(20170216152215,nIllegalQualifierAfter,sIllegalQualifierAfter,
           ['[',ResolvedValue.IdentEl.ElementTypeName],Params);
+      ReadAccessParamValue;
       CheckCallArrayCompatibility(TPasArrayType(TypeEl),Params,true,true);
       for i:=0 to length(Params.Params)-1 do
         AccessExpr(Params.Params[i],rraRead);
@@ -10097,9 +10135,10 @@ begin
     pekArrayParams:
       begin
       ComputeElement(Params.Value,ValueResolved,[]);
-      if IsDynArray(ValueResolved.LoTypeEl,false) then
-        // an element of a dynamic array is independent of the array variable
-        // an element of an open array depends on the argument
+      if IsDynArray(ValueResolved.LoTypeEl,false)
+          or (ValueResolved.BaseType=btPointer) then
+        // when accessing an element of a dynamic array the array is read
+        AccessExpr(Params.Value,rraRead)
       else
         AccessExpr(Params.Value,Access);
       // Note: an element of an open or static array or a string is connected to the variable

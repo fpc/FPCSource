@@ -228,6 +228,9 @@ Put + after a boolean switch option to enable it, - to disable it
   -vm&lt;x&gt;,&lt;y&gt;: Do not show messages numbered &lt;x&gt; and &lt;y&gt;.
   -?      : Show this help
   -h      : Show this help
+
+Environment variable PAS2JS_OPTS is parsed after default config
+and before command line parameters.
 </pre>
     </div>
 
@@ -1867,8 +1870,9 @@ function(){
       <li>A <b>record helper</b> can "extend" a record type. In $mode delphi a
         record helper can extend other types as well, see <i>type helper</i></li>
       <li>A <b>type helper</b> can extend all base types like integer, string,
-        char, boolean, double, currency, and some user types like enumeration,
-        set, range and array types. It cannot extend interfaces or helpers.<br>
+        char, boolean, double, currency, and user types like enumeration,
+        set, range, array, class, record and interface types.
+        It cannot extend helpers and procedural types.<br>
         Type helpers are enabled by default in <i>$mode delphi</i> and disabled in <i>$mode objfpc</i>.
         You can enable them with <b>{$modeswitch typehelpers}</b>.
         </li>
@@ -1929,6 +1933,8 @@ function(){
         <li><i>with value do ;</i> : uses a temporary variable. Delphi/FPC do not support it.</li>
         </ul>
       </li>
+      <li>A method with <i>external name</i> modifier is treated as an external
+        method of the helped type.</li>
     </ul>
     </div>
 

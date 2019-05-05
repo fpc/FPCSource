@@ -188,6 +188,7 @@ const
   nAttributeIgnoredBecauseAbstractX = 3122;
   nCreatingAnInstanceOfAbstractClassY = 3123;
   nIllegalExpressionAfterX = 3124;
+  nMethodHidesNonVirtualMethodExactly = 3125;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -323,6 +324,7 @@ resourcestring
   sAttributeIgnoredBecauseAbstractX = 'attribute ignored because abstract %s';
   sCreatingAnInstanceOfAbstractClassY = 'Creating an instance of abstract class "%s"';
   sIllegalExpressionAfterX = 'illegal expression after %s';
+  sMethodHidesNonVirtualMethodExactly = 'method hides identifier at "%s". Use reintroduce';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

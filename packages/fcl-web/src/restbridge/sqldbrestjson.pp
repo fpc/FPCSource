@@ -192,7 +192,7 @@ begin
   if FRow=Nil then
     Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsError),SErrFieldWithoutRow,[N]);
   D:=FieldToJSON(aPair);
-  if (D=Nil) and ((not HasOption(ooSparse)) or (FRow is TJSONArray)) then
+  if (D=Nil) and ((FRow is TJSONArray) or not HasOption(ooSparse)) then
     D:=TJSONNull.Create;
   if D<>Nil then
     If FRow is TJSONArray then
