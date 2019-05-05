@@ -350,7 +350,7 @@ var rtl = {
     return null;
   },
 
-  createTRecord: function(parent,name,initfn,full){
+  recNewT: function(parent,name,initfn,full){
     var t = {};
     if (parent) parent[name] = t;
     function hide(prop){

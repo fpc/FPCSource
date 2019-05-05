@@ -203,7 +203,7 @@ type
                  eopEqual, eopNotEqual,  // Logical
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
                  eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
-                 eopAddress, eopDeref, eopMemAddress, // Pointers
+                 eopAddress, eopDeref, eopMemAddress, // Pointers  eopMemAddress=**
                  eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
 
   { TPasExpr }
@@ -736,7 +736,8 @@ type
   end;
 
   TPasObjKind = (
-    okObject, okClass, okInterface, okGeneric,
+    okObject, okClass, okInterface,
+    okGeneric, // MG: what is okGeneric?
     // okSpecialize removed in FPC 3.1.1
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);
@@ -761,7 +762,7 @@ type
     ObjKind: TPasObjKind;
     AncestorType: TPasType;   // TPasClassType or TPasUnresolvedTypeRef or TPasAliasType or TPasTypeAliasType
                               // Note: AncestorType can be nil even though it has a default ancestor
-    HelperForType: TPasType;  // TPasClassType or TPasUnresolvedTypeRef
+    HelperForType: TPasType;  // any type, except helper
     IsForward: Boolean;
     IsExternal : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end

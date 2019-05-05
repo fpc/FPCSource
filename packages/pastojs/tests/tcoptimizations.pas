@@ -387,7 +387,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitRecordMember',
     LinesToStr([
-    'rtl.createTRecord($mod, "TRec", function () {',
+    'rtl.recNewT($mod, "TRec", function () {',
     '  this.a = 0;',
     '  this.$eq = function (b) {',
     '    return this.a === b.a;',
@@ -936,6 +936,7 @@ begin
   '    };',
   '    this.Create = function (AColor) {',
   '      this.FColor = AColor;',
+  '      return this;',
   '    };',
   '  });',
   '  this.T = null;',

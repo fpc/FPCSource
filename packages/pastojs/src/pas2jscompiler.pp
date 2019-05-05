@@ -4253,8 +4253,8 @@ begin
   w('    m    : Enables macro replacements');
   w('    2    : Same as -Mobjfpc (default)');
   w('  -SI<x>  : Set interface style to <x>');
-  w('    -SIcom  : COM compatible interface (default)');
-  w('    -SIcorba: CORBA compatible interface');
+  w('    -SIcom  : COM, reference counted interface (default)');
+  w('    -SIcorba: CORBA interface');
   w('  -T<x>  : Set target platform');
   w('    -Tbrowser: default');
   w('    -Tnodejs : add pas.run(), includes -Jc');

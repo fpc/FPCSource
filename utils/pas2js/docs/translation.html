@@ -199,8 +199,8 @@ Put + after a boolean switch option to enable it, - to disable it
     m     : Enables macro replacements
     2     : Same as -Mobjfpc (default)
   -SI&lt;x&gt;   : Set interface style to &lt;x&gt;
-    -SIcom   : COM compatible interface (default)
-    -SIcorba : CORBA compatible interface
+    -SIcom   : COM, reference counted interface (default)
+    -SIcorba : CORBA interface
   -T&lt;x&gt;   : Set target platform, case insensitive.
     -Tbrowser : default
     -Tnodejs  : add pas.run(), includes -Jc
@@ -667,7 +667,8 @@ function(){
       this.d = 0.0;
     };
     this.$equal = function (b) {
-      return (this.i == b.i) && (this.s == b.i) && (this.d == b.d);
+      return (this.i == b.i) &&
+        (this.s == b.i) && (this.d == b.d);
     };
   };
   this.r = new this.TMyRecord();
@@ -685,12 +686,13 @@ function(){
 ["System"],
 function(){
   var $mod = this;
-  rtl.createTRecord($mod, "TMyRecord", function() {
+  rtl.recNewT($mod, "TMyRecord", function() {
     this.i = 0;
     this.s = "";
     this.d = 0.0;
     this.$eq = function (b) {
-      return (this.i == b.i) && (this.s == b.i) && (this.d == b.d);
+      return (this.i == b.i) &&
+         (this.s == b.i) && (this.d == b.d);
     };
     this.$assign = function (s) {
       this.i = s.i;
@@ -723,10 +725,20 @@ function(){
           <li>methods, class methods (must be static like in Delphi/FPC)</li>
           <li>class vars</li>
           <li>const fields</li>
-          <li>property, class property, array property, default property</li>
+          <li>property, class property, array property, default array property</li>
+          <li>sub types</li>
+          <li>constructor</li>
         </ul>
       </li>
-      <li>Not yet implemented: constructors, operators.</li>
+      <li>Not yet implemented:
+        <ul>
+          <li>operator overloading</li>
+          <li>class constructor</li>
+          <li>reference counted interfaces as fields</li>
+          <li>Interfaces as nested types</li>
+          <li>default non array property</li>
+        </ul>
+      </li>
       <li>Until Pas2js 1.2 when assigning a record it is cloned, creating a new
         JS object. Since Pas2js 1.3 only values are copied,
         keeping the object, so pointer of record is compatible.</li>
