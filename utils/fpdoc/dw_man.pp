@@ -1,7 +1,7 @@
 {$mode objfpc}
 {$H+}
 unit dw_man;
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
@@ -389,7 +389,7 @@ end;
 procedure TManWriter.DescrWriteText(const AText: DOMString);
 
 begin
-  self.Write(EscapeText(AText));
+  self.Write(EscapeText(Utf8Encode(AText)));
 end;
 
 procedure TManWriter.DescrBeginBold;
@@ -432,7 +432,7 @@ Var
 
 begin
   NewLine;
-  S:=AText;
+  S:=UTF8Encode(AText);
   Writeln('.I '+S);
 end;
 
@@ -443,7 +443,7 @@ Var
 
 begin
   NewLine;
-  S:=AText;
+  S:=Utf8Encode(AText);
   Writeln('.B '+S);
 end;
 
@@ -454,7 +454,7 @@ Var
 
 begin
   NewLine;
-  S:=AText;
+  S:=Utf8Encode(AText);
   Writeln('.B '+S);
 end;
 
@@ -884,7 +884,7 @@ begin
     begin
     if IsLinkNode(Node) then
       begin
-      S:=TDomElement(Node)['id'];
+      S:=UTF8Encode(TDomElement(Node)['id']);
       WriteManRef(S,(Node.NextSibling<>Nil) or Comma);
       end;
     Node:=Node.NextSibling;
@@ -1545,6 +1545,8 @@ var
   i : integer;
   D,N : String;
 begin
+  N:=ProcDecl.name;
+  D:='';
   DocNode := Engine.FindDocNode(ProcDecl);
   StartManpage(ProcDecl,DocNode);
   Try
@@ -1670,6 +1672,7 @@ begin
   DocNode := Engine.FindDocNode(PropDecl);
   StartManpage(PropDecl,DocNode);
   Try
+    N:= PropDecl.Name;
     PageTitle(PropDecl.Name,ManSection,PackageName,PackageDescr);
     if Assigned(DocNode) then
     D:=GetDescrString(PropDecl,DocNode.ShortDescr);

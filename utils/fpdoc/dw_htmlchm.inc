@@ -42,7 +42,7 @@ type
 function TCHMHTMLWriter.ResolveLinkIDAbs(const Name: String; Level : Integer = 0): DOMString;
 
 begin
-  Result:=FixHTMLpath(Engine.ResolveLink(Module,Name, True));
+  Result:=UTF8Decode(FixHTMLpath(Engine.ResolveLink(Module,Name, True)));
   // for global index: don't make it relative to the current document.
 end;
 
@@ -81,9 +81,8 @@ end;
 
 function TCHMHTMLWriter.RetrieveOtherFiles(const DataName: String; out
   PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
-var
-  Dir: String;
 begin
+  Result:=True;
   if Stream <> nil then
     Stream.Free;
   Stream := TMemoryStream.Create;
@@ -150,11 +149,9 @@ procedure TCHMHTMLWriter.GenerateTOC;
 var
   TOC: TChmSiteMap;
   Element: TPasElement;
-  k: Integer;
   j: Integer;
   i: Integer;
   AModule: TPasModule;
-  Member: TPasElement;
   Stream: TMemoryStream;
   TmpItem:  TChmSiteMapItem;
   ObjByUnitItem,
@@ -292,7 +289,8 @@ var
   ParentElement: TPasElement;
   MemberItem: TChmSiteMapItem;
   Stream: TMemoryStream;
-  s: string;
+  s: String;
+
 begin
   DoLog('Generating Index...');
 
@@ -320,9 +318,9 @@ begin
         begin
           TmpElement := TPasElement(TPasClassType(ParentElement).Members.Items[k]);
           if TmpElement is TPasEnumValue then
-             s := ResolveLinkIDAbs(tmpElement.Parent.PathName)
+             s := UTF8Encode(ResolveLinkIDAbs(tmpElement.Parent.PathName))
            else
-             s := ResolveLinkIDAbs(tmpElement.PathName);
+             s := UTF8Encode(ResolveLinkIDAbs(tmpElement.PathName));
            if Engine.HidePrivate and(TmpElement.Visibility = visPrivate) then
             continue;
           if Engine.HideProtected and(TmpElement.Visibility = visProtected) then
