@@ -1259,6 +1259,7 @@ end;
 procedure TTestConverter.SetUp;
 begin
   FConverter:=TPasToJSConverter.Create;
+  FConverter.Globals:=TPasToJSConverterGlobals.Create(FConverter);
 end;
 
 procedure TTestConverter.TearDown;

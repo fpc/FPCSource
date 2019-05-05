@@ -133,6 +133,7 @@ Put + after a boolean switch option to enable it, - to disable it
     -ic   : Write list of supported JS processors usable by -P&lt;x&gt;
     -io   : Write list of supported optimizations usable by -Oo&lt;x&gt;
     -it   : Write list of supported targets usable by -T&lt;x&gt;
+    -iJ   : Write list of supported JavaScript identifiers -JoRTL-&lt;x&gt;
   -C&lt;x&gt;   : Code generation options. &lt;x&gt; is a combination of the following letters:
     o     : Overflow checking
     r     : Range checking
@@ -164,6 +165,11 @@ Put + after a boolean switch option to enable it, - to disable it
    -Jo&lt;x&gt; : Enable or disable extra option. The x is case insensitive:
      -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.
      -JoUseStrict : add "use strict" to modules, default.
+     -JoCheckVersion-: do not add rtl version check, default. (since 1.1)
+     -JoCheckVersion=main: insert rtl version check into main. (since 1.1)
+     -JoCheckVersion=system: insert rtl version check into system unit init. (since 1.1)
+     -JoCheckVersion=unit: insert rtl version check into every unit init. (since 1.1)
+     -JoRTL-&lt;x&gt;=&lt;y&gt;: set RTL identifier x to value y. See -iJ. (since 1.1)
    -Jpcmd&lt;command&gt; : Run postprocessor. For each generated js execute
                   command passing the js as stdin and read the new js from stdout.
                   This option can be added multiple times to call several
@@ -622,7 +628,8 @@ End.
       <tbody>
         <tr>
           <th>Pascal</th>
-          <th>JavaScript</th>
+          <th>JS Pas2js 1.2</th>
+          <th>JS Pas2js 1.3</th>
         </tr>
         <tr>
           <td>
@@ -673,6 +680,35 @@ function(){
 []);
 </pre>
           </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  rtl.createTRecord($mod, "TMyRecord", function() {
+    this.i = 0;
+    this.s = "";
+    this.d = 0.0;
+    this.$eq = function (b) {
+      return (this.i == b.i) && (this.s == b.i) && (this.d == b.d);
+    };
+    this.$assign = function (s) {
+      this.i = s.i;
+      this.s = s.s;
+      this.d = s.d;
+      return this;
+    };
+  };
+  this.r = this.TMyRecord.$new();
+  $mod.$init = function() {
+    $mod.r.i=123;
+    $mod.r.$assign($mod.s);
+    if ($mod.r.$eq($mod.s)) ;
+  },
+},
+[]);
+</pre>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -680,9 +716,20 @@ function(){
       <li>The record variable creates a JavaScript object.</li>
       <li>Variant records are not supported.</li>
       <li>Supported: Assign, pass as argument, equal, not equal,
-      array of record, pointer of record, const, default().</li>
-      <li>Not yet implemented: advanced records, operators.</li>
-      <li>When assigning a record it is cloned. This is compatible with Delphi and FPC.</li>
+      array of record, pointer of record, const, default(), RTTI.</li>
+      <li>Advanced record (since pas2js 1.3):
+        <ul>
+          <li>visibility private, strict private, public, default is public</li>
+          <li>methods, class methods (must be static like in Delphi/FPC)</li>
+          <li>class vars</li>
+          <li>const fields</li>
+          <li>property, class property, array property, default property</li>
+        </ul>
+      </li>
+      <li>Not yet implemented: constructors, operators.</li>
+      <li>Until Pas2js 1.2 when assigning a record it is cloned, creating a new
+        JS object. Since Pas2js 1.3 only values are copied,
+        keeping the object, so pointer of record is compatible.</li>
       <li>Since record types are JS objects it is possible to typecast a record type
       to the JS Object, e.g. TJSObject(TPoint)</li>
       <li>A pointer of record is simply a reference.
@@ -2031,8 +2078,9 @@ rtl = {
 
     <div class="section">
     <h2 id="anonymousfunctions">Translating anonymous functions</h2>
-    Anonymous functions are not yet supported by pas2js. The next best thing are
-    local procedures. For example:
+    Anonymous functions are supported since pas2js 1.1.<br>
+    Note that in pas2js local procedures are closures as well. See below.<br>
+    For pas2js 1.0 the next best thing are local procedures. For example:
     <table class="sample">
       <tbody>
         <tr>
@@ -2803,12 +2851,20 @@ End.
     <li>{$I %param%}:
       <ul>
         <li>%date%: current date as string literal, '[yyyy/mm/dd]'</li>
-        <li>%time%: current time as string literal, 'hh:mm:ss'</li>
-        <li>%line%: current source line number as string literal, e.g. '123'</li>
+        <li>%time%: current time as string literal, 'hh:mm:ss'. Note that the
+          inclusion of %date% and %time% will not cause the compiler to
+          recompile the unit every time it is used:
+          the date and time will be the date and time when the unit was last compiled.</li>
+        <li>%file%: current source filename as string literal, e.g. <i>'unit1.pas'</i></li>
+        <li>%line%: current source line number as string literal, e.g. <i>'123'</i></li>
+        <li>%linenum%: current source line number as integer, e.g. <i>123</i></li>
         <li>%currentroutine%: name of current routine as string literal</li>
         <li>%pas2jstarget%, %pas2jstargetos%, %fpctarget%, %fpctargetos%: target os as string literal, e.g. 'Browser'</li>
         <li>%pas2jstargetcpu%, %fpctargetcpu%: target cpu as string literal, e.g. 'ECMAScript5'</li>
         <li>%pas2jsversion%, %fpcversion%: compiler version as strnig literal, e.g. '1.0.2'</li>
+        <li>If param is none of the above it will use the environment variable.
+        Keep in mind that depending on the platform the name may be case sensitive.
+        If there is no such variable an empty string <i>''</i> is inserted.</li>
       </ul>
     </li>
     <li>{$Warnings on|off}</li>
@@ -2925,6 +2981,7 @@ End.
     <li>Intrinsic procedure WriteStr(out s: string; params...)</li>
     <li><i>Debugger;</i> converts to <i>debugger;</i>. If a debugger is running
       it will break on this line just like a break point.</li>
+    <li><i>concat(string1,string2,...)</i> since 1.3</li>
     </ul>
     </div>
 

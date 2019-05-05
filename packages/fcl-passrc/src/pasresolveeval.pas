@@ -134,10 +134,10 @@ const
   nFoundCallCandidateX = 3057;
   nTextAfterFinalIgnored = 3058;
   nNoMemberIsProvidedToAccessProperty = 3059;
-  // free 3060
-  // free 3061
-  // free 3062
-  // free 3063
+  nTheUseOfXisNotAllowedInARecord = 3060;
+  nParameterlessConstructorsNotAllowedInRecords = 3061;
+  nMultipleXinTypeYNameZCAandB = 3062;
+  nXCannotHaveParameters = 3063;
   nRangeCheckError = 3064;
   nHighRangeLimitLTLowRangeLimit = 3065;
   nRangeCheckEvaluatingConstantsVMinMax = 3066;
@@ -154,14 +154,14 @@ const
   nMethodHidesMethodOfBaseType = 3077;
   nContextExpectedXButFoundY = 3078;
   nContextXInvalidY = 3079;
-  // free 3080;
+  nIdentifierXIsNotAnInstanceField = 3080;
   nXIsNotSupported = 3081;
   nOperatorIsNotOverloadedAOpB = 3082;
   nIllegalQualifierAfter = 3084;
   nIllegalQualifierInFrontOf = 3085;
   nIllegalQualifierWithin = 3086;
   nMethodClassXInOtherUnitY = 3087;
-  // free 3088
+  nClassMethodsMustBeStaticInRecords = 3088;
   nCannotMixMethodResolutionAndDelegationAtX = 3089;
   nImplementsDoesNotSupportArrayProperty = 3101;
   nImplementsDoesNotSupportIndex = 3102;
@@ -251,6 +251,10 @@ resourcestring
   sFoundCallCandidateX = 'Found call candidate %s';
   sTextAfterFinalIgnored = 'Text after final ''end.''. ignored by compiler';
   sNoMemberIsProvidedToAccessProperty = 'No member is provided to access property';
+  sTheUseOfXisNotAllowedInARecord = 'The use of "%s" is not allowed in a record';
+  sParameterlessConstructorsNotAllowedInRecords = 'Parameterless constructors are not allowed in records or record/type helpers';
+  sMultipleXinTypeYNameZCAandB = 'Multiple %s in %s %s: %s and %s';
+  sXCannotHaveParameters = '%s cannot have parameters';
   sSymbolXIsNotPortable = 'Symbol "%s" is not portable';
   sSymbolXIsExperimental = 'Symbol "%s" is experimental';
   sSymbolXIsNotImplemented = 'Symbol "%s" is not implemented';
@@ -273,6 +277,7 @@ resourcestring
   sMethodHidesMethodOfBaseType = 'Method "%s" hides method of base type "%s" at %s';
   sContextExpectedXButFoundY = '%s: expected "%s", but found "%s"';
   sContextXInvalidY = '%s: invalid %s';
+  sIdentifierXIsNotAnInstanceField = 'Identifier "%s" is not an instance field';
   sConstructingClassXWithAbstractMethodY = 'Constructing a class "%s" with abstract method "%s"';
   sXIsNotSupported = '%s is not supported';
   sOperatorIsNotOverloadedAOpB = 'Operator is not overloaded: "%s" %s "%s"';
@@ -281,6 +286,7 @@ resourcestring
   sIllegalQualifierWithin = 'illegal qualifier "%s" within "%s"';
   sMethodClassXInOtherUnitY = 'method class "%s" in other unit "%s"';
   sNoMatchingImplForIntfMethodXFound = 'No matching implementation for interface method "%s" found';
+  sClassMethodsMustBeStaticInRecords = 'Class methods must be static in records';
   sCannotMixMethodResolutionAndDelegationAtX = 'Cannot mix method resolution and delegation at %s';
   sImplementsDoesNotSupportArrayProperty = '"implements" does dot support array property';
   sImplementsDoesNotSupportIndex = '"implements" does not support "index"';
@@ -340,8 +346,8 @@ const
   MinSafeIntSingle = -16777216;
   MaxSafeIntSingle =  16777216;
   MaskUIntSingle = $3fffff;
-  MinSafeIntDouble = -$10000000000000; // -4503599627370496
-  MaxSafeIntDouble =   $fffffffffffff; //  4503599627370495
+  MinSafeIntDouble = -$fffffffffffff-1; // -4503599627370496
+  MaxSafeIntDouble =  $fffffffffffff; //  4503599627370495
   MaskUIntDouble = $fffffffffffff;
 
 type
@@ -697,6 +703,8 @@ type
     procedure PredValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     procedure SuccValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     function EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
+    function EvalStringAddExpr(Expr, LeftExpr, RightExpr: TPasExpr;
+      LeftValue, RightValue: TResEvalValue): TResEvalValue; virtual;
     function EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
       Flags: TResEvalFlags): TResEvalEnum; virtual;
     {$ifdef FPC_HAS_CPSTRING}
@@ -1249,7 +1257,7 @@ begin
           reitLongWord: TResEvalInt(Result).Int:=not longword(TResEvalInt(Result).Int);
           reitLongInt: TResEvalInt(Result).Int:=not longint(TResEvalInt(Result).Int);
           reitUIntDouble: TResEvalInt(Result).Int:=(not TResEvalInt(Result).Int) and $fffffffffffff;
-          reitIntDouble: TResEvalInt(Result).Int:=(not TResEvalInt(Result).Int) and $1fffffffffffff;
+          reitIntDouble: {$ifdef fpc}TResEvalInt(Result).Int:=(not TResEvalInt(Result).Int) and $1fffffffffffff{$endif};
           else TResEvalInt(Result).Int:=not TResEvalInt(Result).Int;
         end;
         end;
@@ -1534,9 +1542,6 @@ var
   UInt: TMaxPrecUInt;
   Flo: TMaxPrecFloat;
   aCurrency: TMaxPrecCurrency;
-  {$ifdef FPC_HAS_CPSTRING}
-  LeftCP, RightCP: TSystemCodePage;
-  {$endif}
   LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
@@ -1634,58 +1639,10 @@ begin
       end;
       end;
     {$ifdef FPC_HAS_CPSTRING}
-    revkString:
-      case RightValue.Kind of
-      revkString:
-        begin
-        LeftCP:=GetCodePage(TResEvalString(LeftValue).S);
-        RightCP:=GetCodePage(TResEvalString(RightValue).S);
-        if (LeftCP=RightCP) then
-          begin
-          Result:=TResEvalString.Create;
-          TResEvalString(Result).S:=TResEvalString(LeftValue).S+TResEvalString(RightValue).S;
-          end
-        else
-          begin
-          Result:=TResEvalUTF16.Create;
-          TResEvalUTF16(Result).S:=GetUnicodeStr(TResEvalString(LeftValue).S,Expr.left)
-                                  +GetUnicodeStr(TResEvalString(RightValue).S,Expr.right);
-          end;
-        end;
-      revkUnicodeString:
-        begin
-        Result:=TResEvalUTF16.Create;
-        TResEvalUTF16(Result).S:=GetUnicodeStr(TResEvalString(LeftValue).S,Expr.left)
-                                +TResEvalUTF16(RightValue).S;
-        end;
-      else
-        {$IFDEF VerbosePasResolver}
-        writeln('TResExprEvaluator.EvalBinaryAddExpr string+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
-        {$ENDIF}
-        RaiseNotYetImplemented(20170601141834,Expr);
-      end;
+    revkString,
     {$endif}
     revkUnicodeString:
-      case RightValue.Kind of
-      {$ifdef FPC_HAS_CPSTRING}
-      revkString:
-        begin
-        Result:=TResEvalUTF16.Create;
-        TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S
-                                +GetUnicodeStr(TResEvalString(RightValue).S,Expr.right);
-        end;
-      {$endif}
-      revkUnicodeString:
-        begin
-        Result:=TResEvalUTF16.Create;
-        TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S+TResEvalUTF16(RightValue).S;
-        end;
-      else
-        {$IFDEF VerbosePasResolver}
-        writeln('TResExprEvaluator.EvalBinaryAddExpr utf16+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
-        {$ENDIF}
-        RaiseNotYetImplemented(20170601141811,Expr);
-      end;
+      Result:=EvalStringAddExpr(Expr,Expr.left,Expr.right,LeftValue,RightValue);
     revkSetOfInt:
       case RightValue.Kind of
       revkSetOfInt:
@@ -4081,9 +4038,9 @@ begin
           begin
           c:=S[p];
           case c of
-          '0'..'9': u:=u*16+ord(c)-ord('0');
-          'a'..'f': u:=u*16+ord(c)-ord('a')+10;
-          'A'..'F': u:=u*16+ord(c)-ord('A')+10;
+          '0'..'9': u:=u*16+longword(ord(c)-ord('0'));
+          'a'..'f': u:=u*16+longword(ord(c)-ord('a'))+10;
+          'A'..'F': u:=u*16+longword(ord(c)-ord('A'))+10;
           else break;
           end;
           if u>$10FFFF then
@@ -4111,7 +4068,7 @@ begin
           begin
           c:=S[p];
           case c of
-          '0'..'9': u:=u*10+ord(c)-ord('0');
+          '0'..'9': u:=u*10+longword(ord(c)-ord('0'));
           else break;
           end;
           if u>$ffff then
@@ -4790,6 +4747,72 @@ begin
     {$else}
     Result:=TResEvalUTF16.CreateValue(S);
     {$endif}
+end;
+
+function TResExprEvaluator.EvalStringAddExpr(Expr, LeftExpr,
+  RightExpr: TPasExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+{$ifdef FPC_HAS_CPSTRING}
+var
+  LeftCP, RightCP: TSystemCodePage;
+{$endif}
+begin
+  case LeftValue.Kind of
+  {$ifdef FPC_HAS_CPSTRING}
+  revkString:
+    case RightValue.Kind of
+    revkString:
+      begin
+      LeftCP:=GetCodePage(TResEvalString(LeftValue).S);
+      RightCP:=GetCodePage(TResEvalString(RightValue).S);
+      if (LeftCP=RightCP) then
+        begin
+        Result:=TResEvalString.Create;
+        TResEvalString(Result).S:=TResEvalString(LeftValue).S+TResEvalString(RightValue).S;
+        end
+      else
+        begin
+        Result:=TResEvalUTF16.Create;
+        TResEvalUTF16(Result).S:=GetUnicodeStr(TResEvalString(LeftValue).S,LeftExpr)
+                                +GetUnicodeStr(TResEvalString(RightValue).S,RightExpr);
+        end;
+      end;
+    revkUnicodeString:
+      begin
+      Result:=TResEvalUTF16.Create;
+      TResEvalUTF16(Result).S:=GetUnicodeStr(TResEvalString(LeftValue).S,LeftExpr)
+                              +TResEvalUTF16(RightValue).S;
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryAddExpr string+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170601141834,Expr);
+    end;
+  {$endif}
+  revkUnicodeString:
+    case RightValue.Kind of
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString:
+      begin
+      Result:=TResEvalUTF16.Create;
+      TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S
+                              +GetUnicodeStr(TResEvalString(RightValue).S,RightExpr);
+      end;
+    {$endif}
+    revkUnicodeString:
+      begin
+      Result:=TResEvalUTF16.Create;
+      TResEvalUTF16(Result).S:=TResEvalUTF16(LeftValue).S+TResEvalUTF16(RightValue).S;
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryAddExpr utf16+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170601141811,Expr);
+    end;
+  else
+    RaiseNotYetImplemented(20181219233139,Expr);
+  end;
 end;
 
 function TResExprEvaluator.EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;

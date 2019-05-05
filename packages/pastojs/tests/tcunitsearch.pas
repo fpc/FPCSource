@@ -18,7 +18,7 @@
     ./testpas2js --suite=TestUS_Program
     ./testpas2js --suite=TestUS_UsesEmptyFileFail
 }
-unit tcunitsearch;
+unit TCUnitSearch;
 
 {$mode objfpc}{$H+}
 
@@ -29,14 +29,14 @@ uses
   fpcunit, testregistry,
   PScanner, PasTree,
   {$IFDEF CheckPasTreeRefCount}PasResolveEval,{$ENDIF}
-  Pas2jsFileUtils, Pas2jsCompiler, Pas2jsFileCache, Pas2jsLogger,
+  Pas2jsFileUtils, Pas2jsCompiler, Pas2JSPCUCompiler, Pas2jsFileCache, Pas2jsLogger,
   tcmodules;
 
 type
 
   { TTestCompiler }
 
-  TTestCompiler = class(TPas2jsCompiler)
+  TTestCompiler = class(TPas2jsPCUCompiler)
   private
     FExitCode: longint;
   protected
@@ -209,7 +209,7 @@ procedure TCustomTestCLI.SetWorkDir(const AValue: string);
 var
   NewValue: String;
 begin
-  NewValue:=IncludeTrailingPathDelimiter(ResolveDots(AValue));
+  NewValue:=IncludeTrailingPathDelimiter(ExpandFileNamePJ(ResolveDots(AValue)));
   if FWorkDir=NewValue then Exit;
   FWorkDir:=NewValue;
 end;
@@ -228,8 +228,9 @@ begin
   CompilerExe:='/usr/bin/pas2js';
   {$ENDIF}
   FCompiler:=TTestCompiler.Create;
+  //FCompiler.ConfigSupport:=TPas2JSFileConfigSupport.Create(FCompiler);
   Compiler.Log.OnLog:=@DoLog;
-  Compiler.FileCache.DirectoryCache.OnReadDirectory:=@OnReadDirectory;
+  Compiler.FileCache.OnReadDirectory:=@OnReadDirectory;
   Compiler.FileCache.OnReadFile:=@OnReadFile;
   Compiler.FileCache.OnWriteFile:=@OnWriteFile;
 end;

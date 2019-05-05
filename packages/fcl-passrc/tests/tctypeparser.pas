@@ -171,19 +171,33 @@ type
 
   { TTestRecordTypeParser }
 
-  TTestRecordTypeParser= Class(TBaseTestTypeParser)
+  TTestRecordTypeParser = Class(TBaseTestTypeParser)
   private
+    FDecl : TStrings;
+    FAdvanced,
+    FEnded,
+    FStarted: boolean;
+    FRecord: TPasRecordType;
+    FMember1: TPasElement;
     function GetC(AIndex: Integer): TPasConst;
     Function GetField(AIndex : Integer; R : TPasRecordType) : TPasVariable;
     Function GetField(AIndex : Integer; R : TPasVariant) : TPasVariable;
     function GetF(AIndex: Integer): TPasVariable;
-    function GetR: TPasRecordType;
+    function GetM(AIndex : Integer): TPasElement;
     Function GetVariant(AIndex : Integer; R : TPasRecordType) : TPasVariant;
     function GetV(AIndex: Integer): TPasVariant;
   Protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+    Procedure StartRecord(Advanced: boolean = false);
+    Procedure EndRecord(AEnd : String = 'end');
+    Procedure AddMember(S : String);
+    Procedure ParseRecord;
+    Procedure ParseRecordFail(Msg: string; MsgNumber: integer);
+    Procedure DoParseRecord;
     Procedure TestFields(Const Fields : Array of string; AHint : String; HaveVariant : Boolean = False);
     procedure AssertVariantSelector(AName, AType: string);
-    procedure AssertConst1(Hints: TPasMemberHints);
+    procedure AssertConst1(Hints: TPasMemberHints; Index: integer = 1);
     procedure AssertField1(Hints: TPasMemberHints);
     procedure AssertField2(Hints: TPasMemberHints);
     procedure AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
@@ -216,12 +230,15 @@ type
     procedure DoTestVariantNestedVariantFirstDeprecated(Const AHint : string);
     procedure DoTestVariantNestedVariantSecondDeprecated(const AHint: string);
     procedure DoTestVariantNestedVariantBothDeprecated(const AHint: string);
-    Property TheRecord : TPasRecordType Read GetR;
+    Property TheRecord : TPasRecordType Read FRecord;
+    Property Advanced: boolean read FAdvanced;
     Property Const1 : TPasConst Index 0 Read GetC;
     Property Field1 : TPasVariable Index 0 Read GetF;
     Property Field2 : TPasVariable Index 1 Read GetF;
     Property Variant1 : TPasVariant Index 0 Read GetV;
     Property Variant2 : TPasVariant Index 1 Read GetV;
+    Property Members[AIndex : Integer] : TPasElement Read GetM;
+    Property Member1 : TPasElement Read FMember1;
   Published
     Procedure TestEmpty;
     Procedure TestEmptyComment;
@@ -240,7 +257,6 @@ type
     Procedure TestOnePlatformField;
     Procedure TestOnePlatformFieldDeprecated;
     Procedure TestOnePlatformFieldPlatform;
-    Procedure TestOneConstOneField;
     Procedure TestOneGenericField;
     Procedure TestTwoFields;
     procedure TestTwoFieldProtected;
@@ -333,6 +349,17 @@ type
     Procedure TestVariantNestedVariantBothDeprecatedDeprecated;
     Procedure TestVariantNestedVariantBothDeprecatedPlatform;
     Procedure TestOperatorField;
+    Procedure TestPropertyFail;
+    Procedure TestAdvRec_TwoConst;
+    Procedure TestAdvRec_Property;
+    Procedure TestAdvRec_PropertyImplementsFail;
+    Procedure TestAdvRec_PropertyNoTypeFail;
+    Procedure TestAdvRec_ForwardFail;
+    Procedure TestAdvRec_PublishedFail;
+    Procedure TestAdvRec_ProcVirtualFail;
+    Procedure TestAdvRec_ProcOverrideFail;
+    Procedure TestAdvRec_ProcMessageFail;
+    Procedure TestAdvRec_DestructorFail;
   end;
 
   { TTestProcedureTypeParser }
@@ -1148,7 +1175,7 @@ end;
 
 function TTestRecordTypeParser.GetC(AIndex: Integer): TPasConst;
 begin
-  Result:=TObject(GetR.Members[AIndex]) as TPasConst;
+  Result:=TObject(TheRecord.Members[AIndex]) as TPasConst;
 end;
 
 function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasRecordType
@@ -1174,12 +1201,18 @@ end;
 
 function TTestRecordTypeParser.GetF(AIndex: Integer): TPasVariable;
 begin
-  Result:=GetField(AIndex,GetR);
+  Result:=GetField(AIndex,TheRecord);
 end;
 
-function TTestRecordTypeParser.GetR: TPasRecordType;
+function TTestRecordTypeParser.GetM(AIndex : Integer): TPasElement;
 begin
-  Result:=TheType as TPasRecordType;
+  AssertNotNull('Have Record',TheRecord);
+  if (AIndex>=TheRecord.Members.Count) then
+    Fail('No member '+IntToStr(AIndex));
+  AssertNotNull('Have member'+IntToStr(AIndex),TheRecord.Members[AIndex]);
+  If Not (TObject(TheRecord.Members[AIndex]) is TPasElement) then
+    Fail('Member '+IntTostr(AIndex)+' is not a TPasElement');
+  Result:=TPasElement(TheRecord.Members[AIndex])
 end;
 
 function TTestRecordTypeParser.GetVariant(AIndex: Integer; R: TPasRecordType
@@ -1194,7 +1227,95 @@ end;
 
 function TTestRecordTypeParser.GetV(AIndex: Integer): TPasVariant;
 begin
-  Result:=GetVariant(AIndex,GetR);
+  Result:=GetVariant(AIndex,TheRecord);
+end;
+
+procedure TTestRecordTypeParser.SetUp;
+begin
+  inherited SetUp;
+  FDecl:=TStringList.Create;
+  FStarted:=false;
+  FEnded:=false;
+end;
+
+procedure TTestRecordTypeParser.TearDown;
+begin
+  FreeAndNil(FDecl);
+  inherited TearDown;
+end;
+
+procedure TTestRecordTypeParser.StartRecord(Advanced: boolean);
+var
+  S: String;
+begin
+  if FStarted then
+    Fail('TTestRecordTypeParser.StartRecord already started');
+  FStarted:=True;
+  S:='TMyRecord = record';
+  if Advanced then
+    S:='{$modeswitch advancedrecords}'+sLineBreak+S;
+  FDecl.Add(S);
+end;
+
+procedure TTestRecordTypeParser.EndRecord(AEnd: String);
+begin
+  if FEnded then exit;
+  if not FStarted then
+    StartRecord;
+  FEnded:=True;
+  if (AEnd<>'') then
+    FDecl.Add('  '+AEnd);
+end;
+
+procedure TTestRecordTypeParser.AddMember(S: String);
+begin
+  if Not FStarted then
+    StartRecord;
+  FDecl.Add('    '+S);
+end;
+
+procedure TTestRecordTypeParser.ParseRecord;
+begin
+  DoParseRecord;
+end;
+
+procedure TTestRecordTypeParser.ParseRecordFail(Msg: string; MsgNumber: integer
+  );
+var
+  ok: Boolean;
+begin
+  ok:=false;
+  try
+    ParseRecord;
+  except
+    on E: EParserError do
+      begin
+      AssertEquals('Expected {'+Msg+'} '+IntToStr(MsgNumber)+', but got msg {'+Parser.LastMsg+'} '+IntToStr(Parser.LastMsgNumber),MsgNumber,Parser.LastMsgNumber);
+      AssertEquals('Expected {'+Msg+'}, but got msg {'+Parser.LastMsg+'}',Msg,Parser.LastMsg);
+      ok:=true;
+      end;
+  end;
+  AssertEquals('Missing parser error {'+Msg+'} ('+IntToStr(MsgNumber)+')',true,ok);
+end;
+
+procedure TTestRecordTypeParser.DoParseRecord;
+begin
+  EndRecord;
+  Add('Type');
+  if AddComment then
+    begin
+    Add('// A comment');
+    Engine.NeedComments:=True;
+    end;
+  Add('  '+TrimRight(FDecl.Text)+';');
+  ParseDeclarations;
+  AssertEquals('One record type definition',1,Declarations.Types.Count);
+  AssertEquals('First declaration is type definition.',TPasRecordType,TObject(Declarations.Types[0]).ClassType);
+  FRecord:=TObject(Declarations.Types[0]) as TPasRecordType;
+  TheType:=FRecord; // needed by AssertComment
+  Definition:=TheType; // needed by CheckHint
+  if TheRecord.Members.Count>0 then
+    FMember1:=TObject(TheRecord.Members[0]) as TPasElement;
 end;
 
 procedure TTestRecordTypeParser.TestFields(const Fields: array of string;
@@ -1205,17 +1326,14 @@ Var
   I : integer;
 
 begin
-  S:='';
+  StartRecord;
   For I:=Low(Fields) to High(Fields) do
-    begin
-    if (S<>'') then
-      S:=S+sLineBreak;
-    S:=S+'    '+Fields[i];
-    end;
-  if (S<>'') then
-    S:=S+sLineBreak;
-  S:='record'+sLineBreak+s+'  end';
-  ParseType(S,TPasRecordType,AHint);
+    AddMember(Fields[i]);
+  S:='end';
+  if AHint<>'' then
+    S:=S+' '+AHint;
+  EndRecord(S);
+  ParseRecord;
   if HaveVariant then
     begin
     AssertNotNull('Have variants',TheRecord.Variants);
@@ -1228,6 +1346,8 @@ begin
     end;
   if AddComment then
     AssertComment;
+  if (AHint<>'') then
+    CheckHint(TPasMemberHint(GetEnumValue(TypeInfo(TPasMemberHint),'h'+AHint)));
 end;
 
 procedure TTestRecordTypeParser.AssertVariantSelector(AName,AType : string);
@@ -1250,14 +1370,14 @@ begin
     end;
 end;
 
-procedure TTestRecordTypeParser.AssertConst1(Hints: TPasMemberHints);
+procedure TTestRecordTypeParser.AssertConst1(Hints: TPasMemberHints;
+  Index: integer);
 begin
   if Hints=[] then ;
-  AssertEquals('Member 1 type',TPasConst,TObject(TheRecord.Members[0]).ClassType);
-  AssertEquals('Const 1 name','x',Const1.Name);
-  AssertNotNull('Have 1 const expr',Const1.Expr);
+  AssertEquals('Member '+IntToStr(Index+1)+' type',TPasConst,TObject(TheRecord.Members[Index]).ClassType);
+  AssertEquals('Const '+IntToStr(Index+1)+' name','x',Const1.Name);
+  AssertNotNull('Have '+IntToStr(Index+1)+' const expr',Const1.Expr);
 end;
-
 
 procedure TTestRecordTypeParser.DoTestEmpty(const AHint: String);
 begin
@@ -1270,7 +1390,6 @@ procedure TTestRecordTypeParser.AssertVariant1(Hints: TPasMemberHints);
 begin
   AssertVariant1(Hints,['0']);
 end;
-
 
 procedure TTestRecordTypeParser.AssertVariant1(Hints: TPasMemberHints;
   VariantLabels: array of string);
@@ -1787,15 +1906,6 @@ begin
   AssertOneIntegerField([hplatform]);
 end;
 
-procedure TTestRecordTypeParser.TestOneConstOneField;
-begin
-  Scanner.Options:=[po_Delphi];
-  TestFields(['public','Const x =123;','y : integer'],'',False);
-  AssertConst1([]);
-  AssertEquals('Correct visibility',visPublic,TPasConst(TheRecord.Members[0]).Visibility);
-  AssertField2([]);
-end;
-
 procedure TTestRecordTypeParser.TestOneGenericField;
 begin
   TestFields(['Generic : Integer;'],'',False);
@@ -2043,6 +2153,7 @@ Var
   P : TPasFunction;
 
 begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
   TestFields(['x : integer;','class operator assign(a : ta; b : Cardinal) : boolean;','function dosomething3 : Integer;'],'',False);
   AssertEquals('Member count',3,TheRecord.Members.Count);
   AssertField1([]);
@@ -2057,6 +2168,7 @@ end;
 
 procedure TTestRecordTypeParser.TestFieldAndClassVar;
 begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
   TestFields(['x : integer;','class var y : integer;'],'',False);
   AssertField1([]);
   AssertTrue('Second field is class var',vmClass in Field2.VarModifiers);
@@ -2064,6 +2176,7 @@ end;
 
 procedure TTestRecordTypeParser.TestFieldAndVar;
 begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
   TestFields(['x : integer;','var y : integer;'],'',False);
   AssertField1([]);
   AssertTrue('Second field is regular var',not (vmClass in Field2.VarModifiers));
@@ -2408,6 +2521,91 @@ begin
   AssertEquals('Field 1 name','operator',Field1.Name);
 end;
 
+procedure TTestRecordTypeParser.TestPropertyFail;
+begin
+  AddMember('Property Something');
+  ParseRecordFail(SErrRecordPropertiesNotAllowed,nErrRecordPropertiesNotAllowed);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_TwoConst;
+var
+  aConst: TPasConst;
+begin
+  Scanner.Options:=[po_Delphi];
+  TestFields(['public','Const x =123;','y : integer = 456'],'',False);
+  AssertEquals('Two Const',2,TheRecord.Members.Count);
+  AssertConst1([]);
+  AssertEquals('Correct visibility',visPublic,TPasConst(TheRecord.Members[0]).Visibility);
+  AssertEquals('Member 2 type',TPasConst,TObject(TheRecord.Members[1]).ClassType);
+  aConst:=TPasConst(TheRecord.Members[1]);
+  AssertEquals('Const 2 name','y',aConst.Name);
+  AssertNotNull('Have 2 const expr',aConst.Expr);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_Property;
+begin
+  StartRecord(true);
+  AddMember('Property Something: word');
+  ParseRecord;
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_PropertyImplementsFail;
+begin
+  StartRecord(true);
+  AddMember('Property Something: word implements ISome;');
+  ParseRecordFail('Expected ";"',nParserExpectTokenError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_PropertyNoTypeFail;
+begin
+  StartRecord(true);
+  AddMember('Property Something;');
+  ParseRecordFail('Expected ":"',nParserExpectTokenError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ForwardFail;
+begin
+  StartRecord(true);
+  FDecl.Add(';TMyRecord = record');
+  ParseRecordFail('Syntax error in type',nParserTypeSyntaxError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_PublishedFail;
+begin
+  StartRecord(true);
+  AddMember('published');
+  AddMember('A: word;');
+  ParseRecordFail(SParserInvalidRecordVisibility,nParserInvalidRecordVisibility);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcVirtualFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; virtual;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcOverrideFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; override;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcMessageFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; message 2;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_DestructorFail;
+begin
+  StartRecord(true);
+  AddMember('destructor Free;');
+  ParseRecordFail(SParserNoConstructorAllowed,nParserNoConstructorAllowed);
+end;
+
 { TBaseTestTypeParser }
 
 Function TBaseTestTypeParser.ParseType(ASource: String; ATypeClass: TClass;
@@ -2434,9 +2632,9 @@ begin
     AssertEquals('One type definition',1,Declarations.Classes.Count)
   else
     AssertEquals('One type definition',1,Declarations.Types.Count);
-  If (AtypeClass<>Nil) then
+  If ATypeClass<>Nil then
     begin
-    if ATypeClass.InHeritsFrom(TPasClassType) then
+    if ATypeClass.InheritsFrom(TPasClassType) then
       Result:=TPasType(Declarations.Classes[0])
     else
       Result:=TPasType(Declarations.Types[0]);
@@ -2446,7 +2644,7 @@ begin
   FType:=Result;
   Definition:=Result;
   if (Hint<>'') then
-    CheckHint(TPasMemberHint(Getenumvalue(typeinfo(TPasMemberHint),'h'+Hint)));
+    CheckHint(TPasMemberHint(GetEnumValue(TypeInfo(TPasMemberHint),'h'+Hint)));
 end;
 
 Procedure TBaseTestTypeParser.AssertParseTypeError(ASource: String);

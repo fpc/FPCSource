@@ -72,6 +72,7 @@ type
     procedure TestM_NestedFuncResult;
     procedure TestM_Enums;
     procedure TestM_ProcedureType;
+    procedure TestM_AnonymousProc;
     procedure TestM_Params;
     procedure TestM_Class;
     procedure TestM_ClassForward;
@@ -127,6 +128,7 @@ type
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
     procedure TestM_Hint_FunctionResultAssembler;
+    procedure TestM_Hint_FunctionResultExit;
     procedure TestM_Hint_AbsoluteVar;
 
     // whole program optimization
@@ -996,6 +998,27 @@ begin
   Add('end;');
   Add('begin');
   Add('  DoIt;');
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_AnonymousProc;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#TProc_used}TProc = reference to procedure;',
+  'procedure {#DoIt_used}DoIt;',
+  'var',
+  '  {#p_used}p: TProc;',
+  '  {#i_used}i: longint;',
+  'begin',
+  '  p:=procedure',
+  '    begin',
+  '      i:=3;',
+  '    end;',
+  'end;',
+  'begin',
+  '  DoIt;']);
   AnalyzeProgram;
 end;
 
@@ -2129,6 +2152,20 @@ begin
   Add([
   'function GetIt: longint; assembler;',
   'asm',
+  'end;',
+  'begin',
+  '  GetIt;']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_FunctionResultExit;
+begin
+  StartProgram(false);
+  Add([
+  'function GetIt: longint;',
+  'begin',
+  '  exit(3);',
   'end;',
   'begin',
   '  GetIt;']);

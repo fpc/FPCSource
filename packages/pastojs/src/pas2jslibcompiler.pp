@@ -2,7 +2,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2018  Michael Van Canneyt
 
-    Pascal to Javascript converter class.
+    Pascal to Javascript converter class. Library version
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -21,7 +21,9 @@ unit pas2jslibcompiler;
 interface
 
 uses
-  SysUtils, Classes, FPPJsSrcMap, Pas2jsFileCache, Pas2jsCompiler;
+  SysUtils, Classes,
+  FPPJsSrcMap, Pas2jsFileCache, Pas2JSCompiler, Pas2jsPCUCompiler,
+  Pas2JSCompilerCfg, Pas2JSCompilerPP;
 
 { ---------------------------------------------------------------------
   Compiler descendant, usable in library
@@ -44,7 +46,7 @@ Type
 
   { TLibraryPas2JSCompiler }
 
-  TLibraryPas2JSCompiler = Class(TPas2JSCompiler)
+  TLibraryPas2JSCompiler = Class(TPas2JSPCUCompiler)
   private
     FLastError: String;
     FLastErrorClass: String;
@@ -181,7 +183,9 @@ begin
   Log.OnLog:=@DoLibraryLog;
   FileCache.OnReadFile:=@ReadFile;
   FReadBufferLen:=DefaultReadBufferSize;
-  FileCache.DirectoryCache.OnReadDirectory:=@ReadDirectory;
+  FileCache.OnReadDirectory:=@ReadDirectory;
+  ConfigSupport:=TPas2JSFileConfigSupport.Create(Self);
+  PostProcessorSupport:=TPas2JSFSPostProcessorSupport.Create(Self);
 end;
 
 procedure TLibraryPas2JSCompiler.DoLibraryLog(Sender: TObject; const Msg: String);

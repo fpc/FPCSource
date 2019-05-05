@@ -23,15 +23,37 @@
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes Count="1">
-        <Mode0 Name="default">
-        </Mode0>
+        <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <Units Count="1">
+    <Units Count="6">
       <Unit0>
         <Filename Value="pas2js.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="../../packages/pastojs/src/pas2jspcucompiler.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JSPCUCompiler"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../../packages/pastojs/src/pas2jscompilercfg.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../../packages/pastojs/src/pas2jsfs.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JSFS"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../../packages/pastojs/src/pas2jscompilerpp.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="../../packages/pastojs/src/pas2jsfscompiler.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JSFSCompiler"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

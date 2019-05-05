@@ -6,7 +6,8 @@ program nodepas2js;
 uses
   JS, NodeJSApp,
   Classes, SysUtils,
-  Pas2jsFileUtils, Pas2jsLogger, Pas2jsCompiler;
+  Pas2jsFileUtils, Pas2jsLogger,
+  Pas2jsCompiler, Pas2JSFSCompiler, Pas2JSCompilerCfg;
 
 type
 
@@ -14,13 +15,13 @@ type
 
   TPas2jsCLI = class(TNodeJSApplication)
   private
-    FCompiler: TPas2jsCompiler;
+    FCompiler: TPas2jsFSCompiler;
   protected
     procedure DoRun; override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
-    property Compiler: TPas2jsCompiler read FCompiler;
+    property Compiler: TPas2jsFsCompiler read FCompiler;
   end;
 
 procedure TPas2jsCLI.DoRun;
@@ -65,7 +66,8 @@ constructor TPas2jsCLI.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   StopOnException:=True;
-  FCompiler:=TPas2jsCompiler.Create;
+  FCompiler:=TPas2jsFSCompiler.Create;
+  FCompiler.ConfigSupport:=TPas2JSFileConfigSupport.Create(FCompiler);
 end;
 
 destructor TPas2jsCLI.Destroy;

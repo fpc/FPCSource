@@ -1404,7 +1404,7 @@ procedure TTestScanner.TestDefine2;
 
 begin
   FSCanner.Defines.Add('ALWAYS');
-  TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'{$IFDEF ALWAYS} of {$ENDIF}');
+  TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'{$IFDEF ALWAYS comment} of {$ENDIF}');
 end;
 
 procedure TTestScanner.TestDefine21;

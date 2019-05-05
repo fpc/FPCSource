@@ -24,7 +24,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
-  PasTree, PScanner, PasResolver, PasResolveEval, PParser, PasUseAnalyzer,
+  PasTree, PScanner, PParser, PasResolveEval, PasResolver, PasUseAnalyzer,
   FPPas2Js, Pas2JsFiler,
   tcmodules, jstree;
 
@@ -90,6 +90,7 @@ type
     procedure CheckRestoredPrimitiveExpr(const Path: string; Orig, Rest: TPrimitiveExpr); virtual;
     procedure CheckRestoredBoolConstExpr(const Path: string; Orig, Rest: TBoolConstExpr); virtual;
     procedure CheckRestoredParamsExpr(const Path: string; Orig, Rest: TParamsExpr); virtual;
+    procedure CheckRestoredProcedureExpr(const Path: string; Orig, Rest: TProcedureExpr); virtual;
     procedure CheckRestoredRecordValues(const Path: string; Orig, Rest: TRecordValues); virtual;
     procedure CheckRestoredPasExprArray(const Path: string; Orig, Rest: TPasExprArray); virtual;
     procedure CheckRestoredArrayValues(const Path: string; Orig, Rest: TArrayValues); virtual;
@@ -138,17 +139,22 @@ type
     procedure TestPC_Var;
     procedure TestPC_Enum;
     procedure TestPC_Set;
+    procedure TestPC_Set_InFunction;
     procedure TestPC_SetOfAnonymousEnumType;
     procedure TestPC_Record;
+    procedure TestPC_Record_InFunction;
+    procedure TestPC_RecordAdv;
     procedure TestPC_JSValue;
     procedure TestPC_Array;
     procedure TestPC_ArrayOfAnonymous;
+    procedure TestPC_Array_InFunction;
     procedure TestPC_Proc;
     procedure TestPC_Proc_Nested;
     procedure TestPC_Proc_LocalConst;
     procedure TestPC_Proc_UTF8;
     procedure TestPC_Proc_Arg;
     procedure TestPC_ProcType;
+    procedure TestPC_Proc_Anonymous;
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
     procedure TestPC_ClassConstructor;
@@ -444,8 +450,8 @@ begin
   FInitialFlags.ModeSwitches:=Scanner.CurrentModeSwitches;
   FInitialFlags.BoolSwitches:=Scanner.CurrentBoolSwitches;
   FInitialFlags.ConverterOptions:=Converter.Options;
-  FInitialFlags.TargetPlatform:=Converter.TargetPlatform;
-  FInitialFlags.TargetProcessor:=Converter.TargetProcessor;
+  FInitialFlags.TargetPlatform:=Converter.Globals.TargetPlatform;
+  FInitialFlags.TargetProcessor:=Converter.Globals.TargetProcessor;
   // ToDo: defines
 end;
 
@@ -700,6 +706,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredRecordScope(const Path: string;
   Orig, Rest: TPasRecordScope);
 begin
+  CheckRestoredReference(Path+'.DefaultProperty',Orig.DefaultProperty,Rest.DefaultProperty);
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
@@ -803,7 +810,7 @@ begin
     AssertEquals(Path+'.ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
     CheckRestoredReference(Path+'.OverriddenProc',Orig.OverriddenProc,Rest.OverriddenProc);
 
-    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassScope,Rest.ClassScope);
+    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassOrRecordScope,Rest.ClassOrRecordScope);
     CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
     if Orig.Flags<>Rest.Flags then
       Fail(Path+'.Flags');
@@ -1078,6 +1085,8 @@ begin
     CheckRestoredPasExpr(Path,TPasExpr(Orig),TPasExpr(Rest))
   else if C=TParamsExpr then
     CheckRestoredParamsExpr(Path,TParamsExpr(Orig),TParamsExpr(Rest))
+  else if C=TProcedureExpr then
+    CheckRestoredProcedureExpr(Path,TProcedureExpr(Orig),TProcedureExpr(Rest))
   else if C=TRecordValues then
     CheckRestoredRecordValues(Path,TRecordValues(Orig),TRecordValues(Rest))
   else if C=TArrayValues then
@@ -1256,6 +1265,13 @@ procedure TCustomTestPrecompile.CheckRestoredParamsExpr(const Path: string;
 begin
   CheckRestoredElement(Path+'.Value',Orig.Value,Rest.Value);
   CheckRestoredPasExprArray(Path+'.Params',Orig.Params,Rest.Params);
+  CheckRestoredPasExpr(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredProcedureExpr(const Path: string;
+  Orig, Rest: TProcedureExpr);
+begin
+  CheckRestoredProcedure(Path+'$Ano',Orig.Proc,Rest.Proc);
   CheckRestoredPasExpr(Path,Orig,Rest);
 end;
 
@@ -1662,6 +1678,32 @@ begin
   WriteReadUnit;
 end;
 
+procedure TTestPrecompile.TestPC_Set_InFunction;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'procedure DoIt;',
+  'implementation',
+  'procedure DoIt;',
+  'type',
+  '  TEnum = (red,green,blue);',
+  '  TEnumRg = green..blue;',
+  '  TEnumAlias = TEnum;', // alias
+  '  TSetOfEnum = set of TEnum;',
+  '  TSetOfEnumRg = set of TEnumRg;',
+  '  TSetOfDir = set of (west,east);',
+  'var',
+  '  Empty: TSetOfEnum = [];', // empty set lit
+  '  All: TSetOfEnum = [low(TEnum)..pred(high(TEnum)),high(TEnum)];', // full set lit, range in set
+  '  Dirs: TSetOfDir;',
+  'begin',
+  '  Dirs:=[east];',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
 procedure TTestPrecompile.TestPC_SetOfAnonymousEnumType;
 begin
   StartUnit(false);
@@ -1688,6 +1730,61 @@ begin
   'var',
   '  r: TRec;', // full set lit, range in set
   'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Record_InFunction;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'procedure DoIt;',
+  'implementation',
+  'procedure DoIt;',
+  'type',
+  '  TRec = record',
+  '    i: longint;',
+  '    s: string;',
+  '  end;',
+  '  P = ^TRec;',
+  '  TArrOfRec = array of TRec;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  'end;']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_RecordAdv;
+begin
+  StartUnit(false);
+  Add([
+  '{$ModeSwitch advancedrecords}',
+  'interface',
+  'type',
+  '  TRec = record',
+  '  private',
+  '    FInt: longint;',
+  '    procedure SetInt(Value: longint);',
+  '    function GetItems(Value: word): word;',
+  '    procedure SetItems(Index, Value: word);',
+  '  public',
+  '    property Int: longint read FInt write SetInt default 3;',
+  '    property Items[Index: word]: word read GetItems write SetItems; default;',
+  '  end;',
+  'var',
+  '  r: trec;',
+  'implementation',
+  'procedure TRec.SetInt(Value: longint);',
+  'begin',
+  'end;',
+  'function TRec.GetItems(Value: word): word;',
+  'begin',
+  'end;',
+  'procedure TRec.SetItems(Index, Value: word);',
+  'begin',
+  'end;',
+  '']);
   WriteReadUnit;
 end;
 
@@ -1726,6 +1823,25 @@ begin
   'var',
   '  a: array of pointer;',
   'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Array_InFunction;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'procedure DoIt;',
+  'implementation',
+  'procedure DoIt;',
+  'type',
+  '  TArr = array[1..2] of word;',
+  'var',
+  '  arr: TArr;',
+  'begin',
+  '  arr[2]:=arr[1];',
+  'end;',
+  '']);
   WriteReadUnit;
 end;
 
@@ -1861,6 +1977,32 @@ begin
   'end;',
   'procedure DoIt(const a: TArrProc);',
   'begin',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Proc_Anonymous;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TFunc = reference to function(w: word): word;',
+  '  function GetIt(f: TFunc): longint;',
+  'implementation',
+  'var k: byte;',
+  'function GetIt(f: TFunc): longint;',
+  'begin',
+  '  f:=function(w: word): word',
+  '    var j: byte;',
+  '      function GetMul(a,b: longint): longint; ',
+  '      begin',
+  '        Result:=a*b;',
+  '      end;',
+  '    begin',
+  '      Result:=j*GetMul(1,2)*k;',
+  '    end;',
   'end;',
   '']);
   WriteReadUnit;

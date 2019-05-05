@@ -1,4 +1,22 @@
-unit pas2jspcucompiler;
+{
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 2018  Michael Van Canneyt
+
+    Pascal to Javascript converter class.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************
+
+  Abstract:
+    FileSystem aware compiler descendent with support for PCU files.
+}
+unit Pas2JSPCUCompiler;
 
 {$mode objfpc}{$H+}
 
@@ -11,17 +29,20 @@ unit pas2jspcucompiler;
 interface
 
 uses
-  Classes, SysUtils, pastree, pas2jscompiler, Pas2JsFiler;
+  SysUtils, Classes,
+  jstree,
+  PasTree, PScanner, PasResolveEval,
+  FPPas2Js,
+  Pas2jsCompiler, Pas2JSFS, Pas2JSFSCompiler, Pas2JsFiler,
+  Pas2jsLogger, Pas2jsFileUtils;
 
 Type
+
   { TFilerPCUSupport }
 
   TFilerPCUSupport = Class(TPCUSupport)
   Private
-    // This is the format that will be written.
-    FPCUFormat : TPas2JSPrecompileFormat;
-    // This is the format that will be read.
-    FFoundFormat : TPas2JSPrecompileFormat;
+    FPCUFormat: TPas2JSPrecompileFormat;
     FPrecompileInitialFlags: TPCUInitialFlags;
     FPCUReader: TPCUCustomReader;
     FPCUReaderStream: TStream;
@@ -30,41 +51,42 @@ Type
     function OnWriterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
     procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar; out Count: integer);
   Public
-    constructor create(aCompilerFile: TPas2JSCompilerFile; aFormat: TPas2JSPrecompileFormat);
-    Destructor destroy; override;
-    Function Compiler : TPas2JSCompiler;
-    Function HandleException(E: exception) : Boolean; override;
-    function FindPCU(const UseUnitName: string): string;override;
+    constructor Create(aCompilerFile: TPas2JSCompilerFile; aFormat: TPas2JSPrecompileFormat); reintroduce;
+    destructor Destroy; override;
+    function Compiler: TPas2JSCompiler;
+    function HandleException(E: Exception): Boolean; override;
+    function FindPCU(const UseUnitName: string): string; override;
     function FindPCU(const UseUnitName: string; out aFormat: TPas2JSPrecompileFormat): string;
-    Function HasReader : Boolean; override;
-    Function ReadContinue: Boolean; override;
-    Function ReadCanContinue : Boolean; override;
-    Procedure SetInitialCompileFlags; override;
-    Procedure WritePCU; override;
+    function HasReader: Boolean; override;
+    function ReadContinue: Boolean; override;
+    function ReadCanContinue: Boolean; override;
+    procedure SetInitialCompileFlags; override;
+    procedure WritePCU; override;
     procedure CreatePCUReader; override;
-    Procedure ReadUnit; override;
+    procedure ReadUnit; override;
     property PrecompileInitialFlags: TPCUInitialFlags read FPrecompileInitialFlags;
   end;
-
-  { TPas2jsPCUCompiler }
 
   { TPas2jsPCUCompilerFile }
 
   TPas2jsPCUCompilerFile = Class(TPas2jsCompilerFile)
-    Function CreatePCUSupport: TPCUSupport; override;
+    function CreatePCUSupport: TPCUSupport; override;
   end;
 
-  TPas2jsPCUCompiler = Class(TPas2JSCompiler)
-    FPrecompileFormat : TPas2JSPrecompileFormat;
+  { TPas2jsPCUCompiler }
+
+  TPas2jsPCUCompiler = Class(TPas2JSFSCompiler)
+  Private
+    FPrecompileFormat: TPas2JSPrecompileFormat;
   Protected
     procedure WritePrecompiledFormats; override;
-    function CreateCompilerFile(const UnitFileName: String): TPas2jsCompilerFile; override;
-    Procedure HandleOptionPCUFormat(Value : string) ; override;
+    function CreateCompilerFile(const PasFileName, PCUFilename: String): TPas2jsCompilerFile; override;
+    procedure HandleOptionPCUFormat(Value: string) ; override;
   end;
 
 implementation
 
-uses fppas2js, pscanner, pas2jslogger, pas2jsfilecache, pasresolveeval, jstree, pas2jsfileutils;
+{$IFDEF HASPAS2JSFILER}
 
 { ---------------------------------------------------------------------
   TFilerPCUSupport
@@ -72,19 +94,21 @@ uses fppas2js, pscanner, pas2jslogger, pas2jsfilecache, pasresolveeval, jstree, 
 
 { TFilerPCUSupport }
 
-constructor TFilerPCUSupport.create(aCompilerFile: TPas2JSCompilerFile; aFormat: TPas2JSPrecompileFormat);
+constructor TFilerPCUSupport.Create(aCompilerFile: TPas2JSCompilerFile; aFormat: TPas2JSPrecompileFormat);
 begin
   Inherited Create(aCompilerFile);
   FPCUFormat:=AFormat;
+  if FPCUFormat=nil then
+    RaiseInternalError(20181207143653,aCompilerFile.UnitFilename);
   FPrecompileInitialFlags:=TPCUInitialFlags.Create;
 end;
 
-destructor TFilerPCUSupport.destroy;
+destructor TFilerPCUSupport.Destroy;
 begin
   FreeAndNil(FPrecompileInitialFlags);
   FreeAndNil(FPCUReader);
   FreeAndNil(FPCUReaderStream);
-  inherited destroy;
+  inherited Destroy;
 end;
 
 function TFilerPCUSupport.Compiler: TPas2JSCompiler;
@@ -92,7 +116,7 @@ begin
   Result:=MyFile.Compiler;
 end;
 
-Function TFilerPCUSupport.HandleException(E: Exception) : Boolean;
+function TFilerPCUSupport.HandleException(E: Exception): Boolean;
 
 begin
   Result:=False;
@@ -100,11 +124,9 @@ begin
     begin
     Result:=True;
     if EPas2JsReadError(E).Owner is TPCUCustomReader then
-      begin
-        MyFile.Log.Log(mtError,E.Message,0,MyFile.PCUFilename);
-      end else begin
-        MyFile.Log.Log(mtError,E.Message);
-      end;
+      MyFile.Log.Log(mtError,E.Message,0,MyFile.PCUFilename)
+    else
+      MyFile.Log.Log(mtError,E.Message);
     Compiler.Terminate(ExitCodePCUError);
     end
   else if (E is EPas2JsWriteError) then
@@ -117,8 +139,12 @@ end;
 
 function TFilerPCUSupport.FindPCU(const UseUnitName: string): string;
 
+var
+  aPCUFormat: TPas2JSPrecompileFormat;
 begin
-  Result:=FindPCU(UseUnitName,FFoundFormat);
+  Result:=FindPCU(UseUnitName,aPCUFormat);
+  if (Result<>'') and (FPCUFormat<>aPCUFormat) then
+    RaiseInternalError(20181207143826,UseUnitName);
 end;
 
 function TFilerPCUSupport.HasReader: Boolean;
@@ -148,21 +174,21 @@ end;
 
 procedure TFilerPCUSupport.CreatePCUReader;
 var
-  aFile: TPas2jsCachedFile;
+  aFile: TPas2jsFile;
   s: String;
 begin
   if MyFile.PCUFilename='' then
     RaiseInternalError(20180312144742,MyFile.PCUFilename);
   if FPCUReader<>nil then
     RaiseInternalError(20180312142938,GetObjName(FPCUReader));
-  if FFoundFormat=nil then
+  if FPCUFormat=nil then
     RaiseInternalError(20180312142954,'');
-  FPCUReader:=FFoundFormat.ReaderClass.Create;
+  FPCUReader:=FPCUFormat.ReaderClass.Create;
   FPCUReader.SourceFilename:=ExtractFileName(MyFile.PCUFilename);
 
   if MyFile.ShowDebug then
     MyFile.Log.LogMsg(nParsingFile,[QuoteStr(MyFile.PCUFilename)]);
-  aFile:=Compiler.FileCache.LoadFile(MyFile.PCUFilename,true);
+  aFile:=Compiler.FS.LoadFile(MyFile.PCUFilename,true);
   if aFile=nil then
     RaiseInternalError(20180312145941,MyFile.PCUFilename);
   FPCUReaderStream:=TMemoryStream.Create;
@@ -184,7 +210,8 @@ begin
   SetReaderState(prsCanContinue);
 end;
 
-function TFilerPCUSupport.FindPCU(const UseUnitName: string; out  aFormat: TPas2JSPrecompileFormat): string;
+function TFilerPCUSupport.FindPCU(const UseUnitName: string;
+  out aFormat: TPas2JSPrecompileFormat): string;
 
   function SearchInDir(DirPath: string): boolean;
   var
@@ -199,7 +226,7 @@ function TFilerPCUSupport.FindPCU(const UseUnitName: string; out  aFormat: TPas2
       CurFormat:=PrecompileFormats[i];
       if not CurFormat.Enabled then continue;
       Filename:=DirPath+UseUnitName+'.'+CurFormat.Ext;
-      if Compiler.FileCache.SearchLowUpCase(Filename) then
+      if Compiler.FS.PCUExists(Filename) then
       begin
         FindPCU:=Filename;
         aFormat:=CurFormat;
@@ -210,23 +237,20 @@ function TFilerPCUSupport.FindPCU(const UseUnitName: string; out  aFormat: TPas2
   end;
 
 var
-  Cache: TPas2jsFilesCache;
+  L: TstringList;
   i: Integer;
+
 begin
   Result:='';
   aFormat:=nil;
-  Cache:=Compiler.FileCache;
-
-  // search in output directory
-  if Cache.UnitOutputPath<>'' then
-    if SearchInDir(Cache.UnitOutputPath) then exit;
-
-  // then in BaseDirectory
-  if SearchInDir(MyFile.FileResolver.BaseDirectory) then exit;
-
-  // finally search in unit paths
-  for i:=0 to Cache.UnitPaths.Count-1 do
-    if SearchInDir(Cache.UnitPaths[i]) then exit;
+  L:=TStringList.Create;
+  try
+    Compiler.FS.GetPCUDirs(L,MyFile.FileResolver.BaseDirectory);
+    for i:=0 to L.Count-1 do
+      if SearchInDir(L[i]) then exit;
+  finally
+    L.Free;
+  end;
 end;
 
 function TFilerPCUSupport.OnWriterIsElementUsed(Sender: TObject;
@@ -246,7 +270,7 @@ var
   ms: TMemoryStream;
   DestDir: String;
   JS: TJSElement;
-  FN : String;
+  FN: String;
 
 begin
   if FPCUFormat=Nil then
@@ -269,8 +293,8 @@ begin
 
   // Determine output filename
   FN:=ExtractFilenameOnly(MyFile.PasFilename)+'.'+FPCUFormat.Ext;
-  if Compiler.FileCache.UnitOutputPath<>'' then
-    FN:=Compiler.FileCache.UnitOutputPath+FN
+  if Compiler.FS.UnitOutputPath<>'' then
+    FN:=Compiler.FS.UnitOutputPath+FN
   else
     FN:=ExtractFilePath(MyFile.PasFilename)+FN;
   // Set as our filename
@@ -294,38 +318,40 @@ begin
     MyFile.Converter.OnIsTypeInfoUsed:=@OnPCUConverterIsTypeInfoUsed;
     JS:=MyFile.Converter.ConvertPasElement(MyFile.PasModule,MyFile.PascalResolver);
     MyFile.Converter.Options:=MyFile.Converter.Options-[coStoreImplJS];
+    MyFile.PCUSupport.SetInitialCompileFlags;
     {$IFDEF REALLYVERBOSE}
     writeln('TPas2jsCompilerFile.WritePCU create pcu ... ',MyFile.PCUFilename);
     {$ENDIF}
-    Writer.WritePCU(MyFile.PascalResolver,MyFile.Converter,PrecompileInitialFlags,ms,AllowCompressed);
+    Writer.WritePCU(MyFile.PascalResolver,MyFile.Converter,
+                    PrecompileInitialFlags,ms,AllowCompressed);
     {$IFDEF REALLYVERBOSE}
     writeln('TPas2jsCompilerFile.WritePCU precompiled ',MyFile.PCUFilename);
     {$ENDIF}
 
-    MyFile.Log.LogMsg(nWritingFile,[QuoteStr(Compiler.FileCache.FormatPath(MyFile.PCUFilename))],'',0,0,
+    MyFile.Log.LogMsg(nWritingFile,[QuoteStr(Compiler.FS.FormatPath(MyFile.PCUFilename))],'',0,0,
                not (coShowLineNumbers in Compiler.Options));
 
     // check output directory
     DestDir:=ChompPathDelim(ExtractFilePath(MyFile.PCUFilename));
-    if (DestDir<>'') and not Compiler.FileCache.DirectoryExists(DestDir) then
+    if (DestDir<>'') and not Compiler.FS.DirectoryExists(DestDir) then
     begin
       {$IFDEF REALLYVERBOSE}
       writeln('TPas2jsCompilerFile.WritePCU output dir not found "',DestDir,'"');
       {$ENDIF}
-      MyFile.Log.LogMsg(nOutputDirectoryNotFound,[QuoteStr(Compiler.FileCache.FormatPath(DestDir))]);
+      MyFile.Log.LogMsg(nOutputDirectoryNotFound,[QuoteStr(Compiler.FS.FormatPath(DestDir))]);
       Compiler.Terminate(ExitCodeFileNotFound);
     end;
-    if Compiler.FileCache.DirectoryExists(MyFile.PCUFilename) then
+    if Compiler.FS.DirectoryExists(MyFile.PCUFilename) then
     begin
       {$IFDEF REALLYVERBOSE}
       writeln('TPas2jsCompilerFile.WritePCU file is folder "',DestDir,'"');
       {$ENDIF}
-      MyFile.Log.LogMsg(nFileIsFolder,[QuoteStr(Compiler.FileCache.FormatPath(MyFile.PCUFilename))]);
+      MyFile.Log.LogMsg(nFileIsFolder,[QuoteStr(Compiler.FS.FormatPath(MyFile.PCUFilename))]);
       Compiler.Terminate(ExitCodeWriteError);
     end;
 
     ms.Position:=0;
-    Compiler.FileCache.SaveToFile(ms,MyFile.PCUFilename);
+    Compiler.FS.SaveToFile(ms,MyFile.PCUFilename);
     {$IFDEF REALLYVERBOSE}
     writeln('TPas2jsCompilerFile.WritePCU written ',MyFile.PCUFilename);
     {$ENDIF}
@@ -339,11 +365,11 @@ end;
 procedure TFilerPCUSupport.OnFilerGetSrc(Sender: TObject; aFilename: string;
   out p: PChar; out Count: integer);
 var
-  SrcFile: TPas2jsCachedFile;
+  SrcFile: TPas2jsFile;
 begin
   if Sender=nil then
     RaiseInternalError(20180311135558,aFilename);
-  SrcFile:=MyFile.Compiler.FileCache.LoadFile(aFilename);
+  SrcFile:=MyFile.Compiler.FS.LoadFile(aFilename);
   if SrcFile=nil then
     RaiseInternalError(20180311135329,aFilename);
   p:=PChar(SrcFile.Source);
@@ -371,31 +397,29 @@ end;
 { TPas2jsPCUCompiler }
 
 procedure TPas2jsPCUCompiler.WritePrecompiledFormats;
-
 Var
-  I : Integer;
-
+  I: Integer;
 begin
   if PrecompileFormats.Count>0 then
   begin
-    writeHelpLine('   -JU<x> : Create precompiled units in format x.');
+    writeHelpLine('   -JU<x>: Create precompiled units in format x.');
     for i:=0 to PrecompileFormats.Count-1 do
       with PrecompileFormats[i] do
-        writeHelpLine('     -JU'+Ext+' : '+Description);
-    writeHelpLine('     -JU- : Disable prior -JU<x> option. Do not create precompiled units.');
+        writeHelpLine('     -JU'+Ext+': '+Description);
+    writeHelpLine('     -JU-: Disable prior -JU<x> option. Do not create precompiled units.');
   end;
 end;
 
-function TPas2jsPCUCompiler.CreateCompilerFile(const UnitFileName: String): TPas2jsCompilerFile;
+function TPas2jsPCUCompiler.CreateCompilerFile(const PasFileName,
+  PCUFilename: String): TPas2jsCompilerFile;
 begin
-  Result:=TPas2JSPCUCompilerFile.Create(Self,UnitFileName);
+  Result:=TPas2JSPCUCompilerFile.Create(Self,PasFileName,PCUFilename);
 end;
 
 procedure TPas2jsPCUCompiler.HandleOptionPCUFormat(Value: string);
-
 Var
-  Found : Boolean;
-  I : integer;
+  Found: Boolean;
+  I: integer;
   PF: TPas2JSPrecompileFormat;
 begin
   Found:=false;
@@ -403,7 +427,7 @@ begin
   begin
     PF:=PrecompileFormats[i];
     if not SameText(Value,PF.Ext) then continue;
-      FPrecompileFormat:=PrecompileFormats[i];
+    FPrecompileFormat:=PrecompileFormats[i];
     Found:=true;
   end;
   if not Found then
@@ -425,7 +449,7 @@ begin
   else
     Result:=Nil;
 end;
-
+{$ENDIF}
 
 end.
 

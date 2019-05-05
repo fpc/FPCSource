@@ -12,7 +12,8 @@ uses
   cthreads, cwstring,
   {$ENDIF}
   Classes, SysUtils, CustApp,
-  Pas2jsFileUtils, Pas2jsLogger, Pas2jsCompiler;
+  Pas2jsFileUtils, Pas2jsLogger, Pas2jsCompiler,
+  Pas2JSFSCompiler, Pas2JSCompilerPP, Pas2JSCompilerCfg;
 
 Type
 
@@ -20,14 +21,14 @@ Type
 
   TPas2jsCLI = class(TCustomApplication)
   private
-    FCompiler: TPas2jsCompiler;
+    FCompiler: TPas2JSFSCompiler;
     FWriteOutputToStdErr: Boolean;
   protected
     procedure DoRun; override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
-    property Compiler: TPas2jsCompiler read FCompiler;
+    property Compiler: TPas2JSFSCompiler read FCompiler;
     property WriteOutputToStdErr: Boolean read FWriteOutputToStdErr write FWriteOutputToStdErr;
   end;
 
@@ -66,7 +67,9 @@ constructor TPas2jsCLI.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   StopOnException:=True;
-  FCompiler:=TPas2jsCompiler.Create;
+  FCompiler:=TPas2JSFSCompiler.Create;
+  FCompiler.ConfigSupport:=TPas2JSFileConfigSupport.Create(FCompiler);
+  FCompiler.PostProcessorSupport:=TPas2JSFSPostProcessorSupport.Create(FCompiler);
 end;
 
 destructor TPas2jsCLI.Destroy;

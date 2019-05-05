@@ -28,10 +28,16 @@ interface
 
 uses
   {$IFDEF Pas2JS}
-  JS, NodeJSFS,
+  JS,
+  {$IFDEF NodeJS}
+  NodeJSFS,
   {$ENDIF}
-  Classes, SysUtils, PasTree, PScanner, jstree, jsbase, jswriter, fpjson,
-  Pas2jsFileUtils;
+  {$ENDIF}
+  pas2jsutils,
+  {$IFDEF HASFILESYSTEM}
+  pas2jsfileutils,
+  {$ENDIF}
+  Classes, SysUtils, PasTree, PScanner, jstree, jsbase, jswriter, fpjson;
 
 const
   ExitCodeErrorInternal = 1; // internal error
@@ -95,6 +101,16 @@ type
 
   TPas2jsLogEvent = Procedure (Sender : TObject; Const Msg : String) Of Object;
 
+
+  { TConsoleFileWriter }
+
+  TConsoleFileWriter = Class(TTextWriter)
+  Public
+    Constructor Create(aFileName : String); reintroduce;
+    Function DoWrite(Const S : TJSWriterString) : Integer; override;
+    Procedure Flush;
+  end;
+
   { TPas2jsLogger }
 
   TPas2jsLogger = class
@@ -111,7 +127,7 @@ type
     FMsg: TFPList; // list of TPas2jsMessage
     FOnFormatPath: TPScannerFormatPathEvent;
     FOnLog: TPas2jsLogEvent;
-    FOutputFile: TFileWriter;
+    FOutputFile: TTextWriter; // TFileWriter;
     FOutputFilename: string;
     FShowMsgNumbers: boolean;
     FShowMsgTypes: TMessageTypes;
@@ -129,6 +145,9 @@ type
     procedure SetSorted(AValue: boolean);
     procedure DoLogRaw(const Msg: string; SkipEncoding : Boolean);
     function Concatenate(Args: array of {$IFDEF Pas2JS}jsvalue{$ELSE}const{$ENDIF}): string;
+  Protected
+    // so it can be overridden
+    function CreateTextWriter(const aFileName: string): TTextWriter; virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -483,6 +502,29 @@ begin
     end;
   end;
 end;
+
+{ TConsoleFileWriter }
+
+constructor TConsoleFileWriter.Create(aFileName: String);
+begin
+  Inherited Create;
+  Write('Opening console log: '+aFileName);
+end;
+
+Function TConsoleFileWriter.DoWrite(Const S : TJSWriterString) : Integer;
+
+begin
+  Result:=Length(S);
+  {AllowWriteln}
+  Writeln(S);
+  {AllowWriteln-}
+end;
+
+procedure TConsoleFileWriter.FLush;
+
+begin
+end;
+
 
 {$IFDEF Pas2JS}
 { TPas2jsFileStream }
@@ -1017,14 +1059,26 @@ begin
   end;
 end;
 
+Function TPas2jsLogger.CreateTextWriter(const aFileName : string) : TTextWriter;
+
+begin
+{$IFDEF HASFILESYSTEM}
+  Result:=TFileWriter.Create(aFilename);
+{$ELSE}
+  Result:=TConsoleFileWriter.Create(aFileName);
+{$ENDIF}
+end;
+
 procedure TPas2jsLogger.OpenOutputFile;
 begin
+{$IFDEF HASFILESYSTEM}
   if FOutputFile<>nil then exit;
   if OutputFilename='' then
     raise Exception.Create('Log has empty OutputFilename');
   if DirectoryExists(OutputFilename) then
     raise Exception.Create('Log is directory: "'+OutputFilename+'"');
-  FOutputFile:=TFileWriter.Create(OutputFilename);
+{$ENDIF}
+  FOutputFile:=CreateTextWriter(OutputFileName);
   {$IFDEF FPC_HAS_CPSTRING}
   if (Encoding='') or (Encoding='utf8') then
     FOutputFile.Write(UTF8BOM);
@@ -1033,14 +1087,16 @@ end;
 
 procedure TPas2jsLogger.Flush;
 begin
-  if FOutputFile<>nil then
-    FOutputFile.Flush;
+{$IFDEF HASFILESYSTEM}
+  if Assigned(FOutputFile) and (FoutputFile is TFileWriter) then
+    TFileWriter(FOutputFile).Flush;
+{$ENDIF}
 end;
 
 procedure TPas2jsLogger.CloseOutputFile;
 begin
   if FOutputFile=nil then exit;
-  FOutputFile.Flush;
+  Flush;
   FreeAndNil(FOutputFile);
 end;
 

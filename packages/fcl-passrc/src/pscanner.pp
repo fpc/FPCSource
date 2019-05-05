@@ -486,6 +486,7 @@ type
     FIncludePaths: TStringList;
     FStrictFileCase : Boolean;
   Protected
+    function FindIncludeFileName(const aFilename: string): String; virtual; abstract;
     procedure SetBaseDirectory(AValue: string); virtual;
     procedure SetStrictFileCase(AValue: Boolean); virtual;
     Property IncludePaths: TStringList Read FIncludePaths;
@@ -509,7 +510,7 @@ type
     FUseStreams: Boolean;
     {$endif}
   Protected
-    Function FindIncludeFileName(const AName: string): String; virtual;
+    Function FindIncludeFileName(const AName: string): String; override;
     Function CreateFileReader(Const AFileName : String) : TLineReader; virtual;
   Public
     function FindSourceFile(const AName: string): TLineReader; override;
@@ -530,6 +531,8 @@ type
     function FindStream(const AName: string; ScanIncludes: Boolean): TStream;
     function FindStreamReader(const AName: string; ScanIncludes: Boolean): TLineReader;
     procedure SetOwnsStreams(AValue: Boolean);
+  Protected
+    function FindIncludeFileName(const aFilename: string): String; override;
   Public
     constructor Create; override;
     destructor Destroy; override;
@@ -746,6 +749,7 @@ type
     procedure SetReadOnlyModeSwitches(const AValue: TModeSwitches);
     procedure SetReadOnlyValueSwitches(const AValue: TValueSwitches);
   protected
+    function ReadIdentifier(const AParam: string): string;
     function FetchLine: boolean;
     procedure AddFile(aFilename: string); virtual;
     function GetMacroName(const Param: String): String;
@@ -2539,6 +2543,12 @@ begin
   FOwnsStreams:=AValue;
 end;
 
+function TStreamResolver.FindIncludeFileName(const aFilename: string): String;
+begin
+  raise EFileNotFoundError.Create('TStreamResolver.FindIncludeFileName not supported '+aFilename);
+  Result:='';
+end;
+
 constructor TStreamResolver.Create;
 begin
   Inherited;
@@ -3448,13 +3458,16 @@ begin
 end;
 
 procedure TPascalScanner.HandleIFDEF(const AParam: String);
+var
+  aName: String;
 begin
   PushSkipMode;
   if PPIsSkipping then
     PPSkipMode := ppSkipAll
   else
     begin
-    if IsDefined(AParam) then
+    aName:=ReadIdentifier(AParam);
+    if IsDefined(aName) then
       PPSkipMode := ppSkipElseBranch
     else
       begin
@@ -3463,20 +3476,23 @@ begin
       end;
     If LogEvent(sleConditionals) then
       if PPSkipMode=ppSkipElseBranch then
-        DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[AParam])
+        DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[aName])
       else
-        DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[AParam]);
+        DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[aName]);
     end;
 end;
 
 procedure TPascalScanner.HandleIFNDEF(const AParam: String);
+var
+  aName: String;
 begin
   PushSkipMode;
   if PPIsSkipping then
     PPSkipMode := ppSkipAll
   else
     begin
-    if IsDefined(AParam) then
+    aName:=ReadIdentifier(AParam);
+    if IsDefined(aName) then
       begin
       PPSkipMode := ppSkipIfBranch;
       PPIsSkipping := true;
@@ -3485,9 +3501,9 @@ begin
       PPSkipMode := ppSkipElseBranch;
     If LogEvent(sleConditionals) then
       if PPSkipMode=ppSkipElseBranch then
-        DoLog(mtInfo,nLogIFNDefAccepted,sLogIFNDefAccepted,[AParam])
+        DoLog(mtInfo,nLogIFNDefAccepted,sLogIFNDefAccepted,[aName])
       else
-        DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[AParam]);
+        DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[aName]);
     end;
 end;
 
@@ -4671,6 +4687,16 @@ procedure TPascalScanner.SetReadOnlyValueSwitches(const AValue: TValueSwitches);
 begin
   if FReadOnlyValueSwitches=AValue then Exit;
   FReadOnlyValueSwitches:=AValue;
+end;
+
+function TPascalScanner.ReadIdentifier(const AParam: string): string;
+var
+  p, l: Integer;
+begin
+  p:=1;
+  l:=length(AParam);
+  while (p<=l) and (AParam[p] in IdentChars) do inc(p);
+  Result:=LeftStr(AParam,p-1);
 end;
 
 function TPascalScanner.FetchLine: boolean;
