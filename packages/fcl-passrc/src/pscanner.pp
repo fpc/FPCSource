@@ -78,6 +78,8 @@ const
   nIllegalStateForWarnDirective = 1027;
   nErrIncludeLimitReached = 1028;
   nMisplacedGlobalCompilerSwitch = 1029;
+  nLogMacroXSetToY = 1030;
+  nInvalidDispatchFieldName = 1031;
 
 // resourcestring patterns of messages
 resourcestring
@@ -112,6 +114,8 @@ resourcestring
   SIllegalStateForWarnDirective = 'Illegal state "%s" for $WARN directive';
   SErrIncludeLimitReached = 'Include file limit reached';
   SMisplacedGlobalCompilerSwitch = 'Misplaced global compiler switch, ignored';
+  SLogMacroXSetToY = 'Macro %s set to %s';
+  SInvalidDispatchFieldName = 'Invalid Dispatch field name';
 
 type
   TMessageType = (
@@ -294,7 +298,7 @@ type
     msExternalClass,       { Allow external class definitions }
     msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
     msOmitRTTI,            { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
-    msMultipleScopeHelpers { off=only one helper per type, on=all }
+    msMultiHelpers         { off=only one helper per type, on=all }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -376,13 +380,19 @@ const
 
 type
   TValueSwitch = (
-    vsInterfaces
+    vsInterfaces,
+    vsDispatchField,
+    vsDispatchStrField
     );
   TValueSwitches = set of TValueSwitch;
   TValueSwitchArray = array[TValueSwitch] of string;
 const
   vsAllValueSwitches = [low(TValueSwitch)..high(TValueSwitch)];
-  DefaultVSInterfaces = 'com';
+  DefaultValueSwitches: array[TValueSwitch] of string = (
+     'com', // vsInterfaces
+     'Msg', // vsDispatchField
+     'MsgStr' // vsDispatchStrField
+     );
   DefaultMaxIncludeStackDepth = 20;
 
 type
@@ -763,6 +773,8 @@ type
     function HandleDirective(const ADirectiveText: String): TToken; virtual;
     function HandleLetterDirective(Letter: char; Enable: boolean): TToken; virtual;
     procedure HandleBoolDirective(bs: TBoolSwitch; const Param: String); virtual;
+    procedure DoHandleDirective(Sender: TObject; Directive, Param: String;
+      var Handled: boolean); virtual;
     procedure HandleIFDEF(const AParam: String);
     procedure HandleIFNDEF(const AParam: String);
     procedure HandleIFOPT(const AParam: String);
@@ -771,6 +783,7 @@ type
     procedure HandleELSE(const AParam: String);
     procedure HandleENDIF(const AParam: String);
     procedure HandleDefine(Param: String); virtual;
+    procedure HandleDispatchField(Param: String; vs: TValueSwitch); virtual;
     procedure HandleError(Param: String); virtual;
     procedure HandleMessageDirective(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
@@ -1038,7 +1051,7 @@ const
     'EXTERNALCLASS',
     'PREFIXEDATTRIBUTES',
     'OMITRTTI',
-    'MULTIPLESCOPEHELPERS'
+    'MULTIHELPERS'
     );
 
   LetterSwitchNames: array['A'..'Z'] of string=(
@@ -1106,7 +1119,9 @@ const
     );
 
   ValueSwitchNames: array[TValueSwitch] of string = (
-    'Interfaces'
+    'Interfaces', // vsInterfaces
+    'DispatchField', // vsDispatchField
+    'DispatchStrField' // vsDispatchStrField
     );
 
 const
@@ -2655,6 +2670,8 @@ constructor TPascalScanner.Create(AFileResolver: TBaseFileResolver);
     Result.Duplicates:=dupError;
   end;
 
+var
+  vs: TValueSwitch;
 begin
   inherited Create;
   FFileResolver := AFileResolver;
@@ -2669,7 +2686,8 @@ begin
   FCurrentBoolSwitches:=bsFPCMode;
   FAllowedBoolSwitches:=bsAll;
   FAllowedValueSwitches:=vsAllValueSwitches;
-  FCurrentValueSwitches[vsInterfaces]:=DefaultVSInterfaces;
+  for vs in TValueSwitch do
+    FCurrentValueSwitches[vs]:=DefaultValueSwitches[vs];
 
   FConditionEval:=TCondDirectiveEvaluator.Create;
   FConditionEval.OnLog:=@OnCondEvalLog;
@@ -2731,9 +2749,9 @@ begin
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   FCurFilename := AFilename;
   AddFile(FCurFilename);
-{$IFDEF HASFS}
+  {$IFDEF HASFS}
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(FCurFilename));
-{$ENDIF}
+  {$ENDIF}
   if LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(AFileName)],True);
 end;
@@ -3271,10 +3289,8 @@ begin
       DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[Identifier]);
       exit;
       end;
-    end;
-
-  if Number>=0 then
     SetWarnMsgState(Number,State);
+    end;
 end;
 
 procedure TPascalScanner.HandleDefine(Param: String);
@@ -3295,6 +3311,26 @@ begin
     Delete(MValue,1,Index+1);
     AddMacro(MName,MValue);
     end;
+end;
+
+procedure TPascalScanner.HandleDispatchField(Param: String; vs: TValueSwitch);
+var
+  NewValue: String;
+begin
+  if not (vs in AllowedValueSwitches) then
+    Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,[ValueSwitchNames[vs]]);
+  NewValue:=ReadIdentifier(Param);
+  if NewValue='-' then
+    NewValue:=''
+  else if not IsValidIdent(NewValue,false) then
+    DoLog(mtWarning,nInvalidDispatchFieldName,SInvalidDispatchFieldName,[]);
+  if SameText(NewValue,CurrentValueSwitch[vs]) then exit;
+  if vs in ReadOnlyValueSwitches then
+    begin
+    Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,[ValueSwitchNames[vs]]);
+    exit;
+    end;
+  CurrentValueSwitch[vs]:=NewValue;
 end;
 
 procedure TPascalScanner.HandleError(Param: String);
@@ -3682,6 +3718,10 @@ begin
           HandleDefine(Param);
         'GOTO':
           DoBoolDirective(bsGoto);
+        'DIRECTIVEFIELD':
+          HandleDispatchField(Param,vsDispatchField);
+        'DIRECTIVESTRFIELD':
+          HandleDispatchField(Param,vsDispatchStrField);
         'ERROR':
           HandleError(Param);
         'HINT':
@@ -3735,8 +3775,7 @@ begin
       end;
       end;
 
-    if Assigned(OnDirective) then
-      OnDirective(Self,Directive,Param,Handled);
+    DoHandleDirective(Self,Directive,Param,Handled);
     if (not Handled) then
       if LogEvent(sleDirective) then
         DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
@@ -3799,6 +3838,13 @@ begin
     CurrentBoolSwitches:=CurrentBoolSwitches+[bs]
   else
     CurrentBoolSwitches:=CurrentBoolSwitches-[bs];
+end;
+
+procedure TPascalScanner.DoHandleDirective(Sender: TObject; Directive,
+  Param: String; var Handled: boolean);
+begin
+  if Assigned(OnDirective) then
+    OnDirective(Self,Directive,Param,Handled);
 end;
 
 function TPascalScanner.DoFetchToken: TToken;
@@ -4855,7 +4901,7 @@ begin
     end;
   Result:=true;
   if (not Quiet) and LogEvent(sleConditionals) then
-    DoLog(mtInfo,nLogMacroDefined,sLogMacroDefined,[aName])
+    DoLog(mtInfo,nLogMacroXSetToY,SLogMacroXSetToY,[aName,aValue])
 end;
 
 function TPascalScanner.RemoveMacro(const aName: String; Quiet: boolean

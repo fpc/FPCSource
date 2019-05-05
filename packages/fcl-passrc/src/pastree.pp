@@ -1054,6 +1054,7 @@ type
     LibrarySymbolName,
     LibraryExpr : TPasExpr; // e.g. external LibraryExpr name LibrarySymbolName;
     DispIDExpr :  TPasExpr;
+    MessageExpr: TPasExpr;
     AliasName : String;
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
@@ -3398,6 +3399,7 @@ begin
   ReleaseAndNil(TPasElement(LibraryExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.LibraryExpr'{$ENDIF});
   ReleaseAndNil(TPasElement(LibrarySymbolName){$IFDEF CheckPasTreeRefCount},'TPasProcedure.LibrarySymbolName'{$ENDIF});
   ReleaseAndNil(TPasElement(DispIDExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.DispIDExpr'{$ENDIF});
+  ReleaseAndNil(TPasElement(MessageExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.MessageExpr'{$ENDIF});
   ReleaseAndNil(TPasElement(ProcType){$IFDEF CheckPasTreeRefCount},'TPasProcedure.ProcType'{$ENDIF});
   ReleaseAndNil(TPasElement(Body){$IFDEF CheckPasTreeRefCount},'TPasProcedure.Body'{$ENDIF});
   inherited Destroy;
@@ -4472,6 +4474,7 @@ begin
   ForEachChildCall(aMethodCall,Arg,PublicName,false);
   ForEachChildCall(aMethodCall,Arg,LibraryExpr,false);
   ForEachChildCall(aMethodCall,Arg,LibrarySymbolName,false);
+  ForEachChildCall(aMethodCall,Arg,MessageExpr,false);
   ForEachChildCall(aMethodCall,Arg,Body,false);
 end;
 

@@ -36,7 +36,7 @@ Type
     procedure DoError(const Msg: String);
     Procedure DoParse(AtCurrent,AllowEOF: Boolean);
     function GetNextToken: TJSONToken;
-    function CurrentTokenString: String;
+    function CurrentTokenString: RawByteString;
     function CurrentToken: TJSONToken; inline;
 
     Procedure KeyValue(Const AKey : TJSONStringType); virtual; abstract;
@@ -203,7 +203,7 @@ begin
   Result:=FScanner.CurToken;
 end;
 
-function TBaseJSONReader.CurrentTokenString: String;
+function TBaseJSONReader.CurrentTokenString: RawByteString;
 
 begin
   If CurrentToken in [tkString,tkIdentifier,tkNumber,tkComment] then

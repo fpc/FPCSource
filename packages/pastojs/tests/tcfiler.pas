@@ -161,6 +161,7 @@ type
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
     procedure TestPC_ClassConstructor;
+    procedure TestPC_ClassDispatchMessage;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
     procedure TestPC_ClassInterface;
@@ -748,6 +749,8 @@ begin
 
   CheckRestoredReference(Path+'.NewInstanceFunction',Orig.NewInstanceFunction,Rest.NewInstanceFunction);
   AssertEquals(Path+'.GUID',Orig.GUID,Rest.GUID);
+  AssertEquals(Path+'.DispatchField',Orig.DispatchField,Rest.DispatchField);
+  AssertEquals(Path+'.DispatchStrField',Orig.DispatchStrField,Rest.DispatchStrField);
 
   CheckRestoredObject('.Interfaces',Orig.Interfaces,Rest.Interfaces);
   if Orig.Interfaces<>nil then
@@ -1646,6 +1649,7 @@ begin
   '  s = ''abc'';', // string lit
   '  c: char = s[1];', // array params
   '  a: array[1..2] of longint = (3,4);', // anonymous array, range, array values
+  '  PI: Double; external name ''Math.PI'';',
   'resourcestring',
   '  rs = ''rs'';',
   'implementation']);
@@ -1745,11 +1749,13 @@ procedure TTestPrecompile.TestPC_Record;
 begin
   StartUnit(false);
   Add([
+  '{$ModeSwitch externalclass}',
   'interface',
   'type',
   '  TRec = record',
   '    i: longint;',
   '    s: string;',
+  '    b: boolean external name ''ext'';',
   '  end;',
   '  P = pointer;', // alias type to built-in type
   '  TArrOfRec = array of TRec;',
@@ -2140,6 +2146,38 @@ begin
   WriteReadUnit;
 end;
 
+procedure TTestPrecompile.TestPC_ClassDispatchMessage;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  {$DispatchField DispInt}',
+  '  {$DispatchStrField DispStr}',
+  '  TObject = class',
+  '  end;',
+  '  THopMsg = record',
+  '    DispInt: longint;',
+  '  end;',
+  '  TPutMsg = record',
+  '    DispStr: string;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Fly(var Msg); virtual; abstract; message 2;',
+  '    procedure Run; overload; virtual; abstract;',
+  '    procedure Run(var Msg); overload; message ''Fast'';',
+  '    procedure Hop(var Msg: THopMsg); virtual; abstract; message 3;',
+  '    procedure Put(var Msg: TPutMsg); virtual; abstract; message ''foo'';',
+  '  end;',
+  'implementation',
+  'procedure TBird.Run(var Msg);',
+  'begin',
+  'end;',
+  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
 procedure TTestPrecompile.TestPC_Initialization;
 begin
   StartUnit(false);
@@ -2359,5 +2397,6 @@ end;
 
 Initialization
   RegisterTests([TTestPrecompile]);
+  RegisterPCUFormat;
 end.
 

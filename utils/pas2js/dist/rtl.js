@@ -26,6 +26,8 @@ var rtl = {
     if (rtl.version != v) throw "expected rtl version "+v+", but found "+rtl.version;
   },
 
+  hiInt: Math.pow(2,53),
+
   hasString: function(s){
     return rtl.isString(s) && (s.length>0);
   },
@@ -1063,6 +1065,47 @@ var rtl = {
     }
     setCodeFn(1);
     return 0;
+  },
+
+  and: function(a,b){
+    var hi = 0x80000000;
+    var low = 0x7fffffff;
+    var h = (a / hi) & (b / hi);
+    var l = (a & low) & (b & low);
+    return h*hi + l;
+  },
+
+  or: function(a,b){
+    var hi = 0x80000000;
+    var low = 0x7fffffff;
+    var h = (a / hi) | (b / hi);
+    var l = (a & low) | (b & low);
+    return h*hi + l;
+  },
+
+  xor: function(a,b){
+    var hi = 0x80000000;
+    var low = 0x7fffffff;
+    var h = (a / hi) ^ (b / hi);
+    var l = (a & low) ^ (b & low);
+    return h*hi + l;
+  },
+
+  shr: function(a,b){
+    if (a<0) a += rtl.hiInt;
+    if (a<0x80000000) return a >> b;
+    if (b<=0) return a;
+    if (b>54) return 0;
+    return Math.floor(a / Math.pow(2,b));
+  },
+
+  shl: function(a,b){
+    if (a<0) a += rtl.hiInt;
+    if (b<=0) return a;
+    if (b>54) return 0;
+    var r = a * (2**b);
+    if (r <= rtl.hiInt) return r;
+    return r % rtl.hiInt;
   },
 
   initRTTI: function(){

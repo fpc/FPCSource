@@ -21,10 +21,8 @@ interface
 uses
   Classes, SysUtils, fpjson, sqldb, db, httpdefs, sqldbrestschema;
 
-Type
-  TVariableSource = (vsNone,vsQuery,vsContent,vsRoute,vsHeader);
-  TVariableSources = Set of TVariableSource;
 
+Type
   TRestOutputOption = (ooMetadata,ooSparse,ooHumanReadable);
   TRestOutputOptions = Set of TRestOutputOption;
 
@@ -37,6 +35,8 @@ Const
 
 
 Type
+  TRestIO = Class;
+
   TRestStringProperty = (rpDateFormat,
                          rpDateTimeFormat,
                          rpTimeFormat,
@@ -85,6 +85,7 @@ Type
   private
     FValues : Array[TRestStringProperty] of UTF8String;
     function GetRestPropName(AIndex: Integer): UTF8String;
+    function IsRestStringStored(AIndex: Integer): Boolean;
     procedure SetRestPropName(AIndex: Integer; AValue: UTF8String);
   Public
     Class Function GetDefaultString(aString : TRestStringProperty) :UTF8String;
@@ -93,43 +94,112 @@ Type
     Procedure Assign(aSource : TPersistent); override;
   Published
     // Indexes here MUST match TRestProperty
-    Property RESTDateFormat : UTF8String Index ord(rpDateFormat) Read GetRestPropName Write SetRestPropName;
-    Property RESTDateTimeFormat : UTF8String Index ord(rpDateTimeFormat)  Read GetRestPropName Write SetRestPropName;
-    Property RESTTimeFormat : UTF8String Index ord(rpTimeFormat)  Read GetRestPropName Write SetRestPropName;
-    Property DataProperty : UTF8String Index ord(rpDataRoot) Read GetRestPropName Write SetRestPropName;
-    Property MetaDataRoot : UTF8String Index ord(rpMetaDataRoot) Read GetRestPropName Write SetRestPropName;
-    Property ErrorProperty : UTF8String Index ord(rpErrorRoot) Read GetRestPropName Write SetRestPropName;
-    Property FieldNameProperty : UTF8String Index ord(rpFieldNameProp) Read GetRestPropName Write SetRestPropName;
-    Property FieldTypeProperty : UTF8String Index ord(rpFieldTypeProp) Read GetRestPropName Write SetRestPropName;
-    Property DateFormatProperty : UTF8String Index ord(rpFieldDateFormatProp) Read GetRestPropName Write SetRestPropName;
-    Property MaxLenProperty : UTF8String Index ord(rpFieldMaxLenProp) Read GetRestPropName Write SetRestPropName;
-    Property HumanReadableParam : UTF8String Index ord(rpHumanReadable) Read GetRestPropName Write SetRestPropName;
-    Property FieldListParam : UTF8String Index ord(rpFieldList) Read GetRestPropName Write SetRestPropName;
-    Property ExcludeFieldListParam : UTF8String Index ord(rpExcludeFieldList) Read GetRestPropName Write SetRestPropName;
-    Property ConnectionParam : UTF8String Index Ord(rpConnection) Read GetRestPropName Write SetRestPropName;
-    Property ResourceParam : UTF8String Index ord(rpResource) Read GetRestPropName Write SetRestPropName;
-    Property IncludeMetadataParam : UTF8String Index ord(rpIncludeMetadata) Read GetRestPropName Write SetRestPropName;
-    Property SparseParam : UTF8String Index Ord(rpSparse) Read GetRestPropName Write SetRestPropName;
-    Property RowName : UTF8String Index Ord(rpRowName) Read GetRestPropName Write SetRestPropName;
-    Property MetadataFields : UTF8String Index Ord(rpMetadataFields) Read GetRestPropName Write SetRestPropName;
-    Property MetadataField : UTF8String Index Ord(rpMetadataField) Read GetRestPropName Write SetRestPropName;
-    Property ErrorCode : UTF8String Index ord(rpErrorCode) Read GetRestPropName Write SetRestPropName;
-    Property ErrorMessage : UTF8String Index ord(rpErrorMessage) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamEqual : UTF8String Index ord(rpFilterEqual) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamLessThan : UTF8String Index ord(rpFilterLessThan) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamGreaterThan : UTF8String Index ord(rpFilterGreaterThan) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamLessThanEqual : UTF8String Index ord(rpFilterLessThanEqual) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamGreaterThanEqual : UTF8String Index ord(rpFilterGreaterThanEqual) Read GetRestPropName Write SetRestPropName;
-    Property FilterParamIsNull : UTF8String Index ord(rpFilterIsNull) Read GetRestPropName Write SetRestPropName;
-    Property LimitParam : UTF8string Index ord(rpLimit) Read GetRestPropName Write SetRestPropName;
-    Property OffsetParam : UTF8string Index ord(rpOffset) Read GetRestPropName Write SetRestPropName;
-    Property SortParam : UTF8string Index ord(rpOrderBy) Read GetRestPropName Write SetRestPropName;
-    Property MetadataResourceName : UTF8string Index ord(rpMetadataResourceName) Read GetRestPropName Write SetRestPropName;
-    Property InputFormatParam : UTF8string Index ord(rpInputFormat) Read GetRestPropName Write SetRestPropName;
-    Property OutputFormatParam : UTF8string Index ord(rpOutputFormat) Read GetRestPropName Write SetRestPropName;
-    Property CustomViewResourceName : UTF8string Index ord(rpCustomViewResourceName) Read GetRestPropName Write SetRestPropName;
-    Property CustomViewSQLParam : UTF8string Index ord(rpCustomViewSQLParam) Read GetRestPropName Write SetRestPropName;
-    Property XMLDocumentRoot : UTF8string Index ord(rpXMLDocumentRoot) Read GetRestPropName Write SetRestPropName;
+    Property RESTDateFormat : UTF8String Index ord(rpDateFormat) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property RESTDateTimeFormat : UTF8String Index ord(rpDateTimeFormat)  Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property RESTTimeFormat : UTF8String Index ord(rpTimeFormat)  Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property DataProperty : UTF8String Index ord(rpDataRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetaDataRoot : UTF8String Index ord(rpMetaDataRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ErrorProperty : UTF8String Index ord(rpErrorRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FieldNameProperty : UTF8String Index ord(rpFieldNameProp) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FieldTypeProperty : UTF8String Index ord(rpFieldTypeProp) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property DateFormatProperty : UTF8String Index ord(rpFieldDateFormatProp) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MaxLenProperty : UTF8String Index ord(rpFieldMaxLenProp) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property HumanReadableParam : UTF8String Index ord(rpHumanReadable) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FieldListParam : UTF8String Index ord(rpFieldList) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ExcludeFieldListParam : UTF8String Index ord(rpExcludeFieldList) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ConnectionParam : UTF8String Index Ord(rpConnection) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ResourceParam : UTF8String Index ord(rpResource) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property IncludeMetadataParam : UTF8String Index ord(rpIncludeMetadata) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property SparseParam : UTF8String Index Ord(rpSparse) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property RowName : UTF8String Index Ord(rpRowName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetadataFields : UTF8String Index Ord(rpMetadataFields) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetadataField : UTF8String Index Ord(rpMetadataField) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ErrorCode : UTF8String Index ord(rpErrorCode) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property ErrorMessage : UTF8String Index ord(rpErrorMessage) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamEqual : UTF8String Index ord(rpFilterEqual) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamLessThan : UTF8String Index ord(rpFilterLessThan) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamGreaterThan : UTF8String Index ord(rpFilterGreaterThan) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamLessThanEqual : UTF8String Index ord(rpFilterLessThanEqual) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamGreaterThanEqual : UTF8String Index ord(rpFilterGreaterThanEqual) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property FilterParamIsNull : UTF8String Index ord(rpFilterIsNull) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property LimitParam : UTF8string Index ord(rpLimit) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property OffsetParam : UTF8string Index ord(rpOffset) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property SortParam : UTF8string Index ord(rpOrderBy) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetadataResourceName : UTF8string Index ord(rpMetadataResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property InputFormatParam : UTF8string Index ord(rpInputFormat) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property OutputFormatParam : UTF8string Index ord(rpOutputFormat) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property CustomViewResourceName : UTF8string Index ord(rpCustomViewResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property CustomViewSQLParam : UTF8string Index ord(rpCustomViewSQLParam) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property XMLDocumentRoot : UTF8string Index ord(rpXMLDocumentRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+  end;
+
+  TRestStatus = (rsError,                   // Internal logic/unexpected error (500)
+                 rsGetOK,                   // GET command completed OK (200)
+                 rsPostOK,                  // POST command completed OK (204)
+                 rsPutOK,                   // PUT command completed OK (200)
+                 rsDeleteOK,                // DELETE command completed OK (204)
+                 rsInvalidParam,            // Something wrong/missing in Query parameters (400)
+                 rsCORSOK,                  // CORS request completed OK (200)
+                 rsCORSNotAllowed,          // CORS request not allowed (403)
+                 rsUnauthorized,            // Authentication failed (401)
+                 rsResourceNotAllowed,      // Resource request not allowed (403)
+                 rsRestOperationNotAllowed, // Resource operation (method) not allowed (405)
+                 rsInvalidMethod,           // Invalid HTTP method (400)
+                 rsUnknownResource,         // Unknown resource (404)
+                 rsNoResourceSpecified,     // Unable to determine resource (404)
+                 rsNoConnectionSpecified,   // Unable to determine connection for (400)
+                 rsRecordNotFound,          // Query did not return record for single resource (404)
+                 rsInvalidContent           // Invalid content for POST/PUT operation (400)
+
+                 );
+  TRestStatuses = set of TRestStatus;
+
+  { TRestStatusConfig }
+
+  TRestStatusConfig = Class(TPersistent)
+  private
+    FStatus : Array[TRestStatus] of Word;
+    function GetStatus(AIndex: Integer): Word;
+    function IsStatusStored(AIndex: Integer): Boolean;
+    procedure SetStatus(AIndex: Integer; AValue: Word);
+  Public
+    Procedure Assign(aSource : TPersistent); override;
+    function GetStatusCode(aStatus : TRestStatus): Word;
+  Published
+    // Internal logic/unexpected error (500)
+    Property Error : Word Index Ord(rsError) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // GET command completed OK (200)
+    Property GetOK : Word Index Ord(rsGetOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // POST command completed OK (204)
+    Property PostOK : Word Index Ord(rsPostOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // PUT command completed OK (200)
+    Property PutOK : Word Index Ord(rsPutOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // DELETE command completed OK (204)
+    Property DeleteOK : Word Index Ord(rsDeleteOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Something wrong/missing in Query parameters (400)
+    Property InvalidParam : Word Index Ord(rsInvalidParam) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // CORS request completed OK (200)
+    Property CORSOK : Word Index Ord(rsCORSOK) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // CORS request not allowed (403)
+    Property CORSNotAllowed : Word Index Ord(rsCORSNotAllowed) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Authentication failed (401)
+    Property Unauthorized : Word Index Ord(rsUnauthorized) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Resource request not allowed (403)
+    Property ResourceNotAllowed : Word Index Ord(rsResourceNotAllowed) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Resource operation (method) not allowed (405)
+    Property RestOperationNotAllowed : Word Index Ord(rsRestOperationNotAllowed) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Invalid HTTP method (400)
+    Property InvalidMethod : Word Index Ord(rsInvalidMethod) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Unknown resource (404)
+    Property UnknownResource : Word Index Ord(rsUnknownResource) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Unable to determine resource (404)
+    Property NoResourceSpecified : Word Index Ord(rsNoResourceSpecified) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Unable to determine connection for (400)
+    Property NoConnectionSpecified : Word Index Ord(rsNoConnectionSpecified) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Query did not return record for single resource (404)
+    Property RecordNotFound : Word Index Ord(rsRecordNotFound) Read GetStatus Write SetStatus Stored IsStatusStored;
+    // Invalid content for POST/PUT operation (400)
+    Property InvalidContent : Word Index Ord(rsInvalidContent) Read GetStatus Write SetStatus Stored IsStatusStored;
   end;
 
   { TRestStreamer }
@@ -139,12 +209,14 @@ Type
     FStream: TStream;
     FOnGetVar : TRestGetVariableEvent;
     FStrings: TRestStringsConfig;
+    FStatuses : TRestStatusConfig;
   Public
     // Registry
     Class Function GetContentType : String; virtual;
-    Constructor Create(aStream : TStream;aStrings : TRestStringsConfig;aOnGetVar : TRestGetVariableEvent);
+    Constructor Create(aStream : TStream;aStrings : TRestStringsConfig;aStatus : TRestStatusConfig; aOnGetVar : TRestGetVariableEvent);
     Function GetString(aString : TRestStringProperty) : UTF8String;
     Property Strings : TRestStringsConfig Read FStrings;
+    Property Statuses : TRestStatusConfig Read FStatuses;
     procedure InitStreaming; virtual; abstract;
     Function GetVariable(const aName : UTF8String) : UTF8String;
     Property Stream : TStream Read FStream;
@@ -191,6 +263,17 @@ Type
   end;
   TRestOutputStreamerClass = class of TRestOutputStreamer;
 
+  { TRestContext }
+
+  TRestContext = Class(TBaseRestContext)
+  Private
+    FIO : TRestIO;
+  Protected
+    property IO : TRestIO Read FIO;
+  Public
+    Function GetVariable(Const aName : UTF8String; aSources : TVariableSources; Out aValue : UTF8String) : Boolean; override;
+  end;
+
   { TRestIO }
 
   TRestIO = Class
@@ -204,11 +287,14 @@ Type
     FResource: TSQLDBRestResource;
     FResourceName: UTF8String;
     FResponse: TResponse;
+    FRestContext: TRestContext;
+    FRestStatuses: TRestStatusConfig;
     FRestStrings: TRestStringsConfig;
     FSchema: UTF8String;
     FTrans: TSQLTransaction;
     FContentStream : TStream;
-    FUserID: String;
+    function GetUserID: String;
+    procedure SetUserID(AValue: String);
   Protected
   Public
     Constructor Create(aRequest : TRequest; aResponse : TResponse); virtual;
@@ -219,6 +305,7 @@ Type
     Procedure SetResource(aResource : TSQLDBRestResource);
     procedure SetOperation(aOperation : TRestOperation);
     Procedure SetRestStrings(aValue : TRestStringsConfig);
+    Procedure SetRestStatuses(aValue : TRestStatusConfig);
     // Get things
     class function StrToNullBoolean(S: String; Strict: Boolean): TNullBoolean;
     Procedure DoGetVariable(Sender : TObject; Const aName : UTF8String; Out aVal : UTF8String);
@@ -228,6 +315,7 @@ Type
     function GetRequestOutputOptions(aDefault: TRestOutputOptions): TRestOutputOptions;
     function GetLimitOffset(aEnforceLimit: Int64; out aLimit, aOffset: Int64): boolean;
     // Create error response in output
+    function CreateRestContext: TRestContext; virtual;
     Procedure CreateErrorResponse;
     Property Operation : TRestOperation Read FOperation;
     // Not owned by TRestIO
@@ -237,15 +325,17 @@ Type
     Property Transaction : TSQLTransaction Read FTrans Write FTrans;
     Property Resource : TSQLDBRestResource Read FResource;
     Property RestStrings : TRestStringsConfig Read FRestStrings;
+    Property RestStatuses : TRestStatusConfig Read FRestStatuses;
     // owned by TRestIO
     Property RESTInput : TRestInputStreamer read FInput;
     Property RESTOutput : TRestOutputStreamer read FOutput;
     Property RequestContentStream : TStream Read FContentStream;
+    Property RestContext : TRestContext Read FRestContext;
     // For informative purposes
     Property ResourceName : UTF8String Read FResourceName;
     Property Schema : UTF8String Read FSchema;
     Property ConnectionName : UTF8String Read FCOnnection;
-    Property UserID : String Read FUserID Write FUserID;
+    Property UserID : String Read GetUserID Write SetUserID;
   end;
   TRestIOClass = Class of TRestIO;
 
@@ -342,6 +432,80 @@ Const
     'sql',             { rpCustomViewSQLParam }
     'datapacket'       { rpXMLDocumentRoot}
   );
+  DefaultStatuses : Array[TRestStatus] of Word = (
+    500, { rsError }
+    200, { rsGetOK }
+    201, { rsPostOK }
+    200, { rsPutOK }
+    204, { rsDeleteOK }
+    400, { rsInvalidParam }
+    200, { rsCORSOK}
+    403, { rsCORSNotallowed}
+    401, { rsUnauthorized }
+    403, { rsResourceNotAllowed }
+    405, { rsRestOperationNotAllowed }
+    400, { rsInvalidMethod }
+    404, { rsUnknownResource }
+    404, { rsNoResourceSpecified }
+    400, { rsNoConnectionSpecified }
+    404, { rsRecordNotFound }
+    400  { rsInvalidContent }
+  );
+
+{ TRestStatusConfig }
+
+function TRestStatusConfig.GetStatus(AIndex: Integer): Word;
+begin
+  Result:=GetStatusCode(TRestStatus(aIndex));
+end;
+
+function TRestStatusConfig.IsStatusStored(AIndex: Integer): Boolean;
+
+Var
+  W : Word;
+
+begin
+  W:=FStatus[TRestStatus(aIndex)];
+  Result:=(W<>0) and (W<>DefaultStatuses[TRestStatus(aIndex)]);
+end;
+
+procedure TRestStatusConfig.SetStatus(AIndex: Integer; AValue: Word);
+begin
+  if (aValue<>DefaultStatuses[TRestStatus(aIndex)]) then
+    aValue:=0;
+  FStatus[TRestStatus(aIndex)]:=aValue;
+end;
+
+procedure TRestStatusConfig.Assign(aSource: TPersistent);
+
+Var
+  C : TRestStatusConfig;
+  S : TRestStatus;
+
+begin
+  if aSource is TRestStatusConfig then
+    begin
+    C:=aSource as TRestStatusConfig;
+    for S in TRestStatus do
+      FStatus[S]:=C.FStatus[S];
+    end
+  else
+    inherited Assign(aSource);
+end;
+
+function TRestStatusConfig.GetStatusCode(aStatus: TRestStatus): Word;
+begin
+  Result:=FStatus[aStatus];
+  if Result=0 then
+    Result:=DefaultStatuses[aStatus];
+end;
+
+{ TRestContext }
+
+function TRestContext.GetVariable(const aName: UTF8String; aSources : TVariableSources; out aValue: UTF8String): Boolean;
+begin
+  Result:=FIO.GetVariable(aName,aValue,aSources)<>vsNone;
+end;
 
 { TStreamerDefList }
 
@@ -491,6 +655,16 @@ begin
     Result:=DefaultPropertyNames[TRestStringProperty(AIndex)]
 end;
 
+function TRestStringsConfig.IsRestStringStored(AIndex: Integer): Boolean;
+
+Var
+  V : UTF8String;
+
+begin
+  V:=FValues[TRestStringProperty(AIndex)];
+  Result:=(V<>'') and (V<>DefaultPropertyNames[TRestStringProperty(AIndex)]);
+end;
+
 procedure TRestStringsConfig.SetRestPropName(AIndex: Integer; AValue: UTF8String);
 begin
   FValues[TRestStringProperty(AIndex)]:=aValue;
@@ -534,6 +708,8 @@ procedure TRestOutputStreamer.SetOutputOptions(AValue: TRestOutputOptions);
 begin
   if FOutputOptions=AValue then Exit;
   FOutputOptions:=AValue;
+  if RequireMetadata then
+    Include(FOutputOptions,ooMetadata);
 end;
 
 procedure TRestOutputStreamer.CreateErrorContent(aCode: Integer;
@@ -549,7 +725,7 @@ begin
     On E : Exception do
       begin
       S:=Format('Error formatting string "%s" with %d arguments. Original code: %d',[Fmt,Length(Args),aCode]);
-      aCode:=500;
+      aCode:=Statuses.GetStatusCode(rsError);
       end;
   end;
   CreateErrorContent(aCode,S);
@@ -597,11 +773,12 @@ end;
 
 { TRestStreamer }
 
-constructor TRestStreamer.Create(aStream: TStream; aStrings: TRestStringsConfig; aOnGetVar: TRestGetVariableEvent);
+constructor TRestStreamer.Create(aStream: TStream; aStrings: TRestStringsConfig; aStatus : TRestStatusConfig; aOnGetVar: TRestGetVariableEvent);
 begin
   FStream:=aStream;
   FOnGetVar:=aOnGetVar;
   FStrings:=aStrings;
+  FStatuses:=aStatus;
 end;
 
 function TRestStreamer.GetString(aString: TRestStringProperty): UTF8String;
@@ -696,10 +873,26 @@ begin
   FRestStrings:=aValue;
 end;
 
+procedure TRestIO.SetRestStatuses(aValue: TRestStatusConfig);
+begin
+  FRestStatuses:=aValue;
+end;
+
 procedure TRestIO.DoGetVariable(Sender: TObject; const aName: UTF8String; out
   aVal: UTF8String);
 begin
   GetVariable(aName,aVal);
+end;
+
+procedure TRestIO.SetUserID(AValue: String);
+begin
+  if (UserID=AValue) then Exit;
+  FRestContext.UserID:=AValue;
+end;
+
+function TRestIO.GetUserID: String;
+begin
+  Result:=FRestContext.UserID;
 end;
 
 constructor TRestIO.Create(aRequest: TRequest; aResponse: TResponse);
@@ -707,10 +900,13 @@ begin
   FRequest:=aRequest;
   FResponse:=aResponse;
   FContentStream:=TStringStream.Create(aRequest.Content);
+  FRestContext:=CreateRestContext;
+  FRestContext.FIO:=Self;
 end;
 
 destructor TRestIO.Destroy;
 begin
+  FreeAndNil(FRestContext);
   if Assigned(FInput) then
     Finput.FOnGetVar:=Nil;
   if Assigned(Foutput) then
@@ -719,6 +915,12 @@ begin
   FreeAndNil(Finput);
   FreeAndNil(Foutput);
   inherited Destroy;
+end;
+
+function TRestIO.CreateRestContext : TRestContext;
+
+begin
+  Result:=TRestContext.Create;
 end;
 
 function TRestIO.GetVariable(const aName: UTF8String; out aVal: UTF8String;
@@ -769,7 +971,8 @@ begin
   Result:=GetVariable(aName+FRestStrings.GetRestString(FilterStrings[aFilter]),aValue,[vsQuery]);
 end;
 
-Class function TRestIO.StrToNullBoolean(S: String; Strict: Boolean): TNullBoolean;
+class function TRestIO.StrToNullBoolean(S: String; Strict: Boolean
+  ): TNullBoolean;
 
 begin
   result:=nbNone;
@@ -799,7 +1002,8 @@ begin
     Result:=StrToNullBoolean(S,aStrict);
 end;
 
-Function TRestIO.GetRequestOutputOptions(aDefault : TRestOutputOptions) : TRestOutputOptions;
+function TRestIO.GetRequestOutputOptions(aDefault: TRestOutputOptions
+  ): TRestOutputOptions;
 
   Procedure CheckParam(aName : String; aOption: TRestOutputOption);
   begin
@@ -831,11 +1035,11 @@ begin
   if Not Result then
     Exit;
   if (S<>'') and not TryStrToInt64(S,aLimit) then
-    Raise ESQLDBRest.CreateFmt(400,SErrInvalidParam,[P]);
+    Raise ESQLDBRest.CreateFmt(RestStatuses.GetStatusCode(rsInvalidParam),SErrInvalidParam,[P]);
   P:=RestStrings.GetRestString(rpOffset);
   if GetVariable(P,S,[vsQuery])<>vsNone then
     if (S<>'') and not TryStrToInt64(S,aOffset) then
-      Raise ESQLDBRest.CreateFmt(400,SErrInvalidParam,[P]);
+      Raise ESQLDBRest.CreateFmt(RestStatuses.GetStatusCode(rsInvalidParam),SErrInvalidParam,[P]);
   if (aEnforceLimit>0) and (aLimit>aEnforceLimit) then
     aLimit:=aEnforceLimit;
 end;

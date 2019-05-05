@@ -1037,9 +1037,10 @@ begin
   repeat
     El:=El.Parent;
     if not (El is TPasType) then break;
-    MarkElementAsUsed(El);
-    if El is TPasMembersType then
-      UseClassConstructor(TPasMembersType(El));
+    UseType(TPasType(El),paumElement);
+    //MarkElementAsUsed(El);
+    //if El is TPasMembersType then
+    //  UseClassConstructor(TPasMembersType(El));
   until false;
 end;
 
@@ -1475,6 +1476,7 @@ var
   ModScope: TPasModuleScope;
   Access: TResolvedRefAccess;
   SubEl: TPasElement;
+  ParamsExpr: TParamsExpr;
 begin
   if El=nil then exit;
   // Note: expression itself is not marked, but it can reference identifiers
@@ -1527,7 +1529,8 @@ begin
         case BuiltInProc.BuiltIn of
         bfExit:
           begin
-          if El.Parent is TParamsExpr then
+          ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
+          if ParamsExpr<>nil then
             begin
             Params:=(El.Parent as TParamsExpr).Params;
             if length(Params)=1 then
@@ -1546,7 +1549,10 @@ begin
           end;
         bfTypeInfo:
           begin
-          Params:=(El.Parent as TParamsExpr).Params;
+          ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
+          if ParamsExpr=nil then
+            RaiseNotSupported(20190225150136,El);
+          Params:=ParamsExpr.Params;
           if length(Params)<>1 then
             RaiseNotSupported(20180226144217,El.Parent);
           Resolver.ComputeElement(Params[0],ParamResolved,[rcNoImplicitProc]);
@@ -1773,6 +1779,9 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseProcedure ',GetElModName(Proc));
   {$ENDIF}
+  if Proc.Parent is TPasMembersType then
+    UseClassOrRecType(TPasMembersType(Proc.Parent),paumElement);
+
   UseScopeReferences(ProcScope.References);
 
   UseProcedureType(Proc.ProcType);
@@ -1997,6 +2006,9 @@ begin
     else
       begin
       if ElementVisited(El,Mode) then exit;
+      // this class has been used (e.g. paumElement), which marked ancestors
+      // and published members
+      // -> now mark all members paumAllPasUsable
       FirstTime:=false;
       end;
     end;
@@ -2006,7 +2018,7 @@ begin
     RaiseInconsistency(20170414152143,IntToStr(ord(Mode)));
   end;
   {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.UseClassType ',GetElModName(El),' ',Mode,' First=',FirstTime);
+  writeln('TPasAnalyzer.UseClassOrRecType ',GetElModName(El),' ',Mode,' First=',FirstTime);
   {$ENDIF}
   aClass:=nil;
   ClassScope:=nil;
@@ -2023,8 +2035,6 @@ begin
       end;
 
     ClassScope:=aClass.CustomData as TPasClassScope;
-    if ClassScope=nil then
-      exit; // ClassScope can be nil if msIgnoreInterfaces
 
     if FirstTime then
       begin
@@ -2106,6 +2116,11 @@ begin
             end;
         end;
         //writeln('TPasAnalyzer.UseClassType ',El.FullName,' ',Mode,' ',Member.Name);
+        end;
+      if Proc.MessageExpr<>nil then
+        begin
+        UseProcedure(Proc);
+        continue;
         end;
       end
     else if Member.ClassType=TPasAttributes then

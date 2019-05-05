@@ -359,6 +359,13 @@ begin
       AddUnit('sqldbrestschema');
       AddUnit('sqldbrestconst');
       end;
+    T:=P.Targets.AddUnit('sqldbrestado.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
     T:=P.Targets.AddUnit('sqldbrestini.pp');
     With T.Dependencies do  
       begin
@@ -371,6 +378,12 @@ begin
       begin
       AddUnit('sqldbrestauth');
       AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestmodule.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestbridge');
       AddUnit('sqldbrestconst');
       end;
     

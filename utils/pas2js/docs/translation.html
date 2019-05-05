@@ -65,6 +65,7 @@
     <a href="#functiontype">Translating function types</a><br>
     <a href="#absolute">Translating var modifier absolute</a><br>
     <a href="#assert">Translating assert()</a><br>
+    <a href="#dispatch">Dispatch messages</a><br>
     <a href="#calljavascript">Calling JavaScript from Pascal</a><br>
     <a href="#asm">The asm block</a><br>
     <a href="#assembler">The procedure modifier assembler</a><br>
@@ -630,8 +631,8 @@ End.
       <tbody>
         <tr>
           <th>Pascal</th>
-          <th>JS Pas2js 1.2</th>
           <th>JS Pas2js 1.3</th>
+          <th>JS Pas2js 1.2</th>
         </tr>
         <tr>
           <td>
@@ -651,36 +652,6 @@ Initialization
   r:=s;
   if r=s then ;
 End.
-</pre>
-          </td>
-          <td>
-<pre>rtl.module("MyModule",
-["System"],
-function(){
-  var $mod = this;
-  this.TMyRecord = function(s) {
-    if (s){
-      this.i = s.i;
-      this.s = s.s;
-      this.d = s.d;
-    } else {
-      this.i = 0;
-      this.s = "";
-      this.d = 0.0;
-    };
-    this.$equal = function (b) {
-      return (this.i == b.i) &&
-        (this.s == b.i) && (this.d == b.d);
-    };
-  };
-  this.r = new this.TMyRecord();
-  $mod.$init = function() {
-    $mod.r.i=123;
-    $mod.r = new $mod.TMyRecord($mod.s);
-    if ($mod.r.$equal($mod.s)) ;
-  },
-},
-[]);
 </pre>
           </td>
           <td>
@@ -708,6 +679,36 @@ function(){
     $mod.r.i=123;
     $mod.r.$assign($mod.s);
     if ($mod.r.$eq($mod.s)) ;
+  },
+},
+[]);
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  this.TMyRecord = function(s) {
+    if (s){
+      this.i = s.i;
+      this.s = s.s;
+      this.d = s.d;
+    } else {
+      this.i = 0;
+      this.s = "";
+      this.d = 0.0;
+    };
+    this.$equal = function (b) {
+      return (this.i == b.i) &&
+        (this.s == b.i) && (this.d == b.d);
+    };
+  };
+  this.r = new this.TMyRecord();
+  $mod.$init = function() {
+    $mod.r.i=123;
+    $mod.r = new $mod.TMyRecord($mod.s);
+    if ($mod.r.$equal($mod.s)) ;
   },
 },
 []);
@@ -745,7 +746,9 @@ function(){
         JS object. Since Pas2js 1.3 only values are copied,
         keeping the object, so pointer of record is compatible.</li>
       <li>Since record types are JS objects it is possible to typecast a record type
-      to the JS Object, e.g. TJSObject(TPoint)</li>
+      to the JS Object, e.g. <i>TJSObject(TPoint)</i>.
+      Note that you cannot typecast directly to a <i>TJSObject</i> descendant.
+      You can use <i>TJSWindow(TJSObject(aRecord))</i>.</li>
       <li>A pointer of record is simply a reference.
         <ul>
           <li><i>p:=@r</i> translates to <i>p=r</i></li>
@@ -754,6 +757,9 @@ function(){
           <li><i>Dispose(PointerOfRecord)</i> Sets the variable to null if possible.</li>
         </ul>
       </li>
+      <li>Passing a record to an untyped arguments (e.g. ''TObject.Dispatch(var Msg)'')
+        passes the record JS object directly, not creating a temporary reference object.</li>
+      <li>Typecasting RecordType(UntypedArgument) returns the argument, i.e. no conversion.</li>
     </ul>
     </div>
 
@@ -798,9 +804,9 @@ function(){
     <ul>
       <li>Local variables become local JavaScript variables: <i>var l = 0;</i>.</li>
       <li>Local constants become JavaScript variables in the unit/program implementation section.</li>
-      <li>Overloaded functions are given an unique name by appending $1, $2, ...<br>
-      Overloading is always on. You don't need to add the <i>overload</i> modifier.</li>
-      <li>Supported: default values, local types, FuncName:=</li>
+      <li>Local types are elevated to module.</li>
+      <li>Overloaded functions are given an unique name by appending $1, $2, ...</li>
+      <li>Supported: default values, const/var/out/default, FuncName:=</li>
     </ul>
     </div>
 
@@ -1612,7 +1618,8 @@ function(){
       <li>private, protected, public, strict private, strict protected</li>
       <li>class vars, const, nested types</li>
       <li>methods, class methods, class constructor, external methods</li>
-      <li>method modifiers overload, reintroduce, virtual, override, abstract, static, external name</li>
+      <li>method modifiers overload, reintroduce, virtual, override, abstract,
+      static, external name, message integer, message string</li>
       <li>call inherited</li>
       <li>assigned()</li>
       <li>type cast</li>
@@ -1817,7 +1824,8 @@ function(){
         <li>ClassType(IntfVar) - can be unrelated, nil if invalid</li>
         <li>IntfType(ObjVar) - nil if not found,
           COM: if ObjVar has delegate uses _AddRef</li>
-        <li>TJSObject(IntfTypeOrVar)</li>
+        <li>TJSObject(IntfTypeOrVar). Note that you cannot typecast directly
+        to a <i>TJSObject</i> descendant. You can use <i>TJSWindow(TJSObject(IntfType))</i>.</li>
         <li>jsvalue(intfvar)</li>
       </ul>
     <li>Assign operator:</li>
@@ -1868,7 +1876,7 @@ function(){
         If there are multiple helpers for the same type, the last helper in scope wins.<br>
         A class with ancestors can have one active helper per ancestor type, so
         multiple helpers can be active, same as FPC/Delphi.<br>
-        Using <b>{$modeswitch multiplescopehelpers}</b> you can activate all helpers
+        Using <b>{$modeswitch multihelpers}</b> you can activate all helpers
         within scope.
         </li>
       <li>Nested helpers (e.g. <i>TDemo.TSub.THelper</i>) are elevated.
@@ -2261,6 +2269,46 @@ End.
       disable with <i>{$C-}</i> or <i>{$Assertions off}</i></li>
     </ul>
     </div>
+
+    <div class="section">
+    <h2 id="dispatch">Dispatch messages</h2>
+    The procedure modifier <b>message</b> and the <b>Dispatch</b> works
+    similar to FPC/Delphi, as it expects a record of a specific format and
+    <b><i>TObject.Dispatch</i></b> calls the corresponding method with that
+    message number or string.<br>
+    The procedure modifier <i>message &lt;integer&gt;</i> adds an entry to
+    hidden <i>YourClass.$msgint</i> object, while the modifier
+    <i>message &lt;string&gt;</i> adds an entry to the hidden
+    <i>YourClass.$msgstr</i> object.<br>
+    Two new directives <b><i>{$DispatchField fieldname}</i></b> and
+    <b><i>{$DispatchStrField fieldname}</i></b> were added. Insert these
+    directives in front of your class declaration to let the compiler check all
+    methods with message modifiers of this class and its descendants whether they
+    pass a record with the required field. For example:
+<pre>
+  {$DispatchField Msg} // enable checking message methods for record field name "Msg"
+  {$DispatchStrField MsgStr}
+  TObject = class
+    procedure Dispatch(var aMessage); virtual;
+    procedure DispatchStr(var aMessage); virtual;
+  end;
+  TMouseDownMsg = record
+    Id: integer; // Id instead of Msg, works in FPC, but not in pas2js
+    x,y: integer;
+  end;
+  TMouseUpMsg = record
+    MsgStr: string;
+    X,Y: integer;
+  end;
+  TWinControl = class
+    procedure MouseDownMsg(var Msg: TMouseDownMsg); message 3; // warning: Dispatch requires record field Msg
+    procedure MouseUpMsg(var Msg: TMouseUpMsg); message 'up'; // ok, record with string field name MsgStr
+  end;
+</pre>
+    Note that descendant classes can override the <i>$DispatchField</i> or
+    disable the check using <i>{$DispatchField -}</i>.
+    </div>
+
 
     <div class="section">
     <h2 id="calljavascript">Calling JavaScript from Pascal</h2>
@@ -2702,7 +2750,9 @@ End.
       call <i>aJSString.fromCharCode()</i>.</li>
       <li>An external class can descend from another external class.</li>
       <li>Since class types are JS objects it is possible to typecast a class type
-      to the JS Object, e.g. TJSObject(TObject)</li>
+      to the JS Object, e.g. <i>TJSObject(TObject)</i>.
+      Note that you cannot typecast directly to a <i>TJSObject</i> descendant
+      in $mode objfpc. You can use <i>TJSWindow(TJSObject(ExtClassInstance))</i>.</li>
       <li>You can typecast function addresses and function references to JS
       function, e.g. <i>TJSFunction(@SomeProc)</i>, <i>TJSFunction(OnClick)</i>.
       Keep in mind that typecasting a method address creates a function wrapper

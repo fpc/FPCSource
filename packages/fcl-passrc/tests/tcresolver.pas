@@ -557,6 +557,7 @@ type
     Procedure TestClass_MethodOverloadUnit;
     Procedure TestClass_HintMethodHidesNonVirtualMethod;
     Procedure TestClass_HintMethodHidesNonVirtualMethodWithoutBody_NoHint;
+    Procedure TestClass_NoHintMethodHidesPrivateMethod;
     Procedure TestClass_MethodReintroduce;
     Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_ConstructorHidesAncestorWarning;
@@ -609,6 +610,7 @@ type
     Procedure TestClass_UntypedParam_TypeCast;
     Procedure TestClass_Sealed;
     Procedure TestClass_SealedDescendFail;
+    Procedure TestClass_Abstract;
     Procedure TestClass_AbstractCreateFail;
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
@@ -619,6 +621,8 @@ type
     Procedure TestClass_EnumeratorFunc;
     Procedure TestClass_ForInPropertyStaticArray;
     Procedure TestClass_TypeAlias;
+    Procedure TestClass_Message;
+    Procedure TestClass_Message_MissingParamFail;
 
     // published
     Procedure TestClass_PublishedClassVarFail;
@@ -913,7 +917,7 @@ type
     Procedure TestClassHelper_ReintroduceHides_CallFail;
     Procedure TestClassHelper_DefaultProperty;
     Procedure TestClassHelper_DefaultClassProperty;
-    Procedure TestClassHelper_MultipleScopeHelpers;
+    Procedure TestClassHelper_MultiHelpers;
     Procedure TestRecordHelper;
     Procedure TestRecordHelper_ForByteFail;
     Procedure TestRecordHelper_ClassNonStaticFail;
@@ -929,8 +933,11 @@ type
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_String;
     Procedure TestTypeHelper_Boolean;
+    Procedure TestTypeHelper_Double;
+    Procedure TestTypeHelper_DoubleAlias;
     Procedure TestTypeHelper_Constructor_NewInstance;
-    Procedure TestTypeHelper_InterfaceFail;
+    Procedure TestTypeHelper_Interface;
+    Procedure TestTypeHelper_Interface_ConstructorFail;
 
     // attributes
     Procedure TestAttributes_Globals;
@@ -3681,25 +3688,30 @@ end;
 procedure TTestResolver.TestEnums;
 begin
   StartProgram(false);
-  Add('type {#TFlag}TFlag = ({#Red}Red, {#Green}Green, {#Blue}Blue);');
-  Add('var');
-  Add('  {#f}{=TFlag}f: TFlag;');
-  Add('  {#v}{=TFlag}v: TFlag = Green;');
-  Add('  {#i}i: longint;');
-  Add('begin');
-  Add('  {@f}f:={@Red}Red;');
-  Add('  {@f}f:={@v}v;');
-  Add('  if {@f}f={@Red}Red then ;');
-  Add('  if {@f}f={@v}v then ;');
-  Add('  if {@f}f>{@v}v then ;');
-  Add('  if {@f}f<{@v}v then ;');
-  Add('  if {@f}f>={@v}v then ;');
-  Add('  if {@f}f<={@v}v then ;');
-  Add('  if {@f}f<>{@v}v then ;');
-  Add('  if ord({@f}f)<>ord({@Red}Red) then ;');
-  Add('  {@f}f:={@TFlag}TFlag.{@Red}Red;');
-  Add('  {@f}f:={@TFlag}TFlag({@i}i);');
-  Add('  {@i}i:=longint({@f}f);');
+  Add([
+  'type',
+  '  {#TFlag}TFlag = ({#Red}Red, {#Green}Green, {#Blue}Blue);',
+  '  {#TAlias}TAlias = TFlag;',
+  'var',
+  '  {#f}{=TFlag}f: TFlag;',
+  '  {#v}{=TFlag}v: TFlag = Green;',
+  '  {#i}i: longint;',
+  'begin',
+  '  {@f}f:={@Red}Red;',
+  '  {@f}f:={@v}v;',
+  '  if {@f}f={@Red}Red then ;',
+  '  if {@f}f={@v}v then ;',
+  '  if {@f}f>{@v}v then ;',
+  '  if {@f}f<{@v}v then ;',
+  '  if {@f}f>={@v}v then ;',
+  '  if {@f}f<={@v}v then ;',
+  '  if {@f}f<>{@v}v then ;',
+  '  if ord({@f}f)<>ord({@Red}Red) then ;',
+  '  {@f}f:={@TFlag}TFlag.{@Red}Red;',
+  '  {@f}f:={@TFlag}TFlag({@i}i);',
+  '  {@i}i:=longint({@f}f);',
+  '  {@f}f:={@TAlias}TAlias.{@Green}Green;',
+  '']);
   ParseProgram;
 end;
 
@@ -6411,14 +6423,26 @@ begin
   '  TAliasValue = TValue;',
   '  TColor = type TAliasValue;',
   '  TAliasColor = TColor;',
-  'procedure DoIt(i: TAliasValue); external;',
-  'procedure DoIt(i: TAliasColor); external;',
+  'procedure {#a}DoIt(i: TAliasValue); external;',
+  'procedure {#b}DoIt(i: TAliasColor); external;',
+  'procedure {#c}Fly(var i: TAliasValue); external;',
+  'procedure {#d}Fly(var i: TAliasColor); external;',
   'var',
   '  v: TAliasValue;',
   '  c: TAliasColor;',
   'begin',
-  '  DoIt(v);',
-  '  DoIt(c);',
+  '  {@a}DoIt(v);',
+  '  {@a}DoIt(TAliasValue(c));',
+  '  {@a}DoIt(TValue(c));',
+  '  {@b}DoIt(c);',
+  '  {@b}DoIt(TAliasColor(v));',
+  '  {@b}DoIt(TColor(v));',
+  '  {@c}Fly(v);',
+  '  {@c}Fly(TAliasValue(c));',
+  '  {@c}Fly(TValue(c));',
+  '  {@d}Fly(c);',
+  '  {@d}Fly(TAliasColor(v));',
+  '  {@d}Fly(TColor(v));',
   '']);
   ParseProgram;
 end;
@@ -9485,6 +9509,47 @@ begin
   CheckResolverUnexpectedHints(true);
 end;
 
+procedure TTestResolver.TestClass_NoHintMethodHidesPrivateMethod;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  private',
+    '    procedure DoIt(p: pointer);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TObject.DoIt(p: pointer);',
+    'begin',
+    '  if p=nil then ;',
+    'end;',
+    '']) );
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'type',
+  '  TAnimal = class',
+  '  strict private',
+  '    procedure Fly(p: pointer);',
+  '  end;',
+  '  TBird = class(TAnimal)',
+  '    procedure DoIt(i: longint);',
+  '    procedure Fly(b: boolean);',
+  '  end;',
+  'procedure TAnimal.Fly(p: pointer);',
+  'begin',
+  '  if p=nil then ;',
+  'end;',
+  'procedure TBird.DoIt(i: longint); begin end;',
+  'procedure TBird.Fly(b: boolean); begin end;',
+  'var b: TBird;',
+  'begin',
+  '  b.DoIt(3);']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestClass_MethodReintroduce;
 begin
   StartProgram(false);
@@ -9703,40 +9768,42 @@ end;
 procedure TTestResolver.TestClassCallInherited;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    procedure {#TOBJ_ProcA}ProcA(vI: longint); virtual;');
-  Add('    procedure {#TOBJ_ProcB}ProcB(vJ: longint); virtual;');
-  Add('  end;');
-  Add('  {#A}TClassA = class');
-  Add('    procedure {#A_ProcA}ProcA({#i1}vI: longint); override;');
-  Add('    procedure {#A_ProcB}ProcB(vJ: longint); override;');
-  Add('    procedure {#A_ProcC}ProcC; virtual;');
-  Add('  end;');
-  Add('procedure TObject.ProcA(vi: longint);');
-  Add('begin');
-  Add('  inherited; // ignore, do not raise error');
-  Add('end;');
-  Add('procedure TObject.ProcB(vj: longint);');
-  Add('begin');
-  Add('end;');
-  Add('procedure TClassA.ProcA(vi: longint);');
-  Add('begin');
-  Add('  {@A_ProcA}ProcA({@i1}vI);');
-  Add('  {@TOBJ_ProcA}inherited;');
-  Add('  inherited {@TOBJ_ProcA}ProcA({@i1}vI);');
-  Add('  {@A_ProcB}ProcB({@i1}vI);');
-  Add('  inherited {@TOBJ_ProcB}ProcB({@i1}vI);');
-  Add('end;');
-  Add('procedure TClassA.ProcB(vJ: longint);');
-  Add('begin');
-  Add('end;');
-  Add('procedure TClassA.ProcC;');
-  Add('begin');
-  Add('  inherited; // ignore, do not raise error');
-  Add('end;');
-  Add('begin');
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure {#TOBJ_ProcA}ProcA(vI: longint); virtual;',
+  '    procedure {#TOBJ_ProcB}ProcB(vJ: longint); virtual;',
+  '  end;',
+  '  {#A}TClassA = class',
+  '    procedure {#A_ProcA}ProcA({#i1}vI: longint); override;',
+  '    procedure {#A_ProcB}ProcB(vJ: longint); override;',
+  '    procedure {#A_ProcC}ProcC; virtual;',
+  '  end;',
+  'procedure TObject.ProcA(vi: longint);',
+  'begin',
+  '  inherited; // ignore, do not raise error',
+  'end;',
+  'procedure TObject.ProcB(vj: longint);',
+  'begin',
+  'end;',
+  'procedure TClassA.ProcA(vi: longint);',
+  'begin',
+  '  {@A_ProcA}ProcA({@i1}vI);',
+  '  {@TOBJ_ProcA}inherited;',
+  '  inherited {@TOBJ_ProcA}ProcA({@i1}vI);',
+  '  {@A_ProcB}ProcB({@i1}vI);',
+  '  inherited {@TOBJ_ProcB}ProcB({@i1}vI);',
+  'end;',
+  'procedure TClassA.ProcB(vJ: longint);',
+  'begin',
+  'end;',
+  'procedure TClassA.ProcC;',
+  'begin',
+  '  inherited; // ignore, do not raise error',
+  'end;',
+  'begin']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClassCallInheritedNoParamsAbstractFail;
@@ -10836,6 +10903,32 @@ begin
     nCannotCreateADescendantOfTheSealedXY);
 end;
 
+procedure TTestResolver.TestClass_Abstract;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  TNop = class abstract(TObject)',
+  '  end;',
+  '  TBird = class(TNop)',
+  '    constructor Create(w: word);',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'constructor TBird.Create(w: word);',
+  'begin',
+  '  inherited Create;',
+  'end;',
+  'begin',
+  '  TBird.Create;']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestClass_AbstractCreateFail;
 begin
   StartProgram(false);
@@ -11080,6 +11173,42 @@ begin
   '  o:=b;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_Message;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  FlyId = 2;',
+  '  RunStr = ''Fast'';',
+  'type',
+  '  TObject = class',
+  '    procedure Fly(var msg); message 3+FlyId;',
+  '    procedure Run(var msg); virtual; abstract; message ''prefix''+RunStr;',
+  '  end;',
+  'procedure TObject.Fly(var msg);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_Message_MissingParamFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Fly; message 3;',
+  '  end;',
+  'procedure TObject.Fly;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sMessageHandlersInvalidParams,nMessageHandlersInvalidParams);
 end;
 
 procedure TTestResolver.TestClass_PublishedClassVarFail;
@@ -16963,11 +17092,11 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassHelper_MultipleScopeHelpers;
+procedure TTestResolver.TestClassHelper_MultiHelpers;
 begin
   StartProgram(false);
   Add([
-  '{$modeswitch multiplescopehelpers}',
+  '{$modeswitch multihelpers}',
   'type',
   '  TObject = class',
   '  end;',
@@ -17454,6 +17583,56 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestTypeHelper_Double;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  Float = double;',
+  '  THelper = type helper for float',
+  '    const NPI = 3.141592;',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelper.ToStr: String;',
+  'begin',
+  'end;',
+  'var',
+  '  a,b: Float;',
+  '  s: string;',
+  'begin',
+  '  s:=(a * b.NPI).ToStr;',
+  '  s:=(a * float.NPI).ToStr;',
+  '  s:=float.NPI.ToStr;',
+  '  s:=3.2.ToStr;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_DoubleAlias;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  Float = type double;',
+  '  THelper = type helper for float',
+  '    const NPI = 3.141592;',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelper.ToStr: String;',
+  'begin',
+  'end;',
+  'var',
+  '  a,b: Float;',
+  '  s: string;',
+  'begin',
+  '  s:=(a * b.NPI).ToStr;',
+  '  s:=(a * float.NPI).ToStr;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestTypeHelper_Constructor_NewInstance;
 var
   aMarker: PSrcMarker;
@@ -17534,18 +17713,69 @@ begin
     end;
 end;
 
-procedure TTestResolver.TestTypeHelper_InterfaceFail;
+procedure TTestResolver.TestTypeHelper_Interface;
 begin
   StartProgram(false);
   Add([
   '{$modeswitch typehelpers}',
   'type',
-  '  IUnknown = interface end;',
-  '  THelper = type helper for IUnknown',
+  '  IUnknown = interface',
+  '    function GetSizes(Index: word): word;',
+  '    procedure SetSizes(Index: word; value: word);',
   '  end;',
+  '  TObject = class(IUnknown)',
+  '    function GetSizes(Index: word): word; virtual; abstract;',
+  '    procedure SetSizes(Index: word; value: word); virtual; abstract;',
+  '  end;',
+  '  THelper = type helper for IUnknown',
+  '    procedure Fly;',
+  '    class procedure Run; static;',
+  '    property Sizes[Index: word]: word read GetSizes write SetSizes; default;',
+  '  end;',
+  'var',
+  '  i: IUnknown;',
+  '  o: TObject;',
+  'procedure THelper.Fly;',
+  'begin',
+  '  i:=Self;',
+  '  o:=Self as TObject;',
+  '  Self:=nil;',
+  '  Self:=i;',
+  '  Self:=o;',
+  'end;',
+  'class procedure THelper.Run;',
+  'begin',
+  'end;',
+  'begin',
+  '  i.Fly;',
+  '  i.Fly();',
+  '  i.Run;',
+  '  i.Run();',
+  '  i.Sizes[3]:=i.Sizes[4];',
+  '  i[5]:=i[6];',
+  '  IUnknown.Run;',
+  '  IUnknown.Run();',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_Interface_ConstructorFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  THelper = type helper for IUnknown',
+  '    constructor Fly;',
+  '  end;',
+  'constructor THelper.Fly;',
+  'begin',
+  'end;',
   'begin',
   '']);
-  CheckResolverException('Type "IUnknown" cannot be extended by a type helper',nTypeXCannotBeExtendedByATypeHelper);
+  CheckResolverException('constructor is not supported',nXIsNotSupported);
 end;
 
 procedure TTestResolver.TestAttributes_Globals;

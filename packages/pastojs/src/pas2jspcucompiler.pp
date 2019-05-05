@@ -81,7 +81,8 @@ Type
   Protected
     procedure WritePrecompiledFormats; override;
     function CreateCompilerFile(const PasFileName, PCUFilename: String): TPas2jsCompilerFile; override;
-    procedure HandleOptionPCUFormat(Value: string) ; override;
+    procedure HandleOptionPCUFormat(Value: string); override;
+    property PrecompileFormat: TPas2JSPrecompileFormat read FPrecompileFormat;
   end;
 
 implementation
@@ -402,11 +403,19 @@ Var
 begin
   if PrecompileFormats.Count>0 then
   begin
-    writeHelpLine('   -JU<x>: Create precompiled units in format x.');
-    for i:=0 to PrecompileFormats.Count-1 do
-      with PrecompileFormats[i] do
-        writeHelpLine('     -JU'+Ext+': '+Description);
-    writeHelpLine('     -JU-: Disable prior -JU<x> option. Do not create precompiled units.');
+    if PrecompileFormats.Count>1 then
+    begin
+      writeHelpLine('   -JU<x>: Create precompiled units in format x.');
+      for i:=0 to PrecompileFormats.Count-1 do
+        with PrecompileFormats[i] do
+          writeHelpLine('     -JU'+Ext+':  '+Description);
+      writeHelpLine('     -JU-: Disable prior -JU<x> option. Do not create precompiled units.');
+    end else
+    begin
+      with PrecompileFormats[0] do
+        writeHelpLine('   -JU'+Ext+': Create precompiled units using '+Description);
+      writeHelpLine('   -JU-  : Disable prior -JU<x> option. Do not create precompiled units.');
+    end;
   end;
 end;
 
@@ -428,6 +437,7 @@ begin
     PF:=PrecompileFormats[i];
     if not SameText(Value,PF.Ext) then continue;
     FPrecompileFormat:=PrecompileFormats[i];
+    Options:=Options+[coPrecompile];
     Found:=true;
   end;
   if not Found then
@@ -437,13 +447,13 @@ end;
 { TPas2jsPCUCompilerFile }
 
 function TPas2jsPCUCompilerFile.CreatePCUSupport: TPCUSupport;
-
 Var
   PF: TPas2JSPrecompileFormat;
-
 begin
   // Note that if no format was preset, no files will be written
   PF:=(Compiler as TPas2jsPCUCompiler).FPrecompileFormat;
+  if (PF=nil) and (PrecompileFormats.Count>0) then
+    PF:=PrecompileFormats[0];
   if PF<>Nil then
     Result:=TFilerPCUSupport.Create(Self,PF)
   else

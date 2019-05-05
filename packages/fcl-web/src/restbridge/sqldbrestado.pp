@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2019 by the Free Pascal development team
 
-    SQLDB REST bridge : XML input/output
+    SQLDB REST bridge : ADO-styled XML input/output
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit sqldbrestxml;
+unit sqldbrestado;
 
 {$mode objfpc}{$H+}
 
@@ -23,13 +23,15 @@ uses
 
 Type
 
-  { TXMLInputStreamer }
+  { TADOInputStreamer }
 
-  TXMLInputStreamer = Class(TRestInputStreamer)
+  TADOInputStreamer = Class(TRestInputStreamer)
   private
+    FDataName: UTF8String;
+    FRowName: UTF8String;
     FXML: TXMLDocument;
     FPacket : TDOMElement;
-    FData : TDOMElement;
+    FData : TDOMElement; // Equals FPacket
     FRow : TDOMElement;
   Protected
     function GetNodeText(N: TDOmNode): UnicodeString;
@@ -43,16 +45,21 @@ Type
     Property Packet : TDOMElement Read FPacket;
     Property Data : TDOMElement Read FData;
     Property Row : TDOMElement Read FRow;
+    Property DataName : UTF8String Read FDataName Write FDataName;
+    Property RowName : UTF8String Read FRowName Write FRowName;
   end;
 
-  { TXMLOutputStreamer }
+  { TADOOutputStreamer }
 
-  TXMLOutputStreamer = Class(TRestOutputStreamer)
+  TADOOutputStreamer = Class(TRestOutputStreamer)
   Private
+    FDataName: UTF8String;
+    FRowName: UTF8String;
     FXML: TXMLDocument;
-    FData : TDOMElement;
+    FData : TDOMElement; // Equals FRoot
     FRow: TDOMElement;
     FRoot: TDomElement;
+    function CreateXSD: TDomElement;
   Public
     procedure EndData; override;
     procedure EndRow; override;
@@ -70,34 +77,37 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    function RequireMetadata : Boolean; override;
     procedure InitStreaming; override;
+    Property DataName : UTF8String Read FDataName Write FDataName;
+    Property RowName : UTF8String Read FRowName Write FRowName;
   end;
 
 implementation
 
 uses sqldbrestconst;
 
-{ TXMLInputStreamer }
+{ TADOInputStreamer }
 
-destructor TXMLInputStreamer.Destroy;
+destructor TADOInputStreamer.Destroy;
 begin
   FreeAndNil(FXML);
   inherited Destroy;
 end;
 
-class function TXMLInputStreamer.GetContentType: String;
+class function TADOInputStreamer.GetContentType: String;
 begin
   Result:='text/xml';
 end;
 
-function TXMLInputStreamer.SelectObject(aIndex: Integer): Boolean;
+function TADOInputStreamer.SelectObject(aIndex: Integer): Boolean;
 
 Var
   N : TDomNode;
   NN : UnicodeString;
 begin
   Result:=False;
-  NN:=UTF8Decode(GetString(rpRowName));
+  NN:=UTF8Decode(RowName);
   N:=FData.FindNode(NN);
   While (aIndex>0) and (N<>Nil) and (N.NodeName<>NN) and (N.NodeType<>ELEMENT_NODE) do
     begin
@@ -111,7 +121,7 @@ begin
     FRow:=Nil;
 end;
 
-Function TXMLInputStreamer.GetNodeText(N : TDOmNode) : UnicodeString;
+function TADOInputStreamer.GetNodeText(N: TDOmNode): UnicodeString;
 
 Var
   V : TDomNode;
@@ -125,7 +135,7 @@ begin
     Result:=V.NodeValue;
 end;
 
-function TXMLInputStreamer.GetContentField(aName: UTF8string): TJSONData;
+function TADOInputStreamer.GetContentField(aName: UTF8string): TJSONData;
 
 Var
   NN : UnicodeString;
@@ -137,14 +147,17 @@ begin
     Result:=TJSONString.Create(UTF8Encode(GetNodeText(N)));
 end;
 
-procedure TXMLInputStreamer.InitStreaming;
+procedure TADOInputStreamer.InitStreaming;
 
 Var
   Msg : String;
-  N : TDomNode;
   NN : UnicodeString;
 
 begin
+  if DataName='' then
+    DataName:='Data';
+  if RowName='' then
+    RowName:='Row';
   FreeAndNil(FXML);
   if Stream.Size<=0 then
     exit;
@@ -160,42 +173,26 @@ begin
   if (FXML=Nil)  then
     Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsInvalidContent),SErrInvalidXMLInput,[Msg]);
   FPacket:=FXML.DocumentElement;
-  NN:=UTF8Decode(GetString(rpXMLDocumentRoot));
-  if (NN<>'') then
-    begin
-    if FPacket.NodeName<>NN then
-      Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsInvalidContent),SErrInvalidXMLInput,[SErrMissingDocumentRoot]);
-    NN:=UTF8Decode(GetString(rpDataRoot));
-    N:=FPacket.FindNode(NN);
-    end
-  else
-    begin
-    // if Documentroot is empty, data packet is the root element
-    NN:=UTF8Decode(GetString(rpDataRoot));
-    if (Packet.NodeName=NN) then
-      N:=FPacket
-    else
-      N:=Nil
-    end;
-  if Not (Assigned(N) and (N is TDOMelement)) then
-    Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsInvalidContent),SErrInvalidXMLInputMissingElement,[NN]);
-  FData:=(N as TDOMelement);
+  NN:=UTF8Decode(DataName);
+  if FPacket.NodeName<>NN then
+    Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsInvalidContent),SErrInvalidXMLInput,[SErrMissingDocumentRoot]);
+  FData:=FPacket;
 end;
 
-{ TXMLOutputStreamer }
+{ TADOOutputStreamer }
 
 
-procedure TXMLOutputStreamer.EndData;
+procedure TADOOutputStreamer.EndData;
 begin
   FData:=Nil;
 end;
 
-procedure TXMLOutputStreamer.EndRow;
+procedure TADOOutputStreamer.EndRow;
 begin
   FRow:=Nil;
 end;
 
-procedure TXMLOutputStreamer.FinalizeOutput;
+procedure TADOOutputStreamer.FinalizeOutput;
 
 begin
 {$IFNDEF VER3_0}
@@ -216,21 +213,21 @@ begin
   FreeAndNil(FXML);
 end;
 
-procedure TXMLOutputStreamer.StartData;
+procedure TADOOutputStreamer.StartData;
 begin
-  FData:=FXML.CreateElement(UTF8Decode(GetString(rpDataRoot)));
-  FRoot.AppendChild(FData);
+  // Rows are straight under the Data packet
+  FData:=FRoot;
 end;
 
-procedure TXMLOutputStreamer.StartRow;
+procedure TADOOutputStreamer.StartRow;
 begin
   if (FRow<>Nil) then
     Raise ESQLDBRest.Create(Statuses.GetStatusCode(rsError),SErrDoubleRowStart);
-  FRow:=FXML.CreateElement(UTF8Decode(GetString(rpRowName)));
+  FRow:=FXML.CreateElement(UTF8Decode(RowName));
   FData.AppendChild(FRow);
 end;
 
-Function TXMLOutputStreamer.FieldToXML(aPair: TRestFieldPair) : TDomElement;
+function TADOOutputStreamer.FieldToXML(aPair: TRestFieldPair): TDOMElement;
 
 Var
   F : TField;
@@ -248,7 +245,7 @@ begin
   Result.AppendChild(FXML.CreateTextNode(UTF8Decode(S)));
 end;
 
-procedure TXMLOutputStreamer.WriteField(aPair: TRestFieldPair);
+procedure TADOOutputStreamer.WriteField(aPair: TRestFieldPair);
 
 Var
   D : TDOMElement;
@@ -265,39 +262,97 @@ begin
     FRow.AppendChild(D);
 end;
 
-procedure TXMLOutputStreamer.WriteMetadata(aFieldList: TRestFieldPairArray);
+function TADOOutputStreamer.CreateXSD: TDomElement;
+
+// Create XSD and append to root. Return element to which field list must be appended.
 
 Var
-  M : TDOMElement;
+  SN,N,E,TLN : TDomElement;
+
+begin
+  SN:=FXML.CreateElement('xs:schema');
+  SN['id']:=Utf8Decode(DataName);
+  SN['xmlns']:='';
+  SN['xmlns:xs']:='http://www.w3.org/2001/XMLSchema';
+  SN['xmlns:msdata']:= 'urn:schemas-microsoft-com:xml-msdata';
+  FRoot.AppendChild(SN);
+  // Add table list with 1 table.
+  // Element
+  N:=FXML.CreateElement('xs:element');
+  SN.AppendChild(N);
+  N['name']:=UTF8Decode(DataName);
+  N['msdata:IsDataSet']:='true';
+  N['msdata:UseCurrentLocale']:='true';
+  // element is a complex type
+  TLN:=FXML.CreateElement('xs:complexType');
+  N.AppendChild(TLN);
+  // Complex type is a choice (0..Unbounded] of records
+  N:=FXML.CreateElement('xs:choice');
+  TLN.AppendChild(N);
+  N['minOccurs']:='0';
+  N['maxOccurs']:='unbounded';
+  // Each record is an element
+  E:=FXML.CreateElement('xs:element');
+  N.AppendChild(E);
+  E['name']:=Utf8Decode(RowName);
+  // Record is a complex type of fields
+  N:=FXML.CreateElement('xs:complexType');
+  E.AppendChild(N);
+  // Fields are a sequence. To this sequence, the fields may be appended.
+  Result:=FXML.CreateElement('xs:sequence');
+  N.AppendChild(Result);
+end;
+
+Const
+  XMLPropTypeNames : Array [TRestFieldType] of string = (
+   'unknown',          { rtfUnknown }
+   'xs:int',          { rftInteger }
+   'xs:int',          { rftLargeInt}
+   'xs:double',       { rftFloat }
+   'xs:dateTime',     { rftDate }
+   'xs:dateTime',     { rftTime }
+   'xs:dateTime',     { rftDateTime }
+   'xs:string',       { rftString }
+   'xs:boolean',      { rftBoolean }
+   'xs:base64Binary'  { rftBlob }
+  );
+
+procedure TADOOutputStreamer.WriteMetadata(aFieldList: TRestFieldPairArray);
+
+Var
+  FMetadata : TDOMElement;
   F : TDomElement;
   P : TREstFieldPair;
+  I : integer;
+  S : Utf8String;
+  K : TRestFieldType;
+
 begin
-  F:=FXML.CreateElement(UTF8Decode(GetString(rpMetaDataFields)));
-  M:=FXML.CreateElement(UTF8Decode(GetString(rpMetaDataRoot)));
-  M.AppendChild(F);
-  FRoot.AppendChild(M);
-  M:=F;
-  For P in aFieldList do
+  FMetadata:=CreateXSD;
+  For I:=0 to Length(aFieldList)-1 do
     begin
-    F:=FXML.CreateElement(UTF8Decode(GetString(rpMetaDataField)));
-    M.AppendChild(F);
-    F[UTF8Decode(GetString(rpFieldNameProp))]:=UTF8Decode(P.RestField.PublicName);
-    F[UTF8Decode(GetString(rpFieldTypeProp))]:=UTF8Decode(typenames[P.RestField.FieldType]);
-    Case P.RestField.FieldType of
-      rftDate : F[UTF8Decode(GetString(rpFieldDateFormatProp))]:=UTF8Decode(GetString(rpDateFormat));
-      rftTime : F[UTF8Decode(GetString(rpFieldDateFormatProp))]:=UTF8Decode(GetString(rpTimeFormat));
-      rftDateTime : F[UTF8Decode(GetString(rpFieldDateFormatProp))]:=UTF8Decode(GetString(rpDateTimeFormat));
-      rftString : F[UTF8Decode(GetString(rpFieldMaxLenProp))]:=UTF8Decode(IntToStr(P.DBField.Size));
-    end;
+    P:=aFieldList[i];
+    K:=P.RestField.FieldType;
+    S:=XMLPropTypeNames[K];
+    F:=FXML.CreateElement('xs:element');
+    F['name']:=Utf8Decode(P.Restfield.PublicName);
+    F['type']:=Utf8decode(S);
+    F['minOccurs']:='0';
+    FMetaData.AppendChild(F);
     end;
 end;
 
-class function TXMLOutputStreamer.GetContentType: String;
+class function TADOOutputStreamer.GetContentType: String;
 begin
   Result:='text/xml';
 end;
 
-procedure TXMLOutputStreamer.CreateErrorContent(aCode: Integer; const aMessage: String);
+function TADOOutputStreamer.RequireMetadata: Boolean;
+begin
+  Result:=True;
+end;
+
+procedure TADOOutputStreamer.CreateErrorContent(aCode: Integer; const aMessage: String);
 
 Var
   ErrorObj : TDomElement;
@@ -309,21 +364,27 @@ begin
   FRoot.AppendChild(ErrorObj);
 end;
 
-destructor TXMLOutputStreamer.Destroy;
+destructor TADOOutputStreamer.Destroy;
 begin
   FreeAndNil(FXML);
   inherited Destroy;
 end;
 
-procedure TXMLOutputStreamer.InitStreaming;
+procedure TADOOutputStreamer.InitStreaming;
+
 begin
   FXML:=TXMLDocument.Create;
-  FRoot:=FXML.CreateElement('datapacket');
+  FXML.XMLStandalone:=True;
+  if DataName='' then
+    DataName:='Data';
+  FRoot:=FXML.CreateElement('Data');
   FXML.AppendChild(FRoot);
+  if RowName='' then
+    RowName:='Row';
 end;
 
 Initialization
-  TXMLInputStreamer.RegisterStreamer('xml');
-  TXMLOutputStreamer.RegisterStreamer('xml');
+  TADOInputStreamer.RegisterStreamer('ado');
+  TADOOutputStreamer.RegisterStreamer('ado');
 end.
 

@@ -6,7 +6,6 @@ program compileserver;
 uses
   {$IFDEF UNIX}cthreads,{$ENDIF} httpcompiler;
 
-
 Var
   Application : THTTPCompilerApplication;
 

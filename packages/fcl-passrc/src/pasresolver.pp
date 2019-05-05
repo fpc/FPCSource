@@ -1234,7 +1234,7 @@ type
     SubType: TResolverBaseType; // for btSet, btArrayLit, btArrayOrSet, btRange
     IdentEl: TPasElement; // if set then this specific identifier is the value, can be a type
     LoTypeEl: TPasType; // can be nil for const expression, all alias resolved
-    HiTypeEl: TPasType; // same as BaseTypeEl, except alias types are not resolved
+    HiTypeEl: TPasType; // same as LoTypeEl, except alias types are not resolved
     ExprEl: TPasExpr;
     Flags: TPasResolverResultFlags;
   end;
@@ -1438,7 +1438,7 @@ type
     procedure OnFindFirst(El: TPasElement; ElScope, StartScope: TPasScope;
       FindFirstElementData: Pointer; var Abort: boolean); virtual;
     procedure OnFindCallElements(El: TPasElement; ElScope, StartScope: TPasScope;
-      FindProcsData: Pointer; var Abort: boolean); virtual; // find candidates for Name(params)
+      FindCallElData: Pointer; var Abort: boolean); virtual; // find candidates for Name(params)
     procedure OnFindProc(El: TPasElement; ElScope, StartScope: TPasScope;
       FindProcData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
@@ -4373,9 +4373,9 @@ begin
 end;
 
 procedure TPasResolver.OnFindCallElements(El: TPasElement; ElScope,
-  StartScope: TPasScope; FindProcsData: Pointer; var Abort: boolean);
+  StartScope: TPasScope; FindCallElData: Pointer; var Abort: boolean);
 var
-  Data: PFindCallElData absolute FindProcsData;
+  Data: PFindCallElData absolute FindCallElData;
   Proc, PrevProc: TPasProcedure;
   Distance: integer;
   BuiltInProc: TResElDataBuiltInProc;
@@ -4680,7 +4680,7 @@ var
   end;
 
 begin
-  //writeln('TPasResolver.OnFindProcSameSignature START ',El.Name,':',GetElementTypeName(El),' itself=',El=Data^.Proc);
+  //writeln('TPasResolver.OnFindProc START ',El.Name,':',GetElementTypeName(El),' itself=',El=Data^.Proc);
   if not (El is TPasProcedure) then
     begin
     // identifier is not a proc
@@ -4711,8 +4711,13 @@ begin
           begin
           // give a hint
           if Data^.Proc.Parent is TPasMembersType then
-            LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier_NonProc,sFunctionHidesIdentifier,
-              [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+            begin
+            if El.Visibility=visStrictPrivate then
+            else if (El.Visibility=visPrivate) and (El.GetModule<>Data^.Proc.GetModule) then
+            else
+              LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier_NonProc,sFunctionHidesIdentifier,
+                [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+            end;
           end;
       fpkMethod:
         // method hides a non proc
@@ -4732,7 +4737,7 @@ begin
     end;
 
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.OnFindProcSameSignature ',GetTreeDbg(El,2));
+  writeln('TPasResolver.OnFindProc ',GetTreeDbg(El,2));
   {$ENDIF}
   Store:=CheckOverloadProcCompatibility(Data^.Proc,Proc);
   if Data^.Kind=fpkSameSignature then
@@ -4803,7 +4808,11 @@ begin
             if (Data^.Proc.Parent is TPasMembersType) then
               begin
               ProcScope:=Proc.CustomData as TPasProcedureScope;
-              if (ProcScope.ImplProc<>nil)  // not abstract, external
+              if (Proc.Visibility=visStrictPrivate)
+                  or ((Proc.Visibility=visPrivate)
+                    and (Proc.GetModule<>Data^.Proc.GetModule)) then
+                // a private private is hidden by definition -> no hint
+              else if (ProcScope.ImplProc<>nil)  // not abstract, external
                   and (not ProcHasImplElements(ProcScope.ImplProc)) then
                 // hidden method has implementation, but no statements -> useless
                 // -> do not give a hint for hiding this useless method
@@ -4812,9 +4821,12 @@ begin
                   and (Data^.Proc.ClassType=Proc.ClassType) then
                 // do not give a hint for hiding a constructor
               else
+                begin
+                //writeln('TPasResolver.OnFindProc Proc=',Proc.PathName,' Data^.Proc=',Data^.Proc.PathName,' ',Proc.Visibility);
                 LogMsg(20171118214523,mtHint,
                   nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
                   [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+                end;
               end;
             end;
           Abort:=true;
@@ -5846,6 +5858,9 @@ var
   ptm: TProcTypeModifier;
   ObjKind: TPasObjKind;
   ParentBody: TProcedureBody;
+  HelperForType: TPasType;
+  Args: TFPList;
+  Arg: TPasArgument;
 begin
   if El.Parent is TPasProcedure then
     Proc:=TPasProcedure(El.Parent)
@@ -5940,19 +5955,28 @@ begin
         {if msDelphi in CurrentParser.CurrentModeswitches then
           begin
           // Delphi allows virtual/override in class helpers
-          // But this works differently to normal virtual/override and
-          // requires helpers to be TInterfacedObject
+          // But using them crashes in Delphi 10.3
+          // -> do not support them
           end
         }
         if Proc.IsVirtual then
           RaiseMsg(20190116215823,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'virtual'],Proc);
         if Proc.IsOverride then
           RaiseMsg(20190116215825,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'override'],Proc);
-        if (ObjKind<>okClassHelper) and IsClassMethod(Proc) and not IsClassConDestructor then
+        HelperForType:=ResolveAliasType(TPasClassType(Proc.Parent).HelperForType);
+        if (not Proc.IsStatic) and IsClassMethod(Proc) and not IsClassConDestructor then
           begin
-          if not Proc.IsStatic then
+          // non static class methods require a class
+          if (not (HelperForType.ClassType=TPasClassType))
+              or (TPasClassType(HelperForType).ObjKind<>okClass) then
             RaiseMsg(20190201153831,nClassMethodsMustBeStaticInX,sClassMethodsMustBeStaticInX,[ObjKindNames[ObjKind]],Proc);
           end;
+        if Proc.ClassType=TPasDestructor then
+          RaiseMsg(20190302151019,nXIsNotSupported,sXIsNotSupported,['destructor'],Proc);
+        if (Proc.ClassType=TPasConstructor)
+            and (HelperForType.ClassType=TPasClassType)
+            and (TPasClassType(HelperForType).ObjKind<>okClass) then
+          RaiseMsg(20190302151514,nXIsNotSupported,sXIsNotSupported,['constructor'],Proc);
         end;
       end;
       if Proc.IsAbstract then
@@ -6036,10 +6060,28 @@ begin
     if El is TPasFunctionType then
       EmitTypeHints(TPasFunctionType(El).ResultEl,TPasFunctionType(El).ResultEl.ResultType);
 
+    if Proc.PublicName<>nil then
+      ResolveExpr(Proc.PublicName,rraRead);
     if Proc.LibraryExpr<>nil then
       ResolveExpr(Proc.LibraryExpr,rraRead);
     if Proc.LibrarySymbolName<>nil then
       ResolveExpr(Proc.LibrarySymbolName,rraRead);
+    if Proc.DispIDExpr<>nil then
+      ResolveExpr(Proc.DispIDExpr,rraRead);
+    if Proc.MessageExpr<>nil then
+      begin
+      // message modifier
+      ResolveExpr(Proc.MessageExpr,rraRead);
+      Args:=Proc.ProcType.Args;
+      if Args.Count<>1 then
+        RaiseMsg(20190303223701,nMessageHandlersInvalidParams,sMessageHandlersInvalidParams,[],El);
+      Arg:=TPasArgument(Args[0]);
+      if not (Arg.Access in [argVar,argOut]) then
+        RaiseMsg(20190303223834,nMessageHandlersInvalidParams,sMessageHandlersInvalidParams,[],El);
+      if (Proc.ClassType<>TPasProcedure)
+          and (Proc.ClassType<>TPasFunction) then
+        RaiseMsg(20190303224128,nXExpectedButYFound,sXExpectedButYFound,['procedure name(var Msg);message id;',GetElementTypeName(El)],El);
+      end;
 
     if Proc.Parent is TPasMembersType then
       begin
@@ -6345,7 +6387,8 @@ begin
         SelfType:=TPasClassType(SelfType).HelperForType;
         end;
       LoSelfType:=ResolveAliasType(SelfType);
-      if LoSelfType is TPasClassType then
+      if (LoSelfType is TPasClassType)
+          and (TPasClassType(LoSelfType).ObjKind=okClass) then
         SelfArg.Access:=argConst
       else
         SelfArg.Access:=argVar;
@@ -7234,7 +7277,7 @@ begin
       else if ((HelperForType.ClassType=TPasUnresolvedSymbolRef)
           and (HelperForType.CustomData is TResElDataBaseType)) then
       else if (HelperForType.ClassType=TPasClassType)
-          and (TPasClassType(HelperForType).ObjKind=okClass) then
+          and (TPasClassType(HelperForType).ObjKind in [okClass,okInterface]) then
         begin
         if TPasClassType(HelperForType).IsForward then
           RaiseMsg(20190116200940,nTypeXIsNotYetCompletelyDefined,
@@ -9205,7 +9248,8 @@ begin
       end
     else if LTypeEl.ClassType=TPasEnumType then
       begin
-      if LeftResolved.IdentEl is TPasEnumType then
+      if (LeftResolved.IdentEl is TPasType)
+          and (ResolveAliasType(TPasType(LeftResolved.IdentEl)).ClassType=TPasEnumType) then
         begin
         // e.g. TShiftState.ssAlt
         DotScope:=PushEnumDotScope(TPasEnumType(LTypeEl));
@@ -16283,23 +16327,25 @@ begin
         if (TypeEl.ClassType=TPasClassType)
             and (TPasClassType(TypeEl).HelperForType<>nil) then
           TypeEl:=ResolveAliasType(TPasClassType(TypeEl).HelperForType) as TPasType;
-        if (TypeEl.ClassType=TPasClassType) and
-            TPasClassType(TypeEl).IsAbstract then
-          LogMsg(20190224153450,mtWarning,nCreatingAnInstanceOfAbstractClassY,
-            sCreatingAnInstanceOfAbstractClassY,[TypeEl.Name],FindData.ErrorPosEl);
         TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
         if OnlyTypeMembers and (ClassRecScope is TPasClassScope) then
           begin
-          AbstractProcs:=TPasClassScope(ClassRecScope).AbstractProcs;
-          if (length(AbstractProcs)>0) then
+          if (TypeEl.ClassType=TPasClassType) and TPasClassType(TypeEl).IsAbstract then
+            LogMsg(20190224153450,mtWarning,nCreatingAnInstanceOfAbstractClassY,
+              sCreatingAnInstanceOfAbstractClassY,[TypeEl.Name],FindData.ErrorPosEl)
+          else
             begin
-            if IsClassOf then
-              // aClass.Create: do not warn
-            else
-              for i:=0 to length(AbstractProcs)-1 do
-                LogMsg(20171227110746,mtWarning,nConstructingClassXWithAbstractMethodY,
-                  sConstructingClassXWithAbstractMethodY,
-                  [TypeEl.Name,AbstractProcs[i].Name],FindData.ErrorPosEl);
+            AbstractProcs:=TPasClassScope(ClassRecScope).AbstractProcs;
+            if (length(AbstractProcs)>0) then
+              begin
+              if IsClassOf then
+                // aClass.Create: do not warn
+              else
+                for i:=0 to length(AbstractProcs)-1 do
+                  LogMsg(20171227110746,mtWarning,nConstructingClassXWithAbstractMethodY,
+                    sConstructingClassXWithAbstractMethodY,
+                    [TypeEl.Name,AbstractProcs[i].Name],FindData.ErrorPosEl);
+              end;
             end;
           end;
         end;
@@ -17094,7 +17140,7 @@ begin
             Scope.Add(HelperScope);
             HelperScope:=HelperScope.AncestorScope;
             end;
-          if not (msMultipleScopeHelpers in CurrentParser.CurrentModeswitches) then
+          if not (msMultiHelpers in CurrentParser.CurrentModeswitches) then
             break;
           end;
         end;
@@ -20164,18 +20210,25 @@ begin
         end;
       exit;
       end;
+    if (Param.ArgType=nil) then
+      exit(cExact); // untyped argument
     if (ParamResolved.BaseType=ExprResolved.BaseType) then
       begin
       if msDelphi in CurrentParser.CurrentModeswitches then
         begin
+        // Delphi allows passing alias, but not type alias to a var arg
         if IsSameType(ParamResolved.HiTypeEl,ExprResolved.HiTypeEl,prraSimple) then
           exit(cExact);
         end
       else if IsSameType(ParamResolved.LoTypeEl,ExprResolved.LoTypeEl,prraNone) then
-        exit(cExact);
+        begin
+        // ObjFPC allows passing type alias to a var arg, but simple alias wins
+        if IsSameType(ParamResolved.HiTypeEl,ExprResolved.HiTypeEl,prraSimple) then
+          exit(cExact)
+        else
+          exit(cAliasExact);
+        end;
       end;
-    if (Param.ArgType=nil) then
-      exit(cExact); // untyped argument
     if RaiseOnError then
       RaiseIncompatibleTypeRes(20170216152452,nIncompatibleTypeArgNoVarParamMustMatchExactly,
         [IntToStr(ParamNo+1)],ExprResolved,ParamResolved,
@@ -22103,6 +22156,8 @@ begin
     exit(TPasArgument(IdentEl).ArgType<>nil)
   else if IdentEl.ClassType=TPasResultElement then
     exit(TPasResultElement(IdentEl).ResultType<>nil)
+  else if IdentEl is TPasType then
+    Result:=true
   else
     Result:=false;
 end;

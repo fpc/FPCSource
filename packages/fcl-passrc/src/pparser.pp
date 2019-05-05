@@ -3909,7 +3909,7 @@ begin
             NextToken;
             if not (CurToken in [tkChar,tkString,tkIdentifier]) then
               ParseExcTokenError(TokenInfos[tkString]);
-            Result.ExportName:=DoParseExpression(Parent);
+            Result.ExportName:=DoParseExpression(Result);
             Result.IsConst:=true; // external const is readonly
             end
           else if CurToken=tkSemicolon then
@@ -4326,7 +4326,7 @@ begin
     UngetToken;
     exit;
     end;
-  Include(varMods,ExtMod);
+  Include(VarMods,ExtMod);
   Result:=Result+';'+CurTokenText;
 
   NextToken;
@@ -4444,14 +4444,14 @@ begin
       NextToken;
       If Curtoken<>tkSemicolon then
         UnGetToken;
-      VarEl:=TPasVariable(VarList[0]);
+      VarEl:=TPasVariable(VarList[OldListCount]);
       AllowedVarMods:=[];
       if ExternalStruct then
         AllowedVarMods:=[vmExternal]
       else
         AllowedVarMods:=[vmCVar,vmExternal,vmPublic,vmExport];
       Mods:=GetVariableModifiers(VarEl,VarMods,aLibName,aExpName,AllowedVarMods);
-      if (mods='') and (CurToken<>tkSemicolon) then
+      if (Mods='') and (CurToken<>tkSemicolon) then
         NextToken;
       end
     else
@@ -4866,21 +4866,24 @@ begin
     end;
   pmMessage:
     begin
-    Repeat
-      NextToken;
-      If CurToken<>tkSemicolon then
-        begin
-        if Parent is TPasProcedure then
-          TPasProcedure(Parent).MessageName:=CurtokenString;
-        If (CurToken=tkString) and (Parent is TPasProcedure) then
-          TPasProcedure(Parent).Messagetype:=pmtString;
-        end;
-    until CurToken = tkSemicolon;
-    UngetToken;
+    NextToken;
+    E:=DoParseExpression(Parent);
+    TPasProcedure(Parent).MessageExpr:=E;
+    if E is TPrimitiveExpr then
+      begin
+      TPasProcedure(Parent).MessageName:=TPrimitiveExpr(E).Value;
+      case E.Kind of
+      pekNumber, pekUnary: TPasProcedure(Parent).Messagetype:=pmtInteger;
+      pekString: TPasProcedure(Parent).Messagetype:=pmtString;
+      end;
+      end;
+    if CurToken = tkSemicolon then
+      UngetToken;
     end;
   pmDispID:
     begin
-    TPasProcedure(Parent).DispIDExpr:=DoParseExpression(Parent,Nil);
+    NextToken;
+    TPasProcedure(Parent).DispIDExpr:=DoParseExpression(Parent);
     if CurToken = tkSemicolon then
       UngetToken;
     end;

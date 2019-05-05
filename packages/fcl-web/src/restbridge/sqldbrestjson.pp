@@ -87,7 +87,7 @@ begin
         end;
     end;
     if (FJSON=Nil)  then
-      Raise ESQLDBRest.CreateFmt(400,'Invalid JSON input: %s',[Msg]);
+      Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsInvalidContent),'Invalid JSON input: %s',[Msg]);
     end;
 end;
 
@@ -150,7 +150,7 @@ end;
 procedure TJSONOutputStreamer.StartRow;
 begin
   if (FRow<>Nil) then
-    Raise ESQLDBRest.Create(500,SErrDoubleRowStart);
+    Raise ESQLDBRest.Create(Statuses.GetStatusCode(rsError),SErrDoubleRowStart);
   FRow:=TJSONObject.Create;
   FData.Add(FRow);
 end;
@@ -165,7 +165,7 @@ begin
   Result:=Nil;
   F:=aPair.DBField;;
   If (aPair.RestField.FieldType=rftUnknown) then
-    raise ESQLDBRest.CreateFmt(500,SErrUnsupportedRestFieldType, [aPair.RestField.PublicName]);
+    raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsError),SErrUnsupportedRestFieldType, [aPair.RestField.PublicName]);
   If (F.IsNull) then
     Exit;
     Case aPair.RestField.FieldType of
@@ -190,7 +190,7 @@ Var
 begin
   N:=aPair.RestField.PublicName;
   if FRow=Nil then
-    Raise ESQLDBRest.CreateFmt(500,SErrFieldWithoutRow,[N]);
+    Raise ESQLDBRest.CreateFmt(Statuses.GetStatusCode(rsError),SErrFieldWithoutRow,[N]);
   D:=FieldToJSON(aPair);
   if (D=Nil) and ((not HasOption(ooSparse)) or (FRow is TJSONArray)) then
     D:=TJSONNull.Create;
