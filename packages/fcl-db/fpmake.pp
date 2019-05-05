@@ -831,6 +831,9 @@ begin
     with T.Dependencies do
       AddUnit('fpjsondataset');
 
+    T:=P.Targets.AddUnit('sqldbini.pp');
+    with T.Dependencies do
+      AddUnit('sqldb');
 
     P.ExamplePath.Add('tests');
     T:=P.Targets.AddExampleProgram('dbftoolsunit.pas', DBaseOSes);
