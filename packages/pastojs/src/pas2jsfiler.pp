@@ -71,13 +71,16 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 3;
+  PCUVersion = 5;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
        - pcsfAncestorResolved
        - removed msIgnoreInterfaces
-    3: changed records from function to objects
+    3: changed records from function to objects (pas2js 1.3)
+    4: precompiled JS of initialization section now only contains the statements,
+       not the whole $init function (pas2js 1.5)
+    5: removed modeswitch ignoreattributes
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -168,9 +171,9 @@ const
     'ArrayOperators',
     'ExternalClass',
     'PrefixedAttributes',
-    'IgnoreAttributes',
-    'OmitRTTI'
-    );
+    'OmitRTTI',
+    'MultipleScopeHelpers'
+    ); // Dont forget to update ModeSwitchToInt !
 
   PCUDefaultBoolSwitches: TBoolSwitches = [
     bsHints,
@@ -206,7 +209,8 @@ const
     'Macro',
     'ScopedEnums',
     'ObjectChecks',
-    'PointerMath'
+    'PointerMath',
+    'Goto'
     );
 
   PCUDefaultConverterOptions: TPasToJsConverterOptions = [coUseStrict];
@@ -348,7 +352,6 @@ const
     'Object',
     'Class',
     'Interface',
-    'Generic',
     'ClassHelper',
     'RecordHelper',
     'TypeHelper',
@@ -777,6 +780,7 @@ type
     procedure WriteProcedureScope(Obj: TJSONObject; Scope: TPas2JSProcedureScope; aContext: TPCUWriterContext); virtual;
     procedure WriteProcedure(Obj: TJSONObject; El: TPasProcedure; aContext: TPCUWriterContext); virtual;
     procedure WriteOperator(Obj: TJSONObject; El: TPasOperator; aContext: TPCUWriterContext); virtual;
+    procedure WriteAttributes(Obj: TJSONObject; El: TPasAttributes; aContext: TPCUWriterContext); virtual;
     procedure WriteExtRefSignature(Ref: TPCUFilerElementRef; aContext: TPCUWriterContext); virtual;
     function WriteExternalReference(El: TPasElement; aContext: TPCUWriterContext): TPCUFilerElementRef; virtual;
     procedure WriteExternalReferences(aContext: TPCUWriterContext); virtual;
@@ -859,11 +863,15 @@ type
     procedure Set_ModScope_AssertMsgConstructor(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_RangeErrorClass(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_RangeErrorConstructor(RefEl: TPasElement; Data: TObject);
+    procedure Set_ModScope_SystemTVarRec(RefEl: TPasElement; Data: TObject);
+    procedure Set_ModScope_SystemVarRecs(RefEl: TPasElement; Data: TObject);
     procedure Set_EnumTypeScope_CanonicalSet(RefEl: TPasElement; Data: TObject);
     procedure Set_PropertyScope_AncestorProp(RefEl: TPasElement; Data: TObject);
     procedure Set_ProcedureScope_ImplProc(RefEl: TPasElement; Data: TObject);
     procedure Set_ProcedureScope_Overridden(RefEl: TPasElement; Data: TObject);
     procedure Set_ResolvedReference_Declaration(RefEl: TPasElement; Data: TObject);
+    procedure Set_ResolvedReference_CtxConstructor(RefEl: TPasElement; Data: TObject);
+    procedure Set_ResolvedReference_CtxAttrProc(RefEl: TPasElement; Data: TObject);
   protected
     procedure RaiseMsg(Id: int64; const Msg: string = ''); overload; override;
     function CheckJSONArray(Data: TJSONData; El: TPasElement; const PropName: string): TJSONArray;
@@ -989,6 +997,7 @@ type
     procedure ReadProcedureBody(Obj: TJSONObject; El: TPasProcedure; aContext: TPCUReaderContext); virtual;
     procedure ReadProcedure(Obj: TJSONObject; El: TPasProcedure; aContext: TPCUReaderContext); virtual;
     procedure ReadOperator(Obj: TJSONObject; El: TPasOperator; aContext: TPCUReaderContext); virtual;
+    procedure ReadAttributes(Obj: TJSONObject; El: TPasAttributes; aContext: TPCUReaderContext); virtual;
     procedure ResolvePending; virtual;
     procedure ReadBuiltInSymbols(Obj: TJSONObject; ErrorEl: TPasElement); virtual;
   public
@@ -1383,7 +1392,9 @@ begin
     msExternalClass: Result:=44;
     msPrefixedAttributes: Result:=45;
     // msIgnoreInterfaces: Result:=46;
-    msIgnoreAttributes: Result:=47;
+    // msIgnoreAttributes: Result:=47;
+    msOmitRTTI: Result:=48;
+    msMultipleScopeHelpers: Result:=49;
   end;
 end;
 
@@ -2510,6 +2521,8 @@ begin
   AddReferenceToObj(Obj,'AssertMsgConstructor',Scope.AssertMsgConstructor);
   AddReferenceToObj(Obj,'RangeErrorClass',Scope.RangeErrorClass);
   AddReferenceToObj(Obj,'RangeErrorConstructor',Scope.RangeErrorConstructor);
+  AddReferenceToObj(Obj,'SystemTVarRec',Scope.SystemTVarRec);
+  AddReferenceToObj(Obj,'SystemVarRecs',Scope.SystemVarRecs);
   WritePasScope(Obj,Scope,aContext);
 end;
 
@@ -2636,6 +2649,9 @@ begin
   WriteIdentifierScope(Obj,Scope,aContext);
 
   // not needed: Scope ElevatedLocals
+  // not needed: Scope Helpers
+  if (length(Scope.Helpers)>0) and not (Scope.Element is TInterfaceSection) then
+    RaiseMsg(20190119122007,Section);
 
   WriteDeclarations(Obj,Section,aContext);
   if Section is TInterfaceSection then
@@ -2780,6 +2796,8 @@ begin
     pekArrayParams: Obj.Add('Type','A[]');
     pekFuncParams: Obj.Add('Type','F()');
     pekSet: Obj.Add('Type','[]');
+    else
+      RaiseMsg(20190222012727,El,ExprKindNames[TParamsExpr(El).Kind]);
     end;
     WriteParamsExpr(Obj,TParamsExpr(El),aContext);
     end
@@ -2956,6 +2974,11 @@ begin
       RaiseMsg(20180210130202,El);
     WriteProcedure(Obj,TPasProcedure(El),aContext);
     end
+  else if C=TPasAttributes then
+    begin
+    Obj.Add('Type','Attributes');
+    WriteAttributes(Obj,TPasAttributes(El),aContext);
+    end
   else
     begin
     {$IFDEF VerbosePCUFiler}
@@ -3009,6 +3032,8 @@ end;
 
 procedure TPCUWriter.WriteResolvedReference(Obj: TJSONObject;
   Ref: TResolvedReference; ErrorEl: TPasElement);
+var
+  Ctx: TResolvedRefContext;
 begin
   WriteResolvedRefFlags(Obj,'RefFlags',Ref.Flags,[]);
   if Ref.Access<>rraRead then
@@ -3016,7 +3041,23 @@ begin
   if Ref.WithExprScope<>nil then
     RaiseMsg(20180215132828,ErrorEl);
   if Ref.Context<>nil then
-    RaiseMsg(20180215132849,ErrorEl,GetObjName(Ref.Context));
+    begin
+    Ctx:=Ref.Context;
+    if Ctx.ClassType=TResolvedRefCtxConstructor then
+      begin
+      if TResolvedRefCtxConstructor(Ctx).Typ=nil then
+        RaiseMsg(20190222011342,ErrorEl);
+      AddReferenceToObj(Obj,'RefConstructorType',TResolvedRefCtxConstructor(Ctx).Typ);
+      end
+    else if Ctx.ClassType=TResolvedRefCtxAttrProc then
+      begin
+      if TResolvedRefCtxAttrProc(Ctx).Proc=nil then
+        RaiseMsg(20190222011427,ErrorEl);
+      AddReferenceToObj(Obj,'RefAttrProc',TResolvedRefCtxAttrProc(Ctx).Proc);
+      end
+    else
+      RaiseMsg(20180215132849,ErrorEl,GetObjName(Ref.Context));
+    end;
   AddReferenceToObj(Obj,'RefDecl',Ref.Declaration);
 end;
 
@@ -3711,7 +3752,7 @@ begin
     RaiseMsg(20180219135933,Scope.Element);
   AddReferenceToObj(Obj,'ImplProc',Scope.ImplProc);
   AddReferenceToObj(Obj,'Overridden',Scope.OverriddenProc);
-  // ClassScope: TPasClassScope; auto derived
+  // ClassOrRecordScope: TPasClassScope; auto derived
   if Scope.SelfArg<>nil then
     RaiseMsg(20180211180457,Scope.Element); // SelfArg only valid for method implementation
   // Mode: TModeSwitch: auto derived
@@ -3733,8 +3774,7 @@ begin
   WritePasElement(Obj,El,aContext);
   Scope:=El.CustomData as TPas2JSProcedureScope;
   //writeln('TPCUWriter.WriteProcedure ',GetObjName(El),' ',GetObjName(Scope),' ',Resolver.GetElementSourcePosStr(El));
-  // BEWARE: Scope can be nil for ignored methods of an interface (msIgnoreInterfaces)
-  if (Scope=nil) or (Scope.DeclarationProc=nil) then
+  if Scope.DeclarationProc=nil then
     begin
     WriteElementProperty(Obj,El,'ProcType',El.ProcType,aContext);
     WriteExpr(Obj,El,'Public',El.PublicName,aContext);
@@ -3751,12 +3791,6 @@ begin
       Obj.Add('Message',El.MessageName);
       if El.MessageType<>pmtInteger then
         Obj.Add('MessageType',PCUProcedureMessageTypeNames[El.MessageType]);
-      end;
-
-    if Scope=nil then
-      begin
-      Obj.Add('Scope',false); // msIgnoreInterfaces
-      exit;
       end;
     WriteProcedureScope(Obj,Scope,aContext);
     end
@@ -3801,6 +3835,13 @@ begin
   Obj.Add('Operator',PCUOperatorTypeNames[El.OperatorType]);
   if El.TokenBased then
     Obj.Add('TokenBased',El.TokenBased);
+end;
+
+procedure TPCUWriter.WriteAttributes(Obj: TJSONObject; El: TPasAttributes;
+  aContext: TPCUWriterContext);
+begin
+  WritePasElement(Obj,El,aContext);
+  WritePasExprArray(Obj,El,'Calls',El.Calls,aContext);
 end;
 
 procedure TPCUWriter.WriteExtRefSignature(Ref: TPCUFilerElementRef;
@@ -4402,6 +4443,28 @@ begin
     RaiseMsg(20180211123100,Scope.Element,GetObjName(RefEl));
 end;
 
+procedure TPCUReader.Set_ModScope_SystemTVarRec(RefEl: TPasElement;
+  Data: TObject);
+var
+  Scope: TPas2JSModuleScope absolute Data;
+begin
+  if RefEl is TPasRecordType then
+    Scope.SystemTVarRec:=TPasRecordType(RefEl)
+  else
+    RaiseMsg(20190215230826,Scope.Element,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_ModScope_SystemVarRecs(RefEl: TPasElement;
+  Data: TObject);
+var
+  Scope: TPas2JSModuleScope absolute Data;
+begin
+  if RefEl is TPasFunction then
+    Scope.SystemVarRecs:=TPasFunction(RefEl)
+  else
+    RaiseMsg(20190215230857,Scope.Element,GetObjName(RefEl));
+end;
+
 procedure TPCUReader.Set_EnumTypeScope_CanonicalSet(RefEl: TPasElement;
   Data: TObject);
 var
@@ -4458,6 +4521,28 @@ var
   Ref: TResolvedReference absolute Data;
 begin
   Ref.Declaration:=RefEl;
+end;
+
+procedure TPCUReader.Set_ResolvedReference_CtxConstructor(RefEl: TPasElement;
+  Data: TObject);
+var
+  Ref: TResolvedReference absolute Data;
+begin
+  if RefEl is TPasType then
+    TResolvedRefCtxConstructor(Ref.Context).Typ:=TPasType(RefEl) // no AddRef
+  else
+    RaiseMsg(20190222010314,Ref.Element,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_ResolvedReference_CtxAttrProc(RefEl: TPasElement;
+  Data: TObject);
+var
+  Ref: TResolvedReference absolute Data;
+begin
+  if RefEl is TPasConstructor then
+    TResolvedRefCtxAttrProc(Ref.Context).Proc:=TPasConstructor(RefEl) // no AddRef
+  else
+    RaiseMsg(20190222010821,Ref.Element,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.RaiseMsg(Id: int64; const Msg: string);
@@ -4881,7 +4966,7 @@ begin
         end;
     if not Found then
       begin
-      if (FileVersion<2) and (SameText(s,'ignoreinterfaces')) then
+      if (FileVersion<5) and (SameText(s,'ignoreinterfaces')) then
         // ignore old switch
       else
         RaiseMsg(20180202144054,El,'unknown ModeSwitch "'+s+'"');
@@ -5401,6 +5486,7 @@ procedure TPCUReader.ReadSectionScope(Obj: TJSONObject;
 begin
   ReadIdentifierScope(Obj,Scope,aContext);
   // not needed: Scope ElevatedLocals
+  // not needed: Scope Helpers, autogenerated in ReadClassType
   Scope.BoolSwitches:=ReadBoolSwitches(Obj,Scope.Element,'BoolSwitches',aContext.BoolSwitches);
   Scope.ModeSwitches:=ReadModeSwitches(Obj,Scope.Element,'ModeSwitches',aContext.ModeSwitches);
 end;
@@ -5696,7 +5782,6 @@ begin
     'Object': CreateClassType(okObject,Name);
     'Class': CreateClassType(okClass,Name);
     'Interface': CreateClassType(okInterface,Name);
-    'Generic': CreateClassType(okGeneric,Name);
     'ClassHelper': CreateClassType(okClassHelper,Name);
     'RecordHelper': CreateClassType(okRecordHelper,Name);
     'TypeHelper': CreateClassType(okTypeHelper,Name);
@@ -5761,6 +5846,11 @@ begin
     'ClassDestructor': ReadProc(TPasClassDestructor,Name);
     'Operator': ReadOper(TPasConstructor,Name);
     'ClassOperator': ReadOper(TPasClassConstructor,Name);
+    'Attributes':
+      begin
+      Result:=CreateElement(TPasAttributes,Name,Parent);
+      ReadAttributes(Obj,TPasAttributes(Result),aContext);
+      end;
     else
       RaiseMsg(20180210143758,Parent,'unknown type "'+LeftStr(aType,100)+'"');
     end;
@@ -5943,6 +6033,16 @@ begin
         end;
     if not Found then
       RaiseMsg(20180215134804,ErrorEl,s);
+    end;
+  if Obj.Find('RefConstructorType')<>nil then
+    begin
+    Ref.Context:=TResolvedRefCtxConstructor.Create;
+    ReadElementReference(Obj,Ref,'RefConstructorType',@Set_ResolvedReference_CtxConstructor);
+    end
+  else if Obj.Find('RefAttrProc')<>nil then
+    begin
+    Ref.Context:=TResolvedRefCtxAttrProc.Create;
+    ReadElementReference(Obj,Ref,'RefAttrProc',@Set_ResolvedReference_CtxAttrProc);
     end;
 end;
 
@@ -6265,6 +6365,8 @@ begin
   ReadElementReference(Obj,Scope,'AssertMsgConstructor',@Set_ModScope_AssertMsgConstructor);
   ReadElementReference(Obj,Scope,'RangeErrorClass',@Set_ModScope_RangeErrorClass);
   ReadElementReference(Obj,Scope,'RangeErrorConstructor',@Set_ModScope_RangeErrorConstructor);
+  ReadElementReference(Obj,Scope,'SystemTVarRec',@Set_ModScope_SystemTVarRec);
+  ReadElementReference(Obj,Scope,'SystemVarRecs',@Set_ModScope_SystemVarRecs);
   ReadPasScope(Obj,Scope,aContext);
 end;
 
@@ -6925,6 +7027,8 @@ var
   Data: TJSONData;
   Scope: TPas2JSClassScope;
   Ref: TResolvedReference;
+  Parent: TPasElement;
+  SectionScope: TPasSectionScope;
 begin
   ReadBoolean(Obj,'Forward',El.IsForward,El);
 
@@ -6986,6 +7090,22 @@ begin
     begin
     ReadClassScopeAbstractProcs(Obj,Scope);
     ReadClassScopeInterfaces(Obj,Scope);
+
+    if El.ObjKind in okAllHelpers then
+      begin
+      // restore cached helpers in interface
+      Parent:=El.Parent;
+      while Parent<>nil do
+        begin
+        if Parent.ClassType=TInterfaceSection then
+          begin
+          SectionScope:=Parent.CustomData as TPasSectionScope;
+          Resolver.AddHelper(El,SectionScope.Helpers);
+          break;
+          end;
+        Parent:=Parent.Parent;
+        end;
+      end;
     end;
 end;
 
@@ -7328,8 +7448,9 @@ begin
   ReadElementReference(Obj,Scope,'ImplProc',@Set_ProcedureScope_ImplProc);
   ReadElementReference(Obj,Scope,'Overridden',@Set_ProcedureScope_Overridden);
   if Proc.Parent is TPasMembersType then
-    Scope.ClassOrRecordScope:=Proc.Parent.CustomData as TPasClassOrRecordScope; // no AddRef
-  // ClassScope: TPasClassScope; auto derived
+    Scope.ClassRecScope:=Proc.Parent.CustomData as TPasClassOrRecordScope // no AddRef
+  else
+    ; // set via Set_ProcedureScope_ImplProc
   // Scope.SelfArg only valid for method implementation
 
   Scope.Flags:=ReadProcScopeFlags(Obj,Proc,'SFlags',[]);
@@ -7346,8 +7467,8 @@ var
   DeclProc: TPasProcedure;
 begin
   // Note: the References are stored in the scope object of the declaration proc,
-  //       OTOH in the JSON they are stored in the scope of the implementation
-  //       proc, so that all references can be resolved immediately.
+  //       But TPCUWriter stores them in the implementation scope, so that all
+  //       references can be resolved immediately.
   if ImplScope.ImplProc<>nil then
     RaiseMsg(20180318212631,ImplScope.Element);
   DeclProc:=ImplScope.DeclarationProc;
@@ -7500,6 +7621,13 @@ begin
     end;
   if ReadBoolean(Obj,'TokenBased',b,El) then
     El.TokenBased:=b;
+end;
+
+procedure TPCUReader.ReadAttributes(Obj: TJSONObject; El: TPasAttributes;
+  aContext: TPCUReaderContext);
+begin
+  ReadPasElement(Obj,El,aContext);
+  ReadPasExprArray(Obj,El,'Calls',El.Calls,aContext);
 end;
 
 procedure TPCUReader.ResolvePending;

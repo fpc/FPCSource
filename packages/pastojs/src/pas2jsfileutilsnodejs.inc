@@ -142,6 +142,18 @@ begin
     Result:='';
 end;
 
+function IsUNCPath(const Path: String): Boolean;
+begin
+  Result := false;
+  if Path='' then ;
+end;
+
+function ExtractUNCVolume(const Path: String): String;
+begin
+  Result := '';
+  if Path='' then ;
+end;
+
 function FileIsWritable(const AFilename: string): boolean;
 begin
   try

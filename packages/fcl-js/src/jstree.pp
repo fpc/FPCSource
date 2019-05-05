@@ -439,6 +439,13 @@ Type
     Class function PostFixOperatorToken : tjsToken; override;
   end;
 
+  { TJSUnaryBracketsExpression - e.g. '(A)' }
+
+  TJSUnaryBracketsExpression = Class(TJSUnaryExpression)
+  Public
+    Class function PrefixOperatorToken : tjsToken; override;
+    Class function PostFixOperatorToken : tjsToken; override;
+  end;
 
   { TJSBinary - base class }
 
@@ -1430,6 +1437,18 @@ end;
 Class function TJSThrowStatement.PrefixOperatorToken: tjsToken;
 begin
   Result:=tjsThrow;
+end;
+
+{ TJSUnaryBracketsExpression }
+
+class function TJSUnaryBracketsExpression.PrefixOperatorToken: tjsToken;
+begin
+  Result:=tjsBraceOpen;
+end;
+
+class function TJSUnaryBracketsExpression.PostFixOperatorToken: tjsToken;
+begin
+  Result:=tjsBraceClose;
 end;
 
 { TJSUnaryPostMinusMinusExpression }

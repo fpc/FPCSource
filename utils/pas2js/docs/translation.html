@@ -57,6 +57,7 @@
     <a href="#classof">Translating class-of type</a><br>
     <a href="#tobjectfree">Translating TObject.Free</a><br>
     <a href="#classinterfaces">Translating class interfaces</a><br>
+    <a href="#helpers">Translating helpers</a><br>
     <a href="#attributes">Translating attributes</a><br>
     <a href="#tryfinally">Translating try..finally</a><br>
     <a href="#tryexcept">Translating try..except</a><br>
@@ -158,8 +159,9 @@ Put + after a boolean switch option to enable it, - to disable it
    -Jl    : lower case identifiers
    -Jm    : generate source maps
      -Jmsourceroot=&lt;x&gt; : use x as "sourceRoot", prefix URL for source file names.
-     -Jmbasedir=&lt;x&gt; : write source file names relative to directory x.
+     -Jmbasedir=&lt;x&gt; : write source file names relative to directory x, default is map file folder.
      -Jminclude : include Pascal sources in source map.
+     -Jmabsolute: store absolute filenames, not relative.
      -Jmxssiheader : start source map with XSSI protection )]}.
      -Jm- : disable generating source maps
    -Jo&lt;x&gt; : Enable or disable extra option. The x is case insensitive:
@@ -513,7 +515,7 @@ function(){
     <li><b>Integers overflows</b> at runtime differ from Delphi/FPC, due to the double format.
       For example adding <i>var i: byte = 200; ... i:=i+100;</i> will result in
       <i>i=300</i> instead of <i>i=44</i> as in Delphi/FPC.
-      When range checking <i>{$R+}</i> is enabled <i>i=300</i> will raise an ERangeError.</li>
+      When range checking <i>{$R+}</i> is enabled <i>i:=300</i> will raise an ERangeError.</li>
     <li><b>type cast integer to integer</b>, e.g. <i>byte(aLongInt)</i>
       <ul>
         <li>with range checking enabled: error if outside range</li>
@@ -593,8 +595,8 @@ End.
       <li><i>Double := Currency</i> -> <i>Double = Currency/10000</i></li>
       <li><i>Currency := Double</i> -> <i>Currency = Math.floor(Double*10000)</i></li>
       <li><i>JSValue := Currency</i> -> <i>JSValue = Currency/10000</i></li>
-      <li>Keep in mind that a double has only 52 bits for the number, so calculating
-      values greater than 450,359,962,737 might give a different result than in Delphi/FPC.
+      <li>Keep in mind that a double has only 54 bits for the number, so calculating
+      values greater than 900,719,925,474 might give a different result than in Delphi/FPC.
       See SysUtils.MinCurrency/MaxCurrency</li>
     </ul>
     </div>
@@ -728,12 +730,12 @@ function(){
           <li>property, class property, array property, default array property</li>
           <li>sub types</li>
           <li>constructor</li>
+          <li>class constructor</li>
         </ul>
       </li>
       <li>Not yet implemented:
         <ul>
           <li>operator overloading</li>
-          <li>class constructor</li>
           <li>reference counted interfaces as fields</li>
           <li>Interfaces as nested types</li>
           <li>default non array property</li>
@@ -1516,7 +1518,15 @@ function(){
     <li>In Delphi/FPC an empty array is <i>nil</i>. In JS it can be <i>null</i> or <i>[]</i>.
      For compatibility comparing an array with <i>nil</i> checks for <i>length(a)>0</i>.</li>
     <li><i>function Assigned(array): boolean</i>  results true iff <i>length(array)>0</i>.</li>
-    <li>Not yet implemented: array of const.</li>
+    <li>array of const:
+      <ul>
+      <li>Works the same: vtInteger, vtBoolean, vtPointer, vtObject, vtClass, vtWideChar, vtInterface, vtUnicodeString</li>
+      <li>''longword'' is converted to ''vtNativeInt''. Delphi/FPC converts to ''vtInteger'', changing big numbers to negative numbers.</li>
+      <li>vtExtended is double, Delphi/FPC: PExtended</li>
+      <li>vtCurrency is currency, Delphi/FPC: PCurrency</li>
+      <li>Not supported: vtChar, vtString, vtPChar, vtPWideChar, vtAnsiString, vtVariant, vtWideString, vtInt64, vtQWord</li>
+      <li>only in pas2js: vtNativeInt, vtJSValue</li>
+      </ul></li>
     <li>Assignation using constant array, e.g. <i>a:=[1,1,2];</i></li>
     <li>String like operation: + operator concatenates arrays. e.g. <i>a:=[1]+[2];</i>.
       This is controlled by modeswitch arrayoperators, which is enabled in mode delphi.</li>
@@ -1596,11 +1606,20 @@ function(){
     <li><i>Class.$unitname</i> is the unit name. E.g. <i>TClassA.$unitname == 'MyModule'</i>.</li>
     <li>The "<i>is</i>"-operator is implemented using "<i>isPrototypeOf</i>". Note that "<i>instanceof</i>" cannot be used, because classes are JS objects.</li>
     <li>The "<i>as</i>" operator is implemented as <i>rtl.as(Object,Class)</i>.</li>
-    <li>Supported: constructor, destructor, private, protected, public,
-      strict private, strict protected, class vars, class methods, external methods,
-      virtual, override, abstract, call inherited, assigned(), type cast,
-      overloads, reintroduce, sealed class, nested types.</li>
-    <li>Not supported: class constructor/destructor</li>
+    <li>Supported:
+      <ul>
+      <li>constructor, destructor</li>
+      <li>private, protected, public, strict private, strict protected</li>
+      <li>class vars, const, nested types</li>
+      <li>methods, class methods, class constructor, external methods</li>
+      <li>method modifiers overload, reintroduce, virtual, override, abstract, static, external name</li>
+      <li>call inherited</li>
+      <li>assigned()</li>
+      <li>type cast</li>
+      <li>class sealed, class abstract</li>
+      </ul>
+      </li>
+    <li>Not supported: class destructor</li>
     <li>Property:
       <ul>
       <li>References are replaced by getter/setter.</li>
@@ -1608,7 +1627,7 @@ function(){
       stored modifier, index modifier.</li>
       <li>Not supported: getter/setter to an array element,
       e.g. <i>property A: char read FArray[0];</i> </li>
-      <li>Class property getter/setter are not static as in Delphi.</li>
+      <li>Class property getter/setter can be static or non static. Delphi: must be static.</li>
       <li>The <i>Index</i> modifier supports any constant, e.g. a string, while
       Delphi only allows an ordinal (longint). -2147483648 is not a special
       number in pas2js. Overriding a property with an index property is allowed
@@ -1831,9 +1850,84 @@ function(){
     </div>
 
     <div class="section">
+    <h2 id="helpers">Translating helpers</h2>
+    Pas2js supports class helpers, record helpers and type helpers since 1.3.
+    The extend is only virtual, the helped type is kept untouched.
+    <br>
+    <ul>
+      <li>A <b>class helper</b> can "extend" Pascal classes and external JS classes.</li>
+      <li>A <b>record helper</b> can "extend" a record type. In $mode delphi a
+        record helper can extend other types as well, see <i>type helper</i></li>
+      <li>A <b>type helper</b> can extend all base types like integer, string,
+        char, boolean, double, currency, and some user types like enumeration,
+        set, range and array types. It cannot extend interfaces or helpers.<br>
+        Type helpers are enabled by default in <i>$mode delphi</i> and disabled in <i>$mode objfpc</i>.
+        You can enable them with <b>{$modeswitch typehelpers}</b>.
+        </li>
+      <li>By default only one helper is active per type, same as in FPC/Delphi.
+        If there are multiple helpers for the same type, the last helper in scope wins.<br>
+        A class with ancestors can have one active helper per ancestor type, so
+        multiple helpers can be active, same as FPC/Delphi.<br>
+        Using <b>{$modeswitch multiplescopehelpers}</b> you can activate all helpers
+        within scope.
+        </li>
+      <li>Nested helpers (e.g. <i>TDemo.TSub.THelper</i>) are elevated.
+        Visibility is ignored. Same as FPC/Delphi.</li>
+      <li>Helpers cannot be forward defined (e.g. no <i>THelper = helper;</i>).</li>
+      <li>Helpers must not have fields.</li>
+      <li><b>Class Var, Const, Type</b></li>
+      <li><b>Visibility</b> : <i>strict private .. published</i></li>
+      <li><b>Function, procedure</b>:
+        In class and record helpers <i>Self</i> is the class/record instance. For other
+        types Self is a reference to the passed value.
+      </li>
+      <li><b>Class function, class procedure</b>: Helpers for Pascal classes/records can
+        add <i>static</i> and non static class functions. Helpers for external classes
+        and other types can only add static class functions.</li>
+      <li><b>Constructor</b>. Not for external classes. Works similar to
+        construcors, i.e. <i>THelpedClass.Create</i> creates a new instance, while
+        <i>AnObj.Create</i> calls the constructor function as normal method. Note that
+        Delphi does not allow calling helper construcors as normal method.</li>
+      <li>no destructor</li>
+      <li><b>Property</b> : getters/setters can refer to members of the helper, its
+        ancestors and the helped class/record.</li>
+      <li><b>Class property</b> : getter can be static or non static. Delphi/FPC only allows static.</li>
+      <li><b>Ancestors</b> : Helpers can have an ancestor helper, but they
+      do not have a shared root class, especially not <i>TObject</i>.</li>
+      <li><b>no virtual, abstract, override</b>. Delphi allows them, but 10.3 crashes when calling.</li>
+      <li><b>inherited</b> :
+        <i>inherited</i> inside a method of a class/record calls helper of ancestor.<br>
+        <i>inherited</i> inside a helper depends on the $mode:
+        <ul>
+        <li> <i>$mode objfpc</i> : <i>inherited;</i> and <i>inherited Name(args);</i>
+          work the same and searches first in HelperForType, then in ancestor(s).</li>
+        <li><i>$mode delphi: inherited;</i> : skip ancestors and HelperForType,
+          searches first in helper(s) of ancestor of HelperForType.</li>
+        <li><i>$mode delphi: inherited name(args);</i> :
+          same as $mode objfpc first searches in HelperForType, then Ancestor(s)</li>
+        </ul>
+        In any case if <i>inherited;</i> has no ancestor to call, it is silently ignored,
+        while <i>inherited Name;</i> gives an error.
+        </li>
+      <li><b>RTTI</b>: <i>typeinfo(somehelper)</i> returns a pointer to <i>TTypeInfoHelper</i> with <i>Kind tkHelper</i>.</li>
+      <li>There are some special cases when using a <b>type helper</b> function/procedure on a value:
+        <ul>
+        <li><i>function result</i> : using a temporary variable</li>
+        <li><i>const, const argument</i> : When helper function tries to assign a value,
+        pas2js raises a EPropReadOnly exception. FPC/Delphi use a temporary variable allowing the write. </li>
+        <li><i>property</i> : uses only the getter, ignoring the setter.
+          This breaks OOP, as it allows to change fields without calling the setter.
+          This is FPC/Delphi compatible.</li>
+        <li><i>with value do ;</i> : uses a temporary variable. Delphi/FPC do not support it.</li>
+        </ul>
+      </li>
+    </ul>
+    </div>
+
+    <div class="section">
     <h2 id="attributes">Translating attributes</h2>
-    Attributes are not yet implemented. To make porting code easier there
-    is a <i>{$modeswitch ignoreattributes}</i>, that ignores attributes.
+    Attributes are stored in the TTypeInfo objects as streams stored in an array.
+    See the <i>TypInfo</i> function <i>GetRTTIAttributes</i> for details.
     </div>
 
     <div class="section">
@@ -2949,8 +3043,8 @@ End.
       <li>SmallInt - signed 16-bit</li>
       <li>LongWord - unsigned 32-bit</li>
       <li>LongInt - signed 32-bit</li>
-      <li>NativeUInt - unsigned 52-bit</li>
-      <li>NativeInt - signed 53-bit</li>
+      <li>NativeUInt - unsigned 53-bit</li>
+      <li>NativeInt - signed 54-bit</li>
     </ul>
     Notes:
     <ul>
@@ -2993,22 +3087,20 @@ End.
     <li>Intrinsic procedure WriteStr(out s: string; params...)</li>
     <li><i>Debugger;</i> converts to <i>debugger;</i>. If a debugger is running
       it will break on this line just like a break point.</li>
-    <li><i>concat(string1,string2,...)</i> since 1.3</li>
+    <li><i>function concat(string1,string2,...): string</i> since 1.3</li>
+    <li><i>$mode delphi: function lo|hi(integer): byte</i> since 1.3</li>
+    <li><i>$mode objfpc: function lo|hi(integer): byte|word|longword</i> since 1.3</li>
     </ul>
     </div>
 
     <div class="section">
     <h2 id="notsupportedelements">Not supported elements</h2>
     <ul>
-    <li>Advanced records</li>
-    <li>Anonymous functions</li>
-    <li>Array of const</li>
-    <li>Attributes</li>
+    <li>Class destructor</li>
     <li>Enums with custom values</li>
     <li>Generics</li>
     <li>Global properties</li>
     <li>Futures</li>
-    <li>Helpers for types, classes, records</li>
     <li>Inline</li>
     <li>Library</li>
     <li>Objects</li>
@@ -3017,7 +3109,6 @@ End.
     <li>Package</li>
     <li>Resources</li>
     <li>RTTI extended, $RTTI</li>
-    <li>Runtime checks: Overflow -Co, $Q</li>
     <li>Variant records</li>
     <li>Variants</li>
     </ul>

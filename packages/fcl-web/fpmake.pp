@@ -48,6 +48,7 @@ begin
     P.SourcePath.Add('src/webdata');
     P.SourcePath.Add('src/jsonrpc');
     P.SourcePath.Add('src/hpack');
+    P.SourcePath.Add('src/restbridge');
 
     T:=P.Targets.AddUnit('httpdefs.pp');
     T.ResourceStrings:=true;
@@ -292,6 +293,85 @@ begin
     With T.Dependencies do  
       begin
       AddUnit('uhpackimp');
+      end;
+    
+    T:=P.Targets.AddUnit('sqldbrestconst.pp');
+    T.ResourceStrings:=true;
+    
+    T:=P.Targets.AddUnit('sqldbrestschema.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestio.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestconst');
+      AddUnit('sqldbrestschema');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestdata.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestconst');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestio');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestauth.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestconst');
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestjson.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestbridge.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestdata');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestcds.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestcsv.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestxml.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestini.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestbridge');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestauthini.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestauth');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
       end;
     
 {$ifndef ALLPACKAGES}

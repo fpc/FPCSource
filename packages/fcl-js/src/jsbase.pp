@@ -23,11 +23,11 @@ uses
   {$ifdef pas2js}
   js,
   {$endif}
-  Classes, SysUtils;
+  Classes;
 
 const
-  MinSafeIntDouble = -$fffffffffffff-1; // -4503599627370496
-  MaxSafeIntDouble =  $fffffffffffff; //  4503599627370495
+  MinSafeIntDouble = -$1fffffffffffff; // -9007199254740991 53 bits (52 explicitly stored)
+  MaxSafeIntDouble =  $1fffffffffffff; //  9007199254740991
 Type
   TJSType = (jstUNDEFINED,jstNull,jstBoolean,jstNumber,jstString,jstObject,jstReference,jstCompletion);
 

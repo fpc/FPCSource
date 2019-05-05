@@ -21,7 +21,7 @@ uses
   MemCheck,
   {$ENDIF}
   Classes, consoletestrunner, tcconverter, tcmodules, tcoptimizations, tcsrcmap,
-  tcfiler, Pas2JsFiler, tcunitsearch, tcprecompile;
+  tcfiler, Pas2JsFiler, tcunitsearch, tcprecompile, pas2jsuseanalyzer;
 
 type
 

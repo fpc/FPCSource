@@ -24,9 +24,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
+  jstree,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver, PasUseAnalyzer,
-  FPPas2Js, Pas2JsFiler,
-  tcmodules, jstree;
+  Pas2jsUseAnalyzer, FPPas2Js, Pas2JsFiler,
+  tcmodules;
 
 type
 
@@ -34,11 +35,11 @@ type
 
   TCustomTestPrecompile = Class(TCustomTestModule)
   private
-    FAnalyzer: TPasAnalyzer;
+    FAnalyzer: TPas2JSAnalyzer;
     FInitialFlags: TPCUInitialFlags;
     FPCUReader: TPCUReader;
     FPCUWriter: TPCUWriter;
-    FRestAnalyzer: TPasAnalyzer;
+    FRestAnalyzer: TPas2JSAnalyzer;
     procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
       out Count: integer);
     function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
@@ -120,9 +121,10 @@ type
     procedure CheckRestoredMethodResolution(const Path: string; Orig, Rest: TPasMethodResolution); virtual;
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
+    procedure CheckRestoredAttributes(const Path: string; Orig, Rest: TPasAttributes); virtual;
   public
-    property Analyzer: TPasAnalyzer read FAnalyzer;
-    property RestAnalyzer: TPasAnalyzer read FRestAnalyzer;
+    property Analyzer: TPas2JSAnalyzer read FAnalyzer;
+    property RestAnalyzer: TPas2JSAnalyzer read FRestAnalyzer;
     property PCUWriter: TPCUWriter read FPCUWriter write FPCUWriter;
     property PCUReader: TPCUReader read FPCUReader write FPCUReader;
     property InitialFlags: TPCUInitialFlags read FInitialFlags;
@@ -155,13 +157,14 @@ type
     procedure TestPC_Proc_Arg;
     procedure TestPC_ProcType;
     procedure TestPC_Proc_Anonymous;
+    procedure TestPC_Proc_ArrayOfConst;
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
     procedure TestPC_ClassConstructor;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
     procedure TestPC_ClassInterface;
-    procedure TestPC_IgnoreAttributes;
+    procedure TestPC_Attributes;
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -278,7 +281,7 @@ procedure TCustomTestPrecompile.SetUp;
 begin
   inherited SetUp;
   FInitialFlags:=TPCUInitialFlags.Create;
-  FAnalyzer:=TPasAnalyzer.Create;
+  FAnalyzer:=TPas2JSAnalyzer.Create;
   Analyzer.Resolver:=Engine;
   Analyzer.Options:=Analyzer.Options+[paoImplReferences];
   Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
@@ -378,7 +381,7 @@ begin
     end;
 
     // analyze
-    FRestAnalyzer:=TPasAnalyzer.Create;
+    FRestAnalyzer:=TPas2JSAnalyzer.Create;
     FRestAnalyzer.Resolver:=RestResolver;
     try
       RestAnalyzer.AnalyzeModule(RestResolver.RootElement);
@@ -617,6 +620,8 @@ begin
   CheckRestoredReference(Path+'.AssertMsgConstructor',Orig.AssertMsgConstructor,Rest.AssertMsgConstructor);
   CheckRestoredReference(Path+'.RangeErrorClass',Orig.RangeErrorClass,Rest.RangeErrorClass);
   CheckRestoredReference(Path+'.RangeErrorConstructor',Orig.RangeErrorConstructor,Rest.RangeErrorConstructor);
+  CheckRestoredReference(Path+'.SystemTVarRec',Orig.SystemTVarRec,Rest.SystemTVarRec);
+  CheckRestoredReference(Path+'.SystemVarRecs',Orig.SystemVarRecs,Rest.SystemVarRecs);
   CheckRestoredPasScope(Path,Orig,Rest);
 end;
 
@@ -668,6 +673,7 @@ procedure TCustomTestPrecompile.CheckRestoredSectionScope(const Path: string;
 var
   i: Integer;
   OrigUses, RestUses: TPas2JSSectionScope;
+  OrigHelperEntry, RestHelperEntry: TPRHelperEntry;
 begin
   if Orig.BoolSwitches<>Rest.BoolSwitches then
     Fail(Path+'.BoolSwitches Orig='+BoolSwitchesToStr(Orig.BoolSwitches)+' Rest='+BoolSwitchesToStr(Rest.BoolSwitches));
@@ -684,6 +690,18 @@ begin
       Fail(Path+'.UsesScopes['+IntToStr(i)+'] Orig='+GetObjName(OrigUses)+' Rest='+GetObjName(RestUses));
     CheckRestoredReference(Path+'.UsesScopes['+IntToStr(i)+']',OrigUses.Element,RestUses.Element);
     end;
+  AssertEquals(Path+' length(Helpers)',length(Orig.Helpers),length(Rest.Helpers));
+  for i:=0 to length(Orig.Helpers)-1 do
+    begin
+    OrigHelperEntry:=TPRHelperEntry(Orig.Helpers[i]);
+    RestHelperEntry:=TPRHelperEntry(Rest.Helpers[i]);
+    if OrigHelperEntry.ClassType<>RestHelperEntry.ClassType then
+      Fail(Path+'.Helpers['+IntToStr(i)+'] Orig='+GetObjName(OrigHelperEntry)+' Rest='+GetObjName(RestHelperEntry));
+    AssertEquals(Path+'.Helpers['+IntToStr(i)+'].Added',OrigHelperEntry.Added,RestHelperEntry.Added);
+    CheckRestoredReference(Path+'.Helpers['+IntToStr(i)+'].Helper',OrigHelperEntry.Helper,RestHelperEntry.Helper);
+    CheckRestoredReference(Path+'.Helpers['+IntToStr(i)+'].HelperForType',OrigHelperEntry.HelperForType,RestHelperEntry.HelperForType);
+    end;
+
   AssertEquals(Path+'.Finished',Orig.Finished,Rest.Finished);
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
@@ -810,7 +828,7 @@ begin
     AssertEquals(Path+'.ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
     CheckRestoredReference(Path+'.OverriddenProc',Orig.OverriddenProc,Rest.OverriddenProc);
 
-    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassOrRecordScope,Rest.ClassOrRecordScope);
+    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassRecScope,Rest.ClassRecScope);
     CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
     if Orig.Flags<>Rest.Flags then
       Fail(Path+'.Flags');
@@ -1164,6 +1182,8 @@ begin
     CheckRestoredModule(Path,TPasModule(Orig),TPasModule(Rest))
   else if C.InheritsFrom(TPasSection) then
     CheckRestoredSection(Path,TPasSection(Orig),TPasSection(Rest))
+  else if C=TPasAttributes then
+    CheckRestoredAttributes(Path,TPasAttributes(Orig),TPasAttributes(Rest))
   else
     Fail(Path+': unknown class '+C.ClassName);
 
@@ -1551,6 +1571,12 @@ begin
     Fail(Path+'.OperatorType Orig='+PCUOperatorTypeNames[Orig.OperatorType]+' Rest='+PCUOperatorTypeNames[Rest.OperatorType]);
   AssertEquals(Path+'.TokenBased',Orig.TokenBased,Rest.TokenBased);
   CheckRestoredProcedure(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredAttributes(const Path: string;
+  Orig, Rest: TPasAttributes);
+begin
+  CheckRestoredPasExprArray(Path+'.Calls',Orig.Calls,Rest.Calls);
 end;
 
 { TTestPrecompile }
@@ -2008,6 +2034,23 @@ begin
   WriteReadUnit;
 end;
 
+procedure TTestPrecompile.TestPC_Proc_ArrayOfConst;
+begin
+  StartUnit(true,[supTVarRec]);
+  Add([
+  'interface',
+  'procedure Fly(arr: array of const);',
+  'implementation',
+  'procedure Fly(arr: array of const);',
+  'begin',
+  '  if arr[1].VType=1 then ;',
+  '  if arr[2].VInteger=1 then ;',
+  '  Fly([true,0.3]);',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
 procedure TTestPrecompile.TestPC_Class;
 begin
   StartUnit(false);
@@ -2179,22 +2222,35 @@ begin
   WriteReadUnit;
 end;
 
-procedure TTestPrecompile.TestPC_IgnoreAttributes;
+procedure TTestPrecompile.TestPC_Attributes;
 begin
   StartUnit(false);
   Add([
   'interface',
-  '{$modeswitch ignoreattributes}',
+  '{$modeswitch PrefixedAttributes}',
   'type',
-  '  [custom1, custom2(1+3,''foo'')] [mod1.custom3]',
   '  TObject = class',
-  '    [custom5()] FS: string;',
-  '    [customProp] property S: string read FS;',
+  '    constructor Create;',
+  '  end;',
+  '  TCustomAttribute = class',
+  '    constructor Create(Id: word);',
+  '  end;',
+  '  [Missing]',
+  '  TBird = class',
+  '    [TCustom]',
+  '    FField: word;',
+  '  end;',
+  '  TRec = record',
+  '    [TCustom]',
+  '    Size: word;',
   '  end;',
   'var',
-  '  [custom6]',
+  '  [TCustom, TCustom(3)]',
   '  o: TObject;',
   'implementation',
+  '[TCustom]',
+  'constructor TObject.Create; begin end;',
+  'constructor TCustomAttribute.Create(Id: word); begin end;',
   'end.',
   '']);
   WriteReadUnit;

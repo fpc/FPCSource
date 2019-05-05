@@ -777,7 +777,7 @@ begin
     else If AObject is TObjectList then
       Result.Add('Objects',StreamObjectList(TObjectList(AObject)))
     else if (jsoStreamTlist in Options) and (AObject is TList) then
-      Result := TJSONObject(StreamTList(TList(AObject)))
+      Result.Add('Objects', StreamTList(TList(AObject)))
     else
       begin
       PIL:=TPropInfoList.Create(AObject,tkProperties);

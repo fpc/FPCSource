@@ -1273,18 +1273,20 @@ procedure TTestProcedureFunction.TestOperatorNames;
 
 Var
   t : TOperatorType;
+  S: String;
 
 begin
   For t:=Succ(otUnknown) to High(TOperatorType) do
       begin
+      S:=GetEnumName(TypeInfo(TOperatorType),Ord(T));
       ResetParser;
       if t in UnaryOperators then
         AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorNames[t]]))
       else
         AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorNames[t]]));
       ParseOperator;
-      AssertEquals('Token based',False,FOperator.TokenBased);
-      AssertEquals('Correct operator type',T,FOperator.OperatorType);
+      AssertEquals(S+': Token based',t in [otIn],FOperator.TokenBased);
+      AssertEquals(S+': Correct operator type',T,FOperator.OperatorType);
       if t in UnaryOperators then
         AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
       else

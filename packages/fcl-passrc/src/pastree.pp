@@ -57,10 +57,10 @@ resourcestring
   SPasTreeObjectType = 'object';
   SPasTreeClassType = 'class';
   SPasTreeInterfaceType = 'interface';
-  SPasTreeGenericType = 'generic class';
   SPasTreeSpecializedType = 'specialized class type';
-  SPasClassHelperType = 'Class helper type';
-  SPasRecordHelperType = 'Record helper type';
+  SPasClassHelperType = 'class helper type';
+  SPasRecordHelperType = 'record helper type';
+  SPasTypeHelperType = 'type helper type';
   SPasTreeArgument = 'argument';
   SPasTreeProcedureType = 'procedure type';
   SPasTreeResultElement = 'function result';
@@ -197,7 +197,7 @@ type
      pekInherited, pekSelf, pekSpecialize, pekProcedure);
 
   TExprOpCode = (eopNone,
-                 eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
+                 eopAdd,eopSubtract,eopMultiply,eopDivide{/}, eopDiv{div},eopMod, eopPower,// arithmetic
                  eopShr,eopShl, // bit operations
                  eopNot,eopAnd,eopOr,eopXor, // logical/bit
                  eopEqual, eopNotEqual,  // Logical
@@ -339,14 +339,15 @@ type
   public
     Declarations: TFPList; // list of TPasElement
     // Declarations contains all the following:
+    Attributes, // TPasAttributes
+    Classes,    // TPasClassType, TPasRecordType
+    Consts,     // TPasConst
+    ExportSymbols,// TPasExportSymbol
+    Functions,  // TPasProcedure
+    Properties, // TPasProperty
     ResStrings, // TPasResString
     Types,      // TPasType, except TPasClassType, TPasRecordType
-    Consts,     // TPasConst
-    Classes,    // TPasClassType, TPasRecordType
-    Functions,  // TPasProcedure
-    Variables,  // TPasVariable, not descendants
-    Properties, // TPasProperty
-    ExportSymbols  // TPasExportSymbol
+    Variables   // TPasVariable, not descendants
       : TFPList;
   end;
 
@@ -737,10 +738,16 @@ type
 
   TPasObjKind = (
     okObject, okClass, okInterface,
-    okGeneric, // MG: what is okGeneric?
+    // okGeneric  removed in FPC 3.3.1  check instead GenericTemplateTypes.Count>0
     // okSpecialize removed in FPC 3.1.1
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);
+const
+  okWithFields = [okObject, okClass];
+  okAllHelpers = [okClassHelper,okRecordHelper,okTypeHelper];
+  okWithClassFields = okWithFields+okAllHelpers;
+
+type
 
   TPasClassInterfaceType = (
     citCom, // default
@@ -772,7 +779,6 @@ type
     ExternalNameSpace : String;
     ExternalName : String;
     InterfaceType: TPasClassInterfaceType;
-    Procedure SetGenericTemplates(AList : TFPList); override;
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function InterfaceGUID : string;
@@ -974,6 +980,18 @@ type
     Function DefaultValue : string;
   end;
 
+  { TPasAttributes }
+
+  TPasAttributes = class(TPasElement)
+  public
+    destructor Destroy; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+    procedure AddCall(Expr: TPasExpr);
+  public
+    Calls: TPasExprArray;
+  end;
+
   TProcType = (ptProcedure, ptFunction,
                ptOperator, ptClassOperator,
                ptConstructor, ptDestructor,
@@ -1074,11 +1092,25 @@ type
   end;
 
   { TPasOperator }
-  TOperatorType = (otUnknown,otImplicit,otExplicit,otMul,otPlus, otMinus, otDivision,otLessThan, otEqual,
-                   otGreaterThan, otAssign,otNotEqual,otLessEqualThan,otGreaterEqualThan,otPower,
-                   otSymmetricalDifference, otInc, otDec, otMod, otNegative, otPositive, otBitWiseOr, otDiv,
-                   otLeftShift, otLogicalOr, otBitwiseAnd, otbitwiseXor,otLogicalAnd,otLogicalNot,otLogicalXor,
-                   otRightShift,otEnumerator, otIn);
+  TOperatorType = (
+    otUnknown,
+    otImplicit, otExplicit,
+    otMul, otPlus, otMinus, otDivision,
+    otLessThan, otEqual, otGreaterThan,
+    otAssign, otNotEqual, otLessEqualThan, otGreaterEqualThan,
+    otPower, otSymmetricalDifference,
+    otInc, otDec,
+    otMod,
+    otNegative, otPositive,
+    otBitWiseOr,
+    otDiv,
+    otLeftShift,
+    otLogicalOr,
+    otBitwiseAnd, otbitwiseXor,
+    otLogicalAnd, otLogicalNot, otLogicalXor,
+    otRightShift,
+    otEnumerator, otIn
+    );
   TOperatorTypes = set of TOperatorType;
 
   TPasOperator = class(TPasFunction)
@@ -1199,6 +1231,17 @@ type
       const Arg: Pointer); override;
   end;
 
+  { TPasMethodResolution }
+
+  TPasMethodResolution = class(TPasElement)
+  public
+    destructor Destroy; override;
+  public
+    ProcClass: TPasProcedureClass;
+    InterfaceName: TPasExpr;
+    InterfaceProc: TPasExpr;
+    ImplementationProc: TPasExpr;
+  end;
 
   TPasImplBlock = class;
 
@@ -1212,18 +1255,6 @@ type
       const Arg: Pointer); override;
   public
     Body: TPasImplBlock;
-  end;
-
-  { TPasMethodResolution }
-
-  TPasMethodResolution = class(TPasElement)
-  public
-    destructor Destroy; override;
-  public
-    ProcClass: TPasProcedureClass;
-    InterfaceName: TPasExpr;
-    InterfaceProc: TPasExpr;
-    ImplementationProc: TPasExpr;
   end;
 
   { TPasProcedureImpl - used by mkxmlrpc, not by pparser }
@@ -1610,8 +1641,9 @@ const
     'strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
-    'object', 'class', 'interface', 'class',
-    'class helper','record helper','type helper','dispinterface');
+    'object', 'class', 'interface',
+    'class helper','record helper','type helper',
+    'dispinterface');
 
   InterfaceTypeNames: array[TPasClassInterfaceType] of string = (
     'COM',
@@ -1749,6 +1781,36 @@ begin
   end;
 end;
 {$ENDIF}
+
+{ TPasAttributes }
+
+destructor TPasAttributes.Destroy;
+var
+  i: Integer;
+begin
+  for i:=0 to length(Calls)-1 do
+    Calls[i].Release{$IFDEF CheckPasTreeRefCount}('TPasAttributes.Destroy'){$ENDIF};
+  inherited Destroy;
+end;
+
+procedure TPasAttributes.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+var
+  i: Integer;
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  for i:=0 to length(Calls)-1 do
+    ForEachChildCall(aMethodCall,Arg,Calls[i],false);
+end;
+
+procedure TPasAttributes.AddCall(Expr: TPasExpr);
+var
+  i : Integer;
+begin
+  i:=Length(Calls);
+  SetLength(Calls, i+1);
+  Calls[i]:=Expr;
+end;
 
 { TPasMethodResolution }
 
@@ -2720,14 +2782,15 @@ constructor TPasDeclarations.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Declarations := TFPList.Create;
+  Attributes := TFPList.Create;
+  Classes := TFPList.Create;
+  Consts := TFPList.Create;
+  ExportSymbols := TFPList.Create;
+  Functions := TFPList.Create;
+  Properties := TFPList.Create;
   ResStrings := TFPList.Create;
   Types := TFPList.Create;
-  Consts := TFPList.Create;
-  Classes := TFPList.Create;
-  Functions := TFPList.Create;
   Variables := TFPList.Create;
-  Properties := TFPList.Create;
-  ExportSymbols := TFPList.Create;
 end;
 
 destructor TPasDeclarations.Destroy;
@@ -2736,14 +2799,15 @@ var
   Child: TPasElement;
 begin
   {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy START');{$ENDIF}
-  FreeAndNil(ExportSymbols);
-  FreeAndNil(Properties);
   FreeAndNil(Variables);
-  FreeAndNil(Functions);
-  FreeAndNil(Classes);
-  FreeAndNil(Consts);
   FreeAndNil(Types);
   FreeAndNil(ResStrings);
+  FreeAndNil(Properties);
+  FreeAndNil(Functions);
+  FreeAndNil(ExportSymbols);
+  FreeAndNil(Consts);
+  FreeAndNil(Classes);
+  FreeAndNil(Attributes);
   {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy Declarations');{$ENDIF}
   for i := 0 to Declarations.Count - 1 do
     begin
@@ -3017,9 +3081,9 @@ begin
     okObject: Result := SPasTreeObjectType;
     okClass: Result := SPasTreeClassType;
     okInterface: Result := SPasTreeInterfaceType;
-    okGeneric : Result := SPasTreeGenericType;
     okClassHelper : Result:=SPasClassHelperType;
     okRecordHelper : Result:=SPasRecordHelperType;
+    okTypeHelper : Result:=SPasTypeHelperType;
   else
     Result:='ObjKind('+IntToStr(ord(ObjKind))+')';
   end;
@@ -3037,12 +3101,6 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasElement(Interfaces[i]),true);
   ForEachChildCall(aMethodCall,Arg,HelperForType,true);
   ForEachChildCall(aMethodCall,Arg,GUIDExpr,false);
-end;
-
-procedure TPasClassType.SetGenericTemplates(AList: TFPList);
-begin
-  ObjKind:=okGeneric;
-  inherited SetGenericTemplates(AList);
 end;
 
 function TPasClassType.FindMember(MemberClass: TPTreeElement; const MemberName: String): TPasElement;

@@ -293,9 +293,9 @@ type
     msArrayOperators,      { use Delphi compatible array operators instead of custom ones ("+") }
     msExternalClass,       { Allow external class definitions }
     msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
-    msIgnoreAttributes,    { workaround til resolver/converter supports attributes }
-    msOmitRTTI             { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
-  );
+    msOmitRTTI,            { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
+    msMultipleScopeHelpers { off=only one helper per type, on=all }
+    );
   TModeSwitches = Set of TModeSwitch;
 
   // switches, that can be 'on' or 'off'
@@ -333,7 +333,8 @@ type
     bsMacro,
     bsScopedEnums,
     bsObjectChecks,   // check methods 'Self' and object type casts
-    bsPointerMath     // pointer arithmetic
+    bsPointerMath,    // pointer arithmetic
+    bsGoto       // support label and goto, set by {$goto on|off}
     );
   TBoolSwitches = set of TBoolSwitch;
 const
@@ -369,8 +370,8 @@ const
   bsAll = [low(TBoolSwitch)..high(TBoolSwitch)];
   bsFPCMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
   bsObjFPCMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
-  bsDelphiMode: TBoolSwitches = [bsWriteableConst];
-  bsDelphiUnicodeMode: TBoolSwitches = [bsWriteableConst];
+  bsDelphiMode: TBoolSwitches = [bsWriteableConst,bsGoto];
+  bsDelphiUnicodeMode: TBoolSwitches = [bsWriteableConst,bsGoto];
   bsMacPasMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
 
 type
@@ -987,7 +988,7 @@ const
     'Tab'
   );
 
-  SModeSwitchNames : array[TModeSwitch] of string{$ifdef fpc}[18]{$endif} =
+  SModeSwitchNames : array[TModeSwitch] of string{$ifdef fpc}[20]{$endif} =
   ( '', // msNone
     '', // Fpc,
     '', // Objfpc,
@@ -1036,8 +1037,8 @@ const
     'ARRAYOPERATORS',
     'EXTERNALCLASS',
     'PREFIXEDATTRIBUTES',
-    'IGNOREATTRIBUTES',
-    'OMITRTTI'
+    'OMITRTTI',
+    'MULTIPLESCOPEHELPERS'
     );
 
   LetterSwitchNames: array['A'..'Z'] of string=(
@@ -1100,7 +1101,8 @@ const
     'Macro',
     'ScopedEnums',
     'ObjectChecks',
-    'PointerMath'
+    'PointerMath',
+    'Goto'
     );
 
   ValueSwitchNames: array[TValueSwitch] of string = (
@@ -1117,7 +1119,7 @@ const
 
 const
   // all mode switches supported by FPC
-  msAllFPCModeSwitches = [low(TModeSwitch)..High(TModeSwitch)];
+  msAllModeSwitches = [low(TModeSwitch)..High(TModeSwitch)];
 
   DelphiModeSwitches = [msDelphi,msClass,msObjpas,msResult,msStringPchar,
      msPointer2Procedure,msAutoDeref,msTPProcVar,msInitFinal,msDefaultAnsistring,
@@ -1128,7 +1130,7 @@ const
 
   DelphiUnicodeModeSwitches = delphimodeswitches + [msSystemCodePage,msDefaultUnicodestring];
 
-  // mode switches of $mode FPC, don't confuse with msAllFPCModeSwitches
+  // mode switches of $mode FPC, don't confuse with msAllModeSwitches
   FPCModeSwitches = [msFpc,msStringPchar,msNestedComment,msRepeatForward,
     msCVarSupport,msInitFinal,msHintDirective,msProperty,msDefaultInline];
   //FPCBoolSwitches bsObjectChecks
@@ -2663,7 +2665,7 @@ begin
   FMaxIncludeStackDepth:=DefaultMaxIncludeStackDepth;
 
   FCurrentModeSwitches:=FPCModeSwitches;
-  FAllowedModeSwitches:=msAllFPCModeSwitches;
+  FAllowedModeSwitches:=msAllModeSwitches;
   FCurrentBoolSwitches:=bsFPCMode;
   FAllowedBoolSwitches:=bsAll;
   FAllowedValueSwitches:=vsAllValueSwitches;
@@ -3396,9 +3398,15 @@ begin
   'OBJFPC':
     SetMode(msObjfpc,OBJFPCModeSwitches,true,bsObjFPCMode);
   'DELPHI':
+    begin
     SetMode(msDelphi,DelphiModeSwitches,true,bsDelphiMode,[bsPointerMath]);
+    SetNonToken(tkgeneric);
+    end;
   'DELPHIUNICODE':
+    begin
     SetMode(msDelphiUnicode,DelphiUnicodeModeSwitches,true,bsDelphiUnicodeMode,[bsPointerMath]);
+    SetNonToken(tkgeneric);
+    end;
   'TP':
     SetMode(msTP7,TPModeSwitches,false);
   'MACPAS':
@@ -3672,6 +3680,8 @@ begin
           DoBoolDirective(bsAssertions);
         'DEFINE':
           HandleDefine(Param);
+        'GOTO':
+          DoBoolDirective(bsGoto);
         'ERROR':
           HandleError(Param);
         'HINT':
@@ -3786,9 +3796,9 @@ begin
     DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
       [BoolSwitchNames[bs]])
   else if NewValue then
-    Include(FCurrentBoolSwitches,bs)
+    CurrentBoolSwitches:=CurrentBoolSwitches+[bs]
   else
-    Exclude(FCurrentBoolSwitches,bs);
+    CurrentBoolSwitches:=CurrentBoolSwitches-[bs];
 end;
 
 function TPascalScanner.DoFetchToken: TToken;
@@ -4508,9 +4518,24 @@ begin
 end;
 
 procedure TPascalScanner.SetCurrentBoolSwitches(const AValue: TBoolSwitches);
+var
+  OldBS, Removed, Added: TBoolSwitches;
 begin
   if FCurrentBoolSwitches=AValue then Exit;
+  OldBS:=FCurrentBoolSwitches;
   FCurrentBoolSwitches:=AValue;
+  Removed:=OldBS-FCurrentBoolSwitches;
+  Added:=FCurrentBoolSwitches-OldBS;
+  if bsGoto in Added then
+    begin
+    UnsetNonToken(tklabel);
+    UnsetNonToken(tkgoto);
+    end;
+  if bsGoto in Removed then
+    begin
+    SetNonToken(tklabel);
+    SetNonToken(tkgoto);
+    end;
 end;
 
 procedure TPascalScanner.SetCurrentModeSwitches(AValue: TModeSwitches);
