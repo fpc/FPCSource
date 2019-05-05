@@ -13,6 +13,7 @@ const
 Var
   P : TPackage;
   T : TTarget;
+  VS: string;
 
 begin
   With Installer do
@@ -38,6 +39,16 @@ begin
     P.IncludePath.Add('lnet/sys',lnetOSes);
 
     P.SupportBuildModes:=[bmOneByOne];
+
+    P.Options.Add('-Sm');
+    Str(P.PackageVersion.Major, VS);
+    P.Options.Add('-dpackage_version_major:='+VS);
+    Str(P.PackageVersion.Minor, VS);
+    P.Options.Add('-dpackage_version_minor:='+VS);
+    Str(P.PackageVersion.Micro, VS);
+    P.Options.Add('-dpackage_version_micro:='+VS);
+    Str(P.PackageVersion.Build, VS);
+    P.Options.Add('-dpackage_version_build:='+VS);
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');

@@ -158,7 +158,7 @@ Type
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
   TNotifyProcEvent = procedure(Sender: TObject);
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmBuildInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo);
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
@@ -517,6 +517,8 @@ Type
     Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
 
+  TResourceFile = Class(TConditionalString);
+
   { TPackageVariant }
 
   TPackage = Class;
@@ -587,6 +589,13 @@ Type
     Property Dependencies[Index : Integer] : TDependency Read GetDependency Write SetDependency; default;
   end;
 
+  { TResourceFiles }
+
+  TResourceFiles = Class(TConditionalStrings)
+  public
+    Procedure GetInstallFiles(AList : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
+  end;
+
   { TTarget }
 
   TTarget = Class(TNamedItem)
@@ -605,6 +614,7 @@ Type
     FUnitPath,
     FIncludePath : TConditionalStrings;
     FDependencies : TDependencies;
+    FResourceFiles : TResourceFiles;
     FCommands : TCommands;
     FDirectory: String;
     FExtension: String;
@@ -644,6 +654,7 @@ Type
     Procedure GetInstallFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Property Dependencies : TDependencies Read FDependencies;
+    Property ResourceFiles: TResourceFiles read FResourceFiles;
     Property Commands : TCommands Read FCommands;
     Property State : TTargetState Read FTargetState;
     Property TargetType : TTargetType Read FTargetType Write FTargetType;
@@ -890,6 +901,7 @@ Type
     Property SupportBuildModes: TBuildModes read FSupportBuildModes write FSupportBuildModes;
     Property BuildMode: TBuildMode read FBuildMode;
     Property Flags: TStrings read FFlags;
+    Property PackageVersion: TFPVersion read FVersion;
     // Options which are passed to the compiler for packages which depend on
     // this package.
     Property TransmitOptions: TStrings Read GetTransmitOptions Write SetTransmitOptions;
@@ -1288,7 +1300,7 @@ Type
     Procedure Usage(const FMT : String; Args : Array of const);
     Procedure Compile(Force : Boolean); virtual;
     Procedure Clean(AllTargets: boolean); virtual;
-    Procedure Install; virtual;
+    Procedure Install(ForceBuild : Boolean); virtual;
     Procedure UnInstall; virtual;
     Procedure ZipInstall; virtual;
     Procedure Archive; virtual;
@@ -1762,6 +1774,7 @@ ResourceString
   SHelpCompile        = 'Compile all units in the package(s).';
   SHelpBuild          = 'Build all units in the package(s).';
   SHelpInstall        = 'Install all units in the package(s).';
+  SHelpBuildInstall   = 'Build and install all units in the package(s).';
   SHelpUnInstall      = 'Uninstall the package(s).';
   SHelpClean          = 'Clean (remove) all generated files in the package(s) for current CPU-OS target.';
   SHelpDistclean      = 'Clean (remove) all generated files in the package(s) for all targets.';
@@ -2811,6 +2824,21 @@ begin
   if not assigned(GPluginManager) then
     GPluginManager := TfpmPluginManager.Create;
   Result := GPluginManager;
+end;
+
+{ TResourceFiles }
+
+procedure TResourceFiles.GetInstallFiles(AList: TStrings; const APrefixU, APrefixB: String; ACPU: TCPU; AOS: TOS);
+Var
+  I : Integer;
+  R : TResourceFile;
+begin
+  For I:=0 to Count-1 do
+    begin
+    R:=Tobject(Items[I]) as TResourceFile;
+    if (ACPU in R.CPUs) and (AOS in R.OSes) then
+      AList.Add(ConcatPaths([APrefixU, R.Value]));
+    end;
 end;
 
 { TfpmResolvePackagePathsPlugin }
@@ -5194,6 +5222,8 @@ begin
       FRunMode:=rmBuild
     else if CheckCommand(I,'i','install') then
       FRunMode:=rmInstall
+    else if CheckCommand(I,'bi','buildinstall') then
+      FRunMode:=rmBuildInstall
     else if CheckCommand(I,'zi','zipinstall') then
       FRunMode:=rmZipInstall
     else if CheckCommand(I,'c','clean') then
@@ -5344,6 +5374,7 @@ begin
   LogCmd('compile',SHelpCompile);
   LogCmd('build',SHelpBuild);
   LogCmd('install',SHelpInstall);
+  LogCmd('buildinstall',SHelpBuildInstall);
   LogCmd('uninstall',SHelpUnInstall);
   LogCmd('clean',SHelpClean);
   LogCmd('distclean',SHelpDistclean);
@@ -5441,9 +5472,10 @@ begin
 end;
 
 
-procedure TCustomInstaller.Install;
+procedure TCustomInstaller.Install(ForceBuild : Boolean);
 begin
   NotifyEventCollection.CallEvents(neaBeforeInstall, self);
+  BuildEngine.ForceCompile := ForceBuild;
   BuildEngine.Install(Packages);
   NotifyEventCollection.CallEvents(neaAfterInstall, self);
 end;
@@ -5517,7 +5549,8 @@ begin
     Case RunMode of
       rmCompile : Compile(False);
       rmBuild   : Compile(True);
-      rmInstall : Install;
+      rmInstall : Install(False);
+      rmBuildInstall: Install(True);
       rmZipInstall : ZipInstall;
       rmArchive : Archive;
       rmClean    : Clean(False);
@@ -8007,19 +8040,21 @@ end;
 
 procedure TBuildEngine.Clean(APackage: TPackage; ACPU: TCPU; AOS: TOS);
 Var
-  List : TStringList;
+  List,List2 : TStringList;
   DirectoryList : TStringList;
   RemainingList : TStrings;
   i : longint;
 begin
-  List:=TStringList.Create;
+  List:=TUnsortedDuplicatesStringList.Create;
+  List.Duplicates:=DupIgnore;
   try
     List.Add(APackage.GetUnitConfigOutputFilename(ACPU,AOS));
     APackage.GetCleanFiles(List,ACPU,AOS);
     if (List.Count>0) then
       begin
       CmdDeleteFiles(List);
-      DirectoryList := TStringList.Create;
+      DirectoryList:=TUnsortedDuplicatesStringList.Create;
+      DirectoryList.Duplicates:=DupIgnore;
       try
         GetDirectoriesFromFilelist(List,DirectoryList);
         CmdRemoveDirs(DirectoryList);
@@ -8040,9 +8075,18 @@ begin
             Installer.Log(vlWarning,Format(SWarnRemovedNonEmptyDirectory,[APackage.Directory+APackage.GetBinOutputDir(ACPU,AOS)]));
             DirectoryList.Add(APackage.GetBinOutputDir(ACPU,AOS));
             RemainingList := TStringList.Create;
+            List2:=TStringList.Create;
             SearchFiles(AllFilesMask, APackage.GetBinOutputDir(ACPU,AOS), true, RemainingList);
             for i:=0 to RemainingList.Count-1 do
-              Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+              begin
+                if ExtractFileExt(Remaininglist[i])=PPUExt then
+                  Installer.log(vlDebug,format('File %s still present, add corresponding entry to fpmake',[RemainingList[i]]))
+                else
+                  Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+                List2.Add(IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(ACPU,AOS))+Remaininglist[i]);
+              end;
+            CmdDeleteFiles(List2);
+            List2.Free;
             RemainingList.Free;
             CmdRemoveTrees(DirectoryList);
             DirectoryList.Clear;
@@ -8053,9 +8097,18 @@ begin
             Installer.Log(vlWarning,Format(SWarnRemovedNonEmptyDirectory,[APackage.Directory+APackage.GetUnitsOutputDir(ACPU,AOS)]));
             DirectoryList.Add(APackage.GetUnitsOutputDir(ACPU,AOS));
             RemainingList := TStringList.Create;
+            List2:=TStringList.Create;
             SearchFiles(AllFilesMask, APackage.GetUnitsOutputDir(ACPU,AOS), true, RemainingList);
             for i:=0 to RemainingList.Count-1 do
-              Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+              begin
+                if ExtractFileExt(Remaininglist[i])=PPUExt then
+                  Installer.log(vlDebug,format('File %s still present, add corresponding entry to fpmake',[RemainingList[i]]))
+                else
+                  Installer.log(vlDebug,format('File %s still present',[RemainingList[i]]));
+                List2.Add(IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(ACPU,AOS))+RemainingList[i]);
+              end;
+            CmdDeleteFiles(List2);
+            List2.free;
             RemainingList.Free;
             CmdRemoveTrees(DirectoryList);
             DirectoryList.Clear;
@@ -8529,6 +8582,7 @@ begin
   FIncludePath:=TConditionalStrings.Create(TConditionalString);
   FObjectPath:=TConditionalStrings.Create(TConditionalString);
   FDependencies:=TDependencies.Create(TDependency);
+  FResourceFiles:=TResourceFiles.Create(TResourceFile);
   FCommands:=TCommands.Create(TCommand);
 end;
 
@@ -8539,6 +8593,7 @@ begin
   FreeAndNil(FObjectPath);
   FreeAndNil(FIncludePath);
   FreeAndNil(FDependencies);
+  FreeAndNil(FResourceFiles);
   FreeAndNil(FCommands);
   FreeAndNil(Foptions);
   inherited Destroy;
@@ -8565,6 +8620,7 @@ begin
     DestTarget.FileType := FileType;
     DestTarget.Directory := Directory;
     DestTarget.ResourceStrings := ResourceStrings;
+    DestTarget.ResourceFiles.Assign(ResourceFiles);
     DestTarget.Install := Install;
     DestTarget.FTargetSourceFileName := fTargetSourceFileName;
     DestTarget.ObjectPath.Assign(ObjectPath);
@@ -8737,15 +8793,17 @@ begin
     end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     begin
-    List.Add(APrefixB + GetProgramFileName(AOS));
-    if FileExists(APrefixB + GetProgramDebugFileName(AOS)) then
-      List.Add(APrefixB + GetProgramDebugFileName(AOS));
+      List.Add(APrefixB + GetProgramFileName(AOS));
+      if FileExists(APrefixB + GetProgramDebugFileName(AOS)) then
+        List.Add(APrefixB + GetProgramDebugFileName(AOS));
+      if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
+        List.Add(APrefixU + GetImportLibFilename(AOS));
     end
   else If (TargetType in [ttSharedLibrary]) then
     begin
-    List.Add(APrefixB + GetLibraryFileName(AOS));
-    if FileExists(APrefixB + GetLibraryDebugFileName(AOS)) then
-      List.Add(APrefixB + GetLibraryDebugFileName(AOS));
+      List.Add(APrefixB + GetLibraryFileName(AOS));
+      if FileExists(APrefixB + GetLibraryDebugFileName(AOS)) then
+        List.Add(APrefixB + GetLibraryDebugFileName(AOS));
     end;
   If ResourceStrings then
     begin
@@ -8813,6 +8871,7 @@ begin
           List.Add(APrefixU + RSTFileName);
         end;
      end;
+  FResourceFiles.GetInstallFiles(List, APrefixU, APrefixB, ACPU, AOS);
 end;
 
 

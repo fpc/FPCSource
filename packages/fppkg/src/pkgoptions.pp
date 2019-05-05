@@ -246,7 +246,7 @@ Type
     Destructor Destroy; override;
     Procedure InitCompilerDefaults;
     Procedure LoadCompilerFromFile(const AFileName : String);
-    Procedure SaveCompilerToFile(const AFileName : String);
+    function SaveCompilerToFile(const AFileName : String): Boolean;
     procedure LogValues(ALogLevel: TLogLevel; const ACfgName:string);
     procedure UpdateLocalRepositoryOption(FppkgOptions: TFppkgOptions);
     procedure CheckCompilerValues;
@@ -984,6 +984,7 @@ begin
   FOptionParser := TTemplateParser.Create;
   FOptionParser.Values['AppConfigDir'] := GetFppkgConfigDir(false);
   FOptionParser.Values['UserDir'] := GetUserDir;
+  FSaveInifileChanges := True;
   {$ifdef unix}
   FLocalInstallDir:='{LocalPrefix}'+'lib'+PathDelim+'fpc'+PathDelim+'{CompilerVersion}'+PathDelim;
   FGlobalInstallDir:='{GlobalPrefix}'+'lib'+PathDelim+'fpc'+PathDelim+'{CompilerVersion}'+PathDelim;
@@ -1075,6 +1076,10 @@ var
   AOs      : TOS;
 begin
   if Compiler='' then
+    Exit;
+  // This is not the place to complain when the compiler does
+  // not exist at all.
+  if not FileExists(Compiler) then
     Exit;
   if (CompilerCPU=cpuNone) or
    (CompilerOS=osNone) or
@@ -1175,6 +1180,10 @@ begin
             FSaveInifileChanges:=true;
             if (FConfigVersion>CurrentConfigVersion) then
               Error(SErrUnsupportedConfigVersion,[AFileName]);
+          end
+        else
+          begin
+            FSaveInifileChanges:=False;
           end;
         GlobalPrefix:=ReadString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
         LocalPrefix:=ReadString(SDefaults,KeyLocalPrefix,FLocalPrefix);
@@ -1191,30 +1200,37 @@ begin
 end;
 
 
-procedure TCompilerOptions.SaveCompilerToFile(const AFileName: String);
+function TCompilerOptions.SaveCompilerToFile(const AFileName: String): Boolean;
 Var
   Ini : TIniFile;
 begin
-  if FileExists(AFileName) then
-    BackupFile(AFileName);
-  Ini:=TIniFile.Create(AFileName);
+  Result := False;
   try
-    With Ini do
-      begin
-        WriteInteger(SDefaults,KeyConfigVersion,CurrentConfigVersion);
-        WriteString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
-        WriteString(SDefaults,KeyLocalPrefix,FLocalPrefix);
-        WriteString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir);
-        WriteString(SDefaults,KeyLocalInstallDir,FLocalInstallDir);
-        WriteString(SDefaults,KeyCompiler,FCompiler);
-        WriteString(SDefaults,KeyCompilerOS,OSToString(CompilerOS));
-        WriteString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU));
-        WriteString(SDefaults,KeyCompilerVersion,FCompilerVersion);
-        FSaveInifileChanges:=False;
-      end;
-    Ini.UpdateFile;
-  finally
-    Ini.Free;
+    if FileExists(AFileName) then
+      BackupFile(AFileName);
+    Ini:=TIniFile.Create(AFileName);
+    try
+      With Ini do
+        begin
+          WriteInteger(SDefaults,KeyConfigVersion,CurrentConfigVersion);
+          WriteString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
+          WriteString(SDefaults,KeyLocalPrefix,FLocalPrefix);
+          WriteString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir);
+          WriteString(SDefaults,KeyLocalInstallDir,FLocalInstallDir);
+          WriteString(SDefaults,KeyCompiler,FCompiler);
+          WriteString(SDefaults,KeyCompilerOS,OSToString(CompilerOS));
+          WriteString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU));
+          WriteString(SDefaults,KeyCompilerVersion,FCompilerVersion);
+          FSaveInifileChanges:=False;
+        end;
+      Ini.UpdateFile;
+    finally
+      Ini.Free;
+    end;
+    Result := True;
+  except
+    on E: Exception do
+      log(llWarning, SWarnFailedToWriteCompConf, [AFileName, E.Message]);
   end;
 end;
 
