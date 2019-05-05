@@ -753,6 +753,7 @@ begin
           end;
         Inc(CurPos);
         end;
+      Inc(CurPos);
       ProcessCmdLinePart;
       end;
 
