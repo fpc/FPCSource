@@ -144,6 +144,8 @@ elif [ $is_32 -eq 1 ] ;then
   fi
   if [ "${FPC/ppcarm/}" != "$FPC" ] ; then
     CC_OPT="$CC_OPT -march=armv7-a -Wall"
+  elif [ "${os_cpu/arm/}" != "$os_cpu" ] ; then
+    CC_OPT="$CC_OPT -march=armv6 -Wall"
   else
     CC_OPT="$CC_OPT -m32 -Wall"
   fi
@@ -215,14 +217,14 @@ cpubits= "cpu" cpubits;
 }
 /\{\\\$i / { incfile=\$2;
   print "Include file  " incfile " found"; }
-/\{\\\$ifdef / { macro=gensub("[^A-Za-z_0-9].*","","",\$2);
+/\{\\\$ifdef / { macro=gensub("[^A-Za-z_0-9].*","",1,\$2);
   if ( (macro == cpu) || (macro == cpubits)) { enable=1;
     print "// ifdef " macro " found and accepted at line " FNR;
   } else {enable=0;
     print "// ifdef " macro " found and rejected at line " FNR;
   };
   }
-/\{\\\$ifndef / { macro=gensub("[^A-Za-z_0-9].*","","",\$2);
+/\{\\\$ifndef / { macro=gensub("[^A-Za-z_0-9].*","",1,\$2);
   if ( (macro == cpu) || (macro == cpubits) ) { enable=0;
    print "// ifndef " macro " found and rejected at line " FNR;
  } else {enable=1;
@@ -234,14 +236,16 @@ cpubits= "cpu" cpubits;
   wholeline=\$0;
   code=gensub("{.*}","","g",\$0);
   code=gensub("[(][*].*[*][)]","","g",code);
-  comments=gensub(code,"","",\$0);
+  # Special code to substitute = $HexaDecimal by = 0xHexaDEcimal
+  code=gensub("= *\\$","= 0x","g",code);
+  comments=gensub(code,"",1,\$0);
   comments1=gensub(".*({.*}).*","\1","g",comments);
   if (comments == comments1)
     comments1="";
   comments2=gensub(".*[(][*].*[*][)]).*","\1","g",comments);
   if (comments == comments2)
     comments2="";
-  comments3=gensub(".*//","","",comments);
+  comments3=gensub(".*//","",1,comments);
   if (comments == comments3)
     comments3="";
   all_comments= comments1 comments2 comments3;
@@ -314,6 +318,7 @@ function check_c_syscall_number_from_fpc_rtl ()
       let forward_failure_count++
       return
     else
+      val=$CC_value
       rm -f ./test_c_${bare_sys}
     fi
     rm -f ./test-${bare_sys}.comp-log
