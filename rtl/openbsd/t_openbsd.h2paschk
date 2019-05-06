@@ -13,12 +13,14 @@
 @Pascal begin
 
 # Adds support for M_PIl constant inside math.h header
+@C #include <sys/mman.h>
 @C #include <sys/types.h>
 @C #include <sys/stat.h>
 @C #include <sys/time.h>
 @C #include <sys/times.h>
 @C #include <sys/resource.h>
 @C #include <sys/uio.h>
+@C #include <sys/wait.h>
 @C #include <dirent.h>
 @C #include <poll.h>
 @C #include <utime.h>
@@ -74,6 +76,13 @@
 .state
 .mutex
 
+@constant    F_OK
+@constant    R_OK
+@constant    W_OK
+@constant    X_OK
+@constant    SEEK_SET
+@constant    SEEK_CUR
+@constant    SEEK_END
 @constant O_RDONLY
 @constant O_WRONLY
 @constant O_RDWR
@@ -83,6 +92,60 @@
 @constant O_NOCTTY
 @constant O_APPEND
 @constant O_NONBLOCK
+@constant    S_IRUSR
+@constant    S_IWUSR
+@constant    S_IXUSR
+@constant    S_IRGRP
+@constant    S_IWGRP
+@constant    S_IXGRP
+@constant    S_IROTH
+@constant    S_IWOTH
+@constant    S_IXOTH
+@constant    S_IRWXU
+@constant    S_IRWXG
+@constant    S_IRWXO
+@constant    WNOHANG
+@constant    WUNTRACED
+@constant  F_DUPFD
+@constant  F_GETFD
+@constant  F_SETFD
+@constant  F_GETFL
+@constant  F_SETFL
+@constant  F_GETOWN
+@constant  F_SETOWN
+@constant  F_GETLK
+@constant  F_SETLK
+@constant  F_SETLKW
+@constant  F_DUPFD_CLOEXEC
+@constant  FD_CLOEXEC
+@constant  F_RDLCK
+@constant  F_UNLCK
+@constant  F_WRLCK
+@constant  RLIMIT_CPU
+@constant  RLIMIT_FSIZE
+@constant  RLIMIT_DATA
+@constant  RLIMIT_STACK
+@constant  RLIMIT_CORE
+@constant  RLIMIT_RSS
+@constant  RLIMIT_MEMLOCK
+@constant  RLIMIT_NPROC
+@constant  RLIMIT_NOFILE
+# @constant  RLIMIT_AS alias of RLIMIT_RSS, but not in C headers
+@constant  MAP_PRIVATE
+@constant  MAP_ANONYMOUS
+@constant  POLLIN
+@constant  POLLPRI
+@constant  POLLOUT
+@constant  POLLERR
+@constant  POLLHUP
+@constant  POLLNVAL
+@constant  POLLRDNORM
+@constant  POLLRDBAND
+@constant  POLLWRNORM
+@constant  POLLWRBAND
+
+
+
 
 @floatconstant PI,M_PI
 
