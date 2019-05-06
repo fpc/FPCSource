@@ -19,7 +19,7 @@ unit sqldbrestbridge;
 interface
 
 uses
-  Classes, SysUtils, DB, SqlTypes, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth;
+  Classes, SysUtils, DB, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth;
 
 Type
   TRestDispatcherOption = (rdoConnectionInURL,     // Route includes connection :Connection/:Resource[/:ID]
