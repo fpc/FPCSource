@@ -10599,6 +10599,7 @@ rtl/unix/scripts/README svneol=native#text/plain
 rtl/unix/scripts/check_consts.sh svneol=native#text/plain
 rtl/unix/scripts/check_errno.sh svneol=native#text/plain
 rtl/unix/scripts/check_errnostr.sh svneol=native#text/plain
+rtl/unix/scripts/check_rtl_types.sh svneol=native#text/plain
 rtl/unix/scripts/check_sys.sh svneol=native#text/plain
 rtl/unix/settimeo.inc svneol=native#text/plain
 rtl/unix/syscall.pp svneol=native#text/plain
