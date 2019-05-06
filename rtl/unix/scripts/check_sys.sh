@@ -30,6 +30,7 @@ if [ -d "rtl" ] ; then
 fi
 
 os=`uname -s | tr [:upper:] [:lower:] `
+os_cpu=`uname -m | tr [:upper:] [:lower:] `
 now_pwd=`pwd`
 now_dir=`basename $now_pwd`
 if [ -d "$os" ] ; then
@@ -70,7 +71,7 @@ fi
 if [ -f "$fpc_sysnr" ] ; then
   echo "Checking $fpc_sysnr content for Free Pascal syscall numbers"
   fpc_sysnr_dir=`dirname $fpc_sysnr `
-  sysnr_includes=`grep -o '{\$i  *[a-z_A-Z0-9/.]*' $fpc_sysnr | sed 's:.*{\$i *:'$fpc_sysnr_dir/: `
+  sysnr_includes=`grep -o '{\$i  *[a-z_A-Z0-9/.-]*' $fpc_sysnr | sed 's:.*{\$i *:'$fpc_sysnr_dir/: `
   if [ -n "$sysnr_includes" ] ; then
     echo "Found $sysnr_includes include files"
     fpc_sysnr="$fpc_sysnr $sysnr_includes"
@@ -103,6 +104,7 @@ if [ -z "$CC" ] ; then
 fi
 
 cpu=`$FPC -iTP`
+cpu_source=`$FPC -iSP`
 is_16=0
 is_32=0
 is_64=0
@@ -129,10 +131,23 @@ case $cpu in
 esac
 
 if [ $is_64 -eq 1 ] ; then
-  CC_OPT="$CC_OPT -m64"
+  if [ "$os_cpu" == "aarch64" ] ; then
+    CC_OPT="$CC_OPT -Wall"
+  else
+    CC_OPT="$CC_OPT -m64 -Wall"
+  fi
   CPUBITS=64
 elif [ $is_32 -eq 1 ] ;then
-  CC_OPT="$CC_OPT -m32"
+  if [ "$os_cpu" == "aarch64" ] ; then
+    CC=arm-linux-gnueabihf-gcc-4.8
+    export BINUTILSPREFIX=arm-linux-
+  fi
+  if [ "${FPC/ppcarm/}" != "$FPC" ] ; then
+    CC_OPT="$CC_OPT -march=armv7-a -Wall"
+  else
+    CC_OPT="$CC_OPT -m32 -Wall"
+  fi
+
   CPUBITS=32
 elif [ $is_16 -eq 1 ] ; then
   CPUBITS=16
@@ -253,10 +268,10 @@ if [ -n "$AWK" ] ; then
   $AWK -v proc=$cpu -v cpubits=$CPUBITS -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr
   fpc_sysnr=$tmp_fpc_sysnr
 fi
-sed -n "s:^\(.*\)*[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \3 \"\1 \4\":p" $fpc_sysnr > check_sys_list.sh
+sed -n "s:^\(.*\)*[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\(.*\\);\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \"\3\" \"\1 \4\":p" $fpc_sysnr > check_sys_list.sh
 
 
-sed -n "s:^.*#[[:space:]]*define[[:space:]]*${syscall_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_in_fpc_rtl \1 \2 \"\3\":p" ${syscall_header} > check_sys_list_reverse.sh
+sed -n "s:^.*#[[:space:]]*define[[:space:]]*${syscall_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_in_fpc_rtl \1 \"\2\" \"\3\":p" ${syscall_header} > check_sys_list_reverse.sh
  
 forward_count=0
 forward_ok_count=0
@@ -266,7 +281,7 @@ function check_c_syscall_number_from_fpc_rtl ()
 {
   bare_sys=$1
   sys=${syscall_prefix}$bare_sys
-  value=$2
+  let "value=$2"
   comment="$3"
   if [[ ! ( ( -n "$value" ) && ( $value -ge 0 ) ) ]] ; then
     echo "Computing $2 value"
@@ -352,7 +367,12 @@ function check_c_syscall_number_in_fpc_rtl ()
   sys=${fpc_syscall_prefix}${bare_sys}
   c_sys=${syscall_prefix}${bare_sys}
   value=$2
-  comment="$3"
+  if [ -z "$value" ] ; then
+    let "value=$3"
+    comment="expression $3"
+  else
+    comment="$3"
+  fi
   echo -en "Testing $sys value $value                        \r"
   $CC $CC_OPT -DSYS_MACRO=${c_sys} -o ./test_c_${bare_sys} $c_syscall_source > ./test_${bare_sys}.comp-log 2>&1
   C_COMP_RES=$?
