@@ -1162,18 +1162,23 @@
      KEY_WOW64_64KEY = $0100;
      KEY_WOW64_32KEY = $0200;
      KEY_WRITE = $20006;
-     PROCESS_ALL_ACCESS = $1f0fff;
-     PROCESS_CREATE_PROCESS = 128;
-     PROCESS_CREATE_THREAD = 2;
-     PROCESS_DUP_HANDLE = 64;
-     PROCESS_QUERY_INFORMATION = 1024;
+     PROCESS_ALL_ACCESS = $1fFfff;
+     PROCESS_TERMINATE                 = $0001;
+     PROCESS_CREATE_THREAD             = $0002;
+     PROCESS_SET_SESSIONID             = $0004;
+     PROCESS_VM_OPERATION              = $0008;
+     PROCESS_VM_READ                   = $0010;
+     PROCESS_VM_WRITE                  = $0020;
+     PROCESS_DUP_HANDLE                = $0040;
+     PROCESS_CREATE_PROCESS            = $0080;
+     PROCESS_SET_QUOTA                 = $0100;
+     PROCESS_SET_INFORMATION           = $0200;
+     PROCESS_QUERY_INFORMATION         = $0400;
+     PROCESS_SUSPEND_RESUME            = $0800;
      PROCESS_QUERY_LIMITED_INFORMATION = $1000;
-     PROCESS_SET_INFORMATION = 512;
-     PROCESS_TERMINATE = 1;
-     PROCESS_VM_OPERATION = 8;
-     PROCESS_VM_READ = 16;
-     PROCESS_VM_WRITE = 32;
-     THREAD_ALL_ACCESS = $1f03ff;
+     PROCESS_SET_LIMITED_INFORMATION   = $2000;
+    
+     THREAD_ALL_ACCESS = $1FFFFF; // vista+, for old systems 0x3FF
      THREAD_DIRECT_IMPERSONATION = 512;
      THREAD_GET_CONTEXT = 8;
      THREAD_IMPERSONATE = 256;
@@ -1183,6 +1188,10 @@
      THREAD_SET_THREAD_TOKEN = 128;
      THREAD_SUSPEND_RESUME = 2;
      THREAD_TERMINATE = 1;
+     THREAD_SET_LIMITED_INFORMATION   = $0400;
+     THREAD_QUERY_LIMITED_INFORMATION = $0800;
+     THREAD_RESUME                    = $1000;
+
   { EditWordBreakProc  }
      WB_ISDELIMITER = 2;
      WB_LEFT = 0;
@@ -2686,7 +2695,6 @@ Type
      CAL_SMONTHNAME13 = 33;
      CAL_SSHORTDATE = 5;
   { SetProcessWorkingSetSize  }
-     PROCESS_SET_QUOTA = 256;
   { SetPrinter  }
   { SetService  }
   { SetStretchBltMode  }
