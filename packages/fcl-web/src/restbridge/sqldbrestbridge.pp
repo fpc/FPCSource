@@ -358,7 +358,7 @@ Type
     Property CORSAllowedOrigins: String Read FCORSAllowedOrigins  Write FCORSAllowedOrigins;
     // Access-Control-Max-Age header value. Set to zero not to send the header
     Property CORSMaxAge : Integer Read FCORSMaxAge Write FCORSMaxAge;
-    // Access-Control-Allow-Credentials header value. Set to zero not to send the header
+    // Access-Control-Allow-Credentials header value. Set to false not to send the header
     Property CORSAllowCredentials : Boolean Read FCORSAllowCredentials Write FCORSAllowCredentials;
     // UserIDs of the user(s) that are allowed to see and modify the connection resource.
     Property AdminUserIDs : TStrings Read FAdminUserIDs Write SetAdminUserIDS;
@@ -2312,6 +2312,7 @@ begin
     DatabaseName:=C.DatabaseName;
     ConnectionType:=C.ConnectionType;
     Port:=C.Port;
+    Name:=C.Name;
     SchemaName:=C.SchemaName;
     Params.Assign(C.Params);
     end
