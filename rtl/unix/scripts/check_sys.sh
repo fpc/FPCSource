@@ -7,18 +7,20 @@
 syscall_header=/usr/include/syscall.h
 fpc_sysnr=./sysnr.inc
 
-i=0
-for arg in $* ; do
-  let i++
+i=1
+while [ $i -le "$#" ] ; do
+  arg="${!i}"
   echo "Handling arg $i, \"$arg\""
   if [ "${arg//=}" != "$arg" ] ; then
-    echo "Evaluating $arg"
-    eval $arg
+    echo "Evaluating \"$arg\""
+    arg2="${arg/=*/}=\"${arg/*=/}\""
+    eval "$arg2"
   elif [ "$arg" == "-v" ] ; then
     verbose=1
   else
     echo "arg not handled!"
   fi
+  let i++
 done
 
 start_pwd=`pwd`
@@ -145,7 +147,7 @@ elif [ $is_32 -eq 1 ] ;then
   if [ "${FPC/ppcarm/}" != "$FPC" ] ; then
     CC_OPT="$CC_OPT -march=armv7-a -Wall"
   elif [ "${os_cpu/arm/}" != "$os_cpu" ] ; then
-    CC_OPT="$CC_OPT -march=armv6 -Wall"
+    CC_OPT="$CC_OPT -march=armv5 -Wall"
   else
     CC_OPT="$CC_OPT -m32 -Wall"
   fi
@@ -214,18 +216,20 @@ macro="";
 incfile="";
 cpu= "cpu" proc;
 cpubits= "cpu" cpubits;
+list_defines=macros " " cpu " " cpubits " ";
+print "// FPC defined macros used " list_defines;
 }
 /\{\\\$i / { incfile=\$2;
   print "Include file  " incfile " found"; }
-/\{\\\$ifdef / { macro=gensub("[^A-Za-z_0-9].*","",1,\$2);
-  if ( (macro == cpu) || (macro == cpubits)) { enable=1;
+/\{\\\$ifdef / { macro=gensub("[^A-Za-z_0-9].*","",1,\$2) " ";
+  if (list_defines ~ macro) { enable=1;
     print "// ifdef " macro " found and accepted at line " FNR;
   } else {enable=0;
     print "// ifdef " macro " found and rejected at line " FNR;
   };
   }
 /\{\\\$ifndef / { macro=gensub("[^A-Za-z_0-9].*","",1,\$2);
-  if ( (macro == cpu) || (macro == cpubits) ) { enable=0;
+  if (list_defines ~ macro) { enable=0;
    print "// ifndef " macro " found and rejected at line " FNR;
  } else {enable=1;
    print "// ifndef " macro " found and accepted at line " FNR;
@@ -236,8 +240,6 @@ cpubits= "cpu" cpubits;
   wholeline=\$0;
   code=gensub("{.*}","","g",\$0);
   code=gensub("[(][*].*[*][)]","","g",code);
-  # Special code to substitute = $HexaDecimal by = 0xHexaDEcimal
-  code=gensub("= *\\$","= 0x","g",code);
   comments=gensub(code,"",1,\$0);
   comments1=gensub(".*({.*}).*","\1","g",comments);
   if (comments == comments1)
@@ -269,7 +271,7 @@ fi
 if [ -n "$AWK" ] ; then
   echo "Preprocessing ${fpc_sysnr} to $tmp_fpc_sysnr"
   echo "$AWK -v proc=$cpu -v cpubits=$CPUBITS -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr"
-  $AWK -v proc=$cpu -v cpubits=$CPUBITS -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr
+  $AWK -v proc=$cpu -v cpubits=$CPUBITS -v macros="$FPC_MACROS" -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr
   fpc_sysnr=$tmp_fpc_sysnr
 fi
 sed -n "s:^\(.*\)*[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\(.*\\);\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \"\3\" \"\1 \4\":p" $fpc_sysnr > check_sys_list.sh
@@ -285,7 +287,13 @@ function check_c_syscall_number_from_fpc_rtl ()
 {
   bare_sys=$1
   sys=${syscall_prefix}$bare_sys
-  let "value=$2"
+  arg_2=\"$2\"
+  if [ "${2:0:1}" == "$" ] ; then
+    echo "Arg \"$arg_2\" needs Pascal To C hexadecimal conversion"
+    let "value=0x${arg_2:2}"
+  else
+    let "value=$2"
+  fi
   comment="$3"
   if [[ ! ( ( -n "$value" ) && ( $value -ge 0 ) ) ]] ; then
     echo "Computing $2 value"
