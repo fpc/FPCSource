@@ -629,6 +629,13 @@ Type
     dtd_AttrList         : pTagItem;          { Additional attributes }
  end;
 
+// DTM_RELEASERAWINFO
+  PdtReleaseDrawInfo = ^TdtReleaseDrawInfo;
+  TdtReleaseDrawInfo = record
+    MethodID: PtrUInt;
+    dtr_Handle: APTR; // Handle as returned by DTM_OBTAINDRAWINFO
+  end;
+
 { DTM_WRITE }
  pdtWrite = ^tdtWrite;
  tdtWrite = record

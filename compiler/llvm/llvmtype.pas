@@ -370,7 +370,7 @@ implementation
                       symdef:=cpointerdef.getreusable(symdef);
                       if not equal_llvm_defs(symdef,p.def) then
                         begin
-                          cnv:=taillvm.op_reg_tai_size(la_bitcast,NR_NO,tai_simpletypedconst.create(tck_simple,symdef,tai_simpletypedconst(p).val),p.def);
+                          cnv:=taillvm.op_reg_tai_size(la_bitcast,NR_NO,tai_simpletypedconst.create(symdef,tai_simpletypedconst(p).val),p.def);
                           tai_simpletypedconst(p).val:=cnv;
                         end;
                     end;

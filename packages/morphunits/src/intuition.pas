@@ -1707,7 +1707,7 @@ type
     ViewInitX,
     ViewInitY: SmallInt;   // View initial offset values
 
-    EnableCLI: LongBool;   // CLI availability switch
+    EnableCLI: WordBool;   // CLI availability switch
 
   // printer configurations
     PrinterType: Word;     // printer type
@@ -2075,8 +2075,6 @@ type
     cl_SubclassCount: LongWord; // number of direct subclasses
     cl_ObjectCount: LongWord;   // number of instances
     cl_Flags: LongWord;         // Flags (CLF_INLIST)
-    cl_ObjectSize: LongWord;    // cl_InstOffset + cl_InstSize + SizeOf(_Object)
-    cl_MemoryPool: APTR;
   end;
 
 const

@@ -42,7 +42,9 @@ unit navrinl;
       aasmdata,
       aasmcpu,
       symdef,
-      cgbase,
+      hlcgobj,
+      pass_2,
+      cgbase, cgobj, cgutils,
       cpubase;
 
     function tavrinlinenode.pass_typecheck_cpu : tnode;
@@ -56,6 +58,16 @@ unit navrinl;
           in_avr_cli:
             begin
               CheckParameters(0);
+              resultdef:=voidtype;
+            end;
+          in_avr_save:
+            begin
+              CheckParameters(0);
+              resultdef:=u8inttype;
+            end;
+          in_avr_restore:
+            begin
+              CheckParameters(1);
               resultdef:=voidtype;
             end;
           else
@@ -72,10 +84,16 @@ unit navrinl;
           in_avr_sleep,
           in_avr_sei,
           in_avr_wdr,
-          in_avr_cli:
+          in_avr_cli,
+          in_avr_restore:
             begin
               expectloc:=LOC_VOID;
               resultdef:=voidtype;
+            end;
+          in_avr_save:
+            begin
+              expectloc:=LOC_REGISTER;
+              resultdef:=u8inttype;
             end;
           else
             Result:=inherited first_cpu;
@@ -96,6 +114,20 @@ unit navrinl;
             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_WDR));
           in_avr_cli:
             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLI));
+          in_avr_save:
+            begin
+              location_reset(location,LOC_CREGISTER,OS_8);
+              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_IN, location.register, NIO_SREG));
+              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLI));
+            end;
+          in_avr_restore:
+            begin
+              secondpass(left);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_OUT, NIO_SREG, left.location.register));
+            end;
           else
             inherited pass_generate_code_cpu;
         end;

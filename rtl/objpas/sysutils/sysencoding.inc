@@ -22,7 +22,13 @@ begin
   try
 {$endif}
     if not Assigned(FStandardEncodings[seAnsi]) then
-      FStandardEncodings[seAnsi] := TMBCSEncoding.Create(DefaultSystemCodePage);
+    begin
+      // DefaultSystemCodePage can be set to non-ANSI
+      if Assigned(widestringmanager.GetStandardCodePageProc) then
+        FStandardEncodings[seAnsi] := TMBCSEncoding.Create(widestringmanager.GetStandardCodePageProc(scpAnsi))
+      else
+        FStandardEncodings[seAnsi] := TMBCSEncoding.Create(DefaultSystemCodePage);
+    end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
@@ -91,6 +97,40 @@ begin
   Result := GetANSI;
 end;
 
+class function TEncoding.GetSystemEncoding: TEncoding;
+var
+  I: Integer;
+begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalSection(FLock);
+  try
+{$endif}
+    for I := Low(FSystemEncodings) to High(FSystemEncodings) do
+    begin
+      if FSystemEncodings[I].CodePage=DefaultSystemCodePage then
+      begin
+        Result := FSystemEncodings[I];
+        if I<>Low(FSystemEncodings) then // exchange with first position to find it faster the next time
+        begin
+          FSystemEncodings[I] := FSystemEncodings[Low(FSystemEncodings)];
+          FSystemEncodings[Low(FSystemEncodings)] := Result;
+        end;
+        Exit;
+      end;
+    end;
+    // not found - create new encoding at first position
+    Result := TMBCSEncoding.Create(DefaultSystemCodePage);
+    SetLength(FSystemEncodings, Length(FSystemEncodings)+1);
+    if High(FSystemEncodings)<>Low(FSystemEncodings) then
+      FSystemEncodings[High(FSystemEncodings)] := FSystemEncodings[Low(FSystemEncodings)];
+    FSystemEncodings[Low(FSystemEncodings)] := Result;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalSection(FLock);
+  end;
+{$endif}
+end;
+
 class function TEncoding.GetUnicode: TEncoding;
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -142,6 +182,7 @@ end;
 class procedure TEncoding.FreeEncodings;
 var
   E: TStandardEncoding;
+  I: Integer;
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
@@ -149,6 +190,9 @@ begin
 {$endif}
     for E := Low(FStandardEncodings) to High(FStandardEncodings) do
       FreeAndNil(FStandardEncodings[E]);
+    for I := Low(FSystemEncodings) to High(FSystemEncodings) do
+      FSystemEncodings[I].Free;
+    SetLength(FSystemEncodings, 0);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);

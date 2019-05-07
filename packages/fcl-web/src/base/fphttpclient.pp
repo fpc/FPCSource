@@ -1480,7 +1480,8 @@ begin
     301,
     302,
     303,
-    307,808 : Result:=True;
+    307,
+    308 : Result:=True;
   else
     Result:=False;
   end;

@@ -237,7 +237,7 @@ type
     ism_Drawer: BPTR;          // Lock on the drawer this object resides in, NULL for Workbench backdrop (devices).
     ism_Name: STRPTR;          // Name of the object in question.
     ism_type: Word;            // One of WBDISK, WBDRAWER, WBTOOL, WBPROJECT, WBGARBAGE, WBDEVICE, WBKICK or WBAPPICON.
-    ism_Selected: LongBool;    // TRUE if currently selected, FALSE otherwise.
+    ism_Selected: WordBool;    // TRUE if currently selected, FALSE otherwise.
     ism_Tags: PTagItem;        // Pointer to the list of tag items passed to ChangeWorkbenchSelectionA().
     ism_DrawerWindow: PWindow; // Pointer to the window attached to this icon, if the icon is a drawer-like object.
     ism_ParentWindow: PWindow; // Pointer to the window the icon resides in.
@@ -536,20 +536,22 @@ type
   TWBHandlerMessage = record
     wbhm_Message: TMessage; // Standard message structure.
     wbhm_type: TWBHM_type;  // type of message.
+    wbhm_Data: record
     case integer of
     0 :
     (
       Open: record
-        OpenName: STRPTR;   // Name of the drawer.
+        Name: STRPTR;   // Name of the drawer.
       end;
     );
     1 :
     (
       Update: record
-        UpdateName: STRPTR;  // Mame of the object.
-        Updatetype: LongInt; // type of object (WBDRAWER, WBPROJECT, ...).
+        Name: STRPTR;  // Mame of the object.
+        Type_: LongInt; // type of object (WBDRAWER, WBPROJECT, ...).
       end;
     );
+    end;
   end;
 
 

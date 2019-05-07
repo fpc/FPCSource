@@ -61,6 +61,7 @@ interface
       procedure newheader;override;
       function readheader:longint;override;
       procedure resetfile;override;
+      procedure RaiseAssertion(Code: Longint); override;
     public
       procedure writeheader;override;
       function checkpcpid:boolean;
@@ -82,6 +83,12 @@ uses
   function tpcpfile.getheaderaddr: pentryheader;
     begin
       result:=@header;
+    end;
+
+  procedure tpcpfile.RaiseAssertion(Code: Longint);
+    begin
+      // InternalError(nb);
+      inherited RaiseAssertion(Code);
     end;
 
   procedure tpcpfile.newheader;

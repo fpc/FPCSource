@@ -66,6 +66,7 @@ implementation
       Function  WriteResponseFile(isdll:boolean) : Boolean;
       function GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
       Function GetDarwinPrtobjName(isdll: boolean): TCmdStr;
+      Function WriteSymbolOrderFile: TCmdStr;
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
@@ -173,8 +174,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE $CATRES $FILELIST';
-             DllCmd[1]:='ld $TARGET $EMUL $OPT $MAP -shared -L. -o $EXE $CATRES $FILELIST'
+             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -L. -o $EXE $CATRES $FILELIST';
+             DllCmd[1]:='ld $TARGET $EMUL $OPT $MAP $ORDERSYMS -shared -L. -o $EXE $CATRES $FILELIST'
            end
          else
            begin
@@ -193,22 +194,22 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
+               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
+             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $ORDERSYMS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
              else
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $ORDERSYMS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
            end
        end
      else
        begin
-         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP $MAP -L. -o $EXE $RES';
-         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME $MAP -shared -L. -o $EXE $RES';
+         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -L. -o $EXE $RES';
+         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME $MAP $ORDERSYMS -shared -L. -o $EXE $RES';
        end;
      if not(target_info.system in systems_darwin) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
@@ -465,6 +466,30 @@ begin
     end;
   result:=maybequoted(result);
 end;
+
+
+function tlinkerbsd.WriteSymbolOrderFile: TCmdStr;
+  var
+    item: TCmdStrListItem;
+    symfile: TScript;
+  begin
+    result:='';
+    { only for darwin for now; can also enable for other platforms when using
+      the LLVM linker }
+    if (OrderedSymbols.Empty) or
+       not(tf_supports_symbolorderfile in target_info.flags) then
+      exit;
+    symfile:=TScript.Create(outputexedir+'symbol_order.fpc');
+    item:=TCmdStrListItem(OrderedSymbols.First);
+    while assigned(item) do
+      begin
+        symfile.add(item.str);
+        item:=TCmdStrListItem(item.next);
+      end;
+    symfile.WriteToDisk;
+    result:=symfile.fn;
+    symfile.Free;
+  end;
 
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
@@ -777,7 +802,8 @@ var
   targetstr,
   emulstr,
   extdbgbinstr,
-  extdbgcmdstr: TCmdStr;
+  extdbgcmdstr,
+  ordersymfile: TCmdStr;
   linkscript: TAsmScript;
   DynLinkStr : string[60];
   GCSectionsStr,
@@ -861,6 +887,9 @@ begin
 { Write used files and libraries }
   WriteResponseFile(false);
 
+{ Write symbol order file }
+  ordersymfile:=WriteSymbolOrderFile;
+
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
@@ -870,6 +899,16 @@ begin
   Replace(cmdstr,'$MAP',mapstr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  if ordersymfile<>'' then
+    begin
+      if target_info.system in systems_darwin then
+        Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
+      else
+        Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+maybequoted(ordersymfile))
+    end
+  else
+    Replace(cmdstr,'$ORDERSYMS','');
+
   if (LdSupportsNoResponseFile) and (source_info.system in systems_all_windows) then
     Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(outputexedir+'linkfiles.res'))
   else
@@ -922,6 +961,8 @@ begin
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
      DeleteFile(outputexedir+Info.ResName);
+     if ordersymfile<>'' then
+       DeleteFile(ordersymfile);
      if LdSupportsNoResponseFile Then
        begin
          DeleteFile(linkscript.fn);
@@ -946,6 +987,7 @@ var
   binstr,
   cmdstr,
   mapstr,
+  ordersymfile,
   targetstr,
   emulstr,
   extdbgbinstr,
@@ -963,6 +1005,9 @@ begin
 
 { Write used files and libraries }
   WriteResponseFile(true);
+
+{ Write symbol order file }
+  ordersymfile:=WriteSymbolOrderFile;
 
   if (cs_link_smart in current_settings.globalswitches) and
      (tf_smartlink_sections in target_info.flags) then
@@ -1014,6 +1059,15 @@ begin
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
   Replace(cmdstr,'$MAP',mapstr);
+  if ordersymfile<>'' then
+    begin
+      if target_info.system in systems_darwin then
+        Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
+      else
+        Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+maybequoted(ordersymfile))
+    end
+  else
+    Replace(cmdstr,'$ORDERSYMS','');
   if (target_info.system in systems_darwin) then
     Replace(cmdstr,'$PRTOBJ',GetDarwinPrtobjName(true));
   BinStr:=FindUtil(utilsprefix+BinStr);
@@ -1080,6 +1134,8 @@ begin
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       DeleteFile(outputexedir+Info.ResName);
+      if ordersymfile<>'' then
+        DeleteFile(ordersymfile);
       if LdSupportsNoResponseFile Then
         begin
           DeleteFile(linkscript.fn);

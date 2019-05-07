@@ -1047,6 +1047,7 @@ begin
   inherited Destroy;
 end;
 
+{$push}
 {$warnings off}
 function TStreamAdapter.Read(pv: Pointer; cb: DWORD; pcbRead: PDWORD): HResult; stdcall;
 var
@@ -1267,4 +1268,4 @@ begin
   raise e;
 end;
 
-{$warnings on}
+{$pop}

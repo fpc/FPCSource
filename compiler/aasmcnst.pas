@@ -57,7 +57,7 @@ type
     protected
      fval: tai;
     public
-     constructor create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+     constructor create(_def: tdef; _val: tai);
      destructor destroy; override;
      property val: tai read fval write setval;
    end;
@@ -70,7 +70,7 @@ type
      { iterator to walk over all individual items in the aggregate }
      tadeenumerator = class(tobject)
       private
-       fvalues: tfplist;
+       fvalues: tfpobjectlist;
        fvaluespos: longint;
        function getcurrent: tai_abstracttypedconst;
       public
@@ -81,7 +81,7 @@ type
      end;
 
     protected
-     fvalues: tfplist;
+     fvalues: tfpobjectlist;
      fisstring: boolean;
 
      { converts the existing data to a single tai_string }
@@ -93,7 +93,7 @@ type
      procedure addvalue(val: tai_abstracttypedconst);
      function valuecount: longint;
      procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
-     function replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+     procedure replacevalueatpos(val: tai_abstracttypedconst; pos: longint);
      { change the type to a record, regardless of how the aggregate was created;
        the size of the original type and the record must match }
      procedure changetorecord(_def: trecorddef);
@@ -640,9 +640,9 @@ implementation
       end;
 
 
-   constructor tai_simpletypedconst.create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+   constructor tai_simpletypedconst.create(_def: tdef; _val: tai);
      begin
-       inherited create(_adetyp,_def);
+       inherited create(tck_simple,_def);
        fval:=_val;
      end;
 
@@ -710,7 +710,7 @@ implementation
        { the "nil" def will be replaced with an array def of the appropriate
          size once we're finished adding data, so we don't create intermediate
          arraydefs all the time }
-       fvalues.add(tai_simpletypedconst.create(tck_simple,nil,newstr));
+       fvalues.add(tai_simpletypedconst.create(nil,newstr));
      end;
 
    procedure tai_aggregatetypedconst.add_to_string(strtai: tai_string; othertai: tai);
@@ -744,7 +744,7 @@ implementation
      begin
        inherited;
        fisstring:=false;
-       fvalues:=tfplist.create;
+       fvalues:=tfpobjectlist.create(true);
      end;
 
 
@@ -794,9 +794,9 @@ implementation
      end;
 
 
-   function tai_aggregatetypedconst.replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+   procedure tai_aggregatetypedconst.replacevalueatpos(val: tai_abstracttypedconst; pos: longint);
      begin
-       result:=tai_abstracttypedconst(fvalues[pos]);
+       { since fvalues owns its elements, it will automatically free the old value }
        fvalues[pos]:=val;
      end;
 
@@ -831,8 +831,6 @@ implementation
      var
        ai: tai_abstracttypedconst;
      begin
-       for ai in self do
-          ai.free;
        fvalues.free;
        inherited destroy;
      end;
@@ -1115,6 +1113,7 @@ implementation
              secname:=make_mangledname(basename,st,'2_'+itemname);
            exclude(options,tcalo_vectorized_dead_strip_item);
          end;
+       current_module.linkorderedsymbols.concat(sym.Name);
        finalize_asmlist(sym,def,sectype,secname,alignment,options);
      end;
 

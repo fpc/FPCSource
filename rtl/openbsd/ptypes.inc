@@ -61,7 +61,7 @@ type
     pSize    = ^size_t;
     pSize_t  = ^size_t;
 
-    ssize_t  = cint32;          { used by function for returning number of bytes }
+    ssize_t  = clong;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
     psSize   = ^ssize_t;
 
@@ -107,7 +107,6 @@ type
    pthread_mutexattr_t_rec	= record end;
    pthread_cond_t_rec		= record end;
    pthread_condattr_t_rec	= record end;
-   pthread_once_t_rec		= record end;
    pthread_rwlock_t_rec   	= record end;
    pthread_rwlockattr_t_rec	= record end;
 
@@ -118,7 +117,11 @@ type
    pthread_cond_t       = ^pthread_cond_t_rec;
    pthread_condattr_t   = ^pthread_condattr_t_rec;
    pthread_key_t        = cint;
-   pthread_once_t	= ^pthread_once_t_rec;
+   pthread_once_t_rec		= record
+     state : cint;
+     mutex : pthread_mutex_t;
+   end;
+   pthread_once_t	= pthread_once_t_rec;
    pthread_rwlock_t     = ^pthread_rwlock_t_rec;
    pthread_rwlockattr_t = ^pthread_rwlockattr_t_rec;
 

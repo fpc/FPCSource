@@ -165,7 +165,9 @@ interface
             tf_x86_far_procs_push_odd_bp,
             { indicates that this target can use dynamic packages otherwise an
               error will be generated if a package file is compiled }
-            tf_supports_packages
+            tf_supports_packages,
+            { supports symbol order file (to ensure symbols in vectorised sections are kept in the correct order) }
+            tf_supports_symbolorderfile
        );
 
        psysteminfo = ^tsysteminfo;
