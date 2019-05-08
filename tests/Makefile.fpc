@@ -647,6 +647,12 @@ endif
 # OpenBSD system tar executable doesn't know
 # about --files-from option, but supports -I
 ifeq ($(OS_SOURCE),openbsd)
+ifeq ($(TARPROG),$(subst gtar,,$(TARPROG)))
+  BSD_SYSTEM_TAR=1
+endif
+endif
+
+ifdef BSD_SYSTEM_TAR
 TARFROM=-I tar.lst
 else
 TARFROM=--files-from=tar.lst
