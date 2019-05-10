@@ -758,13 +758,13 @@ end;
 function NoCreateCallbackProc(aFunc: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   Result := Nil;
-  raise ENotImplemented.Create(SErrCallbackNotImplented);
+  raise ENotImplemented.Create(SErrCallbackNotImplemented);
 end;
 
 function NoCreateCallbackMethod(aFunc: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   Result := Nil;
-  raise ENotImplemented.Create(SErrCallbackNotImplented);
+  raise ENotImplemented.Create(SErrCallbackNotImplemented);
 end;
 
 const
