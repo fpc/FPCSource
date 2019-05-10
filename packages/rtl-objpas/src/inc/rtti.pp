@@ -539,7 +539,7 @@ resourcestring
   SErrInvokeNotImplemented = 'Invoke functionality is not implemented';
   SErrInvokeResultTypeNoValue = 'Function has a result type, but no result pointer provided';
   SErrInvokeFailed = 'Invoke call failed';
-  SErrCallbackNotImplented = 'Callback functionality is not implemented';
+  SErrCallbackNotImplemented = 'Callback functionality is not implemented';
   SErrCallConvNotSupported = 'Calling convention not supported: %s';
   SErrTypeKindNotSupported = 'Type kind is not supported: %s';
   SErrCallbackHandlerNil = 'Callback handler is Nil';
@@ -2074,7 +2074,7 @@ end;
 function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   if not Assigned(FuncCallMgr[aCallConv].CreateCallbackProc) then
-    raise ENotImplemented.Create(SErrCallbackNotImplented);
+    raise ENotImplemented.Create(SErrCallbackNotImplemented);
 
   if not Assigned(aHandler) then
     raise EArgumentNilException.Create(SErrCallbackHandlerNil);
@@ -2085,7 +2085,7 @@ end;
 function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   if not Assigned(FuncCallMgr[aCallConv].CreateCallbackMethod) then
-    raise ENotImplemented.Create(SErrCallbackNotImplented);
+    raise ENotImplemented.Create(SErrCallbackNotImplemented);
 
   if not Assigned(aHandler) then
     raise EArgumentNilException.Create(SErrCallbackHandlerNil);
