@@ -2003,6 +2003,7 @@ implementation
      { shouldn't be used that often, so the extra overhead is ok to save
        stack space }
      dispatchstring : ansistring;
+     autoderef,
      erroroutp1,
      allowspecialize,
      isspecialize,
@@ -2229,6 +2230,7 @@ implementation
                  end
                else
                  isspecialize:=false;
+               autoderef:=false;
                if (p1.resultdef.typ=pointerdef) and
                   (m_autoderef in current_settings.modeswitches) and
                   { don't auto-deref objc.id, because then the code
@@ -2237,6 +2239,7 @@ implementation
                  begin
                    p1:=cderefnode.create(p1);
                    do_typecheckpass(p1);
+                   autoderef:=true;
                  end;
                { procvar.<something> can never mean anything so always
                  try to call it in case it returns a record/object/... }
@@ -2660,7 +2663,20 @@ implementation
                     end;
                   else
                     begin
-                      found:=try_type_helper(p1,nil);
+                      if autoderef then
+                        begin
+                          { always try with the not dereferenced node }
+                          p2:=tderefnode(p1).left;
+                          found:=try_type_helper(p2,nil);
+                          if found then
+                            begin
+                              tderefnode(p1).left:=nil;
+                              p1.destroy;
+                              p1:=p2;
+                            end;
+                        end
+                      else
+                        found:=try_type_helper(p1,nil);
                       if not found then
                         begin
                           if p1.resultdef.typ<>undefineddef then
