@@ -1328,6 +1328,7 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function GetPhysicallyInstalledSystemMemory(TotalMemoryInKilobytes: PULONGLONG ):BOOL; stdcall; external 'kernel32.dll' name 'GetPhysicallyInstalledSystemMemory';
   function OpenThread(DesiredAccess : DWORD; InheritHandle : BOOL; ThreadId : DWORD) : THANDLE; stdcall; external 'kernel32.dll' name 'OpenThread';
   function GetShellWindow:HWND; stdcall; external 'user32.dll' name 'GetShellWindow';
+  function RealChildWindowFromPoint(Parent : HWND; Pt : TPOINT): HWND; stdcall; external 'user32.dll' name 'RealChildWindowFromPoint';
 {$endif read_interface}
 
 
