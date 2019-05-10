@@ -597,8 +597,18 @@ Type
   PPCodePointer       = ^PCodePointer;
 
   PBoolean            = ^Boolean;
+
+{$IFNDEF VER3_0}
+  PBoolean8           = ^Boolean8;
+{$ENDIF VER3_0}
+  PBoolean16          = ^Boolean16;
+  PBoolean32          = ^Boolean32;
+  PBoolean64          = ^Boolean64;
+
+  PByteBool           = ^ByteBool;
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
+  PQWordBool          = ^QWordBool;
 
   PNativeInt 	      = ^NativeInt;
   PNativeUInt	      = ^NativeUint;
