@@ -420,7 +420,7 @@ begin
         ftCurr:
           PCurrency(aResultValue)^ := floatres / 10000;
         ftComp:
-          PComp(aResultValue)^ := floatres;
+          PComp(aResultValue)^ := Comp(floatres);
       end;
     end else if aResultType^.Kind in [tkQWord, tkInt64] then
       PQWord(aResultValue)^ := regstack[0] or (QWord(regstack[1]) shl 32)
