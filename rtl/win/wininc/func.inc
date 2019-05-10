@@ -1327,6 +1327,7 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function IsWow64Process(hProcess:THandle; Wow64Process:PBOOL):BOOL;stdcall; external 'kernel32.dll' name 'IsWow64Process';
   function GetPhysicallyInstalledSystemMemory(TotalMemoryInKilobytes: PULONGLONG ):BOOL; stdcall; external 'kernel32.dll' name 'GetPhysicallyInstalledSystemMemory';
   function OpenThread(DesiredAccess : DWORD; InheritHandle : BOOL; ThreadId : DWORD) : THANDLE; stdcall; external 'kernel32.dll' name 'OpenThread';
+  function GetShellWindow:HWND; stdcall; external 'user32.dll' name 'GetShellWindow';
 {$endif read_interface}
 
 
