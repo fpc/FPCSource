@@ -481,7 +481,8 @@ interface
          m_isolike_io,          { I/O as it required by an ISO compatible compiler }
          m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
          m_isolike_mod,         { mod operation as it is required by an iso compatible compiler }
-         m_array_operators      { use Delphi compatible array operators instead of custom ones ("+") }
+         m_array_operators,     { use Delphi compatible array operators instead of custom ones ("+") }
+         m_multi_helpers        { helpers can appear in multiple scopes simultaneously }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -670,7 +671,8 @@ interface
          'ISOIO',
          'ISOPROGRAMPARAS',
          'ISOMOD',
-         'ARRAYOPERATORS'
+         'ARRAYOPERATORS',
+         'MULTIHELPERS'
          );
 
 

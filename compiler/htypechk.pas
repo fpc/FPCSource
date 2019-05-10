@@ -2261,6 +2261,33 @@ implementation
             end;
         end;
 
+      function processhelper(hashedid:THashedIDString;helperdef:tobjectdef):boolean;
+        var
+          srsym : tsym;
+          hasoverload,foundanything : boolean;
+        begin
+          result:=false;
+          srsym:=nil;
+          hasoverload:=false;
+          while assigned(helperdef) do
+            begin
+              srsym:=tsym(helperdef.symtable.FindWithHash(hashedid));
+              if assigned(srsym) and
+                  { Delphi allows hiding a property by a procedure with the same name }
+                  (srsym.typ=procsym) then
+                begin
+                  hasoverload:=processprocsym(tprocsym(srsym),foundanything);
+                  { when there is no explicit overload we stop searching }
+                  if foundanything and
+                     not hasoverload then
+                    break;
+                end;
+              helperdef:=helperdef.childof;
+            end;
+          if not hasoverload and assigned(srsym) then
+            exit(true);
+        end;
+
       var
         srsym      : tsym;
         hashedid   : THashedIDString;
@@ -2268,6 +2295,8 @@ implementation
         foundanything : boolean;
         extendeddef : tabstractrecorddef;
         helperdef  : tobjectdef;
+        helperlist : TFPObjectList;
+        i : integer;
       begin
         if FOperator=NOTOKEN then
           hashedid.id:=FProcsym.name
@@ -2287,27 +2316,24 @@ implementation
                )
                and searchhelpers then
              begin
-               if search_last_objectpascal_helper(structdef,nil,helperdef) then
+               if m_multi_helpers in current_settings.modeswitches then
                  begin
-                   srsym:=nil;
-                   while assigned(helperdef) do
+                   helperlist:=get_objectpascal_helpers(structdef);
+                   if assigned(helperlist) and (helperlist.count>0) then
                      begin
-                       srsym:=tsym(helperdef.symtable.FindWithHash(hashedid));
-                       if assigned(srsym) and
-                           { Delphi allows hiding a property by a procedure with the same name }
-                           (srsym.typ=procsym) then
-                         begin
-                           hasoverload:=processprocsym(tprocsym(srsym),foundanything);
-                           { when there is no explicit overload we stop searching }
-                           if foundanything and
-                              not hasoverload then
-                             break;
-                         end;
-                       helperdef:=helperdef.childof;
+                       i:=helperlist.count-1;
+                       repeat
+                         helperdef:=tobjectdef(helperlist[i]);
+                         if (helperdef.owner.symtabletype in [staticsymtable,globalsymtable]) or
+                            is_visible_for_object(helperdef.typesym,helperdef) then
+                              if processhelper(hashedid,helperdef) then
+                                exit;
+                         dec(i);
+                       until (i<0);
                      end;
-                   if not hasoverload and assigned(srsym) then
-                     exit;
-                 end;
+                 end
+               else if search_last_objectpascal_helper(structdef,nil,helperdef) and processhelper(hashedid,helperdef) then
+                  exit;
              end;
            { now search in the type itself }
            srsym:=tsym(structdef.symtable.FindWithHash(hashedid));
