@@ -125,12 +125,6 @@ end;
 
 procedure SystemInvoke(aCodeAddress: CodePointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
             aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
-type
-  PBoolean16 = ^Boolean16;
-  PBoolean32 = ^Boolean32;
-  PBoolean64 = ^Boolean64;
-  PByteBool = ^ByteBool;
-  PQWordBool = ^QWordBool;
 var
   stackarea: array of PtrUInt;
   stackptr: Pointer;
@@ -518,12 +512,6 @@ begin
 end;
 
 procedure TSystemFunctionCallback.CreateArgInfos;
-type
-  PBoolean16 = ^Boolean16;
-  PBoolean32 = ^Boolean32;
-  PBoolean64 = ^Boolean64;
-  PByteBool = ^ByteBool;
-  PQWordBool = ^QWordBool;
 var
   i, argidx, ofs: LongInt;
   td: PTypeData;
