@@ -4350,15 +4350,7 @@ implementation
            end;
          st_widestring:
            begin
-             if not(tf_winlikewidestring in target_info.flags) then
-               addstringdef('WideString',cwidechartype,true,-1)
-             else
-               begin
-                 { looks like a pwidechar (no idea about length location) }
-                 append_entry(DW_TAG_pointer_type,false,[]);
-                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(cwidechartype));
-                 finish_entry;
-              end;
+             addstringdef('WideString',cwidechartype,true,-1)
            end;
         end;
       end;
