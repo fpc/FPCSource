@@ -4265,7 +4265,7 @@ implementation
           { now the information about the length of the string }
           if deref then
             begin
-              if (chardef.size=1) then
+              if not (is_widestring(def) and (tf_winlikewidestring in target_info.flags)) then
                 upperopcodes:=13
               else
                 upperopcodes:=15;
