@@ -73,7 +73,8 @@ type
      llvmflag_call_no_ptr,         { with direct calls, the function type is not a function pointer }
      llvmflag_alias_double_type,   { with "alias" declarations, have to print both aliasee and aliasee* types }
      llvmflag_fembed_bitcode,      { support embedding bitcode in object files }
-     llvmflag_memcpy_indiv_align   { memcpy intrinsic supports separate alignment for source and dest }
+     llvmflag_memcpy_indiv_align,  { memcpy intrinsic supports separate alignment for source and dest }
+     llvmflag_null_pointer_valid   { supports "llvmflag_null_pointer_valid" attribute, which indicates access to nil should not be optimized as undefined behaviour }
    );
    tllvmversionflags = set of tllvmversionflag;
 
@@ -136,9 +137,9 @@ Const
        { llvmver_6_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
        { llvmver_xc_10_0 } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
        { llvmver_xc_10_1 } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode],
-       { llvmver_7_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align],
-       { llvmver_7_1     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align],
-       { llvmver_8_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align]
+       { llvmver_7_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
+       { llvmver_7_1     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
+       { llvmver_8_0     } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type,llvmflag_fembed_bitcode,llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid]
      );
 
    { Supported optimizations, only used for information }

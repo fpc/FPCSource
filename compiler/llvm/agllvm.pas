@@ -1004,6 +1004,7 @@ implementation
 
       procedure WriteFunctionFlags(pd: tprocdef);
         begin
+          { function attributes }
           if (pos('FPC_SETJMP',upper(pd.mangledname))<>0) or
              (pd.mangledname=(target_info.cprefix+'setjmp')) then
             writer.AsmWrite(' returns_twice');
@@ -1019,6 +1020,8 @@ implementation
             writer.AsmWrite(' nobuiltin');
           if po_noreturn in pd.procoptions then
             writer.AsmWrite(' noreturn');
+          if llvmflag_null_pointer_valid in llvmversion_properties[current_settings.llvmversion] then
+            writer.AsmWrite(' "null-pointer-is-valid"="true"');
         end;
 
 
