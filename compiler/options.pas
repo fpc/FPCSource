@@ -2036,6 +2036,11 @@ begin
                            exclude(init_settings.moduleswitches,cs_support_c_operators)
                          else
                            include(init_settings.moduleswitches,cs_support_c_operators);
+                       'C':
+                         If UnsetBool(More, j, opt, false) then
+                           exclude(init_settings.localswitches,cs_check_all_case_coverage)
+                         else
+                           include(init_settings.localswitches,cs_check_all_case_coverage);
                        'd' : //an alternative to -Mdelphi
                          SetCompileMode('DELPHI',true);
                        'e' :

@@ -73,11 +73,6 @@ interface
           jumptable_no_range : boolean;
           { has the implementation jumptable support }
           min_label : tconstexprint;
-          { Number of labels }
-          labelcnt: TCgInt;
-          { Number of individual values checked, counting each value in a range
-            individually (e.g. 0..2 counts as 3). }
-          TrueCount: TCgInt;
 
           function GetBranchLabel(Block: TNode; out _Label: TAsmLabel): Boolean;
 
@@ -1138,7 +1133,7 @@ implementation
 
       begin
         labelarray:=nil;
-        SetLength(labelarray,case_count_labels(root));
+        SetLength(labelarray,labelcnt);
         nextarrayentry:=0;
         addarrayentry(root);
         rebuild(0,high(labelarray),root);
@@ -1148,18 +1143,6 @@ implementation
       end;
 
     procedure tcgcasenode.pass_generate_code;
-
-      { Combines "case_count_labels" and "case_true_count" }
-      procedure CountBoth(p : pcaselabel);
-        begin
-          Inc(labelcnt);
-          Inc(TrueCount, (p^._high.svalue - p^._low.svalue) + 1);
-          if assigned(p^.less) then
-            CountBoth(p^.less);
-          if assigned(p^.greater) then
-            CountBoth(p^.greater);
-        end;
-
       var
          oldflowcontrol: tflowcontrol;
          i : longint;
@@ -1232,9 +1215,6 @@ implementation
          else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
            begin
-              labelcnt := 0;
-              TrueCount := 0;
-
               if cs_opt_level1 in current_settings.optimizerswitches then
                 begin
                    { procedures are empirically passed on }
@@ -1244,8 +1224,6 @@ implementation
                    { moreover can the size only be appro- }
                    { ximated as it is not known if rel8,  }
                    { rel16 or rel32 jumps are used   }
-
-                   CountBoth(labels);
 
                    max_label := case_get_max(labels);
 
@@ -1280,7 +1258,7 @@ implementation
                      end
                    else
                      begin
-                        max_dist:=4*TrueCount;
+                        max_dist:=4*labelcoverage;
 
                         { Don't allow jump tables to get too large }
                         if max_dist>4*labelcnt then

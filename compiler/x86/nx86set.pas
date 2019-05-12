@@ -129,7 +129,7 @@ implementation
               { Limit size of jump tables for small enumerations so they have
                 to be at least two-thirds full before being considered for the
                 "almost exhaustive" treatment }
-              ExhaustiveLimit := min(ExhaustiveLimitBase, TrueCount shl 1)
+              ExhaustiveLimit := min(ExhaustiveLimitBase, labelcoverage shl 1)
             else
               ExhaustiveLimit := ExhaustiveLimitBase;
 

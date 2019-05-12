@@ -436,6 +436,12 @@ unit scandir;
       end;
 
 
+    procedure dir_checkcasecoverage;
+      begin
+        do_localswitch(cs_check_all_case_coverage);
+      end;
+
+
     procedure dir_checkfpuexceptions;
       begin
         do_localswitch(cs_check_fpu_exceptions);
@@ -1908,6 +1914,7 @@ unit scandir;
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
         AddDirective('BITPACKING',directive_all, @dir_bitpacking);
         AddDirective('CALLING',directive_all, @dir_calling);
+        AddDirective('CHECKCASECOVERAGE',directive_all, @dir_checkcasecoverage);
         AddDirective('CHECKFPUEXCEPTIONS',directive_all, @dir_checkfpuexceptions);
         AddDirective('CHECKLOWADDRLOADS',directive_all, @dir_checklowaddrloads);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
