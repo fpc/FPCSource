@@ -346,6 +346,8 @@ uses
                   case callpara^.typ of
                     top_tai:
                       callpara^.ai.free;
+                    else
+                      ;
                   end;
                   dispose(callpara);
                 end;

@@ -367,6 +367,8 @@ implementation
                                     callpara^.ai:=cnv;
                                   end;
                               end;
+                            else
+                              ;
                           end;
                         end;
                     end;

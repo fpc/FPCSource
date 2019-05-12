@@ -1407,6 +1407,8 @@ begin
                 not(po_external in tprocdef(tprocsym(srsym).ProcdefList[0]).procoptions) then
                cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname,AT_FUNCTION),tprocdef(tprocsym(srsym).ProcdefList[0]),true);
            end;
+         else
+           ;
       end;
     end;
 end;
