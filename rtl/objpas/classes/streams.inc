@@ -1871,7 +1871,7 @@ begin
         sz := sizeof(Buffer)
       else
         sz := cb;
-      sz := FStream.Read(buffer, sz);
+      sz := FStream.Read(buffer[0],sz);
       inc(cbRead, sz);
       stm.Write(@buffer[0], sz, @sz);
       inc(cbWritten, sz);
