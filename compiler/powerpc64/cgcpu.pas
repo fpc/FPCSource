@@ -1047,6 +1047,8 @@ begin
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
       internalerror(2006041801);
+    else
+      ;
   end;
 end;
 
@@ -1063,6 +1065,8 @@ begin
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
       internalerror(2006041802);
+    else
+      ;
   end;
 end;
 
@@ -1708,6 +1712,8 @@ procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
             end;
             ref.offset := (ref.offset div 4) * 4;
           end;
+        else
+          ;
       end;
     end;
 

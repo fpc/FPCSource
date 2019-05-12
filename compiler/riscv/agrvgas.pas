@@ -137,6 +137,8 @@ unit agrvgas;
              addr_hi20: s:='%hi'+s;
              addr_pcrel_lo12: s:='%pcrel_lo'+s;
              addr_pcrel_hi20: s:='%pcrel_hi'+s;
+             else
+               ;
            end;
         end;
       getreferencestring:=s;

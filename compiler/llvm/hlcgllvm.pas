@@ -694,6 +694,8 @@ implementation
             reg1:=tmpreg;
             fromsize:=tmpintdef;
           end;
+        else
+          ;
       end;
       { reg2 = bitcast fromsize reg1 to tosize }
       list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
@@ -778,6 +780,8 @@ implementation
                 a_loadmm_ref_ref(list,fromsize,fromsize,simpleref,tmpref2,firstshuffle);
                 a_loadmm_ref_reg(list,tosize,tosize,tmpref,register,shuffle);
               end;
+            else
+              internalerror(2019051040);
           end;
           tg.ungettemp(list,tmpref);
           result:=true;
@@ -1935,6 +1939,8 @@ implementation
                   a_loadfpu_reg_ref(list,llvmretdef,llvmretdef,resval,rettemp);
                 R_MMREGISTER:
                   a_loadmm_reg_ref(list,llvmretdef,llvmretdef,resval,rettemp,mms_movescalar);
+                else
+                  ;
               end;
               { the return parameter now contains a value whose type matches the one
                 that the high level code generator expects instead of the llvm shim
@@ -2020,6 +2026,8 @@ implementation
                   list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at %tmp.'+
                      tostr(getsupreg(vs.initialloc.reference.base)))));
               end;
+            else
+              ;
           end;
         end;
       vs.localloc:=vs.initialloc;

@@ -208,6 +208,8 @@ unit cpupara;
             result:=def.size>16;
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
+          else
+            ;
         end;
       end;
 
@@ -440,6 +442,8 @@ unit cpupara;
                    loc:=LOC_REFERENCE;
                  end;
              end;
+           else
+             ;
          end;
 
          { allocate registers/stack locations }

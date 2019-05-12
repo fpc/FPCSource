@@ -26,7 +26,7 @@ interface
 
     uses
        { common }
-       cclasses,
+       cclasses,widestr,
        { global }
        globtype,globals,tokens,constexp,
        { symtable }
@@ -2213,7 +2213,6 @@ implementation
      var
        recsize,temp: longint;
      begin
-        is_intregable:=false;
         case typ of
           orddef,
           pointerdef,
@@ -2244,6 +2243,8 @@ implementation
                  not needs_inittable;
 {$endif llvm}
             end;
+          else
+           is_intregable:=false;
         end;
      end;
 
@@ -2574,8 +2575,6 @@ implementation
               alignment:=size_2_align(2)
             else
               alignment:=size_2_align(1);
-          else
-            internalerror(200412301);
         end;
       end;
 
@@ -2602,8 +2601,6 @@ implementation
           st_widestring,
           st_unicodestring:
             Result:=voidpointertype.size;
-          else
-            internalerror(2014032301);
         end;
       end;
 
@@ -3173,8 +3170,6 @@ implementation
             result:=cfiledef.createuntyped;
           ft_text:
             result:=cfiledef.createtext;
-          else
-            internalerror(2004121201);
         end;
       end;
 
@@ -3217,8 +3212,6 @@ implementation
            end;
          ft_untyped:
            savesize:=search_system_type('FILEREC').typedef.size;
-         else
-           internalerror(2013113001);
          end;
       end;
 
@@ -3231,8 +3224,6 @@ implementation
           ft_typed,
           ft_untyped:
             result:=search_system_type('FILEREC').typedef.alignment;
-          else
-            internalerror(2018120101);
           end;
       end;
 
@@ -3256,8 +3247,6 @@ implementation
              GetTypeName:='File Of '+typedfiledef.typename;
            ft_text:
              GetTypeName:='Text'
-           else
-             internalerror(2013113002);
          end;
       end;
 
@@ -3271,8 +3260,6 @@ implementation
              getmangledparaname:='FILE$OF$'+typedfiledef.mangledparaname;
            ft_text:
              getmangledparaname:='TEXT'
-           else
-             internalerror(2013113003);
          end;
       end;
 
@@ -3335,8 +3322,6 @@ implementation
              GetTypeName:='Variant';
            vt_olevariant:
              GetTypeName:='OleVariant';
-           else
-             internalerror(2013113004);
          end;
       end;
 
@@ -5048,7 +5033,7 @@ implementation
         hp    : TParavarsym;
         hpc   : tconstsym;
         first : boolean;
-        i     : integer;
+        i,j   : integer;
       begin
         s:='';
         first:=true;
@@ -5076,6 +5061,8 @@ implementation
                    s:=s+'out ';
                  vs_constref :
                    s:=s+'constref ';
+                 else
+                   ;
                end;
                if (pno_paranames in pno) then
                  s:=s+hp.realname+':';
@@ -5097,23 +5084,38 @@ implementation
                   hpc:=tconstsym(hp.defaultconstsym);
                   hs:='';
                   case hpc.consttyp of
+                    constwstring:
+                      begin
+                        if pcompilerwidestring(hpc.value.valueptr)^.len>0 then
+                          begin
+                            setlength(hs,pcompilerwidestring(hpc.value.valueptr)^.len);
+                            for j:=0 to pcompilerwidestring(hpc.value.valueptr)^.len-1 do
+                             begin
+                               if (ord(pcompilerwidestring(hpc.value.valueptr)^.data[j])<127) and
+                                  not(byte(pcompilerwidestring(hpc.value.valueptr)^.data[j]) in [0,10,13]) then
+                                 hs[j+1]:=char(pcompilerwidestring(hpc.value.valueptr)^.data[j])
+                               else
+                                 hs[j+1]:='.';
+                             end;
+                          end;
+                      end;
                     conststring,
                     constresourcestring :
                       begin
-                      If hpc.value.len>0 then
-                        begin
-                          setLength(hs,hpc.value.len);
-                          { don't write past the end of hs if the constant
-                            is > 255 chars }
-                          move(hpc.value.valueptr^,hs[1],length(hs));
-                          { make sure that constant strings with newline chars
-                            don't create a linebreak in the assembler code,
-                            since comments are line-based. Also remove nulls
-                            because the comments are written as a pchar. }
-                          ReplaceCase(hs,#0,'.');
-                          ReplaceCase(hs,#10,'.');
-                          ReplaceCase(hs,#13,'.');
-                        end;
+                        if hpc.value.len>0 then
+                          begin
+                            setLength(hs,hpc.value.len);
+                            { don't write past the end of hs if the constant
+                              is > 255 chars }
+                            move(hpc.value.valueptr^,hs[1],length(hs));
+                            { make sure that constant strings with newline chars
+                              don't create a linebreak in the assembler code,
+                              since comments are line-based. Also remove nulls
+                              because the comments are written as a pchar. }
+                            ReplaceCase(hs,#0,'.');
+                            ReplaceCase(hs,#10,'.');
+                            ReplaceCase(hs,#13,'.');
+                          end;
                       end;
                     constreal :
                       str(pbestreal(hpc.value.valueptr)^,hs);
@@ -5135,6 +5137,10 @@ implementation
                       hs:='nil';
                     constset :
                       hs:='<set>';
+                    constguid:
+                      hs:=guid2string(pguid(hpc.value.valueptr)^);
+                    constnone:
+                      internalerror(2019050704);
                   end;
                   if hs<>'' then
                    s:=s+'=`'+hs+'`';
@@ -7502,6 +7508,8 @@ implementation
                     end;
                   odt_objcprotocol:
                     result:=result+'_OBJC_PROTOCOL_';
+                  else
+                   ;
                 end;
               end
             else

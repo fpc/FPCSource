@@ -605,6 +605,8 @@ implementation
 
               result:=true;
             end;
+          else
+            ;
         end;
       end;
 
@@ -773,7 +775,11 @@ implementation
                   optoken:=_OP_INC;
                 in_dec_x:
                   optoken:=_OP_DEC;
+                else
+                  ;
              end;
+           else
+             ;
         end;
         if (optoken=NOTOKEN) then
           begin
@@ -897,6 +903,8 @@ implementation
                     optoken:=_GT;
                   _GTE:
                     optoken:=_LT;
+                  else
+                    ;
                 end;
                 candidates:=tcallcandidates.create_operator(optoken,ppn);
               end;
@@ -1259,6 +1267,8 @@ implementation
                          pointer itself is read and never written }
                        newstate := vs_read;
                      end;
+                   else
+                     ;
                end;
                  p:=tunarynode(p).left;
                end;
@@ -1361,6 +1371,8 @@ implementation
                    vs_readwritten:
                      if not(nf_write in tloadnode(p).flags) then
                        include(tloadnode(p).flags,nf_modify);
+                   else
+                     ;
                  end;
                  break;
                end;
@@ -1484,6 +1496,8 @@ implementation
                    gotrecord:=true;
                  stringdef :
                    gotstring:=true;
+                 else
+                   ;
                end;
                if (valid_property in opts) then
                  begin
@@ -1626,6 +1640,8 @@ implementation
                            exit
                          end;
                      end;
+                   else
+                     ;
                  end;
                  hp:=ttypeconvnode(hp).left;
                end;
@@ -2056,6 +2072,8 @@ implementation
                  (tfiledef(def_to).filetyp = ft_untyped) then
                 eq:=te_convert_l1;
             end;
+          else
+            ;
         end;
       end;
 
@@ -2133,6 +2151,8 @@ implementation
                     end
                 end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -3122,8 +3142,6 @@ implementation
                   inc(hp^.coper_count);
                 te_incompatible :
                   hp^.invalid:=true;
-                else
-                  internalerror(200212072);
               end;
 
               { stop checking when an incompatible parameter is found }

@@ -367,6 +367,8 @@ begin
             system_aarch64_darwin:
               { never anything }
               exit('');
+            else
+              Internalerror(2019050709);
           end;
           { nothing special -> default }
           result:='crt1.o';
@@ -410,6 +412,8 @@ begin
                 if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
                   exit('');
               end;
+            else
+              Internalerror(2019050710);
           end;
           result:='bundle1.o';
         end
@@ -445,6 +449,8 @@ begin
                 if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
                   exit('');
               end;
+            else
+              Internalerror(2019050711);
           end;
           result:='dylib1.o';
         end;

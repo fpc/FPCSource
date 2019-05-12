@@ -393,8 +393,6 @@ implementation
 {$else}
                   encodedstr:=encodedstr+'fp128';
 {$endif}
-                else
-                  internalerror(2013100202);
               end;
             end;
           filedef :
@@ -420,8 +418,6 @@ implementation
                   end;
                 ft_untyped :
                   llvmaddencodedtype_intern(search_system_type('FILEREC').typedef,[lef_inaggregate]+[lef_typedecl]*flags,encodedstr);
-                else
-                  internalerror(2013100203);
               end;
             end;
           recorddef :

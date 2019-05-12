@@ -724,6 +724,8 @@ Unit raarmgas;
                         end;
                     end;
                 end;
+              else
+               ;
             end;
           end;
 
@@ -817,6 +819,8 @@ Unit raarmgas;
                   oper.opr.ref.base:=NR_PC;
                   oper.opr.ref.symbol:=GetConstLabel(sym,val);
                 end;
+              else
+                ;
             end;
           end;
 
@@ -1143,6 +1147,8 @@ Unit raarmgas;
               else
                 Message(asmr_e_invalid_operand_type); // Otherwise it would have been seen as a AS_REGISTER
             end;
+          else
+            Message(asmr_e_invalid_operand_type);
         end;
       end;
 

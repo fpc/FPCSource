@@ -125,6 +125,8 @@ implementation
             top_ref:
               result:=
                 (p.oper[I]^.ref^.base=reg);
+            else
+              ;
           end;
           if result then exit; {Bailout if we found something}
           Inc(I);
@@ -377,8 +379,12 @@ implementation
                       result:=true;
                     end;
                 end;
+              else
+                ;
             end;
           end;
+        else
+          ;
       end;
     end;
 

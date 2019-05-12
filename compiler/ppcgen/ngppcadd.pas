@@ -146,6 +146,11 @@ implementation
                   lten : result.flag:=F_GE;
                   gtn : result.flag:=F_LT;
                   gten : result.flag:=F_LE;
+                  equaln,
+                  unequaln:
+                    ;
+                  else
+                    internalerror(2019050942);
                 end
               else
                 case nodetype of
@@ -153,6 +158,11 @@ implementation
                   lten : result.flag:=F_LE;
                   gtn : result.flag:=F_GT;
                   gten : result.flag:=F_GE;
+                  equaln,
+                  unequaln:
+                    ;
+                  else
+                    internalerror(2019050943);
                 end;
             end
           end

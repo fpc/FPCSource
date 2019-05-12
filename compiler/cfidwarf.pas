@@ -213,8 +213,6 @@ implementation
                 list.concat(tai_const.create_rel_sym(enc2ait_const[oper[i].enc],oper[i].beginsym,oper[i].endsym));
               dop_reg :
                 list.concat(tai_const.create(enc2ait_const[oper[i].enc],dwarf_reg(oper[i].register)));
-              else
-                internalerror(200404128);
             end;
           end;
       end;

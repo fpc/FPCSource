@@ -439,6 +439,8 @@ implementation
                         if is_open_string(hdef) then
                           hdef:=cshortstringtype;
                        end;
+                      else
+                        ;
                     end;
                   end;
                 if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
@@ -2118,6 +2120,8 @@ procedure pd_syscall(pd:tabstractprocdef);
                 else
                   include(pd.procoptions,get_default_syscall);
               end;
+          else
+            internalerror(2019050526);
         end;
       end;
 
@@ -2926,6 +2930,8 @@ const
                  end
                else
                  exit;
+             else
+               ;
            end;
          end;
 
@@ -3206,6 +3212,8 @@ const
                 begin
                   pd.aliasnames.insert(target_info.Cprefix+pd.cplusplusmangledname);
                 end;
+              else
+                ;
             end;
             { prevent adding the alias a second time }
             include(pd.procoptions,po_has_public_name);

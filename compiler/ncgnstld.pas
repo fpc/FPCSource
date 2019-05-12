@@ -134,6 +134,8 @@ implementation
                   typecheckpass(left);
                 end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -182,6 +184,8 @@ implementation
                   include(flags,nf_internal);
                 end;
             end;
+          else
+            ;
         end;
       end;
 

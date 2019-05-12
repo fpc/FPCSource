@@ -1928,6 +1928,8 @@ unit rgobj;
                                 end;
                             end;
 {$endif arm}
+                          else
+                            ;
                         end;
                   end;
               ait_regalloc:
@@ -1965,11 +1967,15 @@ unit rgobj;
                                 include(used_in_proc,supreg);
                                 has_usedmarks:=true;
                               end;
+                          else
+                            ;
                         end;
                         { constraints needs always to be updated }
                         add_constraints(reg);
                       end;
                   end;
+              else
+                ;
             end;
             add_cpu_interferences(p);
             p:=Tai(p.next);
@@ -2166,6 +2172,8 @@ unit rgobj;
                                 end;
                             end;
 {$endif arm}
+                          else
+                            ;
                         end;
 
                     { Maybe the operation can be removed when
@@ -2179,6 +2187,8 @@ unit rgobj;
                         continue;
                       end;
                   end;
+              else
+                ;
             end;
             p:=Tai(p.next);
           end;
@@ -2322,6 +2332,8 @@ unit rgobj;
                                live_registers.add(supreg);
                               ra_dealloc :
                                live_registers.delete(supreg);
+                              else
+                                ;
                             end;
                           end;
                       end;
@@ -2337,6 +2349,8 @@ unit rgobj;
                     if instr_spill_register(list,tai_cpu_abstract_sym(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
                   end;
+              else
+                ;
             end;
             p:=Tai(p.next);
           end;
@@ -2464,6 +2478,8 @@ unit rgobj;
                       result:=addreginfo(regs,r,shifterop^.rs,operand_read);
                 end;
 {$endif ARM}
+              else
+                ;
             end;
           end;
       end;
@@ -2525,6 +2541,8 @@ unit rgobj;
                   try_replace_reg(regs, shifterop^.rs, true { always read-only });
               end;
   {$endif ARM}
+            else
+              ;
           end;
       end;
 

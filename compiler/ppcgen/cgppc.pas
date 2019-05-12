@@ -316,6 +316,8 @@ unit cgppc;
                        not(pi_do_call in current_procinfo.flags) then
                       list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
                   end;
+                else
+                  ;
               end;
           end;
       end;
@@ -745,6 +747,8 @@ unit cgppc;
             list.concat(taicpu.op_const_const_const(A_CROR,testbit,testbit,testbit+2));
             f2.flag:=F_LT;
           end;
+        else
+          ;
       end;
       c := flags_to_cond(f2);
       a_jmp(list,A_BC,c.cond,c.cr-RS_CR0,l);

@@ -513,6 +513,8 @@ implementation
                 NR_CS,NR_DS,NR_ES,
                 NR_SS,NR_FS,NR_GS :
                   reg2opsize:=S_W;
+                else
+                  ;
               end;
             end;
           else
@@ -574,11 +576,12 @@ implementation
 
     function is_segment_reg(r:tregister):boolean;
       begin
-        result:=false;
         case r of
           NR_CS,NR_DS,NR_ES,
           NR_SS,NR_FS,NR_GS :
             result:=true;
+          else
+            result:=false;
         end;
       end;
 
@@ -678,8 +681,6 @@ implementation
           mm_compact,mm_large,mm_huge:
             { all segment registers are different in these models }
             exit(false);
-          else
-            internalerror(2013062302);
         end;
 {$elseif defined(i386) or defined(x86_64)}
         { DS=SS=ES }

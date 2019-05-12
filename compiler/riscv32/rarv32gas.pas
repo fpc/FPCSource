@@ -222,6 +222,8 @@ Unit rarv32gas;
                         end;
                       end;
                   end;
+                else
+                  ;
               end;
               Consume(AS_RPAREN);
               if actasmtoken=AS_AT then

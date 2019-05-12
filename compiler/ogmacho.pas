@@ -828,6 +828,8 @@ uses
                   symList.Insert(iUndef, s);
                   inc(iUndef);
                 end;
+              loc_Notused:
+                ;
             end;
             inc(symStrLen, length(s.Name)+1 );
           end;

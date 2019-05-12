@@ -322,6 +322,8 @@ unit optutils;
             tryfinallyn,
             onn:
               internalerror(2007050501);
+            else
+              ;
           end;
         end;
 
@@ -387,6 +389,8 @@ unit optutils;
               CalcExecutionWeights(tifnode(n).t1,Weight div 2);
               Result:=fen_norecurse_false;
             end;
+          else
+            ;
         end;
         n.optinfo^.executionweight:=Weight;
       end;

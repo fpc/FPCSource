@@ -770,6 +770,8 @@ unit cpubase;
                       ((((doublerec.bytes[6] and $7f)=$40) and ((doublerec.bytes[7] and $c0)=0)) or
                        (((doublerec.bytes[6] and $7f)=$3f) and ((doublerec.bytes[7] and $c0)=$c0)));
             end;
+          else
+            ;
         end;
       end;
 

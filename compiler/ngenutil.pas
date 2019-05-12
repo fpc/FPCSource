@@ -408,6 +408,8 @@ implementation
                   pd.localst.SymList.ForEachCall(@static_syms_finalize,arg);
               end;
           end;
+        else
+          ;
       end;
     end;
 
@@ -668,6 +670,8 @@ implementation
                       result:=block
                     end
                 end;
+              else
+                ;
             end;
           end;
         end;

@@ -1414,6 +1414,8 @@ implementation
                        csiMem16: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS16;
                        csiMem32: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS32;
                        csiMem64: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS64;
+                       else
+                         ;
                     end;
                   end
                   else
@@ -1604,6 +1606,8 @@ implementation
                  case insot and (OT_XMMRM or OT_YMMRM or OT_REG_EXTRA_MASK) of
                    OT_XMMRM: insot := insot or OT_BITS128;
                    OT_YMMRM: insot := insot or OT_BITS256;
+                   else
+                     ;
                  end;
                end;
              end;
@@ -2020,6 +2024,8 @@ implementation
           R_MMREGISTER:
             if getsupreg(r)>=RS_XMM8 then
               result:=result or $47;
+          else
+            ;
         end;
       end;
 

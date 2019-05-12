@@ -113,6 +113,8 @@ unit cpupara;
                        exit;
                      end;
                   end;
+                else
+                  ;
               end;
             end;
           system_i386_os2,
@@ -130,6 +132,8 @@ unit cpupara;
                        exit;
                      end;
                   end;
+                else
+                  ;
               end;
             end;
           system_i386_freebsd,
@@ -157,9 +161,13 @@ unit cpupara;
                         result:=false;
                         exit;
                       end;
+                    else
+                      ;
                   end;
               end;
             end;
+          else
+            ;
         end;
         result:=inherited ret_in_param(def,pd);
       end;
@@ -234,6 +242,8 @@ unit cpupara;
             result:=not(calloption in cdecl_pocalls) and not tprocvardef(def).is_addressonly;
           setdef :
             result:=not(calloption in cdecl_pocalls) and (not is_smallset(def));
+          else
+            ;
         end;
       end;
 

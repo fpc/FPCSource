@@ -581,6 +581,8 @@ interface
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019051024);
            end;
         end;
 
@@ -625,6 +627,8 @@ interface
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019051023);
            end;
         end;
 
@@ -650,6 +654,8 @@ interface
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
                    cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
+              else
+                internalerror(2019051022);
            end;
         end;
 
@@ -802,6 +808,8 @@ interface
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019051021);
            end;
         end;
 
@@ -827,6 +835,8 @@ interface
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
                    cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
+              else
+                internalerror(2019051020);
            end;
         end;
 

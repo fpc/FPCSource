@@ -659,8 +659,6 @@ implementation
             st_widestring,
             st_unicodestring:
               eledef:=cwidechartype;
-            else
-              internalerror(2014062202);
           end;
         else
           internalerror(2014062203);
@@ -765,6 +763,8 @@ implementation
             todef:=tmpintdef;
             op:=firstop
           end;
+        else
+          ;
       end;
       ai:=taillvm.op_reg_tai_size(op,NR_NO,nil,todef);
       typedai:=wrap_with_type(ai,todef);

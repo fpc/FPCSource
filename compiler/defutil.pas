@@ -1057,6 +1057,8 @@ implementation
                1: l := l and $ff;
                2: l := l and $ffff;
                4: l := l and $ffffffff;
+               else
+                 ;
              end;
              {reset sign, i.e. converting -1 to qword changes the value to high(qword)}
              l.signed:=false;
@@ -1067,6 +1069,8 @@ implementation
                   1: l.svalue := shortint(l.svalue);
                   2: l.svalue := smallint(l.svalue);
                   4: l.svalue := longint(l.svalue);
+                  else
+                    ;
                 end;
                 l.signed:=true;
               end;
@@ -1113,6 +1117,8 @@ implementation
                 case tfloatdef(tarraydef(p).elementdef).floattype of
                   s32real:
                     mmx_type:=mmxsingle;
+                  else
+                    ;
                 end
               else
                 case torddef(tarraydef(p).elementdef).ordtype of
@@ -1128,6 +1134,8 @@ implementation
                      mmx_type:=mmxu32bit;
                    s32bit:
                      mmx_type:=mmxs32bit;
+                   else
+                     ;
                 end;
            end;
       end;
@@ -1462,7 +1470,6 @@ implementation
       As of today, both signed and unsigned types from 8 to 64 bits are supported. }
     function is_automatable(p : tdef) : boolean;
       begin
-        result:=false;
         case p.typ of
           orddef:
             result:=torddef(p).ordtype in [u8bit,s8bit,u16bit,s16bit,u32bit,s32bit,
@@ -1475,6 +1482,8 @@ implementation
             result:=true;
           objectdef:
             result:=tobjectdef(p).objecttype in [odt_interfacecom,odt_dispinterface,odt_interfacecorba];
+          else
+            result:=false;
         end;
       end;
 
@@ -1554,6 +1563,8 @@ implementation
               result:=torddef(s64inttype);
             s64bit:
               result:=torddef(u64inttype);
+            else
+              ;
           end;
       end;
 
@@ -1647,8 +1658,6 @@ implementation
                 result:=tkWString;
               st_unicodestring:
                 result:=tkUString;
-              else
-                result:=tkUnknown;
             end;
           enumdef:
             result:=tkEnumeration;

@@ -594,6 +594,8 @@ implementation
                   Block := TStatementNode(Block).Left;
                   Continue;
                 end;
+              else
+                ;
             end;
 
             Break;

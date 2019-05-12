@@ -174,6 +174,8 @@ implementation
         case tsym(p).typ of
           fieldvarsym:
             appendsym_fieldvar(TAsmList(arg),tfieldvarsym(p));
+          else
+            ;
         end;
       end;
 
@@ -209,6 +211,8 @@ implementation
                   callpara:=pllvmcallpara(p.oper[opidx]^.paras[paraidx]);
                   record_def(callpara^.def);
                 end;
+            else
+              ;
           end;
       end;
 
@@ -242,6 +246,8 @@ implementation
                     collect_tai_info(deftypelist,value);
               end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -340,6 +346,8 @@ implementation
                       end;
                   top_tai:
                     insert_tai_typeconversions(toplevellist,p.oper[i]^.ai);
+                  else
+                    ;
                 end;
             end;
         end;
@@ -402,6 +410,8 @@ implementation
             insert_typedconst_typeconversion(toplevellist,tai_abstracttypedconst(p));
           ait_llvmdecl:
             insert_asmlist_typeconversions(toplevellist,taillvmdecl(p).initdata);
+          else
+            ;
         end;
       end;
 
@@ -472,6 +482,8 @@ implementation
                 end;
               ait_llvmdecl:
                 update_asmlist_alias_types(taillvmdecl(hp).initdata);
+              else
+                ;
             end;
             hp:=tai(hp.next);
           end;

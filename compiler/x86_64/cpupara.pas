@@ -544,6 +544,8 @@ unit cpupara;
                   classes[0].typ:=X86_64_SSE_CLASS;
                   classes[0].def:=carraydef.getreusable_no_free(s32floattype,2);
                 end;
+              else
+                ;
             end;
           { 2) the second part is 32 bit, but the total size is > 12 bytes }
           if (def.size>12) then
@@ -558,6 +560,8 @@ unit cpupara;
                   classes[1].typ:=X86_64_SSE_CLASS;
                   classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
                 end;
+              else
+                ;
             end;
 {$endif not llvm}
           result:=words;
@@ -962,8 +966,6 @@ unit cpupara;
                     classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
                     result:=2;
                   end;
-                else
-                  internalerror(2010060301);
               end;
             end;
           recorddef:
@@ -1338,6 +1340,8 @@ unit cpupara;
               numclasses:=classify_argument(calloption,def,nil,vs_value,def.size,classes,0,False);
               result:=numclasses=0;
             end;
+          else
+            ;
         end;
       end;
 
@@ -1721,6 +1725,8 @@ unit cpupara;
                     X86_64_SSESF_CLASS,
                     X86_64_SSEDF_CLASS:
                       inc(needmmloc);
+                    else
+                      ;
                   end;
                 { the "-1" is because we can also use the current register }
                 if (use_ms_abi and

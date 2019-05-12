@@ -161,6 +161,8 @@ implementation
           inn,
           asn,isn:
             result := fen_norecurse_false;
+          else
+            ;
         end;
       end;
 
@@ -1167,6 +1169,10 @@ implementation
                     end;
                 end;
 {$endif cpuflags}
+              LOC_VOID:
+                ;
+              else
+                internalerror(2019050706);
             end;
          end;
 
@@ -1301,6 +1307,8 @@ implementation
                                   vtype:=vtQWord;
                                   varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VQWORD'));
                                 end;
+                              else
+                                ;
                             end;
                             freetemp:=false;
                             vaddr:=true;
@@ -1331,6 +1339,8 @@ implementation
                                      vtype:=vtWideChar;
                                      varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VINTEGER'));
                                    end;
+                                 else
+                                   ;
                                end;
                              end;
                      end;
@@ -1425,6 +1435,8 @@ implementation
                            freetemp:=false;
                          end;
                      end;
+                   else
+                     ;
                  end;
                  if vtype=$ff then
                    internalerror(14357);

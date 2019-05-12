@@ -1114,6 +1114,8 @@ implementation
                    (mop_initialize in trecordsymtable(trecorddef(tabstractvarsym(sym).vardef).symtable).managementoperators) then
                  include(tableoptions,sto_has_non_trivial_init);
              end;
+           else
+             ;
          end;
       end;
 
@@ -3276,6 +3278,8 @@ implementation
           vis_public,
           vis_published :
             result:=true;
+          else
+            internalerror(2019050702);
         end;
       end;
 

@@ -98,6 +98,8 @@ implementation
              equal_constsym:=(pnormalset(sym1.value.valueptr)^=pnormalset(sym2.value.valueptr)^);
            constnil :
              equal_constsym:=true;
+           else
+             ;
         end;
       end;
 

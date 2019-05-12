@@ -218,6 +218,8 @@ implementation
                 for i:=int64(torddef(psd.elementdef).low) to int64(torddef(psd.elementdef).high) do
                   include(pcs^,i);
               end;
+            else
+              internalerror(2019050516);
           end;
           createsetconst:=pcs;
         end;

@@ -310,6 +310,8 @@ implementation
                         result:=true;
                         res:=true;
                       end;
+                  else
+                    ;
                  end
              else
                with torddef(realdef) do
@@ -370,6 +372,8 @@ implementation
                         result:=true;
                         res:=true;
                       end;
+                  else
+                    ;
                  end;
            end;
       end;
@@ -667,11 +671,15 @@ implementation
               begin
                 case nodetype of
                   addn,subn,orn,xorn:
-                   result := left.getcopy;
+                    result := left.getcopy;
                   andn,muln:
-                   if (cs_opt_level4 in current_settings.optimizerswitches) or
-                       not might_have_sideeffects(left) then
-                     result:=cordconstnode.create(0,resultdef,true);
+                    begin
+                      if (cs_opt_level4 in current_settings.optimizerswitches) or
+                         not might_have_sideeffects(left) then
+                        result:=cordconstnode.create(0,resultdef,true);
+                    end
+                  else
+                    ;
                 end;
               end
             else if tordconstnode(right).value = 1 then
@@ -679,6 +687,8 @@ implementation
                 case nodetype of
                   muln:
                    result := left.getcopy;
+                  else
+                    ;
                 end;
               end
             else if tordconstnode(right).value = -1 then
@@ -686,6 +696,8 @@ implementation
                 case nodetype of
                   muln:
                    result := cunaryminusnode.create(left.getcopy);
+                  else
+                    ;
                 end;
               end;
             if assigned(result) then
@@ -701,9 +713,13 @@ implementation
                   subn:
                    result := cunaryminusnode.create(right.getcopy);
                   andn,muln:
-                   if (cs_opt_level4 in current_settings.optimizerswitches) or
-                       not might_have_sideeffects(right) then
-                     result:=cordconstnode.create(0,resultdef,true);
+                    begin
+                      if (cs_opt_level4 in current_settings.optimizerswitches) or
+                         not might_have_sideeffects(right) then
+                        result:=cordconstnode.create(0,resultdef,true);
+                    end;
+                  else
+                    ;
                 end;
               end
             else if tordconstnode(left).value = 1 then
@@ -711,6 +727,8 @@ implementation
                 case nodetype of
                   muln:
                    result := right.getcopy;
+                  else
+                    ;
                 end;
               end
 {$ifdef VER2_2}
@@ -722,6 +740,8 @@ implementation
                 case nodetype of
                   muln:
                    result := cunaryminusnode.create(right.getcopy);
+                  else
+                    ;
                 end;
               end;
             if assigned(result) then
@@ -818,6 +838,8 @@ implementation
                 trealconstnode(right).value_real:=1.0/trealconstnode(right).value_real;
                 exit;
               end;
+            else
+              ;
           end;
 {$endif FPC_FULLVERSION>20700}
 
@@ -1095,6 +1117,8 @@ implementation
                           exit;
                         end;
                       }
+                      else
+                        ;
                     end;
                   end
                 { short to full boolean evalution possible and useful? }
@@ -1102,16 +1126,20 @@ implementation
                   begin
                     case nodetype of
                       andn,orn:
-                        { full boolean evaluation is only useful if the nodes are not too complex and if no flags/jumps must be converted,
-                          further, we need to know the expectloc }
-                        if (node_complexity(right)<=2) and
-                          not(left.expectloc in [LOC_FLAGS,LOC_JUMP,LOC_INVALID]) and not(right.expectloc in [LOC_FLAGS,LOC_JUMP,LOC_INVALID]) then
-                          begin
-                            { we need to copy the whole tree to force another pass_1 }
-                            include(localswitches,cs_full_boolean_eval);
-                            result:=getcopy;
-                            exit;
-                          end;
+                        begin
+                          { full boolean evaluation is only useful if the nodes are not too complex and if no flags/jumps must be converted,
+                            further, we need to know the expectloc }
+                          if (node_complexity(right)<=2) and
+                            not(left.expectloc in [LOC_FLAGS,LOC_JUMP,LOC_INVALID]) and not(right.expectloc in [LOC_FLAGS,LOC_JUMP,LOC_INVALID]) then
+                            begin
+                              { we need to copy the whole tree to force another pass_1 }
+                              include(localswitches,cs_full_boolean_eval);
+                              result:=getcopy;
+                              exit;
+                            end;
+                        end;
+                      else
+                        ;
                     end;
                   end
               end;
@@ -1144,6 +1172,8 @@ implementation
                           result:=cordconstnode.create(1,resultdef,true);
                           exit;
                         end;
+                      else
+                        ;
                     end;
                   end;
               end;
@@ -2210,8 +2240,6 @@ implementation
                        if not(is_shortstring(rd) or is_char(rd)) then
                          inserttypeconv(right,cshortstringtype);
                      end;
-                   else
-                     internalerror(2005101);
                 end;
               end
             else
@@ -2585,6 +2613,8 @@ implementation
 
                   result:=hp
                 end;
+              else
+                ;
             end;
           end;
 
@@ -2792,6 +2822,8 @@ implementation
               left := nil;
               right := nil;
             end;
+          else
+            internalerror(2019050520);
         end;
       end;
 

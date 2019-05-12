@@ -580,8 +580,6 @@ implementation
                             objecttype:=odt_interfacecorba;
                           it_interfacejava:
                             objecttype:=odt_interfacejava;
-                          else
-                            internalerror(2010122611);
                         end;
                       _DISPINTERFACE :
                         objecttype:=odt_dispinterface;

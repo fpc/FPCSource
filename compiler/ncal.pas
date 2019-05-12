@@ -1342,6 +1342,8 @@ implementation
                                typecheckpass(left);
                              end;
                          end;
+                       else
+                         ;
                      end;
                    end
                  else
@@ -1992,6 +1994,8 @@ implementation
               result:=(tabstractvarsym(tloadnode(hp).symtableentry).varregable in [vr_none,vr_addr]);
             temprefn:
               result:=not(ti_may_be_in_reg in ttemprefnode(hp).tempflags);
+            else
+              ;
           end;
       end;
 
@@ -4094,6 +4098,8 @@ implementation
                         LOC_REGISTER,
                         LOC_FPUREGISTER :
                           break;
+                        else
+                          ;
                       end;
                     end;
                   LOC_MMREGISTER,
@@ -4104,6 +4110,8 @@ implementation
                          (node_complexity(hpcurr)>node_complexity(hp)) then
                         break;
                     end;
+                  else
+                    ;
                 end;
                 hpprev:=hp;
                 hp:=tcallparanode(hp.right);
@@ -4550,6 +4558,8 @@ implementation
                   typecheckpass(n);
                   result := fen_true;
                 end;
+              else
+                ;
             end;
           end;
       end;

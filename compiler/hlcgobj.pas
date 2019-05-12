@@ -4469,6 +4469,8 @@ implementation
         inn,
         asn,isn:
           result := fen_norecurse_false;
+        else
+          ;
       end;
     end;
 
@@ -4549,6 +4551,8 @@ implementation
         potype_unitinit,
         potype_proginit:
           TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
+        else
+          ;
       end;
 
       { initialises temp. ansi/wide string data }
@@ -4599,6 +4603,8 @@ implementation
                      std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset)+
                      ', size='+tcgsize2str(vs.initialloc.size))));
               end;
+            else
+              ;
           end;
         end;
       vs.localloc:=vs.initialloc;
@@ -4881,6 +4887,8 @@ implementation
                      end;
                  end;
              end;
+           else
+             ;
          end;
        end;
     end;

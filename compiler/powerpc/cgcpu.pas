@@ -407,6 +407,8 @@ const
                     list.concat(taicpu.op_reg_reg(A_NOT,dst,src));
                   OP_AND:
                     a_load_reg_reg(list,size,size,src,dst);
+                  else
+                    ;
                 end;
                 exit;
               end
@@ -472,6 +474,8 @@ const
                        list.concat(taicpu.op_reg_reg_const(A_SRAWI,dst,src,l1));
                        list.concat(taicpu.op_reg_reg(A_ADDZE,dst,dst));
                     end;
+                  else
+                    ;
                 end;
                 exit;
               end
@@ -807,6 +811,8 @@ const
                     reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX,ctempposinvalid,4,[]);
                   abi_powerpc_sysv:
                     reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV,ctempposinvalid,4,[]);
+                  else
+                    internalerror(2019050940);
                 end;
                 list.concat(taicpu.op_reg_ref(A_STW,NR_R0,href));
                 if not(cs_profile in current_settings.moduleswitches) then
@@ -1020,6 +1026,8 @@ const
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX,ctempposinvalid,4,[]);
                       abi_powerpc_sysv:
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV,ctempposinvalid,4,[]);
+                      else
+                        internalerror(2019050939);
                     end;
                     a_reg_alloc(list,NR_R0);
                     list.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,href));

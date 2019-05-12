@@ -1644,6 +1644,8 @@ implementation
                cmdstr:='--subsystem gui';
              app_cui :
                cmdstr:='--subsystem console';
+             else
+               ;
            end;
            if dllversion<>'' then
              cmdstr:=cmdstr+' --version '+dllversion;
@@ -1697,6 +1699,8 @@ implementation
               peoptheader.Subsystem:=2;
             app_cui :
               peoptheader.Subsystem:=3;
+            else
+              ;
           end;
         if dllversion<>'' then
           begin

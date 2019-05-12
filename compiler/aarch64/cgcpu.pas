@@ -382,8 +382,6 @@ implementation
                             reference_reset_base(ref,preferred_newbasereg,ref.offset,ref.temppos,ref.alignment,ref.volatility);
                           end;
                       end
-                    else
-                      internalerror(2014110904);
                   end;
                 end;
               A_LDP,A_STP:
@@ -1305,6 +1303,8 @@ implementation
               a_load_const_reg(list,size,a,dst);
               exit;
             end;
+          else
+            ;
         end;
         case op of
           OP_ADD,
@@ -1453,6 +1453,8 @@ implementation
                     check for overflow) }
                   internalerror(2014122101);
                 end;
+              else
+                internalerror(2019050936);
             end;
           end;
         a_op_reg_reg_reg(list,op,size,src1,src2,dst);

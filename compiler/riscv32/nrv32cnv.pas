@@ -141,6 +141,8 @@ implementation
 
             case restype of
               s64real: cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList, OS_F32, OS_F64, location.register, location.Register);
+              else
+                ;
             end;
           end;
       end;

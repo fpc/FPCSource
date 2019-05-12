@@ -341,8 +341,12 @@ implementation
                     inc(nolineinfolevel);
                   mark_NoLineInfoEnd:
                     dec(nolineinfolevel);
+                  else
+                    ;
                 end;
               end;
+            else
+              ;
           end;
 
           if (currsectype=sec_code) and

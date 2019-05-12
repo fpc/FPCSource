@@ -161,6 +161,8 @@ implementation
                  end;
              end;
 {$endif i8086}
+           else
+             ;
          end;
       end;
 

@@ -94,6 +94,8 @@ unit aoptcpu;
               result:=
                 (p.oper[I]^.ref^.base=reg) or
                 (p.oper[I]^.ref^.index=reg);
+            else
+              ;
           end;
           if result then exit; {Bailout if we found something}
           Inc(I);
@@ -118,6 +120,8 @@ unit aoptcpu;
         A_STB,A_STH,A_ST,A_STF,A_STDF,
         A_STX:
           exit;
+        else
+          ;
       end;
 
       result:=(p.ops>0) and (p.oper[p.ops-1]^.typ=top_reg) and
@@ -414,8 +418,12 @@ unit aoptcpu;
               A_FABSd, A_FNEGd, A_FSQRTd,
               A_FSTOd, A_FITOd, A_FQTOd:
                 TryRemoveMov(p,A_FMOVd);
+              else
+                ;
             end;
           end;
+        else
+          ;
       end;
     end;
 

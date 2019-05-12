@@ -4097,6 +4097,8 @@ begin
         if not option.FPUSetExplicitly then
           init_settings.fputype:=fpu_ssse3;
       end;
+    else
+      ;
   end;
 {$endif i386}
 
@@ -4122,6 +4124,8 @@ begin
         if not option.OptCPUSetExplicitly then
           init_settings.optimizecputype:=cpu_armv5t;
       end;
+    else
+      ;
   end;
 
   { ARMHF defaults }
@@ -4248,6 +4252,8 @@ begin
         if not option.FPUSetExplicitly then
           init_settings.fputype:=fpu_soft;
       end;
+    else
+      ;
   end;
 {$endif mipsel}
 {$ifdef m68k}
@@ -4405,6 +4411,8 @@ begin
       set_system_compvar('_CALL_ELF','1');
     abi_powerpc_elfv2:
       set_system_compvar('_CALL_ELF','2');
+    else
+      ;
     end;
 {$endif}
 

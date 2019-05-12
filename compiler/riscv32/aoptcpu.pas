@@ -56,6 +56,8 @@ Implementation
             {case taicpu(p).opcode of
             end;}
           end;
+        else
+          ;
       end;
     end;
 
@@ -69,6 +71,8 @@ Implementation
         ait_instruction:
           begin
           end;
+        else
+          ;
       end;
     end;
 

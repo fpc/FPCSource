@@ -284,6 +284,8 @@ interface
           OP_NEG,
           OP_NOT :
             internalerror(200306017);
+          else
+            ;
         end;
         get_64bit_ops(op,op1,op2,setflags);
         list.concat(taicpu.op_reg_reg_reg(op1,regsrc2.reglo,regsrc1.reglo,regdst.reglo));

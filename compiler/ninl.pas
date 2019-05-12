@@ -620,9 +620,6 @@ implementation
       ordtype: tordtype;
     begin
       ordtype := torddef(def).ordtype;
-      if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
-        internalerror(2013032601);
-
       if is_oversizedint(def) then
         begin
           case ordtype of
@@ -679,6 +676,8 @@ implementation
                 func_suffix := 'uint';
                 readfunctype := uinttype;
               end;
+            else
+              internalerror(2013032601);
           end;
         end;
     end;
@@ -1096,6 +1095,8 @@ implementation
               end;
             in_writeln_x:
               name:='fpc_writeln_end';
+            else
+              internalerror(2019050516);
           end;
           addstatement(Tstatementnode(newstatement),ccallnode.createintern(name,filepara.getcopy));
         end;
@@ -1634,6 +1635,8 @@ implementation
                 Crttinode.create(Tenumdef(destpara.resultdef),fullrtti,rdt_str2ord)
               ),nil);
             end;
+          else
+            internalerror(2019050515);
         end;
 
         procname := procname + suffix;
@@ -2329,6 +2332,8 @@ implementation
                           result:=cordconstnode.create(tordconstnode(left).value and $ffffffff,u32inttype,true);
                         in_hi_qword :
                           result:=cordconstnode.create(tordconstnode(left).value shr 32,u32inttype,true);
+                        else
+                          internalerror(2019050514);
                       end;
                     end;
                 end;
@@ -2412,6 +2417,8 @@ implementation
                             left:=nil;
                           end
                       end;
+                    else
+                      internalerror(2019050513);
                   end;
 (*
                   if (left.nodetype=ordconstn) then
@@ -2465,6 +2472,8 @@ implementation
                             tarraydef(left.resultdef).lowrange+1,
                             sinttype,true);
                       end;
+                    else
+                      ;
                   end;
                 end;
               in_assigned_x:
@@ -2526,6 +2535,8 @@ implementation
                               end;
                           end;
                       end;
+                    else
+                      ;
                   end;
                 end;
               in_low_x,
@@ -2571,6 +2582,10 @@ implementation
                       begin
                         result:=cordconstnode.create(0,u8inttype,false);
                       end;
+                    errordef:
+                      ;
+                    else
+                      internalerror(2019050512);
                   end;
                 end;
               in_exp_real :
@@ -2735,6 +2750,8 @@ implementation
                       result:=cordconstnode.create(PopCnt(tordconstnode(left).value),resultdef,false);
                     end;
                 end;
+              else
+                ;
             end;
           end;
       end;
@@ -2907,6 +2924,8 @@ implementation
                     in_lo_qword,
                     in_hi_qword :
                       resultdef:=u32inttype;
+                    else
+                      ;
                   end;
                 end;
 
@@ -3728,6 +3747,8 @@ implementation
                   shiftconst := 16;
                 in_hi_word:
                   shiftconst := 8;
+                else
+                  ;
               end;
               if shiftconst <> 0 then
                 result := ctypeconvnode.create_internal(cshlshrnode.create(shrn,left,

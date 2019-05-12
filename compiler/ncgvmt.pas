@@ -792,8 +792,6 @@ implementation
               pd:=tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
               tcb.emit_tai(Tai_const.Create_sizeint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)),sizeuinttype);
             end;
-          else
-            internalerror(200802162);
         end;
 
         { IIDStr }
@@ -1332,6 +1330,8 @@ implementation
                   if assigned(tprocdef(def).parast) then
                     do_write_vmts(tprocdef(def).parast,false);
                 end;
+              else
+                ;
             end;
           end;
       end;

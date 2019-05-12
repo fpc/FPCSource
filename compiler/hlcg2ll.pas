@@ -1339,6 +1339,8 @@ implementation
                if getsupreg(paraloc.register)<first_fpu_imreg then
                  cg.getcpuregister(list,paraloc.register);
              end;
+           else
+             ;
          end;
       end;
 
@@ -1620,6 +1622,8 @@ implementation
                if getsupreg(paraloc.register)<first_fpu_imreg then
                  cg.ungetcpuregister(list,paraloc.register);
              end;
+           else
+             ;
          end;
       end;
 
@@ -2151,6 +2155,8 @@ implementation
               result:=OS_F64;
             OS_128:
               result:=OS_M128;
+            else
+              ;
           end;
         end;
     end;

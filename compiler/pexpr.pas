@@ -959,6 +959,8 @@ implementation
                  { We are calling a member }
                  maybe_load_methodpointer:=true;
                end;
+             else
+               ;
            end;
          end;
       end;
@@ -2068,6 +2070,8 @@ implementation
                            cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef)));
                          typecheckpass(p1);
                        end;
+                     else
+                       internalerror(2019050530);
                    end;
                  end
                else if not(p1.resultdef.typ in [pointerdef,undefineddef]) then
@@ -2356,8 +2360,6 @@ implementation
                      cst_longstring:
                        { let's see when someone stumbles upon this...}
                        internalerror(201301111);
-                     else
-                       internalerror(2013112903);
                    end;
                    if try_type_helper(p1,strdef) then
                      goto skippointdefcheck;
@@ -4136,6 +4138,8 @@ implementation
             specializen:
               srsym:=tspecializenode(n).sym;
             { TODO : handle const nodes }
+            else
+              ;
           end;
           result:=assigned(srsym);
         end;
@@ -4462,6 +4466,8 @@ implementation
                        p1:=casnode.create(p1,p2);
                      _OP_IS:
                        p1:=cisnode.create(p1,p2);
+                     else
+                       internalerror(2019050528);
                    end;
                  end;
                _OP_IN :
@@ -4500,6 +4506,8 @@ implementation
                  p1:=cassignmentnode.create(p1,p2);
                _NE :
                  p1:=caddnode.create(unequaln,p1,p2);
+               else
+                 internalerror(2019050529);
              end;
              p1.fileinfo:=filepos;
            end

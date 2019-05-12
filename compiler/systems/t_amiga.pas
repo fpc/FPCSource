@@ -107,6 +107,8 @@ begin
   case (target_info.system) of
     system_m68k_amiga:      SetAmiga68kInfo;
     system_powerpc_amiga:   SetAmigaPPCInfo;
+    else
+      internalerror(2019050949);
   end;
 end;
 
@@ -426,6 +428,8 @@ begin
   case (target_info.system) of
     system_m68k_amiga:      success:=MakeAmiga68kExe;
     system_powerpc_amiga:   success:=MakeAmigaPPCExe;
+    else
+      internalerror(2019050948);
   end;
 
   { Remove ReponseFile }

@@ -1110,6 +1110,8 @@ implementation
             appendsym_property(TAsmList(arg),tpropertysym(p));
           constsym:
             appendsym_const_member(TAsmList(arg),tconstsym(p),true);
+          else
+            ;
         end;
       end;
 
@@ -1365,8 +1367,6 @@ implementation
             append_attribute(DW_AT_address_class,DW_FORM_data1,[DW_ADDR_far16]);
           x86pt_huge:
             append_attribute(DW_AT_address_class,DW_FORM_data1,[DW_ADDR_huge16]);
-          else
-            internalerror(2018052401);
         end;
 {$else i8086}
         { Theoretically, we could do this, but it might upset some debuggers, }
@@ -3166,8 +3166,6 @@ implementation
               templist.free;
               exit;
             end;
-          else
-            internalerror(2013120111);
         end;
 
         append_entry(DW_TAG_variable,false,[
@@ -3511,8 +3509,6 @@ implementation
             append_attribute(DW_AT_WATCOM_memory_model,DW_FORM_data1,[DW_WATCOM_MEMORY_MODEL_large]);
           mm_huge:
             append_attribute(DW_AT_WATCOM_memory_model,DW_FORM_data1,[DW_WATCOM_MEMORY_MODEL_huge]);
-          else
-            internalerror(2018052402);
         end;
 {$endif i8086}
 
@@ -3681,14 +3677,18 @@ implementation
         procedure TDebugInfoDwarf.append_visibility(vis: tvisibility);
       begin
         case vis of
+          vis_hidden,
           vis_private,
           vis_strictprivate:
             append_attribute(DW_AT_accessibility,DW_FORM_data1,[ord(DW_ACCESS_private)]);
           vis_protected,
           vis_strictprotected:
             append_attribute(DW_AT_accessibility,DW_FORM_data1,[ord(DW_ACCESS_protected)]);
+          vis_published,
           vis_public:
             { default };
+          vis_none:
+            internalerror(2019050720);
         end;
       end;
 
@@ -3754,8 +3754,12 @@ implementation
                       inc(nolineinfolevel);
                     mark_NoLineInfoEnd:
                       dec(nolineinfolevel);
+                    else
+                      ;
                   end;
                 end;
+              else
+                ;
             end;
 
             if (currsectype=sec_code) and

@@ -375,6 +375,8 @@ implementation
                 secname:='.data.rel.ro';
               sec_rodata_norel:
                 secname:='.rodata';
+              else
+                ;
             end;
           end;
 
@@ -508,8 +510,6 @@ implementation
                 writer.AsmWrite(',"x"');
               SF_None:
                 writer.AsmWrite(',""');
-              else
-                Internalerror(2018101502);
             end;
             case secprogbits of
               SPB_PROGBITS:
@@ -518,8 +518,6 @@ implementation
                 writer.AsmWrite(',%nobits');
               SPB_None:
                 ;
-              else
-                Internalerror(2018101503);
             end;
           end
         else
@@ -1026,6 +1024,8 @@ implementation
                              WriteDecodedUleb128(qword(tai_const(hp).value));
                            aitconst_sleb128bit:
                              WriteDecodedSleb128(int64(tai_const(hp).value));
+                           else
+                             ;
                          end
                        end
                      else
@@ -1774,6 +1774,8 @@ implementation
                 result:='.section '+objc_section_name(atype);
                 exit
               end;
+            else
+              ;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;

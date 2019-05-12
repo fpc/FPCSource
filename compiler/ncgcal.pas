@@ -549,6 +549,8 @@ implementation
                  hlcg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
                tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
             end;
+          else
+            ;
         end;
       end;
 
@@ -822,6 +824,10 @@ implementation
                              end;
                            end;
                          end;
+                       LOC_VOID:
+                         ;
+                       else
+                         internalerror(2019050707);
                      end;
                      dec(sizeleft,tcgsize2size[tmpparaloc^.size]);
                      callerparaloc:=callerparaloc^.next;

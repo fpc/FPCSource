@@ -101,6 +101,8 @@ begin
         prtobj:='prt07';
         cprtobj:='cprt07';
       end;
+    else
+      internalerror(2019050935);
   end;
   
   if (linklibc or linklibgcc) then
@@ -709,6 +711,8 @@ begin
   case apptype of
    app_arm9: preName:='.nef';
    app_arm7: preName:='.nlf';
+   else
+     internalerror(2019050934);
   end;
 
   if (cs_link_strip in current_settings.globalswitches) and

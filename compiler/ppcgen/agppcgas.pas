@@ -259,12 +259,18 @@ unit agppcgas;
         case o of
           A_BCCTR,A_BCCTRL: tempstr := 'ctr';
           A_BCLR,A_BCLRL: tempstr := 'lr';
+          else
+            ;
         end;
         case o of
           A_BL,A_BLA,A_BCL,A_BCLA,A_BCCTRL,A_BCLRL: tempstr := tempstr+'l';
+          else
+            ;
         end;
         case o of
           A_BA,A_BLA,A_BCA,A_BCLA: tempstr:=tempstr+'a';
+          else
+            ;
         end;
         branchmode := tempstr;
       end;
@@ -287,8 +293,6 @@ unit agppcgas;
                 cond2str:=cond2str+'-';
               DH_Plus:
                 cond2str:=cond2str+'+';
-              else
-                internalerror(2003112901);
             end;
             cond2str:=cond2str+#9+tostr(c.bo)+','+tostr(c.bi);
           end;
@@ -310,8 +314,6 @@ unit agppcgas;
                       tempstr:=tempstr+('-'+#9);
                     DH_Plus:
                       tempstr:=tempstr+('+'+#9);
-                    else
-                      internalerror(2003112901);
                   end;
                   case c.cond of
                     C_LT..C_NU:
@@ -528,7 +530,9 @@ unit agppcgas;
                                +sectionname(tai_section(hp).sectype,'',secorder_default)+' alignment put to '+tostr(tai_section(hp).secalign))),hp);
                            end;
                        end;
-                     end;
+                     else
+                       ;
+                    end;
                     hp:=tai(hp.next);
                   end;
               end;

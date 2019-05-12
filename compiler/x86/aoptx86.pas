@@ -267,6 +267,8 @@ unit aoptx86;
               exit;
           ait_label:
             exit;
+          else
+            ;
         end;
         InstrReadsFlags := false;
       end;
@@ -994,6 +996,8 @@ unit aoptx86;
             isFoldableArithOp :=
               (taicpu(hp1).oper[0]^.typ = top_reg) and
               (taicpu(hp1).oper[0]^.reg = reg);
+          else
+            ;
         end;
       end;
 
@@ -1035,6 +1039,8 @@ unit aoptx86;
                   if current_procinfo.procdef.returndef.size = 8 then
                     DoRemoveLastDeallocForFuncRes(RS_EDX);
                 end;
+            else
+              ;
           end;
       end;
 
@@ -1265,7 +1271,9 @@ unit aoptx86;
                         Result:=true;
                         exit;
                       end;
-                  end;
+                  else
+                    ;
+                end;
               end
             else if (taicpu(p).oper[1]^.typ = top_reg) and (taicpu(hp1).oper[1]^.typ = top_reg) and
               (taicpu(p).oper[0]^.typ <> top_const) and { MOVZX only supports registers and memory, not immediates (use MOV for that!) }
@@ -1448,6 +1456,8 @@ unit aoptx86;
                       Result:=true;
                       Exit;
                     end;
+                else
+                  ;
               end;
           end
         else
@@ -2200,22 +2210,26 @@ unit aoptx86;
                    hp1.free;
                  end;
              A_ADD:
-               if MatchOpType(taicpu(hp1),top_const,top_reg) and
-                 MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
-                 begin
-                   taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
-                   asml.remove(hp1);
-                   hp1.free;
-                   if (taicpu(p).oper[0]^.val = 0) then
-                     begin
-                       hp1 := tai(p.next);
-                       asml.remove(p);
-                       p.free;
-                       if not GetLastInstruction(hp1, p) then
-                         p := hp1;
-                       DoSubAddOpt := True;
-                     end
-                 end;
+               begin
+                 if MatchOpType(taicpu(hp1),top_const,top_reg) and
+                   MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
+                   begin
+                     taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
+                     asml.remove(hp1);
+                     hp1.free;
+                     if (taicpu(p).oper[0]^.val = 0) then
+                       begin
+                         hp1 := tai(p.next);
+                         asml.remove(p);
+                         p.free;
+                         if not GetLastInstruction(hp1, p) then
+                           p := hp1;
+                         DoSubAddOpt := True;
+                       end
+                   end;
+               end;
+             else
+               ;
            end;
       end;
 
@@ -2313,6 +2327,8 @@ unit aoptx86;
                         inc(TmpRef.offset, longint(taicpu(hp1).oper[0]^.val));
                       A_SUB:
                         dec(TmpRef.offset, longint(taicpu(hp1).oper[0]^.val));
+                      else
+                        internalerror(2019050536);
                     end;
                     asml.remove(hp1);
                     hp1.free;
@@ -2333,6 +2349,8 @@ unit aoptx86;
                           inc(TmpRef.offset);
                         A_DEC:
                           dec(TmpRef.offset);
+                        else
+                          internalerror(2019050535);
                       end;
                       asml.remove(hp1);
                       hp1.free;
@@ -2538,6 +2556,8 @@ unit aoptx86;
                       A_FSUBRP: taicpu(hp1).opcode := A_FSUB;
                       A_FDIVP: taicpu(hp1).opcode := A_FDIVR;
                       A_FDIVRP: taicpu(hp1).opcode := A_FDIV;
+                      else
+                        internalerror(2019050534);
                     end;
                     taicpu(hp1).oper[0]^.reg := taicpu(p).oper[0]^.reg;
                     taicpu(hp1).oper[1]^.reg := NR_ST;
@@ -2547,6 +2567,8 @@ unit aoptx86;
                     Result:=true;
                     exit;
                   end;
+                else
+                  ;
               end;
           end
         else
@@ -2603,10 +2625,14 @@ unit aoptx86;
                         A_FSUBRP: taicpu(p).opcode := A_FSUB;
                         A_FDIVP: taicpu(p).opcode := A_FDIVR;
                         A_FDIVRP: taicpu(p).opcode := A_FDIV;
+                        else
+                          internalerror(2019050533);
                       end;
                       asml.remove(hp2);
                       hp2.free;
                     end
+                  else
+                    ;
                 end
               end
       end;
@@ -3380,7 +3406,9 @@ unit aoptx86;
                           hp1.Free;
                         end;
 {$endif x86_64}
-                    end;
+                  else
+                    ;
+                end;
               end;
             { changes some movzx constructs to faster synonims (all examples
               are given with eax/ax, but are also valid for other registers)}
@@ -3475,8 +3503,10 @@ unit aoptx86;
                         end;
                     end;
 {$endif i8086}
-                  end
-                else if (taicpu(p).oper[0]^.typ = top_ref) then
+                  else
+                    ;
+                end
+              else if (taicpu(p).oper[0]^.typ = top_ref) then
                   begin
                     if GetNextInstruction(p, hp1) and
                       (tai(hp1).typ = ait_instruction) and
@@ -3758,18 +3788,20 @@ unit aoptx86;
                 { Code size reduction by J. Gareth "Kit" Moreton }
                 { change 64-bit register to 32-bit register to reduce code size (upper 32 bits will be set to zero) }
                 case taicpu(p).opsize of
-                S_Q:
-                  begin
-                    RegName := debug_regname(taicpu(p).oper[1]^.reg); { 64-bit register name }
-                    Value := debug_tostr(taicpu(p).oper[0]^.val);
+                  S_Q:
+                    begin
+                      RegName := debug_regname(taicpu(p).oper[1]^.reg); { 64-bit register name }
+                      Value := debug_tostr(taicpu(p).oper[0]^.val);
 
-                    { The actual optimization }
-                    setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
-                    taicpu(p).changeopsize(S_L);
+                      { The actual optimization }
+                      setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
+                      taicpu(p).changeopsize(S_L);
 
-                    DebugMsg(SPeepholeOptimization + 'movq $' + Value + ',' + RegName + ' -> movl $' + Value + ',' + debug_regname(taicpu(p).oper[1]^.reg) + ' (immediate can be represented with just 32 bits)', p);
-                    Result := True;
-                  end;
+                      DebugMsg(SPeepholeOptimization + 'movq $' + Value + ',' + RegName + ' -> movl $' + Value + ',' + debug_regname(taicpu(p).oper[1]^.reg) + ' (immediate can be represented with just 32 bits)', p);
+                      Result := True;
+                    end;
+                  else
+                    ;
                 end;
               end;
             end;
@@ -3853,19 +3885,23 @@ unit aoptx86;
                   { and in case of carry for A(E)/B(E)/C/NC                  }
                   (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
                   begin
-                    case taicpu(hp1).opcode Of
+                    case taicpu(hp1).opcode of
                       A_DEC, A_INC:
                         { replace inc/dec with add/sub 1, because inc/dec doesn't set the carry flag }
                         begin
                           case taicpu(hp1).opcode Of
                             A_DEC: taicpu(hp1).opcode := A_SUB;
                             A_INC: taicpu(hp1).opcode := A_ADD;
+                            else
+                              ;
                           end;
                           taicpu(hp1).loadoper(1,taicpu(hp1).oper[0]^);
                           taicpu(hp1).loadConst(0,1);
                           taicpu(hp1).ops:=2;
-                        end
-                      end;
+                        end;
+                      else
+                        ;
+                    end;
                     hp1 := tai(p.next);
                     asml.remove(p);
                     p.free;
@@ -3983,21 +4019,25 @@ unit aoptx86;
           InternalError(2018011500);
 
         case taicpu(p).opsize of
-        S_Q:
-          if (getsupreg(taicpu(p).oper[0]^.reg) in [RS_RAX, RS_RCX, RS_RDX, RS_RBX, RS_RSI, RS_RDI, RS_RBP, RS_RSP]) then
+          S_Q:
             begin
-              RegName := debug_regname(taicpu(p).oper[0]^.reg); { 64-bit register name }
-              PreMessage := 'xorq ' + RegName + ',' + RegName + ' -> xorl ';
+              if (getsupreg(taicpu(p).oper[0]^.reg) in [RS_RAX, RS_RCX, RS_RDX, RS_RBX, RS_RSI, RS_RDI, RS_RBP, RS_RSP]) then
+                begin
+                  RegName := debug_regname(taicpu(p).oper[0]^.reg); { 64-bit register name }
+                  PreMessage := 'xorq ' + RegName + ',' + RegName + ' -> xorl ';
 
-              { The actual optimization }
-              setsubreg(taicpu(p).oper[0]^.reg, R_SUBD);
-              setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
-              taicpu(p).changeopsize(S_L);
+                  { The actual optimization }
+                  setsubreg(taicpu(p).oper[0]^.reg, R_SUBD);
+                  setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
+                  taicpu(p).changeopsize(S_L);
 
-              RegName := debug_regname(taicpu(p).oper[0]^.reg); { 32-bit register name }
+                  RegName := debug_regname(taicpu(p).oper[0]^.reg); { 32-bit register name }
 
-              DebugMsg(SPeepholeOptimization + PreMessage + RegName + ',' + RegName + ' (removes REX prefix)', p);
+                  DebugMsg(SPeepholeOptimization + PreMessage + RegName + ',' + RegName + ' (removes REX prefix)', p);
+                end;
             end;
+          else
+            ;
         end;
       end;
 {$endif}

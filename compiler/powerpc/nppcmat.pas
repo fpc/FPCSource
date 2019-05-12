@@ -478,6 +478,8 @@ implementation
                             left.location.reference,src1);
                        end;
                   end;
+                else
+                  internalerror(2019050947);
               end;
               { choose appropriate operand }
               if left.resultdef.typ <> floatdef then
