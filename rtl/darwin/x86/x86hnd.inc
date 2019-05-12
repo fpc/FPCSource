@@ -25,13 +25,13 @@ begin
     SIGFPE :
       begin
         Case Info^.si_code Of
-          FPE_INTDIV,             { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
-          FPE_FLTDIV : Res:=200;  { floating point divide by zero }
+          FPE_INTDIV : Res:=200;  { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
+          FPE_FLTDIV : Res:=208;  { floating point divide by zero }
           FPE_FLTOVF : Res:=205;  { floating point overflow }
           FPE_FLTUND : Res:=206;  { floating point underflow }
           FPE_FLTRES,             { floating point inexact result }
           FPE_FLTINV : Res:=207;  { invalid floating point operation }
-          Else
+          else
             begin
               { Assume that if an integer divide was executed, the }
               { error was a divide-by-zero (FPE_INTDIV is not      }
