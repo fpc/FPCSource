@@ -2286,6 +2286,8 @@ unit cgcpu;
                   list.concat(ai);
                   invf:=FPUFlags2Flags[invf];
                 end;
+              else
+                ;
             end;
             a_jmp_flags(list,invf,hl_skip);
 
@@ -2570,6 +2572,8 @@ unit cgcpu;
             case opsize of
               S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
               S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
+              else
+                internalerror(2019051019);
             end;
           end;
         ungetcpuregister(list,NR_DI);
@@ -2936,6 +2940,8 @@ unit cgcpu;
                     list.concat(taicpu.op_const_reg(A_RCR,S_W,1,regdst.reglo));
                     cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                   end;
+                else
+                  internalerror(2019051018);
               end;
               ai:=Taicpu.Op_Sym(A_LOOP,S_W,l2);
               ai.is_jmp := True;
@@ -2945,6 +2951,8 @@ unit cgcpu;
               cg.ungetcpuregister(list,NR_CX);
               exit;
             end;
+          else
+            ;
         end;
         get_64bit_ops(op,op1,op2);
         if op in [OP_ADD,OP_SUB] then
@@ -3030,6 +3038,8 @@ unit cgcpu;
                         list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
                         cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
+                    else
+                      internalerror(2019051017);
                   end;
                 2..15:
                   begin
@@ -3056,6 +3066,8 @@ unit cgcpu;
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
+                      else
+                        internalerror(2019051010);
                     end;
                     ai:=Taicpu.Op_Sym(A_LOOP,S_W,loop_start);
                     ai.is_jmp := True;
@@ -3086,6 +3098,8 @@ unit cgcpu;
                           cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reghi);
                           cg.a_op_const_reg(list,OP_SAR,OS_16,15,cg.GetNextReg(reg.reghi));
                         end;
+                      else
+                        internalerror(2019051011);
                     end;
                     if value=17 then
                       case op of
@@ -3105,6 +3119,8 @@ unit cgcpu;
                             list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
                             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
+                        else
+                          internalerror(2019051012);
                       end;
                   end;
                 18..31:
@@ -3131,6 +3147,8 @@ unit cgcpu;
                           cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reghi);
                           cg.a_op_const_reg(list,OP_SAR,OS_16,15,cg.GetNextReg(reg.reghi));
                         end;
+                      else
+                        internalerror(2019051013);
                     end;
                     cg.getcpuregister(list,NR_CX);
                     cg.a_load_const_reg(list,OS_16,value-16,NR_CX);
@@ -3153,6 +3171,8 @@ unit cgcpu;
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
+                      else
+                        internalerror(2019051014);
                     end;
                     ai:=Taicpu.Op_Sym(A_LOOP,S_W,loop_start);
                     ai.is_jmp := True;
@@ -3179,6 +3199,8 @@ unit cgcpu;
                         cg.a_op_const_reg_reg(list,OP_SAR,OS_16,15-(value-32),cg.GetNextReg(reg.reglo),reg.reghi);
                         cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,cg.GetNextReg(reg.reghi));
                       end;
+                    else
+                      internalerror(2019051015);
                   end;
                 48..63:
                   case op of
@@ -3213,6 +3235,8 @@ unit cgcpu;
                           cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),reg.reghi);
                           cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),cg.GetNextReg(reg.reghi));
                         end;
+                    else
+                      internalerror(2019051016);
                   end;
               end;
             end;

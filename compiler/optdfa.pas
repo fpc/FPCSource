@@ -136,6 +136,8 @@ unit optdfa;
               else
                 DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
             end;
+          else
+            ;
         end;
         result:=fen_false;
       end;
@@ -815,6 +817,8 @@ unit optdfa;
 {$endif dummy}
                 end;
             end;
+          else
+            ;
         end;
       end;
 

@@ -302,8 +302,6 @@ implementation
                 ft_typed,
                 ft_untyped:
                   result:=jvmaddencodedtype(search_system_type('FILEREC').typedef,false,encodedstr,forcesignature,founderror);
-                else
-                  internalerror(2015091406);
               end;
             end;
           recorddef :
@@ -768,8 +766,12 @@ implementation
             if torddef(def).high>127 then
               result:=s8inttype;
           u16bit:
-            if torddef(def).high>32767 then
-              result:=s16inttype;
+            begin
+              if torddef(def).high>32767 then
+                result:=s16inttype;
+            end
+          else
+            ;
         end;
     end;
 
@@ -900,6 +902,8 @@ implementation
                         usedef:=s16inttype;
                       u16bit:
                         usedef:=s32inttype;
+                      else
+                        ;
                     end;
                 end;
               result:=jvmencodetype(usedef,false);

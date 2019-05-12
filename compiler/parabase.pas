@@ -300,6 +300,10 @@ implementation
               newloc.reference.offset:=location^.reference.offset;
               newloc.reference.alignment:=alignment;
             end;
+          LOC_VOID:
+            ;
+          else
+            internalerror(2019050705);
         end;
       end;
 

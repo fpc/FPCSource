@@ -339,6 +339,8 @@ interface
                                      taicpu(hp2).segprefix:=ref^.segment;
 {$endif x86}
                                  end;
+                               else
+                                 ;
                              end;
                            end;
                         end;
@@ -348,6 +350,8 @@ interface
                         taicpu(hp2).CheckIfValid;
 {$endif x86}
                      end;
+                  else
+                    ;
                 end;
                 current_asmdata.CurrAsmList.concat(hp2);
                 hp:=tai(hp.next);
@@ -381,6 +385,8 @@ interface
                                  top_ref :
                                    if (ref^.segment<>NR_NO) and (ref^.segment<>get_default_segment_of_ref(ref^)) then
                                      taicpu(hp).segprefix:=ref^.segment;
+                                 else
+                                   ;
                                end;
                              end;
 {$endif x86}
@@ -391,6 +397,8 @@ interface
                       taicpu(hp).CheckIfValid;
 {$endif x86}
                      end;
+                  else
+                    ;
                 end;
                 hp:=tai(hp.next);
               end;
@@ -529,6 +537,8 @@ interface
                   { in case reference contains CREGISTERS, that doesn't matter:
                     we want to write to the location indicated by the current
                     value of those registers, and we can save those values }
+                  else
+                    ;
                 end;
                 hlcg.g_reference_loc(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.tempinitcode.location,tempinfo^.location);
               end;
@@ -546,6 +556,8 @@ interface
           LOC_FPUREGISTER,
           LOC_MMREGISTER :
             excludetempflag(ti_valid);
+          else
+            ;
         end;
       end;
 

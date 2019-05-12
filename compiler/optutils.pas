@@ -322,6 +322,8 @@ unit optutils;
             tryfinallyn,
             onn:
               internalerror(2007050501);
+            else
+              ;
           end;
         end;
 
@@ -358,7 +360,7 @@ unit optutils;
 
     function SetExecutionWeight(var n: tnode; arg: pointer): foreachnoderesult;
       var
-        Weight : longint;
+        Weight, CaseWeight : longint;
         i : Integer;
       begin
         Result:=fen_false;
@@ -368,10 +370,11 @@ unit optutils;
           casen:
             begin
               CalcExecutionWeights(tcasenode(n).left,Weight);
+              CaseWeight:=max(Weight div tcasenode(n).labelcnt,1);
               for i:=0 to tcasenode(n).blocks.count-1 do
-                CalcExecutionWeights(pcaseblock(tcasenode(n).blocks[i])^.statement,Weight div case_count_labels(tcasenode(n).labels));
+                CalcExecutionWeights(pcaseblock(tcasenode(n).blocks[i])^.statement,CaseWeight);
 
-              CalcExecutionWeights(tcasenode(n).elseblock,Weight div case_count_labels(tcasenode(n).labels));
+              CalcExecutionWeights(tcasenode(n).elseblock,CaseWeight);
               Result:=fen_norecurse_false;
             end;
           whilerepeatn:
@@ -387,6 +390,8 @@ unit optutils;
               CalcExecutionWeights(tifnode(n).t1,Weight div 2);
               Result:=fen_norecurse_false;
             end;
+          else
+            ;
         end;
         n.optinfo^.executionweight:=Weight;
       end;

@@ -391,6 +391,8 @@ implementation
                           tokentoconsume:=_STRING;
                         end;
                     end
+                  else
+                    ;
                   end;
               end
             else

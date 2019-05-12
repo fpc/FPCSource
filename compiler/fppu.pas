@@ -1354,8 +1354,6 @@ var
             list:=publicasmsyms;
           ualt_extern:
             list:=externasmsyms;
-          else
-            internalerror(2016060301);
         end;
         c:=ppufile.getlongint;
         for i:=0 to c-1 do

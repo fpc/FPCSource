@@ -275,6 +275,8 @@ unit optloop;
             end;
           typeconvn:
             result:=is_loop_invariant(loop,ttypeconvnode(expr).left);
+          else
+            ;
         end;
       end;
 
@@ -454,6 +456,8 @@ unit optloop;
                   result:=fen_norecurse_false;
                 end;
             end;
+          else
+            ;
         end;
       end;
 

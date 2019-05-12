@@ -213,6 +213,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
                   tobjectdef(tclassrefdef(n.resultdef).pointeddef).register_maybe_created_object_type;
               end;
+            else
+              ;
           end;
           tc_emit_classrefdef(def,n);
           n.free;
@@ -720,8 +722,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              ftcb.emit_tai(tai_realconst.create_s64compreal(round(value*10000)),def);
            s128real:
              ftcb.emit_tai(tai_realconst.create_s128real(value),def);
-           else
-             internalerror(200611053);
         end;
       end;
 

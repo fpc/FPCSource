@@ -1690,6 +1690,8 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
+             else
+               ;
            end;
            hp:=Tai(hp.next);
          end;
@@ -1835,6 +1837,8 @@ Implementation
                      internalerror(2010011102);
                  end;
                end;
+             else
+               ;
            end;
            hp:=Tai(hp.next);
          end;
@@ -2101,6 +2105,8 @@ Implementation
                          ));
                      end;
 {$endif OMFOBJSUPPORT}
+                   else
+                     ;
                  end
                end;
              ait_symbolpair:
@@ -2121,6 +2127,8 @@ Implementation
              ait_seh_directive :
                tai_seh_directive(hp).generate_code(objdata);
 {$endif DISABLE_WIN64_SEH}
+             else
+               ;
            end;
            hp:=Tai(hp.next);
          end;

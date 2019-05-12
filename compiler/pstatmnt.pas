@@ -109,6 +109,8 @@ implementation
            end;
          consume(_END);
          statements_til_end:=cblocknode.create(first);
+         if assigned(first) then
+           statements_til_end.fileinfo:=first.fileinfo;
       end;
 
 

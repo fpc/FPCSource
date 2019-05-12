@@ -166,6 +166,8 @@ unit rgcpu;
                     if current_procinfo.framepointer<>r then
                       add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(r));
                   end;
+              else
+                ;
             end;
           end;
       end;
@@ -353,6 +355,8 @@ unit rgcpu;
                 RS_S21,RS_S23,RS_S25,RS_S27,RS_S29,RS_S31] do
                 add_edge(supreg,i);
             end;
+          else
+            ;
         end;
       end;
 
@@ -606,6 +610,8 @@ unit rgcpu;
                     if current_procinfo.framepointer<>r then
                       add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(r));
                   end;
+              else
+                ;
             end;
           end;
       end;
@@ -658,6 +664,8 @@ unit rgcpu;
                        add_edge(getsupreg(taicpu(p).oper[0]^.reg),i);
                      end;
                  end;
+              else
+                ;
             end;
           end;
       end;

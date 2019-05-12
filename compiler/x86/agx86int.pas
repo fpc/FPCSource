@@ -405,6 +405,8 @@ implementation
                              writer.AsmWrite('dword ptr ');
 
 {$endif x86_64}
+                     else
+                       ;
                      end;
                    end;
                   WriteReference(o.ref^);
@@ -901,6 +903,8 @@ implementation
                          writer.AsmWrite(#9#9'retn');
                        A_RETFD:
                          writer.AsmWrite(#9#9'retf');
+                       else
+                         internalerror(2019050907);
                    end
                  end
 {$endif I386}

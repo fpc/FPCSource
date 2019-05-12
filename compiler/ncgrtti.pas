@@ -146,6 +146,8 @@ implementation
               undefineddef:
                 { don't write any RTTI for these }
                 continue;
+              else
+                ;
             end;
             { always generate persistent tables for types in the interface so
               they can be reused in other units and give always the same pointer
@@ -694,6 +696,8 @@ implementation
                     write_rtti(tpropertysym(sym).propdef,rt);
                   fieldvarsym:
                     write_rtti(tfieldvarsym(sym).vardef,rt);
+                  else
+                    ;
                 end;
               end;
           end;
@@ -806,6 +810,8 @@ implementation
                              internalerror(200706101);
                            inc(address,int64(def.size*hp^.value));
                          end;
+                       else
+                         internalerror(2019050523);
                      end;
                      hp:=hp^.next;
                   end;
@@ -1662,6 +1668,8 @@ implementation
                    objectdef_rtti_interface_full(def);
                  end;
                end;
+             else
+               ;
            end;
            tcb.end_anonymous_record;
         end;
@@ -1943,6 +1951,8 @@ implementation
             begin
               enumdef_rtti_extrasyms(Tenumdef(def));
             end;
+        else
+          ;
       end;
     end;
 
@@ -1999,6 +2009,8 @@ implementation
               write_rtti(tabstractpointerdef(def).pointeddef,rt);
           procvardef:
             params_write_rtti(tabstractprocdef(def),rt,false);
+          else
+            ;
         end;
       end;
 

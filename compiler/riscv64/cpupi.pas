@@ -99,6 +99,8 @@ implementation
                 if r in regs then
                   inc(floatsavesize,8);
             end;
+          else
+            ;
         end;
         floatsavesize:=system.align(floatsavesize,max(current_settings.alignment.localalignmin,8));
         result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,8))+maxpushedparasize+aint(floatsavesize);

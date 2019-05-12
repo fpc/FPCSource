@@ -234,6 +234,8 @@ Unit aopt;
                           end;
                       End
                   End
+                else
+                  ;
               End;
               P := tai(p.Next);
               While Assigned(p) and

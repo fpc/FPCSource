@@ -791,6 +791,8 @@ implementation
             if vol_write in hp.oper[3]^.ref^.volatility then
               result:=result+' volatile';
           end;
+        else
+          ;
       end;
     end;
 
@@ -1355,6 +1357,8 @@ implementation
                         writer.AsmWrite(objc_section_name(taillvmdecl(hp).sec));
                         writer.AsmWrite('"');
                       end;
+                    else
+                      ;
                   end;
                   { sections whose name starts with 'llvm.' are for LLVM
                     internal use and don't have an alignment }
@@ -1458,6 +1462,8 @@ implementation
                   asmblock:=true;
                 mark_AsmBlockEnd:
                   asmblock:=false;
+                else
+                  ;
               end;
 
           ait_directive :

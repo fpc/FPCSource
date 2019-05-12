@@ -318,6 +318,8 @@ implementation
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,opsize,left.location.register,location.register,location.register))
                 else
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,opsize,left.location.register,location.register));
+              else
+                internalerror(2019050708);
             end;
           end
         else

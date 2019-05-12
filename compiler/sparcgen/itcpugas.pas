@@ -96,6 +96,8 @@ implementation
             setsubreg(hr,R_SUBFS);
           R_SUBL,R_SUBW,R_SUBD,R_SUBQ:
             setsubreg(hr,R_SUBWHOLE);
+          else
+            ;
         end;
         p:=findreg_by_number(hr);
         if p<>0 then

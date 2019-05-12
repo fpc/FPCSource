@@ -124,6 +124,8 @@ implementation
                     result := cordconstnode.create(0,left.resultdef,true);
                   divn:
                     result := left.getcopy;
+                  else
+                    internalerror(2019050518);
                 end;
                 exit;
               end;
@@ -173,6 +175,8 @@ implementation
                   result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
               divn:
                 result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
+              else
+                internalerror(2019050519);
             end;
          end;
       end;
@@ -728,6 +732,8 @@ implementation
                       result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
                     shln:
                       result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
+                    else
+                      internalerror(2019050517);
                  end;
                end
             else if rvalue=0 then

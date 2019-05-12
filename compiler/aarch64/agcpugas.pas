@@ -180,6 +180,8 @@ unit agcpugas;
                 result:=result+']';
               AM_PREINDEXED:
                 result:=result+']!';
+              else
+                ;
             end;
           end;
       end;

@@ -605,6 +605,8 @@ implementation
 
               result:=true;
             end;
+          else
+            ;
         end;
       end;
 
@@ -773,7 +775,11 @@ implementation
                   optoken:=_OP_INC;
                 in_dec_x:
                   optoken:=_OP_DEC;
+                else
+                  ;
              end;
+           else
+             ;
         end;
         if (optoken=NOTOKEN) then
           begin
@@ -897,6 +903,8 @@ implementation
                     optoken:=_GT;
                   _GTE:
                     optoken:=_LT;
+                  else
+                    ;
                 end;
                 candidates:=tcallcandidates.create_operator(optoken,ppn);
               end;
@@ -1259,6 +1267,8 @@ implementation
                          pointer itself is read and never written }
                        newstate := vs_read;
                      end;
+                   else
+                     ;
                end;
                  p:=tunarynode(p).left;
                end;
@@ -1361,6 +1371,8 @@ implementation
                    vs_readwritten:
                      if not(nf_write in tloadnode(p).flags) then
                        include(tloadnode(p).flags,nf_modify);
+                   else
+                     ;
                  end;
                  break;
                end;
@@ -1484,6 +1496,8 @@ implementation
                    gotrecord:=true;
                  stringdef :
                    gotstring:=true;
+                 else
+                   ;
                end;
                if (valid_property in opts) then
                  begin
@@ -1626,6 +1640,8 @@ implementation
                            exit
                          end;
                      end;
+                   else
+                     ;
                  end;
                  hp:=ttypeconvnode(hp).left;
                end;
@@ -2056,6 +2072,8 @@ implementation
                  (tfiledef(def_to).filetyp = ft_untyped) then
                 eq:=te_convert_l1;
             end;
+          else
+            ;
         end;
       end;
 
@@ -2133,6 +2151,8 @@ implementation
                     end
                 end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -2261,6 +2281,33 @@ implementation
             end;
         end;
 
+      function processhelper(hashedid:THashedIDString;helperdef:tobjectdef):boolean;
+        var
+          srsym : tsym;
+          hasoverload,foundanything : boolean;
+        begin
+          result:=false;
+          srsym:=nil;
+          hasoverload:=false;
+          while assigned(helperdef) do
+            begin
+              srsym:=tsym(helperdef.symtable.FindWithHash(hashedid));
+              if assigned(srsym) and
+                  { Delphi allows hiding a property by a procedure with the same name }
+                  (srsym.typ=procsym) then
+                begin
+                  hasoverload:=processprocsym(tprocsym(srsym),foundanything);
+                  { when there is no explicit overload we stop searching }
+                  if foundanything and
+                     not hasoverload then
+                    break;
+                end;
+              helperdef:=helperdef.childof;
+            end;
+          if not hasoverload and assigned(srsym) then
+            exit(true);
+        end;
+
       var
         srsym      : tsym;
         hashedid   : THashedIDString;
@@ -2268,6 +2315,8 @@ implementation
         foundanything : boolean;
         extendeddef : tabstractrecorddef;
         helperdef  : tobjectdef;
+        helperlist : TFPObjectList;
+        i : integer;
       begin
         if FOperator=NOTOKEN then
           hashedid.id:=FProcsym.name
@@ -2287,27 +2336,24 @@ implementation
                )
                and searchhelpers then
              begin
-               if search_last_objectpascal_helper(structdef,nil,helperdef) then
+               if m_multi_helpers in current_settings.modeswitches then
                  begin
-                   srsym:=nil;
-                   while assigned(helperdef) do
+                   helperlist:=get_objectpascal_helpers(structdef);
+                   if assigned(helperlist) and (helperlist.count>0) then
                      begin
-                       srsym:=tsym(helperdef.symtable.FindWithHash(hashedid));
-                       if assigned(srsym) and
-                           { Delphi allows hiding a property by a procedure with the same name }
-                           (srsym.typ=procsym) then
-                         begin
-                           hasoverload:=processprocsym(tprocsym(srsym),foundanything);
-                           { when there is no explicit overload we stop searching }
-                           if foundanything and
-                              not hasoverload then
-                             break;
-                         end;
-                       helperdef:=helperdef.childof;
+                       i:=helperlist.count-1;
+                       repeat
+                         helperdef:=tobjectdef(helperlist[i]);
+                         if (helperdef.owner.symtabletype in [staticsymtable,globalsymtable]) or
+                            is_visible_for_object(helperdef.typesym,helperdef) then
+                              if processhelper(hashedid,helperdef) then
+                                exit;
+                         dec(i);
+                       until (i<0);
                      end;
-                   if not hasoverload and assigned(srsym) then
-                     exit;
-                 end;
+                 end
+               else if search_last_objectpascal_helper(structdef,nil,helperdef) and processhelper(hashedid,helperdef) then
+                  exit;
              end;
            { now search in the type itself }
            srsym:=tsym(structdef.symtable.FindWithHash(hashedid));
@@ -3096,8 +3142,6 @@ implementation
                   inc(hp^.coper_count);
                 te_incompatible :
                   hp^.invalid:=true;
-                else
-                  internalerror(200212072);
               end;
 
               { stop checking when an incompatible parameter is found }

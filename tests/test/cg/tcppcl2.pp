@@ -4,6 +4,10 @@ program tcppcl2;
 
 {$mode objfpc}
 {$L cpptcl2.o}
+{$ifdef openbsd}
+  {$linklib stdc++}
+  {$linklib c}
+{$endif}
 
 type
   TestClass = cppclass external

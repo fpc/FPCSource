@@ -7,18 +7,20 @@
 syscall_header=/usr/include/syscall.h
 fpc_sysnr=./sysnr.inc
 
-i=0
-for arg in $* ; do
-  let i++
+i=1
+while [ $i -le "$#" ] ; do
+  arg="${!i}"
   echo "Handling arg $i, \"$arg\""
   if [ "${arg//=}" != "$arg" ] ; then
-    echo "Evaluating $arg"
-    eval $arg
+    echo "Evaluating \"$arg\""
+    arg2="${arg/=*/}=\"${arg/*=/}\""
+    eval "$arg2"
   elif [ "$arg" == "-v" ] ; then
     verbose=1
   else
     echo "arg not handled!"
   fi
+  let i++
 done
 
 start_pwd=`pwd`
@@ -30,6 +32,7 @@ if [ -d "rtl" ] ; then
 fi
 
 os=`uname -s | tr [:upper:] [:lower:] `
+os_cpu=`uname -m | tr [:upper:] [:lower:] `
 now_pwd=`pwd`
 now_dir=`basename $now_pwd`
 if [ -d "$os" ] ; then
@@ -70,7 +73,7 @@ fi
 if [ -f "$fpc_sysnr" ] ; then
   echo "Checking $fpc_sysnr content for Free Pascal syscall numbers"
   fpc_sysnr_dir=`dirname $fpc_sysnr `
-  sysnr_includes=`grep -o '{\$i  *[a-z_A-Z0-9/.]*' $fpc_sysnr | sed 's:.*{\$i *:'$fpc_sysnr_dir/: `
+  sysnr_includes=`grep -o '{\$i  *[a-z_A-Z0-9/.-]*' $fpc_sysnr | sed 's:.*{\$i *:'$fpc_sysnr_dir/: `
   if [ -n "$sysnr_includes" ] ; then
     echo "Found $sysnr_includes include files"
     fpc_sysnr="$fpc_sysnr $sysnr_includes"
@@ -103,6 +106,7 @@ if [ -z "$CC" ] ; then
 fi
 
 cpu=`$FPC -iTP`
+cpu_source=`$FPC -iSP`
 is_16=0
 is_32=0
 is_64=0
@@ -129,10 +133,25 @@ case $cpu in
 esac
 
 if [ $is_64 -eq 1 ] ; then
-  CC_OPT="$CC_OPT -m64"
+  if [ "$os_cpu" == "aarch64" ] ; then
+    CC_OPT="$CC_OPT -Wall"
+  else
+    CC_OPT="$CC_OPT -m64 -Wall"
+  fi
   CPUBITS=64
 elif [ $is_32 -eq 1 ] ;then
-  CC_OPT="$CC_OPT -m32"
+  if [ "$os_cpu" == "aarch64" ] ; then
+    CC=arm-linux-gnueabihf-gcc-4.8
+    export BINUTILSPREFIX=arm-linux-
+  fi
+  if [ "${FPC/ppcarm/}" != "$FPC" ] ; then
+    CC_OPT="$CC_OPT -march=armv7-a -Wall"
+  elif [ "${os_cpu/arm/}" != "$os_cpu" ] ; then
+    CC_OPT="$CC_OPT -march=armv5 -Wall"
+  else
+    CC_OPT="$CC_OPT -m32 -Wall"
+  fi
+
   CPUBITS=32
 elif [ $is_16 -eq 1 ] ; then
   CPUBITS=16
@@ -197,18 +216,20 @@ macro="";
 incfile="";
 cpu= "cpu" proc;
 cpubits= "cpu" cpubits;
+list_defines=macros " " cpu " " cpubits " ";
+print "// FPC defined macros used " list_defines;
 }
 /\{\\\$i / { incfile=\$2;
   print "Include file  " incfile " found"; }
-/\{\\\$ifdef / { macro=gensub("[^A-Za-z_0-9].*","","",\$2);
-  if ( (macro == cpu) || (macro == cpubits)) { enable=1;
+/\{\\\$ifdef / { macro=gensub("[^A-Za-z_0-9].*","",1,\$2) " ";
+  if (list_defines ~ macro) { enable=1;
     print "// ifdef " macro " found and accepted at line " FNR;
   } else {enable=0;
     print "// ifdef " macro " found and rejected at line " FNR;
   };
   }
-/\{\\\$ifndef / { macro=gensub("[^A-Za-z_0-9].*","","",\$2);
-  if ( (macro == cpu) || (macro == cpubits) ) { enable=0;
+/\{\\\$ifndef / { macro=gensub("[^A-Za-z_0-9].*","",1,\$2);
+  if (list_defines ~ macro) { enable=0;
    print "// ifndef " macro " found and rejected at line " FNR;
  } else {enable=1;
    print "// ifndef " macro " found and accepted at line " FNR;
@@ -219,14 +240,14 @@ cpubits= "cpu" cpubits;
   wholeline=\$0;
   code=gensub("{.*}","","g",\$0);
   code=gensub("[(][*].*[*][)]","","g",code);
-  comments=gensub(code,"","",\$0);
+  comments=gensub(code,"",1,\$0);
   comments1=gensub(".*({.*}).*","\1","g",comments);
   if (comments == comments1)
     comments1="";
   comments2=gensub(".*[(][*].*[*][)]).*","\1","g",comments);
   if (comments == comments2)
     comments2="";
-  comments3=gensub(".*//","","",comments);
+  comments3=gensub(".*//","",1,comments);
   if (comments == comments3)
     comments3="";
   all_comments= comments1 comments2 comments3;
@@ -250,13 +271,13 @@ fi
 if [ -n "$AWK" ] ; then
   echo "Preprocessing ${fpc_sysnr} to $tmp_fpc_sysnr"
   echo "$AWK -v proc=$cpu -v cpubits=$CPUBITS -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr"
-  $AWK -v proc=$cpu -v cpubits=$CPUBITS -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr
+  $AWK -v proc=$cpu -v cpubits=$CPUBITS -v macros="$FPC_MACROS" -f $awkfile ${fpc_sysnr} > $tmp_fpc_sysnr
   fpc_sysnr=$tmp_fpc_sysnr
 fi
-sed -n "s:^\(.*\)*[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \3 \"\1 \4\":p" $fpc_sysnr > check_sys_list.sh
+sed -n "s:^\(.*\)*[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\(.*\\);\\(.*\\)$:check_c_syscall_number_from_fpc_rtl \2 \"\3\" \"\1 \4\":p" $fpc_sysnr > check_sys_list.sh
 
 
-sed -n "s:^.*#[[:space:]]*define[[:space:]]*${syscall_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_in_fpc_rtl \1 \2 \"\3\":p" ${syscall_header} > check_sys_list_reverse.sh
+sed -n "s:^.*#[[:space:]]*define[[:space:]]*${syscall_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*\\([0-9]*\\)\\(.*\\)$:check_c_syscall_number_in_fpc_rtl \1 \"\2\" \"\3\":p" ${syscall_header} > check_sys_list_reverse.sh
  
 forward_count=0
 forward_ok_count=0
@@ -266,7 +287,13 @@ function check_c_syscall_number_from_fpc_rtl ()
 {
   bare_sys=$1
   sys=${syscall_prefix}$bare_sys
-  value=$2
+  arg_2=\"$2\"
+  if [ "${2:0:1}" == "$" ] ; then
+    echo "Arg \"$arg_2\" needs Pascal To C hexadecimal conversion"
+    let "value=0x${arg_2:2}"
+  else
+    let "value=$2"
+  fi
   comment="$3"
   if [[ ! ( ( -n "$value" ) && ( $value -ge 0 ) ) ]] ; then
     echo "Computing $2 value"
@@ -299,6 +326,7 @@ function check_c_syscall_number_from_fpc_rtl ()
       let forward_failure_count++
       return
     else
+      val=$CC_value
       rm -f ./test_c_${bare_sys}
     fi
     rm -f ./test-${bare_sys}.comp-log
@@ -352,7 +380,12 @@ function check_c_syscall_number_in_fpc_rtl ()
   sys=${fpc_syscall_prefix}${bare_sys}
   c_sys=${syscall_prefix}${bare_sys}
   value=$2
-  comment="$3"
+  if [ -z "$value" ] ; then
+    let "value=$3"
+    comment="expression $3"
+  else
+    comment="$3"
+  fi
   echo -en "Testing $sys value $value                        \r"
   $CC $CC_OPT -DSYS_MACRO=${c_sys} -o ./test_c_${bare_sys} $c_syscall_source > ./test_${bare_sys}.comp-log 2>&1
   C_COMP_RES=$?

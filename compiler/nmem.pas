@@ -1128,8 +1128,6 @@ implementation
                       elementdef:=cansichartype;
                       elementptrdef:=charpointertype;
                     end;
-                  else
-                    internalerror(2013112902);
                 end;
                 if right.nodetype=rangen then
                   begin

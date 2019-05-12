@@ -229,6 +229,8 @@ implementation
                       exit;
                     end;
                 end;
+              else
+                ;
             end;
         end;
         result:=true;
@@ -1272,6 +1274,8 @@ implementation
                     pd.localst.SymList.ForEachCall(@searchthreadvar,arg);
                 end;
             end;
+          else
+            ;
         end;
       end;
 

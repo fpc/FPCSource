@@ -164,6 +164,8 @@ implementation
                   if (getsupreg(taicpu(p).oper[0]^.ref^.indexbase)=sr) then
                     exit(true);
                 end;
+              else
+                ;
             end;
         end;
 
@@ -313,6 +315,8 @@ implementation
                         continue;
                       end;
                   end;
+                else
+                  ;
               end;
               p:=tai(p.next);
             end;
@@ -385,6 +389,8 @@ implementation
                           { don't invalidate the temp reference, may still be used one instruction
                             later }
                         end;
+                      else
+                        ;
                     end;
                     { insert the tempallocation/free at the right place }
                     list.insertlistbefore(p,templist);
@@ -398,6 +404,8 @@ implementation
                   end;
               ait_instruction:
                 do_spill_replace_all(list,taicpu(p),spill_temps);
+              else
+                ;
             end;
             p:=Tai(p.next);
           end;

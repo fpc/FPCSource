@@ -249,6 +249,8 @@ unit cpupara;
             result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
+          else
+            ;
         end;
       end;
 

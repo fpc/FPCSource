@@ -726,6 +726,8 @@ implementation
                       p.default:=0;
                     realconstn:
                       p.default:=longint(single(trealconstnode(pt).value_real));
+                    else if not codegenerror then
+                      internalerror(2019050525);
                   end;
                   pt.free;
                 end;

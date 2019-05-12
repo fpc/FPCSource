@@ -1122,9 +1122,6 @@ begin
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
             end;
         end
-    else
-      if not (cs_link_nolink in current_settings.globalswitches) then
-      	 internalerror(200902011);
   end;
 
   with linkres do

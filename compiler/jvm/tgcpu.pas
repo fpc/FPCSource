@@ -219,10 +219,10 @@ unit tgcpu;
                 ft_typed,
                 ft_untyped:
                   result:=getifspecialtemp(list,search_system_type('FILEREC').typedef,forcesize,temptype,ref);
-                else
-                  internalerror(2015091405);
               end;
             end;
+          else
+            ;
         end;
       end;
 

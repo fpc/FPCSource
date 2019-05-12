@@ -2108,8 +2108,6 @@ implementation
             value.s128val:=ppufile.getreal;
           aitrealconst_s64comp:
             value.s64compval:=comp(ppufile.getint64);
-          else
-            internalerror(2014050602);
         end;
       end;
 
@@ -2137,8 +2135,6 @@ implementation
               c:=comp(value.s64compval);
               ppufile.putint64(int64(c));
             end
-          else
-            internalerror(2014050601);
         end;
       end;
 
@@ -2167,8 +2163,6 @@ implementation
             result:=10;
           aitrealconst_s128bit:
             result:=16;
-          else
-            internalerror(2014050603);
         end;
       end;
 
@@ -2833,6 +2827,8 @@ implementation
                     add_reg_instruction_hook(self,shifterop^.rs);
                 end;
 {$endif ARM}
+              else
+                ;
              end;
           end;
       end;
@@ -2858,6 +2854,8 @@ implementation
               top_wstring:
                 donewidestring(pwstrval);
 {$endif jvm}
+              else
+                ;
             end;
             typ:=top_none;
           end;
@@ -2911,6 +2909,8 @@ implementation
                   p.oper[i]^.shifterop^:=oper[i]^.shifterop^;
                 end;
 {$endif ARM}
+              else
+                ;
             end;
           end;
         getcopy:=p;
@@ -3272,8 +3272,6 @@ implementation
               ppufile.getdata(data.reg,sizeof(TRegister));
               data.offset:=ppufile.getdword;
             end;
-        else
-          InternalError(2011091201);
         end;
       end;
 
@@ -3301,8 +3299,6 @@ implementation
               ppufile.putdata(data.reg,sizeof(TRegister));
               ppufile.putdword(data.offset);
             end;
-        else
-          InternalError(2011091202);
         end;
       end;
 

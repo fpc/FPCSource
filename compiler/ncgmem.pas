@@ -945,6 +945,8 @@ implementation
                 LOC_REGISTER,
                 LOC_MMREGISTER:
                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                else
+                  ;
               end;
              location_copy(location,left.location);
            end;
@@ -978,6 +980,8 @@ implementation
                       rangecheck_array;
                     stringdef :
                       rangecheck_string;
+                    else
+                      ;
                   end;
                 end;
               if not(is_packed_array(left.resultdef)) or

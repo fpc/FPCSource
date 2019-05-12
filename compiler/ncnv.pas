@@ -950,6 +950,8 @@ implementation
                cgmessage1(type_h_convert_sub_operands_to_prevent_overflow,def.typename);
              muln:
                cgmessage1(type_h_convert_mul_operands_to_prevent_overflow,def.typename);
+             else
+               ;
            end;
       end;
 
@@ -2698,9 +2700,6 @@ implementation
                   else
                    IncompatibleTypes(left.resultdef,resultdef);
                 end;
-
-              else
-                internalerror(200211231);
             end;
           end;
         { Give hint or warning for unportable code, exceptions are
@@ -2793,7 +2792,6 @@ implementation
 
       function docheckremoveinttypeconvs(n: tnode): boolean;
         begin
-          result:=false;
           if wasoriginallysmallerint(n) then
             exit(true);
           case n.nodetype of
@@ -2819,6 +2817,8 @@ implementation
                    (((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
                     ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right))));
               end;
+            else
+              result:=false;
           end;
         end;
 
@@ -3113,6 +3113,8 @@ implementation
                    exit;
                 end;
             end;
+          else
+            ;
         end;
 {$ifndef CPUNO32BITOPS}
         { must be done before code below, because we need the
@@ -3154,6 +3156,8 @@ implementation
                     end;
                 end;
             end;
+          else
+            ;
         end;
 {$endif not CPUNO32BITOPS}
       end;
@@ -3683,8 +3687,6 @@ implementation
                        end
                      else
                        internalerror(200802231);
-                   else
-                     internalerror(200802165);
                  end;
                  break;
                end;
@@ -4250,6 +4252,8 @@ implementation
                 resultdef:=pasbool1type;
               asn:
                 resultdef:=tclassrefdef(right.resultdef).pointeddef;
+              else
+                ;
             end;
           end
         else if is_interface(right.resultdef) or
@@ -4261,6 +4265,8 @@ implementation
                resultdef:=pasbool1type;
              asn:
                resultdef:=right.resultdef;
+             else
+               ;
            end;
 
             { left is a class or interface }

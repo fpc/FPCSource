@@ -968,6 +968,8 @@ implementation
                  { We are calling a member }
                  maybe_load_methodpointer:=true;
                end;
+             else
+               ;
            end;
          end;
       end;
@@ -2012,6 +2014,7 @@ implementation
      { shouldn't be used that often, so the extra overhead is ok to save
        stack space }
      dispatchstring : ansistring;
+     autoderef,
      erroroutp1,
      allowspecialize,
      isspecialize,
@@ -2076,6 +2079,8 @@ implementation
                            cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef)));
                          typecheckpass(p1);
                        end;
+                     else
+                       internalerror(2019050530);
                    end;
                  end
                else if not(p1.resultdef.typ in [pointerdef,undefineddef]) then
@@ -2238,6 +2243,7 @@ implementation
                  end
                else
                  isspecialize:=false;
+               autoderef:=false;
                if (p1.resultdef.typ=pointerdef) and
                   (m_autoderef in current_settings.modeswitches) and
                   { don't auto-deref objc.id, because then the code
@@ -2246,6 +2252,7 @@ implementation
                  begin
                    p1:=cderefnode.create(p1);
                    do_typecheckpass(p1);
+                   autoderef:=true;
                  end;
                { procvar.<something> can never mean anything so always
                  try to call it in case it returns a record/object/... }
@@ -2362,8 +2369,6 @@ implementation
                      cst_longstring:
                        { let's see when someone stumbles upon this...}
                        internalerror(201301111);
-                     else
-                       internalerror(2013112903);
                    end;
                    if try_type_helper(p1,strdef) then
                      goto skippointdefcheck;
@@ -2669,7 +2674,20 @@ implementation
                     end;
                   else
                     begin
-                      found:=try_type_helper(p1,nil);
+                      if autoderef then
+                        begin
+                          { always try with the not dereferenced node }
+                          p2:=tderefnode(p1).left;
+                          found:=try_type_helper(p2,nil);
+                          if found then
+                            begin
+                              tderefnode(p1).left:=nil;
+                              p1.destroy;
+                              p1:=p2;
+                            end;
+                        end
+                      else
+                        found:=try_type_helper(p1,nil);
                       if not found then
                         begin
                           if p1.resultdef.typ<>undefineddef then
@@ -4129,6 +4147,8 @@ implementation
             specializen:
               srsym:=tspecializenode(n).sym;
             { TODO : handle const nodes }
+            else
+              ;
           end;
           result:=assigned(srsym);
         end;
@@ -4455,6 +4475,8 @@ implementation
                        p1:=casnode.create(p1,p2);
                      _OP_IS:
                        p1:=cisnode.create(p1,p2);
+                     else
+                       internalerror(2019050528);
                    end;
                  end;
                _OP_IN :
@@ -4493,6 +4515,8 @@ implementation
                  p1:=cassignmentnode.create(p1,p2);
                _NE :
                  p1:=caddnode.create(unequaln,p1,p2);
+               else
+                 internalerror(2019050529);
              end;
              p1.fileinfo:=filepos;
            end

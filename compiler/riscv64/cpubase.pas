@@ -390,6 +390,8 @@ implementation
         case o of
           A_JAL,A_JALR,A_Bxx:
             is_calljmp:=true;
+          else
+            ;
         end;
       end;
 

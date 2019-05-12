@@ -1087,6 +1087,8 @@ Unit Rax86int;
                   Consume(AS_RBRACKET);
                   expr:=expr+']';
                 end;
+              else
+                ;
             end;
           Case actasmtoken of
             AS_LPAREN:
@@ -1562,6 +1564,8 @@ Unit Rax86int;
                          else
                            Inc(oper.opr.ref.offset,l);
                        end;
+                     else
+                       internalerror(2019050715);
                    end;
                  end
                 else
@@ -1646,6 +1650,8 @@ Unit Rax86int;
                           inc(oper.opr.localsymofs,l);
                         OPR_REFERENCE :
                           inc(oper.opr.ref.offset,l);
+                        else
+                          internalerror(2019050716);
                       end;
                       if hastypecast then
                        oper.hastype:=true;
@@ -1745,6 +1751,8 @@ Unit Rax86int;
                             else
                               Message(asmr_e_invalid_reference_syntax);
                           end;
+                        else
+                          internalerror(2019050719);
                       end;
                     end;
                   else
@@ -1759,6 +1767,8 @@ Unit Rax86int;
                         oper.opr.ref.scalefactor:=l;
                       OPR_LOCAL :
                         oper.opr.localscale:=l;
+                      else
+                        internalerror(2019050717);
                     end;
                     if l>9 then
                       Message(asmr_e_wrong_scale_factor);
@@ -1829,6 +1839,8 @@ Unit Rax86int;
 {$endif x86_64}
                             end;
                         end;
+                      else
+                        internalerror(2019050718);
                     end;
                     GotPlus:=false;
                     GotStar:=false;
@@ -1910,6 +1922,8 @@ Unit Rax86int;
                       else
                         Inc(oper.opr.localsymofs,l);
                     end;
+                  else
+                    internalerror(2019050714);
                 end;
                 GotPlus:=(prevasmtoken=AS_PLUS) or
                          (prevasmtoken=AS_MINUS);
@@ -2303,6 +2317,8 @@ Unit Rax86int;
                                 if oper.opr.typ=OPR_SYMBOL then
                                   oper.initref;
                               end;
+                            else
+                              ;
                           end;
                         end
                        else

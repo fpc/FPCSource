@@ -291,6 +291,8 @@ implementation
                   paraloc^.loc:=LOC_REFERENCE;
                   paraloc^.reference.index:=NR_STACK_POINTER_REG;
                 end;
+              else
+                ;
             end;
             { 2 slots for 64 bit integers and floats, 1 slot for the rest }
             if not(is_64bit(paradef) or

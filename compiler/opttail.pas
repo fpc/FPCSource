@@ -176,6 +176,8 @@ unit opttail;
               end;
             blockn:
               result:=find_and_replace_tailcalls(tblocknode(n).left);
+            else
+              ;
           end;
         end;
 

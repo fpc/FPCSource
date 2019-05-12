@@ -192,6 +192,8 @@ unit cpupara;
             result:=not(calloption in cdecl_pocalls) and not tprocvardef(def).is_addressonly;
           setdef :
             result:=not(calloption in cdecl_pocalls) and (not is_smallset(def));
+          else
+            ;
         end;
       end;
 

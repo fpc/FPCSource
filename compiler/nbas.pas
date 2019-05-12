@@ -675,6 +675,8 @@ implementation
                   left:=nil;
                   exit;
                 end;
+              else
+                ;
             end;
           end;
       end;

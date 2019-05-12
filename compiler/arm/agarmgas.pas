@@ -218,6 +218,8 @@ unit agarmgas;
                     s:=s+']';
                   AM_PREINDEXED:
                     s:=s+']!';
+                  else
+                    ;
                 end;
               end;
 

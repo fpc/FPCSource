@@ -1,0 +1,151 @@
+# OpenBSD RTL-to-C structure compatibility checker description file
+#
+# Use
+#   h2paschk t_openbsd.h2paschk
+#
+# ...to generate Pascal and C code, then make sure they both compile and that
+# the Pascal program produces the same output as the C program for each
+# supported architecture.
+
+@Pascal uses baseunix;
+@Pascal begin
+@C #define _LARGEFILE_SOURCE 1
+@C #define _FILE_OFFSET_BITS 64
+## @C #define _USE_FILE_OFFSET64
+
+@C #include <sys/types.h>
+@C #include <sys/stat.h>
+@C #include <sys/statfs.h>
+@C #include <sys/mount.h>
+@C #include <sys/time.h>
+@C #include <sys/times.h>
+@C #include <sys/resource.h>
+@C #include <sys/uio.h>
+@C #include <dirent.h>
+@C #include <poll.h>
+@C #include <utime.h>
+@C #include <fcntl.h>
+@C #include <unistd.h>
+@C #include <stdio.h>
+@C #include <stddef.h>
+@C int main()
+@C {
+
+@record timespec,struct timespec
+.tv_sec
+.tv_nsec
+
+@record stat,struct stat
+.st_dev
+.st_ino
+.st_mode
+#.st_padding0
+.st_nlink
+.st_uid
+.st_gid
+#.st_padding1
+.st_rdev
+.st_size
+.st_blocks
+.st_blksize
+.st_atime,st_atim.tv_sec
+.st_atime_nsec,st_atim.tv_nsec
+.st_mtime,st_mtim.tv_sec
+.st_mtime_nsec,st_mtim.tv_nsec
+.st_ctime,st_ctim.tv_sec
+.st_ctime_nsec,st_ctim.tv_nsec
+@Pascal {$if defined (CPUPOWERPC) or defined(CPUPOWERPC64)}
+@C #ifdef __powerpc__
+.__unused4
+.__unused5
+@Pascal {$ifdef CPU64}
+@C #ifdef __LP64__
+.__unused6
+@C #endif
+@Pascal {$endif CPU64}
+@C #endif
+@Pascal {$endif powerpc}
+#.st_flags
+#.st_gen
+
+@record dirent,struct dirent
+.d_fileno
+.d_off
+.d_reclen
+.d_type
+#.d_pad0
+#.d_namlen
+#.d_pad1
+.d_name
+
+@record TStatFs,struct statfs
+.fstype,f_type
+.bsize,f_bsize
+.blocks,f_blocks
+.bfree,f_bfree
+.bavail,f_bavail
+.files,f_files
+.ffree,f_ffree
+.fsid,f_fsid
+.namelen,f_namelen
+.frsize,f_frsize
+.flags,f_flags
+.spare,f_spare
+
+@record pollfd,struct pollfd
+.fd
+.events
+.revents
+
+@record utimbuf,struct utimbuf
+.actime
+.modtime
+
+@record flock,struct flock
+.l_start
+.l_len
+.l_pid
+.l_type
+.l_whence
+
+@record tms,struct tms
+.tms_utime
+.tms_stime
+.tms_cutime
+.tms_cstime
+
+@record timezone,struct timezone
+.tz_minuteswest
+.tz_dsttime
+
+#@record rusage,struct rusage
+#.ru_utime
+#.ru_stime
+#.ru_maxrss
+#.ru_ixrss
+#.ru_idrss
+#.ru_isrss
+#.ru_minflt
+#.ru_majflt
+#.ru_nswap
+#.ru_inblock
+#.ru_oublock
+#.ru_msgsnd
+#.ru_msgrcv
+#.ru_nsignals
+#.ru_nvcsw
+#.ru_nivcsw
+
+@record TRLimit,struct rlimit
+.rlim_cur
+.rlim_max
+
+@record iovec,struct iovec
+.iov_base
+.iov_len
+
+@C   return 0;
+@C }
+
+@Pascal end.
+

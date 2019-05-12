@@ -357,6 +357,8 @@ unit cpubase;
             setsubreg(r, R_SUBFS);
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
             setsubreg(r, R_SUBD);
+          else
+            ;
         end;
         result:=rgBase.findreg_by_number_table(r,regnumber_index);
       end;
@@ -385,6 +387,8 @@ unit cpubase;
             setsubreg(hr, R_SUBFS);
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
             setsubreg(hr, R_SUBD);
+          else
+            ;
         end;
         p:=findreg_by_number_table(hr,regnumber_index);
         if p<>0 then
@@ -402,6 +406,8 @@ unit cpubase;
             setsubreg(r, R_SUBFS);
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
             setsubreg(r, R_SUBD);
+          else
+            ;
         end;
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
@@ -415,6 +421,8 @@ unit cpubase;
             setsubreg(r, R_SUBFS);
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
             setsubreg(r, R_SUBD);
+          else
+            ;
         end;
         result:=regdwarf_table[findreg_by_number(r)];
       end;

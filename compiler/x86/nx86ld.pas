@@ -120,6 +120,8 @@ implementation
                       Internalerror(2018110401);
                   end;
                 end;
+              else
+                ;
             end;
 {$endif i386}
 {$ifdef x86_64}
@@ -159,6 +161,8 @@ implementation
                       Internalerror(2019012002);
                   end;
                 end;
+              else
+                ;
             end;
 {$endif x86_64}
           end;

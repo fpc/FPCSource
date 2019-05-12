@@ -688,6 +688,8 @@ uses
                   for i:=0 to st.deflist.count-1 do
                     unset_forwarddef(tdef(st.deflist[i]));
                 end;
+              else
+                ;
             end;
           end;
 
@@ -1303,6 +1305,8 @@ uses
                           odt_interfacejava,
                           odt_dispinterface:
                             constraintdata.interfaces.add(def);
+                          else
+                            ;
                         end;
                     end;
                 end;
@@ -1780,6 +1784,8 @@ uses
 
                   specialization_done(state);
                 end;
+              else
+                ;
             end;
           end;
 

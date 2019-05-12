@@ -742,6 +742,8 @@ implementation
 {$endif SPARC64}
                 ;
             end;
+          else
+            ;
         end;
         if setflags then
           begin
@@ -765,6 +767,8 @@ implementation
                   ovloc.loc:=LOC_FLAGS;
                   ovloc.resflags.Init(NR_ICC,F_NE);
                 end;
+              else
+                ;
             end;
           end
         else
@@ -800,6 +804,8 @@ implementation
                   ovloc.loc:=LOC_FLAGS;
                   ovloc.resflags.Init(NR_ICC,F_NE);
                 end;
+              else
+                ;
             end;
           end
         else

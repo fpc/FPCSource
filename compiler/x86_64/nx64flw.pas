@@ -137,6 +137,8 @@ function reset_regvars(var n: tnode; arg: pointer): foreachnoderesult;
         make_not_regable(n,[]);
       calln:
         include(tprocinfo(arg).flags,pi_do_call);
+      else
+        ;
     end;
     result:=fen_true;
   end;
@@ -146,6 +148,8 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
     case n.nodetype of
       calln:
         tcgprocinfo(arg).allocate_push_parasize(tcallnode(n).pushed_parasize);
+      else
+        ;
     end;
     result:=fen_true;
   end;

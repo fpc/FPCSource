@@ -797,6 +797,8 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
           case opr.typ of
             OPR_REFERENCE: opr.varsize := l;
                 OPR_LOCAL: opr.localvarsize := l;
+            else
+              ;
           end;
 
 
@@ -813,7 +815,11 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
         case opr.typ of
           OPR_REFERENCE: opr.varsize := sym.getsize;
               OPR_LOCAL: opr.localvarsize := sym.getsize;
+          else
+            ;
         end;
+      else
+        ;
     end;
   end;
 
@@ -997,6 +1003,8 @@ Begin
               if paramanager.push_addr_param(tabstractvarsym(sym).varspez,tabstractvarsym(sym).vardef,current_procinfo.procdef.proccalloption) then
                 SetSize(sizeof(pint),false);
             end;
+          else
+            ;
         end;
         if not size_set_from_absolute then
           setvarsize(tabstractvarsym(sym));
@@ -1449,6 +1457,8 @@ Begin
                exit;
              end;
          end;
+       else
+         ;
      end;
    end;
 end;
@@ -1501,6 +1511,8 @@ Begin
            SearchIConstant:=TRUE;
            exit;
          end;
+       else
+         ;
      end;
    end;
 end;
@@ -1564,6 +1576,8 @@ Begin
            st:=Tabstractvarsym(sym).vardef.GetSymtable(gs_record);
          typesym :
            st:=Ttypesym(sym).typedef.GetSymtable(gs_record);
+         else
+           ;
        end
      else
        s:='';
@@ -1617,6 +1631,8 @@ Begin
                  st:=trecorddef(vardef).symtable;
                objectdef :
                  st:=tobjectdef(vardef).symtable;
+               else
+                 ;
              end;
            end;
        procsym:
@@ -1646,6 +1662,8 @@ Begin
            GetRecordOffsetSize:=(s='');
            exit;
          end;
+       else
+         ;
      end;
    end;
    { Support Field.Type as typecasting }
@@ -1701,6 +1719,8 @@ Begin
           tlabelsym(sym).used:=true;
         SearchLabel:=true;
       end;
+    else
+      ;
   end;
 end;
 

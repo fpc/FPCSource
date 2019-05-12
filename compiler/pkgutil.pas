@@ -109,6 +109,8 @@ implementation
               objectdef,
               recorddef:
                 exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef),tsymtable(arg));
+              else
+                ;
             end;
           end;
         procsym:
@@ -122,6 +124,8 @@ implementation
           begin
             varexport(tsym(sym).mangledname);
           end;
+        else
+          ;
       end;
     end;
 
@@ -176,6 +180,8 @@ implementation
         recorddef,
         objectdef:
           exportabstractrecorddef(tabstractrecorddef(def),symtable);
+        else
+          ;
       end;
     end;
 

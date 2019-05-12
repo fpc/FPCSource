@@ -214,6 +214,8 @@ begin
       result := not is_smallset(def);
     stringdef:
       result := tstringdef(def).stringtype in [st_shortstring, st_longstring];
+    else
+      ;
   end;
 end;
 
@@ -266,6 +268,8 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
               result:=def.size>8;
             recorddef:
               result:=true;
+            else
+              ;
           end;
         end;
       { Darwin: if completely passed in registers -> returned by registers;
@@ -275,13 +279,19 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
         begin
           case def.typ of
             recorddef:
-              { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
-                requires individual fields to be passed in individual registers,
-                so a record with 9 bytes may need to be passed via memory }
-              if def.size>8*sizeof(aint) then
-                result:=true;
+              begin
+                { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
+                  requires individual fields to be passed in individual registers,
+                  so a record with 9 bytes may need to be passed via memory }
+                if def.size>8*sizeof(aint) then
+                  result:=true;
+              end;
+            else
+              ;
           end;
         end;
+      else
+        internalerror(2019051030);
     end;
   end;
 

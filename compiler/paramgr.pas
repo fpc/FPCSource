@@ -271,6 +271,8 @@ implementation
                       push_size:=def.size;
                   end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -370,6 +372,8 @@ implementation
               if getsupreg(paraloc^.register)<first_mm_imreg then
                 cg.getcpuregister(list,paraloc^.register);
             end;
+          else
+            ;
         end;
       end;
 
@@ -524,6 +528,8 @@ implementation
                       newparaloc^.reference.offset:=href.offset;
                     end;
                 end;
+              else
+                ;
             end;
             paraloc:=paraloc^.next;
           end;

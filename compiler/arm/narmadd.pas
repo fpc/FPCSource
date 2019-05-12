@@ -344,7 +344,7 @@ interface
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_VMRS, NR_APSR_nzcv, NR_FPSCR));
             end;
-          fpu_soft:
+          else
             { this case should be handled already by pass1 }
             internalerror(2009112404);
         end;
@@ -517,6 +517,8 @@ interface
                         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         nodetype:=oldnodetype;
                      end;
+                   else
+                     ;
                 end;
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
@@ -647,6 +649,8 @@ interface
                   if notnode then
                     result:=cnotnode.create(result);
                 end;
+              else
+                internalerror(2019050933);
             end;
           end
         else

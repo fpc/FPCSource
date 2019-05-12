@@ -872,8 +872,6 @@ implementation
                   if len<>1 then
                     internalerror(200306232);
                 end;
-              else
-                internalerror(200212277);
             end;
           end;
       end;
@@ -984,8 +982,6 @@ implementation
                 getderef(hderef);
                 p.addconstderef(slt,idx,hderef);
               end;
-            else
-              internalerror(200110204);
           end;
         until false;
         getpropaccesslist:=tpropaccesslist(p);

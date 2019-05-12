@@ -390,8 +390,6 @@ implementation
       begin
         if (setbase<>0) then
           begin
-            if not(l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              internalerror(2007091502);
             { subtract the setbase }
             case l.loc of
               LOC_CREGISTER:
@@ -405,6 +403,8 @@ implementation
                 begin
                   hlcg.a_op_const_reg(list,OP_SUB,opdef,setbase,l.register);
                 end;
+              else
+                internalerror(2007091502);
             end;
           end;
       end;
@@ -545,6 +545,8 @@ implementation
                  else
                    hlcg.g_initialize(list,tparavarsym(p).vardef,href);
                end;
+             else
+               ;
            end;
          end;
       end;
@@ -583,6 +585,8 @@ implementation
             begin
              loc.register:=cg.getmmregister(list,loc.size);
             end;
+          else
+            ;
         end;
       end;
 
@@ -951,6 +955,8 @@ implementation
                     end;
                   hlcg.varsym_set_localloc(list,vs);
                 end;
+              else
+                ;
             end;
           end;
       end;
@@ -1025,6 +1031,8 @@ implementation
             rv.fpuregvars.addnodup(getsupreg(location.register));
           LOC_CMMREGISTER:
             rv.mmregvars.addnodup(getsupreg(location.register));
+          else
+            ;
         end;
       end;
 
@@ -1052,13 +1060,16 @@ implementation
             if (tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then
               add_regvars(rv^,tabstractnormalvarsym(tloadnode(n).symtableentry).localloc);
           vecn:
-            { range checks sometimes need the high parameter }
-            if (cs_check_range in current_settings.localswitches) and
-               (is_open_array(tvecnode(n).left.resultdef) or
-                is_array_of_const(tvecnode(n).left.resultdef)) and
-               not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
-              add_regvars(rv^,tabstractnormalvarsym(get_high_value_sym(tparavarsym(tloadnode(tvecnode(n).left).symtableentry))).localloc)
-
+            begin
+              { range checks sometimes need the high parameter }
+              if (cs_check_range in current_settings.localswitches) and
+                 (is_open_array(tvecnode(n).left.resultdef) or
+                  is_array_of_const(tvecnode(n).left.resultdef)) and
+                 not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
+                add_regvars(rv^,tabstractnormalvarsym(get_high_value_sym(tparavarsym(tloadnode(tvecnode(n).left).symtableentry))).localloc)
+            end;
+          else
+            ;
         end;
         result := fen_true;
       end;
@@ -1201,7 +1212,8 @@ implementation
 {$endif}
                             cg.a_reg_sync(list,localloc.register);
                       LOC_CFPUREGISTER,
-                      LOC_CMMREGISTER:
+                      LOC_CMMREGISTER,
+                      LOC_CMMXREGISTER:
                         if (pi_has_label in current_procinfo.flags) then
                           cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
@@ -1215,6 +1227,18 @@ implementation
                               not(vo_is_self in varoptions)) then
                             tg.Ungetlocal(list,localloc.reference);
                         end;
+                      { function results in pure assembler routines }
+                      LOC_REGISTER,
+                      LOC_FPUREGISTER,
+                      LOC_MMREGISTER,
+                      { empty parameter }
+                      LOC_VOID,
+                      { global variables in memory and typed constants don't get a location assigned,
+                        and neither does an unused $result variable in pure assembler routines }
+                      LOC_INVALID:
+                        ;
+                      else
+                        internalerror(2019050538);
                     end;
                   end;
               end;

@@ -138,8 +138,12 @@ unit aoptcpu;
                   end;
                 A_SUB:
                   result:=OptPass1Sub(p);
+                else
+                  ;
               end;
             end
+          else
+            ;
         end;
       end;
 
@@ -159,8 +163,12 @@ unit aoptcpu;
                 A_OR,
                 A_TEST:
                   Result:=PostPeepholeOptTestOr(p);
+                else
+                  ;
               end;
             end;
+          else
+            ;
         end;
       end;
 

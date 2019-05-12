@@ -2105,6 +2105,11 @@ begin
                            exclude(init_settings.moduleswitches,cs_support_c_operators)
                          else
                            include(init_settings.moduleswitches,cs_support_c_operators);
+                       'C':
+                         If UnsetBool(More, j, opt, false) then
+                           exclude(init_settings.localswitches,cs_check_all_case_coverage)
+                         else
+                           include(init_settings.localswitches,cs_check_all_case_coverage);
                        'd' : //an alternative to -Mdelphi
                          SetCompileMode('DELPHI',true);
                        'e' :
@@ -4178,6 +4183,8 @@ begin
         if not option.FPUSetExplicitly then
           init_settings.fputype:=fpu_ssse3;
       end;
+    else
+      ;
   end;
 {$endif i386}
 
@@ -4203,6 +4210,8 @@ begin
         if not option.OptCPUSetExplicitly then
           init_settings.optimizecputype:=cpu_armv5t;
       end;
+    else
+      ;
   end;
 
   { ARMHF defaults }
@@ -4329,6 +4338,8 @@ begin
         if not option.FPUSetExplicitly then
           init_settings.fputype:=fpu_soft;
       end;
+    else
+      ;
   end;
 {$endif mipsel}
 {$ifdef m68k}
@@ -4486,6 +4497,8 @@ begin
       set_system_compvar('_CALL_ELF','1');
     abi_powerpc_elfv2:
       set_system_compvar('_CALL_ELF','2');
+    else
+      ;
     end;
 {$endif}
 

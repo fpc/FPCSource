@@ -28,7 +28,20 @@ uses ctypes;
 
 {$if defined(CPUARMEL) and defined(FPUSOFT)}
 { for softfloat calls in the C code }
+  {$define LIBGCC_NEEDED}
+{$endif}
+
+{$ifdef OPENBSD}
+  { OpenBSD GCC uses __guard_local which is defined in crtbegin.o or crtbeginS.o}
+  {$define LIBC_NEEDED}
+{$endif}
+
+{$ifdef LIBGCC_NEEDED}
 {$linklib gcc}
+{$endif}
+
+{$ifdef LIBC_NEEDED}
+{$linklib c}
 {$endif}
 
 type

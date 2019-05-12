@@ -521,12 +521,17 @@ implementation
 
            HandleModeSwitches(m_none,changeinit);
 
-           { turn on bitpacking for mode macpas and iso pascal as well as extended pascal }
+           { turn on bitpacking and case checking for mode macpas and iso pascal,
+             as well as extended pascal }
            if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
+               include(current_settings.localswitches,cs_check_all_case_coverage);
                if changeinit then
-                 include(init_settings.localswitches,cs_bitpacking);
+                 begin
+                   include(init_settings.localswitches,cs_bitpacking);
+                   include(init_settings.localswitches,cs_check_all_case_coverage);
+                 end;
              end;
 
            { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
@@ -1483,7 +1488,9 @@ type
                               tokentoconsume:=_STRING;
                             end;
                         end
-                      end;
+                      else
+                        ;
+                    end;
                   end
                 else
                   begin
@@ -1996,6 +2003,8 @@ type
                                     result.free;
                                     result:=texprvalue.create_int(tenumsym(srsym).value);
                                   end;
+                                else
+                                  ;
                               end;
                           end
                         end
@@ -3317,6 +3326,8 @@ type
               recordtokenbuf.write(orgpattern[0],1);
               recordtokenbuf.write(orgpattern[1],length(orgpattern));
             end;
+          else
+            ;
         end;
       end;
 
@@ -3484,11 +3495,11 @@ type
                         current_tokenpos.fileindex:=tokenreadword;
                         current_filepos:=current_tokenpos;
                       end;
-                    else
-                      internalerror(2006103010);
                   end;
                 continue;
               end;
+            else
+              ;
           end;
           break;
         until false;

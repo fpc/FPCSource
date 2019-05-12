@@ -289,6 +289,8 @@ uses
             _bind:=AB_GLOBAL;
           AB_EXTERNAL_INDIRECT:
             _bind:=AB_INDIRECT;
+          else
+            ;
         end;
         bind:=_bind;
       end;
@@ -353,6 +355,8 @@ uses
             oper[opidx]^.ai.free;
           top_asmlist:
             oper[opidx]^.asmlist.free;
+          else
+            ;
         end;
         inherited;
       end;

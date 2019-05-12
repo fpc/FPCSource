@@ -173,8 +173,10 @@ implementation
                         message(parser_e_range_check_error)
                       else
                         current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64compreal(round(value_real)));
-                  else
-                    internalerror(10120);
+{$ifndef cpufloat128}
+                    else
+                      internalerror(10120);
+{$endif not cpufloat128}
                   end;
                end;
           end;

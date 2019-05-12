@@ -171,27 +171,27 @@ end;
 
 procedure TH2PasCheckerCodeGen.HandleConstant(ConstantID: TIdentifier);
 begin
-  HandleConstant(ConstantID,'qword','16','unsigned long long','%016llx');
+  HandleConstant(ConstantID,'qword','16','unsigned long long','%016llX');
 end;
 
 procedure TH2PasCheckerCodeGen.HandleConstantU8(ConstantID: TIdentifier);
 begin
-  HandleConstant(ConstantID,'byte','2','unsigned char','%02x');
+  HandleConstant(ConstantID,'byte','2','unsigned char','%02X');
 end;
 
 procedure TH2PasCheckerCodeGen.HandleConstantU16(ConstantID: TIdentifier);
 begin
-  HandleConstant(ConstantID,'word','4','unsigned short','%04x');
+  HandleConstant(ConstantID,'word','4','unsigned short','%04X');
 end;
 
 procedure TH2PasCheckerCodeGen.HandleConstantU32(ConstantID: TIdentifier);
 begin
-  HandleConstant(ConstantID,'dword','8','unsigned int','%08x');
+  HandleConstant(ConstantID,'dword','8','unsigned int','%08X');
 end;
 
 procedure TH2PasCheckerCodeGen.HandleConstantU64(ConstantID: TIdentifier);
 begin
-  HandleConstant(ConstantID,'qword','16','unsigned int','%016llx');
+  HandleConstant(ConstantID,'qword','16','unsigned int','%016llX');
 end;
 
 procedure TH2PasCheckerCodeGen.HandleSignedConstant(ConstantID: TIdentifier);
