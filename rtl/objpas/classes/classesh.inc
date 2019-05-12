@@ -894,13 +894,158 @@ type
     procedure SetSize(const NewSize: Int64); virtual;overload;
     procedure ReadNotImplemented;
     procedure WriteNotImplemented;
+    function ReadMaxSizeData(Var Buffer; aSize,aCount : NativeInt) : NativeInt;
+    Procedure ReadExactSizeData(Var Buffer; aSize,aCount : NativeInt);
+    function WriteMaxSizeData(Const Buffer; aSize,aCount : NativeInt) : NativeInt;
+    Procedure WriteExactSizeData(Const Buffer; aSize,aCount : NativeInt);
   public
     function Read(var Buffer; Count: Longint): Longint; virtual;
+    function Read(Buffer: TBytes; Count: Longint): Longint; overload;
+    function Read(Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
+
+    function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload;
+    function Write(const Buffer: TBytes; Count: Longint): Longint; overload;
     function Write(const Buffer; Count: Longint): Longint; virtual;
+
     function Seek(Offset: Longint; Origin: Word): Longint; virtual; overload;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
+
+    function ReadData(Buffer: Pointer; Count: NativeInt): NativeInt; overload;
+    function ReadData(const Buffer: TBytes; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: Boolean): NativeInt; overload;
+    function ReadData(var Buffer: Boolean; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: AnsiChar): NativeInt; overload;
+    function ReadData(var Buffer: AnsiChar; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: WideChar): NativeInt; overload;
+    function ReadData(var Buffer: WideChar; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: Int8): NativeInt; overload;
+    function ReadData(var Buffer: Int8; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: UInt8): NativeInt; overload;
+    function ReadData(var Buffer: UInt8; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: Int16): NativeInt; overload;
+    function ReadData(var Buffer: Int16; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: UInt16): NativeInt; overload;
+    function ReadData(var Buffer: UInt16; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: Int32): NativeInt; overload;
+    function ReadData(var Buffer: Int32; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: UInt32): NativeInt; overload;
+    function ReadData(var Buffer: UInt32; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: Int64): NativeInt; overload;
+    function ReadData(var Buffer: Int64; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: UInt64): NativeInt; overload;
+    function ReadData(var Buffer: UInt64; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: Single): NativeInt; overload;
+    function ReadData(var Buffer: Single; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: Double): NativeInt; overload;
+    function ReadData(var Buffer: Double; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: Extended): NativeInt; overload;
+    function ReadData(var Buffer: Extended; Count: NativeInt): NativeInt; overload;
+    function ReadData(var Buffer: TExtended80Rec): NativeInt; overload;
+    function ReadData(var Buffer: TExtended80Rec; Count: NativeInt): NativeInt; overload;
+
     procedure ReadBuffer(var Buffer; Count: Longint);
+    procedure ReadBuffer(var Buffer: TBytes; Count: NativeInt); overload;
+    procedure ReadBuffer(var Buffer: TBytes; Offset, Count: NativeInt); overload;
+
+    procedure ReadBufferData(var Buffer: Boolean); overload;
+    procedure ReadBufferData(var Buffer: Boolean; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: AnsiChar); overload;
+    procedure ReadBufferData(var Buffer: AnsiChar; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: WideChar); overload;
+    procedure ReadBufferData(var Buffer: WideChar; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: Int8); overload;
+    procedure ReadBufferData(var Buffer: Int8; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: UInt8); overload;
+    procedure ReadBufferData(var Buffer: UInt8; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: Int16); overload;
+    procedure ReadBufferData(var Buffer: Int16; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: UInt16); overload;
+    procedure ReadBufferData(var Buffer: UInt16; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: Int32); overload;
+    procedure ReadBufferData(var Buffer: Int32; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: UInt32); overload;
+    procedure ReadBufferData(var Buffer: UInt32; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: Int64); overload;
+    procedure ReadBufferData(var Buffer: Int64; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: UInt64); overload;
+    procedure ReadBufferData(var Buffer: UInt64; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: Single); overload;
+    procedure ReadBufferData(var Buffer: Single; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: Double); overload;
+    procedure ReadBufferData(var Buffer: Double; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: Extended); overload;
+    procedure ReadBufferData(var Buffer: Extended; Count: NativeInt); overload;
+    procedure ReadBufferData(var Buffer: TExtended80Rec); overload;
+    procedure ReadBufferData(var Buffer: TExtended80Rec; Count: NativeInt); overload;
+
     procedure WriteBuffer(const Buffer; Count: Longint);
+    procedure WriteBuffer(const Buffer: TBytes; Count: NativeInt); overload;
+    procedure WriteBuffer(const Buffer: TBytes; Offset, Count: NativeInt); overload;
+
+    function WriteData(const Buffer: TBytes; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Pointer; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Boolean): NativeInt; overload;
+    function WriteData(const Buffer: Boolean; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: AnsiChar): NativeInt; overload;
+    function WriteData(const Buffer: AnsiChar; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: WideChar): NativeInt; overload;
+    function WriteData(const Buffer: WideChar; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Int8): NativeInt; overload;
+    function WriteData(const Buffer: Int8; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: UInt8): NativeInt; overload;
+    function WriteData(const Buffer: UInt8; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Int16): NativeInt; overload;
+    function WriteData(const Buffer: Int16; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: UInt16): NativeInt; overload;
+    function WriteData(const Buffer: UInt16; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Int32): NativeInt; overload;
+    function WriteData(const Buffer: Int32; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: UInt32): NativeInt; overload;
+    function WriteData(const Buffer: UInt32; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Int64): NativeInt; overload;
+    function WriteData(const Buffer: Int64; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: UInt64): NativeInt; overload;
+    function WriteData(const Buffer: UInt64; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Single): NativeInt; overload;
+    function WriteData(const Buffer: Single; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Double): NativeInt; overload;
+    function WriteData(const Buffer: Double; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: Extended): NativeInt; overload;
+    function WriteData(const Buffer: Extended; Count: NativeInt): NativeInt; overload;
+    function WriteData(const Buffer: TExtended80Rec): NativeInt; overload;
+    function WriteData(const Buffer: TExtended80Rec; Count: NativeInt): NativeInt; overload;
+
+    procedure WriteBufferData(Buffer: Integer); overload;
+    procedure WriteBufferData(Buffer: Integer; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Boolean); overload;
+    procedure WriteBufferData(Buffer: Boolean; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: AnsiChar); overload;
+    procedure WriteBufferData(Buffer: AnsiChar; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: WideChar); overload;
+    procedure WriteBufferData(Buffer: WideChar; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Int8); overload;
+    procedure WriteBufferData(Buffer: Int8; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: UInt8); overload;
+    procedure WriteBufferData(Buffer: UInt8; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Int16); overload;
+    procedure WriteBufferData(Buffer: Int16; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: UInt16); overload;
+    procedure WriteBufferData(Buffer: UInt16; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: UInt32); overload;
+    procedure WriteBufferData(Buffer: UInt32; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Int64); overload;
+    procedure WriteBufferData(Buffer: Int64; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: UInt64); overload;
+    procedure WriteBufferData(Buffer: UInt64; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Single); overload;
+    procedure WriteBufferData(Buffer: Single; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Double); overload;
+    procedure WriteBufferData(Buffer: Double; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Extended); overload;
+    procedure WriteBufferData(Buffer: Extended; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: TExtended80Rec); overload;
+    procedure WriteBufferData(Buffer: TExtended80Rec; Count: NativeInt); overload;
+
     function CopyFrom(Source: TStream; Count: Int64): Int64;
     function ReadComponent(Instance: TComponent): TComponent;
     function ReadComponentRes(Instance: TComponent): TComponent;
@@ -990,6 +1135,7 @@ type
   private
     FMemory: Pointer;
     FSize, FPosition: PtrInt;
+    FSizeBoundsSeek : Boolean;
   protected
     Function GetSize : Int64; Override;
     function GetPosition: Int64; Override;
@@ -1000,6 +1146,7 @@ type
     procedure SaveToStream(Stream: TStream);
     procedure SaveToFile(const FileName: string);
     property Memory: Pointer read FMemory;
+    Property SizeBoundsSeek : Boolean Read FSizeBoundsSeek Write FSizeBoundsSeek;
   end;
 
 { TMemoryStream }
