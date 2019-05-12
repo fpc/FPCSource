@@ -3,9 +3,6 @@
 { This verifies if the strings are
   correctly aligned, normally the generated assembler
   should be verified manually.
-
-  I consider this test as flawed, or is there a reason, why a
-  shortstring should be aligned to pointer boundaries? (FK)
 }
 program talign2;
 
@@ -78,16 +75,12 @@ const
 {$ifdef haswidestring}
   widestr : widestring = 'simple widestring';
 {$endif}
-  shortstr :shortstring = 'simple shortstring';
 begin
   test(length(ansistr)=17);
 {$ifdef haswidestring}
   test(length(widestr)=17);
 {$endif}
-  test(length(shortstr)=18);
   { verify if the address are correctly aligned! }
-  pt:=@shortstr;
-  test((ptruint(pt) mod pointer_alignment)=0);
   pt:=p;
   test((ptruint(pt) mod pointer_alignment)=0);
   pt:=pchar(ansistr);
