@@ -382,6 +382,7 @@ begin
   Result:=ReadMaxSizeData(Buffer,SizeOf(Buffer),Count);
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 function TStream.ReadData(var Buffer: Extended): NativeInt;
 begin
   Result:=Read(Buffer,sizeOf(Buffer));
@@ -401,6 +402,7 @@ function TStream.ReadData(var Buffer: TExtended80Rec; Count: NativeInt): NativeI
 begin
   Result:=ReadMaxSizeData(Buffer,SizeOf(Buffer),Count);
 end;
+{$ENDIF}
 
 procedure TStream.ReadBuffer(var Buffer; Count: Longint);
 
@@ -557,6 +559,7 @@ begin
   ReadExactSizeData(Buffer,SizeOf(Buffer),Count);
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 procedure TStream.ReadBufferData(var Buffer: Extended);
 begin
   ReadBuffer(Buffer,SizeOf(Buffer));
@@ -576,6 +579,7 @@ procedure TStream.ReadBufferData(var Buffer: TExtended80Rec; Count: NativeInt);
 begin
   ReadExactSizeData(Buffer,SizeOf(Buffer),Count);
 end;
+{$ENDIF}
 
 procedure TStream.WriteBuffer(const Buffer; Count: Longint);
 
@@ -742,6 +746,7 @@ begin
   Result:=WriteMaxSizeData(Buffer,SizeOf(Buffer),Count);
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 function TStream.WriteData(const Buffer: Extended): NativeInt;
 begin
   Result:=Write(Buffer,SizeOf(Buffer));
@@ -761,6 +766,7 @@ function TStream.WriteData(const Buffer: TExtended80Rec; Count: NativeInt): Nati
 begin
   Result:=WriteMaxSizeData(Buffer,SizeOf(Buffer),Count);
 end;
+{$ENDIF}
 
 procedure TStream.WriteBufferData(Buffer: Integer);
 begin
@@ -892,6 +898,8 @@ begin
   WriteExactSizeData(Buffer,SizeOf(Buffer),Count);
 end;
 
+
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 procedure TStream.WriteBufferData(Buffer: Extended);
 begin
   WriteBuffer(Buffer,SizeOf(Buffer));
@@ -911,6 +919,7 @@ procedure TStream.WriteBufferData(Buffer: TExtended80Rec; Count: NativeInt);
 begin
   WriteExactSizeData(Buffer,SizeOf(Buffer),Count);
 end;
+{$ENDIF}
 
   function TStream.CopyFrom(Source: TStream; Count: Int64): Int64;
 
