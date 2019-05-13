@@ -131,6 +131,8 @@ interface
           procedure addelseblock(instr:tnode);
 
           property labelcnt: cardinal read getlabelcnt;
+          { returns one less than the covered case range, so that it
+            does not overflow for a fully covered qword range }
           property labelcoverage: qword read getlabelcoverage;
          protected
           flabels    : pcaselabel;
@@ -1095,13 +1097,20 @@ implementation
     procedure tcasenode.updatecoverage;
 
       var
-        isord: boolean;
+        isord, first: boolean;
 
       procedure count(p : pcaselabel);
         begin
            inc(flabelcnt);
            if isord then
-             inc(flabelcoverage, (p^._high.svalue - p^._low.svalue) + 1);
+             begin
+               flabelcoverage:=flabelcoverage + (p^._high - p^._low);
+               { ensure we don't overflow in case it covers the
+                 full range of qword }
+               if not first then
+                 inc(flabelcoverage);
+               first:=false;
+             end;
            if assigned(p^.less) then
              count(p^.less);
            if assigned(p^.greater) then
@@ -1112,6 +1121,7 @@ implementation
         isord:=is_ordinal(left.resultdef);
         flabelcnt:=0;
         flabelcoverage:=0;
+        first:=true;
         count(flabels);
         fcountsuptodate:=true;
       end;
@@ -1133,10 +1143,12 @@ implementation
           dec(packedbitsize);
           if is_signed(def) then
             begin
+{$push}{$q-}
               if def.low<>(-(int64(1) shl packedbitsize)) then
                 exit;
               if def.high<>((int64(1) shl packedbitsize)-1) then
                 exit;
+{$pop}
             end
           else
             begin
@@ -1155,7 +1167,7 @@ implementation
       begin
         { Check label type coverage for enumerations and small types }
         getrange(left.resultdef,lv,hv);
-        typcount:=hv.svalue-lv.svalue+1;
+        typcount:=hv-lv;
         if not assigned(elseblock) then
           begin
             { unless cs_check_all_case_coverage is set, only check for enums, booleans and
