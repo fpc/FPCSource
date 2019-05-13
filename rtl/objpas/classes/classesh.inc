@@ -900,8 +900,8 @@ type
     Procedure WriteExactSizeData(Const Buffer; aSize,aCount : NativeInt);
   public
     function Read(var Buffer; Count: Longint): Longint; virtual;
-    function Read(Buffer: TBytes; Count: Longint): Longint; overload;
-    function Read(Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
+    function Read(var Buffer: TBytes; Count: Longint): Longint; overload;
+    function Read( Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
 
     function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload;
     function Write(const Buffer: TBytes; Count: Longint): Longint; overload;
@@ -911,7 +911,7 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
 
     function ReadData(Buffer: Pointer; Count: NativeInt): NativeInt; overload;
-    function ReadData(const Buffer: TBytes; Count: NativeInt): NativeInt; overload;
+    function ReadData(Buffer: TBytes; Count: NativeInt): NativeInt; overload;
     function ReadData(var Buffer: Boolean): NativeInt; overload;
     function ReadData(var Buffer: Boolean; Count: NativeInt): NativeInt; overload;
     function ReadData(var Buffer: AnsiChar): NativeInt; overload;
