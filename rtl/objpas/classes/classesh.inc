@@ -1018,8 +1018,8 @@ type
     function WriteData(const Buffer: TExtended80Rec): NativeInt; overload;
     function WriteData(const Buffer: TExtended80Rec; Count: NativeInt): NativeInt; overload;
 {$ENDIF}
-    procedure WriteBufferData(Buffer: Integer); overload;
-    procedure WriteBufferData(Buffer: Integer; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Int32); overload;
+    procedure WriteBufferData(Buffer: Int32; Count: NativeInt); overload;
     procedure WriteBufferData(Buffer: Boolean); overload;
     procedure WriteBufferData(Buffer: Boolean; Count: NativeInt); overload;
     procedure WriteBufferData(Buffer: AnsiChar); overload;

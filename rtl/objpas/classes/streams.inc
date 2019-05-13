@@ -768,12 +768,12 @@ begin
 end;
 {$ENDIF}
 
-procedure TStream.WriteBufferData(Buffer: Integer);
+procedure TStream.WriteBufferData(Buffer: Int32);
 begin
   WriteBuffer(Buffer,SizeOf(Buffer));
 end;
 
-procedure TStream.WriteBufferData(Buffer: Integer; Count: NativeInt);
+procedure TStream.WriteBufferData(Buffer: Int32; Count: NativeInt);
 begin
   WriteMaxSizeData(Buffer,SizeOf(Buffer),Count);
 end;
