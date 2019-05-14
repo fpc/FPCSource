@@ -9884,6 +9884,7 @@ rtl/macos/MPWmake -text
 rtl/macos/Makefile svneol=native#text/plain
 rtl/macos/Makefile.fpc svneol=native#text/plain
 rtl/macos/README.txt svneol=native#text/plain
+rtl/macos/classes.pp svneol=native#text/plain
 rtl/macos/dos.pp svneol=native#text/plain
 rtl/macos/macos.pp svneol=native#text/plain
 rtl/macos/macostp.inc svneol=native#text/plain
@@ -9898,6 +9899,7 @@ rtl/macos/sysos.inc svneol=native#text/plain
 rtl/macos/sysosh.inc svneol=native#text/plain
 rtl/macos/system.pp svneol=native#text/plain
 rtl/macos/sysutils.pp svneol=native#text/plain
+rtl/macos/tthread.inc svneol=native#text/plain
 rtl/mips/cpuh.inc svneol=native#text/plain
 rtl/mips/int64p.inc svneol=native#text/plain
 rtl/mips/makefile.cpu svneol=native#text/plain
