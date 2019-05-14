@@ -3402,7 +3402,13 @@ implementation
       begin
         inherited create(pointerdef,def);
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
-        if df_specialization in tstoreddef(def).defoptions then
+        if (df_specialization in tstoreddef(def).defoptions)
+{$ifndef genericdef_for_nested}
+           { currently, nested procdefs of generic routines get df_specialisation,
+             but no genericdef }
+           and assigned(tstoreddef(def).genericdef)
+{$endif}
+           then
           genericdef:=cpointerdef.getreusable(tstoreddef(def).genericdef);
       end;
 
