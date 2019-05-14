@@ -905,7 +905,7 @@ type
 
     function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload;
     function Write(const Buffer: TBytes; Count: Longint): Longint; overload;
-    function Write(const Buffer; Count: Longint): Longint; virtual;
+    function Write(const Buffer; Count: Longint): Longint; virtual; overload;
 
     function Seek(Offset: Longint; Origin: Word): Longint; virtual; overload;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
@@ -1081,8 +1081,8 @@ type
     function GetIStream: IStream;
   public
     constructor Create(const Stream: IStream);
-    function Read(var Buffer; Count: Longint): Longint; override; overload;
-    function Write(const Buffer; Count: Longint): Longint; override; overload;
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
     procedure Check(err:integer); virtual;
   end;
@@ -1115,8 +1115,8 @@ type
     procedure SetSize(const NewSize: Int64); override;
   public
     constructor Create(AHandle: THandle);
-    function Read(var Buffer; Count: Longint): Longint; override; overload;
-    function Write(const Buffer; Count: Longint): Longint; override; overload;
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     property Handle: THandle read FHandle;
   end;
@@ -1145,7 +1145,7 @@ type
     function GetPosition: Int64; Override;
     procedure SetPointer(Ptr: Pointer; ASize: PtrInt);
   public
-    function Read(var Buffer; Count: LongInt): LongInt; override; overload;
+    function Read(var Buffer; Count: LongInt): LongInt; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     procedure SaveToStream(Stream: TStream);
     procedure SaveToFile(const FileName: string);
@@ -1168,7 +1168,7 @@ type
     procedure LoadFromStream(Stream: TStream);
     procedure LoadFromFile(const FileName: string);
     procedure SetSize({$ifdef CPU64}const NewSize: Int64{$else}NewSize: LongInt{$endif}); override;
-    function Write(const Buffer; Count: LongInt): LongInt; override; overload;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
   end;
 
 { TBytesStream }
