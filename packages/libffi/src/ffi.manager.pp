@@ -431,14 +431,14 @@ procedure CreateCIF(constref aArgInfos: array of TFunctionCallParameterInfo; con
 var
   abi: ffi_abi;
   i, arglen, argoffset, argstart: LongInt;
-  retparam: Boolean;
+  usevalues, retparam: Boolean;
   kind: TTypeKind;
   types: ppffi_type;
 begin
   if not (fcfStatic in aFlags) and (Length(aArgInfos) = 0) then
     raise EInvocationError.Create(SErrMissingSelfParam);
 
-  Assert((Length(aArgInfos) = Length(aArgValues)), 'Amount of arguments does not match needed arguments');
+  Assert((Length(aArgInfos) = Length(aArgValues)) or (Length(aArgValues) = 0), 'Amount of arguments does not match needed arguments');
 
   case aCallConv of
 {$if defined(CPUI386)}
@@ -471,11 +471,16 @@ begin
       raise EInvocationError.CreateFmt(SErrCallConvNotSupported, [CallConvName]);
   end;
 
+  { if no values are provided we are called to prepare a callback, otherwise
+    we are asked to prepare a invokation }
+  usevalues := (Length(aArgInfos) > 0) and (Length(aArgValues) > 0);
+
   retparam := RetInParam(aCallConv, aResultType);
 
   arglen := Length(aArgInfos);
   if retparam then begin
     Inc(arglen);
+    usevalues := True;
     argoffset := 1;
     aData.ResultIndex := 0;
   end else begin
@@ -485,7 +490,8 @@ begin
 
   SetLength(aData.Types, arglen);
   SetLength(aData.Indirect, arglen);
-  SetLength(aData.Values, arglen);
+  if usevalues then
+    SetLength(aData.Values, arglen);
 
   { the order is Self/Vmt (if any), Result param (if any), other params }
 
@@ -496,10 +502,11 @@ begin
     else
       kind := tkUnknown;
     aData.Indirect[0] := ArgIsIndirect(kind, aArgInfos[0].ParamFlags, False);
-    if aData.Indirect[0] then
-      aData.Values[0] := @aArgValues[0]
-    else
-      aData.Values[0] := aArgValues[0];
+    if usevalues then
+      if aData.Indirect[0] then
+        aData.Values[0] := @aArgValues[0]
+      else
+        aData.Values[0] := aArgValues[0];
     if retparam then
       Inc(aData.ResultIndex);
     argstart := 1;
@@ -515,19 +522,21 @@ begin
     else
       kind := tkUnknown;
     aData.Indirect[i + argoffset] := ArgIsIndirect(kind, aArgInfos[i].ParamFlags, False);
-    if aData.Indirect[i + argoffset] then
-      aData.Values[i + argoffset] := @aArgValues[i]
-    else
-      aData.Values[i + argoffset] := aArgValues[i];
+    if usevalues then
+      if aData.Indirect[i + argoffset] then
+        aData.Values[i + argoffset] := @aArgValues[i]
+      else
+        aData.Values[i + argoffset] := aArgValues[i];
   end;
 
   if retparam then begin
     aData.Types[aData.ResultIndex] := TypeInfoToFFIType(aResultType, []);
     aData.Indirect[aData.ResultIndex] := ArgIsIndirect(aResultType^.Kind, [], True);
-    if aData.Indirect[aData.ResultIndex] then
-      aData.Values[aData.ResultIndex] := @aResultValue
-    else
-      aData.Values[aData.ResultIndex] := aResultValue;
+    if usevalues then
+      if aData.Indirect[aData.ResultIndex] then
+        aData.Values[aData.ResultIndex] := @aResultValue
+      else
+        aData.Values[aData.ResultIndex] := aResultValue;
     aData.ResultType := @ffi_type_void;
     aData.ResultValue := Nil;
 {$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
