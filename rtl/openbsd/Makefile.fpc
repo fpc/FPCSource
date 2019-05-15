@@ -83,6 +83,7 @@ LOADERS=prt0 cprt0
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
 SYSINIT_UNITS=si_prc si_c si_dll si_g
+LOADERS=prt0
 endif
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
