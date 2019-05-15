@@ -496,7 +496,10 @@ begin
     else
       kind := tkUnknown;
     aData.Indirect[0] := ArgIsIndirect(kind, aArgInfos[0].ParamFlags, False);
-    aData.Values[0] := ValueToFFIValue(aArgValues[0], kind, aArgInfos[0].ParamFlags, False);
+    if aData.Indirect[0] then
+      aData.Values[0] := @aArgValues[0]
+    else
+      aData.Values[0] := aArgValues[0];
     if retparam then
       Inc(aData.ResultIndex);
     argstart := 1;
@@ -512,13 +515,19 @@ begin
     else
       kind := tkUnknown;
     aData.Indirect[i + argoffset] := ArgIsIndirect(kind, aArgInfos[i].ParamFlags, False);
-    aData.Values[i + argoffset] := ValueToFFIValue(aArgValues[i], kind, aArgInfos[i].ParamFlags, False);
+    if aData.Indirect[i + argoffset] then
+      aData.Values[i + argoffset] := @aArgValues[i]
+    else
+      aData.Values[i + argoffset] := aArgValues[i];
   end;
 
   if retparam then begin
     aData.Types[aData.ResultIndex] := TypeInfoToFFIType(aResultType, []);
     aData.Indirect[aData.ResultIndex] := ArgIsIndirect(aResultType^.Kind, [], True);
-    aData.Values[aData.ResultIndex] := ValueToFFIValue(aResultValue, aResultType^.Kind, [], True);
+    if aData.Indirect[aData.ResultIndex] then
+      aData.Values[aData.ResultIndex] := @aResultValue
+    else
+      aData.Values[aData.ResultIndex] := aResultValue;
     aData.ResultType := @ffi_type_void;
     aData.ResultValue := Nil;
 {$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
