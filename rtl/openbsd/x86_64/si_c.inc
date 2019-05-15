@@ -23,8 +23,6 @@ procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, p
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
-    movq    %rbx,%r9
-    movq    %rcx,%r8
     movq    %rdx,%rcx
     movq    (%rsp),%rdi
     leaq    16(%rsp,%rdi,8),%rdx
