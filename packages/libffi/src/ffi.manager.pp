@@ -409,6 +409,7 @@ type
   TFFIData = record
     Types: array of pffi_type;
     Values: array of Pointer;
+    Indirect: array of Boolean;
     ResultType: pffi_type;
     ResultValue: Pointer;
     ResultIndex: SizeInt;
@@ -483,6 +484,7 @@ begin
   end;
 
   SetLength(aData.Types, arglen);
+  SetLength(aData.Indirect, arglen);
   SetLength(aData.Values, arglen);
 
   { the order is Self/Vmt (if any), Result param (if any), other params }
@@ -493,6 +495,7 @@ begin
       kind := aArgInfos[0].ParamType^.Kind
     else
       kind := tkUnknown;
+    aData.Indirect[0] := ArgIsIndirect(kind, aArgInfos[0].ParamFlags, False);
     aData.Values[0] := ValueToFFIValue(aArgValues[0], kind, aArgInfos[0].ParamFlags, False);
     if retparam then
       Inc(aData.ResultIndex);
@@ -508,11 +511,13 @@ begin
       kind := aArgInfos[i].ParamType^.Kind
     else
       kind := tkUnknown;
+    aData.Indirect[i + argoffset] := ArgIsIndirect(kind, aArgInfos[i].ParamFlags, False);
     aData.Values[i + argoffset] := ValueToFFIValue(aArgValues[i], kind, aArgInfos[i].ParamFlags, False);
   end;
 
   if retparam then begin
     aData.Types[aData.ResultIndex] := TypeInfoToFFIType(aResultType, []);
+    aData.Indirect[aData.ResultIndex] := ArgIsIndirect(aResultType^.Kind, [], True);
     aData.Values[aData.ResultIndex] := ValueToFFIValue(aResultValue, aResultType^.Kind, [], True);
     aData.ResultType := @ffi_type_void;
     aData.ResultValue := Nil;
