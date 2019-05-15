@@ -280,7 +280,7 @@ begin
     Result := @ffi_type_pointer;
 end;
 
-function ValueToFFIValue(constref aValue: Pointer; aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Pointer;
+function ArgIsIndirect(aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Boolean;
 const
   ResultTypeNeedsIndirection = [
    tkAString,
@@ -290,12 +290,20 @@ const
    tkDynArray
   ];
 begin
-  Result := aValue;
+  Result := False;
   if (aKind = tkSString) or
       (aIsResult and (aKind in ResultTypeNeedsIndirection)) or
       (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) or
       ((aKind = tkUnknown) and (pfConst in aFlags)) then
-    Result := @aValue;
+    Result := True;
+end;
+
+function ValueToFFIValue(constref aValue: Pointer; aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Pointer;
+begin
+  if ArgIsIndirect(aKind, aFlags, aIsResult) then
+    Result := @aValue
+  else
+    Result := aValue;
 end;
 
 procedure FFIValueToValue(Source, Dest: Pointer; TypeInfo: PTypeInfo);
