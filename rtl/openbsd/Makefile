@@ -347,16 +347,13 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 CPU_UNITS=
-SYSINIT_UNITS=
-LOADERS=prt0 cprt0
-ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 ports cpu
 SYSINIT_UNITS=si_prc si_c si_dll si_g
 LOADERS=prt0
+ifeq ($(ARCH),x86_64)
+CPU_UNITS=x86 ports cpu
 endif
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
-SYSINIT_UNITS=si_prc si_c si_dll si_g
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
@@ -3256,8 +3253,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
-cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
-	$(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 si_prc$(PPUEXT) : si_prc.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 si_c$(PPUEXT) : si_c.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
