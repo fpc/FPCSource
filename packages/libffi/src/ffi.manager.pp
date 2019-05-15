@@ -391,40 +391,45 @@ begin
   end;
 end;
 
-procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
-            aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
-
-  function CallConvName: String; inline;
-  begin
-    WriteStr(Result, aCallConv);
-  end;
-
 { on X86 platforms Currency and Comp results are passed by the X87 if the
   Extended type is available }
 {$if (defined(CPUI8086) or defined(CPUI386) or defined(CPUX86_64)) and defined(FPC_HAS_TYPE_EXTENDED) and (not defined(FPC_COMP_IS_INT64) or not defined(FPC_CURRENCY_IS_INT64))}
 {$define USE_EXTENDED_AS_COMP_CURRENCY_RES}
 {$endif}
 
+type
+  TFFIData = record
+    Types: array of pffi_type;
+    Values: array of Pointer;
+    ResultType: pffi_type;
+    ResultValue: Pointer;
+    ResultIndex: SizeInt;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    ResultTypeData: PTypeData;
+    ResultExtended: Extended;
+{$endif}
+    { put this at the end just in case we messed up the size }
+    CIF: ffi_cif;
+  end;
+
+procedure CreateCIF(constref aArgInfos: array of TFunctionCallParameterInfo; constref aArgValues: array of Pointer; aCallConv: TCallConv; aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags; out aData: TFFIData);
+
+  function CallConvName: String; inline;
+  begin
+    WriteStr(Result, aCallConv);
+  end;
+
 var
   abi: ffi_abi;
-  argtypes: array of pffi_type;
-  argvalues: array of Pointer;
-  rtype: pffi_type;
-  rvalue: Pointer;
-  i, arglen, argoffset, retidx, argstart: LongInt;
-  cif: ffi_cif;
+  i, arglen, argoffset, argstart: LongInt;
   retparam: Boolean;
   kind: TTypeKind;
-{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
-  restypedata: PTypeData;
-  resextended: Extended;
-{$endif}
+  types: ppffi_type;
 begin
-  if Assigned(aResultType) and not Assigned(aResultValue) then
-    raise EInvocationError.Create(SErrInvokeResultTypeNoValue);
-
-  if not (fcfStatic in aFlags) and (Length(aArgs) = 0) then
+  if not (fcfStatic in aFlags) and (Length(aArgInfos) = 0) then
     raise EInvocationError.Create(SErrMissingSelfParam);
+
+  Assert((Length(aArgInfos) = Length(aArgValues)), 'Amount of arguments does not match needed arguments');
 
   case aCallConv of
 {$if defined(CPUI386)}
@@ -459,99 +464,129 @@ begin
 
   retparam := RetInParam(aCallConv, aResultType);
 
-  arglen := Length(aArgs);
+  arglen := Length(aArgInfos);
   if retparam then begin
     Inc(arglen);
     argoffset := 1;
-    retidx := 0;
+    aData.ResultIndex := 0;
   end else begin
     argoffset := 0;
-    retidx := -1;
+    aData.ResultIndex := -1;
   end;
 
-  SetLength(argtypes, arglen);
-  SetLength(argvalues, arglen);
+  SetLength(aData.Types, arglen);
+  SetLength(aData.Values, arglen);
 
   { the order is Self/Vmt (if any), Result param (if any), other params }
 
   if not (fcfStatic in aFlags) and retparam then begin
-    argtypes[0] := TypeInfoToFFIType(aArgs[0].Info.ParamType, aArgs[0].Info.ParamFlags);
-    if Assigned(aArgs[0].Info.ParamType) then
-      kind := aArgs[0].Info.ParamType^.Kind
+    aData.Types[0] := TypeInfoToFFIType(aArgInfos[0].ParamType, aArgInfos[0].ParamFlags);
+    if Assigned(aArgInfos[0].ParamType) then
+      kind := aArgInfos[0].ParamType^.Kind
     else
       kind := tkUnknown;
-    argvalues[0] := ValueToFFIValue(aArgs[0].ValueRef, kind, aArgs[0].Info.ParamFlags, False);
+    aData.Values[0] := ValueToFFIValue(aArgValues[0], kind, aArgInfos[0].ParamFlags, False);
     if retparam then
-      Inc(retidx);
+      Inc(aData.ResultIndex);
     argstart := 1;
   end else
     argstart := 0;
 
-  for i := Low(aArgs) + argstart to High(aArgs) do begin
-    argtypes[i - Low(aArgs) + Low(argtypes) + argoffset] := TypeInfoToFFIType(aArgs[i].Info.ParamType, aArgs[i].Info.ParamFlags);
-    if Assigned(aArgs[i].Info.ParamType) then
-      kind := aArgs[i].Info.ParamType^.Kind
+  for i := argstart to High(aArgInfos) do begin
+    aData.Types[i + argoffset] := TypeInfoToFFIType(aArgInfos[i].ParamType, aArgInfos[i].ParamFlags);
+    if (pfResult in aArgInfos[i].ParamFlags) and not retparam then
+      aData.ResultIndex := i + argoffset;
+    if Assigned(aArgInfos[i].ParamType) then
+      kind := aArgInfos[i].ParamType^.Kind
     else
       kind := tkUnknown;
-    argvalues[i - Low(aArgs) + Low(argtypes) + argoffset] := ValueToFFIValue(aArgs[i].ValueRef, kind, aArgs[i].Info.ParamFlags, False);
+    aData.Values[i + argoffset] := ValueToFFIValue(aArgValues[i], kind, aArgInfos[i].ParamFlags, False);
   end;
 
   if retparam then begin
-    argtypes[retidx] := TypeInfoToFFIType(aResultType, []);
-    argvalues[retidx] := ValueToFFIValue(aResultValue, aResultType^.Kind, [], True);
-    rtype := @ffi_type_void;
-    rvalue := Nil;
+    aData.Types[aData.ResultIndex] := TypeInfoToFFIType(aResultType, []);
+    aData.Values[aData.ResultIndex] := ValueToFFIValue(aResultValue, aResultType^.Kind, [], True);
+    aData.ResultType := @ffi_type_void;
+    aData.ResultValue := Nil;
 {$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
-    restypedata := Nil;
+    aData.ResultTypeData := Nil;
 {$endif}
   end else begin
-    rvalue := Nil;
+    aData.ResultValue := Nil;
 {$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
     { special case for Comp/Currency as such arguments are passed as Int64,
       but the result is handled through the X87 }
     if Assigned(aResultType) and (aResultType^.Kind = tkFloat) then begin
-      restypedata := GetTypeData(aResultType);
-      case restypedata^.FloatType of
+      aData.ResultTypeData := GetTypeData(aResultType);
+      case aData.ResultTypeData^.FloatType of
 {$ifndef FPC_CURRENCY_IS_INT64}
         ftCurr: begin
-          rtype := @ffi_type_longdouble;
-          rvalue := @resextended;
+          aData.ResultType := @ffi_type_longdouble;
+          aData.ResultValue := @aData.ResultExtended;
         end;
 {$endif}
 {$ifndef FPC_COMP_IS_INT64}
         ftComp: begin
-          rtype := @ffi_type_longdouble;
-          rvalue := @resextended;
+          aData.ResultType := @ffi_type_longdouble;
+          aData.ResultValue := @aData.ResultExtended;
         end;
 {$endif}
       end;
     end else
-      restypedata := Nil;
+      aData.ResultTypeData := Nil;
 {$endif}
-    if not Assigned(rvalue) then begin
-      rtype := TypeInfoToFFIType(aResultType, []);
+    if not Assigned(aData.ResultValue) then begin
+      aData.ResultType := TypeInfoToFFIType(aResultType, []);
       if Assigned(aResultType) then
-        rvalue := aResultValue
+        aData.ResultValue := aResultValue
       else
-        rvalue := Nil;
+        aData.ResultValue := Nil;
     end;
   end;
 
-  if ffi_prep_cif(@cif, abi, arglen, rtype, @argtypes[0]) <> FFI_OK then
-    raise EInvocationError.Create(SErrInvokeFailed);
+  if Assigned(aData.Types) then
+    types := @aData.Types[0]
+  else
+    types := Nil;
 
-  ffi_call(@cif, ffi_fn(aCodeAddress), rvalue, @argvalues[0]);
+  if ffi_prep_cif(@aData.CIF, abi, arglen, aData.ResultType, types) <> FFI_OK then
+    raise EInvocationError.Create(SErrInvokeFailed);
+end;
+
+procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
+            aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
+var
+  ffidata: TFFIData;
+  i: SizeInt;
+  arginfos: array of TFunctionCallParameterInfo;
+  argvalues: array of Pointer;
+begin
+  if Assigned(aResultType) and not Assigned(aResultValue) then
+    raise EInvocationError.Create(SErrInvokeResultTypeNoValue);
+
+  SetLength(arginfos, Length(aArgs));
+  SetLength(argvalues, Length(aArgs));
+  for i := 0 to High(aArgs) do begin
+    arginfos[i] := aArgs[i].Info;
+    argvalues[i] := aArgs[i].ValueRef;
+  end;
+  CreateCIF(arginfos, argvalues, aCallConv, aResultType, aResultValue, aFlags, ffidata);
+
+  arginfos := Nil;
+  argvalues := Nil;
+
+  ffi_call(@ffidata.CIF, ffi_fn(aCodeAddress), ffidata.ResultValue, @ffidata.Values[0]);
 
 {$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
-  if Assigned(restypedata) then begin
-    case restypedata^.FloatType of
+  if Assigned(ffidata.ResultTypeData) then begin
+    case ffidata.ResultTypeData^.FloatType of
 {$ifndef FPC_CURRENCY_IS_INT64}
       ftCurr:
-        PCurrency(aResultValue)^ := Currency(resextended) / 10000;
+        PCurrency(aResultValue)^ := Currency(ffidata.ResultExtended / 10000);
 {$endif}
 {$ifndef FPC_COMP_IS_INT64}
       ftComp:
-        PComp(aResultValue)^ := Comp(resextended);
+        PComp(aResultValue)^ := Comp(ffidata.ResultExtended);
 {$endif}
     end;
   end;
