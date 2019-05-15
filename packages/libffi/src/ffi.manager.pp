@@ -298,14 +298,6 @@ begin
     Result := True;
 end;
 
-function ValueToFFIValue(constref aValue: Pointer; aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Pointer;
-begin
-  if ArgIsIndirect(aKind, aFlags, aIsResult) then
-    Result := @aValue
-  else
-    Result := aValue;
-end;
-
 procedure FFIValueToValue(Source, Dest: Pointer; TypeInfo: PTypeInfo);
 var
   size: SizeInt;
