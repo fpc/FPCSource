@@ -26,7 +26,7 @@ procedure _monstartup(lowpc, highpc: u_long); cdecl; external name '_monstartup'
 procedure __init; cdecl; external name '__init';
 procedure c_exit(exit_code: cint); cdecl; noreturn; external name 'exit';
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); cdecl; forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl; forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
@@ -42,7 +42,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
 
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); cdecl;
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl;
   var
     I: SizeUInt;
   begin
