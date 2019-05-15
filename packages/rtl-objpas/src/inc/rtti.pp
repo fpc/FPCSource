@@ -539,6 +539,7 @@ resourcestring
   SErrInvokeNotImplemented = 'Invoke functionality is not implemented';
   SErrInvokeResultTypeNoValue = 'Function has a result type, but no result pointer provided';
   SErrInvokeFailed = 'Invoke call failed';
+  SErrMethodImplCreateFailed  = 'Failed to create method implementation';
   SErrCallbackNotImplemented = 'Callback functionality is not implemented';
   SErrCallConvNotSupported = 'Calling convention not supported: %s';
   SErrTypeKindNotSupported = 'Type kind is not supported: %s';
@@ -702,7 +703,6 @@ resourcestring
   SErrInvokeCallableNotMethod = 'The callable value is not a method variable for: %s';
   SErrMethodImplNoCallback    = 'No callback specified for method implementation';
   SErrMethodImplInsufficientRtti = 'Insufficient RTTI to create method implementation';
-  SErrMethodImplCreateFailed  = 'Failed to create method implementation';
   SErrMethodImplCreateNoArg   = 'TMethodImplementation can not be created this way';
 
 var
