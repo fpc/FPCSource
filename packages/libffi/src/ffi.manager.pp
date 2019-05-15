@@ -624,11 +624,188 @@ begin
 {$endif}
 end;
 
+type
+  TFFIFunctionCallback = class(TFunctionCallCallback)
+  private
+    fFFIData: TFFIData;
+    fData: Pointer;
+    fCode: CodePointer;
+    fContext: Pointer;
+  private
+    class procedure ClosureFunc(aCIF: pffi_cif; aRet: Pointer; aArgs: PPointer; aUserData: Pointer); cdecl; static;
+    procedure PassToHandler(aRet: Pointer; aArgs: PPointer);
+  protected
+    function GetCodeAddress: CodePointer; override;
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); virtual; abstract;
+  public
+    constructor Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+    destructor Destroy; override;
+  end;
+
+  TFFIFunctionCallbackMethod = class(TFFIFunctionCallback)
+  private
+    fHandler: TFunctionCallMethod;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); override;
+  public
+    constructor Create(aHandler: TFunctionCallMethod; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+  end;
+
+  TFFIFunctionCallbackProc = class(TFFIFunctionCallback)
+  private
+    fHandler: TFunctionCallProc;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); override;
+  public
+    constructor Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+  end;
+
+class procedure TFFIFunctionCallback.ClosureFunc(aCIF: pffi_cif; aRet: Pointer; aArgs: PPointer; aUserData: Pointer); cdecl;
+var
+  this: TFFIFunctionCallback absolute aUserData;
+begin
+  this.PassToHandler(aRet, aArgs);
+end;
+
+procedure TFFIFunctionCallback.PassToHandler(aRet: Pointer; aArgs: PPointer);
+var
+  args: array of Pointer;
+  i, arglen, argidx: SizeInt;
+  resptr: Pointer;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+{$ifndef FPC_COMP_IS_INT64}
+  rescomp: Comp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+  rescurr: Currency;
+{$endif}
+{$endif}
+begin
+  arglen := Length(fFFIData.Types);
+  if fFFIData.ResultIndex >= 0 then
+    Dec(arglen);
+  SetLength(args, arglen);
+  argidx := 0;
+  for i := 0 to High(fFFIData.Types) do begin
+    if i = fFFIData.ResultIndex then
+      Continue;
+    args[argidx] := aArgs[i];
+    if fFFIData.Indirect[i] then
+      args[argidx] := PPointer(aArgs[i])^
+    else
+      args[argidx] := aArgs[i];
+    Inc(argidx);
+  end;
+
+  if fFFIData.ResultIndex >= 0 then begin
+    if fFFIData.Indirect[fFFIData.ResultIndex] then
+      resptr := PPointer(aArgs[fFFIData.ResultIndex])^
+    else
+      resptr := aArgs[fFFIData.ResultIndex];
+  end else begin
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    resptr := Nil;
+    if Assigned(fFFIData.ResultTypeData) then begin
+      case fFFIData.ResultTypeData^.FloatType of
+{$ifndef FPC_COMP_IS_INT64}
+        ftComp:
+          resptr := @rescomp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+        ftCurr:
+          resptr := @rescurr;
+{$endif}
+      end;
+    end;
+    if not Assigned(resptr) then
+{$endif}
+      resptr := aRet;
+  end;
+
+  CallHandler(args, resptr, fContext);
+
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+  if Assigned(fFFIData.ResultTypeData) then begin
+    case fFFIData.ResultTypeData^.FloatType of
+{$ifndef FPC_COMP_IS_INT64}
+      ftComp:
+        PExtended(aRet)^ := rescomp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+      ftCurr:
+        PExtended(aRet) ^ := rescurr * 10000;
+{$endif}
+    end;
+  end;
+{$endif}
+end;
+
+function TFFIFunctionCallback.GetCodeAddress: CodePointer;
+begin
+  Result := fData;
+end;
+
+constructor TFFIFunctionCallback.Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+var
+  res: ffi_status;
+begin
+  fContext := aContext;
+
+  CreateCIF(aArgs, [], aCallConv, aResultType, Nil, aFlags, fFFIData);
+
+  fData := ffi_closure_alloc(SizeOf(ffi_closure), @fCode);
+  if not Assigned(fData) or not Assigned(fCode) then
+    raise ERTTI.Create(SErrMethodImplCreateFailed);
+
+  res := ffi_prep_closure_loc(pffi_closure(fData), @fFFIData.CIF, @ClosureFunc, Self, fCode);
+  if res <> FFI_OK then
+    raise ERTTI.Create(SErrMethodImplCreateFailed);
+end;
+
+destructor TFFIFunctionCallback.Destroy;
+begin
+  if Assigned(fData) then
+    ffi_closure_free(fData);
+end;
+
+constructor TFFIFunctionCallbackProc.Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+begin
+  inherited Create(aContext, aCallConv, aArgs, aResultType, aFlags);
+  fHandler := aHandler;
+end;
+
+procedure TFFIFunctionCallbackProc.CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+begin
+  fHandler(aArgs, aResult, aContext);
+end;
+
+constructor TFFIFunctionCallbackMethod.Create(aHandler: TFunctionCallMethod; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+begin
+  inherited Create(aContext, aCallConv, aArgs, aResultType, aFlags);
+  fHandler := aHandler;
+end;
+
+procedure TFFIFunctionCallbackMethod.CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+begin
+  fHandler(aArgs, aResult, aContext);
+end;
+
+function FFICreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := TFFIFunctionCallbackProc.Create(aHandler, aContext, aCallConv, aArgs, aResultType, aFlags);
+end;
+
+function FFICreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := TFFIFunctionCallbackMethod.Create(aHandler, aContext, aCallConv, aArgs, aResultType, aFlags);
+end;
+
+
 const
   FFIManager: TFunctionCallManager = (
     Invoke: @FFIInvoke;
-    CreateCallbackProc: Nil;
-    CreateCallbackMethod: Nil;
+    CreateCallbackProc: @FFICreateCallbackProc;
+    CreateCallbackMethod: @FFICreateCallbackMethod;
   );
 
 var
