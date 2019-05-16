@@ -485,6 +485,31 @@ type
     property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
 
+  TVirtualInterfaceInvokeEvent = procedure(aMethod: TRttiMethod; const aArgs: TValueArray; out aResult: TValue) of object;
+
+  TVirtualInterface = class(TInterfacedObject, IInterface)
+  private
+    fGUID: TGUID;
+    fOnInvoke: TVirtualInterfaceInvokeEvent;
+    fContext: TRttiContext;
+    fImpls: array of TMethodImplementation;
+    fVmt: PCodePointer;
+    fQueryInterfaceType: TRttiType;
+    fAddRefType: TRttiType;
+    fReleaseType: TRttiType;
+  protected
+    function QueryInterface(constref aIID: TGuid; out aObj): LongInt;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+    procedure HandleIInterfaceCallback(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
+    procedure HandleUserCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+  public
+    constructor Create(aPIID: PTypeInfo);
+    constructor Create(aPIID: PTypeInfo; aInvokeEvent: TVirtualInterfaceInvokeEvent);
+    destructor Destroy; override;
+    property OnInvoke: TVirtualInterfaceInvokeEvent read fOnInvoke write fOnInvoke;
+  end;
+
+
   ERtti = class(Exception);
   EInsufficientRtti = class(ERtti);
   EInvocationError = class(ERtti);
@@ -704,6 +729,16 @@ resourcestring
   SErrMethodImplNoCallback    = 'No callback specified for method implementation';
   SErrMethodImplInsufficientRtti = 'Insufficient RTTI to create method implementation';
   SErrMethodImplCreateNoArg   = 'TMethodImplementation can not be created this way';
+  SErrVirtIntfTypeNil = 'No type information provided for TVirtualInterface';
+  SErrVirtIntfTypeMustBeIntf = 'Type ''%s'' is not an interface type';
+  SErrVirtIntfTypeNotFound = 'Type ''%s'' is not valid';
+  SErrVirtIntfNotAllMethodsRTTI = 'Not all methods of ''%s'' or its parents have the required RTTI';
+  SErrVirtIntfRetrieveIInterface = 'Failed to retrieve IInterface information';
+  SErrVirtIntfCreateImpl = 'Failed to create implementation for method ''%1:s'' of ''%0:s''';
+  SErrVirtIntfInvalidVirtIdx = 'Virtual index %2:d for method ''%1:s'' of ''%0:s'' is invalid';
+  SErrVirtIntfMethodNil = 'Method %1:d of ''%0:s'' is Nil';
+  SErrVirtIntfCreateVmt = 'Failed to create VMT for ''%s''';
+  SErrVirtIntfIInterface = 'Failed to prepare IInterface method callbacks';
 
 var
   PoolRefCount : integer;
@@ -3653,6 +3688,162 @@ begin
     FContextToken := TPoolToken.Create;
   result := (FContextToken as IPooltoken).RttiPool.GetTypes;
 end;}
+
+type
+  TQueryInterface = function(constref aIID: TGUID; out aObj): LongInt of object;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+  TAddRef = function: LongInt of object;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+  TRelease = function: LongInt of object;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+{ TVirtualInterface }
+
+{.$define DEBUG_VIRTINTF}
+
+constructor TVirtualInterface.Create(aPIID: PTypeInfo);
+
+  function GetIInterfaceMethod(aTypeInfo: PTypeInfo; const aName: String; out aType: TRttiType): TMethodImplementation;
+  begin
+    aType := fContext.GetType(aTypeInfo);
+    if not (aType is TRttiMethodType) then
+      raise EInsufficientRtti.Create(SErrVirtIntfIInterface) at get_caller_addr(get_frame), get_caller_frame(get_frame);
+
+    Result := TRttiMethodType(aType).CreateImplementation(@HandleIInterfaceCallback);
+    if not Assigned(Result) then
+      raise ERtti.CreateFmt(SErrVirtIntfCreateImpl, [aPIID^.Name, aName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
+  end;
+
+var
+  t: TRttiType;
+  ti: PTypeInfo;
+  td: PInterfaceData;
+  methods: specialize TArray<TRttiMethod>;
+  m: TRttiMethod;
+  mt: PIntfMethodTable;
+  count, i: SizeInt;
+begin
+  if not Assigned(aPIID) then
+    raise EArgumentNilException.Create(SErrVirtIntfTypeNil);
+  { ToDo: add support for raw interfaces once they support RTTI }
+  if aPIID^.Kind <> tkInterface then
+    raise EArgumentException.CreateFmt(SErrVirtIntfTypeMustBeIntf, [aPIID^.Name]);
+
+  fContext := TRttiContext.Create;
+  t := fContext.GetType(aPIID);
+  if not Assigned(t) then
+    raise EInsufficientRtti.CreateFmt(SErrVirtIntfTypeNotFound, [aPIID^.Name]);
+
+  { check whether the interface and all its parents have RTTI enabled (the only
+    exception is IInterface as we know the methods of that) }
+  td := PInterfaceData(GetTypeData(aPIID));
+
+  fGUID := td^.GUID;
+
+  ti := aPIID;
+  { we have at least the three methods of IInterface }
+  count := 3;
+  while ti <> TypeInfo(IInterface) do begin
+    mt := td^.MethodTable;
+    if (mt^.Count > 0) and (mt^.RTTICount <> mt^.Count) then
+      raise EInsufficientRtti.CreateFmt(SErrVirtIntfNotAllMethodsRTTI, [aPIID^.Name]);
+    Inc(count, mt^.Count);
+    ti := td^.Parent^;
+    td := PInterfaceData(GetTypeData(ti));
+  end;
+
+  SetLength(fImpls, count);
+
+  fImpls[0] := GetIInterfaceMethod(TypeInfo(TQueryInterface), 'QueryInterface', fQueryInterfaceType);
+  fImpls[1] := GetIInterfaceMethod(TypeInfo(TAddRef), 'AddRef', fAddRefType);
+  fImpls[2] := GetIInterfaceMethod(TypeInfo(TRelease), 'Release', fReleaseType);
+
+  methods := t.GetMethods;
+  for m in methods do begin
+    if m.VirtualIndex > High(fImpls) then
+      raise ERtti.CreateFmt(SErrVirtIntfInvalidVirtIdx, [aPIID^.Name, m.Name]);
+    { we use the childmost entry, except for the IInterface methods }
+    if Assigned(fImpls[m.VirtualIndex]) then begin
+      {$IFDEF DEBUG_VIRTINTF}Writeln('Ignoring duplicate implementation for index ', m.VirtualIndex);{$ENDIF}
+      Continue;
+    end;
+    fImpls[m.VirtualIndex] := m.CreateImplementation(m, @HandleUserCallback);
+  end;
+
+  for i := 0 to High(fImpls) do
+    if not Assigned(fImpls) then
+      raise ERtti.CreateFmt(SErrVirtIntfMethodNil, [aPIID^.Name, i]);
+
+  fVmt := GetMem(Length(fImpls) * SizeOf(CodePointer));
+  if not Assigned(fVmt) then
+    raise ERtti.CreateFmt(SErrVirtIntfCreateVmt, [aPIID^.Name]);
+
+  for i := 0 to High(fImpls) do begin
+    fVmt[i] := fImpls[i].CodeAddress;
+    {$IFDEF DEBUG_VIRTINTF}Writeln('VMT ', i, ': ', HexStr(fVmt[i]));{$ENDIF}
+  end;
+end;
+
+constructor TVirtualInterface.Create(aPIID: PTypeInfo; aInvokeEvent: TVirtualInterfaceInvokeEvent);
+begin
+  Create(aPIID);
+  OnInvoke := aInvokeEvent;
+end;
+
+destructor TVirtualInterface.Destroy;
+var
+  impl: TMethodImplementation;
+begin
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing implementations');{$ENDIF}
+  for impl in fImpls do
+    impl.Free;
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing VMT');{$ENDIF}
+  if Assigned(fVmt) then
+    FreeMem(fVmt);
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing Context');{$ENDIF}
+  fContext.Free;
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Done');{$ENDIF}
+  inherited Destroy;
+end;
+
+function TVirtualInterface.QueryInterface(constref aIID: TGuid; out aObj): LongInt;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  {$IFDEF DEBUG_VIRTINTF}Writeln('QueryInterface for ', GUIDToString(aIID));{$ENDIF}
+  if IsEqualGUID(aIID, fGUID) then begin
+    {$IFDEF DEBUG_VIRTINTF}Writeln('Returning ', HexStr(@fVmt));{$ENDIF}
+    Pointer(aObj) := @fVmt;
+    { QueryInterface increases the reference count }
+    _AddRef;
+    Result := S_OK;
+  end else
+    Result := inherited QueryInterface(aIID, aObj);
+end;
+
+procedure TVirtualInterface.HandleIInterfaceCallback(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
+var
+  res: LongInt;
+  guid: TGuid;
+begin
+  {$IFDEF DEBUG_VIRTINTF}Writeln(aInvokable.Name);{$ENDIF}
+  if aInvokable = fQueryInterfaceType then begin
+    {$IFDEF DEBUG_VIRTINTF}Writeln('Call for QueryInterface');{$ENDIF}
+    Move(aArgs[1].GetReferenceToRawData^, guid, SizeOf(guid));
+    res := QueryInterface(guid, PPointer(aArgs[2].GetReferenceToRawData)^);
+    TValue.Make(@res, TypeInfo(LongInt), aResult);
+  end else if aInvokable = fAddRefType then begin
+    {$IFDEF DEBUG_VIRTINTF}Writeln('Call for AddRef');{$ENDIF}
+    res := _AddRef;
+    TValue.Make(@res, TypeInfo(LongInt), aResult);
+  end else if aInvokable = fReleaseType then begin
+    {$IFDEF DEBUG_VIRTINTF}Writeln('Call for Release');{$ENDIF}
+    res := _Release;
+    TValue.Make(@res, TypeInfo(LongInt), aResult);
+  end;
+end;
+
+procedure TVirtualInterface.HandleUserCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+begin
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Call for ', TRttiMethod(aUserData).Name);{$ENDIF}
+  if Assigned(fOnInvoke) then
+    fOnInvoke(TRttiMethod(aUserData), aArgs, aResult);
+end;
 
 {$ifndef InLazIDE}
 {$if defined(CPUI386) or (defined(CPUX86_64) and defined(WIN64))}
