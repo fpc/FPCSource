@@ -949,23 +949,16 @@ var
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
   i : ALUUInt;
-{$ifdef DEBUG}
   pt : PInitFinalTable;
-{$endif}
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-{$ifdef DEBUG}
   pt := PInitFinalTable(EntryInformation.InitFinalTable);
-{$endif}
-  with PInitFinalTable(EntryInformation.InitFinalTable)^ do
 {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-{$ifdef DEBUG}
   pt := @InitFinalTable;
-{$endif}
-  with InitFinalTable do
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  with pt^ do
    begin
      for i:=1 to ALUUInt(TableCount) do
       begin
