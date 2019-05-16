@@ -234,7 +234,7 @@ interface
          spacefound,
          eolfound : boolean;
          constructor create(const fn:string);
-         destructor  destroy;
+         destructor  destroy; override;
          procedure Add(const s:string);
          procedure AddSpace;
        end;
@@ -2572,6 +2572,7 @@ type
 {$ifdef PREPROCWRITE}
     constructor tpreprocfile.create(const fn:string);
       begin
+        inherited create;
       { open outputfile }
         assign(f,fn);
         {$push}{$I-}
@@ -3947,11 +3948,14 @@ type
 {$ifdef PREPROCWRITE}
          if parapreprocess then
           begin
-            t:=Get_Directive(hs);
-            if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
+            if not (m_mac in current_settings.modeswitches) then
+              t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
+            else
+              t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
+            if assigned(t) and not(t.is_conditional) then
              begin
-               preprocfile^.AddSpace;
-               preprocfile^.Add('{$'+hs+current_scanner.readcomment+'}');
+               preprocfile.AddSpace;
+               preprocfile.Add('{$'+hs+current_scanner.readcomment+'}');
                exit;
              end;
           end;
