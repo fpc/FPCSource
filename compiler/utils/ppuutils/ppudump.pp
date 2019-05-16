@@ -1176,6 +1176,7 @@ begin
      break;
     write([s,'(',slstr[sl],') ']);
     case sl of
+      sl_none : ;
       sl_call,
       sl_load,
       sl_subscript :

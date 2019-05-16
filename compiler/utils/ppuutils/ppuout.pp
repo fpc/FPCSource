@@ -473,7 +473,7 @@ const
     ('dynamic');
 
   ConstTypeNames: array[TPpuConstType] of string =
-    ('', 'int', 'float', 'string', 'set', 'pointer');
+    ('unknown', 'int', 'float', 'string', 'set', 'pointer');
 
   OrdTypeNames: array[TPpuOrdType] of string =
     ('void', 'uint', 'sint', 'pasbool', 'bool', 'char', 'currency');
@@ -695,6 +695,7 @@ begin
     WriteStr('ValType', ConstTypeNames[ConstType]);
     s:='Value';
     case ConstType of
+      ctUnknown: ;
       ctInt:
         WriteInt(s, VInt);
       ctFloat:
