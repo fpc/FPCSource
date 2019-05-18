@@ -899,19 +899,19 @@ type
     function WriteMaxSizeData(Const Buffer; aSize,aCount : NativeInt) : NativeInt;
     Procedure WriteExactSizeData(Const Buffer; aSize,aCount : NativeInt);
   public
-    function Read(var Buffer; Count: Longint): Longint; virtual;
-    function Read(Buffer: TBytes; Count: Longint): Longint; overload;
-    function Read(Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
+    function Read(var Buffer; Count: Longint): Longint; virtual; overload;
+    function Read(var Buffer: TBytes; Count: Longint): Longint; overload;
+    function Read( Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
 
     function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload;
     function Write(const Buffer: TBytes; Count: Longint): Longint; overload;
-    function Write(const Buffer; Count: Longint): Longint; virtual;
+    function Write(const Buffer; Count: Longint): Longint; virtual; overload;
 
     function Seek(Offset: Longint; Origin: Word): Longint; virtual; overload;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
 
     function ReadData(Buffer: Pointer; Count: NativeInt): NativeInt; overload;
-    function ReadData(const Buffer: TBytes; Count: NativeInt): NativeInt; overload;
+    function ReadData(Buffer: TBytes; Count: NativeInt): NativeInt; overload;
     function ReadData(var Buffer: Boolean): NativeInt; overload;
     function ReadData(var Buffer: Boolean; Count: NativeInt): NativeInt; overload;
     function ReadData(var Buffer: AnsiChar): NativeInt; overload;
@@ -1018,8 +1018,8 @@ type
     function WriteData(const Buffer: TExtended80Rec): NativeInt; overload;
     function WriteData(const Buffer: TExtended80Rec; Count: NativeInt): NativeInt; overload;
 {$ENDIF}
-    procedure WriteBufferData(Buffer: Integer); overload;
-    procedure WriteBufferData(Buffer: Integer; Count: NativeInt); overload;
+    procedure WriteBufferData(Buffer: Int32); overload;
+    procedure WriteBufferData(Buffer: Int32; Count: NativeInt); overload;
     procedure WriteBufferData(Buffer: Boolean); overload;
     procedure WriteBufferData(Buffer: Boolean; Count: NativeInt); overload;
     procedure WriteBufferData(Buffer: AnsiChar); overload;

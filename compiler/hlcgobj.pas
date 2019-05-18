@@ -4479,9 +4479,18 @@ implementation
     var
       firstitem,
       item: TCmdStrListItem;
+      global: boolean;
     begin
       item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
       firstitem:=item;
+      global:=
+        (cs_profile in current_settings.moduleswitches) or
+        { smart linking using a library requires to promote
+          all non-nested procedures to AB_GLOBAL
+          otherwise you get undefined symbol error at linking
+          for msdos  target with -CX option for instance }
+        (create_smartlink_library and not is_nested_pd(current_procinfo.procdef)) or
+        (po_global in current_procinfo.procdef.procoptions);
       while assigned(item) do
         begin
 {$ifdef arm}
@@ -4493,19 +4502,29 @@ implementation
             subsections and be reordered }
           if (item<>firstitem) and
              (target_info.system in systems_darwin) then
-            list.concat(tai_symbolpair.create(spk_set,item.str,firstitem.str));
-          if (cs_profile in current_settings.moduleswitches) or
-             { smart linking using a library requires to promote
-               all non-nested procedures to AB_GLOBAL
-               otherwise you get undefined symbol error at linking
-               for msdos  target with -CX option for instance }
-             (create_smartlink_library and not is_nested_pd(current_procinfo.procdef)) or
-             (po_global in current_procinfo.procdef.procoptions) then
-            list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
+            begin
+              { the .set already defines the symbol, so can't emit a tai_symbol as that will redefine it }
+              if global then
+                begin
+                  list.concat(tai_symbolpair.create(spk_set_global,item.str,firstitem.str));
+                  { needed for generating the tai_symbol_end }
+                  current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef);
+                end
+              else
+                begin
+                  list.concat(tai_symbolpair.create(spk_set,item.str,firstitem.str));
+                  current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION,current_procinfo.procdef);
+                end;
+            end
           else
-            list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0,current_procinfo.procdef));
-          if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
-            list.concat(Tai_function_name.create(item.str));
+            begin
+              if global then
+                list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
+              else
+                list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0,current_procinfo.procdef));
+              if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
+                list.concat(Tai_function_name.create(item.str));
+            end;
           item:=TCmdStrListItem(item.next);
         end;
       current_procinfo.procdef.procstarttai:=tai(list.last);

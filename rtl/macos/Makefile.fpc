@@ -9,7 +9,7 @@ main=rtl
 loaders=
 units=system uuchar strings objpas iso7185 heaptrc getopts macostp macutils \
       unixutil dos extpas cmem charset cpall ctypes sysconst \
-	  softfpu macpas
+      sortbase softfpu macpas classes fgl types
 #	   sysutils 
 #     macpas \
 #      exec  \
@@ -131,6 +131,24 @@ softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
+		   sysconst$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
+
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
+
 #
 # Mac Pascal Model
 #
@@ -186,5 +204,6 @@ cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
 
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+

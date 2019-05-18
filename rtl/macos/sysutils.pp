@@ -33,7 +33,7 @@ interface
 uses
   MacOSTP;
 
-//{$DEFINE HAS_SLEEP}     TODO
+{$DEFINE HAS_SLEEP}   {Dummy implementation:  TODO }
 //{$DEFINE HAS_OSERROR}   TODO
 //{$DEFINE HAS_OSCONFIG}  TODO
 
@@ -827,8 +827,11 @@ begin
 end;
 
 
+procedure C_usleep(val : uint32); external 'StdCLib' name 'usleep';
+
 procedure Sleep(milliseconds: Cardinal);
 begin
+  C_usleep(milliseconds*1000);
 end;
 
 (*

@@ -30,7 +30,7 @@ begin
   Result := 0;
 end;
 
-function TStream.Read(Buffer: TBytes; Count: Longint): Longint;
+function TStream.Read(var Buffer: TBytes; Count: Longint): Longint;
 begin
   Result:=Read(Buffer,0,Count);
 end;
@@ -203,7 +203,7 @@ end;
    Result:=Read(Buffer^,Count);
  end;
 
- function TStream.ReadData(const Buffer: TBytes; Count: NativeInt): NativeInt;
+ function TStream.ReadData({var} Buffer: TBytes; Count: NativeInt): NativeInt;
  begin
    Result:=Read(Buffer,0,Count);
  end;
@@ -768,12 +768,12 @@ begin
 end;
 {$ENDIF}
 
-procedure TStream.WriteBufferData(Buffer: Integer);
+procedure TStream.WriteBufferData(Buffer: Int32);
 begin
   WriteBuffer(Buffer,SizeOf(Buffer));
 end;
 
-procedure TStream.WriteBufferData(Buffer: Integer; Count: NativeInt);
+procedure TStream.WriteBufferData(Buffer: Int32; Count: NativeInt);
 begin
   WriteMaxSizeData(Buffer,SizeOf(Buffer),Count);
 end;

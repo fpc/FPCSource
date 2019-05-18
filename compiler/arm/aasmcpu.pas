@@ -5577,6 +5577,7 @@ implementation
                     bytes:=bytes or (1 shl 24);
 
                   case oppostfix of
+                    PF_S: bytes:=bytes or (0 shl 22) or (0 shl 15);
                     PF_D: bytes:=bytes or (0 shl 22) or (1 shl 15);
                     PF_E: bytes:=bytes or (1 shl 22) or (0 shl 15);
                     PF_P: bytes:=bytes or (1 shl 22) or (1 shl 15);

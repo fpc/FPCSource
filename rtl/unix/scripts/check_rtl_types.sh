@@ -171,14 +171,19 @@ OS_SOURCE=`$FPC $FPC_OPTS  -iSO`
 CPU_SOURCE=`$FPC $FPC_OPTS -iSP`
 CPU_TARGET=`$FPC $FPC_OPTS -iTP`
 case $CPU_SOURCE in
-  arm|aarch64) FPC32=ppcarm; FPC64=ppca64;;
-  i386|x86_64) FPC32=ppc386; FPC64=ppcx64;;
-  powerpc|powerpc64) FPC32=ppcppc; FPC64=ppcppc64;;
-  sparc|sparc64) FPC32=ppcsparc; FPC64=ppcsparc64;;
+  aarch64) FPC32=ppcarm; FPC64=ppca64;;
+  arm) FPC32=ppcarm; FPC64=;;
+  x86_64) FPC32=ppc386; FPC64=ppcx64;;
+  i386) FPC32=ppc386; FPC64=;;
+  powerpc64) FPC32=ppcppc; FPC64=ppcppc64;;
+  powerpc) FPC32=ppcppc; FPC64=;;
+  riscv64) FPC32=ppcrv32; FPC64=ppcrv64;;
+  riscv32) FPC32=ppcrv32; FPC64=;;
+  sparc64) FPC32=ppcsparc; FPC64=ppcsparc64;;
+  sparc) FPC32=ppcsparc; FPC64=;;
   m68k) FPC32=ppc68k; FPC64=;;
   mips) FPC32=ppcmips; FPC64=;;
   mipsel) FPC32=ppcmipsel; FPC64=;;
-  riscv32|riscv64) FPC32=ppcrv32; FPC64=ppcrv64;;
 esac
 
 # No i386<->x86_64 cross-compilation on OpeenBSD

@@ -396,7 +396,7 @@ interface
           ash_pushnv,ash_savenv
         );
 
-      TSymbolPairKind = (spk_set, spk_thumb_set, spk_localentry);
+      TSymbolPairKind = (spk_set, spk_set_global, spk_thumb_set, spk_localentry);
 
 
     const
@@ -437,7 +437,7 @@ interface
         '.pushnv','.savenv'
       );
       symbolpairkindstr: array[TSymbolPairKind] of string[11]=(
-        '.set', '.thumb_set', '.localentry'
+        '.set', '.set', '.thumb_set', '.localentry'
       );
 
     type

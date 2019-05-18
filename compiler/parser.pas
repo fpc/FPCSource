@@ -225,31 +225,35 @@ implementation
       var
         i : longint;
       begin
-         new(preprocfile,init('pre'));
+         preprocfile:=tpreprocfile.create('pre_'+filename);
        { initialize a module }
-         set_current_module(new(pmodule,init(filename,false)));
+         set_current_module(tppumodule.create(nil,'',filename,false));
+         macrosymtablestack:=TSymtablestack.create;
 
-         macrosymtablestack:= initialmacrosymtable;
+         current_scanner:=tscannerfile.Create(filename);
+         current_scanner.firstfile;
+         current_module.scanner:=current_scanner;
+
+         { init macros before anything in the file is parsed.}
          current_module.localmacrosymtable:= tmacrosymtable.create(false);
-         current_module.localmacrosymtable.next:= initialmacrosymtable;
-         macrosymtablestack:= current_module.localmacrosymtable;
+         macrosymtablestack.push(initialmacrosymtable);
+         macrosymtablestack.push(current_module.localmacrosymtable);
+
+         { read the first token }
+         // current_scanner.readtoken(false);
 
          main_module:=current_module;
-       { startup scanner, and save in current_module }
-         current_scanner:=new(pscannerfile,Init(filename));
-         current_module.scanner:=current_scanner;
-       { loop until EOF is found }
          repeat
-           current_scanner^.readtoken(true);
-           preprocfile^.AddSpace;
+           current_scanner.readtoken(true);
+           preprocfile.AddSpace;
            case token of
              _ID :
                begin
-                 preprocfile^.Add(orgpattern);
+                 preprocfile.Add(orgpattern);
                end;
              _REALNUMBER,
              _INTCONST :
-               preprocfile^.Add(pattern);
+               preprocfile.Add(pattern);
              _CSTRING :
                begin
                  i:=0;
@@ -262,7 +266,7 @@ implementation
                        inc(i);
                      end;
                   end;
-                 preprocfile^.Add(''''+cstringpattern+'''');
+                 preprocfile.Add(''''+cstringpattern+'''');
                end;
              _CCHAR :
                begin
@@ -278,19 +282,19 @@ implementation
                    else
                      pattern:=''''+pattern[1]+'''';
                  end;
-                 preprocfile^.Add(pattern);
+                 preprocfile.Add(pattern);
                end;
              _EOF :
                break;
              else
-               preprocfile^.Add(tokeninfo^[token].str)
+               preprocfile.Add(tokeninfo^[token].str)
            end;
          until false;
        { free scanner }
-         dispose(current_scanner,done);
+         current_scanner.destroy;
          current_scanner:=nil;
        { close }
-         dispose(preprocfile,done);
+         preprocfile.destroy;
       end;
 {$endif PREPROCWRITE}
 

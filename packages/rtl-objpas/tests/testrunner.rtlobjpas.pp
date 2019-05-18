@@ -14,6 +14,7 @@ program testrunner.rtlobjpas;
 {$else}
 {$ifdef useffi}
 {$define testinvoke}
+{$define testimpl}
 {$endif}
 {$endif}
 

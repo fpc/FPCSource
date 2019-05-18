@@ -42,15 +42,16 @@ ___fpc_brk_addr:
 	.globl  _start
 _start:
 __start:
-	pushl	%ebx			#ps_strings
-	pushl   %ecx                    # obj
-	pushl   %edx                    # cleanup
-	movl    12(%esp),%eax
-	leal    20(%esp,%eax,4),%ecx
-	leal    16(%esp),%edx
+	movl    %esp,%ebp
+	andl    $~15,%esp
+	pushl   %edx
+	movl    0(%ebp),%eax
+	leal    8(%ebp,%eax,4),%ecx
+	leal    4(%ebp),%edx
 	pushl   %ecx
 	pushl   %edx
 	pushl   %eax
+	xorl    %ebp,%ebp
 	call    ___start
 
 #NO_APP

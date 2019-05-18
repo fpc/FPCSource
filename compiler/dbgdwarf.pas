@@ -4272,7 +4272,7 @@ implementation
               if not (is_widestring(def) and (tf_winlikewidestring in target_info.flags)) then
                 upperopcodes:=13
               else
-                upperopcodes:=15;
+                upperopcodes:=16;
               { lower bound is always 1, upper bound (length) needs to be calculated }
               append_entry(DW_TAG_subrange_type,false,[
                 DW_AT_lower_bound,DW_FORM_udata,1,
@@ -4291,16 +4291,22 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_skip)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(3));
               { no -> load length }
-              if upperopcodes=15 then
+              if upperopcodes=16 then
                 { for Windows WideString the size is always a DWORD }
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit4)))
               else
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizesinttype.size));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+              if upperopcodes=16 then
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref_size)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(4));
+                end
+              else
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
 
               { for widestrings, the length is specified in bytes, so divide by two }
-              if (upperopcodes=15) then
+              if (upperopcodes=16) then
                 begin
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit1)));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_shr)));
