@@ -1279,14 +1279,26 @@ implementation
                if replaceforbidden then
                  begin
                    { avoid string truncation }
-                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+s);
+                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^));
+                   writer.AsmWrite(s);
                    writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^));
+                   if tai_symbolpair(hp).kind=spk_set_global then
+                     begin
+                       writer.AsmWrite(#9'.globl ');
+                       writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^));
+                     end;
                  end
                else
                  begin
                    { avoid string truncation }
-                   writer.AsmWrite(tai_symbolpair(hp).sym^+s);
+                   writer.AsmWrite(tai_symbolpair(hp).sym^);
+                   writer.AsmWrite(s);
                    writer.AsmWriteLn(tai_symbolpair(hp).value^);
+                   if tai_symbolpair(hp).kind=spk_set_global then
+                     begin
+                       writer.AsmWrite(#9'.globl ');
+                       writer.AsmWriteLn(tai_symbolpair(hp).sym^);
+                     end;
                  end;
              end;
            ait_symbol_end :
