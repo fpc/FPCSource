@@ -83,7 +83,10 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
         still need a conversion }
       (
        ((fromdef.typ=procvardef) and
-        (todef.typ=procvardef))
+        (todef.typ=procvardef)) or
+       { same for two different specialisations }
+       ((df_specialization in fromdef.defoptions) and
+        (df_specialization in todef.defoptions))
       );
   end;
 
