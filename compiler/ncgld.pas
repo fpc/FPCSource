@@ -557,7 +557,8 @@ implementation
                        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
                      { vd will contain the type of the self pointer (self in
                        case of a class/classref, address of self in case of
-                       an object }
+                       an object, frame pointer or pointer to parentfpstruct
+                       in case of nested procsym load  }
                      vd:=nil;
                      case left.location.loc of
                         LOC_CREGISTER,
@@ -573,7 +574,8 @@ implementation
                         LOC_REFERENCE:
                           begin
                              if is_implicit_pointer_object_type(left.resultdef) or
-                                 (left.resultdef.typ=classrefdef) then
+                                (left.resultdef.typ=classrefdef) or
+                                is_nested_pd(procdef) then
                                begin
                                  vd:=left.resultdef;
                                  location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
