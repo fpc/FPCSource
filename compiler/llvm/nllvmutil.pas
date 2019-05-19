@@ -35,11 +35,14 @@ interface
     tllvmnodeutils = class(tnodeutils)
      strict protected
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); override;
-      class procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymstr);
+      class procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
+      class procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
      public
       class procedure InsertObjectInfo; override;
       class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
       class procedure GenerateObjCImageInfo; override;
+      class procedure RegisterModuleInitFunction(pd: tprocdef); override;
+      class procedure RegisterModuleFiniFunction(pd: tprocdef); override;
     end;
 
 
@@ -50,7 +53,7 @@ implementation
       aasmtai,cpubase,llvmbase,aasmllvm,
       aasmcnst,nllvmtcon,
       symbase,symtable,defutil,
-      llvmtype,
+      llvmtype,llvmdef,
       objcasm;
 
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
@@ -156,6 +159,50 @@ implementation
     end;
 
 
+  class procedure tllvmnodeutils.InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
+    var
+      itemdef: trecorddef;
+      arraydef: tarraydef;
+      pd: tprocdef;
+      fields: array[0..2] of tdef;
+      tcb: ttai_typedconstbuilder;
+      i: longint;
+    begin
+      if procdefs.count<>0 then
+        begin
+          pd:=tprocdef(procdefs[0]);
+          fields[0]:=s32inttype;
+          fields[1]:=pd.getcopyas(procvardef,pc_address_only,'');
+          fields[2]:=voidpointertype;
+          itemdef:=llvmgettemprecorddef(fields,C_alignment,
+            targetinfos[target_info.system]^.alignment.recordalignmin,
+            targetinfos[target_info.system]^.alignment.maxCrecordalign);
+          include(itemdef.defoptions,df_llvm_no_struct_packing);
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+          tllvmtai_typedconstbuilder(tcb).appendingdef:=true;
+          arraydef:=carraydef.getreusable(itemdef,procdefs.Count);
+          tcb.maybe_begin_aggregate(arraydef);
+          for i:=0 to procdefs.count-1 do
+            begin
+              tcb.maybe_begin_aggregate(itemdef);
+              tcb.emit_ord_const(65535,s32inttype);
+              tcb.emit_procdef_const(tprocdef(procdefs[i]));
+              tcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+              tcb.maybe_end_aggregate(itemdef);
+            end;
+          tcb.maybe_end_aggregate(arraydef);
+          current_asmdata.AsmLists[al_globals].concatlist(
+            tcb.get_final_asmlist(
+              current_asmdata.DefineAsmSymbol(
+                initfinisymsname,AB_GLOBAL,AT_DATA,arraydef),arraydef,sec_data,
+                initfinisymsname,voidpointertype.alignment
+            )
+          );
+          tcb.free;
+        end;
+    end;
+
+
   class procedure tllvmnodeutils.InsertObjectInfo;
     begin
       inherited;
@@ -164,6 +211,10 @@ implementation
       InsertUsedList(current_module.llvmcompilerusedsyms,'llvm.compiler.used');
       { add the llvm.used array }
       InsertUsedList(current_module.llvmusedsyms,'llvm.used');
+      { add the llvm.global_ctors array }
+      InsertInitFiniList(current_module.llvminitprocs,'llvm.global_ctors');
+      { add the llvm.global_dtors array }
+      InsertInitFiniList(current_module.llvmfiniprocs,'llvm.global_dtors');
 
       { add "type xx = .." statements for all used recorddefs }
       with TLLVMTypeInfo.Create do
@@ -241,6 +292,18 @@ implementation
       objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
       llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
       current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+    end;
+
+
+  class procedure tllvmnodeutils.RegisterModuleInitFunction(pd: tprocdef);
+    begin
+      current_module.llvminitprocs.add(pd);
+    end;
+
+
+  class procedure tllvmnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
+    begin
+      current_module.llvmfiniprocs.add(pd);
     end;
 
 
