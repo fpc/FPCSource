@@ -1141,7 +1141,7 @@ implementation
                  hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
                  if (po_methodpointer in pv.procoptions) then
                    tloadnode(hp2).set_mp(tcallnode(hp).methodpointer.getcopy);
-                 hp.destroy;
+                 hp.free;
                  { replace the old callnode with the new loadnode }
                  hpp^:=hp2;
                end;
