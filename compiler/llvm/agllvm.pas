@@ -1047,7 +1047,10 @@ implementation
                 if not(metadata) then
                   begin
                     writer.AsmWrite(defstr);
-                    writer.AsmWrite(' <{');
+                    if not(df_llvm_no_struct_packing in hp.def.defoptions) then
+                      writer.AsmWrite(' <{')
+                    else
+                      writer.AsmWrite(' {')
                   end
                 else
                   begin
@@ -1064,11 +1067,14 @@ implementation
                   end;
                 if not(metadata) then
                   begin
-                    writer.AsmWrite('}>');
+                    if not(df_llvm_no_struct_packing in hp.def.defoptions) then
+                      writer.AsmWrite(' }>')
+                    else
+                      writer.AsmWrite(' }')
                   end
                 else
                   begin
-                    writer.AsmWrite('}');
+                    writer.AsmWrite(' }');
                   end;
               end;
             tck_array:
