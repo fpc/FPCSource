@@ -1,5 +1,5 @@
 { %OPT=-Oodfa -vw -Sew }
-{ %norun }
+{ %norun }
 
 {$mode objfpc}
 

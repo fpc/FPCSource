@@ -143,6 +143,9 @@ interface
         also for the linker }
       class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); virtual;
 
+      class procedure RegisterModuleInitFunction(pd: tprocdef); virtual;
+      class procedure RegisterModuleFiniFunction(pd: tprocdef); virtual;
+
       class procedure GenerateObjCImageInfo; virtual;
 
      strict protected
@@ -163,7 +166,8 @@ implementation
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nutils,
       ppu,
-      pass_1;
+      pass_1,
+      export;
 
   class function tnodeutils.call_fail_node:tnode;
     var
@@ -949,7 +953,7 @@ implementation
       { the mainstub is generated via a synthetic proc -> parsed via
         psub.read_proc_body() -> that one will insert the mangled name in the
         alias names already }
-      if potype<>potype_mainstub then
+      if not(potype in [potype_mainstub,potype_libmainstub]) then
         pd.aliasnames.insert(pd.mangledname);
       result:=pd;
     end;
@@ -1561,6 +1565,20 @@ implementation
   class procedure tnodeutils.RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean);
     begin
       { don't do anything by default }
+    end;
+
+
+  class procedure tnodeutils.RegisterModuleInitFunction(pd: tprocdef);
+    begin
+      { setinitname may generate a new section -> don't add to the
+        current list, because we assume this remains a text section }
+      exportlib.setinitname(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
+    end;
+
+
+  class procedure tnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
+    begin
+      exportlib.setfininame(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
     end;
 
 
