@@ -813,7 +813,7 @@ begin
        end;
      DLL_PROCESS_DETACH :
        begin
-         Lib_Exit;
+         Fpc_Lib_Exit;
          if assigned(Dll_Process_Detach_Hook) then
            Dll_Process_Detach_Hook(DllParam);
        end;

@@ -101,7 +101,7 @@ begin
   FpClose(_SaveStdOut);
   FpClose(_SaveStdErr);
   // Finalize the library
-  lib_exit;
+  fpc_lib_exit;
   // Close stdout and stderr if stdio has been closed
   if ioclosed then
     begin
