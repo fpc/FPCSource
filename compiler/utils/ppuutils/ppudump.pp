@@ -209,7 +209,8 @@ type
     ST_LINE,
     ST_COLUMN,
     ST_FILEINDEX,
-    ST_LOADMESSAGES);
+    ST_LOADMESSAGES,
+    ST_INVALID);
 
   TPpuModuleDef = class(TPpuUnitDef)
     ModuleFlags: tmoduleflags;
@@ -339,6 +340,11 @@ Begin
   system.Writeln(StdErr, S);
   SetHasErrors;
 End;
+
+procedure StrAppend(var st : string; const st2 : string);
+begin
+  st:=st+st2;
+end;
 
 procedure tppudumpfile.RaiseAssertion(Code: Longint);
 begin
@@ -1578,13 +1584,15 @@ const
      (mask:gcf_class;       str:'Class'),
      (mask:gcf_record;      str:'Record')
   );
+  
 var
   defstates  : tdefstates;
   i, nb{, msgvalue}, mesgnb : longint;
   first  : boolean;
   copy_size, min_size, tokenbufsize : longint;
   tokenbuf : pbyte;
-  tbi : longint;
+  tbi, last_col, new_col : longint;
+  last_line,new_line : dword;
 //  idtoken,
   token : ttoken;
 //  state : tmsgstate;
@@ -1592,7 +1600,289 @@ var
   len : sizeint;
   wstring : widestring;
   astring : ansistring;
+  linestr,genstr : string;
   genconstr : tgenericconstraintflags;
+
+  procedure dump_new_settings;
+(*     tsettings = record
+         alignment       : talignmentinfo;
+         globalswitches  : tglobalswitches;
+         targetswitches  : ttargetswitches;
+         moduleswitches  : tmoduleswitches;
+         localswitches   : tlocalswitches;
+         modeswitches    : tmodeswitches;
+         optimizerswitches : toptimizerswitches;
+         { generate information necessary to perform these wpo's during a subsequent compilation }
+         genwpoptimizerswitches: twpoptimizerswitches;
+         { perform these wpo's using information generated during a previous compilation }
+         dowpoptimizerswitches: twpoptimizerswitches;
+         debugswitches   : tdebugswitches;
+         { 0: old behaviour for sets <=256 elements
+           >0: round to this size }
+         setalloc,
+         packenum        : shortint;
+
+         packrecords     : shortint;
+         maxfpuregisters : shortint;
+
+         cputype,
+         optimizecputype,
+         asmcputype      : tcputype;
+         fputype         : tfputype;
+         asmmode         : tasmmode;
+         interfacetype   : tinterfacetypes;
+         defproccall     : tproccalloption;
+         sourcecodepage  : tstringencoding;
+
+         minfpconstprec  : tfloattype;
+
+         disabledircache : boolean;
+
+         tlsmodel : ttlsmodel;
+
+{$if defined(i8086)}
+         x86memorymodel  : tx86memorymodel;
+{$endif defined(i8086)}
+
+{$if defined(ARM)}
+         instructionset : tinstructionset;
+{$endif defined(ARM)}
+
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+         llvmversion: tllvmversion;
+{$endif defined(LLVM) and not defined(GENERIC_CPU)}
+
+        { CPU targets with microcontroller support can add a controller specific unit }
+         controllertype   : tcontrollertype;
+
+         { WARNING: this pointer cannot be written as such in record token }
+         pmessage : pmessagestaterecord;
+       end; *)
+
+const
+    targetswitchname : array[ttargetswitch] of string[30] =
+       { global target-specific switches }
+       ('Target None', {ts_none}
+         { generate code that results in smaller TOCs than normal (AIX) }
+        'Small TOC', {ts_small_toc}
+         { for the JVM target: generate integer array initializations via string
+           constants in order to reduce the generated code size (Java routines
+           are limited to 64kb of bytecode) }
+        'JVM compact int array init', {ts_compact_int_array_init}
+         { for the JVM target: intialize enum fields in constructors with the
+           enum class instance corresponding to ordinal value 0 (not done by
+           default because this initialization can only be performed after the
+           inherited constructors have run, and if they call a virtual method
+           of the current class, then this virtual method may already have
+           initialized that field with another value and the constructor
+           initialization will result in data loss }
+        'JVM enum field init', {ts_jvm_enum_field_init}
+         { when automatically generating getters/setters for properties, use
+           these strings as prefixes for the generated getters/setter names }
+        'Auto getter prefix', {ts_auto_getter_prefix}
+        'Auto setter prefix', {ts_auto_setter_predix}
+        'Thumb interworking', {ts_thumb_interworking,}
+         { lowercase the first character of routine names, used to generate
+           names that are compliant with Java coding standards from code
+           written according to Delphi coding standards }
+        'LowerCase proc start', {ts_lowercase_proc_start,}
+         { initialise local variables on the JVM target so you won't get
+           accidental uses of uninitialised values }
+        'Init locals', {ts_init_locals}
+         { emit a CLD instruction before using the x86 string instructions }
+        'Emit CLD instruction', {ts_cld}
+         { increment BP before pushing it in the function prologue and decrement
+           it after popping it in the function epilogue, iff the function is
+           going to terminate with a far ret. Thus, the BP value pushed on the
+           stack becomes odd if the function is far and even if the function is
+           near. This allows walking the BP chain on the stack and e.g.
+           obtaining a stack trace even if the program uses a mixture of near
+           and far calls. This is also required for Win16 real mode, because it
+           allows Windows to move code segments around (in order to defragment
+           memory) and then walk through the stacks of all running programs and
+           update the segment values of the segment that has moved. }
+        'Use odd BP for far procs' {ts_x86_far_procs_push_odd_bp}
+       );
+    moduleswitchname : array[tmoduleswitch] of string[30] =
+       ('Module None', {cs_modulenone,}
+         { parser }
+        'Floating Point Emulation',{ cs_fp_emulation}
+        'Extended syntax', {cs_extsyntax}
+        'Open string', {cs_openstring}
+         { support }
+        'Goto allowed', {cs_support_goto}
+        'Macro support', {cs_support_macro}
+        'C operator support', {cs_support_c_operators}
+         { generation }
+        'Profile', {cs_profile}
+        'Debug information', {cs_debuginfo}
+        'Compilation of System unit', {cs_compilesystem}
+        'Line information', {cs_lineinfo}
+        'Implicit exceptions', {cs_implicit_exceptions}
+        'Explicit CodePage', {cs_explicit_codepage}
+        'System CodePage', {cs_system_codepage}
+         { linking }
+        'Create smart units', {cs_create_smart}
+        'Create dynamic', {cs_create_dynamic}
+        'Create PIC code', {cs_create_pic}
+         { browser switches are back }
+        'Browser', {cs_browser}
+        'Local Browser', {cs_local_browser}
+         { target specific }
+        'Executable Stack', {cs_executable_stack}
+         { i8086 specific }
+        'Hude code', {cs_huge_code}
+        'Win16 smart callbacks', {cs_win16_smartcallbacks}
+         { Record usage of checkpointer experimental feature }
+        'CheckPointer used' {cs_checkpointer_called}
+       );
+    globalswitchname : array[tglobalswitch] of string[50] =
+       ('Global None',{cs_globalnone}
+         { parameter switches }
+        'Check unit name', {cs_check_unit_name}
+        'Constructor name', {cs_constructor_name}
+        'Support exceptions',{cs_support_exceptions}
+        'Support Objective-C pas',{ cs_support_c_objectivepas}
+        'Transparent file names', {cs_transparent_file_names}
+         { units }
+        'Load Objpas Unit', {cs_load_objpas_unit}
+        'Load GPC unit', {cs_load_gpc_unit}
+        'Load FPCKylix unit', {cs_load_fpcylix_unit}
+        'Support Vectors', {cs_support_vectors}
+         { debuginfo }
+        'Use HeapTRc unit', {cs_use_heaptrc}
+        'Use line information', {cs_use_lineinfo}
+        'Use GDB Valgrind', {cs_gdb_valgrind}
+        'No regalloc', {cs_no_regalloc}
+        'Stabs preserve cases', {cs_stabs_preservecase}
+         { assembling }
+        'Leave assembler file', {cs_asm_leave}
+        'Use external assembler', {cs_asm_extern}
+        'Use pipes to call assembler', {cs_asm_pipe}
+        'Add source infos into assembler files', {cs_asm_source}
+        'Add register allocation into assembler files', {cs_asm_regalloc}
+        'Add temporary  allocation into assmebler files', {cs_asm_tempalloc}
+        'Add node information into assembler files', {cs_asm_nodes}
+        'Adapt assembler call to GNU version <= 2.25', {cs_asm_pre_binutils_2_25}
+         { linking }
+        'Skip linking stage', {cs_link_nolink}
+        'Link static', {cs_link_static}
+        'Link smart', {cs_link_smart}
+        'Link shared', {cs_link_shared}
+        'Link deffile', {cs_link_deffile}
+        'Strip after linking', {cs_link_strip}
+        'Use linker static flag',{cs_link_staticflag}
+        'Link on target OS',{cs_link_on_target}
+        'Use external linker', {cs_link_extern}
+        'Link opt vtable', {cs_link_opt_vtable}
+        'Link opt used sections', {cs_link_opt_used_sections}
+        'Link debug to separate file',{cs_link_separate_dbg_file}
+        'Create linker map', {cs_link_map}
+        'Link to pthread', {cs_link_pthread}
+        'Link no default lib order', {cs_link_no_default_lib_order}
+        'Link using native linker', {cs_link_native}
+        'Link for GNU linker version <=2.19', {cs_link_pre_binutils_2_19}
+        'Link using vlink' {cs_link_vlink}
+       );
+    localswitchname : array[tlocalswitch] of string[50] =
+       { Switches which can be changed locally }
+       ('Local None', {cs_localnone}
+         { codegen }
+        'Check overflow', {cs_check_overflow}
+        'Check range', {cs_check_range}
+        'Check object error', {cs_check_object}
+        'Check I/O error', {cs_check_io}
+        'Check stack', {cs_check_stack}
+        'Check pointer', {cs_checkpointer}
+        'Check ordinal size', {cs_check_ordinal_size}
+        'Generate stackframes', {cs_generate_stackframes}
+        'Do assertions', {cs_do_assertion}
+        'Generate RTTI', {cs_generate_rtti}
+        'Full boolean evaluaion', {cs_full_boolean_eval}
+        'Typed constant are writable', {cs_typed_const_writable}
+        'Allow calcuation on enum types', {cs_allow_enum_calc}
+        'Do inline', {cs_do_inline}
+        'Add FWAIT instruction for FPU 8087', {cs_fpu_fwait}
+        'IEEE errors', {cs_ieee_errors}
+        'Check low address loading', {cs_check_low_addr_load}
+        'Imported data', {cs_imported_data}
+        'Excess precision', {cs_excessprecision}
+        'Check fpu exceptions', {cs_check_fpu_exceptions}
+        'Check all case coverage', {cs_check_all_case_coverage}
+         { mmx }
+        'Allow MMX instructions', {cs_mmx}
+        'Use MMX saturation', {cs_mmx_saturation}
+         { parser }
+        'Use typed addresses', {cs_typed_addresses}
+        'Use strict var strings', {cs_strict_var_strings}
+        'Use reference counted strings', {cs_refcountedstrings}
+        'Use bit-packing', {cs_bitpacking}
+        'Use var property setter', {cs_varpropsetter}
+        'Use scoped enums',{cs_scopedenums}
+        'Use pointer math', {cs_pointermath}
+         { macpas specific}
+        'MACPAS exteranl variable', {cs_external_var}
+        'MACPAS externally visible', {cs_externally_visible}
+         { jvm specific }
+        'JVM check var copyout', {cs_check_var_copyout}
+        'Zero based strings', {cs_zerobasedstrings}
+         { i8086 specific }
+        'i8086 force FAR calls', {cs_force_far_calls}
+        'i8086 huge pointer arithmetic', {cs_hugeptr_arithmetic_normalization}
+        'i8086 huge pointer comparison' {cs_hugeptr_comparison_normalization}
+       );
+    var
+         globalswitch  : tglobalswitch;
+         targetswitch  : ttargetswitch;
+         moduleswitch  : tmoduleswitch;
+         localswitch   : tlocalswitch;
+         modeswitch    : tmodeswitch;
+         optimizerswitch : toptimizerswitch;
+    begin
+       {alignment : talignmentinfo;}
+       {talignmentinfo = packed record}
+       writeln('Procedure alignment: '+tostr(new_settings.alignment.procalign));
+       writeln('Loop alignment: '+tostr(new_settings.alignment.loopalign));
+       { alignment for labels after unconditional jumps, this must be a power of two }
+       writeln('Jump alignment: '+tostr(new_settings.alignment.jumpalign));
+       { max. alignment for labels after unconditional jumps:
+         the compiler tries to align jumpalign, however, to do so it inserts at maximum jumpalignskipmax bytes or uses
+         the next smaller power of two of jumpalign }
+       writeln('Jump skip max alignment: '+tostr(new_settings.alignment.jumpalignskipmax));
+       { alignment for labels where two flows of the program flow coalesce, this must be a power of two }
+       writeln('Coalescence alignment: '+tostr(new_settings.alignment.coalescealign));
+       { max. alignment for labels where two flows of the program flow coalesce
+         the compiler tries to align to coalescealign, however, to do so it inserts at maximum coalescealignskipmax bytes or uses
+         the next smaller power of two of coalescealign }
+       writeln('Coalescence skip max alignment: '+tostr(new_settings.alignment.coalescealignskipmax));
+       writeln('Const min alignment: '+tostr(new_settings.alignment.constalignmin));
+       writeln('Const max alignment: '+tostr(new_settings.alignment.constalignmax));
+       writeln('Var min alignment: '+tostr(new_settings.alignment.varalignmin));
+       writeln('Var max alignment: '+tostr(new_settings.alignment.varalignmax));
+       writeln('Local min alignment: '+tostr(new_settings.alignment.localalignmin));
+       writeln('Local max alignment: '+tostr(new_settings.alignment.localalignmax));
+       writeln('Min record alignment: '+tostr(new_settings.alignment.recordalignmin));
+       writeln('Max record alignment: '+tostr(new_settings.alignment.recordalignmax));
+       writeln('Max C record alignment: '+tostr(new_settings.alignment.maxCrecordalign));
+       for globalswitch:=low(tglobalswitch) to high(tglobalswitch) do
+         if globalswitch in new_settings.globalswitches then
+           writeln('global switch: '+globalswitchname[globalswitch]);
+       for targetswitch:=low(ttargetswitch) to high(ttargetswitch) do
+         if targetswitch in new_settings.targetswitches then
+           writeln('target switch: '+targetswitchname[targetswitch]);
+       for moduleswitch:=low(tmoduleswitch) to high(tmoduleswitch) do
+         if moduleswitch in new_settings.moduleswitches then
+           writeln('module switch: '+moduleswitchname[moduleswitch]);
+       for localswitch:=low(tlocalswitch) to high(tlocalswitch) do
+         if localswitch in new_settings.localswitches then
+           writeln('local switch: '+localswitchname[localswitch]);
+       (* for modeswitch:=low(tmodeswitch) to high(tmodeswitch) do
+         if modeswitch in new_settings.modeswitches then
+           writeln('mode switch: '+modeswitchname[modeswitch]);
+       for optimizerswitch:=low(toptimizerswitch) to high(toptimizerswitch) do
+         if optimizerswitch in new_settings.optimizerswitches then
+           writeln('optimizer switch: '+optimizerswitchname[optimizerswitch]);*)
+    end;
 
   function readtoken: ttoken;
     var
@@ -1784,6 +2074,10 @@ begin
     end;
   if df_generic in defoptions then
     begin
+      last_line:=0;
+      last_col:=0;
+      linestr:='';
+      genstr:='';
       tokenbufsize:=ppufile.getlongint;
       writeln([space,' Tokenbuffer size : ',tokenbufsize]);
       tokenbuf:=allocmem(tokenbufsize);
@@ -1796,7 +2090,12 @@ begin
           if token<>_GENERICSPECIALTOKEN then
             begin
               if token <= high(ttoken) then
-                write(arraytokeninfo[token].str)
+                begin
+                  write(arraytokeninfo[token].str);
+                  if not (token in [_CWCHAR, _CWSTRING, _CSTRING, _CCHAR,
+                                    _INTCONST,_REALNUMBER, _ID]) then
+                    StrAppend(linestr,lowercase(arraytokeninfo[token].str));
+                end
               else
                 begin
                   HasMoreInfos;
@@ -1812,7 +2111,10 @@ begin
                 len:=gettokenbufsizeint;
                 setlength(wstring,len);
                 move(tokenbuf[tbi],wstring[1],len*2);
-                write([' ',wstring]);
+                write([' ''',wstring,'''']);
+                StrAppend(linestr,' ''');
+                StrAppend(linestr,wstring);
+                StrAppend(linestr,'''');
                 inc(tbi,len*2);
               end;
             _CSTRING:
@@ -1821,19 +2123,31 @@ begin
                 setlength(astring,len);
                 if len>0 then
                   move(tokenbuf[tbi],astring[1],len);
-                write([' ',astring]);
+                write([' ''',astring,'''']);
+                StrAppend(linestr,' ''');
+                StrAppend(linestr,astring);
+                StrAppend(linestr,'''');
                 inc(tbi,len);
               end;
-            _CCHAR,
+            _CCHAR:
+              begin
+                write([' ''',unaligned(pshortstring(@tokenbuf[tbi])^),'''']);
+                StrAppend(linestr,' ''');
+                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
+                StrAppend(linestr,'''');
+                inc(tbi,tokenbuf[tbi]+1);
+              end;
             _INTCONST,
             _REALNUMBER :
               begin
                 write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
+                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
                 inc(tbi,tokenbuf[tbi]+1);
               end;
             _ID :
               begin
                 write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
+                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
                 inc(tbi,tokenbuf[tbi]+1);
               end;
             _GENERICSPECIALTOKEN:
@@ -1842,15 +2156,20 @@ begin
                   byte or $80 used }
                 if (tokenbuf[tbi] and $80)<>0 then
                   begin
-                    write(['Col: ',tokenbuf[tbi] and $7f]);
+                    new_col:=tokenbuf[tbi] and $7f;
+                    write(['Col: ',new_col]);
+                    if length(linestr)<new_col-1 then
+                      StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
                     inc(tbi);
+                    last_col:=new_col;
                   end
                 else
                   case tspecialgenerictoken(tokenbuf[tbi]) of
                     ST_LOADSETTINGS:
                       begin
                         inc(tbi);
-                        write('Settings');
+                        write('Settings: ');
+                        fillchar(new_settings,sizeof(new_settings),#0);
                         { This does not load pmessage pointer }
                         new_settings.pmessage:=nil;
                         { TSettings size depends in target...
@@ -1863,6 +2182,8 @@ begin
                           min_size:= sizeof(tsettings)-sizeof(pointer);
                         move(tokenbuf[tbi],new_settings, min_size);
                         inc(tbi,copy_size);
+                        dump_new_settings;
+                        writeln;
                       end;
                     ST_LOADMESSAGES:
                       begin
@@ -1880,26 +2201,48 @@ begin
                     ST_LINE:
                       begin
                         inc(tbi);
-                        write(['Line: ',gettokenbufdword]);
+                        new_line:=gettokenbufdword;
+                        if (new_line<>last_line) then
+                          begin
+                            StrAppend(genstr,linestr+LineEnding);
+                            linestr:='';
+                          end;
+                        write(['Line: ',new_line]);
+                        last_line:=new_line;
                       end;
                     ST_COLUMN:
                       begin
                         inc(tbi);
-                        write(['Col: ',gettokenbufword]);
+                        new_col:=gettokenbufword;
+                        write(['Col: ',new_col]);
+                        if length(linestr)<new_col - 1 then
+                          StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
+                        last_col:=new_col;
                       end;
                     ST_FILEINDEX:
                       begin
                         inc(tbi);
+                        StrAppend(genstr,linestr+LineEnding);
+                        linestr:='';
                         write(['File: ',gettokenbufword]);
+                      end;
+                    else
+                      begin
+                        HasMoreInfos;
+                        write('Error in Token List');
+                        break;
                       end;
                   end;
               end;
+            else ; { empty else to avoid warning }
           end;
 
           if tbi<tokenbufsize then
             write(',');
         end;
       writeln;
+      StrAppend(genstr,linestr);
+      writeln(genstr);
       freemem(tokenbuf);
     end;
   if df_specialization in defoptions then
