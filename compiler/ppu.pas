@@ -102,6 +102,9 @@ type
     function getheadersize:longint;override;
     function getheaderaddr:pentryheader;override;
     procedure resetfile;override;
+{$ifdef DEBUG_PPU}
+    procedure ppu_log(st :string);override;
+{$endif}
   public
     header           : tppuheader;
     { crc for the entire unit }
@@ -235,6 +238,30 @@ begin
   result:=not crc_only;
 end;
 
+{$ifdef DEBUG_PPU}
+procedure tppufile.ppu_log(st :string);
+begin
+  inherited ppu_log(st);
+  if flog_open then
+    begin
+      if do_crc and (ppu_log_idx < bufstart+bufidx) then
+        begin
+          writeln(flog,'New crc : ',hexstr(dword(crc),8));
+          writeln(flog,'New interface crc : ',hexstr(dword(interface_crc),8));
+          writeln(flog,'New indirect crc : ',hexstr(dword(indirect_crc),8));
+          ppu_log_idx:=bufstart+bufidx;
+         end;
+    end;
+{$ifdef IN_PPUDUMP}
+  if update_crc then
+    begin
+      writeln('New crc : ',hexstr(dword(crc),8));
+      writeln('New interface crc : ',hexstr(dword(interface_crc),8));
+      writeln('New indirect crc : ',hexstr(dword(indirect_crc),8));
+    end;
+{$endif}
+end;
+{$endif}
 
 {*****************************************************************************
                                 TPPUFile Reading
