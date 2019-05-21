@@ -79,6 +79,8 @@ end;
 
 procedure LibMainAndroid; external name 'FPC_LIB_MAIN_ANDROID';
 
+procedure fpc_lib_exit_intern; external name 'FPC_LIB_EXIT';
+
 procedure atexit(p: pointer); cdecl; external;
 
 var
@@ -101,7 +103,7 @@ begin
   FpClose(_SaveStdOut);
   FpClose(_SaveStdErr);
   // Finalize the library
-  fpc_lib_exit;
+  fpc_lib_exit_intern;
   // Close stdout and stderr if stdio has been closed
   if ioclosed then
     begin
