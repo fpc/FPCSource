@@ -1024,6 +1024,7 @@ var
   SSLUtilFile: string = '';
 
 // libssl.dll
+  function OpenSSLGetVersion(t: cint):String;
   function SslGetError(s: PSSL; ret_code: cInt):cInt;
   function SslLibraryInit:cInt;
   procedure SslLoadErrorStrings;
