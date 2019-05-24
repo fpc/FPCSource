@@ -15,14 +15,17 @@
 
  **********************************************************************}
 
-{$ifdef FPC_USE_LIBC}
+{$ifndef FPC_USE_LIBC}
+{$error There's no support on Haiku for building without libc/libroot}
+{$endif}
 
-const clib = 'c';
+const
+  clib = 'root';
 
 type libcint=longint;
      plibcint=^libcint;
 
-function geterrnolocation: Plibcint; cdecl;external 'root' name '_errnop';
+function geterrnolocation: Plibcint; cdecl;external clib name '_errnop';
 
 function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
 
@@ -35,26 +38,6 @@ begin
   geterrnolocation^:=err;
 end;
 
-{$else}
-{$ifdef ver1_0}
-Var
-{$else}
-threadvar
-{$endif}
-      Errno : longint;
-
-function geterrno:longint; [public, alias: 'FPC_SYS_GETERRNO'];
-
-begin
- GetErrno:=Errno;
-end;
-
-procedure seterrno(err:longint); [public, alias: 'FPC_SYS_SETERRNO'];
-
-begin
- Errno:=err;
-end;
-{$endif}
 
 { OS dependant parts  }
 
@@ -62,17 +45,8 @@ end;
 {$I ostypes.inc}                        // c-types, unix base types, unix base structures
 {$I osmacro.inc}
 
-{$ifdef FPC_USE_LIBC}
-  {$Linklib c}
-  {$i oscdeclh.inc}
-  {$i oscdecl.inc}
-{$else}
-  {$I syscallh.inc}
-  {$I syscall.inc}
-  {$I sysnr.inc}
-  {$I ossysc.inc}
-{$endif}
-
+{$i oscdeclh.inc}
+{$i oscdecl.inc}
 
 {*****************************************************************************
                             Error conversion

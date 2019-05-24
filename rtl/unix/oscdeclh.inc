@@ -126,7 +126,7 @@ const
     Function  FPSigaction (sig: cInt; act :pSigActionRec;oact:pSigActionRec):cint;cdecl; external clib name 'sigaction';
 {$ifdef beos}
   {$ifdef haiku}
-    Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'network' name 'select';  
+    Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'network' name 'select';
     Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external clib name 'poll';
   {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
@@ -144,9 +144,8 @@ const
 {$linklib aio}
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external 'rt' name 'nanosleep';
 {$else solaris}
-{$ifndef beos}
+{$if not defined(beos) or defined(haiku)}
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external clib name 'nanosleep';
-{$else}
 {$endif}
 {$endif solaris}
     Function  fpSymlink    (oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
@@ -159,7 +158,7 @@ const
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
 
     function  fpgetenv  (name : pchar):pchar; cdecl; external clib name 'getenv';
-{$ifndef beos}    
+{$ifndef beos}
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 {$else}
 //    function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;

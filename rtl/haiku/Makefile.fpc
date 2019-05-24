@@ -6,17 +6,19 @@
 main=rtl
 
 [target]
-loaders=prt0 cprt0 dllcprt0 func dllprt
-units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 extpas strings \
-#      beos \
+loaders=$(LOADERS)
+units=system $(SYSINITUNITS) uuchar baseunix unixtype ctypes objpas macpas iso7185 extpas strings \
       errors dos dl \
       sysconst sysutils \
       types charset cpall character typinfo classes fgl math \
-      cpu mmx getopts heaptrc lineinfo lnfodwrf \
-      rtlconsts syscall unix unixutil termio initc \
+      cpu $(CPUUNITS) getopts heaptrc lineinfo lnfodwrf \
+      rtlconsts unix unixutil termio initc \
       cmem \
       dynlibs cwstring cthreads \
       fpintres unixcp fpwidestring
+
+# beos syscall
+
 rsts=math typinfo sysconst rtlconsts
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -59,8 +61,16 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 HAIKUINC=$(RTL)/haiku
-
+LOADERS=cprt0 dllcprt0
+CPUUNITS=mmx
+SYSINITUNITS=si_c si_dllc
 UNITPREFIX=rtl
+
+ifeq ($(ARCH),x86_64)
+override LOADERS=
+override CPUUNITS=
+endif
+
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -68,8 +78,7 @@ UNITPREFIX=rtl
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
-
-override FPCOPT+= -dHASUNIX -n -dFPC_USE_LIBC -Si
+override FPCOPT+=-dFPC_USE_LIBC
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -96,20 +105,12 @@ SYSTEMUNIT=system
 # Loaders
 #
 
-prt0$(OEXT) : $(CPU_TARGET)/prt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
         $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 
 dllcprt0$(OEXT) : $(CPU_TARGET)/dllcprt0.as
         $(AS) -o $(UNITTARGETDIRPREFIX)dllcprt0$(OEXT) $(CPU_TARGET)/dllcprt0.as
-
-func$(OEXT) : $(CPU_TARGET)/func.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)func$(OEXT) $(CPU_TARGET)/func.as
-
-dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)dllprt$(OEXT) $(CPU_TARGET)/dllprt.as
 
 #
 # system Units (system, Objpas, Strings)
