@@ -31,6 +31,7 @@ begin
 
     D:=P.Dependencies.Add('fcl-xml');
     D:=P.Dependencies.Add('fcl-base');
+    D:=P.Dependencies.Add('rtl-generics');
     D.Version:='3.3.1';
 
     P.SourcePath.Add('src');

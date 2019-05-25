@@ -6,7 +6,7 @@
   option) any later version.
 
   This program is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
   FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License
   for more details.
 
@@ -22,7 +22,7 @@ unit chmwriter;
 {$MODE OBJFPC}{$H+}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree, lzxcompressthread;
+uses Generics.Collections,Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree, lzxcompressthread;
 
 Const
    DefaultHHC = 'Default.hhc';
@@ -154,6 +154,7 @@ Type
     FAvlStrings   : TAVLTree;    // dedupe strings
     FAVLTopicdedupe : TAVlTree;  // Topic deduping, if we load it both from hhp and TOC
     FAvlURLStr    : TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
+    FDictTopicsUrlInd    : specialize TDictionary<string,integer>; // if url exists reuse topic.
     SpareString   : TStringIndex;
     SpareUrlStr   : TUrlStrIndex;
     FWindows      : TObjectList;
@@ -186,6 +187,7 @@ Type
     function AddURL(AURL: String; TopicsIndex: DWord): LongWord;
     procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
     function AddTopic(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
+    function AddTopicindex(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
     procedure ScanSitemap(asitemap:TCHMSiteMap);
     function NextTopicIndex: Integer;
     procedure Setwindows (AWindowList:TObjectList);
@@ -1521,6 +1523,7 @@ begin
   FDefaultWindow:= '';
   FMergeFiles   :=TStringList.Create;
   FNrTopics     :=0;
+  FDictTopicsUrlInd    :=specialize TDictionary<string,integer>.Create;
 end;
 
 destructor TChmWriter.Destroy;
@@ -1543,7 +1546,7 @@ begin
   FAVLTopicdedupe.FreeAndClear;
   FAVLTopicdedupe.free;
   FWindows.Free;
-
+  FDictTopicsUrlInd.Free;
   inherited Destroy;
 end;
 
@@ -1664,6 +1667,7 @@ var
     TopicEntry: TTopicEntry;
 
 begin
+    ATitle :=StringReplace(Atitle, '&x27;', '', [rfReplaceAll]);
     anurl:=StringReplace(anurl, '\', '/', [rfReplaceAll]);
     if ATitle <> '' then
       TopicEntry.StringsOffset := AddString(ATitle)
@@ -1691,6 +1695,35 @@ begin
     FTopicsStream.WriteDWord(LEtoN(TopicEntry.URLTableOffset));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.InContents));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.Unknown));
+    {$ifdef binindex}
+    writeln('topout:',result, ' ' , TopicEntry.StringsOffset,' ' ,TopicEntry.URLTableOffset, ' ',atitle,' - ', anurl);
+    {$endif}
+end;
+
+function TChmWriter.AddTopicindex(ATitle, AnUrl: AnsiString; code: integer
+  ): integer;
+
+begin
+   ATitle :=StringReplace(Atitle, '&x27;', '', [rfReplaceAll]);
+
+  // adhoc subsitutions. Replace with real code if exact behaviour is known.
+{  Atitle:=StringReplace(atitle, '&x27;', '''', [rfReplaceAll]);
+  if length(atitle)>0 then
+    atitle[1]:=uppercase(atitle[1])[1];}
+  {$ifdef binindex}
+  writeln('Enter ',ATitle,' ',AnUrl);
+  {$endif}
+  if FDictTopicsUrlInd.trygetvalue(anurl,result) then
+   begin
+     {$ifdef binindex}
+       writeln('found:',result);
+     {$endif}
+   end
+   else
+    begin
+      result:=addtopic(atitle,anurl);
+      FDictTopicsUrlInd.add(anurl,result);
+    end;
 end;
 
 procedure TChmWriter.ScanSitemap(asitemap:TCHMSiteMap);
@@ -2039,32 +2072,64 @@ begin
   inc(blockind,indexentrysize);
 end;
 
-procedure CreateEntry(Item:TChmSiteMapItem;Str:WideString;commaatposition:integer);
+procedure WritestrNT(var p:pbyte;const str:Unicodestring);
+var i : integer;
+    p2 : pbyte;
+begin
+  p2:=p;
+  for i:=1 to Length(str) do
+    WriteWord(p2,Word(str[i]));   // write the wstr in little endian
+  WriteWord(p2,0);                // NT
+  p:=p2;
+end;
+
+procedure CreateEntry(Item:TChmSiteMapItem;const Str:UnicodeString;commaatposition,level:integer);
 
 var p      : pbyte;
     topicid: integer;
     seealso: Integer;
     entrysize:Integer;
     i      : Integer;
+    sb :TChmSiteMapSubItem;
 begin
   inc(TotalEntries);
   fillchar(testblock[0],DefBlockSize,#0);
   p:=@TestBlock[0];
-  for i:=1 to Length(str) do
-    WriteWord(p,Word(str[i]));   // write the wstr in little endian
-  WriteWord(p,0);                // NT
-//  if item.seealso='' then    // no seealso for now
-    seealso:=0;
- // else
-//    seealso:=2;
+
+  WritestrNT(p,Str);
+  if item.seealso='' then    // no seealso for now
+    seealso:=0
+   else
+    seealso:=2;
   WriteWord(p,seealso);          // =0 not a see also 2 =seealso
-  WriteWord(p,0);                // Entrydepth.  We can't know it, so write 2.
+  WriteWord(p,level);            // Entrydepth.  We can't know it, so write 2.
   WriteDword(p,commaatposition); // position of the comma
   WriteDword(p,0);               // unused 0
-  WriteDword(p,1);               // for now only local pair.
-  TopicId:=AddTopic(Item.Text,item.Local);
-  WriteDword(p,TopicId);
-  // if seealso then _here_ a wchar NT string with seealso?
+
+  if seealso=2 then
+   begin
+     {$ifdef binindex}
+     write('!seealso');
+     {$endif}
+     WriteDword(p,1);
+     WritestrNT(p,item.seealso)
+   end
+  else
+    begin
+      WriteDword(p,item.SubItemcount);
+      for i:=0 to item.SubItemcount-1 do
+        begin
+          sb:=item.SubItem[i];
+          if sb.name='' then
+            sb.name:=item.name;
+          {$ifdef binindex}
+          writeln('---',sb.name,' ',sb.local);
+          {$endif}
+          TopicId:=AddTopicIndex(sb.Name,sb.Local);
+          WriteDword(p,TopicId);
+        end;
+    end;
+
   WriteDword(p,1);               // always 1 (unknown);
   WriteDword(p,mod13value);      //a value that increments with 13.
   mod13value:=mod13value+13;
@@ -2158,32 +2223,36 @@ begin
   Result:=blk-start;
 end;
 
-procedure CombineWithChildren(ParentItem:TChmSiteMapItem;Str:WideString;commaatposition:integer;first:boolean);
+procedure CombineWithChildren(ParentItem:TChmSiteMapItem;Str:UnicodeString;commaatposition:integer;level:integer);
 var i    : Integer;
-    Item : TChmSiteMapItem;
+    llItem : TChmSiteMapItem;
 begin
-  if ParentItem.Children.Count = 0 Then
-    Begin
+   str:=StringReplace(str, '&x27;', '', [rfReplaceAll]);
+   {$ifdef binindex}
+     writeln('i:',level,' ',str);
+   {$endif}
+//  if ParentItem.Children.Count = 0 Then
+//    Begin
      // comment/fix next
      //   if commatposition=length(str) then commaatposition:=0;
-       if first then
-        CreateEntry(ParentItem,Str,0)
+       if level=0 then
+        CreateEntry(ParentItem,Str,0,level)
        else
-        CreateEntry(ParentItem,Str,commaatposition);
-    End
-  Else
+        CreateEntry(ParentItem,Str,commaatposition,level);
+//    End
+//  Else
     for i:=0 to ParentItem.Children.Count-1 do
       begin
-        item := TChmSiteMapItem(ParentItem.Children.Item[i]);
-        if first Then
-          CombineWithChildren(Item,Str+', '+item.text,commaatposition+2,false)
-        else
-          CombineWithChildren(Item,Str+', '+item.text,commaatposition,false);
+        llitem := TChmSiteMapItem(ParentItem.Children.Item[i]);
+{        if level=0 Then
+          CombineWithChildren(Item,str+', '+item.text,0,level+1)
+        else}
+          CombineWithChildren(llItem,Str+', '+llitem.text,length(str)+2,level+1);
       end;
 end;
 
 Var i             : Integer;
-    Key           : WideString;
+    Key           : UnicodeString;
     Item          : TChmSiteMapItem;
     ListingBlocks : Integer;
     EntryBytes    : Integer;
@@ -2204,6 +2273,7 @@ begin
   {$ifdef binindex}
     writeln('starting index');
   {$endif}
+  ASiteMap.sort(@indexitemcompare);
   IndexStream:=TMemoryStream.Create;
   indexstream.size:=sizeof(TBTreeHeader);
   IndexStream.position:=Sizeof(TBTreeHeader);
@@ -2251,7 +2321,7 @@ begin
       // so we can see if Windows loads the binary or textual index.
       CombineWithChildren(Item,Key+'2',length(key)+1,true);
       {$else}
-      CombineWithChildren(Item,Key,length(key),true);
+      CombineWithChildren(Item,Key,length(key),0);
       {$endif}
     end;
   PrepareCurrentBlock(True);     // flush last listing block.
@@ -2420,7 +2490,6 @@ begin
   PostAddStreamToArchive(AName, '/', AStream);
 end;
 
-
 procedure TChmWriter.AddContext(AContext: DWord; ATopic: String);
 var
   Offset: DWord;
@@ -2448,7 +2517,6 @@ begin
 end;
 
 procedure TChmWriter.Setwindows(AWindowList: TObjectList);
-
 var i : integer;
     x : TCHMWindow;
 begin
