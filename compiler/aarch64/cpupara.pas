@@ -92,7 +92,7 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;
       const
-        saved_regs : array[0..9] of tsuperregister =
+        saved_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..9] of tsuperregister{$endif} =
           (RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X25,RS_X26,RS_X27,RS_X28);
       begin
         result:=saved_regs;
@@ -101,7 +101,8 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_mm(calloption: tproccalloption): tcpuregisterarray;
       const
-        saved_mm_regs : array[0..7] of tsuperregister = (RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15);
+        saved_mm_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..7] of tsuperregister{$endif} =
+          (RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15);
       begin
         result:=saved_mm_regs;
       end;

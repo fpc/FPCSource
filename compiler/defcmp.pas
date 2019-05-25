@@ -1037,8 +1037,8 @@ implementation
                                { dynamic array -> dynamic array }
                                if is_dynamic_array(def_from) then
                                  eq:=te_equal
-                               { fpc modes only: array -> dyn. array }
-                               else if (current_settings.modeswitches*[m_objfpc,m_fpc]<>[]) and
+                               { regular array -> dynamic array }
+                               else if (m_array2dynarray in current_settings.modeswitches) and
                                  not(is_special_array(def_from)) and
                                  is_zero_based_array(def_from) then
                                  begin
