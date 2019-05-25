@@ -1989,6 +1989,7 @@ packages/fcl-base/examples/stringl.pp svneol=native#text/plain
 packages/fcl-base/examples/tarmakercons.pas svneol=native#text/plain
 packages/fcl-base/examples/tarmakerconsgzip.pas svneol=native#text/plain
 packages/fcl-base/examples/testapp.pp svneol=native#text/plain
+packages/fcl-base/examples/testappexit.pp svneol=native#text/plain
 packages/fcl-base/examples/testbf.pp svneol=native#text/plain
 packages/fcl-base/examples/testbs.pp svneol=native#text/plain
 packages/fcl-base/examples/testcgi.html -text
