@@ -1372,8 +1372,8 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
-        win64_saved_std_regs : array[0..7] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
-        others_saved_std_regs : array[0..4] of tsuperregister = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
+        win64_saved_std_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..7] of tsuperregister{$endif} = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
+        others_saved_std_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..4] of tsuperregister{$endif} = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
       begin
         if tcgx86_64(cg).use_ms_abi then
           result:=win64_saved_std_regs
@@ -1384,7 +1384,7 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_mm(calloption: tproccalloption):tcpuregisterarray;
       const
-        win64_saved_xmm_regs : array[0..9] of tsuperregister = (RS_XMM6,RS_XMM7,
+        win64_saved_xmm_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..9] of tsuperregister{$endif} = (RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
       begin
         if tcgx86_64(cg).use_ms_abi then
