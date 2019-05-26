@@ -165,7 +165,11 @@ procedure TLinkerBSD.SetDefaultInfo;
 {
   This will also detect which libc version will be used
 }
+var
+  LdProgram: string='ld';
 begin
+  if target_info.system in systems_openbsd then
+    LdProgram:='ld.bfd';
   LibrarySuffix:=' ';
   LdSupportsNoResponseFile := (target_info.system in ([system_m68k_netbsd]+systems_darwin));
   with Info do
@@ -174,8 +178,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -L. -o $EXE $CATRES $FILELIST';
-             DllCmd[1]:='ld $TARGET $EMUL $OPT $MAP $ORDERSYMS -shared -L. -o $EXE $CATRES $FILELIST'
+             ExeCmd[1]:=LdProgram+' $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -L. -o $EXE $CATRES $FILELIST';
+             DllCmd[1]:=LdProgram+' $TARGET $EMUL $OPT $MAP $ORDERSYMS -shared -L. -o $EXE $CATRES $FILELIST'
            end
          else
            begin
@@ -194,22 +198,22 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
+               ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
+             ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $ORDERSYMS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
+               DllCmd[1]:=LdProgram+' $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $ORDERSYMS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
              else
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $ORDERSYMS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
+               DllCmd[1]:=LdProgram+' $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $ORDERSYMS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
            end
        end
      else
        begin
-         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -L. -o $EXE $RES';
-         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME $MAP $ORDERSYMS -shared -L. -o $EXE $RES';
+         ExeCmd[1]:=LdProgram+' $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $ORDERSYMS -L. -o $EXE $RES';
+         DllCmd[1]:=LdProgram+' $TARGET $EMUL $OPT $INIT $FINI $SONAME $MAP $ORDERSYMS -shared -L. -o $EXE $RES';
        end;
      if not(target_info.system in systems_darwin) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
