@@ -681,10 +681,20 @@ Implementation
         if cs_link_on_target in current_settings.globalswitches then
           begin
             { If linking on target, don't add any path PM }
-            FindUtil:=ChangeFileExt(s,target_info.exeext);
+            { change extension only on platforms that use an exe extension, otherwise on OpenBSD 'ld.bfd' gets
+              converted to 'ld' }
+            if target_info.exeext<>'' then
+              FindUtil:=ChangeFileExt(s,target_info.exeext)
+            else
+              FindUtil:=s;
             exit;
           end;
-        UtilExe:=ChangeFileExt(s,source_info.exeext);
+        { change extension only on platforms that use an exe extension, otherwise on OpenBSD 'ld.bfd' gets converted
+          to 'ld' }
+        if source_info.exeext<>'' then
+          UtilExe:=ChangeFileExt(s,source_info.exeext)
+        else
+          UtilExe:=s;
         FoundBin:='';
         Found:=false;
         if utilsdirectory<>'' then
