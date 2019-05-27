@@ -110,9 +110,10 @@ type
     property IncreaseImageIndex: Boolean read FIncreaseImageIndex write FIncreaseImageIndex;
     property Comment: String read FComment write FComment;
     property Owner: TChmSiteMapItems read FOwner;
-    property Local : string read getlocal; // deprecated;             // should work on ALL pairs
-    property Text : string read fname write fname; // deprecated;     // should work on ALL pairs
-    property SeeAlso : string read getseealso; // deprecated;     // should work on ALL pairs
+    property Keyword : string read fname; // deprecated;             // Use name, sitemaps don't store the difference.
+    property Local : string read getlocal; // deprecated;            // should work on ALL pairs
+    property Text : string read fname write fname; // deprecated;    // should work on ALL pairs
+    property SeeAlso : string read getseealso; // deprecated;        // should work on ALL pairs
     property FrameName: String read FFrameName write FFrameName;
     property WindowName: String read FWindowName write FWindowName;
     property Merge: String read FMerge write FMerge;
