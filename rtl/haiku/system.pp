@@ -38,7 +38,7 @@ function disable_debugger(state : integer): integer; cdecl; external 'root' name
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
-{$ifdef i386}
+{$ifdef legacy_startup}
 procedure prthaltproc;external name '_haltproc';
 
 procedure system_exit;
@@ -47,14 +47,14 @@ begin
     jmp prthaltproc
   end;
 End;
-{$else i386}
+{$else legacy_startup}
 procedure haltproc(exitcode: longint); cdecl; external name '_haltproc';
 
 procedure system_exit;
 begin
   haltproc(ExitCode);
 end;
-{$endif i386}
+{$endif legacy_startup}
 
 
 { OS dependant parts  }
