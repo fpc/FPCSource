@@ -389,7 +389,6 @@ begin
     Result:=TMemoryStream.Create;
     P.ParseStream(F,Result);
     Result.Position:=0;
-    TMemoryStream(Result).SaveToFile('/tmp/opts.xml');
   finally
     FreeAndNil(F);
     FreeAndNil(P);
