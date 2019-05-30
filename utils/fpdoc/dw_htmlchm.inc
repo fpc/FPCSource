@@ -289,7 +289,7 @@ var
   ParentElement: TPasElement;
   MemberItem: TChmSiteMapItem;
   Stream: TMemoryStream;
-  s: String;
+  s,s2: String;
 
 begin
   DoLog('Generating Index...');
@@ -354,7 +354,12 @@ begin
 
           TmpItem := MemberItem.Children.NewItem;
           TmpItem.Text := ParentElement.Name;
-          TmpITem.addLocal(FixHTMLpath(Allocator.GetFilename(TmpElement, 0)));
+          s2:=Allocator.GetFilename(TmpElement, 0);
+          if s<>s2 then
+            begin
+              writeln('Hint: Index2 Resolved:',tmpitem.local,' to ',s);
+              TmpItem.AddLocal(s);
+            end;
         end;
       end;
       // routines
