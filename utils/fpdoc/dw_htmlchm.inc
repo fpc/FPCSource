@@ -289,7 +289,7 @@ var
   ParentElement: TPasElement;
   MemberItem: TChmSiteMapItem;
   Stream: TMemoryStream;
-  s,s2: String;
+  RedirectUrl,Urls: String;
 
 begin
   DoLog('Generating Index...');
@@ -317,15 +317,23 @@ begin
         for k := 0 to TPasClassType(ParentElement).Members.Count-1 do
         begin
           TmpElement := TPasElement(TPasClassType(ParentElement).Members.Items[k]);
-          s:=''; 
-          if TmpElement is TPasEnumValue then
-             s := UTF8Encode(ResolveLinkIDAbs(tmpElement.Parent.PathName))
-           else
-             s := UTF8Encode(ResolveLinkIDAbs(tmpElement.PathName));
-           if Engine.HidePrivate and(TmpElement.Visibility = visPrivate) then
+          if Engine.HidePrivate and(TmpElement.Visibility = visPrivate) then
             continue;
           if Engine.HideProtected and(TmpElement.Visibility = visProtected) then
             continue;
+          Urls:=FixHTMLpath(Allocator.GetFilename(TmpElement, 0));
+          RedirectUrl:='';
+          if TmpElement is TPasEnumValue then
+             RedirectUrl := UTF8Encode(ResolveLinkIDAbs(tmpElement.Parent.PathName))
+           else
+             RedirectUrl := UTF8Encode(ResolveLinkIDAbs(tmpElement.PathName));
+
+          if(trim(RedirectUrl)<>'') and (RedirectUrl<>urls) then
+            begin
+              writeln('Hint: Index Resolved:',urls,' to ',RedirectUrl);
+              urls:=RedirectUrl;
+            end;
+
           TmpItem := ParentItem.Children.NewItem;
           case ElementType(TmpElement) of
             cmtProcedure   : TmpItem.Text := TmpElement.Name + ' procedure';
@@ -337,13 +345,7 @@ begin
             cmtInterface   : TmpItem.Text := TmpElement.Name + ' interface';
             cmtUnknown     : TmpItem.Text := TmpElement.Name;
           end;
-          TmpItem.addLocal(FixHTMLpath(Allocator.GetFilename(TmpElement, 0)));
-          if (trim(s)<>'') and (tmpitem.local<>s) then
-            begin
-              writeln('Hint: Index: Resolved:',tmpitem.local,' to ',s);
-              tmpitem.addLocal(s);
-            end;
-
+          TmpItem.addLocal(Urls);
           {
           ParentElement = Class
              TmpElement = Member
@@ -351,17 +353,11 @@ begin
           MemberItem := nil;
           MemberItem := GetAlphaItem(Index.Items, TmpElement.Name);
           // ahh! if MemberItem.Local is empty MemberType is not shown!
-          MemberItem.addLocal(FixHTMLpath(Allocator.GetFilename(TmpElement, 0)));
+          MemberItem.addLocal(Urls);
 
           TmpItem := MemberItem.Children.NewItem;
           TmpItem.Text := ParentElement.Name;
-          s2:=Allocator.GetFilename(TmpElement, 0);
-          tmpitem.addlocal(s2); 
-          if(trim(s)<>'') and (s<>s2) then
-            begin
-              writeln('Hint: Index2 Resolved:',tmpitem.local,' to ',s);
-              TmpItem.AddLocal(s);
-            end;
+          TmpItem.AddLocal(Urls);
         end;
       end;
       // routines
