@@ -1361,7 +1361,7 @@ function TChmReader.GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
       Item: TChmSiteMapItem;
       NextEntry: DWord;
       TopicsIndex: DWord;
-      Title: String;
+      Title, Local : String;
     begin
       Toc.Position:= AItemOffset + 4;
       Item := SiteMapITems.NewItem;
@@ -1371,8 +1371,9 @@ function TChmReader.GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
       else
       begin
         TopicsIndex := LEtoN(TOC.ReadDWord);
-        Item.AddName(title);
-        Item.addLocal(LookupTopicByID(TopicsIndex, Title));
+        Local:=LookupTopicByID(TopicsIndex, Title);
+        Item.AddName(Title);
+        Item.AddLocal(Local);
       end;
       TOC.ReadDWord;
       Result := LEtoN(TOC.ReadDWord);
