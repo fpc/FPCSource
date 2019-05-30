@@ -317,6 +317,7 @@ begin
         for k := 0 to TPasClassType(ParentElement).Members.Count-1 do
         begin
           TmpElement := TPasElement(TPasClassType(ParentElement).Members.Items[k]);
+          s:=''; 
           if TmpElement is TPasEnumValue then
              s := UTF8Encode(ResolveLinkIDAbs(tmpElement.Parent.PathName))
            else
@@ -355,7 +356,8 @@ begin
           TmpItem := MemberItem.Children.NewItem;
           TmpItem.Text := ParentElement.Name;
           s2:=Allocator.GetFilename(TmpElement, 0);
-          if s<>s2 then
+          tmpitem.addlocal(s2); 
+          if(trim(s)<>'') and (s<>s2) then
             begin
               writeln('Hint: Index2 Resolved:',tmpitem.local,' to ',s);
               TmpItem.AddLocal(s);
