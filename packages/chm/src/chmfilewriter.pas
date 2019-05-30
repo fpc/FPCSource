@@ -68,7 +68,8 @@ type
     FIndex         : TCHMSiteMap;
     FTocStream,
     FIndexStream   : TMemoryStream;
-    FCores	   : integer;
+    FCores         : Integer;
+    FLocaleID      : Word;
   protected
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
@@ -113,7 +114,8 @@ type
     property ScanHtmlContents  : Boolean read fScanHtmlContents write fScanHtmlContents;
     property ReadmeMessage : String read FReadmeMessage write FReadmeMessage;
     property AllowedExtensions : TStringList read FAllowedExtensions;
-    property Cores : integer read fcores write fcores; 
+    property Cores : integer read fcores write fcores;
+    property LocaleID: word read FLocaleID write FLocaleID;
   end;
 
   TChmContextNode = Class
@@ -272,6 +274,23 @@ begin
     inc(result);
 end;
 
+// hex codes of LCID (Locale IDs) see at http://msdn.microsoft.com/en-us/goglobal/bb964664.aspx
+function GetLanguageID(const sValue: String): word;
+const
+  DefaultLCID = $0409; // default "English - United States", 0x0409
+var
+  ACode: word;
+begin
+  Result := DefaultLCID;
+  if Length(sValue) >= 5 then
+  begin
+    Val(Trim(Copy(sValue, 1, 6)), Result, ACode);
+    //if Code <> 0 then
+    //Result := DefaultLCID;
+  end
+end;
+
+
 procedure TChmProject.readIniOptions(keyvaluepairs:tstringlist);
 var i : integer;
     Opt : TOptionEnum;
@@ -308,7 +327,7 @@ begin
       OPTFULL_TEXT_SEARCH          : MakeSearchable:=optvalupper='YES';
       OPTIGNORE                    : ;
       OPTINDEX_FILE                : Indexfilename:=optval;
-      OPTLANGUAGE                  : ;
+      OPTLANGUAGE                  : LocaleID := GetLanguageID(optval);
       OPTPREFIX                    : ;  // doesn't seem to have effect
       OPTSAMPLE_STAGING_PATH       : ;
       OPTSAMPLE_LIST_FILE          : ;
@@ -401,6 +420,7 @@ begin
   DefaultFont  := Cfg.GetValue('Settings/DefaultFont/Value', '');
   DefaultWindow:= Cfg.GetValue('Settings/DefaultWindow/Value', '');
   ScanHtmlContents:=  Cfg.GetValue('Settings/ScanHtmlContents/Value', False);
+  LocaleID := Cfg.GetValue('Settings/LocaleID/Value', $0409);
 
   Cfg.Free;
 end;
@@ -698,7 +718,7 @@ begin
 
   Cfg.SetValue('Settings/DefaultWindow/Value', DefaultWindow);
   Cfg.SetValue('Settings/ScanHtmlContents/Value', ScanHtmlContents);
-
+  Cfg.SetValue('Settings/LocaleID/Value', LocaleID);
 
   Cfg.Flush;
   Cfg.Free;
@@ -1178,6 +1198,7 @@ begin
   Writer.TocName   := ExtractFileName(TableOfContentsFileName);
   Writer.ReadmeMessage := ReadmeMessage;
   Writer.DefaultWindow := FDefaultWindow;
+  Writer.LocaleID := FLocaleID;
   for i:=0 to files.count-1 do
     begin
       nd:=TChmContextNode(files.objects[i]);

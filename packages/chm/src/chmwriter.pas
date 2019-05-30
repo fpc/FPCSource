@@ -126,7 +126,8 @@ Type
     property TempRawStream: TStream read FTempStream write SetTempRawStream;
     property ReadmeMessage : String read fReadmeMessage write fReadmeMessage;
     property Cores : integer read fcores write fcores;
-    //property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
+    { MS Locale ID code }
+    property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
   end;
 
   { TChmWriter }
