@@ -3068,7 +3068,7 @@ implementation
                   system_x86_64_linux,system_x86_64_freebsd,
                   system_x86_64_openbsd,system_x86_64_netbsd,
                   system_x86_64_solaris,system_x86_64_embedded,
-                  system_x86_64_dragonfly] then
+                  system_x86_64_dragonfly,system_x86_64_haiku] then
                savesize:=16
              else
                savesize:=12;
