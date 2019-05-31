@@ -426,7 +426,12 @@ begin
         InputUntypedTypes[i + 1] := Nil;
     end;
 
-    impl := method.CreateImplementation({$ifdef fpc}@{$endif}OnHandleInvokable);
+    try
+      impl := method.CreateImplementation({$ifdef fpc}@{$endif}OnHandleInvokable);
+    except
+      on e: ENotImplemented do
+        Exit;
+    end;
     CheckNotNull(impl, 'Method implementation is Nil');
 
     mrec.Data := Self;
@@ -501,7 +506,12 @@ begin
         InputUntypedTypes[i] := Nil;
     end;
 
-    impl := proc.CreateImplementation({$ifdef fpc}@{$endif}OnHandleInvokable);
+    try
+      impl := proc.CreateImplementation({$ifdef fpc}@{$endif}OnHandleInvokable);
+    except
+      on e: ENotImplemented do
+        Exit;
+    end;
     CheckNotNull(impl, 'Method implementation is Nil');
 
     cp := impl.CodeAddress;
@@ -555,7 +565,12 @@ procedure TTestImpl.TestIntfMethods;
 var
   intf: ITestInterface;
 begin
-  intf := TVirtualInterface.Create(PTypeInfo(TypeInfo(ITestInterface)), {$ifdef fpc}@{$endif}OnHandleIntfMethod) as ITestInterface;
+  try
+    intf := TVirtualInterface.Create(PTypeInfo(TypeInfo(ITestInterface)), {$ifdef fpc}@{$endif}OnHandleIntfMethod) as ITestInterface;
+  except
+    on e: ENotImplemented do
+      Exit;
+  end;
   Check(Assigned(intf), 'ITestInterface instance is Nil');
 
   {$ifdef fpc}specialize{$endif}GenDoIntfImpl<ITestInterface>(intf, 1, [], [], [], TValue.Empty);
