@@ -20,6 +20,8 @@ Unit System;
                                     interface
 {*****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_STACKTOP}
+
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 
@@ -202,6 +204,14 @@ const calculated_cmdline:Pchar=nil;
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
+var
+ _stack_top: record end; external name '_stack_top';
+
+function StackTop: pointer;
+begin
+  StackTop:=@_stack_top;
+end;
+
 
 procedure haltproc;cdecl;external name '_haltproc';
 
@@ -276,7 +286,7 @@ begin
 end;
 
 var
-  initialstkptr : Pointer; // external name '__stkptr';
+  initialstkptr : record end; external name '_stack_top';
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
 begin
@@ -293,7 +303,7 @@ begin
 
 {$ifdef FPC_HAS_FEATURE_STACKCHECK}
   StackLength := CheckInitialStkLen(initialStkLen);
-  StackBottom := initialstkptr - StackLength;
+  StackBottom := @initialstkptr - StackLength;
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
