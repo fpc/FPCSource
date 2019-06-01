@@ -42,6 +42,8 @@ Type
     function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
     function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
 
+    function InvertSkipInstruction(var p: tai): boolean;
+
     { uses the same constructor as TAopObj }
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
@@ -224,6 +226,71 @@ Implementation
           Inc(i);
         end;
     end;
+
+
+  {
+    Turns
+      sbis ?
+      jmp .Lx
+      op
+    .Lx:
+
+    Into
+      sbic ?
+      op
+
+    For all types of skip instructions
+  }
+  function TCpuAsmOptimizer.InvertSkipInstruction(var p: tai): boolean;
+
+    function GetNextInstructionWithoutLabel(p: tai; var next: tai): boolean;
+      begin
+        repeat
+          result:=GetNextInstruction(p,next);
+          p:=next;
+        until
+          (not result) or
+          (not assigned(next)) or
+          (next.typ in [ait_instruction]);
+
+        result:=assigned(next) and (next.typ in [ait_instruction]);
+      end;
+
+    var
+      hp1, hp2, hp3: tai;
+      s: string;
+    begin
+      result:=false;
+
+      if GetNextInstruction(taicpu(p),hp1) and
+        (hp1.typ=ait_instruction) and
+        (taicpu(hp1).opcode in [A_RJMP,A_JMP]) and
+        (taicpu(hp1).ops=1) and
+        (taicpu(hp1).oper[0]^.typ=top_ref) and
+        (taicpu(hp1).oper[0]^.ref^.offset=0) and
+        (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) and
+        GetNextInstructionWithoutLabel(hp1,hp2) and
+        (hp2.typ=ait_instruction) and
+        (not taicpu(hp2).is_jmp) and
+        GetNextInstruction(hp2,hp3) and
+        FindLabel(TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol),hp3) then
+        begin
+          DebugMsg('SkipJump2InvertedSkip', p);
+
+          case taicpu(p).opcode of
+            A_SBIS: taicpu(p).opcode:=A_SBIC;
+            A_SBIC: taicpu(p).opcode:=A_SBIS;
+            A_SBRS: taicpu(p).opcode:=A_SBRC;
+            A_SBRC: taicpu(p).opcode:=A_SBRS;
+          end;
+
+          TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol).decrefs;
+
+          asml.remove(hp1);
+          hp1.free;
+        end;
+    end;
+
 
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
@@ -520,6 +587,9 @@ Implementation
 
                         result:=true;
                       end;
+
+                    if InvertSkipInstruction(p) then
+                      result:=true;
                   end;
                 A_ANDI:
                   begin
@@ -1023,33 +1093,8 @@ Implementation
                           op
                         .L1:
                     }
-                    if GetNextInstruction(p, hp1) and
-                       (hp1.typ=ait_instruction) and
-                       (taicpu(hp1).opcode in [A_JMP,A_RJMP]) and
-                       (taicpu(hp1).ops>0) and
-                       (taicpu(hp1).oper[0]^.typ = top_ref) and
-                       (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) and
-                       GetNextInstruction(hp1, hp2) and
-                       (hp2.typ=ait_instruction) and
-                       (not taicpu(hp2).is_jmp) and
-                       GetNextInstruction(hp2, hp3) and
-                       (hp3.typ=ait_label) and
-                       (taicpu(hp1).oper[0]^.ref^.symbol=tai_label(hp3).labsym) then
-                      begin
-                        DebugMsg('Peephole SbiJmp2Sbi performed',p);
-
-                        if taicpu(p).opcode=A_SBIC then
-                          taicpu(p).opcode:=A_SBIS
-                        else
-                          taicpu(p).opcode:=A_SBIC;
-
-                        tai_label(hp3).labsym.decrefs;
-
-                        AsmL.remove(hp1);
-                        taicpu(hp1).Free;
-
-                        result:=true;
-                      end
+                    if InvertSkipInstruction(p) then
+                      result:=true
                     {
                       Turn
                           sbiX X, y
