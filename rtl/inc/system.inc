@@ -44,7 +44,11 @@ type
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 const
+{$ifdef CPUAVR}
+  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+{$else}
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
+{$endif}
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
 
