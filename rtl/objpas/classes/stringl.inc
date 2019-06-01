@@ -162,6 +162,7 @@ begin
   FNameValueSeparator:=c;
 end;
 
+
 Function TStrings.GetNameValueSeparator :Char;
 begin
   CheckSpecialChars;
@@ -248,8 +249,13 @@ begin
     AName:=Copy(AValue,1,L-1);
     System.Delete(AValue,1,L);
     end
+  else if PreferValuesToNames then
+    AName:=''
   else
-    AName:='';
+    begin
+    aName:=aValue;
+    aValue:='';
+    end;
 end;
 
 function TStrings.ExtractName(const s:String):String;

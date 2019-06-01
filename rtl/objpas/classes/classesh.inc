@@ -602,7 +602,6 @@ type
   end;
 
 { TStrings class }
-
   TStrings = class(TPersistent)
   private
     FDefaultEncoding: TEncoding;
@@ -618,6 +617,7 @@ type
     FSkipLastLineBreak : Boolean;
     FStrictDelimiter : Boolean;
     FLineBreak : String;
+    FPreferValuesToNames,
     FWriteBOM: Boolean;
     function GetCommaText: string;
     function GetName(Index: Integer): string;
@@ -736,6 +736,7 @@ type
     property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
     Property SkipLastLineBreak : Boolean Read GetSkipLastLineBreak Write SetSkipLastLineBreak;
     property WriteBOM: Boolean read FWriteBOM write FWriteBOM;
+    Property PreferValuesToNames : Boolean Read FPreferValuesToNames Write FPreferValuesToNames;
   end;
 
 { TStringList class }
