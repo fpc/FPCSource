@@ -32,37 +32,43 @@ procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
-var
-  pdest,psrc,pend : pbyte;
-begin
-  if (@dest=@source) or (count<=0) then
-    exit;
-  if (@dest<@source) or (@source+count<@dest) then
-    begin
-      { Forward Move }
-      psrc:=@source;
-      pdest:=@dest;
-      pend:=psrc+count;
-      while psrc<pend do
-        begin
-          pdest^:=psrc^;
-          inc(pdest);
-          inc(psrc);
-        end;
-    end
-  else
-    begin
-      { Backward Move }
-      psrc:=@source+count;
-      pdest:=@dest+count;
-      while psrc>@source do
-        begin
-          dec(pdest);
-          dec(psrc);
-          pdest^:=psrc^;
-        end;
-    end;
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE']; assembler; nostackframe;
+asm
+  push r28
+  push r29
+
+  movw r26, r24         // Src=X
+  movw r28, r22         // Dest=Y
+  movw r30, r20         // Count=Z
+  cp r1, r30
+  cpc r1, r31
+  brge .Lexit           // if 0 >= Count
+  cp  r28, r26
+  cpc r29, r27
+  breq .Lexit           // if dest = source
+  brlo .LForwardMove    // if dest < source
+
+  // Add count to both pointers
+  add r26, r30
+  adc r27, r31
+  add r28, r30
+  adc r29, r31
+.LBackwardMove:
+  ld r18, -X
+  st -Y, r18
+  sbiw Z, 1
+  brne .LBackwardMove
+  rjmp .Lexit
+
+.LForwardMove:
+  ld r18, X+
+  st Y+, r18
+  sbiw Z, 1
+  brne .LForwardMove
+.Lexit:
+
+  pop r29
+  pop r28
 end;
 
 
