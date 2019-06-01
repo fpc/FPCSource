@@ -25,7 +25,7 @@ unit chmfilewriter;
 interface
 
 uses
-  Strings, Classes, SysUtils, chmwriter, inifiles, contnrs, chmsitemap, avl_tree,
+  Classes, SysUtils, chmwriter, inifiles, contnrs, chmsitemap, avl_tree,
   {for html scanning } dom,SAX_HTML,dom_html;
 
 type
@@ -85,6 +85,7 @@ type
     procedure LoadFromFile(AFileName: String); virtual;
     procedure LoadFromhhp (AFileName:String;LeaveInclude:Boolean); virtual;
     procedure SaveToFile(AFileName: String); virtual;
+    procedure SaveToHHP(AFileName: String);
     procedure WriteChm(AOutStream: TStream); virtual;
     procedure ShowUndefinedAnchors;
     function ProjectDir: String;
@@ -120,11 +121,9 @@ type
 
   TChmContextNode = Class
                      URLName       : AnsiString;
-                     ContextNumber : Integer;
+                     ContextNumber : THelpContext;
                      ContextName   : AnsiString;
                     End;
-
-
 
 Const
   ChmErrorKindText : array[TCHMProjectErrorKind] of string = ('Error','Warning','Hint','Note','');
@@ -936,10 +935,7 @@ var
   domdoc : THTMLDocument;
   i,j    : Integer;
   fn,reffn   : string;
-  ext    : String;
   tmplst : Tstringlist;
-  strrec : TStringIndex;
-  //localpath : string;
 
 function trypath(const vn:string):boolean;
 var vn2: String;
@@ -1081,7 +1077,7 @@ begin
     end;
 end;
 
-var i : integer;
+var
     localfilelist: TStringList;
 
 begin
@@ -1288,5 +1284,101 @@ begin
 end;
 
 
+function BoolAsStr(b: Boolean): string;
+begin
+  if b then
+    Result := 'Yes'
+  else
+    Result := 'No';
+end;
+
+procedure TChmProject.SaveToHHP(AFileName: String);
+var
+  sl: TStringList;
+  s : string;
+  i: Integer;
+  ContextItem: TChmContextNode;
+
+  procedure SetOption(const AKey, AValue: string);
+  begin
+    if AValue <> '' then
+      sl.Add(AKey + '=' + AValue);
+  end;
+
+begin
+  sl := TStringList.Create();
+  try
+    sl.Add('[OPTIONS]');
+    SetOption('Title', Title);
+    SetOption('Compatibility', '1.1 or later');
+    SetOption('Compiled file', OutputFileName);
+    SetOption('Default Topic', DefaultPage);
+    SetOption('Default Font', DefaultFont);
+    SetOption('Default Window', DefaultWindow);
+    SetOption('Display compile progress', 'Yes');
+    //SetOption('Error log file', 'errors.log');
+    SetOption('Contents file', TableOfContentsFileName);
+    //SetOption('Auto Index', BoolAsStr(MakeBinaryIndex));
+    SetOption('Index file', IndexFileName);
+    SetOption('Binary Index', BoolAsStr(MakeBinaryIndex));
+    SetOption('Binary TOC', BoolAsStr(MakeBinaryTOC));
+    SetOption('Full-text search', BoolAsStr(MakeSearchable));
+    SetOption('Language', '0x' + IntToHex(LocaleID, 4));
+
+    sl.Add('');
+    sl.Add('[FILES]');
+    for i := 0 to Files.Count - 1 do
+    begin
+      s := StringReplace(Files.Strings[i], '/', '\', [rfReplaceAll]);
+      sl.Add(s);
+    end;
+
+    if MergeFiles.Count > 0 then
+    begin
+      sl.Add('');
+      sl.Add('[MERGE FILES]');
+      for i := 0 to MergeFiles.Count - 1 do
+      begin
+        sl.Add(MergeFiles.Strings[i]);
+      end;
+    end;
+
+    if Windows.Count > 0 then
+    begin
+      sl.Add('');
+      sl.Add('[WINDOWS]');
+      for i := 0 to Windows.Count-1 do
+      begin
+        TCHMWindow(Windows[i]).SaveToIni(s);
+        sl.Add(s);
+      end;
+    end;
+
+    if Files.Count > 0 then
+    begin
+      sl.Add('');
+      sl.Add('[ALIAS]');
+      for i := 0 to Files.Count - 1 do
+      begin
+        contextitem:=TChmContextNode(files.objects[i]);
+        if assigned(contextitem) then
+          sl.Add(ContextItem.ContextName + '=' + ContextItem.UrlName);
+      end;
+
+      sl.Add('');
+      sl.Add('[MAP]');
+      for I := 0 to Files.Count-1 do
+      begin
+        contextitem:=TChmContextNode(files.objects[i]);
+        if assigned(contextitem) then
+          sl.Add('#define ' + ContextItem.ContextName + ' ' + IntToStr(ContextItem.ContextNumber));
+      end;
+    end;
+
+    sl.SaveToFile(AFileName);
+  finally
+    sl.Free();
+  end;
+end;
 end.
 
