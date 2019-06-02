@@ -46,15 +46,27 @@ asm
 
   cp R24, R1
   brne start
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call get_pc_addr
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall get_pc_addr
+{$endif CPUAVR_HAS_JMP_CALL}
   movw R20, R24
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call get_frame
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall get_frame
+{$endif CPUAVR_HAS_JMP_CALL}
   movw R18, R24
   ldi R22, 200
   clr R23
   clr R24
   clr R25
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call HandleErrorAddrFrameInd
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall HandleErrorAddrFrameInd
+{$endif CPUAVR_HAS_JMP_CALL}
 
 
 start:
@@ -102,15 +114,27 @@ asm
 
   cp R24, R1
   brne start
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call get_pc_addr
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall get_pc_addr
+{$endif CPUAVR_HAS_JMP_CALL}
   movw R20, R24
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call get_frame
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall get_frame
+{$endif CPUAVR_HAS_JMP_CALL}
   movw R18, R24
   ldi R22, 200
   clr R23
   clr R24
   clr R25
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call HandleErrorAddrFrameInd
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall HandleErrorAddrFrameInd
+{$endif CPUAVR_HAS_JMP_CALL}
 
 start:            // Start of division...
   clr R20         // clear remainder low
@@ -166,15 +190,27 @@ asm
   cpc R22, R1
   cpc R23, R1
   brne .LNonZero
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call get_pc_addr
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall get_pc_addr
+{$endif CPUAVR_HAS_JMP_CALL}
   movw R20, R24
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call get_frame
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall get_frame
+{$endif CPUAVR_HAS_JMP_CALL}
   movw R18, R24
   ldi R22, 200
   clr R23
   clr R24
   clr R25
+{$ifdef CPUAVR_HAS_JMP_CALL}
   call HandleErrorAddrFrameInd
+{$else  CPUAVR_HAS_JMP_CALL}
+  rcall HandleErrorAddrFrameInd
+{$endif CPUAVR_HAS_JMP_CALL}
 
 .LNonZero:
   push R17
