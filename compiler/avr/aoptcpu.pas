@@ -880,7 +880,7 @@ Implementation
                        (MatchInstruction(hp1,[A_PUSH,A_MOV,A_CP,A_CPC,A_ADD,A_SUB,A_ADC,A_SBC,A_EOR,A_AND,A_OR,
                                                A_OUT,A_IN]) or
                        { the reference register of ST/STD cannot be replaced }
-                       (MatchInstruction(hp1,[A_STD,A_ST]) and (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^)))) and
+                       (MatchInstruction(hp1,[A_STD,A_ST,A_STS]) and (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^)))) and
                        (not RegModifiedByInstruction(taicpu(p).oper[0]^.reg, hp1)) and
                        {(taicpu(hp1).ops=1) and
                        (taicpu(hp1).oper[0]^.typ = top_reg) and
