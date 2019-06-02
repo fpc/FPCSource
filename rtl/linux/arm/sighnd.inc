@@ -15,9 +15,48 @@
 
  **********************************************************************}
 
+function GetHandleErrorAddrFrameAddr: pointer;
+begin
+  result:=@HandleErrorAddrFrame;
+end;
+
+{$ifndef CPUTHUMB}
+Procedure SignalToHandleErrorAddrFrame_ARM(Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
+asm
+.code 32
+  // the address is of the faulting instruction, and sigreturn will
+  //  skip it -> start with a nop
+  nop
+  push {r0,r1,r2,r3}
+  bl GetHandleErrorAddrFrameAddr
+  // overwrite last stack slot with new return address
+  str r0, [sp,#12]
+  // lr := addr
+  ldr lr, [sp,#4]
+  pop {r0,r1,r2,pc}
+.text
+end;
+{$endif not CPUTHUMB}
+
+Procedure SignalToHandleErrorAddrFrame_Thumb(Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
+asm
+.thumb_func
+.code 16
+  // the address is of the faulting instruction, and sigreturn will
+  // skip it -> start with a nop
+  nop
+  push {r0,r1,r2,r3}
+  bl GetHandleErrorAddrFrameAddr
+  // overwrite last stack slot with new return address
+  str r0, [sp,#12]
+  // lr := addr
+  ldr r0, [sp,#4]
+  mov lr, r0
+  pop {r0,r1,r2,pc}
+.text
+end;
 
 procedure SignalToRunerror(Sig: longint; { _a2,_a3,_a4 : dword; } SigContext: PSigInfo; uContext : PuContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
-
 var
   res : word;
 begin
@@ -48,10 +87,23 @@ begin
     SIGQUIT:
         res:=233;
   end;
-  reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(uContext^.uc_mcontext.arm_pc),pointer(uContext^.uc_mcontext.arm_fp));
+    begin
+      ucontext^.uc_mcontext.arm_r0:=res;
+      ucontext^.uc_mcontext.arm_r1:=uContext^.uc_mcontext.arm_pc;
+      ucontext^.uc_mcontext.arm_r2:=uContext^.uc_mcontext.arm_fp;
+{$ifndef CPUTHUMB}
+      if (ucontext^.uc_mcontext.arm_cpsr and (1 shl 5))=0 then
+        begin
+          ucontext^.uc_mcontext.arm_pc:=ptruint(@SignalToHandleErrorAddrFrame_ARM);
+        end
+      else
+{$endif not CPUTHUMB}
+        begin
+          ucontext^.uc_mcontext.arm_pc:=ptruint(@SignalToHandleErrorAddrFrame_Thumb);
+        end;
+    end;
 end;
 
 
