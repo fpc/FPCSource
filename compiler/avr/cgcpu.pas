@@ -274,8 +274,9 @@ unit cgcpu;
                   begin
                     load_para_loc(r,hp);
 
-                    for i2:=1 to tcgsize2size[hp^.Size] do
-                      r:=GetNextReg(r);
+                    if i<tcgsize2size[cgpara.Size] then
+                      for i2:=1 to tcgsize2size[hp^.Size] do
+                        r:=GetNextReg(r);
 
                     hp:=hp^.Next;
                   end;
