@@ -269,3 +269,5 @@ function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : small
     avr_restore(temp_sreg);
   end;
 
+{include hand-optimized assembler code}
+{$i math.inc}

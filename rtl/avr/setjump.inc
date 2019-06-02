@@ -49,6 +49,11 @@ function fpc_setjmp(var S : jmp_buf) : shortint;assembler;[Public, alias : 'FPC_
     pop r19
     st x+,r18
     st x+,r19
+{$ifdef CPUAVR_3_BYTE_PC}
+    pop r20
+    st x+,r20
+    push r20
+{$endif CPUAVR_3_BYTE_PC}
     push r19
     push r18
 
@@ -94,6 +99,11 @@ procedure fpc_longjmp(var S : jmp_buf;value : shortint);assembler;[Public, alias
     pop r19
     ld r18,x+
     ld r19,x+
+{$ifdef CPUAVR_3_BYTE_PC}
+    pop r20
+    ld r20,x+
+    push r20
+{$endif CPUAVR_3_BYTE_PC}
     push r19
     push r18
     mov r24,r22
