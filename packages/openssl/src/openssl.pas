@@ -1024,6 +1024,7 @@ var
   SSLUtilFile: string = '';
 
 // libssl.dll
+  function OpenSSLGetVersion(t: cint):String;
   function SslGetError(s: PSSL; ret_code: cInt):cInt;
   function SslLibraryInit:cInt;
   procedure SslLoadErrorStrings;
@@ -1510,6 +1511,7 @@ end;
 
 type
 // libssl.dll
+  TOpenSSLversion = function (arg : cint) : pchar; cdecl;
   TSslGetError = function(s: PSSL; ret_code: cInt):cInt; cdecl;
   TSslLibraryInit = function:cInt; cdecl;
   TSslLoadErrorStrings = procedure; cdecl;
@@ -1740,6 +1742,7 @@ type
 
 var
 // libssl.dll
+  _OpenSSLVersion : TOpenSSLversion = Nil;
   _SslGetError: TSslGetError = nil;
   _SslLibraryInit: TSslLibraryInit = nil;
   _SslLoadErrorStrings: TSslLoadErrorStrings = nil;
@@ -2409,6 +2412,14 @@ begin
     Result := _SslPending(ssl)
   else
     Result := 0;
+end;
+
+function OpenSSLGetVersion(t: cint):String;
+begin
+  if InitSSLInterface and Assigned(_OpenSSLVersion) then
+    Result := _OpenSSLVersion(t)
+  else
+    Result := '';
 end;
 
 //function SslGetVersion(ssl: PSSL):PChar;
@@ -4672,6 +4683,7 @@ end;
 Procedure LoadSSLEntryPoints;
 
 begin
+  _OpenSSLVersion := GetProcAddr(SSLLibHandle, 'OpenSSL_version');
   _SslGetError := GetProcAddr(SSLLibHandle, 'SSL_get_error');
   _SslLibraryInit := GetProcAddr(SSLLibHandle, 'SSL_library_init');
   _SslLoadErrorStrings := GetProcAddr(SSLLibHandle, 'SSL_load_error_strings');
@@ -5013,7 +5025,8 @@ end;
 Procedure ClearSSLEntryPoints;
 
 begin
- _SslGetError := nil;
+  _OpenSSLVersion := Nil;
+  _SslGetError := nil;
   _SslLibraryInit := nil;
   _SslLoadErrorStrings := nil;
   _SslCtxSetCipherList := nil;

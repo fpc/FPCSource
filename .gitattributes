@@ -1864,6 +1864,7 @@ packages/fcl-base/examples/databom.txt svneol=native#text/plain
 packages/fcl-base/examples/dbugsrv.pp svneol=native#text/plain
 packages/fcl-base/examples/debugtest.pp svneol=native#text/plain
 packages/fcl-base/examples/decodeascii85.pp svneol=native#text/plain
+packages/fcl-base/examples/demoio.pp svneol=native#text/plain
 packages/fcl-base/examples/dobserver.pp svneol=native#text/plain
 packages/fcl-base/examples/doecho.pp svneol=native#text/plain
 packages/fcl-base/examples/dparser.pp svneol=native#text/plain
@@ -1913,6 +1914,7 @@ packages/fcl-base/examples/stringl.pp svneol=native#text/plain
 packages/fcl-base/examples/tarmakercons.pas svneol=native#text/plain
 packages/fcl-base/examples/tarmakerconsgzip.pas svneol=native#text/plain
 packages/fcl-base/examples/testapp.pp svneol=native#text/plain
+packages/fcl-base/examples/testappexit.pp svneol=native#text/plain
 packages/fcl-base/examples/testbf.pp svneol=native#text/plain
 packages/fcl-base/examples/testbs.pp svneol=native#text/plain
 packages/fcl-base/examples/testcgi.html -text
