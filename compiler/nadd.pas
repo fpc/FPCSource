@@ -1650,6 +1650,40 @@ implementation
                   andn,
                   orn:
                     begin
+                      { in case of xor, or 'and' with full  and cbool: convert both to Pascal bool and then
+                        perform the xor/and to prevent issues with "longbool(1) and/xor
+                        longbool(2)" }
+                      if (is_cbool(ld) or is_cbool(rd)) and
+                         ((nodetype=xorn) or
+                          ((nodetype=andn) and
+                           ((cs_full_boolean_eval in current_settings.localswitches) or
+                            not(nf_short_bool in flags)
+                           )
+                          )
+                         ) then
+                        begin
+                          resultdef:=nil;
+                          if is_cbool(ld) then
+                            begin
+                              inserttypeconv(left,pasbool8type);
+                              ttypeconvnode(left).convtype:=tc_bool_2_bool;
+                              if not is_cbool(rd) or
+                                 (ld.size>=rd.size) then
+                                resultdef:=ld;
+                            end;
+                          if is_cbool(rd) then
+                            begin
+                              inserttypeconv(right,pasbool8type);
+                              ttypeconvnode(right).convtype:=tc_bool_2_bool;
+                              if not assigned(resultdef) then
+                                resultdef:=rd;
+                            end;
+                          result:=ctypeconvnode.create_explicit(caddnode.create(nodetype,left,right),resultdef);
+                          ttypeconvnode(result).convtype:=tc_bool_2_bool;
+                          left:=nil;
+                          right:=nil;
+                          exit;
+                        end;
                       { Make sides equal to the largest boolean }
                       if (torddef(left.resultdef).size>torddef(right.resultdef).size) or
                         (is_cbool(left.resultdef) and not is_cbool(right.resultdef)) then
