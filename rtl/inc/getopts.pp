@@ -15,7 +15,8 @@
  **********************************************************************}
 unit getopts;
 Interface
-
+{$modeswitch advancedrecords}
+{$modeswitch defaultparameters}
 Const
   No_Argument       = 0;
   Required_Argument = 1;
@@ -29,6 +30,7 @@ Type
     Has_arg : Integer;
     Flag    : PChar;
     Value   : Char;
+    Procedure SetOption(const aName:String;AHas_Arg:integer=0;AFlag:PChar=nil;AValue:Char=#0);
   end;
 
   Orderings = (require_order,permute,return_in_order);
@@ -47,6 +49,13 @@ Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Longin
 
 
 Implementation
+
+
+Procedure TOption.SetOption(const aName:String;AHas_Arg:integer=0;AFlag:PChar=nil;AValue:Char=#0);
+begin
+  Name:=aName; Has_Arg:=AHas_Arg; Flag:=AFlag; Value:=Avalue;
+end;
+
 
 {$IFNDEF FPC}
 {***************************************************************************
