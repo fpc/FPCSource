@@ -1046,6 +1046,13 @@
   (
     opcode  : A_LDR;
     ops     : 2;
+    optypes : (ot_reglo,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
+    code    : #103#152#0#2;
+    flags   : if_thumb or if_armv4t
+  ),
+  (
+    opcode  : A_LDR;
+    ops     : 2;
     optypes : (ot_reglo,ot_memoryam6,ot_none,ot_none,ot_none,ot_none);
     code    : #103#72#0#2;
     flags   : if_thumb or if_armv4t
@@ -2013,6 +2020,13 @@
     opcode  : A_STR;
     ops     : 2;
     optypes : (ot_reglo,ot_memoryam5,ot_none,ot_none,ot_none,ot_none);
+    code    : #103#144#0#2;
+    flags   : if_thumb or if_armv4t
+  ),
+  (
+    opcode  : A_STR;
+    ops     : 2;
+    optypes : (ot_reglo,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
     code    : #103#144#0#2;
     flags   : if_thumb or if_armv4t
   ),
