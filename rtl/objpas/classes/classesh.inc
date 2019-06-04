@@ -602,10 +602,14 @@ type
   end;
 
 { TStrings class }
+  TMissingNameValueSeparatorAction = (mnvaValue,mnvaName,mnvaEmpty,mnvaError);
+  TMissingNameValueSeparatorActions = set of TMissingNameValueSeparatorAction;
+
   TStrings = class(TPersistent)
   private
     FDefaultEncoding: TEncoding;
     FEncoding: TEncoding;
+    FMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
     FSpecialCharsInited : boolean;
     FAlwaysQuote: Boolean;
     FQuoteChar : Char;
@@ -617,9 +621,9 @@ type
     FSkipLastLineBreak : Boolean;
     FStrictDelimiter : Boolean;
     FLineBreak : String;
-    FPreferValuesToNames,
     FWriteBOM: Boolean;
     function GetCommaText: string;
+    function GetMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
     Function GetLBS : TTextLineBreakStyle;
@@ -628,6 +632,7 @@ type
     Procedure SetLBS (AValue : TTextLineBreakStyle);
     procedure ReadData(Reader: TReader);
     procedure SetCommaText(const Value: string);
+    procedure SetMissingNameValueSeparatorAction(AValue: TMissingNameValueSeparatorAction);
     procedure SetStringsAdapter(const Value: IStringsAdapter);
     procedure SetValue(const Name, Value: string);
     procedure SetDelimiter(c:Char);
@@ -736,7 +741,7 @@ type
     property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
     Property SkipLastLineBreak : Boolean Read GetSkipLastLineBreak Write SetSkipLastLineBreak;
     property WriteBOM: Boolean read FWriteBOM write FWriteBOM;
-    Property PreferValuesToNames : Boolean Read FPreferValuesToNames Write FPreferValuesToNames;
+    Property MissingNameValueSeparatorAction : TMissingNameValueSeparatorAction Read GetMissingNameValueSeparatorAction Write SetMissingNameValueSeparatorAction;
   end;
 
 { TStringList class }

@@ -193,6 +193,12 @@ begin
   end;
 end;
 
+function TStrings.GetMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
+begin
+  CheckSpecialChars;
+  Result:=FMissingNameValueSeparatorAction;
+end;
+
 
 Function TStrings.GetDelimitedText: string;
 
@@ -241,6 +247,7 @@ procedure TStrings.GetNameValue(Index : Integer; Out AName,AValue : String);
 Var L : longint;
 
 begin
+  aName:='';
   CheckSpecialChars;
   AValue:=Strings[Index];
   L:=Pos(FNameValueSeparator,AValue);
@@ -249,12 +256,18 @@ begin
     AName:=Copy(AValue,1,L-1);
     System.Delete(AValue,1,L);
     end
-  else if PreferValuesToNames then
-    AName:=''
   else
-    begin
-    aName:=aValue;
-    aValue:='';
+    case FMissingNameValueSeparatorAction of
+      mnvaValue : ;
+      mnvaName :
+        begin
+        aName:=aValue;
+        aValue:='';
+        end;
+      mnvaEmpty :
+        aValue:='';
+      mnvaError :
+        Raise EStringListError.CreateFmt(SErrNoNameValuePairAt,[Index]);
     end;
 end;
 
@@ -449,6 +462,12 @@ begin
     Delimiter:=C1;
     QuoteChar:=C2;
   end;
+end;
+
+procedure TStrings.SetMissingNameValueSeparatorAction(AValue: TMissingNameValueSeparatorAction);
+begin
+  CheckSpecialChars;
+  FMissingNameValueSeparatorAction:=aValue;
 end;
 
 
