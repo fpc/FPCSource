@@ -2147,7 +2147,7 @@ Begin
   If Assigned(FOnCreateStream) then
     FOnCreateStream(Self, OutStream, Item);
   // If FOnCreateStream didn't create one, we create one now.
-  If (OutStream=Nil) then
+  If (OutStream=Nil) and (not Item.IsDirectory) then
     begin
     if (Path<>'') then
       ForceDirectories(Path);
@@ -2173,7 +2173,8 @@ Begin
     OutStream := nil;
   end
   else
-    FreeAndNil(OutStream);
+    if Assigned(OutStream) then
+      FreeAndNil(OutStream);
   DoEndOfFile;
 end;
 
