@@ -2365,7 +2365,7 @@ sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
 #
 # Codegenerator
 #
-# 06049 is the last used one
+# 06060 is the last used one
 #
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
@@ -2520,6 +2520,9 @@ cg_n_no_inline=06058_N_Call to subroutine "$1" marked as inline is not inlined
 % The directive inline is only a hint to the compiler. Sometimes the compiler ignores this hint, a subroutine
 % marked as inline is not inlined. In this case, this hint is given. Compiling with \var{-vd} might result in more information why
 % the directive inline is ignored.
+cg_e_case_incomplete=06059_E_Case statement does not handle all possible cases
+cg_w_case_incomplete=06060_W_Case statement does not handle all possible cases
+% The case statement does not contain labels for all possible values of the operand, and no else statement is present.
 %
 % \end{description}
 # EndOfTeX

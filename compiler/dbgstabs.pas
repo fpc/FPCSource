@@ -516,6 +516,10 @@ implementation
                         argnames:=argnames+'3out';
                       vs_constref :
                         argnames:=argnames+'8constref';
+                      vs_value :
+                        ;
+                      vs_final:
+                        internalerror(2019050911);
                     end;
                   end
                 else
@@ -1079,6 +1083,8 @@ implementation
                         def.dbg_state:=dbg_state_queued;
                         break;
                       end;
+                    else
+                      ;
                   end;
                 end;
               appenddef(list,vmtarraytype);
@@ -1106,6 +1112,8 @@ implementation
                       appenddef(list,TImplementedInterface(anc.ImplementedInterfaces[i]).IntfDef);
                 end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -1760,6 +1768,8 @@ implementation
                 currfuncname:=tai_function_name(hp).funcname;
               ait_force_line :
                 lastfileinfo.line:=-1;
+              else
+                ;
             end;
 
             if (currsectype=sec_code) and

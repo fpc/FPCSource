@@ -389,7 +389,7 @@ begin
      DllCmd[1]:=DllCmd[1]+' $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';
-     ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
+     ExtDbgCmd[2]:='objcopy "--add-gnu-debuglink=$DBGX" $EXE';
      ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
 
      SetupDynlinker(DynamicLinker,libctype);
@@ -1440,6 +1440,7 @@ begin
           SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
           Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
           Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename)));
+          Replace(cmdstr,'$DBGX',current_module.dbgfilename);
           Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename));
           success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
           if not success then

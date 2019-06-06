@@ -174,6 +174,7 @@ type
     stWithExpr, // calls BeginScope after parsing every WITH-expression
     stExceptOnExpr,
     stExceptOnStatement,
+    stForLoopHeader,
     stDeclaration, // e.g. a TPasProperty, TPasVariable, TPasArgument, ...
     stAncestors, // the list of ancestors and interfaces of a class
     stInitialFinalization
@@ -5809,6 +5810,7 @@ begin
           TPasImplForLoop(El).LoopType:=lt;
           if (CurToken<>tkDo) then
             ParseExcTokenError(TokenInfos[tkDo]);
+          Engine.FinishScope(stForLoopHeader,El);
           CreateBlock(TPasImplForLoop(El));
           El:=nil;
           //WriteLn(i,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);

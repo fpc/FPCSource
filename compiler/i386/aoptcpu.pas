@@ -104,17 +104,23 @@ begin
                 if PrePeepholeOptSxx(p) then
                   continue;
               A_XOR:
-                if (taicpu(p).oper[0]^.typ = top_reg) and
-                   (taicpu(p).oper[1]^.typ = top_reg) and
-                   (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
-                 { temporarily change this to 'mov reg,0' to make it easier }
-                 { for the CSE. Will be changed back in pass 2              }
-                  begin
-                    taicpu(p).opcode := A_MOV;
-                    taicpu(p).loadConst(0,0);
-                  end;
+                begin
+                  if (taicpu(p).oper[0]^.typ = top_reg) and
+                     (taicpu(p).oper[1]^.typ = top_reg) and
+                     (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
+                   { temporarily change this to 'mov reg,0' to make it easier }
+                   { for the CSE. Will be changed back in pass 2              }
+                    begin
+                      taicpu(p).opcode := A_MOV;
+                      taicpu(p).loadConst(0,0);
+                    end;
+                end;
+              else
+                ;
             end;
           end;
+        else
+          ;
       end;
       p := tai(p.next)
     end;
@@ -395,6 +401,8 @@ begin
                           case taicpu(hp1).condition of
                             C_LE: taicpu(hp3).condition := C_GE;
                             C_BE: taicpu(hp3).condition := C_AE;
+                            else
+                              internalerror(2019050903);
                           end;
                           asml.remove(p);
                           asml.remove(hp1);
@@ -573,11 +581,17 @@ begin
                     if OptPass1MOVXX(p) then
                       continue;
                   A_SETcc:
-                   if OptPass1SETcc(p) then
-                     continue;
+                    begin
+                      if OptPass1SETcc(p) then
+                        continue;
+                    end
+                  else
+                    ;
                 end;
             end; { if is_jmp }
           end;
+        else
+          ;
       end;
       updateUsedRegs(UsedRegs,p);
       p:=tai(p.next);
@@ -616,10 +630,16 @@ begin
                 if OptPass2Jmp(p) then
                   continue;
               A_MOV:
-                if OptPass2MOV(p) then
-                  continue;
+                begin
+                  if OptPass2MOV(p) then
+                    continue;
+                end
+              else
+                ;
             end;
           end;
+        else
+          ;
       end;
       p := tai(p.next)
     end;
@@ -684,6 +704,8 @@ begin
                                   setsubreg(taicpu(p).oper[1]^.reg,R_SUBL);
                                 end;
                             end;
+                          else
+                            ;
                         end
                       else if (taicpu(p).oper[0]^.typ = top_ref) and
                           (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
@@ -704,10 +726,16 @@ begin
                         end;
                  end;
               A_TEST, A_OR:
-                if PostPeepholeOptTestOr(p) then
-                  Continue;
+                begin
+                  if PostPeepholeOptTestOr(p) then
+                    Continue;
+                end;
+              else
+                ;
             end;
           end;
+        else
+          ;
       end;
       p := tai(p.next)
     end;

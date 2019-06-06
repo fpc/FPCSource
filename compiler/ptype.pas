@@ -1135,6 +1135,8 @@ implementation
                                else
                                  def:=corddef.create(range_to_basetype(lv,hv),lv,hv,true);
                            end;
+                         else
+                           internalerror(2019050527);
                        end;
                      end;
                  end
@@ -1882,8 +1884,6 @@ implementation
                     def:=object_dec(odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacejava:
                     def:=object_dec(odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
-                  else
-                    internalerror(2010122612);
                 end;
               end;
             _OBJCPROTOCOL :

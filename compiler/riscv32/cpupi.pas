@@ -106,6 +106,8 @@ unit cpupi;
                 if r in regs then
                   inc(floatsavesize,8);
             end;
+          else
+            ;
         end;
         floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
         result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);

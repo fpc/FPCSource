@@ -591,10 +591,13 @@ procedure Win32Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:Unico
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    if cp=CP_UTF8 then
-      dwFlags:=0
-    else
-      dwFlags:=MB_PRECOMPOSED;
+    case cp of
+    // Under https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar
+      CP_UTF8, CP_UTF7, 50220, 50221, 50222, 50225, 50227, 50229, 57002..57011, 42:
+                           dwFlags:=0
+      else
+        dwFlags:=MB_PRECOMPOSED;
+      end;
     destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
     // this will null-terminate
     setlength(dest, destlen);

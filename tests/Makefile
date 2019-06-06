@@ -2559,6 +2559,11 @@ ifneq ($(SVNVERSION),)
 	$(ECHOREDIR) svnpackagesrevision=$(SVN_PACKAGES_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 endif
 ifeq ($(OS_SOURCE),openbsd)
+ifeq ($(TARPROG),$(subst gtar,,$(TARPROG)))
+  BSD_SYSTEM_TAR=1
+endif
+endif
+ifdef BSD_SYSTEM_TAR
 TARFROM=-I tar.lst
 else
 TARFROM=--files-from=tar.lst

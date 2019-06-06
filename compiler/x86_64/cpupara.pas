@@ -544,6 +544,8 @@ unit cpupara;
                   classes[0].typ:=X86_64_SSE_CLASS;
                   classes[0].def:=carraydef.getreusable_no_free(s32floattype,2);
                 end;
+              else
+                ;
             end;
           { 2) the second part is 32 bit, but the total size is > 12 bytes }
           if (def.size>12) then
@@ -558,6 +560,8 @@ unit cpupara;
                   classes[1].typ:=X86_64_SSE_CLASS;
                   classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
                 end;
+              else
+                ;
             end;
 {$endif not llvm}
           result:=words;
@@ -962,8 +966,6 @@ unit cpupara;
                     classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
                     result:=2;
                   end;
-                else
-                  internalerror(2010060301);
               end;
             end;
           recorddef:
@@ -1338,6 +1340,8 @@ unit cpupara;
               numclasses:=classify_argument(calloption,def,nil,vs_value,def.size,classes,0,False);
               result:=numclasses=0;
             end;
+          else
+            ;
         end;
       end;
 
@@ -1368,8 +1372,8 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
-        win64_saved_std_regs : array[0..7] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
-        others_saved_std_regs : array[0..4] of tsuperregister = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
+        win64_saved_std_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..7] of tsuperregister{$endif} = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
+        others_saved_std_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..4] of tsuperregister{$endif} = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
       begin
         if tcgx86_64(cg).use_ms_abi then
           result:=win64_saved_std_regs
@@ -1380,7 +1384,7 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_mm(calloption: tproccalloption):tcpuregisterarray;
       const
-        win64_saved_xmm_regs : array[0..9] of tsuperregister = (RS_XMM6,RS_XMM7,
+        win64_saved_xmm_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..9] of tsuperregister{$endif} = (RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
       begin
         if tcgx86_64(cg).use_ms_abi then
@@ -1721,6 +1725,8 @@ unit cpupara;
                     X86_64_SSESF_CLASS,
                     X86_64_SSEDF_CLASS:
                       inc(needmmloc);
+                    else
+                      ;
                   end;
                 { the "-1" is because we can also use the current register }
                 if (use_ms_abi and

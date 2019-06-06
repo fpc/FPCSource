@@ -234,7 +234,7 @@ interface
          spacefound,
          eolfound : boolean;
          constructor create(const fn:string);
-         destructor  destroy;
+         destructor  destroy; override;
          procedure Add(const s:string);
          procedure AddSpace;
        end;
@@ -521,12 +521,17 @@ implementation
 
            HandleModeSwitches(m_none,changeinit);
 
-           { turn on bitpacking for mode macpas and iso pascal as well as extended pascal }
+           { turn on bitpacking and case checking for mode macpas and iso pascal,
+             as well as extended pascal }
            if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
+               include(current_settings.localswitches,cs_check_all_case_coverage);
                if changeinit then
-                 include(init_settings.localswitches,cs_bitpacking);
+                 begin
+                   include(init_settings.localswitches,cs_bitpacking);
+                   include(init_settings.localswitches,cs_check_all_case_coverage);
+                 end;
              end;
 
            { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
@@ -1483,7 +1488,9 @@ type
                               tokentoconsume:=_STRING;
                             end;
                         end
-                      end;
+                      else
+                        ;
+                    end;
                   end
                 else
                   begin
@@ -1996,6 +2003,8 @@ type
                                     result.free;
                                     result:=texprvalue.create_int(tenumsym(srsym).value);
                                   end;
+                                else
+                                  ;
                               end;
                           end
                         end
@@ -2563,6 +2572,7 @@ type
 {$ifdef PREPROCWRITE}
     constructor tpreprocfile.create(const fn:string);
       begin
+        inherited create;
       { open outputfile }
         assign(f,fn);
         {$push}{$I-}
@@ -3317,6 +3327,8 @@ type
               recordtokenbuf.write(orgpattern[0],1);
               recordtokenbuf.write(orgpattern[1],length(orgpattern));
             end;
+          else
+            ;
         end;
       end;
 
@@ -3484,11 +3496,11 @@ type
                         current_tokenpos.fileindex:=tokenreadword;
                         current_filepos:=current_tokenpos;
                       end;
-                    else
-                      internalerror(2006103010);
                   end;
                 continue;
               end;
+            else
+              ;
           end;
           break;
         until false;
@@ -3936,11 +3948,14 @@ type
 {$ifdef PREPROCWRITE}
          if parapreprocess then
           begin
-            t:=Get_Directive(hs);
-            if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
+            if not (m_mac in current_settings.modeswitches) then
+              t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
+            else
+              t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
+            if assigned(t) and not(t.is_conditional) then
              begin
-               preprocfile^.AddSpace;
-               preprocfile^.Add('{$'+hs+current_scanner.readcomment+'}');
+               preprocfile.AddSpace;
+               preprocfile.Add('{$'+hs+current_scanner.readcomment+'}');
                exit;
              end;
           end;

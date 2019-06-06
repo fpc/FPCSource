@@ -400,6 +400,8 @@ implementation
                 data.Write(zero,4);
                 continue;
               end;
+            else
+              ;
           end;
 
           if (objreloc.flags and rf_raw)=0 then

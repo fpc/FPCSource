@@ -381,6 +381,8 @@ implementation
                    if assigned(add_reg_instruction_hook) and (i in regset^) then
                      add_reg_instruction_hook(self,newreg(R_MMREGISTER,i,regsetsubregtype));
                  end;
+             else
+               internalerror(2019050932);
            end;
          end;
       end;
@@ -1141,6 +1143,8 @@ implementation
                                           begin
                                             inc(extradataoffset,multiplier*(((tai_realconst(hp).savesize-4)+3) div 4));
                                           end;
+                                        else
+                                          ;
                                       end;
                                       { check if the same constant has been already inserted into the currently handled list,
                                         if yes, reuse it }
@@ -1200,6 +1204,8 @@ implementation
                 begin
                   inc(curinspos,multiplier*((tai_realconst(hp).savesize+3) div 4));
                 end;
+              else
+                ;
             end;
             { special case for case jump tables }
             penalty:=0;
@@ -1270,6 +1276,8 @@ implementation
                           or if we splitted them so split before }
                       CheckLimit(hp,4);
                     end;
+                  else
+                    ;
                 end;
               end;
 
@@ -1424,8 +1432,11 @@ implementation
                               end;
                           end;
                       end;
+                    else;
                   end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1489,8 +1500,12 @@ implementation
                             taicpu(curtai).ops:=2;
                           end;
                       end;
+                    else
+                      ;
                   end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1536,55 +1551,59 @@ implementation
           begin
             case curtai.typ of
               ait_instruction:
-                if IsIT(taicpu(curtai).opcode) then
-                  begin
-                    levels := GetITLevels(taicpu(curtai).opcode);
-                    if levels < 4 then
-                      begin
-                        i:=levels;
-                        hp1:=tai(curtai.Next);
-                        while assigned(hp1) and
-                          (i > 0) do
-                          begin
-                            if hp1.typ=ait_instruction then
-                              begin
-                                dec(i);
-                                if (i = 0) and
-                                  mustbelast(hp1) then
-                                  begin
-                                    hp1:=nil;
-                                    break;
-                                  end;
-                              end;
-                            hp1:=tai(hp1.Next);
-                          end;
+                begin
+                  if IsIT(taicpu(curtai).opcode) then
+                    begin
+                      levels := GetITLevels(taicpu(curtai).opcode);
+                      if levels < 4 then
+                        begin
+                          i:=levels;
+                          hp1:=tai(curtai.Next);
+                          while assigned(hp1) and
+                            (i > 0) do
+                            begin
+                              if hp1.typ=ait_instruction then
+                                begin
+                                  dec(i);
+                                  if (i = 0) and
+                                    mustbelast(hp1) then
+                                    begin
+                                      hp1:=nil;
+                                      break;
+                                    end;
+                                end;
+                              hp1:=tai(hp1.Next);
+                            end;
 
-                        if assigned(hp1) then
-                          begin
-                            // We are pointing at the first instruction after the IT block
-                            while assigned(hp1) and
-                              (hp1.typ<>ait_instruction) do
-                                hp1:=tai(hp1.Next);
+                          if assigned(hp1) then
+                            begin
+                              // We are pointing at the first instruction after the IT block
+                              while assigned(hp1) and
+                                (hp1.typ<>ait_instruction) do
+                                  hp1:=tai(hp1.Next);
 
-                            if assigned(hp1) and
-                              (hp1.typ=ait_instruction) and
-                              IsIT(taicpu(hp1).opcode) then
-                              begin
-                                if (levels+GetITLevels(taicpu(hp1).opcode) <= 4) and
-                                  ((taicpu(curtai).oper[0]^.cc=taicpu(hp1).oper[0]^.cc) or
-                                   (taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc))) then
-                                  begin
-                                    taicpu(curtai).opcode:=getMergedInstruction(taicpu(curtai).opcode,
-                                                                                taicpu(hp1).opcode,
-                                                                                taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc));
+                              if assigned(hp1) and
+                                (hp1.typ=ait_instruction) and
+                                IsIT(taicpu(hp1).opcode) then
+                                begin
+                                  if (levels+GetITLevels(taicpu(hp1).opcode) <= 4) and
+                                    ((taicpu(curtai).oper[0]^.cc=taicpu(hp1).oper[0]^.cc) or
+                                     (taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc))) then
+                                    begin
+                                      taicpu(curtai).opcode:=getMergedInstruction(taicpu(curtai).opcode,
+                                                                                  taicpu(hp1).opcode,
+                                                                                  taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc));
 
-                                    list.Remove(hp1);
-                                    hp1.Free;
-                                  end;
-                              end;
-                          end;
-                      end;
-                  end;
+                                      list.Remove(hp1);
+                                      hp1.Free;
+                                    end;
+                                end;
+                            end;
+                        end;
+                    end;
+                end
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1611,6 +1630,8 @@ implementation
                       case taicpu(curtai).opcode of
                         A_AND: taicpu(curtai).opcode:=A_BIC;
                         A_BIC: taicpu(curtai).opcode:=A_AND;
+                        else
+                          internalerror(2019050931);
                       end;
                       taicpu(curtai).oper[2]^.val:=(not taicpu(curtai).oper[2]^.val) and $FFFFFFFF;
                     end
@@ -1623,10 +1644,14 @@ implementation
                       case taicpu(curtai).opcode of
                         A_ADD: taicpu(curtai).opcode:=A_SUB;
                         A_SUB: taicpu(curtai).opcode:=A_ADD;
+                        else
+                          internalerror(2019050930);
                       end;
                       taicpu(curtai).oper[2]^.val:=-taicpu(curtai).oper[2]^.val;
                     end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1674,6 +1699,8 @@ implementation
                       end;
                   end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1699,6 +1726,7 @@ implementation
                            (taicpu(curtai).oper[2]^.typ=top_shifterop) then
                           begin
                             case taicpu(curtai).oper[2]^.shifterop^.shiftmode of
+                              SM_NONE: ;
                               SM_LSL: taicpu(curtai).opcode:=A_LSL;
                               SM_LSR: taicpu(curtai).opcode:=A_LSR;
                               SM_ASR: taicpu(curtai).opcode:=A_ASR;
@@ -1735,8 +1763,12 @@ implementation
                       begin
                         taicpu(curtai).opcode:=A_SVC;
                       end;
+                    else
+                      ;
                   end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -2971,6 +3003,7 @@ implementation
           shift:=0;
           typ:=0;
           case oper[op]^.shifterop^.shiftmode of
+            SM_None: ;
             SM_LSL: begin typ:=0; shift:=oper[op]^.shifterop^.shiftimm; end;
             SM_LSR: begin typ:=1; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
             SM_ASR: begin typ:=2; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
@@ -3983,6 +4016,8 @@ implementation
                     bytes:=bytes or ((Rd and $F) shl 12);
                     bytes:=bytes or (((Rd and $10) shr 4) shl 22);
                   end;
+                else
+                  Message(asmw_e_invalid_opcode_and_operands);
               end;
             end;
           #$41,#$91: // VMRS/VMSR
@@ -4143,6 +4178,8 @@ implementation
                         d:=(rd shr 4) and 1;
                         rd:=rd and $F;
                       end;
+                    else
+                      internalerror(2019050929);
                   end;
 
                   m:=0;
@@ -4163,6 +4200,8 @@ implementation
                         m:=(rm shr 4) and 1;
                         rm:=rm and $F;
                       end;
+                    else
+                      internalerror(2019050928);
                   end;
 
                   bytes:=bytes or (Rd shl 12);
@@ -4179,6 +4218,8 @@ implementation
                     PF_F64S32,
                     PF_F64U32:
                       bytes:=bytes or (1 shl 8);
+                    else
+                      ;
                   end;
 
                   if oppostfix in [PF_S32F32,PF_S32F64,PF_U32F32,PF_U32F64] then
@@ -4187,6 +4228,8 @@ implementation
                         PF_S32F64,
                         PF_S32F32:
                           bytes:=bytes or (1 shl 16);
+                        else
+                          ;
                       end;
 
                       bytes:=bytes or (1 shl 18);
@@ -4257,9 +4300,9 @@ implementation
 
                         rn:=16;
                       end;
-                  else
-                    Rn:=0;
-                    message(asmw_e_invalid_opcode_and_operands);
+                    else
+                      Rn:=0;
+                      message(asmw_e_invalid_opcode_and_operands);
                   end;
 
                   case oppostfix of
@@ -4271,10 +4314,10 @@ implementation
                         bytes:=bytes or (1 shl 8);
                         D:=(rd shr 4) and $1; Rd:=Rd and $F;
                       end;
-                  else
-                    begin
-                      D:=rd and $1; Rd:=Rd shr 1;
-                    end;
+                    else
+                      begin
+                        D:=rd and $1; Rd:=Rd shr 1;
+                      end;
                   end;
 
                   case oppostfix of
@@ -4283,6 +4326,8 @@ implementation
                     PF_F64U16,PF_F32U16,
                     PF_F32U32,PF_F64U32:
                       bytes:=bytes or (1 shl 16);
+                    else
+                      ;
                   end;
 
                   if oppostfix in [PF_S32F32,PF_S32F64,PF_U32F32,PF_U32F64,PF_S16F32,PF_S16F64,PF_U16F32,PF_U16F64] then
@@ -4335,6 +4380,8 @@ implementation
                       bytes:=bytes or (1 shl 23);
                     PF_DB,PF_DBS,PF_DBD,PF_DBX:
                       bytes:=bytes or (2 shl 23);
+                    else
+                      ;
                   end;
 
                   case oppostfix of
@@ -4343,6 +4390,8 @@ implementation
                         bytes:=bytes or (1 shl 8);
                         bytes:=bytes or (1 shl 0); // Offset is odd
                       end;
+                    else
+                      ;
                   end;
 
                   dp_operation:=(oper[1]^.subreg=R_SUBFD);
@@ -4634,6 +4683,8 @@ implementation
                         bytes:=bytes or ((oper[2]^.val shr 2) and $7F);
                       end;
                   end;
+                else
+                  internalerror(2019050926);
               end;
             end;
           #$65: { Thumb load/store }
@@ -4770,6 +4821,8 @@ implementation
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;
+                else
+                  internalerror(2019050925);
               end;
             end;
           #$6A: { Thumb: IT }
@@ -5375,6 +5428,8 @@ implementation
               case oppostfix of
                 PF_None,PF_IA,PF_FD: bytes:=bytes or ($1 shl 23);
                 PF_DB,PF_EA: bytes:=bytes or ($2 shl 23);
+              else
+                message1(asmw_e_invalid_opcode_and_operands, '"Invalid Postfix"');
               end;
             end;
           #$8D: { Thumb-2: BL/BLX }
@@ -5522,9 +5577,13 @@ implementation
                     bytes:=bytes or (1 shl 24);
 
                   case oppostfix of
+                    PF_S: bytes:=bytes or (0 shl 22) or (0 shl 15);
                     PF_D: bytes:=bytes or (0 shl 22) or (1 shl 15);
                     PF_E: bytes:=bytes or (1 shl 22) or (0 shl 15);
                     PF_P: bytes:=bytes or (1 shl 22) or (1 shl 15);
+                    PF_EP: ;
+                    else
+                      message1(asmw_e_invalid_opcode_and_operands, '"Invalid postfix"');
                   end;
                 end
               else
@@ -5599,6 +5658,7 @@ implementation
                 end;
 
               case roundingmode of
+                RM_NONE: ;
                 RM_P: bytes:=bytes or (1 shl 5);
                 RM_M: bytes:=bytes or (2 shl 5);
                 RM_Z: bytes:=bytes or (3 shl 5);
@@ -5626,6 +5686,7 @@ implementation
                     bytes:=bytes or (getsupreg(oper[1]^.reg) shl 12);
 
                     case roundingmode of
+                      RM_NONE: ;
                       RM_P: bytes:=bytes or (1 shl 5);
                       RM_M: bytes:=bytes or (2 shl 5);
                       RM_Z: bytes:=bytes or (3 shl 5);
@@ -5645,6 +5706,7 @@ implementation
                     bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
 
                     case roundingmode of
+                      RM_NONE: ;
                       RM_P: bytes:=bytes or (1 shl 5);
                       RM_M: bytes:=bytes or (2 shl 5);
                       RM_Z: bytes:=bytes or (3 shl 5);
@@ -5674,6 +5736,8 @@ implementation
                         Message(asmw_e_invalid_opcode_and_operands);
                       end;
                   end;
+                else
+                  Message1(asmw_e_invalid_opcode_and_operands, '"Unsupported opcode"');
               end;
             end;
           #$fe: // No written data

@@ -137,6 +137,8 @@ implementation
                 fromreg:=cg.getintregister(list,OS_INT);
                 cg.a_load_const_reg(list,OS_INT,-1,fromreg);
               end;
+            else
+              ;
           end;
           list.concat(taicpu.op_reg_reg_const_const(A_INS,sreg.subsetreg,fromreg,
             sreg.startbit,sreg.bitlen));

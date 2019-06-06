@@ -277,6 +277,8 @@ procedure TLinkerMacOS.SetDefaultInfo;
 begin
   case (target_info.system) of
     system_m68k_macos:      SetMacOS68kInfo;
+    else
+      ;
   end;
 end;
 

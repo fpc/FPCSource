@@ -2432,8 +2432,6 @@ implementation
             AThreads.TargetThread[ThreadNumber].TargetMethod:=TargetMethod;
             AThreads.TargetThread[ThreadNumber].Initialized:=True;
           end;
-        else
-          internalerror(2018053001);
       end;
     end;
 

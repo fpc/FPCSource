@@ -57,7 +57,7 @@ unit cpupi;
   implementation
 
     uses
-       globals,systems,
+       globals,systems,verbose,
        cpubase,
        tgobj,
        symconst,symtype,symsym,symcpu,paramgr,
@@ -156,6 +156,10 @@ unit cpupi;
             maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
             floatsavesize:=0;
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:

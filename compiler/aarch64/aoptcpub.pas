@@ -142,6 +142,8 @@ Implementation
                   exit
                 end;
             end;
+          else
+            ;
         end;
     end;
 

@@ -307,7 +307,8 @@ type
     potype_propsetter,
     potype_exceptfilter,      { SEH exception filter or termination handler }
     potype_mainstub,          { "main" function that calls through to FPC_SYSTEMMAIN }
-    potype_pkgstub            { stub for a package file, that tells OS that all is OK }
+    potype_pkgstub,           { stub for a package file, that tells OS that all is OK }
+    potype_libmainstub        { "main" function for a library that calls through to FPC_LIBMAIN }
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -967,7 +968,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       'property setters',   {potype_propsetter}
       'exception filters',  {potype_exceptfilter}
       '"main" stub',        {potype_mainstub}
-      'package stub'        {potype_pkgstub}
+      'package stub',       {potype_pkgstub}
+      'lib "main" stub'     {potype_libmainstub}
     );
 
     { TProcOption string identifiers for error messages }

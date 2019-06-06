@@ -353,8 +353,6 @@ implementation
              v:=extended(v);
            s128real:
              internalerror(2013102701);
-           else
-             internalerror(2013102702);
          end;
          value_real:=v;
          value_currency:=v;
@@ -454,8 +452,6 @@ implementation
                   if ts128real(value_real)=MathInf.Value then
                     CGMessage(parser_e_range_check_error);
                 end;
-              else
-                internalerror(2016112902);
             end;
           end;
       end;

@@ -304,12 +304,18 @@ interface
         case o of
           A_BCCTR,A_BCCTRL: tempstr := 'ctr';
           A_BCLR,A_BCLRL: tempstr := 'lr';
+          else
+            ;
         end;
         case o of
           A_BL,A_BLA,A_BCL,A_BCLA,A_BCCTRL,A_BCLRL: tempstr := tempstr+'l';
+          else
+            ;
         end;
         case o of
           A_BA,A_BLA,A_BCA,A_BCLA: tempstr:=tempstr+'a';
+          else
+            ;
         end;
         branchmode := tempstr;
       end;
@@ -913,6 +919,8 @@ interface
                        until false;
                        writer.AsmLn;
                      end;
+                   else
+                     internalerror(2019050950);
                 end;
               end;
 

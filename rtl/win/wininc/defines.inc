@@ -6389,6 +6389,11 @@ const
     CONSOLE_WINDOWED_MODE   = 2;    
     PROCESS_NAME_NATIVE     = 1;
 
+    GR_GDIOBJECTS       = 0;       { Count of GDI objects }
+    GR_USEROBJECTS      = 1;       { Count of USER objects }
+    GR_GDIOBJECTS_PEAK  = 2;       { Peak count of GDI objects }
+    GR_USEROBJECTS_PEAK = 4;       { Peak count of USER objects }
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

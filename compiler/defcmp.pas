@@ -507,6 +507,8 @@ implementation
                          doconv:=tc_cstring_2_int;
                        end;
                    end;
+                 else
+                   ;
                end;
              end;
 
@@ -615,6 +617,8 @@ implementation
                                    eq:=te_convert_l6;
                                end;
                              end;
+                           else
+                             ;
                          end;
                        end;
                    end;
@@ -794,6 +798,8 @@ implementation
                            end;
                       end;
                    end;
+                 else
+                   ;
                end;
              end;
 
@@ -851,6 +857,8 @@ implementation
                            end;
                        end;
                    end;
+                 else
+                   ;
                end;
              end;
 
@@ -943,6 +951,8 @@ implementation
                            end;
                        end;
                    end;
+                 else
+                   ;
                end;
              end;
 
@@ -1027,8 +1037,8 @@ implementation
                                { dynamic array -> dynamic array }
                                if is_dynamic_array(def_from) then
                                  eq:=te_equal
-                               { fpc modes only: array -> dyn. array }
-                               else if (current_settings.modeswitches*[m_objfpc,m_fpc]<>[]) and
+                               { regular array -> dynamic array }
+                               else if (m_array2dynarray in current_settings.modeswitches) and
                                  not(is_special_array(def_from)) and
                                  is_zero_based_array(def_from) then
                                  begin
@@ -1213,6 +1223,8 @@ implementation
                               eq:=te_convert_l1;
                            end;
                       end;
+                    else
+                      ;
                   end;
                 end;
              end;
@@ -1256,6 +1268,8 @@ implementation
                              eq:=te_convert_l1;
                            end;
                        end;
+                     else
+                       ;
                    end;
                  end;
              end;
@@ -1542,6 +1556,8 @@ implementation
                          eq:=te_convert_l2;
                        end;
                    end;
+                 else
+                   ;
                end;
              end;
 
@@ -1582,6 +1598,8 @@ implementation
                         eq:=te_convert_l1;
                       end;
                    end;
+                 else
+                   ;
                end;
              end;
 
@@ -1638,6 +1656,8 @@ implementation
                          eq:=te_convert_l1;
                        end;
                    end;
+                 else
+                   ;
                end;
              end;
 
@@ -1889,6 +1909,8 @@ implementation
                 if not (def_from.typ in [abstractdef,errordef]) then
                   eq:=te_convert_l6;
              end;
+           else
+             ;
         end;
 
         { if we didn't find an appropriate type conversion yet
@@ -1978,6 +2000,10 @@ implementation
                   is_subequal:=(torddef(def2).ordtype=uwidechar);
                 customint:
                   is_subequal:=(torddef(def2).low=torddef(def1).low) and (torddef(def2).high=torddef(def1).high);
+                u128bit, s128bit,
+                scurrency,
+                uvoid:
+                  ;
               end;
             end
            else

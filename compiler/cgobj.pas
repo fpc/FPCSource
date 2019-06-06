@@ -1793,10 +1793,14 @@ implementation
                 a:=a and 15;
               OS_8,OS_S8:
                 a:=a and 7;
+              else
+                internalerror(2019050521);
             end;
             if a = 0 then
               op:=OP_NONE;
           end;
+        else
+          ;
         end;
       end;
 
@@ -2123,6 +2127,8 @@ implementation
                     a_load_const_reg(list,OS_16,0,dst);
                     exit;
                   end;
+                else
+                  ;
               end;
           end;
         OP_SHR:
@@ -2135,9 +2141,13 @@ implementation
                     a_load_const_reg(list,OS_16,0,GetNextReg(dst));
                     exit;
                   end;
+                else
+                  ;
               end;
           end;
 {$endif cpu16bitalu}
+        else
+          ;
       end;
       a_load_reg_reg(list,size,size,src,dst);
       a_op_const_reg(list,op,size,a,dst);
@@ -2787,6 +2797,8 @@ implementation
               { a_load_ref_reg will turn this into a pic-load if needed }
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
             end;
+          else
+            ;
         end;
       end;
 

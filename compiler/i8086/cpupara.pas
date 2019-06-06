@@ -192,6 +192,8 @@ unit cpupara;
             result:=not(calloption in cdecl_pocalls) and not tprocvardef(def).is_addressonly;
           setdef :
             result:=not(calloption in cdecl_pocalls) and (not is_smallset(def));
+          else
+            ;
         end;
       end;
 
@@ -235,8 +237,8 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
-        saveregs_cdecl: array [0..2] of tsuperregister = (RS_BP,RS_SI,RS_DI);
-        saveregs_pascal: array [0..0] of tsuperregister = (RS_BP);
+        saveregs_cdecl: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..2] of tsuperregister{$endif} = (RS_BP,RS_SI,RS_DI);
+        saveregs_pascal: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_BP);
       begin
         case calloption of
           pocall_register,

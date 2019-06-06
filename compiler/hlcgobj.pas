@@ -1416,12 +1416,57 @@ implementation
   procedure thlcgobj.a_load_subsetref_reg(list: TAsmList; fromsubsetsize, tosize: tdef; const sref: tsubsetreference; destreg: tregister);
     var
       tmpref: treference;
-      valuereg,extra_value_reg: tregister;
+      valuereg,extra_value_reg, tmpreg: tregister;
       tosreg: tsubsetregister;
       loadsize: torddef;
       loadbitsize: byte;
       extra_load: boolean;
+      tmpsref: tsubsetreference;
     begin
+      if sref.bitlen>AIntBits then
+        begin
+          tmpsref:=sref;
+          tmpsref.bitlen:=AIntBits;
+          valuereg:=hlcg.getintregister(list,tosize);
+          a_load_subsetref_reg(list,sinttype,tosize,tmpsref,valuereg);
+          tmpsref.bitlen:=sref.bitlen-AIntBits;
+          inc(tmpsref.ref.offset,AIntBits div 8);
+          extra_value_reg:=hlcg.getintregister(list,tosize);
+          a_load_subsetref_reg(list,sinttype,tosize,tmpsref,extra_value_reg);
+          { can't use a_load_reg_subsetreg to merge the results, as that one
+            does not support sizes > AIntBits either }
+          tmpreg:=hlcg.getintregister(list,tosize);
+          if target_info.endian=endian_big then
+            begin
+              a_op_const_reg_reg(list,OP_SHL,tosize,sref.bitlen-AIntBits,valuereg,tmpreg);
+              if is_signed(fromsubsetsize) then
+                begin
+                  valuereg:=tmpreg;
+                  tmpreg:=hlcg.getintregister(list,tosize);
+                  a_op_const_reg_reg(list,OP_AND,tosize,(tcgint(1) shl (sref.bitlen-AIntBits))-1,extra_value_reg,tmpreg);
+                  valuereg:=tmpreg;
+                end
+            end
+          else
+            begin
+              a_op_const_reg_reg(list,OP_SHL,tosize,AIntBits,extra_value_reg,tmpreg);
+              if is_signed(fromsubsetsize) then
+                begin
+                  extra_value_reg:=hlcg.getintregister(list,tosize);
+                  a_op_const_reg_reg(list,OP_AND,tosize,(tcgint(1) shl AIntBits)-1,valuereg,extra_value_reg);
+                  valuereg:=extra_value_reg;
+                end
+            end;
+          if is_signed(fromsubsetsize) then
+            begin
+              extra_value_reg:=hlcg.getintregister(list,tosize);
+              a_op_const_reg_reg(list,OP_AND,tosize,(tcgint(1) shl AIntBits)-1,valuereg,extra_value_reg);
+              valuereg:=extra_value_reg;
+            end;
+          a_op_reg_reg_reg(list,OP_OR,tosize,valuereg,tmpreg,destreg);
+          exit;
+        end;
+
       get_subsetref_load_info(sref,loadsize,extra_load);
       loadbitsize:=loadsize.size*8;
 
@@ -1512,7 +1557,37 @@ implementation
     end;
 
   procedure thlcgobj.a_load_reg_subsetref(list: TAsmList; fromsize, tosubsetsize: tdef; fromreg: tregister; const sref: tsubsetreference);
+    var
+      tmpsref: tsubsetreference;
+      fromreg1: tregister;
     begin
+      if sref.bitlen>AIntBits then
+        begin
+          if ((sref.bitlen mod AIntBits)<>0) then
+            internalerror(2019052901);
+          tmpsref:=sref;
+          tmpsref.bitlen:=AIntBits;
+          fromreg1:=hlcg.getintregister(list,uinttype);
+          a_load_reg_reg(list,fromsize,uinttype,fromreg,fromreg1);
+          if target_info.endian=endian_big then
+            begin
+              inc(tmpsref.ref.offset,sref.bitlen-AIntBits);
+            end;
+          a_load_reg_subsetref(list,uinttype,uinttype,fromreg1,tmpsref);
+          if target_info.endian=endian_big then
+            begin
+              tmpsref.ref.offset:=sref.ref.offset;
+            end
+          else
+            begin
+              inc(tmpsref.ref.offset,AIntBits div 8);
+            end;
+          tmpsref.bitlen:=sref.bitlen-AIntBits;
+          fromreg1:=hlcg.getintregister(list,fromsize);
+          hlcg.a_op_const_reg_reg(list,OP_SHR,fromsize,AIntBits,fromreg,fromreg1);
+          a_load_reg_subsetref(list,fromsize,tosubsetsize,fromreg1,tmpsref);
+          exit;
+        end;
       a_load_regconst_subsetref_intern(list,fromsize,tosubsetsize,fromreg,sref,SL_REG);
     end;
 
@@ -1545,9 +1620,37 @@ implementation
 
   procedure thlcgobj.a_load_const_subsetref(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sref: tsubsetreference);
     var
+      tmpref: treference;
+      tmpsref: tsubsetreference;
       tmpreg: tregister;
       slopt: tsubsetloadopt;
+      newdef: tdef;
+      newbytesize: longint;
+      loval, hival: longint;
     begin
+      if sref.bitlen>AIntBits then
+        begin
+          if ((sref.bitlen mod AIntBits)<>0) then
+            internalerror(2019052901);
+          tmpsref:=sref;
+          tmpsref.bitlen:=AIntBits;
+          if target_info.endian=endian_big then
+            begin
+              inc(tmpsref.ref.offset,sref.bitlen-AIntBits);
+            end;
+          a_load_const_subsetref(list,tosubsetsize,aint(a),tmpsref);
+          if target_info.endian=endian_big then
+            begin
+              tmpsref.ref.offset:=sref.ref.offset;
+            end
+          else
+            begin
+              inc(tmpsref.ref.offset,AIntBits div 8);
+            end;
+          tmpsref.bitlen:=sref.bitlen-AIntBits;
+          a_load_const_subsetref(list,tosubsetsize,a shr AIntBits,tmpsref);
+          exit;
+        end;
       { perform masking of the source value in advance }
       slopt:=SL_REGNOSRCMASK;
       if (sref.bitlen<>AIntBits) then
@@ -4469,6 +4572,8 @@ implementation
         inn,
         asn,isn:
           result := fen_norecurse_false;
+        else
+          ;
       end;
     end;
 
@@ -4477,9 +4582,18 @@ implementation
     var
       firstitem,
       item: TCmdStrListItem;
+      global: boolean;
     begin
       item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
       firstitem:=item;
+      global:=
+        (cs_profile in current_settings.moduleswitches) or
+        { smart linking using a library requires to promote
+          all non-nested procedures to AB_GLOBAL
+          otherwise you get undefined symbol error at linking
+          for msdos  target with -CX option for instance }
+        (create_smartlink_library and not is_nested_pd(current_procinfo.procdef)) or
+        (po_global in current_procinfo.procdef.procoptions);
       while assigned(item) do
         begin
 {$ifdef arm}
@@ -4491,19 +4605,29 @@ implementation
             subsections and be reordered }
           if (item<>firstitem) and
              (target_info.system in systems_darwin) then
-            list.concat(tai_symbolpair.create(spk_set,item.str,firstitem.str));
-          if (cs_profile in current_settings.moduleswitches) or
-             { smart linking using a library requires to promote
-               all non-nested procedures to AB_GLOBAL
-               otherwise you get undefined symbol error at linking
-               for msdos  target with -CX option for instance }
-             (create_smartlink_library and not is_nested_pd(current_procinfo.procdef)) or
-             (po_global in current_procinfo.procdef.procoptions) then
-            list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
+            begin
+              { the .set already defines the symbol, so can't emit a tai_symbol as that will redefine it }
+              if global then
+                begin
+                  list.concat(tai_symbolpair.create(spk_set_global,item.str,firstitem.str));
+                  { needed for generating the tai_symbol_end }
+                  current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef);
+                end
+              else
+                begin
+                  list.concat(tai_symbolpair.create(spk_set,item.str,firstitem.str));
+                  current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION,current_procinfo.procdef);
+                end;
+            end
           else
-            list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0,current_procinfo.procdef));
-          if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
-            list.concat(Tai_function_name.create(item.str));
+            begin
+              if global then
+                list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
+              else
+                list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0,current_procinfo.procdef));
+              if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
+                list.concat(Tai_function_name.create(item.str));
+            end;
           item:=TCmdStrListItem(item.next);
         end;
       current_procinfo.procdef.procstarttai:=tai(list.last);
@@ -4549,6 +4673,8 @@ implementation
         potype_unitinit,
         potype_proginit:
           TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
+        else
+          ;
       end;
 
       { initialises temp. ansi/wide string data }
@@ -4599,6 +4725,8 @@ implementation
                      std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset)+
                      ', size='+tcgsize2str(vs.initialloc.size))));
               end;
+            else
+              ;
           end;
         end;
       vs.localloc:=vs.initialloc;
@@ -4881,6 +5009,8 @@ implementation
                      end;
                  end;
              end;
+           else
+             ;
          end;
        end;
     end;

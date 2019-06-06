@@ -442,6 +442,8 @@ uses cutils, cclasses;
           A_STFSU, A_STFSUX, A_STFDU, A_STFDUX:
             if (oper[opnr]^.ref^.base = reg) then
               result := operand_readwrite;
+          else
+            ;
         end;
       end;
 
@@ -524,6 +526,8 @@ uses cutils, cclasses;
                     internalerror(2008052101); 
                   inc(instrpos);
                 end;
+              else
+                ;
             end;
             p := tai(p.next);
           end;
@@ -583,10 +587,14 @@ uses cutils, cclasses;
                             // we inserted an instruction, so will have to check everything again
                             inserted_something := true;
                           end;
+                      else
+                        ;
                     end;
                   end;
                 ait_const:
                   inc(instrpos);
+                else
+                  ;
               end;
               p := tai(p.next);
             end;

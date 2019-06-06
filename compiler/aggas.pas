@@ -375,6 +375,8 @@ implementation
                 secname:='.data.rel.ro';
               sec_rodata_norel:
                 secname:='.rodata';
+              else
+                ;
             end;
           end;
 
@@ -508,8 +510,6 @@ implementation
                 writer.AsmWrite(',"x"');
               SF_None:
                 writer.AsmWrite(',""');
-              else
-                Internalerror(2018101502);
             end;
             case secprogbits of
               SPB_PROGBITS:
@@ -518,8 +518,6 @@ implementation
                 writer.AsmWrite(',%nobits');
               SPB_None:
                 ;
-              else
-                Internalerror(2018101503);
             end;
           end
         else
@@ -1026,6 +1024,8 @@ implementation
                              WriteDecodedUleb128(qword(tai_const(hp).value));
                            aitconst_sleb128bit:
                              WriteDecodedSleb128(int64(tai_const(hp).value));
+                           else
+                             ;
                          end
                        end
                      else
@@ -1279,14 +1279,26 @@ implementation
                if replaceforbidden then
                  begin
                    { avoid string truncation }
-                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+s);
+                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^));
+                   writer.AsmWrite(s);
                    writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^));
+                   if tai_symbolpair(hp).kind=spk_set_global then
+                     begin
+                       writer.AsmWrite(#9'.globl ');
+                       writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^));
+                     end;
                  end
                else
                  begin
                    { avoid string truncation }
-                   writer.AsmWrite(tai_symbolpair(hp).sym^+s);
+                   writer.AsmWrite(tai_symbolpair(hp).sym^);
+                   writer.AsmWrite(s);
                    writer.AsmWriteLn(tai_symbolpair(hp).value^);
+                   if tai_symbolpair(hp).kind=spk_set_global then
+                     begin
+                       writer.AsmWrite(#9'.globl ');
+                       writer.AsmWriteLn(tai_symbolpair(hp).sym^);
+                     end;
                  end;
              end;
            ait_symbol_end :
@@ -1774,6 +1786,8 @@ implementation
                 result:='.section '+objc_section_name(atype);
                 exit
               end;
+            else
+              ;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;

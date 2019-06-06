@@ -334,8 +334,6 @@ interface
                {!!!!!!!}
                internalerror(8888);
              end;
-           else
-             internalerror(200808241);
          end;
       end;
 

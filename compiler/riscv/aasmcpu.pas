@@ -565,6 +565,8 @@ uses cutils, cclasses;
           A_SD:
             result:=operand_read;
 {$endif RISCV64}
+          else
+            ;
         end;
       end;
 

@@ -3,10 +3,10 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 39700
+#   Based on errore.msg of SVN revision 42047
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2018 by the Free Pascal Development team
+#   Copyright (c) 1998-2019 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -127,9 +127,9 @@ general_e_path_does_not_exist=01017_E_Der Pfad "$1" existiert nicht
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Übersetzen abgebrochen
 % Compilation was aborted.
-general_text_bytes_code=01019_bytes Code
+general_text_bytes_code=01019_Byte Code
 % The size of the generated executable code, in bytes.
-general_text_bytes_data=01020_bytes Daten
+general_text_bytes_data=01020_Byte Daten
 % The size of the generated program data, in bytes.
 general_i_number_of_warnings=01021_I_$1 Warnung(en) ausgegeben
 % Total number of warnings issued during compilation.
@@ -449,7 +449,7 @@ scan_n_changecputype=02105_N_Geänderter CPU-Typ muss zum angegebenen Controller
 #
 # Parser
 #
-# 03348 is the last used one
+# 03350 is the last used one
 #
 # BeginOfTeX
 %
@@ -721,7 +721,7 @@ parser_e_no_such_assignment=03083_E_Es ist nicht möglich, die Zuweisung für gl
 parser_e_overload_impossible=03084_E_Unmögliche Operator-.berladung
 % The combination of operator, arguments and return type are
 % incompatible.
-parser_e_no_reraise_possible=03085_E_Auslösen einer Exception an dieser Stelle nicht möglich
+parser_e_no_reraise_possible=03085_E_Auslösen einer Ausnahme (exception) an dieser Stelle nicht möglich
 % You are trying to re-raise an exception where it is not allowed. You can only
 % re-raise exceptions in an \var{except} block.
 parser_e_no_new_or_dispose_for_classes=03086_E_Die erweiterte Syntax von New oder Dispose ist für Klassen unzulässig
@@ -1598,6 +1598,22 @@ parser_w_operator_overloaded_hidden_3=03347_W_Überladen eines Operators durch i
 % (in case of dynamic arrays that is the modeswitch \var{ArrayOperators}).
 parser_e_threadvar_must_be_class=03348_E_Threadvariablen in Klassen oder Records müssen Klassenvariablen sein
 % A \var{threadvar} section inside a class or record was started without it being prefixed by \var{class}.
+parser_e_only_static_members_via_object_type=03349_E_Nur statische Methoden und Variablen können mit einem Objekttyp referenziert werden
+% This error occurs in a situation like the following:
+% \begin{verbatim}
+% Type
+%    TObj = object
+%      procedure test;
+%    end;
+%
+% begin
+%   TObj.test;
+% \end{verbatim}
+% \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
+parse_e_callthrough_varargs=03350_E_Kann die variadische Funktion "$1" im C-Stil auf dieser Platform nicht als external redeklarieren; schon die erste Deklaration muss external sein
+% If a function is declared normally in the interface or as a forward declaration, and then later as external, the compiler
+% must generate a stub that calls the external function. Due to code generation limitations, this cannot be done on some
+% platforms. Even on platforms where it is supported, this is quite inefficient.
 %
 % \end{description}
 # EndOfTeX
@@ -1773,7 +1789,7 @@ type_w_mixed_signed_unsigned2=04036_W_Mischen von signed Ausdrücken und kardina
 type_e_typecast_wrong_size_for_assignment=04037_E_Typecast hat verschiedene Größen ($1 -> $2) in der Zuweisung
 % Type casting to a type with a different size is not allowed when the variable is
 % used in an assignment.
-type_e_array_index_enums_with_assign_not_possible=04038_E_enums mit Zuweisungen können nicht als Array-Index verwendet werden
+type_e_array_index_enums_with_assign_not_possible=04038_E_Enums mit Zuweisungen können nicht als Array-Index verwendet werden
 % When you declared an enumeration type which has C-like
 % assignments, such as in the following:
 % \begin{verbatim}
@@ -2050,7 +2066,7 @@ type_w_empty_constant_range_set=04125_W_Der erste Wert des Bereichs für den Men
 #
 # Symtable
 #
-# 05097 is the last used one
+# 05098 is the last used one
 #
 # BeginOfTeX
 %
@@ -2368,6 +2384,8 @@ sym_e_generic_type_param_mismatch=05096_E_Der generische Typparameter "$1" passt
 sym_e_generic_type_param_decl=05097_E_Generischer Typparameter deklariert als "$1"
 % Shows what the generic type parameter was originally declared as if a mismatch
 % is found between a declaration and the definition.
+sym_e_type_must_be_rec_or_object=05098_E_Record- oder Objecttyp erwartet
+% The variable or expression isn't of the type \var{record} or \var{object}.
 %
 % \end{description}
 # EndOfTeX
@@ -2375,7 +2393,7 @@ sym_e_generic_type_param_decl=05097_E_Generischer Typparameter deklariert als "$
 #
 # Codegenerator
 #
-# 06058 is the last used one
+# 06060 is the last used one
 #
 # BeginOfTeX
 %
@@ -2514,7 +2532,7 @@ cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051_E_Interprozedurale g
 % from a subroutine to the main program
 cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_ Label müssen im selben Bereich definiert werden, in dem sie deklariert werden
 % In ISO mode, labels must be defined in the same scope as they are declared.
-cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Eine Prozedur, die explizite oder implizite Excpetion Frames enthält, darf nicht mit einem goto verlassen werden
+cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Eine Prozedur, die explizite oder implizite Exception-Frames enthält, darf nicht mit einem goto verlassen werden
 % Non-local gotos might not be used to leave procedures using exceptions either implicitly or explicitly. Procedures
 % which use automated types like ansistrings or class constructurs are affected by this too.
 cg_e_mod_only_defined_for_pos_quotient=06054_E_Im ISO-Modus ist der Operator mod nur für positive Quotienten definiert
@@ -2532,6 +2550,9 @@ cg_n_no_inline=06058_N_Der Aufruf der Routine "$1" ist als "inline" markiert, wi
 % The directive inline is only a hint to the compiler. Sometimes the compiler ignores this hint, a subroutine
 % marked as inline is not inlined. In this case, this hint is given. Compiling with \var{-vd} might result in more information why
 % the directive inline is ignored.
+cg_e_case_incomplete=06059_E_Case-Anweisung deckt nicht alle möglichen Fälle ab
+cg_w_case_incomplete=06060_W_Case-Anweisung deckt nicht alle möglichen Fälle ab
+% The case statement does not contain labels for all possible values of the operand, and no else statement is present.
 %
 % \end{description}
 # EndOfTeX
@@ -3042,7 +3063,10 @@ exec_n_backquote_cat_file_not_found=09033_N_Die Datei "$1" wurde mit dem Kommand
 exec_w_init_file_not_found=09034_W_"$1" nicht gefunden; dies wird wahrscheinlich zu einem Fehler beim Linken führen
 % The compiler adds certain startup code files to the linker only when they are found.
 % If they are not found, they are not added and this might cause a linking failure.
-exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstützt
+% If the system has gcc installed, running \var{gcc --print-file-name <filename>} might return the path to the file.
+% Add this path in your \var{fpc.cfg} using the switch \var{-Fl} to fix this error. This requires though,
+% that gcc targets the same target as FPC.
+exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstützt
 % Creating static libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
 %
@@ -3064,15 +3088,15 @@ execinfo_f_cant_process_executable=09128_F_Kann ausführbare Datei nicht nachbea
 % Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Kann ausführbare Datei nicht öffnen: $1
 % Fatal error when the compiler cannot open the file for the executable.
-execinfo_x_codesize=09130_X_Größe des Codes: $1 Bytes
+execinfo_x_codesize=09130_X_Größe des Codes: $1 Byte
 % Informational message showing the size of the produced code section.
-execinfo_x_initdatasize=09131_X_Größe der initialisierten Daten: $1 Bytes
+execinfo_x_initdatasize=09131_X_Größe der initialisierten Daten: $1 Byte
 % Informational message showing the size of the initialized data section.
-execinfo_x_uninitdatasize=09132_X_Größe der nicht initialisierten Daten: $1 Bytes
+execinfo_x_uninitdatasize=09132_X_Größe der nicht initialisierten Daten: $1 Byte
 % Informational message showing the size of the uninitialized data section.
-execinfo_x_stackreserve=09133_X_Stack Bereich "reserved": $1 Bytes
+execinfo_x_stackreserve=09133_X_Stack Bereich "reserved": $1 Byte
 % Informational message showing the stack size that the compiler reserved for the executable.
-execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
+execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Byte
 % Informational message showing the stack size that the compiler committed for the executable.
 %
 % \end{description}
@@ -3466,7 +3490,7 @@ option_end_reading_configfile=11031_H_Ende des Lesens der Konfigurationsdatei $1
 % End of configuration file parsing.
 option_interpreting_option=11032_D_Option "$1" interpretieren
 % The compiler is interpreting an option
-option_interpreting_firstpass_option=11036_D_firstpass Option "$1" interpretieren
+option_interpreting_firstpass_option=11036_D_Firstpass Option "$1" interpretieren
 % The compiler is interpreting an option for the first time.
 option_interpreting_file_option=11033_D_Datei Option "$1" interpretieren
 % The compiler is interpreting an option which it read from the configuration file.
@@ -3861,9 +3885,10 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Cc<x>_Setze "default calling convention" zu <x>
 **2CD_Erzeuge auch eine dynamische Bibliothek (nicht unterstützt)
 **2Ce_Übersetze mit emulierten Fliesskomma opcodes
+**2CE_Erzeuge FPU Code, der Ausnahmen (exceptions) auslösen kann
 **2Cf<x>_Wähle den Fliesskomma-Befehlssatz aus; fpc -i oder fpc -if geben die möglichen Werte aus
 **2CF<x>_Minimale Präzission von Fliesskommakonstanten (default, 32, 64)
-**2Cg_Erzeuge PIC code
+**2Cg_Erzeuge PIC Code
 **2Ch<n>[,m]_<n> Minimale Größe des Heap in Byte (zwischen 1023 und 67107840) und optional [m] maximale Größe des Heap
 **2Ci_I/O-Prüfung
 A*2CI<x>_Wähle den Befehlssatz für ARM aus: ARM oder THUMB
@@ -4104,8 +4129,8 @@ a*2Tlinux_Linux
 # jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
-m# mipsel targets
-*2Tandroid_Android
+# mipsel targets
+m*2Tandroid_Android
 m*2Tembedded_Embedded
 m*2Tlinux_Linux
 # mipseb targets
@@ -4126,6 +4151,12 @@ p*2Taix_AIX
 p*2Tdarwin_Darwin/Mac OS X
 p*2Tembedded_Embedded
 p*2Tlinux_Linux
+# riscv32 targets
+R*2Tlinux_Linux
+R*2Tembedded_Embedded
+# riscv64 targets
+r*2Tlinux_Linux
+r*2Tembedded_Embedded
 # sparc targets
 S*2Tlinux_Linux
 S*2Tsolaris_Solaris
@@ -4134,6 +4165,7 @@ s*2Tlinux_Linux
 # not yet ready s*2Tsolaris_Solaris
 # avr targets
 V*2Tembedded_Embedded
+# end of targets section
 **1u<x>_Entferne die Definition für das Symbol <x>
 **1U<x>_Unit-Optionen:
 **2Un_Prüfe den Unitnamen nicht

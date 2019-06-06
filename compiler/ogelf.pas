@@ -776,7 +776,9 @@ implementation
                 elfsym.st_info:=elfsym.st_info or STT_TLS;
               AT_GNU_IFUNC:
                 elfsym.st_info:=elfsym.st_info or STT_GNU_IFUNC;
-            { other types are implicitly mapped to STT_NOTYPE }
+              { other types are implicitly mapped to STT_NOTYPE }
+              else
+                ;
             end;
           end;
         if objsym.bind<>AB_COMMON then

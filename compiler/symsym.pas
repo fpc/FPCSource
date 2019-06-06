@@ -2440,6 +2440,12 @@ implementation
     destructor tconstsym.destroy;
       begin
         case consttyp of
+          constnone:
+            internalerror(2019050703);
+          constord,
+          constpointer,
+          constnil:
+            ;
           conststring,
           constresourcestring :
             freemem(pchar(value.valueptr),value.len+1);

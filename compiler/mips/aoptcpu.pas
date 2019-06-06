@@ -167,6 +167,8 @@ unit aoptcpu;
               result:=
                 (p.oper[I]^.ref^.base=reg) or
                 (p.oper[I]^.ref^.index=reg);
+            else
+              ;
           end;
           if result then exit; {Bailout if we found something}
           Inc(I);
@@ -190,6 +192,8 @@ unit aoptcpu;
         A_BA,A_BC,
         A_SB,A_SH,A_SW,A_SWL,A_SWR,A_SWC1,A_SDC1:
           exit;
+        else
+        ;
       end;
 
       result:=(p.ops>0) and (p.oper[0]^.typ=top_reg) and
@@ -716,8 +720,12 @@ unit aoptcpu;
               A_ABS_d, A_NEG_d, A_SQRT_d,
               A_CVT_d_w, A_CVT_d_l, A_CVT_d_s:
                 result:=TryRemoveMov(p,A_MOV_d);
+              else
+                ;
             end;
           end;
+        else
+          ;
       end;
     end;
 
@@ -867,8 +875,12 @@ unit aoptcpu;
                             end;
                         end;
                     end;
+                  else
+                    ;
                 end;
               end;
+            else
+              ;
           end;
           UpdateUsedRegs(p);
           p:=tai(p.next);

@@ -932,6 +932,8 @@ const pemagic : array[0..3] of byte = (
               RELOC_ABSOLUTE:
                 address_size:=8;
 {$endif cpu64bitaddr}
+              else
+                ;
             end;
 
             address:=0;

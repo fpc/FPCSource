@@ -256,7 +256,6 @@ Type
     procedure SetResources(AValue: TSQLDBRestResourceList);
   Protected
     function CreateResourceList: TSQLDBRestResourceList; virtual;
-    function GetPrimaryIndexFields(Q: TSQLQuery): TStringArray; virtual;
     function ProcessIdentifier(const S: UTF8String): UTF8String; virtual;
     Function AttachProcessor(aProcessor : TSQLDBRestCustomBusinessProcessor) : Boolean; Virtual;
     Function DetachProcessor(aProcessor : TSQLDBRestCustomBusinessProcessor) : Boolean; Virtual;
@@ -273,6 +272,7 @@ Type
     Procedure LoadFromFile(Const aFileName : UTF8String);
     Procedure LoadFromStream(Const aStream : TStream);
     Procedure FromJSON(aData: TJSONData;const aPropName: UTF8String='');
+    Class function GetPrimaryIndexFields(Q: TSQLQuery): TStringArray; virtual;
     procedure PopulateResourceFields(aConn: TSQLConnection; aRes: TSQLDBRestResource; aMinFieldOpts : TRestFieldOptions = []); virtual;
     procedure PopulateResources(aConn: TSQLConnection; aTables: array of string; aMinFieldOpts: TRestFieldOptions= []);
     Procedure PopulateResources(aConn : TSQLConnection; aTables : TStrings = Nil; aMinFieldOpts : TRestFieldOptions = []);
@@ -627,7 +627,7 @@ begin
 end;
 
 
-function TSQLDBRestSchema.GetPrimaryIndexFields(Q: TSQLQuery): TStringArray;
+class function TSQLDBRestSchema.GetPrimaryIndexFields(Q: TSQLQuery): TStringArray;
 
 Var
   C,I : Integer;

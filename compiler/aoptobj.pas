@@ -442,6 +442,8 @@ Unit AoptObj;
                         Include(UsedRegs, getsupreg(tai_regalloc(p).reg));
                     ra_dealloc :
                       Exclude(UsedRegs, getsupreg(tai_regalloc(p).reg));
+                    else
+                      ;
                   end;
                 end;
               p := tai(p.next);
@@ -918,6 +920,8 @@ Unit AoptObj;
                     Include(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
                   ra_dealloc :
                     Exclude(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
+                  else
+                    ;
                 end;
                 p := tai(p.next);
               end;
@@ -1686,6 +1690,8 @@ Unit AoptObj;
                       begin
                       end; { if is_jmp }
                   end;
+                else
+                  ;
               end;
               if assigned(p) then
                 begin

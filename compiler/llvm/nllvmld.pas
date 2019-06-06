@@ -66,6 +66,8 @@ function tllvmloadnode.pass_1: tnode;
           if assigned(left) then
             expectloc:=LOC_REFERENCE;
         end;
+      else
+        ;
     end;
   end;
 
@@ -133,6 +135,8 @@ procedure tllvmloadnode.pass_generate_code;
           );
           reference_reset_base(location.reference,selfreg,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
         end;
+      else
+        ;
     end;
   end;
 

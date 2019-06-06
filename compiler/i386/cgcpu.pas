@@ -513,6 +513,8 @@ unit cgcpu;
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
           S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+          else
+            internalerror(2019050901);
         end;
         ungetcpuregister(list,NR_EDI);
         ungetcpuregister(list,NR_ECX);
@@ -872,6 +874,8 @@ unit cgcpu;
               cg.ungetcpuregister(list,NR_ECX);
               exit;
             end;
+          else
+            ;
         end;
         get_64bit_ops(op,op1,op2);
         if op in [OP_ADD,OP_SUB] then
@@ -939,6 +943,8 @@ unit cgcpu;
                           list.concat(taicpu.op_const_reg(A_RCR,S_L,value,reg.reglo));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
+                      else
+                        internalerror(2019050902);
                     end
                   else if value>31 then
                     case op of
@@ -1052,6 +1058,8 @@ unit cgcpu;
                           list.concat(taicpu.op_const_ref(A_RCR,S_L,value,tempref));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
+                      else
+                        internalerror(2019050901);
                     end
                   else if value>31 then
                     case op of

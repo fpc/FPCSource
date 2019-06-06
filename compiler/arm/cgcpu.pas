@@ -898,9 +898,11 @@ unit cgcpu;
               a_load_const_reg(list, size, a, dst);
               exit;
             end;
+          else
+            ;
         end;
         ovloc.loc:=LOC_VOID;
-        if {$ifopt R+}(a<>-2147483648) and{$endif} not setflags and is_shifter_const(-a,shift) then
+        if (a<>-2147483648) and not setflags and is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin
@@ -912,6 +914,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
@@ -960,6 +964,8 @@ unit cgcpu;
                       ovloc.resflags:=F_CS;
                     OP_SUB:
                       ovloc.resflags:=F_CC;
+                    else
+                      internalerror(2019050922);
                   end;
                 end;
           end
@@ -1871,6 +1877,10 @@ unit cgcpu;
             firstfloatreg:=RS_NO;
             mmregs:=[];
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -1896,6 +1906,8 @@ unit cgcpu;
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end;
+              else
+                internalerror(2019050924);
             end;
             a_reg_alloc(list,NR_STACK_POINTER_REG);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -2080,6 +2092,8 @@ unit cgcpu;
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                    end;
+                 else
+                   internalerror(2019050923);
                end;
              end;
           end;
@@ -2109,6 +2123,10 @@ unit cgcpu;
             mmregs:=[];
             saveregs:=[];
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -2138,6 +2156,8 @@ unit cgcpu;
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end;
+              else
+                internalerror(2019050926);
             end;
 
             if (firstfloatreg<>RS_NO) or
@@ -2186,6 +2206,8 @@ unit cgcpu;
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                     end;
+                  else
+                    internalerror(2019050921);
                 end;
               end;
 
@@ -3044,6 +3066,8 @@ unit cgcpu;
         case instr.opcode of
           A_VMOV:
             add_move_instruction(instr);
+          else
+            ;
         end;
       end;
 
@@ -3073,6 +3097,10 @@ unit cgcpu;
               if (fromsize<>tosize) then
                 internalerror(2009112901);
             end;
+          OS_F32,OS_F64:
+            ;
+          else
+            internalerror(2019050920);
         end;
 
         if (fromsize<>tosize) then
@@ -3134,6 +3162,10 @@ unit cgcpu;
               if (fromsize<>tosize) then
                 internalerror(2009112901);
             end;
+          OS_F32,OS_F64:
+            ;
+          else
+            internalerror(2019050919);
         end;
 
         if (fromsize<>tosize) then
@@ -3347,6 +3379,8 @@ unit cgcpu;
           OP_NEG,
           OP_NOT :
             internalerror(2012022501);
+          else
+            ;
         end;
         if (setflags or tbasecgarm(cg).cgsetflags) and (op in [OP_ADD,OP_SUB]) then
           begin
@@ -3411,6 +3445,8 @@ unit cgcpu;
                     ovloc.resflags:=F_CS;
                   OP_SUB:
                     ovloc.resflags:=F_CC;
+                  else
+                    internalerror(2019050918);
                 end;
               end;
           end
@@ -3484,6 +3520,8 @@ unit cgcpu;
           OP_NEG,
           OP_NOT :
             internalerror(2012022502);
+          else
+            ;
         end;
         if (setflags or tbasecgarm(cg).cgsetflags) and (op in [OP_ADD,OP_SUB]) then
           begin
@@ -3512,6 +3550,8 @@ unit cgcpu;
                     ovloc.resflags:=F_CS;
                   OP_SUB:
                     ovloc.resflags:=F_CC;
+                  else
+                    internalerror(2019050917);
                 end;
               end;
           end
@@ -4087,6 +4127,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_thumb_imm(a) and (op in [OP_ADD,OP_SUB]) then
@@ -4105,6 +4147,8 @@ unit cgcpu;
                     ;
                   OP_SUB:
                     //!!! ovloc.resflags:=F_CC;
+                    ;
+                  else
                     ;
                 end;
               end;
@@ -4435,6 +4479,11 @@ unit cgcpu;
               OS_S8: list.concat(taicpu.op_reg_reg(A_SXTB,dst,dst));
               OS_16: list.concat(taicpu.op_reg_reg(A_UXTH,dst,dst));
               OS_S16: list.concat(taicpu.op_reg_reg(A_SXTH,dst,dst));
+              OS_32,
+              OS_S32:
+                ;
+              else
+                internalerror(2019050916);
             end;
           end
         else
@@ -4450,7 +4499,7 @@ unit cgcpu;
         l1 : longint;
       begin
         ovloc.loc:=LOC_VOID;
-        if {$ifopt R+}(a<>-2147483648) and{$endif} is_shifter_const(-a,shift) then
+        if (a<>-2147483648) and is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin
@@ -4462,6 +4511,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
@@ -4566,6 +4617,8 @@ unit cgcpu;
                       ovloc.resflags:=F_CS;
                     OP_SUB:
                       ovloc.resflags:=F_CC;
+                    else
+                      ;
                   end;
                 end;
           end

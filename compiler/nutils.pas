@@ -219,6 +219,8 @@ implementation
                   result := foreachnode(procmethod,pcaseblock(tcasenode(n).blocks[i])^.statement,f,arg) or result;
               result := foreachnode(procmethod,tcasenode(n).elseblock,f,arg) or result;
             end;
+          else
+            ;
         end;
         if n.inheritsfrom(tbinarynode) then
           begin
@@ -249,6 +251,8 @@ implementation
        { result is already false
         fen_false:
           result := false; }
+        else
+          ;
       end;
       if (procmethod=pm_postprocess) or (procmethod=pm_postandagain) then
         result:=process_children(result);
@@ -264,6 +268,8 @@ implementation
               end;
             fen_true:
               result := true;
+            else
+              ;
           end;
         end;
     end;
@@ -316,6 +322,8 @@ implementation
                   result := foreachnodestatic(procmethod,pcaseblock(tcasenode(n).blocks[i])^.statement,f,arg) or result;
               result := foreachnodestatic(procmethod,tcasenode(n).elseblock,f,arg) or result;
             end;
+          else
+            ;
         end;
         if n.inheritsfrom(tbinarynode) then
           begin
@@ -346,6 +354,8 @@ implementation
        { result is already false
         fen_false:
           result := false; }
+        else
+          ;
       end;
       if (procmethod=pm_postprocess) or (procmethod=pm_postandagain) then
         result:=process_children(result);
@@ -361,6 +371,8 @@ implementation
               end;
             fen_true:
               result := true;
+            else
+              ;
           end;
         end;
     end;
@@ -1039,6 +1051,8 @@ implementation
               if(p.expectloc in [LOC_CFPUREGISTER,LOC_FPUREGISTER]) then
                 inc(result);
             end;
+          else
+            ;
         end;
       end;
 
@@ -1141,6 +1155,8 @@ implementation
                             p1:=tnode(twithsymtable(st).withrefnode).getcopy;
                           ObjectSymtable :
                             p1:=load_self_node;
+                          else
+                            ;
                         end;
                       end
                    end
@@ -1330,7 +1346,6 @@ implementation
             result:=true;
             exit;
           end;
-        result:=false;
         case n.nodetype of
           nothingn:
             begin
@@ -1350,6 +1365,8 @@ implementation
               until not(result) or not assigned(n);
               exit;
             end;
+          else
+            result:=false;
         end;
       end;
 
@@ -1447,6 +1464,8 @@ implementation
           typeconvn:
             if ttypeconvnode(n^).retains_value_location then
               result:=actualtargetnode(@ttypeconvnode(n^).left);
+          else
+            ;
         end;
       end;
 

@@ -2630,6 +2630,8 @@ implementation
                           end;
                       end;
                   end;
+                else
+                  internalerror(2019050510);
               end;
             end;
         end;

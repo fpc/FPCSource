@@ -83,7 +83,7 @@ end;
 function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption):
   tcpuregisterarray;
 const
-  saved_regs: array[0..17] of tsuperregister = (
+  saved_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array[0..17] of tsuperregister{$endif} = (
     RS_R14, RS_R15, RS_R16, RS_R17, RS_R18, RS_R19,
     RS_R20, RS_R21, RS_R22, RS_R23, RS_R24, RS_R25,
     RS_R26, RS_R27, RS_R28, RS_R29, RS_R30, RS_R31
@@ -214,6 +214,8 @@ begin
       result := not is_smallset(def);
     stringdef:
       result := tstringdef(def).stringtype in [st_shortstring, st_longstring];
+    else
+      ;
   end;
 end;
 
@@ -266,6 +268,8 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
               result:=def.size>8;
             recorddef:
               result:=true;
+            else
+              ;
           end;
         end;
       { Darwin: if completely passed in registers -> returned by registers;
@@ -275,13 +279,19 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
         begin
           case def.typ of
             recorddef:
-              { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
-                requires individual fields to be passed in individual registers,
-                so a record with 9 bytes may need to be passed via memory }
-              if def.size>8*sizeof(aint) then
-                result:=true;
+              begin
+                { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
+                  requires individual fields to be passed in individual registers,
+                  so a record with 9 bytes may need to be passed via memory }
+                if def.size>8*sizeof(aint) then
+                  result:=true;
+              end;
+            else
+              ;
           end;
         end;
+      else
+        internalerror(2019051030);
     end;
   end;
 

@@ -53,7 +53,7 @@ unit optdfa;
   implementation
 
     uses
-      globtype,
+      globtype,constexp,
       verbose,
       symconst,symdef,symsym,
       defutil,
@@ -136,6 +136,8 @@ unit optdfa;
               else
                 DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
             end;
+          else
+            ;
         end;
         result:=fen_false;
       end;
@@ -223,6 +225,7 @@ unit optdfa;
           dfainfo : tdfainfo;
           l : TDFASet;
           save: TDFASet;
+          lv, hv: TConstExprInt;
           i : longint;
           counteruse_after_loop : boolean;
         begin
@@ -483,7 +486,16 @@ unit optdfa;
                 if assigned(tcasenode(node).elseblock) then
                   DFASetIncludeSet(l,tcasenode(node).elseblock.optinfo^.life)
                 else if assigned(node.successor) then
-                  DFASetIncludeSet(l,node.successor.optinfo^.life);
+                  begin
+                    if is_ordinal(tcasenode(node).left.resultdef) then
+                      begin
+                        getrange(tcasenode(node).left.resultdef,lv,hv);
+                        if tcasenode(node).labelcoverage<(hv-lv) then
+                          DFASetIncludeSet(l,node.successor.optinfo^.life);
+                      end
+                    else
+                      DFASetIncludeSet(l,node.successor.optinfo^.life);
+                  end;
 
                 { add use info from the "case" expression }
                 DFASetIncludeSet(l,tcasenode(node).optinfo^.use);
@@ -815,6 +827,8 @@ unit optdfa;
 {$endif dummy}
                 end;
             end;
+          else
+            ;
         end;
       end;
 

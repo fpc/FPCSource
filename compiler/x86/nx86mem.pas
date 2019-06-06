@@ -69,8 +69,6 @@ implementation
            x86pt_far: internalerror(2013050401);
            x86pt_huge: internalerror(2013050402);
 {$endif i8086}
-           else
-             internalerror(2013050403);
          end;
        end;
 

@@ -321,6 +321,7 @@ reg32,memam2              \x17\x04\x50                   ARM32,ARMv4
 reglo,memam3              \x65\x58\x0\2                  THUMB,ARMv4T
 reglo,memam4              \x66\x68\x0\2                  THUMB,ARMv4T
 reglo,memam5              \x67\x98\x0\2                  THUMB,ARMv4T
+reglo,memam2              \x67\x98\x0\2                  THUMB,ARMv4T
 reglo,memam6              \x67\x48\x0\2                  THUMB,ARMv4T
 reg32,memam2              \x88\xF8\x50\x0\x0\0           THUMB32,WIDE,ARMv6T2
 reg32,memam2              \x17\x04\x10                   ARM32,ARMv4
@@ -543,6 +544,7 @@ reg32,reglist		          \x26\x80			   ARM32,ARMv4
 reglo,memam3                \x65\x50\x0\2                  THUMB,ARMv4T
 reglo,memam4                \x66\x60\x0\2                  THUMB,ARMv4T
 reglo,memam5                \x67\x90\x0\2                  THUMB,ARMv4T
+reglo,memam2                \x67\x90\x0\2                  THUMB,ARMv4T
 reg32,memam2                \x88\xF8\x40\x0\x0\0           THUMB32,WIDE,ARMv6T2
 reg32,memam2                \x17\x04\x00                   ARM32,ARMv4
 

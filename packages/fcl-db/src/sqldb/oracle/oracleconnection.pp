@@ -1,7 +1,7 @@
 unit oracleconnection;
 
 {
-    Copyright (c) 2006-2014 by Joost van der Sluis, FPC contributors
+    Copyright (c) 2006-2019 by Joost van der Sluis, FPC contributors
 
     Oracle RDBMS connector using the OCI protocol
 
@@ -358,6 +358,7 @@ begin
 
       case DataType of
         ftInteger         : AsInteger := PInteger(ParamBuffers[i].buffer)^;
+        ftLargeint        : AsLargeInt := PInt64(ParamBuffers[i].buffer)^;
         ftFloat           : AsFloat := PDouble(ParamBuffers[i].buffer)^;
         ftString          : begin
                             SetLength(s,ParamBuffers[i].Len);

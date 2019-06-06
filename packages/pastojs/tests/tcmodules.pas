@@ -347,6 +347,7 @@ type
     Procedure TestAnonymousProc_Nested;
     Procedure TestAnonymousProc_NestedAssignResult;
     Procedure TestAnonymousProc_Class;
+    Procedure TestAnonymousProc_ForLoop;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -4799,6 +4800,44 @@ begin
     '']),
     LinesToStr([
     '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_ForLoop;
+begin
+  StartProgram(false);
+  Add([
+  'type TProc = reference to procedure;',
+  'procedure Foo(p: TProc);',
+  'begin',
+  'end;',
+  'procedure DoIt;',
+  'var i: word;',
+  '  a: word;',
+  'begin',
+  '  for i:=1 to 10 do begin',
+  '    Foo(procedure begin a:=3; end);',
+  '  end;',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_ForLoop',
+    LinesToStr([ // statements
+    'this.Foo = function (p) {',
+    '};',
+    'this.DoIt = function () {',
+    '  var i = 0;',
+    '  var a = 0;',
+    '  for (i = 1; i <= 10; i++) {',
+    '    $mod.Foo(function () {',
+    '      a = 3;',
+    '    });',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.DoIt();'
+    ]));
 end;
 
 procedure TTestModule.TestEnum_Name;

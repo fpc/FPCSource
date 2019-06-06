@@ -665,7 +665,7 @@ implementation
         st.insert(ps);
         pd:=tprocdef(cnodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
         { We don't need a local symtable, change it into the static symtable }
-        if not (potype in [potype_mainstub,potype_pkgstub]) then
+        if not (potype in [potype_mainstub,potype_pkgstub,potype_libmainstub]) then
           begin
             pd.localst.free;
             pd.localst:=st;
@@ -728,14 +728,14 @@ implementation
           mf_init :
             begin
               result:=create_main_proc(make_mangledname('',current_module.localsymtable,'init_implicit$'),potype_unitinit,st);
-              result.procdef.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
+              result.procdef.aliasnames.concat(make_mangledname('INIT$',current_module.localsymtable,''));
             end;
           mf_finalize :
             begin
               result:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize_implicit$'),potype_unitfinalize,st);
-              result.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+              result.procdef.aliasnames.concat(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               if (not current_module.is_unit) then
-                result.procdef.aliasnames.insert('PASCALFINALIZE');
+                result.procdef.aliasnames.concat('PASCALFINALIZE');
             end;
           else
             internalerror(200304253);
@@ -1080,7 +1080,7 @@ type
 
              { Compile the unit }
              init_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'init$'),potype_unitinit,current_module.localsymtable);
-             init_procinfo.procdef.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
+             init_procinfo.procdef.aliasnames.concat(make_mangledname('INIT$',current_module.localsymtable,''));
              init_procinfo.parse_body;
              { save file pos for debuginfo }
              current_module.mainfilepos:=init_procinfo.entrypos;
@@ -1090,7 +1090,7 @@ type
                begin
                  { Compile the finalize }
                  finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize$'),potype_unitfinalize,current_module.localsymtable);
-                 finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+                 finalize_procinfo.procdef.aliasnames.concat(make_mangledname('FINALIZE$',current_module.localsymtable,''));
                  finalize_procinfo.parse_body;
                end
            end;
@@ -1898,13 +1898,13 @@ type
       var
          main_file : tinputfile;
          hp,hp2    : tmodule;
+         initpd    : tprocdef;
          finalize_procinfo,
          init_procinfo,
          main_procinfo : tcgprocinfo;
          force_init_final : boolean;
          resources_used : boolean;
          program_uses_checkpointer : boolean;
-         initname,
          program_name : ansistring;
          consume_semicolon_after_uses : boolean;
          ps : tprogramparasym;
@@ -2124,24 +2124,28 @@ type
            from the bootstrap code.}
          if islibrary then
           begin
+            initpd:=nil;
+            { ToDo: other systems that use indirect entry info, but check back with Windows! }
+            { we need to call FPC_LIBMAIN in sysinit which in turn will call PascalMain -> create dummy stub }
+            if target_info.system in systems_darwin then
+              begin
+                main_procinfo:=create_main_proc(make_mangledname('sysinitcallthrough',current_module.localsymtable,'stub'),potype_libmainstub,current_module.localsymtable);
+                call_through_new_name(main_procinfo.procdef,target_info.cprefix+'FPC_LIBMAIN');
+                initpd:=main_procinfo.procdef;
+                main_procinfo.free;
+              end;
+
             main_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,current_module.localsymtable);
             { Win32 startup code needs a single name }
             if not(target_info.system in (systems_darwin+systems_aix)) then
-              main_procinfo.procdef.aliasnames.insert('PASCALMAIN')
+              main_procinfo.procdef.aliasnames.concat('PASCALMAIN')
             else
-              main_procinfo.procdef.aliasnames.insert(target_info.Cprefix+'PASCALMAIN');
+              main_procinfo.procdef.aliasnames.concat(target_info.Cprefix+'PASCALMAIN');
 
-            { ToDo: systems that use indirect entry info, but check back with Windows! }
-            if target_info.system in systems_darwin then
-              { we need to call FPC_LIBMAIN in sysinit which in turn will call PascalMain }
-              initname:=target_info.cprefix+'FPC_LIBMAIN'
-            else
-              initname:=main_procinfo.procdef.mangledname;
-            { setinitname may generate a new section -> don't add to the
-              current list, because we assume this remains a text section
-              -- add to pure assembler section, so in case of special directives
-                they are directly added to the assembler output by llvm }
-            exportlib.setinitname(current_asmdata.AsmLists[al_pure_assembler],initname);
+            if not(target_info.system in systems_darwin) then
+              initpd:=main_procinfo.procdef;
+
+            cnodeutils.RegisterModuleInitFunction(initpd);
           end
          else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macos]+systems_darwin+systems_aix)) then
            begin
@@ -2161,7 +2165,7 @@ type
          else
            begin
              main_procinfo:=create_main_proc(mainaliasname,potype_proginit,current_module.localsymtable);
-             main_procinfo.procdef.aliasnames.insert('PASCALMAIN');
+             main_procinfo.procdef.aliasnames.concat('PASCALMAIN');
            end;
          main_procinfo.parse_body;
          { save file pos for debuginfo }
@@ -2173,7 +2177,7 @@ type
               { Parse the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize$'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
-              finalize_procinfo.procdef.aliasnames.insert('PASCALFINALIZE');
+              finalize_procinfo.procdef.aliasnames.concat('PASCALFINALIZE');
               finalize_procinfo.parse_body;
            end;
 
@@ -2220,7 +2224,7 @@ type
           { Place in "pure assembler" list so that the llvm assembler writer
             directly emits the generated directives }
           if (islibrary) then
-            exportlib.setfininame(current_asmdata.asmlists[al_pure_assembler],'FPC_LIB_EXIT');
+            cnodeutils.RegisterModuleFiniFunction(search_system_proc('fpc_lib_exit'));
 
          { all labels must be defined before generating code }
          if Errorcount=0 then

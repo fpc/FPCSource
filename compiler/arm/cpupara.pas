@@ -87,7 +87,7 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
-        saved_regs : array[0..6] of tsuperregister =
+        saved_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..6] of tsuperregister{$endif} =
           (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
       begin
         result:=saved_regs;
@@ -232,6 +232,8 @@ unit cpupara;
             result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
+          else
+            ;
         end;
       end;
 

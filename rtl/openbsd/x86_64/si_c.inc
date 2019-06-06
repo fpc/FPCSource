@@ -18,13 +18,12 @@
 
 procedure __init; cdecl; external name '__init';
 procedure c_exit(exit_code: cint); cdecl; noreturn; external name 'exit';
+function _csu_finish(_argv: PPChar; _envp: PPChar; _cleanup: TCdeclProcedure): PPPChar; cdecl; external name '_csu_finish';
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); cdecl; forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl; forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
-    movq    %rbx,%r9
-    movq    %rcx,%r8
     movq    %rdx,%rcx
     movq    (%rsp),%rdi
     leaq    16(%rsp,%rdi,8),%rdx
@@ -37,12 +36,14 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
 
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); cdecl;
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl;
   var
     I: SizeUInt;
+    environp: PPPChar;
   begin
-    environ:=envp;
-    operatingsystem_parameter_envp:=envp;
+    environp:=_csu_finish(argv, envp, cleanup);
+    environ:=environp^;
+    operatingsystem_parameter_envp:=environ;
     operatingsystem_parameter_argc:=argc;
     operatingsystem_parameter_argv:=argv;
     if argv[0]<>nil then

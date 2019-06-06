@@ -311,6 +311,8 @@ implementation
                if left.resultdef.typ in [objectdef,classrefdef] then
                  Message(parser_e_illegal_expression);
              end;
+           else
+             ;
          end;
         if not handled then
           result:=inherited pass_typecheck;

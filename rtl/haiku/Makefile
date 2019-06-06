@@ -3534,7 +3534,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
 unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixtype.pp
-baseunix$(PPUEXT) : $(UNIXINC)/unixtype.pp $(SYSTEMUNIT)$(PPUEXT)
+baseunix$(PPUEXT) : baseunix.pp $(UNIXINC)/unixtype.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(UNIXINC) -Fu$(UNIXINC) baseunix.pp
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(SYSNRINC)  $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/syscall.pp

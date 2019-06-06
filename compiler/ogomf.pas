@@ -1733,11 +1733,15 @@ implementation
                 exit;
               end;
           ftmExternalIndexNoDisp:
-            if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>ExtDefs.Count) then
-              begin
-                InputError('External symbol name index in EI(<symbol name>) fixup target is out of range');
-                exit;
-              end;
+            begin
+              if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>ExtDefs.Count) then
+                begin
+                  InputError('External symbol name index in EI(<symbol name>) fixup target is out of range');
+                  exit;
+                end;
+            end;
+          else
+            ;
         end;
 
         { range check frame datum }
@@ -1760,6 +1764,8 @@ implementation
                 InputError('External symbol name index in EI(<symbol name>) fixup frame is out of range');
                 exit;
               end;
+          else
+            ;
         end;
 
         if Fixup.TargetMethod in [ftmExternalIndex,ftmExternalIndexNoDisp] then
@@ -1802,6 +1808,8 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_FARPTR48_RELATIVEOFFSET;
                 end;
+              else
+                ;
             end;
             if RelocType=RELOC_NONE then
               begin
@@ -1867,6 +1875,8 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_FARPTR48_RELATIVEOFFSET;
                 end;
+              else
+                ;
             end;
             if RelocType=RELOC_NONE then
               begin
@@ -1932,6 +1942,8 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_FARPTR48_RELATIVEOFFSET;
                 end;
+              else
+                ;
             end;
             if RelocType=RELOC_NONE then
               begin

@@ -191,6 +191,8 @@ interface
              addr_tlsgd:
                owner.writer.AsmWrite('@tlsgd');
 {$endif x86_64}
+             else
+               ;
            end;
 
            if offset<0 then

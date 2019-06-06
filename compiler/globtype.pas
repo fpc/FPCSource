@@ -157,6 +157,7 @@ interface
          cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
          cs_check_low_addr_load,cs_imported_data,
          cs_excessprecision,cs_check_fpu_exceptions,
+         cs_check_all_case_coverage,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -481,7 +482,9 @@ interface
          m_isolike_io,          { I/O as it required by an ISO compatible compiler }
          m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
          m_isolike_mod,         { mod operation as it is required by an iso compatible compiler }
-         m_array_operators      { use Delphi compatible array operators instead of custom ones ("+") }
+         m_array_operators,     { use Delphi compatible array operators instead of custom ones ("+") }
+         m_multi_helpers,       { helpers can appear in multiple scopes simultaneously }
+         m_array2dynarray       { regular arrays can be implicitly converted to dynamic arrays }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -670,7 +673,9 @@ interface
          'ISOIO',
          'ISOPROGRAMPARAS',
          'ISOMOD',
-         'ARRAYOPERATORS'
+         'ARRAYOPERATORS',
+         'MULTIHELPERS',
+         'ARRAYTODYNARRAY'
          );
 
 

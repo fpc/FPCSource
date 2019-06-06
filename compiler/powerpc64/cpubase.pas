@@ -428,6 +428,8 @@ begin
     A_B, A_BA, A_BL, A_BLA, A_BC, A_BCA, A_BCL, A_BCLA, A_BCCTR, A_BCCTRL,
     A_BCLR, A_BF, A_BT,
     A_BCLRL, A_TW, A_TWI: is_calljmp := true;
+    else
+      ;
   end;
 end;
 

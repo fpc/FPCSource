@@ -44,7 +44,11 @@ type
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 const
+{$ifdef CPUAVR}
+  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+{$else}
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
+{$endif}
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
 
@@ -949,23 +953,16 @@ var
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
   i : ALUUInt;
-{$ifdef DEBUG}
   pt : PInitFinalTable;
-{$endif}
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-{$ifdef DEBUG}
   pt := PInitFinalTable(EntryInformation.InitFinalTable);
-{$endif}
-  with PInitFinalTable(EntryInformation.InitFinalTable)^ do
 {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-{$ifdef DEBUG}
   pt := @InitFinalTable;
-{$endif}
-  with InitFinalTable do
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  with pt^ do
    begin
      for i:=1 to ALUUInt(TableCount) do
       begin
@@ -1142,7 +1139,7 @@ end;
 procedure internal_do_exit; external name 'FPC_DO_EXIT';
 
 
-Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
+Procedure fpc_lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
 begin
   InternalExit;
 end;

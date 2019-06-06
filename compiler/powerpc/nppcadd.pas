@@ -226,6 +226,8 @@ interface
                 begin
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                 end;
+              else
+                internalerror(2019050947);
            end;
         end;
 
@@ -254,6 +256,8 @@ interface
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                    cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
+              else
+                internalerror(2019050946);
            end;
         end;
 
@@ -627,6 +631,8 @@ interface
                second_addfloat;
                exit;
              end;
+           else
+             ;
          end;
 
          { defaults }
@@ -727,6 +733,8 @@ interface
                  begin
                    emit_compare(unsigned);
                  end;
+               else
+                 internalerror(2019050945);
              end;
            end
          else
@@ -787,6 +795,8 @@ interface
                       cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
                       cg.a_label(current_asmdata.CurrAsmList,hl);
                     end;
+                  else
+                    internalerror(2019050944);
                 end;
               end;
            end;

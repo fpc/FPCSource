@@ -24,9 +24,16 @@ const
   NearInt = $E7;
   FarInt = $E8;
 
+  NoSegOverride = 0;
+  SegOverrideCS = $2E;
+  SegOverrideSS = $36;
+  SegOverrideDS = $3E;
+  SegOverrideES = $26;
+
 var
   OldNearIntVec: FarPointer;
   OldFarIntVec: FarPointer;
+  ExpectSegOverride: Byte;
 
 procedure Error;
 begin
@@ -40,6 +47,12 @@ procedure IntNearHandler(Flags, CS, IP, AX, BX, CX, DX, SI, DI, DS, ES, BP: Word
 var
   modrm: Byte;
 begin
+  if ExpectSegOverride <> 0 then
+  begin
+    if Mem[CS:IP]<>ExpectSegOverride then
+      Error;
+    Inc(IP);
+  end;
   if Mem[CS:IP]<>$FF then
     Error;
   Inc(IP);
@@ -64,6 +77,12 @@ procedure IntFarHandler(Flags, CS, IP, AX, BX, CX, DX, SI, DI, DS, ES, BP: Word)
 var
   modrm: Byte;
 begin
+  if ExpectSegOverride <> 0 then
+  begin
+    if Mem[CS:IP]<>ExpectSegOverride then
+      Error;
+    Inc(IP);
+  end;
   if Mem[CS:IP]<>$FF then
     Error;
   Inc(IP);
@@ -115,6 +134,203 @@ begin
   end;
 end;
 
+procedure testlocallabels;
+label
+  local_label2;
+begin
+  ExpectSegOverride := SegOverrideCS;
+  asm
+    jmp @@skip_labels
+
+@@local_label1:
+    db 0, 0, 0, 0
+
+local_label2:
+    db 0, 0, 0, 0
+
+@@skip_labels:
+    int NearInt
+    call word [@@local_label1] { near }
+    int NearInt
+    call word ptr [@@local_label1] { near }
+    int NearInt
+    call word ptr @@local_label1 { near }
+
+    int FarInt
+    call dword [@@local_label1] { far }
+    int FarInt
+    call dword ptr [@@local_label1] { far }
+    int FarInt
+    call dword ptr @@local_label1 { far }
+
+    int NearInt
+    call word [local_label2] { near }
+    int NearInt
+    call word ptr [local_label2] { near }
+    int NearInt
+    call word ptr local_label2 { near }
+
+    int FarInt
+    call dword [local_label2] { far }
+    int FarInt
+    call dword ptr [local_label2] { far }
+    int FarInt
+    call dword ptr local_label2 { far }
+
+    { explicit CS: prefix }
+    int NearInt
+    call word [cs:@@local_label1] { near }
+    int NearInt
+    call word ptr cs:[@@local_label1] { near }
+    int NearInt
+    call word ptr [cs:@@local_label1] { near }
+    int NearInt
+    call word ptr cs:@@local_label1 { near }
+
+    int FarInt
+    call dword [cs:@@local_label1] { far }
+    int FarInt
+    call dword ptr cs:[@@local_label1] { far }
+    int FarInt
+    call dword ptr [cs:@@local_label1] { far }
+    int FarInt
+    call dword ptr cs:@@local_label1 { far }
+
+    int NearInt
+    call word [cs:local_label2] { near }
+    int NearInt
+    call word ptr cs:[local_label2] { near }
+    int NearInt
+    call word ptr [cs:local_label2] { near }
+    int NearInt
+    call word ptr cs:local_label2 { near }
+
+    int FarInt
+    call dword [cs:local_label2] { far }
+    int FarInt
+    call dword ptr cs:[local_label2] { far }
+    int FarInt
+    call dword ptr [cs:local_label2] { far }
+    int FarInt
+    call dword ptr cs:local_label2 { far }
+
+    { explicit DS: prefix }
+    mov byte ptr [ExpectSegOverride], NoSegOverride  { no segment override
+            should be produced, because DS is the default for the processor }
+    int NearInt
+    call word [ds:@@local_label1] { near }
+    int NearInt
+    call word ptr ds:[@@local_label1] { near }
+    int NearInt
+    call word ptr [ds:@@local_label1] { near }
+    int NearInt
+    call word ptr ds:@@local_label1 { near }
+
+    int FarInt
+    call dword [ds:@@local_label1] { far }
+    int FarInt
+    call dword ptr ds:[@@local_label1] { far }
+    int FarInt
+    call dword ptr [ds:@@local_label1] { far }
+    int FarInt
+    call dword ptr ds:@@local_label1 { far }
+
+    int NearInt
+    call word [ds:local_label2] { near }
+    int NearInt
+    call word ptr ds:[local_label2] { near }
+    int NearInt
+    call word ptr [ds:local_label2] { near }
+    int NearInt
+    call word ptr ds:local_label2 { near }
+
+    int FarInt
+    call dword [ds:local_label2] { far }
+    int FarInt
+    call dword ptr ds:[local_label2] { far }
+    int FarInt
+    call dword ptr [ds:local_label2] { far }
+    int FarInt
+    call dword ptr ds:local_label2 { far }
+
+    { explicit ES: prefix }
+    mov byte ptr [ExpectSegOverride], SegOverrideES
+    int NearInt
+    call word [es:@@local_label1] { near }
+    int NearInt
+    call word ptr es:[@@local_label1] { near }
+    int NearInt
+    call word ptr [es:@@local_label1] { near }
+    int NearInt
+    call word ptr es:@@local_label1 { near }
+
+    int FarInt
+    call dword [es:@@local_label1] { far }
+    int FarInt
+    call dword ptr es:[@@local_label1] { far }
+    int FarInt
+    call dword ptr [es:@@local_label1] { far }
+    int FarInt
+    call dword ptr es:@@local_label1 { far }
+
+    int NearInt
+    call word [es:local_label2] { near }
+    int NearInt
+    call word ptr es:[local_label2] { near }
+    int NearInt
+    call word ptr [es:local_label2] { near }
+    int NearInt
+    call word ptr es:local_label2 { near }
+
+    int FarInt
+    call dword [es:local_label2] { far }
+    int FarInt
+    call dword ptr es:[local_label2] { far }
+    int FarInt
+    call dword ptr [es:local_label2] { far }
+    int FarInt
+    call dword ptr es:local_label2 { far }
+
+    { explicit SS: prefix }
+    mov byte ptr [ExpectSegOverride], SegOverrideSS
+    int NearInt
+    call word [ss:@@local_label1] { near }
+    int NearInt
+    call word ptr ss:[@@local_label1] { near }
+    int NearInt
+    call word ptr [ss:@@local_label1] { near }
+    int NearInt
+    call word ptr ss:@@local_label1 { near }
+
+    int FarInt
+    call dword [ss:@@local_label1] { far }
+    int FarInt
+    call dword ptr ss:[@@local_label1] { far }
+    int FarInt
+    call dword ptr [ss:@@local_label1] { far }
+    int FarInt
+    call dword ptr ss:@@local_label1 { far }
+
+    int NearInt
+    call word [ss:local_label2] { near }
+    int NearInt
+    call word ptr ss:[local_label2] { near }
+    int NearInt
+    call word ptr [ss:local_label2] { near }
+    int NearInt
+    call word ptr ss:local_label2 { near }
+
+    int FarInt
+    call dword [ss:local_label2] { far }
+    int FarInt
+    call dword ptr ss:[local_label2] { far }
+    int FarInt
+    call dword ptr [ss:local_label2] { far }
+    int FarInt
+    call dword ptr ss:local_label2 { far }
+  end;
+end;
+
 var
   g16: integer;
   g32: longint;
@@ -124,6 +340,7 @@ begin
   GetIntVec(FarInt, OldFarIntVec);
   SetIntVec(FarInt, Ptr(Seg(IntFarHandler),Ofs(IntFarHandler)));
 
+  ExpectSegOverride := 0;
   asm
     int NearInt
     call word ptr $1234
@@ -202,6 +419,7 @@ begin
 {$endif FPC}
   end;
   testloc(5, 10);
+  testlocallabels;
   Writeln('Ok');
 
   SetIntVec(NearInt, OldNearIntVec);

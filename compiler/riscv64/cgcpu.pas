@@ -341,6 +341,8 @@ implementation
                 a_call_name(list,'FPC_OVERFLOW',false);
                 a_label(list,l);
               end;
+            else
+              internalerror(2019051032);
           end
         else
           a_op_reg_reg_reg(list,op,size,src1,src2,dst);

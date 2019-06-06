@@ -195,6 +195,8 @@ begin
         second_addfloat;
         exit;
       end;
+    else
+      ;;
   end;
 
   { defaults }
@@ -291,6 +293,8 @@ begin
 
           emit_compare(unsigned);
         end;
+      else
+        internalerror(2019051032);
     end;
   end
   else
@@ -353,6 +357,8 @@ begin
             cg.a_call_name(current_asmdata.CurrAsmList, 'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList, hl);
           end;
+        else
+          internalerror(2019051031);
       end;
     end;
   end;

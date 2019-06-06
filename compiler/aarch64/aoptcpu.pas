@@ -159,6 +159,8 @@ Implementation
               begin
                 Result:=LookForPostindexedPattern(taicpu(p));
               end;
+            else
+              ;
           end;
         end;
     end;

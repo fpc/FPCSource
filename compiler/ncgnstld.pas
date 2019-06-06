@@ -91,7 +91,9 @@ implementation
         nestedvars: tsym;
       begin
         result:=inherited pass_typecheck;
-        if assigned(result) then
+        if assigned(result) or
+           (assigned(current_procinfo) and
+            (df_generic in current_procinfo.procdef.defoptions)) then
           exit;
         case symtableentry.typ of
           paravarsym,
@@ -134,6 +136,8 @@ implementation
                   typecheckpass(left);
                 end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -182,6 +186,8 @@ implementation
                   include(flags,nf_internal);
                 end;
             end;
+          else
+            ;
         end;
       end;
 
