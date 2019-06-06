@@ -755,7 +755,7 @@ begin
 {$ELSEIF DEFINED(UNIX)}
   Result := fpmmap(Nil, aSize, PROT_READ or PROT_WRITE, MAP_PRIVATE or MAP_ANONYMOUS, 0, 0);
 {$ELSE}
-  Result := GetMem(aSize);
+  Result := Nil;
 {$ENDIF}
 end;
 
@@ -776,7 +776,7 @@ begin
   else
     Result := Fpmprotect(aPtr, aSize, PROT_READ or PROT_WRITE) = 0;
 {$ELSE}
-  Result := True;
+  Result := False;
 {$ENDIF}
 end;
 
@@ -787,7 +787,7 @@ begin
 {$ELSEIF DEFINED(UNIX)}
   fpmunmap(aPtr, aSize);
 {$ELSE}
-  FreeMem(aPtr);
+  { nothing }
 {$ENDIF}
 end;
 
