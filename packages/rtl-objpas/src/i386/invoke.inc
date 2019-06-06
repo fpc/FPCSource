@@ -907,7 +907,7 @@ end;
 destructor TSystemFunctionCallback.Destroy;
 begin
   if Assigned(fData) then
-    FreeMemory(fData);
+    FreeMemory(fData, fSize);
 end;
 
 constructor TSystemFunctionCallbackProc.Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);

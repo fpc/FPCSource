@@ -770,7 +770,7 @@ begin
 {$ENDIF}
 end;
 
-procedure FreeMemory(aPtr: Pointer);
+procedure FreeMemory(aPtr: Pointer; aSize: PtrUInt);
 begin
 {$IF DEFINED(WINDOWS)}
   VirtualFree(aPtr, 0, MEM_RELEASE);
