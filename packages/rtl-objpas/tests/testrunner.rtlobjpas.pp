@@ -11,6 +11,7 @@ program testrunner.rtlobjpas;
 {$define testimpl}
 {$elseif defined(CPUI386)}
 {$define testinvoke}
+{$define testimpl}
 {$else}
 {$ifdef useffi}
 {$define testinvoke}
