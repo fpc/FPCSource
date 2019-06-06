@@ -470,6 +470,7 @@ type
     Procedure TestAnonymousProc_With;
     Procedure TestAnonymousProc_ExceptOn;
     Procedure TestAnonymousProc_Nested;
+    Procedure TestAnonymousProc_ForLoop;
 
     // record
     Procedure TestRecord;
@@ -7790,6 +7791,27 @@ begin
   'begin',
   'end;',
   'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_ForLoop;
+begin
+  StartProgram(false);
+  Add([
+  'type TProc = reference to procedure;',
+  'procedure Foo(p: TProc);',
+  'begin',
+  'end;',
+  'procedure DoIt;',
+  'var i: word;',
+  '  a: word;',
+  'begin',
+  '  for i:=1 to 10 do begin',
+  '    Foo(procedure begin a:=3; end);',
+  '  end;',
+  'end;',
+  'begin',
+  '  DoIt;']);
   ParseProgram;
 end;
 
