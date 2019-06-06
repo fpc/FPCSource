@@ -316,6 +316,36 @@ interface
         property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
       end;
 
+      TNewExeHeaderFlag = (
+        nehfSingleData,                                               { bit  0 }
+        nehfMultipleData,                                             { bit  1 }
+        { 'Global initialization' according to BP7's TDUMP.EXE                 }
+        nehfRealMode,                                                 { bit  2 }
+        nehfProtectedModeOnly,                                        { bit  3 }
+        { 'EMSDIRECT' according to OpenWatcom's wdump                          }
+        { '8086 instructions' according to Ralf Brown's Interrupt List         }
+        nehfReserved4,                                                { bit  4 }
+        { 'EMSBANK' according to OpenWatcom's wdump                            }
+        { '80286 instructions' according to Ralf Brown's Interrupt List        }
+        nehfReserved5,                                                { bit  5 }
+        { 'EMSGLOBAL' according to OpenWatcom's wdump                          }
+        { '80386 instructions' according to Ralf Brown's Interrupt List        }
+        nehfReserved6,                                                { bit  6 }
+        nehfNeedsFPU,                                                 { bit  7 }
+        { Not compatible with windowing API                                    }
+        nehfNotWindowAPICompatible,                                   { bit  8 }
+        { Compatible with windowing API                                        }
+        { (NotWindowAPICompatible + WindowAPICompatible) = Uses windowing API  }
+        nehfWindowAPICompatible,                                      { bit  9 }
+        { Family Application (OS/2) according to Ralf Brown's Interrupt List   }
+        nehfReserved10,                                               { bit 10 }
+        nehfSelfLoading,                                              { bit 11 }
+        nehfReserved12,                                               { bit 12 }
+        nehfLinkErrors,                                               { bit 13 }
+        nehfReserved14,                                               { bit 14 }
+        nehfIsDLL);                                                   { bit 15 }
+      TNewExeHeaderFlags = set of TNewExeHeaderFlag;
+
       TOmfAssembler = class(tinternalassembler)
         constructor create(info: pasminfo; smart:boolean);override;
       end;
