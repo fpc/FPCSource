@@ -31,7 +31,7 @@ uses sysutils, classes, {$IFDEF DYNAMIC}freetypehdyn{$ELSE}freetypeh{$ENDIF}, FP
               fontfiles and faces available in a fontfile }
 
 // determine if file comparison need to be case sensitive or not
-{$ifdef WIN32}
+{$ifdef windows}
   {$undef CaseSense}
 {$else}
   {$define CaseSense}
@@ -199,8 +199,6 @@ const
   {$ENDIF}
 
 implementation
-
-{$IFDEF win32}uses dos;{$ENDIF}
 
 procedure FTError (Event:string; Err:integer);
 begin
@@ -1032,15 +1030,15 @@ begin
   aRect := FBounds;
 end;
 
-{$ifdef win32}
+{$ifdef WINDOWS}
 procedure SetWindowsFontPath;
 begin
-  DefaultSearchPath := includetrailingbackslash(GetEnv('windir')) + 'fonts';
+  DefaultSearchPath := includetrailingbackslash(GetEnvironmentVariable('windir')) + 'fonts';
 end;
 {$endif}
 
 initialization
-  {$ifdef win32}
+  {$ifdef WINDOWS}
   SetWindowsFontPath;
   {$endif}
 end.

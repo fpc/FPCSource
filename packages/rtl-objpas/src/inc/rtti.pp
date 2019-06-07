@@ -577,6 +577,9 @@ uses
 {$ifdef windows}
   Windows,
 {$endif}
+{$ifdef unix}
+  BaseUnix,
+{$endif}
   fgl;
 
 type
@@ -749,8 +752,10 @@ function AllocateMemory(aSize: PtrUInt): Pointer;
 begin
 {$IF DEFINED(WINDOWS)}
   Result := VirtualAlloc(Nil, aSize, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);
+{$ELSEIF DEFINED(UNIX)}
+  Result := fpmmap(Nil, aSize, PROT_READ or PROT_WRITE, MAP_PRIVATE or MAP_ANONYMOUS, 0, 0);
 {$ELSE}
-  Result := GetMem(aSize);
+  Result := Nil;
 {$ENDIF}
 end;
 
@@ -765,17 +770,24 @@ begin
     Result := VirtualProtect(aPtr, aSize, PAGE_EXECUTE_READ, oldprot)
   else
     Result := VirtualProtect(aPtr, aSize, PAGE_READWRITE, oldprot);
+{$ELSEIF DEFINED(UNIX)}
+  if aExecutable then
+    Result := Fpmprotect(aPtr, aSize, PROT_EXEC or PROT_READ) = 0
+  else
+    Result := Fpmprotect(aPtr, aSize, PROT_READ or PROT_WRITE) = 0;
 {$ELSE}
-  Result := True;
+  Result := False;
 {$ENDIF}
 end;
 
-procedure FreeMemory(aPtr: Pointer);
+procedure FreeMemory(aPtr: Pointer; aSize: PtrUInt);
 begin
 {$IF DEFINED(WINDOWS)}
   VirtualFree(aPtr, 0, MEM_RELEASE);
+{$ELSEIF DEFINED(UNIX)}
+  fpmunmap(aPtr, aSize);
 {$ELSE}
-  FreeMem(aPtr);
+  { nothing }
 {$ENDIF}
 end;
 

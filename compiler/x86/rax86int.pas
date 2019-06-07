@@ -2702,7 +2702,8 @@ Unit Rax86int;
               { convert 'call/jmp [proc/label]' to 'call/jmp proc/label'. Ugly,
                 but Turbo Pascal 7 compatible. }
               if (instr.opcode in [A_CALL,A_JMP]) and
-                 (instr.operands[i].haslabelref or instr.operands[i].hasproc)
+                 (instr.operands[i].haslabelref or instr.operands[i].hasproc) and
+                 (not instr.operands[i].hastype)
                  and (typ=OPR_REFERENCE) and
                  assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL,AT_ADDR]) and
                  (ref.base=NR_NO) and (ref.index=NR_NO) then

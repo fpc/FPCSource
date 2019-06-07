@@ -1474,7 +1474,6 @@ type
     procedure ResolveImplElement(El: TPasImplElement); virtual;
     procedure ResolveImplCaseOf(CaseOf: TPasImplCaseOf); virtual;
     procedure ResolveImplLabelMark(Mark: TPasImplLabelMark); virtual;
-    procedure ResolveImplForLoop(Loop: TPasImplForLoop); virtual;
     procedure ResolveImplWithDo(El: TPasImplWithDo); virtual;
     procedure ResolveImplAsm(El: TPasImplAsmStatement); virtual;
     procedure ResolveImplAssign(El: TPasImplAssign); virtual;
@@ -1534,6 +1533,7 @@ type
     procedure FinishExceptOnExpr; virtual;
     procedure FinishExceptOnStatement; virtual;
     procedure FinishWithDo(El: TPasImplWithDo); virtual;
+    procedure FinishForLoopHeader(Loop: TPasImplForLoop); virtual;
     procedure FinishDeclaration(El: TPasElement); virtual;
     procedure FinishVariable(El: TPasVariable); virtual;
     procedure FinishProperty(PropEl: TPasProperty); virtual;
@@ -6440,6 +6440,224 @@ begin
   PopWithScope(El);
 end;
 
+procedure TPasResolver.FinishForLoopHeader(Loop: TPasImplForLoop);
+var
+  VarResolved, StartResolved, EndResolved,
+    OrigStartResolved: TPasResolverResult;
+  EnumeratorFound, HasInValues: Boolean;
+  InRange, VarRange: TResEvalValue;
+  InRangeInt, VarRangeInt: TResEvalRangeInt;
+  bt: TResolverBaseType;
+  TypeEl, ElType: TPasType;
+  C: TClass;
+begin
+  CreateScope(Loop,TPasForLoopScope);
+
+  // loop var
+  ResolveExpr(Loop.VariableName,rraReadAndAssign);
+  ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
+  if not ResolvedElCanBeVarParam(VarResolved,Loop.VariableName) then
+    RaiseVarExpected(20170216151955,Loop.VariableName,VarResolved.IdentEl);
+
+  // resolve start expression
+  ResolveExpr(Loop.StartExpr,rraRead);
+  ComputeElement(Loop.StartExpr,StartResolved,[rcSetReferenceFlags]);
+
+  case Loop.LoopType of
+  ltNormal,ltDown:
+    begin
+    // start value
+    if CheckAssignResCompatibility(VarResolved,StartResolved,Loop.StartExpr,true)=cIncompatible then
+      RaiseIncompatibleTypeRes(20170216151958,nIncompatibleTypesGotExpected,
+        [],StartResolved,VarResolved,Loop.StartExpr);
+    CheckAssignExprRange(VarResolved,Loop.StartExpr);
+
+    // end value
+    ResolveExpr(Loop.EndExpr,rraRead);
+    ComputeElement(Loop.EndExpr,EndResolved,[rcSetReferenceFlags]);
+    if CheckAssignResCompatibility(VarResolved,EndResolved,Loop.EndExpr,false)=cIncompatible then
+      RaiseIncompatibleTypeRes(20170216152001,nIncompatibleTypesGotExpected,
+        [],EndResolved,VarResolved,Loop.EndExpr);
+    CheckAssignExprRange(VarResolved,Loop.EndExpr);
+    end;
+  ltIn:
+    begin
+    // check range
+    EnumeratorFound:=CheckForIn(Loop,VarResolved,StartResolved);
+    if (not EnumeratorFound)
+        and not (StartResolved.IdentEl is TPasType)
+        and (rrfReadable in StartResolved.Flags) then
+      begin
+      EnumeratorFound:=CheckForInClassOrRec(Loop,VarResolved,StartResolved);
+      end;
+
+    if not EnumeratorFound then
+      begin
+      VarRange:=nil;
+      InRange:=nil;
+      try
+        OrigStartResolved:=StartResolved;
+        if StartResolved.IdentEl is TPasType then
+          begin
+          // e.g. for e in TEnum do
+          TypeEl:=StartResolved.LoTypeEl;
+          if TypeEl is TPasArrayType then
+            begin
+            if length(TPasArrayType(TypeEl).Ranges)=1 then
+              InRange:=Eval(TPasArrayType(TypeEl).Ranges[0],[refConst]);
+            end;
+          if InRange=nil then
+            InRange:=EvalTypeRange(TypeEl,[]);
+          {$IFDEF VerbosePasResolver}
+          {AllowWriteln}
+          if InRange<>nil then
+            writeln('TPasResolver.ResolveImplForLoop in type: InRange=',InRange.AsDebugString)
+          else
+            writeln('TPasResolver.ResolveImplForLoop in type: InRange=nil');
+          {AllowWriteln-}
+          {$ENDIF}
+          end
+        else if rrfReadable in StartResolved.Flags then
+          begin
+          // value  (variable or expression)
+          bt:=StartResolved.BaseType;
+          if bt in [btSet,btArrayOrSet] then
+            begin
+            if (StartResolved.IdentEl=nil) and (StartResolved.ExprEl<>nil) then
+              InRange:=Eval(StartResolved.ExprEl,[]);
+            if InRange=nil then
+              InRange:=EvalTypeRange(StartResolved.LoTypeEl,[]);
+            end
+          else if bt=btContext then
+            begin
+            TypeEl:=StartResolved.LoTypeEl;
+            C:=TypeEl.ClassType;
+            if C=TPasArrayType then
+              begin
+              ElType:=GetArrayElType(TPasArrayType(TypeEl));
+              ComputeElement(ElType,StartResolved,[rcType]);
+              StartResolved.Flags:=OrigStartResolved.Flags*[rrfReadable,rrfWritable];
+              if CheckAssignResCompatibility(VarResolved,StartResolved,Loop.StartExpr,true)=cIncompatible then
+                RaiseIncompatibleTypeRes(20171112210138,nIncompatibleTypesGotExpected,
+                  [],StartResolved,VarResolved,Loop.StartExpr);
+              EnumeratorFound:=true;
+              end;
+            end
+          else
+            begin
+            bt:=GetActualBaseType(bt);
+            case bt of
+            {$ifdef FPC_HAS_CPSTRING}
+            btAnsiString:
+              InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
+            {$endif}
+            btUnicodeString:
+              InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
+            end;
+            end;
+          end;
+        if (not EnumeratorFound) and (InRange<>nil) then
+          begin
+          // for v in <constant> do
+          // -> check if same type
+          VarRange:=EvalTypeRange(VarResolved.LoTypeEl,[]);
+          if VarRange=nil then
+            RaiseXExpectedButYFound(20171109191528,'range',
+                         GetResolverResultDescription(VarResolved),Loop.VariableName);
+          //writeln('TPasResolver.ResolveImplForLoop ForIn VarRange=',VarRange.AsDebugString);
+          //writeln('TPasResolver.ResolveImplForLoop ForIn InRange=',InRange.AsDebugString,' ElType=',GetResolverResultDbg(StartResolved));
+          case InRange.Kind of
+          revkRangeInt,revkSetOfInt:
+            begin
+            InRangeInt:=TResEvalRangeInt(InRange);
+            case VarRange.Kind of
+            revkRangeInt:
+              begin
+              VarRangeInt:=TResEvalRangeInt(VarRange);
+              HasInValues:=(InRange.Kind<>revkSetOfInt) or (length(TResEvalSet(InRange).Ranges)>0);
+              case InRangeInt.ElKind of
+                revskEnum:
+                  if (VarRangeInt.ElKind<>revskEnum)
+                      or not IsSameType(InRangeInt.ElType,VarRangeInt.ElType,prraAlias) then
+                    RaiseXExpectedButYFound(20171109200752,GetTypeDescription(InRangeInt.ElType),
+                      GetResolverResultDescription(VarResolved,true),loop.VariableName);
+                revskInt:
+                  if VarRangeInt.ElKind<>revskInt then
+                    RaiseXExpectedButYFound(20171109200752,'integer',
+                      GetResolverResultDescription(VarResolved,true),loop.VariableName);
+                revskChar:
+                  if VarRangeInt.ElKind<>revskChar then
+                    RaiseXExpectedButYFound(20171109200753,'char',
+                      GetResolverResultDescription(VarResolved,true),loop.VariableName);
+                revskBool:
+                  if VarRangeInt.ElKind<>revskBool then
+                    RaiseXExpectedButYFound(20171109200754,'boolean',
+                      GetResolverResultDescription(VarResolved,true),loop.VariableName);
+              else
+                if HasInValues then
+                  RaiseNotYetImplemented(20171109200954,Loop.StartExpr);
+              end;
+              if HasInValues then
+                begin
+                if (VarRangeInt.RangeStart>InRangeInt.RangeStart) then
+                  begin
+                  {$IFDEF VerbosePasResolver}
+                  writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRangeInt.AsDebugString,' ',InRangeInt.AsDebugString);
+                  {$ENDIF}
+                  fExprEvaluator.EmitRangeCheckConst(20171109201428,
+                    InRangeInt.ElementAsString(InRangeInt.RangeStart),
+                    VarRangeInt.ElementAsString(VarRangeInt.RangeStart),
+                    VarRangeInt.ElementAsString(VarRangeInt.RangeEnd),Loop.VariableName,mtError);
+                  end;
+                if (VarRangeInt.RangeEnd<InRangeInt.RangeEnd) then
+                  begin
+                  {$IFDEF VerbosePasResolver}
+                  writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRangeInt.AsDebugString,' ',InRangeInt.AsDebugString);
+                  {$ENDIF}
+                  fExprEvaluator.EmitRangeCheckConst(20171109201429,
+                    InRangeInt.ElementAsString(InRangeInt.RangeEnd),
+                    VarRangeInt.ElementAsString(VarRangeInt.RangeStart),
+                    VarRangeInt.ElementAsString(VarRangeInt.RangeEnd),Loop.VariableName,mtError);
+                  end;
+                end;
+              EnumeratorFound:=true;
+              end;
+            else
+              {$IFDEF VerbosePasResolver}
+              writeln('TPasResolver.ResolveImplForLoop ForIn VarRange=',VarRange.AsDebugString);
+              {$ENDIF}
+            end;
+            end;
+          else
+            {$IFDEF VerbosePasResolver}
+            writeln('TPasResolver.ResolveImplForLoop ForIn InRange=',InRange.AsDebugString);
+            {$ENDIF}
+          end;
+          end;
+        if not EnumeratorFound then
+          begin
+          {$IFDEF VerbosePasResolver}
+          {AllowWriteln}
+          writeln('TPasResolver.ResolveImplForLoop StartResolved=',GetResolverResultDbg(StartResolved));
+          if VarRange<>nil then
+            writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRange.AsDebugString);
+          {AllowWriteln-}
+          {$ENDIF}
+          RaiseMsg(20171108223818,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
+            [GetBaseDescription(OrigStartResolved)],Loop.StartExpr);
+          end;
+      finally
+        ReleaseEvalValue(VarRange);
+        ReleaseEvalValue(InRange);
+      end;
+      end;
+
+    end;
+  else
+    RaiseNotYetImplemented(20171108221334,Loop);
+  end;
+end;
+
 procedure TPasResolver.FinishDeclaration(El: TPasElement);
 var
   C: TClass;
@@ -8003,7 +8221,8 @@ begin
   else if C=TPasImplLabelMark then
     ResolveImplLabelMark(TPasImplLabelMark(El))
   else if C=TPasImplForLoop then
-    ResolveImplForLoop(TPasImplForLoop(El))
+    // the header was already resolved
+    ResolveImplElement(TPasImplForLoop(El).Body)
   else if C=TPasImplTry then
     begin
     ResolveImplBlock(TPasImplTry(El));
@@ -8344,225 +8563,6 @@ end;
 procedure TPasResolver.ResolveImplLabelMark(Mark: TPasImplLabelMark);
 begin
   RaiseNotYetImplemented(20161014141636,Mark);
-end;
-
-procedure TPasResolver.ResolveImplForLoop(Loop: TPasImplForLoop);
-var
-  VarResolved, StartResolved, EndResolved,
-    OrigStartResolved: TPasResolverResult;
-  EnumeratorFound, HasInValues: Boolean;
-  InRange, VarRange: TResEvalValue;
-  InRangeInt, VarRangeInt: TResEvalRangeInt;
-  bt: TResolverBaseType;
-  TypeEl, ElType: TPasType;
-  C: TClass;
-begin
-  CreateScope(Loop,TPasForLoopScope);
-
-  // loop var
-  ResolveExpr(Loop.VariableName,rraReadAndAssign);
-  ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
-  if not ResolvedElCanBeVarParam(VarResolved,Loop.VariableName) then
-    RaiseVarExpected(20170216151955,Loop.VariableName,VarResolved.IdentEl);
-
-  // resolve start expression
-  ResolveExpr(Loop.StartExpr,rraRead);
-  ComputeElement(Loop.StartExpr,StartResolved,[rcSetReferenceFlags]);
-
-  case Loop.LoopType of
-  ltNormal,ltDown:
-    begin
-    // start value
-    if CheckAssignResCompatibility(VarResolved,StartResolved,Loop.StartExpr,true)=cIncompatible then
-      RaiseIncompatibleTypeRes(20170216151958,nIncompatibleTypesGotExpected,
-        [],StartResolved,VarResolved,Loop.StartExpr);
-    CheckAssignExprRange(VarResolved,Loop.StartExpr);
-
-    // end value
-    ResolveExpr(Loop.EndExpr,rraRead);
-    ComputeElement(Loop.EndExpr,EndResolved,[rcSetReferenceFlags]);
-    if CheckAssignResCompatibility(VarResolved,EndResolved,Loop.EndExpr,false)=cIncompatible then
-      RaiseIncompatibleTypeRes(20170216152001,nIncompatibleTypesGotExpected,
-        [],EndResolved,VarResolved,Loop.EndExpr);
-    CheckAssignExprRange(VarResolved,Loop.EndExpr);
-    end;
-  ltIn:
-    begin
-    // check range
-    EnumeratorFound:=CheckForIn(Loop,VarResolved,StartResolved);
-    if (not EnumeratorFound)
-        and not (StartResolved.IdentEl is TPasType)
-        and (rrfReadable in StartResolved.Flags) then
-      begin
-      EnumeratorFound:=CheckForInClassOrRec(Loop,VarResolved,StartResolved);
-      end;
-
-    if not EnumeratorFound then
-      begin
-      VarRange:=nil;
-      InRange:=nil;
-      try
-        OrigStartResolved:=StartResolved;
-        if StartResolved.IdentEl is TPasType then
-          begin
-          // e.g. for e in TEnum do
-          TypeEl:=StartResolved.LoTypeEl;
-          if TypeEl is TPasArrayType then
-            begin
-            if length(TPasArrayType(TypeEl).Ranges)=1 then
-              InRange:=Eval(TPasArrayType(TypeEl).Ranges[0],[refConst]);
-            end;
-          if InRange=nil then
-            InRange:=EvalTypeRange(TypeEl,[]);
-          {$IFDEF VerbosePasResolver}
-          {AllowWriteln}
-          if InRange<>nil then
-            writeln('TPasResolver.ResolveImplForLoop in type: InRange=',InRange.AsDebugString)
-          else
-            writeln('TPasResolver.ResolveImplForLoop in type: InRange=nil');
-          {AllowWriteln-}
-          {$ENDIF}
-          end
-        else if rrfReadable in StartResolved.Flags then
-          begin
-          // value  (variable or expression)
-          bt:=StartResolved.BaseType;
-          if bt in [btSet,btArrayOrSet] then
-            begin
-            if (StartResolved.IdentEl=nil) and (StartResolved.ExprEl<>nil) then
-              InRange:=Eval(StartResolved.ExprEl,[]);
-            if InRange=nil then
-              InRange:=EvalTypeRange(StartResolved.LoTypeEl,[]);
-            end
-          else if bt=btContext then
-            begin
-            TypeEl:=StartResolved.LoTypeEl;
-            C:=TypeEl.ClassType;
-            if C=TPasArrayType then
-              begin
-              ElType:=GetArrayElType(TPasArrayType(TypeEl));
-              ComputeElement(ElType,StartResolved,[rcType]);
-              StartResolved.Flags:=OrigStartResolved.Flags*[rrfReadable,rrfWritable];
-              if CheckAssignResCompatibility(VarResolved,StartResolved,Loop.StartExpr,true)=cIncompatible then
-                RaiseIncompatibleTypeRes(20171112210138,nIncompatibleTypesGotExpected,
-                  [],StartResolved,VarResolved,Loop.StartExpr);
-              EnumeratorFound:=true;
-              end;
-            end
-          else
-            begin
-            bt:=GetActualBaseType(bt);
-            case bt of
-            {$ifdef FPC_HAS_CPSTRING}
-            btAnsiString:
-              InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
-            {$endif}
-            btUnicodeString:
-              InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
-            end;
-            end;
-          end;
-        if (not EnumeratorFound) and (InRange<>nil) then
-          begin
-          // for v in <constant> do
-          // -> check if same type
-          VarRange:=EvalTypeRange(VarResolved.LoTypeEl,[]);
-          if VarRange=nil then
-            RaiseXExpectedButYFound(20171109191528,'range',
-                         GetResolverResultDescription(VarResolved),Loop.VariableName);
-          //writeln('TPasResolver.ResolveImplForLoop ForIn VarRange=',VarRange.AsDebugString);
-          //writeln('TPasResolver.ResolveImplForLoop ForIn InRange=',InRange.AsDebugString,' ElType=',GetResolverResultDbg(StartResolved));
-          case InRange.Kind of
-          revkRangeInt,revkSetOfInt:
-            begin
-            InRangeInt:=TResEvalRangeInt(InRange);
-            case VarRange.Kind of
-            revkRangeInt:
-              begin
-              VarRangeInt:=TResEvalRangeInt(VarRange);
-              HasInValues:=(InRange.Kind<>revkSetOfInt) or (length(TResEvalSet(InRange).Ranges)>0);
-              case InRangeInt.ElKind of
-                revskEnum:
-                  if (VarRangeInt.ElKind<>revskEnum)
-                      or not IsSameType(InRangeInt.ElType,VarRangeInt.ElType,prraAlias) then
-                    RaiseXExpectedButYFound(20171109200752,GetTypeDescription(InRangeInt.ElType),
-                      GetResolverResultDescription(VarResolved,true),loop.VariableName);
-                revskInt:
-                  if VarRangeInt.ElKind<>revskInt then
-                    RaiseXExpectedButYFound(20171109200752,'integer',
-                      GetResolverResultDescription(VarResolved,true),loop.VariableName);
-                revskChar:
-                  if VarRangeInt.ElKind<>revskChar then
-                    RaiseXExpectedButYFound(20171109200753,'char',
-                      GetResolverResultDescription(VarResolved,true),loop.VariableName);
-                revskBool:
-                  if VarRangeInt.ElKind<>revskBool then
-                    RaiseXExpectedButYFound(20171109200754,'boolean',
-                      GetResolverResultDescription(VarResolved,true),loop.VariableName);
-              else
-                if HasInValues then
-                  RaiseNotYetImplemented(20171109200954,Loop.StartExpr);
-              end;
-              if HasInValues then
-                begin
-                if (VarRangeInt.RangeStart>InRangeInt.RangeStart) then
-                  begin
-                  {$IFDEF VerbosePasResolver}
-                  writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRangeInt.AsDebugString,' ',InRangeInt.AsDebugString);
-                  {$ENDIF}
-                  fExprEvaluator.EmitRangeCheckConst(20171109201428,
-                    InRangeInt.ElementAsString(InRangeInt.RangeStart),
-                    VarRangeInt.ElementAsString(VarRangeInt.RangeStart),
-                    VarRangeInt.ElementAsString(VarRangeInt.RangeEnd),Loop.VariableName,mtError);
-                  end;
-                if (VarRangeInt.RangeEnd<InRangeInt.RangeEnd) then
-                  begin
-                  {$IFDEF VerbosePasResolver}
-                  writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRangeInt.AsDebugString,' ',InRangeInt.AsDebugString);
-                  {$ENDIF}
-                  fExprEvaluator.EmitRangeCheckConst(20171109201429,
-                    InRangeInt.ElementAsString(InRangeInt.RangeEnd),
-                    VarRangeInt.ElementAsString(VarRangeInt.RangeStart),
-                    VarRangeInt.ElementAsString(VarRangeInt.RangeEnd),Loop.VariableName,mtError);
-                  end;
-                end;
-              EnumeratorFound:=true;
-              end;
-            else
-              {$IFDEF VerbosePasResolver}
-              writeln('TPasResolver.ResolveImplForLoop ForIn VarRange=',VarRange.AsDebugString);
-              {$ENDIF}
-            end;
-            end;
-          else
-            {$IFDEF VerbosePasResolver}
-            writeln('TPasResolver.ResolveImplForLoop ForIn InRange=',InRange.AsDebugString);
-            {$ENDIF}
-          end;
-          end;
-        if not EnumeratorFound then
-          begin
-          {$IFDEF VerbosePasResolver}
-          {AllowWriteln}
-          writeln('TPasResolver.ResolveImplForLoop StartResolved=',GetResolverResultDbg(StartResolved));
-          if VarRange<>nil then
-            writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRange.AsDebugString);
-          {AllowWriteln-}
-          {$ENDIF}
-          RaiseMsg(20171108223818,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
-            [GetBaseDescription(OrigStartResolved)],Loop.StartExpr);
-          end;
-      finally
-        ReleaseEvalValue(VarRange);
-        ReleaseEvalValue(InRange);
-      end;
-      end;
-
-    end;
-  else
-    RaiseNotYetImplemented(20171108221334,Loop);
-  end;
-  ResolveImplElement(Loop.Body);
 end;
 
 procedure TPasResolver.ResolveImplWithDo(El: TPasImplWithDo);
@@ -16539,6 +16539,7 @@ begin
   stExceptOnExpr: FinishExceptOnExpr;
   stExceptOnStatement: FinishExceptOnStatement;
   stWithExpr: FinishWithDo(El as TPasImplWithDo);
+  stForLoopHeader: FinishForLoopHeader(El as TPasImplForLoop);
   stDeclaration: FinishDeclaration(El);
   stAncestors: FinishAncestors(El as TPasClassType);
   stInitialFinalization: FinishInitialFinalization(El as TPasImplBlock);

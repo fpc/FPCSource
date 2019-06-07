@@ -164,7 +164,7 @@ implementation
                       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,helper1);
                     if GenerateThumbCode then
                       begin
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,32-power,helper1);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,32-power,helper1);
                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,helper2,numerator,helper1));
                       end
                     else
@@ -179,9 +179,12 @@ implementation
                else
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
              end
-           else {Everything else is handled the generic code}
+           else if CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype] then
+             {Everything else is handled the generic code}
              cg.g_div_const_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),
-               tordconstnode(right).value.svalue,numerator,resultreg);
+               tordconstnode(right).value.svalue,numerator,resultreg)
+           else
+             internalerror(2019012601);
          end;
 
 {
@@ -286,8 +289,7 @@ implementation
                 resultreg:=cg.getintregister(current_asmdata.CurrAsmList,size);
               end;
 
-            if (right.nodetype=ordconstn) and
-               (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
+            if (right.nodetype=ordconstn) then
               begin
                 if nodetype=divn then
                   genOrdConstNodeDiv

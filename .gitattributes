@@ -1947,6 +1947,7 @@ packages/fcl-base/examples/databom.txt svneol=native#text/plain
 packages/fcl-base/examples/dbugsrv.pp svneol=native#text/plain
 packages/fcl-base/examples/debugtest.pp svneol=native#text/plain
 packages/fcl-base/examples/decodeascii85.pp svneol=native#text/plain
+packages/fcl-base/examples/demoio.pp svneol=native#text/plain
 packages/fcl-base/examples/dobserver.pp svneol=native#text/plain
 packages/fcl-base/examples/doecho.pp svneol=native#text/plain
 packages/fcl-base/examples/dparser.pp svneol=native#text/plain
@@ -1996,6 +1997,7 @@ packages/fcl-base/examples/stringl.pp svneol=native#text/plain
 packages/fcl-base/examples/tarmakercons.pas svneol=native#text/plain
 packages/fcl-base/examples/tarmakerconsgzip.pas svneol=native#text/plain
 packages/fcl-base/examples/testapp.pp svneol=native#text/plain
+packages/fcl-base/examples/testappexit.pp svneol=native#text/plain
 packages/fcl-base/examples/testbf.pp svneol=native#text/plain
 packages/fcl-base/examples/testbs.pp svneol=native#text/plain
 packages/fcl-base/examples/testcgi.html -text
@@ -12037,6 +12039,13 @@ tests/test/cg/obj/haiku/i386/tcext3.o -text
 tests/test/cg/obj/haiku/i386/tcext4.o -text
 tests/test/cg/obj/haiku/i386/tcext5.o -text
 tests/test/cg/obj/haiku/i386/tcext6.o -text
+tests/test/cg/obj/haiku/x86_64/cpptcl1.o -text
+tests/test/cg/obj/haiku/x86_64/cpptcl2.o -text
+tests/test/cg/obj/haiku/x86_64/ctest.o -text
+tests/test/cg/obj/haiku/x86_64/tcext3.o -text
+tests/test/cg/obj/haiku/x86_64/tcext4.o -text
+tests/test/cg/obj/haiku/x86_64/tcext5.o -text
+tests/test/cg/obj/haiku/x86_64/tcext6.o -text
 tests/test/cg/obj/linux/aarch64/cpptcl1.o -text
 tests/test/cg/obj/linux/aarch64/cpptcl2.o -text
 tests/test/cg/obj/linux/aarch64/ctest.o -text
@@ -16628,6 +16637,7 @@ tests/webtbs/tw35187.pp svneol=native#text/pascal
 tests/webtbs/tw35224.pp svneol=native#text/plain
 tests/webtbs/tw3523.pp svneol=native#text/plain
 tests/webtbs/tw35233.pp svneol=native#text/plain
+tests/webtbs/tw35272.pp svneol=native#text/plain
 tests/webtbs/tw3529.pp svneol=native#text/plain
 tests/webtbs/tw3531.pp svneol=native#text/plain
 tests/webtbs/tw3533.pp svneol=native#text/plain

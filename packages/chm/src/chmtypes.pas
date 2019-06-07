@@ -136,6 +136,7 @@ type
                                             // of certain fields. Needs to be inserted into #windows stream
                 Constructor create(s:string='');
                 procedure load_from_ini(txt:string);
+                procedure SaveToIni(out s: string);
                 procedure savetoxml(cfg:TXMLConfig;key:string);
                 procedure loadfromxml(cfg:TXMLConfig;key:string);
                 procedure assign(obj : TCHMWindow);
@@ -546,6 +547,39 @@ begin
   navpane_location         :=getnextint(txt,ind,len,flags,valid_tab_position);
   wm_notify_id             :=getnextint(txt,ind,len,flags,valid_unknown1);
 end;
+
+
+procedure TCHMWindow.SaveToIni(out s: string);
+begin
+  s := window_type + '=';
+  s := s + '"' + Title_bar_text + '"';
+  s := s + ',"' + Toc_file + '"';
+  s := s + ',"' + index_file + '"';
+  s := s + ',"' + Default_File + '"';
+  s := s + ',"' + Home_button_file + '"';
+  s := s + ',"' + Jumpbutton_1_File + '"';
+  s := s + ',"' + Jumpbutton_1_Text + '"';
+  s := s + ',"' + Jumpbutton_2_File + '"';
+  s := s + ',"' + Jumpbutton_2_Text + '"';
+  s := s + ',0x' + IntToHex(nav_style, 1);
+  s := s + ',' + IntToStr(navpanewidth);
+  s := s + ',0x' + IntToHex(buttons, 1);
+  s := s + ',[' + IntToStr(left);
+  s := s + ',' + IntToStr(top);
+  s := s + ',' + IntToStr(right);
+  s := s + ',' + IntToStr(bottom) + ']';
+  s := s + ',0x' + IntToHex(styleflags, 1);
+  if xtdstyleflags <> 0 then
+   s := s + ',0x' + IntToHex(xtdstyleflags, 1)
+  else
+   s := s + ',';
+  s := s + ',0x' + IntToHex(window_show_state, 1);
+  s := s + ',' + IntToStr(navpane_initially_closed);
+  s := s + ',' + IntToStr(navpane_default);
+  s := s + ',' + IntToStr(navpane_location);
+  //s := s + ',' + IntToStr(wm_notify_id);
+end;
+
 
 procedure TCHMWindow.savetoxml(cfg:TXMLConfig;key:string);
 begin
