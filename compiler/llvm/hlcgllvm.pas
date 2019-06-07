@@ -1057,35 +1057,6 @@ implementation
       invert: boolean;
       fallthroughlab, falselab, tmplab: tasmlabel;
     begin
-      { since all comparisons return their results in a register, we'll often
-        get comparisons against true/false -> optimise }
-      if (size=pasbool1type) and
-         (cmp_op in [OC_EQ,OC_NE]) then
-        begin
-          { convert to an llvmbool1type and use directly }
-          tmpreg:=getintregister(list,llvmbool1type);
-          a_load_reg_reg(list,size,llvmbool1type,reg,tmpreg);
-          case cmp_op of
-            OC_EQ:
-              invert:=a=0;
-            OC_NE:
-              invert:=a=1;
-            else
-              { avoid uninitialised warning }
-              internalerror(2015031504);
-            end;
-          current_asmdata.getjumplabel(falselab);
-          fallthroughlab:=falselab;
-          if invert then
-            begin
-              tmplab:=l;
-              l:=falselab;
-              falselab:=tmplab;
-            end;
-          list.concat(taillvm.op_size_reg_lab_lab(la_br,llvmbool1type,tmpreg,l,falselab));
-          a_label(list,fallthroughlab);
-          exit;
-        end;
       tmpreg:=getregisterfordef(list,size);
       a_load_const_reg(list,size,a,tmpreg);
       a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
