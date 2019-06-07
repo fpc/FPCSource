@@ -346,6 +346,16 @@ interface
         nehfIsDLL);                                                   { bit 15 }
       TNewExeHeaderFlags = set of TNewExeHeaderFlag;
 
+      TNewExeTargetOS = (
+        netoUnknown                        = $00,
+        netoOS2                            = $01,
+        netoWindows                        = $02,
+        netoMultitaskingMsDos4             = $03,
+        netoWindows386                     = $04,
+        netoBorlandOperatingSystemServices = $05,
+        netoPharLap286DosExtenderOS2       = $81,
+        netoPharLap286DosExtenderWindows   = $82);
+
       TOmfAssembler = class(tinternalassembler)
         constructor create(info: pasminfo; smart:boolean);override;
       end;
