@@ -346,6 +346,13 @@ interface
         nehfIsDLL);                                                   { bit 15 }
       TNewExeHeaderFlags = set of TNewExeHeaderFlag;
 
+      TNewExeAdditionalHeaderFlag = (
+        neahfLFNSupport,                                              { bit  0 }
+        neahfWindows2ProtectedMode,                                   { bit  1 }
+        neahfWindows2ProportionalFonts,                               { bit  2 }
+        neahfHasGangloadArea);                                        { bit  3 }
+      TNewExeAdditionalHeaderFlags = set of TNewExeAdditionalHeaderFlag;
+
       TNewExeTargetOS = (
         netoUnknown                        = $00,
         netoOS2                            = $01,
