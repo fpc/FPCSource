@@ -12,6 +12,11 @@
 
 program tfarcal2;
 
+{$ifdef FPC}
+{ FPC needs $goto on to accept labels and gotos }
+{$goto on}
+{$endif}
+
 uses
   dos;
 
