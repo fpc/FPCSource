@@ -162,9 +162,9 @@ unit cgexcept;
 
         { fpc_pushexceptaddr(exceptionframetype, setjmp_buffer, exception_address_chain_entry) }
         pd:=search_system_proc('fpc_pushexceptaddr');
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,3,paraloc3);
+        paramanager.getintparaloc(list,pd,1,paraloc1);
+        paramanager.getintparaloc(list,pd,2,paraloc2);
+        paramanager.getintparaloc(list,pd,3,paraloc3);
         if pd.is_pushleftright then
           begin
             { type of exceptionframe }
@@ -197,7 +197,7 @@ unit cgexcept;
 
         { fpc_setjmp(result_of_pushexceptaddr_call) }
         pd:=search_system_proc('fpc_setjmp');
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+        paramanager.getintparaloc(list,pd,1,paraloc1);
 
         hlcg.a_load_reg_cgpara(list,pushexceptres.def,tmpresloc.register,paraloc1);
         paramanager.freecgpara(list,paraloc1);
@@ -262,7 +262,7 @@ unit cgexcept;
          { add an catch all action clause, at least psabieh needs this }
          catch_all_add(list);
          end_try_block(list,tek_except,t,entrystate,exitlabel);
-         emit_except_label(current_asmdata.CurrAsmList,tek_except,entrystate,t);
+         emit_except_label(list,tek_except,entrystate,t);
          { don't generate line info for internal cleanup }
          list.concat(tai_marker.create(mark_NoLineInfoStart));
          free_exception(list,t,entrystate,0,exitlabel,false);
@@ -276,7 +276,7 @@ unit cgexcept;
 
     class procedure tcgexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
       begin
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+        hlcg.g_call_system_proc(list,'fpc_reraise',[],nil).resetiftemp;
       end;
 
 

@@ -645,7 +645,7 @@ implementation
             paramanager.getintparaloc(list,pd,1,cgpara1);
             hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'_unwind_resume',[@cgpara1],nil).resetiftemp;
+            hlcg.g_call_system_proc(list,'_unwind_resume',[@cgpara1],nil).resetiftemp;
             { we do not have to clean up the stack, we never return }
             cgpara1.done;
 
@@ -670,7 +670,7 @@ implementation
               end
             else
               ReRaiseLandingPad:=nil;
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+            hlcg.g_call_system_proc(list,'fpc_reraise',[],nil).resetiftemp;
             if assigned(ReRaiseLandingPad) then
               begin
                 psabiehprocinfo.CreateNewPSABIEHCallsite(list);
