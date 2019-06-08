@@ -647,9 +647,8 @@ implementation
                 tmpstr:=llvm_callingconvention_name(taillvm(hp).oper[2]^.callingconvention);
                 if tmpstr<>'' then
                   begin
-                    owner.writer.AsmWrite(' "');
+                    owner.writer.AsmWrite(' ');
                     owner.writer.AsmWrite(tmpstr);
-                    owner.writer.AsmWrite('"');
                   end;
                 opdone:=true;
                 tmpstr:=llvmencodetypename(taillvm(hp).oper[3]^.def);
