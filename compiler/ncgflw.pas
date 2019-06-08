@@ -633,7 +633,7 @@ implementation
             current_procinfo.CurrBreakLabel:=breakexceptlabel;
           end;
 
-         flowcontrol:=[fc_inflowcontrol];
+         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
          { on statements }
          if assigned(right) then
            secondpass(right);
