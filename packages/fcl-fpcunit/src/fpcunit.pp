@@ -100,6 +100,8 @@ type
     class procedure AssertFalse(ACondition: boolean); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: string); overload;
     class procedure AssertEquals(Expected, Actual: string); overload;
+    class procedure AssertEquals(const AMessage: string; Expected, Actual: UnicodeString); overload;
+    class procedure AssertEquals(Expected, Actual: UnicodeString); overload;
     {$IFDEF UNICODE}
     class procedure AssertEquals(const AMessage: string; Expected, Actual: UnicodeString); overload;
     class procedure AssertEquals(Expected, Actual: UnicodeString); overload;
@@ -438,6 +440,15 @@ begin
     Result := format(SCompareNotEqual, [aExpected, aActual]);
 end;
 
+function ComparisonMsg(const aExpected: Unicodestring; const aActual: Unicodestring; const aCheckEqual: boolean=true): Unicodestring;
+// aCheckEqual=false gives the error message if the test does *not* expect the results to be the same.
+begin
+  if aCheckEqual then
+    Result := unicodeformat(SCompare, [aExpected, aActual])
+  else {check unequal requires opposite error message}
+    Result := unicodeformat(SCompareNotEqual, [aExpected, aActual]);
+end;
+
 {$IFDEF UNICODE}
 function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string;
 // aCheckEqual=false gives the error message if the test does *not* expect the results to be the same.
@@ -697,6 +708,18 @@ class procedure TAssert.AssertEquals(Expected, Actual: string);
 begin
   AssertTrue(ComparisonMsg(Expected, Actual), Expected=Actual,CallerAddr);
 end;
+
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: Unicodestring);
+begin
+  AssertTrue(ComparisonMsg(AMessage ,Expected, Actual), Expected=Actual,CallerAddr);
+end;
+
+
+class procedure TAssert.AssertEquals(Expected, Actual: Unicodestring);
+begin
+  AssertTrue(ComparisonMsg(Expected, Actual), Expected=Actual,CallerAddr);
+end;
+
 
 {$IFDEF UNICODE}
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: UnicodeString);
