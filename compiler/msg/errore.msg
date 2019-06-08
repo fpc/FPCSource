@@ -3352,6 +3352,9 @@ cg_f_internal_type_does_not_match=10066_F_Internal type "$1" does not look as ex
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the compiler in use. If you changed the runtime library this error means
 % that you changed a type which the compiler needs for internal use and which needs to have a certain structure.
+unit_u_ppu_llvm_mismatch=10067_U_Skipping unit, PPU and compiler have to be both compiled with or without LLVM support
+% Units compiled by a compiler built with the LLVM code generator cannot be used with a regular compiler,
+% and vice versa.
 % \end{description}
 # EndOfTeX
 
