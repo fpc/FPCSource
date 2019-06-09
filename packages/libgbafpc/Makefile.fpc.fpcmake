@@ -34,4 +34,4 @@ nortl=y
 [rules]
 .NOTPARALLEL:
 core_asm$(OEXT):src/gba/core_asm.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)core_asm$(OEXT) src/gba/core_asm.as
+        $(AS) src/gba/core_asm.as -o $(UNITTARGETDIRPREFIX)core_asm$(OEXT) 
