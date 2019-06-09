@@ -637,14 +637,14 @@ function fpc_div_currency(n,z : currency) : currency; compilerproc;
 function fpc_mod_currency(n,z : currency) : currency; compilerproc;
 
 {$ifdef FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
-function fpc_shl_qword(value : qword; shift : sizeint) : qword; compilerproc;
-function fpc_shr_qword(value : qword; shift : sizeint) : qword; compilerproc;
-function fpc_shl_int64(value : int64; shift : sizeint) : int64; compilerproc;
-function fpc_shr_int64(value : int64; shift : sizeint) : int64; compilerproc;
-procedure fpc_shl_assign_qword(var value : qword; shift : sizeint); compilerproc;
-procedure fpc_shr_assign_qword(var value : qword; shift : sizeint); compilerproc;
-procedure fpc_shl_assign_int64(var value : int64; shift : sizeint); compilerproc;
-procedure fpc_shr_assign_int64(var value : int64; shift : sizeint); compilerproc;
+function fpc_shl_qword(value : qword; shift : ALUUInt) : qword; compilerproc;
+function fpc_shr_qword(value : qword; shift : ALUUInt) : qword; compilerproc;
+function fpc_shl_int64(value : int64; shift : ALUUInt) : int64; compilerproc;
+function fpc_shr_int64(value : int64; shift : ALUUInt) : int64; compilerproc;
+procedure fpc_shl_assign_qword(var value : qword; shift : ALUUInt); compilerproc;
+procedure fpc_shr_assign_qword(var value : qword; shift : ALUUInt); compilerproc;
+procedure fpc_shl_assign_int64(var value : int64; shift : ALUUInt); compilerproc;
+procedure fpc_shr_assign_int64(var value : int64; shift : ALUUInt); compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 {$ifndef FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
 procedure fpc_sar_assign_int64(var AValue : Int64;const Shift : Byte);compilerproc;
