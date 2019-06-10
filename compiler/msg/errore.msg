@@ -2758,10 +2758,10 @@ asmr_w_unable_to_determine_reference_size_using_byte=07101_W_No size specified a
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use BYTE as default.
-asmr_w_no_direct_ebp_for_parameter=07102_W_Use of +offset(%ebp) for parameters invalid here
+asmr_w_no_direct_ebp_for_parameter=07102_W_Use of $1 for parameters invalid here
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
-asmr_w_direct_ebp_for_parameter_regcall=07103_W_Use of +offset(%ebp) is not compatible with regcall convention
+asmr_w_direct_ebp_for_parameter_regcall=07103_W_Use of $1 is not compatible with regcall convention
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
 asmr_w_direct_ebp_neg_offset=07104_W_Use of -offset(%ebp) is not recommended for local variable access
