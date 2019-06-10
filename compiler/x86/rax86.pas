@@ -258,7 +258,7 @@ begin
         begin
           if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset>0) then
             begin
-              if current_settings.asmmode in [asmmode_i8086_intel,asmmode_i386_intel,asmmode_x86_64_intel] then
+              if current_settings.asmmode in asmmodes_x86_intel then
                 begin
                   case getsubreg(opr.ref.base) of
                     R_SUBW:
@@ -291,7 +291,7 @@ begin
             end
           else if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset<0) then
             begin
-              if current_settings.asmmode in [asmmode_i8086_intel,asmmode_i386_intel,asmmode_x86_64_intel] then
+              if current_settings.asmmode in asmmodes_x86_intel then
                 begin
                   case getsubreg(opr.ref.base) of
                     R_SUBW:
