@@ -290,7 +290,35 @@ begin
                 message1(asmr_w_direct_ebp_for_parameter_regcall,ErrorRefStr);
             end
           else if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset<0) then
-            message(asmr_w_direct_ebp_neg_offset)
+            begin
+              if current_settings.asmmode in [asmmode_i8086_intel,asmmode_i386_intel,asmmode_x86_64_intel] then
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBW:
+                      ErrorRefStr:='[BP-offset]';
+                    R_SUBD:
+                      ErrorRefStr:='[EBP-offset]';
+                    R_SUBQ:
+                      ErrorRefStr:='[RBP-offset]';
+                    else
+                      internalerror(2019061003);
+                  end;
+                end
+              else
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBW:
+                      ErrorRefStr:='-offset(%bp)';
+                    R_SUBD:
+                      ErrorRefStr:='-offset(%ebp)';
+                    R_SUBQ:
+                      ErrorRefStr:='-offset(%rbp)';
+                    else
+                      internalerror(2019061004);
+                  end;
+                end;
+              message1(asmr_w_direct_ebp_neg_offset,ErrorRefStr);
+            end
           else if (getsupreg(opr.ref.base)=RS_ESP) and (opr.ref.offset<0) then
             message(asmr_w_direct_esp_neg_offset);
         end;
