@@ -206,10 +206,10 @@ begin
 
     keys := keysHeld();
 
-		if((keys and KEY_UP)) <> 0 then rotateX := rotateX +3;
-		if((keys and KEY_DOWN)) <> 0 then rotateX := rotateX -3;
-		if((keys and KEY_LEFT)) <> 0 then rotateY := rotateY +3;
-		if((keys and KEY_RIGHT)) <> 0 then rotateY := rotateY -3;
+    if((keys and KEY_UP)) <> 0 then rotateX := rotateX +3;
+    if((keys and KEY_DOWN)) <> 0 then rotateX := rotateX -3;
+    if((keys and KEY_LEFT)) <> 0 then rotateY := rotateY +3;
+    if((keys and KEY_RIGHT)) <> 0 then rotateY := rotateY -3;
 
     if (keysDown() and KEY_A) <> 0 then
     begin
@@ -220,21 +220,23 @@ begin
         DisplayEnableNormal();
     end;
 
-		glBindTexture(0, textureID);
+    glBindTexture(0, textureID);
 
-		//draw the obj
-		glBegin(GL_QUAD);
-			for i := 0 to 5 do
-				drawQuad(i);
-		glEnd();
+    //draw the obj
+    glBegin(GL_QUAD);
+      for i := 0 to 5 do
+        drawQuad(i);
+    glEnd();
 
-		glPopMatrix(1);
+    glPopMatrix(1);
 
-		glFlush(0);
+    glFlush(0);
 
-		swiWaitForVBlank();
+    swiWaitForVBlank();
+    
+    if (keys and KEY_START) <> 0 then break;
     
     //the display capture enable bit must be set again each frame if you want to continue capturing.
-    REG_DISPCAPCNT^ := REG_DISPCAPCNT^ or DCAP_ENABLE;		
+    REG_DISPCAPCNT^ := REG_DISPCAPCNT^ or DCAP_ENABLE;    
   end;
 end.

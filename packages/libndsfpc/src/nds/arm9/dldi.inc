@@ -1,10 +1,10 @@
 {$ifdef NDS_INTERFACE}
 
 const
-  FIX_ALL = $01;
-  FIX_GLUE = $02;
-  FIX_GOT = $04;
-  FIX_BSS = $08;
+//  FIX_ALL = $01;
+//  FIX_GLUE = $02;
+//  FIX_GOT = $04;
+//  FIX_BSS = $08;
 
   DLDI_MAGIC_STRING_LEN = 8;
   DLDI_FRIENDLY_NAME_LEN = 48;

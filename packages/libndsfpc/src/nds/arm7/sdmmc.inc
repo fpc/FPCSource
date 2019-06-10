@@ -120,18 +120,30 @@ type
     res: cuint32;
   end;
   mmcdevice = TMMCDevice;  
-  
 
-procedure sdmmc_controller_init(); cdecl; external;
+const
+  MMC_DEVICE_SDCARD = 0;
+  MMC_DEVICE_NAND = 1;  
+
+procedure sdmmc_controller_init(force_init: cbool); cdecl; external;
 procedure sdmmc_initirq(); cdecl; external;
 function sdmmc_cardinserted(): cint; cdecl; external;
 
 function sdmmc_sdcard_init(): cint; cdecl; external;
+
+function sdmmc_nand_init(): cint; cdecl; external;
+procedure sdmmc_get_cid(devicenumber: cint; cid: pcuint32); cdecl; external;
+
+procedure sdmmc_nand_cid(cid: pcuint32); inline; 
+procedure sdmmc_sdcard_cid(cid: pcuint32); inline; 
+
 function sdmmc_sdcard_readsectors(sector_no: cuint32; numsectors: cuint32; _out: pointer): cint; cdecl; external;
 function sdmmc_sdcard_writesectors(sector_no: cuint32; numsectors: cuint32; _in: pointer): cint; cdecl; external;
+function sdmmc_nand_readsectors(sector_no: cuint32; numsectors: cuint32; _out: pointer): cint; cdecl; external;
+function sdmmc_nand_writesectors(sector_no: cuint32; numsectors: cuint32; _in: pointer): cint; cdecl; external;
 
 
-var
+var                 
   sdmmc_curdevice: cint; cvar; external;
   sdmmc_cid: pcuint32; cvar; external;
 
@@ -181,6 +193,16 @@ begin
   sdmmc_mask16(REG_SDCLKCTL, $100, 0);
   sdmmc_mask16(REG_SDCLKCTL, $2FF, data and $2FF);
   sdmmc_mask16(REG_SDCLKCTL, $0, $100);
+end;
+
+procedure sdmmc_nand_cid(cid: pcuint32); inline; 
+begin
+    sdmmc_get_cid(MMC_DEVICE_NAND,cid);
+end;
+
+procedure sdmmc_sdcard_cid(cid: pcuint32); inline; 
+begin
+    sdmmc_get_cid(MMC_DEVICE_SDCARD,cid);
 end;
 
 {$endif NDS_IMPLEMENTATION}
