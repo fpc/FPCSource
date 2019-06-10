@@ -220,7 +220,10 @@ unit cpupara;
                paraloc^.loc:=LOC_REFERENCE;
                paraloc^.reference.index:=NR_STACK_POINTER_REG;
                paraloc^.reference.offset:=stack_offset;
+{$push}
+{$R-}
                dec(stack_offset,2);
+{$pop}
             end;
         end;
 
