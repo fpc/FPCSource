@@ -319,8 +319,32 @@ begin
                 end;
               message1(asmr_w_direct_ebp_neg_offset,ErrorRefStr);
             end
-          else if (getsupreg(opr.ref.base)=RS_ESP) and (opr.ref.offset<0) then
-            message(asmr_w_direct_esp_neg_offset);
+          else if (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0) then
+            begin
+              if current_settings.asmmode in asmmodes_x86_intel then
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBD:
+                      ErrorRefStr:='[ESP-offset]';
+                    R_SUBQ:
+                      ErrorRefStr:='[RSP-offset]';
+                    else
+                      internalerror(2019061005);
+                  end;
+                end
+              else
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBD:
+                      ErrorRefStr:='-offset(%esp)';
+                    R_SUBQ:
+                      ErrorRefStr:='-offset(%rsp)';
+                    else
+                      internalerror(2019061006);
+                  end;
+                end;
+              message1(asmr_w_direct_esp_neg_offset,ErrorRefStr);
+            end;
         end;
       if (cs_create_pic in current_settings.moduleswitches) and
          assigned(opr.ref.symbol) and
