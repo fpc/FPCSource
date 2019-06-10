@@ -363,6 +363,25 @@ interface
         netoPharLap286DosExtenderOS2       = $81,
         netoPharLap286DosExtenderWindows   = $82);
 
+      TNewExeSegmentFlag = (
+        nesfData,                                                     { bit  0 }
+        nesfLoaderAllocatedMemory,                                    { bit  1 }
+        nesfLoaded,                                                   { bit  2 }
+        nesfReserved3,                                                { bit  3 }
+        nesfMovable,                                                  { bit  4 }
+        nesfShareable,                                                { bit  5 }
+        nesfPreload,                                                  { bit  6 }
+        nesfExecuteOnlyCodeOrReadOnlyData,                            { bit  7 }
+        nesfHasRelocationData,                                        { bit  8 }
+        nesfReserved9,                                                { bit  9 }
+        nesfReserved10,                                               { bit 10 }
+        nesfReserved11,                                               { bit 11 }
+        nesfDiscardable,                                              { bit 12 }
+        nesfReserved13,                                               { bit 13 }
+        nesfReserved14,                                               { bit 14 }
+        nesfReserved15);                                              { bit 15 }
+      TNewExeSegmentFlags = set of TNewExeSegmentFlag;
+
       TOmfAssembler = class(tinternalassembler)
         constructor create(info: pasminfo; smart:boolean);override;
       end;
