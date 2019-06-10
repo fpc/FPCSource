@@ -432,6 +432,9 @@ interface
 
        { x86 asm modes with an Intel-style syntax }
        asmmodes_x86_intel = [
+{$ifdef i8086}
+         asmmode_standard,
+{$endif i8086}
          asmmode_i8086_intel,
          asmmode_i386_intel,
          asmmode_x86_64_intel
