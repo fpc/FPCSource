@@ -16,12 +16,10 @@
 
 {$asmmode gas}
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord); forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
-    movq    %rbx,%r9
-    movq    %rcx,%r8
     movq    %rdx,%rcx
     movq    (%rsp),%rdi
     leaq    16(%rsp,%rdi,8),%rdx
@@ -35,7 +33,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
 procedure _FPC_proc_haltproc; cdecl; forward;
 function _strrchr(str: PChar; character: LongInt): PChar; forward;
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; para1, para2, para3: QWord);
+procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure);
   var
     I: SizeUInt;
   begin

@@ -1284,8 +1284,16 @@ end;
 
 
    function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+     var
+       b : TCmdStr;
      begin
-       FindExe:=FindFileInExeLocations(ChangeFileExt(bin,source_info.exeext),allowcache,foundfile);
+       { change extension only on platforms that use an exe extension, otherwise on OpenBSD
+         'ld.bfd' gets converted to 'ld' }
+       if source_info.exeext<>'' then
+         b:=ChangeFileExt(bin,source_info.exeext)
+       else
+         b:=bin;
+       FindExe:=FindFileInExeLocations(b,allowcache,foundfile);
      end;
 
 

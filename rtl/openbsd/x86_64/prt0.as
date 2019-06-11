@@ -24,8 +24,6 @@ __progname:
 	.globl	_start			
 _start:					
 __start:				
-	movq	%rbx,%r9		
-	movq	%rcx,%r8		
 	movq	%rdx,%rcx		
 	movq	(%rsp),%rdi		
 	leaq	16(%rsp,%rdi,8),%rdx	
