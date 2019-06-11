@@ -440,6 +440,17 @@ interface
          asmmode_x86_64_intel
        ];
 
+       { x86 asm modes with an AT&T-style syntax }
+       asmmodes_x86_att = [
+{$if defined(i386) or defined(x86_64)}
+         asmmode_standard,
+{$endif}
+         asmmode_i8086_att,
+         asmmode_i386_att,
+         asmmode_x86_64_att,
+         asmmode_x86_64_gas
+       ];
+
     var
        targetinfos   : array[tsystem] of psysteminfo;
        arinfos       : array[tar] of parinfo;
