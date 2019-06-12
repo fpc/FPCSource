@@ -57,7 +57,7 @@ type
   praw_device_command = ^raw_device_command;
 
 function USBStorage_Initialize(): cint32; cdecl; external;
-
+procedure USBStorage_Deinitialize(); cdecl; external;
 function USBStorage_Open(dev: pusbstorage_handle; device_id: cint32; vid, pid: cuint16): cint32; cdecl; external;
 function USBStorage_Close(dev: pusbstorage_handle): cint32; cdecl; external;
 function USBStorage_Reset(dev: pusbstorage_handle): cint32; cdecl; external;
