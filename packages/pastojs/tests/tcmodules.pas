@@ -335,6 +335,7 @@ type
     Procedure TestProc_ConstOrder;
     Procedure TestProc_DuplicateConst;
     Procedure TestProc_LocalVarAbsolute;
+    Procedure TestProc_LocalVarInit;
     Procedure TestProc_ReservedWords;
 
     // anonymous functions
@@ -4334,6 +4335,36 @@ begin
     '  if (p.Index === p.Index) p.Index = p.Index;',
     '};'
     ]),
+    LinesToStr([
+    ]));
+end;
+
+procedure TTestModule.TestProc_LocalVarInit;
+begin
+  StartProgram(false);
+  Add([
+  'type TBytes = array of byte;',
+  'procedure DoIt;',
+  'const c = 4;',
+  'var',
+  '  b: byte = 1;',
+  '  w: word = 2+c;',
+  '  p: pointer = nil;',
+  '  Buffer: TBytes = nil;',
+  'begin',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestProc_LocalVarInit',
+    LinesToStr([ // statements
+    'var c = 4;',
+    'this.DoIt = function () {',
+    '  var b = 1;',
+    '  var w = 2 + 4;',
+    '  var p = null;',
+    '  var Buffer = [];',
+    '};',
+    '']),
     LinesToStr([
     ]));
 end;

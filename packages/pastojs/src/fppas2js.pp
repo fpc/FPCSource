@@ -15848,10 +15848,14 @@ begin
     else if ExprResolved.BaseType in btAllStringAndChars then
       begin
       US:=StrToJSString(aResolver.ComputeConstString(Expr,false,true));
-      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Expr));
       Result:=ArrLit;
       for i:=1 to length(US) do
         ArrLit.Elements.AddElement.Expr:=CreateLiteralJSString(Expr,US[i]);
+      end
+    else if ExprResolved.BaseType=btNil then
+      begin
+      Result:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Expr));
       end
     else
       RaiseNotSupported(Expr,AContext,20170223133034);
