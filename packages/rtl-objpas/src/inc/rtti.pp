@@ -1441,7 +1441,7 @@ end;
 {$ifndef NoGenericMethods}
 generic class function TValue.From<T>(constref aValue: T): TValue;
 begin
-  TValue.Make(@aValue, System.TypeInfo(T), Result);
+  TValue.Make(@aValue, PTypeInfo(System.TypeInfo(T)), Result);
 end;
 
 generic class function TValue.FromOpenArray<T>(constref aValue: array of T): TValue;
@@ -1452,7 +1452,7 @@ begin
     arrdata := @aValue[0]
   else
     arrdata := Nil;
-  TValue.MakeOpenArray(arrdata, Length(aValue), System.TypeInfo(aValue), Result);
+  TValue.MakeOpenArray(arrdata, Length(aValue), PTypeInfo(System.TypeInfo(aValue)), Result);
 end;
 {$endif}
 
