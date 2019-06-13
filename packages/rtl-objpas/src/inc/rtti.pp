@@ -1371,6 +1371,9 @@ begin
                        raise Exception.CreateFmt(SErrUnableToGetValueForType,[ATypeInfo^.Name]);
                    end;
                  end;
+    tkChar,
+    tkWChar,
+    tkUChar,
     tkEnumeration,
     tkInteger  : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
@@ -1548,7 +1551,7 @@ end;
 
 function TValue.IsOrdinal: boolean;
 begin
-  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool, tkEnumeration]) or
+  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool, tkEnumeration, tkChar, tkWChar, tkUChar]) or
             ((Kind in [tkClass, tkClassRef, tkInterfaceRaw, tkUnknown]) and not Assigned(FData.FAsPointer));
 end;
 

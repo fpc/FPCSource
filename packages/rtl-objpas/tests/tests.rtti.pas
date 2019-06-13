@@ -61,6 +61,8 @@ type
     procedure TestMakeCurrency;
     procedure TestMakeComp;
     procedure TestMakeEnum;
+    procedure TestMakeAnsiChar;
+    procedure TestMakeWideChar;
 
     procedure TestDataSize;
     procedure TestDataSizeEmpty;
@@ -683,6 +685,44 @@ begin
 
   Check(v.GetReferenceToRawData <> @e);
   Check(TTestEnum(v.AsOrdinal) = te1);
+end;
+
+procedure TTestCase1.TestMakeAnsiChar;
+var
+  c: AnsiChar;
+  v: TValue;
+begin
+  c := #20;
+
+  TValue.Make(@c, TypeInfo(c), v);
+  Check(not v.IsClass);
+  Check(not v.IsArray);
+  Check(not v.IsEmpty);
+  Check(not v.IsOpenArray);
+  Check(not v.IsObject);
+  Check(v.IsOrdinal);
+
+  Check(v.GetReferenceToRawData <> @c);
+  Check(AnsiChar(v.AsOrdinal) = #20);
+end;
+
+procedure TTestCase1.TestMakeWideChar;
+var
+  c: WideChar;
+  v: TValue;
+begin
+  c := #$1234;
+
+  TValue.Make(@c, TypeInfo(c), v);
+  Check(not v.IsClass);
+  Check(not v.IsArray);
+  Check(not v.IsEmpty);
+  Check(not v.IsOpenArray);
+  Check(not v.IsObject);
+  Check(v.IsOrdinal);
+
+  Check(v.GetReferenceToRawData <> @c);
+  Check(WideChar(v.AsOrdinal) = #$1234);
 end;
 
 procedure TTestCase1.TestGetIsReadable;
