@@ -120,6 +120,7 @@ type
     { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
     generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
 {$endif}
+    class function FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue; static; {inline;}
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
     function AsString: string; inline;
@@ -1454,6 +1455,15 @@ begin
   TValue.MakeOpenArray(arrdata, Length(aValue), System.TypeInfo(aValue), Result);
 end;
 {$endif}
+
+class function TValue.FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue;
+begin
+  if not Assigned(aTypeInfo) or
+      not (aTypeInfo^.Kind in [tkInteger, tkInt64, tkQWord, tkEnumeration, tkBool, tkChar, tkWChar, tkUChar]) then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+
+  TValue.Make(@aValue, aTypeInfo, Result);
+end;
 
 function TValue.GetIsEmpty: boolean;
 begin
