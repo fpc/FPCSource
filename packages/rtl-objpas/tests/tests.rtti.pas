@@ -60,6 +60,7 @@ type
     procedure TestMakeExtended;
     procedure TestMakeCurrency;
     procedure TestMakeComp;
+    procedure TestMakeEnum;
 
     procedure TestDataSize;
     procedure TestDataSizeEmpty;
@@ -663,6 +664,25 @@ begin
   end;
 
   CheckFalse(hadexcept, 'Had unsigned type conversion exception');
+end;
+
+procedure TTestCase1.TestMakeEnum;
+var
+  e: TTestEnum;
+  v: TValue;
+begin
+  e := te1;
+
+  TValue.Make(@e, TypeInfo(e), v);
+  Check(not v.IsClass);
+  Check(not v.IsArray);
+  Check(not v.IsEmpty);
+  Check(not v.IsOpenArray);
+  Check(not v.IsObject);
+  Check(v.IsOrdinal);
+
+  Check(v.GetReferenceToRawData <> @e);
+  Check(TTestEnum(v.AsOrdinal) = te1);
 end;
 
 procedure TTestCase1.TestGetIsReadable;

@@ -1548,7 +1548,7 @@ end;
 
 function TValue.IsOrdinal: boolean;
 begin
-  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool]) or
+  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool, tkEnumeration]) or
             ((Kind in [tkClass, tkClassRef, tkInterfaceRaw, tkUnknown]) and not Assigned(FData.FAsPointer));
 end;
 
