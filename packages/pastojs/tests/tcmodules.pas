@@ -9109,19 +9109,25 @@ begin
   Add([
   'type',
   '  TArrArrInt = array of array of longint;',
+  '  TArrStaInt = array of array[1..2] of longint;',
   'var',
   '  a: TArrArrInt;',
+  '  b: TArrStaInt;',
   'begin',
   '  SetLength(a,2);',
   '  SetLength(a,3,4);',
+  '  SetLength(b,5);',
   '']);
   ConvertProgram;
   CheckSource('TestArray_SetLengthMultiDim',
     LinesToStr([ // statements
-    'this.a = [];']),
+    'this.a = [];',
+    'this.b = [];',
+    '']),
     LinesToStr([
     '$mod.a = rtl.arraySetLength($mod.a, [], 2);',
     '$mod.a = rtl.arraySetLength($mod.a, 0, 3, 4);',
+    '$mod.b = rtl.arraySetLength($mod.b, 0, 5, 2);',
     '']));
 end;
 

@@ -10783,8 +10783,8 @@ function TPasToJSConverter.ConvertBuiltIn_SetLength(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 // convert "SetLength(a,Len)" to "a = rtl.arraySetLength(a,Len)"
 var
-  Param0: TPasExpr;
-  ResolvedParam0: TPasResolverResult;
+  Param0, Range: TPasExpr;
+  ResolvedParam0, RangeResolved: TPasResolverResult;
   ArrayType: TPasArrayType;
   Call: TJSCallExpression;
   ValInit: TJSElement;
@@ -10792,6 +10792,9 @@ var
   ElType, TypeEl: TPasType;
   i: Integer;
   aResolver: TPas2JSResolver;
+  DimSize: TMaxPrecInt;
+  StaticDims: TObjectList;
+  Lit: TJSLiteral;
 begin
   Result:=nil;
   Param0:=El.Params[0];
@@ -10813,6 +10816,7 @@ begin
 
     // ->  AnArray = rtl.setArrayLength(AnArray,defaultvalue,dim1,dim2,...)
     AssignContext:=TAssignContext.Create(El,nil,AContext);
+    StaticDims:=nil;
     try
       aResolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
       AssignContext.RightResolved:=ResolvedParam0;
@@ -10831,6 +10835,27 @@ begin
         ArrayType:=ElType as TPasArrayType;
         end;
       ElType:=aResolver.ResolveAliasType(aResolver.GetArrayElType(ArrayType));
+      while (ElType.ClassType=TPasArrayType) and (length(TPasArrayType(ElType).Ranges)>0) do
+        begin
+        // array of static array, Note: setlength reallocs static arrays
+        ArrayType:=ElType as TPasArrayType;
+        for i:=0 to length(ArrayType.Ranges)-1 do
+          begin
+          Range:=ArrayType.Ranges[i];
+          // compute size of this dimension
+          DimSize:=aResolver.GetRangeLength(Range);
+          if DimSize=0 then
+            begin
+            aResolver.ComputeElement(Range,RangeResolved,[rcConstant]);
+            RaiseNotSupported(Range,AContext,20190614171520,GetResolverResultDbg(RangeResolved));
+            end;
+          Lit:=CreateLiteralNumber(El,DimSize);
+          if StaticDims=nil then
+            StaticDims:=TObjectList.Create(true);
+          StaticDims.Add(Lit);
+          end;
+        ElType:=aResolver.ResolveAliasType(aResolver.GetArrayElType(ArrayType));
+        end;
       if ElType.ClassType=TPasRecordType then
         ValInit:=CreateReferencePathExpr(ElType,AContext)
       else
@@ -10839,12 +10864,19 @@ begin
       // add params: dim1, dim2, ...
       for i:=1 to length(El.Params)-1 do
         Call.AddArg(ConvertExpression(El.Params[i],AContext));
+      if StaticDims<>nil then
+        begin
+        for i:=0 to StaticDims.Count-1 do
+          Call.AddArg(TJSElement(StaticDims[i]));
+        StaticDims.OwnsObjects:=false;
+        end;
 
       // create left side:  array =
       Result:=CreateAssignStatement(Param0,AssignContext);
     finally
       AssignContext.RightSide.Free;
       AssignContext.Free;
+      StaticDims.Free;
     end;
     end
   else if ResolvedParam0.BaseType=btString then
@@ -15235,7 +15267,7 @@ begin
 
   Call:=CreateCallExpression(PosEl);
   Call.Expr:=CreateDotNameExpr(PosEl,Expr,
-                                       TJSString(GetBIName(pbifnRecordClone)));
+                                        TJSString(GetBIName(pbifnRecordClone)));
   Result:=Call;
   if RecordExpr<>nil then
     Call.AddArg(RecordExpr);
