@@ -3356,6 +3356,19 @@ cleanup:
       begin
         SetLength(FMsDosStub,High(win16stub)-Low(win16stub)+1);
         Move(win16stub[Low(win16stub)],FMsDosStub[0],High(win16stub)-Low(win16stub)+1);
+
+        { BP7 identifies itself as linker version 6.1 in the Win16 .exe files it produces }
+        LinkerVersion:=6;
+        LinkerRevision:=1;
+        LogicalSectorAlignmentShiftCount:=8;  { 256-byte logical sectors }
+        TargetOS:=netoWindows;
+        ExpectedWindowsVersion:=$0300;
+        Flags:=[nehfNotWindowAPICompatible,nehfWindowAPICompatible,nehfMultipleData,nehfProtectedModeOnly];
+        AdditionalFlags:=[];
+        GangLoadAreaStart:=0;
+        GangLoadAreaLength:=0;
+        Reserved:=0;
+        Reserved2:=0;
       end;
 
     procedure TNewExeHeader.WriteTo(aWriter: TObjectWriter);
