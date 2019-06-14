@@ -331,12 +331,13 @@ var
 begin
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of
-    mm_tiny:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0t','',false)));
     mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
     mm_medium:  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0m','',false)));
     mm_compact: LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0c','',false)));
     mm_large:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0l','',false)));
     mm_huge:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0h','',false)));
+    else
+      internalerror(2019061501);
   end;
   while not ObjectFiles.Empty do
   begin
@@ -354,30 +355,18 @@ begin
   LinkScript.Concat('ENDGROUP');
 
   LinkScript.Concat('EXESECTION .MZ_flat_content');
-  if current_settings.x86memorymodel=mm_tiny then
-    begin
-      LinkScript.Concat('  OBJSECTION _TEXT||CODE');
-      LinkScript.Concat('  OBJSECTION *||CODE');
-      LinkScript.Concat('  OBJSECTION *||DATA');
-      LinkScript.Concat('  SYMBOL _edata');
-      LinkScript.Concat('  OBJSECTION *||BSS');
-      LinkScript.Concat('  SYMBOL _end');
-    end
-  else
-    begin
-      LinkScript.Concat('  OBJSECTION _TEXT||CODE');
-      LinkScript.Concat('  OBJSECTION *||CODE');
-      LinkScript.Concat('  OBJSECTION *||FAR_DATA');
-      LinkScript.Concat('  OBJSECTION _NULL||BEGDATA');
-      LinkScript.Concat('  OBJSECTION _AFTERNULL||BEGDATA');
-      LinkScript.Concat('  OBJSECTION *||BEGDATA');
-      LinkScript.Concat('  OBJSECTION *||DATA');
-      LinkScript.Concat('  SYMBOL _edata');
-      LinkScript.Concat('  OBJSECTION *||BSS');
-      LinkScript.Concat('  SYMBOL _end');
-      LinkScript.Concat('  OBJSECTION *||STACK');
-      LinkScript.Concat('  OBJSECTION *||HEAP');
-    end;
+  LinkScript.Concat('  OBJSECTION _TEXT||CODE');
+  LinkScript.Concat('  OBJSECTION *||CODE');
+  LinkScript.Concat('  OBJSECTION *||FAR_DATA');
+  LinkScript.Concat('  OBJSECTION _NULL||BEGDATA');
+  LinkScript.Concat('  OBJSECTION _AFTERNULL||BEGDATA');
+  LinkScript.Concat('  OBJSECTION *||BEGDATA');
+  LinkScript.Concat('  OBJSECTION *||DATA');
+  LinkScript.Concat('  SYMBOL _edata');
+  LinkScript.Concat('  OBJSECTION *||BSS');
+  LinkScript.Concat('  SYMBOL _end');
+  LinkScript.Concat('  OBJSECTION *||STACK');
+  LinkScript.Concat('  OBJSECTION *||HEAP');
   LinkScript.Concat('ENDEXESECTION');
 
   if (cs_debuginfo in current_settings.moduleswitches) and
