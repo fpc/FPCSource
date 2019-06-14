@@ -329,6 +329,14 @@ interface
       property NoList: Boolean read GetNoList write SetNoList;
     end;
 
+    { TOmfRecord_COMENT_Subtype }
+
+    TOmfRecord_COMENT_Subtype = class
+    public
+      procedure DecodeFrom(ComentRecord: TOmfRecord_COMENT);virtual;abstract;
+      procedure EncodeTo(ComentRecord: TOmfRecord_COMENT);virtual;abstract;
+    end;
+
     { TOmfRecord_LNAMES }
 
     TOmfRecord_LNAMES = class(TOmfParsedRecord)
