@@ -1351,12 +1351,12 @@ implementation
         if ordnr <= 0 then
           begin
             if afuncname=mangledname then
-              DllImport_COMENT.CommentString:=#1#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+#0
+              DllImport_COMENT.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+#0
             else
-              DllImport_COMENT.CommentString:=#1#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(Length(afuncname))+afuncname;
+              DllImport_COMENT.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(Length(afuncname))+afuncname;
           end
         else
-          DllImport_COMENT.CommentString:=#1#1+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(ordnr and $ff)+Chr((ordnr shr 8) and $ff);
+          DllImport_COMENT.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#1+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(ordnr and $ff)+Chr((ordnr shr 8) and $ff);
         DllImport_COMENT.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         DllImport_COMENT.Free;
