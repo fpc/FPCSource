@@ -206,7 +206,7 @@ begin
         end
       else
         internal_name:=hp.name^;
-      DllExport_COMENT.CommentString:=#2+Chr(expflag)+Chr(Length(hp.name^))+hp.name^+Chr(Length(internal_name))+internal_name;
+      DllExport_COMENT.CommentString:=Chr(CC_OmfExtension_EXPDEF)+Chr(expflag)+Chr(Length(hp.name^))+hp.name^+Chr(Length(internal_name))+internal_name;
       if eo_index in hp.options then
         DllExport_COMENT.CommentString:=DllExport_COMENT.CommentString+Chr(Byte(hp.index))+Chr(Byte(hp.index shr 8));
       DllExport_COMENT.EncodeTo(RawRecord);
