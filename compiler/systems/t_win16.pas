@@ -78,6 +78,16 @@ implementation
         constructor create;override;
       end;
 
+      { TDLLScannerWin16 }
+
+      TDLLScannerWin16=class(tDLLScanner)
+      private
+        importfound : boolean;
+{        procedure CheckDLLFunc(const dllname,funcname:string);}
+      public
+        function Scan(const binname:string):boolean;override;
+      end;
+
 {****************************************************************************
                                TImportLibWin16
 ****************************************************************************}
@@ -397,6 +407,31 @@ begin
   CObjInput:=TOmfObjInput;
 end;
 
+{****************************************************************************
+                               TDLLScannerWin16
+****************************************************************************}
+
+function TDLLScannerWin16.Scan(const binname: string): boolean;
+var
+  hs,
+  dllname : TCmdStr;
+begin
+  result:=false;
+  { is there already an import library the we will use that one }
+  if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,hs) then
+    exit;
+  { check if we can find the dll }
+  hs:=binname;
+  if ExtractFileExt(hs)='' then
+    hs:=ChangeFileExt(hs,target_info.sharedlibext);
+  if not FindDll(hs,dllname) then
+    exit;
+  importfound:=false;
+  {todo: ReadDLLImports(dllname,@CheckDLLFunc);}
+  if importfound then
+    current_module.dllscannerinputlist.Pack;
+  result:=importfound;
+end;
 
 {*****************************************************************************
                                      Initialize
@@ -407,5 +442,6 @@ initialization
   RegisterLinker(ld_win16,TExternalLinkerWin16WLink);
   RegisterImport(system_i8086_win16,TImportLibWin16);
   RegisterExport(system_i8086_win16,TExportLibWin16);
+  RegisterDLLScanner(system_i8086_win16,TDLLScannerWin16);
   RegisterTarget(system_i8086_win16_info);
 end.
