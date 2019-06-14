@@ -159,6 +159,12 @@ interface
     CC_DependencyFileBorland    = $E9;
     CC_CommandLineMicrosoft     = $FF;
 
+    { CC_OmfExtension subtypes }
+    CC_OmfExtension_IMPDEF      = $01;
+    CC_OmfExtension_EXPDEF      = $02;
+    CC_OmfExtension_INCDEF      = $03;
+    CC_OmfExtension_LNKDIR      = $05;
+
   type
     TOmfSegmentAlignment = (
       saAbsolute                = 0,
