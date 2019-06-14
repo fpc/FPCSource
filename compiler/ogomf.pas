@@ -24,6 +24,8 @@ unit ogomf;
 
 {$i fpcdefs.inc}
 
+{$PackSet 1}
+
 interface
 
     uses
@@ -381,6 +383,82 @@ interface
         nesfReserved14,                                               { bit 14 }
         nesfReserved15);                                              { bit 15 }
       TNewExeSegmentFlags = set of TNewExeSegmentFlag;
+
+      TNewExeMsDosStub = array of byte;
+
+      { TNewExeHeader }
+
+      TNewExeHeader = class
+      private
+        FMsDosStub: TNewExeMsDosStub;
+        FLinkerVersion: Byte;
+        FLinkerRevision: Byte;
+        FEntryTableOffset: Word;
+        FEntryTableLength: Word;
+        FReserved: LongWord;
+        FFlags: TNewExeHeaderFlags;
+        FAutoDataSegmentNumber: Word;
+        FInitialLocalHeapSize: Word;
+        FInitialStackSize: Word;
+        FInitialIP: Word;
+        FInitialCS: Word;
+        FInitialSP: Word;
+        FInitialSS: Word;
+        FSegmentTableEntriesCount: Word;
+        FModuleReferenceTableEntriesCount: Word;
+        FNonresidentNameTableLength: Word;
+        FSegmentTableStart: Word;
+        FResourceTableStart: Word;
+        FResidentNameTableStart: Word;
+        FModuleReferenceTableStart: Word;
+        FImportedNameTableStart: Word;
+        FNonresidentNameTableStart: LongWord;
+        FMovableEntryPointsCount: Word;
+        FLogicalSectorAlignmentShiftCount: Word;
+        FResourceSegmentsCount: Word;
+        FTargetOS: TNewExeTargetOS;
+        FAdditionalFlags: TNewExeAdditionalHeaderFlags;
+        FGangLoadAreaStart: Word;
+        FGangLoadAreaLength: Word;
+        FReserved2: Word;
+        FExpectedWindowsVersion: Word;
+      public
+        constructor Create;
+        procedure WriteTo(aWriter: TObjectWriter);
+
+        property MsDosStub: TNewExeMsDosStub read FMsDosStub write FMsDosStub;
+        property LinkerVersion: Byte read FLinkerVersion write FLinkerVersion;
+        property LinkerRevision: Byte read FLinkerRevision write FLinkerRevision;
+        property EntryTableOffset: Word read FEntryTableOffset write FEntryTableOffset;
+        property EntryTableLength: Word read FEntryTableLength write FEntryTableLength;
+        property Reserved: LongWord read FReserved write FReserved;
+        property Flags: TNewExeHeaderFlags read FFlags write FFlags;
+        property AutoDataSegmentNumber: Word read FAutoDataSegmentNumber write FAutoDataSegmentNumber;
+        property InitialLocalHeapSize: Word read FInitialLocalHeapSize write FInitialLocalHeapSize;
+        property InitialStackSize: Word read FInitialStackSize write FInitialStackSize;
+        property InitialIP: Word read FInitialIP write FInitialIP;
+        property InitialCS: Word read FInitialCS write FInitialCS;
+        property InitialSP: Word read FInitialSP write FInitialSP;
+        property InitialSS: Word read FInitialSS write FInitialSS;
+        property SegmentTableEntriesCount: Word read FSegmentTableEntriesCount write FSegmentTableEntriesCount;
+        property ModuleReferenceTableEntriesCount: Word read FModuleReferenceTableEntriesCount write FModuleReferenceTableEntriesCount;
+        property NonresidentNameTableLength: Word read FNonresidentNameTableLength write FNonresidentNameTableLength;
+        property SegmentTableStart: Word read FSegmentTableStart write FSegmentTableStart;
+        property ResourceTableStart: Word read FResourceTableStart write FResourceTableStart;
+        property ResidentNameTableStart: Word read FResidentNameTableStart write FResidentNameTableStart;
+        property ModuleReferenceTableStart: Word read FModuleReferenceTableStart write FModuleReferenceTableStart;
+        property ImportedNameTableStart: Word read FImportedNameTableStart write FImportedNameTableStart;
+        property NonresidentNameTableStart: LongWord read FNonresidentNameTableStart write FNonresidentNameTableStart;
+        property MovableEntryPointsCount: Word read FMovableEntryPointsCount write FMovableEntryPointsCount;
+        property LogicalSectorAlignmentShiftCount: Word read FLogicalSectorAlignmentShiftCount write FLogicalSectorAlignmentShiftCount;
+        property ResourceSegmentsCount: Word read FResourceSegmentsCount write FResourceSegmentsCount;
+        property TargetOS: TNewExeTargetOS read FTargetOS write FTargetOS;
+        property AdditionalFlags: TNewExeAdditionalHeaderFlags read FAdditionalFlags write FAdditionalFlags;
+        property GangLoadAreaStart: Word read FGangLoadAreaStart write FGangLoadAreaStart;
+        property GangLoadAreaLength: Word read FGangLoadAreaLength write FGangLoadAreaLength;
+        property Reserved2: Word read FReserved2 write FReserved2;
+        property ExpectedWindowsVersion: Word read FExpectedWindowsVersion write FExpectedWindowsVersion;
+      end;
 
       TOmfAssembler = class(tinternalassembler)
         constructor create(info: pasminfo; smart:boolean);override;
@@ -3267,6 +3345,91 @@ cleanup:
         FExeUnifiedLogicalGroups.Free;
         FExeUnifiedLogicalSegments.Free;
         inherited destroy;
+      end;
+
+
+{****************************************************************************
+                               TNewExeHeader
+****************************************************************************}
+
+    constructor TNewExeHeader.Create;
+      begin
+        SetLength(FMsDosStub,High(win16stub)-Low(win16stub)+1);
+        Move(win16stub[Low(win16stub)],FMsDosStub[0],High(win16stub)-Low(win16stub)+1);
+      end;
+
+    procedure TNewExeHeader.WriteTo(aWriter: TObjectWriter);
+      var
+        HeaderBytes: array [0..$3F] of Byte;
+      begin
+        aWriter.write(MsDosStub[0],Length(MsDosStub));
+
+        HeaderBytes[$00]:=$4E;  { 'N' }
+        HeaderBytes[$01]:=$45;  { 'E' }
+        HeaderBytes[$02]:=Byte(LinkerVersion);
+        HeaderBytes[$03]:=Byte(LinkerRevision);
+        HeaderBytes[$04]:=Byte(EntryTableOffset);
+        HeaderBytes[$05]:=Byte(EntryTableOffset shr 8);
+        HeaderBytes[$06]:=Byte(EntryTableLength);
+        HeaderBytes[$07]:=Byte(EntryTableLength shr 8);
+        HeaderBytes[$08]:=Byte(Reserved);
+        HeaderBytes[$09]:=Byte(Reserved shr 8);
+        HeaderBytes[$0A]:=Byte(Reserved shr 16);
+        HeaderBytes[$0B]:=Byte(Reserved shr 24);
+        HeaderBytes[$0C]:=Byte(Word(Flags));
+        HeaderBytes[$0D]:=Byte(Word(Flags) shr 8);
+        HeaderBytes[$0E]:=Byte(AutoDataSegmentNumber);
+        HeaderBytes[$0F]:=Byte(AutoDataSegmentNumber shr 8);
+        HeaderBytes[$10]:=Byte(InitialLocalHeapSize);
+        HeaderBytes[$11]:=Byte(InitialLocalHeapSize shr 8);
+        HeaderBytes[$12]:=Byte(InitialStackSize);
+        HeaderBytes[$13]:=Byte(InitialStackSize shr 8);
+        HeaderBytes[$14]:=Byte(InitialIP);
+        HeaderBytes[$15]:=Byte(InitialIP shr 8);
+        HeaderBytes[$16]:=Byte(InitialCS);
+        HeaderBytes[$17]:=Byte(InitialCS shr 8);
+        HeaderBytes[$18]:=Byte(InitialSP);
+        HeaderBytes[$19]:=Byte(InitialSP shr 8);
+        HeaderBytes[$1A]:=Byte(InitialSS);
+        HeaderBytes[$1B]:=Byte(InitialSS shr 8);
+        HeaderBytes[$1C]:=Byte(SegmentTableEntriesCount);
+        HeaderBytes[$1D]:=Byte(SegmentTableEntriesCount shr 8);
+        HeaderBytes[$1E]:=Byte(ModuleReferenceTableEntriesCount);
+        HeaderBytes[$1F]:=Byte(ModuleReferenceTableEntriesCount shr 8);
+        HeaderBytes[$20]:=Byte(NonresidentNameTableLength);
+        HeaderBytes[$21]:=Byte(NonresidentNameTableLength shr 8);
+        HeaderBytes[$22]:=Byte(SegmentTableStart);
+        HeaderBytes[$23]:=Byte(SegmentTableStart shr 8);
+        HeaderBytes[$24]:=Byte(ResourceTableStart);
+        HeaderBytes[$25]:=Byte(ResourceTableStart shr 8);
+        HeaderBytes[$26]:=Byte(ResidentNameTableStart);
+        HeaderBytes[$27]:=Byte(ResidentNameTableStart shr 8);
+        HeaderBytes[$28]:=Byte(ModuleReferenceTableStart);
+        HeaderBytes[$29]:=Byte(ModuleReferenceTableStart shr 8);
+        HeaderBytes[$2A]:=Byte(ImportedNameTableStart);
+        HeaderBytes[$2B]:=Byte(ImportedNameTableStart shr 8);
+        HeaderBytes[$2C]:=Byte(NonresidentNameTableStart);
+        HeaderBytes[$2D]:=Byte(NonresidentNameTableStart shr 8);
+        HeaderBytes[$2E]:=Byte(NonresidentNameTableStart shr 16);
+        HeaderBytes[$2F]:=Byte(NonresidentNameTableStart shr 24);
+        HeaderBytes[$30]:=Byte(MovableEntryPointsCount);
+        HeaderBytes[$31]:=Byte(MovableEntryPointsCount shr 8);
+        HeaderBytes[$32]:=Byte(LogicalSectorAlignmentShiftCount);
+        HeaderBytes[$33]:=Byte(LogicalSectorAlignmentShiftCount shr 8);
+        HeaderBytes[$34]:=Byte(ResourceSegmentsCount);
+        HeaderBytes[$35]:=Byte(ResourceSegmentsCount shr 8);
+        HeaderBytes[$36]:=Byte(Ord(TargetOS));
+        HeaderBytes[$37]:=Byte(AdditionalFlags);
+        HeaderBytes[$38]:=Byte(GangLoadAreaStart);
+        HeaderBytes[$39]:=Byte(GangLoadAreaStart shr 8);
+        HeaderBytes[$3A]:=Byte(GangLoadAreaLength);
+        HeaderBytes[$3B]:=Byte(GangLoadAreaLength shr 8);
+        HeaderBytes[$3C]:=Byte(Reserved2);
+        HeaderBytes[$3D]:=Byte(Reserved2 shr 8);
+        HeaderBytes[$3E]:=Byte(ExpectedWindowsVersion);
+        HeaderBytes[$3F]:=Byte(ExpectedWindowsVersion shr 8);
+
+        aWriter.write(HeaderBytes[0],$40);
       end;
 
 {****************************************************************************
