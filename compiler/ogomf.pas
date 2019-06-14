@@ -167,6 +167,8 @@ interface
         function ReadPubDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadModEnd(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadLeOrLiDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+        function ReadImpDef(Rec: TOmfRecord_COMENT): Boolean;
+        function ReadExpDef(Rec: TOmfRecord_COMENT): Boolean;
         function ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
@@ -1841,6 +1843,18 @@ implementation
         Result:=True;
       end;
 
+    function TOmfObjInput.ReadImpDef(Rec: TOmfRecord_COMENT): Boolean;
+      begin
+        {todo: implement}
+        Result:=True;
+      end;
+
+    function TOmfObjInput.ReadExpDef(Rec: TOmfRecord_COMENT): Boolean;
+      begin
+        {todo: implement}
+        Result:=True;
+      end;
+
     function TOmfObjInput.ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
       var
         reloc: TOmfRelocation;
@@ -2222,7 +2236,17 @@ implementation
                 case FCOMENTRecord.CommentClass of
                   CC_OmfExtension:
                     begin
-                      {todo: handle these as well...}
+                      if Length(FCOMENTRecord.CommentString)>=1 then
+                        begin
+                          case Ord(FCOMENTRecord.CommentString[1]) of
+                            CC_OmfExtension_IMPDEF:
+                              if not ReadImpDef(FCOMENTRecord) then
+                                exit;
+                            CC_OmfExtension_EXPDEF:
+                              if not ReadExpDef(FCOMENTRecord) then
+                                exit;
+                          end;
+                        end;
                     end;
                   CC_LIBMOD:
                     begin
