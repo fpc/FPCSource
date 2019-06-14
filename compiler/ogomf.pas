@@ -460,6 +460,20 @@ interface
         property ExpectedWindowsVersion: Word read FExpectedWindowsVersion write FExpectedWindowsVersion;
       end;
 
+      { TNewExeOutput }
+
+      TNewExeOutput = class(TExeOutput)
+      private
+        FHeader: TNewExeHeader;
+      protected
+        procedure DoRelocationFixup(objsec:TObjSection);override;
+      public
+        constructor create;override;
+        destructor destroy;override;
+
+        function writeData:boolean;override;
+      end;
+
       TOmfAssembler = class(tinternalassembler)
         constructor create(info: pasminfo; smart:boolean);override;
       end;
@@ -3443,6 +3457,35 @@ cleanup:
         HeaderBytes[$3F]:=Byte(ExpectedWindowsVersion shr 8);
 
         aWriter.write(HeaderBytes[0],$40);
+      end;
+
+{****************************************************************************
+                               TNewExeOutput
+****************************************************************************}
+
+    procedure TNewExeOutput.DoRelocationFixup(objsec: TObjSection);
+      begin
+        {todo}
+      end;
+
+    constructor TNewExeOutput.create;
+      begin
+        inherited create;
+        CObjData:=TOmfObjData;
+        CObjSymbol:=TOmfObjSymbol;
+        FHeader:=TNewExeHeader.Create;
+      end;
+
+    destructor TNewExeOutput.destroy;
+      begin
+        FHeader.Free;
+        inherited destroy;
+      end;
+
+    function TNewExeOutput.writeData: boolean;
+      begin
+        {todo}
+        Result:=False;
       end;
 
 {****************************************************************************
