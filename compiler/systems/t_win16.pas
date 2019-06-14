@@ -69,6 +69,15 @@ implementation
          function  MakeExecutable:boolean;override;
       end;
 
+      { TInternalLinkerWin16 }
+
+      TInternalLinkerWin16=class(tinternallinker)
+      protected
+        procedure DefaultLinkScript;override;
+      public
+        constructor create;override;
+      end;
+
 {****************************************************************************
                                TImportLibWin16
 ****************************************************************************}
@@ -312,11 +321,30 @@ begin
 end;
 
 
+{****************************************************************************
+                               TInternalLinkerWin16
+****************************************************************************}
+
+procedure TInternalLinkerWin16.DefaultLinkScript;
+begin
+  {todo}
+end;
+
+constructor TInternalLinkerWin16.create;
+begin
+  inherited create;
+  CArObjectReader:=TOmfLibObjectReader;
+  CExeOutput:=TNewExeOutput;
+  CObjInput:=TOmfObjInput;
+end;
+
+
 {*****************************************************************************
                                      Initialize
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_int_win16,TInternalLinkerWin16);
   RegisterLinker(ld_win16,TExternalLinkerWin16WLink);
   RegisterImport(system_i8086_win16,TImportLibWin16);
   RegisterExport(system_i8086_win16,TExportLibWin16);
