@@ -337,6 +337,26 @@ interface
       procedure EncodeTo(ComentRecord: TOmfRecord_COMENT);virtual;abstract;
     end;
 
+    { TOmfRecord_COMENT_IMPDEF }
+
+    TOmfRecord_COMENT_IMPDEF = class(TOmfRecord_COMENT_Subtype)
+    private
+      FImportByOrdinal: Boolean;
+      FInternalName: string;
+      FModuleName: string;
+      FOrdinal: Word;
+      FName: string;
+    public
+      procedure DecodeFrom(ComentRecord: TOmfRecord_COMENT);override;
+      procedure EncodeTo(ComentRecord: TOmfRecord_COMENT);override;
+
+      property ImportByOrdinal: Boolean read FImportByOrdinal write FImportByOrdinal;
+      property InternalName: string read FInternalName write FInternalName;
+      property ModuleName: string read FModuleName write FModuleName;
+      property Ordinal: Word read FOrdinal write FOrdinal;
+      property Name: string read FName write FName;
+    end;
+
     { TOmfRecord_LNAMES }
 
     TOmfRecord_LNAMES = class(TOmfParsedRecord)
@@ -1553,6 +1573,33 @@ implementation
       if len>0 then
         Move(FCommentString[1],RawRecord.RawData[2],len);
       RawRecord.CalculateChecksumByte;
+    end;
+
+  { TOmfRecord_COMENT_IMPDEF }
+
+  procedure TOmfRecord_COMENT_IMPDEF.DecodeFrom(ComentRecord: TOmfRecord_COMENT);
+    begin
+      {todo: implement}
+      internalerror(2019061502);
+    end;
+
+  procedure TOmfRecord_COMENT_IMPDEF.EncodeTo(ComentRecord: TOmfRecord_COMENT);
+    begin
+      ComentRecord.CommentClass:=CC_OmfExtension;
+      if ImportByOrdinal then
+        ComentRecord.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#1+
+                                    Chr(Length(InternalName))+InternalName+
+                                    Chr(Length(ModuleName))+ModuleName+
+                                    Chr(Ordinal and $ff)+Chr((Ordinal shr 8) and $ff)
+      else if InternalName=Name then
+        ComentRecord.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#0+
+                                    Chr(Length(InternalName))+InternalName+
+                                    Chr(Length(ModuleName))+ModuleName+#0
+      else
+        ComentRecord.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#0+
+                                    Chr(Length(InternalName))+InternalName+
+                                    Chr(Length(ModuleName))+ModuleName+
+                                    Chr(Length(Name))+Name;
     end;
 
   { TOmfRecord_LNAMES }

@@ -1334,7 +1334,8 @@ implementation
       var
         RawRecord: TOmfRawRecord;
         Header: TOmfRecord_THEADR;
-        DllImport_COMENT: TOmfRecord_COMENT;
+        DllImport_COMENT: TOmfRecord_COMENT=nil;
+        DllImport_COMENT_IMPDEF: TOmfRecord_COMENT_IMPDEF=nil;
         ModEnd: TOmfRecord_MODEND;
       begin
         { write header record }
@@ -1346,20 +1347,26 @@ implementation
         Header.Free;
 
         { write IMPDEF record }
-        DllImport_COMENT:=TOmfRecord_COMENT.Create;
-        DllImport_COMENT.CommentClass:=CC_OmfExtension;
+        DllImport_COMENT_IMPDEF:=TOmfRecord_COMENT_IMPDEF.Create;
+        DllImport_COMENT_IMPDEF.InternalName:=mangledname;
+        DllImport_COMENT_IMPDEF.ModuleName:=dllname;
         if ordnr <= 0 then
           begin
-            if afuncname=mangledname then
-              DllImport_COMENT.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+#0
-            else
-              DllImport_COMENT.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(Length(afuncname))+afuncname;
+            DllImport_COMENT_IMPDEF.ImportByOrdinal:=False;
+            DllImport_COMENT_IMPDEF.Name:=afuncname;
           end
         else
-          DllImport_COMENT.CommentString:=Chr(CC_OmfExtension_IMPDEF)+#1+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(ordnr and $ff)+Chr((ordnr shr 8) and $ff);
+          begin
+            DllImport_COMENT_IMPDEF.ImportByOrdinal:=True;
+            DllImport_COMENT_IMPDEF.Ordinal:=ordnr;
+          end;
+
+        DllImport_COMENT:=TOmfRecord_COMENT.Create;
+        DllImport_COMENT_IMPDEF.EncodeTo(DllImport_COMENT);
+        FreeAndNil(DllImport_COMENT_IMPDEF);
         DllImport_COMENT.EncodeTo(RawRecord);
+        FreeAndNil(DllImport_COMENT);
         RawRecord.WriteTo(FWriter);
-        DllImport_COMENT.Free;
 
         { write MODEND record }
         ModEnd:=TOmfRecord_MODEND.Create;
