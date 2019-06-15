@@ -1629,9 +1629,43 @@ implementation
   { TOmfRecord_COMENT_EXPDEF }
 
   procedure TOmfRecord_COMENT_EXPDEF.DecodeFrom(ComentRecord: TOmfRecord_COMENT);
+    var
+      expflag: Byte;
+      ExportedNameLen, InternalNameLenIdx, InternalNameLen,
+        ExportOrdinalIdx: Integer;
     begin
-      {todo: implement}
-      internalerror(2019061503);
+      if ComentRecord.CommentClass<>CC_OmfExtension then
+        internalerror(2019061601);
+      if Length(ComentRecord.CommentString)<4 then
+        internalerror(2019061602);
+      if ComentRecord.CommentString[1]<>Chr(CC_OmfExtension_EXPDEF) then
+        internalerror(2019061603);
+      expflag:=Ord(ComentRecord.CommentString[2]);
+      ExportByOrdinal:=(expflag and $80)<>0;
+      ResidentName:=(expflag and $40)<>0;
+      NoData:=(expflag and $20)<>0;
+      ParmCount:=expflag and $1F;
+      ExportedNameLen:=Ord(ComentRecord.CommentString[3]);
+      ExportedName:=Copy(ComentRecord.CommentString,4,ExportedNameLen);
+      InternalNameLenIdx:=4+ExportedNameLen;
+      if InternalNameLenIdx>Length(ComentRecord.CommentString) then
+        internalerror(2019061604);
+      InternalNameLen:=Ord(ComentRecord.CommentString[InternalNameLenIdx]);
+      if (InternalNameLenIdx+InternalNameLen)>Length(ComentRecord.CommentString) then
+        internalerror(2019061605);
+      InternalName:=Copy(ComentRecord.CommentString,InternalNameLenIdx+1,InternalNameLen);
+      if ExportByOrdinal then
+        begin
+          ExportOrdinalIdx:=InternalNameLenIdx+1+InternalNameLen;
+          if (ExportOrdinalIdx+1)>Length(ComentRecord.CommentString) then
+            internalerror(2019061606);
+          ExportOrdinal:=Ord(ComentRecord.CommentString[ExportOrdinalIdx]) or
+                         (Word(Ord(ComentRecord.CommentString[ExportOrdinalIdx+1])) shl 8);
+        end
+      else
+        ExportOrdinal:=0;
+      if InternalName='' then
+        InternalName:=ExportedName;
     end;
 
   procedure TOmfRecord_COMENT_EXPDEF.EncodeTo(ComentRecord: TOmfRecord_COMENT);
