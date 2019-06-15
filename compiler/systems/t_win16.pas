@@ -163,9 +163,8 @@ var
   i: Integer;
   hp: texported_item;
   ModEnd: TOmfRecord_MODEND;
-  DllExport_COMENT: TOmfRecord_COMENT;
-  expflag: Byte;
-  internal_name: TSymStr;
+  DllExport_COMENT: TOmfRecord_COMENT=nil;
+  DllExport_COMENT_EXPDEF: TOmfRecord_COMENT_EXPDEF=nil;
 begin
   if EList.Count=0 then
     exit;
@@ -188,30 +187,30 @@ begin
       hp:=texported_item(EList[i]);
 
       { write EXPDEF record }
-      DllExport_COMENT:=TOmfRecord_COMENT.Create;
-      DllExport_COMENT.CommentClass:=CC_OmfExtension;
-      expflag:=0;
-      if eo_index in hp.options then
-        expflag:=expflag or $80;
-      if eo_resident in hp.options then
-        expflag:=expflag or $40;
+      DllExport_COMENT_EXPDEF:=TOmfRecord_COMENT_EXPDEF.Create;
+      DllExport_COMENT_EXPDEF.ExportByOrdinal:=eo_index in hp.options;
+      DllExport_COMENT_EXPDEF.ResidentName:=eo_resident in hp.options;
+      DllExport_COMENT_EXPDEF.ExportedName:=hp.name^;
       if assigned(hp.sym) then
         case hp.sym.typ of
           staticvarsym:
-            internal_name:=tstaticvarsym(hp.sym).mangledname;
+            DllExport_COMENT_EXPDEF.InternalName:=tstaticvarsym(hp.sym).mangledname;
           procsym:
-            internal_name:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
+            DllExport_COMENT_EXPDEF.InternalName:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
           else
             internalerror(2015092701);
         end
       else
-        internal_name:=hp.name^;
-      DllExport_COMENT.CommentString:=Chr(CC_OmfExtension_EXPDEF)+Chr(expflag)+Chr(Length(hp.name^))+hp.name^+Chr(Length(internal_name))+internal_name;
+        DllExport_COMENT_EXPDEF.InternalName:=hp.name^;
       if eo_index in hp.options then
-        DllExport_COMENT.CommentString:=DllExport_COMENT.CommentString+Chr(Byte(hp.index))+Chr(Byte(hp.index shr 8));
+        DllExport_COMENT_EXPDEF.ExportOrdinal:=hp.index;
+
+      DllExport_COMENT:=TOmfRecord_COMENT.Create;
+      DllExport_COMENT_EXPDEF.EncodeTo(DllExport_COMENT);
+      FreeAndNil(DllExport_COMENT_EXPDEF);
       DllExport_COMENT.EncodeTo(RawRecord);
+      FreeAndNil(DllExport_COMENT);
       RawRecord.WriteTo(ObjWriter);
-      DllExport_COMENT.Free;
     end;
 
   { write MODEND record }

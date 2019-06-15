@@ -357,6 +357,30 @@ interface
       property Name: string read FName write FName;
     end;
 
+    { TOmfRecord_COMENT_EXPDEF }
+
+    TOmfRecord_COMENT_EXPDEF = class(TOmfRecord_COMENT_Subtype)
+    private
+      FExportByOrdinal: Boolean;
+      FResidentName: Boolean;
+      FNoData: Boolean;
+      FParmCount: Integer;
+      FExportedName: string;
+      FInternalName: string;
+      FExportOrdinal: Word;
+    public
+      procedure DecodeFrom(ComentRecord: TOmfRecord_COMENT);override;
+      procedure EncodeTo(ComentRecord: TOmfRecord_COMENT);override;
+
+      property ExportByOrdinal: Boolean read FExportByOrdinal write FExportByOrdinal;
+      property ResidentName: Boolean read FResidentName write FResidentName;
+      property NoData: Boolean read FNoData write FNoData;
+      property ParmCount: Integer read FParmCount write FParmCount;
+      property ExportedName: string read FExportedName write FExportedName;
+      property InternalName: string read FInternalName write FInternalName;
+      property ExportOrdinal: Word read FExportOrdinal write FExportOrdinal;
+    end;
+
     { TOmfRecord_LNAMES }
 
     TOmfRecord_LNAMES = class(TOmfParsedRecord)
@@ -1600,6 +1624,50 @@ implementation
                                     Chr(Length(InternalName))+InternalName+
                                     Chr(Length(ModuleName))+ModuleName+
                                     Chr(Length(Name))+Name;
+    end;
+
+  { TOmfRecord_COMENT_EXPDEF }
+
+  procedure TOmfRecord_COMENT_EXPDEF.DecodeFrom(ComentRecord: TOmfRecord_COMENT);
+    begin
+      {todo: implement}
+      internalerror(2019061503);
+    end;
+
+  procedure TOmfRecord_COMENT_EXPDEF.EncodeTo(ComentRecord: TOmfRecord_COMENT);
+    var
+      expflag: Byte;
+    begin
+      ComentRecord.CommentClass:=CC_OmfExtension;
+
+      if (ParmCount<0) or (ParmCount>31) then
+        internalerror(2019061504);
+      expflag:=ParmCount;
+      if ExportByOrdinal then
+        expflag:=expflag or $80;
+      if ResidentName then
+        expflag:=expflag or $40;
+      if NoData then
+        expflag:=expflag or $20;
+
+      if ExportByOrdinal then
+        if InternalName=ExportedName then
+          ComentRecord.CommentString:=Chr(CC_OmfExtension_EXPDEF)+Chr(expflag)+
+                                      Chr(Length(ExportedName))+ExportedName+#0+
+                                      Chr(Byte(ExportOrdinal))+Chr(Byte(ExportOrdinal shr 8))
+        else
+          ComentRecord.CommentString:=Chr(CC_OmfExtension_EXPDEF)+Chr(expflag)+
+                                      Chr(Length(ExportedName))+ExportedName+
+                                      Chr(Length(InternalName))+InternalName+
+                                      Chr(Byte(ExportOrdinal))+Chr(Byte(ExportOrdinal shr 8))
+      else
+        if InternalName=ExportedName then
+          ComentRecord.CommentString:=Chr(CC_OmfExtension_EXPDEF)+Chr(expflag)+
+                                      Chr(Length(ExportedName))+ExportedName+#0
+        else
+          ComentRecord.CommentString:=Chr(CC_OmfExtension_EXPDEF)+Chr(expflag)+
+                                      Chr(Length(ExportedName))+ExportedName+
+                                      Chr(Length(InternalName))+InternalName;
     end;
 
   { TOmfRecord_LNAMES }
