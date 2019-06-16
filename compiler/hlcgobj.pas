@@ -823,9 +823,13 @@ implementation
           objectdef,
           procvardef,
           procdef,
-          arraydef,
           formaldef:
             result:=R_ADDRESSREGISTER;
+          arraydef:
+            if tstoreddef(def).is_intregable then
+              result:=R_INTREGISTER
+            else
+              result:=R_ADDRESSREGISTER;
           floatdef:
             if use_vectorfpu(def) then
               result:=R_MMREGISTER

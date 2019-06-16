@@ -855,7 +855,9 @@ implementation
          paraloc2 : tcgpara;
          subsetref : tsubsetreference;
          temp : longint;
+         hreg : tregister;
          indexdef : tdef;
+         i : Integer;
       begin
          paraloc1.init;
          paraloc2.init;
@@ -936,19 +938,29 @@ implementation
            end
          else
            begin
-              { may happen in case of function results }
-              case left.location.loc of
-                LOC_CSUBSETREG,
-                LOC_CREGISTER,
-                LOC_CMMREGISTER,
-                LOC_SUBSETREG,
-                LOC_REGISTER,
-                LOC_MMREGISTER:
-                  hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-                else
-                  ;
-              end;
-             location_copy(location,left.location);
+             { may happen in case of function results }
+             case left.location.loc of
+               LOC_CREGISTER,
+               LOC_REGISTER:
+                 begin
+                   if not(is_constnode(right)) or (tarraydef(left.resultdef).elementdef.size<>alusinttype.size) then
+                     hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                   { we use location here only to get the right offset }
+                   location_reset_ref(location,LOC_REFERENCE,OS_NO,1,[]);
+                 end;
+               LOC_CSUBSETREG,
+               LOC_CMMREGISTER,
+               LOC_SUBSETREG,
+               LOC_MMREGISTER:
+                 begin
+                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                   location_copy(location,left.location);
+                 end;
+               LOC_INVALID:
+                 Internalerror(2019061101);
+               else
+                 location_copy(location,left.location);
+             end;
            end;
 
          { location must be memory }
@@ -994,6 +1006,37 @@ implementation
                   update_reference_offset(location.reference,extraoffset,bytemulsize);
                   { adjust alignment after this change }
                   location.reference.alignment:=newalignment(location.reference.alignment,extraoffset*bytemulsize);
+
+                  { actually an array in a register? }
+                  if (left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
+                    is_normal_array(left.resultdef) then
+                    begin
+{$if defined(cpu64bitalu)}
+                      hreg:=left.location.register;
+{$else defined(cpu64bitalu}}
+                      if target_info.endian=endian_little then
+                        begin
+                          if location.reference.offset>3 then
+                            hreg:=left.location.register64.reghi
+                          else
+                            hreg:=left.location.register64.reglo;
+                        end
+                      else
+                        begin
+                          if location.reference.offset>3 then
+                            hreg:=left.location.register64.reglo
+                          else
+                            hreg:=left.location.register64.reghi;
+                        end;
+{$endif defined(cpu64bitalu)}
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                      { we support only the case that one element fills at least one register }
+                      for i:=1 to location.reference.offset mod 4 do
+                        hreg:=cg.GetNextReg(hreg);
+{$endif defined(cpu8bitalu) or defined(cpu16bitalu)}
+                      location_reset(location,left.location.loc,def_cgsize(tarraydef(left.resultdef).elementdef));
+                      location.register:=hreg;
+                    end;
                 end
               else
                 begin

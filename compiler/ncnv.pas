@@ -3255,6 +3255,7 @@ implementation
 
       begin
          first_array_to_pointer:=nil;
+         make_not_regable(left,[ra_addr_regable]);
          expectloc:=LOC_REGISTER;
       end;
 

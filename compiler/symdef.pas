@@ -2225,6 +2225,14 @@ implementation
             is_intregable:=(is_implicit_pointer_object_type(self)) and not needs_inittable;
           setdef:
             is_intregable:=is_smallset(self);
+          arraydef:
+            is_intregable:=not(is_special_array(self)) and
+              (tarraydef(self).size in [1,2,4,8]) and tstoreddef(tarraydef(self).elementdef).is_intregable
+{$ifdef SUPPORT_MMX}
+              and not((cs_mmx in current_settings.localswitches) and
+                 is_mmx_able_array(self))
+{$endif SUPPORT_MMX}
+              ;
           recorddef:
             begin
 {$ifdef llvm}

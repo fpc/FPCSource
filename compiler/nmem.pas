@@ -1054,7 +1054,9 @@ implementation
            that has a field of one of these types -> in that case the record
            can't be a regvar either }
          if ((left.resultdef.typ=arraydef) and
-             not is_special_array(left.resultdef)) or
+             not is_special_array(left.resultdef) and
+             { arrays with elements equal to the alu size and with a constant index can be kept in register }
+             not(is_constnode(right) and (tarraydef(left.resultdef).elementdef.size=alusinttype.size))) or
             ((left.resultdef.typ=stringdef) and
              (tstringdef(left.resultdef).stringtype in [st_shortstring,st_longstring])) then
            make_not_regable(left,[ra_addr_regable]);
