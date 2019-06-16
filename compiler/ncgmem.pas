@@ -1013,7 +1013,7 @@ implementation
                     begin
 {$if defined(cpu64bitalu)}
                       hreg:=left.location.register;
-{$else defined(cpu64bitalu}}
+{$else defined(cpu64bitalu)}
                       if target_info.endian=endian_little then
                         begin
                           if location.reference.offset>3 then
