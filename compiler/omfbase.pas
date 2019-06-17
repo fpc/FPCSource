@@ -1602,9 +1602,46 @@ implementation
   { TOmfRecord_COMENT_IMPDEF }
 
   procedure TOmfRecord_COMENT_IMPDEF.DecodeFrom(ComentRecord: TOmfRecord_COMENT);
+    var
+      InternalNameLen, ModuleNameLenIdx, ModuleNameLen, NameLenIdx,
+        NameLen, OrdinalIdx: Integer;
     begin
-      {todo: implement}
-      internalerror(2019061502);
+      if ComentRecord.CommentClass<>CC_OmfExtension then
+        internalerror(2019061621);
+      if Length(ComentRecord.CommentString)<5 then
+        internalerror(2019061622);
+      if ComentRecord.CommentString[1]<>Chr(CC_OmfExtension_IMPDEF) then
+        internalerror(2019061623);
+      ImportByOrdinal:=Ord(ComentRecord.CommentString[2])<>0;
+      InternalNameLen:=Ord(ComentRecord.CommentString[3]);
+      InternalName:=Copy(ComentRecord.CommentString,4,InternalNameLen);
+      ModuleNameLenIdx:=4+InternalNameLen;
+      if ModuleNameLenIdx>Length(ComentRecord.CommentString) then
+        internalerror(2019061624);
+      ModuleNameLen:=Ord(ComentRecord.CommentString[ModuleNameLenIdx]);
+      ModuleName:=Copy(ComentRecord.CommentString,ModuleNameLenIdx+1,ModuleNameLen);
+      if ImportByOrdinal then
+        begin
+          Name:='';
+          OrdinalIdx:=ModuleNameLenIdx+1+ModuleNameLen;
+          if (OrdinalIdx+1)>Length(ComentRecord.CommentString) then
+            internalerror(2019061625);
+          Ordinal:=Ord(ComentRecord.CommentString[OrdinalIdx]) or
+                   (Word(Ord(ComentRecord.CommentString[OrdinalIdx+1])) shl 8);
+        end
+      else
+        begin
+          Ordinal:=0;
+          NameLenIdx:=ModuleNameLenIdx+1+ModuleNameLen;
+          if NameLenIdx>Length(ComentRecord.CommentString) then
+            internalerror(2019061626);
+          NameLen:=Ord(ComentRecord.CommentString[NameLenIdx]);
+          if (NameLenIdx+NameLen)>Length(ComentRecord.CommentString) then
+            internalerror(2019061627);
+          Name:=Copy(ComentRecord.CommentString,NameLenIdx+1,NameLen);
+          if Name='' then
+            Name:=InternalName;
+        end;
     end;
 
   procedure TOmfRecord_COMENT_IMPDEF.EncodeTo(ComentRecord: TOmfRecord_COMENT);
