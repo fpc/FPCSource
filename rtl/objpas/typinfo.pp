@@ -1058,16 +1058,16 @@ end;
 
 function SetToString(TypeInfo: PTypeInfo; Value: Pointer; Brackets: Boolean): String;
 type
-  tsetarr = bitpacked array[0..SizeOf(Integer)*8-1] of 0..1;
+  tsetarr = bitpacked array[0..SizeOf(LongInt)*8-1] of 0..1;
 Var
   I,El,Els,Rem,V,Max : Integer;
   PTI : PTypeInfo;
   PTD : PTypeData;
-  ValueArr : PLongWord;
+  ValueArr : PLongInt;
 begin
   PTD := GetTypeData(TypeInfo);
   PTI:=PTD^.CompType;
-  ValueArr := PLongWord(Value);
+  ValueArr := PLongInt(Value);
   Result:='';
 {$ifdef ver3_0}
   case PTD^.OrdType of
@@ -1085,25 +1085,25 @@ begin
     end;
   end;
 {$else}
-  Els := PTD^.SetSize div SizeOf(Integer);
-  Rem := PTD^.SetSize mod SizeOf(Integer);
+  Els := PTD^.SetSize div SizeOf(LongInt);
+  Rem := PTD^.SetSize mod SizeOf(LongInt);
 {$endif}
 
 {$ifdef ver3_0}
   El := 0;
 {$else}
-  for El := 0 to (PTD^.SetSize - 1) div SizeOf(Integer) do
+  for El := 0 to (PTD^.SetSize - 1) div SizeOf(LongInt) do
 {$endif}
     begin
       if El = Els then
         Max := Rem
       else
-        Max := SizeOf(Integer);
+        Max := SizeOf(LongInt);
       For I:=0 to Max*8-1 do
         begin
           if (tsetarr(ValueArr[El])[i]<>0) then
             begin
-              V := I + SizeOf(Integer) * 8 * El;
+              V := I + SizeOf(LongInt) * 8 * El;
               If Result='' then
                 Result:=GetEnumName(PTI,V)
               else
@@ -1195,7 +1195,7 @@ begin
             to reverse the shift }
           BitOfs := 31 - BitOfs;
 {$endif}
-          ResArr[ElOfs] := ResArr[ElOfs] or (1 shl BitOfs);
+          ResArr[ElOfs] := ResArr[ElOfs] or (LongInt(1) shl BitOfs);
         end;
     end;
 end;
