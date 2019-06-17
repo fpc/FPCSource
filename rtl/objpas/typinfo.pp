@@ -881,13 +881,13 @@ procedure AddEnumElementAliases(aTypeInfo: PTypeInfo; const aNames: array of str
 procedure RemoveEnumElementAliases(aTypeInfo: PTypeInfo);
 function GetEnumeratedAliasValue(aTypeInfo: PTypeInfo; const aName: string): Integer;
 
-function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
-function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
-function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
+function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean) : String;
+function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean) : String;
+function SetToString(PropInfo: PPropInfo; Value: LongInt) : String;
 function SetToString(TypeInfo: PTypeInfo; Value: Pointer; Brackets: Boolean = False) : String;
 function SetToString(PropInfo: PPropInfo; Value: Pointer; Brackets: Boolean = False) : String;
-function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
-function StringToSet(TypeInfo: PTypeInfo; const Value: string): Integer;
+function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
+function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
 procedure StringToSet(PropInfo: PPropInfo; const Value: String; Result: Pointer);
 procedure StringToSet(TypeInfo: PTypeInfo; const Value: String; Result: Pointer);
 
@@ -1045,13 +1045,13 @@ begin
 end;
 
 
-Function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
+Function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean) : String;
 
 begin
   Result:=SetToString(PropInfo^.PropType, @Value, Brackets);
 end;
 
-Function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
+Function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean) : String;
 begin
   Result := SetToString(TypeInfo, @Value, Brackets);
 end;
@@ -1115,7 +1115,7 @@ begin
     Result:='['+Result+']';
 end;
 
-Function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
+Function SetToString(PropInfo: PPropInfo; Value: LongInt) : String;
 
 begin
   Result:=SetToString(PropInfo,Value,False);
@@ -1144,13 +1144,13 @@ begin
     end;
 end;
 
-Function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
+Function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
 
 begin
   StringToSet(PropInfo^.PropType,Value,@Result);
 end;
 
-Function StringToSet(TypeInfo: PTypeInfo; const Value: string): Integer;
+Function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
 begin
   StringToSet(TypeInfo, Value, @Result);
 end;
