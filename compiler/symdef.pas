@@ -2226,18 +2226,22 @@ implementation
           setdef:
             is_intregable:=is_smallset(self);
           arraydef:
+{$ifdef cpuhighleveltarget}
+            is_intregable:=false
+{$else cpuhighleveltarget}
             is_intregable:=not(is_special_array(self)) and
               (tarraydef(self).size in [1,2,4,8]) and tstoreddef(tarraydef(self).elementdef).is_intregable
 {$ifdef SUPPORT_MMX}
               and not((cs_mmx in current_settings.localswitches) and
                  is_mmx_able_array(self))
 {$endif SUPPORT_MMX}
+{$endif cpuhighleveltarget}
               ;
           recorddef:
             begin
-{$ifdef llvm}
+{$ifdef cpuhighleveltarget}
               is_intregable:=false;
-{$else llvm}
+{$else cpuhighleveltarget}
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
@@ -2249,7 +2253,7 @@ implementation
                   (recsize <= sizeof(aint))
                  ) and
                  not needs_inittable;
-{$endif llvm}
+{$endif cpuhighleveltarget}
             end;
           else
            is_intregable:=false;
