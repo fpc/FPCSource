@@ -609,24 +609,32 @@ begin
   If (Stream=Nil) then
     Raise EReadError.Create(SEmptyStreamIllegalReader);
   FDriver := CreateDriver(Stream, BufSize);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(FLock);
+{$ENDIF}  
 end;
 
 destructor TReader.Destroy;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalSection(FLock);
+{$ENDIF}  
   FDriver.Free;
   inherited Destroy;
 end;
 
 procedure TReader.Lock;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
+{$ENDIF}  
 end;
 
 procedure TReader.Unlock;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   LeaveCriticalSection(FLock);
+{$ENDIF}  
 end;
 
 procedure TReader.FlushBuffer;
