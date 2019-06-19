@@ -609,12 +609,24 @@ begin
   If (Stream=Nil) then
     Raise EReadError.Create(SEmptyStreamIllegalReader);
   FDriver := CreateDriver(Stream, BufSize);
+  InitCriticalSection(FLock);
 end;
 
 destructor TReader.Destroy;
 begin
+  DoneCriticalSection(FLock);
   FDriver.Free;
   inherited Destroy;
+end;
+
+procedure TReader.Lock;
+begin
+  EnterCriticalSection(FLock);
+end;
+
+procedure TReader.Unlock;
+begin
+  LeaveCriticalSection(FLock);
 end;
 
 procedure TReader.FlushBuffer;
@@ -1476,12 +1488,17 @@ begin
           { Don't use Result.Name directly, as this would influence
             FindGlobalComponent in successive loop runs }
           ResultName := CompName;
-          while Assigned(FindGlobalComponent(ResultName)) do
-          begin
-            Inc(i);
-            ResultName := CompName + '_' + IntToStr(i);
+          Lock;
+          try
+            while Assigned(FindGlobalComponent(ResultName)) do
+            begin
+              Inc(i);
+              ResultName := CompName + '_' + IntToStr(i);
+            end;
+            Result.Name := ResultName;
+          finally
+            Unlock;
           end;
-          Result.Name := ResultName;
         end;
       end;
 
