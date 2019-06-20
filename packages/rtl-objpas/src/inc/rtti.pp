@@ -120,6 +120,7 @@ type
     { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
     generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
 {$endif}
+    class function FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue; static; {inline;}
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
     function AsString: string; inline;
@@ -1371,6 +1372,9 @@ begin
                        raise Exception.CreateFmt(SErrUnableToGetValueForType,[ATypeInfo^.Name]);
                    end;
                  end;
+    tkChar,
+    tkWChar,
+    tkUChar,
     tkEnumeration,
     tkInteger  : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
@@ -1437,7 +1441,7 @@ end;
 {$ifndef NoGenericMethods}
 generic class function TValue.From<T>(constref aValue: T): TValue;
 begin
-  TValue.Make(@aValue, System.TypeInfo(T), Result);
+  TValue.Make(@aValue, PTypeInfo(System.TypeInfo(T)), Result);
 end;
 
 generic class function TValue.FromOpenArray<T>(constref aValue: array of T): TValue;
@@ -1448,9 +1452,18 @@ begin
     arrdata := @aValue[0]
   else
     arrdata := Nil;
-  TValue.MakeOpenArray(arrdata, Length(aValue), System.TypeInfo(aValue), Result);
+  TValue.MakeOpenArray(arrdata, Length(aValue), PTypeInfo(System.TypeInfo(aValue)), Result);
 end;
 {$endif}
+
+class function TValue.FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue;
+begin
+  if not Assigned(aTypeInfo) or
+      not (aTypeInfo^.Kind in [tkInteger, tkInt64, tkQWord, tkEnumeration, tkBool, tkChar, tkWChar, tkUChar]) then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+
+  TValue.Make(@aValue, aTypeInfo, Result);
+end;
 
 function TValue.GetIsEmpty: boolean;
 begin
@@ -1548,7 +1561,7 @@ end;
 
 function TValue.IsOrdinal: boolean;
 begin
-  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool]) or
+  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool, tkEnumeration, tkChar, tkWChar, tkUChar]) or
             ((Kind in [tkClass, tkClassRef, tkInterfaceRaw, tkUnknown]) and not Assigned(FData.FAsPointer));
 end;
 

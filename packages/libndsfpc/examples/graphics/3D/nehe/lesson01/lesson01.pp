@@ -19,6 +19,9 @@ begin
 	result := true;
 end;
 
+var
+  keys: integer;
+
 begin	
 	// Setup the Main screen for 3D 
 	videoSetMode(MODE_0_3D);
@@ -65,7 +68,10 @@ begin
 		swiWaitForVBlank();
 
 		// flush to screen	
-		glFlush(0);	
+		glFlush(0);
+    scanKeys();
+		keys := keysDown();
+		if (keys and KEY_START) <> 0 then break;
 	end;
 	
 end.

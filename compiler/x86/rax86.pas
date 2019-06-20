@@ -248,7 +248,8 @@ begin
 end;
 
 Function Tx86Operand.CheckOperand: boolean;
-
+var
+  ErrorRefStr: string;
 begin
   result:=true;
   if (opr.typ=OPR_Reference) then
@@ -257,15 +258,93 @@ begin
         begin
           if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset>0) then
             begin
-              if current_procinfo.procdef.proccalloption=pocall_register then
-                message(asmr_w_no_direct_ebp_for_parameter)
+              if current_settings.asmmode in asmmodes_x86_intel then
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBW:
+                      ErrorRefStr:='[BP+offset]';
+                    R_SUBD:
+                      ErrorRefStr:='[EBP+offset]';
+                    R_SUBQ:
+                      ErrorRefStr:='[RBP+offset]';
+                    else
+                      internalerror(2019061001);
+                  end;
+                end
               else
-                message(asmr_w_direct_ebp_for_parameter_regcall);
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBW:
+                      ErrorRefStr:='+offset(%bp)';
+                    R_SUBD:
+                      ErrorRefStr:='+offset(%ebp)';
+                    R_SUBQ:
+                      ErrorRefStr:='+offset(%rbp)';
+                    else
+                      internalerror(2019061002);
+                  end;
+                end;
+              if current_procinfo.procdef.proccalloption=pocall_register then
+                message1(asmr_w_no_direct_ebp_for_parameter,ErrorRefStr)
+              else
+                message1(asmr_w_direct_ebp_for_parameter_regcall,ErrorRefStr);
             end
           else if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset<0) then
-            message(asmr_w_direct_ebp_neg_offset)
-          else if (getsupreg(opr.ref.base)=RS_ESP) and (opr.ref.offset<0) then
-            message(asmr_w_direct_esp_neg_offset);
+            begin
+              if current_settings.asmmode in asmmodes_x86_intel then
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBW:
+                      ErrorRefStr:='[BP-offset]';
+                    R_SUBD:
+                      ErrorRefStr:='[EBP-offset]';
+                    R_SUBQ:
+                      ErrorRefStr:='[RBP-offset]';
+                    else
+                      internalerror(2019061003);
+                  end;
+                end
+              else
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBW:
+                      ErrorRefStr:='-offset(%bp)';
+                    R_SUBD:
+                      ErrorRefStr:='-offset(%ebp)';
+                    R_SUBQ:
+                      ErrorRefStr:='-offset(%rbp)';
+                    else
+                      internalerror(2019061004);
+                  end;
+                end;
+              message1(asmr_w_direct_ebp_neg_offset,ErrorRefStr);
+            end
+          else if (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0) then
+            begin
+              if current_settings.asmmode in asmmodes_x86_intel then
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBD:
+                      ErrorRefStr:='[ESP-offset]';
+                    R_SUBQ:
+                      ErrorRefStr:='[RSP-offset]';
+                    else
+                      internalerror(2019061005);
+                  end;
+                end
+              else
+                begin
+                  case getsubreg(opr.ref.base) of
+                    R_SUBD:
+                      ErrorRefStr:='-offset(%esp)';
+                    R_SUBQ:
+                      ErrorRefStr:='-offset(%rsp)';
+                    else
+                      internalerror(2019061006);
+                  end;
+                end;
+              message1(asmr_w_direct_esp_neg_offset,ErrorRefStr);
+            end;
         end;
       if (cs_create_pic in current_settings.moduleswitches) and
          assigned(opr.ref.symbol) and

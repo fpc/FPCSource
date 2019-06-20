@@ -3432,16 +3432,22 @@ begin
   'FPC','DEFAULT':
     SetMode(msFpc,FPCModeSwitches,false,bsFPCMode);
   'OBJFPC':
+    begin
     SetMode(msObjfpc,OBJFPCModeSwitches,true,bsObjFPCMode);
+    UnsetNonToken(tkgeneric);
+    UnsetNonToken(tkspecialize);
+    end;
   'DELPHI':
     begin
     SetMode(msDelphi,DelphiModeSwitches,true,bsDelphiMode,[bsPointerMath]);
     SetNonToken(tkgeneric);
+    SetNonToken(tkspecialize);
     end;
   'DELPHIUNICODE':
     begin
     SetMode(msDelphiUnicode,DelphiUnicodeModeSwitches,true,bsDelphiUnicodeMode,[bsPointerMath]);
     SetNonToken(tkgeneric);
+    SetNonToken(tkspecialize);
     end;
   'TP':
     SetMode(msTP7,TPModeSwitches,false);

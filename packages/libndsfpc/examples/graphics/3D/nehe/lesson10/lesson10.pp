@@ -226,7 +226,7 @@ end;
 procedure EmitCube();
 begin
   glPushMatrix();
-  glScalef(0.03, 0.03, 0.03);	
+  glScalef(0.03, 0.03, 0.03); 
   
   glRotatef(cubeRot.x, 1.0, 0.0, 0.0);
   glRotatef(cubeRot.y, 0.0, 1.0, 0.0);
@@ -313,6 +313,7 @@ var
   lastXY: touchPosition;
   dx, dy: cint16;
   i: integer;
+  held: integer;
 begin
   MyFile := pchar(@World_txt);
   // Setup the Main screen for 3D
@@ -383,24 +384,25 @@ begin
   begin
     //these little button functions are pretty handy
     scanKeys();
+    held := keysHeld();
 
-    if (keysHeld() and KEY_A) <> 0 then lookupdown := lookupdown - 1.0;
+    if (held and KEY_A) <> 0 then lookupdown := lookupdown - 1.0;
 
-    if (keysHeld() and KEY_B) <> 0 then lookupdown := lookupdown + 1.0;
+    if (held and KEY_B) <> 0 then lookupdown := lookupdown + 1.0;
 
-    if (keysHeld() and KEY_LEFT) <> 0 then
+    if (held and KEY_LEFT) <> 0 then
     begin
       heading := heading + 1.0;
       yrot := heading;
     end;
 
-    if (keysHeld() and KEY_RIGHT) <> 0 then
+    if (held and KEY_RIGHT) <> 0 then
     begin
       heading := heading - 1.0;
       yrot := heading;
     end;
 
-    if (keysHeld() and KEY_DOWN) <> 0 then
+    if (held and KEY_DOWN) <> 0 then
     begin
       xpos := xpos + (tsin(heading)) * 0.05;
       zpos := zpos + (tcos(heading)) * 0.05;
@@ -412,7 +414,7 @@ begin
       walkbias := tsin(walkbiasangle) / 20.0;
     end;
 
-    if (keysHeld() and KEY_UP) <> 0 then
+    if (held and KEY_UP) <> 0 then
     begin
       xpos := xpos - (tsin(heading)) * 0.05;
       zpos := zpos - (tcos(heading)) * 0.05;
@@ -434,6 +436,8 @@ begin
 
     // wait for the screen to refresh
     swiWaitForVBlank();
+    
+    if (held and KEY_START) <> 0 then break;
   end;
 
 end.

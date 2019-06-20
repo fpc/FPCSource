@@ -17,6 +17,7 @@ Type
     Procedure TestRecordGenerics;
     Procedure TestArrayGenerics;
     Procedure TestGenericConstraint;
+    Procedure TestGenericInterfaceConstraint; // ToDo
     Procedure TestDeclarationConstraint;
     Procedure TestSpecializationDelphi;
     Procedure TestDeclarationDelphi;
@@ -26,7 +27,8 @@ Type
     Procedure TestInlineSpecializationInArgument;
     Procedure TestSpecializeNested;
     Procedure TestInlineSpecializeInStatement;
-    Procedure TestGenericFunction; // ToDo
+    Procedure TestInlineSpecializeInStatementDelphi;
+    Procedure TestGenericFunction;
   end;
 
 implementation
@@ -69,6 +71,32 @@ begin
     'Generic TSomeClass<T: TObject> = class',
     '  b : T;',
     'end;',
+    'Generic TBird<T: class> = class',
+    '  c : TBird<T>;',
+    'end;',
+    'Generic TEagle<T: record> = class',
+    'end;',
+    'Generic TEagle<T: constructor> = class',
+    'end;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestGenericInterfaceConstraint;
+begin
+  Add([
+    'Type',
+    'TIntfA = interface end;',
+    'TIntfB = interface end;',
+    'TBird = class(TInterfacedObject,TIntfA,TIntfB) end;',
+    'Generic TAnt<T: TIntfA, TIntfB> = class',
+    '  b: T;',
+    '  c: TAnt<T>;',
+    'end;',
+    'Generic TFly<T: TIntfA, TIntfB; S> = class',
+    '  b: S;',
+    '  c: TFly<T>;',
+    'end;',
     '']);
   ParseDeclarations;
 end;
@@ -80,8 +108,8 @@ begin
   Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches ;
   Source.Add('Type');
   Source.Add('  TSomeClass<T: T2> = Class(TObject)');
-  Source.Add('  b : T;');
-  Source.Add('end;');
+  Source.Add('    b : T;');
+  Source.Add('  end;');
   ParseDeclarations;
   AssertNotNull('have generic definition',Declarations.Classes);
   AssertEquals('have generic definition',1,Declarations.Classes.Count);
@@ -105,9 +133,9 @@ begin
   Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches ;
   Source.Add('Type');
   Source.Add('  TSomeClass<T,T2> = Class(TObject)');
-  Source.Add('  b : T;');
-  Source.Add('  b2 : T2;');
-  Source.Add('end;');
+  Source.Add('    b : T;');
+  Source.Add('    b2 : T2;');
+  Source.Add('  end;');
   ParseDeclarations;
   AssertNotNull('have generic definition',Declarations.Classes);
   AssertEquals('have generic definition',1,Declarations.Classes.Count);
@@ -126,9 +154,9 @@ begin
   Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches ;
   Source.Add('Type');
   Source.Add('  TSomeClass<T,T2> = Class(TSomeGeneric<Integer,Integer>)');
-  Source.Add('  b : T;');
-  Source.Add('  b2 : T2;');
-  Source.Add('end;');
+  Source.Add('    b : T;');
+  Source.Add('    b2 : T2;');
+  Source.Add('  end;');
   ParseDeclarations;
   AssertNotNull('have generic definition',Declarations.Classes);
   AssertEquals('have generic definition',1,Declarations.Classes.Count);
@@ -148,9 +176,9 @@ begin
   Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches;
   Source.Add('Type');
   Source.Add('  TSomeClass<T;T2> = Class(TObject)');
-  Source.Add('  b : T;');
-  Source.Add('  b2 : T2;');
-  Source.Add('end;');
+  Source.Add('    b : T;');
+  Source.Add('    b2 : T2;');
+  Source.Add('  end;');
   ParseDeclarations;
   AssertNotNull('have generic definition',Declarations.Classes);
   AssertEquals('have generic definition',1,Declarations.Classes.Count);
@@ -210,9 +238,22 @@ procedure TTestGenerics.TestInlineSpecializeInStatement;
 begin
   Add([
   'begin',
+  '  t:=specialize a<b>;',
+  '  t:=a.specialize b<c>;',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestInlineSpecializeInStatementDelphi;
+begin
+  Add([
+  'begin',
   '  vec:=TVector<double>.create;',
   '  b:=a<b;',
   '  t:=a<b.c<d,e.f>>;',
+  '  t:=a.b<c>;',
+  '  t:=a<b>.c;',
+  // forbidden:'  t:=a<b<c>.d>;',
   '']);
   ParseModule;
 end;
@@ -224,7 +265,7 @@ begin
   'begin',
   'end;',
   'begin',
-  //'  specialize IfThen<word>(true,2,3);',
+  '  specialize IfThen<word>(true,2,3);',
   '']);
   ParseModule;
 end;

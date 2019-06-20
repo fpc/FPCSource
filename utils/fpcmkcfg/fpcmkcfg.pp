@@ -281,6 +281,16 @@ begin
          end;
       end;
   end; {case}
+
+  { ifdef everything above related to the target OS otherwise host linker/clib paths can leak
+    into the target while cross-ing, and cause nonworking executables (Darwin-x86_64 to ARM-Linux
+    for example on my setup), and while it's advised to use -n when crosscompiling, it can 
+    cause hard to identify issues if -n is forgotten... (KB) }
+  if result <> '' then
+    result := '#ifdef ' + BuildOSTarget + LineEnding +
+              result + LineEnding +
+              '#endif' + LineEnding;
+
 end;
 
 

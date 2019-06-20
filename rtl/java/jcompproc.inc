@@ -614,10 +614,10 @@ function fpc_mul_longint_to_int64(f1,f2 : longint) : int64; compilerproc;
 *)
 
 {$ifdef FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
-function fpc_shl_qword(value : qword; shift : sizeint) : qword; compilerproc;
-function fpc_shr_qword(value : qword; shift : sizeint) : qword; compilerproc;
-function fpc_shl_int64(value : int64; shift : sizeint) : int64; compilerproc;
-function fpc_shr_int64(value : int64; shift : sizeint) : int64; compilerproc;
+function fpc_shl_qword(value : qword; shift : ALUUInt) : qword; compilerproc;
+function fpc_shr_qword(value : qword; shift : ALUUInt) : qword; compilerproc;
+function fpc_shl_int64(value : int64; shift : ALUUInt) : int64; compilerproc;
+function fpc_shr_int64(value : int64; shift : ALUUInt) : int64; compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
 

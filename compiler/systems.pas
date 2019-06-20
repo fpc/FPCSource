@@ -434,6 +434,27 @@ interface
          (name: 'RISCVHF'; supported:{$if defined(riscv32) or defined(riscv64)}true{$else}false{$endif})
        );
 
+       { x86 asm modes with an Intel-style syntax }
+       asmmodes_x86_intel = [
+{$ifdef i8086}
+         asmmode_standard,
+{$endif i8086}
+         asmmode_i8086_intel,
+         asmmode_i386_intel,
+         asmmode_x86_64_intel
+       ];
+
+       { x86 asm modes with an AT&T-style syntax }
+       asmmodes_x86_att = [
+{$if defined(i386) or defined(x86_64)}
+         asmmode_standard,
+{$endif}
+         asmmode_i8086_att,
+         asmmode_i386_att,
+         asmmode_x86_64_att,
+         asmmode_x86_64_gas
+       ];
+
     var
        targetinfos   : array[tsystem] of psysteminfo;
        arinfos       : array[tar] of parinfo;

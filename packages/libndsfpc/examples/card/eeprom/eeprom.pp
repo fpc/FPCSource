@@ -11,14 +11,19 @@ var
   vtype, vsize: integer;
   data: array [0..511] of cchar;
 
-procedure pause();
+procedure ButtonWait();
+var
+  buttons: cint;
 begin
-	iprintf('Press start...'#10);
+	iprintf('Press a key, start to exit...'#10);
 	while true do
 	begin
 		scanKeys();
-		if (keysDown() and KEY_START)<>0 then
-			exit;
+   buttons := keysDown();
+		if (buttons and KEY_START)<>0 then
+			exit;  
+    if buttons <> 0 then
+      break;
 		swiWaitForVBlank();
 	end;
 	scanKeys();
@@ -47,7 +52,7 @@ begin
     begin
       // If not, the card needs ejected and reinserted into the DS
       iprintf('Please eject & reinsert DS card.'#10);
-      pause();
+      ButtonWait();
       cardReadHeader(@header1);
       cardReadHeader(@header2);
     end;
@@ -63,7 +68,7 @@ begin
     iprintf('EEPROM:'#10);
     iprintf(' Type: %d'#10, vtype);
     iprintf(' Size: %d'#10, vsize);
-    pause();
+    ButtonWait();
 
     // Read the first 512 bytes of EEPROM
     cardReadEeprom(0, @data, 512, vtype);
@@ -91,6 +96,6 @@ begin
     end;
   
     iprintf('Insert a new card to read again'#10);
-    pause();
+    ButtonWait();
   end;
 end.

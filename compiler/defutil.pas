@@ -156,6 +156,9 @@ interface
     }
     function is_special_array(p : tdef) : boolean;
 
+    {# Returns true, if p points to a normal array, bitpacked arrays are included }
+    function is_normal_array(p : tdef) : boolean;
+
     {# Returns true if p is a bitpacked array }
     function is_packed_array(p: tdef) : boolean;
 
@@ -750,6 +753,14 @@ implementation
                   ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])<>[]) or
                   is_open_array(p)
                  );
+      end;
+
+    { true, if p points to a normal array, bitpacked arrays are included }
+    function is_normal_array(p : tdef) : boolean;
+      begin
+         result:=(p.typ=arraydef) and
+                 ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]) and
+                 not(is_open_array(p));
       end;
 
     { true if p is an ansi string def }

@@ -69,6 +69,25 @@ implementation
          function  MakeExecutable:boolean;override;
       end;
 
+      { TInternalLinkerWin16 }
+
+      TInternalLinkerWin16=class(tinternallinker)
+      protected
+        procedure DefaultLinkScript;override;
+      public
+        constructor create;override;
+      end;
+
+      { TDLLScannerWin16 }
+
+      TDLLScannerWin16=class(tDLLScanner)
+      private
+        importfound : boolean;
+{        procedure CheckDLLFunc(const dllname,funcname:string);}
+      public
+        function Scan(const binname:string):boolean;override;
+      end;
+
 {****************************************************************************
                                TImportLibWin16
 ****************************************************************************}
@@ -144,9 +163,8 @@ var
   i: Integer;
   hp: texported_item;
   ModEnd: TOmfRecord_MODEND;
-  DllExport_COMENT: TOmfRecord_COMENT;
-  expflag: Byte;
-  internal_name: TSymStr;
+  DllExport_COMENT: TOmfRecord_COMENT=nil;
+  DllExport_COMENT_EXPDEF: TOmfRecord_COMENT_EXPDEF=nil;
 begin
   if EList.Count=0 then
     exit;
@@ -169,30 +187,30 @@ begin
       hp:=texported_item(EList[i]);
 
       { write EXPDEF record }
-      DllExport_COMENT:=TOmfRecord_COMENT.Create;
-      DllExport_COMENT.CommentClass:=CC_OmfExtension;
-      expflag:=0;
-      if eo_index in hp.options then
-        expflag:=expflag or $80;
-      if eo_resident in hp.options then
-        expflag:=expflag or $40;
+      DllExport_COMENT_EXPDEF:=TOmfRecord_COMENT_EXPDEF.Create;
+      DllExport_COMENT_EXPDEF.ExportByOrdinal:=eo_index in hp.options;
+      DllExport_COMENT_EXPDEF.ResidentName:=eo_resident in hp.options;
+      DllExport_COMENT_EXPDEF.ExportedName:=hp.name^;
       if assigned(hp.sym) then
         case hp.sym.typ of
           staticvarsym:
-            internal_name:=tstaticvarsym(hp.sym).mangledname;
+            DllExport_COMENT_EXPDEF.InternalName:=tstaticvarsym(hp.sym).mangledname;
           procsym:
-            internal_name:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
+            DllExport_COMENT_EXPDEF.InternalName:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
           else
             internalerror(2015092701);
         end
       else
-        internal_name:=hp.name^;
-      DllExport_COMENT.CommentString:=#2+Chr(expflag)+Chr(Length(hp.name^))+hp.name^+Chr(Length(internal_name))+internal_name;
+        DllExport_COMENT_EXPDEF.InternalName:=hp.name^;
       if eo_index in hp.options then
-        DllExport_COMENT.CommentString:=DllExport_COMENT.CommentString+Chr(Byte(hp.index))+Chr(Byte(hp.index shr 8));
+        DllExport_COMENT_EXPDEF.ExportOrdinal:=hp.index;
+
+      DllExport_COMENT:=TOmfRecord_COMENT.Create;
+      DllExport_COMENT_EXPDEF.EncodeTo(DllExport_COMENT);
+      FreeAndNil(DllExport_COMENT_EXPDEF);
       DllExport_COMENT.EncodeTo(RawRecord);
+      FreeAndNil(DllExport_COMENT);
       RawRecord.WriteTo(ObjWriter);
-      DllExport_COMENT.Free;
     end;
 
   { write MODEND record }
@@ -312,13 +330,117 @@ begin
 end;
 
 
+{****************************************************************************
+                               TInternalLinkerWin16
+****************************************************************************}
+
+procedure TInternalLinkerWin16.DefaultLinkScript;
+var
+  s: TCmdStr;
+begin
+  { add objectfiles, start with prt0 always }
+  case current_settings.x86memorymodel of
+    mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
+    mm_medium:  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0m','',false)));
+    mm_compact: LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0c','',false)));
+    mm_large:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0l','',false)));
+    mm_huge:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0h','',false)));
+    else
+      internalerror(2019061501);
+  end;
+  while not ObjectFiles.Empty do
+  begin
+    s:=ObjectFiles.GetFirst;
+    if s<>'' then
+      LinkScript.Concat('READOBJECT ' + maybequoted(s));
+  end;
+  LinkScript.Concat('GROUP');
+  while not StaticLibFiles.Empty do
+  begin
+    s:=StaticLibFiles.GetFirst;
+    if s<>'' then
+      LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+  end;
+  LinkScript.Concat('ENDGROUP');
+
+  LinkScript.Concat('EXESECTION .MZ_flat_content');
+  LinkScript.Concat('  OBJSECTION _TEXT||CODE');
+  LinkScript.Concat('  OBJSECTION *||CODE');
+  LinkScript.Concat('  OBJSECTION *||FAR_DATA');
+  LinkScript.Concat('  OBJSECTION _NULL||BEGDATA');
+  LinkScript.Concat('  OBJSECTION _AFTERNULL||BEGDATA');
+  LinkScript.Concat('  OBJSECTION *||BEGDATA');
+  LinkScript.Concat('  OBJSECTION *||DATA');
+  LinkScript.Concat('  SYMBOL _edata');
+  LinkScript.Concat('  OBJSECTION *||BSS');
+  LinkScript.Concat('  SYMBOL _end');
+  LinkScript.Concat('  OBJSECTION *||STACK');
+  LinkScript.Concat('  OBJSECTION *||HEAP');
+  LinkScript.Concat('ENDEXESECTION');
+
+  if (cs_debuginfo in current_settings.moduleswitches) and
+     (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+    begin
+      LinkScript.Concat('EXESECTION .debug_info');
+      LinkScript.Concat('  OBJSECTION .DEBUG_INFO||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_abbrev');
+      LinkScript.Concat('  OBJSECTION .DEBUG_ABBREV||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_line');
+      LinkScript.Concat('  OBJSECTION .DEBUG_LINE||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_aranges');
+      LinkScript.Concat('  OBJSECTION .DEBUG_ARANGES||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+    end;
+
+  LinkScript.Concat('ENTRYNAME ..start');
+end;
+
+constructor TInternalLinkerWin16.create;
+begin
+  inherited create;
+  CArObjectReader:=TOmfLibObjectReader;
+  CExeOutput:=TNewExeOutput;
+  CObjInput:=TOmfObjInput;
+end;
+
+{****************************************************************************
+                               TDLLScannerWin16
+****************************************************************************}
+
+function TDLLScannerWin16.Scan(const binname: string): boolean;
+var
+  hs,
+  dllname : TCmdStr;
+begin
+  result:=false;
+  { is there already an import library the we will use that one }
+  if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,hs) then
+    exit;
+  { check if we can find the dll }
+  hs:=binname;
+  if ExtractFileExt(hs)='' then
+    hs:=ChangeFileExt(hs,target_info.sharedlibext);
+  if not FindDll(hs,dllname) then
+    exit;
+  importfound:=false;
+  {todo: ReadDLLImports(dllname,@CheckDLLFunc);}
+  if importfound then
+    current_module.dllscannerinputlist.Pack;
+  result:=importfound;
+end;
+
 {*****************************************************************************
                                      Initialize
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_int_win16,TInternalLinkerWin16);
   RegisterLinker(ld_win16,TExternalLinkerWin16WLink);
   RegisterImport(system_i8086_win16,TImportLibWin16);
   RegisterExport(system_i8086_win16,TExportLibWin16);
+  RegisterDLLScanner(system_i8086_win16,TDLLScannerWin16);
   RegisterTarget(system_i8086_win16_info);
 end.

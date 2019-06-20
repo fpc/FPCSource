@@ -46,6 +46,37 @@ const
 type
   MIC_BUF_SWAP_CB = procedure(completedBuffer: pcuint8; length: cint);
 
+
+//---------------------------------------------------------------------------------
+// DSi Registers
+//---------------------------------------------------------------------------------
+const
+  REG_SNDEXTCNT : pcuint16 = pointer($04004700);
+  REG_MICCNT    : pcuint16 = pointer($04004600);
+  REG_MICDATA   : pcuint32 = pointer($04004604);
+
+function SNDEXTCNT_RATIO(n: cint): cint32; inline;
+const  
+  SNDEXTCNT_FREQ_32KHZ  = (0 shl 13); // output freq 32.73kHz
+  SNDEXTCNT_FREQ_47KHZ  = (1 shl 13); // output freq 47.61kHz
+  SNDEXTCNT_MUTE        = (1 shl 14);
+  SNDEXTCNT_ENABLE      = (1 shl 15);
+
+function MICCNT_FORMAT(n: cint): cint; inline;
+function MICCNT_FREQ_DIV(n: cint): cint; inline;
+
+const
+  MICCNT_EMPTY        = (1 shl 8);
+  MICCNT_NOT_EMPTY    = (1 shl 9);
+  MICCNT_MORE_DATA    = (1 shl 10);
+  MICCNT_OVERRUN      = (1 shl 11);
+  MICCNT_CLEAR_FIFO	  = (1 shl 12);
+  MICCNT_ENABLE_IRQ   = (1 shl 13);
+  MICCNT_ENABLE_IRQ2  = (1 shl 14);
+  MICCNT_ENABLE       = (1 shl 15);
+
+
+
 function micReadData8(): cuint8; cdecl; external;
 function micReadData12(): cuint16; cdecl; external;
 
@@ -124,5 +155,20 @@ end;
 procedure micOff(); inline; 
 begin
   micSetAmp(PM_AMP_OFF, 0);
+end;
+
+function SNDEXTCNT_RATIO(n: cint): cint;  inline;
+begin
+  SNDEXTCNT_RATIO := (n and $F);
+end;
+
+function MICCNT_FORMAT(n: cint): cint; inline;
+begin
+  MICCNT_FORMAT := (n and 3); // unknown, always set to '2'
+end;
+
+function MICCNT_FREQ_DIV(n: cint): cint; inline;
+begin
+  MICCNT_FREQ_DIV := (n and 3) shl 2; // F/(n+1) where F is SNDEXTCNT output freq
 end;
 {$endif NDS_IMPLEMENTATION}

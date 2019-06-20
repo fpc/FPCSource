@@ -4,7 +4,9 @@ program AnsiConsole;
 
 uses
   ctypes, nds9;
-
+var
+  keys: integer;
+  
 begin
 
   consoleDemoInit();
@@ -34,6 +36,10 @@ begin
   iprintf(#27 + '[5C' + 'Column 20');
 
   while true do
+  begin
     swiWaitForVBlank();
-
+    scanKeys();
+		keys := keysDown();
+		if (keys and KEY_START) <> 0 then break;
+  end;
 end.

@@ -798,6 +798,37 @@ var rtl = {
 
   arraySetLength: function(arr,defaultvalue,newlength){
     // multi dim: (arr,defaultvalue,dim1,dim2,...)
+    var p = arguments;
+    function setLength(src,argNo){
+      var newlen = p[argNo];
+      var a = [];
+      a.length = newlength;
+      if (argNo === p.length-1){
+        var oldlen = src?src.length:0;
+        if (rtl.isArray(defaultvalue)){
+          for (var i=0; i<newlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
+        } else if (rtl.isObject(defaultvalue)) {
+          if (rtl.isTRecord(defaultvalue)){
+            for (var i=0; i<newlen; i++)
+              a[i]=(i<oldlen)?defaultvalue.$clone(src[i]):defaultvalue.$new(); // e.g. record
+          } else {
+            for (var i=0; i<newlen; i++) a[i]=(i<oldlen)?rtl.refSet(src[i]):{}; // e.g. set
+          }
+        } else {
+          for (var i=0; i<newlen; i++)
+            a[i]=(i<oldlen)?src[i]:defaultvalue;
+        }
+      } else {
+        // multi dim array
+        for (var i=0; i<newlen; i++) a[i]=setLength(src?src[i]:null,argNo+1);
+      }
+      return a;
+    }
+    return setLength(arr,2);
+  },
+
+  /*arrayChgLength: function(arr,defaultvalue,newlength){
+    // multi dim: (arr,defaultvalue,dim1,dim2,...)
     if (arr == null) arr = [];
     var p = arguments;
     function setLength(a,argNo){
@@ -828,7 +859,7 @@ var rtl = {
       return a;
     }
     return setLength(arr,2);
-  },
+  },*/
 
   arrayEq: function(a,b){
     if (a===null) return b===null;
