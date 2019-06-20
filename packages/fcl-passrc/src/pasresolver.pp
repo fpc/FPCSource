@@ -1525,6 +1525,7 @@ type
     procedure FinishClassOfType(El: TPasClassOfType); virtual;
     procedure FinishPointerType(El: TPasPointerType); virtual;
     procedure FinishArrayType(El: TPasArrayType); virtual;
+    procedure FinishGenericTemplateType(El: TPasGenericTemplateType); virtual;
     procedure FinishResourcestring(El: TPasResString); virtual;
     procedure FinishProcedure(aProc: TPasProcedure); virtual;
     procedure FinishProcedureType(El: TPasProcedureType); virtual;
@@ -5397,7 +5398,9 @@ begin
     EmitTypeHints(El,TPasAliasType(El).DestType);
     end
   else if (C=TPasPointerType) then
-    EmitTypeHints(El,TPasPointerType(El).DestType);
+    EmitTypeHints(El,TPasPointerType(El).DestType)
+  else if C=TPasGenericTemplateType then
+    FinishGenericTemplateType(TPasGenericTemplateType(El));
 end;
 
 procedure TPasResolver.FinishEnumType(El: TPasEnumType);
@@ -5798,6 +5801,24 @@ begin
     begin
     CheckUseAsType(El.ElType,20190123095401,El);
     FinishSubElementType(El,El.ElType);
+    end;
+end;
+
+procedure TPasResolver.FinishGenericTemplateType(El: TPasGenericTemplateType);
+var
+  i: Integer;
+  Expr: TPasExpr;
+  Value: String;
+begin
+  for i:=0 to length(El.Constraints)-1 do
+    begin
+    Expr:=El.Constraints[i];
+    if (Expr.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent) then
+      begin
+      Value:=TPrimitiveExpr(Expr).Value;
+      if SameText(Value,'class') then
+        ; // ToDo
+      end;
     end;
 end;
 
@@ -15852,6 +15873,7 @@ begin
       // resolved when finished
     else if AClass=TPasImplCommand then
     else if AClass=TPasAttributes then
+    else if AClass=TPasGenericTemplateType then
     else if AClass=TPasUnresolvedUnitRef then
       RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
     else

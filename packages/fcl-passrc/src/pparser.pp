@@ -72,7 +72,7 @@ const
   nParserNotAProcToken = 2026;
   nRangeExpressionExpected = 2027;
   nParserExpectCase = 2028;
-  // free 2029;
+  nParserGenericFunctionNeedsGenericKeyword = 2029;
   nLogStartImplementation = 2030;
   nLogStartInterface = 2031;
   nParserNoConstructorAllowed = 2032;
@@ -132,7 +132,7 @@ resourcestring
   SParserNotAProcToken = 'Not a procedure or function token';
   SRangeExpressionExpected = 'Range expression expected';
   SParserExpectCase = 'Case label expression expected';
-  // free for 2029
+  SParserGenericFunctionNeedsGenericKeyword = 'Generic function needs keyword generic';
   SLogStartImplementation = 'Start parsing implementation section.';
   SLogStartInterface = 'Start parsing interface section';
   SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Records';
@@ -319,7 +319,7 @@ type
     procedure ParseClassMembers(AType: TPasClassType);
     procedure ProcessMethod(AType: TPasClassType; IsClass : Boolean; AVisibility : TPasMemberVisibility);
     procedure ReadGenericArguments(List : TFPList;Parent : TPasElement);
-    procedure ReadSpecializeArguments(Spec: TPasSpecializeType);
+    procedure ReadSpecializeArguments(Spec: TPasElement);
     function ReadDottedIdentifier(Parent: TPasElement; out Expr: TPasExpr; NeedAsString: boolean): String;
     function CheckProcedureArgs(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
@@ -1587,7 +1587,7 @@ begin
   Expr:=nil;
   ST:=nil;
   try
-    if not (msDelphi in CurrentModeswitches) and (CurToken=tkspecialize) then
+    if CurToken=tkspecialize then
       begin
       IsSpecialize:=true;
       NextToken;
@@ -1739,7 +1739,8 @@ begin
         Result := ParseClassDecl(Parent, NamePos, TypeName, okDispInterface);
       tkInterface:
         Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface);
-      tkSpecialize: Result:=ParseSpecializeType(Parent,TypeName);
+      tkSpecialize:
+        Result:=ParseSpecializeType(Parent,TypeName);
       tkClass:
         begin
         isHelper:=false;
@@ -2165,6 +2166,8 @@ begin
 end;
 
 function TPasParser.ParseExprOperand(AParent: TPasElement): TPasExpr;
+type
+  TAllow = (aCannot, aCan, aMust);
 
   Function IsWriteOrStr(P : TPasExpr) : boolean;
 
@@ -2235,17 +2238,17 @@ var
   Last, Func, Expr: TPasExpr;
   Params: TParamsExpr;
   Bin: TBinaryExpr;
-  ok, CanSpecialize: Boolean;
+  ok: Boolean;
+  CanSpecialize: TAllow;
   aName: String;
   ISE: TInlineSpecializeExpr;
-  ST: TPasSpecializeType;
   SrcPos, ScrPos: TPasSourcePos;
   ProcType: TProcType;
   ProcExpr: TProcedureExpr;
 
 begin
   Result:=nil;
-  CanSpecialize:=false;
+  CanSpecialize:=aCannot;
   aName:='';
   case CurToken of
     tkString: Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
@@ -2253,12 +2256,19 @@ begin
     tkNumber: Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
     tkIdentifier:
       begin
-      CanSpecialize:=true;
+      CanSpecialize:=aCan;
       aName:=CurTokenText;
       if (CompareText(aName,'self')=0) and not (tkself in Scanner.NonTokens) then
         Last:=CreateSelfExpr(AParent)
       else
         Last:=CreatePrimitiveExpr(AParent,pekIdent,aName);
+      end;
+    tkspecialize:
+      begin
+      CanSpecialize:=aMust;
+      ExpectToken(tkIdentifier);
+      aName:=CurTokenText;
+      Last:=CreatePrimitiveExpr(AParent,pekIdent,aName);
       end;
     tkfalse, tktrue:    Last:=CreateBoolConstExpr(AParent,pekBoolConst, CurToken=tktrue);
     tknil:              Last:=CreateNilExpr(AParent);
@@ -2288,7 +2298,7 @@ begin
       end;
     tkself:
       begin
-      CanSpecialize:=true;
+      CanSpecialize:=aCan;
       aName:=CurTokenText;
       Last:=CreateSelfExpr(AParent);
       end;
@@ -2350,6 +2360,13 @@ begin
         begin
         ScrPos:=CurTokenPos;
         NextToken;
+        if CurToken=tkspecialize then
+          begin
+          if CanSpecialize=aMust then
+            CheckToken(tkLessThan);
+          CanSpecialize:=aMust;
+          NextToken;
+          end;
         if CurToken in [tkIdentifier,tktrue,tkfalse,tkself] then // true and false are sub identifiers as well
           begin
           aName:=aName+'.'+CurTokenString;
@@ -2374,34 +2391,32 @@ begin
         Params.Value:=Result;
         Result.Parent:=Params;
         Result:=Params;
-        CanSpecialize:=false;
+        CanSpecialize:=aCannot;
         Func:=nil;
         end;
       tkCaret:
         begin
         Result:=CreateUnaryExpr(AParent,Result,TokenToExprOp(CurToken));
         NextToken;
-        CanSpecialize:=false;
+        CanSpecialize:=aCannot;
         Func:=nil;
         end;
       tkLessThan:
         begin
         SrcPos:=CurTokenPos;
-        if (not CanSpecialize) or not IsSpecialize then
+        if CanSpecialize=aCannot then
+          break
+        else if (CanSpecialize=aCan) and not IsSpecialize then
           break
         else
           begin
           // an inline specialization (e.g. A<B,C>)
           ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',AParent,SrcPos));
-          ISE.Kind:=pekSpecialize;
-          ST:=TPasSpecializeType(CreateElement(TPasSpecializeType,'',ISE,SrcPos));
-          ISE.DestType:=ST;
-          ReadSpecializeArguments(ST);
-          ST.DestType:=ResolveTypeReference(aName,ST);
-          ST.Expr:=Result;
+          ReadSpecializeArguments(ISE);
+          ISE.NameExpr:=Result;
           Result:=ISE;
           ISE:=nil;
-          CanSpecialize:=false;
+          CanSpecialize:=aCannot;
           NextToken;
           end;
         Func:=nil;
@@ -3585,6 +3600,9 @@ begin
              Declarations.Declarations.Add(ArrEl);
              Declarations.Types.Add(ArrEl);
              CheckHint(ArrEl,True);
+             {$IFDEF VerbosePasResolver}
+             ParseExcTokenError('20190619145000');
+             {$ENDIF}
              ArrEl.ElType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
              ArrEl.ElType:=TPasGenericTemplateType(List[0]);
              List.Clear;
@@ -4008,12 +4026,12 @@ begin
   end;
 end;
 
+{$warn 5043 off}
 procedure TPasParser.ReadGenericArguments(List: TFPList; Parent: TPasElement);
-
 Var
   N : String;
   T : TPasGenericTemplateType;
-
+  Expr: TPasExpr;
 begin
   ExpectToken(tkLessThan);
   repeat
@@ -4022,17 +4040,46 @@ begin
     List.Add(T);
     NextToken;
     if Curtoken = tkColon then
-      begin
-      T.TypeConstraint:=ExpectIdentifier;
-      NextToken;
-      end;
-    if not (CurToken in [tkComma,tkSemicolon,tkGreaterThan]) then
-      ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
-        [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]);
-  until CurToken = tkGreaterThan;
+      repeat
+        NextToken;
+        // comma separated list: identifier, class, record, constructor
+        if CurToken in [tkclass,tkrecord,tkconstructor] then
+          begin
+          if T.TypeConstraint='' then
+            T.TypeConstraint:=CurTokenString;
+          Expr:=CreatePrimitiveExpr(T,pekIdent,CurTokenText);
+          NextToken;
+          end
+        else if CurToken=tkIdentifier then
+          begin
+          if T.TypeConstraint='' then
+            T.TypeConstraint:=ReadDottedIdentifier(T,Expr,true)
+          else
+            ReadDottedIdentifier(T,Expr,false);
+          end
+        else
+          CheckToken(tkIdentifier);
+        T.AddConstraint(Expr);
+      until CurToken<>tkComma;
+    Engine.FinishScope(stTypeDef,T);
+  until not (CurToken in [tkSemicolon,tkComma]);
+  if CurToken<>tkGreaterThan then
+    ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
+      [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]);
 end;
+{$warn 5043 on}
 
-procedure TPasParser.ReadSpecializeArguments(Spec: TPasSpecializeType);
+procedure TPasParser.ReadSpecializeArguments(Spec: TPasElement);
+
+  procedure AddParam(El: TPasElement);
+  begin
+    if Spec is TPasSpecializeType then
+      TPasSpecializeType(Spec).AddParam(El)
+    else if Spec is TInlineSpecializeExpr then
+      TInlineSpecializeExpr(Spec).AddParam(El)
+    else
+      ParseExcTokenError('[20190619112611] '+Spec.ClassName);
+  end;
 
 Var
   Name : String;
@@ -4042,6 +4089,7 @@ Var
   Expr: TPasExpr;
 
 begin
+  //writeln('START TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
   CheckToken(tkLessThan);
   NextToken;
   Expr:=nil;
@@ -4049,7 +4097,8 @@ begin
   NestedSpec:=nil;
   try
     repeat
-      if not (msDelphi in CurrentModeswitches) and (CurToken=tkspecialize) then
+      //writeln('ARG TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
+      if CurToken=tkspecialize then
         begin
         IsNested:=true;
         NextToken;
@@ -4060,6 +4109,7 @@ begin
       CheckToken(tkIdentifier);
       Expr:=nil;
       Name:=ReadDottedIdentifier(Spec,Expr,true);
+      //writeln('AFTER NAME TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
 
       if CurToken=tkLessThan then
         begin
@@ -4075,18 +4125,19 @@ begin
         // read nested specialize arguments
         ReadSpecializeArguments(NestedSpec);
         // add nested specialize
-        Spec.AddParam(NestedSpec);
+        AddParam(NestedSpec);
         NestedSpec:=nil;
         NextToken;
         end
       else if IsNested then
-        CheckToken(tkLessThan)
+        CheckToken(tkLessThan)   // specialize keyword without <
       else
         begin
         // simple type reference
-        Spec.AddParam(Expr);
+        AddParam(Expr);
         Expr:=nil;
         end;
+      //writeln('AFTER PARAMS TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
 
       if CurToken=tkComma then
         begin
@@ -6043,7 +6094,8 @@ begin
       tkEOF:
         CheckToken(tkend);
       tkAt,tkAtAt,
-      tkIdentifier,tkNumber,tkString,tkfalse,tktrue,tkChar,
+      tkIdentifier,tkspecialize,
+      tkNumber,tkString,tkfalse,tktrue,tkChar,
       tkBraceOpen,tkSquaredBraceOpen,
       tkMinus,tkPlus,tkinherited:
         begin
@@ -6207,9 +6259,9 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
         if CurToken=tkDot then
           Result:=Result+'.'+ExpectIdentifier
         else if CurToken=tkLessThan then
-          begin // <> can be ignored, we read the list but discard its content
+          begin
           if (not MustBeGeneric) and not (msDelphi in CurrentModeswitches) then
-            ParseExcTokenError('('); // e.g. "generic" is missing in mode objfpc
+            ParseExc(nParserGenericFunctionNeedsGenericKeyword,SParserGenericFunctionNeedsGenericKeyword);
           UnGetToken;
           L:=TFPList.Create;
           Try
