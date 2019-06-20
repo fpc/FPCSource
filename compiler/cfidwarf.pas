@@ -426,7 +426,7 @@ implementation
                   if use_eh_frame then
                     begin
                       { size of augmentation }
-                      list.concat(tai_const.create_8bit(4));
+                      list.concat(tai_const.create_8bit(sizeof(pint)));
 {$ifdef debug_eh}
                       list.concat(tai_comment.Create(strpnew('LSDA')));
 {$endif debug_eh}
