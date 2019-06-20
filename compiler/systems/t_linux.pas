@@ -1494,6 +1494,7 @@ var
 begin
   MakeSharedLibrary:=false;
   mapstr:='';
+  ltostr:='';
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
   if (cs_link_smart in current_settings.globalswitches) and
