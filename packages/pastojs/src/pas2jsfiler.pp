@@ -747,7 +747,6 @@ type
     procedure WriteAliasType(Obj: TJSONObject; El: TPasAliasType; aContext: TPCUWriterContext); virtual;
     procedure WritePointerType(Obj: TJSONObject; El: TPasPointerType; aContext: TPCUWriterContext); virtual;
     procedure WriteSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPCUWriterContext); virtual;
-    procedure WriteInlineTypeExpr(Obj: TJSONObject; Expr: TInlineTypeExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteInlineSpecializeExpr(Obj: TJSONObject; Expr: TInlineSpecializeExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteRangeType(Obj: TJSONObject; El: TPasRangeType; aContext: TPCUWriterContext); virtual;
     procedure WriteArrayType(Obj: TJSONObject; El: TPasArrayType; aContext: TPCUWriterContext); virtual;
@@ -842,7 +841,6 @@ type
     procedure Set_Variable_VarType(RefEl: TPasElement; Data: TObject);
     procedure Set_AliasType_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_PointerType_DestType(RefEl: TPasElement; Data: TObject);
-    procedure Set_InlineTypeExpr_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_ArrayType_ElType(RefEl: TPasElement; Data: TObject);
     procedure Set_FileType_ElType(RefEl: TPasElement; Data: TObject);
     procedure Set_SetType_EnumType(RefEl: TPasElement; Data: TObject);
@@ -951,7 +949,6 @@ type
     procedure ReadAliasType(Obj: TJSONObject; El: TPasAliasType; aContext: TPCUReaderContext); virtual;
     procedure ReadPointerType(Obj: TJSONObject; El: TPasPointerType; aContext: TPCUReaderContext); virtual;
     procedure ReadSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPCUReaderContext); virtual;
-    procedure ReadInlineTypeExpr(Obj: TJSONObject; Expr: TInlineTypeExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadInlineSpecializeExpr(Obj: TJSONObject; Expr: TInlineSpecializeExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadRangeType(Obj: TJSONObject; El: TPasRangeType; aContext: TPCUReaderContext); virtual;
     procedure ReadArrayType(Obj: TJSONObject; El: TPasArrayType; aContext: TPCUReaderContext); virtual;
@@ -3299,17 +3296,12 @@ begin
   WriteElementList(Obj,El,'Params',El.Params,aContext);
 end;
 
-procedure TPCUWriter.WriteInlineTypeExpr(Obj: TJSONObject; Expr: TInlineTypeExpr;
-  aContext: TPCUWriterContext);
-begin
-  WritePasExpr(Obj,Expr,pekSpecialize,eopNone,aContext);
-  WriteElType(Obj,Expr,'Dest',Expr.DestType,aContext);
-end;
-
 procedure TPCUWriter.WriteInlineSpecializeExpr(Obj: TJSONObject;
   Expr: TInlineSpecializeExpr; aContext: TPCUWriterContext);
 begin
-  WriteInlineTypeExpr(Obj,Expr,aContext);
+  WritePasExpr(Obj,Expr,pekSpecialize,eopNone,aContext);
+  WriteExpr(Obj,Expr,'Name',Expr.NameExpr,aContext);
+  WriteElementList(Obj,Expr,'Params',Expr.Params,aContext);
 end;
 
 procedure TPCUWriter.WriteRangeType(Obj: TJSONObject; El: TPasRangeType;
@@ -4184,21 +4176,6 @@ begin
     end
   else
     RaiseMsg(20180211121757,El,GetObjName(RefEl));
-end;
-
-procedure TPCUReader.Set_InlineTypeExpr_DestType(RefEl: TPasElement;
-  Data: TObject);
-var
-  El: TInlineTypeExpr absolute Data;
-begin
-  if RefEl is TPasType then
-    begin
-    El.DestType:=TPasType(RefEl);
-    if RefEl.Parent<>El then
-      RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TInlineTypeExpr.DestType'){$ENDIF};
-    end
-  else
-    RaiseMsg(20180211121750,El,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.Set_ArrayType_ElType(RefEl: TPasElement; Data: TObject);
@@ -6632,18 +6609,14 @@ begin
     aContext);
 end;
 
-procedure TPCUReader.ReadInlineTypeExpr(Obj: TJSONObject;
-  Expr: TInlineTypeExpr; aContext: TPCUReaderContext);
-begin
-  ReadPasExpr(Obj,Expr,Expr.Kind,aContext);
-  ReadElType(Obj,'Dest',Expr,@Set_InlineTypeExpr_DestType,aContext);
-end;
-
 procedure TPCUReader.ReadInlineSpecializeExpr(Obj: TJSONObject;
   Expr: TInlineSpecializeExpr; aContext: TPCUReaderContext);
 begin
   Expr.Kind:=pekSpecialize;
-  ReadInlineTypeExpr(Obj,Expr,aContext);
+  Expr.NameExpr:=ReadExpr(Obj,Expr,'Name',aContext);
+  ReadElementList(Obj,Expr,'Params',Expr.Params,
+    {$IFDEF CheckPasTreeRefCount}'TPasSpecializeType.Params'{$ELSE}true{$ENDIF},
+    aContext);
 end;
 
 procedure TPCUReader.ReadRangeType(Obj: TJSONObject; El: TPasRangeType;
