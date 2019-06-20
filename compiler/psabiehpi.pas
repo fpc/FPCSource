@@ -193,7 +193,7 @@ implementation
       begin
         { if not first entry, signal that another action follows }
         if not(first) then
-          actionlist.concat(tai_const.Create_uleb128bit(1));
+          actionlist.concat(tai_const.Create_sleb128bit(1));
         first:=false;
 
         { catch all? }
@@ -212,9 +212,9 @@ implementation
           actionlist.concat(tai_comment.Create(strpnew('Cleanup')));
 {$endif debug_eh}
         if assigned(p) then
-          actionlist.concat(tai_const.Create_uleb128bit(index+1))
+          actionlist.concat(tai_const.Create_sleb128bit(index+1))
         else
-          actionlist.concat(tai_const.Create_uleb128bit(0));
+          actionlist.concat(tai_const.Create_sleb128bit(0));
         Result:=index;
       end;
 
@@ -267,7 +267,7 @@ implementation
             action.actionlist.concat(tai_const.Create_rel_sym(aitconst_sleb128bit,curpos,TPSABIEHAction(landingpadstack[landingpadstack.count-1]).actiontablelabel));
           end
         else
-          action.actionlist.concat(tai_const.Create_uleb128bit(0));
+          action.actionlist.concat(tai_const.Create_sleb128bit(0));
         action_table_data.concatList(action.actionlist);
         actionstack.count:=actionstack.count-1;
         result:=actionstack.count=0;
