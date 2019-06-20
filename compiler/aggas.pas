@@ -1,4 +1,4 @@
-{
+  {
     Copyright (c) 1998-2006 by the Free Pascal team
 
     This unit implements the generic part of the GNU assembler
@@ -586,7 +586,7 @@ implementation
         i,len : longint;
         buf   : array[0..63] of byte;
       begin
-        len:=EncodeUleb128(a,buf);
+        len:=EncodeUleb128(a,buf,0);
         for i:=0 to len-1 do
           begin
             if (i > 0) then
@@ -634,7 +634,7 @@ implementation
         i,len : longint;
         buf   : array[0..255] of byte;
       begin
-        len:=EncodeSleb128(a,buf);
+        len:=EncodeSleb128(a,buf,0);
         for i:=0 to len-1 do
           begin
             if (i > 0) then

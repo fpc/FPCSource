@@ -653,6 +653,9 @@ interface
           symofs,
           value   : int64;
           consttype : taiconst_type;
+          { sleb128 and uleb128 values have a varying length, by calling FixSize their size can be fixed
+            to avoid that other offsets need to be changed. The value to write is stored in fixed_size }
+          fixed_size : byte;
           { we use for the 128bit int64/qword for now because I can't imagine a
             case where we need 128 bit now (FK) }
           constructor Create(_typ:taiconst_type;_value : int64);
@@ -707,6 +710,9 @@ interface
           procedure derefimpl;override;
           function getcopy:tlinkedlistitem;override;
           function size:longint;
+          { sleb128 and uleb128 values have a varying length, by calling FixSize their size can be fixed
+            to avoid that other offsets need to be changed. The value to write is stored in fixed_size }
+          Procedure FixSize;
        end;
 
        { floating point const }
@@ -2002,9 +2008,31 @@ implementation
             else
               result:=sizeof(pint);
           aitconst_uleb128bit :
-            result:=LengthUleb128(qword(value));
+            begin
+              if fixed_size>0 then
+                result:=fixed_size
+              else if sym=nil then
+                begin
+                  FixSize;
+                  result:=fixed_size;
+                end
+              else
+                { worst case }
+                result:=sizeof(pint)+2;
+            end;
           aitconst_sleb128bit :
-            result:=LengthSleb128(value);
+            begin
+              if fixed_size>0 then
+                result:=fixed_size
+              else if sym=nil then
+                begin
+                  FixSize;
+                  result:=fixed_size;
+                end
+              else
+                { worst case }
+                result:=sizeof(pint)+2;
+            end;
           aitconst_half16bit,
           aitconst_gs:
             result:=2;
@@ -2020,6 +2048,19 @@ implementation
             result:=4;
           else
             internalerror(200603253);
+        end;
+      end;
+
+
+    procedure tai_const.FixSize;
+      begin
+        case consttype of
+          aitconst_uleb128bit:
+            fixed_size:=LengthUleb128(qword(value));
+          aitconst_sleb128bit:
+            fixed_size:=LengthSleb128(value);
+          else
+            Internalerror(2019030301);
         end;
       end;
 
