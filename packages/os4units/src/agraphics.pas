@@ -2509,6 +2509,7 @@ function ChangeExtSprite(vp: PViewPort; oldsprite: PExtSprite; newsprite: PExtSp
 function ExtendFontTags(font: PTextFont; const argv: array of PtrUInt): LongWord;
 function GetExtSprite(ss: pExtSprite; const argv: array of PtrUInt): LongInt;
 procedure GetRPAttrs(rp: PRastPort; const argv: array of PtrUInt);
+function ObtainBestPen(cm: pColorMap; r: LongWord; g: LongWord; b: LongWord; const argv: array of PtrUInt): LongInt;
 procedure SetRPAttrs(rp: PRastPort; const argv: array of PtrUInt);
 function VideoControlTags(colorMap: PColorMap; const argv: array of PtrUInt): LongWord;
 
