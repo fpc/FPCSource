@@ -235,6 +235,7 @@ Const
   PPExt   = '.pp';
   IncExt  = '.inc';
   ObjExt  = '.o';
+  LTOExt  = '.bc';
   RstExt  = '.rst';
   RsjExt  = '.rsj';
   LibExt  = '.a';
@@ -633,6 +634,7 @@ Type
     Function GetUnitFileName : String; virtual;
     function GetUnitLibFileName(AOS: TOS): String; virtual;
     Function GetObjectFileName : String; virtual;
+    Function GetLTOFileName : String; virtual;
     Function GetBinFileBase: String;
     function GetRSTFileName : String; Virtual;
     function GetRSJFileName : String; Virtual;
@@ -665,6 +667,7 @@ Type
     Property SourceFileName: String Read GetSourceFileName ;
     Property UnitFileName : String Read GetUnitFileName;
     Property ObjectFileName : String Read GetObjectFileName;
+    Property LTOFileName : String Read GetLTOFileName;
     Property RSTFileName : String Read GetRSTFileName;
     Property RSJFileName : String Read GetRSJFileName;
     Property FPCTarget : String Read FFPCTarget Write FFPCTarget;
@@ -8688,6 +8691,12 @@ begin
 end;
 
 
+function TTarget.GetLTOFileName: String;
+begin
+  Result:=Name+LTOExt;
+end;
+
+
 function TTarget.GetRSTFileName: String;
 begin
   Result:=Name+RSText;
@@ -8785,6 +8794,7 @@ begin
   If not(ACPU in CPUs) or not(AOS in OSes) then
     exit;
   List.Add(APrefixU + ObjectFileName);
+  List.Add(APrefixU + LTOFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit, ttCleanOnlyUnit]) then
     begin
       List.Add(APrefixU + UnitFileName);
@@ -8837,9 +8847,14 @@ var
   UnitsDir : string;
 begin
   UnitsDir := Installer.BuildEngine.AddPathPrefix(nil, APrefixU);
-  If Not (TargetType in [ttProgram,ttSharedLibrary,ttExampleProgram]) and FileExists(UnitsDir + ObjectFileName) then
-    // The compiler does not create an objectfile for all programs.
-    List.Add(APrefixU + ObjectFileName);
+  If Not (TargetType in [ttProgram,ttSharedLibrary,ttExampleProgram]) then
+    begin
+      // The compiler does not create an objectfile for all programs.
+      if FileExists(UnitsDir + ObjectFileName) then
+        List.Add(APrefixU + ObjectFileName);
+      if FileExists(UnitsDir + LTOFileName) then
+        List.Add(APrefixU + LTOFileName);
+    end;
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
     begin
       List.Add(APrefixU + UnitFileName);

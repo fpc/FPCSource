@@ -46,8 +46,6 @@ uses
       procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr);override;
   end;
 
-  procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -277,7 +275,7 @@ implementation
   end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgmips.create;
       create_codegen;
@@ -285,4 +283,5 @@ implementation
 
 begin
   chlcgobj:=thlcgmips;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

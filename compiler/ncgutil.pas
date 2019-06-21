@@ -109,10 +109,6 @@ implementation
     dbgbase,
     nbas,ncon,nld,nmem,nutils,
     tgobj,cgobj,hlcgobj,hlcgcpu
-{$ifdef llvm}
-    { override create_hlcodegen from hlcgcpu }
-    , hlcgllvm
-{$endif}
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -734,6 +730,12 @@ implementation
         { generate call frame marker for dwarf call frame info }
         current_asmdata.asmcfi.start_frame(list);
 
+        { labels etc. for exception frames are inserted here }
+        current_procinfo.start_eh(list);
+
+        if current_procinfo.procdef.proctypeoption=potype_proginit then
+          current_asmdata.asmcfi.outmost_frame(list);
+
         { All temps are know, write offsets used for information }
         if (cs_asm_source in current_settings.globalswitches) and
            (current_procinfo.tempstart<>tg.lasttemp) then
@@ -790,6 +792,9 @@ implementation
 
         { generate target specific proc exit code }
         hlcg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
+
+        { labels etc. for exception frames are inserted here }
+        current_procinfo.end_eh(list);
 
         { release return registers, needed for optimizer }
         if not is_void(current_procinfo.procdef.returndef) then

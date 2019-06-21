@@ -51,9 +51,6 @@ unit procinfo;
        { This object gives information on the current routine being
          compiled.
        }
-
-       { tprocinfo }
-
        tprocinfo = class(tlinkedlistitem)
        private
           { list to store the procinfo's of the nested procedures }
@@ -181,6 +178,16 @@ unit procinfo;
           procedure updatestackalignment(alignment: longint);
           { Specific actions after the code has been generated }
           procedure postprocess_code; virtual;
+
+          { set exception handling info }
+          procedure set_eh_info; virtual;
+
+          procedure setup_eh; virtual;
+          procedure finish_eh; virtual;
+          { called to insert needed eh info into the entry code }
+          procedure start_eh(list : TAsmList); virtual;
+          { called to insert needed eh info into the exit code }
+          procedure end_eh(list : TAsmList); virtual;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -322,7 +329,38 @@ implementation
           be initialized }
       end;
 
+
     procedure tprocinfo.postprocess_code;
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.set_eh_info;
+      begin
+        { default code is in tcgprocinfo }
+      end;
+
+
+    procedure tprocinfo.setup_eh;
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.finish_eh;
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.start_eh(list: TAsmList);
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.end_eh(list: TAsmList);
       begin
         { no action by default }
       end;

@@ -196,7 +196,9 @@ interface
          cs_huge_code,
          cs_win16_smartcallbacks,
          { Record usage of checkpointer experimental feature }
-         cs_checkpointer_called
+         cs_checkpointer_called,
+         { enable link time optimisation (both unit code generation and optimising the whole program/library) }
+         cs_lto
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -225,7 +227,9 @@ interface
          cs_link_map,cs_link_pthread,cs_link_no_default_lib_order,
          cs_link_native,
          cs_link_pre_binutils_2_19,
-         cs_link_vlink
+         cs_link_vlink,
+         { disable LTO for the system unit (needed to work around linker bugs on macOS) }
+         cs_lto_nosystem
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -372,7 +376,8 @@ interface
          mf_i8086_cs_equals_ds,       { this unit uses an i8086 memory model with CS=DS (i.e. tiny) }
          mf_i8086_ss_equals_ds,       { this unit uses an i8086 memory model with SS=DS (i.e. tiny, small or medium) }
          mf_package_deny,             { this unit must not be part of a package }
-         mf_package_weak              { this unit may be completely contained in a package }
+         mf_package_weak,             { this unit may be completely contained in a package }
+         mf_llvm                      { compiled for LLVM code generator, not compatible with regular compiler because of different nodes in inline functions }
        );
        tmoduleflags = set of tmoduleflag;
 
@@ -734,7 +739,9 @@ interface
            to restore DS segment register  }
          pi_has_open_array_parameter,
          { subroutine uses threadvars }
-         pi_uses_threadvar
+         pi_uses_threadvar,
+         { set if the procedure has generated data which shall go in an except table }
+         pi_has_except_table_data
        );
        tprocinfoflags=set of tprocinfoflag;
 
@@ -800,6 +807,7 @@ interface
        link_static  = $2;
        link_smart   = $4;
        link_shared  = $8;
+       link_lto     = $10;
 
     type
       { a message state }

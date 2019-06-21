@@ -70,6 +70,7 @@ interface
       la_type, { type definition }
       la_catch, { catch clause of a landingpad }
       la_filter, { filter clause of a landingpad }
+      la_cleanup, { cleanup clause of a landingpad (finally) }
       la_x_to_inttoptr, { have to convert something first to int before it can be converted to a pointer }
       la_ptrtoint_to_x, { have to convert a pointer first to int before it can be converted to something else }
       la_asmblock
@@ -98,10 +99,12 @@ interface
     llvmop2strtable=array[tllvmop] of string[14];
 
   const
-    { = max(cpubase.max_operands,7) }
-    max_operands = ((-ord(cpubase.max_operands<=7)) and 7) or ((-ord(cpubase.max_operands>7)) and cpubase.max_operands);
+    { = max(cpubase.max_operands,8) }
+    max_operands = ((-ord(cpubase.max_operands<=8)) and 15) or ((-ord(cpubase.max_operands>8)) and cpubase.max_operands);
 
   function llvm_target_name: ansistring;
+
+  function llvm_callingconvention_name(c: tproccalloption): ansistring;
 
 implementation
 
@@ -110,6 +113,7 @@ implementation
     systems;
 
 {$j-}
+{$ifndef arm}
   const
     llvmsystemcpu: array[tsystemcpu] of ansistring =
       ('unknown',
@@ -134,6 +138,7 @@ implementation
        'riscv32',
        'riscv64'
       );
+{$endif}
 
   function llvm_target_name: ansistring;
     begin
@@ -153,7 +158,7 @@ implementation
             llvm_target_name:=llvm_target_name+'-ios'+iPhoneOSVersionMin;
         end
       else if target_info.system in (systems_linux+systems_android) then
-        llvm_target_name:=llvm_target_name+'-linux'
+        llvm_target_name:=llvm_target_name+'-unknown-linux'
       else if target_info.system in systems_windows then
         begin
           { WinCE isn't supported (yet) by llvm, but if/when added this is
@@ -190,7 +195,56 @@ implementation
         llvm_target_name:=llvm_target_name+'-android' }
       else
         llvm_target_name:=llvm_target_name+'-gnueabi';
-{$endif FPC_ARM_HF}
+{$else}
+      if target_info.system in systems_linux then
+        llvm_target_name:=llvm_target_name+'-gnu';
+{$endif}
+    end;
+
+
+  function llvm_callingconvention_name(c: tproccalloption): ansistring;
+    begin
+      // TODO (unsupported by LLVM at this time):
+      //   * pocall_pascal
+      //   * pocall_oldfpccall
+      //   * pocall_syscall
+      //   * pocall_far16
+      //   * possibly pocall_softfloat
+      case c of
+        { to prevent errors if none of the defines below is active }
+        pocall_none:
+          result:='';
+{$ifdef i386}
+        pocall_register:
+          result:='x86_borlandregcallcc';
+        pocall_stdcall:
+          result:='x86_stdcallcc';
+{$endif i386}
+{$ifdef x86}
+        pocall_interrupt:
+          result:='x86_intrcc';
+        pocall_sysv_abi_default,
+        pocall_sysv_abi_cdecl:
+          result:='x86_64_sysvcc';
+        pocall_ms_abi_default,
+        pocall_ms_abi_cdecl:
+          result:='win64cc';
+        pocall_vectorcall:
+          result:='x86_vectorcallcc';
+        pocall_internproc:
+          result:=llvm_callingconvention_name(pocall_default);
+{$endif x86}
+{$ifdef avr}
+        pocall_interrupt:
+          result:='avr_intrcc';
+{$endif avr}
+{$if defined(arm) and not defined(FPC_ARMHF)}
+        pocall_hardfloat:
+          result:='arm_aapcs_vfpcc';
+{$endif arm and not FPC_ARMHF}
+        else
+          result:='';
+      end;
     end;
 
 end.

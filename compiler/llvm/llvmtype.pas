@@ -54,6 +54,7 @@ interface
           generated, as these alias declarations can appear anywhere }
         asmsymtypes: THashSet;
 
+        function check_insert_bitcast(toplevellist: tasmlist; sym: tasmsymbol; const opdef: tdef): taillvm;
         procedure record_asmsym_def(sym: TAsmSymbol; def: tdef; redefine: boolean);
         function  get_asmsym_def(sym: TAsmSymbol): tdef;
 
@@ -109,7 +110,7 @@ implementation
       ;
 
 {****************************************************************************
-                              TDebugInfoDwarf
+                              TLLVMTypeInfo
 ****************************************************************************}
 
     procedure TLLVMTypeInfo.record_asmsym_def(sym: TAsmSymbol; def: tdef; redefine: boolean);
@@ -124,6 +125,50 @@ implementation
         if redefine or
            not assigned(res^.Data) then
           res^.Data:=def;
+      end;
+
+
+    function equal_llvm_defs(def1, def2: tdef): boolean;
+      var
+        def1str, def2str: TSymStr;
+      begin
+        if def1=def2 then
+          exit(true);
+        def1str:=llvmencodetypename(def1);
+        def2str:=llvmencodetypename(def2);
+        { normalise both type representations in case one is a procdef
+          and the other is a procvardef}
+        if def1.typ=procdef then
+          def1str:=def1str+'*';
+        if def2.typ=procdef then
+          def2str:=def2str+'*';
+        result:=def1str=def2str;
+      end;
+
+
+    function TLLVMTypeInfo.check_insert_bitcast(toplevellist: tasmlist; sym: tasmsymbol; const opdef: tdef): taillvm;
+      var
+        opcmpdef: tdef;
+        symdef: tdef;
+      begin
+        result:=nil;
+        case opdef.typ of
+          pointerdef:
+            opcmpdef:=tpointerdef(opdef).pointeddef;
+          procvardef,
+          procdef:
+            opcmpdef:=opdef;
+          else
+            internalerror(2015073101);
+        end;
+        maybe_insert_extern_sym_decl(toplevellist, sym, opcmpdef);
+        symdef:=get_asmsym_def(sym);
+        if not equal_llvm_defs(symdef, opcmpdef) then
+          begin
+            if symdef.typ=procdef then
+              symdef:=cpointerdef.getreusable(symdef);
+            result:=taillvm.op_reg_size_sym_size(la_bitcast, NR_NO, cpointerdef.getreusable(symdef), sym, opdef);
+          end;
       end;
 
 
@@ -146,6 +191,9 @@ implementation
         if def.stab_number<>0 then
           exit;
         def.stab_number:=1;
+        { this is an internal llvm type }
+        if def=llvm_metadatatype then
+          exit;
         if def.dbg_state=dbg_state_unused then
           begin
             def.dbg_state:=dbg_state_used;
@@ -197,9 +245,9 @@ implementation
                    assigned(p.oper[opidx]^.ref^.symbol) and
                    (p.oper[opidx]^.ref^.symbol.bind<>AB_TEMP) then
                   begin
-                    if (opidx=3) and
-                       (p.llvmopcode=la_call) then
-                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef,false)
+                    if (opidx=4) and
+                       (p.llvmopcode in [la_call,la_invoke]) then
+                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[3]^.def).pointeddef,false)
                     { not a named register }
                     else if (p.oper[opidx]^.ref^.refaddr<>addr_full) then
                       record_asmsym_def(p.oper[opidx]^.ref^.symbol,p.spilling_get_reg_type(opidx),false);
@@ -210,6 +258,8 @@ implementation
                 begin
                   callpara:=pllvmcallpara(p.oper[opidx]^.paras[paraidx]);
                   record_def(callpara^.def);
+                  if callpara^.typ=top_tai then
+                    collect_tai_info(deftypelist,callpara^.ai);
                 end;
             else
               ;
@@ -267,53 +317,63 @@ implementation
       end;
 
 
-    function equal_llvm_defs(def1, def2: tdef): boolean;
-      var
-        def1str, def2str: TSymStr;
-      begin
-        if def1=def2 then
-          exit(true);
-        def1str:=llvmencodetypename(def1);
-        def2str:=llvmencodetypename(def2);
-        { normalise both type representations in case one is a procdef
-          and the other is a procvardef}
-        if def1.typ=procdef then
-          def1str:=def1str+'*';
-        if def2.typ=procdef then
-          def2str:=def2str+'*';
-        result:=def1str=def2str;
-      end;
-
-
     procedure TLLVMTypeInfo.insert_llvmins_typeconversions(toplevellist: tasmlist; p: taillvm);
       var
         symdef,
-        opdef,
-        opcmpdef: tdef;
+        opdef: tdef;
+        callpara: pllvmcallpara;
         cnv: taillvm;
-        i: longint;
+        i, paraidx: longint;
       begin
         case p.llvmopcode of
-          la_call:
-            if p.oper[3]^.typ=top_ref then
-              begin
-                maybe_insert_extern_sym_decl(toplevellist,p.oper[3]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef);
-                symdef:=get_asmsym_def(p.oper[3]^.ref^.symbol);
-                { the type used in the call is different from the type used to
-                  declare the symbol -> insert a typecast }
-                if not equal_llvm_defs(symdef,p.oper[2]^.def) then
-                  begin
-                    if symdef.typ=procdef then
-                      { ugly, but can't use getcopyas(procvardef) due to the
-                        symtablestack not being available here (cpointerdef.getreusable
-                        is hardcoded to put things in the current module's
-                        symtable) and "pointer to procedure" results in the
-                        correct llvm type }
-                      symdef:=cpointerdef.getreusable(tprocdef(symdef));
-                    cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[3]^.ref^.symbol,p.oper[2]^.def);
-                    p.loadtai(3,cnv);
-                  end;
-              end;
+          la_call,
+          la_invoke:
+            begin
+              if p.oper[4]^.typ=top_ref then
+                begin
+                  maybe_insert_extern_sym_decl(toplevellist,p.oper[4]^.ref^.symbol,tpointerdef(p.oper[3]^.def).pointeddef);
+                  symdef:=get_asmsym_def(p.oper[4]^.ref^.symbol);
+                  { the type used in the call is different from the type used to
+                    declare the symbol -> insert a typecast }
+                  if not equal_llvm_defs(symdef,p.oper[3]^.def) then
+                    begin
+                      if symdef.typ=procdef then
+                        { ugly, but can't use getcopyas(procvardef) due to the
+                          symtablestack not being available here (cpointerdef.getreusable
+                          is hardcoded to put things in the current module's
+                          symtable) and "pointer to procedure" results in the
+                          correct llvm type }
+                        symdef:=cpointerdef.getreusable(tprocdef(symdef));
+                      cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[4]^.ref^.symbol,p.oper[3]^.def);
+                      p.loadtai(4,cnv);
+                    end;
+                end;
+              for i:=0 to p.ops-1 do
+                begin
+                  if p.oper[i]^.typ=top_para then
+                    begin
+                      for paraidx:=0 to p.oper[i]^.paras.count-1 do
+                        begin
+                          callpara:=pllvmcallpara(p.oper[i]^.paras[paraidx]);
+                          case callpara^.typ of
+                            top_tai:
+                              insert_tai_typeconversions(toplevellist,callpara^.ai);
+                            top_ref:
+                              begin
+                                cnv:=check_insert_bitcast(toplevellist,callpara^.sym,callpara^.def);
+                                if assigned(cnv) then
+                                  begin
+                                    callpara^.typ:=top_tai;
+                                    callpara^.ai:=cnv;
+                                  end;
+                              end;
+                            else
+                              ;
+                          end;
+                        end;
+                    end;
+                end;
+            end
           else if p.llvmopcode<>la_br then
             begin
               { check the types of all symbolic operands }
@@ -325,24 +385,9 @@ implementation
                        (p.oper[i]^.ref^.symbol.bind<>AB_TEMP) then
                       begin
                         opdef:=p.spilling_get_reg_type(i);
-                        case opdef.typ of
-                          pointerdef:
-                            opcmpdef:=tpointerdef(opdef).pointeddef;
-                          procvardef,
-                          procdef:
-                            opcmpdef:=opdef;
-                          else
-                            internalerror(2015073101);
-                        end;
-                        maybe_insert_extern_sym_decl(toplevellist,p.oper[i]^.ref^.symbol,opcmpdef);
-                        symdef:=get_asmsym_def(p.oper[i]^.ref^.symbol);
-                        if not equal_llvm_defs(symdef,opcmpdef) then
-                          begin
-                            if symdef.typ=procdef then
-                              symdef:=cpointerdef.getreusable(symdef);
-                            cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,cpointerdef.getreusable(symdef),p.oper[i]^.ref^.symbol,opdef);
-                            p.loadtai(i,cnv);
-                          end;
+                        cnv:=check_insert_bitcast(toplevellist,p.oper[i]^.ref^.symbol, opdef);
+                        if assigned(cnv) then
+                          p.loadtai(i, cnv);
                       end;
                   top_tai:
                     insert_tai_typeconversions(toplevellist,p.oper[i]^.ai);
@@ -409,7 +454,15 @@ implementation
           ait_typedconst:
             insert_typedconst_typeconversion(toplevellist,tai_abstracttypedconst(p));
           ait_llvmdecl:
-            insert_asmlist_typeconversions(toplevellist,taillvmdecl(p).initdata);
+            begin
+              if (ldf_definition in taillvmdecl(p).flags) and
+                 (taillvmdecl(p).def.typ=procdef) and
+                 assigned(tprocdef(taillvmdecl(p).def).personality) then
+                maybe_insert_extern_sym_decl(toplevellist,
+                  current_asmdata.RefAsmSymbol(tprocdef(taillvmdecl(p).def).personality.mangledname,AT_FUNCTION,false),
+                  tprocdef(taillvmdecl(p).def).personality);
+              insert_asmlist_typeconversions(toplevellist,taillvmdecl(p).initdata);
+            end;
           else
             ;
         end;
@@ -434,6 +487,7 @@ implementation
     procedure TLLVMTypeInfo.maybe_insert_extern_sym_decl(toplevellist: tasmlist; sym: tasmsymbol; def: tdef);
       var
         sec: tasmsectiontype;
+        i: longint;
       begin
         { Necessery for "external" declarations for symbols not declared in the
           current unit. We can't create these declarations when the alias is
@@ -451,6 +505,20 @@ implementation
               sec:=sec_data;
             toplevellist.Concat(taillvmdecl.createdecl(sym,def,nil,sec,def.alignment));
             record_asmsym_def(sym,def,true);
+            { the external symbol may never be called, in which case the types
+              of its parameters will never be process -> do it here }
+            if (def.typ=procdef) then
+              begin
+                { can't use this condition to determine whether or not we need
+                  to generate the argument defs, because this information does
+                  not get reset when multiple units are compiled during a
+                  single compiler invocation }
+                if (tprocdef(def).has_paraloc_info=callnoside) then
+                  tprocdef(def).init_paraloc_info(callerside);
+                for i:=0 to tprocdef(def).paras.count-1 do
+                  record_def(llvmgetcgparadef(tparavarsym(tprocdef(def).paras[i]).paraloc[callerside],true,calleeside));
+                record_def(llvmgetcgparadef(tprocdef(def).funcretloc[callerside],true,calleeside));
+              end;
           end;
       end;
 
@@ -535,8 +603,8 @@ implementation
           types that are then casted to the real type when they are used }
         def.init_paraloc_info(callerside);
         for i:=0 to def.paras.count-1 do
-          appenddef(list,llvmgetcgparadef(tparavarsym(def.paras[i]).paraloc[callerside],true));
-        appenddef(list,llvmgetcgparadef(def.funcretloc[callerside],true));
+          appenddef(list,llvmgetcgparadef(tparavarsym(def.paras[i]).paraloc[callerside],true,calleeside));
+        appenddef(list,llvmgetcgparadef(def.funcretloc[callerside],true,calleeside));
         if assigned(def.typesym) and
            not def.is_addressonly then
           list.concat(taillvm.op_size(LA_TYPE,record_def(def)));

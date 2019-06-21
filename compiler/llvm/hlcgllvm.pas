@@ -158,20 +158,20 @@ uses
       procedure set_call_function_result(const list: TAsmList; const pd: tabstractprocdef; const llvmretdef, hlretdef: tdef; const resval: tregister; var retpara: tcgpara);
     end;
 
-  procedure create_hlcodegen;
-
-
 implementation
 
   uses
     verbose,cutils,globals,fmodule,constexp,systems,
     defutil,llvmdef,llvmsym,
     aasmtai,aasmcpu,
-    aasmllvm,llvmbase,tgllvm,
+    aasmllvm,llvmbase,llvminfo,tgllvm,
     symtable,symllvm,
     paramgr,
-    procinfo,cpuinfo,cgobj,cgllvm,cghlcpu,
+    pass_2,procinfo,llvmpi,cpuinfo,cgobj,cgllvm,cghlcpu,
     cgcpu,hlcgcpu;
+
+  var
+    create_hlcodegen_cpu: TProcedure = nil;
 
   const
     topcg2llvmop: array[topcg] of tllvmop =
@@ -205,10 +205,19 @@ implementation
       totaloffset:=0;
       orgsize:=size;
       a_load_ref_cgpara_init_src(list,cgpara,r,size,initialref);
+      if initialref.refaddr=addr_full then
+        begin
+          cgpara.check_simple_location;
+          location^.llvmvalueloc:=true;
+          location^.llvmloc.loc:=LOC_CREFERENCE;
+          location^.llvmloc.sym:=initialref.symbol;
+          exit;
+        end;
       userecord:=
         (orgsize<>size) and
         assigned(cgpara.location^.next);
       paralocidx:=0;
+      fielddef:=nil;
       while assigned(location) do
         begin
           if userecord then
@@ -305,8 +314,9 @@ implementation
       newrefsize: tdef;
       reg: tregister;
     begin
-      newrefsize:=llvmgetcgparadef(para,true);
-      if refsize<>newrefsize then
+      newrefsize:=llvmgetcgparadef(para,true,callerside);
+      if (refsize<>newrefsize) and
+         (initialref.refaddr<>addr_full) then
         begin
           reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize));
           a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize),initialref,reg);
@@ -401,24 +411,21 @@ implementation
 
   procedure thlcgllvm.a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
 
-    procedure load_ref_anyreg(def: tdef; const ref: treference; reg: tregister; var callpara: pllvmcallpara);
+    procedure load_ref_anyreg(def: tdef; const ref: treference; reg: tregister);
       begin
         case getregtype(reg) of
           R_INTREGISTER,
           R_ADDRESSREGISTER:
             begin
               a_load_ref_reg(list,def,def,ref,reg);
-              callpara^.loc:=LOC_REGISTER;
             end;
           R_FPUREGISTER:
             begin
               a_loadfpu_ref_reg(list,def,def,ref,reg);
-              callpara^.loc:=LOC_FPUREGISTER;
             end;
           R_MMREGISTER:
             begin
               a_loadmm_ref_reg(list,def,def,ref,reg,mms_movescalar);
-              callpara^.loc:=LOC_MMREGISTER;
             end;
           else
             internalerror(2014012213);
@@ -430,6 +437,7 @@ implementation
     href: treference;
     callpara: pllvmcallpara;
     paraloc: pcgparalocation;
+    firstparaloc: boolean;
   begin
     callparas:=tfplist.Create;
     for i:=0 to high(paras) do
@@ -438,10 +446,15 @@ implementation
         if paras[i]^.isempty then
           continue;
         paraloc:=paras[i]^.location;
+        firstparaloc:=true;
         while assigned(paraloc) do
           begin
             new(callpara);
             callpara^.def:=paraloc^.def;
+            if firstparaloc then
+              callpara^.alignment:=paras[i]^.Alignment
+            else
+              callpara^.alignment:=std_param_align;
             { if the paraloc doesn't contain the value itself, it's a byval
               parameter }
             if paraloc^.retvalloc then
@@ -455,50 +468,60 @@ implementation
                 callpara^.byval:=not paraloc^.llvmvalueloc;
               end;
             llvmextractvalueextinfo(paras[i]^.def, callpara^.def, callpara^.valueext);
-            if paraloc^.llvmloc.loc=LOC_CONSTANT then
-              begin
-                callpara^.loc:=LOC_CONSTANT;
-                callpara^.value:=paraloc^.llvmloc.value;
-              end
-            else
-              begin
-                callpara^.loc:=paraloc^.loc;
-                case callpara^.loc of
-                  LOC_REFERENCE:
-                    begin
-                      if paraloc^.llvmvalueloc then
-                        internalerror(2014012307)
-                      else
-                        begin
-                          reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, ctempposinvalid, paraloc^.def.alignment, []);
-                          res:=getregisterfordef(list, paraloc^.def);
-                          load_ref_anyreg(callpara^.def, href, res, callpara);
-                        end;
-                      callpara^.reg:=res
-                    end;
-                  LOC_REGISTER,
-                  LOC_FPUREGISTER,
-                  LOC_MMREGISTER:
-                    begin
-                      { undo explicit value extension }
-                      if callpara^.valueext<>lve_none then
-                        begin
-                          res:=getregisterfordef(list, callpara^.def);
-                          a_load_reg_reg(list, paraloc^.def, callpara^.def, paraloc^.register, res);
-                          paraloc^.register:=res;
-                        end;
-                        callpara^.reg:=paraloc^.register
-                    end;
-                  { empty records }
-                  LOC_VOID:
-                    begin
-                    end
-                  else
-                    internalerror(2014010605);
+            case paraloc^.llvmloc.loc of
+              LOC_CONSTANT:
+                begin
+                  callpara^.typ:=top_const;
+                  callpara^.value:=paraloc^.llvmloc.value;
+                end;
+              LOC_CREFERENCE:
+                begin
+                  callpara^.typ:=top_ref;
+                  callpara^.sym:=paraloc^.llvmloc.sym;
+                end
+              else
+                begin
+                  case paraloc^.loc of
+                    LOC_REFERENCE:
+                      begin
+                        if paraloc^.llvmvalueloc then
+                          internalerror(2014012307)
+                        else
+                          begin
+                            callpara^.typ:=top_reg;
+                            reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, ctempposinvalid, paraloc^.def.alignment, []);
+                            res:=getregisterfordef(list, paraloc^.def);
+                            load_ref_anyreg(callpara^.def, href, res);
+                          end;
+                        callpara^.register:=res
+                      end;
+                    LOC_REGISTER,
+                    LOC_FPUREGISTER,
+                    LOC_MMREGISTER:
+                      begin
+                        callpara^.typ:=top_reg;
+                        { undo explicit value extension }
+                        if callpara^.valueext<>lve_none then
+                          begin
+                            res:=getregisterfordef(list, callpara^.def);
+                            a_load_reg_reg(list, paraloc^.def, callpara^.def, paraloc^.register, res);
+                            paraloc^.register:=res;
+                          end;
+                        callpara^.register:=paraloc^.register
+                      end;
+                    { empty records }
+                    LOC_VOID:
+                      begin
+                        callpara^.typ:=top_undef;
+                      end
+                    else
+                      internalerror(2014010605);
+                  end;
                 end;
               end;
             callparas.add(callpara);
             paraloc:=paraloc^.next;
+            firstparaloc:=false;
           end;
       end;
     { the Pascal level may expect a different returndef compared to the
@@ -509,7 +532,7 @@ implementation
       hlretdef:=forceresdef;
     { llvm will always expect the original return def }
     if not paramanager.ret_in_param(hlretdef, pd) then
-      llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside], true)
+      llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside], true, callerside)
     else
       llvmretdef:=voidtype;
     if not is_void(llvmretdef) then
@@ -530,9 +553,21 @@ implementation
       llvmretdef,
       hlretdef: tdef;
       res: tregister;
+      nextinslab,
+      exceptlab: TAsmLabel;
     begin
       a_call_common(list,pd,paras,forceresdef,res,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas));
+      if not(fc_catching_exceptions in flowcontrol) or
+         { no invoke for intrinsics }
+         (copy(s,1,5)='llvm.') then
+        list.concat(taillvm.call_size_name_paras(get_call_pd(pd),pd.proccalloption,res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas))
+      else
+        begin
+          current_asmdata.getjumplabel(nextinslab);
+          exceptlab:=tllvmprocinfo(current_procinfo).CurrExceptLabel;
+          list.concat(taillvm.invoke_size_name_paras_retlab_exceptlab(get_call_pd(pd),pd.proccalloption,res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas,nextinslab,exceptlab));
+          a_label(list,nextinslab);
+        end;
       result:=get_call_result_cgpara(pd,forceresdef);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -544,9 +579,19 @@ implementation
       llvmretdef,
       hlretdef: tdef;
       res: tregister;
+      nextinslab,
+      exceptlab: TAsmLabel;
     begin
       a_call_common(list,pd,paras,nil,res,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,llvmretdef,reg,callparas));
+      if not(fc_catching_exceptions in flowcontrol) then
+        list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),pd.proccalloption,res,llvmretdef,reg,callparas))
+      else
+        begin
+          current_asmdata.getjumplabel(nextinslab);
+          exceptlab:=tllvmprocinfo(current_procinfo).CurrExceptLabel;
+          list.concat(taillvm.invoke_size_reg_paras_retlab_exceptlab(get_call_pd(pd),pd.proccalloption,res,llvmretdef,reg,callparas,nextinslab,exceptlab));
+          a_label(list,nextinslab);
+        end;
       result:=get_call_result_cgpara(pd,nil);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -1099,6 +1144,7 @@ implementation
       pd: tprocdef;
       sourcepara, destpara, sizepara, alignpara, volatilepara: tcgpara;
       maxalign: longint;
+      indivalign: boolean;
     begin
       { perform small copies directly; not larger ones, because then llvm
         will try to load the entire large datastructure into registers and
@@ -1110,7 +1156,11 @@ implementation
           a_load_ref_ref(list,size,size,source,dest);
           exit;
         end;
-      pd:=search_system_proc('llvm_memcpy64');
+      indivalign:=llvmflag_memcpy_indiv_align in llvmversion_properties[current_settings.llvmversion];
+      if indivalign then
+        pd:=search_system_proc('llvm_memcpy64_indivalign')
+      else
+        pd:=search_system_proc('llvm_memcpy64');
       sourcepara.init;
       destpara.init;
       sizepara.init;
@@ -1119,15 +1169,27 @@ implementation
       paramanager.getintparaloc(list,pd,1,destpara);
       paramanager.getintparaloc(list,pd,2,sourcepara);
       paramanager.getintparaloc(list,pd,3,sizepara);
-      paramanager.getintparaloc(list,pd,4,alignpara);
-      paramanager.getintparaloc(list,pd,5,volatilepara);
+      if indivalign then
+        begin
+          paramanager.getintparaloc(list,pd,4,volatilepara);
+          destpara.Alignment:=-dest.alignment;
+          sourcepara.Alignment:=-source.alignment;
+        end
+      else
+        begin
+          paramanager.getintparaloc(list,pd,4,alignpara);
+          paramanager.getintparaloc(list,pd,5,volatilepara);
+          maxalign:=newalignment(max(source.alignment,dest.alignment),min(source.alignment,dest.alignment));
+          a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
+        end;
       a_loadaddr_ref_cgpara(list,size,dest,destpara);
       a_loadaddr_ref_cgpara(list,size,source,sourcepara);
       a_load_const_cgpara(list,u64inttype,size.size,sizepara);
-      maxalign:=newalignment(max(source.alignment,dest.alignment),min(source.alignment,dest.alignment));
-      a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
       a_load_const_cgpara(list,llvmbool1type,ord((vol_read in source.volatility) or (vol_write in dest.volatility)),volatilepara);
-      g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
+      if indivalign then
+        g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@volatilepara],nil).resetiftemp
+      else
+        g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
       sourcepara.done;
       destpara.done;
       sizepara.done;
@@ -1346,7 +1408,7 @@ implementation
             LOC_MMREGISTER:
               begin
                 if not llvmaggregatetype(resdef) then
-                  list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,llvmgetcgparadef(resloc,true)))
+                  list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,llvmgetcgparadef(resloc,true,calleeside)))
                 else
                   { bitcast doesn't work for aggregates -> just load from the
                     (uninitialised) function result memory location }
@@ -1564,7 +1626,7 @@ implementation
         end;
       { get the LLVM representation of the function result (e.g. a
         struct with two i64 fields for a record with 4 i32 fields) }
-      result.def:=llvmgetcgparadef(result,true);
+      result.def:=llvmgetcgparadef(result,true,callerside);
       if assigned(result.location^.next) then
         begin
           { unify the result into a sinlge location; unlike for parameters,
@@ -1652,7 +1714,7 @@ implementation
       { get the equivalent llvm def used to pass the parameter (e.g. a record
         with two int64 fields for passing a record consisiting of 8 bytes on
         x86-64) }
-      llvmparadef:=llvmgetcgparadef(para,true);
+      llvmparadef:=llvmgetcgparadef(para,true,calleeside);
       userecord:=
         (llvmparadef<>para.def) and
         assigned(para.location^.next);
@@ -2029,7 +2091,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_llvm;
     begin
       if not assigned(current_procinfo) or
          not(po_assembler in current_procinfo.procdef.procoptions) then
@@ -2041,11 +2103,20 @@ implementation
       else
         begin
           tgobjclass:=orgtgclass;
-          hlcgcpu.create_hlcodegen;
+          create_hlcodegen_cpu;
           { todo: handle/remove chlcgobj }
         end;
     end;
 
 begin
   chlcgobj:=thlcgllvm;
+  { this unit must initialise after hlcgobj;
+    message system has not been initialised yet here }
+  if not assigned(create_hlcodegen) then
+    begin
+      writeln('Internalerror 2018052003');
+      halt(1);
+    end;
+  create_hlcodegen_cpu:=create_hlcodegen;
+  create_hlcodegen:=@create_hlcodegen_llvm;
 end.

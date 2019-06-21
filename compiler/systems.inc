@@ -236,13 +236,14 @@
              ,as_gas_powerpc_xcoff
              ,as_arm_elf32
              ,as_i8086_omf
-             ,as_llvm
+             ,as_llvm_llc
              ,as_clang
              ,as_solaris_as
              ,as_m68k_vasm
              ,as_m68k_as_aout
              ,as_wasm_binaryen
              ,as_powerpc_gas_legacy    { for systems with very old GAS versions only, which don't support eg. named sections }
+             ,as_llvm_clang
        );
 
        tlink = (ld_none,

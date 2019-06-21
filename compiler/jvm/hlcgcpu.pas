@@ -234,8 +234,6 @@ uses
 
     end;
 
-  procedure create_hlcodegen;
-
 
   const
     opcmp2if: array[topcmp] of tasmop = (A_None,
@@ -2569,7 +2567,7 @@ implementation
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgjvm.create;
       create_codegen;
@@ -2577,4 +2575,5 @@ implementation
 
 begin
   chlcgobj:=thlcgjvm;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

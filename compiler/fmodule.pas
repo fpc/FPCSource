@@ -149,8 +149,10 @@ interface
         procaddrdefs  : THashSet; { list of procvardefs created when getting the address of a procdef (not saved/restored) }
 {$ifdef llvm}
         llvmdefs      : THashSet; { defs added for llvm-specific reasons (not saved/restored) }
-        llvmusedsyms  : TFPObjectList; { a list of tllvmdecls of all symbols that need to be added to llvm.used (so they're not removed by llvm optimisation passes nor by the linker) }
-        llvmcompilerusedsyms : TFPObjectList; { a list of tllvmdecls of all symbols that need to be added to llvm.compiler.used (so they're not removed by llvm optimisation passes) }
+        llvmusedsyms  : TFPObjectList; { a list of asmsymbols and their defs that need to be added to llvm.used (so they're not removed by llvm optimisation passes nor by the linker) }
+        llvmcompilerusedsyms : TFPObjectList; { a list of asmsymbols and their defs that need to be added to llvm.compiler.used (so they're not removed by llvm optimisation passes) }
+        llvminitprocs,
+        llvmfiniprocs : TFPList;
 {$endif llvm}
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
@@ -596,8 +598,10 @@ implementation
         procaddrdefs:=THashSet.Create(64,true,false);
 {$ifdef llvm}
         llvmdefs:=THashSet.Create(64,true,false);
-        llvmusedsyms:=TFPObjectList.Create(false);
-        llvmcompilerusedsyms:=TFPObjectList.Create(false);
+        llvmusedsyms:=TFPObjectList.Create(true);
+        llvmcompilerusedsyms:=TFPObjectList.Create(true);
+        llvminitprocs:=TFPList.Create;
+        llvmfiniprocs:=TFPList.Create;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo:=nil;
@@ -727,6 +731,8 @@ implementation
         llvmdefs.free;
         llvmusedsyms.free;
         llvmcompilerusedsyms.free;
+        llvminitprocs.free;
+        llvmfiniprocs.free;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo.free;
@@ -798,9 +804,13 @@ implementation
         llvmdefs.free;
         llvmdefs:=THashSet.Create(64,true,false);
         llvmusedsyms.free;
-        llvmusedsyms:=TFPObjectList.Create(false);
+        llvmusedsyms:=TFPObjectList.Create(true);
         llvmcompilerusedsyms.free;
-        llvmcompilerusedsyms:=TFPObjectList.Create(false);
+        llvmcompilerusedsyms:=TFPObjectList.Create(true);
+        llvminitprocs.free;
+        llvminitprocs:=TFPList.Create;
+        llvmfiniprocs.free;
+        llvmfiniprocs:=TFPList.Create;
 {$endif llvm}
         wpoinfo.free;
         wpoinfo:=nil;

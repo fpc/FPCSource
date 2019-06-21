@@ -1358,7 +1358,9 @@ const
          (mask:pi_has_open_array_parameter;
          str:' has open array parameter '),
          (mask:pi_uses_threadvar;
-         str:' uses threadvars ')
+         str:' uses threadvars '),
+         (mask:pi_has_except_table_data;
+         str:' has except table data ')
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1734,7 +1736,8 @@ const
         'Hude code', {cs_huge_code}
         'Win16 smart callbacks', {cs_win16_smartcallbacks}
          { Record usage of checkpointer experimental feature }
-        'CheckPointer used' {cs_checkpointer_called}
+        'CheckPointer used', {cs_checkpointer_called}
+        'Supports LLVM Link-Time Optimization' {cs_lto}
        );
     globalswitchname : array[tglobalswitch] of string[50] =
        ('Global None',{cs_globalnone}
@@ -1782,7 +1785,8 @@ const
         'Link no default lib order', {cs_link_no_default_lib_order}
         'Link using native linker', {cs_link_native}
         'Link for GNU linker version <=2.19', {cs_link_pre_binutils_2_19}
-        'Link using vlink' {cs_link_vlink}
+        'Link using vlink', {cs_link_vlink}
+        'Link-Time Optimization disabled for system unit' {cs_lto_nosystem}
        );
     localswitchname : array[tlocalswitch] of string[50] =
        { Switches which can be changed locally }

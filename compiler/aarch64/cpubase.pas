@@ -328,6 +328,7 @@ unit cpubase;
 
     function dwarf_reg(r:tregister):shortint;
     function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
 
     function is_shifter_const(d: aint; size: tcgsize): boolean;
 
@@ -608,5 +609,14 @@ unit cpubase;
             patternlen:=patternlen*2;
           end;
       end;
+
+
+  function eh_return_data_regno(nr: longint): longint;
+    begin
+      if (nr>=0) and (nr<2) then
+        result:=nr
+      else
+        result:=-1;
+    end;
 
 end.

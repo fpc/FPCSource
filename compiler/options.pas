@@ -708,6 +708,9 @@ begin
 {$ifdef jvm}
       'J',
 {$endif}
+{$ifdef llvm}
+      'L',
+{$endif}
       '*' : show:=true;
      end;
      if show then
@@ -917,9 +920,16 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
       end
     else if not ios and
        not osx_minor_two_digits then
-      compvarvalue:=compvarvalue+'0'
+      begin
+        compvarvalue:=compvarvalue+'0';
+        minstr:=minstr+'.0'
+      end
     else
-      compvarvalue:=compvarvalue+'00';
+      begin
+        compvarvalue:=compvarvalue+'00';
+        { command line versions still only use one 0 though }
+        minstr:=minstr+'.0'
+      end;
     set_system_compvar(compvarname,compvarvalue);
     MacVersionSet:=true;
     result:=true;
@@ -1040,6 +1050,9 @@ var
   d,s   : TCmdStr;
   hs    : TCmdStr;
   unicodemapping : punicodemap;
+{$ifdef llvm}
+  disable: boolean;
+{$endif}
 begin
   if opt='' then
    exit;
@@ -1283,6 +1296,62 @@ begin
                         break;
                       end;
 {$endif arm}
+{$ifdef llvm}
+                    'L':
+                      begin
+                        l:=j+1;
+                        while l<=length(More) do
+                          begin
+                            case More[l] of
+                              'f':
+                                begin
+                                  More:=copy(More,l+1,length(More));
+                                  disable:=Unsetbool(More,length(More)-1,opt,false);
+                                  case More of
+                                    'lto':
+                                       begin
+                                         if not disable then
+                                           begin
+                                             include(init_settings.moduleswitches,cs_lto);
+                                             LTOExt:='.bc';
+                                           end
+                                         else
+                                           exclude(init_settings.moduleswitches,cs_lto);
+                                       end;
+                                     'ltonosystem':
+                                         begin
+                                           if not disable then
+                                             begin
+                                               include(init_settings.globalswitches,cs_lto_nosystem);
+                                             end
+                                           else
+                                             exclude(init_settings.globalswitches,cs_lto_nosystem);
+                                         end;
+                                    else
+                                      begin
+                                        IllegalPara(opt);
+                                      end;
+                                  end;
+                                  l:=length(more)+1;
+                                end;
+                              'v':
+                                begin
+                                  init_settings.llvmversion:=llvmversion2enum(copy(More,l+1,length(More)));
+                                  if init_settings.llvmversion=llvmver_invalid then
+                                    begin
+                                      IllegalPara(opt);
+                                    end;
+                                  l:=length(More)+1;
+                                end
+                              else
+                                begin
+                                  IllegalPara(opt);
+                                end;
+                            end;
+                          end;
+                        j:=l;
+                      end;
+{$endif llvm}
                     'n' :
                       If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.globalswitches,cs_link_nolink)
@@ -3174,6 +3243,12 @@ begin
     else
       undef_system_macro('FPC_SECTION_THREADVARS');
 
+  if (tf_use_psabieh in target_info.flags) then
+    if def then
+      def_system_macro('FPC_USE_PSABIEH')
+    else
+      undef_system_macro('FPC_USE_PSABIEH');
+
   { Code generation flags }
   if (tf_pic_default in target_info.flags) then
     if def then
@@ -3417,6 +3492,9 @@ procedure read_arguments(cmd:TCmdStr);
       controller: tcontrollertype;
       s: string;
     begin
+{$ifdef llvm}
+      def_system_macro('CPULLVM');
+{$endif}
       for cputype:=low(tcputype) to high(tcputype) do
         undef_system_macro('CPU'+Cputypestr[cputype]);
       def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
@@ -3983,8 +4061,11 @@ begin
   librarysearchpath.AddList(unitsearchpath,false);
 
 {$ifdef llvm}
-  { force llvm assembler writer }
-  option.paratargetasm:=as_llvm;
+  { default to clang }
+  if (option.paratargetasm=as_none) then
+    begin
+      option.paratargetasm:=as_llvm_clang;
+    end;
 {$endif llvm}
   { maybe override assembler }
   if (option.paratargetasm<>as_none) then
@@ -4010,8 +4091,8 @@ begin
         begin
           option.paratargetdbg:=dbg_dwarf2;
         end;
-
     end;
+
   {TOptionheck a second time as we might have changed assembler just above }
   option.checkoptionscompatibility;
 
@@ -4378,7 +4459,7 @@ begin
     end;
 {$endif defined(i386) or defined(x86_64)}
 
-{$if defined(arm)}
+{$if defined(arm) and not defined(llvm)}
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }

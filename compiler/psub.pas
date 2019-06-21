@@ -23,6 +23,8 @@ unit psub;
 
 {$i fpcdefs.inc}
 
+{ $define debug_eh}
+
 interface
 
     uses
@@ -65,6 +67,7 @@ interface
         procedure parse_body;
 
         function has_assembler_child : boolean;
+        procedure set_eh_info; override;
       end;
 
 
@@ -92,7 +95,7 @@ implementation
     uses
        sysutils,
        { common }
-       cutils, cmsgs,
+       cutils, cmsgs, cclasses,
        { global }
        globtype,tokens,verbose,comphook,constexp,
        systems,cpubase,aasmbase,aasmtai,aasmdata,
@@ -115,11 +118,10 @@ implementation
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
        tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
-{$ifdef llvm}
-      { override create_hlcodegen from hlcgcpu }
-      hlcgllvm,
-{$endif}
+
+       ncgflw,
        ncgutil,
+
        optbase,
        opttail,
        optcse,
@@ -1138,6 +1140,19 @@ implementation
           end;
       end;
 
+
+    procedure tcgprocinfo.set_eh_info;
+      begin
+        inherited;
+         if (tf_use_psabieh in target_info.flags) and
+            ((pi_uses_exceptions in flags) or
+             ((cs_implicit_exceptions in current_settings.moduleswitches) and
+              (pi_needs_implicit_finally in flags))) or
+             (pi_has_except_table_data in flags) then
+           procdef.personality:=search_system_proc('_FPC_PSABIEH_PERSONALITY_V0');
+      end;
+
+
     procedure tcgprocinfo.generate_code_tree;
       var
         hpi : tcgprocinfo;
@@ -1519,6 +1534,8 @@ implementation
           begin
             create_hlcodegen;
 
+            setup_eh;
+
             if (procdef.proctypeoption<>potype_exceptfilter) then
               setup_tempgen;
 
@@ -1739,6 +1756,9 @@ implementation
                 hlcg.gen_stack_check_size_para(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
+
+            current_procinfo.set_eh_info;
+
             { Add entry code (stack allocation) after header }
             current_filepos:=entrypos;
             gen_proc_entry_code(templist);
@@ -1763,6 +1783,14 @@ implementation
                not(pi_has_implicit_finally in flags) and
                not(target_info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
+
+             { sanity check }
+             if not(assigned(current_procinfo.procdef.personality)) and
+                (tf_use_psabieh in target_info.flags) and
+                ((pi_uses_exceptions in flags) or
+                 ((cs_implicit_exceptions in current_settings.moduleswitches) and
+                  (pi_needs_implicit_finally in flags))) then
+               Internalerror(2019021005);
 
             { Position markers are only used to insert additional code after the secondpass
               and before this point. They are of no use in optimizer. Instead of checking and
@@ -1807,6 +1835,8 @@ implementation
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then
               current_debuginfo.insertlineinfo(aktproccode);
+
+            finish_eh;
 
             hlcg.record_generated_code_for_procdef(current_procinfo.procdef,aktproccode,aktlocaldata);
 

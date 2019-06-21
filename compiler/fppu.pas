@@ -336,6 +336,11 @@ var
               exit;
             end;
 {$endif i8086}
+          if {$ifdef llvm}not{$endif}(mf_llvm in moduleflags) then
+            begin
+              Message(unit_u_ppu_llvm_mismatch,@queuecomment);
+              exit;
+            end;
           result:=true;
         end;
 
@@ -1013,6 +1018,9 @@ var
         if current_settings.x86memorymodel in [mm_tiny,mm_small,mm_medium] then
           include(moduleflags,mf_i8086_ss_equals_ds);
 {$endif i8086}
+{$ifdef llvm}
+        include(moduleflags,mf_llvm);
+{$endif}
 
         old_docrc:=ppufile.do_crc;
         ppufile.do_crc:=false;

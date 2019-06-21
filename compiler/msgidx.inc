@@ -1000,6 +1000,7 @@ const
   unit_u_loading_from_package=10064;
   cg_f_internal_type_not_found=10065;
   cg_f_internal_type_does_not_match=10066;
+  unit_u_ppu_llvm_mismatch=10067;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -1110,9 +1111,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 82998;
+  MsgTxtSize = 83424;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,351,126,99,61,142,34,221,67,
+    28,106,351,126,99,61,142,34,221,68,
     62,20,30,1,1,1,1,1,1,1
   );

@@ -87,9 +87,14 @@ interface
           ait_llvmins, { llvm instruction }
           ait_llvmalias, { alias for a symbol }
           ait_llvmdecl, { llvm symbol declaration (global/external variable, external procdef) }
+          ait_llvmmetadatanode, (* llvm metadata node: !id = !{type value, ...} *)
+          ait_llvmmetadatareftypedconst, { reference to metadata inside a metadata constant }
+          ait_llvmmetadatarefoperand, { llvm metadata referece: !metadataname !id }
 {$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
-          ait_seh_directive
+          ait_seh_directive,
+          { Dwarf CFI directive }
+          ait_cfi
           );
 
         taiconst_type = (
@@ -220,7 +225,11 @@ interface
           'llvmins',
           'llvmalias',
           'llvmdecl',
+          'llvmmetadata',
+          'llvmmetadatareftc',
+          'llvmmetadatarefop',
 {$endif}
+          'cfi',
           'seh_directive'
           );
 
@@ -265,6 +274,7 @@ interface
        ,top_cond
        ,top_para
        ,top_asmlist
+       ,top_callingconvention
 {$endif llvm}
 {$if defined(riscv32) or defined(riscv64)}
        ,top_fenceflags
@@ -319,8 +329,12 @@ interface
 {$endif JVM}
 {$ifdef llvm}
                      ait_llvmdecl,
+                     ait_llvmmetadatanode,
+                     ait_llvmmetadatareftypedconst,
+                     ait_llvmmetadatarefoperand,
 {$endif llvm}
-                     ait_seh_directive
+                     ait_seh_directive,
+                     ait_cfi
                     ];
 
 
@@ -474,6 +488,7 @@ interface
             top_fpcond : (fpcond: tllvmfpcmp);
             top_para   : (paras: tfplist);
             top_asmlist : (asmlist: tasmlist);
+            top_callingconvention: (callingconvention: tproccalloption);
         {$endif llvm}
         {$if defined(riscv32) or defined(riscv64)}
             top_fenceflags : (fenceflags : TFenceFlags);
@@ -638,6 +653,9 @@ interface
           symofs,
           value   : int64;
           consttype : taiconst_type;
+          { sleb128 and uleb128 values have a varying length, by calling FixSize their size can be fixed
+            to avoid that other offsets need to be changed. The value to write is stored in fixed_size }
+          fixed_size : byte;
           { we use for the 128bit int64/qword for now because I can't imagine a
             case where we need 128 bit now (FK) }
           constructor Create(_typ:taiconst_type;_value : int64);
@@ -692,6 +710,9 @@ interface
           procedure derefimpl;override;
           function getcopy:tlinkedlistitem;override;
           function size:longint;
+          { sleb128 and uleb128 values have a varying length, by calling FixSize their size can be fixed
+            to avoid that other offsets need to be changed. The value to write is stored in fixed_size }
+          Procedure FixSize;
        end;
 
        { floating point const }
@@ -1987,9 +2008,31 @@ implementation
             else
               result:=sizeof(pint);
           aitconst_uleb128bit :
-            result:=LengthUleb128(qword(value));
+            begin
+              if fixed_size>0 then
+                result:=fixed_size
+              else if sym=nil then
+                begin
+                  FixSize;
+                  result:=fixed_size;
+                end
+              else
+                { worst case }
+                result:=sizeof(pint)+2;
+            end;
           aitconst_sleb128bit :
-            result:=LengthSleb128(value);
+            begin
+              if fixed_size>0 then
+                result:=fixed_size
+              else if sym=nil then
+                begin
+                  FixSize;
+                  result:=fixed_size;
+                end
+              else
+                { worst case }
+                result:=sizeof(pint)+2;
+            end;
           aitconst_half16bit,
           aitconst_gs:
             result:=2;
@@ -2005,6 +2048,19 @@ implementation
             result:=4;
           else
             internalerror(200603253);
+        end;
+      end;
+
+
+    procedure tai_const.FixSize;
+      begin
+        case consttype of
+          aitconst_uleb128bit:
+            fixed_size:=LengthUleb128(qword(value));
+          aitconst_sleb128bit:
+            fixed_size:=LengthSleb128(value);
+          else
+            Internalerror(2019030301);
         end;
       end;
 

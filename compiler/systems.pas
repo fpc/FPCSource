@@ -166,6 +166,10 @@ interface
             { indicates that this target can use dynamic packages otherwise an
               error will be generated if a package file is compiled }
             tf_supports_packages,
+            { use PSABI/Dwarf-based "zero cost" exception handling }
+            tf_use_psabieh,
+            { use high level cfi directives to generate call frame information }
+            tf_use_hlcfi,
             { supports symbol order file (to ensure symbols in vectorised sections are kept in the correct order) }
             tf_supports_symbolorderfile
        );

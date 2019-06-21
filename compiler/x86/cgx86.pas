@@ -3410,6 +3410,7 @@ unit cgx86;
           r: longint;
           usedregs: tcpuregisterset;
           regs_to_save_int: tcpuregisterarray;
+          hreg: TRegister;
         begin
           regsize:=0;
           usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
@@ -3418,11 +3419,20 @@ unit cgx86;
             if regs_to_save_int[r] in usedregs then
               begin
                 inc(regsize,sizeof(aint));
-                list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE)));
+                hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
+                list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],hreg));
+                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
+                else
+                  begin
+                    current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
+                    current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
+                  end;
               end;
         end;
 
       begin
+        regsize:=0;
 {$ifdef i8086}
         { Win16 callback/exported proc prologue support.
           Since callbacks can be called from different modules, DS on entry may be
@@ -3598,7 +3608,7 @@ unit cgx86;
                   localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
+                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
               end
 {$ifdef i8086}
@@ -3707,6 +3717,7 @@ unit cgx86;
                   a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
                   inc(href.offset,sizeof(aint));
                 end;
+              current_asmdata.asmcfi.cfa_restore(list,hreg);
             end;
       end;
 
@@ -3718,10 +3729,16 @@ unit cgx86;
         else
           begin
 {$if defined(x86_64)}
+            current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_RSP);
             list.Concat(taicpu.op_reg_reg(A_MOV,S_Q,NR_RBP,NR_RSP));
+            current_asmdata.asmcfi.cfa_restore(list,NR_RBP);
+            current_asmdata.asmcfi.cfa_def_cfa_offset(list,8);
             list.Concat(taicpu.op_reg(A_POP,S_Q,NR_RBP));
 {$elseif defined(i386)}
+            current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_ESP);
             list.Concat(taicpu.op_reg_reg(A_MOV,S_L,NR_EBP,NR_ESP));
+            current_asmdata.asmcfi.cfa_restore(list,NR_EBP);
+            current_asmdata.asmcfi.cfa_def_cfa_offset(list,4);
             list.Concat(taicpu.op_reg(A_POP,S_L,NR_EBP));
 {$elseif defined(i8086)}
             list.Concat(taicpu.op_reg_reg(A_MOV,S_W,NR_BP,NR_SP));

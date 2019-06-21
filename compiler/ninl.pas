@@ -127,7 +127,7 @@ implementation
       verbose,globals,systems,constexp,
       globtype,cutils,cclasses,fmodule,
       symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
-      cpuinfo,
+      cpuinfo,cpubase,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       nobjc,objcdef,
@@ -2298,7 +2298,14 @@ implementation
 {$else}
                      hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidpointertype);
 {$endif}
-                   end
+                   end;
+                 in_const_eh_return_data_regno:
+                   begin
+                     vl:=eh_return_data_regno(vl.svalue);
+                     if vl=-1 then
+                       CGMessagePos(left.fileinfo,type_e_range_check_error_bounds);
+                     hp:=genintconstnode(vl);
+                   end;
                  else
                    internalerror(88);
                end;
