@@ -670,15 +670,20 @@ begin
     end;
   if (rdoConnectionInURL in DispatchOptions) then
     begin
-    C:=Strings.GetRestString(rpMetadataResourceName);
-    FMetadataRoute:=HTTPRouter.RegisterRoute(res+C,@HandleMetaDataRequest);
-    FMetadataItemRoute:=HTTPRouter.RegisterRoute(res+C+'/:id',@HandleMetaDataRequest);
+    // Both connection/metadata and /metadata must work.
+    // connection/metadata is handled by HandleRequest (FindSpecialResource)
+    // /metadata must be handled here.
+    if (rdoExposeMetadata in DispatchOptions) then
+      begin
+      C:=Strings.GetRestString(rpMetadataResourceName);
+      FMetadataRoute:=HTTPRouter.RegisterRoute(res+C,@HandleMetaDataRequest);
+      FMetadataItemRoute:=HTTPRouter.RegisterRoute(res+C+'/:id',@HandleMetaDataRequest);
+      end;
     Res:=Res+':connection/';
     end;
   Res:=Res+':resource';
   FListRoute:=HTTPRouter.RegisterRoute(res,@HandleRequest);
   FItemRoute:=HTTPRouter.RegisterRoute(Res+'/:id',@HandleRequest);
-
 end;
 
 function TSQLDBRestDispatcher.GetInputFormat(IO : TRestIO) : String;
