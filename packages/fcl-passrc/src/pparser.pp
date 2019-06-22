@@ -489,15 +489,19 @@ Type
 Var
   DefaultFileResolverClass : TBaseFileResolverClass = Nil;
 
-function ParseSource(AEngine: TPasTreeContainer;
-                     const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
 {$ifdef HasStreams}
 function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String;
-                     UseStreams  : Boolean): TPasModule; deprecated;
+                     UseStreams  : Boolean): TPasModule; deprecated 'use version with options';
 {$endif}
 function ParseSource(AEngine: TPasTreeContainer;
+                     const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule; deprecated 'use version with split command line';
+function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String;
+                     Options : TParseSourceOptions): TPasModule; deprecated 'use version with split command line';
+function ParseSource(AEngine: TPasTreeContainer;
+                     const FPCCommandLine : Array of String;
+                     OSTarget, CPUTarget: String;
                      Options : TParseSourceOptions): TPasModule;
 
 Function IsHintToken(T : String; Out AHint : TPasMemberHint) : boolean;
@@ -506,6 +510,8 @@ Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
 Function TokenToAssignKind( tk : TToken) : TAssignKind;
 
 implementation
+
+uses strutils;
 
 const
   WhitespaceTokensToIgnore = [tkWhitespace, tkComment, tkLineEnding, tkTab];
@@ -615,6 +621,20 @@ function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String;
   Options : TParseSourceOptions): TPasModule;
 
+Var
+  Args : TStringArray;
+
+begin
+  Args:=SplitCommandLine(FPCCommandLine);
+  Result:=ParseSource(aEngine,Args,OSTarget,CPUTarget,Options);
+
+end;
+
+function ParseSource(AEngine: TPasTreeContainer;
+                     const FPCCommandLine : Array of String;
+                     OSTarget, CPUTarget: String;
+                     Options : TParseSourceOptions): TPasModule;
+
 var
   FileResolver: TBaseFileResolver;
   Parser: TPasParser;
@@ -622,32 +642,31 @@ var
   Filename: String;
   Scanner: TPascalScanner;
 
-  procedure ProcessCmdLinePart;
+  procedure ProcessCmdLinePart(S : String);
   var
-    l: Integer;
-    s: String;
+    l,Len: Integer;
+
   begin
-    l := CurPos - Start;
-    if l <= 0 then
+    if (S='') then
       exit;
-    s:=Trim(copy(FPCCommandLine,Start,l));
-    if (s[1] = '-') and (length(s)>1) then
+    Len:=Length(S);
+    if (s[1] = '-') and (len>1) then
     begin
       case s[2] of
         'd': // -d define
-          Scanner.AddDefine(UpperCase(Copy(s, 3, Length(s))));
+          Scanner.AddDefine(UpperCase(Copy(s, 3, Len)));
         'u': // -u undefine
-          Scanner.RemoveDefine(UpperCase(Copy(s, 3, Length(s))));
+          Scanner.RemoveDefine(UpperCase(Copy(s, 3, Len)));
         'F': // -F
-          if (length(s)>2) and (s[3] = 'i') then // -Fi include path
-            FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
+          if (len>2) and (s[3] = 'i') then // -Fi include path
+            FileResolver.AddIncludePath(Copy(s, 4, Len));
         'I': // -I include path
-          FileResolver.AddIncludePath(Copy(s, 3, Length(s)));
+          FileResolver.AddIncludePath(Copy(s, 3, Len));
         'S': // -S mode
-          if  (length(s)>2) then
+          if  (len>2) then
             begin
             l:=3;
-            While L<=Length(S) do
+            While L<=Len do
               begin
               case S[l] of
                 'c' : Scanner.Options:=Scanner.Options+[po_cassignments];
@@ -672,7 +691,8 @@ var
   end;
 
 var
-  s: String;
+  S: String;
+
 begin
   if DefaultFileResolverClass=Nil then
     raise ENotImplemented.Create(SErrFileSystemNotSupported);
@@ -696,33 +716,30 @@ begin
       // TargetOS
       s := UpperCase(OSTarget);
       Scanner.AddDefine(s);
-      if s = 'LINUX' then
-        Scanner.AddDefine('UNIX')
-      else if s = 'FREEBSD' then
-      begin
-        Scanner.AddDefine('BSD');
-        Scanner.AddDefine('UNIX');
-      end else if s = 'NETBSD' then
-      begin
-        Scanner.AddDefine('BSD');
-        Scanner.AddDefine('UNIX');
-      end else if s = 'SUNOS' then
-      begin
-        Scanner.AddDefine('SOLARIS');
-        Scanner.AddDefine('UNIX');
-      end else if s = 'GO32V2' then
-        Scanner.AddDefine('DPMI')
-      else if s = 'BEOS' then
-        Scanner.AddDefine('UNIX')
-      else if s = 'QNX' then
-        Scanner.AddDefine('UNIX')
-      else if s = 'AROS' then
-        Scanner.AddDefine('HASAMIGA')
-      else if s = 'MORPHOS' then
-        Scanner.AddDefine('HASAMIGA')
-      else if s = 'AMIGA' then
-        Scanner.AddDefine('HASAMIGA');
-
+      Case s of
+        'LINUX' : Scanner.AddDefine('UNIX');
+        'FREEBSD' :
+          begin
+          Scanner.AddDefine('BSD');
+          Scanner.AddDefine('UNIX');
+          end;
+        'NETBSD' :
+          begin
+          Scanner.AddDefine('BSD');
+          Scanner.AddDefine('UNIX');
+          end;
+        'SUNOS' :
+          begin
+          Scanner.AddDefine('SOLARIS');
+          Scanner.AddDefine('UNIX');
+          end;
+        'GO32V2' : Scanner.AddDefine('DPMI');
+        'BEOS' : Scanner.AddDefine('UNIX');
+        'QNX' : Scanner.AddDefine('UNIX');
+        'AROS' : Scanner.AddDefine('HASAMIGA');
+        'MORPHOS' : Scanner.AddDefine('HASAMIGA');
+        'AMIGA' : Scanner.AddDefine('HASAMIGA');
+      end;
       // TargetCPU
       s := UpperCase(CPUTarget);
       Scanner.AddDefine('CPU'+s);
@@ -738,23 +755,8 @@ begin
     Parser.LogEvents:=AEngine.ParserLogEvents;
     Parser.OnLog:=AEngine.Onlog;
 
-    if FPCCommandLine<>'' then
-      begin
-      Start:=1;
-      CurPos := Start;
-      while CurPos<length(FPCCommandLine) do
-        begin
-        if (FPCCommandLine[CurPos] = ' ') and (FPCCommandLine[CurPos+1]<>' ') then
-          begin
-          ProcessCmdLinePart;
-          Start := CurPos + 1;
-          end;
-        Inc(CurPos);
-        end;
-      Inc(CurPos);
-      ProcessCmdLinePart;
-      end;
-
+    For S in FPCCommandLine do
+      ProcessCmdLinePart(S);
     if Filename = '' then
       raise Exception.Create(SErrNoSourceGiven);
 {$IFDEF HASFS}
