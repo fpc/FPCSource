@@ -869,6 +869,8 @@ end;
 
 destructor TSQLDBRestDispatcher.Destroy;
 begin
+  if RoutesRegistered then
+    UnregisterRoutes;
   Authenticator:=Nil;
   FreeAndNil(FAdminUserIDs);
   FreeAndNil(FCustomViewResource);
