@@ -699,8 +699,13 @@ begin
       end;
     if not (D.EOF and D.BOF) then
       StreamDataset(IO.RESTOutput,D,FieldList)
-    else if Single then
-      DoNotFound;
+    else
+      begin
+      if Single then
+        DoNotFound
+      else
+        StreamDataset(IO.RESTOutput,D,FieldList)
+      end;
   finally
     D.Free;
   end;
