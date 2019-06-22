@@ -231,6 +231,7 @@ Type
     FMetadataItemRoute: THTTPRoute;
     FStatus: TRestStatusConfig;
     FStrings: TRestStringsConfig;
+    function GetRoutesRegistered: Boolean;
     procedure SetActive(AValue: Boolean);
     procedure SetAdminUserIDS(AValue: TStrings);
     procedure SetAuthenticator(AValue: TRestAuthenticator);
@@ -325,6 +326,7 @@ Type
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
     Function ExposeConnection(aOwner : TComponent; Const aConnection : TSQLDBRestConnection; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestSchema;
     Function ExposeConnection(Const aConnection : TSQLDBRestConnection; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestSchema;
+    Property RoutesRegistered : Boolean Read GetRoutesRegistered;
   Published
     // Register or unregister HTTP routes
     Property Active : Boolean Read FActive Write SetActive;
@@ -516,6 +518,11 @@ begin
       UnRegisterRoutes;
     end;
   FActive:=AValue;
+end;
+
+function TSQLDBRestDispatcher.GetRoutesRegistered: Boolean;
+begin
+  Result:=FItemRoute<>Nil;
 end;
 
 procedure TSQLDBRestDispatcher.SetAdminUserIDS(AValue: TStrings);
