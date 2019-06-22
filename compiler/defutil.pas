@@ -68,6 +68,9 @@ interface
 
     procedure int_to_type(const v:TConstExprInt;var def:tdef);
 
+    {# Return true if the type (orddef or enumdef) spans its entire bitrange }
+    function spans_entire_range(def: tdef): boolean;
+
     {# Returns true, if definition defines an integer type }
     function is_integer(def : tdef) : boolean;
 
@@ -548,6 +551,47 @@ implementation
            else
              result:=0;
          end;
+      end;
+
+
+    function spans_entire_range(def: tdef): boolean;
+      var
+         lv, hv: Tconstexprint;
+         mask: qword;
+         size: longint;
+      begin
+        case def.typ of
+          orddef,
+          enumdef:
+            getrange(def,lv,hv);
+          else
+            internalerror(2019062203);
+        end;
+        size:=def.size;
+        case size of
+          1: mask:=$ff;
+          2: mask:=$ffff;
+          4: mask:=$ffffffff;
+          8: mask:=qword(-1);
+          else
+            internalerror(2019062204);
+        end;
+        result:=false;
+        if is_signed(def) then
+          begin
+            if (lv.uvalue and mask)<>(qword(1) shl (size*8-1)) then
+              exit;
+            if (hv.uvalue and mask)<>(mask shr 1) then
+              exit;
+          end
+        else
+          begin
+            if lv<>0 then
+              exit;
+            if hv.uvalue<>mask then
+              exit;
+          end;
+        result:=true;
       end;
 
 
@@ -1053,12 +1097,10 @@ implementation
            begin
              if not explicit then
                begin
-                 if ((todef.typ=enumdef) and
-                     { delphi allows range check errors in
-                      enumeration type casts FK }
-                     not(m_delphi in current_settings.modeswitches)) or
-                    (cs_check_range in current_settings.localswitches) or
-                    forcerangecheck then
+                 if (cs_check_range in current_settings.localswitches) or
+                    forcerangecheck or
+                    (not is_pasbool(todef) and
+                     not spans_entire_range(todef)) then
                    Message3(type_e_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv))
                  else
                    Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
