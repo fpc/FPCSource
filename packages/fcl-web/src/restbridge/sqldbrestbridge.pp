@@ -817,6 +817,9 @@ begin
   IO.Response.Code:=aCode;
   IO.Response.CodeText:=aExtraMessage;
   IO.RestOutput.CreateErrorContent(aCode,aExtraMessage);
+  IO.RESTOutput.FinalizeOutput;
+  IO.Response.ContentStream.Position:=0;
+  IO.Response.ContentLength:=IO.Response.ContentStream.Size;
   IO.Response.SendResponse;
 end;
 
@@ -1971,7 +1974,7 @@ begin
     // Make sure there is a document in case of error
     if (aResponse.ContentStream.Size=0) and Not ((aResponse.Code div 100)=2) then
       IO.RESTOutput.CreateErrorContent(aResponse.Code,aResponse.CodeText);
-    if Not (IO.Operation in [roOptions,roHEAD]) then
+    if Not ((IO.Operation in [roOptions,roHEAD]) or aResponse.ContentSent) then
       IO.RestOutput.FinalizeOutput;
     aResponse.ContentStream.Position:=0;
     aResponse.ContentLength:=aResponse.ContentStream.Size;
