@@ -68,11 +68,18 @@ interface
 
         function has_assembler_child : boolean;
         procedure set_eh_info; override;
+{$ifdef DEBUG_NODE_XML}
+        procedure XMLPrintProc;
+{$endif DEBUG_NODE_XML}
       end;
 
 
     procedure printnode_reset;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure XMLInitializeNodeFile(RootName, ModuleName: shortstring);
+    procedure XMLFinalizeNodeFile(RootName: shortstring);
+{$endif DEBUG_NODE_XML}
     { reads the declaration blocks }
     procedure read_declarations(islibrary : boolean);
 
@@ -1153,6 +1160,67 @@ implementation
       end;
 
 
+{$ifdef DEBUG_NODE_XML}
+    procedure tcgprocinfo.XMLPrintProc;
+      var
+        T: Text;
+        W: Word;
+        syssym: tsyssym;
+
+      procedure PrintOption(Flag: string);
+        begin
+          WriteLn(T, PrintNodeIndention, '<option>', Flag, '</option>');
+        end;
+
+      begin
+        if current_module.ppxfilefail then
+          Exit;
+
+        Assign(T, current_module.ppxfilename);
+        {$push} {$I-}
+        Append(T);
+        if IOResult <> 0 then
+          begin
+            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            current_module.ppxfilefail := True;
+            Exit;
+          end;
+        {$pop}
+        Write(T, PrintNodeIndention, '<procedure');
+        Write(T, ' name="', TNode.SanitiseXMLString(procdef.customprocname([])), '"');
+
+        if po_hascallingconvention in procdef.procoptions then
+          Write(T, ' convention="', proccalloptionStr[procdef.proccalloption], '"');
+
+        WriteLn(T, '>');
+
+        PrintNodeIndent;
+
+        if po_compilerproc in procdef.procoptions then
+          PrintOption('compilerproc');
+        if po_assembler in procdef.procoptions then
+          PrintOption('assembler');
+        if po_nostackframe in procdef.procoptions then
+          PrintOption('nostackframe');
+        if po_inline in procdef.procoptions then
+          PrintOption('inline');
+        if po_noreturn in procdef.procoptions then
+          PrintOption('noreturn');
+        if po_noinline in procdef.procoptions then
+          PrintOption('noinline');
+
+        WriteLn(T, PrintNodeIndention, '<code>');
+        PrintNodeIndent;
+        XMLPrintNode(T, Code);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</code>');
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</procedure>');
+        WriteLn(T); { Line for spacing }
+        Close(T);
+      end;
+{$endif DEBUG_NODE_XML}
+
     procedure tcgprocinfo.generate_code_tree;
       var
         hpi : tcgprocinfo;
@@ -1450,7 +1518,7 @@ implementation
 {$endif i386 or i8086}
 
         { Print the node to tree.log }
-        if paraprintnodetree=1 then
+        if paraprintnodetree <> 0 then
           printproc( 'after the firstpass');
 
         { do this before adding the entry code else the tail recursion recognition won't work,
@@ -1577,7 +1645,7 @@ implementation
             CalcExecutionWeights(code);
 
             { Print the node to tree.log }
-            if paraprintnodetree=1 then
+            if paraprintnodetree <> 0 then
               printproc( 'right before code generation');
 
             { generate code for the node tree }
@@ -2073,8 +2141,13 @@ implementation
            CreateInlineInfo;
 
          { Print the node to tree.log }
-         if paraprintnodetree=1 then
+         if paraprintnodetree <> 0 then
            printproc( 'after parsing');
+
+{$ifdef DEBUG_NODE_XML}
+         printnodeindention := printnodespacing;
+         XMLPrintProc;
+{$endif DEBUG_NODE_XML}
 
          { ... remove symbol tables }
          remove_from_symtablestack;
@@ -2491,6 +2564,50 @@ implementation
           MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure XMLInitializeNodeFile(RootName, ModuleName: shortstring);
+      var
+        T: Text;
+      begin
+        Assign(T, current_module.ppxfilename);
+        {$push} {$I-}
+        Rewrite(T);
+        if IOResult<>0 then
+          begin
+            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            current_module.ppxfilefail := True;
+            Exit;
+          end;
+        {$pop}
+        { Mark the node dump file as available for writing }
+        current_module.ppxfilefail := False;
+        WriteLn(T, '<?xml version="1.0" encoding="utf-8"?>');
+        WriteLn(T, '<', RootName, ' name="', ModuleName, '">');
+        Close(T);
+      end;
+
+
+    procedure XMLFinalizeNodeFile(RootName: shortstring);
+      var
+        T: Text;
+      begin
+        if current_module.ppxfilefail then
+          Exit;
+
+        current_module.ppxfilefail := True; { File is now considered closed no matter what happens }
+        Assign(T, current_module.ppxfilename);
+        {$push} {$I-}
+        Append(T);
+        if IOResult<>0 then
+          begin
+            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            Exit;
+          end;
+        {$pop}
+        WriteLn(T, '</', RootName, '>');
+        Close(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure read_declarations(islibrary : boolean);
       var

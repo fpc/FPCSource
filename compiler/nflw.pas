@@ -68,6 +68,10 @@ interface
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
           procedure printnodetree(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeTree(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           function docompare(p: tnode): boolean; override;
        end;
 
@@ -1052,6 +1056,119 @@ implementation
         writeln(t,printnodeindention,')');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TLoopNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TLoopFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+
+        First := True;
+        for i := Low(TLoopFlag) to High(TLoopFlag) do
+          if i in loopflags then
+            begin
+              if First then
+                begin
+                  Write(T, ' loopflags="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i)
+            end;
+        if not First then
+          Write(T, '"');
+      end;
+
+    procedure TLoopNode.XMLPrintNodeTree(var T: Text);
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        if Assigned(Left) then
+          begin
+            if nodetype = forn then
+              WriteLn(T, PrintNodeIndention, '<counter>')
+            else
+              WriteLn(T, PrintNodeIndention, '<condition>');
+            PrintNodeIndent;
+            XMLPrintNode(T, Left);
+            PrintNodeUnindent;
+            if nodetype = forn then
+              WriteLn(T, PrintNodeIndention, '</counter>')
+            else
+              WriteLn(T, PrintNodeIndention, '</condition>');
+          end;
+
+        if Assigned(Right) then
+          begin
+            case nodetype of
+              ifn:
+                WriteLn(T, PrintNodeIndention, '<then>');
+              forn:
+                WriteLn(T, PrintNodeIndention, '<first>');
+              else
+                WriteLn(T, PrintNodeIndention, '<right>');
+            end;
+            PrintNodeIndent;
+            XMLPrintNode(T, Right);
+            PrintNodeUnindent;
+            case nodetype of
+              ifn:
+                WriteLn(T, PrintNodeIndention, '</then>');
+              forn:
+                WriteLn(T, PrintNodeIndention, '</first>');
+              else
+                WriteLn(T, PrintNodeIndention, '</right>');
+            end;
+          end;
+
+        if Assigned(t1) then
+          begin
+            case nodetype of
+              ifn:
+                WriteLn(T, PrintNodeIndention, '<else>');
+              forn:
+                WriteLn(T, PrintNodeIndention, '<last>');
+              else
+                WriteLn(T, PrintNodeIndention, '<t1>');
+            end;
+            PrintNodeIndent;
+            XMLPrintNode(T, t1);
+            PrintNodeUnindent;
+            case nodetype of
+              ifn:
+                WriteLn(T, PrintNodeIndention, '</else>');
+              forn:
+                WriteLn(T, PrintNodeIndention, '</last>');
+              else
+                WriteLn(T, PrintNodeIndention, '</t1>');
+            end;
+          end;
+
+        if Assigned(t2) then
+          begin
+
+            if nodetype <> forn then
+              begin
+                WriteLn(T, PrintNodeIndention, '<loop>');
+                PrintNodeIndent;
+              end;
+
+            XMLPrintNode(T, t2);
+
+            if nodetype <> forn then
+              begin
+                PrintNodeUnindent;
+                WriteLn(T, PrintNodeIndention, '</loop>');
+              end;
+          end;
+
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
 
     function tloopnode.docompare(p: tnode): boolean;
       begin

@@ -64,6 +64,9 @@ interface
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
           procedure printnodeinfo(var t : text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean):tnode; override;
@@ -1047,6 +1050,31 @@ implementation
         write(t,']');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TTypeConvNode.XMLPrintNodeInfo(var T: Text);
+      var
+        First: Boolean;
+        i: TTypeConvNodeFlag;
+      begin
+        inherited XMLPrintNodeInfo(T);
+        Write(T,' convtype="', convtype);
+        First := True;
+        for i := Low(TTypeConvNodeFlag) to High(TTypeConvNodeFlag) do
+          if i in ConvNodeFlags then
+            begin
+              if First then
+                begin
+                  Write(T, '" convnodeflags="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i);
+           end;
+
+        { If no flags were printed, this is the closing " for convtype }
+        Write(T, '"');
+      end;
+{$endif DEBUG_NODE_XML}
 
     function ttypeconvnode.typecheck_cord_to_pointer : tnode;
 

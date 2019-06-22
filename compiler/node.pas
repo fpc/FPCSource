@@ -383,6 +383,15 @@ interface
          procedure printnodeinfo(var t:text);virtual;
          procedure printnodedata(var t:text);virtual;
          procedure printnodetree(var t:text);virtual;
+{$ifdef DEBUG_NODE_XML}
+         { For writing nodes to XML files - do not call directly, but
+           instead call XMLPrintNode to write a complete tree }
+         procedure XMLPrintNodeInfo(var T: Text); dynamic;
+         procedure XMLPrintNodeData(var T: Text); virtual;
+         procedure XMLPrintNodeTree(var T: Text); virtual;
+         class function SanitiseXMLString(const S: ansistring): ansistring;
+         class function WritePointer(const P: Pointer): ansistring;
+{$endif DEBUG_NODE_XML}
          procedure concattolist(l : tlinkedlist);virtual;
          function ischild(p : tnode) : boolean;virtual;
 
@@ -413,6 +422,9 @@ interface
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
       end;
 
       //pbinarynode = ^tbinarynode;
@@ -431,6 +443,10 @@ interface
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintNodeTree(var T: Text); override;
+         procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
          procedure printnodelist(var t:text);
       end;
 
@@ -449,11 +465,17 @@ interface
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
       end;
 
       tbinopnode = class(tbinarynode)
          constructor create(t:tnodetype;l,r : tnode);virtual;
          function docompare(p : tnode) : boolean;override;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
       end;
 
     var
@@ -476,7 +498,9 @@ interface
     procedure printnodeunindent;
     procedure printnode(var t:text;n:tnode);
     procedure printnode(n:tnode);
-
+{$ifdef DEBUG_NODE_XML}
+    procedure XMLPrintNode(var T: Text; N: TNode);
+{$endif DEBUG_NODE_XML}
     function is_constnode(p : tnode) : boolean;
     function is_constintnode(p : tnode) : boolean;
     function is_constcharnode(p : tnode) : boolean;
@@ -494,6 +518,9 @@ implementation
 
     uses
        verbose,entfile,comphook,
+{$ifdef DEBUG_NODE_XML}
+       cutils,
+{$endif DEBUG_NODE_XML}
        symconst,
        nutils,nflw,
        defutil;
@@ -656,6 +683,13 @@ implementation
         printnode(output,n);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure XMLPrintNode(var T: Text; N: TNode);
+      begin
+        if Assigned(N) then
+          N.XMLPrintNodeTree(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     function is_constnode(p : tnode) : boolean;
       begin
@@ -898,6 +932,354 @@ implementation
          writeln(t,printnodeindention,')');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    { For writing nodes to XML files - do not call directly, but
+      instead call XMLPrintNode to write a complete tree }
+    procedure tnode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TNodeFlag;
+        first: Boolean;
+      begin
+        if Assigned(resultdef) then
+          Write(T,' resultdef="', SanitiseXMLString(resultdef.typesymbolprettyname), '"');
+
+        Write(T,' pos="',fileinfo.line,',',fileinfo.column);
+
+        First := True;
+        for i := Low(TNodeFlag) to High(TNodeFlag) do
+          if i in flags then
+            begin
+              if First then
+                begin
+                  Write(T, '" flags="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i)
+            end;
+
+        write(t,'" complexity="',node_complexity(self),'"');
+      end;
+
+    procedure tnode.XMLPrintNodeData(var T: Text);
+      begin
+        { Nothing by default }
+      end;
+
+    procedure tnode.XMLPrintNodeTree(var T: Text);
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        XMLPrintNodeData(T);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+
+    class function TNode.WritePointer(const P: Pointer): ansistring;
+      begin
+        case PtrUInt(P) of
+          0:
+            WritePointer := 'nil';
+          1..$FFFF:
+            WritePointer := '$' + hexstr(PtrUInt(P), 4);
+          $10000..$FFFFFFFF:
+            WritePointer := '$' + hexstr(PtrUInt(P), 8);
+{$ifdef CPU64}
+          else
+            WritePointer := '$' + hexstr(PtrUInt(P), 16);
+{$endif CPU64}
+        end;
+      end;
+
+    class function TNode.SanitiseXMLString(const S: ansistring): ansistring;
+      var
+        X, UTF8Len, UTF8Char, CurrentChar: Integer;
+        needs_quoting, in_quotes, add_end_quote: Boolean;
+        DoASCII: Boolean;
+
+        { Write the given byte as #xxx }
+        procedure EncodeControlChar(Value: Byte);
+          begin
+            if X = Length(Result) then
+              add_end_quote := False;
+
+            Delete(Result, X, 1);
+            if in_quotes then
+              begin
+                Insert('#' + tostr(Value) + '''', Result, X);
+
+                { If the entire string consists of control characters, it
+                  doesn't need quoting, so only set the flag here }
+                needs_quoting := True;
+
+                in_quotes := False;
+              end
+            else
+              Insert('#' + tostr(Value), Result, X);
+          end;
+
+        { Write the given byte as either a plain character or an XML keyword }
+        procedure EncodeStandardChar(Value: Byte);
+          begin
+            if not in_quotes then
+              begin
+                in_quotes := True;
+                if (X < Length(Result)) then
+                  begin
+                    needs_quoting := True;
+                    Insert('''', Result, X + 1)
+                  end;
+              end;
+
+            { Check the character for anything that could be mistaken for an XML element }
+            case CurrentChar of
+              Ord('#'):
+                { Required to differentiate '#27' from the escape code #27, for example }
+                needs_quoting:=true;
+
+              Ord('<'):
+                begin
+                  Delete(Result, X, 1);
+                  Insert('&lt;', Result, X);
+                end;
+              Ord('>'):
+                begin
+                  Delete(Result, X, 1);
+                  Insert('&gt;', Result, X);
+                end;
+              Ord('&'):
+                begin
+                  Delete(Result, X, 1);
+                  Insert('&amp;', Result, X);
+                end;
+              Ord('"'):
+                begin
+                  needs_quoting := True;
+                  Delete(Result, X, 1);
+                  Insert('&quot;', Result, X);
+                end;
+              Ord(''''):
+                begin
+                  needs_quoting:=true;
+                  { Simply double it like in pascal strings }
+                  Insert('''', Result, X);
+                end;
+              else
+                { Do nothing };
+            end;
+          end;
+
+        { Convert character between $80 and $FF to UTF-8 }
+        procedure EncodeExtendedChar(Value: Byte);
+          begin
+            if not in_quotes then
+              begin
+                in_quotes := True;
+                if (X < Length(Result)) then
+                  begin
+                    needs_quoting := True;
+                    Insert('''', Result, X + 1)
+                  end;
+              end;
+
+            case Value of
+              $80..$BF: { Add $C2 before the value }
+                Insert(#$C2, Result, X);
+              $C0..$FF: { Zero the $40 bit and add $C3 before the value }
+                begin
+                  Result[X] := Char(Byte(Result[X]) and $BF);
+                  Insert(#$C3, Result, X);
+                end;
+              else
+                { Previous conditions should prevent this procedure from being
+                  called if Value < $80 }
+                InternalError(2019061901);
+            end;
+          end;
+
+      begin
+        needs_quoting := False;
+        Result := S;
+
+        { Gets set to True if an invalid UTF-8 sequence is found }
+        DoASCII := False;
+
+        { By setting in_quotes to false here, we can exclude the single
+          quotation marks surrounding the string if it doesn't contain any
+          control characters, or consists entirely of control characters. }
+        in_quotes := False;
+
+        add_end_quote := True;
+
+        X := Length(Result);
+        while X > 0 do
+          begin
+            CurrentChar := Ord(Result[X]);
+
+            { Control characters and extended characters need special handling }
+            case CurrentChar of
+              $00..$1F, $7F:
+                EncodeControlChar(CurrentChar);
+
+              $20..$7E:
+                EncodeStandardChar(CurrentChar);
+
+              { UTF-8 continuation byte }
+              $80..$BF:
+                begin
+                  if not in_quotes then
+                    begin
+                      in_quotes := True;
+                      if (X < Length(Result)) then
+                        begin
+                          needs_quoting := True;
+                          Insert('''', Result, X + 1)
+                        end;
+                    end;
+
+                  UTF8Char := CurrentChar and $3F; { The data bits of the continuation byte }
+                  UTF8Len := 1; { This variable actually holds 1 less than the length }
+
+                  { By setting DoASCII to true, it marks the string as 'invalid UTF-8'
+                    automatically if it reaches the beginning of the string unexpectedly }
+                  DoASCII := True;
+
+                  Dec(X);
+                  while X > 0 do
+                    begin
+                      CurrentChar := Ord(Result[X]);
+
+                      case CurrentChar of
+                        { A standard character here is invalid UTF-8 }
+                        $00..$7F:
+                          Break;
+
+                        { Another continuation byte }
+                        $80..$BF:
+                          begin
+                            UTF8Char := UTF8Char or ((CurrentChar and $3F) shl (6 * UTF8Len));
+
+                            Inc(UTF8Len);
+                            if UTF8Len >= 4 then
+                              { Sequence too long }
+                              Break;
+                          end;
+
+                        { Lead byte for 2-byte sequences }
+                        $C2..$DF:
+                          begin
+                            if UTF8Len <> 1 then Break;
+
+                            UTF8Char := UTF8Char or ((CurrentChar and $1F) shl 6);
+
+                            { Check to see if the code is in range and not part of an 'overlong' sequence }
+                            case UTF8Char of
+                              $0080..$07FF:
+                                DoASCII := False;
+                              else
+                                { Do nothing - DoASCII is already true }
+                            end;
+                            Break;
+                          end;
+
+                        { Lead byte for 3-byte sequences }
+                        $E0..$EF:
+                          begin
+                            if UTF8Len <> 2 then Break;
+
+                            UTF8Char := UTF8Char or ((CurrentChar and $0F) shl 12);
+
+                            { Check to see if the code is in range and not part of an 'overlong' sequence }
+                            case UTF8Char of
+                              $0800..$D7FF, $E000..$FFFF: { $D800..$DFFF is reserved and hence invalid }
+                                DoASCII := False;
+                              else
+                                { Do nothing - DoASCII is already true }
+                            end;
+                            Break;
+                          end;
+
+                        { Lead byte for 4-byte sequences }
+                        $F0..$F4:
+                          begin
+                            if UTF8Len <> 3 then Break;
+
+                            UTF8Char := UTF8Char or ((CurrentChar and $07) shl 18);
+
+                            { Check to see if the code is in range and not part of an 'overlong' sequence }
+                            case UTF8Char of
+                              $010000..$10FFFF:
+                                DoASCII := False;
+                              else
+                                { Do nothing - DoASCII is already true }
+                            end;
+                            Break;
+                          end;
+
+                        { Invalid character }
+                        else
+                          Break;
+                      end;
+                    end;
+
+                  if DoASCII then
+                    Break;
+
+                  { If all is fine, we don't need to encode any more characters }
+                end;
+
+              { Invalid UTF-8 bytes and lead bytes without continuation bytes }
+              $C0..$FF:
+                begin
+                  DoASCII := True;
+                  Break;
+                end;
+            end;
+
+            Dec(X);
+          end;
+
+        { UTF-8 failed, so encode the string as plain ASCII }
+        if DoASCII then
+          begin
+            { Reset the flags and Result }
+            needs_quoting := False;
+            Result := S;
+            in_quotes := False;
+            add_end_quote := True;
+
+            for X := Length(Result) downto 1 do
+              begin
+                CurrentChar := Ord(Result[X]);
+
+                { Control characters and extended characters need special handling }
+                case CurrentChar of
+                  $00..$1F, $7F:
+                    EncodeControlChar(CurrentChar);
+
+                  $20..$7E:
+                    EncodeStandardChar(CurrentChar);
+
+                  { Extended characters }
+                  else
+                    EncodeExtendedChar(CurrentChar);
+
+                end;
+              end;
+          end;
+
+        if needs_quoting then
+          begin
+            if in_quotes then
+              Result := '''' + Result;
+
+            if add_end_quote then
+              Result := Result + '''';
+          end;
+      end;
+{$endif DEBUG_NODE_XML}
 
     function tnode.isequal(p : tnode) : boolean;
       begin
@@ -1058,6 +1440,13 @@ implementation
          printnode(t,left);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TUnaryNode.XMLPrintNodeData(var T: Text);
+      begin
+         inherited XMLPrintNodeData(T);
+         XMLPrintNode(T, Left);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure tunarynode.concattolist(l : tlinkedlist);
       begin
@@ -1185,6 +1574,26 @@ implementation
          printnode(t,right);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TBinaryNode.XMLPrintNodeTree(var T: Text);
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        XMLPrintNodeData(T);
+      end;
+
+
+    procedure TBinaryNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        { Right nodes are on the same indentation level }
+        XMLPrintNode(T, Right);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure tbinarynode.printnodelist(var t:text);
       var
@@ -1286,6 +1695,21 @@ implementation
          printnode(t,third);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TTertiaryNode.XMLPrintNodeData(var T: Text);
+      begin
+         if Assigned(Third) then
+           begin
+             WriteLn(T, PrintNodeIndention, '<third-branch>');
+             PrintNodeIndent;
+             XMLPrintNode(T, Third);
+             PrintNodeUnindent;
+             WriteLn(T, PrintNodeIndention, '</third-branch>');
+           end;
+
+         inherited XMLPrintNodeData(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure ttertiarynode.concattolist(l : tlinkedlist);
       begin
@@ -1319,6 +1743,18 @@ implementation
             left.isequal(tbinopnode(p).right) and
             right.isequal(tbinopnode(p).left));
       end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TBinOpNode.XMLPrintNodeData(var T: Text);
+      begin
+        { For binary operations, put the left and right branches on the same level for clarity }
+        XMLPrintNode(T, Left);
+        XMLPrintNode(T, Right);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
+
 
 begin
 {$push}{$warnings off}
