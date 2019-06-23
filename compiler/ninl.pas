@@ -2514,13 +2514,14 @@ implementation
                         else
                           vl:=tordconstnode(left).value-1;
                         if is_integer(left.resultdef) then
-                        { the type of the original integer constant is irrelevant,
-                          it should be automatically adapted to the new value
-                          (except when inlining) }
+                          { the type of the original integer constant is irrelevant,
+                            it should be automatically adapted to the new value
+                            (except when inlining) }
                           result:=create_simplified_ord_const(vl,resultdef,forinline)
                         else
                           { check the range for enums, chars, booleans }
-                          result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags))
+                          result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags));
+                        result.flags:=result.flags+(flags*[nf_internal]);
                       end;
                     addn,
                     subn:
@@ -2866,9 +2867,9 @@ implementation
                  (index.left.nodetype = ordconstn) and
                  not is_special_array(unpackedarraydef) then
                 begin
-                  testrange(unpackedarraydef,tordconstnode(index.left).value,false,false);
+                  adaptrange(unpackedarraydef,tordconstnode(index.left).value,rc_default);
                   tempindex := tordconstnode(index.left).value + packedarraydef.highrange-packedarraydef.lowrange;
-                  testrange(unpackedarraydef,tempindex,false,false);
+                  adaptrange(unpackedarraydef,tempindex,rc_default);
                 end;
             end;
 

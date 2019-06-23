@@ -1482,9 +1482,13 @@ implementation
              result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef)
            else
              begin
-               if is_currency(left.resultdef) and
-                  not(nf_internal in flags) then
-                 v:=v div 10000;
+               if is_currency(left.resultdef) then
+                 begin
+                  if not(nf_internal in flags) then
+                    v:=v div 10000;
+                 end
+               else if (resultdef.typ in [orddef,enumdef]) then
+                 adaptrange(resultdef,v,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags);
                result:=cordconstnode.create(v,resultdef,false);
              end;
          end
@@ -3073,12 +3077,10 @@ implementation
                      end
                    else
                      begin
-                       { for constant values on absolute variables, swaping is required }
+                       { for constant values on absolute variables, swapping is required }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
-                       if not(nf_internal in flags) then
-                         testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags)
-                                   or (nf_absolute in flags),false);
+                       adaptrange(resultdef,tordconstnode(left).value,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags);
                        { swap value back, but according to new type }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,resultdef.size);

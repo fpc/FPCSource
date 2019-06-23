@@ -1986,7 +1986,7 @@ implementation
            if (def1.typ = orddef) and (def2.typ = orddef) then
             Begin
               { see p.47 of Turbo Pascal 7.01 manual for the separation of types }
-              { range checking for case statements is done with testrange        }
+              { range checking for case statements is done with adaptrange        }
               case torddef(def1).ordtype of
                 u8bit,u16bit,u32bit,u64bit,
                 s8bit,s16bit,s32bit,s64bit :
