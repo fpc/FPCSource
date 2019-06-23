@@ -1246,6 +1246,8 @@ begin
       FCodePage := CP_UTF8;
     'win1250','cp1250':
       FCodePage := 1250;
+    'win1251','cp1251':
+      FCodePage := 1251;
     'win1252','cp1252','latin1','iso8859_1':
       FCodePage := 1252;
     else
