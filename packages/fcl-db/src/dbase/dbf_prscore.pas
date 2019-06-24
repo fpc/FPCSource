@@ -331,6 +331,7 @@ begin
     ExprTree := nil;
     ExpColl := TExprCollection.Create;
     try
+      FConstantsList.FreeAll; 
       //    FCurrentExpression := anExpression;
       ParseString(AnExpression, ExpColl);
       Check(ExpColl);
