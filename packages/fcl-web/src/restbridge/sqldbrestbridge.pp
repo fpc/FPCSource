@@ -322,6 +322,7 @@ Type
     procedure HandleMetadataRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleConnRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleRequest(aRequest : TRequest; aResponse : TResponse);
+    Procedure VerifyPathInfo(aRequest : TRequest);
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : Array of String; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
     Function ExposeConnection(aOwner : TComponent; Const aConnection : TSQLDBRestConnection; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestSchema;
@@ -2000,6 +2001,42 @@ begin
 
     IO.Free;
   end;
+end;
+
+procedure TSQLDBRestDispatcher.VerifyPathInfo(aRequest: TRequest);
+Var
+  Full,Path : String;
+  BasePaths : TStringArray;
+  I : Integer;
+
+begin
+  // Check & discard basepath parts of the URL
+  Path:=aRequest.GetNextPathInfo;
+  Full:=BasePath;
+  BasePaths:=Full.Split('/',TStringSplitOptions.ExcludeEmpty);
+  I:=0;
+  While (I<Length(BasePaths)) and SameText(Path,BasePaths[i]) do
+    begin
+    inc(I);
+    Path:=aRequest.GetNextPathInfo;
+    end;
+  if (I<Length(BasePaths)) then
+    Raise ESQLDBRest.Create(400,'NOT FOUND');
+  // Path1 is now either connection or resource
+  if (rdoConnectionInURL in DispatchOptions) then
+    begin
+    // Both /metadata and /connection/metadata are possible
+    if not ((rdoExposeMetadata in DispatchOptions) and SameText(Path,Strings.getRestString(rpMetadataResourceName))) then
+      begin
+      aRequest.RouteParams['connection']:=Path;
+      Path:=aRequest.GetNextPathInfo;
+      end;
+    end;
+  aRequest.RouteParams['resource']:=Path;
+  // Next part is ID
+  Path:=aRequest.GetNextPathInfo;
+  if (Path<>'') then
+    aRequest.RouteParams['ID']:=Path;
 end;
 
 function TSQLDBRestDispatcher.ExposeDatabase(const aType, aHostName, aDatabaseName, aUserName, aPassword: String;
