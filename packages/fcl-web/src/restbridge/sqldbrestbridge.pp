@@ -493,9 +493,16 @@ end;
 
 procedure TSQLDBRestDispatcher.SetDispatchOptions(AValue: TRestDispatcherOptions);
 
+Var
+  DeleteConnection : Boolean;
+
 begin
+  DeleteConnection:=(rdoConnectionInURL in FDispatchOptions) and Not (rdoConnectionInURL in aValue);
   if (rdoConnectionResource in aValue) then
-    Include(aValue,rdoConnectionInURL);
+    if DeleteConnection then // if user disables rdoConnectionInURL, we disable rdoConnectionResource.
+      exclude(aValue,rdoConnectionResource)
+    else // else we include rdoConnectionInURL...
+      Include(aValue,rdoConnectionInURL);
   if FDispatchOptions=AValue then Exit;
   FDispatchOptions:=AValue;
 end;
