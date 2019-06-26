@@ -40,7 +40,7 @@ uses
   {$ifdef NODEJS}
   NodeJSFS,
   {$endif}
-  SysUtils, Classes, PasTree, PScanner;
+  SysUtils, Classes, Types, PasTree, PScanner;
 
 // message numbers
 const
@@ -616,6 +616,79 @@ begin
     Result:=ParseSource(AEngine,FPCCommandLine, OSTarget, CPUTarget,[]);
 end;
 {$endif}
+
+{$IF FPC_FULLVERSION<30301}
+Function SplitCommandLine(S: String) : TStringDynArray;
+
+  Function GetNextWord : RawByteString;
+
+  Const
+    WhiteSpace = [' ',#9,#10,#13];
+    Literals = ['"',''''];
+
+  Var
+    Wstart,wend : Integer;
+    InLiteral : Boolean;
+    LastLiteral : AnsiChar;
+
+    Procedure AppendToResult;
+
+    begin
+      Result:=Result+Copy(S,WStart,WEnd-WStart);
+      WStart:=Wend+1;
+    end;
+
+  begin
+    Result:='';
+    WStart:=1;
+    While (WStart<=Length(S)) and charinset(S[WStart],WhiteSpace) do
+      Inc(WStart);
+    WEnd:=WStart;
+    InLiteral:=False;
+    LastLiteral:=#0;
+    While (Wend<=Length(S)) and (Not charinset(S[Wend],WhiteSpace) or InLiteral) do
+      begin
+      if charinset(S[Wend],Literals) then
+        If InLiteral then
+          begin
+          InLiteral:=Not (S[Wend]=LastLiteral);
+          if not InLiteral then
+            AppendToResult;
+          end
+        else
+          begin
+          InLiteral:=True;
+          LastLiteral:=S[Wend];
+          AppendToResult;
+          end;
+       inc(wend);
+       end;
+     AppendToResult;
+     While (WEnd<=Length(S)) and (S[Wend] in WhiteSpace) do
+       inc(Wend);
+     Delete(S,1,WEnd-1);
+  end;
+
+Var
+  W : RawByteString;
+  len : Integer;
+
+begin
+  Len:=0;
+  Result:=Default(TStringDynArray);
+  SetLength(Result,(Length(S) div 2)+1);
+  While Length(S)>0 do
+    begin
+    W:=GetNextWord;
+    If (W<>'') then
+      begin
+      Result[Len]:=W;
+      Inc(Len);
+      end;
+    end;
+  SetLength(Result,Len);
+end;
+{$ENDIF}
 
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String;
