@@ -8244,7 +8244,8 @@ end;
 procedure TTestModule.TestArray_Dynamic;
 begin
   StartProgram(false);
-  Add(['type',
+  Add([
+  'type',
   '  TArrayInt = array of longint;',
   'var',
   '  Arr: TArrayInt;',
@@ -9705,10 +9706,15 @@ begin
   '  public',
   '    Property LongMonthNames : TMonthNames Read GetLongMonthNames;',
   '  end;',
-  'var f: TObject;',
+  'var',
+  '  f: TObject;',
   '  Month: string;',
+  '  Names: array of string = (''a'',''foo'',''bar'');',
+  '  i: longint;',
   'begin',
   '  for Month in f.LongMonthNames do ;',
+  '  for Month in Names do ;',
+  '  for i:=low(Names) to high(Names) do ;',
   '']);
   ConvertProgram;
   CheckSource('TestArray_ForInArrOfString',
@@ -9721,9 +9727,13 @@ begin
     '});',
     'this.f = null;',
     'this.Month = "";',
+    'this.Names = ["a", "foo", "bar"];',
+    'this.i = 0;',
     '']),
     LinesToStr([ // $mod.$main
     'for (var $in1 = $mod.f.GetLongMonthNames(), $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) $mod.Month = $in1[$l2];',
+    'for (var $in4 = $mod.Names, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) $mod.Month = $in4[$l5];',
+    'for (var $l7 = 0, $end8 = rtl.length($mod.Names) - 1; $l7 <= $end8; $l7++) $mod.i = $l7;',
     '']));
 end;
 
