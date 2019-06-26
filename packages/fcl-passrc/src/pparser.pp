@@ -511,7 +511,9 @@ Function TokenToAssignKind( tk : TToken) : TAssignKind;
 
 implementation
 
+{$IF FPC_FULLVERSION>=30301}
 uses strutils;
+{$ENDIF}
 
 const
   WhitespaceTokensToIgnore = [tkWhitespace, tkComment, tkLineEnding, tkTab];
@@ -711,7 +713,6 @@ function ParseSource(AEngine: TPasTreeContainer;
 var
   FileResolver: TBaseFileResolver;
   Parser: TPasParser;
-  Start, CurPos: integer; // in FPCCommandLine
   Filename: String;
   Scanner: TPascalScanner;
 
