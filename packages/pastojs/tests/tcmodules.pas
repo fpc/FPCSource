@@ -787,6 +787,7 @@ type
     Procedure TestRTTI_DefaultValueRangeType;
     Procedure TestRTTI_DefaultValueInherit;
     Procedure TestRTTI_OverrideMethod;
+    Procedure TestRTTI_ReintroduceMethod;
     Procedure TestRTTI_OverloadProperty;
     // ToDo: array argument
     Procedure TestRTTI_ClassForward;
@@ -27155,8 +27156,8 @@ begin
   Add('    procedure Proc(Sender: tobject); virtual; abstract;');
   Add('  end;');
   Add('begin');
-  SetExpectedPasResolverError('Duplicate identifier "Proc" at test1.pp(6,19)',
-    nDuplicateIdentifier);
+  SetExpectedPasResolverError('Duplicate published method "Proc" at test1.pp(6,19)',
+    nDuplicatePublishedMethodXAtY);
   ConvertProgram;
 end;
 
@@ -28033,6 +28034,51 @@ begin
     'rtl.createClass($mod, "TSky", $mod.TObject, function () {',
     '  this.DoIt = function () {',
     '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_ReintroduceMethod;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  published',
+  '    procedure DoIt;',
+  '  end;',
+  '  TSky = class',
+  '  published',
+  '    procedure DoIt; reintroduce;',
+  '  end;',
+  'procedure TObject.DoIt; begin end;',
+  'procedure TSky.DoIt;',
+  'begin',
+  '  inherited DoIt;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRTTI_ReintroduceMethod',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("DoIt", 0, null);',
+    '});',
+    'rtl.createClass($mod, "TSky", $mod.TObject, function () {',
+    '  this.DoIt = function () {',
+    '    $mod.TObject.DoIt.call(this);',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("DoIt", 0, null);',
     '});',
     '']),
     LinesToStr([ // $mod.$main

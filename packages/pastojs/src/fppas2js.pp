@@ -2806,7 +2806,10 @@ begin
   else if C.InheritsFrom(TPasProcedure) then
     begin
     if TPasProcedure(El).IsOverride then
-      exit(true);
+      exit(true); // using name of overridden
+    if El.Visibility=visPublished then
+      exit(false);
+
     // Note: external proc pollutes the name space
     ProcScope:=TPasProcedureScope(El.CustomData);
     if ProcScope.DeclarationProc<>nil then
