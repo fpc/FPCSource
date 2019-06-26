@@ -92,6 +92,10 @@ implementation
     sysconst,
     windirs;
 
+var 
+  FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoBasic;
+  FindFirstAdditionalFlags : DWord = 0;
+
 function WinCheck(res:boolean):boolean;
   begin
     if not res then
@@ -468,7 +472,7 @@ begin
             end;
           end;
 
-          Handle := FindFirstFileExW(PUnicodeChar(FileName), FindExInfoBasic, @SymLinkRec.FindData,
+          Handle := FindFirstFileExW(PUnicodeChar(FileName), FindExInfoDefaults , @SymLinkRec.FindData,
                       FindExSearchNameMatch, Nil, 0);
           if Handle <> INVALID_HANDLE_VALUE then begin
             Windows.FindClose(Handle);
@@ -498,7 +502,7 @@ const
     Handle: THandle;
   begin
     { FindFirstFileEx is faster than FindFirstFile }
-    Handle := FindFirstFileExW(PUnicodeChar(FileOrDirName), FindExInfoBasic, @FindData,
+    Handle := FindFirstFileExW(PUnicodeChar(FileOrDirName), FindExInfoDefaults , @FindData,
                 FindExSearchNameMatch, Nil, 0);
     Result := Handle <> INVALID_HANDLE_VALUE;
     if Result then begin
@@ -587,7 +591,9 @@ begin
   Rslt.ExcludeAttr:=(not Attr) and ($1e);
                  { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   { FindFirstFile is a Win32 Call }
-  Rslt.FindHandle:=FindFirstFileW (PWideChar(Path),Rslt.FindData);
+  Rslt.FindHandle:=FindFirstFileExW(PUnicodeChar(Path), FindExInfoDefaults , @Rslt.FindData,
+                      FindExSearchNameMatch, Nil, FindFirstAdditionalFlags);
+
   If Rslt.FindHandle=Invalid_Handle_value then
    begin
      Result:=GetLastError;
@@ -1386,6 +1392,10 @@ begin
   kernel32dll:=GetModuleHandle('kernel32');
   if kernel32dll<>0 then
     GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
+  if Win32MajorVersion<6 then
+     FindExInfoDefaults := FindExInfoStandard; // also searches SFNs. XP only.
+  if (Win32MajorVersion>=6) and (Win32MinorVersion>=1) then 
+    FindFirstAdditionalFlags := FIND_FIRST_EX_LARGE_FETCH; // win7 and 2008R2+
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;
