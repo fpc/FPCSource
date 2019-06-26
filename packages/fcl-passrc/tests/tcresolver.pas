@@ -11326,7 +11326,7 @@ begin
   Add('procedure TObject.DoIt; begin end;');
   Add('procedure TObject.DoIt(i: longint); begin end;');
   Add('begin');
-  CheckResolverException(sDuplicateIdentifier,nDuplicateIdentifier);
+  CheckResolverException(sDuplicatePublishedMethodXAtY,nDuplicatePublishedMethodXAtY);
 end;
 
 procedure TTestResolver.TestNestedClass;

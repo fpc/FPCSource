@@ -189,6 +189,7 @@ const
   nCreatingAnInstanceOfAbstractClassY = 3123;
   nIllegalExpressionAfterX = 3124;
   nMethodHidesNonVirtualMethodExactly = 3125;
+  nDuplicatePublishedMethodXAtY = 3126;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -325,6 +326,7 @@ resourcestring
   sCreatingAnInstanceOfAbstractClassY = 'Creating an instance of abstract class "%s"';
   sIllegalExpressionAfterX = 'illegal expression after %s';
   sMethodHidesNonVirtualMethodExactly = 'method hides identifier at "%s". Use reintroduce';
+  sDuplicatePublishedMethodXAtY = 'Duplicate published method "%s" at %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

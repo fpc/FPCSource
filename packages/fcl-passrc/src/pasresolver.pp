@@ -5005,7 +5005,13 @@ begin
           and (OlderIdentifier.Element.Parent.Parent<>Scope.Element) then
         // this enum was propagated from a sub type -> remove enum
         Scope.RemoveLocalIdentifier(OlderIdentifier.Element);
-      RaiseMsg(20170216151530,nDuplicateIdentifier,sDuplicateIdentifier,
+      if (El.Visibility=visPublished) and (El is TPasProcedure)
+          and (OlderIdentifier.Element is TPasProcedure) then
+        RaiseMsg(20190626175432,nDuplicatePublishedMethodXAtY,
+                 sDuplicatePublishedMethodXAtY,
+                 [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El)
+      else
+        RaiseMsg(20170216151530,nDuplicateIdentifier,sDuplicateIdentifier,
                [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El);
       end;
 
