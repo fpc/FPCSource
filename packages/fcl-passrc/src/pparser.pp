@@ -620,7 +620,7 @@ end;
 {$IF FPC_FULLVERSION<30301}
 Function SplitCommandLine(S: String) : TStringDynArray;
 
-  Function GetNextWord : RawByteString;
+  Function GetNextWord : String;
 
   Const
     WhiteSpace = [' ',#9,#10,#13];
@@ -629,7 +629,7 @@ Function SplitCommandLine(S: String) : TStringDynArray;
   Var
     Wstart,wend : Integer;
     InLiteral : Boolean;
-    LastLiteral : AnsiChar;
+    LastLiteral : Char;
 
     Procedure AppendToResult;
 
@@ -670,7 +670,7 @@ Function SplitCommandLine(S: String) : TStringDynArray;
   end;
 
 Var
-  W : RawByteString;
+  W : String;
   len : Integer;
 
 begin
