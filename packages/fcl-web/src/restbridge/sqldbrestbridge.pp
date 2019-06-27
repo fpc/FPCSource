@@ -27,7 +27,8 @@ Type
                            rdoCustomView,          // Expose custom view /customview
                            rdoHandleCORS,          // Handle CORS requests
                            rdoAccessCheckNeedsDB,  // Authenticate after connection to database was made.
-                           rdoConnectionResource   // Enable connection managament through /_connection[/:Conn] resource
+                           rdoConnectionResource,   // Enable connection managament through /_connection[/:Conn] resource
+                           rdoEmptyCORSDomainToOrigin // if CORSAllowedOrigins is empty CORS requests will mirror Origin instead of *
                            // rdoServerInfo        // Enable querying server info through /_serverinfo  resource
                            );
 
@@ -1629,22 +1630,29 @@ function TSQLDBRestDispatcher.ResolvedCORSAllowedOrigins(aRequest : TRequest): S
 
 Var
   URl : String;
+  uri : TURI;
 
 begin
   Result:=FCORSAllowedOrigins;
   if Result='' then
     begin
     // Sent with CORS request
-    URL:=aRequest.GetCustomHeader('Origin');
-    // Fallback
-    if URL='' then
+    Result:=aRequest.GetCustomHeader('Origin');
+    if (Result='') and (rdoEmptyCORSDomainToOrigin in DispatchOptions) then
+      begin
+      // Fallback
       URL:=aRequest.Referer;
-    // Extract hostname
-    if (URL<>'') then
-      Result:=ParseURI(URL).Host;
+      if (URL<>'') then
+        begin
+        uri:=ParseURI(URL,'http',0);
+        Result:=Format('%s://%s',[URI.Protocol,URI.Host]);
+        if (URI.Port<>0) then
+          Result:=Result+':'+IntToStr(URI.Port);
+        end;
+      end;
     end;
   if Result='' then
-     Result:='*';
+    Result:='*';
 end;
 
 procedure TSQLDBRestDispatcher.HandleCORSRequest(aConnection : TSQLDBRestConnection; IO : TRestIO);
