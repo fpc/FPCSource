@@ -52,7 +52,7 @@ Resourcestring
 
 Const
   DefaultAuthenticationRealm = 'REST API Server';
-  ISODateTimeFormat = 'YYYY"-"mm"-"dd"T"hh":"nn":"ss"';
+  ISODateTimeFormat = 'YYYY"-"mm"-"dd"T"hh":"nn":"ss';
   ISODateFormat = ISODateTimeFormat;
   ISOTimeFormat = '"0000-00-00T"hh":"nn":"ss"';
 
