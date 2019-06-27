@@ -742,9 +742,13 @@ Implementation
 
     Function TExternalAssembler.DoPipe:boolean;
       begin
+{$ifdef hasunix}
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
                 ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang,as_solaris_as]));
+{$else hasunix}
+        DoPipe:=false;
+{$endif}
       end;
 
 
