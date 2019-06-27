@@ -308,7 +308,7 @@ Type
     // General HTTP handling
     procedure DoRegisterRoutes; virtual;
     procedure DoHandleEvent(IsBefore : Boolean;IO: TRestIO); virtual;
-    function ResolvedCORSAllowedOrigins: String; virtual;
+    function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
     procedure HandleCORSRequest(aConnection: TSQLDBRestConnection; IO: TRestIO); virtual;
     procedure HandleResourceRequest(aConnection : TSQLDBRestConnection; IO: TRestIO); virtual;
     procedure DoHandleRequest(IO: TRestIO); virtual;
@@ -410,7 +410,7 @@ Const
 
 implementation
 
-uses fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
+uses uriparser, fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
 
 Type
 
@@ -1625,10 +1625,24 @@ begin
     end
 end;
 
-function TSQLDBRestDispatcher.ResolvedCORSAllowedOrigins: String;
+function TSQLDBRestDispatcher.ResolvedCORSAllowedOrigins(aRequest : TRequest): String;
+
+Var
+  URl : String;
 
 begin
   Result:=FCORSAllowedOrigins;
+  if Result='' then
+    begin
+    // Sent with CORS request
+    URL:=aRequest.GetCustomHeader('Origin');
+    // Fallback
+    if URL='' then
+      URL:=aRequest.Referer;
+    // Extract hostname
+    if (URL<>'') then
+      Result:=ParseURI(URL).Host;
+    end;
   if Result='' then
      Result:='*';
 end;
