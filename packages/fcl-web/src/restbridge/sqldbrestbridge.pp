@@ -1666,7 +1666,7 @@ begin
     end
   else
     begin
-    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins);
+    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(IO.Request));
     S:=IO.Resource.GetHTTPAllow;
     IO.Response.SetCustomHeader('Access-Control-Allow-Methods',S);
     IO.Response.SetCustomHeader('Access-Control-Allow-Headers','x-requested-with, content-type, authorization');
@@ -1706,7 +1706,7 @@ begin
         Conn.OnLog:=@IO.DoSQLLog;
         end;
       if (rdoHandleCORS in DispatchOptions) then
-        IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins);
+        IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(IO.Request));
       if not AuthenticateRequest(IO,True) then
         exit;
       if Not CheckResourceAccess(IO) then
