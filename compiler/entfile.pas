@@ -257,7 +257,7 @@ type
     constructor create(const fn:string);
     destructor  destroy;override;
     function getversion:integer;
-    procedure flush;
+    procedure flush; {$ifdef USEINLINE}inline;{$endif}
     procedure closefile;virtual;
     procedure newentry;
     property position:longint read getposition write setposition;
@@ -278,9 +278,9 @@ type
     procedure readdata(out b;len:integer);
     procedure skipdata(len:integer);
     function  readentry:byte;
-    function  EndOfEntry:boolean;
-    function  entrysize:longint;
-    function  entryleft:longint;
+    function  EndOfEntry:boolean; {$ifdef USEINLINE}inline;{$endif}
+    function  entrysize:longint; {$ifdef USEINLINE}inline;{$endif}
+    function  entryleft:longint; {$ifdef USEINLINE}inline;{$endif}
     procedure getdatabuf(out b;len:integer;out res:integer);
     procedure getdata(out b;len:integer);
     function  getbyte:byte;
@@ -289,14 +289,14 @@ type
     function  getlongint:longint;
     function getint64:int64;
     function  getqword:qword;
-    function getaint:{$ifdef generic_cpu}int64{$else}aint{$endif};
-    function getasizeint:{$ifdef generic_cpu}int64{$else}asizeint{$endif};
-    function getpuint:{$ifdef generic_cpu}qword{$else}puint{$endif};
-    function getptruint:{$ifdef generic_cpu}qword{$else}TConstPtrUInt{$endif};
-    function getaword:{$ifdef generic_cpu}qword{$else}aword{$endif};
+    function getaint:{$ifdef generic_cpu}int64{$else}aint{$ifdef USEINLINE}; inline{$endif}{$endif};
+    function getasizeint:{$ifdef generic_cpu}int64{$else}asizeint{$ifdef USEINLINE}; inline{$endif}{$endif};
+    function getpuint:{$ifdef generic_cpu}qword{$else}puint{$ifdef USEINLINE}; inline{$endif}{$endif};
+    function getptruint:{$ifdef generic_cpu}qword{$else}TConstPtrUInt{$ifdef USEINLINE}; inline{$endif}{$endif};
+    function getaword:{$ifdef generic_cpu}qword{$else}aword{$ifdef USEINLINE}; inline{$endif}{$endif};
     function  getreal:entryreal;
     function  getrealsize(sizeofreal : longint):entryreal;
-    function  getboolean:boolean;inline;
+    function  getboolean:boolean; {$ifdef USEINLINE}inline;{$endif}
     function  getstring:string;
     function  getpshortstring:pshortstring;
     function  getansistring:ansistring;
@@ -311,23 +311,23 @@ type
     procedure writedata(const b;len:integer);
     procedure writeentry(ibnr:byte);
     procedure putdata(const b;len:integer);virtual;
-    procedure putbyte(b:byte);
-    procedure putword(w:word);
-    procedure putdword(w:dword);
-    procedure putlongint(l:longint);
-    procedure putint64(i:int64);
-    procedure putqword(q:qword);
-    procedure putaint(i:aint);
-    procedure putasizeint(i:asizeint);
-    procedure putpuint(i:puint);
-    procedure putptruint(v:TConstPtrUInt);
-    procedure putaword(i:aword);
+    procedure putbyte(b:byte); {$ifdef USEINLINE}inline;{$endif}
+    procedure putword(w:word); {$ifdef USEINLINE}inline;{$endif}
+    procedure putdword(w:dword); {$ifdef USEINLINE}inline;{$endif}
+    procedure putlongint(l:longint); {$ifdef USEINLINE}inline;{$endif}
+    procedure putint64(i:int64); {$ifdef USEINLINE}inline;{$endif}
+    procedure putqword(q:qword); {$ifdef USEINLINE}inline;{$endif}
+    procedure putaint(i:aint); {$ifdef USEINLINE}inline;{$endif}
+    procedure putasizeint(i:asizeint); {$ifdef USEINLINE}inline;{$endif}
+    procedure putpuint(i:puint); {$ifdef USEINLINE}inline;{$endif}
+    procedure putptruint(v:TConstPtrUInt); {$ifdef USEINLINE}inline;{$endif}
+    procedure putaword(i:aword); {$ifdef USEINLINE}inline;{$endif}
     procedure putreal(d:entryreal);
-    procedure putboolean(b:boolean);inline;
-    procedure putstring(const s:string);
+    procedure putboolean(b:boolean); {$ifdef USEINLINE}inline;{$endif}
+    procedure putstring(const s:string); {$ifdef USEINLINE}inline;{$endif}
     procedure putansistring(const s:ansistring);
-    procedure putnormalset(const b);
-    procedure putsmallset(const b);
+    procedure putnormalset(const b); {$ifdef USEINLINE}inline;{$endif}
+    procedure putsmallset(const b); {$ifdef USEINLINE}inline;{$endif}
     procedure tempclose;        // MG: not used, obsolete?
     function  tempopen:boolean; // MG: not used, obsolete?
   end;
