@@ -331,6 +331,8 @@ interface
        { if the complexity of n is "high", creates a reference temp to n's
          location and replace n with a ttemprefnode referring to that location }
        function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
+       { same as above, but create a regular temp rather than reference temp }
+       function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
 
 implementation
 
@@ -395,6 +397,20 @@ implementation
           end;
       end;
 
+    function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
+      begin
+        result:=nil;
+        if node_complexity(n) > 4 then
+          begin
+            result:=ctempcreatenode.create_value(n.resultdef,size,tt_persistent,allowreg,n);
+            typecheckpass(tnode(result));
+            n:=ctemprefnode.create(result);
+            typecheckpass(n);
+            if not assigned(stat) then
+              block:=internalstatements(stat);
+            addstatement(stat,result)
+          end;
+      end;
 
 {*****************************************************************************
                              TFIRSTNOTHING

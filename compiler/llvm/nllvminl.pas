@@ -36,6 +36,7 @@ interface
 
         function first_get_frame: tnode; override;
         function first_abs_real: tnode; override;
+        function first_bitscan: tnode; override;
         function first_fma: tnode; override;
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
@@ -147,6 +148,73 @@ implementation
         { reused }
         left:=nil;
       end;
+
+
+    function tllvminlinenode.first_bitscan: tnode;
+      var
+        leftdef: tdef;
+        resulttemp,
+        lefttemp: ttempcreatenode;
+        stat: tstatementnode;
+        block: tblocknode;
+        cntresult: tnode;
+        procname: string[15];
+      begin
+        {
+          if left<>0 then
+            result:=llvm_ctlz/cttz(unsigned(left),true)
+          else
+            result:=255;
+        }
+        if inlinenumber=in_bsr_x then
+          procname:='LLVM_CTLZ'
+        else
+          procname:='LLVM_CTTZ';
+        leftdef:=left.resultdef;
+        block:=internalstatements(stat);
+        resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+        addstatement(stat,resulttemp);
+        lefttemp:=maybereplacewithtemp(left,block,stat,left.resultdef.size,true);
+        cntresult:=
+          ccallnode.createintern(
+            procname,
+            ccallparanode.create(cordconstnode.create(1,llvmbool1type,false),
+              ccallparanode.create(
+                ctypeconvnode.create_explicit(left,get_unsigned_inttype(leftdef)),nil
+              )
+            )
+          );
+        { ctlz returns the number of leading zero bits, while bsr returns the bit
+          number of the first non-zero bit (with the least significant bit as 0)
+          -> invert result }
+        if inlinenumber=in_bsr_x then
+          begin
+            cntresult:=
+              caddnode.create(xorn,
+                cntresult,
+                genintconstnode(leftdef.size*8-1)
+              );
+          end;
+        addstatement(stat,
+          cifnode.create(caddnode.create(unequaln,left.getcopy,genintconstnode(0)),
+            cassignmentnode.create(
+              ctemprefnode.create(resulttemp),
+              cntresult
+            ),
+            cassignmentnode.create(
+              ctemprefnode.create(resulttemp),
+              genintconstnode(255)
+            )
+          )
+        );
+        if assigned(lefttemp) then
+          addstatement(stat,ctempdeletenode.create(lefttemp));
+        addstatement(stat,ctempdeletenode.create_normal_temp(resulttemp));
+        addstatement(stat,ctemprefnode.create(resulttemp));
+        left:=nil;
+        result:=block;
+      end;
+
 
     function tllvminlinenode.first_fma: tnode;
       var

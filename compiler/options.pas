@@ -4445,7 +4445,7 @@ begin
 {$endif ARM}
 
 { inline bsf/bsr implementation }
-{$if not defined(llvm) and (defined(i386) or defined(x86_64) or defined(aarch64) or defined(powerpc) or defined(powerpc64))}
+{$if defined(i386) or defined(x86_64) or defined(aarch64) or defined(powerpc) or defined(powerpc64)}
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}
@@ -4459,7 +4459,7 @@ begin
     end;
 {$endif defined(i386) or defined(x86_64)}
 
-{$if defined(arm) and not defined(llvm)}
+{$if defined(arm)}
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }

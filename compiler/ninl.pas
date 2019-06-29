@@ -88,6 +88,7 @@ interface
           function first_assigned: tnode; virtual;
           function first_assert: tnode; virtual;
           function first_popcnt: tnode; virtual;
+          function first_bitscan: tnode; virtual;
           { override these for Seg() support }
           function typecheck_seg: tnode; virtual;
           function first_seg: tnode; virtual;
@@ -4090,10 +4091,11 @@ implementation
          in_rol_x,
          in_rol_x_y,
          in_ror_x,
-         in_ror_x_y,
+         in_ror_x_y:
+           expectloc:=LOC_REGISTER;
          in_bsf_x,
          in_bsr_x:
-           expectloc:=LOC_REGISTER;
+           result:=first_bitscan;
          in_sar_x,
          in_sar_x_y:
            result:=first_sar;
@@ -4728,6 +4730,12 @@ implementation
          end;
          result:=ccallnode.createintern('fpc_popcnt_'+suffix,ccallparanode.create(left,nil));
          left:=nil;
+       end;
+
+     function tinlinenode.first_bitscan: tnode;
+       begin
+         result:=nil;
+         expectloc:=LOC_REGISTER;
        end;
 
 
