@@ -1511,7 +1511,7 @@ var
            headerflags:=headerflags or uf_fpu_emulation;
 {$endif cpufpemu}
 {$ifdef Test_Double_checksum_write}
-         Assign(CRCFile,s+'.IMP');
+         Assign(CRCFile,ppufilename+'.IMP');
          Rewrite(CRCFile);
 {$endif def Test_Double_checksum_write}
 
@@ -1692,7 +1692,7 @@ var
     procedure tppumodule.getppucrc;
       begin
 {$ifdef Test_Double_checksum_write}
-         Assign(CRCFile,s+'.INT')
+         Assign(CRCFile,ppufilename+'.INT');
          Rewrite(CRCFile);
 {$endif def Test_Double_checksum_write}
 
