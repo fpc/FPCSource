@@ -854,10 +854,7 @@ begin
       for j:=0 to extsymcnt-1 do
         begin
           extsymname:=ppufile.getstring;
-          if ppuversion>130 then
-            extsymmangledname:=ppufile.getstring
-          else
-            extsymmangledname:=extsymname;
+          extsymmangledname:=ppufile.getstring;
           extsymordnr:=ppufile.getlongint;
           extsymisvar:=ppufile.getbyte<>0;
           writeln([' ',extsymname,' as ',extsymmangledname,
@@ -4261,18 +4258,14 @@ function parseextraheader(module: TPpuModuleDef; ppufile: tppufile): boolean;
 var
   b: byte;
 begin
-  result:=true;
-  if ppuversion>=207 then
-    begin
-      result:=false;
-      b:=ppufile.readentry;
-      if b<>ibextraheader then
-        exit;
-      CurUnit.LongVersion:=cardinal(ppufile.getlongint);
-      Writeln(['LongVersion: ',CurUnit.LongVersion]);
-      ppufile.getsmallset(CurUnit.ModuleFlags);
-      result:=ppufile.EndOfEntry;
-    end;
+  result:=false;
+  b:=ppufile.readentry;
+  if b<>ibextraheader then
+    exit;
+  CurUnit.LongVersion:=cardinal(ppufile.getlongint);
+  Writeln(['LongVersion: ',CurUnit.LongVersion]);
+  ppufile.getsmallset(CurUnit.ModuleFlags);
+  result:=ppufile.EndOfEntry;
 end;
 
 procedure dofile (filename : string);
@@ -4298,11 +4291,6 @@ begin
   ppuversion:=ppufile.getversion;
 
   Writeln(['Analyzing ',filename,' (v',PPUVersion,')']);
-  if PPUVersion<16 then
-   begin
-     WriteError(Filename+' : Old PPU Formats (<v16) are not supported, Skipping');
-     exit;
-   end;
 
   if not SkipVersionCheck and (PPUVersion <> CurrentPPUVersion) then
    begin
