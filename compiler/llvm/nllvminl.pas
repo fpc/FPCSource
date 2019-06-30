@@ -41,6 +41,7 @@ interface
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
         function first_trunc_real: tnode; override;
+        function first_popcnt: tnode; override;
        public
         procedure second_length; override;
         procedure second_sqr_real; override;
@@ -282,6 +283,12 @@ implementation
           end
         else
           result:=inherited;
+      end;
+
+    function tllvminlinenode.first_popcnt: tnode;
+      begin
+        result:=ctypeconvnode.create(ccallnode.createintern('LLVM_CTPOP', ccallparanode.create(left,nil)),resultdef);
+        left:=nil;
       end;
 
 

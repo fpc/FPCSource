@@ -35,6 +35,11 @@ function llvm_cttz(src: UInt16; is_zero_undef: LLVMBool1): UInt16; external name
 function llvm_cttz(src: UInt32; is_zero_undef: LLVMBool1): UInt32; external name 'llvm.cttz.i32';
 function llvm_cttz(src: UInt64; is_zero_undef: LLVMBool1): UInt64; external name 'llvm.cttz.i64';
 
+function llvm_ctpop(src: UInt8): UInt8; external name 'llvm.ctpop.i8';
+function llvm_ctpop(src: UInt16): UInt16; external name 'llvm.ctpop.i16';
+function llvm_ctpop(src: UInt32): UInt32; external name 'llvm.ctpop.i32';
+function llvm_ctpop(src: UInt64): UInt64; external name 'llvm.ctpop.i64';
+
 function llvm_sqrt_f32(val: single): single; compilerproc; external name 'llvm.sqrt.f32';
 function llvm_sqrt_f64(val: double): double; compilerproc; external name 'llvm.sqrt.f64';
 {$ifdef SUPPORT_EXTENDED}
