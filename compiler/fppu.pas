@@ -1021,6 +1021,9 @@ var
 {$ifdef llvm}
         include(moduleflags,mf_llvm);
 {$endif}
+{$ifdef symansistr}
+        include(moduleflags,mf_symansistr);
+{$endif}
 
         old_docrc:=ppufile.do_crc;
         ppufile.do_crc:=false;

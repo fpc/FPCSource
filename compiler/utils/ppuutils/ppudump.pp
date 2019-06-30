@@ -234,6 +234,7 @@ var
   UnitList: TPpuContainerDef;
   CurUnit: TPpuModuleDef;
   SkipVersionCheck: boolean;
+  SymAnsiStr: boolean;
 
 
 {****************************************************************************
@@ -660,6 +661,14 @@ end;
 {****************************************************************************
                              Read Routines
 ****************************************************************************}
+
+function readsymstr(ppufile: tppufile): ansistring;
+  begin
+    if not(mf_symansistr in CurUnit.ModuleFlags) then
+      result:=ppufile.getstring
+    else
+      result:=ppufile.getansistring;
+  end;
 
 function readmanagementoperatoroptions(const space : string;const name : string):tmanagementoperators;forward;
 
@@ -3147,10 +3156,7 @@ begin
              write  ([space,' DefaultConst : ']);
              readderef('');
              if (vo_has_mangledname in varoptions) then
-               if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
-                 writeln([space,'AMangledname : ',getansistring])
-               else
-                 writeln([space,'SMangledname : ',getstring]);
+               writeln([space,'Mangledname : ',readsymstr(ppufile)]);
              if vo_has_section in varoptions then
                writeln(['Section name:',ppufile.getansistring]);
              write  ([space,' FieldVarSymDeref: ']);
@@ -3575,10 +3581,7 @@ begin
              readcommondef('Procedure definition',defoptions,def);
              read_abstract_proc_def(calloption,procoptions,TPpuProcDef(def));
              if (po_has_mangledname in procoptions) then
-               if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
-                 writeln([space,'     Mangled name : ',getansistring])
-               else
-                 writeln([space,'     Mangled name : ',getstring]);
+               writeln([space,'     Mangled name : ',readsymstr(ppufile)]);
              writeln([space,'           Number : ',getword]);
              writeln([space,'            Level : ',getbyte]);
              write  ([space,'            Class : ']);
@@ -4071,6 +4074,8 @@ begin
              CurUnit.LongVersion:=cardinal(getlongint);
              Writeln(['LongVersion: ',CurUnit.LongVersion]);
              getsmallset(CurUnit.ModuleFlags);
+             if mf_symansistr in CurUnit.ModuleFlags then
+               SymAnsiStr:=true;
            end;
 
          ibmodulename :

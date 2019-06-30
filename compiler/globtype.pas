@@ -377,7 +377,8 @@ interface
          mf_i8086_ss_equals_ds,       { this unit uses an i8086 memory model with SS=DS (i.e. tiny, small or medium) }
          mf_package_deny,             { this unit must not be part of a package }
          mf_package_weak,             { this unit may be completely contained in a package }
-         mf_llvm                      { compiled for LLVM code generator, not compatible with regular compiler because of different nodes in inline functions }
+         mf_llvm,                     { compiled for LLVM code generator, not compatible with regular compiler because of different nodes in inline functions }
+         mf_symansistr                { symbols are ansistrings (for ppudump) }
        );
        tmoduleflags = set of tmoduleflag;
 
