@@ -161,6 +161,23 @@ begin
    Result := FPColor(R and $ffff,G and $ffff,B and $ffff);
 end ;
 
+function TFPReaderTiff.FixEndian(w: Word): Word; inline;
+begin
+  Result:=w;
+  if FReverseEndian then
+    Result:=((Result and $ff) shl 8) or (Result shr 8);
+end;
+
+function TFPReaderTiff.FixEndian(d: DWord): DWord; inline;
+begin
+  Result:=d;
+  if FReverseEndian then
+    Result:=((Result and $ff) shl 24)
+          or ((Result and $ff00) shl 8)
+          or ((Result and $ff0000) shr 8)
+          or (Result shr 24);
+end;
+
 procedure TFPReaderTiff.TiffError(Msg: string);
 begin
   Msg:=Msg+' at position '+IntToStr(s.Position);
@@ -1796,7 +1813,7 @@ begin
       ChunkCount := TilesAcross * TilesDown;
       ReadShortOrLongValues(IFD.TileOffsets,ChunkOffsets,CurCount);
       if CurCount<ChunkCount then
-        TiffError('number of TileCounts is wrong');
+        TiffError('number of TileOffsets is wrong');
       ReadShortOrLongValues(IFD.TileByteCounts,ChunkByteCounts,CurCount);
       if CurCount<ChunkCount then
         TiffError('number of TileByteCounts is wrong');
@@ -1804,7 +1821,7 @@ begin
       ChunkCount:=((IFD.ImageHeight-1) div IFD.RowsPerStrip)+1;
       ReadShortOrLongValues(IFD.StripOffsets,ChunkOffsets,CurCount);
       if CurCount<ChunkCount then
-        TiffError('number of StripCounts is wrong');
+        TiffError('number of StripOffsets is wrong');
       ReadShortOrLongValues(IFD.StripByteCounts,ChunkByteCounts,CurCount);
       if CurCount<ChunkCount then
         TiffError('number of StripByteCounts is wrong');
@@ -1948,23 +1965,6 @@ end;
 procedure TFPReaderTiff.ReleaseStream;
 begin
   s := nil;
-end;
-
-function TFPReaderTiff.FixEndian(w: Word): Word; inline;
-begin
-  Result:=w;
-  if FReverseEndian then
-    Result:=((Result and $ff) shl 8) or (Result shr 8);
-end;
-
-function TFPReaderTiff.FixEndian(d: DWord): DWord; inline;
-begin
-  Result:=d;
-  if FReverseEndian then
-    Result:=((Result and $ff) shl 24)
-          or ((Result and $ff00) shl 8)
-          or ((Result and $ff0000) shr 8)
-          or (Result shr 24);
 end;
 
 procedure TFPReaderTiff.DecodePackBits(var Buffer: Pointer; var Count: PtrInt);
