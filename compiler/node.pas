@@ -389,8 +389,8 @@ interface
          procedure XMLPrintNodeInfo(var T: Text); dynamic;
          procedure XMLPrintNodeData(var T: Text); virtual;
          procedure XMLPrintNodeTree(var T: Text); virtual;
-         class function SanitiseXMLString(const S: ansistring): ansistring;
-         class function WritePointer(const P: Pointer): ansistring;
+         class function SanitiseXMLString(const S: ansistring): ansistring; static;
+         class function WritePointer(const P: Pointer): ansistring; static;
 {$endif DEBUG_NODE_XML}
          procedure concattolist(l : tlinkedlist);virtual;
          function ischild(p : tnode) : boolean;virtual;

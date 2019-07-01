@@ -1167,6 +1167,11 @@ implementation
         W: Word;
         syssym: tsyssym;
 
+      procedure PrintType(Flag: string);
+        begin
+          Write(T, ' type="', Flag, '"');
+        end;
+
       procedure PrintOption(Flag: string);
         begin
           WriteLn(T, PrintNodeIndention, '<option>', Flag, '</option>');
@@ -1186,8 +1191,61 @@ implementation
             Exit;
           end;
         {$pop}
-        Write(T, PrintNodeIndention, '<procedure');
-        Write(T, ' name="', TNode.SanitiseXMLString(procdef.customprocname([])), '"');
+        Write(T, PrintNodeIndention, '<subroutine');
+
+        { Check to see if the procedure is a class or object method }
+        if Assigned(procdef.struct) then
+          begin
+            if Assigned(procdef.struct.objrealname) then
+              Write(T, ' struct="', TNode.SanitiseXMLString(procdef.struct.objrealname^), '"')
+            else
+              Write(T, ' struct="&lt;NULL&gt;"');
+          end;
+
+        case procdef.proctypeoption of
+          potype_none: { Do nothing };
+
+          potype_procedure,
+          potype_function:
+            if po_classmethod in procdef.procoptions then
+              begin
+                if po_staticmethod in procdef.procoptions then
+                  PrintType('static class method')
+                else
+                  PrintType('class method');
+              end;
+            { Do nothing otherwise }
+
+          potype_proginit,
+          potype_unitinit:
+            PrintType('initialization');
+          potype_unitfinalize:
+            PrintType('finalization');
+          potype_constructor:
+            PrintType('constructor');
+          potype_destructor:
+            PrintType('destructor');
+          potype_operator:
+            PrintType('operator');
+          potype_class_constructor:
+            PrintType('class constructor');
+          potype_class_destructor:
+            PrintType('class destructor');
+          potype_propgetter:
+            PrintType('dispinterface getter');
+          potype_propsetter:
+            PrintType('dispinterface setter');
+          potype_exceptfilter:
+            PrintType('except filter');
+          potype_mainstub:
+            PrintType('main stub');
+          potype_libmainstub:
+            PrintType('library main stub');
+          potype_pkgstub:
+            PrintType('package stub');
+        end;
+
+        Write(T, ' name="', TNode.SanitiseXMLString(procdef.customprocname([pno_showhidden, pno_noclassmarker])), '"');
 
         if po_hascallingconvention in procdef.procoptions then
           Write(T, ' convention="', proccalloptionStr[procdef.proccalloption], '"');
@@ -1196,6 +1254,19 @@ implementation
 
         PrintNodeIndent;
 
+        if Assigned(procdef.returndef) and not is_void(procdef.returndef) then
+          WriteLn(T, PrintNodeIndention, '<returndef>', TNode.SanitiseXMLString(procdef.returndef.typesymbolprettyname), '</returndef>');
+
+        if po_reintroduce in procdef.procoptions then
+          PrintOption('reintroduce');
+        if po_virtualmethod in procdef.procoptions then
+          PrintOption('virtual');
+        if po_finalmethod in procdef.procoptions then
+          PrintOption('final');
+        if po_overridingmethod in procdef.procoptions then
+          PrintOption('override');
+        if po_overload in procdef.procoptions then
+          PrintOption('overload');
         if po_compilerproc in procdef.procoptions then
           PrintOption('compilerproc');
         if po_assembler in procdef.procoptions then
@@ -1209,13 +1280,19 @@ implementation
         if po_noinline in procdef.procoptions then
           PrintOption('noinline');
 
-        WriteLn(T, PrintNodeIndention, '<code>');
-        PrintNodeIndent;
-        XMLPrintNode(T, Code);
+        if Assigned(Code) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<code>');
+            PrintNodeIndent;
+            XMLPrintNode(T, Code);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</code>');
+          end
+        else
+          WriteLn(T, PrintNodeIndention, '<code />');
+
         PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</code>');
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</procedure>');
+        WriteLn(T, PrintNodeIndention, '</subroutine>');
         WriteLn(T); { Line for spacing }
         Close(T);
       end;
