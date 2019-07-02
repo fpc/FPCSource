@@ -39,7 +39,11 @@ function UTF8Enabled: Boolean;
 var
   lang:string;
 begin
+{$ifdef OpenBSD}
+  lang:=upcase(fpgetenv('LC_CTYPE'));
+{$else OpenBSD}
   lang:=upcase(fpgetenv('LANG'));
+{$endif OpenBSD}
   UTF8Enabled := (Pos('.UTF-8', lang) > 0) or (Pos('.UTF8', lang) > 0);
 end;
 {$endif}
