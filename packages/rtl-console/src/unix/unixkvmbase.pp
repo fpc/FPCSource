@@ -29,16 +29,19 @@ function UTF8Enabled: Boolean;
 uses
   baseunix;
 
+{$ifdef BEOS}
+function UTF8Enabled: Boolean;
+begin
+  UTF8Enabled := true;
+end;
+{$else}
 function UTF8Enabled: Boolean;
 var
   lang:string;
 begin
-  {$ifdef BEOS}
-  UTF8Enabled := true;
-  exit;
-  {$endif}
   lang:=upcase(fpgetenv('LANG'));
   UTF8Enabled := (Pos('.UTF-8', lang) > 0) or (Pos('.UTF8', lang) > 0);
 end;
+{$endif}
 
 end.
