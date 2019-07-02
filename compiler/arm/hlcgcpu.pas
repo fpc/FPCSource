@@ -46,8 +46,6 @@ interface
       procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
     end;
 
-  procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -257,7 +255,7 @@ implementation
 
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       if GenerateThumbCode then
         hlcg:=tthumbhlcgcpu.create
@@ -268,4 +266,5 @@ implementation
 
 begin
   chlcgobj:=tbasehlcgarm;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

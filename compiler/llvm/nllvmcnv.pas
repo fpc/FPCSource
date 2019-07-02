@@ -83,7 +83,19 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
         still need a conversion }
       (
        ((fromdef.typ=procvardef) and
-        (todef.typ=procvardef))
+        (todef.typ=procvardef)) or
+       { same for two different specialisations }
+       ((df_specialization in fromdef.defoptions) and
+        (df_specialization in todef.defoptions)) or
+       { typed from/to untyped filedef in ISO mode: have to keep because of
+         the get/put buffer }
+       ((fromdef.typ=filedef) and
+        (tfiledef(fromdef).filetyp=ft_typed) and
+        (todef.typ=filedef) and
+        (tfiledef(todef).filetyp=ft_typed) and
+        (not equal_defs(tfiledef(fromdef).typedfiledef, tfiledef(todef).typedfiledef) or
+         target_specific_need_equal_typeconv(tfiledef(fromdef).typedfiledef, tfiledef(todef).typedfiledef))
+       )
       );
   end;
 
@@ -275,7 +287,8 @@ procedure tllvmtypeconvnode.second_nothing;
                (left.resultdef.typ=filedef) and
                (tfiledef(left.resultdef).filetyp=ft_typed) and
                (resultdef.typ=filedef) and
-               (tfiledef(resultdef).filetyp=ft_untyped)
+               (tfiledef(resultdef).filetyp in [ft_untyped,ft_typed]) and
+               (resultdef.size<left.resultdef.size)
            ) and
            { anything else with different size that ends up here is an error }
            (left.resultdef.size<>resultdef.size) then

@@ -654,7 +654,7 @@ destructor TSystemFunctionCallback.Destroy;
 begin
 {$ifdef windows}
   if Assigned(fData) then
-    FreeMemory(fData);
+    FreeMemory(fData, fSize);
 {$endif}
 end;
 

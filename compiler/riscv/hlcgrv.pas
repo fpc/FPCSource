@@ -256,5 +256,16 @@ implementation
       list.concat(Tai_symbol_end.Create(sym));
     end;
 
+
+  procedure create_hlcodegen_cpu;
+    begin
+      hlcg:=thlcgriscv.create;
+//      create_codegen;
+    end;
+
+
+begin
+  chlcgobj:=thlcgriscv;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.
 

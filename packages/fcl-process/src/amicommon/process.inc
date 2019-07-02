@@ -86,14 +86,14 @@ begin
      begin
       I := GetNextWordPos (Params);
       ExecName := Copy (Params, 1, Pred (I));
-      Trim (ExecName);
+      ExecName := Trim (ExecName);
       Delete (Params, 1, Pred (I));
      end
     else if Copy (FCommandLine, 1, Length (ExecName)) = ExecName then
      Delete (Params, 1, Succ (Length (ExecName)))
     else
      Delete (Params, 1, Pred (GetNextWordPos (Params)));
-    Trim (Params);
+    Params := Trim (Params);
    end
   else
    for I := 0 to Pred (Parameters.Count) do
@@ -113,12 +113,12 @@ begin
     GetDir (0, OrigDir);
     ChDir (FCurrentDirectory);
    end;
-  try   
+  try
    cos := BPTR(0);
    repeat
      Inc(UID);
      TempName := 'T:PrO_'+ HexStr(FindTask(nil)) + '_' + IntToHex(UID,8);
-   until not FileExists(TempName);   
+   until not FileExists(TempName);
    //sysdebugln('TProcess start: "' + ExecName + ' ' + Params+'"  >' + TempName);
    cos := AmigaDos.DosOpen(PChar(TempName), MODE_READWRITE);
    FExitCode := LongInt(amigados.Execute(PChar(ExecName + ' ' + Params), BPTR(0), cos));

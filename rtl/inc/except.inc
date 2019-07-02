@@ -26,6 +26,10 @@ Var
   ExceptObjectStack : PExceptObject;
   ExceptTryLevel    : ObjpasInt;
 
+{$ifdef FPC_USE_PSABIEH}
+{$i psabieh.inc}
+{$endif}
+
 Function RaiseList : PExceptObject;
 begin
   RaiseList:=ExceptObjectStack;
@@ -82,7 +86,7 @@ end;
 { This routine is called only from fpc_raiseexception, which uses ExceptTryLevel
   flag to guard against repeated exceptions which can occur due to corrupted stack
   or heap. }
-Procedure PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer);
+function PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer): PExceptObject;
 var
   Newobj : PExceptObject;
   _ExceptObjectStack : ^PExceptObject;
@@ -131,6 +135,7 @@ begin
     End;
   NewObj^.framecount:=framecount;
   NewObj^.frames:=frames;
+  Result:=NewObj;
 end;
 
 Procedure DoUnHandledException;
@@ -312,26 +317,6 @@ begin
     end;
 end;
 
-{$ifdef VER2_6}
-Procedure fpc_DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION']; compilerproc;
-begin
-  { with free we're on the really safe side }
-  o.Free;
-end;
-
-{ TODO: no longer used, clean up }
-function fpc_GetExceptionAddr : CodePointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
-var
-  _ExceptObjectStack : PExceptObject;
-begin
-  _ExceptObjectStack:=ExceptObjectStack;
-  if _ExceptObjectStack=nil then
-    fpc_GetExceptionAddr:=nil
-  else
-    fpc_GetExceptionAddr:=_ExceptObjectStack^.Addr;
-end;
-{$endif VER2_6}
-
 Procedure SysInitExceptions;
 {
   Initialize exceptionsupport
@@ -349,11 +334,13 @@ begin
 end;
 {$endif FPC_SYSTEM_HAS_DONEEXCEPTION}
 
+{$ifndef FPC_SYSTEM_HAS_RAISENESTED}
 procedure fpc_raise_nested;[public,alias:'FPC_RAISE_NESTED']compilerproc;
 begin
   Internal_PopSecondObjectStack.Free;
   Internal_Reraise;
 end;
+{$endif FPC_SYSTEM_HAS_RAISENESTED}
 
 {$ifndef FPC_SYSTEM_HAS_SAFECALLHANDLER}
 function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;

@@ -20,7 +20,7 @@ unit sysinit;
   implementation
 
    var
-      SysInstance : LongInt;
+      SysInstance : QWord;
       TlsKeyVar: DWord = $ffffffff;
 
       InitFinalTable : record end; external name 'INITFINAL';

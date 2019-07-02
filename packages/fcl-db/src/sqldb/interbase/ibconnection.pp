@@ -61,6 +61,7 @@ type
     FDatabaseInfo          : TDatabaseInfo;
     FDialect               : integer;
     FBlobSegmentSize       : word; //required for backward compatibilty; not used
+    FUseConnectionCharSetIfNone: Boolean;
 
     procedure ConnectFB;
 
@@ -132,6 +133,7 @@ type
     property Params;
     property OnLogin;
     Property Port stored false;
+    Property UseConnectionCharSetIfNone : Boolean Read FUseConnectionCharSetIfNone Write FUseConnectionCharSetIfNone;
   end;
   
   { TIBConnectionDef }
@@ -988,7 +990,8 @@ begin
         TransType, TransLen, TransPrec);
 
       // [var]char or blob column character set NONE or OCTETS overrides connection charset
-      if ((TransType in [ftString, ftFixedChar]) and (PSQLVar^.sqlsubtype and $FF in [CS_NONE,CS_BINARY])) or
+      if (((TransType in [ftString, ftFixedChar]) and (PSQLVar^.sqlsubtype and $FF in [CS_NONE,CS_BINARY])) and not UseConnectionCharSetIfNone)
+         or
          ((TransType = ftMemo) and (PSQLVar^.relname_length>0) and (PSQLVar^.sqlname_length>0) and (GetBlobCharset(@PSQLVar^.relname,@PSQLVar^.sqlname) in [CS_NONE,CS_BINARY])) then
         FieldDefs.Add(PSQLVar^.AliasName, TransType, TransLen, TransPrec, (PSQLVar^.sqltype and 1)=0, False, i+1, CP_NONE)
       else

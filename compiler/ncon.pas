@@ -48,6 +48,9 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        trealconstnodeclass = class of trealconstnode;
 
@@ -70,6 +73,10 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tordconstnodeclass = class of tordconstnode;
 
@@ -87,6 +94,9 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           procedure printnodedata(var t : text); override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tpointerconstnodeclass = class of tpointerconstnode;
 
@@ -124,6 +134,9 @@ interface
           { returns whether this platform uses the nil pointer to represent
             empty dynamic strings }
           class function emptydynstrnil: boolean; virtual;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tstringconstnodeclass = class of tstringconstnode;
 
@@ -494,6 +507,13 @@ implementation
         writeln(t,printnodeindention,'value = ',value_real);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TRealConstNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, printnodeindention, '<value>', value_real, '</value>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                               TORDCONSTNODE
@@ -562,7 +582,7 @@ implementation
         { only do range checking when explicitly asked for it
           and if the type can be range checked, see tests/tbs/tb0539.pp }
         if (resultdef.typ in [orddef,enumdef]) then
-           testrange(resultdef,value,not rangecheck,false)
+          adaptrange(resultdef,value,nf_internal in flags, not rangecheck)
       end;
 
     function tordconstnode.pass_1 : tnode;
@@ -586,6 +606,20 @@ implementation
         writeln(t,printnodeindention,'value = ',tostr(value));
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TOrdConstNode.XMLPrintNodeInfo(var T: Text);
+      begin
+        inherited XMLPrintNodeInfo(T);
+        Write(T, ' rangecheck="', rangecheck, '"');
+      end;
+
+
+    procedure TOrdConstNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, printnodeindention, '<value>', tostr(value), '</value>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                             TPOINTERCONSTNODE
@@ -668,6 +702,13 @@ implementation
         writeln(t,printnodeindention,'value = $',hexstr(PUInt(value),sizeof(PUInt)*2));
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TPointerConstNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, PrintNodeIndention, '<value>$', hexstr(PUInt(value),sizeof(PUInt)*2), '</value>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                              TSTRINGCONSTNODE
@@ -1030,6 +1071,52 @@ implementation
       begin
         result:=true;
       end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TStringConstNode.XMLPrintNodeData(var T: Text);
+      var
+        OutputStr: ansistring;
+      begin
+        inherited XMLPrintNodeData(T);
+        Write(T, printnodeindention, '<stringtype>');
+        case cst_type of
+        cst_conststring:
+          Write(T, 'conststring');
+        cst_shortstring:
+          Write(T, 'shortstring');
+        cst_longstring:
+          Write(T, 'longstring');
+        cst_ansistring:
+          Write(T, 'ansistring');
+        cst_widestring:
+          Write(T, 'widestring');
+        cst_unicodestring:
+          Write(T, 'unicodestring');
+        end;
+        WriteLn(T, '</stringtype>');
+        WriteLn(T, printnodeindention, '<length>', len, '</length>');
+
+        if len = 0 then
+          begin
+            WriteLn(T, printnodeindention, '<value />');
+            Exit;
+          end;
+
+        case cst_type of
+        cst_widestring, cst_unicodestring:
+          begin
+            { value_str is of type PCompilerWideString }
+            SetLength(OutputStr, len);
+            UnicodeToUtf8(PChar(OutputStr), PUnicodeChar(PCompilerWideString(value_str)^.data), len + 1); { +1 for the null terminator }
+          end;
+        else
+          OutputStr := ansistring(value_str);
+          SetLength(OutputStr, len);
+        end;
+
+        WriteLn(T, printnodeindention, '<value>', SanitiseXMLString(OutputStr), '</value>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                              TSETCONSTNODE

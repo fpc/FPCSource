@@ -166,10 +166,10 @@ end;
 procedure dmaFillHalfWords(value: cuint16; dest: pointer; size: cuint32); inline;
 begin
   {$ifdef ARM7}
-    pcuint32($027FFE04)^ := value;	         
+    pcuint32($027FFE04)^ := cuint32(value);
     DMA_SRC(3)^ := $027FFE04;	 
   {$else ARM7}
-    DMA_FILL(3)^ := value;
+    DMA_FILL(3)^ := cuint32(value);
 //    pcuint32(DMA_SRC(3)^) := pcuint32(DMA_FILL(3));
     DMA_SRC(3)^ := cuint32(DMA_FILL(3));
   {$endif ARM7}

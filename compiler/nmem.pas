@@ -88,6 +88,9 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure printnodeinfo(var t: text); override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -121,6 +124,9 @@ interface
           function docompare(p: tnode): boolean; override;
           function pass_typecheck:tnode;override;
           procedure mark_write;override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tsubscriptnodeclass = class of tsubscriptnode;
 
@@ -133,6 +139,9 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           procedure mark_write;override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tvecnodeclass = class of tvecnode;
 
@@ -481,6 +490,29 @@ implementation
         write(t,']');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TAddrNode.XMLPrintNodeInfo(var T: Text);
+      var
+        First: Boolean;
+        i: TAddrNodeFlag;
+      begin
+        inherited XMLPrintNodeInfo(t);
+        First := True;
+        for i := Low(TAddrNodeFlag) to High(TAddrNodeFlag) do
+          if i in addrnodeflags then
+            begin
+              if First then
+                begin
+                  Write(T, ' addrnodeflags="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i);
+            end;
+        if not First then
+          Write(T, '"');
+      end;
+{$endif DEBUG_NODE_XML}
 
     function taddrnode.docompare(p: tnode): boolean;
       begin
@@ -897,6 +929,13 @@ implementation
           (vs = tsubscriptnode(p).vs);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TSubscriptNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, PrintNodeIndention, '<field>', vs.Name, '</field>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                                TVECNODE
@@ -1054,7 +1093,9 @@ implementation
            that has a field of one of these types -> in that case the record
            can't be a regvar either }
          if ((left.resultdef.typ=arraydef) and
-             not is_special_array(left.resultdef)) or
+             not is_special_array(left.resultdef) and
+             { arrays with elements equal to the alu size and with a constant index can be kept in register }
+             not(is_constnode(right) and (tarraydef(left.resultdef).elementdef.size=alusinttype.size))) or
             ((left.resultdef.typ=stringdef) and
              (tstringdef(left.resultdef).stringtype in [st_shortstring,st_longstring])) then
            make_not_regable(left,[ra_addr_regable]);
@@ -1295,6 +1336,24 @@ implementation
             end;
         end;
     end;
+
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TVecNode.XMLPrintNodeData(var T: Text);
+      begin
+        XMLPrintNode(T, Left);
+
+        { The right node is the index }
+        WriteLn(T, PrintNodeIndention, '<index>');
+        PrintNodeIndent;
+        XMLPrintNode(T, Right);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</index>');
+
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 
     function is_big_untyped_addrnode(p: tnode): boolean;

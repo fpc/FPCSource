@@ -160,10 +160,13 @@ interface
         procedure generate_code(list:TAsmList);virtual;
         procedure start_frame(list:TAsmList);virtual;
         procedure end_frame(list:TAsmList);virtual;
+        procedure outmost_frame(list:TAsmList);virtual;
         procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);virtual;
         procedure cfa_restore(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);virtual;
+        function get_frame_start: TAsmLabel;virtual;
+        function get_cfa_list : TAsmList;virtual;
       end;
       TAsmCFIClass=class of TAsmCFI;
 
@@ -285,6 +288,11 @@ implementation
       end;
 
 
+    procedure TAsmCFI.outmost_frame(list: TAsmList);
+      begin
+      end;
+
+
     procedure TAsmCFI.cfa_offset(list:TAsmList;reg:tregister;ofs:longint);
       begin
       end;
@@ -302,6 +310,18 @@ implementation
 
     procedure TAsmCFI.cfa_def_cfa_offset(list:TAsmList;ofs:longint);
       begin
+      end;
+
+
+    function TAsmCFI.get_frame_start: TAsmLabel;
+      begin
+        Result:=nil;
+      end;
+
+
+    function TAsmCFI.get_cfa_list: TAsmList;
+      begin
+        Result:=nil;
       end;
 
 {*****************************************************************************
@@ -674,7 +694,8 @@ initialization
   memasmlists:=TMemDebug.create('AsmLists');
   memasmlists.stop;
 {$endif MEMDEBUG}
-  CAsmCFI:=TAsmCFI;
+  if not(assigned(CAsmCFI)) then
+    CAsmCFI:=TAsmCFI;
 
 finalization
 {$ifdef MEMDEBUG}

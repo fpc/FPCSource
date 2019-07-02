@@ -15,11 +15,30 @@
 
 
 procedure llvm_memcpy64(dest, source: pointer; len: qword; align: cardinal; isvolatile: LLVMBool1); compilerproc; external name 'llvm.memcpy.p0i8.p0i8.i64';
+{ LLVM 7.0+, alignment specified as part of the dest and source parameters }
+procedure llvm_memcpy64_indivalign(dest, source: pointer; len: qword; isvolatile: LLVMBool1); compilerproc; external name 'llvm.memcpy.p0i8.p0i8.i64';
 
 function llvm_frameaddress(level: longint): pointer; compilerproc; external name 'llvm.frameaddress';
 
+function llvm_eh_typeid_for(sym: pointer): longint; compilerproc; external name 'llvm.eh.typeid.for';
+
 procedure llvm_lifetime_start(size: int64; ptr: pointer); compilerproc; external name 'llvm.lifetime.start';
 procedure llvm_lifetime_end(size: int64; ptr: pointer); compilerproc; external name 'llvm.lifetime.end';
+
+function llvm_ctlz(src: UInt8; is_zero_undef: LLVMBool1): UInt8; external name 'llvm.ctlz.i8';
+function llvm_ctlz(src: UInt16; is_zero_undef: LLVMBool1): UInt16; external name 'llvm.ctlz.i16';
+function llvm_ctlz(src: UInt32; is_zero_undef: LLVMBool1): UInt32; external name 'llvm.ctlz.i32';
+function llvm_ctlz(src: UInt64; is_zero_undef: LLVMBool1): UInt64; external name 'llvm.ctlz.i64';
+
+function llvm_cttz(src: UInt8; is_zero_undef: LLVMBool1): UInt8; external name 'llvm.cttz.i8';
+function llvm_cttz(src: UInt16; is_zero_undef: LLVMBool1): UInt16; external name 'llvm.cttz.i16';
+function llvm_cttz(src: UInt32; is_zero_undef: LLVMBool1): UInt32; external name 'llvm.cttz.i32';
+function llvm_cttz(src: UInt64; is_zero_undef: LLVMBool1): UInt64; external name 'llvm.cttz.i64';
+
+function llvm_ctpop(src: UInt8): UInt8; external name 'llvm.ctpop.i8';
+function llvm_ctpop(src: UInt16): UInt16; external name 'llvm.ctpop.i16';
+function llvm_ctpop(src: UInt32): UInt32; external name 'llvm.ctpop.i32';
+function llvm_ctpop(src: UInt64): UInt64; external name 'llvm.ctpop.i64';
 
 function llvm_sqrt_f32(val: single): single; compilerproc; external name 'llvm.sqrt.f32';
 function llvm_sqrt_f64(val: double): double; compilerproc; external name 'llvm.sqrt.f64';

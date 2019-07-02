@@ -373,8 +373,8 @@ begin
 {$endif powerpc64}
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME $MAP -shared $GCSECTIONS -L. -o $EXE';
+     ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO -L. -o $EXE';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME $MAP $LTO -shared $GCSECTIONS -L. -o $EXE';
      { when we want to cross-link we need to override default library paths;
        when targeting binutils 2.19 or later, we use the "INSERT" command to
        augment the default linkerscript, which also requires -T (normally that
@@ -1319,9 +1319,17 @@ begin
             add('  {');
             add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
             add('  }');
+            add('  .rodata1        : { *(.rodata1) }');
+            add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
+            add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
+            add('  .gcc_except_table   : { KEEP *(.gcc_except_table .gcc_except_table.*) }');
+
             {Adjust the address for the data segment.  We want to adjust up to
              the same address within the page on the next page up.}
             add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1));');
+            add('  /* Exception handling  */');
+            add('  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }');
+            add('  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }');
             add('  .dynamic        : { *(.dynamic) }');
             add('  .got            : { *(.got) }');
             add('  .got.plt        : { *(.got.plt) }');
@@ -1376,7 +1384,8 @@ var
   i : longint;
   binstr,
   cmdstr,
-  mapstr : TCmdStr;
+  mapstr,
+  ltostr  : TCmdStr;
   success : boolean;
   DynLinkStr : string;
   GCSectionsStr,
@@ -1392,6 +1401,7 @@ begin
   GCSectionsStr:='';
   DynLinkStr:='';
   mapstr:='';
+  ltostr:='';
   if (cs_link_staticflag in current_settings.globalswitches) then
    StaticStr:='-static';
   if (cs_link_strip in current_settings.globalswitches) and
@@ -1412,6 +1422,15 @@ begin
        DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath;
    End;
 
+  { add custom LTO library if using custom clang }
+  if (cs_lto in current_settings.moduleswitches) and
+     not(cs_link_on_target in current_settings.globalswitches) and
+     (utilsdirectory<>'') and
+     FileExists(utilsdirectory+'/../lib/LLVMgold.so',true) then
+    begin
+      ltostr:='-plugin '+maybequoted(utilsdirectory+'/../lib/LLVMgold.so ');
+    end;
+
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -1425,10 +1444,15 @@ begin
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   Replace(cmdstr,'$MAP',mapstr);
+  Replace(cmdstr,'$LTO',ltostr);
 
   { create dynamic symbol table? }
   if HasExports then
     cmdstr:=cmdstr+' -E';
+
+  { create eh_frame_hdr section? }
+  if tf_use_psabieh in target_info.flags then
+    cmdstr:=cmdstr+ ' --eh-frame-hdr';
 
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
 
@@ -1464,11 +1488,13 @@ var
   SoNameStr : string[80];
   binstr,
   cmdstr,
-  mapstr : TCmdStr;
+  mapstr,
+  ltostr : TCmdStr;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
   mapstr:='';
+  ltostr:='';
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
   if (cs_link_smart in current_settings.globalswitches) and
@@ -1488,6 +1514,15 @@ begin
   if (cs_link_map in current_settings.globalswitches) then
      mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
 
+  { add custom LTO library if using custom clang }
+  if (cs_lto in current_settings.moduleswitches) and
+     not(cs_link_on_target in current_settings.globalswitches) and
+     (utilsdirectory<>'') and
+     FileExists(utilsdirectory+'/../lib/LLVMgold.so',true) then
+    begin
+      ltostr:='-plugin '+maybequoted(utilsdirectory+'/../lib/LLVMgold.so ');
+    end;
+
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
@@ -1497,6 +1532,7 @@ begin
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
   Replace(cmdstr,'$MAP',mapstr);
+  Replace(cmdstr,'$LTO',ltostr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 

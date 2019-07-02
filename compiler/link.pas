@@ -389,62 +389,72 @@ Implementation
             begin
               { create mask which unit files need linking }
               mask:=link_always;
-              { static linking ? }
-              if (cs_link_static in current_settings.globalswitches) then
-               begin
-                 if (headerflags and uf_static_linked)=0 then
-                  begin
-                    { if smart not avail then try static linking }
-                    if (headerflags and uf_smart_linked)<>0 then
-                     begin
-                       Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
-                       mask:=mask or link_smart;
-                     end
-                    else
-                     Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
-                  end
-                 else
-                   mask:=mask or link_static;
-               end;
-              { smart linking ? }
-
-              if (cs_link_smart in current_settings.globalswitches) then
-               begin
-                 if (headerflags and uf_smart_linked)=0 then
-                  begin
-                    { if smart not avail then try static linking }
-                    if (headerflags and uf_static_linked)<>0 then
-                     begin
-                       { if not create_smartlink_library, then smart linking happens using the
-                         regular object files
-                       }
-                       if create_smartlink_library then
-                         Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
+              { lto linking ?}
+              if (cs_lto in current_settings.moduleswitches) and
+                 ((headerflags and uf_lto_linked)<>0) and
+                 (not(cs_lto_nosystem in init_settings.globalswitches) or
+                  (hp.modulename^<>'SYSTEM')) then
+                begin
+                  mask:=mask or link_lto;
+                end
+              else
+                begin
+                  { static linking ? }
+                  if (cs_link_static in current_settings.globalswitches) then
+                   begin
+                     if (headerflags and uf_static_linked)=0 then
+                      begin
+                        { if static not avail then try smart linking }
+                        if (headerflags and uf_smart_linked)<>0 then
+                         begin
+                           Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
+                           mask:=mask or link_smart;
+                         end
+                        else
+                         Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
+                      end
+                     else
                        mask:=mask or link_static;
-                     end
-                    else
-                     Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
-                  end
-                 else
-                  mask:=mask or link_smart;
-               end;
-              { shared linking }
-              if (cs_link_shared in current_settings.globalswitches) then
-               begin
-                 if (headerflags and uf_shared_linked)=0 then
-                  begin
-                    { if shared not avail then try static linking }
-                    if (headerflags and uf_static_linked)<>0 then
-                     begin
-                       Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
-                       mask:=mask or link_static;
-                     end
-                    else
-                     Message1(exec_e_unit_not_shared_or_static_linkable,modulename^);
-                  end
-                 else
-                  mask:=mask or link_shared;
-               end;
+                   end;
+                  { smart linking ? }
+                  if (cs_link_smart in current_settings.globalswitches) then
+                   begin
+                     if (headerflags and uf_smart_linked)=0 then
+                      begin
+                        { if smart not avail then try static linking }
+                        if (headerflags and uf_static_linked)<>0 then
+                         begin
+                           { if not create_smartlink_library, then smart linking happens using the
+                             regular object files
+                           }
+                           if create_smartlink_library then
+                             Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
+                           mask:=mask or link_static;
+                         end
+                        else
+                         Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
+                      end
+                     else
+                      mask:=mask or link_smart;
+                   end;
+                  { shared linking }
+                  if (cs_link_shared in current_settings.globalswitches) then
+                   begin
+                     if (headerflags and uf_shared_linked)=0 then
+                      begin
+                        { if shared not avail then try static linking }
+                        if (headerflags and uf_static_linked)<>0 then
+                         begin
+                           Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
+                           mask:=mask or link_static;
+                         end
+                        else
+                         Message1(exec_e_unit_not_shared_or_static_linkable,modulename^);
+                      end
+                     else
+                      mask:=mask or link_shared;
+                   end;
+                end;
               { unit files }
               while not linkunitofiles.empty do
                 AddObject(linkunitofiles.getusemask(mask),path,true);
@@ -487,7 +497,7 @@ Implementation
 
     Procedure TLinker.AddObject(const S,unitpath : TPathStr;isunit:boolean);
       begin
-        ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit));
+        ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit))
       end;
 
 

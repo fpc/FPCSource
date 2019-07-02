@@ -68,6 +68,9 @@ interface
 
     procedure int_to_type(const v:TConstExprInt;var def:tdef);
 
+    {# Return true if the type (orddef or enumdef) spans its entire bitrange }
+    function spans_entire_range(def: tdef): boolean;
+
     {# Returns true, if definition defines an integer type }
     function is_integer(def : tdef) : boolean;
 
@@ -155,6 +158,9 @@ interface
        Bitpacked arrays aren't special in this regard though.
     }
     function is_special_array(p : tdef) : boolean;
+
+    {# Returns true, if p points to a normal array, bitpacked arrays are included }
+    function is_normal_array(p : tdef) : boolean;
 
     {# Returns true if p is a bitpacked array }
     function is_packed_array(p: tdef) : boolean;
@@ -283,15 +289,25 @@ interface
     { true, if def is a signed int type, equal in size to the processor's native int size }
     function is_nativesint(def : tdef) : boolean;
 
+  type
+    tperformrangecheck = (
+      rc_internal,  { never at all, internal conversion }
+      rc_explicit,  { no, but this is a user conversion and hence can still give warnings in some cases }
+      rc_default,   { only if range checking is enabled }
+      rc_always     { always }
+    );
     {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
     }
-    procedure testrange(todef : tdef;var l : tconstexprint;explicit,forcerangecheck:boolean);
+    procedure adaptrange(todef : tdef;var l : tconstexprint; rangecheck: tperformrangecheck);
+    { for when used with nf_explicit/nf_internal nodeflags }
+    procedure adaptrange(todef : tdef;var l : tconstexprint; internal, explicit: boolean);
 
     {# Returns the range of def, where @var(l) is the low-range and @var(h) is
       the high-range.
     }
     procedure getrange(def : tdef;out l, h : TConstExprInt);
+    procedure getrangedefmasksize(def: tdef; out rangedef: tdef; out mask: TConstExprInt; out size: longint);
 
     { Returns the range type of an ordinal type in the sense of ISO-10206 }
     function get_iso_range_type(def: tdef): tdef;
@@ -548,6 +564,47 @@ implementation
       end;
 
 
+    function spans_entire_range(def: tdef): boolean;
+      var
+         lv, hv: Tconstexprint;
+         mask: qword;
+         size: longint;
+      begin
+        case def.typ of
+          orddef,
+          enumdef:
+            getrange(def,lv,hv);
+          else
+            internalerror(2019062203);
+        end;
+        size:=def.size;
+        case size of
+          1: mask:=$ff;
+          2: mask:=$ffff;
+          4: mask:=$ffffffff;
+          8: mask:=qword(-1);
+          else
+            internalerror(2019062204);
+        end;
+        result:=false;
+        if is_signed(def) then
+          begin
+            if (lv.uvalue and mask)<>(qword(1) shl (size*8-1)) then
+              exit;
+            if (hv.uvalue and mask)<>(mask shr 1) then
+              exit;
+          end
+        else
+          begin
+            if lv<>0 then
+              exit;
+            if hv.uvalue<>mask then
+              exit;
+          end;
+        result:=true;
+      end;
+
+
     { true if p is an integer }
     function is_integer(def : tdef) : boolean;
       begin
@@ -750,6 +807,14 @@ implementation
                   ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])<>[]) or
                   is_open_array(p)
                  );
+      end;
+
+    { true, if p points to a normal array, bitpacked arrays are included }
+    function is_normal_array(p : tdef) : boolean;
+      begin
+         result:=(p.typ=arraydef) and
+                 ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]) and
+                 not(is_open_array(p));
       end;
 
     { true if p is an ansi string def }
@@ -1031,50 +1096,83 @@ implementation
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
-    procedure testrange(todef : tdef;var l : tconstexprint;explicit,forcerangecheck:boolean);
+    procedure adaptrange(todef : tdef;var l : tconstexprint; rangecheck: tperformrangecheck);
       var
-         lv,hv: TConstExprInt;
+         lv,hv,oldval,sextval,mask: TConstExprInt;
+         rangedef: tdef;
+         rangedefsize: longint;
+         warned: boolean;
       begin
-         { for 64 bit types we need only to check if it is less than }
-         { zero, if def is a qword node                              }
          getrange(todef,lv,hv);
          if (l<lv) or (l>hv) then
            begin
-             if not explicit then
+             warned:=false;
+             if rangecheck in [rc_default,rc_always] then
                begin
-                 if ((todef.typ=enumdef) and
-                     { delphi allows range check errors in
-                      enumeration type casts FK }
-                     not(m_delphi in current_settings.modeswitches)) or
-                    (cs_check_range in current_settings.localswitches) or
-                    forcerangecheck then
+                 if (rangecheck=rc_always) or
+                    (todef.typ=enumdef) or
+                    (cs_check_range in current_settings.localswitches) then
                    Message3(type_e_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv))
                  else
                    Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
+                 warned:=true;
+               end
+             { give warnings about range errors with explicit typeconversions if the target
+               type does not span the entire range that can be represented by its bits
+               (subrange type or enum), because then the result is undefined }
+             else if (rangecheck<>rc_internal) and
+                     (not is_pasbool(todef) and
+                      not spans_entire_range(todef)) then
+               begin
+                 Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
+                 warned:=true;
                end;
+
              { Fix the value to fit in the allocated space for this type of variable }
-             case longint(todef.size) of
-               1: l := l and $ff;
-               2: l := l and $ffff;
-               4: l := l and $ffffffff;
-               else
-                 ;
-             end;
+             oldval:=l;
+             getrangedefmasksize(todef,rangedef,mask,rangedefsize);
+             l:=l and mask;
              {reset sign, i.e. converting -1 to qword changes the value to high(qword)}
              l.signed:=false;
+             sextval:=0;
              { do sign extension if necessary (JM) }
-             if is_signed(todef) then
-              begin
-                case longint(todef.size) of
-                  1: l.svalue := shortint(l.svalue);
-                  2: l.svalue := smallint(l.svalue);
-                  4: l.svalue := longint(l.svalue);
-                  else
-                    ;
-                end;
-                l.signed:=true;
+             case rangedefsize of
+               1: sextval.svalue:=shortint(l.svalue);
+               2: sextval.svalue:=smallint(l.svalue);
+               4: sextval.svalue:=longint(l.svalue);
+               8: sextval.svalue:=l.svalue;
+               else
+                 internalerror(201906230);
               end;
+              sextval.signed:=true;
+              { Detect if the type spans the entire range, but more bits were specified than
+                the type can contain, e.g. shortint($fff).
+                However, none of the following should result in a warning:
+                  1) shortint($ff) (-> $ff -> $ff -> $ffff ffff ffff ffff)
+                  2) shortint(longint(-1)) ($ffff ffff ffff ffff ffff -> $ff -> $ffff ffff ffff ffff
+                  3) cardinal(-1) (-> $ffff ffff ffff ffff -> $ffff ffff)
+              }
+              if not warned and
+                (rangecheck<>rc_internal) and
+                (oldval.uvalue<>l.uvalue) and
+                (oldval.uvalue<>sextval.uvalue) then
+               begin
+                 Message3(type_w_range_check_error_bounds,tostr(oldval),tostr(lv),tostr(hv));
+               end;
+              if is_signed(rangedef) then
+                l:=sextval;
            end;
+      end;
+
+
+    procedure adaptrange(todef: tdef; var l: tconstexprint; internal, explicit: boolean);
+      begin
+        if internal then
+          adaptrange(todef, l, rc_internal)
+        else if explicit then
+          adaptrange(todef, l, rc_explicit)
+        else
+          adaptrange(todef, l, rc_default)
       end;
 
 
@@ -1104,6 +1202,39 @@ implementation
             end;
           else
             internalerror(200611054);
+        end;
+      end;
+
+
+    procedure getrangedefmasksize(def: tdef; out rangedef: tdef; out mask: TConstExprInt; out size: longint);
+      begin
+        case def.typ of
+          orddef, enumdef:
+            begin
+              rangedef:=def;
+              size:=def.size;
+              case size of
+                1: mask:=$ff;
+                2: mask:=$ffff;
+                4: mask:=$ffffffff;
+                8: mask:=$ffffffffffffffff;
+                else
+                  internalerror(2019062305);
+                end;
+            end;
+          arraydef:
+            begin
+              rangedef:=tarraydef(def).rangedef;
+              getrangedefmasksize(rangedef,rangedef,mask,size);
+            end;
+          undefineddef:
+            begin
+              rangedef:=sizesinttype;
+              size:=rangedef.size;
+              mask:=-1;
+            end;
+          else
+            internalerror(2019062306);
         end;
       end;
 

@@ -79,6 +79,8 @@ procedure DSP_Halt; cdecl; external;
 procedure DSP_Unhalt; cdecl; external;
 
 
+function DSP_GetDMAStatus(): cuint32; cdecl; external;
+
 function DSP_RegisterCallback(usr_cb: DSPCallback): DSPCallback; cdecl; external;
 {$ENDIF}
 

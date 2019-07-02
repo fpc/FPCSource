@@ -52,7 +52,7 @@ type
 
    { a simple data element; the value is stored as a tai }
    tai_simpletypedconst = class(tai_abstracttypedconst)
-   private
+    private
      procedure setval(AValue: tai);
     protected
      fval: tai;
@@ -90,7 +90,7 @@ type
     public
      constructor create(_adetyp: ttypedconstkind; _fdef: tdef);
      function getenumerator: tadeenumerator;
-     procedure addvalue(val: tai_abstracttypedconst);
+     procedure addvalue(val: tai_abstracttypedconst); virtual;
      function valuecount: longint;
      procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
      procedure replacevalueatpos(val: tai_abstracttypedconst; pos: longint);

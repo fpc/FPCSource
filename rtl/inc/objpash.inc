@@ -339,6 +339,66 @@
        PPDispatch = ^PDispatch;
        PInterface = PUnknown;
 
+{$ifdef FPC_USE_PSABIEH}
+
+{$if (defined(CPUARMEL) or defined(CPUARMHF)) and not defined(darwin)}
+{$define __ARM_EABI_UNWINDER__}
+{$endif}
+
+       { needed here for TExceptObject (rest is in psabiehh.inc) }
+       FPC_Unwind_Reason_Code = longint; {cint}
+       FPC_Unwind_Action = longint; {cint}
+{$ifdef __ARM_EABI_UNWINDER__}
+       FPC_Unwind_State = longint; {cint}
+{$endif}
+
+       PFPC_Unwind_Exception = ^FPC_Unwind_Exception;
+
+       FPC_Unwind_Exception_Cleanup_Fn =
+         procedure(reason: FPC_Unwind_Reason_Code; exc: PFPC_Unwind_Exception); cdecl;
+
+       FPC_Unwind_Exception = record
+         { qword instead of array of char to ensure proper alignment and
+           padding, and also easier to compare }
+         exception_class: qword;
+         exception_cleanup: FPC_Unwind_Exception_Cleanup_Fn;
+
+{$ifdef __ARM_EABI_UNWINDER__}
+         { rest of UCB }
+         // Unwinder cache, private fields for the unwinder's use
+         unwinder_cache: record
+           reserved1, // init reserved1 to 0, then don't touch
+           reserved2,
+           reserved3,
+           reserved4,
+           reserved5: UInt32;
+         end;
+         // Propagation barrier cache (valid after phase 1):
+         barrier_cache: record
+           sp: PtrUInt;
+           bitpattern: array[0..4] of UInt32;
+         end;
+         // Cleanup cache (preserved over cleanup):
+         cleanup_cache: record
+           bitpattern: array[0..3] of UInt32;
+         end;
+         // Pr cache (for pr's benefit):
+         pr_cache: record
+           fnstart: UInt32;      // function start address
+           ehtp: pointer;        // pointer to EHT entry header word
+           additional: UInt32;   // additional data
+           reserved1: UInt32;
+         end;
+{$else}
+         private_1: ptruint;
+         private_2: ptruint;
+         private_3: ptruint;
+         private_4: ptruint;
+         private_5: ptruint;
+         private_6: ptruint;
+{$endif}
+       end;
+{$endif FPC_USE_PSABIEH}
 
        TExceptProc = Procedure (Obj : TObject; Addr : CodePointer; FrameCount:Longint; Frame: PCodePointer);
 
@@ -356,6 +416,16 @@
          ExceptRec  : Pointer;
          ReraiseBuf : jmp_buf;
 {$endif FPC_USE_WIN32_SEH}
+{$ifdef FPC_USE_PSABIEH}
+{$ifndef __ARM_EABI_UNWINDER__}
+         { cached info from unwind phase for action phase }
+         handler_switch_value: longint;
+         language_specific_data: PByte;
+         landing_pad: PtrUInt;
+{$endif __ARM_EABI_UNWINDER__}
+         { libunwind exception handling data (must be last!) }
+         unwind_exception: FPC_Unwind_Exception;
+{$endif FPC_USE_PSABIEH}
        end;
 
     Const

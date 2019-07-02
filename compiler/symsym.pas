@@ -1701,6 +1701,8 @@ implementation
 
     procedure tabstractvarsym.setregable;
       begin
+        if vo_volatile in varoptions then
+          exit;
          { can we load the value into a register ? }
         if not assigned(owner) or
            (owner.symtabletype in [localsymtable, parasymtable]) or

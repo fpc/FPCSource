@@ -10,7 +10,7 @@ uses
 {$include inc/texture.bin.inc}
 
 var
-	textureID: integer;
+  textureID: integer;
   rotateX: cfloat = 0.0;
   rotateY: cfloat = 0.0;
   keys: cuint16;
@@ -80,10 +80,10 @@ begin
 
     keys := keysHeld();
 
-		if((keys and KEY_UP)) <> 0 then rotateX := rotateX +3;
-		if((keys and KEY_DOWN)) <> 0 then rotateX := rotateX -3;
-		if((keys and KEY_LEFT)) <> 0 then rotateY := rotateY +3;
-		if((keys and KEY_RIGHT)) <> 0 then rotateY := rotateY -3;
+    if((keys and KEY_UP)) <> 0 then rotateX := rotateX +3;
+    if((keys and KEY_DOWN)) <> 0 then rotateX := rotateX -3;
+    if((keys and KEY_LEFT)) <> 0 then rotateY := rotateY +3;
+    if((keys and KEY_RIGHT)) <> 0 then rotateY := rotateY -3;
 
     glBindTexture(0, textureID);
 
@@ -110,6 +110,8 @@ begin
     glFlush(0);
 
     swiWaitForVBlank();
+    
+    if (keys and KEY_START) <> 0 then break;
   end;
 
 end.

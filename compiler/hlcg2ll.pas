@@ -1319,6 +1319,10 @@ implementation
       ncgutil.maketojumpboollabels(list,p,truelabel,falselabel);
     end;
 
+{$if first_mm_imreg = 0}
+  {$WARN 4044 OFF} { Comparison might be always false ... }
+{$endif}
+
   procedure thlcg2ll.gen_load_para_value(list: TAsmList);
 
     procedure get_para(const paraloc:TCGParaLocation);

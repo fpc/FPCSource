@@ -58,6 +58,7 @@ resourcestring
   SPasTreeClassType = 'class';
   SPasTreeInterfaceType = 'interface';
   SPasTreeSpecializedType = 'specialized class type';
+  SPasTreeSpecializedExpr = 'specialize expr';
   SPasClassHelperType = 'class helper type';
   SPasRecordHelperType = 'record helper type';
   SPasTypeHelperType = 'type helper type';
@@ -564,28 +565,27 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full: boolean) : string; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
     procedure AddParam(El: TPasElement);
   public
     Params: TFPList; // list of TPasType or TPasExpr
   end;
 
-  { TInlineTypeExpr - base class TInlineSpecializeExpr }
+  { TInlineSpecializeExpr - A<B,C> }
 
-  TInlineTypeExpr = class(TPasExpr)
+  TInlineSpecializeExpr = class(TPasExpr)
   public
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : Boolean): string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
-    procedure ClearTypeReferences(aType: TPasElement); override;
+    procedure AddParam(El: TPasElement);
   public
-    DestType: TPasType; // TPasSpecializeType
-  end;
-
-  { TInlineSpecializeExpr - A<B,C> }
-
-  TInlineSpecializeExpr = class(TInlineTypeExpr)
+    NameExpr: TPasExpr; // TPrimitiveExpr
+    Params: TFPList; // list of TPasType or TPasExpr
   end;
 
   { TPasRangeType }
@@ -731,9 +731,18 @@ type
     Function IsAdvancedRecord : Boolean;
   end;
 
+  { TPasGenericTemplateType }
+
   TPasGenericTemplateType = Class(TPasType)
+  public
+    destructor Destroy; override;
+    function GetDeclaration(full : boolean) : string; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+    procedure AddConstraint(Expr: TPasExpr);
   Public
-    TypeConstraint : String;
+    TypeConstraint: String deprecated; // deprecated in fpc 3.3.1
+    Constraints: TPasExprArray;
   end;
 
   TPasObjKind = (
@@ -1753,6 +1762,54 @@ begin
     end;
 end;
 
+{ TPasGenericTemplateType }
+
+destructor TPasGenericTemplateType.Destroy;
+var
+  i: Integer;
+begin
+  for i:=0 to length(Constraints)-1 do
+    Constraints[i].Release;
+  Constraints:=nil;
+  inherited Destroy;
+end;
+
+function TPasGenericTemplateType.GetDeclaration(full: boolean): string;
+var
+  i: Integer;
+begin
+  Result:=inherited GetDeclaration(full);
+  if length(Constraints)>0 then
+    begin
+    Result:=Result+': ';
+    for i:=0 to length(Constraints)-1 do
+      begin
+      if i>0 then
+        Result:=Result+',';
+      Result:=Result+Constraints[i].GetDeclaration(false);
+      end;
+    end;
+end;
+
+procedure TPasGenericTemplateType.ForEachCall(
+  const aMethodCall: TOnForEachPasElement; const Arg: Pointer);
+var
+  i: Integer;
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  for i:=0 to length(Constraints)-1 do
+    ForEachChildCall(aMethodCall,Arg,Constraints[i],false);
+end;
+
+procedure TPasGenericTemplateType.AddConstraint(Expr: TPasExpr);
+var
+  l: Integer;
+begin
+  l:=Length(Constraints);
+  SetLength(Constraints,l+1);
+  Constraints[l]:=Expr;
+end;
+
 {$IFDEF HasPTDumpStack}
 procedure PTDumpStack;
 begin
@@ -1831,34 +1888,61 @@ begin
   SemicolonAtEOL := true;
 end;
 
-{ TInlineTypeExpr }
+{ TInlineSpecializeExpr }
 
-destructor TInlineTypeExpr.Destroy;
+constructor TInlineSpecializeExpr.Create(const AName: string;
+  AParent: TPasElement);
 begin
-  ReleaseAndNil(TPasElement(DestType){$IFDEF CheckPasTreeRefCount},'TInlineTypeExpr.DestType'{$ENDIF});
+  if AName='' then ;
+  inherited Create(AParent, pekSpecialize, eopNone);
+  Params:=TFPList.Create;
+end;
+
+destructor TInlineSpecializeExpr.Destroy;
+var
+  i: Integer;
+begin
+  ReleaseAndNil(TPasElement(NameExpr));
+  for i:=0 to Params.Count-1 do
+    TPasElement(Params[i]).Release{$IFDEF CheckPasTreeRefCount}('TInlineSpecializeExpr.Params'){$ENDIF};
+  FreeAndNil(Params);
   inherited Destroy;
 end;
 
-function TInlineTypeExpr.ElementTypeName: string;
+function TInlineSpecializeExpr.ElementTypeName: string;
 begin
-  Result := DestType.ElementTypeName;
+  Result:=SPasTreeSpecializedExpr;
 end;
 
-function TInlineTypeExpr.GetDeclaration(full: Boolean): string;
+function TInlineSpecializeExpr.GetDeclaration(full: Boolean): string;
+var
+  i: Integer;
 begin
-  Result:=DestType.GetDeclaration(full);
+  Result:='specialize ';
+  Result:=Result+NameExpr.GetDeclaration(full);
+  Result:=Result+'<';
+  for i:=0 to Params.Count-1 do
+    begin
+    if i>0 then
+      Result:=Result+',';
+    Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
+    end;
 end;
 
-procedure TInlineTypeExpr.ForEachCall(
+procedure TInlineSpecializeExpr.ForEachCall(
   const aMethodCall: TOnForEachPasElement; const Arg: Pointer);
+var
+  i: Integer;
 begin
-  DestType.ForEachChildCall(aMethodCall,Arg,DestType,true);
+  inherited ForEachCall(aMethodCall, Arg);
+  ForEachChildCall(aMethodCall,Arg,NameExpr,false);
+  for i:=0 to Params.Count-1 do
+    ForEachChildCall(aMethodCall,Arg,TPasElement(Params[i]),true);
 end;
 
-procedure TInlineTypeExpr.ClearTypeReferences(aType: TPasElement);
+procedure TInlineSpecializeExpr.AddParam(El: TPasElement);
 begin
-  if DestType=aType then
-    ReleaseAndNil(TPasElement(DestType){$IFDEF CheckPasTreeRefCount},'TInlineTypeExpr.DestType'{$ENDIF});
+  Params.Add(El);
 end;
 
 { TPasSpecializeType }
@@ -1901,6 +1985,16 @@ begin
     Result:=Name+' = '+Result;
     ProcessHints(False,Result);
     end;
+end;
+
+procedure TPasSpecializeType.ForEachCall(
+  const aMethodCall: TOnForEachPasElement; const Arg: Pointer);
+var
+  i: Integer;
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  for i:=0 to Params.Count-1 do
+    ForEachChildCall(aMethodCall,Arg,TPasElement(Params[i]),true);
 end;
 
 procedure TPasSpecializeType.AddParam(El: TPasElement);

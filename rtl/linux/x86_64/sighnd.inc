@@ -16,6 +16,13 @@
  **********************************************************************}
 
 
+{ use a trampoline which pushes the return address for proper unwinding }
+Procedure SignalToHandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
+asm
+  pushq addr
+  jmp HandleErrorAddrFrame
+end;
+
 const
   FPU_All = $7f;
 
@@ -33,10 +40,21 @@ function GetFPUState(const SigContext : TSigContext) : word;
   {$endif SYSTEM_DEBUG}
   end;
 
+function GetMMState(const SigContext : TSigContext) : dword;
+  begin
+    if assigned(SigContext.fpstate) then
+      Result:=SigContext.fpstate^.mxcsr
+    else
+      Result:=0;
+  {$ifdef SYSTEM_DEBUG}
+    Writeln(stderr,'MMState = ',result);
+  {$endif SYSTEM_DEBUG}
+  end;
+
 
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
   var
-    res,fpustate : word;
+    res,fpustate,MMState : word;
   begin
     res:=0;
     case sig of
@@ -45,24 +63,44 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
           { this is not allways necessary but I don't know yet
             how to tell if it is or not PM }
           res:=200;
-          fpustate:=GetFPUState(SigContext^);
-          if (FpuState and FPU_All) <> 0 then
+          if SigInfo^.si_code<>FPE_INTDIV then
             begin
-              { first check the more precise options }
-              if (FpuState and FPU_DivisionByZero)<>0 then
-                res:=200
-              else if (FpuState and FPU_Overflow)<>0 then
-                res:=205
-              else if (FpuState and FPU_Underflow)<>0 then
-                res:=206
-              else if (FpuState and FPU_Denormal)<>0 then
-                res:=216
-              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
-                res:=207
-              else
-                res:=207;  {'Coprocessor Error'}
+              fpustate:=GetFPUState(SigContext^);
+              if (FpuState and FPU_All) <> 0 then
+                begin
+                  { first check the more precise options }
+                  if (FpuState and FPU_DivisionByZero)<>0 then
+                    res:=200
+                  else if (FpuState and FPU_Overflow)<>0 then
+                    res:=205
+                  else if (FpuState and FPU_Underflow)<>0 then
+                    res:=206
+                  else if (FpuState and FPU_Denormal)<>0 then
+                    res:=216
+                  else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
+                    res:=207
+                  else
+                    res:=207;  {'Coprocessor Error'}
+                end;
+                MMState:=getMMState(SigContext^);
+                if (MMState and MM_ExceptionMask)<>0 then
+                  begin
+                    { first check the more precise options }
+                    if (MMState and MM_DivisionByZero)<>0 then
+                      res:=208
+                    else if (MMState and MM_Invalid)<>0 Then
+                      res:=207
+                    else if (MMState and MM_Overflow)<>0 then
+                      res:=205
+                    else if (MMState and MM_Underflow)<>0 then
+                      res:=206
+                    else if (MMState and MM_Denormal)<>0 then
+                      res:=216
+                    else
+                      res:=207;  {'Coprocessor Error'}
+                  end;
             end;
-            SysResetFPU;
+          SysResetFPU;
         end;
       SIGILL,
       SIGBUS,
@@ -75,7 +113,12 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
     end;
     reenable_signal(sig);
     if res<>0 then
-      HandleErrorAddrFrame(res,pointer(SigContext^.rip),pointer(SigContext^.rbp));
+      begin
+        SigContext^.rdi := res;
+        SigContext^.rsi := SigContext^.rip;
+        SigContext^.rdx := SigContext^.rbp;
+        SigContext^.rip := ptruint(@SignalToHandleErrorAddrFrame);
+      end;
   end;
 
 

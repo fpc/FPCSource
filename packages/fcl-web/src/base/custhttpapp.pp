@@ -197,7 +197,7 @@ end;
 
 function TCustomHTTPApplication.GetUseSSL: Boolean;
 begin
-
+  Result:=HTTPHandler.UseSSL;
 end;
 
 procedure TCustomHTTPApplication.SetHostName(AValue: String);

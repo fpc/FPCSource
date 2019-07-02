@@ -110,11 +110,19 @@ interface
         constructor blockaddress(size: tdef; fun, lab: tasmsymbol);
         constructor landingpad(dst:tregister;def:tdef;firstclause:taillvm);
         constructor exceptclause(op:tllvmop;def:tdef;kind:TAsmSymbol;nextclause:taillvm);
+        constructor cleanupclause;
 
         { e.g. dst = call retsize name (paras) }
-        constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
+        constructor call_size_name_paras(callpd: tdef;cc: tproccalloption;dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
         { e.g. dst = call retsize reg (paras) }
-        constructor call_size_reg_paras(callpd: tdef; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
+        constructor call_size_reg_paras(callpd: tdef; cc: tproccalloption; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
+        { e.g. dst = invoke retsize name (paras) to label <normal label> unwind label <exception label> }
+        constructor invoke_size_name_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef;name: tasmsymbol; paras: tfplist; retlab, exceptlab:TAsmLabel);
+        { e.g. dst = invoke retsize reg (paras) to label <normal label> unwind label <exception label> }
+        constructor invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab:TAsmLabel);
+
+        { e.g. dst := extractvalue srcsize src, 0 (note: no type for the index) }
+        constructor extract(op: tllvmop; dst: tregister; srcsize: tdef; src: tregister; idx: longint);
 
         { inline function-level assembler code and parameters }
         constructor asm_paras(asmlist: tasmlist; paras: tfplist);
@@ -133,6 +141,9 @@ interface
         procedure loadfpcond(opidx: longint; _fpcond: tllvmfpcmp);
         procedure loadparas(opidx: longint; _paras: tfplist);
         procedure loadasmlist(opidx: longint; _asmlist: tasmlist);
+        procedure loadcallingconvention(opidx: longint; calloption: tproccalloption);
+
+        procedure landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
 
         { register spilling code }
         function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -193,15 +204,17 @@ interface
     pllvmcallpara = ^tllvmcallpara;
     tllvmcallpara = record
       def: tdef;
+      alignment: shortint;
       valueext: tllvmvalueextension;
       byval,
       sret: boolean;
-      case loc: tcgloc of
-        LOC_REFERENCE,
-        LOC_REGISTER,
-        LOC_FPUREGISTER,
-        LOC_MMREGISTER: (reg: tregister);
-        LOC_CONSTANT: (value: tcgint);
+      case typ: toptype of
+        top_none: ();
+        top_reg: (register: tregister);
+        top_ref: (sym: tasmsymbol);
+        top_const: (value: int64);
+        top_undef :  ();
+        top_tai    : (ai: tai);
     end;
 
 
@@ -311,9 +324,9 @@ uses
                 new(callpara);
                 callpara^:=pllvmcallpara(o.paras[i])^;
                 oper[opidx]^.paras.add(callpara);
-                if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                if (callpara^.typ = top_reg) and
                    assigned(add_reg_instruction_hook) then
-                  add_reg_instruction_hook(self,callpara^.reg);
+                  add_reg_instruction_hook(self,callpara^.register);
               end;
           end;
       end;
@@ -321,13 +334,23 @@ uses
 
     procedure taillvm.clearop(opidx: longint);
       var
+        callpara: pllvmcallpara;
         i: longint;
       begin
         case oper[opidx]^.typ of
           top_para:
             begin
               for i:=0 to oper[opidx]^.paras.count-1 do
-                dispose(pllvmcallpara(oper[opidx]^.paras[i]));
+                begin
+                  callpara:=pllvmcallpara(oper[opidx]^.paras[i]);
+                  case callpara^.typ of
+                    top_tai:
+                      callpara^.ai.free;
+                    else
+                      ;
+                  end;
+                  dispose(callpara);
+                end;
               oper[opidx]^.paras.free;
             end;
           top_tai:
@@ -453,9 +476,9 @@ uses
             for i:=0 to _paras.count-1 do
               begin
                 callpara:=pllvmcallpara(_paras[i]);
-                if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                if (callpara^.typ=top_reg) and
                    assigned(add_reg_instruction_hook) then
-                  add_reg_instruction_hook(self,callpara^.reg);
+                  add_reg_instruction_hook(self,callpara^.register);
               end;
             typ:=top_para;
           end;
@@ -471,6 +494,36 @@ uses
            asmlist:=_asmlist;
            typ:=top_asmlist;
          end;
+      end;
+
+
+    procedure taillvm.loadcallingconvention(opidx: longint; calloption: tproccalloption);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           clearop(opidx);
+           callingconvention:=calloption;
+           typ:=top_callingconvention;
+         end;
+      end;
+
+
+    procedure taillvm.landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
+      var
+        lastclause,
+        clause: taillvm;
+      begin
+        if llvmopcode<>la_landingpad then
+          internalerror(2018052001);
+        if op<>la_cleanup then
+          clause:=taillvm.exceptclause(op,def,kind,nil)
+        else
+          clause:=taillvm.cleanupclause;
+        lastclause:=self;
+        while assigned(lastclause.oper[2]^.ai) do
+          lastclause:=taillvm(lastclause.oper[2]^.ai);
+        lastclause.loadtai(2,clause);
       end;
 
 
@@ -545,7 +598,7 @@ uses
               end;
             end;
           la_ret, la_switch, la_indirectbr,
-          la_resume:
+          la_resume, la_catch:
             begin
               { ret size reg }
               if opnr=1 then
@@ -557,10 +610,10 @@ uses
             begin
               case opnr of
                 1: result:=oper[0]^.def;
-                3:
+                4:
                   begin
-                    if oper[3]^.typ=top_reg then
-                      result:=oper[2]^.def
+                    if oper[4]^.typ=top_reg then
+                      result:=oper[3]^.def
                     else
                       internalerror(2015112001)
                   end
@@ -1062,19 +1115,29 @@ uses
 
 
     constructor taillvm.exceptclause(op: tllvmop; def: tdef; kind: TAsmSymbol; nextclause: taillvm);
+      var
+        ref: treference;
       begin
         create_llvm(op);
         ops:=3;
         loaddef(0,def);
-        loadsymbol(1,kind,0);
+        reference_reset_symbol(ref,kind,0,def.alignment,[]);
+        loadref(1,ref);
         loadtai(2,nextclause);
       end;
 
 
-    constructor taillvm.call_size_name_paras(callpd: tdef; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
+    constructor taillvm.cleanupclause;
+      begin
+        create_llvm(la_cleanup);
+        ops:=0;
+      end;
+
+
+    constructor taillvm.call_size_name_paras(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
       begin
         create_llvm(la_call);
-        ops:=5;
+        ops:=6;
         { we need this in case the call symbol is an alias for a symbol with a
           different def in the same module (via "external"), because then we
           have to insert a type conversion later from the alias def to the
@@ -1082,21 +1145,64 @@ uses
           is generated, because the alias declaration may occur anywhere }
         loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,callpd);
-        loadsymbol(3,name,0);
-        loadparas(4,paras);
+        loadcallingconvention(2,cc);
+        loaddef(3,callpd);
+        loadsymbol(4,name,0);
+        loadparas(5,paras);
       end;
 
 
-    constructor taillvm.call_size_reg_paras(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
+    constructor taillvm.call_size_reg_paras(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
       begin
         create_llvm(la_call);
-        ops:=5;
+        ops:=6;
         loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,callpd);
-        loadreg(3,reg);
-        loadparas(4,paras);
+        loadcallingconvention(2,cc);
+        loaddef(3,callpd);
+        loadreg(4,reg);
+        loadparas(5,paras);
+      end;
+
+
+    constructor taillvm.invoke_size_name_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; name: tasmsymbol; paras: tfplist; retlab, exceptlab: TAsmLabel);
+      begin
+        create_llvm(la_invoke);
+        ops:=8;
+        loaddef(0,retsize);
+        loadreg(1,dst);
+        loadcallingconvention(2,cc);
+        loaddef(3,callpd);
+        loadsymbol(4,name,0);
+        loadparas(5,paras);
+        loadsymbol(6,retlab,0);
+        loadsymbol(7,exceptlab,0);
+      end;
+
+
+    constructor taillvm.invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab: TAsmLabel);
+      begin
+        create_llvm(la_invoke);
+        ops:=8;
+        loaddef(0,retsize);
+        loadreg(1,dst);
+        loadcallingconvention(2,cc);
+        loaddef(3,callpd);
+        loadreg(4,reg);
+        loadparas(5,paras);
+        loadsymbol(6,retlab,0);
+        loadsymbol(7,exceptlab,0);
+      end;
+
+
+    constructor taillvm.extract(op: tllvmop; dst: tregister; srcsize: tdef; src: tregister; idx: longint);
+      begin
+        create_llvm(op);
+        ops:=4;
+        loadreg(0,dst);
+        loaddef(1,srcsize);
+        loadreg(2,src);
+        loadconst(3,idx)
       end;
 
 

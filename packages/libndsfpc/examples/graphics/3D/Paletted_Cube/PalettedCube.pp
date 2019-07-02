@@ -308,7 +308,7 @@ begin
         nTexture := 10;
     end;
 
-    glBindTexture(nTexture, textureIDS[nTexture]);
+    glBindTexture(0, textureIDS[nTexture]);
 
     //draw the obj
     glBegin(GL_QUAD);
@@ -320,6 +320,8 @@ begin
 
     glFlush(0);
     swiWaitForVBlank();
+    
+    if (keysPressed and KEY_START) <> 0 then break;
   end;
 
 end.

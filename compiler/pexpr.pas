@@ -917,6 +917,15 @@ implementation
             begin
               statement_syssym:=inline_insert;
             end;
+          in_const_eh_return_data_regno:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr([ef_accept_equal]);
+              p2:=geninlinenode(l,true,p1);
+              consume(_RKLAMMER);
+              statement_syssym:=p2;
+            end;
           else
             internalerror(15);
 

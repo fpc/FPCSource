@@ -669,7 +669,7 @@ unit hlcgobj;
        { class type of high level code generator class (also valid when hlcg is
          nil, in order to be able to call its virtual class methods) }
        chlcgobj: thlcgobjclass;
-
+       create_hlcodegen: TProcedure;
 
     procedure destroy_hlcodegen;
 
@@ -823,9 +823,13 @@ implementation
           objectdef,
           procvardef,
           procdef,
-          arraydef,
           formaldef:
             result:=R_ADDRESSREGISTER;
+          arraydef:
+            if tstoreddef(def).is_intregable then
+              result:=R_INTREGISTER
+            else
+              result:=R_ADDRESSREGISTER;
           floatdef:
             if use_vectorfpu(def) then
               result:=R_MMREGISTER

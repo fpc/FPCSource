@@ -1642,7 +1642,7 @@ implementation
         ss:='';
         if not assigned(sym.typedef) then
           internalerror(200509262);
-        if sym.typedef.typ in tagtypes then
+        if use_tag_prefix(sym.typedef) then
           stabchar:=tagtypeprefix
         else
           stabchar:='t';

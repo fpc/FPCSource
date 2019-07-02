@@ -40,8 +40,8 @@ const
   WRITE_INT_REG1     = $68;
   READ_INT_REG1      = $69;
 
-  READ_INT_REG2      = $6A;
-  WRITE_INT_REG2     = $6B;
+  WRITE_INT_REG2      = $6A;
+  READ_INT_REG2       = $6B;
 
   READ_CLOCK_ADJUST_REG  = $6C;
   WRITE_CLOCK_ADJUST_REG = $6D;

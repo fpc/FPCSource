@@ -60,7 +60,8 @@ const
 // Methods to modify DOS File Attributes
 
 function FAT_getAttr(const _file: pcchar): cint; cdecl; external;
-function FAT_setAttr(const _file: pcchar; attr: cint): cint; cdecl; external;
+function FAT_setAttr(const _file: pcchar; attr: cuint8): cint; cdecl; external;
+
 
 {$define LIBFAT_FEOS_MULTICWD}
 

@@ -336,6 +336,11 @@ var
               exit;
             end;
 {$endif i8086}
+          if {$ifdef llvm}not{$endif}(mf_llvm in moduleflags) then
+            begin
+              Message(unit_u_ppu_llvm_mismatch,@queuecomment);
+              exit;
+            end;
           result:=true;
         end;
 
@@ -1013,6 +1018,12 @@ var
         if current_settings.x86memorymodel in [mm_tiny,mm_small,mm_medium] then
           include(moduleflags,mf_i8086_ss_equals_ds);
 {$endif i8086}
+{$ifdef llvm}
+        include(moduleflags,mf_llvm);
+{$endif}
+{$ifdef symansistr}
+        include(moduleflags,mf_symansistr);
+{$endif}
 
         old_docrc:=ppufile.do_crc;
         ppufile.do_crc:=false;
@@ -1500,7 +1511,7 @@ var
            headerflags:=headerflags or uf_fpu_emulation;
 {$endif cpufpemu}
 {$ifdef Test_Double_checksum_write}
-         Assign(CRCFile,s+'.IMP');
+         Assign(CRCFile,ppufilename+'.IMP');
          Rewrite(CRCFile);
 {$endif def Test_Double_checksum_write}
 
@@ -1681,7 +1692,7 @@ var
     procedure tppumodule.getppucrc;
       begin
 {$ifdef Test_Double_checksum_write}
-         Assign(CRCFile,s+'.INT')
+         Assign(CRCFile,ppufilename+'.INT');
          Rewrite(CRCFile);
 {$endif def Test_Double_checksum_write}
 

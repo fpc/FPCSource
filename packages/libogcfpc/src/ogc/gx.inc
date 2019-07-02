@@ -1030,6 +1030,7 @@ procedure GX_LoadPosMtxIdx(mtxidx: cuint16; pnidx: cuint32); cdecl; external;
 
 procedure GX_LoadNrmMtxImm(mt: Mtx; pnidx: cuint32); cdecl; external;
 
+procedure GX_LoadNrmMtxImm3x3(mt: Mtx33; pnidx: cuint32); cdecl; external;
 
 procedure GX_LoadNrmMtxIdx3x3(mtxidx: cuint16; pnidx: cuint32); cdecl; external;
 
@@ -2300,6 +2301,7 @@ procedure GX_InitTexObjLOD(obj: PGXTexObj; minfilt, magfilt: cuint8;
 
 procedure GX_SetTexCoordScaleManually(texcoord, enable: cuint8; ss, ts: cuint16); cdecl; external;
 
+procedure GX_SetTexCoordCylWrap(texcoord, s_enable, t_enable: cuint8); cdecl; external;
 
 (*!
  * \fn void GX_SetTexCoordBias(u8 texcoord,u8 s_enable,u8 t_enable)

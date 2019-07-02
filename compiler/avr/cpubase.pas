@@ -305,6 +305,8 @@ unit cpubase;
 
     function dwarf_reg(r:tregister):byte;
     function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
+
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
 
@@ -431,6 +433,12 @@ unit cpubase;
       begin
         result:=regdwarf_table[findreg_by_number(r)];
       end;
+
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        result:=-1;
+      end;
+
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin

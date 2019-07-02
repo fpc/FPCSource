@@ -201,6 +201,9 @@ interface
        {$endif state_tracking}
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           function  para_count:longint;
           function  required_para_count:longint;
           { checks if there are any parameters which end up at the stack, i.e.
@@ -1836,6 +1839,56 @@ implementation
            (not(cnf_typedefset in callnodeflags) and not(cnf_typedefset in tcallnode(p).callnodeflags)));
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TCallNode.XMLPrintNodeData(var T: Text);
+      begin
+        if assigned(procdefinition) and (procdefinition.typ=procdef) then
+          WriteLn(T, PrintNodeIndention, '<procname>', SanitiseXMLString(TProcDef(procdefinition).FullProcName(True)), '</procname>')
+        else
+          begin
+            if assigned(symtableprocentry) then
+              WriteLn(T, PrintNodeIndention, '<procname>', symtableprocentry.name, '</procname>')
+          end;
+
+        if assigned(methodpointer) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<methodpointer>');
+            PrintNodeIndent;
+            XMLPrintNode(T, methodpointer);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</methodpointer>');
+          end;
+
+        if assigned(funcretnode) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<funcretnode>');
+            PrintNodeIndent;
+            XMLPrintNode(T, funcretnode);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</funcretnode>');
+          end;
+
+        if assigned(callinitblock) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<callinitblock>');
+            PrintNodeIndent;
+            XMLPrintNode(T, callinitblock);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</callinitblock>');
+          end;
+
+        if assigned(callcleanupblock) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<callcleanupblock>');
+            PrintNodeIndent;
+            XMLPrintNode(T, callcleanupblock);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</callcleanupblock>');
+          end;
+
+        inherited XMLPrintNodeData(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure tcallnode.printnodedata(var t:text);
       begin

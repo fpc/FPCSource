@@ -84,6 +84,7 @@ interface
         if not assigned(res^.Data) then
           begin
             new(callpara);
+            callpara^.alignment:=std_param_align;
             callpara^.def:=cpointerdef.getreusable(sym.vardef);
             if (sym.typ=paravarsym) and
                paramanager.push_addr_param(sym.varspez,sym.vardef,current_procinfo.procdef.proccalloption) then
@@ -91,7 +92,7 @@ interface
             callpara^.sret:=false;
             callpara^.byval:=false;
             callpara^.valueext:=lve_none;
-            callpara^.loc:=LOC_REGISTER;
+            callpara^.typ:=top_reg;
             { address must be a temp register }
             if (sym.localloc.loc<>LOC_REFERENCE) or
                (sym.localloc.reference.base=NR_NO) or
@@ -99,7 +100,7 @@ interface
                (sym.localloc.reference.offset<>0) or
                assigned(sym.localloc.reference.symbol) then
               internalerror(2016111001);
-            callpara^.reg:=sym.localloc.reference.base;
+            callpara^.register:=sym.localloc.reference.base;
             fsymboldata.add(callpara);
             ptruint(res^.Data):=fsymboldata.count-1;
           end;

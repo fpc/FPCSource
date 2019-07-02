@@ -131,7 +131,8 @@ implementation
     aasmdata,
     procinfo,
     cpubase,cpuinfo,llvmbase,
-    symtable,llvmdef,defutil,defcmp;
+    symtable,llvmdef,defutil,defcmp,
+    ngenutil;
 
   { tllvmaggregateinformation }
 
@@ -213,9 +214,9 @@ implementation
           why it's done like this, but this is how Clang does it) }
         if (target_info.system in systems_darwin) and
            (section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
-          current_module.llvmcompilerusedsyms.add(decl)
+          cnodeutils.RegisterUsedAsmSym(sym,def,false)
         else
-          current_module.llvmusedsyms.add(decl);
+          cnodeutils.RegisterUsedAsmSym(sym,def,true);
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
     end;

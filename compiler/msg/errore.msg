@@ -2758,15 +2758,15 @@ asmr_w_unable_to_determine_reference_size_using_byte=07101_W_No size specified a
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use BYTE as default.
-asmr_w_no_direct_ebp_for_parameter=07102_W_Use of +offset(%ebp) for parameters invalid here
+asmr_w_no_direct_ebp_for_parameter=07102_W_Use of $1 for parameters invalid here
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
-asmr_w_direct_ebp_for_parameter_regcall=07103_W_Use of +offset(%ebp) is not compatible with regcall convention
+asmr_w_direct_ebp_for_parameter_regcall=07103_W_Use of $1 is not compatible with regcall convention
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
-asmr_w_direct_ebp_neg_offset=07104_W_Use of -offset(%ebp) is not recommended for local variable access
+asmr_w_direct_ebp_neg_offset=07104_W_Use of $1 is not recommended for local variable access
 % Using -8(%ebp) to access a local variable is not recommended
-asmr_w_direct_esp_neg_offset=07105_W_Use of -offset(%esp), access may cause a crash or value may be lost
+asmr_w_direct_esp_neg_offset=07105_W_Use of $1, access may cause a crash or value may be lost
 % Using -8(%esp) to access a local stack is not recommended, as
 % this stack portion can be overwritten by any function calls or interrupts.
 asmr_e_no_vmtoffset_possible=07106_E_VMTOffset must be used in combination with a virtual method, and "$1" is not virtual
@@ -3352,6 +3352,9 @@ cg_f_internal_type_does_not_match=10066_F_Internal type "$1" does not look as ex
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the compiler in use. If you changed the runtime library this error means
 % that you changed a type which the compiler needs for internal use and which needs to have a certain structure.
+unit_u_ppu_llvm_mismatch=10067_U_Skipping unit, PPU and compiler have to be both compiled with or without LLVM support
+% Units compiled by a compiler built with the LLVM code generator cannot be used with a regular compiler,
+% and vice versa.
 % \end{description}
 # EndOfTeX
 
@@ -3844,6 +3847,10 @@ S*2Aas_Assemble using GNU AS
 **2Ch<n>[,m]_<n> bytes min heap size (between 1023 and 67107840) and optionally [m] max heap size
 **2Ci_IO-checking
 A*2CI<x>_Select instruction set on ARM: ARM or THUMB
+L*2CL<x>_LLVM code generation options
+L*3CLflto_Enable Link-time optimisation (needed both when compiling units and programs/libraries)
+L*3CLfltonosystem_Disable LTO for the system unit (needed with at least Xcode 10.2 and earlier due to linker bugs)
+L*3CLv<x>_LLVM target version: 3.3, 3.4, .., Xcode-6.4, .., Xcode-10.1, 7.0, 8.0
 **2Cn_Omit linking stage
 P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations

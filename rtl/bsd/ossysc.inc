@@ -470,6 +470,12 @@ begin
 end;
 
 
+Function Fpmprotect(start:pointer;len:size_t;prot:cint):cint; [public, alias : 'FPC_SYSC_MPROTECT'];
+begin
+  Fpmprotect:=do_syscall(syscall_nr_mprotect,TSysParam(start),TSysParam(len),TSysParam(prot));
+end;
+
+
 {
   Interface to Unix ioctl call.
   Performs various operations on the filedescriptor Handle.

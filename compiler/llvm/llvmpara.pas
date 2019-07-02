@@ -49,12 +49,14 @@ unit llvmpara;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         procedure createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara); override;
         function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
+        function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
         function get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara; override;
        private
+        procedure create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
         procedure set_llvm_paraloc_name(p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
         procedure add_llvm_callee_paraloc_names(p: tabstractprocdef);
         procedure reducetosingleregparaloc(paraloc: PCGParaLocation; def: tdef; reg: tregister);
-        procedure reduceparalocs(p: tabstractprocdef; side: tcallercallee);
+        procedure reduceparalocs(p: tabstractprocdef; side: tcallercallee; paras: tparalist);
       end;
 
 
@@ -108,15 +110,15 @@ unit llvmpara;
     end;
 
 
-  procedure tllvmparamanager.reduceparalocs(p: tabstractprocdef; side: tcallercallee);
+  procedure tllvmparamanager.reduceparalocs(p: tabstractprocdef; side: tcallercallee; paras: tparalist);
     var
       paranr: longint;
       hp: tparavarsym;
       paraloc: PCGParaLocation;
     begin
-      for paranr:=0 to p.paras.count-1 do
+      for paranr:=0 to paras.count-1 do
         begin
-          hp:=tparavarsym(p.paras[paranr]);
+          hp:=tparavarsym(paras[paranr]);
           paraloc:=hp.paraloc[side].location;
           if assigned(paraloc) and
              assigned(paraloc^.next) and
@@ -211,21 +213,17 @@ unit llvmpara;
 
   function tllvmparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;
     begin
-      result:=inherited create_paraloc_info(p, side);
-      { on the calleeside, llvm declares the parameters similar to Pascal or C
-        (a list of parameters and their types), but they correspond more
-        closely to parameter locations than to parameters -> add names to the
-        locations }
-      if (side=calleeside) and
-         not(po_assembler in p.procoptions) then
-        begin
-          add_llvm_callee_paraloc_names(p);
-          reduceparalocs(p,side);
-        end
-      else if side=callerside then
-        begin
-          reduceparalocs(p,side);
-        end;
+      result:=inherited;
+      create_paraloc_info_internllvm(p,side);
+    end;
+
+
+  function tllvmparamanager.create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint;
+    begin
+      result:=inherited;
+      create_paraloc_info_internllvm(p,side);
+      if assigned(varargspara) then
+        reduceparalocs(p,side,varargspara);
     end;
 
 
@@ -248,6 +246,25 @@ unit llvmpara;
           if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
             internalerror(2019011902);
           reducetosingleregparaloc(paraloc,result.def,paraloc^.register);
+        end;
+    end;
+
+
+  procedure tllvmparamanager.create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
+    begin
+      { on the calleeside, llvm declares the parameters similar to Pascal or C
+        (a list of parameters and their types), but they correspond more
+        closely to parameter locations than to parameters -> add names to the
+        locations }
+      if (side=calleeside) and
+         not(po_assembler in p.procoptions) then
+        begin
+          add_llvm_callee_paraloc_names(p);
+          reduceparalocs(p,side,p.paras);
+        end
+      else if side=callerside then
+        begin
+          reduceparalocs(p,side,p.paras);
         end;
     end;
 
@@ -289,6 +306,11 @@ unit llvmpara;
     end;
 
 begin
+  if not assigned(paramanager) then
+    begin
+      writeln('Internalerror 2018052006');
+      halt(1);
+    end;
   { replace the native parameter manager. Maybe this has to be moved to a
     procedure like the creations of the code generators, but possibly not since
     we still call the original paramanager }

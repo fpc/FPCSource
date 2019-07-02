@@ -198,7 +198,7 @@ uses
          roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
          procedure loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset; ausermode: boolean=false);
-         procedure loadconditioncode(opidx:longint;const cond:tasmcond);
+         procedure loadconditioncode(opidx:longint;const acond:tasmcond);
          procedure loadmodeflags(opidx:longint;const flags:tcpumodeflags);
          procedure loadspecialreg(opidx:longint;const areg:tregister; const aflags:tspecialregflags);
          procedure loadrealconst(opidx:longint;const _value:bestreal);
@@ -388,14 +388,14 @@ implementation
       end;
 
 
-    procedure taicpu.loadconditioncode(opidx:longint;const cond:tasmcond);
+    procedure taicpu.loadconditioncode(opidx:longint;const acond:tasmcond);
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do
          begin
            if typ<>top_conditioncode then
              clearop(opidx);
-           cc:=cond;
+           cc:=acond;
            typ:=top_conditioncode;
          end;
       end;

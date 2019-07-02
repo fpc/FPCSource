@@ -398,6 +398,7 @@ uses
     function conditions_equal(const c1, c2: TAsmCond): boolean;
     function dwarf_reg(r:tregister):shortint;
     function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
 
 implementation
 
@@ -577,4 +578,13 @@ implementation
       begin
         result:=regdwarf_table[findreg_by_number(r)];
       end;
+
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        if (nr>=0) and (nr<2) then
+          result:=nr+3
+        else
+          result:=-1;
+      end;
+
 end.

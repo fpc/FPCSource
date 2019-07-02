@@ -64,6 +64,7 @@ end;
 var
   sys: mm_ds_system;
   mystream: mm_stream;
+  keys: cint;
 begin	
 
 	//----------------------------------------------------------------
@@ -122,6 +123,18 @@ begin
 		
 		// wait until next frame
 		swiWaitForVBlank();
+
+   
+ 		//-----------------------------------------------------
+		// get new keypad input
+		//-----------------------------------------------------
+		scanKeys();
+		keys := keysDown();
+
+		//-----------------------------------------------------
+		// START: exit
+		//-----------------------------------------------------
+		if (keys and KEY_START) <> 0 then break;  
 		
 		// set backdrop to show cpu usage
 		BG_PALETTE_SUB[0] := cpu_colour;

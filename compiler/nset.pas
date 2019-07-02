@@ -120,6 +120,9 @@ interface
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
           procedure printnodetree(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeTree(var t:text); override;
+{$endif DEBUG_NODE_XML}
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -1014,6 +1017,43 @@ implementation
         writeln(t,printnodeindention,')');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TCaseNode.XMLPrintNodeTree(var T: Text);
+      var
+        i : longint;
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        WriteLn(T, PrintNodeIndention, '<condition>');
+        PrintNodeIndent;
+        XMLPrintNode(T, Left);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</condition>');
+
+        i:=0;
+        for i:=0 to blocks.count-1 do
+          begin
+            WriteLn(T, PrintNodeIndention, '<block id="', i, '">');
+            PrintNodeIndent;
+            XMLPrintNode(T, PCaseBlock(blocks[i])^.statement);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</block>');
+          end;
+        if assigned(elseblock) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<block id="else">');;
+            PrintNodeIndent;
+            XMLPrintNode(T, ElseBlock);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</block>');
+          end;
+
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure tcasenode.insertintolist(l : tnodelist);
       begin

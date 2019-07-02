@@ -71,6 +71,9 @@ interface
           procedure mark_write;override;
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           procedure setprocdef(p : tprocdef);
           property procdef: tprocdef read fprocdef write setprocdef;
        end;
@@ -97,6 +100,9 @@ interface
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
           function docompare(p: tnode): boolean; override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tassignmentnodeclass = class of tassignmentnode;
 
@@ -471,6 +477,16 @@ implementation
         writeln(t,'');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TLoadNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, printnodeindention, '<symbol>', symtableentry.name, '</symbol>');
+
+        if symtableentry.typ = procsym then
+          WriteLn(T, printnodeindention, '<procdef>', fprocdef.mangledname, '</procdef>');
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure tloadnode.setprocdef(p : tprocdef);
       begin
@@ -954,6 +970,18 @@ implementation
             aktstate.delete_fact(left);
     end;
 {$endif}
+
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TAssignmentNode.XMLPrintNodeData(var T: Text);
+      begin
+        { For assignments, put the left and right branches on the same level for clarity }
+        XMLPrintNode(T, Left);
+        XMLPrintNode(T, Right);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 
 {*****************************************************************************

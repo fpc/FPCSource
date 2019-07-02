@@ -15,7 +15,18 @@ const
   REG_VCOUNT		: pcuint16 = pointer($04000006);
   HALT_CR       : pcuint16 = pointer($04000300);
   REG_POWERCNT  : pcuint16 = pointer($04000304);
-  REG_DSIMODE		: pcuint32 = pointer($04004000);  
+  
+  REG_SCFG_ROM		: pcuint16 = pointer($04004000);  
+
+{$ifdef ARM7}
+  REG_SCFG_A9ROM : pcuint8 = pointer($4004000);
+  REG_SCFG_A7ROM : pcuint8 = pointer($4004001);  // ??
+{$endif ARM7}
+
+  REG_SCFG_CLK : pcuint16 = pointer($4004004);
+  REG_SCFG_RST : pcuint16 = pointer($4004006);
+  REG_SCFG_EXT : pcuint32 = pointer($4004008);
+  REG_SCFG_MC  : pcuint16 = pointer($4004010);
 
 procedure SetYtrigger(Yvalue: cint); inline;
 
@@ -45,8 +56,7 @@ const
 //procedure SystemSleep(); cdecl; external;
 procedure ledBlink(bm: cint); cdecl; external;
 
-var
-  __dsimode: cbool; cvar; external;
+function isDSiMode(): cbool; inline;
 
 {$ifdef ARM9}
 procedure SystemSleep(); cdecl; external;
@@ -72,12 +82,12 @@ procedure setVectorBase(highVector: cint); cdecl; external;
 
 type 
   sysVectors_t = packed record
-    reset: cuint32;
-    undefined: cuint32;
-    swi: cuint32;
-    prefetch_abort: cuint32;
-    data_abort: cuint32;
-    fiq: cuint32;
+    reset: VoidFn;
+    undefined: VoidFn;
+    swi: VoidFn;
+    prefetch_abort: VoidFn;
+    data_abort: VoidFn;
+    fiq: VoidFn;
   end; 
   sysVectors = sysVectors_t;
   PsysVectors = ^sysVectors;
@@ -87,6 +97,8 @@ var
 
 //void setSDcallback(void(*callback)(int));
 procedure setSDcallback(callback: pointer); cdecl; external; // ??
+
+function setCpuClock(speed: cbool): cbool; cdecl; external;
 
 // Helper functions for heap size
 //! returns current start of heap space
@@ -100,6 +112,9 @@ function getHeapLimit(): pcuint8; cdecl; external;
 
 
 {$ifdef ARM7}
+const
+  REG_CONSOLEID	: pcuint64 = pointer($04004D00);
+
 type
   ARM7_power = cint;
 const
@@ -226,7 +241,7 @@ const
   __system_argv: Pargv = pointer($02FFFE70);
 
 const
-  BOOTSIG: cardinal = $62757473746F6F62; // ULL?
+  BOOTSIG: cuint64 = $62757473746F6F62; // ULL?
 
 
 type
@@ -307,6 +322,14 @@ begin
 	REG_POWERCNT^ := REG_POWERCNT^ and not bits;
 end;
 {$endif ARM7}
+
+
+var
+  __dsimode: cbool; cvar; external;
+function isDSiMode(): cbool; inline;
+begin
+	isDSiMode := __dsimode;
+end;
 
 {$endif NDS_IMPLEMENTATION}
 

@@ -182,8 +182,8 @@ interface
 
     function LengthUleb128(a: qword) : byte;
     function LengthSleb128(a: int64) : byte;
-    function EncodeUleb128(a: qword;out buf) : byte;
-    function EncodeSleb128(a: int64;out buf) : byte;
+    function EncodeUleb128(a: qword;out buf;len: byte) : byte;
+    function EncodeSleb128(a: int64;out buf;len: byte) : byte;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
@@ -1672,7 +1672,7 @@ implementation
       end;
 
 
-    function EncodeUleb128(a: qword;out buf) : byte;
+    function EncodeUleb128(a: qword;out buf;len : byte) : byte;
       var
         b: byte;
         pbuf : pbyte;
@@ -1687,13 +1687,13 @@ implementation
           pbuf^:=b;
           inc(pbuf);
           inc(result);
-          if a=0 then
+          if (a=0) and  (result>=len) then
             break;
         until false;
       end;
 
 
-    function EncodeSleb128(a: int64;out buf) : byte;
+    function EncodeSleb128(a: int64;out buf;len : byte) : byte;
       var
         b, size: byte;
         more: boolean;
@@ -1707,7 +1707,7 @@ implementation
           b := a and $7f;
           a := SarInt64(a, 7);
 
-          if (
+          if (result+1>=len) and (
             ((a = 0) and (b and $40 = 0)) or
             ((a = -1) and (b and $40 <> 0))
           ) then

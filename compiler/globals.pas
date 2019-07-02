@@ -399,6 +399,7 @@ interface
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
+      LTOExt: TCmdStr = '';
 
     const
       default_settings : TSettings = (
@@ -567,7 +568,7 @@ interface
         instructionset : is_arm;
 {$endif defined(ARM)}
 {$if defined(LLVM) and not defined(GENERIC_CPU)}
-        llvmversion    : llvmver_3_9_0;
+        llvmversion    : llvmver_3_9;
 {$endif defined(LLVM) and not defined(GENERIC_CPU)}
         controllertype : ct_none;
         pmessage : nil;

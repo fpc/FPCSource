@@ -56,6 +56,10 @@ Type
 
 
 Const
+   fputypestrllvm : array[tfputype] of string[6] = ('',
+     ''
+   );
+
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }
    ControllerSupport = false; (* Not yet at least ;-) *)

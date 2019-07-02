@@ -223,8 +223,8 @@ implementation
                        CGMessage(parser_e_case_lower_less_than_upper_bound);
                      if not casedeferror then
                        begin
-                         testrange(casedef,hl1,false,false);
-                         testrange(casedef,hl2,false,false);
+                         adaptrange(casedef,hl1,rc_default);
+                         adaptrange(casedef,hl2,rc_default);
                        end;
                    end
                  else
@@ -252,7 +252,7 @@ implementation
                    begin
                      hl1:=get_ordinal_value(p);
                      if not casedeferror then
-                       testrange(casedef,hl1,false,false);
+                       adaptrange(casedef,hl1,rc_default);
                      casenode.addlabel(blockid,hl1,hl1);
                    end;
                end;
@@ -362,7 +362,7 @@ implementation
           begin
             if (hp.nodetype=ordconstn) and
                (fordef.typ<>errordef) then
-              testrange(fordef,tordconstnode(hp).value,false,true);
+              adaptrange(fordef,tordconstnode(hp).value,rc_always);
           end;
 
         function for_loop_create(hloopvar: tnode): tnode;
@@ -874,6 +874,7 @@ implementation
          t:ttoken;
          unit_found:boolean;
          oldcurrent_exceptblock: integer;
+         filepostry : tfileposinfo;
       begin
          p_default:=nil;
          p_specific:=nil;
@@ -882,6 +883,7 @@ implementation
 
          { read statements to try }
          consume(_TRY);
+         filepostry:=current_filepos;
          first:=nil;
          inc(exceptblockcounter);
          oldcurrent_exceptblock := current_exceptblock;
@@ -913,6 +915,7 @@ implementation
               current_exceptblock := exceptblockcounter;
               p_finally_block:=statements_til_end;
               try_statement:=ctryfinallynode.create(p_try_block,p_finally_block);
+              try_statement.fileinfo:=filepostry;
            end
          else
            begin

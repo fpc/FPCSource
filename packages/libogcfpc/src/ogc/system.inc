@@ -115,7 +115,7 @@ type
 
 
 
-  resetcallback = procedure;
+  resetcallback = procedure(irq: cuint32; ctx: pointer);
   powercallback = procedure;
   resetfunction = function(_final: cint32): cint32;
 
@@ -139,7 +139,7 @@ procedure SYS_ProtectRange(chan: cuint32; addr: pointer; bytes, cntrl: cuint32);
 procedure SYS_StartPMC(mcr0val, mcr1val: cuint32); cdecl; external;
 procedure SYS_DumpPMC(); cdecl; external;
 procedure SYS_StopPMC(); cdecl; external;
-
+procedure SYS_ResetPMC(); cdecl; external;
 
 function SYS_CreateAlarm(thealarm: psyswd_t): cint32; cdecl; external;
 

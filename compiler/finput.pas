@@ -145,6 +145,9 @@ interface
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
+{$ifdef DEBUG_NODE_XML}
+          ppxfilename,              { fullname of the intermediate node XML file }
+{$endif DEBUG_NODE_XML}
           importlibfilename,        { fullname of the import libraryfile }
           staticlibfilename,        { fullname of the static libraryfile }
           sharedlibfilename,        { fullname of the shared libraryfile }
@@ -154,6 +157,9 @@ interface
           dbgfilename,              { fullname of the debug info file }
           path,                     { path where the module is find/created }
           outputpath   : TPathStr;  { path where the .s / .o / exe are created }
+{$ifdef DEBUG_NODE_XML}
+          ppxfilefail: Boolean;     { If the ppxfile could not be accessed, flag it }
+{$endif DEBUG_NODE_XML}
           constructor create(const s:string);
           destructor destroy;override;
           procedure setfilename(const fn:TPathStr;allowoutput:boolean);
@@ -625,6 +631,9 @@ uses
          asmfilename:=p+n+target_info.asmext;
          objfilename:=p+n+target_info.objext;
          ppufilename:=p+n+target_info.unitext;
+{$ifdef DEBUG_NODE_XML}
+         ppxfilename:=p+n+'-node-dump.xml';
+{$endif DEBUG_NODE_XML}
          importlibfilename:=p+target_info.importlibprefix+n+target_info.importlibext;
          staticlibfilename:=p+target_info.staticlibprefix+n+target_info.staticlibext;
          exportfilename:=p+'exp'+n+target_info.objext;
@@ -668,6 +677,9 @@ uses
         realmodulename:=stringdup(s);
         mainsource:='';
         ppufilename:='';
+{$ifdef DEBUG_NODE_XML}
+        ppxfilename:='';
+{$endif DEBUG_NODE_XML}
         objfilename:='';
         asmfilename:='';
         importlibfilename:='';
@@ -679,6 +691,12 @@ uses
         outputpath:='';
         paramfn:='';
         path:='';
+{$ifdef DEBUG_NODE_XML}
+        { Setting ppxfilefail to true will stop it from being written to if it
+          was never initialised, which happens if a module doesn't need
+          recompiling. }
+        ppxfilefail := True;
+{$endif DEBUG_NODE_XML}
         { status }
         state:=ms_registered;
         { unit index }

@@ -67,8 +67,8 @@ type
 
   TCStream = class(TObject)
   private
-    function GetPosition: Longint;
-    procedure SetPosition(Pos: Longint);
+    function GetPosition: Longint; {$ifdef USEINLINE}inline;{$endif}
+    procedure SetPosition(Pos: Longint); {$ifdef USEINLINE}inline;{$endif}
     function GetSize: Longint;
   protected
     procedure SetSize(NewSize: Longint); virtual;
@@ -79,22 +79,22 @@ type
     procedure ReadBuffer(var Buffer; Count: Longint);
     procedure WriteBuffer(const Buffer; Count: Longint);
     function CopyFrom(Source: TCStream; Count: Longint): Longint;
-    function ReadComponent(Instance: TCComponent): TCComponent;
-    function ReadComponentRes(Instance: TCComponent): TCComponent;
-    procedure WriteComponent(Instance: TCComponent);
-    procedure WriteComponentRes(const ResName: string; Instance: TCComponent);
-    procedure WriteDescendent(Instance, Ancestor: TCComponent);
-    procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TCComponent);
-    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Integer);
-    procedure FixupResourceHeader(FixupInfo: Integer);
-    procedure ReadResHeader;
-    function ReadByte : Byte;
-    function ReadWord : Word;
-    function ReadDWord : Cardinal;
+    function ReadComponent(Instance: TCComponent): TCComponent; {$ifdef USEINLINE}inline;{$endif}
+    function ReadComponentRes(Instance: TCComponent): TCComponent; {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteComponent(Instance: TCComponent); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteComponentRes(const ResName: string; Instance: TCComponent); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteDescendent(Instance, Ancestor: TCComponent); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TCComponent); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Integer); {$ifdef USEINLINE}inline;{$endif}
+    procedure FixupResourceHeader(FixupInfo: Integer); {$ifdef USEINLINE}inline;{$endif}
+    procedure ReadResHeader; {$ifdef USEINLINE}inline;{$endif}
+    function ReadByte : Byte; {$ifdef USEINLINE}inline;{$endif}
+    function ReadWord : Word; {$ifdef USEINLINE}inline;{$endif}
+    function ReadDWord : Cardinal; {$ifdef USEINLINE}inline;{$endif}
     function ReadAnsiString : AnsiString;
-    procedure WriteByte(b : Byte);
-    procedure WriteWord(w : Word);
-    procedure WriteDWord(d : Cardinal);
+    procedure WriteByte(b : Byte); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteWord(w : Word); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteDWord(d : Cardinal); {$ifdef USEINLINE}inline;{$endif}
     Procedure WriteAnsiString (S : AnsiString);
     property Position: Longint read GetPosition write SetPosition;
     property Size: Longint read GetSize write SetSize;
@@ -153,11 +153,11 @@ type
     FMemory: Pointer;
     FSize, FPosition: Longint;
   protected
-    procedure SetPointer(Ptr: Pointer; ASize: Longint);
+    procedure SetPointer(Ptr: Pointer; ASize: Longint); {$ifdef USEINLINE}inline;{$endif}
   public
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
-    procedure SaveToStream(Stream: TCStream);
+    procedure SaveToStream(Stream: TCStream); {$ifdef USEINLINE}inline;{$endif}
     procedure SaveToFile(const FileName: string);
     property Memory: Pointer read FMemory;
   end;

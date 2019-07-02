@@ -380,6 +380,8 @@ unit cpubase;
     function is_continuous_mask(d : aword;var lsb, width: byte) : boolean;
     function dwarf_reg(r:tregister):shortint;
     function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
+
 
     function IsIT(op: TAsmOp) : boolean;
     function GetITLevels(op: TAsmOp) : longint;
@@ -661,6 +663,14 @@ unit cpubase;
     function dwarf_reg_no_error(r:tregister):shortint;
       begin
         result:=regdwarf_table[findreg_by_number(r)];
+      end;
+
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        if (nr>=0) and (nr<2) then
+          result:=nr
+        else
+          result:=-1;
       end;
 
       { Low part of 64bit return value }

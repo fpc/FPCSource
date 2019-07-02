@@ -64,6 +64,9 @@ interface
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
           procedure printnodeinfo(var t : text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean):tnode; override;
@@ -1047,6 +1050,31 @@ implementation
         write(t,']');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TTypeConvNode.XMLPrintNodeInfo(var T: Text);
+      var
+        First: Boolean;
+        i: TTypeConvNodeFlag;
+      begin
+        inherited XMLPrintNodeInfo(T);
+        Write(T,' convtype="', convtype);
+        First := True;
+        for i := Low(TTypeConvNodeFlag) to High(TTypeConvNodeFlag) do
+          if i in ConvNodeFlags then
+            begin
+              if First then
+                begin
+                  Write(T, '" convnodeflags="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i);
+           end;
+
+        { If no flags were printed, this is the closing " for convtype }
+        Write(T, '"');
+      end;
+{$endif DEBUG_NODE_XML}
 
     function ttypeconvnode.typecheck_cord_to_pointer : tnode;
 
@@ -1454,9 +1482,13 @@ implementation
              result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef)
            else
              begin
-               if is_currency(left.resultdef) and
-                  not(nf_internal in flags) then
-                 v:=v div 10000;
+               if is_currency(left.resultdef) then
+                 begin
+                  if not(nf_internal in flags) then
+                    v:=v div 10000;
+                 end
+               else if (resultdef.typ in [orddef,enumdef]) then
+                 adaptrange(resultdef,v,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags);
                result:=cordconstnode.create(v,resultdef,false);
              end;
          end
@@ -3045,12 +3077,10 @@ implementation
                      end
                    else
                      begin
-                       { for constant values on absolute variables, swaping is required }
+                       { for constant values on absolute variables, swapping is required }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
-                       if not(nf_internal in flags) then
-                         testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags)
-                                   or (nf_absolute in flags),false);
+                       adaptrange(resultdef,tordconstnode(left).value,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags);
                        { swap value back, but according to new type }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,resultdef.size);
@@ -3255,6 +3285,7 @@ implementation
 
       begin
          first_array_to_pointer:=nil;
+         make_not_regable(left,[ra_addr_regable]);
          expectloc:=LOC_REGISTER;
       end;
 

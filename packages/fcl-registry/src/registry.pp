@@ -243,6 +243,7 @@ type
   public
     constructor Create(const AFileName: string); overload;
     constructor Create(const AFileName: string; AAccess: LongWord); overload;
+    destructor destroy; override;
     function ReadDate(const Section, Name: string; Default: TDateTime): TDateTime; override;
     function ReadDateTime(const Section, Name: string; Default: TDateTime): TDateTime; override;
     function ReadInteger(const Section, Name: string; Default: Longint): Longint; override;
@@ -988,6 +989,13 @@ end;
 constructor TRegistryIniFile.Create(const AFileName: string);
 begin
   Create(AFileName,KEY_ALL_ACCESS);
+end;
+
+destructor TRegistryIniFile.destroy;
+
+begin
+  FreeAndNil(FRegInifile);
+  Inherited;
 end;
 
 procedure TRegistryIniFile.DeleteKey(const Section, Name: String);

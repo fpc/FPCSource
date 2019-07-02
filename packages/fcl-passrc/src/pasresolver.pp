@@ -1525,6 +1525,7 @@ type
     procedure FinishClassOfType(El: TPasClassOfType); virtual;
     procedure FinishPointerType(El: TPasPointerType); virtual;
     procedure FinishArrayType(El: TPasArrayType); virtual;
+    procedure FinishGenericTemplateType(El: TPasGenericTemplateType); virtual;
     procedure FinishResourcestring(El: TPasResString); virtual;
     procedure FinishProcedure(aProc: TPasProcedure); virtual;
     procedure FinishProcedureType(El: TPasProcedureType); virtual;
@@ -5004,7 +5005,13 @@ begin
           and (OlderIdentifier.Element.Parent.Parent<>Scope.Element) then
         // this enum was propagated from a sub type -> remove enum
         Scope.RemoveLocalIdentifier(OlderIdentifier.Element);
-      RaiseMsg(20170216151530,nDuplicateIdentifier,sDuplicateIdentifier,
+      if (El.Visibility=visPublished) and (El is TPasProcedure)
+          and (OlderIdentifier.Element is TPasProcedure) then
+        RaiseMsg(20190626175432,nDuplicatePublishedMethodXAtY,
+                 sDuplicatePublishedMethodXAtY,
+                 [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El)
+      else
+        RaiseMsg(20170216151530,nDuplicateIdentifier,sDuplicateIdentifier,
                [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El);
       end;
 
@@ -5397,7 +5404,9 @@ begin
     EmitTypeHints(El,TPasAliasType(El).DestType);
     end
   else if (C=TPasPointerType) then
-    EmitTypeHints(El,TPasPointerType(El).DestType);
+    EmitTypeHints(El,TPasPointerType(El).DestType)
+  else if C=TPasGenericTemplateType then
+    FinishGenericTemplateType(TPasGenericTemplateType(El));
 end;
 
 procedure TPasResolver.FinishEnumType(El: TPasEnumType);
@@ -5798,6 +5807,24 @@ begin
     begin
     CheckUseAsType(El.ElType,20190123095401,El);
     FinishSubElementType(El,El.ElType);
+    end;
+end;
+
+procedure TPasResolver.FinishGenericTemplateType(El: TPasGenericTemplateType);
+var
+  i: Integer;
+  Expr: TPasExpr;
+  Value: String;
+begin
+  for i:=0 to length(El.Constraints)-1 do
+    begin
+    Expr:=El.Constraints[i];
+    if (Expr.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent) then
+      begin
+      Value:=TPrimitiveExpr(Expr).Value;
+      if SameText(Value,'class') then
+        ; // ToDo
+      end;
     end;
 end;
 
@@ -14342,6 +14369,19 @@ end;
 
 procedure TPasResolver.BI_LowHigh_OnEval(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+
+  function IsDynArrayConstExpr(IdentEl: TPasElement): boolean;
+  begin
+    Result:=false;
+    if not (IdentEl is TPasVariable) then exit;
+    if not (TPasVariable(IdentEl).Expr is TPasExpr) then exit;
+
+    if (IdentEl.ClassType=TPasConst) and TPasConst(IdentEl).IsConst then
+      exit(true);
+    if fExprEvaluator.IsConst(Params) then
+      exit(true); // a const refers an initial value
+  end;
+
 var
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
@@ -14371,8 +14411,7 @@ begin
         // dyn or open array
         if Proc.BuiltIn=bfLow then
           Evaluated:=TResEvalInt.CreateValue(0)
-        else if (ParamResolved.IdentEl is TPasVariable)
-            and (TPasVariable(ParamResolved.IdentEl).Expr is TPasExpr) then
+        else if IsDynArrayConstExpr(ParamResolved.IdentEl) then
           begin
           Expr:=TPasVariable(ParamResolved.IdentEl).Expr;
           if Expr is TArrayValues then
@@ -15852,6 +15891,7 @@ begin
       // resolved when finished
     else if AClass=TPasImplCommand then
     else if AClass=TPasAttributes then
+    else if AClass=TPasGenericTemplateType then
     else if AClass=TPasUnresolvedUnitRef then
       RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
     else

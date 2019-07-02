@@ -17,6 +17,7 @@ Type
     procedure SetDispatcher(AValue: TSQLDBRestDispatcher);
   Protected
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure ConfigureDispatcherFromRequest(Disp: TSQLDBRestDispatcher; aRequest: TRequest); virtual;
     Function FindDispatcher : TSQLDBRestDispatcher; virtual;
   Public
     constructor Create(AOwner: TComponent); override;
@@ -28,7 +29,7 @@ Type
 
 implementation
 
-uses sqldbrestconst;
+uses sqldbrestschema, sqldbrestconst;
 
 { TSQLDBRestModule }
 
@@ -39,7 +40,10 @@ begin
     FDispatcher.RemoveFreeNotification(Self);
   FDispatcher:=AValue;
   if Assigned(Dispatcher) then
+    begin
+    FDispatcher.Active:=False;
     FDispatcher.FreeNotification(Self);
+    end;
 end;
 
 procedure TSQLDBRestModule.Notification(AComponent: TComponent; Operation: TOperation);
@@ -61,6 +65,12 @@ begin
   inherited Create(AOwner);
 end;
 
+procedure TSQLDBRestModule.ConfigureDispatcherFromRequest(Disp : TSQLDBRestDispatcher; aRequest : TRequest);
+
+begin
+  Disp.VerifyPathInfo(aRequest);
+end;
+
 procedure TSQLDBRestModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
@@ -69,7 +79,11 @@ Var
 begin
   Disp:=FindDispatcher;
   If assigned(Disp) then
+    begin
+    Disp.Active:=False;
+    ConfigureDispatcherFromRequest(Disp,aRequest);
     Disp.HandleRequest(aRequest,aResponse)
+    end
   else
     Raise EHTTP.Create(SErrNoRESTDispatcher);
 end;

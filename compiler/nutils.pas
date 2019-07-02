@@ -205,8 +205,8 @@ implementation
               result := foreachnode(procmethod,tloopnode(n).t1,f,arg) or result;
               result := foreachnode(procmethod,tloopnode(n).t2,f,arg) or result;
             end;
-          raisen:
-            { frame tree }
+          raisen, tryfinallyn:
+            { frame tree/copy of finally code }
             result := foreachnode(ttertiarynode(n).third,f,arg) or result;
           tempcreaten:
             { temp. initialization code }
@@ -308,8 +308,8 @@ implementation
               result := foreachnodestatic(procmethod,tloopnode(n).t1,f,arg) or result;
               result := foreachnodestatic(procmethod,tloopnode(n).t2,f,arg) or result;
             end;
-          raisen:
-            { frame tree }
+          raisen, tryfinallyn:
+            { frame tree/copy of finally code }
             result := foreachnodestatic(ttertiarynode(n).third,f,arg) or result;
           tempcreaten:
             { temp. initialization code }
