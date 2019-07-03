@@ -20,7 +20,7 @@
 }
 unit armpara;
 
-{$mode objfpc}
+{$i fpcdefs.inc}
 
 interface
 
