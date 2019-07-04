@@ -28,6 +28,7 @@ program ppudump;
 uses
   { do NOT add symconst or globtype to make merging easier }
   { do include symconst and globtype now before splitting 2.5 PM 2011-06-15 }
+  cutils,
   SysUtils,
   constexp,
   symconst,
