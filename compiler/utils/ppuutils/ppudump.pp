@@ -22,6 +22,7 @@ program ppudump;
 
 {$i fpcdefs.inc}
 {$H+}
+{$packenum 1}
 
 {$define IN_PPUDUMP}
 uses
@@ -33,6 +34,7 @@ uses
   ppu,
   entfile,
   systems,
+  cpuinfo,
   globals,
   globtype,
   widestr,
@@ -83,6 +85,31 @@ const
     { 18 } 'sparc64',
     { 19 } 'riscv32',
     { 20 } 'riscv64'
+    );
+
+  CpuHasController : array[tsystemcpu] of boolean =
+    (
+    {  0 } false {'none'},
+    {  1 } false {'i386'},
+    {  2 } false {'m68k'},
+    {  3 } false {'alpha (obsolete)'},
+    {  4 } false {'powerpc'},
+    {  5 } false {'sparc'},
+    {  6 } false {'vis (obsolete)'},
+    {  7 } false {'ia64 (obsolete)'},
+    {  8 } false {'x86_64'},
+    {  9 } false {'mipseb'},
+    { 10 } true  {'arm'},
+    { 11 } false {'powerpc64'},
+    { 12 } true  {'avr'},
+    { 13 } true  {'mipsel'},
+    { 14 } false {'jvm'},
+    { 15 } false {'i8086'},
+    { 16 } false {'aarch64'},
+    { 17 } false {'wasm'},
+    { 18 } false {'sparc64'},
+    { 19 } false {'riscv32'},
+    { 20 } false {'riscv64'}
     );
 
 { List of all supported system-cpu couples }
@@ -212,6 +239,210 @@ type
     ST_LOADMESSAGES,
     ST_INVALID);
 
+type
+  tcpu_i386 = (
+       cpu_variant_i386_none,
+       cpu_variant_386,
+       cpu_variant_486,
+       cpu_variant_Pentium,
+       cpu_variant_Pentium2,
+       cpu_variant_Pentium3,
+       cpu_variant_Pentium4,
+       cpu_variant_PentiumM,
+       cpu_variant_core_i,
+       cpu_variant_core_avx,
+       cpu_variant_core_avx2);
+
+  tcpu_m68k = (
+       cpu_variant_m68k_none,
+       cpu_variant_MC68000,
+       cpu_variant_MC68020,
+       cpu_variant_MC68040,
+       cpu_variant_MC68060,
+       cpu_variant_isa_a,
+       cpu_variant_isa_a_p,
+       cpu_variant_isa_b,
+       cpu_variant_isa_c,
+       cpu_variant_cfv4e
+      );
+
+  tcpu_powerpc = (
+       cpu_variant_powerpc_none,
+       cpu_variant_ppc604,
+       cpu_variant_ppc750,
+       cpu_variant_ppc7400,
+       cpu_variant_ppc970
+      );
+
+  tcpu_sparc = (
+    cpu_variant_sparc_none,
+    cpu_variant_SPARC_V7,
+    cpu_variant_SPARC_V8,
+    cpu_variant_SPARC_V9
+  );
+
+  tcpu_x86_64 = (
+       cpu_variant_x86_64_none,
+       cpu_variant_athlon64,
+       cpu_variant_x86_64_core_i,
+       cpu_variant_x86_64_core_avx,
+       cpu_variant_x86_64_core_avx2
+      );
+
+  tcpu_mipseb = (
+       cpu_variant_mipseb_none,
+       cpu_variant_mips1,
+       cpu_variant_mips2,
+       cpu_variant_mips3,
+       cpu_variant_mips4,
+       cpu_variant_mips5,
+       cpu_variant_mips32,
+       cpu_variant_mips32r2,
+       cpu_variant_pic32mx
+      );
+
+  tcpu_arm = (
+       cpu_variant_arm_none,
+       cpu_variant_armv3,
+       cpu_variant_armv4,
+       cpu_variant_armv4t,
+       cpu_variant_armv5,
+       cpu_variant_armv5t,
+       cpu_variant_armv5te,
+       cpu_variant_armv5tej,
+       cpu_variant_armv6,
+       cpu_variant_armv6k,
+       cpu_variant_armv6t2,
+       cpu_variant_armv6z,
+       cpu_variant_armv6m,
+       cpu_variant_armv7,
+       cpu_variant_armv7a,
+       cpu_variant_armv7r,
+       cpu_variant_armv7m,
+       cpu_variant_armv7em
+      );
+
+  tcpu_powerpc64 = (
+    cpu_variant_powerpc64_none,
+    cpu_variant_powerpc64_ppc970
+    );
+
+  tcpu_avr = (
+       cpu_variant_avr_none,
+       cpu_variant_avr1,
+       cpu_variant_avr2,
+       cpu_variant_avr25,
+       cpu_variant_avr3,
+       cpu_variant_avr31,
+       cpu_variant_avr35,
+       cpu_variant_avr4,
+       cpu_variant_avr5,
+       cpu_variant_avr51,
+       cpu_variant_avr6
+      );
+
+  tcpu_mipsel = tcpu_mipseb;
+
+  tcpu_jvm = (
+       cpu_variant_jvm_none,
+       { jvm, same as cpu_none }
+       cpu_variant_jvm,
+       { jvm byte code to be translated into Dalvik bytecode: more type-
+         sensitive }
+       cpu_variant_dalvik
+      );
+
+  tcpu_i8086 = (
+       cpu_variant_i8086_none,
+       cpu_variant_8086,
+       cpu_variant_186,
+       cpu_variant_286,
+       cpu_variant_i8086_386,
+       cpu_variant_i8086_486,
+       cpu_variant_i8086_Pentium,
+       cpu_variant_i8086_Pentium2,
+       cpu_variant_i8086_Pentium3,
+       cpu_variant_i8086_Pentium4,
+       cpu_variant_i8086_PentiumM
+      );
+
+  tcpu_aarch64 = (
+       cpu_variant_aarch64_none,
+       cpu_variant_armv8
+      );
+
+  tcpu_wasm = (
+       cpu_variant_wasm_none);
+
+  tcpu_sparc64 = (
+    cpu_variant_sparc64_none,
+    cpu_variant_SPARC64_V9
+  );
+
+  tcpu_riscv32 = (
+       cpu_variant_riscv32_none,
+       cpu_variant_rv32imafd,
+       cpu_variant_rv32ima,
+       cpu_variant_rv32im,
+       cpu_variant_rv32i
+      );
+
+  tcpu_riscv64 = (
+    cpu_variant_riscv64_none,
+    cpu_variant_rv64imafdc,
+    cpu_variant_rv64imafd,
+    cpu_variant_rv64ima,
+    cpu_variant_rv64im,
+    cpu_variant_rv64i
+  );
+ 
+  tcpu_type = record
+     case tsystemcpu of
+       cpu_no:                      { 0 }
+          ();
+       cpu_i386:                    { 1 }
+          (cpu_i386 : tcpu_i386;);
+       cpu_m68k:                    { 2 }
+          (cpu_m68k : tcpu_m68k;);
+       obsolete_cpu_alpha:          { 3 }
+          ();
+       cpu_powerpc:                 { 4 }
+          (cpu_powerpc : tcpu_powerpc;);
+       cpu_sparc:                   { 5 }
+          (cpu_sparc : tcpu_sparc;);
+       obsolete_cpu_vm:             { 6 }
+          ();
+       obsolete_cpu_ia64:           { 7 }
+          ();
+       cpu_x86_64:                  { 8 }
+          (cpu_x86_64 : tcpu_x86_64;);
+       cpu_mipseb:                  { 9 }
+          (cpu_mipseb : tcpu_mipseb;);
+       cpu_arm:                     { 10 }
+          (cpu_arm : tcpu_arm;);
+       cpu_powerpc64:               { 11 }
+          (cpu_powerpc64 : tcpu_powerpc64;);
+       cpu_avr:                     { 12 }
+          (cpu_avr : tcpu_avr;);
+       cpu_mipsel:                  { 13 }
+          (cpu_mipsel : tcpu_mipsel;);
+       cpu_jvm:                     { 14 }
+          (cpu_jvm : tcpu_jvm;);
+       cpu_i8086:                   { 15 }
+          (cpu_i8086 : tcpu_i8086;);
+       cpu_aarch64:                 { 16 }
+          (cpu_aarch64 : tcpu_aarch64;);
+       cpu_wasm:                    { 17 }
+          (cpu_wasm : tcpu_wasm;);
+       cpu_sparc64:                 { 18 }
+          (cpu_sparc64 : tcpu_sparc64;);
+       cpu_riscv32:                 { 19 }
+          (cpu_riscv32 : tcpu_riscv32;);
+       cpu_riscv64:                 { 20 }
+          (cpu_riscv64 : tcpu_riscv64;);
+     end;
+
+  
   TPpuModuleDef = class(TPpuUnitDef)
     ModuleFlags: tmoduleflags;
   end;
@@ -1599,7 +1830,7 @@ var
   first  : boolean;
   copy_size, min_size, tokenbufsize : longint;
   tokenbuf : pbyte;
-  tbi, last_col, new_col : longint;
+  tbi, stbi, last_col, new_col : longint;
   last_line,new_line : dword;
 //  idtoken,
   token : ttoken;
@@ -1711,7 +1942,7 @@ const
            update the segment values of the segment that has moved. }
         'Use odd BP for far procs' {ts_x86_far_procs_push_odd_bp}
        );
-    moduleswitchname : array[tmoduleswitch] of string[30] =
+    moduleswitchname : array[tmoduleswitch] of string[40] =
        ('Module None', {cs_modulenone,}
          { parser }
         'Floating Point Emulation',{ cs_fp_emulation}
@@ -1877,6 +2108,8 @@ const
        for globalswitch:=low(tglobalswitch) to high(tglobalswitch) do
          if globalswitch in new_settings.globalswitches then
            writeln('global switch: '+globalswitchname[globalswitch]);
+       if (new_settings.globalswitches <> []) then
+         writeln('Unknown global switch');
        for targetswitch:=low(ttargetswitch) to high(ttargetswitch) do
          if targetswitch in new_settings.targetswitches then
            writeln('target switch: '+targetswitchname[targetswitch]);
@@ -1886,12 +2119,21 @@ const
        for localswitch:=low(tlocalswitch) to high(tlocalswitch) do
          if localswitch in new_settings.localswitches then
            writeln('local switch: '+localswitchname[localswitch]);
-       (* for modeswitch:=low(tmodeswitch) to high(tmodeswitch) do
+       for modeswitch:=low(tmodeswitch) to high(tmodeswitch) do
          if modeswitch in new_settings.modeswitches then
-           writeln('mode switch: '+modeswitchname[modeswitch]);
+           writeln(['mode switch: ',modeswitch]);
        for optimizerswitch:=low(toptimizerswitch) to high(toptimizerswitch) do
          if optimizerswitch in new_settings.optimizerswitches then
-           writeln('optimizer switch: '+optimizerswitchname[optimizerswitch]);*)
+           writeln(['optimizer switch: ',optimizerswitch]);
+       writeln(['Set allocation size ',new_settings.setalloc]);
+       writeln(['Pack enums ',new_settings.packenum]);
+       writeln(['Pack records ',new_settings.packrecords]);
+       writeln(['Max FPU registers ',new_settings.maxfpuregisters]);
+
+       writeln(['CPU type ',new_settings.cputype]);
+       writeln(['CPU optimize type ',new_settings.optimizecputype]);
+       writeln(['FPU type ',new_settings.fputype]);
+       writeln(['ASM mode ',new_settings.asmmode]);
     end;
 
   function readtoken: ttoken;
@@ -1909,6 +2151,7 @@ const
       else
         result:=ttoken(b);
     end;
+
   function gettokenbufdword : dword;
   var
     var32 : dword;
@@ -1938,6 +2181,67 @@ const
 {$endif}
     result:=var16;
   end;
+
+  function gettokenbuflongint : longint;
+  var
+    var32 : longint;
+  begin
+    var32:=unaligned(plongint(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(longint));
+    if ppufile.change_endian then
+      var32:=swapendian(var32);
+{$ifdef FPC_BIG_ENDIAN}
+    { Tokens seems to be swapped to little endian in compiler code }
+    var32:=swapendian(var32);
+{$endif}
+    result:=var32;
+  end;
+
+  function gettokenbufshortint : shortint;
+  var
+    var16 : shortint;
+  begin
+    var16:=unaligned(pshortint(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(shortint));
+    if ppufile.change_endian then
+      var16:=swapendian(var16);
+{$ifdef FPC_BIG_ENDIAN}
+    { Tokens seems to be swapped to little endian in compiler code }
+    var16:=swapendian(var16);
+{$endif}
+    result:=var16;
+  end;
+
+  procedure tokenreadset(var b;size : longint);
+{$ifdef FPC_BIG_ENDIAN}
+  var
+    i : longint;
+{$endif}
+  begin
+    move(tokenbuf[tbi],b,size);
+    inc(tbi,size);
+{$ifdef FPC_BIG_ENDIAN}
+    for i:=0 to size-1 do
+      Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
+{$endif}
+  end;
+
+  function gettokenbufbyte : byte;
+  begin
+    result:=pbyte(@tokenbuf[tbi])^;
+    inc(tbi);
+  end;
+
+   function tokenreadenum(size : longint) : longword;
+  begin
+    if size=1 then
+      result:=gettokenbufbyte
+    else if size=2 then
+      result:=gettokenbufword
+    else if size=4 then
+      result:=gettokenbufdword;
+  end;
+
 
 
   function gettokenbufsizeint : int64;
@@ -1989,6 +2293,87 @@ const
         result:=0;
       end;
   end;
+
+  procedure tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
+
+    {    This procedure
+       needs to be changed whenever
+       globals.tsettings type is changed,
+       the problem is that no error will appear
+       before tests with generics are tested. PM }
+
+       var
+         startpos, endpos : longword;
+      begin
+        { WARNING all those fields need to be in the correct
+        order otherwise cross_endian PPU reading will fail }
+        startpos:=tbi;
+        with asettings do
+          begin
+            alignment.procalign:=gettokenbuflongint;
+            alignment.loopalign:=gettokenbuflongint;
+            alignment.jumpalign:=gettokenbuflongint;
+            alignment.jumpalignskipmax:=gettokenbuflongint;
+            alignment.coalescealign:=gettokenbuflongint;
+            alignment.coalescealignskipmax:=gettokenbuflongint;
+            alignment.constalignmin:=gettokenbuflongint;
+            alignment.constalignmax:=gettokenbuflongint;
+            alignment.varalignmin:=gettokenbuflongint;
+            alignment.varalignmax:=gettokenbuflongint;
+            alignment.localalignmin:=gettokenbuflongint;
+            alignment.localalignmax:=gettokenbuflongint;
+            alignment.recordalignmin:=gettokenbuflongint;
+            alignment.recordalignmax:=gettokenbuflongint;
+            alignment.maxCrecordalign:=gettokenbuflongint;
+            tokenreadset(globalswitches,sizeof(globalswitches));
+            tokenreadset(targetswitches,sizeof(targetswitches));
+            tokenreadset(moduleswitches,sizeof(moduleswitches));
+            tokenreadset(localswitches,sizeof(localswitches));
+            tokenreadset(modeswitches,sizeof(modeswitches));
+            tokenreadset(optimizerswitches,sizeof(optimizerswitches));
+            tokenreadset(genwpoptimizerswitches,sizeof(genwpoptimizerswitches));
+            tokenreadset(dowpoptimizerswitches,sizeof(dowpoptimizerswitches));
+            tokenreadset(debugswitches,sizeof(debugswitches));
+            { 0: old behaviour for sets <=256 elements
+              >0: round to this size }
+            setalloc:=gettokenbufshortint;
+            packenum:=gettokenbufshortint;
+
+            packrecords:=gettokenbufshortint;
+            maxfpuregisters:=gettokenbufshortint;
+
+            cputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            optimizecputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            fputype:=tfputype(tokenreadenum(sizeof(tfputype)));
+            asmmode:=tasmmode(tokenreadenum(sizeof(tasmmode)));
+            interfacetype:=tinterfacetypes(tokenreadenum(sizeof(tinterfacetypes)));
+            defproccall:=tproccalloption(tokenreadenum(sizeof(tproccalloption)));
+            { tstringencoding is word type,
+              thus this should be OK here }
+            sourcecodepage:=tstringEncoding(gettokenbufword);
+
+            minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
+
+            disabledircache:=boolean(gettokenbufbyte);
+
+            tlsmodel:=ttlsmodel(tokenreadenum(sizeof(ttlsmodel)));
+{ TH: Since the field was conditional originally, it was not stored in PPUs.  }
+{ While adding ControllerSupport constant, I decided not to store ct_none     }
+{ on targets not supporting controllers, but this might be changed here and   }
+{ in tokenwritesettings in the future to unify the PPU structure and handling }
+{ of this field in the compiler.                                              }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if CpuHasController[cpu] then
+             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)))
+            else
+             ControllerType:=ct_none;
+{$POP}
+           endpos:=tbi;
+           if endpos-startpos<>expected_size then
+             Writeln(['Wrong size of Settings read-in: ',expected_size,' expected, but got ',endpos-startpos]);
+         end;
+     end;
 
 begin
   i:=ppufile.getlongint;
@@ -2186,12 +2571,9 @@ begin
                           We first read the size of the copied part }
                         { Still not cross endian ready :( }
                         copy_size:=gettokenbufsizeint;
-                        if copy_size < sizeof(tsettings)-sizeof(pointer) then
-                          min_size:=copy_size
-                        else
-                          min_size:= sizeof(tsettings)-sizeof(pointer);
-                        move(tokenbuf[tbi],new_settings, min_size);
-                        inc(tbi,copy_size);
+                        stbi:=tbi;
+                        tokenreadsettings(new_settings, copy_size);
+                        tbi:=stbi+copy_size;
                         dump_new_settings;
                         writeln;
                       end;
