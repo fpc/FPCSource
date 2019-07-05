@@ -1268,7 +1268,10 @@ implementation
                           begin
                             if (idtoken=_GENERIC) and
                                 not (m_delphi in current_settings.modeswitches) and
-                                not fields_allowed then
+                                (
+                                  not fields_allowed or
+                                  is_objectpascal_helper(current_structdef)
+                                ) then
                               begin
                                 if hadgeneric then
                                   Message(parser_e_procedure_or_function_expected);
