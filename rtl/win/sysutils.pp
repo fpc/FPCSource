@@ -93,7 +93,7 @@ implementation
     windirs;
 
 var 
-  FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoBasic;
+  FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoStandard;
   FindFirstAdditionalFlags : DWord = 0;
 
 function WinCheck(res:boolean):boolean;
