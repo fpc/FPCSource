@@ -389,7 +389,7 @@ implementation
         var
           swapl, swapr: Boolean;
           valuer: tnode;
-          t: QWord;
+          t: Tconstexprint;
         begin
           result:=false;
           swapl:=false;
@@ -398,29 +398,26 @@ implementation
           if nodel.left.nodetype=ordconstn then
             begin
               swapl:=true;
-              cl:=tordconstnode(nodel.left).value.uvalue;
+              cl:=tordconstnode(nodel.left).value;
               value:=nodel.right;
             end
           else if nodel.right.nodetype=ordconstn then
             begin
-              cl:=tordconstnode(nodel.right).value.uvalue;
+              cl:=tordconstnode(nodel.right).value;
               value:=nodel.left;
             end
           else
             exit;
 
-          if is_signed(value.resultdef) then
-            exit;
-
           if noder.left.nodetype=ordconstn then
             begin
               swapl:=true;
-              cr:=tordconstnode(noder.left).value.uvalue;
+              cr:=tordconstnode(noder.left).value;
               valuer:=noder.right;
             end
           else if noder.right.nodetype=ordconstn then
             begin
-              cr:=tordconstnode(noder.right).value.uvalue;
+              cr:=tordconstnode(noder.right).value;
               valuer:=noder.left;
             end
           else
