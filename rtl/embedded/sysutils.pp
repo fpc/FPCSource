@@ -47,66 +47,66 @@ uses
 {****************************************************************************
                               File Functions
 ****************************************************************************}
-function FileOpen(const FileName: RawByteString; Mode: Integer): LongInt;
+function FileOpen(const FileName: RawByteString; Mode: Integer): THandle;
 begin
   result := -1;
 end;
 
 
-function FileGetDate(Handle: LongInt) : LongInt;
+function FileGetDate(Handle: THandle) : Longint;
 begin
   result := -1;
 end;
 
 
-function FileSetDate(Handle, Age: LongInt) : LongInt;
+function FileSetDate(Handle: THandle; Age: LongInt) : Longint;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: RawByteString) : LongInt;
+function FileCreate(const FileName: RawByteString) : THandle;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): THandle;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: RawByteString; ShareMode: integer; rights : integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; rights : integer): THandle;
 begin
   result := -1;
 end;
 
 
-function FileRead(Handle: LongInt; Out Buffer; Count: LongInt): LongInt;
+function FileRead(Handle: THandle; Out Buffer; Count: LongInt): LongInt;
 begin
   result := -1;
 end;
 
 
-function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
+function FileWrite(Handle: THandle; const Buffer; Count: LongInt): LongInt;
 begin
   result := -1;
 end;
 
 
-function FileSeek(Handle, FOffset, Origin: LongInt) : LongInt;
+function FileSeek(Handle: THandle; FOffset, Origin: LongInt) : LongInt;
 begin
   result := -1;
 end;
 
-function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
+function FileSeek(Handle: THandle; FOffset: Int64; Origin: Longint): Int64;
 begin
   result := -1;
 end;
 
 
-procedure FileClose(Handle: LongInt);
+procedure FileClose(Handle: THandle);
 begin
 end;
 
