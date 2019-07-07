@@ -2583,15 +2583,7 @@ implementation
 
          { make sure we don't change the binding of real external symbols }
          if (([po_external,po_weakexternal]*pd.procoptions)=[]) and (pocall_internproc<>pd.proccalloption) then
-           begin
-             if (po_global in pd.procoptions) or
-                (cs_profile in current_settings.moduleswitches) then
-               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION,pd)
-             else if tf_supports_hidden_symbols in target_info.flags then
-               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_PRIVATE_EXTERN,AT_FUNCTION,pd)
-             else
-               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION,pd);
-           end;
+           current_asmdata.DefineProcAsmSymbol(pd,pd.mangledname,pd.needsglobalasmsym);
 
          current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;

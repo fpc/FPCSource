@@ -4590,14 +4590,7 @@ implementation
     begin
       item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
       firstitem:=item;
-      global:=
-        (cs_profile in current_settings.moduleswitches) or
-        { smart linking using a library requires to promote
-          all non-nested procedures to AB_GLOBAL
-          otherwise you get undefined symbol error at linking
-          for msdos  target with -CX option for instance }
-        (create_smartlink_library and not is_nested_pd(current_procinfo.procdef)) or
-        (po_global in current_procinfo.procdef.procoptions);
+      global:=current_procinfo.procdef.needsglobalasmsym;
       while assigned(item) do
         begin
 {$ifdef arm}
@@ -4614,13 +4607,10 @@ implementation
               if global then
                 begin
                   list.concat(tai_symbolpair.create(spk_set_global,item.str,firstitem.str));
-                  { needed for generating the tai_symbol_end }
-                  current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef);
                 end
               else
                 begin
                   list.concat(tai_symbolpair.create(spk_set,item.str,firstitem.str));
-                  current_asmdata.DefineAsmSymbol(item.str,AB_PRIVATE_EXTERN,AT_FUNCTION,current_procinfo.procdef);
                 end;
             end
           else
