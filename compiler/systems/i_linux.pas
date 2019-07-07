@@ -44,7 +44,7 @@ unit i_linux;
 {$ifdef psabieh}
                             ,tf_use_psabieh
 {$endif psabieh}
-                            ];
+                            ,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -113,7 +113,7 @@ unit i_linux;
             shortname    : 'Linux6432';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_pic_uses_got,tf_smartlink_sections,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -182,7 +182,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_smartlink_sections,tf_safecall_exceptions,tf_safecall_clearstack,
                             tf_requires_proper_alignment, { Coldfire seems to need this at least (KB) }
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -250,7 +250,7 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_smartlink_sections,
                             tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -317,7 +317,8 @@ unit i_linux;
             name         : 'Linux for PowerPC64';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_requires_proper_alignment,tf_smartlink_sections,tf_has_winlike_resources];
+                            tf_requires_proper_alignment,tf_smartlink_sections,tf_has_winlike_resources,
+                            tf_supports_hidden_symbols];
             cpu          : cpu_powerpc64;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -393,6 +394,7 @@ unit i_linux;
 {$ifdef psabieh}
                             ,tf_use_psabieh
 {$endif psabieh}
+                            ,tf_supports_hidden_symbols
                             ];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
@@ -463,7 +465,7 @@ unit i_linux;
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_pic_uses_got,
                             tf_requires_proper_alignment,tf_safecall_exceptions, tf_safecall_clearstack,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -533,7 +535,7 @@ unit i_linux;
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_pic_uses_got,
                             tf_requires_proper_alignment,tf_safecall_exceptions, tf_safecall_clearstack,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_SPARC64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -609,7 +611,7 @@ unit i_linux;
                             tf_use_psabieh,
 {$endif llvm}
                             tf_smartlink_sections,tf_pic_uses_got,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMHF';
@@ -682,7 +684,7 @@ unit i_linux;
                             tf_section_threadvars,
 {$endif tls_threadvars}
                             tf_smartlink_sections,tf_pic_uses_got,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMEL';
@@ -752,7 +754,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_pic_uses_got,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMEB';
@@ -820,7 +822,7 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
-                            tf_smartlink_sections,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -898,6 +900,7 @@ unit i_linux;
 {$ifdef llvm}
                             ,tf_use_psabieh
 {$endif llvm}
+                            ,tf_supports_hidden_symbols
                             ];
             cpu          : cpu_aarch64;
             unit_env     : 'LINUXUNITS';
@@ -967,7 +970,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_library_needs_pic,
                             tf_pic_uses_got,tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_mipseb;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -1037,7 +1040,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_library_needs_pic,
                             tf_pic_uses_got,tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_mipsel;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -1106,7 +1109,8 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_smartlink_sections,
                             tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_requires_proper_alignment,tf_has_winlike_resources];
+                            tf_requires_proper_alignment,tf_has_winlike_resources,
+                            tf_supports_hidden_symbols];
             cpu          : cpu_riscv32;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -1175,7 +1179,9 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_smartlink_sections,
                             tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_requires_proper_alignment,tf_has_winlike_resources];
+                            tf_requires_proper_alignment,tf_has_winlike_resources,
+                            tf_supports_hidden_symbols
+                            ];
             cpu          : cpu_riscv64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';

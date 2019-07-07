@@ -39,8 +39,10 @@ interface
     type
        TAsmsymbind=(
          AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
-         { global in the current program/library, but not visible outside it }
-         AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT,
+         { global in the current program/library, but not visible outside it
+           (= "hidden" in ELF) }
+         AB_PRIVATE_EXTERN,
+         AB_LAZY,AB_IMPORT,
          { a symbol that's internal to the compiler and used as a temp }
          AB_TEMP,
          { a global symbol that points to another global symbol and is only used

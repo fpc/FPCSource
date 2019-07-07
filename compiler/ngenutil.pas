@@ -873,7 +873,7 @@ implementation
           list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef));
         end
       else
-        list.concat(Tai_datablock.create(sym.mangledname,size,sym.vardef));
+        list.concat(Tai_datablock.create_hidden(sym.mangledname,size,sym.vardef));
     end;
 
 

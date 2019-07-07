@@ -3935,7 +3935,7 @@ implementation
         end
       else
         begin
-          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_LOCAL,AT_FUNCTION,procdef);
+          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_PRIVATE_EXTERN,AT_FUNCTION,procdef);
           list.concat(Tai_symbol.Create(sym,0));
         end;
       a_jmp_external_name(list,externalname);
@@ -4620,7 +4620,7 @@ implementation
               else
                 begin
                   list.concat(tai_symbolpair.create(spk_set,item.str,firstitem.str));
-                  current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION,current_procinfo.procdef);
+                  current_asmdata.DefineAsmSymbol(item.str,AB_PRIVATE_EXTERN,AT_FUNCTION,current_procinfo.procdef);
                 end;
             end
           else
@@ -4628,7 +4628,7 @@ implementation
               if global then
                 list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
               else
-                list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0,current_procinfo.procdef));
+                list.concat(Tai_symbol.Createname_hidden(item.str,AT_FUNCTION,0,current_procinfo.procdef));
               if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
                 list.concat(Tai_function_name.create(item.str));
             end;

@@ -177,7 +177,7 @@ implementation
       if make_global then
         list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        list.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0,procdef));
+        list.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }

@@ -37,7 +37,7 @@ unit i_sunos;
             flags        : [tf_under_development,tf_needs_symbol_size,
                             tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_pic_uses_got,tf_library_needs_pic,
-                            tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_library,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC;SUNOS;HASUNIX';
@@ -109,7 +109,7 @@ unit i_sunos;
                             tf_under_development,
                             tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_smartlink_library,tf_library_needs_pic,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_x86_64;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC;SUNOS;HASUNIX';
@@ -180,7 +180,7 @@ unit i_sunos;
                             tf_files_case_sensitive,
                             tf_pic_uses_got,
                             tf_requires_proper_alignment,tf_smartlink_library,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_SPARC;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC;SUNOS;HASUNIX';

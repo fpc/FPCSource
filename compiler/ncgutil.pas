@@ -699,6 +699,8 @@ implementation
             if (cs_profile in current_settings.moduleswitches) or
                (po_global in current_procinfo.procdef.procoptions) then
               current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION,pd)
+            else if tf_supports_hidden_symbols in target_info.flags then
+              current_asmdata.DefineAsmSymbol(item.str,AB_PRIVATE_EXTERN,AT_FUNCTION,pd)
             else
               current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION,pd);
            item := TCmdStrListItem(item.next);

@@ -37,7 +37,7 @@ unit i_android;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment, tf_safecall_exceptions,
                             tf_pic_uses_got, tf_pic_default,
-                            tf_smartlink_sections,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_arm;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMEL';
@@ -106,7 +106,7 @@ unit i_android;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_needs_dwarf_cfi,tf_has_winlike_resources,
                             tf_pic_uses_got, tf_pic_default, tf_smartlink_sections,
-                            tf_safecall_exceptions];
+                            tf_safecall_exceptions,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -175,7 +175,7 @@ unit i_android;
              flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                              tf_requires_proper_alignment, tf_safecall_exceptions,
                              tf_pic_uses_got, tf_pic_default,
-                             tf_smartlink_sections,tf_has_winlike_resources];
+                             tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
              cpu          : cpu_aarch64;
              unit_env     : 'ANDROIDUNITS';
              extradefines : 'UNIX;HASUNIX';
@@ -244,7 +244,7 @@ unit i_android;
              flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                              tf_needs_dwarf_cfi,tf_has_winlike_resources,
                              {tf_pic_uses_got,} tf_pic_default, tf_smartlink_sections,
-                             tf_safecall_exceptions, tf_safecall_clearstack];
+                             tf_safecall_exceptions, tf_safecall_clearstack,tf_supports_hidden_symbols];
              cpu          : cpu_x86_64;
              unit_env     : 'ANDROIDUNITS';
              extradefines : 'UNIX;HASUNIX';
@@ -312,7 +312,7 @@ unit i_android;
             shortname    : 'Android';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_pic_default,tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_mipsel;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX';

@@ -55,6 +55,7 @@ interface
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
         procedure WriteWeakSymbolRef(s: tasmsymbol); virtual;
+        procedure WriteHiddenSymbol(sym: TAsmSymbol);
         procedure WriteAixStringConst(hp: tai_string);
         procedure WriteAixIntConst(hp: tai_const);
         procedure WriteUnalignedIntConst(hp: tai_const);
@@ -835,8 +836,11 @@ implementation
                      processes). The alternate code creates some kind of common symbols
                      in the data segment.
                    }
+
                    if tai_datablock(hp).is_global then
                      begin
+                       if tai_datablock(hp).sym.bind=AB_PRIVATE_EXTERN then
+                         WriteHiddenSymbol(tai_datablock(hp).sym);
                        writer.AsmWrite('.globl ');
                        writer.AsmWriteln(tai_datablock(hp).sym.name);
                        writer.AsmWriteln('.data');
@@ -915,6 +919,8 @@ implementation
                      begin
                        if Tai_datablock(hp).is_global then
                          begin
+                           if (tai_datablock(hp).sym.bind=AB_PRIVATE_EXTERN) then
+                             WriteHiddenSymbol(tai_datablock(hp).sym);
                            writer.AsmWrite(#9'.globl ');
                            if replaceforbidden then
                              writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name))
@@ -1215,14 +1221,6 @@ implementation
 
            ait_symbol :
              begin
-               if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
-                 begin
-                   writer.AsmWrite(#9'.private_extern ');
-                   if replaceforbidden then
-                     writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name))
-                   else
-                     writer.AsmWriteln(tai_symbol(hp).sym.name);
-                 end;
                if (target_info.system=system_powerpc64_linux) and
                   (tai_symbol(hp).sym.typ=AT_FUNCTION) and
                   (cs_profile in current_settings.moduleswitches) then
@@ -1235,6 +1233,8 @@ implementation
                     writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name))
                   else
                     writer.AsmWriteln(tai_symbol(hp).sym.name);
+                  if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
+                    WriteHiddenSymbol(tai_symbol(hp).sym);
                 end;
                if (target_info.system=system_powerpc64_linux) and
                   use_dotted_functions and
@@ -1508,7 +1508,29 @@ implementation
 
     procedure TGNUAssembler.WriteWeakSymbolRef(s: tasmsymbol);
       begin
-        writer.AsmWriteLn(#9'.weak '+s.name);
+        writer.AsmWrite(#9'.weak ');
+        if asminfo^.dollarsign='$' then
+          writer.AsmWriteLn(s.name)
+        else
+          writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(s.name))
+      end;
+
+
+    procedure TGNUAssembler.WriteHiddenSymbol(sym: TAsmSymbol);
+      begin
+        { on Windows/(PE)COFF, global symbols are hidden by default: global
+          symbols that are not explicitly exported from an executable/library,
+          become hidden }
+        if target_info.system in systems_windows then
+          exit;
+        if target_info.system in systems_darwin then
+          writer.AsmWrite(#9'.private_extern ')
+        else
+          writer.AsmWrite(#9'.hidden ');
+        if asminfo^.dollarsign='$' then
+          writer.AsmWriteLn(sym.name)
+        else
+          writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(sym.name))
       end;
 
 

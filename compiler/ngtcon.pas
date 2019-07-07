@@ -1133,6 +1133,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               addstabx:=true;
             asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_GLOBAL,AT_DATA,tcsym.vardef)
           end
+        else if tf_supports_hidden_symbols in target_info.flags then
+          asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_PRIVATE_EXTERN,AT_DATA,tcsym.vardef)
         else
           asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_LOCAL,AT_DATA,tcsym.vardef);
         if vo_has_section in fsym.varoptions then

@@ -37,7 +37,7 @@ unit i_haiku;
             shortname    : 'Haiku';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_pic_default,tf_pic_uses_got,tf_library_needs_pic,
-                            tf_smartlink_sections,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
             unit_env     : 'HAIKUUNITS';
             extradefines : 'BEOS;UNIX;HASUNIX';
@@ -117,7 +117,7 @@ unit i_haiku;
             shortname    : 'Haiku';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_pic_default,tf_library_needs_pic,tf_smartlink_sections,
-                            tf_has_winlike_resources];
+                            tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_x86_64;
             unit_env     : 'HAIKUUNITS';
             extradefines : 'BEOS;UNIX;HASUNIX';

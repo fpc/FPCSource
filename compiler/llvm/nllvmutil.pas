@@ -63,6 +63,8 @@ implementation
     begin
       if sym.globalasmsym then
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA,sym.vardef)
+      else if tf_supports_hidden_symbols in target_info.flags then
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,AT_DATA,sym.vardef)
       else
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA,sym.vardef);
       if not(vo_is_thread_var in sym.varoptions) then
