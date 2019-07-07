@@ -385,7 +385,8 @@ implementation
     function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
       begin
         result:=nil;
-        if node_complexity(n) > 4 then
+        if (node_complexity(n)>4) or
+           might_have_sideeffects(n) then
           begin
             result:=ctempcreatenode.create_reference(n.resultdef,size,tt_persistent,true,n,readonly);
             typecheckpass(tnode(result));
@@ -400,7 +401,8 @@ implementation
     function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
       begin
         result:=nil;
-        if node_complexity(n) > 4 then
+        if (node_complexity(n)>4) or
+           might_have_sideeffects(n) then
           begin
             result:=ctempcreatenode.create_value(n.resultdef,size,tt_persistent,allowreg,n);
             typecheckpass(tnode(result));
