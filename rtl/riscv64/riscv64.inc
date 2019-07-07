@@ -19,6 +19,7 @@
                        fpu exception related stuff
 ****************************************************************************}
 
+{$ifdef FPUFD}
 const
   fpu_nx = 1 shl 0;
   fpu_uf = 1 shl 1;
@@ -26,13 +27,13 @@ const
   fpu_dz = 1 shl 3;
   fpu_nv = 1 shl 4;
 
-function getfflags: dword; nostackframe; assembler;
+function getfflags: sizeuint; nostackframe; assembler;
   asm
     frflags a0
   end;
 
 
-procedure setfflags(flags : dword); nostackframe; assembler;
+procedure setfflags(flags : sizeuint); nostackframe; assembler;
   asm
     fsflags a0
   end;
@@ -40,7 +41,7 @@ procedure setfflags(flags : dword); nostackframe; assembler;
 
 procedure RaisePendingExceptions;
   var
-    fflags : dword;
+    fflags : sizeuint;
     f: TFPUException;
   begin
     fflags:=getfflags;
@@ -62,7 +63,7 @@ procedure RaisePendingExceptions;
 
 procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
   var
-    fflags : dword;
+    fflags : sizeuint;
   begin
     fflags:=getfflags;
     { check, if the exception is masked }
@@ -80,7 +81,7 @@ procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
     if fflags<>0 then
       RaisePendingExceptions;
   end;
-
+{$endif FPUFD}
 
 procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
@@ -158,7 +159,7 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint; a
 {$else CPURV_HAS_ATOMIC}
     lw a2, 0(a0)
     sw a1, 0(a0)
-    addi a0, a2
+    addi a0, a2, 0
 {$endif CPURV_HAS_ATOMIC}
   end;
 
@@ -189,7 +190,7 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
     amoadd.w a0, a1, (a0)
 {$else CPURV_HAS_ATOMIC}
     lw a2, 0(a0)
-    addiw a2, a2, a1
+    addw a2, a2, a1
     sw a2, 0(a0)
     addi a0, a2, 0
 {$endif CPURV_HAS_ATOMIC}
@@ -234,7 +235,7 @@ function InterLockedExchange64 (var Target: int64;Source : int64) : int64; assem
 {$else CPURV_HAS_ATOMIC}
     ld a2, 0(a0)
     sd a1, 0(a0)
-    addi a0, a2
+    addi a0, a2, 0
 {$endif CPURV_HAS_ATOMIC}
   end;
 
@@ -265,7 +266,7 @@ function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; as
     amoadd.d a0, a1, (a0)
 {$else CPURV_HAS_ATOMIC}
     ld a2, 0(a0)
-    addi a2, a2, a1
+    add a2, a2, a1
     sd a2, 0(a0)
     addi a0, a2, 0
 {$endif CPURV_HAS_ATOMIC}
