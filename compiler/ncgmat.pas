@@ -235,7 +235,11 @@ implementation
           OS_32:
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
           OS_64:
+{$ifdef cpu64bitalu}
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_64,tcgint($80000000),location.register);
+{$else  cpu64bitalu}
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
+{$endif cpu64bitalu}
         else
           internalerror(2014033101);
         end;

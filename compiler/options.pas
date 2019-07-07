@@ -4275,21 +4275,19 @@ begin
     begin
       {$ifdef riscv32}
       if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_rv32imafd;
+        init_settings.cputype:=cpu_rv32ima;
       if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_rv32imafd;
+        init_settings.optimizecputype:=cpu_rv32ima;
       {$else}
       if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_rv64imafdc;
+        init_settings.cputype:=cpu_rv64imac;
       if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_rv64imafdc;
+        init_settings.optimizecputype:=cpu_rv64imac;
       {$endif}
 
       { Set FPU type }
       if not(option.FPUSetExplicitly) then
-        begin
-          init_settings.fputype:=fpu_fd;
-        end
+        init_settings.fputype:=fpu_fd
       else
         begin
           if not (init_settings.fputype in [fpu_fd]) then

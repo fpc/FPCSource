@@ -210,7 +210,17 @@ implementation
          secondpass(left);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+{$ifdef RISCV32}
+         if (location.size in [OS_S64,OS_64]) then
+           begin
+             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+           end
+         else
+           location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+{$else}
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+{$endif}
          { convert to signed integer rounding towards zero (there's no "round to
            integer using current rounding mode") }
 
@@ -238,7 +248,17 @@ implementation
          secondpass(left);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+{$ifdef RISCV32}
+         if (location.size in [OS_S64,OS_64]) then
+           begin
+             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+           end
+         else
+           location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+{$else}
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+{$endif}
          { convert to signed integer rounding towards zero (there's no "round to
            integer using current rounding mode") }
 

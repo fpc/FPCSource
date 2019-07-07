@@ -34,7 +34,9 @@ unit nrvadd;
       trvaddnode = class(tcgaddnode)
         function pass_1: tnode; override;
       protected                            
-        procedure Cmp(signed: boolean);      
+        procedure Cmp(signed: boolean);
+
+        function use_mul_helper: boolean; override;
 
         procedure second_cmpsmallset;override;
         procedure second_cmpordinal;override;
@@ -187,7 +189,18 @@ implementation
         else
           Internalerror(2016061101);
         end;
-      end;       
+      end;
+
+
+    function trvaddnode.use_mul_helper: boolean;
+      begin
+        if not (CPURV_HAS_MUL in cpu_capabilities[current_settings.cputype]) and
+           (nodetype=muln) and
+           not(torddef(resultdef).ordtype in [u8bit,s8bit]) then
+          result:=true
+        else
+          Result:=inherited use_mul_helper;
+      end;
 
 
     procedure trvaddnode.second_cmpsmallset;

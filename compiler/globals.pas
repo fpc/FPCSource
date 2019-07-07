@@ -536,14 +536,14 @@ interface
         fputype : fpu_x87;
   {$endif i8086}
   {$ifdef riscv32}
-        cputype : cpu_rv32imafd;
-        optimizecputype : cpu_rv32imafd;
+        cputype : cpu_rv32ima;
+        optimizecputype : cpu_rv32ima;
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv32}
   {$ifdef riscv64}
-        cputype : cpu_rv64imafdc;
-        optimizecputype : cpu_rv64imafdc;
+        cputype : cpu_rv64imac;
+        optimizecputype : cpu_rv64imac;
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv64}

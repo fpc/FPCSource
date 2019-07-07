@@ -36,8 +36,7 @@ type
 
   { possible supported processors for this target }
   tcputype = (cpu_none,
-    cpu_rv64imafdc,
-    cpu_rv64imafd,
+    cpu_rv64imac,
     cpu_rv64ima,
     cpu_rv64im,
     cpu_rv64i
@@ -89,8 +88,7 @@ Const
     ];
 
   cputypestr: array[tcputype] of string[10] = ('',
-    'RV64IMAFDC',
-    'RV64IMAFD',
+    'RV64IMAC',
     'RV64IMA',
     'RV64IM',
     'RV64I'
@@ -128,8 +126,7 @@ Const
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none       } [],
-       { cpu_rv64imafdc } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT],
-       { cpu_rv64imafd  } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC],
+       { cpu_rv64imac   } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT],
        { cpu_rv64ima    } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC],
        { cpu_rv64im     } [CPURV_HAS_MUL],
        { cpu_rv64i      } []

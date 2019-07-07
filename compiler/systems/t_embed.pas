@@ -1519,4 +1519,14 @@ initialization
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_m68k_embedded_info);
 {$endif m68k}
+
+{$ifdef riscv32}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_riscv32_embedded_info);
+{$endif riscv32}
+
+{$ifdef riscv64}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_riscv64_embedded_info);
+{$endif riscv64}
 end.
