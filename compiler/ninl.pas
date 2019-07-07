@@ -2963,13 +2963,13 @@ implementation
                      if assigned(hightree) then
                       begin
                         hp:=caddnode.create(addn,hightree,
-                                         cordconstnode.create(1,sinttype,false));
+                                         cordconstnode.create(1,sizesinttype,false));
                         if (left.resultdef.typ=arraydef) then
                           if not is_packed_array(tarraydef(left.resultdef)) then
                             begin
                               if (tarraydef(left.resultdef).elesize<>1) then
                                 hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                                  left.resultdef).elesize,sinttype,true));
+                                  left.resultdef).elesize,sizesinttype,true));
                             end
                           else if (tarraydef(left.resultdef).elepackedbitsize <> 8) then
                             begin
@@ -2977,24 +2977,24 @@ implementation
                               if (hp.nodetype <> ordconstn) then
                                 internalerror(2006081511);
                               hp.free;
-                              hp := cordconstnode.create(left.resultdef.size,sinttype,true);
+                              hp := cordconstnode.create(left.resultdef.size,sizesinttype,true);
 {
                               hp:=
-                                 ctypeconvnode.create_explicit(sinttype,
+                                 ctypeconvnode.create_explicit(sizesinttype,
                                    cmoddivnode.create(divn,
                                      caddnode.create(addn,
                                        caddnode.create(muln,hp,cordconstnode.create(tarraydef(
                                          left.resultdef).elepackedbitsize,s64inttype,true)),
                                        cordconstnode.create(a,s64inttype,true)),
                                      cordconstnode.create(8,s64inttype,true)),
-                                   sinttype);
+                                   sizesinttype);
 }
                             end;
                         result:=hp;
                       end;
                    end
                   else
-                   resultdef:=sinttype;
+                   resultdef:=sizesinttype;
                 end;
 
               in_typeof_x:
