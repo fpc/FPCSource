@@ -1202,7 +1202,10 @@ var s : rawbytestring;
 
 begin
   If GetValue(s) then
+    begin
+    SetCodePage(s, CP_ACP, True); 
     Result:=s
+    end
   else
     Result:=Null;
 end;
