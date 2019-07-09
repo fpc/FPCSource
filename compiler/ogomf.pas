@@ -1851,9 +1851,14 @@ implementation
       end;
 
     function TOmfObjInput.ReadImpDef(Rec: TOmfRecord_COMENT): Boolean;
+      var
+        ImpDefRec: TOmfRecord_COMENT_IMPDEF;
       begin
+        ImpDefRec:=TOmfRecord_COMENT_IMPDEF.Create;
+        ImpDefRec.DecodeFrom(Rec);
         {todo: implement}
         Result:=True;
+        ImpDefRec.Free;
       end;
 
     function TOmfObjInput.ReadExpDef(Rec: TOmfRecord_COMENT): Boolean;
