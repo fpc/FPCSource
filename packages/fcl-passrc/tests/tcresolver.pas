@@ -936,6 +936,7 @@ type
     Procedure TestTypeHelper_Set;
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_String;
+    Procedure TestTypeHelper_StringOtherUnit;
     Procedure TestTypeHelper_Boolean;
     Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_DoubleAlias;
@@ -17650,6 +17651,43 @@ begin
   '  ''abc''.DoIt;',
   '  ''xyz''.DoIt();',
   '  ''c''.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_StringOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch typehelpers}',
+    'type',
+    '  TStringHelper = type helper for String',
+    '    procedure DoIt;',
+    '  end;',
+    '  TCharHelper = type helper for char',
+    '    procedure Fly;',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TStringHelper.DoIt;',
+    'begin',
+    '  Self[1]:=Self[2];',
+    'end;',
+    'procedure TCharHelper.Fly;',
+    'begin',
+    '  Self:=''c'';',
+    '  Self:=Self;',
+    'end;',
+    '']));
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'var s: string;',
+  'begin',
+  '  ''abc''.DoIt;',
+  '  ''xyz''.DoIt();',
+  '  ''c''.Fly;',
+  '  s.DoIt;',
   '']);
   ParseProgram;
 end;
