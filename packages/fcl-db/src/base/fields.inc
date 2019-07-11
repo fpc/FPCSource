@@ -877,7 +877,8 @@ begin
     try
       SetVarValue(AValue);
     except
-      on EVariantError do DatabaseErrorFmt(SFieldValueError, [DisplayName]);
+      on EVariantError do
+        DatabaseErrorFmt(SFieldError+SInvalidVariant, [DisplayName]);
     end;
 end;
 
@@ -933,7 +934,7 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 
 begin
   If Not Assigned(FDataset) then
-    DatabaseErrorFmt(SNoDataset,[FieldName]);
+    DatabaseErrorFmt(SNoDataset,[DisplayName]);
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
@@ -1516,7 +1517,7 @@ end;
 procedure TNumericField.RangeError(AValue, Min, Max: Double);
 
 begin
-  DatabaseErrorFmt(SRangeError,[AValue,Min,Max,FieldName]);
+  DatabaseErrorFmt(SFieldError+SRangeError2,[DisplayName,AValue,Min,Max]);
 end;
 
 procedure TNumericField.SetDisplayFormat(const AValue: string);
@@ -1688,7 +1689,7 @@ begin
     If Code=0 then
       SetAsInteger(L)
     else
-      DatabaseErrorFmt(SNotAnInteger,[AValue]);
+      DatabaseErrorFmt(SFieldError+SNotAnInteger,[DisplayName,AValue]);
     end;
 end;
 
@@ -1843,7 +1844,7 @@ begin
     If Code=0 then
       SetAsLargeInt(L)
     else
-      DatabaseErrorFmt(SNotAnInteger,[AValue]);
+      DatabaseErrorFmt(SFieldError+SNotAnInteger,[DisplayName,AValue]);
     end;
 end;
 
@@ -2220,7 +2221,7 @@ begin
     begin
     I:=Pos(';',AValue);
     If (I<2) or (I=Length(AValue)) then
-      DatabaseErrorFmt(SInvalidDisplayValues,[AValue]);
+      DatabaseErrorFmt(SFieldError+SInvalidDisplayValues,[DisplayName,AValue]);
     FdisplayValues:=AValue;
     // Store display values and their uppercase equivalents;
     FDisplays[False,True]:=Copy(AValue,1,I-1);
@@ -3497,7 +3498,7 @@ procedure TFields.CheckfieldKind(Fieldkind: TFieldKind; Field: TField);
 
 begin
   If Not (FieldKind in ValidFieldKinds) Then
-    DatabaseErrorFmt(SInvalidFieldKind,[Field.FieldName]);
+    DatabaseErrorFmt(SInvalidFieldKind,[Field.DisplayName]);
 end;
 
 function TFields.GetCount: Longint;
