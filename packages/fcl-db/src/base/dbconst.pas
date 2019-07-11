@@ -65,6 +65,7 @@ Resourcestring
   SNotEditing              = 'Operation not allowed, dataset "%s" is not in an edit or insert state.';
   SParameterNotFound       = 'Parameter "%s" not found';
   SRangeError              = '%f is not between %f and %f for %s';
+  SRangeError2              = '%f is not between %f and %f.';
   SReadOnlyField           = 'Field %s cannot be modified, it is read-only.';
   STransactionRegistered   = 'Transaction already registered : "%s"';
   SUniDirectional          = 'Operation cannot be performed on an unidirectional dataset';
@@ -124,6 +125,8 @@ Resourcestring
   SErrNoKeyFieldForRefreshClause = 'No key field found to construct refresh SQL WHERE clause';
   SErrFailedToFetchReturningResult = 'Failed to fetch returning result';
   SLogParamValue              = 'Parameter "%s" value : "%s"';
+  SFieldError                 = 'Field "%s" error: ';
+  SInvalidVariant             = 'Invalid variant value';
 
 Implementation
 
