@@ -1871,7 +1871,9 @@ implementation
 
           tbltcb.emit_procdef_const(tprocdef(tcallnode(attr.constructorcall).procdefinition));
 
-          tbltcb.emit_tai(tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0),cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
+          if not assigned(attr.constructorpd) then
+            internalerror(2019071004);
+          tbltcb.emit_procdef_const(tprocdef(attr.constructorpd));
 
           write_args(tbltcb,attr);
 

@@ -1052,7 +1052,6 @@ implementation
                       this object }
                     if assigned(rtti_attrs_def) then
                       begin
-                        add_synthetic_rtti_function_declarations(rtti_attrs_def,hdef.typesym.Name);
                         trtti_attribute_list.bind(rtti_attrs_def,tobjectdef(hdef).rtti_attribute_list);
                       end;
 

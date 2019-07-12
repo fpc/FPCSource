@@ -63,6 +63,7 @@ interface
        trtti_attribute = class
           typesym         : tsym;
           constructorcall : tnode;
+          constructorpd   : tdef;
           paras           : array of tnode;
           symbolname      : string;
           destructor destroy;override;
@@ -2915,6 +2916,7 @@ implementation
           exit;
         if dangling.is_bound then
           internalerror(2019071002);
+        current_module.used_rtti_attrs.concatlistcopy(dangling.rtti_attributes);
         dangling.is_bound:=true;
         owned:=dangling;
         dangling:=nil;

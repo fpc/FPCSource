@@ -27,7 +27,7 @@ unit symcreat;
 interface
 
   uses
-    finput,tokens,scanner,globtype,
+    finput,tokens,scanner,globtype,cclasses,
     aasmdata,
     symconst,symbase,symtype,symdef,symsym,
     node;
@@ -124,14 +124,15 @@ interface
   procedure call_through_new_name(orgpd: tprocdef; const newname: TSymStr);
 
   function generate_pkg_stub(pd:tprocdef):tnode;
+  procedure generate_attr_constrs(attrs:tfpobjectlist);
 
 
 
 implementation
 
   uses
-    cutils,cclasses,globals,verbose,systems,comphook,fmodule,constexp,
-    symtable,defutil,symutil,
+    cutils,globals,verbose,systems,comphook,fmodule,constexp,
+    symtable,defutil,symutil,procinfo,
     pbase,pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
     pjvm,jvmdef,
@@ -1489,6 +1490,60 @@ implementation
         end
       else
         result:=cnothingnode.create;
+    end;
+
+  procedure generate_attr_constrs(attrs:tfpobjectlist);
+    var
+      ps : tprocsym;
+      pd : tprocdef;
+      pi : tcgprocinfo;
+      i : sizeint;
+      attr : trtti_attribute;
+    begin
+      if attrs.count=0 then
+        exit;
+      { if this isn't set then this unit shouldn't have any attributes }
+      if not assigned(class_tcustomattribute) then
+        internalerror(2019071003);
+      for i:=0 to attrs.count-1 do
+        begin
+          attr:=trtti_attribute(attrs[i]);
+          {Generate a procsym for main}
+          ps:=cprocsym.create('$rttiattrconstr$'+tostr(i));
+          { always register the symbol }
+          ps.register_sym;
+          { the RTTI always references this symbol }
+          inc(ps.refs);
+          current_module.localsymtable.insert(ps);
+          pd:=cprocdef.create(normal_function_level,true);
+          { always register the def }
+          pd.register_def;
+          pd.procsym:=ps;
+          ps.ProcdefList.Add(pd);
+          { set procdef options }
+          pd.proctypeoption:=potype_function;
+          pd.proccalloption:=pocall_default;
+          include(pd.procoptions,po_hascallingconvention);
+          pd.returndef:=class_tcustomattribute;
+          insert_funcret_para(pd);
+          pd.calcparas;
+          pd.forwarddef:=false;
+          pd.setmangledname(ps.name);
+          pd.aliasnames.insert(pd.mangledname);
+          handle_calling_convention(pd,hcc_default_actions_impl);
+          { set procinfo and current_procinfo.procdef }
+          pi:=tcgprocinfo(cprocinfo.create(nil));
+          pi.procdef:=pd;
+          { we always do a call, namely to the constructor }
+          include(pi.flags,pi_do_call);
+          insert_funcret_local(pd);
+          pi.code:=cassignmentnode.create(
+                      cloadnode.create(pd.funcretsym,pd.localst),
+                      attr.constructorcall.getcopy
+                    );
+          pi.generate_code;
+          attr.constructorpd:=pd;
+        end;
     end;
 
 end.

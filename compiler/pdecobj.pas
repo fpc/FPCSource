@@ -216,7 +216,6 @@ implementation
           end;
         if assigned(rtti_attrs_def) then
           begin
-            add_synthetic_rtti_function_declarations(rtti_attrs_def,current_structdef.RttiName+'_'+p.RealName);
             trtti_attribute_list.bind(rtti_attrs_def,p.rtti_attribute_list);
           end;
 
