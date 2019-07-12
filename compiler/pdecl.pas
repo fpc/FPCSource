@@ -47,7 +47,6 @@ interface
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
     procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
-    procedure add_synthetic_rtti_function_declarations(rtti_attrs_def:trtti_attribute_list;name:shortstring);
 
 implementation
 
@@ -518,28 +517,6 @@ implementation
         p.free;
         consume(_RECKKLAMMER);
       end;
-
-  procedure add_synthetic_rtti_function_declarations(rtti_attrs_def:trtti_attribute_list;name:shortstring);
-    var
-      i : Integer;
-      sstate : tscannerstate;
-      attribute : trtti_attribute;
-      pd : tprocdef;
-    begin
-      name:=StringReplace(name,'.','_',[rfReplaceAll]);
-      for i:=0 to rtti_attrs_def.get_attribute_count-1 do
-        begin
-          attribute:=trtti_attribute(rtti_attrs_def.rtti_attributes[i]);
-          replace_scanner('rtti_class_attributes',sstate);
-          if str_parse_method_dec('function rtti_'+name+'_'+IntToStr(i)+':'+ attribute.typesym.Name +';',potype_function,false,tabstractrecorddef(ttypesym(attribute.typesym).typedef),pd) then
-            pd.synthetickind:=tsk_get_rttiattribute
-          else
-            internalerror(2012052601);
-          pd.skpara:=attribute;
-          attribute.symbolname:=pd.mangledname;
-          restore_scanner(sstate);
-        end;
-    end;
 
     procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
 

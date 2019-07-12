@@ -465,8 +465,7 @@ type
     tsk_field_setter,          // Setter for a field (callthrough property is passed in skpara)
     tsk_block_invoke_procvar,  // Call a procvar to invoke inside a block
     tsk_interface_wrapper,     // Call through to a method from an interface wrapper
-    tsk_call_no_parameters,    // Call skpara procedure without passing any parameters nor returning a result
-    tsk_get_rttiattribute      // Create and return a TCustomAttribute instance
+    tsk_call_no_parameters     // Call skpara procedure without passing any parameters nor returning a result
   );
 
   { synthetic procdef supplementary information (tprocdef.skpara) }

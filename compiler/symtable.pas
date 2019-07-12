@@ -959,8 +959,7 @@ implementation
                      if ((tsym(sym).owner.symtabletype<>localsymtable) or
                         (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
                         not (po_noreturn in tprocdef(tsym(sym).owner.defowner).procoptions) and
-                        not(cs_opt_nodedfa in current_settings.optimizerswitches) and
-                        (tprocdef(tsym(sym).owner.defowner).synthetickind <> tsk_get_rttiattribute) then
+                        not(cs_opt_nodedfa in current_settings.optimizerswitches) then
                        MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
                    end
                  else if (tsym(sym).owner.symtabletype=parasymtable) then
