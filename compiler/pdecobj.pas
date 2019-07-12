@@ -218,6 +218,7 @@ implementation
           begin
             add_synthetic_rtti_function_declarations(rtti_attrs_def,current_structdef.RttiName+'_'+p.RealName);
             p.rtti_attribute_list := rtti_attrs_def;
+            p.rtti_attribute_list.is_bound:=true;
             rtti_attrs_def:=nil;
           end;
 

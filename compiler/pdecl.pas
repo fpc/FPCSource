@@ -1040,6 +1040,7 @@ implementation
                       begin
                         add_synthetic_rtti_function_declarations(rtti_attrs_def,hdef.typesym.Name);
                         tobjectdef(hdef).rtti_attribute_list:=rtti_attrs_def;
+                        rtti_attrs_def.is_bound:=true;
                         rtti_attrs_def := nil;
                       end;
 

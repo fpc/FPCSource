@@ -70,6 +70,8 @@ interface
 
        trtti_attribute_list = class
           rtti_attributes : TFPObjectList;
+          { if the attribute list is bound to a def or symbol }
+          is_bound : Boolean;
           procedure addattribute(atypesym:tsym;constructorcall:tnode;constref paras:array of tnode);
           destructor destroy; override;
           function get_attribute_count:longint;
@@ -2919,7 +2921,14 @@ implementation
       end;
 
     destructor trtti_attribute_list.destroy;
+      var
+        i : longint;
       begin
+        { if the attributes are not bound we need to free their generated
+          constructor functions as well }
+        if not is_bound and assigned(rtti_attributes) then
+          for i:=0 to rtti_attributes.count-1 do
+            trtti_attribute(rtti_attributes[i]).constructorcall.free;
         rtti_attributes.Free;
         inherited destroy;
       end;
