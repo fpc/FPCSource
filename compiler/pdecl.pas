@@ -1109,6 +1109,7 @@ implementation
         consume(_TYPE);
         rtti_attrs_def := nil;
         types_dec(false,had_generic,rtti_attrs_def);
+        rtti_attrs_def.free;
       end;
 
 
