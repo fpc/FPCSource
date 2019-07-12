@@ -63,12 +63,14 @@ interface
        trtti_attribute = class
           typesym         : tsym;
           constructorcall : tnode;
+          paras           : array of tnode;
           symbolname      : string;
+          destructor destroy;override;
        end;
 
        trtti_attribute_list = class
           rtti_attributes : TFPObjectList;
-          procedure addattribute(atypesym:tsym;constructorcall:tnode);
+          procedure addattribute(atypesym:tsym;constructorcall:tnode;constref paras:array of tnode);
           destructor destroy; override;
           function get_attribute_count:longint;
        end;
@@ -2889,15 +2891,30 @@ implementation
                              TRTTI_ATTRIBUTE_LIST
 ****************************************************************************}
 
-    procedure trtti_attribute_list.addattribute(atypesym:tsym;constructorcall:tnode);
+
+    destructor trtti_attribute.destroy;
+      var
+        n : tnode;
+      begin
+        for n in paras do
+          n.free;
+        inherited destroy;
+      end;
+
+
+    procedure trtti_attribute_list.addattribute(atypesym:tsym;constructorcall:tnode;constref paras:array of tnode);
       var
         newattribute : trtti_attribute;
+        i : sizeint;
       begin
         if not assigned(rtti_attributes) then
           rtti_attributes:=TFPObjectList.Create(true);
         newattribute:=trtti_attribute.Create;
         newattribute.typesym:=atypesym;
         newattribute.constructorcall:=constructorcall;
+        setlength(newattribute.paras,length(paras));
+        for i:=0 to high(paras) do
+          newattribute.paras[i]:=paras[i];
         rtti_attributes.Add(newattribute);
       end;
 

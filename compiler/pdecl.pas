@@ -431,7 +431,9 @@ implementation
         end;
 
       var
-        p,paran,pcalln : tnode;
+        p,paran,pcalln,ptmp : tnode;
+        pcount : sizeint;
+        paras : array of tnode;
         od : tobjectdef;
         constrsym : tsymentry;
         typesym : ttypesym;
@@ -451,6 +453,29 @@ implementation
 
             paran:=read_attr_paras;
 
+            paras:=nil;
+            if assigned(paran) then
+              begin
+                ptmp:=paran;
+                pcount:=0;
+                while assigned(ptmp) do
+                  begin
+                    inc(pcount);
+                    ptmp:=tcallparanode(ptmp).right;
+                  end;
+                setlength(paras,pcount);
+                ptmp:=paran;
+                pcount:=0;
+                while assigned(ptmp) do
+                  begin
+                    if not is_constnode(tcallparanode(ptmp).left) then
+                      internalerror(2019070601);
+                    paras[high(paras)-pcount]:=tcallparanode(ptmp).left.getcopy;
+                    inc(pcount);
+                    ptmp:=tcallparanode(ptmp).right;
+                  end;
+              end;
+
             { Search the tprocdef of the constructor which has to be called. }
             constrsym:=find_create_constructor(od);
             if constrsym.typ<>procsym then
@@ -466,7 +491,7 @@ implementation
                   to the property which is defined next. }
                 if not assigned(rtti_attrs_def) then
                   rtti_attrs_def:=trtti_attribute_list.create;
-                rtti_attrs_def.addattribute(typesym,pcalln);
+                rtti_attrs_def.addattribute(typesym,pcalln,paras);
               end;
           end
         else
