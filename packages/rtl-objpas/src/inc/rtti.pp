@@ -3397,7 +3397,7 @@ end;
 
 function TRttiProperty.GetAttributes: specialize TArray<TCustomAttribute>;
 var
-  i: Integer;
+  i: SizeInt;
   at: PAttributeTable;
 begin
   if not FAttributesResolved then
@@ -3405,9 +3405,9 @@ begin
       at := FPropInfo^.AttributeTable;
       if Assigned(at) then
         begin
-          SetLength(FAttributes, FPropInfo^.AttributeTable^.AttributeCount);
+          SetLength(FAttributes, at^.AttributeCount);
           for i := 0 to High(FAttributes) do
-            FAttributes[i] := TCustomAttribute(GetPropAttribute(FPropInfo, i));
+            FAttributes[i] := TCustomAttribute(GetAttribute(at, i));
         end;
       FAttributesResolved:=true;
     end;

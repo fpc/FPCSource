@@ -895,7 +895,7 @@ procedure SetDynArrayProp(Instance: TObject; PropInfo: PPropInfo; const Value: P
 // Extended RTTI
 function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
 
-function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute; inline;
 
 function GetAttribute(AttributeTable: PAttributeTable; AttributeNr: Word): TCustomAttribute;
 
@@ -989,25 +989,12 @@ begin
     end;
 end;
 
-function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData;
+function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData; inline;
 var
   p: PtrUInt;
 begin
   p := PtrUInt(@TypeData^.UnitName) + SizeOf(TypeData^.UnitName[0]) + Length(TypeData^.UnitName);
   Result := PPropData(aligntoptr(Pointer(p)));
-end;
-
-function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
-var
-  attrtable: PAttributeTable;
-begin
-  attrtable := PropInfo^.AttributeTable;
-  if not Assigned(attrtable) or (AttributeNr >= attrtable^.AttributeCount) then
-    result := Nil
-  else
-    begin
-      result := attrtable^.AttributesList[AttributeNr]();
-    end;
 end;
 
 function GetAttribute(AttributeTable: PAttributeTable; AttributeNr: Word): TCustomAttribute;
@@ -1020,6 +1007,11 @@ begin
     begin
       result := AttributeTable^.AttributesList[AttributeNr]();
     end;
+end;
+
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
+begin
+  Result := GetAttribute(PropInfo^.AttributeTable, AttributeNr);
 end;
 
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
