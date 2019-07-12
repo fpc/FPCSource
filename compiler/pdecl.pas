@@ -47,7 +47,7 @@ interface
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
     procedure parse_rttiattributes(var rtti_attrs_def: trtti_attribute_list);
-    procedure add_synthetic_rtti_funtion_declarations(rtti_attrs_def: trtti_attribute_list; name: shortstring);
+    procedure add_synthetic_rtti_function_declarations(rtti_attrs_def: trtti_attribute_list; name: shortstring);
 
 implementation
 
@@ -469,7 +469,7 @@ implementation
         consume(_RECKKLAMMER);
       end;
 
-  procedure add_synthetic_rtti_funtion_declarations(rtti_attrs_def: trtti_attribute_list; name: shortstring);
+  procedure add_synthetic_rtti_function_declarations(rtti_attrs_def: trtti_attribute_list; name: shortstring);
     var
       i: Integer;
       sstate: tscannerstate;
@@ -1002,7 +1002,7 @@ implementation
                       this object }
                     if assigned(rtti_attrs_def) then
                       begin
-                        add_synthetic_rtti_funtion_declarations(rtti_attrs_def,hdef.typesym.Name);
+                        add_synthetic_rtti_function_declarations(rtti_attrs_def,hdef.typesym.Name);
                         tobjectdef(hdef).rtti_attribute_list:=rtti_attrs_def;
                         rtti_attrs_def := nil;
                       end;
