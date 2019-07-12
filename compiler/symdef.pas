@@ -3046,14 +3046,7 @@ implementation
 
 
     destructor trtti_attribute_list.destroy;
-      var
-        i : longint;
       begin
-        { if the attributes are not bound we need to free their generated
-          constructor functions as well }
-        if not is_bound and assigned(rtti_attributes) then
-          for i:=0 to rtti_attributes.count-1 do
-            trtti_attribute(rtti_attributes[i]).constructorcall.free;
         rtti_attributes.Free;
         inherited destroy;
       end;
