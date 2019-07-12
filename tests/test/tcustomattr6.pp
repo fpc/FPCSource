@@ -35,15 +35,16 @@ end;
 var
   pi: PPropInfo;
   AClassAttribute: TCustomAttribute;
-
 begin
   pi := GetPropInfo(TMyObject.ClassInfo,'PublicInt');
-  if pi^.AttributeCount<>1 then
-    halt(1);
+  if not Assigned(pi^.AttributeTable) then
+    Halt(1);
+  if pi^.AttributeTable^.AttributeCount <> 1 then
+    Halt(2);
 
   AClassAttribute := GetPropAttribute(pi,0) as TCustomAttribute;
   if AClassAttribute = nil then
-    halt(2);
+    halt(3);
 
   writeln('ok');
 
