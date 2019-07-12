@@ -249,6 +249,10 @@ unit TypInfo;
 
 {$PACKRECORDS C}
 
+{$if not defined(VER3_0) and not defined(VER3_2)}
+{$define PROVIDE_ATTR_TABLE}
+{$endif}
+
       TAttributeProc = function : TCustomAttribute;
       PAttributeProcList = ^TAttributeProcList;
       TAttributeProcList = array[0..$ffff] of TAttributeProc;
@@ -451,7 +455,9 @@ unit TypInfo;
       packed
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+        {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
+        {$endif}
         Terminator: Pointer;
         Size: Integer;
 {$ifndef VER3_0}
@@ -473,7 +479,9 @@ unit TypInfo;
         function GetPropertyTable: PPropData; inline;
         function GetMethodTable: PIntfMethodTable; inline;
       public
+        {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
+        {$endif}
         Parent: PPTypeInfo;
         Flags: TIntfFlagsBase;
         GUID: TGUID;
@@ -498,7 +506,9 @@ unit TypInfo;
         function GetPropertyTable: PPropData; inline;
         function GetMethodTable: PIntfMethodTable; inline;
       public
+        {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
+        {$endif}
         Parent: PPTypeInfo;
         Flags : TIntfFlagsBase;
         IID: TGUID;
@@ -522,7 +532,9 @@ unit TypInfo;
         function GetUnitName: ShortString; inline;
         function GetPropertyTable: PPropData; inline;
       public
+        {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
+        {$endif}
         ClassType : TClass;
         Parent : PPTypeInfo;
         PropCount : SmallInt;
@@ -582,7 +594,9 @@ unit TypInfo;
         { tkPointer }
         property RefType: PTypeInfo read GetRefType;
       public
+         {$ifdef PROVIDE_ATTR_TABLE}
          AttributeTable : PAttributeTable;
+         {$endif}
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkVariant,tkUString:
               ();
@@ -747,7 +761,9 @@ unit TypInfo;
         //     6 : true, constant index property
         PropProcs : Byte;
 
+        {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
+        {$endif}
         Name : ShortString;
         property PropType: PTypeInfo read GetPropType;
         property Tail: Pointer read GetTail;
@@ -980,11 +996,16 @@ begin
 end;
 
 function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
+{$ifdef PROVIDE_ATTR_TABLE}
 var
   TD: PTypeData;
 begin
   TD := GetTypeData(TypeInfo);
   Result:=TD^.AttributeTable;
+{$else}
+begin
+  Result:=Nil;
+{$endif}
 end;
 
 function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData; inline;
@@ -1009,7 +1030,11 @@ end;
 
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
 begin
+{$ifdef PROVIDE_ATTR_TABLE}
   Result := GetAttribute(PropInfo^.AttributeTable, AttributeNr);
+{$else}
+  Result := Nil;
+{$endif}
 end;
 
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
