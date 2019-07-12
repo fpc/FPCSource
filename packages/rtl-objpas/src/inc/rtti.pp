@@ -3398,12 +3398,12 @@ end;
 function TRttiProperty.GetAttributes: specialize TArray<TCustomAttribute>;
 var
   i: Integer;
-  ad: PAttributeData;
+  at: PAttributeTable;
 begin
   if not FAttributesResolved then
     begin
-      ad := FPropInfo^.AttributeTable;
-      if Assigned(ad) then
+      at := FPropInfo^.AttributeTable;
+      if Assigned(at) then
         begin
           SetLength(FAttributes, FPropInfo^.AttributeTable^.AttributeCount);
           for i := 0 to High(FAttributes) do
@@ -3629,16 +3629,16 @@ end;
 function TRttiType.GetAttributes: specialize TArray<TCustomAttribute>;
 var
   i: Integer;
-  ad: PAttributeData;
+  at: PAttributeTable;
 begin
   if not FAttributesResolved then
     begin
-    ad := GetAttributeData(FTypeInfo);
-    if Assigned(ad) then
+    at := GetAttributeTable(FTypeInfo);
+    if Assigned(at) then
       begin
-      setlength(FAttributes,ad^.AttributeCount);
-      for i := 0 to ad^.AttributeCount-1 do
-        FAttributes[i]:=GetAttribute(ad,i);
+      setlength(FAttributes,at^.AttributeCount);
+      for i := 0 to at^.AttributeCount-1 do
+        FAttributes[i]:=GetAttribute(at,i);
       end;
     FAttributesResolved:=true;
     end;

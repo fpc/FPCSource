@@ -253,7 +253,7 @@ unit TypInfo;
       PAttributeProcList = ^TAttributeProcList;
       TAttributeProcList = array[0..$ffff] of TAttributeProc;
 
-      TAttributeData =
+      TAttributeTable =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
       {$endif}
@@ -261,7 +261,7 @@ unit TypInfo;
         AttributeCount: word;
         AttributesList: TAttributeProcList;
       end;
-      PAttributeData = ^TAttributeData;
+      PAttributeTable = ^TAttributeTable;
 
       // members of TTypeData
       TArrayTypeData =
@@ -522,7 +522,7 @@ unit TypInfo;
         ClassType : TClass;
         Parent : PPTypeInfo;
         PropCount : SmallInt;
-        AttributeTable : PAttributeData;
+        AttributeTable : PAttributeTable;
         property UnitName: ShortString read GetUnitName;
         property PropertyTable: PPropData read GetPropertyTable;
       private
@@ -625,7 +625,7 @@ unit TypInfo;
               (ClassType : TClass;
                ParentInfoRef : TypeInfoPtr;
                PropCount : SmallInt;
-               AttributeTable : PAttributeData;
+               AttributeTable : PAttributeTable;
                UnitName : ShortString;
                // here the properties follow as array of TPropInfo
               );
@@ -744,7 +744,7 @@ unit TypInfo;
         //     6 : true, constant index property
         PropProcs : Byte;
 
-        AttributeTable : PAttributeData;
+        AttributeTable : PAttributeTable;
         Name : ShortString;
         property PropType: PTypeInfo read GetPropType;
         property Tail: Pointer read GetTail;
@@ -893,11 +893,11 @@ procedure SetDynArrayProp(Instance: TObject; const PropName: string; const Value
 procedure SetDynArrayProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
 
 // Extended RTTI
-function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
+function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
 
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
 
-function GetAttribute(AttributeData: PAttributeData; AttributeNr: Word): TCustomAttribute;
+function GetAttribute(AttributeTable: PAttributeTable; AttributeNr: Word): TCustomAttribute;
 
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -976,7 +976,7 @@ begin
 {$endif}
 end;
 
-function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
+function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
 var
   TD: PTypeData;
 begin
@@ -999,7 +999,7 @@ end;
 
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
 var
-  attrtable: PAttributeData;
+  attrtable: PAttributeTable;
 begin
   attrtable := PropInfo^.AttributeTable;
   if not Assigned(attrtable) or (AttributeNr >= attrtable^.AttributeCount) then
@@ -1010,15 +1010,15 @@ begin
     end;
 end;
 
-function GetAttribute(AttributeData: PAttributeData; AttributeNr: Word): TCustomAttribute;
+function GetAttribute(AttributeTable: PAttributeTable; AttributeNr: Word): TCustomAttribute;
 var
   AttributeProcList: TAttributeProcList;
 begin
-  if (AttributeData=nil) or (AttributeNr>=AttributeData^.AttributeCount) then
+  if (AttributeTable=nil) or (AttributeNr>=AttributeTable^.AttributeCount) then
     result := nil
   else
     begin
-      result := AttributeData^.AttributesList[AttributeNr]();
+      result := AttributeTable^.AttributesList[AttributeNr]();
     end;
 end;
 

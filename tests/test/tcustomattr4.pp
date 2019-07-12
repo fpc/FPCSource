@@ -23,7 +23,7 @@ type
   end;
 
 var
-  rtd: PAttributeData;
+  rtd: PAttributeTable;
   AClassAttribute: tmyt;
 
 { tmyt }
@@ -34,7 +34,7 @@ begin
 end;
 
 begin
-  rtd := GetAttributeData(TMyObject.ClassInfo);
+  rtd := GetAttributeTable(TMyObject.ClassInfo);
 
   if not Assigned(rtd) then
     halt(1);

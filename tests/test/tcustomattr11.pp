@@ -22,16 +22,16 @@ type
   end;
 
 var
-  ad: PAttributeData;
+  at: PAttributeTable;
   attr: TCustomAttribute;
 begin
-  ad := GetAttributeData(TypeInfo(TTestObj));
-  if not Assigned(ad) then
+  at := GetAttributeTable(TypeInfo(TTestObj));
+  if not Assigned(at) then
     Halt(1);
-  if ad^.AttributeCount <> 1 then
+  if at^.AttributeCount <> 1 then
     Halt(2);
 
-  attr := GetAttribute(ad, 0);
+  attr := GetAttribute(at, 0);
   if not Assigned(attr) then
     Halt(3);
   if not (attr is TTestAttribute) then

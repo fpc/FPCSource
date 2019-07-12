@@ -20,7 +20,7 @@ type
   end;
 
 var
-  ad: PAttributeData;
+  at: PAttributeTable;
   AClassAttribute: TCustomAttribute;
 
 { tmyt }
@@ -31,13 +31,13 @@ begin
 end;
 
 begin
-  ad := GetAttributeData(TMyObject.ClassInfo);
-  if not assigned(ad) then
+  at := GetAttributeTable(TMyObject.ClassInfo);
+  if not assigned(at) then
     halt(1);
-  if ad^.AttributeCount<>1 then
+  if at^.AttributeCount<>1 then
     halt(2);
 
-  AClassAttribute := GetAttribute(ad,0);
+  AClassAttribute := GetAttribute(at,0);
   if AClassAttribute = nil then
     halt(3);
   writeln('ok');
