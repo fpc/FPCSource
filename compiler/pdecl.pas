@@ -464,6 +464,9 @@ implementation
 
             if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not codegenerror then
               begin
+                { TODO: once extended RTTI for methods is supported, reject a
+                        constructor if it doesn't have extended RTTI enabled }
+
                 { collect the parameters of the call node as there might be
                   compile time type conversions (e.g. a Byte parameter being
                   passed a value > 255) }
