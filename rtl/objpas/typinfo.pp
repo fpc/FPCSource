@@ -916,9 +916,9 @@ function GetNextTypeInfo(ATypeInfo: PTypeInfo): PTypeInfo;
 
 function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
 
-function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TCustomAttribute;
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
 
-function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustomAttribute;
+function GetAttribute(AttributeData: PAttributeData; AttributeNr: Word): TCustomAttribute;
 
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -1150,7 +1150,7 @@ begin
     result := nil;
 end;
 
-function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TCustomAttribute;
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
 var
   attrtable: PAttributeData;
 begin
@@ -1163,7 +1163,7 @@ begin
     end;
 end;
 
-function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustomAttribute;
+function GetAttribute(AttributeData: PAttributeData; AttributeNr: Word): TCustomAttribute;
 var
   AttributeProcList: TAttributeProcList;
 begin
