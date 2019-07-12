@@ -214,10 +214,7 @@ implementation
               Message(parser_e_enumerator_identifier_required);
             consume(_SEMICOLON);
           end;
-        if assigned(rtti_attrs_def) then
-          begin
-            trtti_attribute_list.bind(rtti_attrs_def,p.rtti_attribute_list);
-          end;
+        trtti_attribute_list.bind(rtti_attrs_def,p.rtti_attribute_list);
 
         { hint directives, these can be separated by semicolons here,
           that needs to be handled here with a loop (PFV) }

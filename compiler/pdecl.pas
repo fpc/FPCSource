@@ -1050,10 +1050,7 @@ implementation
 
                     { If there are attribute-properties available, bind them to
                       this object }
-                    if assigned(rtti_attrs_def) then
-                      begin
-                        trtti_attribute_list.bind(rtti_attrs_def,tobjectdef(hdef).rtti_attribute_list);
-                      end;
+                    trtti_attribute_list.bind(rtti_attrs_def,tobjectdef(hdef).rtti_attribute_list);
 
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set
