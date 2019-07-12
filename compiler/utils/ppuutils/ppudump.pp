@@ -3606,6 +3606,7 @@ begin
            begin
              def:=TPpuPropDef.Create(ParentDef);
              readcommonsym('Property ',def);
+             write  ([space,' Prop Options : ']);
              propoptions:=readpropertyoptions;
              if ppo_overrides in propoptions then
                begin
