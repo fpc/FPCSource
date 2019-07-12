@@ -72,14 +72,11 @@ implementation
        cpuinfo
        ;
 
-    var
-       system_custom_attribute_def: tobjectdef = nil;
-
     function is_system_custom_attribute_descendant(def:tdef):boolean;
     begin
-      if system_custom_attribute_def=nil then
-        system_custom_attribute_def:=tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
-      Result:=def_is_related(def,system_custom_attribute_def);
+      if not assigned(class_tcustomattribute) then
+        class_tcustomattribute:=tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
+      Result:=def_is_related(def,class_tcustomattribute);
     end;
 
     function readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
@@ -449,7 +446,7 @@ implementation
 
             { Check if the attribute class is related to TCustomAttribute }
             if not is_system_custom_attribute_descendant(od) then
-              incompatibletypes(od,system_custom_attribute_def);
+              incompatibletypes(od,class_tcustomattribute);
 
             paran:=read_attr_paras;
 

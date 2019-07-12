@@ -1147,6 +1147,8 @@ interface
 
        { pointer to the anchestor of all classes }
        class_tobject : tobjectdef;
+       { pointer to the base type for custom attributes }
+       class_tcustomattribute : tobjectdef;
        { pointer to the ancestor of all COM interfaces }
        interface_iunknown : tobjectdef;
        { pointer to the ancestor of all dispinterfaces }

@@ -4714,6 +4714,7 @@ implementation
 {$endif}
        { set some global vars to nil, might be important for the ide }
        class_tobject:=nil;
+       class_tcustomattribute:=nil;
        interface_iunknown:=nil;
        interface_idispatch:=nil;
        rec_tguid:=nil;
