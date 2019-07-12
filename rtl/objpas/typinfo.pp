@@ -248,6 +248,21 @@ unit TypInfo;
 {$endif}
 
 {$PACKRECORDS C}
+
+      TAttributeProc = function : TCustomAttribute;
+      PAttributeProcList = ^TAttributeProcList;
+      TAttributeProcList = array[0..$ffff] of TAttributeProc;
+
+      TAttributeData =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif}
+      record
+        AttributeCount: word;
+        AttributesList: TAttributeProcList;
+      end;
+      PAttributeData = ^TAttributeData;
+
       // members of TTypeData
       TArrayTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -507,26 +522,13 @@ unit TypInfo;
         ClassType : TClass;
         Parent : PPTypeInfo;
         PropCount : SmallInt;
+        AttributeTable : PAttributeData;
         property UnitName: ShortString read GetUnitName;
         property PropertyTable: PPropData read GetPropertyTable;
       private
         UnitNameField : ShortString;
         { PropertyTable: TPropData }
       end;
-
-      TAttributeProc = function : TCustomAttribute;
-      PAttributeProcList = ^TAttributeProcList;
-      TAttributeProcList = array[0..$ffff] of TAttributeProc;
-
-      TAttributeData =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-      packed
-{$endif}
-      record
-        AttributeCount: word;
-        AttributesList: TAttributeProcList;
-      end;
-      PAttributeData = ^TAttributeData;
 
       PTypeData = ^TTypeData;
       TTypeData =
