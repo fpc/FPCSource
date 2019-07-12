@@ -1688,6 +1688,79 @@ begin
   writeln(Visibility2Str(i));
 end;
 
+procedure readattrs(def: TPpuDef);
+var
+  i,cnt,paras: longint;
+begin
+  cnt:=ppufile.getlongint;
+  if cnt>0 then
+    begin
+      writeln([space,'   Attributes : ']);
+      space:='    '+space;
+      if assigned(def) then
+        SetLength(def.Attrs,cnt);
+      for i:=0 to cnt-1 do
+        begin
+          writeln([space,'** Custom Attribute ',i,' **']);
+          write  ([space,'      Type symbol : ']);
+          if assigned(def) then
+            begin
+              def.Attrs[i].TypeSym:=TPpuRef.Create;
+              readderef('',def.Attrs[i].TypeSym);
+            end
+          else
+            readderef('');
+          write  ([space,' Type constructor : ']);
+          if assigned(def) then
+            begin
+              def.Attrs[i].TypeConstr:=TPpuRef.Create;
+              readderef('',def.Attrs[i].TypeConstr);
+            end
+          else
+            readderef('');
+          paras:=ppufile.getlongint;
+          writeln([space,'       Parameters : ',paras]);
+          if assigned(def) then
+            def.Attrs[i].ParaCount:=paras;
+        end;
+      delete(space,1,4);
+    end;
+end;
+
+procedure readnodetree; forward;
+
+procedure readattrparas(def: TPpuDef);
+var
+  attr,para: LongInt;
+begin
+  if Length(def.Attrs) > 0 then
+    writeln([space,'   Attr Paras : ']);
+  space:='    '+space;
+  for attr:=0 to High(def.Attrs) do
+    begin
+      writeln([space,'** Custom Attribute ',attr,' Arguments **']);
+      space:='    '+space;
+      for para:=0 to def.Attrs[attr].ParaCount-1 do
+        begin
+          readnodetree;
+        end;
+      delete(space,1,4);
+    end;
+  delete(space,1,4);
+end;
+
+procedure readdefsubentries(def: TPpuDef);
+begin
+  space:='    '+space;
+  readattrparas(def);
+  delete(space,1,4);
+end;
+
+procedure readsymsubentries(def: TPpuDef);
+begin
+  readattrparas(def);
+end;
+
 procedure readcommonsym(const s:string; Def: TPpuDef = nil);
 var
   i: integer;
@@ -1707,6 +1780,7 @@ begin
   readvisibility(Def);
   write  ([space,'   SymOptions : ']);
   readsymoptions(space+'   ',Def);
+  readattrs(Def);
 end;
 
 
@@ -2643,6 +2717,9 @@ begin
       write  ([space,' Orig. GenericDef : ']);
       readderef('');
     end;
+  space:=space+'    ';
+  readattrs(def);
+  delete(space,1,4);
   current_defoptions:=defoptions;
 end;
 
@@ -3652,6 +3729,8 @@ begin
              WriteError('!! Skipping unsupported PPU Entry in Symbols: '+IntToStr(b));
            end;
        end;
+       if assigned(def) then
+         readsymsubentries(def);
        if (def <> nil) and (def.Parent = nil) then
          def.Free;
        if not EndOfEntry then
@@ -4375,6 +4454,8 @@ begin
              WriteError('!! Skipping unsupported PPU Entry in definitions: '+IntToStr(b));
            end;
        end;
+       if assigned(def) then
+         readdefsubentries(def);
        if (def <> nil) and (def.Parent = nil) then
          def.Free;
        if not EndOfEntry then

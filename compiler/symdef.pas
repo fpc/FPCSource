@@ -62,11 +62,20 @@ interface
 
        trtti_attribute = class
           typesym         : tsym;
+          typesymderef    : tderef;
           typeconstr      : tdef;
+          typeconstrderef : tderef;
+          { these two are not stored in PPU }
           constructorcall : tnode;
           constructorpd   : tdef;
           paras           : array of tnode;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);
+          procedure ppuload_subentries(ppufile:tcompilerppufile);
+          procedure ppuwrite_subentries(ppufile:tcompilerppufile);
           destructor destroy;override;
+          procedure buildderef;
+          procedure deref;
        end;
 
        trtti_attribute_list = class
@@ -75,8 +84,16 @@ interface
           is_bound : Boolean;
           class procedure bind(var dangling,owned:trtti_attribute_list);
           procedure addattribute(atypesym:tsym;typeconstr:tdef;constructorcall:tnode;constref paras:array of tnode);
+          procedure addattribute(attr:trtti_attribute);
           destructor destroy; override;
           function get_attribute_count:longint;
+          procedure buildderef;
+          procedure deref;
+
+          class function ppuload(ppufile:tcompilerppufile):trtti_attribute_list;
+          class procedure ppuwrite(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
+          class procedure ppuload_subentries(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
+          class procedure ppuwrite_subentries(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
        end;
 
        { tstoreddef }
@@ -1965,6 +1982,7 @@ implementation
            end;
         if df_specialization in defoptions then
           ppufile.getderef(genericdefderef);
+        rtti_attribute_list:=trtti_attribute_list.ppuload(ppufile);
       end;
 
 
@@ -2138,18 +2156,19 @@ implementation
         ppufile.do_crc:=oldintfcrc;
         if df_specialization in defoptions then
           ppufile.putderef(genericdefderef);
+        trtti_attribute_list.ppuwrite(rtti_attribute_list,ppufile);
       end;
 
 
     procedure tstoreddef.ppuload_subentries(ppufile: tcompilerppufile);
       begin
-        { by default: do nothing }
+        trtti_attribute_list.ppuload_subentries(rtti_attribute_list,ppufile);
       end;
 
 
     procedure tstoreddef.ppuwrite_subentries(ppufile: tcompilerppufile);
       begin
-        { by default: do nothing }
+        trtti_attribute_list.ppuwrite_subentries(rtti_attribute_list,ppufile);
       end;
 
 
@@ -2163,6 +2182,8 @@ implementation
           register_def;
         typesymderef.build(typesym);
         genericdefderef.build(genericdef);
+        if assigned(rtti_attribute_list) then
+          rtti_attribute_list.buildderef;
         if assigned(genconstraintdata) then
           genconstraintdata.buildderef;
         if assigned(genericparas) then
@@ -2193,6 +2214,8 @@ implementation
         typesym:=ttypesym(typesymderef.resolve);
         if df_specialization in defoptions then
           genericdef:=tstoreddef(genericdefderef.resolve);
+        if assigned(rtti_attribute_list) then
+          rtti_attribute_list.deref;
         if assigned(genconstraintdata) then
           genconstraintdata.deref;
         if assigned(genericparas) then
@@ -2913,6 +2936,35 @@ implementation
                              TRTTI_ATTRIBUTE_LIST
 ****************************************************************************}
 
+    constructor trtti_attribute.ppuload(ppufile: tcompilerppufile);
+      begin
+        ppufile.getderef(typesymderef);
+        ppufile.getderef(typeconstrderef);
+        setlength(paras,ppufile.getlongint);
+      end;
+
+    procedure trtti_attribute.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        ppufile.putderef(typesymderef);
+        ppufile.putderef(typeconstrderef);
+        ppufile.putlongint(length(paras));
+      end;
+
+    procedure trtti_attribute.ppuload_subentries(ppufile: tcompilerppufile);
+      var
+        i : sizeint;
+      begin
+        for i:=0 to high(paras) do
+          paras[i]:=ppuloadnodetree(ppufile);
+      end;
+
+    procedure trtti_attribute.ppuwrite_subentries(ppufile: tcompilerppufile);
+      var
+        i : sizeint;
+      begin
+        for i:=0 to high(paras) do
+          ppuwritenodetree(ppufile,paras[i]);
+      end;
 
     destructor trtti_attribute.destroy;
       var
@@ -2922,6 +2974,26 @@ implementation
         for n in paras do
           n.free;
         inherited destroy;
+      end;
+
+    procedure trtti_attribute.buildderef;
+      var
+        i : sizeint;
+      begin
+        typesymderef.build(typesym);
+        typeconstrderef.build(typeconstr);
+        for i:=0 to high(paras) do
+          paras[i].buildderefimpl;
+      end;
+
+    procedure trtti_attribute.deref;
+      var
+        i : sizeint;
+      begin
+        typesym:=tsym(typesymderef.resolve);
+        typeconstr:=tdef(typeconstrderef.resolve);
+        for i:=0 to high(paras) do
+          paras[i].derefimpl;
       end;
 
     class procedure trtti_attribute_list.bind(var dangling,owned:trtti_attribute_list);
@@ -2955,6 +3027,13 @@ implementation
         rtti_attributes.Add(newattribute);
       end;
 
+    procedure trtti_attribute_list.addattribute(attr:trtti_attribute);
+      begin
+        if not assigned(rtti_attributes) then
+          rtti_attributes:=TFPObjectList.Create(true);
+        rtti_attributes.add(attr);
+      end;
+
     destructor trtti_attribute_list.destroy;
       var
         i : longint;
@@ -2974,6 +3053,79 @@ implementation
           result:=rtti_attributes.Count
         else
           result:=0;
+      end;
+
+    procedure trtti_attribute_list.buildderef;
+      var
+        i : sizeint;
+      begin
+        if not assigned(rtti_attributes) then
+          exit;
+        for i:=0 to rtti_attributes.count-1 do
+          trtti_attribute(rtti_attributes[i]).buildderef;
+      end;
+
+    procedure trtti_attribute_list.deref;
+      var
+        i : sizeint;
+      begin
+        if not assigned(rtti_attributes) then
+          exit;
+        for i:=0 to rtti_attributes.count-1 do
+          trtti_attribute(rtti_attributes[i]).deref;
+      end;
+
+    class procedure trtti_attribute_list.ppuload_subentries(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
+      var
+        i : sizeint;
+      begin
+        if assigned(attrlist) then
+          begin
+            if not assigned(attrlist.rtti_attributes) then
+              internalerror(2019071101);
+            for i:=0 to attrlist.rtti_attributes.count-1 do
+              trtti_attribute(attrlist.rtti_attributes[i]).ppuload_subentries(ppufile);
+          end;
+      end;
+
+    class procedure trtti_attribute_list.ppuwrite_subentries(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
+      var
+        i : sizeint;
+      begin
+        if assigned(attrlist) and assigned(attrlist.rtti_attributes) then
+          begin
+            for i:=0 to attrlist.rtti_attributes.count-1 do
+              trtti_attribute(attrlist.rtti_attributes[i]).ppuwrite_subentries(ppufile);
+          end;
+      end;
+
+    class function trtti_attribute_list.ppuload(ppufile:tcompilerppufile):trtti_attribute_list;
+      var
+        cnt,i : longint;
+      begin
+        cnt:=ppufile.getlongint;
+        if cnt>0 then
+          begin
+            result:=trtti_attribute_list.create;
+            for i:=0 to cnt-1 do
+              result.addattribute(trtti_attribute.ppuload(ppufile));
+          end
+        else
+          result:=nil;
+      end;
+
+    class procedure trtti_attribute_list.ppuwrite(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
+      var
+        i : longint;
+      begin
+        if assigned(attrlist) and assigned(attrlist.rtti_attributes) then
+          begin
+            ppufile.putlongint(attrlist.rtti_attributes.count);
+            for i:=0 to attrlist.rtti_attributes.count-1 do
+              trtti_attribute(attrlist.rtti_attributes[i]).ppuwrite(ppufile);
+          end
+        else
+          ppufile.putlongint(0);
       end;
 
 
