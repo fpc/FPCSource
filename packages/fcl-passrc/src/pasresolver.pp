@@ -3337,13 +3337,19 @@ end;
 function TPasProcedureScope.GetSelfScope: TPasProcedureScope;
 var
   Proc: TPasProcedure;
+  El: TPasElement;
 begin
   Result:=Self;
   repeat
     if Result.ClassRecScope<>nil then exit;
     Proc:=TPasProcedure(Result.Element);
-    if not (Proc.Parent is TProcedureBody) then exit(nil);
-    Proc:=Proc.Parent.Parent as TPasProcedure;
+    El:=Proc.Parent;
+    repeat
+      if El=nil then exit(nil);
+      if El is TProcedureBody then break;
+      El:=El.Parent;
+    until false;
+    Proc:=El.Parent as TPasProcedure;
     Result:=TPasProcedureScope(Proc.CustomData);
   until false;
 end;
