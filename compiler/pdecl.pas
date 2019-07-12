@@ -425,43 +425,43 @@ implementation
 
         { Parse attribute type }
         p:=factor(false,[ef_type_only,ef_check_attr_suffix]);
-        if p.nodetype<>errorn then
+        if p.nodetype=typen then
           begin
             typeSym:=ttypesym(ttypenode(p).typesym);
             od:=tobjectdef(ttypenode(p).typedef);
-            if Assigned(od) then
-              begin
-                { Check if the attribute class is related to TCustomAttribute }
-                if not is_system_custom_attribute_descendant(od) then
-                  incompatibletypes(od, system_custom_attribute_def);
 
-                { Search the tprocdef of the constructor which has to be called. }
-                constrSym:=find_create_constructor(od);
-                if constrSym.typ<>procsym then
-                  internalerror(2018102301);
-                constrProcDef:=tprocsym(constrSym).find_procdef_bytype(potype_constructor);
+            { Check if the attribute class is related to TCustomAttribute }
+            if not is_system_custom_attribute_descendant(od) then
+              incompatibletypes(od, system_custom_attribute_def);
 
-                { Parse the attribute-parameters as if it is a list of parameters from
-                  a call to the constrProcDef constructor in an execution-block. }
-                p1:=cloadvmtaddrnode.create(ctypenode.create(od));
-                again:=true;
-                oldblock_type:=block_type;
-                block_type:=bt_body;
-                do_member_read(od,false,constrProcDef.procsym,p1,again,[], nil);
+            { Search the tprocdef of the constructor which has to be called. }
+            constrSym:=find_create_constructor(od);
+            if constrSym.typ<>procsym then
+              internalerror(2018102301);
+            constrProcDef:=tprocsym(constrSym).find_procdef_bytype(potype_constructor);
 
-                { Check the number of parameters }
-                if (tcallnode(p1).para_count<constrProcDef.minparacount) then
-                   CGMessagePos1(p.fileinfo,parser_e_wrong_parameter_size,od.typename+'.'+constrProcDef.procsym.prettyname);
+            { Parse the attribute-parameters as if it is a list of parameters from
+              a call to the constrProcDef constructor in an execution-block. }
+            p1:=cloadvmtaddrnode.create(ctypenode.create(od));
+            again:=true;
+            oldblock_type:=block_type;
+            block_type:=bt_body;
+            do_member_read(od,false,constrProcDef.procsym,p1,again,[], nil);
 
-                block_type:=oldblock_type;
+            { Check the number of parameters }
+            if (tcallnode(p1).para_count<constrProcDef.minparacount) then
+               CGMessagePos1(p.fileinfo,parser_e_wrong_parameter_size,od.typename+'.'+constrProcDef.procsym.prettyname);
 
-                { Add attribute to attribute list which will be added
-                  to the property which is defined next. }
-                if not assigned(rtti_attrs_def) then
-                  rtti_attrs_def:=trtti_attribute_list.create;
-                rtti_attrs_def.addattribute(typeSym,p1);
-              end;
-          end;
+            block_type:=oldblock_type;
+
+            { Add attribute to attribute list which will be added
+              to the property which is defined next. }
+            if not assigned(rtti_attrs_def) then
+              rtti_attrs_def:=trtti_attribute_list.create;
+            rtti_attrs_def.addattribute(typeSym,p1);
+          end
+        else
+          Message(type_e_type_id_expected);
 
         p.free;
         consume(_RECKKLAMMER);
