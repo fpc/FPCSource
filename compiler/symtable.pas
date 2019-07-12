@@ -561,13 +561,13 @@ implementation
         def : tdef;
         b   : byte;
       begin
-         def:=nil;
          { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartdefs then
            Message(unit_f_ppu_read_error);
          { read definitions }
          repeat
            b:=ppufile.readentry;
+           def:=nil;
            case b of
              ibpointerdef : def:=cpointerdef.ppuload(ppufile);
              ibarraydef : def:=carraydef.ppuload(ppufile);
@@ -594,6 +594,8 @@ implementation
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
+           if assigned(def) then
+             tstoreddef(def).ppuload_subentries(ppufile);
            InsertDef(def);
          until false;
       end;
@@ -604,12 +606,12 @@ implementation
         b   : byte;
         sym : tsym;
       begin
-         sym:=nil;
          { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartsyms then
           Message(unit_f_ppu_read_error);
          { now read the symbols }
          repeat
+           sym:=nil;
            b:=ppufile.readentry;
            case b of
                 ibtypesym : sym:=ctypesym.ppuload(ppufile);
@@ -632,6 +634,8 @@ implementation
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
+           if assigned(sym) then
+             tstoredsym(sym).ppuload_subentries(ppufile);
            Insert(sym,false);
          until false;
       end;
@@ -656,7 +660,10 @@ implementation
           begin
             def:=tstoreddef(DefList[i]);
             if def.is_registered then
-              def.ppuwrite(ppufile);
+              begin
+                def.ppuwrite(ppufile);
+                def.ppuwrite_subentries(ppufile);
+              end;
           end;
         { write end of definitions }
         ppufile.writeentry(ibenddefs);
@@ -682,7 +689,10 @@ implementation
           begin
             sym:=tstoredsym(SymList[i]);
             if sym.is_registered then
-              sym.ppuwrite(ppufile);
+              begin
+                sym.ppuwrite(ppufile);
+                sym.ppuwrite_subentries(ppufile);
+              end;
           end;
         { end of symbols }
         ppufile.writeentry(ibendsyms);

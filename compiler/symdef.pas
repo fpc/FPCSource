@@ -123,6 +123,10 @@ interface
           destructor  destroy;override;
           function getcopy : tstoreddef;virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+          { this is called directly after ppuload }
+          procedure ppuload_subentries(ppufile:tcompilerppufile);virtual;
+          { this is called directly after ppuwrite }
+          procedure ppuwrite_subentries(ppufile:tcompilerppufile);virtual;
           procedure buildderef;override;
           procedure buildderefimpl;override;
           procedure deref;override;
@@ -2133,6 +2137,18 @@ implementation
         ppufile.do_crc:=oldintfcrc;
         if df_specialization in defoptions then
           ppufile.putderef(genericdefderef);
+      end;
+
+
+    procedure tstoreddef.ppuload_subentries(ppufile: tcompilerppufile);
+      begin
+        { by default: do nothing }
+      end;
+
+
+    procedure tstoreddef.ppuwrite_subentries(ppufile: tcompilerppufile);
+      begin
+        { by default: do nothing }
       end;
 
 

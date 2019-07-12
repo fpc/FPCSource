@@ -52,6 +52,10 @@ interface
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+          { this is called directly after ppuload }
+          procedure ppuload_subentries(ppufile:tcompilerppufile);virtual;
+          { this is called directly after ppuwrite }
+          procedure ppuwrite_subentries(ppufile:tcompilerppufile);virtual;
           procedure buildderef; override;
           procedure register_sym; override;
        end;
@@ -592,6 +596,18 @@ implementation
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
          ppufile.do_interface_crc:=oldintfcrc;
+      end;
+
+
+    procedure tstoredsym.ppuload_subentries(ppufile: tcompilerppufile);
+      begin
+        { by default: do nothing }
+      end;
+
+
+    procedure tstoredsym.ppuwrite_subentries(ppufile: tcompilerppufile);
+      begin
+        { by default: do nothing }
       end;
 
 
