@@ -57,7 +57,7 @@ interface
         function ref_rtti(def:tdef;rt:trttitype;indirect:boolean;suffix:tsymstr):tasmsymbol;
         procedure write_rtti_name(tcb: ttai_typedconstbuilder; def: tdef);
         procedure write_rtti_data(tcb: ttai_typedconstbuilder; def:tdef; rt: trttitype);
-        procedure write_attribute_data(tcb: ttai_typedconstbuilder; def:tdef);
+        procedure write_attribute_data(tcb: ttai_typedconstbuilder;attr_list:trtti_attribute_list);
         procedure write_unit_info_reference(tcb: ttai_typedconstbuilder);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
         procedure write_rtti_reference(tcb: ttai_typedconstbuilder; def: tdef; rt: trttitype);
@@ -761,9 +761,6 @@ implementation
         proctypesinfo : byte;
         propnameitem  : tpropnamelistitem;
         propdefname : string;
-        attridx: ShortInt;
-        attrcount: byte;
-        attr: trtti_attribute;
 
         procedure writeaccessproc(pap:tpropaccesslisttypes; shiftvalue : byte; unsetvalue: byte);
         var
@@ -909,22 +906,12 @@ implementation
                 tcb.emit_ord_const(propnameitem.propindex,u16inttype);
                 tcb.emit_ord_const(proctypesinfo,u8inttype);
 
-                { Write property attribute count }
-                if assigned(tpropertysym(sym).rtti_attribute_list) then
-                  attrcount:=tpropertysym(sym).rtti_attribute_list.get_attribute_count
-                else
-                  attrcount:=0;
-                tcb.emit_ord_const(attrcount,u8inttype);
+                { write reference to attribute table }
+                write_attribute_data(tcb,tpropertysym(sym).rtti_attribute_list);
 
                 { Write property name }
                 tcb.emit_shortstring_const(tpropertysym(sym).realname);
 
-                { Write property attributes }
-                for attridx := 0 to attrcount-1 do
-                  begin
-                    attr := trtti_attribute(tpropertysym(sym).rtti_attribute_list.rtti_attributes[attridx]);
-                    tcb.emit_tai(Tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0), cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
-                  end;
                 tcb.end_anonymous_record;
              end;
           end;
@@ -1583,7 +1570,7 @@ implementation
 
             { TAttributeData }
             if rmo_hasattributes in current_module.rtti_options then
-                write_attribute_data(tcb, def);
+                write_attribute_data(tcb, def.rtti_attribute_list);
 
             { write published properties for this object }
             published_properties_write_rtti_data(tcb,propnamelist,def.symtable);
@@ -1746,26 +1733,57 @@ implementation
         end;
       end;
 
-    procedure TRTTIWriter.write_attribute_data(tcb: ttai_typedconstbuilder; def: tdef);
+  procedure TRTTIWriter.write_attribute_data(tcb:ttai_typedconstbuilder;attr_list:trtti_attribute_list);
     var
-      count: word;
-      idx: byte;
-      attr: trtti_attribute;
+      count, i: word;
+      attr : trtti_attribute;
+      tbltcb : ttai_typedconstbuilder;
+      tbllab : tasmlabel;
+      tbldef : tdef;
     begin
-      if (def.typ = objectdef) and (assigned(tobjectdef(def).rtti_attribute_list)) then
-        count:=tobjectdef(def).rtti_attribute_list.get_attribute_count
+      if assigned(attr_list) then
+        count:=attr_list.get_attribute_count
       else
         count:=0;
 
-      tcb.emit_ord_const(count,u16inttype);
+      if count=0 then
+        begin
+          { write a Nil reference }
+          tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+          exit;
+        end;
 
-      if count>0 then
-        for idx:=0 to count-1 do
-          begin
-            attr := trtti_attribute(tobjectdef(def).rtti_attribute_list.rtti_attributes[idx]);
-            tcb.emit_tai(Tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0), cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
-          end;
-      end;
+      { first write the attribute list as a separate table }
+      current_asmdata.getglobaldatalabel(tbllab);
+
+      tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+
+      tbltcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+        targetinfos[target_info.system]^.alignment.recordalignmin,
+        targetinfos[target_info.system]^.alignment.maxCrecordalign);
+      tbltcb.emit_ord_const(count,u16inttype);
+      for i:=0 to count-1 do
+        begin
+          tbltcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+            targetinfos[target_info.system]^.alignment.recordalignmin,
+            targetinfos[target_info.system]^.alignment.maxCrecordalign);
+          attr:=trtti_attribute(attr_list.rtti_attributes[i]);
+
+          tbltcb.emit_tai(tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0),cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
+
+          tbltcb.end_anonymous_record;
+        end;
+      tbldef:=tbltcb.end_anonymous_record;
+
+      current_asmdata.asmlists[al_rtti].concatlist(
+        tbltcb.get_final_asmlist(tbllab,tbldef,sec_rodata,tbllab.name,const_align(sizeof(pint)))
+      );
+
+      tbltcb.free;
+
+      { write the reference to the attribute table }
+      tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
+    end;
 
     procedure TRTTIWriter.write_unit_info_reference(tcb: ttai_typedconstbuilder);
     begin

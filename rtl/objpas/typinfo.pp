@@ -526,6 +526,20 @@ unit TypInfo;
         { PropertyTable: TPropData }
       end;
 
+      TAttributeProc = function : TCustomAttribute;
+      PAttributeProcList = ^TAttributeProcList;
+      TAttributeProcList = array[0..$ffff] of TAttributeProc;
+
+      TAttributeData =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif}
+      record
+        AttributeCount: word;
+        AttributesList: TAttributeProcList;
+      end;
+      PAttributeData = ^TAttributeData;
+
       PTypeData = ^TTypeData;
       TTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -623,7 +637,7 @@ unit TypInfo;
                ParentInfoRef : TypeInfoPtr;
                PropCount : SmallInt;
                UnitInfo : PUnitInfo
-               // AttributeData: TAttributeData;
+               // AttributeTable: PAttributeData;
                // here the properties follow as array of TPropInfo
               );
             tkRecord:
@@ -741,7 +755,7 @@ unit TypInfo;
         //     6 : true, constant index property
         PropProcs : Byte;
 
-        AttributeCount : Byte;
+        AttributeTable : PAttributeData;
         Name : ShortString;
         property PropType: PTypeInfo read GetPropType;
         property Tail: Pointer read GetTail;
@@ -750,18 +764,8 @@ unit TypInfo;
 
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
-      TAttributeProc = function : TCustomAttribute;
-      PAttributeProcList = ^TAttributeProcList;
-      TAttributeProcList = array[0..$ffff] of TAttributeProc;
-
       PPropList = ^TPropList;
       TPropList = array[0..{$ifdef cpu16}(32768 div sizeof(PPropInfo))-2{$else}65535{$endif}] of PPropInfo;
-
-      TAttributeData = record
-        AttributeCount: word;
-        AttributesList: TAttributeProcList;
-      end;
-      PAttributeData = ^TAttributeData;
 
       PUnitInfoList = ^TUnitInfoList;
       TUnitInfoList = record
@@ -912,7 +916,6 @@ function GetNextTypeInfo(ATypeInfo: PTypeInfo): PTypeInfo;
 
 function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
 
-function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
 
 function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustomAttribute;
@@ -1027,7 +1030,7 @@ begin
     begin
       TD := GetTypeData(TypeInfo);
       if (rmoHasAttributes in td^.UnitInfo^.UnitOptions) then
-        Result:=PAttributeData(aligntoptr(pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)))
+        Result:=PAttributeData(PPointer(aligntoptr(pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)))^)
       else
         result := nil;
     end;
@@ -1035,15 +1038,12 @@ end;
 
 function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData;
 var
-  AD: PAttributeData;
+  p: PtrUInt;
 begin
+  p := PtrUInt(@TypeData^.UnitInfo) + SizeOf(TypeData^.UnitInfo);
   if rmoHasAttributes in TypeData^.UnitInfo^.UnitOptions then
-    begin
-      AD := GetAttributeData(TypeInfo);
-      result := PPropData(pointer(AD)+SizeOf(AD^.AttributeCount)+(AD^.AttributeCount*SizeOf(TAttributeProc)));
-    end
-  else
-    result := aligntoptr(pointer(@TypeData^.UnitInfo)+sizeof(TypeData^.UnitInfo));
+    p := p + SizeOf(PAttributeData);
+  Result := PPropData(aligntoptr(Pointer(p)));
 end;
 
 function GetFirstTypeinfoFromUnit(AUnitInfo: PUnitInfo): PTypeInfo;
@@ -1121,7 +1121,7 @@ begin
                pd := GetPropData(ATypeInfo,td);
                p:=@pd^.PropList;
                for i:=1 to pd^.PropCount do
-                 p:=aligntoptr(pointer(@ppropinfo(p)^.Name)+byte(ppropinfo(p)^.Name[0])+(ppropinfo(p)^.AttributeCount*SizeOf(TAttributeProc))+1);
+                 p:=aligntoptr(pointer(@ppropinfo(p)^.Name)+byte(ppropinfo(p)^.Name[0]));
                end;
     tkInterface :
                begin
@@ -1150,26 +1150,16 @@ begin
     result := nil;
 end;
 
-function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
-begin
-  if PropInfo^.AttributeCount=0 then
-    result := nil
-  else
-    begin
-      Result:=PAttributeProcList(aligntoptr(pointer(@PropInfo^.Name)+byte(PropInfo^.Name[0])+1));
-    end;
-end;
-
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
 var
-  AttributeProcList: PAttributeProcList;
+  attrtable: PAttributeData;
 begin
-  if AttributeNr>=PropInfo^.AttributeCount then
-    result := nil
+  attrtable := PropInfo^.AttributeTable;
+  if not Assigned(attrtable) or (AttributeNr >= attrtable^.AttributeCount) then
+    result := Nil
   else
     begin
-      AttributeProcList := GetPropAttributeProclist(PropInfo);
-      result := AttributeProcList^[AttributeNr]();
+      result := attrtable^.AttributesList[AttributeNr]();
     end;
 end;
 
@@ -1491,7 +1481,7 @@ begin
           if ShortCompareText(Result^.Name, P) = 0 then
             exit;
           // skip to next property
-          Result:=PPropInfo(aligntoptr(pointer(@Result^.Name)+byte(Result^.Name[0])+(result^.AttributeCount*SizeOf(TAttributeProc))+1));
+          Result:=PPropInfo(aligntoptr(pointer(@Result^.Name)+byte(Result^.Name[0])+1));
         end;
       // parent class
       Typeinfo:=hp^.ParentInfo;
@@ -1654,7 +1644,7 @@ begin
           PropList^[TP^.NameIndex]:=TP;
         // Point to TP next propinfo record.
         // Located at Name[Length(Name)+1] !
-        TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+(TP^.AttributeCount*SizeOf(TAttributeProc))+1));
+        TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
         Dec(Count);
       end;
     TypeInfo:=TD^.Parentinfo;
