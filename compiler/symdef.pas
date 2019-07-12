@@ -65,7 +65,6 @@ interface
           constructorcall : tnode;
           constructorpd   : tdef;
           paras           : array of tnode;
-          symbolname      : string;
           destructor destroy;override;
        end;
 
