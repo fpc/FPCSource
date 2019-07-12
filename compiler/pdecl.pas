@@ -462,10 +462,8 @@ implementation
             p:=nil;
             typecheckpass(pcalln);
 
-            if pcalln.nodetype<>errorn then
+            if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not codegenerror then
               begin
-                if pcalln.nodetype<>calln then
-                  internalerror(2019070701);
                 { collect the parameters of the call node as there might be
                   compile time type conversions (e.g. a Byte parameter being
                   passed a value > 255) }
@@ -506,7 +504,9 @@ implementation
                 if not assigned(rtti_attrs_def) then
                   rtti_attrs_def:=trtti_attribute_list.create;
                 rtti_attrs_def.addattribute(typesym,pcalln,paras);
-              end;
+              end
+            else
+              pcalln.free;
           end
         else
           begin
