@@ -88,6 +88,7 @@ implementation
     uses
        cutils,
        globals,verbose,systems,
+       node,ncal,ncon,
        fmodule, procinfo,
        symtable,
        aasmtai,aasmdata,
@@ -1773,8 +1774,64 @@ implementation
       end;
 
   procedure TRTTIWriter.write_attribute_data(tcb:ttai_typedconstbuilder;attr_list:trtti_attribute_list);
+
+    procedure write_args(tbltcb:ttai_typedconstbuilder;attr:trtti_attribute);
+      var
+        argtcb : ttai_typedconstbuilder;
+        arglab : tasmlabel;
+        argdef : tdef;
+        i : sizeint;
+        arglen : word;
+      begin
+        if length(attr.paras)=0 then
+          begin
+            tbltcb.emit_tai(tai_const.Create_16bit(0),u16inttype);
+            tbltcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
+          end
+        else
+          begin
+            current_asmdata.getglobaldatalabel(arglab);
+
+            argtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+
+            argtcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+
+            arglen:=0;
+            for i:=0 to High(attr.paras) do
+              begin
+                case attr.paras[i].nodetype of
+                  niln,
+                  ordconstn,
+                  realconstn,
+                  stringconstn,
+                  pointerconstn,
+                  guidconstn:
+                    inc(arglen,tconstnode(attr.paras[i]).emit_data(argtcb));
+                  setconstn:
+                    inc(arglen,tsetconstnode(attr.paras[i]).emit_data(argtcb));
+                  else
+                    internalerror(2019070803);
+                end;
+              end;
+
+            argdef:=argtcb.end_anonymous_record;
+
+            current_asmdata.asmlists[al_rtti].concatlist(
+              argtcb.get_final_asmlist(arglab,argdef,sec_rodata,arglab.name,const_align(sizeof(pint)))
+            );
+
+            argtcb.free;
+
+            { write argument size and the reference to the argument entry }
+            tbltcb.emit_ord_const(arglen,u16inttype);
+            tbltcb.emit_tai(Tai_const.Create_sym(arglab),voidpointertype);
+          end;
+      end;
+
     var
-      count, i: word;
+      count,i,len: word;
       attr : trtti_attribute;
       tbltcb : ttai_typedconstbuilder;
       tbllab : tasmlabel;
@@ -1797,18 +1854,26 @@ implementation
 
       tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
 
-      tbltcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+      tbltcb.begin_anonymous_record(
+        internaltypeprefixName[itp_rtti_attr_list]+tostr(count),
+        defaultpacking,min(reqalign,SizeOf(PInt)),
         targetinfos[target_info.system]^.alignment.recordalignmin,
         targetinfos[target_info.system]^.alignment.maxCrecordalign);
       tbltcb.emit_ord_const(count,u16inttype);
       for i:=0 to count-1 do
         begin
-          tbltcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+          tbltcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_attr_entry],defaultpacking,min(reqalign,SizeOf(PInt)),
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           attr:=trtti_attribute(attr_list.rtti_attributes[i]);
 
+          write_rtti_reference(tbltcb,ttypesym(attr.typesym).typedef,fullrtti);
+
+          tbltcb.emit_procdef_const(tprocdef(tcallnode(attr.constructorcall).procdefinition));
+
           tbltcb.emit_tai(tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0),cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
+
+          write_args(tbltcb,attr);
 
           tbltcb.end_anonymous_record;
         end;
@@ -1823,6 +1888,7 @@ implementation
       { write the reference to the attribute table }
       tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
     end;
+
 
     function enumsym_compare_name(item1, item2: pointer): Integer;
       var

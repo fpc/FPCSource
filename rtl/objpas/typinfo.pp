@@ -254,8 +254,20 @@ unit TypInfo;
 {$endif}
 
       TAttributeProc = function : TCustomAttribute;
-      PAttributeProcList = ^TAttributeProcList;
-      TAttributeProcList = array[0..$ffff] of TAttributeProc;
+
+      TAttributeEntry =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif}
+      record
+        AttrType: PPTypeInfo;
+        AttrCtor: CodePointer;
+        AttrProc: TAttributeProc;
+        ArgLen: Word;
+        ArgData: Pointer;
+      end;
+
+      TAttributeEntryList = array[0..$ffff] of TAttributeEntry;
 
       TAttributeTable =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -263,7 +275,7 @@ unit TypInfo;
       {$endif}
       record
         AttributeCount: word;
-        AttributesList: TAttributeProcList;
+        AttributesList: TAttributeEntryList;
       end;
       PAttributeTable = ^TAttributeTable;
 
@@ -1022,7 +1034,7 @@ begin
     result := nil
   else
     begin
-      result := AttributeTable^.AttributesList[AttributeNr]();
+      result := AttributeTable^.AttributesList[AttributeNr].AttrProc();
     end;
 end;
 
