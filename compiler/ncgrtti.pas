@@ -1569,8 +1569,7 @@ implementation
             write_unit_info_reference(tcb);
 
             { TAttributeData }
-            if rmo_hasattributes in current_module.rtti_options then
-                write_attribute_data(tcb, def.rtti_attribute_list);
+            write_attribute_data(tcb, def.rtti_attribute_list);
 
             { write published properties for this object }
             published_properties_write_rtti_data(tcb,propnamelist,def.symtable);

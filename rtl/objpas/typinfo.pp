@@ -1029,10 +1029,7 @@ begin
   else
     begin
       TD := GetTypeData(TypeInfo);
-      if (rmoHasAttributes in td^.UnitInfo^.UnitOptions) then
-        Result:=PAttributeData(PPointer(aligntoptr(pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)))^)
-      else
-        result := nil;
+      Result:=PAttributeData(PPointer(aligntoptr(pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)))^)
     end;
 end;
 
@@ -1040,9 +1037,7 @@ function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData;
 var
   p: PtrUInt;
 begin
-  p := PtrUInt(@TypeData^.UnitInfo) + SizeOf(TypeData^.UnitInfo);
-  if rmoHasAttributes in TypeData^.UnitInfo^.UnitOptions then
-    p := p + SizeOf(PAttributeData);
+  p := PtrUInt(@TypeData^.UnitInfo) + SizeOf(TypeData^.UnitInfo) + SizeOf(PAttributeData);
   Result := PPropData(aligntoptr(Pointer(p)));
 end;
 
