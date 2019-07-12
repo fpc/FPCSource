@@ -13208,6 +13208,7 @@ tests/test/tcstring2.pp svneol=native#text/pascal
 tests/test/tcustomattr1.pp svneol=native#text/pascal
 tests/test/tcustomattr10.pp svneol=native#text/pascal
 tests/test/tcustomattr11.pp svneol=native#text/pascal
+tests/test/tcustomattr12.pp svneol=native#text/pascal
 tests/test/tcustomattr2.pp svneol=native#text/pascal
 tests/test/tcustomattr3.pp svneol=native#text/pascal
 tests/test/tcustomattr4.pp svneol=native#text/pascal
