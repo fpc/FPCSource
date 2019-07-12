@@ -61,7 +61,7 @@ implementation
        { symtable }
        symconst,symbase,symtype,symcpu,symcreat,defutil,defcmp,symtable,
        { pass 1 }
-       ninl,ncon,nobj,ngenutil,nld,nmem,ncal,
+       ninl,ncon,nobj,ngenutil,nld,nmem,ncal,pass_1,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,pparautl,
@@ -412,14 +412,29 @@ implementation
       end;
 
     procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
+
+      function read_attr_paras:tnode;
+        var
+          old_block_type : tblock_type;
+        begin
+          if try_to_consume(_LKLAMMER) then
+            begin
+              { we only want constants here }
+              old_block_type:=block_type;
+              block_type:=bt_const;
+              result:=parse_paras(false,false,_RKLAMMER);
+              block_type:=old_block_type;
+              consume(_RKLAMMER);
+            end
+          else
+            result:=nil;
+        end;
+
       var
-        p, p1 : tnode;
-        again : boolean;
+        p,paran,pcalln : tnode;
         od : tobjectdef;
-        constrSym : tsymentry;
-        constrProcDef : tprocdef;
-        typeSym : ttypesym;
-        oldblock_type : tblock_type;
+        constrsym : tsymentry;
+        typesym : ttypesym;
       begin
         consume(_LECKKLAMMER);
 
@@ -427,41 +442,39 @@ implementation
         p:=factor(false,[ef_type_only,ef_check_attr_suffix]);
         if p.nodetype=typen then
           begin
-            typeSym:=ttypesym(ttypenode(p).typesym);
+            typesym:=ttypesym(ttypenode(p).typesym);
             od:=tobjectdef(ttypenode(p).typedef);
 
             { Check if the attribute class is related to TCustomAttribute }
             if not is_system_custom_attribute_descendant(od) then
-              incompatibletypes(od, system_custom_attribute_def);
+              incompatibletypes(od,system_custom_attribute_def);
+
+            paran:=read_attr_paras;
 
             { Search the tprocdef of the constructor which has to be called. }
-            constrSym:=find_create_constructor(od);
-            if constrSym.typ<>procsym then
+            constrsym:=find_create_constructor(od);
+            if constrsym.typ<>procsym then
               internalerror(2018102301);
-            constrProcDef:=tprocsym(constrSym).find_procdef_bytype(potype_constructor);
 
-            { Parse the attribute-parameters as if it is a list of parameters from
-              a call to the constrProcDef constructor in an execution-block. }
-            p1:=cloadvmtaddrnode.create(ctypenode.create(od));
-            again:=true;
-            oldblock_type:=block_type;
-            block_type:=bt_body;
-            do_member_read(od,false,constrProcDef.procsym,p1,again,[], nil);
+            pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[],nil);
+            p:=nil;
+            typecheckpass(pcalln);
 
-            { Check the number of parameters }
-            if (tcallnode(p1).para_count<constrProcDef.minparacount) then
-               CGMessagePos1(p.fileinfo,parser_e_wrong_parameter_size,od.typename+'.'+constrProcDef.procsym.prettyname);
-
-            block_type:=oldblock_type;
-
-            { Add attribute to attribute list which will be added
-              to the property which is defined next. }
-            if not assigned(rtti_attrs_def) then
-              rtti_attrs_def:=trtti_attribute_list.create;
-            rtti_attrs_def.addattribute(typeSym,p1);
+            if pcalln.nodetype<>errorn then
+              begin
+                { Add attribute to attribute list which will be added
+                  to the property which is defined next. }
+                if not assigned(rtti_attrs_def) then
+                  rtti_attrs_def:=trtti_attribute_list.create;
+                rtti_attrs_def.addattribute(typesym,pcalln);
+              end;
           end
         else
-          Message(type_e_type_id_expected);
+          begin
+            Message(type_e_type_id_expected);
+            { try to recover by nevertheless reading the parameters (if any) }
+            read_attr_paras.free;
+          end;
 
         p.free;
         consume(_RECKKLAMMER);
