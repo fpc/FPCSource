@@ -916,7 +916,7 @@ function GetNextTypeInfo(ATypeInfo: PTypeInfo): PTypeInfo;
 
 function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
 
-function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TCustomAttribute;
 
 function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustomAttribute;
 
@@ -1150,7 +1150,7 @@ begin
     result := nil;
 end;
 
-function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TCustomAttribute;
 var
   attrtable: PAttributeData;
 begin
