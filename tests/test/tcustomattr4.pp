@@ -36,20 +36,22 @@ end;
 begin
   rtd := GetAttributeData(TMyObject.ClassInfo);
 
-  if rtd^.AttributeCount<>2 then
+  if not Assigned(rtd) then
     halt(1);
+  if rtd^.AttributeCount<>2 then
+    halt(2);
 
   AClassAttribute := GetAttribute(rtd,1) as tmyt;
   if AClassAttribute = nil then
-    halt(2);
-  if AClassAttribute.FID<>1425 then
     halt(3);
+  if AClassAttribute.FID<>1425 then
+    halt(4);
 
   AClassAttribute := GetAttribute(rtd,0) as tmyt;
   if AClassAttribute = nil then
-    halt(2);
+    halt(5);
   if AClassAttribute.FID<>924 then
-    halt(3);
+    halt(6);
   writeln('ok');
 end.
 

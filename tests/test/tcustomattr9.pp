@@ -22,12 +22,14 @@ var
 
 begin
   ad := GetAttributeData(TMyObject.ClassInfo);
-  if ad^.AttributeCount<>1 then
+  if not Assigned(ad) then
     halt(1);
+  if ad^.AttributeCount<>1 then
+    halt(2);
 
   AClassAttribute := GetAttribute(ad,0);
   if AClassAttribute = nil then
-    halt(2);
+    halt(3);
   writeln('ok');
 end.
 
