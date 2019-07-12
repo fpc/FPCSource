@@ -677,7 +677,7 @@ implementation
         hadgeneric,
         fields_allowed, is_classdef, classfields, threadvarfields: boolean;
         vdoptions: tvar_dec_options;
-        rtti_attrs_def: trtti_attributesdef;
+        rtti_attrs_def: trtti_attribute_list;
       begin
         { empty record declaration ? }
         if (token=_SEMICOLON) then

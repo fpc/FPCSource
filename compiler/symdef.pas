@@ -392,7 +392,7 @@ interface
        end;
        pvmtentry = ^tvmtentry;
 
-        { trtti_attributesdef }
+       { trtti_attribute_list }
 
        trtti_attribute = class
           typesym         : tsym;
@@ -400,7 +400,7 @@ interface
           symbolname      : string;
        end;
 
-       trtti_attributesdef = class
+       trtti_attribute_list = class
           rtti_attributes    : TFPObjectList;
           procedure addattribute(atypesym: tsym; constructorcall: tnode);
           destructor destroy; override;
@@ -453,7 +453,7 @@ interface
           }
           classref_created_in_current_module : boolean;
           objecttype     : tobjecttyp;
-          rtti_attributesdef : trtti_attributesdef;
+          rtti_attribute_list : trtti_attribute_list;
           constructor create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -2884,10 +2884,10 @@ implementation
       end;
 
 {****************************************************************************
-                             TRTTI_ATTRIBUTESDEF
+                             TRTTI_ATTRIBUTE_LIST
 ****************************************************************************}
 
-    procedure trtti_attributesdef.addattribute(atypesym: tsym; constructorcall: tnode);
+    procedure trtti_attribute_list.addattribute(atypesym: tsym; constructorcall: tnode);
       var
         newattribute: trtti_attribute;
       begin
@@ -2899,13 +2899,13 @@ implementation
         rtti_attributes.Add(newattribute);
       end;
 
-    destructor trtti_attributesdef.destroy;
+    destructor trtti_attribute_list.destroy;
       begin
         rtti_attributes.Free;
         inherited destroy;
       end;
 
-    function trtti_attributesdef.get_attribute_count: longint;
+    function trtti_attribute_list.get_attribute_count: longint;
       begin
         if assigned(rtti_attributes) then
           result := rtti_attributes.Count
@@ -7025,10 +7025,10 @@ implementation
              freemem(vmcallstaticinfo);
              vmcallstaticinfo:=nil;
            end;
-         if assigned(rtti_attributesdef) then
+         if assigned(rtti_attribute_list) then
            begin
-             rtti_attributesdef.Free;
-             rtti_attributesdef:=nil;
+             rtti_attribute_list.Free;
+             rtti_attribute_list:=nil;
            end;
          inherited destroy;
       end;

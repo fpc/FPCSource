@@ -41,13 +41,13 @@ interface
     procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
     procedure label_dec;
     procedure type_dec(out had_generic:boolean);
-    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attributesdef);
+    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
     procedure var_dec(out had_generic:boolean);
     procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
-    procedure parse_rttiattributes(var rtti_attrs_def: trtti_attributesdef);
-    procedure add_synthetic_rtti_funtion_declarations(rtti_attrs_def: trtti_attributesdef; name: shortstring);
+    procedure parse_rttiattributes(var rtti_attrs_def: trtti_attribute_list);
+    procedure add_synthetic_rtti_funtion_declarations(rtti_attrs_def: trtti_attribute_list; name: shortstring);
 
 implementation
 
@@ -435,7 +435,7 @@ implementation
          internalerror(2012111101);
       end;
 
-    procedure parse_rttiattributes(var rtti_attrs_def: trtti_attributesdef);
+    procedure parse_rttiattributes(var rtti_attrs_def: trtti_attribute_list);
       var
         p, p1: tnode;
         again: boolean;
@@ -482,7 +482,7 @@ implementation
             { Add attribute to attribute list which will be added
               to the property which is defined next. }
             if not assigned(rtti_attrs_def) then
-              rtti_attrs_def := trtti_attributesdef.create;
+              rtti_attrs_def := trtti_attribute_list.create;
             rtti_attrs_def.addattribute(typeSym,p1);
 
             Include(current_module.rtti_options, rmo_hasattributes);
@@ -493,7 +493,7 @@ implementation
         consume(_RECKKLAMMER);
       end;
 
-  procedure add_synthetic_rtti_funtion_declarations(rtti_attrs_def: trtti_attributesdef; name: shortstring);
+  procedure add_synthetic_rtti_funtion_declarations(rtti_attrs_def: trtti_attribute_list; name: shortstring);
     var
       i: Integer;
       sstate: tscannerstate;
@@ -515,7 +515,7 @@ implementation
         end;
     end;
 
-    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attributesdef);
+    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
 
       function determine_generic_def(name:tidstring):tstoreddef;
         var
@@ -1027,7 +1027,7 @@ implementation
                     if assigned(rtti_attrs_def) then
                       begin
                         add_synthetic_rtti_funtion_declarations(rtti_attrs_def,hdef.typesym.Name);
-                        tobjectdef(hdef).rtti_attributesdef:=rtti_attrs_def;
+                        tobjectdef(hdef).rtti_attribute_list:=rtti_attrs_def;
                         rtti_attrs_def := nil;
                       end;
 
@@ -1108,7 +1108,7 @@ implementation
     { reads a type declaration to the symbol table }
     procedure type_dec(out had_generic:boolean);
       var
-        rtti_attrs_def: trtti_attributesdef;
+        rtti_attrs_def: trtti_attribute_list;
       begin
         consume(_TYPE);
         rtti_attrs_def := nil;

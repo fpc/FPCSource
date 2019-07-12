@@ -39,7 +39,7 @@ interface
     function class_destructor_head(astruct: tabstractrecorddef):tprocdef;
     function constructor_head:tprocdef;
     function destructor_head:tprocdef;
-    procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attributesdef);
+    procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
 
 implementation
 
@@ -162,7 +162,7 @@ implementation
       end;
 
 
-    procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attributesdef);
+    procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
       var
         p : tpropertysym;
       begin
@@ -217,7 +217,7 @@ implementation
         if assigned(rtti_attrs_def) then
           begin
             add_synthetic_rtti_funtion_declarations(rtti_attrs_def,current_structdef.RttiName+'_'+p.RealName);
-            p.rtti_attributesdef := rtti_attrs_def;
+            p.rtti_attribute_list := rtti_attrs_def;
             rtti_attrs_def:=nil;
           end;
 
@@ -1063,7 +1063,7 @@ implementation
         threadvar_fields : boolean;
         vdoptions: tvar_dec_options;
         fieldlist: tfpobjectlist;
-        rtti_attrs_def: trtti_attributesdef;
+        rtti_attrs_def: trtti_attribute_list;
 
 
       procedure parse_const;

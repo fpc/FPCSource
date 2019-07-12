@@ -910,8 +910,8 @@ implementation
                 tcb.emit_ord_const(proctypesinfo,u8inttype);
 
                 { Write property attribute count }
-                if assigned(tpropertysym(sym).rtti_attributesdef) then
-                  attrcount:=tpropertysym(sym).rtti_attributesdef.get_attribute_count
+                if assigned(tpropertysym(sym).rtti_attribute_list) then
+                  attrcount:=tpropertysym(sym).rtti_attribute_list.get_attribute_count
                 else
                   attrcount:=0;
                 tcb.emit_ord_const(attrcount,u8inttype);
@@ -922,7 +922,7 @@ implementation
                 { Write property attributes }
                 for attridx := 0 to attrcount-1 do
                   begin
-                    attr := trtti_attribute(tpropertysym(sym).rtti_attributesdef.rtti_attributes[attridx]);
+                    attr := trtti_attribute(tpropertysym(sym).rtti_attribute_list.rtti_attributes[attridx]);
                     tcb.emit_tai(Tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0), cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
                   end;
                 tcb.end_anonymous_record;
@@ -1752,8 +1752,8 @@ implementation
       idx: byte;
       attr: trtti_attribute;
     begin
-      if (def.typ = objectdef) and (assigned(tobjectdef(def).rtti_attributesdef)) then
-        count:=tobjectdef(def).rtti_attributesdef.get_attribute_count
+      if (def.typ = objectdef) and (assigned(tobjectdef(def).rtti_attribute_list)) then
+        count:=tobjectdef(def).rtti_attribute_list.get_attribute_count
       else
         count:=0;
 
@@ -1762,7 +1762,7 @@ implementation
       if count>0 then
         for idx:=0 to count-1 do
           begin
-            attr := trtti_attribute(tobjectdef(def).rtti_attributesdef.rtti_attributes[idx]);
+            attr := trtti_attribute(tobjectdef(def).rtti_attribute_list.rtti_attributes[idx]);
             tcb.emit_tai(Tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0), cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
           end;
       end;
