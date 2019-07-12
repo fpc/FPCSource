@@ -1017,8 +1017,6 @@ begin
 end;
 
 function GetAttribute(AttributeTable: PAttributeTable; AttributeNr: Word): TCustomAttribute;
-var
-  AttributeProcList: TAttributeProcList;
 begin
   if (AttributeTable=nil) or (AttributeNr>=AttributeTable^.AttributeCount) then
     result := nil
