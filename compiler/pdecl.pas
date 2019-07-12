@@ -75,11 +75,11 @@ implementation
     var
        system_custom_attribute_def: tobjectdef = nil;
 
-    function is_system_custom_attribute_descendant(def:tdef): Boolean;
+    function is_system_custom_attribute_descendant(def:tdef):boolean;
     begin
       if system_custom_attribute_def=nil then
-        system_custom_attribute_def := tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
-      Result := def_is_related(def, system_custom_attribute_def);
+        system_custom_attribute_def:=tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
+      Result:=def_is_related(def,system_custom_attribute_def);
     end;
 
     function readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
