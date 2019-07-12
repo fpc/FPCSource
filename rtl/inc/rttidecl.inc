@@ -67,6 +67,9 @@ type
   packed
 {$endif USE_PACKED}
   record
+{$if declared(TRttiDataCommon)}
+    Common: TRttiDataCommon;
+{$endif declared TRttiDataCommon}
 {$ifndef VER3_0}
     InitTable: Pointer;
 {$endif VER3_0}
@@ -116,6 +119,9 @@ type
   packed
 {$endif USE_PACKED}
   record
+{$if declared(TRttiDataCommon)}
+    Common: TRttiDataCommon;
+{$endif declared TRttiDataCommon}
     Terminator: Pointer;
     Size: Longint;
 {$ifndef VER3_0}
@@ -135,6 +141,9 @@ type
   packed
 {$endif USE_PACKED}
   record
+{$if declared(TRttiDataCommon)}
+    Common: TRttiDataCommon;
+{$endif declared TRttiDataCommon}
     Size: SizeInt;
     ElCount: SizeInt;
 {$ifdef VER3_0}

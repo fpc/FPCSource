@@ -451,6 +451,7 @@ unit TypInfo;
       packed
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+        AttributeTable : PAttributeTable;
         Terminator: Pointer;
         Size: Integer;
 {$ifndef VER3_0}
@@ -472,6 +473,7 @@ unit TypInfo;
         function GetPropertyTable: PPropData; inline;
         function GetMethodTable: PIntfMethodTable; inline;
       public
+        AttributeTable : PAttributeTable;
         Parent: PPTypeInfo;
         Flags: TIntfFlagsBase;
         GUID: TGUID;
@@ -496,6 +498,7 @@ unit TypInfo;
         function GetPropertyTable: PPropData; inline;
         function GetMethodTable: PIntfMethodTable; inline;
       public
+        AttributeTable : PAttributeTable;
         Parent: PPTypeInfo;
         Flags : TIntfFlagsBase;
         IID: TGUID;
@@ -519,10 +522,10 @@ unit TypInfo;
         function GetUnitName: ShortString; inline;
         function GetPropertyTable: PPropData; inline;
       public
+        AttributeTable : PAttributeTable;
         ClassType : TClass;
         Parent : PPTypeInfo;
         PropCount : SmallInt;
-        AttributeTable : PAttributeTable;
         property UnitName: ShortString read GetUnitName;
         property PropertyTable: PPropData read GetPropertyTable;
       private
@@ -579,6 +582,7 @@ unit TypInfo;
         { tkPointer }
         property RefType: PTypeInfo read GetRefType;
       public
+         AttributeTable : PAttributeTable;
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkVariant,tkUString:
               ();
@@ -625,7 +629,6 @@ unit TypInfo;
               (ClassType : TClass;
                ParentInfoRef : TypeInfoPtr;
                PropCount : SmallInt;
-               AttributeTable : PAttributeTable;
                UnitName : ShortString;
                // here the properties follow as array of TPropInfo
               );
@@ -980,13 +983,8 @@ function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
 var
   TD: PTypeData;
 begin
-  if TypeInfo^.Kind<>tkClass then
-    result := nil
-  else
-    begin
-      TD := GetTypeData(TypeInfo);
-      Result:=TD^.AttributeTable;
-    end;
+  TD := GetTypeData(TypeInfo);
+  Result:=TD^.AttributeTable;
 end;
 
 function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData; inline;

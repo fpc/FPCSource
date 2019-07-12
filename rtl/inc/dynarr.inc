@@ -39,6 +39,9 @@ type
 
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    record
+     {$if declared(TRttiDataCommon)}
+     common: TRttiDataCommon;
+     {$endif declared TRttiDataCommon}
      elSize : SizeUInt;
      {$ifdef VER3_0}
      elType2 : Pointer;

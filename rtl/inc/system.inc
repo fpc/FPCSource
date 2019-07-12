@@ -488,6 +488,19 @@ function aligntoqword(p : pointer) : pointer;inline;
                   Run-Time Type Information (RTTI) declarations
 ****************************************************************************}
 
+{$if defined(FPC_HAS_FEATURE_RTTI) or defined(FPC_HAS_FEATURE_DYNARRAYS)}
+{$if not defined(VER3_0) and not defined(VER3_2)}
+type
+  TRttiDataCommon =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif}
+  record
+    Attrs: Pointer;
+  end;
+{$endif not VER3_0 and not VER3_2}
+{$endif FPC_HAS_FEATURE_RTTI or FPC_HAS_FEATURE_DYNARRAYS}
+
 {$ifdef FPC_HAS_FEATURE_RTTI}
 {$i rttidecl.inc}
 {$endif FPC_HAS_FEATURE_RTTI}
