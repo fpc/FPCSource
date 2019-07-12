@@ -436,85 +436,88 @@ implementation
       begin
         consume(_LECKKLAMMER);
 
-        { Parse attribute type }
-        p:=factor(false,[ef_type_only,ef_check_attr_suffix]);
-        if p.nodetype=typen then
-          begin
-            typesym:=ttypesym(ttypenode(p).typesym);
-            od:=tobjectdef(ttypenode(p).typedef);
+        repeat
+          { Parse attribute type }
+          p:=factor(false,[ef_type_only,ef_check_attr_suffix]);
+          if p.nodetype=typen then
+            begin
+              typesym:=ttypesym(ttypenode(p).typesym);
+              od:=tobjectdef(ttypenode(p).typedef);
 
-            { Check if the attribute class is related to TCustomAttribute }
-            if not is_system_custom_attribute_descendant(od) then
-              incompatibletypes(od,class_tcustomattribute);
+              { Check if the attribute class is related to TCustomAttribute }
+              if not is_system_custom_attribute_descendant(od) then
+                incompatibletypes(od,class_tcustomattribute);
 
-            paran:=read_attr_paras;
+              paran:=read_attr_paras;
 
-            { Search the tprocdef of the constructor which has to be called. }
-            constrsym:=find_create_constructor(od);
-            if constrsym.typ<>procsym then
-              internalerror(2018102301);
+              { Search the tprocdef of the constructor which has to be called. }
+              constrsym:=find_create_constructor(od);
+              if constrsym.typ<>procsym then
+                internalerror(2018102301);
 
-            pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[],nil);
-            p:=nil;
-            typecheckpass(pcalln);
+              pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[],nil);
+              p:=nil;
+              typecheckpass(pcalln);
 
-            if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not codegenerror then
-              begin
-                { TODO: once extended RTTI for methods is supported, reject a
-                        constructor if it doesn't have extended RTTI enabled }
+              if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not codegenerror then
+                begin
+                  { TODO: once extended RTTI for methods is supported, reject a
+                          constructor if it doesn't have extended RTTI enabled }
 
-                { collect the parameters of the call node as there might be
-                  compile time type conversions (e.g. a Byte parameter being
-                  passed a value > 255) }
-                paran:=tcallnode(pcalln).left;
+                  { collect the parameters of the call node as there might be
+                    compile time type conversions (e.g. a Byte parameter being
+                    passed a value > 255) }
+                  paran:=tcallnode(pcalln).left;
 
-                { only count visible parameters (thankfully open arrays are not
-                  supported, otherwise we'd need to handle those as well) }
-                paras:=nil;
-                if assigned(paran) then
-                  begin
-                    ptmp:=paran;
-                    pcount:=0;
-                    while assigned(ptmp) do
-                      begin
-                        if not (vo_is_hidden_para in tcallparanode(ptmp).parasym.varoptions) then
-                          inc(pcount);
-                        ptmp:=tcallparanode(ptmp).right;
-                      end;
-                    setlength(paras,pcount);
-                    ptmp:=paran;
-                    pcount:=0;
-                    while assigned(ptmp) do
-                      begin
-                        if not (vo_is_hidden_para in tcallparanode(ptmp).parasym.varoptions) then
-                          begin
-                            if not is_constnode(tcallparanode(ptmp).left) then
-                              internalerror(2019070601);
-                            paras[high(paras)-pcount]:=tcallparanode(ptmp).left.getcopy;
+                  { only count visible parameters (thankfully open arrays are not
+                    supported, otherwise we'd need to handle those as well) }
+                  paras:=nil;
+                  if assigned(paran) then
+                    begin
+                      ptmp:=paran;
+                      pcount:=0;
+                      while assigned(ptmp) do
+                        begin
+                          if not (vo_is_hidden_para in tcallparanode(ptmp).parasym.varoptions) then
                             inc(pcount);
-                          end;
-                        ptmp:=tcallparanode(ptmp).right;
-                      end;
-                  end;
+                          ptmp:=tcallparanode(ptmp).right;
+                        end;
+                      setlength(paras,pcount);
+                      ptmp:=paran;
+                      pcount:=0;
+                      while assigned(ptmp) do
+                        begin
+                          if not (vo_is_hidden_para in tcallparanode(ptmp).parasym.varoptions) then
+                            begin
+                              if not is_constnode(tcallparanode(ptmp).left) then
+                                internalerror(2019070601);
+                              paras[high(paras)-pcount]:=tcallparanode(ptmp).left.getcopy;
+                              inc(pcount);
+                            end;
+                          ptmp:=tcallparanode(ptmp).right;
+                        end;
+                    end;
 
 
-                { Add attribute to attribute list which will be added
-                  to the property which is defined next. }
-                if not assigned(rtti_attrs_def) then
-                  rtti_attrs_def:=trtti_attribute_list.create;
-                rtti_attrs_def.addattribute(typesym,tcallnode(pcalln).procdefinition,pcalln,paras);
-              end
-            else
-              pcalln.free;
-          end
-        else
-          begin
-            Message(type_e_type_id_expected);
-            { try to recover by nevertheless reading the parameters (if any) }
-            read_attr_paras.free;
-          end;
+                  { Add attribute to attribute list which will be added
+                    to the property which is defined next. }
+                  if not assigned(rtti_attrs_def) then
+                    rtti_attrs_def:=trtti_attribute_list.create;
+                  rtti_attrs_def.addattribute(typesym,tcallnode(pcalln).procdefinition,pcalln,paras);
+                end
+              else
+                pcalln.free;
+            end
+          else
+            begin
+              Message(type_e_type_id_expected);
+              { try to recover by nevertheless reading the parameters (if any) }
+              read_attr_paras.free;
+            end;
 
-        p.free;
+          p.free;
+        until not try_to_consume(_COMMA);
+
         consume(_RECKKLAMMER);
       end;
 
