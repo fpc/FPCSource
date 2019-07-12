@@ -57,6 +57,8 @@ interface
         function ref_rtti(def:tdef;rt:trttitype;indirect:boolean;suffix:tsymstr):tasmsymbol;
         procedure write_rtti_name(tcb: ttai_typedconstbuilder; def: tdef);
         procedure write_rtti_data(tcb: ttai_typedconstbuilder; def:tdef; rt: trttitype);
+        procedure write_attribute_data(tcb: ttai_typedconstbuilder; def:tdef);
+        procedure write_unit_info_reference(tcb: ttai_typedconstbuilder);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
         procedure write_rtti_reference(tcb: ttai_typedconstbuilder; def: tdef; rt: trttitype);
         procedure write_methods(tcb:ttai_typedconstbuilder;st:tsymtable;visibilities:tvisibilities);
@@ -72,6 +74,8 @@ interface
         function  get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         function  get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         function  get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
+        procedure start_write_unit_info;
+        procedure after_write_unit_info(st: TSymtable);
       end;
 
     { generate RTTI and init tables }
@@ -116,6 +120,8 @@ implementation
         { no Delphi-style RTTI for managed platforms }
         if target_info.system in systems_managed_vm then
           exit;
+        if current_module.rttiunitinfo=nil then
+          RTTIWriter.start_write_unit_info;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -170,6 +176,8 @@ implementation
                (ds_rtti_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,fullrtti);
           end;
+        if st.symtabletype = staticsymtable then
+          RTTIWriter.after_write_unit_info(st);
       end;
 
 
@@ -753,6 +761,9 @@ implementation
         proctypesinfo : byte;
         propnameitem  : tpropnamelistitem;
         propdefname : string;
+        attridx: ShortInt;
+        attrcount: byte;
+        attr: trtti_attribute;
 
         procedure writeaccessproc(pap:tpropaccesslisttypes; shiftvalue : byte; unsetvalue: byte);
         var
@@ -897,7 +908,23 @@ implementation
                   internalerror(200512201);
                 tcb.emit_ord_const(propnameitem.propindex,u16inttype);
                 tcb.emit_ord_const(proctypesinfo,u8inttype);
+
+                { Write property attribute count }
+                if assigned(tpropertysym(sym).rtti_attributesdef) then
+                  attrcount:=tpropertysym(sym).rtti_attributesdef.get_attribute_count
+                else
+                  attrcount:=0;
+                tcb.emit_ord_const(attrcount,u8inttype);
+
+                { Write property name }
                 tcb.emit_shortstring_const(tpropertysym(sym).realname);
+
+                { Write property attributes }
+                for attridx := 0 to attrcount-1 do
+                  begin
+                    attr := trtti_attribute(tpropertysym(sym).rtti_attributesdef.rtti_attributes[attridx]);
+                    tcb.emit_tai(Tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0), cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
+                  end;
                 tcb.end_anonymous_record;
              end;
           end;
@@ -1551,8 +1578,12 @@ implementation
             { total number of unique properties }
             tcb.emit_ord_const(propnamelist.count,u16inttype);
 
-            { write unit name }
-            tcb.emit_shortstring_const(current_module.realmodulename^);
+            { reference to unitinfo with unit-name }
+            write_unit_info_reference(tcb);
+
+            { TAttributeData }
+            if rmo_hasattributes in current_module.rtti_options then
+                write_attribute_data(tcb, def);
 
             { write published properties for this object }
             published_properties_write_rtti_data(tcb,propnamelist,def.symtable);
@@ -1715,6 +1746,31 @@ implementation
         end;
       end;
 
+    procedure TRTTIWriter.write_attribute_data(tcb: ttai_typedconstbuilder; def: tdef);
+    var
+      count: word;
+      idx: byte;
+      attr: trtti_attribute;
+    begin
+      if (def.typ = objectdef) and (assigned(tobjectdef(def).rtti_attributesdef)) then
+        count:=tobjectdef(def).rtti_attributesdef.get_attribute_count
+      else
+        count:=0;
+
+      tcb.emit_ord_const(count,u16inttype);
+
+      if count>0 then
+        for idx:=0 to count-1 do
+          begin
+            attr := trtti_attribute(tobjectdef(def).rtti_attributesdef.rtti_attributes[idx]);
+            tcb.emit_tai(Tai_const.Createname(attr.symbolname,AT_DATA_FORCEINDIRECT,0), cpointerdef.getreusable(ttypesym(attr.typesym).typedef));
+          end;
+      end;
+
+    procedure TRTTIWriter.write_unit_info_reference(tcb: ttai_typedconstbuilder);
+    begin
+      tcb.emit_tai(Tai_const.Create_sym(current_module.rttiunitinfo), current_module.rttiunitinfodef);
+    end;
 
     function enumsym_compare_name(item1, item2: pointer): Integer;
       var
@@ -2097,6 +2153,38 @@ implementation
             defaultpacking:=1;
           end;
       end;
+
+    procedure TRTTIWriter.start_write_unit_info;
+      var
+        s : string;
+        tcb: ttai_typedconstbuilder;
+      begin
+        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+        tcb.begin_anonymous_record(make_mangledname('RTTIU',current_module.localsymtable,''), 1, sizeof(pint), 1, 1);
+
+        { write the TRTTIUnitOptions }
+        tcb.emit_ord_const(byte(longint(current_module.rtti_options)),u8inttype);
+
+        { Write the unit-name }
+        s := current_module.realmodulename^;
+        tcb.emit_shortstring_const(current_module.realmodulename^);
+
+        current_module.rttiunitinfodef := tcb.end_anonymous_record;
+        current_module.rttiunitinfo := current_asmdata.DefineAsmSymbol(make_mangledname('RTTIU_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA, current_module.rttiunitinfodef);
+        current_asmdata.AsmLists[al_rtti].concatList(
+          tcb.get_final_asmlist(current_module.rttiunitinfo,current_module.rttiunitinfodef,sec_rodata,current_module.rttiunitinfo.name,const_align(sizeof(pint))));
+        tcb.free;
+    end;
+
+    procedure TRTTIWriter.after_write_unit_info(st: TSymtable);
+    begin
+      if current_module.rttiunitinfo<>nil then
+        begin
+          { Write a trailing 255 to mark the end of the symbols-list }
+          current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(255));
+        end;
+    end;
 
 end.
 

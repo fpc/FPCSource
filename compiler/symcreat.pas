@@ -1024,6 +1024,33 @@ implementation
         setverbosity('W+');
     end;
 
+  function get_attribute_code_block(pd: tprocdef) : tnode;
+    var
+      attribute: trtti_attribute;
+      load: tloadnode;
+      statement: tstatementnode;
+      assignment: tassignmentnode;
+  begin
+    attribute:=trtti_attribute(pd.skpara);
+
+    load := cloadnode.create(pd.funcretsym,pd.funcretsym.Owner);
+    assignment := cassignmentnode.create(load,Attribute.constructorcall);
+    assignment.resultdef := voidtype;
+
+    statement := cstatementnode.Create(assignment,nil);
+    result := cblocknode.create(statement);
+    result.resultdef := voidtype;
+  end;
+
+  procedure implement_get_attribute(pd: tprocdef);
+    var
+      old_parse_only: boolean;
+    begin
+      old_parse_only:=parse_only;
+      parse_only:=false;
+      read_proc(po_classmethod in pd.procoptions,pd,false,@get_attribute_code_block);
+      parse_only:=old_parse_only;
+    end;
 
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
@@ -1115,6 +1142,8 @@ implementation
               implement_interface_wrapper(pd);
             tsk_call_no_parameters:
               implement_call_no_parameters(pd);
+            tsk_get_rttiattribute:
+              implement_get_attribute(pd);
           end;
         end;
     end;

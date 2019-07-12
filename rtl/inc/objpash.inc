@@ -428,6 +428,9 @@
 {$endif FPC_USE_PSABIEH}
        end;
 
+       TCustomAttribute = class(TObject)
+       end;
+
     Const
        ExceptProc : TExceptProc = Nil;
        RaiseProc : TExceptProc = Nil;

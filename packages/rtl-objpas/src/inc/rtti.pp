@@ -191,6 +191,7 @@ type
   protected
     function GetHandle: Pointer; virtual; abstract;
   public
+    function GetAttributes: specialize TArray<TCustomAttribute>; virtual; abstract;
     property Handle: Pointer read GetHandle;
   end;
 
@@ -208,6 +209,8 @@ type
   TRttiType = class(TRttiNamedObject)
   private
     FTypeInfo: PTypeInfo;
+    FAttributesResolved: boolean;
+    FAttributes: specialize TArray<TCustomAttribute>;
     FMethods: specialize TArray<TRttiMethod>;
     function GetAsInstance: TRttiInstanceType;
   protected
@@ -224,6 +227,7 @@ type
     function GetBaseType: TRttiType; virtual;
   public
     constructor Create(ATypeInfo : PTypeInfo);
+    function GetAttributes: specialize TArray<TCustomAttribute>; override;
     function GetProperties: specialize TArray<TRttiProperty>; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     function GetMethods: specialize TArray<TRttiMethod>; virtual;
@@ -288,6 +292,8 @@ type
   TRttiProperty = class(TRttiMember)
   private
     FPropInfo: PPropInfo;
+    FAttributesResolved: boolean;
+    FAttributes: specialize TArray<TCustomAttribute>;
     function GetPropertyType: TRttiType;
     function GetIsWritable: boolean;
     function GetIsReadable: boolean;
@@ -297,6 +303,7 @@ type
     function GetHandle: Pointer; override;
   public
     constructor Create(AParent: TRttiType; APropInfo: PPropInfo);
+    function GetAttributes: specialize TArray<TCustomAttribute>; override;
     function GetValue(Instance: pointer): TValue;
     procedure SetValue(Instance: pointer; const AValue: TValue);
     property PropertyType: TRttiType read GetPropertyType;
@@ -3388,6 +3395,22 @@ begin
   FPropInfo := APropInfo;
 end;
 
+function TRttiProperty.GetAttributes: specialize TArray<TCustomAttribute>;
+var
+  i: Integer;
+begin
+  if not FAttributesResolved then
+    begin
+      setlength(FAttributes,FPropInfo^.AttributeCount);
+      for i := 0 to FPropInfo^.AttributeCount-1 do
+        begin
+          FAttributes[i]:=TCustomAttribute(GetPropAttribute(FPropInfo,i));
+        end;
+      FAttributesResolved:=true;
+    end;
+  result := FAttributes;
+end;
+
 function TRttiProperty.GetValue(Instance: pointer): TValue;
 
   procedure ValueFromBool(value: Int64);
@@ -3598,6 +3621,22 @@ begin
   FTypeInfo:=ATypeInfo;
   if assigned(FTypeInfo) then
     FTypeData:=GetTypeData(ATypeInfo);
+end;
+
+function TRttiType.GetAttributes: specialize TArray<TCustomAttribute>;
+var
+  i: Integer;
+  ad: PAttributeData;
+begin
+  if not FAttributesResolved then
+    begin
+    ad := GetAttributeData(FTypeInfo);
+    setlength(FAttributes,ad^.AttributeCount);
+    for i := 0 to ad^.AttributeCount-1 do
+      FAttributes[i]:=GetAttribute(ad,i);
+    FAttributesResolved:=true;
+    end;
+  result := FAttributes;
 end;
 
 function TRttiType.GetProperties: specialize TArray<TRttiProperty>;

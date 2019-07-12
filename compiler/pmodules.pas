@@ -2407,6 +2407,7 @@ type
          cnodeutils.InsertWideInitsTablesTable;
          cnodeutils.InsertResStrTablesTable;
          cnodeutils.InsertMemorySizes;
+         cnodeutils.InsertRTTIUnitList;
 
          { Insert symbol to resource info }
          cnodeutils.InsertResourceInfo(resources_used);

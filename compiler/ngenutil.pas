@@ -43,6 +43,8 @@ interface
     end;
     pinitfinalentry = ^tinitfinalentry;
 
+    { tnodeutils }
+
     tnodeutils = class
       class function call_fail_node:tnode; virtual;
       class function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
@@ -113,6 +115,7 @@ interface
 
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
       class procedure InsertInitFinalTable;
+      class procedure InsertRTTIUnitList; virtual;
      protected
       class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
       class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag); virtual;
@@ -1029,6 +1032,32 @@ implementation
       insert_init_final_table(entries);
 
       release_init_final_list(entries);
+    end;
+
+  class procedure tnodeutils.InsertRTTIUnitList;
+    var
+        hp : tused_unit;
+        unitinits : TAsmList;
+        count : longint;
+    begin
+      unitinits:=TAsmList.Create;
+      count:=0;
+      hp:=tused_unit(usedunits.first);
+      while assigned(hp) do
+       begin
+         unitinits.concat(Tai_const.Createname(make_mangledname('RTTIU_',hp.u.globalsymtable,''),0));
+         inc(count);
+         hp:=tused_unit(hp.next);
+       end;
+      { Insert TableCount,InitCount at start }
+      unitinits.insert(Tai_const.Create_32bit(count));
+      { Add to data segment }
+      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'RTTIUNITLIST',sizeof(pint));
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('RTTIUNITLIST',AT_DATA,0, carraydef.getreusable(cansichartype,length('RTTIUNITLIST'))));
+      current_asmdata.asmlists[al_globals].concatlist(unitinits);
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('RTTIUNITLIST'));
+      unitinits.free;
     end;
 
 

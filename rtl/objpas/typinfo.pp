@@ -226,7 +226,16 @@ unit TypInfo;
         property Field[aIndex: Word]: PVmtFieldEntry read GetField;
       end;
 
+      TRTTIUnitOption = (rmoHasAttributes);
+      TRTTIUnitOptions = set of TRTTIUnitOption;
+
 {$PACKRECORDS 1}
+      PUnitInfo = ^TUnitInfo;
+      TUnitInfo = packed record
+        UnitOptions: TRTTIUnitOptions;
+        UnitName: shortstring;
+      end;
+
       TTypeInfo = record
          Kind : TTypeKind;
          Name : ShortString;
@@ -562,6 +571,7 @@ unit TypInfo;
         { tkPointer }
         property RefType: PTypeInfo read GetRefType;
       public
+        function UnitName: string;
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkVariant,tkUString:
               ();
@@ -608,7 +618,8 @@ unit TypInfo;
               (ClassType : TClass;
                ParentInfoRef : TypeInfoPtr;
                PropCount : SmallInt;
-               UnitName : ShortString
+               UnitInfo : PUnitInfo
+               // AttributeData: TAttributeData;
                // here the properties follow as array of TPropInfo
               );
             tkRecord:
@@ -726,6 +737,7 @@ unit TypInfo;
         //     6 : true, constant index property
         PropProcs : Byte;
 
+        AttributeCount : Byte;
         Name : ShortString;
         property PropType: PTypeInfo read GetPropType;
         property Tail: Pointer read GetTail;
@@ -734,8 +746,24 @@ unit TypInfo;
 
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
+      TAttributeProc = function : TCustomAttribute;
+      PAttributeProcList = ^TAttributeProcList;
+      TAttributeProcList = array[0..$ffff] of TAttributeProc;
+
       PPropList = ^TPropList;
       TPropList = array[0..{$ifdef cpu16}(32768 div sizeof(PPropInfo))-2{$else}65535{$endif}] of PPropInfo;
+
+      TAttributeData = record
+        AttributeCount: word;
+        AttributesList: TAttributeProcList;
+      end;
+      PAttributeData = ^TAttributeData;
+
+      PUnitInfoList = ^TUnitInfoList;
+      TUnitInfoList = record
+        UnitCount: IntPtr;
+        Units: array[0..65535] of PUnitInfo;
+      end;
 
    const
       tkString = tkSString;
@@ -873,6 +901,18 @@ function GetDynArrayProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
 procedure SetDynArrayProp(Instance: TObject; const PropName: string; const Value: Pointer);
 procedure SetDynArrayProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
 
+// Extended RTTI
+function GetUnitList: PUnitInfoList;
+function GetFirstTypeinfoFromUnit(AUnitInfo: PUnitInfo): PTypeInfo;
+function GetNextTypeInfo(ATypeInfo: PTypeInfo): PTypeInfo;
+
+function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
+
+function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
+
+function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustomAttribute;
+
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
@@ -921,6 +961,15 @@ type
   PMethod = ^TMethod;
 
 { ---------------------------------------------------------------------
+  TTypeData methods
+  ---------------------------------------------------------------------}
+
+function TTypeData.UnitName: string;
+begin
+  Result := UnitInfo^.UnitName
+end;
+
+{ ---------------------------------------------------------------------
   Auxiliary methods
   ---------------------------------------------------------------------}
 
@@ -950,6 +999,187 @@ begin
 {$endif}
 end;
 
+{$ifdef FPC_HAS_UNIT_RTTI}
+var
+  UnitList: TUnitInfoList; external name 'RTTIUNITLIST';
+{$endif FPC_HAS_UNIT_RTTI}
+
+function GetUnitList: PUnitInfoList;
+begin
+{$ifdef FPC_HAS_UNIT_RTTI}
+  result := @UnitList;
+{$else FPC_HAS_UNIT_RTTI}
+  result := nil;
+{$endif FPC_HAS_UNIT_RTTI}
+end;
+
+function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
+var
+  TD: PTypeData;
+begin
+  if TypeInfo^.Kind<>tkClass then
+    result := nil
+  else
+    begin
+      TD := GetTypeData(TypeInfo);
+      if (rmoHasAttributes in td^.UnitInfo^.UnitOptions) then
+        Result:=PAttributeData(aligntoptr(pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)))
+      else
+        result := nil;
+    end;
+end;
+
+function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData;
+var
+  AD: PAttributeData;
+begin
+  if rmoHasAttributes in TypeData^.UnitInfo^.UnitOptions then
+    begin
+      AD := GetAttributeData(TypeInfo);
+      result := PPropData(pointer(AD)+SizeOf(AD^.AttributeCount)+(AD^.AttributeCount*SizeOf(TAttributeProc)));
+    end
+  else
+    result := aligntoptr(pointer(@TypeData^.UnitInfo)+sizeof(TypeData^.UnitInfo));
+end;
+
+function GetFirstTypeinfoFromUnit(AUnitInfo: PUnitInfo): PTypeInfo;
+begin
+  result := align(pointer(@AUnitInfo^.UnitName)+1+byte(AUnitInfo^.UnitName[0]), sizeof(Pointer));
+end;
+
+function GetNextTypeInfo(ATypeInfo: PTypeInfo): PTypeInfo;
+type
+  TEnumTableMode=(lookup,search);
+var
+  p: pointer;
+  td: PTypeData;
+  pd: ppropdata;
+  i: longint;
+  fc: longint;
+  minv,maxv: longint;
+  EnumTableMode: TEnumTableMode;
+  count: pword;
+begin
+  td := GetTypeData(ATypeInfo);
+  p := GetTypeData(ATypeInfo);
+  case ATypeInfo^.Kind of
+    tkEnumeration:
+               begin
+               p := aligntoptr(p + 1);     { OrdType }
+               minv := PLongInt(p)^;
+               p := p + SizeOf(LongInt); { MinValue }
+               maxv := PLongInt(p)^;
+               p := p + SizeOf(LongInt); { MaxValue }
+               p := p + SizeOf(PTypeInfo); { basetype }
+               for i := minv to maxv do
+                 p := p + 1 + pbyte(p)^; { NameList: shortstring length + length of string }
+               p := p + 1 + pbyte(p)^; { UnitName: shortstring length + length of string }
+               p := p + 1; { trailing zero }
+               end;
+    tkInteger,
+    tkChar,
+    tkWChar,
+    tkBool   : begin
+               p := aligntoptr(p + 1);     { OrdType }
+               p := p + SizeOf(LongInt) + SizeOf(LongInt); { MinValue + MaxValue }
+               end;
+    tkSet    : begin
+               p := aligntoptr(p + 1);     { OrdType }
+               p := p + sizeof(PTypeInfo); { CompType }
+               end;
+    tkQWord  : p := p + SizeOf(QWord) + SizeOf(QWord); { MinQWordValue, MaxQWordValue }
+    tkInt64  : p := p + SizeOf(Int64) + SizeOf(Int64); { MinInt64Value, MaxInt64Value }
+    tkSString: p := P + SizeOf(Byte); { MaxLength }
+    tkArray  : begin
+               p := p + sizeof(Ptrint); { Element size }
+               p := p + sizeof(PtrInt); { Element count }
+               p := p + sizeof(pointer); { Element type }
+               p := p + sizeof(longint); { Variant type }
+               end;
+    tkDynArray:begin
+               p := p + sizeof(Ptrint); { Element size }
+               p := p + sizeof(PtrInt); { Element type 2 }
+               p := p + sizeof(longint); { Variant type }
+               p := p + sizeof(pointer); { Element type }
+               p := p + 1 + pbyte(p)^; { unitname: shortstring length + length of string }
+               end;
+    tkFloat  : begin
+               p := p + sizeof(TFloatType); { Float type }
+               end;
+    tkObject,
+    tkRecord : begin
+               p := p + 4; { Size }
+               fc := plongint(p)^;
+               p := p + 4; { Fieldcount }
+               p := p + (fc * (sizeof(pointer) + 4)); { Fieldcount * (element type  + field offset) }
+               end;
+    tkClass  : begin
+               pd := GetPropData(ATypeInfo,td);
+               p:=@pd^.PropList;
+               for i:=1 to pd^.PropCount do
+                 p:=aligntoptr(pointer(@ppropinfo(p)^.Name)+byte(ppropinfo(p)^.Name[0])+(ppropinfo(p)^.AttributeCount*SizeOf(TAttributeProc))+1);
+               end;
+    tkInterface :
+               begin
+               p := aligntoptr(pointer(@td^.IntfUnit)+byte(td^.IntfUnit[0])+1);
+               p := p+pbyte(p)^+1; { IIDStr }
+               end;
+    tkMethod : begin
+               p := @td^.ParamList[0];
+               for i := 0 to td^.ParamCount-1 do
+                 begin
+                 p := aligntoptr(p + sizeof(TParamFlags)); { TParamFlags }
+                 p := aligntoptr(p +pbyte(p)^+1); { paramname }
+                 p := aligntoptr(p +pbyte(p)^+1); { typename }
+                 end;
+               if td^.MethodKind in [mkFunction, mkClassFunction] then
+                 begin
+                 p := aligntoptr(p +pbyte(p)^+1); { resulttype }
+                 p := p + sizeof(PPTypeInfo); { resulttyperef }
+                 end;
+               p := aligntoptr(p + sizeof(TCallConv)); { cc }
+               p := p + (td^.ParamCount * sizeof(PPTypeInfo));
+               end;
+  end;
+  result := PTypeInfo(align(p,sizeof(p)));
+  if PByte(result)^=255 then
+    result := nil;
+end;
+
+function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
+begin
+  if PropInfo^.AttributeCount=0 then
+    result := nil
+  else
+    begin
+      Result:=PAttributeProcList(aligntoptr(pointer(@PropInfo^.Name)+byte(PropInfo^.Name[0])+1));
+    end;
+end;
+
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
+var
+  AttributeProcList: PAttributeProcList;
+begin
+  if AttributeNr>=PropInfo^.AttributeCount then
+    result := nil
+  else
+    begin
+      AttributeProcList := GetPropAttributeProclist(PropInfo);
+      result := AttributeProcList^[AttributeNr]();
+    end;
+end;
+
+function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustomAttribute;
+var
+  AttributeProcList: TAttributeProcList;
+begin
+  if (AttributeData=nil) or (AttributeNr>=AttributeData^.AttributeCount) then
+    result := nil
+  else
+    begin
+      result := AttributeData^.AttributesList[AttributeNr]();
+    end;
+end;
 
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
@@ -1241,7 +1471,7 @@ var
   hp : PTypeData;
   i : longint;
   p : shortstring;
-  pd : ^TPropData;
+  pd : PPropData;
 begin
   P:=PropName;  // avoid Ansi<->short conversion in a loop
   while Assigned(TypeInfo) do
@@ -1249,7 +1479,7 @@ begin
       // skip the name
       hp:=GetTypeData(Typeinfo);
       // the class info rtti the property rtti follows immediatly
-      pd:=aligntoptr(pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1));
+      pd := GetPropData(TypeInfo,hp);
       Result:=PPropInfo(@pd^.PropList);
       for i:=1 to pd^.PropCount do
         begin
@@ -1257,7 +1487,7 @@ begin
           if ShortCompareText(Result^.Name, P) = 0 then
             exit;
           // skip to next property
-          Result:=PPropInfo(aligntoptr(pointer(@Result^.Name)+byte(Result^.Name[0])+1));
+          Result:=PPropInfo(aligntoptr(pointer(@Result^.Name)+byte(Result^.Name[0])+(result^.AttributeCount*SizeOf(TAttributeProc))+1));
         end;
       // parent class
       Typeinfo:=hp^.ParentInfo;
@@ -1408,7 +1638,7 @@ begin
   repeat
     TD:=GetTypeData(TypeInfo);
     // published properties count for this object
-    TP:=aligntoptr(PPropInfo(aligntoptr((Pointer(@TD^.UnitName)+Length(TD^.UnitName)+1))));
+    TP:=PPropInfo(GetPropData(TypeInfo, TD));
     Count:=PWord(TP)^;
     // Now point TP to first propinfo record.
     Inc(Pointer(TP),SizeOF(Word));
@@ -1420,7 +1650,7 @@ begin
           PropList^[TP^.NameIndex]:=TP;
         // Point to TP next propinfo record.
         // Located at Name[Length(Name)+1] !
-        TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
+        TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+(TP^.AttributeCount*SizeOf(TAttributeProc))+1));
         Dec(Count);
       end;
     TypeInfo:=TD^.Parentinfo;

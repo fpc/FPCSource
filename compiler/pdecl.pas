@@ -41,24 +41,27 @@ interface
     procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
     procedure label_dec;
     procedure type_dec(out had_generic:boolean);
-    procedure types_dec(in_structure: boolean;out had_generic:boolean);
+    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attributesdef);
     procedure var_dec(out had_generic:boolean);
     procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
+    procedure parse_rttiattributes(var rtti_attrs_def: trtti_attributesdef);
+    procedure add_synthetic_rtti_funtion_declarations(rtti_attrs_def: trtti_attributesdef; name: shortstring);
 
 implementation
 
     uses
+       SysUtils,
        { common }
        cutils,
        { global }
        globals,tokens,verbose,widestr,constexp,
        systems,aasmdata,fmodule,compinnr,
        { symtable }
-       symconst,symbase,symtype,symcpu,symcreat,defutil,
+       symconst,symbase,symtype,symcpu,symcreat,defutil,defcmp,symtable,
        { pass 1 }
-       ninl,ncon,nobj,ngenutil,
+       ninl,ncon,nobj,ngenutil,nld,nmem,ncal,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,pparautl,
@@ -69,6 +72,39 @@ implementation
        cpuinfo
        ;
 
+    var
+       system_custom_attribute_def: tobjectdef = nil;
+
+    function is_system_custom_attribute_descendant(def:tdef): Boolean;
+    begin
+      if system_custom_attribute_def=nil then
+        system_custom_attribute_def := tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
+      Result := def_is_related(def, system_custom_attribute_def);
+    end;
+
+    procedure create_renamed_attr_type_if_needed(hdef: tobjectdef);
+    const
+      attrconst = 'attribute';
+    var
+      newname : TIDString;
+      newtypeattr  : ttypesym;
+      i: integer;
+    begin
+      if not is_system_custom_attribute_descendant(hdef) then
+        Exit;
+
+      { Check if the name ends with 'attribute'. }
+      i := Pos(attrconst, lower(hdef.typename), max(0, length(hdef.typename) - length(attrconst)));
+      newname:=Copy(hdef.typename, 0, i-1);
+      if (i > 0) and (length(newname) > 0) then
+      begin
+        { Create a new typesym with 'attribute' removed. }
+        newtypeattr:=ctypesym.create(newname,hdef,true);
+        newtypeattr.visibility:=symtablestack.top.currentvisibility;
+        include(newtypeattr.symoptions,sp_implicitrename);
+        symtablestack.top.insert(newtypeattr);
+      end;
+    end;
 
     function readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
       var
@@ -386,7 +422,100 @@ implementation
          consume(_SEMICOLON);
       end;
 
-    procedure types_dec(in_structure: boolean;out had_generic:boolean);
+    function find_create_constructor(objdef: tobjectdef): tsymentry;
+      begin
+         while assigned(objdef) do
+           begin
+             result:=objdef.symtable.Find('CREATE');
+             if assigned(result) then
+               exit;
+             objdef:=objdef.childof;
+           end;
+         // A class without a constructor called 'create'?!?
+         internalerror(2012111101);
+      end;
+
+    procedure parse_rttiattributes(var rtti_attrs_def: trtti_attributesdef);
+      var
+        p, p1: tnode;
+        again: boolean;
+        od: tobjectdef;
+        constrSym: tsymentry;
+        constrProcDef: tprocdef;
+        typeSym: ttypesym;
+        oldblock_type: tblock_type;
+      begin
+        consume(_LECKKLAMMER);
+
+        { Parse attribute type }
+        p := factor(false,[ef_type_only]);
+        if p.nodetype<> errorn then
+        begin
+          typeSym := ttypesym(ttypenode(p).typesym);
+          od := tobjectdef(ttypenode(p).typedef);
+          if Assigned(od) then
+          begin
+            { Check if the attribute class is related to TCustomAttribute }
+            if not is_system_custom_attribute_descendant(od) then
+              incompatibletypes(od, system_custom_attribute_def);
+
+            { Search the tprocdef of the constructor which has to be called. }
+            constrSym := find_create_constructor(od);
+            if constrSym.typ<>procsym then
+              internalerror(2018102301);
+            constrProcDef:=tprocsym(constrSym).find_procdef_bytype(potype_constructor);
+
+            { Parse the attribute-parameters as if it is a list of parameters from
+              a call to the constrProcDef constructor in an execution-block. }
+            p1 := cloadvmtaddrnode.create(ctypenode.create(od));
+            again:=true;
+            oldblock_type := block_type;
+            block_type := bt_body;
+            do_member_read(od,false,constrProcDef.procsym,p1,again,[], nil);
+
+            { Check the number of parameters }
+            if (tcallnode(p1).para_count < constrProcDef.minparacount) then
+               CGMessagePos1(p.fileinfo, parser_e_wrong_parameter_size, od.typename + '.' + constrProcDef.procsym.prettyname);
+
+            block_type:=oldblock_type;
+
+            { Add attribute to attribute list which will be added
+              to the property which is defined next. }
+            if not assigned(rtti_attrs_def) then
+              rtti_attrs_def := trtti_attributesdef.create;
+            rtti_attrs_def.addattribute(typeSym,p1);
+
+            Include(current_module.rtti_options, rmo_hasattributes);
+          end;
+        end;
+
+        p.free;
+        consume(_RECKKLAMMER);
+      end;
+
+  procedure add_synthetic_rtti_funtion_declarations(rtti_attrs_def: trtti_attributesdef; name: shortstring);
+    var
+      i: Integer;
+      sstate: tscannerstate;
+      attribute: trtti_attribute;
+      pd: tprocdef;
+    begin
+      name := StringReplace(name, '.', '_', [rfReplaceAll]);
+      for i := 0 to rtti_attrs_def.get_attribute_count-1 do
+        begin
+          attribute := trtti_attribute(rtti_attrs_def.rtti_attributes[i]);
+          replace_scanner('rtti_class_attributes',sstate);
+          if str_parse_method_dec('function rtti_'+name+'_'+IntToStr(i)+':'+ attribute.typesym.Name +';',potype_function,false,tabstractrecorddef(ttypesym(attribute.typesym).typedef),pd) then
+            pd.synthetickind:=tsk_get_rttiattribute
+          else
+            internalerror(2012052601);
+          pd.skpara:=attribute;
+          attribute.symbolname:=pd.mangledname;
+          restore_scanner(sstate);
+        end;
+    end;
+
+    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attributesdef);
 
       function determine_generic_def(name:tidstring):tstoreddef;
         var
@@ -483,6 +612,11 @@ implementation
            istyperenaming:=false;
            generictypelist:=nil;
            generictokenbuf:=nil;
+
+           { class attribute definitions? }
+           if m_prefixed_attributes in current_settings.modeswitches then
+             while token=_LECKKLAMMER do
+                 parse_rttiattributes(rtti_attrs_def);
 
            { fpc generic declaration? }
            if first then
@@ -888,6 +1022,15 @@ implementation
                         vmtbuilder.free;
                       end;
 
+                    { If there are attribute-properties available, bind them to
+                      this object }
+                    if assigned(rtti_attrs_def) then
+                      begin
+                        add_synthetic_rtti_funtion_declarations(rtti_attrs_def,hdef.typesym.Name);
+                        tobjectdef(hdef).rtti_attributesdef:=rtti_attrs_def;
+                        rtti_attrs_def := nil;
+                      end;
+
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set
                       during the protocol (interface) mapping. At the same time, set the
@@ -903,6 +1046,9 @@ implementation
 
                     if is_cppclass(hdef) then
                       tobjectdef(hdef).finish_cpp_data;
+
+                    if (m_prefixed_attributes in current_settings.modeswitches) then
+                      create_renamed_attr_type_if_needed(tobjectdef(hdef));
                   end;
                 recorddef :
                   begin
@@ -942,7 +1088,10 @@ implementation
            else
              had_generic:=false;
            first:=false;
-         until (token<>_ID) or
+           if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
+             Message1(scan_e_unresolved_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+
+         until ((token<>_ID) and (token<>_LECKKLAMMER)) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
                  ((m_final_fields in current_settings.modeswitches) and
@@ -958,9 +1107,12 @@ implementation
 
     { reads a type declaration to the symbol table }
     procedure type_dec(out had_generic:boolean);
+      var
+        rtti_attrs_def: trtti_attributesdef;
       begin
         consume(_TYPE);
-        types_dec(false,had_generic);
+        rtti_attrs_def := nil;
+        types_dec(false,had_generic,rtti_attrs_def);
       end;
 
 
