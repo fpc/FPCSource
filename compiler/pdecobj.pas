@@ -1140,6 +1140,15 @@ implementation
         end;
 
 
+      procedure check_unbound_attributes;
+        begin
+          if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
+            Message1(scan_e_unresolved_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+          rtti_attrs_def.free;
+          rtti_attrs_def:=nil;
+        end;
+
+
       begin
         { empty class declaration ? }
         if (current_objectdef.objecttype in [odt_class,odt_objcclass,odt_javaclass]) and
@@ -1165,6 +1174,7 @@ implementation
           case token of
             _TYPE :
               begin
+                check_unbound_attributes;
                 if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_TYPE);
@@ -1172,16 +1182,19 @@ implementation
               end;
             _VAR :
               begin
+                check_unbound_attributes;
                 rtti_attrs_def := nil;
                 parse_var(false);
               end;
             _CONST:
               begin
+                check_unbound_attributes;
                 rtti_attrs_def := nil;
                 parse_const
               end;
             _THREADVAR :
               begin
+                check_unbound_attributes;
                 if not is_classdef then
                   begin
                     Message(parser_e_threadvar_must_be_class);
@@ -1192,6 +1205,7 @@ implementation
               end;
             _ID :
               begin
+                check_unbound_attributes;
                 if is_objcprotocol(current_structdef) and
                    ((idtoken=_REQUIRED) or
                     (idtoken=_OPTIONAL)) then
@@ -1343,12 +1357,18 @@ implementation
               end;
             _PROPERTY :
               begin
+                { for now attributes are only allowed on published properties }
+                if current_structdef.symtable.currentvisibility<>vis_published then
+                  check_unbound_attributes;
                 struct_property_dec(is_classdef, rtti_attrs_def);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
             _CLASS:
               begin
+                { class properties currently can't have attributes, so it's safe
+                  to check for unbound attributes here }
+                check_unbound_attributes;
                 parse_class;
               end;
             _PROCEDURE,
@@ -1356,6 +1376,7 @@ implementation
             _CONSTRUCTOR,
             _DESTRUCTOR :
               begin
+                check_unbound_attributes;
                 rtti_attrs_def := nil;
                 method_dec(current_structdef,is_classdef,hadgeneric);
                 fields_allowed:=false;
@@ -1371,8 +1392,7 @@ implementation
               end;
             _END :
               begin
-                if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
-                  Message1(scan_e_unresolved_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+                check_unbound_attributes;
                 consume(_END);
                 break;
               end;
