@@ -3277,9 +3277,14 @@ const
         else
           stoprecording:=false;
 
-        while token in [_ID,_LECKKLAMMER] do
+        while (token=_ID) or
+            (
+              not (m_prefixed_attributes in current_settings.modeswitches) and
+              (token=_LECKKLAMMER)
+            ) do
          begin
-           if try_to_consume(_LECKKLAMMER) then
+           if not (m_prefixed_attributes in current_settings.modeswitches) and
+              try_to_consume(_LECKKLAMMER) then
             begin
               repeat
                 parse_proc_direc(pd,pdflags);
