@@ -43,8 +43,6 @@ interface
     end;
     pinitfinalentry = ^tinitfinalentry;
 
-    { tnodeutils }
-
     tnodeutils = class
       class function call_fail_node:tnode; virtual;
       class function initialize_data_node(p:tnode; force: boolean):tnode; virtual;

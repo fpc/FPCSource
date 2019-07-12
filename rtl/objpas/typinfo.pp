@@ -231,7 +231,11 @@ unit TypInfo;
 
 {$PACKRECORDS 1}
       PUnitInfo = ^TUnitInfo;
-      TUnitInfo = packed record
+      TUnitInfo =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
         UnitOptions: TRTTIUnitOptions;
         UnitName: shortstring;
       end;
