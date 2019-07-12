@@ -453,29 +453,6 @@ implementation
 
             paran:=read_attr_paras;
 
-            paras:=nil;
-            if assigned(paran) then
-              begin
-                ptmp:=paran;
-                pcount:=0;
-                while assigned(ptmp) do
-                  begin
-                    inc(pcount);
-                    ptmp:=tcallparanode(ptmp).right;
-                  end;
-                setlength(paras,pcount);
-                ptmp:=paran;
-                pcount:=0;
-                while assigned(ptmp) do
-                  begin
-                    if not is_constnode(tcallparanode(ptmp).left) then
-                      internalerror(2019070601);
-                    paras[high(paras)-pcount]:=tcallparanode(ptmp).left.getcopy;
-                    inc(pcount);
-                    ptmp:=tcallparanode(ptmp).right;
-                  end;
-              end;
-
             { Search the tprocdef of the constructor which has to be called. }
             constrsym:=find_create_constructor(od);
             if constrsym.typ<>procsym then
@@ -487,6 +464,43 @@ implementation
 
             if pcalln.nodetype<>errorn then
               begin
+                if pcalln.nodetype<>calln then
+                  internalerror(2019070701);
+                { collect the parameters of the call node as there might be
+                  compile time type conversions (e.g. a Byte parameter being
+                  passed a value > 255) }
+                paran:=tcallnode(pcalln).left;
+
+                { only count visible parameters (thankfully open arrays are not
+                  supported, otherwise we'd need to handle those as well) }
+                paras:=nil;
+                if assigned(paran) then
+                  begin
+                    ptmp:=paran;
+                    pcount:=0;
+                    while assigned(ptmp) do
+                      begin
+                        if not (vo_is_hidden_para in tcallparanode(ptmp).parasym.varoptions) then
+                          inc(pcount);
+                        ptmp:=tcallparanode(ptmp).right;
+                      end;
+                    setlength(paras,pcount);
+                    ptmp:=paran;
+                    pcount:=0;
+                    while assigned(ptmp) do
+                      begin
+                        if not (vo_is_hidden_para in tcallparanode(ptmp).parasym.varoptions) then
+                          begin
+                            if not is_constnode(tcallparanode(ptmp).left) then
+                              internalerror(2019070601);
+                            paras[high(paras)-pcount]:=tcallparanode(ptmp).left.getcopy;
+                            inc(pcount);
+                          end;
+                        ptmp:=tcallparanode(ptmp).right;
+                      end;
+                  end;
+
+
                 { Add attribute to attribute list which will be added
                   to the property which is defined next. }
                 if not assigned(rtti_attrs_def) then
