@@ -1,4 +1,4 @@
-program tclassattribute1;
+program tcustomattr9;
 
 {$mode objfpc}{$H+}
 {$modeswitch prefixedattributes}
@@ -7,12 +7,9 @@ uses
   typinfo;
 
 type
-
   { tmyt }
-
-  tmyt = class(TCustomAttribute)
-    constructor create;
-  end;
+  // TCustomAttribute without constructor
+  tmyt = class(TCustomAttribute);
 
 type
   [Tmyt]
@@ -22,13 +19,6 @@ type
 var
   ad: PAttributeData;
   AClassAttribute: TCustomAttribute;
-
-{ tmyt }
-
-constructor tmyt.create;
-begin
-  //
-end;
 
 begin
   ad := GetAttributeData(TMyObject.ClassInfo);

@@ -1,4 +1,4 @@
-program tclassattribute4;
+program tcustomattr4;
 
 {$mode delphi}
 

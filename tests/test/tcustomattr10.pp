@@ -1,4 +1,4 @@
-program tclassattribute10;
+program tcustomattr10;
 
 {$mode objfpc}{$H+}
 {$modeswitch prefixedattributes}

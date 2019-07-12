@@ -1,5 +1,5 @@
 { %fail }
-program tclassattribute3;
+program tcustomattr3;
 
 {$mode objfpc}{$H+}
 {$modeswitch prefixedattributes}

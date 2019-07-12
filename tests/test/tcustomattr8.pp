@@ -1,5 +1,5 @@
 { %fail }
-program tclassattribute7;
+program tcustomattr8;
 
 {$mode objfpc}{$H+}
 {$modeswitch prefixedattributes}
@@ -19,21 +19,19 @@ type
 
   { TMyObject }
 
+  [TMyt]
   TMyObject = class(TObject)
-  private
-    FInt: integer;
-  published
-    // Should fail because there is nothing to bind the custom attribute to.
-    [TMyt]
   end;
+  // Attributes for integers are not allowed, so the following should fail, since
+  // there is nothing to bind the attribute to.
+  [TMyt]
+  int = integer;
 
 constructor TMyt.create;
 begin
-//
+
 end;
 
-
 begin
-//
 end.
 
