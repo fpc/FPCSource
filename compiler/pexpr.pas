@@ -35,7 +35,8 @@ interface
       texprflag = (
         ef_accept_equal,
         ef_type_only,
-        ef_had_specialize
+        ef_had_specialize,
+        ef_check_attr_suffix
       );
       texprflags = set of texprflag;
 
@@ -2826,6 +2827,7 @@ implementation
            storedpattern: string;
            callflags: tcallnodeflags;
            t : ttoken;
+           consumeid,
            wasgenericdummy,
            allowspecialize,
            isspecialize,
@@ -2867,28 +2869,55 @@ implementation
              end
            else
              begin
-               if ef_type_only in flags then
-                 searchsym_type(pattern,srsym,srsymtable)
-               else
-                 searchsym(pattern,srsym,srsymtable);
+               storedpattern:=pattern;
+               orgstoredpattern:=orgpattern;
+               { store the position of the token before consuming it }
+               tokenpos:=current_filepos;
+               consumeid:=true;
+               srsym:=nil;
+               if ef_check_attr_suffix in flags then
+                 begin
+                   if not (ef_type_only in flags) then
+                     internalerror(2019063001);
+                   consume(_ID);
+                   consumeid:=false;
+                   if token<>_POINT then
+                     searchsym_type(storedpattern+custom_attribute_suffix,srsym,srsymtable);
+                 end;
+               if not assigned(srsym) then
+                 begin
+                   if ef_type_only in flags then
+                     searchsym_type(storedpattern,srsym,srsymtable)
+                   else
+                     searchsym(storedpattern,srsym,srsymtable);
+                 end;
                { handle unit specification like System.Writeln }
                if not isspecialize then
                  begin
-                   cufflags:=[cuf_consume_id];
+                   cufflags:=[];
+                   if consumeid then
+                     include(cufflags,cuf_consume_id);
                    if allowspecialize then
                      include(cufflags,cuf_allow_specialize);
-                   unit_found:=try_consume_unitsym(srsym,srsymtable,t,cufflags,isspecialize,pattern)
+                   if ef_check_attr_suffix in flags then
+                     include(cufflags,cuf_check_attr_suffix);
+                   unit_found:=try_consume_unitsym(srsym,srsymtable,t,cufflags,isspecialize,pattern);
+                   if unit_found then
+                     consumeid:=true;
                  end
                else
                  begin
                    unit_found:=false;
                    t:=_ID;
                  end;
-               storedpattern:=pattern;
-               orgstoredpattern:=orgpattern;
-               { store the position of the token before consuming it }
-               tokenpos:=current_filepos;
-               consume(t);
+               if consumeid then
+                 begin
+                   storedpattern:=pattern;
+                   orgstoredpattern:=orgpattern;
+                   { store the position of the token before consuming it }
+                   tokenpos:=current_filepos;
+                   consume(t);
+                 end;
                { named parameter support }
                found_arg_name:=false;
 

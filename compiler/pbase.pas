@@ -92,7 +92,8 @@ interface
     type
       tconsume_unitsym_flag = (
         cuf_consume_id,
-        cuf_allow_specialize
+        cuf_allow_specialize,
+        cuf_check_attr_suffix
       );
       tconsume_unitsym_flags = set of tconsume_unitsym_flag;
 
@@ -361,26 +362,38 @@ implementation
                   end;
                 case token of
                   _ID:
-                    { system.char? (char=widechar comes from the implicit
-                      uuchar unit -> override) }
-                    if (pattern='CHAR') and
-                       (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
-                      begin
-                        if m_default_unicodestring in current_settings.modeswitches then
-                          searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
-                        else
-                          searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
-                      end
-                    else
-                      if (cuf_allow_specialize in flags) and (idtoken=_SPECIALIZE) then
+                    begin
+                      if cuf_check_attr_suffix in flags then
                         begin
-                          consume(_ID);
-                          is_specialize:=true;
-                          if token=_ID then
-                            searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                          if searchsym_in_module(tunitsym(srsym).module,pattern+custom_attribute_suffix,srsym,srsymtable) then
+                            exit(true);
+                        end;
+                      { system.char? (char=widechar comes from the implicit
+                        uuchar unit -> override) }
+                      if (pattern='CHAR') and
+                         (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
+                        begin
+                          if m_default_unicodestring in current_settings.modeswitches then
+                            searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
+                          else
+                            searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
                         end
                       else
-                        searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                        if (cuf_allow_specialize in flags) and (idtoken=_SPECIALIZE) then
+                          begin
+                            consume(_ID);
+                            is_specialize:=true;
+                            if token=_ID then
+                              begin
+                                if (cuf_check_attr_suffix in flags) and
+                                    searchsym_in_module(tunitsym(srsym).module,pattern+custom_attribute_suffix,srsym,srsymtable) then
+                                  exit(true);
+                                searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                              end;
+                          end
+                        else
+                          searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                     end;
                   _STRING:
                     begin
                       { system.string? }

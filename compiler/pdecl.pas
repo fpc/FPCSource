@@ -82,30 +82,6 @@ implementation
       Result := def_is_related(def, system_custom_attribute_def);
     end;
 
-    procedure create_renamed_attr_type_if_needed(hdef: tobjectdef);
-    const
-      attrconst = 'attribute';
-    var
-      newname : TIDString;
-      newtypeattr  : ttypesym;
-      i: integer;
-    begin
-      if not is_system_custom_attribute_descendant(hdef) then
-        Exit;
-
-      { Check if the name ends with 'attribute'. }
-      i := Pos(attrconst, lower(hdef.typename), max(0, length(hdef.typename) - length(attrconst)));
-      newname:=Copy(hdef.typename, 0, i-1);
-      if (i > 0) and (length(newname) > 0) then
-      begin
-        { Create a new typesym with 'attribute' removed. }
-        newtypeattr:=ctypesym.create(newname,hdef,true);
-        newtypeattr.visibility:=symtablestack.top.currentvisibility;
-        include(newtypeattr.symoptions,sp_implicitrename);
-        symtablestack.top.insert(newtypeattr);
-      end;
-    end;
-
     function readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
       var
         hp : tconstsym;
@@ -448,7 +424,7 @@ implementation
         consume(_LECKKLAMMER);
 
         { Parse attribute type }
-        p := factor(false,[ef_type_only]);
+        p := factor(false,[ef_type_only,ef_check_attr_suffix]);
         if p.nodetype<> errorn then
         begin
           typeSym := ttypesym(ttypenode(p).typesym);
@@ -1046,9 +1022,6 @@ implementation
 
                     if is_cppclass(hdef) then
                       tobjectdef(hdef).finish_cpp_data;
-
-                    if (m_prefixed_attributes in current_settings.modeswitches) then
-                      create_renamed_attr_type_if_needed(tobjectdef(hdef));
                   end;
                 recorddef :
                   begin

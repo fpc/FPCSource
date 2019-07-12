@@ -399,6 +399,8 @@ interface
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
+       custom_attribute_suffix = 'ATTRIBUTE';
+
       LTOExt: TCmdStr = '';
 
     const
