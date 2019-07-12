@@ -2833,6 +2833,7 @@ implementation
            dummypos,
            tokenpos: tfileposinfo;
            spezcontext : tspecializationcontext;
+           cufflags : tconsume_unitsym_flags;
          begin
            { allow post fix operators }
            again:=true;
@@ -2872,7 +2873,12 @@ implementation
                  searchsym(pattern,srsym,srsymtable);
                { handle unit specification like System.Writeln }
                if not isspecialize then
-                 unit_found:=try_consume_unitsym(srsym,srsymtable,t,true,allowspecialize,isspecialize,pattern)
+                 begin
+                   cufflags:=[cuf_consume_id];
+                   if allowspecialize then
+                     include(cufflags,cuf_allow_specialize);
+                   unit_found:=try_consume_unitsym(srsym,srsymtable,t,cufflags,isspecialize,pattern)
+                 end
                else
                  begin
                    unit_found:=false;

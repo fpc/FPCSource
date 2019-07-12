@@ -376,7 +376,7 @@ implementation
            not_a_type:=false;
          { handle unit specification like System.Writeln }
          if allowunitsym then
-           is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,true,true,is_specialize,s)
+           is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,[cuf_consume_id,cuf_allow_specialize],is_specialize,s)
          else
            begin
              t:=_ID;
