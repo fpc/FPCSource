@@ -619,7 +619,7 @@ implementation
            { class attribute definitions? }
            if m_prefixed_attributes in current_settings.modeswitches then
              while token=_LECKKLAMMER do
-                 parse_rttiattributes(rtti_attrs_def);
+               parse_rttiattributes(rtti_attrs_def);
 
            { fpc generic declaration? }
            if first then
