@@ -72,6 +72,7 @@ interface
           rtti_attributes : TFPObjectList;
           { if the attribute list is bound to a def or symbol }
           is_bound : Boolean;
+          class procedure bind(var dangling,owned:trtti_attribute_list);
           procedure addattribute(atypesym:tsym;constructorcall:tnode;constref paras:array of tnode);
           destructor destroy; override;
           function get_attribute_count:longint;
@@ -2904,6 +2905,18 @@ implementation
         inherited destroy;
       end;
 
+    class procedure trtti_attribute_list.bind(var dangling,owned:trtti_attribute_list);
+      begin
+        if assigned(owned) then
+          internalerror(2019071001);
+        if not assigned(dangling) then
+          exit;
+        if dangling.is_bound then
+          internalerror(2019071002);
+        dangling.is_bound:=true;
+        owned:=dangling;
+        dangling:=nil;
+      end;
 
     procedure trtti_attribute_list.addattribute(atypesym:tsym;constructorcall:tnode;constref paras:array of tnode);
       var
