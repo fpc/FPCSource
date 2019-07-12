@@ -67,10 +67,10 @@ interface
        end;
 
        trtti_attribute_list = class
-          rtti_attributes    : TFPObjectList;
-          procedure addattribute(atypesym: tsym; constructorcall: tnode);
+          rtti_attributes : TFPObjectList;
+          procedure addattribute(atypesym:tsym;constructorcall:tnode);
           destructor destroy; override;
-          function get_attribute_count: longint;
+          function get_attribute_count:longint;
        end;
 
        { tstoreddef }
@@ -2889,14 +2889,14 @@ implementation
                              TRTTI_ATTRIBUTE_LIST
 ****************************************************************************}
 
-    procedure trtti_attribute_list.addattribute(atypesym: tsym; constructorcall: tnode);
+    procedure trtti_attribute_list.addattribute(atypesym:tsym;constructorcall:tnode);
       var
-        newattribute: trtti_attribute;
+        newattribute : trtti_attribute;
       begin
         if not assigned(rtti_attributes) then
-          rtti_attributes := TFPObjectList.Create(True);
-        newattribute := trtti_attribute.Create;
-        newattribute.typesym := atypesym;
+          rtti_attributes:=TFPObjectList.Create(true);
+        newattribute:=trtti_attribute.Create;
+        newattribute.typesym:=atypesym;
         newattribute.constructorcall:=constructorcall;
         rtti_attributes.Add(newattribute);
       end;
@@ -2907,12 +2907,12 @@ implementation
         inherited destroy;
       end;
 
-    function trtti_attribute_list.get_attribute_count: longint;
+    function trtti_attribute_list.get_attribute_count:longint;
       begin
         if assigned(rtti_attributes) then
-          result := rtti_attributes.Count
+          result:=rtti_attributes.Count
         else
-          result := 0;
+          result:=0;
       end;
 
 
