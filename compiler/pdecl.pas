@@ -502,7 +502,7 @@ implementation
                   to the property which is defined next. }
                 if not assigned(rtti_attrs_def) then
                   rtti_attrs_def:=trtti_attribute_list.create;
-                rtti_attrs_def.addattribute(typesym,pcalln,paras);
+                rtti_attrs_def.addattribute(typesym,tcallnode(pcalln).procdefinition,pcalln,paras);
               end
             else
               pcalln.free;

@@ -62,6 +62,7 @@ interface
 
        trtti_attribute = class
           typesym         : tsym;
+          typeconstr      : tdef;
           constructorcall : tnode;
           constructorpd   : tdef;
           paras           : array of tnode;
@@ -73,7 +74,7 @@ interface
           { if the attribute list is bound to a def or symbol }
           is_bound : Boolean;
           class procedure bind(var dangling,owned:trtti_attribute_list);
-          procedure addattribute(atypesym:tsym;constructorcall:tnode;constref paras:array of tnode);
+          procedure addattribute(atypesym:tsym;typeconstr:tdef;constructorcall:tnode;constref paras:array of tnode);
           destructor destroy; override;
           function get_attribute_count:longint;
        end;
@@ -2937,7 +2938,7 @@ implementation
         dangling:=nil;
       end;
 
-    procedure trtti_attribute_list.addattribute(atypesym:tsym;constructorcall:tnode;constref paras:array of tnode);
+    procedure trtti_attribute_list.addattribute(atypesym:tsym;typeconstr:tdef;constructorcall:tnode;constref paras:array of tnode);
       var
         newattribute : trtti_attribute;
         i : sizeint;
@@ -2946,6 +2947,7 @@ implementation
           rtti_attributes:=TFPObjectList.Create(true);
         newattribute:=trtti_attribute.Create;
         newattribute.typesym:=atypesym;
+        newattribute.typeconstr:=typeconstr;
         newattribute.constructorcall:=constructorcall;
         setlength(newattribute.paras,length(paras));
         for i:=0 to high(paras) do
