@@ -3622,6 +3622,7 @@ begin
              write  ([space,'   Index Type : ']);
              readderef('');
              { palt_none }
+             write  ([space,'   Noneaccess : ']);
              readpropaccesslist('');
              write  ([space,'   Readaccess : ']);
              readpropaccesslist(space+'         Sym: ',TPpuPropDef(def).Getter);
