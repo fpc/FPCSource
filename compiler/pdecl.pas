@@ -46,8 +46,8 @@ interface
     procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
-    procedure parse_rttiattributes(var rtti_attrs_def: trtti_attribute_list);
-    procedure add_synthetic_rtti_function_declarations(rtti_attrs_def: trtti_attribute_list; name: shortstring);
+    procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
+    procedure add_synthetic_rtti_function_declarations(rtti_attrs_def:trtti_attribute_list;name:shortstring);
 
 implementation
 
@@ -398,7 +398,7 @@ implementation
          consume(_SEMICOLON);
       end;
 
-    function find_create_constructor(objdef: tobjectdef): tsymentry;
+    function find_create_constructor(objdef:tobjectdef):tsymentry;
       begin
          while assigned(objdef) do
            begin
@@ -411,73 +411,73 @@ implementation
          internalerror(2012111101);
       end;
 
-    procedure parse_rttiattributes(var rtti_attrs_def: trtti_attribute_list);
+    procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
       var
-        p, p1: tnode;
-        again: boolean;
-        od: tobjectdef;
-        constrSym: tsymentry;
-        constrProcDef: tprocdef;
-        typeSym: ttypesym;
-        oldblock_type: tblock_type;
+        p, p1 : tnode;
+        again : boolean;
+        od : tobjectdef;
+        constrSym : tsymentry;
+        constrProcDef : tprocdef;
+        typeSym : ttypesym;
+        oldblock_type : tblock_type;
       begin
         consume(_LECKKLAMMER);
 
         { Parse attribute type }
-        p := factor(false,[ef_type_only,ef_check_attr_suffix]);
-        if p.nodetype<> errorn then
-        begin
-          typeSym := ttypesym(ttypenode(p).typesym);
-          od := tobjectdef(ttypenode(p).typedef);
-          if Assigned(od) then
+        p:=factor(false,[ef_type_only,ef_check_attr_suffix]);
+        if p.nodetype<>errorn then
           begin
-            { Check if the attribute class is related to TCustomAttribute }
-            if not is_system_custom_attribute_descendant(od) then
-              incompatibletypes(od, system_custom_attribute_def);
+            typeSym:=ttypesym(ttypenode(p).typesym);
+            od:=tobjectdef(ttypenode(p).typedef);
+            if Assigned(od) then
+              begin
+                { Check if the attribute class is related to TCustomAttribute }
+                if not is_system_custom_attribute_descendant(od) then
+                  incompatibletypes(od, system_custom_attribute_def);
 
-            { Search the tprocdef of the constructor which has to be called. }
-            constrSym := find_create_constructor(od);
-            if constrSym.typ<>procsym then
-              internalerror(2018102301);
-            constrProcDef:=tprocsym(constrSym).find_procdef_bytype(potype_constructor);
+                { Search the tprocdef of the constructor which has to be called. }
+                constrSym:=find_create_constructor(od);
+                if constrSym.typ<>procsym then
+                  internalerror(2018102301);
+                constrProcDef:=tprocsym(constrSym).find_procdef_bytype(potype_constructor);
 
-            { Parse the attribute-parameters as if it is a list of parameters from
-              a call to the constrProcDef constructor in an execution-block. }
-            p1 := cloadvmtaddrnode.create(ctypenode.create(od));
-            again:=true;
-            oldblock_type := block_type;
-            block_type := bt_body;
-            do_member_read(od,false,constrProcDef.procsym,p1,again,[], nil);
+                { Parse the attribute-parameters as if it is a list of parameters from
+                  a call to the constrProcDef constructor in an execution-block. }
+                p1:=cloadvmtaddrnode.create(ctypenode.create(od));
+                again:=true;
+                oldblock_type:=block_type;
+                block_type:=bt_body;
+                do_member_read(od,false,constrProcDef.procsym,p1,again,[], nil);
 
-            { Check the number of parameters }
-            if (tcallnode(p1).para_count < constrProcDef.minparacount) then
-               CGMessagePos1(p.fileinfo, parser_e_wrong_parameter_size, od.typename + '.' + constrProcDef.procsym.prettyname);
+                { Check the number of parameters }
+                if (tcallnode(p1).para_count<constrProcDef.minparacount) then
+                   CGMessagePos1(p.fileinfo,parser_e_wrong_parameter_size,od.typename+'.'+constrProcDef.procsym.prettyname);
 
-            block_type:=oldblock_type;
+                block_type:=oldblock_type;
 
-            { Add attribute to attribute list which will be added
-              to the property which is defined next. }
-            if not assigned(rtti_attrs_def) then
-              rtti_attrs_def := trtti_attribute_list.create;
-            rtti_attrs_def.addattribute(typeSym,p1);
+                { Add attribute to attribute list which will be added
+                  to the property which is defined next. }
+                if not assigned(rtti_attrs_def) then
+                  rtti_attrs_def:=trtti_attribute_list.create;
+                rtti_attrs_def.addattribute(typeSym,p1);
+              end;
           end;
-        end;
 
         p.free;
         consume(_RECKKLAMMER);
       end;
 
-  procedure add_synthetic_rtti_function_declarations(rtti_attrs_def: trtti_attribute_list; name: shortstring);
+  procedure add_synthetic_rtti_function_declarations(rtti_attrs_def:trtti_attribute_list;name:shortstring);
     var
-      i: Integer;
-      sstate: tscannerstate;
-      attribute: trtti_attribute;
-      pd: tprocdef;
+      i : Integer;
+      sstate : tscannerstate;
+      attribute : trtti_attribute;
+      pd : tprocdef;
     begin
-      name := StringReplace(name, '.', '_', [rfReplaceAll]);
-      for i := 0 to rtti_attrs_def.get_attribute_count-1 do
+      name:=StringReplace(name,'.','_',[rfReplaceAll]);
+      for i:=0 to rtti_attrs_def.get_attribute_count-1 do
         begin
-          attribute := trtti_attribute(rtti_attrs_def.rtti_attributes[i]);
+          attribute:=trtti_attribute(rtti_attrs_def.rtti_attributes[i]);
           replace_scanner('rtti_class_attributes',sstate);
           if str_parse_method_dec('function rtti_'+name+'_'+IntToStr(i)+':'+ attribute.typesym.Name +';',potype_function,false,tabstractrecorddef(ttypesym(attribute.typesym).typedef),pd) then
             pd.synthetickind:=tsk_get_rttiattribute
