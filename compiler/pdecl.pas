@@ -460,8 +460,6 @@ implementation
             if not assigned(rtti_attrs_def) then
               rtti_attrs_def := trtti_attribute_list.create;
             rtti_attrs_def.addattribute(typeSym,p1);
-
-            Include(current_module.rtti_options, rmo_hasattributes);
           end;
         end;
 

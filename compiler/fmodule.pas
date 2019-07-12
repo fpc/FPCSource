@@ -44,7 +44,7 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,fpkg,
-       symbase,symsym,symtype,
+       symbase,symsym,
        wpobase,
        aasmbase,aasmdata;
 
@@ -67,9 +67,6 @@ interface
         mo_has_deprecated_msg
       );
       tmoduleoptions = set of tmoduleoption;
-
-      trtti_moduleoption = (rmo_hasattributes);
-      trtti_moduleoptions = set of trtti_moduleoption;
 
       tlinkcontaineritem=class(tlinkedlistitem)
       public
@@ -197,11 +194,6 @@ interface
 
         moduleoptions: tmoduleoptions;
         deprecatedmsg: pshortstring;
-
-        { contains a reference to the TUnitInfo rtti information for this module }
-        rttiunitinfo : TAsmSymbol;
-        rttiunitinfodef : tdef;
-        rtti_options : trtti_moduleoptions;
 
         { contains a list of types that are extended by helper types; the key is
           the full name of the type and the data is a TFPObjectList of
@@ -642,8 +634,6 @@ implementation
         deprecatedmsg:=nil;
         namespace:=nil;
         tcinitcode:=nil;
-        rttiunitinfo:=nil;
-        rttiunitinfodef:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(modulename);

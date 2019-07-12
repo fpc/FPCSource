@@ -978,16 +978,11 @@
 
       class function TObject.UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
         type
-          // from the typinfo unit
-          TUnitInfo = packed record
-            UnitOptions: byte;
-            UnitName: shortstring;
-          end;
           TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
             ClassType: TClass;
             ParentInfo: Pointer;
             PropCount: SmallInt;
-            UnitInfo: ^TUnitInfo;
+            UnitName: ShortString;
           end;
           PClassTypeInfo = ^TClassTypeInfo;
         var
@@ -1001,7 +996,7 @@
             {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
             classtypeinfo:=aligntoqword(classtypeinfo);
             {$endif}
-            result:=classtypeinfo^.UnitInfo^.UnitName;
+            result:=classtypeinfo^.UnitName;
           end
           else
             result:='';
