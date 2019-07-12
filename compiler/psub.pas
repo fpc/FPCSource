@@ -33,8 +33,6 @@ interface
       symdef,procinfo,optdfa;
 
     type
-      tcggetcodeblockfunc = function(pd: tprocdef) : tnode;
-
       tcgprocinfo = class(tprocinfo)
       private
         procedure CreateInlineInfo;
@@ -66,7 +64,7 @@ interface
         procedure resetprocdef;
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
-        procedure parse_body(get_code_block_func: tcggetcodeblockfunc=nil);
+        procedure parse_body;
 
         function has_assembler_child : boolean;
         procedure set_eh_info; override;
@@ -91,7 +89,7 @@ interface
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parse_only is
       true) }
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; isgeneric:boolean; get_code_block_func: tcggetcodeblockfunc = nil);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; isgeneric:boolean);
 
     { parses only the body of a non nested routine; needs a correctly setup pd }
     procedure read_proc_body(pd:tprocdef);
@@ -2071,7 +2069,7 @@ implementation
        end;
 
 
-    procedure tcgprocinfo.parse_body(get_code_block_func: tcggetcodeblockfunc);
+    procedure tcgprocinfo.parse_body;
       var
          old_current_procinfo : tprocinfo;
          old_block_type : tblock_type;
@@ -2155,17 +2153,8 @@ implementation
              current_scanner.startrecordtokens(procdef.generictokenbuf);
            end;
 
-         if assigned(get_code_block_func) then
-           begin
-             { generate the code-nodes }
-             code:=get_code_block_func(procdef);
-             init_main_block_syms(code);
-           end
-         else
-           begin
-             { parse the code ... }
-             code:=block(current_module.islibrary);
-           end;
+         { parse the code ... }
+         code:=block(current_module.islibrary);
 
          if recordtokens then
            begin
@@ -2277,7 +2266,7 @@ implementation
       end;
 
 
-    procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef;get_code_block_func: tcggetcodeblockfunc=nil);
+    procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2323,7 +2312,7 @@ implementation
            tokeninfo^[_FAIL].keyword:=alllanguagemodes;
          end;
 
-        tcgprocinfo(current_procinfo).parse_body(get_code_block_func);
+        tcgprocinfo(current_procinfo).parse_body;
 
         { reset _FAIL as _SELF normal }
         if (pd.proctypeoption=potype_constructor) then
@@ -2359,7 +2348,7 @@ implementation
                 assigned(current_procinfo.procdef.owner) and
                 (current_procinfo.procdef.owner.defowner=current_procinfo.procdef.struct)
               )
-            ) and not(assigned(get_code_block_func)) then
+            ) then
           consume(_SEMICOLON);
 
         if not isnestedproc then
@@ -2383,7 +2372,7 @@ implementation
       end;
 
 
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; isgeneric:boolean; get_code_block_func: tcggetcodeblockfunc);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; isgeneric:boolean);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2542,7 +2531,7 @@ implementation
          { compile procedure when a body is needed }
          if (pd_body in pdflags) then
            begin
-             read_proc_body(old_current_procinfo,pd, get_code_block_func);
+             read_proc_body(old_current_procinfo,pd);
            end
          else
            begin
