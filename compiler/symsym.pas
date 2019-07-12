@@ -46,6 +46,8 @@ interface
           procedure ppuwrite_platform(ppufile: tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile: tcompilerppufile);virtual;
        public
+          { this is Nil if the symbol has no RTTI attributes }
+          rtti_attribute_list : trtti_attribute_list;
           constructor create(st:tsymtyp;const n : string;doregister:boolean);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -352,7 +354,6 @@ interface
           dispid        : longint;
           propaccesslist: array[tpropaccesslisttypes] of tpropaccesslist;
           parast : tsymtable;
-          rtti_attribute_list : trtti_attribute_list;
           constructor create(const n : string);virtual;
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -622,6 +623,7 @@ implementation
 
     destructor tstoredsym.destroy;
       begin
+        rtti_attribute_list.free;
         inherited destroy;
       end;
 
@@ -1376,7 +1378,6 @@ implementation
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap].free;
          parast.free;
-         rtti_attribute_list.free;
          inherited destroy;
       end;
 

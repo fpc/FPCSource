@@ -58,6 +58,21 @@ interface
          procedure deref;
        end;
 
+       { trtti_attribute_list }
+
+       trtti_attribute = class
+          typesym         : tsym;
+          constructorcall : tnode;
+          symbolname      : string;
+       end;
+
+       trtti_attribute_list = class
+          rtti_attributes    : TFPObjectList;
+          procedure addattribute(atypesym: tsym; constructorcall: tnode);
+          destructor destroy; override;
+          function get_attribute_count: longint;
+       end;
+
        { tstoreddef }
 
        tstoreddef = class(tdef)
@@ -96,6 +111,8 @@ interface
           { contains additional data if this def is a generic constraint
             Note: this class is allocated on demand! }
           genconstraintdata : tgenericconstraintdata;
+          { this is Nil if the def has no RTTI attributes }
+          rtti_attribute_list : trtti_attribute_list;
           constructor create(dt:tdeftyp;doregister:boolean);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -392,21 +409,6 @@ interface
        end;
        pvmtentry = ^tvmtentry;
 
-       { trtti_attribute_list }
-
-       trtti_attribute = class
-          typesym         : tsym;
-          constructorcall : tnode;
-          symbolname      : string;
-       end;
-
-       trtti_attribute_list = class
-          rtti_attributes    : TFPObjectList;
-          procedure addattribute(atypesym: tsym; constructorcall: tnode);
-          destructor destroy; override;
-          function get_attribute_count: longint;
-       end;
-
        { tobjectdef }
 
        tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no, vmcs_unreachable);
@@ -453,7 +455,6 @@ interface
           }
           classref_created_in_current_module : boolean;
           objecttype     : tobjecttyp;
-          rtti_attribute_list : trtti_attribute_list;
           constructor create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -1884,6 +1885,7 @@ implementation
             generictokenbuf.free;
             generictokenbuf:=nil;
           end;
+        rtti_attribute_list.free;
         genericparas.free;
         if assigned(genericparaderefs) then
           for i:=0 to genericparaderefs.count-1 do
@@ -7024,11 +7026,6 @@ implementation
            begin
              freemem(vmcallstaticinfo);
              vmcallstaticinfo:=nil;
-           end;
-         if assigned(rtti_attribute_list) then
-           begin
-             rtti_attribute_list.Free;
-             rtti_attribute_list:=nil;
            end;
          inherited destroy;
       end;
