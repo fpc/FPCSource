@@ -1034,7 +1034,7 @@ implementation
     attribute:=trtti_attribute(pd.skpara);
 
     load := cloadnode.create(pd.funcretsym,pd.funcretsym.Owner);
-    assignment := cassignmentnode.create(load,Attribute.constructorcall);
+    assignment := cassignmentnode.create(load,Attribute.constructorcall.getcopy);
     assignment.resultdef := voidtype;
 
     statement := cstatementnode.Create(assignment,nil);

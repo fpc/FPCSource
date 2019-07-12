@@ -2898,6 +2898,7 @@ implementation
       var
         n : tnode;
       begin
+        constructorcall.free;
         for n in paras do
           n.free;
         inherited destroy;
