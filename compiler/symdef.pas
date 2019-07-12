@@ -2936,6 +2936,7 @@ implementation
                              TRTTI_ATTRIBUTE_LIST
 ****************************************************************************}
 
+
     constructor trtti_attribute.ppuload(ppufile: tcompilerppufile);
       begin
         ppufile.getderef(typesymderef);
@@ -2943,12 +2944,14 @@ implementation
         setlength(paras,ppufile.getlongint);
       end;
 
+
     procedure trtti_attribute.ppuwrite(ppufile: tcompilerppufile);
       begin
         ppufile.putderef(typesymderef);
         ppufile.putderef(typeconstrderef);
         ppufile.putlongint(length(paras));
       end;
+
 
     procedure trtti_attribute.ppuload_subentries(ppufile: tcompilerppufile);
       var
@@ -2958,6 +2961,7 @@ implementation
           paras[i]:=ppuloadnodetree(ppufile);
       end;
 
+
     procedure trtti_attribute.ppuwrite_subentries(ppufile: tcompilerppufile);
       var
         i : sizeint;
@@ -2965,6 +2969,7 @@ implementation
         for i:=0 to high(paras) do
           ppuwritenodetree(ppufile,paras[i]);
       end;
+
 
     destructor trtti_attribute.destroy;
       var
@@ -2976,6 +2981,7 @@ implementation
         inherited destroy;
       end;
 
+
     procedure trtti_attribute.buildderef;
       var
         i : sizeint;
@@ -2986,6 +2992,7 @@ implementation
           paras[i].buildderefimpl;
       end;
 
+
     procedure trtti_attribute.deref;
       var
         i : sizeint;
@@ -2995,6 +3002,7 @@ implementation
         for i:=0 to high(paras) do
           paras[i].derefimpl;
       end;
+
 
     class procedure trtti_attribute_list.bind(var dangling,owned:trtti_attribute_list);
       begin
@@ -3009,6 +3017,7 @@ implementation
         owned:=dangling;
         dangling:=nil;
       end;
+
 
     procedure trtti_attribute_list.addattribute(atypesym:tsym;typeconstr:tdef;constructorcall:tnode;constref paras:array of tnode);
       var
@@ -3027,12 +3036,14 @@ implementation
         rtti_attributes.Add(newattribute);
       end;
 
+
     procedure trtti_attribute_list.addattribute(attr:trtti_attribute);
       begin
         if not assigned(rtti_attributes) then
           rtti_attributes:=TFPObjectList.Create(true);
         rtti_attributes.add(attr);
       end;
+
 
     destructor trtti_attribute_list.destroy;
       var
@@ -3047,6 +3058,7 @@ implementation
         inherited destroy;
       end;
 
+
     function trtti_attribute_list.get_attribute_count:longint;
       begin
         if assigned(rtti_attributes) then
@@ -3054,6 +3066,7 @@ implementation
         else
           result:=0;
       end;
+
 
     procedure trtti_attribute_list.buildderef;
       var
@@ -3065,6 +3078,7 @@ implementation
           trtti_attribute(rtti_attributes[i]).buildderef;
       end;
 
+
     procedure trtti_attribute_list.deref;
       var
         i : sizeint;
@@ -3074,6 +3088,7 @@ implementation
         for i:=0 to rtti_attributes.count-1 do
           trtti_attribute(rtti_attributes[i]).deref;
       end;
+
 
     class procedure trtti_attribute_list.ppuload_subentries(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
       var
@@ -3088,6 +3103,7 @@ implementation
           end;
       end;
 
+
     class procedure trtti_attribute_list.ppuwrite_subentries(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
       var
         i : sizeint;
@@ -3098,6 +3114,7 @@ implementation
               trtti_attribute(attrlist.rtti_attributes[i]).ppuwrite_subentries(ppufile);
           end;
       end;
+
 
     class function trtti_attribute_list.ppuload(ppufile:tcompilerppufile):trtti_attribute_list;
       var
@@ -3113,6 +3130,7 @@ implementation
         else
           result:=nil;
       end;
+
 
     class procedure trtti_attribute_list.ppuwrite(attrlist:trtti_attribute_list;ppufile:tcompilerppufile);
       var
