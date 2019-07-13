@@ -523,6 +523,9 @@ type
 {$packrecords c}
   Penum_typedata=^Tenum_typedata;
   Tenum_typedata={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+{$if declared(TRttiDataCommon)}
+    Common: TRttiDataCommon;
+{$endif}
     ordtype:byte;
     case TTypeKind of
       tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet: (
