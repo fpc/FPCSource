@@ -598,11 +598,14 @@ type
   end;
 
 { TStrings class }
+  TMissingNameValueSeparatorAction = (mnvaValue,mnvaName,mnvaEmpty,mnvaError);
+  TMissingNameValueSeparatorActions = set of TMissingNameValueSeparatorAction;
 
   TStrings = class(TPersistent)
   private
     FDefaultEncoding: TEncoding;
     FEncoding: TEncoding;
+    FMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
     FSpecialCharsInited : boolean;
     FAlwaysQuote: Boolean;
     FQuoteChar : Char;
@@ -616,6 +619,7 @@ type
     FLineBreak : String;
     FWriteBOM: Boolean;
     function GetCommaText: string;
+    function GetMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
     Function GetLBS : TTextLineBreakStyle;
@@ -624,6 +628,7 @@ type
     Procedure SetLBS (AValue : TTextLineBreakStyle);
     procedure ReadData(Reader: TReader);
     procedure SetCommaText(const Value: string);
+    procedure SetMissingNameValueSeparatorAction(AValue: TMissingNameValueSeparatorAction);
     procedure SetStringsAdapter(const Value: IStringsAdapter);
     procedure SetValue(const Name, Value: string);
     procedure SetDelimiter(c:Char);
@@ -674,12 +679,12 @@ type
     function AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer; overload;
     function AddPair(const AName, AValue: string): TStrings; overload; {$IFDEF CLASSESINLINE}inline;{$ENDIF}
     function AddPair(const AName, AValue: string; AObject: TObject): TStrings; overload;
-    procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
     procedure AddStrings(TheStrings: TStrings; ClearFirst : Boolean); overload;
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
     procedure AddStrings(const TheStrings: array of string; ClearFirst : Boolean); overload;
     Procedure AddText(Const S : String); virtual;
+    procedure Append(const S: string);
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure Clear; virtual; abstract;
@@ -688,14 +693,15 @@ type
     function Equals(Obj: TObject): Boolean; override; overload;
     function Equals(TheStrings: TStrings): Boolean; overload;
     procedure Exchange(Index1, Index2: Integer); virtual;
+    function  ExtractName(Const S:String):String;
     function GetEnumerator: TStringsEnumerator;
+    procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function GetText: PChar; virtual;
     function IndexOf(const S: string): Integer; virtual;
     function IndexOfName(const Name: string): Integer; virtual;
     function IndexOfObject(AObject: TObject): Integer; virtual;
     procedure Insert(Index: Integer; const S: string); virtual; abstract;
-    procedure InsertObject(Index: Integer; const S: string;
-      AObject: TObject);
+    procedure InsertObject(Index: Integer; const S: string; AObject: TObject);
     procedure LoadFromFile(const FileName: string); overload; virtual;
     procedure LoadFromFile(const FileName: string; IgnoreEncoding : Boolean);
     procedure LoadFromFile(const FileName: string; AEncoding: TEncoding); overload; virtual;
@@ -708,29 +714,28 @@ type
     procedure SaveToStream(Stream: TStream); overload; virtual;
     procedure SaveToStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
     procedure SetText(TheText: PChar); virtual;
-    procedure GetNameValue(Index : Integer; Out AName,AValue : String);
-    function  ExtractName(Const S:String):String;
-    Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
-    property Delimiter: Char read GetDelimiter write SetDelimiter;
-    property DelimitedText: string read GetDelimitedText write SetDelimitedText;
-    property DefaultEncoding: TEncoding read FDefaultEncoding write SetDefaultEncoding;
-    property Encoding: TEncoding read FEncoding;
-    property LineBreak : string Read GetLineBreak write SetLineBreak;
-    Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
     property AlwaysQuote: Boolean read FAlwaysQuote write FAlwaysQuote;
-    property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
-    Property NameValueSeparator : Char Read GetNameValueSeparator Write SetNameValueSeparator;
-    property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;
     property Capacity: Integer read GetCapacity write SetCapacity;
     property CommaText: string read GetCommaText write SetCommaText;
     property Count: Integer read GetCount;
+    property DefaultEncoding: TEncoding read FDefaultEncoding write SetDefaultEncoding;
+    property DelimitedText: string read GetDelimitedText write SetDelimitedText;
+    property Delimiter: Char read GetDelimiter write SetDelimiter;
+    property Encoding: TEncoding read FEncoding;
+    property LineBreak : string Read GetLineBreak write SetLineBreak;
+    Property MissingNameValueSeparatorAction : TMissingNameValueSeparatorAction Read GetMissingNameValueSeparatorAction Write SetMissingNameValueSeparatorAction;
     property Names[Index: Integer]: string read GetName;
+    Property NameValueSeparator : Char Read GetNameValueSeparator Write SetNameValueSeparator;
     property Objects[Index: Integer]: TObject read GetObject write PutObject;
-    property Values[const Name: string]: string read GetValue write SetValue;
-    property Strings[Index: Integer]: string read Get write Put; default;
-    property Text: string read GetTextStr write SetTextStr;
-    property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
+    property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
     Property SkipLastLineBreak : Boolean Read GetSkipLastLineBreak Write SetSkipLastLineBreak;
+    Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
+    property Strings[Index: Integer]: string read Get write Put; default;
+    property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
+    property Text: string read GetTextStr write SetTextStr;
+    Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
+    property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;
+    property Values[const Name: string]: string read GetValue write SetValue;
     property WriteBOM: Boolean read FWriteBOM write FWriteBOM;
   end;
 
