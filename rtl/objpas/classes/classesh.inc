@@ -1435,6 +1435,7 @@ type
     FParent: TComponent;
     FFixups: TObject;
     FLoaded: TFpList;
+    FLock: TRTLCriticalSection;
     FOnFindMethod: TFindMethodEvent;
     FOnSetMethodProperty: TSetMethodPropertyEvent;
     FOnSetName: TSetNameEvent;
@@ -1449,6 +1450,8 @@ type
     FOnReadStringProperty:TReadWriteStringPropertyEvent;
     procedure DoFixupReferences;
     function FindComponentClass(const AClassName: string): TComponentClass;
+    procedure Lock;
+    procedure Unlock;
   protected
     function Error(const Message: string): Boolean; virtual;
     function FindMethod(ARoot: TComponent; const AMethodName: string): CodePointer; virtual;

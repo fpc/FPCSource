@@ -231,6 +231,7 @@ Type
     FMetadataItemRoute: THTTPRoute;
     FStatus: TRestStatusConfig;
     FStrings: TRestStringsConfig;
+    function GetRoutesRegistered: Boolean;
     procedure SetActive(AValue: Boolean);
     procedure SetAdminUserIDS(AValue: TStrings);
     procedure SetAuthenticator(AValue: TRestAuthenticator);
@@ -325,6 +326,7 @@ Type
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
     Function ExposeConnection(aOwner : TComponent; Const aConnection : TSQLDBRestConnection; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestSchema;
     Function ExposeConnection(Const aConnection : TSQLDBRestConnection; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestSchema;
+    Property RoutesRegistered : Boolean Read GetRoutesRegistered;
   Published
     // Register or unregister HTTP routes
     Property Active : Boolean Read FActive Write SetActive;
@@ -518,6 +520,11 @@ begin
   FActive:=AValue;
 end;
 
+function TSQLDBRestDispatcher.GetRoutesRegistered: Boolean;
+begin
+  Result:=FItemRoute<>Nil;
+end;
+
 procedure TSQLDBRestDispatcher.SetAdminUserIDS(AValue: TStrings);
 begin
   if FAdminUserIDs=AValue then Exit;
@@ -670,15 +677,20 @@ begin
     end;
   if (rdoConnectionInURL in DispatchOptions) then
     begin
-    C:=Strings.GetRestString(rpMetadataResourceName);
-    FMetadataRoute:=HTTPRouter.RegisterRoute(res+C,@HandleMetaDataRequest);
-    FMetadataItemRoute:=HTTPRouter.RegisterRoute(res+C+'/:id',@HandleMetaDataRequest);
+    // Both connection/metadata and /metadata must work.
+    // connection/metadata is handled by HandleRequest (FindSpecialResource)
+    // /metadata must be handled here.
+    if (rdoExposeMetadata in DispatchOptions) then
+      begin
+      C:=Strings.GetRestString(rpMetadataResourceName);
+      FMetadataRoute:=HTTPRouter.RegisterRoute(res+C,@HandleMetaDataRequest);
+      FMetadataItemRoute:=HTTPRouter.RegisterRoute(res+C+'/:id',@HandleMetaDataRequest);
+      end;
     Res:=Res+':connection/';
     end;
   Res:=Res+':resource';
   FListRoute:=HTTPRouter.RegisterRoute(res,@HandleRequest);
   FItemRoute:=HTTPRouter.RegisterRoute(Res+'/:id',@HandleRequest);
-
 end;
 
 function TSQLDBRestDispatcher.GetInputFormat(IO : TRestIO) : String;
@@ -817,6 +829,9 @@ begin
   IO.Response.Code:=aCode;
   IO.Response.CodeText:=aExtraMessage;
   IO.RestOutput.CreateErrorContent(aCode,aExtraMessage);
+  IO.RESTOutput.FinalizeOutput;
+  IO.Response.ContentStream.Position:=0;
+  IO.Response.ContentLength:=IO.Response.ContentStream.Size;
   IO.Response.SendResponse;
 end;
 
@@ -854,6 +869,8 @@ end;
 
 destructor TSQLDBRestDispatcher.Destroy;
 begin
+  if RoutesRegistered then
+    UnregisterRoutes;
   Authenticator:=Nil;
   FreeAndNil(FAdminUserIDs);
   FreeAndNil(FCustomViewResource);
@@ -1971,7 +1988,7 @@ begin
     // Make sure there is a document in case of error
     if (aResponse.ContentStream.Size=0) and Not ((aResponse.Code div 100)=2) then
       IO.RESTOutput.CreateErrorContent(aResponse.Code,aResponse.CodeText);
-    if Not (IO.Operation in [roOptions,roHEAD]) then
+    if Not ((IO.Operation in [roOptions,roHEAD]) or aResponse.ContentSent) then
       IO.RestOutput.FinalizeOutput;
     aResponse.ContentStream.Position:=0;
     aResponse.ContentLength:=aResponse.ContentStream.Size;
