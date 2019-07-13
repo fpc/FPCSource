@@ -6,7 +6,7 @@ Const
 
 // Windows
 {$ifdef windows}
-  FreeTypeDLL = 'freetype-6.dll';   // version 2.1.4
+  FreeTypeDLL = 'freetype.dll';
   {$define ft_found_platform}
 {$endif}
 
