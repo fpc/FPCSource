@@ -30,12 +30,14 @@ type
         seUTF8);
     var
       FStandardEncodings: array[TStandardEncoding] of TEncoding; static;
+      FSystemEncodings: array of TEncoding; static;
     Class Var
       FLock : TRTLCriticalSection;
     class function GetANSI: TEncoding; static;
     class function GetASCII: TEncoding; static;
     class function GetBigEndianUnicode: TEncoding; static;
     class function GetDefault: TEncoding; static;
+    class function GetSystemEncoding: TEncoding; static;
     class function GetUnicode: TEncoding; static;
     class function GetUTF7: TEncoding; static;
     class function GetUTF8: TEncoding; static;
@@ -99,6 +101,7 @@ type
     class property ASCII: TEncoding read GetASCII;
     class property BigEndianUnicode: TEncoding read GetBigEndianUnicode;
     class property Default: TEncoding read GetDefault;
+    class property SystemEncoding: TEncoding read GetSystemEncoding;
     class property Unicode: TEncoding read GetUnicode;
     class property UTF7: TEncoding read GetUTF7;
     class property UTF8: TEncoding read GetUTF8;
