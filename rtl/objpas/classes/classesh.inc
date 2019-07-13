@@ -893,8 +893,8 @@ type
     Procedure WriteExactSizeData(Const Buffer; aSize,aCount : NativeInt);
   public
     function Read(var Buffer; Count: Longint): Longint; virtual;
-    function Read(Buffer: TBytes; Count: Longint): Longint; overload;
-    function Read(Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
+    function Read(var Buffer: TBytes; Count: Longint): Longint; overload;
+    function Read( Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
 
     function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload;
     function Write(const Buffer: TBytes; Count: Longint): Longint; overload;
@@ -904,7 +904,7 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
 
     function ReadData(Buffer: Pointer; Count: NativeInt): NativeInt; overload;
-    function ReadData(const Buffer: TBytes; Count: NativeInt): NativeInt; overload;
+    function ReadData(Buffer: TBytes; Count: NativeInt): NativeInt; overload;
     function ReadData(var Buffer: Boolean): NativeInt; overload;
     function ReadData(var Buffer: Boolean; Count: NativeInt): NativeInt; overload;
     function ReadData(var Buffer: AnsiChar): NativeInt; overload;
@@ -931,11 +931,12 @@ type
     function ReadData(var Buffer: Single; Count: NativeInt): NativeInt; overload;
     function ReadData(var Buffer: Double): NativeInt; overload;
     function ReadData(var Buffer: Double; Count: NativeInt): NativeInt; overload;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
     function ReadData(var Buffer: Extended): NativeInt; overload;
     function ReadData(var Buffer: Extended; Count: NativeInt): NativeInt; overload;
     function ReadData(var Buffer: TExtended80Rec): NativeInt; overload;
     function ReadData(var Buffer: TExtended80Rec; Count: NativeInt): NativeInt; overload;
-
+{$ENDIF}
     procedure ReadBuffer(var Buffer; Count: Longint);
     procedure ReadBuffer(var Buffer: TBytes; Count: NativeInt); overload;
     procedure ReadBuffer(var Buffer: TBytes; Offset, Count: NativeInt); overload;
@@ -966,11 +967,12 @@ type
     procedure ReadBufferData(var Buffer: Single; Count: NativeInt); overload;
     procedure ReadBufferData(var Buffer: Double); overload;
     procedure ReadBufferData(var Buffer: Double; Count: NativeInt); overload;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
     procedure ReadBufferData(var Buffer: Extended); overload;
     procedure ReadBufferData(var Buffer: Extended; Count: NativeInt); overload;
     procedure ReadBufferData(var Buffer: TExtended80Rec); overload;
     procedure ReadBufferData(var Buffer: TExtended80Rec; Count: NativeInt); overload;
-
+{$ENDIF}
     procedure WriteBuffer(const Buffer; Count: Longint);
     procedure WriteBuffer(const Buffer: TBytes; Count: NativeInt); overload;
     procedure WriteBuffer(const Buffer: TBytes; Offset, Count: NativeInt); overload;
@@ -1003,13 +1005,14 @@ type
     function WriteData(const Buffer: Single; Count: NativeInt): NativeInt; overload;
     function WriteData(const Buffer: Double): NativeInt; overload;
     function WriteData(const Buffer: Double; Count: NativeInt): NativeInt; overload;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
     function WriteData(const Buffer: Extended): NativeInt; overload;
     function WriteData(const Buffer: Extended; Count: NativeInt): NativeInt; overload;
     function WriteData(const Buffer: TExtended80Rec): NativeInt; overload;
     function WriteData(const Buffer: TExtended80Rec; Count: NativeInt): NativeInt; overload;
-
-    procedure WriteBufferData(Buffer: Integer); overload;
-    procedure WriteBufferData(Buffer: Integer; Count: NativeInt); overload;
+{$ENDIF}
+    procedure WriteBufferData(Buffer: Int32); overload;
+    procedure WriteBufferData(Buffer: Int32; Count: NativeInt); overload;
     procedure WriteBufferData(Buffer: Boolean); overload;
     procedure WriteBufferData(Buffer: Boolean; Count: NativeInt); overload;
     procedure WriteBufferData(Buffer: AnsiChar); overload;
@@ -1034,11 +1037,12 @@ type
     procedure WriteBufferData(Buffer: Single; Count: NativeInt); overload;
     procedure WriteBufferData(Buffer: Double); overload;
     procedure WriteBufferData(Buffer: Double; Count: NativeInt); overload;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
     procedure WriteBufferData(Buffer: Extended); overload;
     procedure WriteBufferData(Buffer: Extended; Count: NativeInt); overload;
     procedure WriteBufferData(Buffer: TExtended80Rec); overload;
     procedure WriteBufferData(Buffer: TExtended80Rec; Count: NativeInt); overload;
-
+{$ENDIF}
     function CopyFrom(Source: TStream; Count: Int64): Int64;
     function ReadComponent(Instance: TComponent): TComponent;
     function ReadComponentRes(Instance: TComponent): TComponent;
