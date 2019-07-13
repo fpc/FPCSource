@@ -36,10 +36,10 @@ Type
   Public
     Procedure LoadFromIni(Const aIni: TCustomIniFile; aOptions : TConnectionIniOptions = []); overload;
     Procedure LoadFromIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TConnectionIniOptions); overload;
-    Procedure LoadFromFile(Const aFileName : String; aOptions : TConnectionIniOptions = []); overload;
-    Procedure LoadFromFile(Const aFileName : String; Const ASection : String; aOptions : TConnectionIniOptions); overload;
-    Procedure SaveToFile(Const aFileName : String; aOptions : TConnectionIniOptions = []);overload;
-    Procedure SaveToFile(Const aFileName : String; Const ASection : String; aOptions : TConnectionIniOptions = []);overload;
+    Procedure LoadFromIniFile(Const aFileName : String; aOptions : TConnectionIniOptions = []); overload;
+    Procedure LoadFromIniFile(Const aFileName : String; Const ASection : String; aOptions : TConnectionIniOptions); overload;
+    Procedure SaveToIniFile(Const aFileName : String; aOptions : TConnectionIniOptions = []);overload;
+    Procedure SaveToIniFile(Const aFileName : String; Const ASection : String; aOptions : TConnectionIniOptions = []);overload;
     Procedure SaveToIni(Const aIni: TCustomIniFile; aOptions : TConnectionIniOptions = []); overload;
     Procedure SaveToIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TConnectionIniOptions); overload;
   end;
@@ -578,14 +578,14 @@ begin
   LoadFromIni(aIni,DefaultConnectionSection,aOptions);
 end;
 
-procedure TSQLDBRestConnectionHelper.LoadFromFile(const aFileName: String; aOptions: TConnectionIniOptions);
+procedure TSQLDBRestConnectionHelper.LoadFromIniFile(const aFileName: String; aOptions: TConnectionIniOptions);
 
 
 begin
-  Loadfromfile(aFileName,DefaultConnectionSection,aOptions);
+  LoadfromInifile(aFileName,DefaultConnectionSection,aOptions);
 end;
 
-procedure TSQLDBRestConnectionHelper.LoadFromFile(const aFileName: String; const ASection: String; aOptions: TConnectionIniOptions);
+procedure TSQLDBRestConnectionHelper.LoadFromIniFile(const aFileName: String; const ASection: String; aOptions: TConnectionIniOptions);
 
 Var
   Ini : TCustomIniFile;
@@ -599,12 +599,12 @@ begin
   end;
 end;
 
-procedure TSQLDBRestConnectionHelper.SaveToFile(const aFileName: String; aOptions: TConnectionIniOptions);
+procedure TSQLDBRestConnectionHelper.SaveToIniFile(const aFileName: String; aOptions: TConnectionIniOptions);
 begin
-  SaveToFile(aFileName,DefaultConnectionSection,aOptions);
+  SaveToIniFile(aFileName,DefaultConnectionSection,aOptions);
 end;
 
-procedure TSQLDBRestConnectionHelper.SaveToFile(const aFileName: String; const ASection: String; aOptions: TConnectionIniOptions);
+procedure TSQLDBRestConnectionHelper.SaveToIniFile(const aFileName: String; const ASection: String; aOptions: TConnectionIniOptions);
 Var
   Ini : TCustomIniFile;
 
