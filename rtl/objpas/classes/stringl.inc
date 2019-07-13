@@ -610,57 +610,72 @@ end;
 
 Class Function TStrings.GetNextLine (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
 
-Var 
-  PS : PChar;
-  IP,L : SizeInt;
-  
+var
+  LengthOfValue: SizeInt;
+  StartPos, FuturePos: SizeInt;
+
 begin
-  L:=Length(Value);
-  S:='';
-  Result:=False;
-  If ((L-P)<0) then 
-    exit;
-  if ((L-P)=0) and (not (value[P] in [#10,#13])) Then
-    Begin
-      s:=value[P];
-      inc(P);
-      Exit(True);
-    End;
-  PS:=PChar(Value)+P-1;
-  IP:=P;
-  While ((L-P)>=0) and (not (PS^ in [#10,#13])) do 
+  LengthOfValue := Length(Value);
+  StartPos := P;
+  if (StartPos <= 0) or (StartPos > LengthOfValue) then // True for LengthOfValue <= 0
     begin
-    P:=P+1;
-    Inc(PS);
+    S := '';
+    Exit(False);
     end;
-  SetLength (S,P-IP);
-  System.Move (Value[IP],Pointer(S)^,P-IP);
-  If (P<=L) and (Value[P]=#13) then 
-    Inc(P);
-  If (P<=L) and (Value[P]=#10) then
-    Inc(P); // Point to character after #10(#13)
-  Result:=True;
+  FuturePos := StartPos;
+  while (FuturePos <= LengthOfValue) and not (Value[FuturePos] in [#10, #13]) do
+    Inc(FuturePos);
+  // If we use S := Copy(Value, StartPos, FuturePos - StartPos); then compiler
+  // generate TempS := Copy(...); S := TempS to eliminate side effects and
+  // implicit "try finally" for TempS finalization
+  // When we use SetString then no TempS, no try finally generated,
+  // but we must check case when Value and S is same (side effects)
+  if Pointer(S) = Pointer(Value) then
+    System.Delete(S, FuturePos, High(FuturePos))
+  else
+    begin
+    SetString(S, @Value[StartPos], FuturePos - StartPos);
+    if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #13) then
+      Inc(FuturePos);
+    if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #10) then
+      Inc(FuturePos);
+    end;
+  P := FuturePos;
+  Result := True;
 end;
 
 Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
 
-Var
-  PS,PC,PP : PChar;
-
+var
+  StartPos, FuturePos: SizeInt;
+  
 begin
-  S:='';
-  Result:=False;
-  If ((Length(Value)-P)<0) then
-    exit;
-  PS:=@Value[P];
-  PC:=PS;
-  PP:=AnsiStrPos(PS,PChar(FLineBreak));
-  // Stop on #0.
-  While (PC^<>#0) and (PC<>PP) do
-    Inc(PC);
-  P:=P+(PC-PS)+Length(FLineBreak);
-  SetString(S,PS,PC-PS);
-  Result:=True;
+  StartPos := P;
+  if (StartPos <= 0) or (StartPos > Length(Value)) then // True for Length <= 0
+    begin
+    S := '';
+    Exit(False);
+    end;
+  FuturePos := Pos(FLineBreak, Value, StartPos); // Use PosEx in old RTL
+  // Why we don't use Copy but use SetString read in GetNextLine
+  if FuturePos = 0 then // No line breaks
+    begin
+    FuturePos := Length(Value) + 1;
+    if Pointer(S) = Pointer(Value) then
+      // Nothing to do
+    else
+      SetString(S, @Value[StartPos], FuturePos - StartPos)
+    end
+  else
+    if Pointer(S) = Pointer(Value) then
+      System.Delete(S, FuturePos, High(FuturePos))
+    else
+      begin
+      SetString(S, @Value[StartPos], FuturePos - StartPos);
+      Inc(FuturePos, Length(FLineBreak));
+      end;
+  P := FuturePos;
+  Result := True;
 end;
 
 {$IF (SizeOf(Integer) < SizeOf(SizeInt)) }
