@@ -325,7 +325,7 @@ end;
 
 
 Procedure TStrings.SetDelimitedText(const AValue: string);
-var i,j:integer;
+var i,j: SizeInt;
     aNotFirst:boolean;
 begin
  CheckSpecialChars;
@@ -542,7 +542,7 @@ end;
 Function TStrings.GetTextStr: string;
 
 Var P : Pchar;
-    I,L,NLS : Longint;
+    I,L,NLS : SizeInt;
     S,NL : String;
 
 begin
@@ -608,11 +608,11 @@ begin
   // Empty.
 end;
 
-Class Function TStrings.GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+Class Function TStrings.GetNextLine (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
 
 Var 
   PS : PChar;
-  IP,L : Integer;
+  IP,L : SizeInt;
   
 begin
   L:=Length(Value);
@@ -642,7 +642,7 @@ begin
   Result:=True;
 end;
 
-Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
 
 Var
   PS,PC,PP : PChar;
@@ -663,11 +663,31 @@ begin
   Result:=True;
 end;
 
+{$IF (SizeOf(Integer) < SizeOf(SizeInt)) }
+class function TStrings.GetNextLine(const Value: string; var S: string; var P: Integer) : Boolean;
+var
+  LP: SizeInt;
+begin
+  LP := P;
+  Result := GetNextLine(Value, S, LP);
+  P := LP;
+end;
+
+function TStrings.GetNextLineBreak(const Value: string; var S: string; var P: Integer) : Boolean;
+var
+  LP: SizeInt;
+begin
+  LP := P;
+  Result := GetNextLineBreak(Value, S, LP);
+  P := LP;
+end;
+{$IFEND}
+
 Procedure TStrings.DoSetTextStr(const Value: string; DoClear : Boolean);
 
 Var
   S : String;
-  P : Integer;
+  P : SizeInt;
 
 begin
   Try
@@ -1037,7 +1057,7 @@ Var
   Buffer     : AnsiString;
   BytesRead,
   BufLen,
-  I,BufDelta     : Longint;
+  I,BufDelta     : SizeInt;
 begin
   if not IgnoreEncoding then
     begin
@@ -1082,7 +1102,7 @@ Var
   T              : string;
   BytesRead,
   BufLen,
-  I,BufDelta,
+  I,BufDelta: SizeInt;
   PreambleLength : Longint;
 begin
   // reread into a buffer
