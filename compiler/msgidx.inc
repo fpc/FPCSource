@@ -129,7 +129,6 @@ const
   scan_w_setpeosversion_not_support=02103;
   scan_w_setpesubsysversion_not_support=02104;
   scan_n_changecputype=02105;
-  scan_e_unresolved_attribute=02106;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -1113,9 +1112,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 83507;
+  MsgTxtSize = 83464;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,107,352,126,99,61,142,34,221,68,
+    28,106,352,126,99,61,142,34,221,68,
     62,20,30,1,1,1,1,1,1,1
   );

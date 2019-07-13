@@ -1143,7 +1143,7 @@ implementation
       procedure check_unbound_attributes;
         begin
           if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
-            Message1(scan_e_unresolved_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+            Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
           rtti_attrs_def.free;
           rtti_attrs_def:=nil;
         end;
