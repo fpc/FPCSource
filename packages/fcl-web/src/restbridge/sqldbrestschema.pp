@@ -49,6 +49,7 @@ Const
   JSONSchemaRoot = 'schema';
   JSONResourcesRoot = 'resources';
   JSONConnectionsRoot = 'connections';
+  JSONConnectionName = 'connectionName';
 
 Type
 
@@ -200,6 +201,7 @@ Type
     function GetFieldList(aListKind: TFieldListKind; ASep : String = ''): UTF8String;
     function GetFieldArray(aListKind: TFieldListKind): TSQLDBRestFieldArray;
     Function GetResolvedSQl(aKind : TSQLKind; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = '') : UTF8String;
+    Function ProcessSQl(aSQL : String; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = '') : UTF8String;
     Procedure PopulateFieldsFromFieldDefs(Defs : TFieldDefs; aIndexFields : TStringArray; aProcessIdentifier : TProcessIdentifier; aMinFieldOpts : TRestFieldOptions);
     Property SQL [aKind : TSQLKind] : TStrings Read GetSQLTyped;
     Property BusinessProcessor : TSQLDBRestCustomBusinessProcessor Read FBusinessProcessor;
@@ -521,7 +523,7 @@ end;
 function TSQLDBRestSchema.AsJSON(const aPropName: UTF8String): TJSONData;
 
 begin
-  Result:=TJSONObject.Create([JSONResourcesRoot,Resources.AsJSON(),'connectionName',ConnectionName]);
+  Result:=TJSONObject.Create([JSONResourcesRoot,Resources.AsJSON(),JSONConnectionName,ConnectionName]);
   if (aPropName<>'') then
     Result:=TJSONObject.Create([aPropName,Result]);
 end;
@@ -559,8 +561,10 @@ Var
 
 begin
   J:=aData as TJSONObject;
+  if (aPropName<>'') then
+    J:=J.Objects[aPropName];
   Resources.FromJSON(J,JSONResourcesRoot);
-  ConnectionName:=J.Get(aPropName,'');
+  ConnectionName:=J.Get(JSONConnectionName,'');
   AttachAllProcessors;
 end;
 
@@ -1159,13 +1163,21 @@ function TSQLDBRestResource.GetResolvedSQl(aKind: TSQLKind;
   const AWhere: UTF8String; const aOrderBy: UTF8String; aLimit: UTF8String
   ): UTF8String;
 
-Var
-  S : UTF8String;
-
 begin
   Result:=SQL[aKind].Text;
   if (Result='') then
     Result:=GenerateDefaultSQL(aKind);
+  Result:=ProcessSQL(Result,aWhere,aOrderBy,aLimit);
+end;
+
+function TSQLDBRestResource.ProcessSQl(aSQL: String; const AWhere: UTF8String;
+  const aOrderBy: UTF8String; aLimit: UTF8String): UTF8String;
+
+Var
+  S : UTF8String;
+
+begin
+  Result:=aSQL;
   if (aWhere<>'') then
     S:='WHERE '+aWhere
   else
@@ -1240,6 +1252,7 @@ begin
       Exclude(O,foFilter);
       end;
     F:=Fields.AddField(FN,RFT,O);
+    F.NativeFieldType:=FD.DataType;
     if F.FieldType=rftString then
       F.MaxLen:=FD.Size;
     F.PublicName:=PN;
