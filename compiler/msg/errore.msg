@@ -146,7 +146,7 @@ general_t_unitscope=01027_T_Using unit scope: $1
 #
 # Scanner
 #
-# 02105 is the last used one
+# 02106 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -432,11 +432,13 @@ scan_w_setpeosversion_not_support=02103_W_SETPEOSVERSION is not supported by the
 scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION is not supported by the target OS
 % The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
 scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified controller
+scan_e_unresolved_attribute=02106_E_Unresolved custom attribute: "$1".
+% A custom attribute is defined, but there is no identifier to bind it to.
 % \end{description}
 #
 # Parser
 #
-# 03350 is the last used one
+# 03351 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1583,8 +1585,6 @@ parser_w_operator_overloaded_hidden_3=03347_W_Operator overload hidden by intern
 parser_e_threadvar_must_be_class=03348_E_Thread variables inside classes or records must be class variables
 % A \var{threadvar} section inside a class or record was started without it being prefixed by \var{class}.
 parser_e_only_static_members_via_object_type=03349_E_Only static methods and static variables can be referenced through an object type
-parser_e_unbound_attribute=03350_E_Unbound custom attribute: "$1".
-% A custom attribute is defined, but there is no identifier to bind it to.
 % This error occurs in a situation like the following:
 % \begin{verbatim}
 % Type
@@ -1596,10 +1596,12 @@ parser_e_unbound_attribute=03350_E_Unbound custom attribute: "$1".
 %   TObj.test;
 % \end{verbatim}
 % \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
-parse_e_callthrough_varargs=03350_E_Cannot redeclare C-style variadic function "$1" as external on this platform; make its first declaration already external
+parser_e_callthrough_varargs=03350_E_Cannot redeclare C-style variadic function "$1" as external on this platform; make its first declaration already external
 % If a function is declared normally in the interface or as a forward declaration, and then later as external, the compiler
 % must generate a stub that calls the external function. Due to code generation limitations, this cannot be done on some
 % platforms. Even on platforms where it is supported, this is quite inefficient.
+parser_e_unbound_attribute=03351_E_Unbound custom attribute: "$1".
+% A custom attribute is defined, but there is no identifier to bind it to.
 %
 % \end{description}
 %
