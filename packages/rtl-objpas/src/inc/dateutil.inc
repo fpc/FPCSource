@@ -448,7 +448,7 @@ function TryISOStrToTime(const aString: string; Out outTime: TDateTime): Boolean
 // Combination of previous
 function TryISOStrToDateTime(const aString: string; out outDateTime: TDateTime): Boolean;
 // Z +hh:nn -hh:nn
-Function TryISOTZStrToTZOffset(TZ : String; Out TZOffset : Integer) : boolean;
+Function TryISOTZStrToTZOffset(const TZ : String; Out TZOffset : Integer) : boolean;
 
 // ISO 8601 Date/Time formatting
 
@@ -2857,7 +2857,7 @@ begin
     outDateTime := 0;
 end;
 
-Function TryISOTZStrToTZOffset(TZ : String; Out TZOffset : Integer) : boolean;
+Function TryISOTZStrToTZOffset(const TZ : String; Out TZOffset : Integer) : boolean;
 
 Var
   H,M : LongInt;
@@ -2871,7 +2871,16 @@ begin
     Result:=TZ[1] in ['+','-'];
     if Not Result then
       Exit;
-    Result:=TryStrToInt(Copy(TZ,2,2),H) and TryStrToInt(Copy(TZ,5,2),M);
+    case Length(TZ) of
+      3: begin
+        Result:=TryStrToInt(Copy(TZ,2,2),H);
+        M := 0;
+      end;
+      5: Result:=TryStrToInt(Copy(TZ,2,2),H) and TryStrToInt(Copy(TZ,4,2),M);
+      6: Result:=TryStrToInt(Copy(TZ,2,2),H) and TryStrToInt(Copy(TZ,5,2),M);
+    else
+      Result := False;
+    end;
     if not Result then
       exit;
     TZOffset:=H*60+M;
@@ -2903,6 +2912,16 @@ begin
     begin
     TZ:='Z';
     S:=Copy(S,1,L-1);
+    end
+  else If (L>2) and (S[L-2] in ['+','-']) then
+    begin
+    TZ:=Copy(S,L-2,3);
+    S:=Copy(S,1,L-3);
+    end
+  else If (L>4) and (S[L-4] in ['+','-']) then
+    begin
+    TZ:=Copy(S,L-4,5);
+    S:=Copy(S,1,L-5);
     end
   else If (L>5) and (S[L-5] in ['+','-']) then
     begin
