@@ -27,7 +27,8 @@ Type
                            rdoCustomView,          // Expose custom view /customview
                            rdoHandleCORS,          // Handle CORS requests
                            rdoAccessCheckNeedsDB,  // Authenticate after connection to database was made.
-                           rdoConnectionResource   // Enable connection managament through /_connection[/:Conn] resource
+                           rdoConnectionResource,   // Enable connection managament through /_connection[/:Conn] resource
+                           rdoEmptyCORSDomainToOrigin // if CORSAllowedOrigins is empty CORS requests will mirror Origin instead of *
                            // rdoServerInfo        // Enable querying server info through /_serverinfo  resource
                            );
 
@@ -308,7 +309,7 @@ Type
     // General HTTP handling
     procedure DoRegisterRoutes; virtual;
     procedure DoHandleEvent(IsBefore : Boolean;IO: TRestIO); virtual;
-    function ResolvedCORSAllowedOrigins: String; virtual;
+    function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
     procedure HandleCORSRequest(aConnection: TSQLDBRestConnection; IO: TRestIO); virtual;
     procedure HandleResourceRequest(aConnection : TSQLDBRestConnection; IO: TRestIO); virtual;
     procedure DoHandleRequest(IO: TRestIO); virtual;
@@ -322,6 +323,7 @@ Type
     procedure HandleMetadataRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleConnRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleRequest(aRequest : TRequest; aResponse : TResponse);
+    Procedure VerifyPathInfo(aRequest : TRequest);
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : Array of String; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
     Function ExposeConnection(aOwner : TComponent; Const aConnection : TSQLDBRestConnection; aTables : TStrings = nil; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestSchema;
@@ -409,7 +411,7 @@ Const
 
 implementation
 
-uses fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
+uses uriparser, fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
 
 Type
 
@@ -492,9 +494,16 @@ end;
 
 procedure TSQLDBRestDispatcher.SetDispatchOptions(AValue: TRestDispatcherOptions);
 
+Var
+  DeleteConnection : Boolean;
+
 begin
+  DeleteConnection:=(rdoConnectionInURL in FDispatchOptions) and Not (rdoConnectionInURL in aValue);
   if (rdoConnectionResource in aValue) then
-    Include(aValue,rdoConnectionInURL);
+    if DeleteConnection then // if user disables rdoConnectionInURL, we disable rdoConnectionResource.
+      exclude(aValue,rdoConnectionResource)
+    else // else we include rdoConnectionInURL...
+      Include(aValue,rdoConnectionInURL);
   if FDispatchOptions=AValue then Exit;
   FDispatchOptions:=AValue;
 end;
@@ -1617,12 +1626,33 @@ begin
     end
 end;
 
-function TSQLDBRestDispatcher.ResolvedCORSAllowedOrigins: String;
+function TSQLDBRestDispatcher.ResolvedCORSAllowedOrigins(aRequest : TRequest): String;
+
+Var
+  URl : String;
+  uri : TURI;
 
 begin
   Result:=FCORSAllowedOrigins;
   if Result='' then
-     Result:='*';
+    begin
+    // Sent with CORS request
+    Result:=aRequest.GetCustomHeader('Origin');
+    if (Result='') and (rdoEmptyCORSDomainToOrigin in DispatchOptions) then
+      begin
+      // Fallback
+      URL:=aRequest.Referer;
+      if (URL<>'') then
+        begin
+        uri:=ParseURI(URL,'http',0);
+        Result:=Format('%s://%s',[URI.Protocol,URI.Host]);
+        if (URI.Port<>0) then
+          Result:=Result+':'+IntToStr(URI.Port);
+        end;
+      end;
+    end;
+  if Result='' then
+    Result:='*';
 end;
 
 procedure TSQLDBRestDispatcher.HandleCORSRequest(aConnection : TSQLDBRestConnection; IO : TRestIO);
@@ -1644,7 +1674,7 @@ begin
     end
   else
     begin
-    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins);
+    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(IO.Request));
     S:=IO.Resource.GetHTTPAllow;
     IO.Response.SetCustomHeader('Access-Control-Allow-Methods',S);
     IO.Response.SetCustomHeader('Access-Control-Allow-Headers','x-requested-with, content-type, authorization');
@@ -1684,7 +1714,7 @@ begin
         Conn.OnLog:=@IO.DoSQLLog;
         end;
       if (rdoHandleCORS in DispatchOptions) then
-        IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins);
+        IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(IO.Request));
       if not AuthenticateRequest(IO,True) then
         exit;
       if Not CheckResourceAccess(IO) then
@@ -2000,6 +2030,42 @@ begin
 
     IO.Free;
   end;
+end;
+
+procedure TSQLDBRestDispatcher.VerifyPathInfo(aRequest: TRequest);
+Var
+  Full,Path : String;
+  BasePaths : TStringArray;
+  I : Integer;
+
+begin
+  // Check & discard basepath parts of the URL
+  Path:=aRequest.GetNextPathInfo;
+  Full:=BasePath;
+  BasePaths:=Full.Split('/',TStringSplitOptions.ExcludeEmpty);
+  I:=0;
+  While (I<Length(BasePaths)) and SameText(Path,BasePaths[i]) do
+    begin
+    inc(I);
+    Path:=aRequest.GetNextPathInfo;
+    end;
+  if (I<Length(BasePaths)) then
+    Raise ESQLDBRest.Create(400,'NOT FOUND');
+  // Path1 is now either connection or resource
+  if (rdoConnectionInURL in DispatchOptions) then
+    begin
+    // Both /metadata and /connection/metadata are possible
+    if not ((rdoExposeMetadata in DispatchOptions) and SameText(Path,Strings.getRestString(rpMetadataResourceName))) then
+      begin
+      aRequest.RouteParams['connection']:=Path;
+      Path:=aRequest.GetNextPathInfo;
+      end;
+    end;
+  aRequest.RouteParams['resource']:=Path;
+  // Next part is ID
+  Path:=aRequest.GetNextPathInfo;
+  if (Path<>'') then
+    aRequest.RouteParams['ID']:=Path;
 end;
 
 function TSQLDBRestDispatcher.ExposeDatabase(const aType, aHostName, aDatabaseName, aUserName, aPassword: String;

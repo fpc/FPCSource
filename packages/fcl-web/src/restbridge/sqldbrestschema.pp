@@ -1079,7 +1079,7 @@ Const
 
 Const
   Wheres = [flWhereKey];
-  Colons = Wheres + [flInsertParams];
+  Colons = Wheres + [flInsertParams,flUpdate];
   UseEqual = Wheres+[flUpdate];
 
 Var
@@ -1178,16 +1178,29 @@ Var
 
 begin
   Result:=aSQL;
+
+  // from tables %FULLWHERE%
   if (aWhere<>'') then
     S:='WHERE '+aWhere
   else
     S:='';
   Result:=StringReplace(Result,'%FULLWHERE%',S,[rfReplaceAll]);
+
+  // from tables WHERE %REQUIREDWHERE%
   if (aWhere<>'') then
     S:=aWhere
   else
     S:='(1=0)';
   Result:=StringReplace(Result,'%REQUIREDWHERE%',S,[rfReplaceAll]);
+
+  // from tables WHERE X=Y %OPTIONALWHERE%
+  if (aWhere<>'') then
+    S:='AND ('+aWhere+')'
+  else
+    S:='';
+  Result:=StringReplace(Result,'%OPTIONALWHERE%',S,[rfReplaceAll]);
+
+  // from tables WHERE X=Y AND %WHERE%
   if (aWhere<>'') then
     S:='('+aWhere+')'
   else
