@@ -385,13 +385,12 @@ implementation
             arraydef:
               { in an array, all elements come right after each other ->
                 replace with a packed record }
-              newdef:=crecorddef.create_global_internal('',1,1,1);
+              newdef:=crecorddef.create_global_internal('',1,1);
             recorddef,
             objectdef:
               newdef:=crecorddef.create_global_internal('',
                 tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignment,
-                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin,
-                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).maxCrecordalign);
+                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin);
             else
               internalerror(2015122401);
           end;

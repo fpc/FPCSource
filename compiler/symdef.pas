@@ -374,7 +374,7 @@ interface
           variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
-          constructor create_global_internal(n: string; packrecords, recordalignmin, maxCrecordalign: shortint); virtual;
+          constructor create_global_internal(n: string; packrecords, recordalignmin: shortint); virtual;
           function add_field_by_def(const optionalname: TIDString; def: tdef): tsym;
           procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -1387,8 +1387,7 @@ implementation
         { set recordalinmin to sizeof(pint), so the second field gets put at
           offset = sizeof(pint) as expected }
         result:=crecorddef.create_global_internal(
-          name,sizeof(pint),sizeof(pint),
-          init_settings.alignment.maxCrecordalign);
+          name,sizeof(pint),sizeof(pint));
 {$ifdef cpu16bitaddr}
         index_field:=result.add_field_by_def('',u16inttype);
 {$else cpu16bitaddr}
@@ -1424,8 +1423,7 @@ implementation
         for i:=low(fields) to high(fields) do
           fieldlist.add(fields[i]);
         result:=crecorddef.create_global_internal(internaltypeprefixName[prefix],packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
+          targetinfos[target_info.system]^.alignment.recordalignmin);
         result.add_fields_from_deflist(fieldlist);
         fieldlist.free;
       end;
@@ -1456,8 +1454,7 @@ implementation
             exit;
           end;
         recdef:=crecorddef.create_global_internal(name,packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
+          targetinfos[target_info.system]^.alignment.recordalignmin);
         fields:=tfplist.create;
         fields.add(countdef);
         if count>0 then
@@ -4783,7 +4780,7 @@ implementation
       end;
 
 
-    constructor trecorddef.create_global_internal(n: string; packrecords, recordalignmin, maxCrecordalign: shortint);
+    constructor trecorddef.create_global_internal(n: string; packrecords, recordalignmin: shortint);
       var
         oldsymtablestack: tsymtablestack;
         ts: ttypesym;
@@ -4798,7 +4795,7 @@ implementation
           that can have side-effects (e.g., it removes helpers) }
         symtablestack:=nil;
 
-        symtable:=trecordsymtable.create(n,packrecords,recordalignmin,maxCrecordalign);
+        symtable:=trecordsymtable.create(n,packrecords,recordalignmin);
         symtable.defowner:=self;
         isunion:=false;
         inherited create(n,recorddef,true);
@@ -4892,7 +4889,7 @@ implementation
            end
          else
            begin
-             symtable:=trecordsymtable.create(objrealname^,0,0,0);
+             symtable:=trecordsymtable.create(objrealname^,0,0);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
@@ -7082,7 +7079,7 @@ implementation
         if objecttype=odt_helper then
           owner.includeoption(sto_has_helper);
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords,
-          current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+          current_settings.alignment.recordalignmin);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;
         set_parent(c);
@@ -7112,7 +7109,7 @@ implementation
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
            stringdispose(objextname);
-         symtable:=tObjectSymtable.create(self,objrealname^,0,0,0);
+         symtable:=tObjectSymtable.create(self,objrealname^,0,0);
          tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
          tObjectSymtable(symtable).paddingsize:=ppufile.getword;
          tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);

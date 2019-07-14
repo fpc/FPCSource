@@ -1088,7 +1088,7 @@ implementation
           accessed from within nested routines (start with extra dollar to prevent
           the JVM from thinking this is a nested class in the unit) }
         nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
-          current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,current_settings.alignment.maxCrecordalign);
+          current_settings.alignment.localalignmax,current_settings.alignment.localalignmin);
         nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
   {$ifdef jvm}
         maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);

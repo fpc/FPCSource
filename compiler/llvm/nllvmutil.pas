@@ -177,8 +177,7 @@ implementation
           fields[1]:=pd.getcopyas(procvardef,pc_address_only,'');
           fields[2]:=voidpointertype;
           itemdef:=llvmgettemprecorddef(fields,C_alignment,
-            targetinfos[target_info.system]^.alignment.recordalignmin,
-            targetinfos[target_info.system]^.alignment.maxCrecordalign);
+            targetinfos[target_info.system]^.alignment.recordalignmin);
           include(itemdef.defoptions,df_llvm_no_struct_packing);
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
           tllvmtai_typedconstbuilder(tcb).appendingdef:=true;

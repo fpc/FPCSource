@@ -108,10 +108,9 @@ interface
           recordalignment,       { alignment desired when inserting this record }
           fieldalignment,        { alignment current alignment used when fields are inserted }
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
-          recordalignmin,            { local equivalents of global settings, so that records can }
-          maxCrecordalign: shortint; { be created with custom settings internally }
+          recordalignmin: shortint; { local equivalentsof global settings, so that records can be created with custom settings internally }
           has_fields_with_mop : tmanagementoperators; { whether any of the fields has the need for a management operator (or one of the field's fields) }
-          constructor create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+          constructor create(const n:string;usealign,recordminalign:shortint);
           destructor destroy;override;
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -161,14 +160,14 @@ interface
           { object/classes. In XE5 and newer is possible to use class operator }
           { for classes (like for Delphi .NET before) only for Delphi NEXTGEN  }
           managementoperators : tmanagementoperators;
-          constructor create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+          constructor create(const n:string;usealign,recordminalign:shortint);
           procedure insertunionst(unionst : trecordsymtable;offset : asizeint);
           procedure includemanagementoperator(mop:tmanagementoperator);
        end;
 
        tObjectSymtable = class(tabstractrecordsymtable)
        public
-          constructor create(adefowner:tdef;const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+          constructor create(adefowner:tdef;const n:string;usealign,recordminalign:shortint);
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
@@ -1170,7 +1169,7 @@ implementation
       end;
 {$endif llvm}
 
-    constructor tabstractrecordsymtable.create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+    constructor tabstractrecordsymtable.create(const n:string;usealign,recordminalign:shortint);
       begin
         inherited create(n);
         _datasize:=0;
@@ -1178,7 +1177,6 @@ implementation
         recordalignment:=1;
         usefieldalignment:=usealign;
         recordalignmin:=recordminalign;
-        maxCrecordalign:=recordmaxCalign;
         padalignment:=1;
         { recordalign C_alignment means C record packing, that starts
           with an alignment of 1 }
@@ -1310,7 +1308,7 @@ implementation
       begin
         case usefieldalignment of
           C_alignment:
-            varalignrecord:=used_align(varalign,recordalignmin,maxCrecordalign);
+            varalignrecord:=used_align(varalign,recordalignmin,current_settings.alignment.maxCrecordalign);
           mac68k_alignment:
             varalignrecord:=2;
           else
@@ -1788,7 +1786,7 @@ implementation
                 Message1(sym_w_wrong_C_pack,vardef.typename);
               if varalign=0 then
                 varalign:=l;
-              if (globalfieldalignment<maxCrecordalign) then
+              if (globalfieldalignment<current_settings.alignment.maxCrecordalign) then
                 begin
                   if (varalign>16) and (globalfieldalignment<32) then
                     globalfieldalignment:=32
@@ -1804,7 +1802,7 @@ implementation
                   else if (varalign>1) and (globalfieldalignment<2) then
                     globalfieldalignment:=2;
                 end;
-              globalfieldalignment:=min(globalfieldalignment,maxCrecordalign);
+              globalfieldalignment:=min(globalfieldalignment,current_settings.alignment.maxCrecordalign);
             end;
           mac68k_alignment:
             begin
@@ -1836,9 +1834,9 @@ implementation
                               TRecordSymtable
 ****************************************************************************}
 
-    constructor trecordsymtable.create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+    constructor trecordsymtable.create(const n:string;usealign,recordminalign:shortint);
       begin
-        inherited create(n,usealign,recordminalign,recordmaxCalign);
+        inherited create(n,usealign,recordminalign);
         symtabletype:=recordsymtable;
       end;
 
@@ -1963,9 +1961,9 @@ implementation
                               TObjectSymtable
 ****************************************************************************}
 
-    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign,recordminalign:shortint);
       begin
-        inherited create(n,usealign,recordminalign,recordmaxCalign);
+        inherited create(n,usealign,recordminalign);
         symtabletype:=ObjectSymtable;
         defowner:=adefowner;
       end;

@@ -833,8 +833,7 @@ implementation
         vmtdef:=crecorddef.create_global_internal(
           vmtdefname,
           0,
-          target_info.alignment.recordalignmin,
-          target_info.alignment.maxCrecordalign);
+          target_info.alignment.recordalignmin);
 {$ifdef llvm}
         { in case of a class declared in the implementation section of unit
           whose method is called from an inline routine -- LLVM needs to be able
