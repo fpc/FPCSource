@@ -526,22 +526,28 @@ type
 {$if declared(TRttiDataCommon)}
     Common: TRttiDataCommon;
 {$endif}
-    ordtype:byte;
     case TTypeKind of
-      tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet: (
-        MinValue,MaxValue : Longint;
-        case byte of
-          tkEnumeration: (
-            BaseTypeRef : pointer
-            );
 {$ifndef VER3_0}
-        {tkBool with OrdType=otSQWord }
-        tkInt64:
-          (MinInt64Value, MaxInt64Value: Int64);
-        {tkBool with OrdType=otUQWord }
-        tkQWord:
-          (MinQWordValue, MaxQWordValue: QWord);
+      tkInt64,tkQWord,
 {$endif VER3_0}
+      tkInteger,tkChar,tkEnumeration,tkBool,tkWChar: (
+         OrdType : Byte;
+         case TTypeKind of
+            tkInteger,tkChar,tkEnumeration,tkBool,tkWChar: (
+              MinValue,MaxValue : Longint;
+              case byte of
+                tkEnumeration: (
+                  BaseTypeRef : pointer
+                  );
+{$ifndef VER3_0}
+            {tkBool with OrdType=otSQWord }
+            tkInt64:
+              (MinInt64Value, MaxInt64Value: Int64);
+            {tkBool with OrdType=otUQWord }
+            tkQWord:
+              (MinQWordValue, MaxQWordValue: QWord);
+{$endif VER3_0}
+         );
     );
     { more data here, but not needed }
   end;
