@@ -903,7 +903,7 @@ type
 
     function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload;
     function Write(const Buffer: TBytes; Count: Longint): Longint; overload;
-    function Write(const Buffer; Count: Longint): Longint; virtual; overload;
+    function Write(const Buffer; Count: Longint): Longint; virtual;
 
     function Seek(Offset: Longint; Origin: Word): Longint; virtual; overload;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
