@@ -1092,8 +1092,7 @@ implementation
             tcb.begin_anonymous_record(
               internaltypeprefixName[itp_rtti_ord_middle]+elesize,
               defaultpacking,reqalign,
-              targetinfos[target_info.system]^.alignment.recordalignmin,
-              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+              targetinfos[target_info.system]^.alignment.recordalignmin);
             tcb.emit_ord_const(byte(trans[def.ordtype]),u8inttype);
             tcb.begin_anonymous_record(
               internaltypeprefixName[itp_rtti_ord_inner]+elesize,
