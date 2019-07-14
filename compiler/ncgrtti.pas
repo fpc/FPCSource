@@ -1089,6 +1089,11 @@ implementation
               defaultpacking,reqalign,
               targetinfos[target_info.system]^.alignment.recordalignmin);
             write_common_rtti_data(tcb,def,rt);
+            tcb.begin_anonymous_record(
+              internaltypeprefixName[itp_rtti_ord_middle]+elesize,
+              defaultpacking,reqalign,
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign);
             tcb.emit_ord_const(byte(trans[def.ordtype]),u8inttype);
             tcb.begin_anonymous_record(
               internaltypeprefixName[itp_rtti_ord_inner]+elesize,
@@ -1112,6 +1117,7 @@ implementation
                   tcb.emit_ord_const(longint(max),s32inttype);
                 end;
             end;
+            tcb.end_anonymous_record;
             tcb.end_anonymous_record;
             tcb.end_anonymous_record;
           end;
