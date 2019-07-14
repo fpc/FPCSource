@@ -5913,6 +5913,7 @@ begin
   '  if c in [''a''..''z'',''_''] then ;',
   '  if ''b'' in [''a''..''z'',''_''] then ;',
   '  if ''Я'' in sc then ;',
+  '  if 3=ord('' '') then ;',
   '']);
   ConvertProgram;
   CheckSource('TestSet_ConstChar',
@@ -5931,6 +5932,7 @@ begin
     'if ($mod.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
     'if (98 in rtl.createSet(null, 97, 122, 95)) ;',
     'if (1071 in $mod.sc) ;',
+    'if (3 === 32) ;',
     '']));
 end;
 

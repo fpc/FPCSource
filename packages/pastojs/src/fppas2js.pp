@@ -11228,6 +11228,31 @@ end;
 
 function TPasToJSConverter.ConvertBuiltIn_Ord(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
+
+  function CheckOrdConstant(aResolver: TPas2JSResolver; Param: TPasExpr): TJSElement;
+  var
+    ParamValue, OrdValue: TResEvalValue;
+  begin
+    Result:=nil;
+    OrdValue:=nil;
+    ParamValue:=aResolver.Eval(Param,[]);
+    try
+      if ParamValue<>nil then
+        begin
+        OrdValue:=aResolver.ExprEvaluator.OrdValue(ParamValue,El);
+        if OrdValue<>nil then
+          begin
+          // ord(constant) -> constant
+          Result:=ConvertConstValue(OrdValue,AContext,El);
+          exit;
+          end;
+        end;
+    finally
+      ReleaseEvalValue(ParamValue);
+      ReleaseEvalValue(OrdValue);
+    end;
+  end;
+
 var
   ParamResolved, SubParamResolved: TPasResolverResult;
   Param, SubParam: TPasExpr;
@@ -11236,12 +11261,14 @@ var
   SubParamJS: TJSElement;
   Minus: TJSAdditiveExpressionMinus;
   Add: TJSAdditiveExpressionPlus;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
-  if AContext.Resolver=nil then
+  aResolver:=AContext.Resolver;
+  if aResolver=nil then
     RaiseInconsistency(20170210105235,El);
   Param:=El.Params[0];
-  AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
+  aResolver.ComputeElement(Param,ParamResolved,[]);
   if ParamResolved.BaseType=btChar then
     begin
     if Param is TParamsExpr then
@@ -11275,6 +11302,11 @@ begin
           exit;
           end;
         end;
+      end
+    else
+      begin
+      Result:=CheckOrdConstant(aResolver,Param);
+      if Result<>nil then exit;
       end;
     // ord(aChar) -> aChar.charCodeAt()
     Result:=ConvertExpression(Param,AContext);
@@ -11284,6 +11316,9 @@ begin
     end
   else if ParamResolved.BaseType in btAllJSBooleans then
     begin
+    // ord(bool)
+    Result:=CheckOrdConstant(aResolver,Param);
+    if Result<>nil then exit;
     // ord(bool) ->  bool+0
     Result:=ConvertExpression(Param,AContext);
     // Note: convert Param first, as it might raise an exception
