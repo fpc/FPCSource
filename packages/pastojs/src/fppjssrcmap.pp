@@ -44,6 +44,7 @@ type
 
   TPas2JSMapper = class(TBufferWriter)
   private
+    FDestFileName: String;
     FSrcMap: TPas2JSSrcMap;
     procedure SetSrcMap(const AValue: TPas2JSSrcMap);
   protected
@@ -59,6 +60,8 @@ type
     property SrcMap: TPas2JSSrcMap read FSrcMap write SetSrcMap;
     destructor Destroy; override;
     procedure WriteFile(Src, Filename: string);
+    // Final destination filename. Usually unit, unless combining javascript in single file.
+    Property DestFileName : String Read FDestFileName Write FDestFileName;
   end;
 
 implementation
