@@ -6318,42 +6318,86 @@ end;
 function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
   ProcType: TProcType; MustBeGeneric: boolean; AVisibility: TPasMemberVisibility
   ): TPasProcedure;
+var
+  NameParts: TProcedureNameParts;
 
   function ExpectProcName: string;
-
+  { Simple procedure:
+      Name
+    Method implementation of non generic class:
+      aClass.SubClass.Name
+    ObjFPC generic procedure or method declaration:
+      MustBeGeneric=true, Name<Templates>
+    Delphi generic Method Declaration:
+      MustBeGeneric=false, Name<Templates>
+    ObjFPC Method implementation of generic class:
+      aClass.SubClass.Name
+    Delphi Method implementation of generic class:
+      aClass<Templates>.SubClass<Templates>.Name
+      aClass.SubClass<Templates>.Name<Templates>
+  }
   Var
     L : TFPList;
-    I : Integer;
-
+    I , Cnt, p: Integer;
+    CurName: String;
   begin
     Result:=ExpectIdentifier;
-    //writeln('ExpectProcName ',Parent.Classname);
-    if Parent is TImplementationSection then
-      begin
+    Cnt:=1;
+    repeat
       NextToken;
-      repeat
-        if CurToken=tkDot then
-          Result:=Result+'.'+ExpectIdentifier
-        else if CurToken=tkLessThan then
+      if CurToken=tkDot then
+        begin
+          if Parent is TImplementationSection then
+            begin
+            inc(Cnt);
+            CurName:=ExpectIdentifier;
+            Result:=Result+'.'+CurName;
+            if length(NameParts)>0 then
+              begin
+              SetLength(NameParts,Cnt);
+              NameParts[Cnt-1].Name:=CurName;
+              end;
+            end
+          else
+            ParseExcSyntaxError;
+        end
+      else if CurToken=tkLessThan then
+        begin
+        if (not MustBeGeneric) and not (msDelphi in CurrentModeswitches) then
+          ParseExc(nParserGenericFunctionNeedsGenericKeyword,SParserGenericFunctionNeedsGenericKeyword);
+        // generic templates
+        if length(NameParts)=0 then
           begin
-          if (not MustBeGeneric) and not (msDelphi in CurrentModeswitches) then
-            ParseExc(nParserGenericFunctionNeedsGenericKeyword,SParserGenericFunctionNeedsGenericKeyword);
-          UnGetToken;
-          L:=TFPList.Create;
-          Try
-            ReadGenericArguments(L,Parent);
-          finally
-            For I:=0 to L.Count-1 do
-              TPasElement(L[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-            L.Free;
-          end;
+          // initialize NameParts
+          SetLength(NameParts,Cnt);
+          i:=0;
+          CurName:=Result;
+          repeat
+            p:=Pos('.',CurName);
+            if p>0 then
+              begin
+              NameParts[i].Name:=LeftStr(CurName,p-1);
+              System.Delete(CurName,1,p);
+              end
+            else
+              begin
+              NameParts[i].Name:=CurName;
+              break;
+              end;
+            inc(i);
+          until false;
           end
-        else
-          break;
-        NextToken;
-      until false;
-      UngetToken;
-      end;
+        else if NameParts[Cnt-1].Templates<>nil then
+          ParseExcSyntaxError;
+        UnGetToken;
+        L:=TFPList.Create;
+        NameParts[Cnt-1].Templates:=L;
+        ReadGenericArguments(L,Parent);
+        end
+      else
+        break;
+    until false;
+    UngetToken;
   end;
 
 var
@@ -6362,36 +6406,41 @@ var
   Ot : TOperatorType;
   IsTokenBased , ok: Boolean;
 begin
-  case ProcType of
-  ptOperator,ptClassOperator:
-    begin
-    if MustBeGeneric then
-      ParseExcTokenError('procedure');
-    NextToken;
-    IsTokenBased:=CurToken<>tkIdentifier;
-    if IsTokenBased then
-      OT:=TPasOperator.TokenToOperatorType(CurTokenText)
-    else
-      OT:=TPasOperator.NameToOperatorType(CurTokenString);
-    if (ot=otUnknown) then
-      ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[CurTokenString]);
-    Name:=OperatorNames[Ot];
-    end;
-  ptAnonymousProcedure,ptAnonymousFunction:
-    begin
-    Name:='';
-    if MustBeGeneric then
-      ParseExcTokenError('generic'); // inconsistency
-    end
-  else
-    Name:=ExpectProcName;
-  end;
-  PC:=GetProcedureClass(ProcType);
-  if Name<>'' then
-    Parent:=CheckIfOverLoaded(Parent,Name);
-  Result:=TPasProcedure(CreateElement(PC,Name,Parent,AVisibility));
+  NameParts:=nil;
+  Result:=nil;
   ok:=false;
   try
+    case ProcType of
+    ptOperator,ptClassOperator:
+      begin
+      if MustBeGeneric then
+        ParseExcTokenError('procedure');
+      NextToken;
+      IsTokenBased:=CurToken<>tkIdentifier;
+      if IsTokenBased then
+        OT:=TPasOperator.TokenToOperatorType(CurTokenText)
+      else
+        OT:=TPasOperator.NameToOperatorType(CurTokenString);
+      if (ot=otUnknown) then
+        ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[CurTokenString]);
+      Name:=OperatorNames[Ot];
+      end;
+    ptAnonymousProcedure,ptAnonymousFunction:
+      begin
+      Name:='';
+      if MustBeGeneric then
+        ParseExcTokenError('generic'); // inconsistency
+      end
+    else
+      Name:=ExpectProcName;
+    end;
+    PC:=GetProcedureClass(ProcType);
+    if Name<>'' then
+      Parent:=CheckIfOverLoaded(Parent,Name);
+    Result:=TPasProcedure(CreateElement(PC,Name,Parent,AVisibility));
+    if NameParts<>nil then
+      Result.SetNameParts(NameParts);
+
     case ProcType of
     ptFunction, ptClassFunction, ptOperator, ptClassOperator, ptAnonymousFunction:
       begin
@@ -6428,7 +6477,9 @@ begin
         end;
     ok:=true;
   finally
-    if not ok then
+    if NameParts<>nil then;
+      ReleaseProcNameParts(NameParts);
+    if (not ok) and (Result<>nil) then
       Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;

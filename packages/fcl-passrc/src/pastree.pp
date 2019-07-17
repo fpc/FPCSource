@@ -1038,6 +1038,14 @@ type
                         pmNoReturn, pmFar, pmFinal);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
+
+  { TProcedureNamePart }
+
+  TProcedureNamePart = record
+    Name: string;
+    Templates: TFPList; // optional list of TPasGenericTemplateType, can nil!
+  end;
+  TProcedureNameParts = array of TProcedureNamePart;
                         
   TProcedureBody = class;
 
@@ -1067,6 +1075,7 @@ type
     AliasName : String;
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
+    NameParts: TProcedureNameParts; // only used for generic functions
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function IsVirtual : Boolean;
     Function IsDynamic : Boolean;
@@ -1080,6 +1089,7 @@ type
     Function IsStatic : Boolean;
     Function IsForward: Boolean;
     Function GetProcTypeEnum: TProcType; virtual;
+    procedure SetNameParts(var Parts: TProcedureNameParts);
     Property Modifiers : TProcedureModifiers Read FModifiers Write FModifiers;
     Property CallingConvention : TCallingConvention Read GetCallingConvention Write SetCallingConvention;
     Property MessageName : String Read FMessageName Write FMessageName;
@@ -1724,11 +1734,14 @@ const
      = ('cvar', 'external', 'public', 'export', 'class', 'static');
 
 procedure ReleaseAndNil(var El: TPasElement {$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF}); overload;
+function GenericTemplateTypesAsString(List: TFPList): string;
 
 {$IFDEF HasPTDumpStack}
 procedure PTDumpStack;
 function GetPTDumpStack: string;
 {$ENDIF}
+
+procedure ReleaseProcNameParts(var NameParts: TProcedureNameParts);
 
 implementation
 
@@ -1740,6 +1753,54 @@ begin
   {$IFDEF VerbosePasTreeMem}writeln('ReleaseAndNil ',El.Name,' ',El.ClassName);{$ENDIF}
   El.Release{$IFDEF CheckPasTreeRefCount}(Id){$ENDIF};
   El:=nil;
+end;
+
+function GenericTemplateTypesAsString(List: TFPList): string;
+var
+  i, j: Integer;
+  T: TPasGenericTemplateType;
+begin
+  Result:='';
+  for i:=0 to List.Count-1 do
+    begin
+    if i>0 then
+      Result:=Result+',';
+    T:=TPasGenericTemplateType(List[i]);
+    Result:=Result+T.Name;
+    if length(T.Constraints)>0 then
+      begin
+      Result:=Result+':';
+      for j:=0 to length(T.Constraints)-1 do
+        begin
+        if j>0 then
+          Result:=Result+',';
+        Result:=Result+T.GetDeclaration(false);
+        end;
+      end;
+    end;
+  Result:='<'+Result+'>';
+end;
+
+procedure ReleaseProcNameParts(var NameParts: TProcedureNameParts);
+var
+  El: TPasElement;
+  i, j: Integer;
+begin
+  for i := 0 to length(NameParts)-1 do
+    begin
+    with NameParts[i] do
+      if Templates<>nil then
+        begin
+        for j:=0 to Templates.Count-1 do
+          begin
+          El:=TPasGenericTemplateType(Templates[j]);
+          El.Parent:=nil;
+          El.Release{$IFDEF CheckPasTreeRefCount}('TPasProcedure.NameParts'){$ENDIF};
+          end;
+        Templates.Free;
+        end;
+    end;
+  NameParts:=nil;
 end;
 
 Function IndentStrings(S : TStrings; indent : Integer) : string;
@@ -3496,6 +3557,7 @@ begin
   ReleaseAndNil(TPasElement(MessageExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.MessageExpr'{$ENDIF});
   ReleaseAndNil(TPasElement(ProcType){$IFDEF CheckPasTreeRefCount},'TPasProcedure.ProcType'{$ENDIF});
   ReleaseAndNil(TPasElement(Body){$IFDEF CheckPasTreeRefCount},'TPasProcedure.Body'{$ENDIF});
+  ReleaseProcNameParts(NameParts);
   inherited Destroy;
 end;
 
@@ -4164,7 +4226,7 @@ var
 begin
   inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to GenericTemplateTypes.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),true);
+    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
   for i:=0 to Members.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
 end;
@@ -4256,7 +4318,12 @@ begin
       else
         Temp:='packed '+Temp;
     If Full and (Name<>'') then
-      Temp:=Name+' = '+Temp;
+      begin
+      if GenericTemplateTypes.Count>0 then
+        Temp:=Name+GenericTemplateTypesAsString(GenericTemplateTypes)+' = '+Temp
+      else
+        Temp:=Name+' = '+Temp;
+      end;
     S.Add(Temp);
     GetMembers(S);
     S.Add('end');
@@ -4562,8 +4629,15 @@ end;
 
 procedure TPasProcedure.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
+var
+  i, j: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
+  for i:=0 to length(NameParts)-1 do
+    with NameParts[i] do
+      if Templates<>nil then
+        for j:=0 to Templates.Count-1 do
+          ForEachChildCall(aMethodCall,Arg,TPasElement(Templates[i]),false);
   ForEachChildCall(aMethodCall,Arg,ProcType,false);
   ForEachChildCall(aMethodCall,Arg,PublicName,false);
   ForEachChildCall(aMethodCall,Arg,LibraryExpr,false);
@@ -4573,7 +4647,6 @@ begin
 end;
 
 procedure TPasProcedure.AddModifier(AModifier: TProcedureModifier);
-
 begin
   Include(FModifiers,AModifier);
 end;
@@ -4639,17 +4712,52 @@ begin
   Result:=ptProcedure;
 end;
 
+procedure TPasProcedure.SetNameParts(var Parts: TProcedureNameParts);
+var
+  i, j: Integer;
+  El: TPasElement;
+begin
+  if length(NameParts)>0 then
+    ReleaseProcNameParts(NameParts);
+  NameParts:=Parts;
+  Parts:=nil;
+  for i:=0 to length(NameParts)-1 do
+    with NameParts[i] do
+      if Templates<>nil then
+        for j:=0 to Templates.Count-1 do
+          begin
+          El:=TPasElement(Templates[j]);
+          El.Parent:=Self;
+          end;
+end;
+
 function TPasProcedure.GetDeclaration(full: Boolean): string;
 Var
   S : TStringList;
   T: String;
+  i: Integer;
 begin
   S:=TStringList.Create;
   try
     If Full then
       begin
       T:=TypeName;
-      if Name<>'' then
+      if length(NameParts)>0 then
+        begin
+        T:=T+' ';
+        for i:=0 to length(NameParts)-1 do
+          begin
+          if i>0 then
+            T:=T+'.';
+          with NameParts[i] do
+            begin
+            T:=T+Name;
+            if Templates<>nil then
+              T:=T+GenericTemplateTypesAsString(Templates);
+            end;
+          end;
+        end
+      else if Name<>'' then
         T:=T+' '+Name;
       S.Add(T);
       end;
