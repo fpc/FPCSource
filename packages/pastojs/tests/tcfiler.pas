@@ -119,6 +119,7 @@ type
     procedure CheckRestoredConst(const Path: string; Orig, Rest: TPasConst); virtual;
     procedure CheckRestoredProperty(const Path: string; Orig, Rest: TPasProperty); virtual;
     procedure CheckRestoredMethodResolution(const Path: string; Orig, Rest: TPasMethodResolution); virtual;
+    procedure CheckRestoredProcNameParts(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
     procedure CheckRestoredAttributes(const Path: string; Orig, Rest: TPasAttributes); virtual;
@@ -1535,6 +1536,29 @@ begin
   CheckRestoredElement(Path+'.ImplementationProc',Orig.ImplementationProc,Rest.ImplementationProc);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredProcNameParts(const Path: string;
+  Orig, Rest: TPasProcedure);
+var
+  OrigNameParts, RestNameParts: TProcedureNameParts;
+  i: Integer;
+  SubPath: String;
+  OrigTemplates, RestTemplates: TFPList;
+begin
+  OrigNameParts:=Orig.NameParts;
+  RestNameParts:=Rest.NameParts;
+  AssertEquals(Path+'.NameParts length',length(OrigNameParts),length(RestNameParts));
+  for i:=0 to length(OrigNameParts)-1 do
+    begin
+    SubPath:=Path+'.NameParts['+IntToStr(i)+']';
+    AssertEquals(SubPath+'.Name',OrigNameParts[i].Name,RestNameParts[i].Name);
+    OrigTemplates:=OrigNameParts[i].Templates;
+    RestTemplates:=RestNameParts[i].Templates;
+    CheckRestoredObject(SubPath+'.Templates',OrigTemplates,RestTemplates);
+    if OrigTemplates=nil then continue;
+    CheckRestoredElementList(SubPath+'.Templates',OrigTemplates,RestTemplates);
+    end;
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredProcedure(const Path: string;
   Orig, Rest: TPasProcedure);
 var
@@ -1550,6 +1574,7 @@ begin
   AssertEquals(Path+'.CustomData[TPas2JSProcedureScope].ResultVarName',OrigScope.ResultVarName,RestScope.ResultVarName);
   if RestScope.DeclarationProc=nil then
     begin
+    CheckRestoredProcNameParts(Path,Orig,Rest);
     CheckRestoredElement(Path+'.ProcType',Orig.ProcType,Rest.ProcType);
     CheckRestoredElement(Path+'.PublicName',Orig.PublicName,Rest.PublicName);
     CheckRestoredElement(Path+'.LibrarySymbolName',Orig.LibrarySymbolName,Rest.LibrarySymbolName);

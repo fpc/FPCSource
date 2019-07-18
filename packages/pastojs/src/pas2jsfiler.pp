@@ -774,6 +774,7 @@ type
     procedure WritePropertyScope(Obj: TJSONObject; Scope: TPasPropertyScope; aContext: TPCUWriterContext); virtual;
     procedure WriteProperty(Obj: TJSONObject; El: TPasProperty; aContext: TPCUWriterContext); virtual;
     procedure WriteMethodResolution(Obj: TJSONObject; El: TPasMethodResolution; aContext: TPCUWriterContext); virtual;
+    procedure WriteProcedureNameParts(Obj: TJSONObject; El: TPasProcedure; aContext: TPCUWriterContext); virtual;
     procedure WriteProcedureModifiers(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TProcedureModifiers); virtual;
     procedure WriteProcScopeFlags(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TPasProcedureScopeFlags); virtual;
     procedure WriteProcedureScope(Obj: TJSONObject; Scope: TPas2JSProcedureScope; aContext: TPCUWriterContext); virtual;
@@ -986,6 +987,7 @@ type
     procedure ReadPropertyScope(Obj: TJSONObject; Scope: TPasPropertyScope; aContext: TPCUReaderContext); virtual;
     procedure ReadProperty(Obj: TJSONObject; El: TPasProperty; aContext: TPCUReaderContext); virtual;
     procedure ReadMethodResolution(Obj: TJSONObject; El: TPasMethodResolution; aContext: TPCUReaderContext); virtual;
+    procedure ReadProcedureNameParts(Obj: TJSONObject; El: TPasProcedure; aContext: TPCUReaderContext); virtual;
     function ReadProcedureModifiers(Obj: TJSONObject; El: TPasElement;
       const PropName: string; const DefaultValue: TProcedureModifiers): TProcedureModifiers; virtual;
     function ReadProcScopeFlags(Obj: TJSONObject; El: TPasElement;
@@ -3721,6 +3723,43 @@ begin
   WriteExpr(Obj,El,'ImplementationProc',El.ImplementationProc,aContext);
 end;
 
+procedure TPCUWriter.WriteProcedureNameParts(Obj: TJSONObject;
+  El: TPasProcedure; aContext: TPCUWriterContext);
+var
+  Arr, TemplArr: TJSONArray;
+  NamePartObj, TemplObj: TJSONObject;
+  i, j: Integer;
+  GenType: TPasGenericTemplateType;
+  NameParts: TProcedureNameParts;
+begin
+  NameParts:=El.NameParts;
+  if length(NameParts)=0 then exit;
+  Arr:=TJSONArray.Create;
+  Obj.Add('NameParts',Arr);
+  for i:=0 to length(NameParts)-1 do
+    begin
+    NamePartObj:=TJSONObject.Create;
+    Arr.Add(NamePartObj);
+    with NameParts[i] do
+      begin
+      NamePartObj.Add('Name',Name);
+      if Templates<>nil then
+        begin
+        TemplArr:=TJSONArray.Create;
+        NamePartObj.Add('Templates',TemplArr);
+        for j:=0 to Templates.Count-1 do
+          begin
+          GenType:=TPasGenericTemplateType(Templates[j]);
+          TemplObj:=TJSONObject.Create;
+          TemplArr.Add(TemplObj);
+          TemplObj.Add('Name',GenType.Name);
+          WritePasExprArray(TemplObj,El,'Constraints',GenType.Constraints,aContext);
+          end;
+        end;
+      end;
+    end;
+end;
+
 procedure TPCUWriter.WriteProcedureModifiers(Obj: TJSONObject;
   const PropName: string; const Value, DefaultValue: TProcedureModifiers);
 var
@@ -3783,6 +3822,8 @@ begin
   //writeln('TPCUWriter.WriteProcedure ',GetObjName(El),' ',GetObjName(Scope),' ',Resolver.GetElementSourcePosStr(El));
   if Scope.DeclarationProc=nil then
     begin
+    // declaration
+    WriteProcedureNameParts(Obj,El,aContext);
     WriteElementProperty(Obj,El,'ProcType',El.ProcType,aContext);
     WriteExpr(Obj,El,'Public',El.PublicName,aContext);
     // e.g. external LibraryExpr name LibrarySymbolName;
@@ -3804,6 +3845,7 @@ begin
     end
   else
     begin
+    // implementation
     AddReferenceToObj(Obj,'DeclarationProc',Scope.DeclarationProc);
     end;
 
@@ -7365,6 +7407,44 @@ begin
   El.ImplementationProc:=ReadExpr(Obj,El,'ImplementationProc',aContext);
 end;
 
+procedure TPCUReader.ReadProcedureNameParts(Obj: TJSONObject;
+  El: TPasProcedure; aContext: TPCUReaderContext);
+var
+  Arr, TemplArr: TJSONArray;
+  i, j: Integer;
+  NamePartObj, TemplObj: TJSONObject;
+  GenTypeName: string;
+  GenType: TPasGenericTemplateType;
+begin
+  ReleaseProcNameParts(El.NameParts);
+  if ReadArray(Obj,'NameParts',Arr,El) then
+    begin
+    SetLength(El.NameParts,Arr.Count);
+    for i:=0 to Arr.Count-1 do
+      begin
+      NamePartObj:=CheckJSONObject(Arr[i],20190718113441);
+      with El.NameParts[i] do
+        begin
+        if not ReadString(NamePartObj,'Name',Name,El) then
+          RaiseMsg(20190718113739,El,IntToStr(i));
+        if not ReadArray(NamePartObj,'Templates',TemplArr,El) then
+          continue; // Templates=nil
+        Templates:=TFPList.Create;
+        for j:=0 to TemplArr.Count-1 do
+          begin
+          TemplObj:=CheckJSONObject(TemplArr[j],20190718114058);
+          if not ReadString(TemplObj,'Name',GenTypeName,El) or (GenTypeName='') then
+            RaiseMsg(20190718114244,El,IntToStr(i)+','+IntToStr(j));
+          GenType:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,GenTypeName,El));
+          Templates.Add(GenType);
+          ReadPasExprArray(TemplObj,El,'Constraints',GenType.Constraints,aContext);
+          end;
+        end;
+      end;
+    end;
+  if aContext=nil then ;
+end;
+
 function TPCUReader.ReadProcedureModifiers(Obj: TJSONObject; El: TPasElement;
   const PropName: string; const DefaultValue: TProcedureModifiers
   ): TProcedureModifiers;
@@ -7561,6 +7641,7 @@ begin
   else
     begin
     // declarationproc
+    ReadProcedureNameParts(Obj,El,aContext);
     El.PublicName:=ReadExpr(Obj,El,'Public',aContext);
     // e.g. external LibraryExpr name LibrarySymbolName;
     El.LibraryExpr:=ReadExpr(Obj,El,'Lib',aContext);
