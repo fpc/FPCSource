@@ -595,9 +595,11 @@ type
       Checked: TPasAnalyzerKeySet { set of TPas2jsCompilerFile, key is UnitFilename });
     procedure FinishSrcMap(SrcMap: TPas2JSSrcMap); virtual;
     // WriteSingleJSFile does not
-    procedure WriteSingleJSFile(aFile: TPas2jsCompilerFile; CombinedFileWriter: TPas2JSMapper; Checked: TPasAnalyzerKeySet);
+    procedure WriteSingleJSFile(aFile: TPas2jsCompilerFile; CombinedFileWriter: TPas2JSMapper);
     // WriteJSFiles recurses uses clause
-    procedure WriteJSFiles(aFile: TPas2jsCompilerFile;  CombinedFileWriter: TPas2JSMapper;  Checked: TPasAnalyzerKeySet { set of TPas2jsCompilerFile, key is UnitFilename });
+    procedure WriteJSFiles(aFile: TPas2jsCompilerFile;
+      CombinedFileWriter: TPas2JSMapper;
+      Checked: TPasAnalyzerKeySet { set of TPas2jsCompilerFile, key is UnitFilename });
     procedure InitParamMacros;virtual;
     procedure ClearDefines;
     procedure RaiseInternalError(id: TMaxPrecInt; Msg: string);
@@ -2297,7 +2299,8 @@ begin
   Result:=TPas2JSSrcMap.Create(aFileName);
 end;
 
-Function TPas2jsCompiler.CreateFileWriter(aFile : TPas2jsCompilerFile; Const aFilename: string) : TPas2JSMapper;
+function TPas2jsCompiler.CreateFileWriter(aFile: TPas2jsCompilerFile;
+  const aFilename: string): TPas2JSMapper;
 
 var
   SrcMap: TPas2JSSrcMap;
@@ -2325,7 +2328,8 @@ begin
 end;
 
 
-Procedure TPas2jsCompiler.EmitJavaScript(aFile: TPas2jsCompilerFile; aFileWriter : TPas2JSMapper);
+procedure TPas2jsCompiler.EmitJavaScript(aFile: TPas2jsCompilerFile;
+  aFileWriter: TPas2JSMapper);
 
 var
   aJSWriter: TJSWriter;
@@ -2354,7 +2358,8 @@ begin
 end;
 
 
-Procedure TPas2jsCompiler.WriteJSToFile(Const MapFileName : string; aFileWriter : TPas2JSMapper);
+procedure TPas2jsCompiler.WriteJSToFile(const MapFileName: string;
+  aFileWriter: TPas2JSMapper);
 
 Var
   {$IFDEF Pas2js}
@@ -2430,7 +2435,8 @@ begin
   end;
 end;
 
-Procedure TPas2jsCompiler.WriteSrcMap(Const MapFileName: string; aFileWriter : TPas2JSMapper);
+procedure TPas2jsCompiler.WriteSrcMap(const MapFileName: string;
+  aFileWriter: TPas2JSMapper);
 
 Var
   {$IFDEF Pas2js}
@@ -2481,7 +2487,8 @@ begin
 end;
 
 
-procedure TPas2jsCompiler.WriteSingleJSFile(aFile: TPas2jsCompilerFile; CombinedFileWriter: TPas2JSMapper; Checked: TPasAnalyzerKeySet);
+procedure TPas2jsCompiler.WriteSingleJSFile(aFile: TPas2jsCompilerFile;
+  CombinedFileWriter: TPas2JSMapper);
 
   Procedure WriteToStandardOutput(aFileWriter : TPas2JSMapper);
 
@@ -2611,7 +2618,7 @@ begin
     CheckUsesClause(aFileWriter,aFile.GetPasMainUsesClause);
     CheckUsesClause(aFileWriter,aFile.GetPasImplUsesClause);
     // Write me...
-    WriteSingleJSFile(aFile,aFileWriter,Checked);
+    WriteSingleJSFile(aFile,aFileWriter);
   finally
     if aFileWriter<>CombinedFileWriter then
       aFileWriter.Free;
