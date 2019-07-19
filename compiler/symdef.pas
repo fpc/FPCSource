@@ -773,6 +773,8 @@ interface
            procdef has been handled }
          implprocdefinfo : pimplprocdefinfo;
 
+         function store_localst:boolean;
+
          function GetResultName: PShortString;
          procedure SetResultName(AValue: PShortString);
          function GetParentFPStruct: tsym;
@@ -5716,6 +5718,13 @@ implementation
                                   TPROCDEF
 ***************************************************************************}
 
+
+    function tprocdef.store_localst: boolean;
+      begin
+        result:=has_inlininginfo or (df_generic in defoptions);
+      end;
+
+
     function tprocdef.GetResultName: PShortString;
       begin
         if not assigned(implprocdefinfo) then
@@ -6039,7 +6048,7 @@ implementation
          parast:=tparasymtable.create(self,level);
          tparasymtable(parast).ppuload(ppufile);
          { load local symtable }
-         if has_inlininginfo then
+         if store_localst then
           begin
             localst:=tlocalsymtable.create(self,level);
             tlocalsymtable(localst).ppuload(ppufile);
@@ -6221,7 +6230,7 @@ implementation
 
          { save localsymtable for inline procedures or when local
            browser info is requested, this has no influence on the crc }
-         if has_inlininginfo then
+         if store_localst and not ppufile.crc_only then
           begin
             oldintfcrc:=ppufile.do_crc;
             ppufile.do_crc:=false;
@@ -6512,16 +6521,16 @@ implementation
       begin
          inherited buildderefimpl;
 
+         { Localst is not available for main/unit init }
+         if store_localst and assigned(localst) then
+           begin
+             tlocalsymtable(localst).buildderef;
+             tlocalsymtable(localst).buildderefimpl;
+           end;
+
          { inline tree }
          if has_inlininginfo then
            begin
-             { Localst is not available for main/unit init }
-             if assigned(localst) then
-               begin
-                 tlocalsymtable(localst).buildderef;
-                 tlocalsymtable(localst).buildderefimpl;
-               end;
-
              funcretsymderef.build(funcretsym);
              inlininginfo^.code.buildderefimpl;
            end;
@@ -6546,16 +6555,16 @@ implementation
          if assigned(inlininginfo) then
            has_inlininginfo:=true;
 
+         { Locals }
+         if store_localst and assigned(localst) then
+           begin
+             tlocalsymtable(localst).deref(false);
+             tlocalsymtable(localst).derefimpl(false);
+           end;
+
         { Inline }
         if has_inlininginfo then
           begin
-            { Locals }
-            if assigned(localst) then
-              begin
-                tlocalsymtable(localst).deref(false);
-                tlocalsymtable(localst).derefimpl(false);
-              end;
-
             inlininginfo^.code.derefimpl;
             { funcretsym, this is always located in the localst }
             funcretsym:=tsym(funcretsymderef.resolve);
