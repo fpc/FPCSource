@@ -466,7 +466,7 @@ begin
             IO_REPARSE_TAG_SYMLINK: begin
               SymLinkRec.TargetName := WideCharLenToString(
                 @PBuffer^.PathBufferSym[PBuffer^.PrintNameOffset div SizeOf(WCHAR)],
-                PBuffer^.PrintNameOffset div SizeOf(WCHAR));
+                PBuffer^.PrintNameLength div SizeOf(WCHAR));
               if (PBuffer^.Flags and SYMLINK_FLAG_RELATIVE) <> 0 then
                 SymLinkRec.TargetName := ExpandFileName(ExtractFilePath(FileName) + SymLinkRec.TargetName);
             end;
