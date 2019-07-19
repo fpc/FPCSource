@@ -326,4 +326,5 @@ Initialization
   InitExceptions;
 Finalization
   DoneExceptions;
+  FreeTerminateProcs;
 end.

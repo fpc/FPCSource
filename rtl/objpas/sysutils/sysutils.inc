@@ -653,6 +653,19 @@ begin
     end;
 end;
 
+procedure FreeTerminateProcs;
+var
+  TPR1, TPR2: PPRecord;
+begin
+  TPR1 := TPList;
+  TPList := Nil;
+  while Assigned(TPR1) do begin
+    TPR2 := TPR1^.NextFunc;
+    Dispose(TPR1);
+    TPR1 := TPR2;
+  end;
+end;
+
 { ---------------------------------------------------------------------
     Diskh functions, OS independent.
   ---------------------------------------------------------------------}

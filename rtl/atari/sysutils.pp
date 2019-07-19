@@ -533,4 +533,5 @@ Initialization
 
 Finalization
   DoneExceptions;
+  FreeTerminateProcs;
 end.
