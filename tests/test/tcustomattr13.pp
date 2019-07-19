@@ -4,7 +4,7 @@ program tcustomattr13;
 {$modeswitch prefixedattributes}
 
 uses
-  TypInfo, Classes, SysUtils;
+  TypInfo, Classes, SysUtils, Math;
 
 type
   TString8 = String[8];
@@ -131,7 +131,7 @@ begin
     Halt(61);
   if aStrm.Read(cu, SizeOf(cu)) <> SizeOf(cu) then
     Halt(62);
-  if cu <> CurrVal then
+  if SameValue(cu, CurrVal, 0.00009) then
     Halt(63);
   if aStrm.Read(g, SizeOf(g)) <> SizeOf(g) then
     Halt(64);
