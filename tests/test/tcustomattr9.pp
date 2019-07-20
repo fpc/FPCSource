@@ -1,3 +1,5 @@
+{ %FAIL }
+
 program tcustomattr9;
 
 {$mode objfpc}{$H+}
@@ -8,7 +10,7 @@ uses
 
 type
   { tmyt }
-  // TCustomAttribute without constructor
+  // TCustomAttribute's constructor is private!
   tmyt = class(TCustomAttribute);
 
 type
@@ -16,20 +18,6 @@ type
   TMyObject = class(TObject)
   end;
 
-var
-  at: PAttributeTable;
-  AClassAttribute: TCustomAttribute;
-
 begin
-  at := GetAttributeTable(TMyObject.ClassInfo);
-  if not Assigned(at) then
-    halt(1);
-  if at^.AttributeCount<>1 then
-    halt(2);
-
-  AClassAttribute := GetAttribute(at,0);
-  if AClassAttribute = nil then
-    halt(3);
-  writeln('ok');
 end.
 

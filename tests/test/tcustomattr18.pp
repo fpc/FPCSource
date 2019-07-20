@@ -7,53 +7,63 @@ uses
   TypInfo;
 
 type
-  [TCustomAttribute]
+  TAttr = class(TCustomAttribute)
+    constructor Create;
+  end;
+
+  [TAttr]
   TTestRec = record
 
   end;
 
-  [TCustomAttribute]
+  [TAttr]
   TEnum = (
     eOne
   );
 
-  [TCustomAttribute]
+  [TAttr]
   TSet = set of TEnum;
 
-  [TCustomAttribute]
+  [TAttr]
   TPtr = ^LongInt;
 
-  [TCustomAttribute]
+  [TAttr]
   TLongInt = type LongInt;
 
-  [TCustomAttribute]
+  [TAttr]
   TMyMethod = procedure of object;
 
-  [TCustomAttribute]
+  [TAttr]
   TMyProc = procedure;
 
-  [TCustomAttribute]
+  [TAttr]
   TMyStaticArray = array[0..3] of Integer;
 
-  [TCustomAttribute]
+  [TAttr]
   TMyDynArray = array of Integer;
 
-  [TCustomAttribute]
+  [TAttr]
   IMyIntf = interface
 
   end;
 
-  [TCustomAttribute]
+  [TAttr]
   TString8 = String[8];
 
-  [TCustomAttribute]
+  [TAttr]
   TStringCP = type AnsiString(1234);
+
+constructor TAttr.Create;
+begin
+
+end;
 
 var
   typeinfos: array of PTypeInfo;
   i: SizeInt;
   at: PAttributeTable;
   attr: TCustomAttribute;
+
 begin
   typeinfos := [
     TypeInfo(TTestRec),
@@ -79,7 +89,7 @@ begin
     attr := GetAttribute(at, 0);
     if not Assigned(attr) then
       Halt(i * 10 + 2);
-    if attr.ClassType <> TCustomAttribute then
+    if attr.ClassType <> TAttr then
       Halt(i * 20 + 3);
   end;
 

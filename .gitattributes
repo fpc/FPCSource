@@ -13220,6 +13220,7 @@ tests/test/tcustomattr19.pp svneol=native#text/pascal
 tests/test/tcustomattr2.pp svneol=native#text/pascal
 tests/test/tcustomattr20.pp svneol=native#text/pascal
 tests/test/tcustomattr21.pp svneol=native#text/pascal
+tests/test/tcustomattr22.pp svneol=native#text/pascal
 tests/test/tcustomattr3.pp svneol=native#text/pascal
 tests/test/tcustomattr4.pp svneol=native#text/pascal
 tests/test/tcustomattr5.pp svneol=native#text/pascal

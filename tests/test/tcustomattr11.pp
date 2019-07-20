@@ -8,11 +8,11 @@ uses
 
 type
   TTest = class(TCustomAttribute)
-
+    constructor Create;
   end;
 
   TTestAttribute = class(TCustomAttribute)
-
+    constructor Create;
   end;
 
   { the attribute with the Attribute suffix is preferred }
@@ -21,9 +21,20 @@ type
 
   end;
 
+constructor TTestAttribute.Create;
+begin
+
+end;
+
+constructor TTest.Create;
+begin
+
+end;
+
 var
   at: PAttributeTable;
   attr: TCustomAttribute;
+
 begin
   at := GetAttributeTable(TypeInfo(TTestObj));
   if not Assigned(at) then

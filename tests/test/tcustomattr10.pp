@@ -9,6 +9,7 @@ uses
 type
   { TMyAttr }
   TMyAttrAttribute = class(TCustomAttribute)
+    constructor Create;
   end;
 
 type
@@ -16,6 +17,11 @@ type
   [TMyAttr]
   TMyObject = class(TObject)
   end;
+
+constructor TMyAttrAttribute.Create;
+begin
+
+end;
 
 var
   at: PAttributeTable;

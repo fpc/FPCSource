@@ -6,8 +6,17 @@ program tcustomattr17;
 {$modeswitch prefixedattributes}
 
 type
-  [TCustomAttribute]
+  TTest = class(TCustomAttribute)
+    constructor Create;
+  end;
+
+  [TTest]
   Int = Integer;
+
+constructor TTest.Create;
+begin
+
+end;
 
 begin
 end.
