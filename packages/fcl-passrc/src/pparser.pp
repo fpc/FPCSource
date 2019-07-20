@@ -312,7 +312,7 @@ type
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif};SkipSourceInfo : Boolean = False);overload;
     function GetProcTypeFromToken(tk: TToken; IsClass: Boolean=False ): TProcType;
     procedure ParseAsmBlock(AsmBlock: TPasImplAsmStatement); virtual;
-    procedure ParseRecordFieldList(ARec: TPasRecordType; AEndToken: TToken; AllowMethods : Boolean);
+    procedure ParseRecordMembers(ARec: TPasRecordType; AEndToken: TToken; AllowMethods : Boolean);
     procedure ParseRecordVariantParts(ARec: TPasRecordType; AEndToken: TToken);
     function GetProcedureClass(ProcType : TProcType): TPTreeElement;
     procedure ParseClassFields(AType: TPasClassType; const AVisibility: TPasMemberVisibility; IsClassField : Boolean);
@@ -366,6 +366,7 @@ type
     function ParseExprOperand(AParent : TPasElement): TPasExpr;
     function ParseExpIdent(AParent : TPasElement): TPasExpr; deprecated 'use ParseExprOperand instead'; // since fpc 3.3.1
     procedure DoParseClassType(AType: TPasClassType);
+    procedure DoParseArrayType(ArrType: TPasArrayType);
     function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil; AllowEqual : Boolean = True): TPasExpr;
     function DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
     function CheckPackMode: TPackMode;
@@ -1957,67 +1958,13 @@ function TPasParser.ParseArrayType(Parent: TPasElement;
   ): TPasArrayType;
 
 Var
-  S : String;
   ok: Boolean;
-  RangeExpr: TPasExpr;
-
 begin
   Result := TPasArrayType(CreateElement(TPasArrayType, TypeName, Parent, NamePos));
   ok:=false;
   try
     Result.PackMode:=PackMode;
-    NextToken;
-    S:='';
-    case CurToken of
-      tkSquaredBraceOpen:
-        begin
-        // static array
-        if Parent is TPasArgument then
-          ParseExcTokenError('of');
-        repeat
-          NextToken;
-          if po_arrayrangeexpr in Options then
-            begin
-            RangeExpr:=DoParseExpression(Result);
-            Result.AddRange(RangeExpr);
-            end
-          else if CurToken<>tkSquaredBraceClose then
-             S:=S+CurTokenText;
-          if CurToken=tkSquaredBraceClose then
-            break
-          else if CurToken=tkComma then
-            continue
-          else if po_arrayrangeexpr in Options then
-            ParseExcTokenError(']');
-        until false;
-        Result.IndexRange:=S;
-        ExpectToken(tkOf);
-        Result.ElType := ParseType(Result,CurSourcePos);
-        end;
-      tkOf:
-        begin
-        NextToken;
-        if CurToken = tkConst then
-          // array of const
-          begin
-          if not (Parent is TPasArgument) then
-            ParseExcExpectedIdentifier;
-          end
-        else
-          begin
-          if (CurToken=tkarray) and (Parent is TPasArgument) then
-            ParseExcExpectedIdentifier;
-          UngetToken;
-          Result.ElType := ParseType(Result,CurSourcePos);
-          end;
-        end
-      else
-        ParseExc(nParserArrayTypeSyntaxError,SParserArrayTypeSyntaxError);
-    end;
-    // TPasProcedureType parsing has eaten the semicolon;
-    // We know it was a local definition if the array def (result) is the parent
-    if (Result.ElType is TPasProcedureType) and (Result.ElType.Parent=Result) then
-      UnGetToken;
+    DoParseArrayType(Result);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
@@ -3669,7 +3616,7 @@ begin
              Declarations.Classes.Add(RecordEl);
              RecordEl.SetGenericTemplates(List);
              NextToken;
-             ParseRecordFieldList(RecordEl,tkend,
+             ParseRecordMembers(RecordEl,tkend,
                               (msAdvancedRecords in Scanner.CurrentModeSwitches)
                               and not (Declarations is TProcedureBody)
                               and (RecordEl.Name<>''));
@@ -3678,18 +3625,12 @@ begin
              end;
            tkArray:
              begin
-             if List.Count<>1 then
-               ParseExc(nParserGenericArray1Element,sParserGenericArray1Element);
-             ArrEl:=TPasArrayType(ParseArrayType(Declarations,NamePos,TypeName,pmNone));
+             ArrEl := TPasArrayType(CreateElement(TPasArrayType, TypeName, Declarations, NamePos));
              Declarations.Declarations.Add(ArrEl);
              Declarations.Types.Add(ArrEl);
+             ArrEl.SetGenericTemplates(List);
+             DoParseArrayType(ArrEl);
              CheckHint(ArrEl,True);
-             {$IFDEF VerbosePasResolver}
-             ParseExcTokenError('20190619145000');
-             {$ENDIF}
-             ArrEl.ElType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-             ArrEl.ElType:=TPasGenericTemplateType(List[0]);
-             List.Clear;
              Engine.FinishScope(stTypeDef,ArrEl);
              end;
           else
@@ -6516,7 +6457,7 @@ begin
     NextToken;
     M:=TPasRecordType(CreateElement(TPasRecordType,'',V));
     V.Members:=M;
-    ParseRecordFieldList(M,tkBraceClose,False);
+    ParseRecordMembers(M,tkBraceClose,False);
     // Current token is closing ), so we eat that
     NextToken;
     // If there is a semicolon, we eat that too.
@@ -6564,7 +6505,7 @@ begin
 end;
 
 // Starts on first token after Record or (. Ends on AEndToken
-procedure TPasParser.ParseRecordFieldList(ARec: TPasRecordType;
+procedure TPasParser.ParseRecordMembers(ARec: TPasRecordType;
   AEndToken: TToken; AllowMethods: Boolean);
 var
   isClass : Boolean;
@@ -6756,7 +6697,7 @@ begin
   try
     Result.PackMode:=PackMode;
     NextToken;
-    ParseRecordFieldList(Result,tkEnd,
+    ParseRecordMembers(Result,tkEnd,
       (msAdvancedRecords in Scanner.CurrentModeSwitches) and not (Parent is TProcedureBody));
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
@@ -7170,6 +7111,65 @@ begin
       end;
     ParseClassMembers(AType);
     end;
+end;
+
+procedure TPasParser.DoParseArrayType(ArrType: TPasArrayType);
+var
+  S: String;
+  RangeExpr: TPasExpr;
+begin
+  NextToken;
+  S:='';
+  case CurToken of
+    tkSquaredBraceOpen:
+      begin
+      // static array
+      if ArrType.Parent is TPasArgument then
+        ParseExcTokenError('of');
+      repeat
+        NextToken;
+        if po_arrayrangeexpr in Options then
+          begin
+          RangeExpr:=DoParseExpression(ArrType);
+          ArrType.AddRange(RangeExpr);
+          end
+        else if CurToken<>tkSquaredBraceClose then
+          S:=S+CurTokenText;
+        if CurToken=tkSquaredBraceClose then
+          break
+        else if CurToken=tkComma then
+          continue
+        else if po_arrayrangeexpr in Options then
+          ParseExcTokenError(']');
+      until false;
+      ArrType.IndexRange:=S;
+      ExpectToken(tkOf);
+      ArrType.ElType := ParseType(ArrType,CurSourcePos);
+      end;
+    tkOf:
+      begin
+      NextToken;
+      if CurToken = tkConst then
+        // array of const
+        begin
+        if not (ArrType.Parent is TPasArgument) then
+          ParseExcExpectedIdentifier;
+        end
+      else
+        begin
+        if (CurToken=tkarray) and (ArrType.Parent is TPasArgument) then
+          ParseExcExpectedIdentifier;
+        UngetToken;
+        ArrType.ElType := ParseType(ArrType,CurSourcePos);
+        end;
+      end
+    else
+      ParseExc(nParserArrayTypeSyntaxError,SParserArrayTypeSyntaxError);
+  end;
+  // TPasProcedureType parsing has eaten the semicolon;
+  // We know it was a local definition if the array def (ArrType) is the parent
+  if (ArrType.ElType is TPasProcedureType) and (ArrType.ElType.Parent=ArrType) then
+    UnGetToken;
 end;
 
 function TPasParser.ParseClassDecl(Parent: TPasElement;

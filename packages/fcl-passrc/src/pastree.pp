@@ -606,6 +606,10 @@ type
   { TPasArrayType }
 
   TPasArrayType = class(TPasType)
+  private
+    procedure ClearChildReferences(El: TPasElement; arg: pointer);
+  protected
+    procedure SetParent(const AValue: TPasElement); override;
   public
     destructor Destroy; override;
     function ElementTypeName: string; override;
@@ -617,9 +621,11 @@ type
     Ranges: TPasExprArray; // only valid if Parser po_arrayrangeexpr enabled
     PackMode : TPackMode;
     ElType: TPasType;
-    Function IsGenericArray : Boolean;
-    Function IsPacked : Boolean;
+    GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType, can be nil
+    function IsGenericArray : Boolean;
+    function IsPacked : Boolean;
     procedure AddRange(Range: TPasExpr);
+    procedure SetGenericTemplates(AList: TFPList); virtual;
   end;
 
   { TPasFileType }
@@ -1734,6 +1740,7 @@ const
      = ('cvar', 'external', 'public', 'export', 'class', 'static');
 
 procedure ReleaseAndNil(var El: TPasElement {$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF}); overload;
+procedure ReleaseGenericTemplateTypes(var GenericTemplateTypes: TFPList{$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
 function GenericTemplateTypesAsString(List: TFPList): string;
 
 {$IFDEF HasPTDumpStack}
@@ -1753,6 +1760,21 @@ begin
   {$IFDEF VerbosePasTreeMem}writeln('ReleaseAndNil ',El.Name,' ',El.ClassName);{$ENDIF}
   El.Release{$IFDEF CheckPasTreeRefCount}(Id){$ENDIF};
   El:=nil;
+end;
+
+procedure ReleaseGenericTemplateTypes(var GenericTemplateTypes: TFPList{$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
+var
+  i: Integer;
+  El: TPasElement;
+begin
+  if GenericTemplateTypes=nil then exit;
+  for i := 0 to GenericTemplateTypes.Count - 1 do
+    begin
+    El:=TPasElement(GenericTemplateTypes[i]);
+    El.Parent:=nil;
+    El.Release{$IFDEF CheckPasTreeRefCount}(Id){$ENDIF};
+    end;
+  FreeAndNil(GenericTemplateTypes);
 end;
 
 function GenericTemplateTypesAsString(List: TFPList): string;
@@ -3056,11 +3078,28 @@ begin
   inherited Destroy;
 end;
 
+procedure TPasArrayType.ClearChildReferences(El: TPasElement; arg: pointer);
+begin
+  El.ClearTypeReferences(Self);
+  if arg=nil then ;
+end;
+
+procedure TPasArrayType.SetParent(const AValue: TPasElement);
+begin
+  if (AValue=nil) and (Parent<>nil) then
+    begin
+    // parent is cleared
+    // -> clear all child references to this array (releasing loops)
+    ForEachCall(@ClearChildReferences,nil);
+    end;
+  inherited SetParent(AValue);
+end;
 
 destructor TPasArrayType.Destroy;
 var
   i: Integer;
 begin
+  ReleaseGenericTemplateTypes(GenericTemplateTypes{$IFDEF CheckPasTreeRefCount},'TPasArrayType'{$ENDIF});
   for i:=0 to length(Ranges)-1 do
     Ranges[i].Release{$IFDEF CheckPasTreeRefCount}('TPasArrayType.Ranges'){$ENDIF};
   ReleaseAndNil(TPasElement(ElType){$IFDEF CheckPasTreeRefCount},'TPasArrayType.ElType'{$ENDIF});
@@ -3072,7 +3111,6 @@ begin
   ReleaseAndNil(TPasElement(ElType){$IFDEF CheckPasTreeRefCount},'TPasFileType.ElType'{$ENDIF});
   inherited Destroy;
 end;
-
 
 constructor TPasEnumType.Create(const AName: string; AParent: TPasElement);
 begin
@@ -4032,29 +4070,39 @@ end;
 function TPasArrayType.GetDeclaration (full : boolean) : string;
 begin
   Result:='Array';
+  if Full then
+    begin
+    if GenericTemplateTypes<>nil then
+      Result:=Result+GenericTemplateTypesAsString(GenericTemplateTypes)+' = '+Result
+    else
+      Result:=Result+' = '+Result;
+    end;
   If (IndexRange<>'') then
     Result:=Result+'['+IndexRange+']';
   Result:=Result+' of ';
   If IsPacked then
-     Result := 'packed '+Result;      // 12/04/04 Dave - Added
+    Result := 'packed '+Result;      // 12/04/04 Dave - Added
   If Assigned(Eltype) then
     Result:=Result+ElType.Name
   else
     Result:=Result+'const';
-  If Full Then
-    Result:=FixTypeDecl(Result);
 end;
 
 procedure TPasArrayType.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
+var
+  i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
+  if GenericTemplateTypes<>nil then
+    for i:=0 to GenericTemplateTypes.Count-1 do
+      ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
   ForEachChildCall(aMethodCall,Arg,ElType,true);
 end;
 
 function TPasArrayType.IsGenericArray: Boolean;
 begin
-  Result:=ElType is TPasGenericTemplateType;
+  Result:=GenericTemplateTypes<>nil;
 end;
 
 function TPasArrayType.IsPacked: Boolean;
@@ -4069,6 +4117,22 @@ begin
   i:=Length(Ranges);
   SetLength(Ranges, i+1);
   Ranges[i]:=Range;
+end;
+
+procedure TPasArrayType.SetGenericTemplates(AList: TFPList);
+var
+  I: Integer;
+  El: TPasElement;
+begin
+  if GenericTemplateTypes=nil then
+    GenericTemplateTypes:=TFPList.Create;
+  For I:=0 to AList.Count-1 do
+    begin
+    El:=TPasElement(AList[i]);
+    El.Parent:=Self;
+    GenericTemplateTypes.Add(El);
+    end;
+  AList.Clear;
 end;
 
 function TPasFileType.GetDeclaration (full : boolean) : string;
@@ -4198,13 +4262,8 @@ begin
     end;
   FreeAndNil(Members);
 
-  for i := 0 to GenericTemplateTypes.Count - 1 do
-    begin
-    El:=TPasElement(GenericTemplateTypes[i]);
-    El.Parent:=nil;
-    El.Release{$IFDEF CheckPasTreeRefCount}('TPasMembersType.GenericTemplateTypes'){$ENDIF};
-    end;
-  FreeAndNil(GenericTemplateTypes);
+  ReleaseGenericTemplateTypes(GenericTemplateTypes
+    {$IFDEF CheckPasTreeRefCount},'TPasMembersType.GenericTemplateTypes'{$ENDIF});
 
   inherited Destroy;
 end;
