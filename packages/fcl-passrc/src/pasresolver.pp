@@ -5822,6 +5822,9 @@ var
   Expr: TPasExpr;
   Value: String;
 begin
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.FinishGenericTemplateType ',GetObjName(El),' El.Parent=',GetObjName(El.Parent),' Constraints=',length(El.Constraints));
+  {$ENDIF}
   for i:=0 to length(El.Constraints)-1 do
     begin
     Expr:=El.Constraints[i];
@@ -15898,6 +15901,7 @@ begin
     else if AClass=TPasImplCommand then
     else if AClass=TPasAttributes then
     else if AClass=TPasGenericTemplateType then
+      AddType(TPasType(El))
     else if AClass=TPasUnresolvedUnitRef then
       RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
     else
@@ -22153,6 +22157,9 @@ begin
   else if ElClass=TPasResString then
     SetResolverIdentifier(ResolvedEl,btString,El,
                         FBaseTypes[btString],FBaseTypes[btString],[rrfReadable])
+  else if ElClass=TPasGenericTemplateType then
+    SetResolverIdentifier(ResolvedEl,btContext,El,TPasGenericTemplateType(El),
+      TPasGenericTemplateType(El),[])
   else
     RaiseNotYetImplemented(20160922163705,El);
   {$IF defined(nodejs) and defined(VerbosePasResolver)}

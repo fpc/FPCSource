@@ -3630,9 +3630,17 @@ begin
         end;
       end;
     tkGeneric:
+      begin
+      NextToken;
+      if (CurToken in [tkprocedure,tkfunction]) then
+        begin
+        SetBlock(declNone);
+        UngetToken;
+        end;
       if CurBlock = declType then
         begin
-        TypeName := ExpectIdentifier;
+        CheckToken(tkIdentifier);
+        TypeName := CurTokenString;
         NamePos:=CurSourcePos;
         List:=TFPList.Create;
         try
@@ -3727,6 +3735,7 @@ begin
         begin
         ParseExcSyntaxError;
         end;
+      end;
     tkbegin:
       begin
       if Declarations is TProcedureBody then
