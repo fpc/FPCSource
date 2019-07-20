@@ -7096,6 +7096,7 @@ packages/pastojs/src/pas2jslibcompiler.pp svneol=native#text/plain
 packages/pastojs/src/pas2jslogger.pp svneol=native#text/plain
 packages/pastojs/src/pas2jspcucompiler.pp svneol=native#text/plain
 packages/pastojs/src/pas2jspparser.pp svneol=native#text/plain
+packages/pastojs/src/pas2jsresstrfile.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsuseanalyzer.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsutils.pp svneol=native#text/plain
 packages/pastojs/tests/tcconverter.pp svneol=native#text/plain

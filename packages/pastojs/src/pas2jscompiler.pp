@@ -37,8 +37,8 @@ uses
   {$ENDIF}
   // !! No filesystem units here.
   Classes, SysUtils, contnrs,
-  jsbase, jstree, jswriter, JSSrcMap,
-  PScanner, PParser, PasTree, PasResolver, PasResolveEval, PasUseAnalyzer,
+  jsbase, jstree, jswriter, JSSrcMap, fpjson,
+  PScanner, PParser, PasTree, PasResolver, PasResolveEval, PasUseAnalyzer, pas2jsresstrfile,
   FPPas2Js, FPPJsSrcMap, Pas2jsLogger, Pas2jsFS, Pas2jsPParser, Pas2jsUseAnalyzer;
 
 const
@@ -95,6 +95,7 @@ const
   nPostProcessorWarnX = 142; sPostProcessorWarnX = 'Post processor: %s';
   nPostProcessorFinished = 143; sPostProcessorFinished = 'Post processor finished';
   nRTLIdentifierChanged = 144; sRTLIdentifierChanged = 'RTL identifier %s changed from %s to %s';
+  nSkipNoConstResourcestring = 145; sSkipNoConstResourcestring = 'Resource string %s is not a constant, not adding to resourcestrings file.';
   // Note: error numbers 201+ are used by Pas2jsFileCache
 
 //------------------------------------------------------------------------------
@@ -148,12 +149,16 @@ type
     rvcSystem,
     rvcUnit
     );
+  TP2JSResourceStringFile = (rsfNone,rsfUnit,rsfProgram);
+
 const
   DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader,coUseStrict];
+  DefaultP2JSResourceStringFile = rsfProgram;
   DefaultP2jsRTLVersionCheck = rvcNone;
   coShowAll = [coShowErrors..coShowDebug];
   coO1Enable = [coEnumValuesAsNumbers];
   coO1Disable = [coKeepNotUsedPrivates,coKeepNotUsedDeclarationsWPO];
+
 
   p2jscoCaption: array[TP2jsCompilerOption] of string = (
     // only used by experts or programs parsing the pas2js output, no need for resourcestrings
@@ -492,8 +497,11 @@ type
     FSrcMapSourceRoot: string;
     FUnits: TPasAnalyzerKeySet; // set of TPas2jsCompilerFile, key is PasUnitName
     FWPOAnalyzer: TPas2JSAnalyzer;
+    FResourceStrings : TResourceStringsFile;
+    FResourceStringFile :  TP2JSResourceStringFile;
     procedure AddInsertJSFilename(const aFilename: string);
     Procedure AddNamespaces(const Paths: string; FromCmdLine: boolean);
+    procedure AddUnitResourceStrings(aFile: TPas2jsCompilerFile);
     function CreateFileWriter(aFile: TPas2jsCompilerFile; const aFilename: string): TPas2JSMapper;
     procedure EmitJavaScript(aFile: TPas2jsCompilerFile; aFileWriter: TPas2JSMapper);
     function GetDefaultNamespace: String;
@@ -542,6 +550,7 @@ type
     procedure SetWriteDebugLog(const AValue: boolean);
     procedure SetWriteMsgToStdErr(const AValue: boolean);
     procedure WriteJSToFile(const MapFileName: string; aFileWriter: TPas2JSMapper);
+    procedure WriteResourceStrings(aFileName: String);
     procedure WriteSrcMap(const MapFileName: string; aFileWriter: TPas2JSMapper);
   private
     procedure AddDefinesForTargetPlatform;
@@ -2486,9 +2495,138 @@ begin
   end;
 end;
 
+procedure TPas2jsCompiler.AddUnitResourceStrings(aFile : TPas2jsCompilerFile);
 
-procedure TPas2jsCompiler.WriteSingleJSFile(aFile: TPas2jsCompilerFile;
-  CombinedFileWriter: TPas2JSMapper);
+Var
+  ResList : TFPList;
+
+  Procedure AddToList(aList : TFPList);
+  var
+    I : integer;
+  begin
+    For I:=0 to aList.Count-1 do
+      ResList.Add(aList[i]);
+  end;
+
+  Procedure AddUsedToList(aList : TFPList);
+  var
+    I : integer;
+
+  begin
+    For I:=0 to aList.Count-1 do
+      if aFile.UseAnalyzer.IsUsed(TPasElement(aList[i])) then
+        ResList.Add(aList[i]);
+  end;
+
+  Procedure CheckSection(aSection : TPasSection);
+
+  begin
+    if not (Assigned(aSection) and Assigned(aSection.ResStrings)) then
+      exit;
+    if FResourceStringFile=rsfProgram then
+      AddUsedToList(aSection.ResStrings)
+    else
+      AddToList(aSection.ResStrings);
+  end;
+
+Var
+  I : Integer;
+  Res : TPasResString;
+  aValue : TResEvalValue;
+
+begin
+  if FResourceStringFile=rsfUnit then
+     FResourceStrings.Clear;
+  ResList:=TFPList.Create;
+  try
+    // Program ?
+    if aFile.pasModule is TPasProgram then
+      CheckSection(TPasProgram(aFile.pasModule).ProgramSection)
+    else if aFile.pasModule is TPasLibrary then // Library ?
+      CheckSection(TPasLibrary(aFile.pasModule).LibrarySection)
+    else
+      begin
+      // Interface
+      CheckSection(aFile.PasModule.InterfaceSection);
+      // Implementation
+      CheckSection(aFile.PasModule.ImplementationSection);
+      end;
+    // Now add to file
+    if ResList.Count>0 then
+      begin
+      FResourceStrings.StartUnit(aFile.GetModuleName);
+      For I:=0 to ResList.Count-1 do
+        begin
+        Res:=TPasResString(ResList[i]);
+        aValue:=aFile.PascalResolver.Eval(Res.Expr,[refConst],False);
+        if aValue.Kind=revkString then
+           FResourceStrings.AddString(Res.Name,TResEvalString(aValue).S)
+        else if aValue.Kind=revkUnicodeString then
+           FResourceStrings.AddString(Res.Name,TResEvalUTF16(aValue).S)
+        else
+          Log.Log(mtNote,sSkipNoConstResourcestring,nSkipNoConstResourcestring,aFile.PasFileName);
+        ReleaseEvalValue(aValue);
+        end;
+      end;
+  finally
+    ResList.Free;
+  end;
+end;
+
+
+procedure TPas2jsCompiler.WriteResourceStrings(aFileName : String);
+
+Var
+  {$IFDEF Pas2js}
+  buf: TJSArray;
+  {$ELSE}
+  buf: TMemoryStream;
+  {$ENDIF}
+  S : TJSONStringType;
+
+begin
+  Log.LogMsg(nWritingFile,[FullFormatPath(aFilename)],'',0,0,False);
+  try
+    {$IFDEF Pas2js}
+    buf:=TJSArray.new;
+    {$ELSE}
+    buf:=TMemoryStream.Create;
+    {$ENDIF}
+    try
+      // Note: No UTF-8 BOM in source map, Chrome 59 gives an error
+      S:=FResourceStrings.AsString;
+      {$ifdef pas2js}
+      aStream.push(S);
+      {$else}
+      buf.Write(S[1],length(S));
+      {$endif}
+      FS.SaveToFile(buf,aFilename);
+    finally
+      {$IFDEF Pas2js}
+      buf:=nil;
+      {$ELSE}
+      buf.Free;
+      {$ENDIF}
+    end;
+  except
+    on E: Exception do begin
+      if ShowDebug then
+        Log.LogExceptionBackTrace(E);
+      {$IFDEF FPC}
+      if E.Message<>SafeFormat(SFCreateError,[aFileName]) then
+      {$ENDIF}
+        Log.LogPlain('Error: '+E.Message);
+      Log.LogMsg(nUnableToWriteFile,[FullFormatPath(aFilename)]);
+      Terminate(ExitCodeWriteError);
+    end
+    {$IFDEF Pas2js}
+    else HandleJSException('[20181031190737] TPas2jsCompiler.WriteJSFiles',JSExceptValue);
+    {$ENDIF}
+  end;
+
+end;
+
+procedure TPas2jsCompiler.WriteSingleJSFile(aFile: TPas2jsCompilerFile; CombinedFileWriter: TPas2JSMapper);
 
   Procedure WriteToStandardOutput(aFileWriter : TPas2JSMapper);
 
@@ -2542,7 +2680,12 @@ begin
       if aFile.IsMainFile and Not AllJSIntoMainJS then
         InsertCustomJSFiles(aFileWriter);
       end;
+
+    if FResourceStringFile<>rsfNone then
+      AddUnitResourceStrings(aFile);
     EmitJavaScript(aFile,aFileWriter);
+
+
 
     if aFile.IsMainFile and (TargetPlatform=PlatformNodeJS) then
       aFileWriter.WriteFile('rtl.run();'+LineEnding,aFile.UnitFilename);
@@ -2566,6 +2709,9 @@ begin
 
       MapFilename:=aFileWriter.DestFilename+'.map';
       WriteJSToFile(MapFileName,aFileWriter);
+      if (FResourceStringFile=rsfUnit) or (aFile.IsMainFile and (FResourceStringFile<>rsfNone)) then
+        if FResourceStrings.StringsCount>0 then
+          WriteResourceStrings(ChangeFileExt(aFileWriter.DestFileName,'.rsj'));
       // write source map
       if aFileWriter.SrcMap<>nil then
         WriteSrcMap(MapFileName,aFileWriter);
@@ -2600,7 +2746,7 @@ Var
   aFileWriter : TPas2JSMapper;
 
 begin
-  //writeln('TPas2jsCompiler.WriteJSFiles START ',aFile.UnitFilename,' Need=',aFile.NeedBuild,' Checked=',Checked.ContainsItem(aFile),' JSModule=',GetObjName(aFile.JSModule));
+  // writeln('TPas2jsCompiler.WriteJSFiles START ',aFile.UnitFilename,' Need=',aFile.NeedBuild,' Checked=',Checked.ContainsItem(aFile),' JSModule=',GetObjName(aFile.JSModule));
   if (aFile.JSModule=nil) or (not aFile.NeedBuild) then exit;
   // check each file only once
   if Checked.ContainsItem(aFile) then exit;
@@ -3275,6 +3421,20 @@ begin
         PostProcessorSupport.AddPostProcessor(aValue);
       end;
     end;
+  'r': // -Jr<...>
+    begin
+    S:=aValue;
+    if aValue='' then
+      ParamFatal('missing value for -Jr option')
+    else if (S='none') then
+      FResourceStringFile:=rsfNone
+    else if (S='unit') then
+      FResourceStringFile:=rsfunit
+    else if (S='program') then
+      FResourceStringFile:=rsfProgram
+    else
+      ParamFatal('invalid resource string file format (-Jr) "'+aValue+'"');
+    end;
   'u': // -Ju<foreign path>
     if not Quick then
       begin
@@ -3861,6 +4021,7 @@ begin
 
   FFiles:=CreateSetOfCompilerFiles(kcFilename);
   FUnits:=CreateSetOfCompilerFiles(kcUnitName);
+  FResourceStrings:=TResourceStringsFile.Create;
   FReadingModules:=TFPList.Create;
   InitParamMacros;
   Reset;
@@ -3870,6 +4031,7 @@ destructor TPas2jsCompiler.Destroy;
 
   procedure FreeStuff;
   begin
+    FreeAndNil(FResourceStrings);
     FreeAndNil(FNamespaces);
     FreeAndNil(FWPOAnalyzer);
     FreeAndNil(FInsertFilenames);
