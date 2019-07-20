@@ -744,6 +744,7 @@ type
     procedure WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUWriterContext); virtual;
     procedure WriteArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUWriterContext); virtual;
     procedure WriteResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUWriterContext); virtual;
+    procedure WriteGenericTemplateTypes(Obj: TJSONObject; Parent: TPasElement; GenericTemplateTypes: TFPList; aContext: TPCUWriterContext); virtual;
     procedure WriteAliasType(Obj: TJSONObject; El: TPasAliasType; aContext: TPCUWriterContext); virtual;
     procedure WritePointerType(Obj: TJSONObject; El: TPasPointerType; aContext: TPCUWriterContext); virtual;
     procedure WriteSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPCUWriterContext); virtual;
@@ -947,6 +948,7 @@ type
     procedure ReadRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUReaderContext); virtual;
     procedure ReadArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUReaderContext); virtual;
     procedure ReadResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUReaderContext); virtual;
+    procedure ReadGenericTemplateTypes(Obj: TJSONObject; Parent: TPasElement; var GenericTemplateTypes: TFPList; aContext: TPCUReaderContext); virtual;
     procedure ReadAliasType(Obj: TJSONObject; El: TPasAliasType; aContext: TPCUReaderContext); virtual;
     procedure ReadPointerType(Obj: TJSONObject; El: TPasPointerType; aContext: TPCUReaderContext); virtual;
     procedure ReadSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPCUReaderContext); virtual;
@@ -3276,6 +3278,28 @@ begin
   WriteExpr(Obj,El,'Expr',El.Expr,aContext);
 end;
 
+procedure TPCUWriter.WriteGenericTemplateTypes(Obj: TJSONObject;
+  Parent: TPasElement; GenericTemplateTypes: TFPList;
+  aContext: TPCUWriterContext);
+var
+  Arr: TJSONArray;
+  i: Integer;
+  Templ: TPasGenericTemplateType;
+  TemplObj: TJSONObject;
+begin
+  if (GenericTemplateTypes=nil) or (GenericTemplateTypes.Count=0) then exit;
+  Arr:=TJSONArray.Create;
+  Obj.Add('GenericTemplateTypes',Arr);
+  for i:=0 to GenericTemplateTypes.Count-1 do
+    begin
+    Templ:=TPasGenericTemplateType(GenericTemplateTypes[i]);
+    TemplObj:=TJSONObject.Create;
+    Arr.Add(TemplObj);
+    TemplObj.Add('Name',Templ.Name);
+    WritePasExprArray(TemplObj,Parent,'Constraints',Templ.Constraints,aContext);
+    end;
+end;
+
 procedure TPCUWriter.WriteAliasType(Obj: TJSONObject; El: TPasAliasType;
   aContext: TPCUWriterContext);
 begin
@@ -3317,6 +3341,7 @@ procedure TPCUWriter.WriteArrayType(Obj: TJSONObject; El: TPasArrayType;
   aContext: TPCUWriterContext);
 begin
   WritePasElement(Obj,El,aContext);
+  WriteGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   WritePasExprArray(Obj,El,'Ranges',El.Ranges,aContext);
   if El.PackMode<>pmNone then
     Obj.Add('Packed',PCUPackModeNames[El.PackMode]);
@@ -3380,6 +3405,7 @@ procedure TPCUWriter.WriteRecordType(Obj: TJSONObject; El: TPasRecordType;
   aContext: TPCUWriterContext);
 begin
   WritePasElement(Obj,El,aContext);
+  WriteGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   if El.PackMode<>pmNone then
     Obj.Add('Packed',PCUPackModeNames[El.PackMode]);
   WriteElementList(Obj,El,'Members',El.Members,aContext);
@@ -3532,6 +3558,7 @@ var
   Scope: TPas2JSClassScope;
 begin
   WritePasElement(Obj,El,aContext);
+  WriteGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   if El.PackMode<>pmNone then
     Obj.Add('Packed',PCUPackModeNames[El.PackMode]);
   // ObjKind is the 'Type'
@@ -6627,6 +6654,30 @@ begin
   El.Expr:=ReadExpr(Obj,El,'Expr',aContext);
 end;
 
+procedure TPCUReader.ReadGenericTemplateTypes(Obj: TJSONObject;
+  Parent: TPasElement; var GenericTemplateTypes: TFPList;
+  aContext: TPCUReaderContext);
+var
+  TemplArr: TJSONArray;
+  i: Integer;
+  TemplObj: TJSONObject;
+  GenTypeName: string;
+  GenType: TPasGenericTemplateType;
+begin
+  if not ReadArray(Obj,'GenericTemplateTypes',TemplArr,Parent) then exit;
+  if GenericTemplateTypes=nil then
+    GenericTemplateTypes:=TFPList.Create;
+  for i:=0 to TemplArr.Count-1 do
+    begin
+    TemplObj:=CheckJSONObject(TemplArr[i],20190720224105);
+    if not ReadString(TemplObj,'Name',GenTypeName,Parent) or (GenTypeName='') then
+      RaiseMsg(20190720224130,Parent,IntToStr(i));
+    GenType:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,GenTypeName,Parent));
+    GenericTemplateTypes.Add(GenType);
+    ReadPasExprArray(TemplObj,Parent,'Constraints',GenType.Constraints,aContext);
+    end;
+end;
+
 procedure TPCUReader.ReadAliasType(Obj: TJSONObject; El: TPasAliasType;
   aContext: TPCUReaderContext);
 begin
@@ -6683,6 +6734,7 @@ procedure TPCUReader.ReadArrayType(Obj: TJSONObject; El: TPasArrayType;
   aContext: TPCUReaderContext);
 begin
   ReadPasElement(Obj,El,aContext);
+  ReadGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   ReadPasExprArray(Obj,El,'Ranges',El.Ranges,aContext);
   if El.PackMode<>pmNone then
     Obj.Add('Packed',PCUPackModeNames[El.PackMode]);
@@ -6778,6 +6830,7 @@ begin
   El.CustomData:=Scope;
 
   ReadPasElement(Obj,El,aContext);
+  ReadGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   El.PackMode:=ReadPackedMode(Obj,'Packed',El);
   ReadElementList(Obj,El,'Members',El.Members,
     {$IFDEF CheckPasTreeRefCount}'TPasRecordType.Members'{$ELSE}true{$ENDIF},
@@ -7094,6 +7147,7 @@ begin
     end;
 
   ReadPasElement(Obj,El,aContext);
+  ReadGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   El.PackMode:=ReadPackedMode(Obj,'Packed',El);
   // ObjKind is the 'Type'
 

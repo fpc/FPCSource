@@ -1374,6 +1374,7 @@ procedure TCustomTestPrecompile.CheckRestoredArrayType(const Path: string;
   Orig, Rest: TPasArrayType);
 begin
   CheckRestoredPasExprArray(Path+'.Ranges',Orig.Ranges,Rest.Ranges);
+  CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   if Orig.PackMode<>Rest.PackMode then
     Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   CheckRestoredElOrRef(Path+'.ElType',Orig,Orig.ElType,Rest,Rest.ElType);
@@ -1414,6 +1415,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredRecordType(const Path: string;
   Orig, Rest: TPasRecordType);
 begin
+  CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   if Orig.PackMode<>Rest.PackMode then
     Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   CheckRestoredElementList(Path+'.Members',Orig.Members,Rest.Members);
@@ -1425,6 +1427,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredClassType(const Path: string;
   Orig, Rest: TPasClassType);
 begin
+  CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   if Orig.PackMode<>Rest.PackMode then
     Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   if Orig.ObjKind<>Rest.ObjKind then
