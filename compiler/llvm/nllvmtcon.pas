@@ -412,13 +412,12 @@ implementation
 
   procedure tllvmtai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
     var
-      srsym     : tsym;
-      srsymtable: tsymtable;
       strrecdef : trecorddef;
       strdef: tdef;
       offset: pint;
       field: tfieldvarsym;
       dataptrdef: tdef;
+      typesym: ttypesym;
     begin
       { nil pointer? }
       if not assigned(ll.lab) then
@@ -434,9 +433,10 @@ implementation
       if ll.ofs<>0 then
         begin
           { get the recorddef for this string constant }
-          if not searchsym_type(ctai_typedconstbuilder.get_dynstring_rec_name(st,winlikewidestring,strlength),srsym,srsymtable) then
+          typesym:=try_search_current_module_type(ctai_typedconstbuilder.get_dynstring_rec_name(st,winlikewidestring,strlength));
+          if not assigned(typesym) then
             internalerror(2014080406);
-          strrecdef:=trecorddef(ttypesym(srsym).typedef);
+          strrecdef:=trecorddef(typesym.typedef);
           { offset in the record of the the string data }
           offset:=ctai_typedconstbuilder.get_string_symofs(st,winlikewidestring);
           { field corresponding to this offset }
