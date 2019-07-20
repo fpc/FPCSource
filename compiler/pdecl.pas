@@ -447,7 +447,11 @@ implementation
 
               { Check if the attribute class is related to TCustomAttribute }
               if not is_system_custom_attribute_descendant(od) then
-                incompatibletypes(od,class_tcustomattribute);
+                begin
+                  incompatibletypes(od,class_tcustomattribute);
+                  read_attr_paras.free;
+                  continue;
+                end;
 
               paran:=read_attr_paras;
 
