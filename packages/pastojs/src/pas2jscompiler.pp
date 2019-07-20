@@ -4503,6 +4503,10 @@ begin
   w('     -JoCheckVersion=system: insert rtl version check into system unit init.');
   w('     -JoCheckVersion=unit: insert rtl version check into every unit init.');
   w('     -JoRTL-<y>=<z>: set RTL identifier y to value z. See -iJ.');
+  w('   -Jr<x> Control writing of resource string file');
+  w('     -Jrnone: Do not write resource string file');
+  w('     -Jrunit: Write resource string file per unit with all resource strings');
+  w('     -Jrprogram: Write resource string file per program with all used resource strings in program');
   w('   -Jpcmd<command>: Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. This option can be added multiple times to call several postprocessors in succession.');
   w('   -Ju<x>: Add <x> to foreign unit paths. Foreign units are not compiled.');
   WritePrecompiledFormats;
