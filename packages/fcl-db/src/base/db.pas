@@ -428,7 +428,6 @@ type
     property FieldNo: Longint read FFieldNo;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
-    property Lookup: Boolean read GetLookup write SetLookup; deprecated;
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
     property Size: Integer read FSize write SetSize;
@@ -455,6 +454,7 @@ type
     property LookupDataSet: TDataSet read FLookupDataSet write FLookupDataSet;
     property LookupKeyFields: string read FLookupKeyFields write FLookupKeyFields;
     property LookupResultField: string read FLookupResultField write FLookupResultField;
+    property Lookup: Boolean read GetLookup write SetLookup stored false; deprecated;
     property Origin: string read FOrigin write FOrigin;
     property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly;
