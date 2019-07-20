@@ -5821,10 +5821,19 @@ var
   i: Integer;
   Expr: TPasExpr;
   Value: String;
+  IsClass, IsRecord, IsConstructor: Boolean;
+  LastType: TPasType;
+  ResolvedEl: TPasResolverResult;
+  MemberType: TPasMembersType;
+  aClass: TPasClassType;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishGenericTemplateType ',GetObjName(El),' El.Parent=',GetObjName(El.Parent),' Constraints=',length(El.Constraints));
   {$ENDIF}
+  IsClass:=false;
+  IsRecord:=false;
+  IsConstructor:=false;
+  LastType:=nil;
   for i:=0 to length(El.Constraints)-1 do
     begin
     Expr:=El.Constraints[i];
@@ -5832,8 +5841,102 @@ begin
       begin
       Value:=TPrimitiveExpr(Expr).Value;
       if SameText(Value,'class') then
-        ; // ToDo
-      end;
+        begin
+        if IsClass then
+          RaiseMsg(20190720202412,nConstraintXSpecifiedMoreThanOnce,
+            sConstraintXSpecifiedMoreThanOnce,['class'],Expr);
+        if IsRecord then
+          RaiseMsg(20190720202516,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,['record','class'],Expr);
+        if LastType<>nil then
+          RaiseMsg(20190720205708,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'class'],Expr);
+        IsClass:=true;
+        end
+      else if SameText(Value,'record') then
+        begin
+        if IsRecord then
+          RaiseMsg(20190720203028,nConstraintXSpecifiedMoreThanOnce,
+            sConstraintXSpecifiedMoreThanOnce,['record'],Expr);
+        if IsClass then
+          RaiseMsg(20190720203039,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,['class','record'],Expr);
+        if IsConstructor then
+          RaiseMsg(20190720203056,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,['constructor','record'],Expr);
+        if LastType<>nil then
+          RaiseMsg(20190720205938,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'record'],Expr);
+        IsRecord:=true;
+        end
+      else if SameText(Value,'constructor') then
+        begin
+        if IsConstructor then
+          RaiseMsg(20190720203123,nConstraintXSpecifiedMoreThanOnce,
+            sConstraintXSpecifiedMoreThanOnce,['constructor'],Expr);
+        if IsRecord then
+          RaiseMsg(20190720203148,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,['record','constructor'],Expr);
+        if LastType<>nil then
+          RaiseMsg(20190720210005,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'constructor'],Expr);
+        IsConstructor:=true;
+        end
+      else
+        begin
+        // type identifier: class, record or interface
+        ResolveNameExpr(Expr,Value,rraNone);
+        ComputeElement(Expr,ResolvedEl,[rcType]);
+        if (ResolvedEl.BaseType<>btContext)
+            or not (ResolvedEl.IdentEl is TPasMembersType) then
+          begin
+          RaiseMsg(20190720204604,nXIsNotAValidConstraint,sXIsNotAValidConstraint,
+            [Value],Expr);
+          end;
+        MemberType:=TPasMembersType(ResolvedEl.LoTypeEl);
+        if IsRecord then
+          RaiseMsg(20190720210130,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,['record',MemberType.Name],Expr);
+        if IsClass then
+          RaiseMsg(20190720210202,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,['class',MemberType.Name],Expr);
+        if IsConstructor then
+          RaiseMsg(20190720210244,nConstraintXAndConstraintYCannotBeTogether,
+            sConstraintXAndConstraintYCannotBeTogether,['constructor',MemberType.Name],Expr);
+        if MemberType is TPasClassType then
+          begin
+          aClass:=TPasClassType(MemberType);
+          case aClass.ObjKind of
+          okClass:
+            begin
+            // there can be at most one classtype constraint
+            if LastType<>nil then
+              RaiseMsg(20190720210351,nConstraintXAndConstraintYCannotBeTogether,
+                sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
+            end;
+          okInterface:
+            begin
+            // there can be multiple interfacetype constraint
+            if not (LastType is TPasClassType) then
+              RaiseMsg(20190720211236,nConstraintXAndConstraintYCannotBeTogether,
+                sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
+            if TPasClassType(LastType).ObjKind<>okInterface then
+              RaiseMsg(20190720211304,nConstraintXAndConstraintYCannotBeTogether,
+                sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
+            end
+          else
+            RaiseMsg(20190720210919,nXIsNotAValidConstraint,
+              sXIsNotAValidConstraint,[MemberType.Name],Expr);
+          end;
+          end
+        else
+          RaiseMsg(20190720210809,nXIsNotAValidConstraint,
+            sXIsNotAValidConstraint,[MemberType.Name],Expr);
+        LastType:=MemberType;
+        end;
+      end
+    else
+      RaiseMsg(20190720203419,nParserSyntaxError,SParserSyntaxError,[],Expr);
     end;
 end;
 
