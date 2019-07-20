@@ -2711,7 +2711,7 @@ begin
       WriteJSToFile(MapFileName,aFileWriter);
       if (FResourceStringFile=rsfUnit) or (aFile.IsMainFile and (FResourceStringFile<>rsfNone)) then
         if FResourceStrings.StringsCount>0 then
-          WriteResourceStrings(ChangeFileExt(aFileWriter.DestFileName,'.rsj'));
+          WriteResourceStrings(ChangeFileExt(aFileWriter.DestFileName,'.jrs'));
       // write source map
       if aFileWriter.SrcMap<>nil then
         WriteSrcMap(MapFileName,aFileWriter);
