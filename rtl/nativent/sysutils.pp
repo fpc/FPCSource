@@ -1263,6 +1263,6 @@ initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep := @SysBeep;
 finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 end.

@@ -1658,6 +1658,6 @@ Initialization
   InitSysConfigDir;
   OnBeep:=@SysBeep;
 Finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 end.

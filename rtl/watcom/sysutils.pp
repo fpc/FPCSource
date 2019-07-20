@@ -898,6 +898,6 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   InitDelay;
 Finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 end.

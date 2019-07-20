@@ -982,7 +982,7 @@ Initialization
   SysConfigDir:='\Windows';
 
 Finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 
 end.

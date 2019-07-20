@@ -1003,6 +1003,6 @@ Initialization
   LastOSError := 0;
   OrigOSErrorWatch := TOSErrorWatch (SetOSErrorTracking (@TrackLastOSError));
 Finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 end.

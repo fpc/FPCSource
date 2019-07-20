@@ -951,6 +951,6 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep:=@SysBeep;
 Finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 end.

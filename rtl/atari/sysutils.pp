@@ -532,6 +532,6 @@ Initialization
   OnBeep:=Nil;          { No SysBeep() on Atari for now. }
 
 Finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 end.
