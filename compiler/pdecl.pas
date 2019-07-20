@@ -428,11 +428,12 @@ implementation
 
       var
         p,paran,pcalln,ptmp : tnode;
-        pcount : sizeint;
+        i,pcount : sizeint;
         paras : array of tnode;
         od : tobjectdef;
         constrsym : tsymentry;
         typesym : ttypesym;
+        parasok : boolean;
       begin
         consume(_LECKKLAMMER);
 
@@ -471,6 +472,7 @@ implementation
 
                   { only count visible parameters (thankfully open arrays are not
                     supported, otherwise we'd need to handle those as well) }
+                  parasok:=true;
                   paras:=nil;
                   if assigned(paran) then
                     begin
@@ -490,7 +492,10 @@ implementation
                           if not (vo_is_hidden_para in tcallparanode(ptmp).parasym.varoptions) then
                             begin
                               if not is_constnode(tcallparanode(ptmp).left) then
-                                internalerror(2019070601);
+                                begin
+                                  parasok:=false;
+                                  messagepos(tcallparanode(ptmp).left.fileinfo,type_e_constant_expr_expected);
+                                end;
                               paras[high(paras)-pcount]:=tcallparanode(ptmp).left.getcopy;
                               inc(pcount);
                             end;
@@ -498,12 +503,21 @@ implementation
                         end;
                     end;
 
-
-                  { Add attribute to attribute list which will be added
-                    to the property which is defined next. }
-                  if not assigned(rtti_attrs_def) then
-                    rtti_attrs_def:=trtti_attribute_list.create;
-                  rtti_attrs_def.addattribute(typesym,tcallnode(pcalln).procdefinition,pcalln,paras);
+                  if parasok then
+                    begin
+                      { Add attribute to attribute list which will be added
+                        to the property which is defined next. }
+                      if not assigned(rtti_attrs_def) then
+                        rtti_attrs_def:=trtti_attribute_list.create;
+                      rtti_attrs_def.addattribute(typesym,tcallnode(pcalln).procdefinition,pcalln,paras);
+                    end
+                  else
+                    begin
+                      { cleanup }
+                      pcalln.free;
+                      for i:=0 to high(paras) do
+                        paras[i].free;
+                    end;
                 end
               else
                 pcalln.free;
