@@ -1828,16 +1828,23 @@ implementation
 
       tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
 
+      { can't use reuse a name, because the size depends on the number and kinds of of parameters each attribute has }
       tbltcb.begin_anonymous_record(
-        internaltypeprefixName[itp_rtti_attr_list]+tostr(count),
+        '',
         defaultpacking,min(reqalign,SizeOf(PInt)),
         targetinfos[target_info.system]^.alignment.recordalignmin);
       tbltcb.emit_ord_const(count,u16inttype);
       for i:=0 to count-1 do
         begin
-          tbltcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_attr_entry],defaultpacking,min(reqalign,SizeOf(PInt)),
-            targetinfos[target_info.system]^.alignment.recordalignmin);
           attr:=trtti_attribute(attr_list.rtti_attributes[i]);
+          { only the length of an entry with no parameters is constant, so only reuse a recorddef for
+            those entries }
+          if length(attr.paras)=0 then
+            tbltcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_attr_entry],defaultpacking,min(reqalign,SizeOf(PInt)),
+              targetinfos[target_info.system]^.alignment.recordalignmin)
+          else
+            tbltcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+              targetinfos[target_info.system]^.alignment.recordalignmin);
 
           write_rtti_reference(tbltcb,ttypesym(attr.typesym).typedef,fullrtti);
 
