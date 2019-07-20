@@ -38,7 +38,8 @@ uses
   // !! No filesystem units here.
   Classes, SysUtils, contnrs,
   jsbase, jstree, jswriter, JSSrcMap, fpjson,
-  PScanner, PParser, PasTree, PasResolver, PasResolveEval, PasUseAnalyzer, pas2jsresstrfile,
+  PScanner, PParser, PasTree, PasResolver, PasResolveEval, PasUseAnalyzer,
+  pas2jsresstrfile,
   FPPas2Js, FPPJsSrcMap, Pas2jsLogger, Pas2jsFS, Pas2jsPParser, Pas2jsUseAnalyzer;
 
 const
@@ -2562,7 +2563,7 @@ begin
         if aValue.Kind=revkString then
            FResourceStrings.AddString(Res.Name,TResEvalString(aValue).S)
         else if aValue.Kind=revkUnicodeString then
-           FResourceStrings.AddString(Res.Name,TResEvalUTF16(aValue).S)
+           FResourceStrings.AddString(Res.Name,TJSONStringType(TResEvalUTF16(aValue).S))
         else
           Log.Log(mtNote,sSkipNoConstResourcestring,nSkipNoConstResourcestring,aFile.PasFileName);
         ReleaseEvalValue(aValue);
