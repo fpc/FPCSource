@@ -1077,7 +1077,7 @@ implementation
               { if we have a real type definition or a unique type we may bind
                 attributes to this def }
               if not istyperenaming or isunique then
-                trtti_attribute_list.bind(rtti_attrs_def,tobjectdef(hdef).rtti_attribute_list);
+                trtti_attribute_list.bind(rtti_attrs_def,tstoreddef(hdef).rtti_attribute_list);
             end;
 
            if isgeneric and (not(hdef.typ in [objectdef,recorddef,arraydef,procvardef])

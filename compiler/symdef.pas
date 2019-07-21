@@ -2302,7 +2302,8 @@ implementation
             is_intregable:=false
 {$else cpuhighleveltarget}
             is_intregable:=not(is_special_array(self)) and
-              (tarraydef(self).size in [1,2,4,8]) and tstoreddef(tarraydef(self).elementdef).is_intregable
+              (tarraydef(self).size<=8) and (tarraydef(self).size in [1,2,4,8]) and
+              tstoreddef(tarraydef(self).elementdef).is_intregable
 {$ifdef SUPPORT_MMX}
               and not((cs_mmx in current_settings.localswitches) and
                  is_mmx_able_array(self))
@@ -4228,7 +4229,7 @@ implementation
           end;
 
         { Tarraydef.size may never be called for an open array! }
-        if highrange<lowrange then
+        if highrange=-1 then
           internalerror(99080501);
         if not (ado_IsBitPacked in arrayoptions) then
           cachedelesize:=elesize
