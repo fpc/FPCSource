@@ -388,9 +388,12 @@ implementation
               newdef:=crecorddef.create_global_internal('',1,1);
             recorddef,
             objectdef:
-              newdef:=crecorddef.create_global_internal('',
-                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignment,
-                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin);
+              begin
+                newdef:=crecorddef.create_global_internal('',
+                  tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).usefieldalignment,
+                  tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin);
+                tabstractrecordsymtable(newdef.symtable).recordalignment:=tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignment;
+              end
             else
               internalerror(2015122401);
           end;
