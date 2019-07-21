@@ -401,11 +401,16 @@ begin
           recordop^.Copy(Src,Dest)
         else
           begin
-{$endif VER3_0}
+            Result:=PRecordInfoInit(Temp)^.Size;
+            EleCount:=PRecordInfoInit(Temp)^.Count;
+            { Get element info, hacky, but what else can we do? }
+            Temp:=Pointer(@PRecordInfoInit(Temp)^.Count)+SizeOf(PRecordInfoInit(Temp)^.Count);
+{$else VER3_0}
             Result:=PRecordInfoFull(Temp)^.Size;
             EleCount:=PRecordInfoFull(Temp)^.Count;
             { Get element info, hacky, but what else can we do? }
             Temp:=Pointer(@PRecordInfoFull(Temp)^.Count)+SizeOf(PRecordInfoFull(Temp)^.Count);
+{$endif VER3_0}
             expectedoffset:=0;
             { Process elements with rtti }
             for i:=1 to EleCount Do
