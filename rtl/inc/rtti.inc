@@ -127,7 +127,8 @@ begin
   typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
 {$endif VER3_0}
   Count:=PRecordInfoInit(typeInfo)^.Count;
-  Inc(PRecordInfoInit(typeInfo));
+  { Get element info, hacky, but what else can we do? }
+  typeInfo:=Pointer(@PRecordInfoInit(typeInfo)^.Count)+SizeOf(PRecordInfoInit(typeInfo)^.Count);
   { Process elements }
   for i:=1 to count Do
     begin
@@ -332,7 +333,7 @@ var
   Temp: pbyte;
   copiedsize,
   expectedoffset,
-  count,
+  EleCount,
   offset,
   i: SizeInt;
   info: pointer;
@@ -365,15 +366,15 @@ begin
         Result:=PArrayInfo(Temp)^.Size*PArrayInfo(Temp)^.ElCount;
       {$else}
         Result:=PArrayInfo(Temp)^.Size;
-        Count:=PArrayInfo(Temp)^.ElCount;
+        EleCount:=PArrayInfo(Temp)^.ElCount;
         { no elements to process => exit }
-        if Count = 0 then
+        if EleCount = 0 then
           Exit;
         Info:=PArrayInfo(Temp)^.ElInfo{$ifndef VER3_0}^{$endif};
-        copiedsize:=Result div Count;
+        copiedsize:=Result div EleCount;
         Offset:=0;
         { Process elements }
-        for I:=1 to Count do
+        for I:=1 to EleCount do
           begin
             fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
             inc(Offset,copiedsize);
@@ -400,16 +401,14 @@ begin
           recordop^.Copy(Src,Dest)
         else
           begin
-            Result:=Size;
-            Inc(PRecordInfoInit(Temp));
-{$else VER3_0}
-            Result:=PRecordInfoFull(Temp)^.Size;
-            Count:=PRecordInfoFull(Temp)^.Count;
-            Inc(PRecordInfoFull(Temp));
 {$endif VER3_0}
+            Result:=PRecordInfoFull(Temp)^.Size;
+            EleCount:=PRecordInfoFull(Temp)^.Count;
+            { Get element info, hacky, but what else can we do? }
+            Temp:=Pointer(@PRecordInfoFull(Temp)^.Count)+SizeOf(PRecordInfoFull(Temp)^.Count);
             expectedoffset:=0;
             { Process elements with rtti }
-            for i:=1 to Count Do
+            for i:=1 to EleCount Do
               begin
                 Info:=PRecordElement(Temp)^.TypeInfo{$ifndef VER3_0}^{$endif};
                 Offset:=PRecordElement(Temp)^.Offset;

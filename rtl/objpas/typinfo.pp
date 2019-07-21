@@ -470,14 +470,21 @@ unit TypInfo;
         {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
         {$endif}
-        Terminator: Pointer;
-        Size: Integer;
+        case TTypeKind of
+          tkRecord: (
+            Terminator: Pointer;
+            Size: Integer;
 {$ifndef VER3_0}
-        InitOffsetOp: PRecOpOffsetTable;
-        ManagementOp: Pointer;
+            InitOffsetOp: PRecOpOffsetTable;
+            ManagementOp: Pointer;
 {$endif}
-        ManagedFieldCount: Integer;
-        { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
+            ManagedFieldCount: Integer;
+          { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
+          );
+          { include for proper alignment }
+          tkInt64: (
+            dummy : Int64
+          );
       end;
 
       PInterfaceData = ^TInterfaceData;
@@ -491,19 +498,31 @@ unit TypInfo;
         function GetPropertyTable: PPropData; inline;
         function GetMethodTable: PIntfMethodTable; inline;
       public
-        {$ifdef PROVIDE_ATTR_TABLE}
-        AttributeTable : PAttributeTable;
-        {$endif}
-        Parent: PPTypeInfo;
-        Flags: TIntfFlagsBase;
-        GUID: TGUID;
         property UnitName: ShortString read GetUnitName;
         property PropertyTable: PPropData read GetPropertyTable;
         property MethodTable: PIntfMethodTable read GetMethodTable;
-      private
-        UnitNameField: ShortString;
-        { PropertyTable: TPropData }
-        { MethodTable: TIntfMethodTable }
+      public
+      {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+      {$endif}
+      case TTypeKind of
+        tkInterface: (
+          Parent: PPTypeInfo;
+          Flags: TIntfFlagsBase;
+          GUID: TGUID;
+          UnitNameField: ShortString;
+          { PropertyTable: TPropData }
+          { MethodTable: TIntfMethodTable }
+        );
+        { include for proper alignment }
+        tkInt64: (
+          dummy : Int64
+        );
+{$ifndef FPUNONE}
+        tkFloat:
+          (FloatType : TFloatType
+        );
+{$endif}
       end;
 
       PInterfaceRawData = ^TInterfaceRawData;
@@ -518,20 +537,32 @@ unit TypInfo;
         function GetPropertyTable: PPropData; inline;
         function GetMethodTable: PIntfMethodTable; inline;
       public
-        {$ifdef PROVIDE_ATTR_TABLE}
-        AttributeTable : PAttributeTable;
-        {$endif}
-        Parent: PPTypeInfo;
-        Flags : TIntfFlagsBase;
-        IID: TGUID;
         property UnitName: ShortString read GetUnitName;
         property IIDStr: ShortString read GetIIDStr;
         property PropertyTable: PPropData read GetPropertyTable;
         property MethodTable: PIntfMethodTable read GetMethodTable;
-      private
-        UnitNameField: ShortString;
-        { IIDStr: ShortString; }
-        { PropertyTable: TPropData }
+      public
+      case TTypeKind of
+        tkInterface: (
+        {$ifdef PROVIDE_ATTR_TABLE}
+          AttributeTable : PAttributeTable;
+        {$endif}
+          Parent: PPTypeInfo;
+          Flags : TIntfFlagsBase;
+          IID: TGUID;
+          UnitNameField: ShortString;
+          { IIDStr: ShortString; }
+          { PropertyTable: TPropData }
+        );
+        { include for proper alignment }
+        tkInt64: (
+          dummy : Int64
+        );
+{$ifndef FPUNONE}
+        tkFloat:
+          (FloatType : TFloatType
+        );
+{$endif}
       end;
 
       PClassData = ^TClassData;

@@ -1178,7 +1178,12 @@ implementation
              defaultpacking,reqalign,
              targetinfos[target_info.system]^.alignment.recordalignmin);
            write_common_rtti_data(tcb,def,rt);
+           tcb.begin_anonymous_record(
+             internaltypeprefixName[itp_rtti_float],
+             defaultpacking,reqalign,
+             targetinfos[target_info.system]^.alignment.recordalignmin);
            tcb.emit_ord_const(translate[def.floattype],u8inttype);
+           tcb.end_anonymous_record;
            tcb.end_anonymous_record;
         end;
 
@@ -1249,7 +1254,13 @@ implementation
                  internaltypeprefixName[itp_rtti_normal_array]+tostr(dimcount),
                  defaultpacking,reqalign,
                  targetinfos[target_info.system]^.alignment.recordalignmin);
+
                write_common_rtti_data(tcb,def,rt);
+
+               tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_normal_array_inner]+tostr(dimcount),
+                 defaultpacking,reqalign,
+                 targetinfos[target_info.system]^.alignment.recordalignmin);
+
                { total size = elecount * elesize of the first arraydef }
                tcb.emit_tai(Tai_const.Create_sizeint(def.elecount*def.elesize),sizeuinttype);
                { total element count }
@@ -1280,7 +1291,15 @@ implementation
                  internaltypeprefixName[itp_rtti_dyn_array],
                  defaultpacking,reqalign,
                  targetinfos[target_info.system]^.alignment.recordalignmin);
+
                write_common_rtti_data(tcb,def,rt);
+
+               { record in TypInfo is aligned differently from init rtti }
+               tcb.begin_anonymous_record(
+                 internaltypeprefixName[itp_rtti_dyn_array_inner],
+                 defaultpacking,reqalign,
+                 targetinfos[target_info.system]^.alignment.recordalignmin);
+
                { size of elements }
                tcb.emit_tai(Tai_const.Create_sizeint(def.elesize),sizeuinttype);
                { element type }
@@ -1295,6 +1314,8 @@ implementation
                { write unit name }
                tcb.emit_shortstring_const(current_module.realmodulename^);
              end;
+
+          tcb.end_anonymous_record;
           tcb.end_anonymous_record;
         end;
 
@@ -1306,7 +1327,12 @@ implementation
             defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin);
           write_common_rtti_data(tcb,def,rt);
+          tcb.begin_anonymous_record(
+            internaltypeprefixName[itp_rtti_classref],
+            defaultpacking,reqalign,
+            targetinfos[target_info.system]^.alignment.recordalignmin);
           write_rtti_reference(tcb,def.pointeddef,rt);
+          tcb.end_anonymous_record;
           tcb.end_anonymous_record;
         end;
 
@@ -1318,7 +1344,12 @@ implementation
             defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin);
           write_common_rtti_data(tcb,def,rt);
+          tcb.begin_anonymous_record(
+            internaltypeprefixName[itp_rtti_pointer],
+            defaultpacking,reqalign,
+            targetinfos[target_info.system]^.alignment.recordalignmin);
           write_rtti_reference(tcb,def.pointeddef,rt);
+          tcb.end_anonymous_record;
           tcb.end_anonymous_record;
         end;
 
@@ -1339,7 +1370,7 @@ implementation
 
             tcb.begin_anonymous_record(
               rttilab.Name,
-              defaultpacking,reqalign,
+              defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin
             );
 
@@ -1372,15 +1403,19 @@ implementation
            { need extra reqalign record, because otherwise the u32 int will
              only be aligned to 4 even on 64 bit target (while the rtti code
              in typinfo expects alignments to sizeof(pointer)) }
-           tcb.begin_anonymous_record('',defaultpacking,reqalign,
+           tcb.begin_anonymous_record('',
+             defaultpacking,reqalign,
              targetinfos[target_info.system]^.alignment.recordalignmin);
 
            write_common_rtti_data(tcb,def,rt);
 
+           tcb.begin_anonymous_record('',
+             defaultpacking,reqalign,
+             targetinfos[target_info.system]^.alignment.recordalignmin);
            { store special terminator for init table for more optimal rtl operations
              strictly related to RecordRTTI procedure in rtti.inc (directly 
              related to RTTIRecordRttiInfoToInitInfo function) }
-           if (rt=initrtti) then
+           if rt=initrtti then
              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
            else
              { we use a direct reference as the init RTTI is always in the same
@@ -1390,7 +1425,7 @@ implementation
            tcb.emit_ord_const(def.size,u32inttype);
 
            { store rtti management operators only for init table }
-           if (rt=initrtti) then
+           if rt=initrtti then
              begin
                { for now records don't have the initializer table }
                tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
@@ -1403,6 +1438,7 @@ implementation
              end;
 
            fields_write_rtti_data(tcb,def,rt);
+           tcb.end_anonymous_record;
            tcb.end_anonymous_record;
 
            { write pointers to operators if needed }
@@ -1457,6 +1493,9 @@ implementation
 
                write_common_rtti_data(tcb,def,rt);
 
+               tcb.begin_anonymous_record('',
+                 defaultpacking,reqalign,
+                 targetinfos[target_info.system]^.alignment.recordalignmin);
                { write kind of method }
                methodkind:=write_methodkind(tcb,def);
 
@@ -1491,6 +1530,7 @@ implementation
                      write_rtti_reference(tcb,tparavarsym(def.paras[i]).vardef,fullrtti);
                  end;
                tcb.end_anonymous_record;
+               tcb.end_anonymous_record;
             end
           else
             begin
@@ -1500,6 +1540,9 @@ implementation
 
               write_common_rtti_data(tcb,def,rt);
 
+              tcb.begin_anonymous_record('',
+                defaultpacking,reqalign,
+                targetinfos[target_info.system]^.alignment.recordalignmin);
               { flags }
               tcb.emit_ord_const(0,u8inttype);
               { write calling convention }
@@ -1512,6 +1555,7 @@ implementation
               for i:=0 to def.paras.count-1 do
                 write_procedure_param(tparavarsym(def.paras[i]));
               tcb.end_anonymous_record;
+              tcb.end_anonymous_record;
             end;
         end;
 
@@ -1520,6 +1564,9 @@ implementation
 
           procedure objectdef_rtti_fields(def:tobjectdef);
           begin
+            tcb.begin_anonymous_record('',defaultpacking,reqalign,
+              targetinfos[target_info.system]^.alignment.recordalignmin);
+
             { - for compatiblity with record RTTI we need to write a terminator-
                 Nil pointer for initrtti as well for objects
               - for RTTI consistency for objects we need point from fullrtti
@@ -1549,6 +1596,8 @@ implementation
               end;
             { enclosing record takes care of alignment }
             fields_write_rtti_data(tcb,def,rt);
+
+            tcb.end_anonymous_record;
           end;
 
           procedure objectdef_rtti_interface_init(def:tobjectdef);
@@ -1563,6 +1612,9 @@ implementation
             { Collect unique property names with nameindex }
             propnamelist:=TFPHashObjectList.Create;
             collect_propnamelist(propnamelist,def);
+
+            tcb.begin_anonymous_record('',defaultpacking,reqalign,
+              targetinfos[target_info.system]^.alignment.recordalignmin);
 
             if not is_objectpascal_helper(def) then
               if (oo_has_vmt in def.objectoptions) then
@@ -1590,6 +1642,8 @@ implementation
 
             { write published properties for this object }
             published_properties_write_rtti_data(tcb,propnamelist,def.symtable);
+
+            tcb.end_anonymous_record;
 
             propnamelist.free;
           end;
@@ -1691,6 +1745,9 @@ implementation
                end;
              fullrtti :
                begin
+                 tcb.begin_anonymous_record('',
+                   defaultpacking,reqalign,
+                   targetinfos[target_info.system]^.alignment.recordalignmin);
                  case def.objecttype of
                    odt_helper,
                    odt_class:
@@ -1700,6 +1757,7 @@ implementation
                  else
                    objectdef_rtti_interface_full(def);
                  end;
+                 tcb.end_anonymous_record;
                end;
              else
                ;
