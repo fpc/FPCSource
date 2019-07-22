@@ -4229,7 +4229,7 @@ implementation
           end;
 
         { Tarraydef.size may never be called for an open array! }
-        if highrange=-1 then
+        if (highrange=-1) and (lowrange=0) then
           internalerror(99080501);
         if not (ado_IsBitPacked in arrayoptions) then
           cachedelesize:=elesize
