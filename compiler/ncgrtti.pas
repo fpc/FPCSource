@@ -393,7 +393,7 @@ implementation
           begin
             current_asmdata.getglobaldatalabel(loclab);
 
-            loctcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+            loctcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
 
             loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin);
@@ -1825,7 +1825,7 @@ implementation
           begin
             current_asmdata.getglobaldatalabel(arglab);
 
-            argtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+            argtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
 
             argtcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin);
@@ -1884,7 +1884,7 @@ implementation
       { first write the attribute list as a separate table }
       current_asmdata.getglobaldatalabel(tbllab);
 
-      tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+      tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
 
       tbltcb.begin_anonymous_record(
         internaltypeprefixName[itp_rtti_attr_list]+tostr(count),
