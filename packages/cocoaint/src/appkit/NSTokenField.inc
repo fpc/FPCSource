@@ -43,10 +43,10 @@
 { NSTokenField }
   NSTokenField = objcclass external (NSTextField)
   private
-    _reserved1: BOOL;
-    _reserved2: BOOL;
-    _reserved3: BOOL;
-    _reserved4: BOOL;
+    _reserved1: ObjCBOOL;
+    _reserved2: ObjCBOOL;
+    _reserved3: ObjCBOOL;
+    _reserved4: ObjCBOOL;
     _trackingRectTag: NSTrackingRectTag;
     _reserved5: id;
     _reserved6: id;
@@ -79,10 +79,10 @@
     function tokenField_displayStringForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSString; message 'tokenField:displayStringForRepresentedObject:';
     function tokenField_editingStringForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSString; message 'tokenField:editingStringForRepresentedObject:';
     function tokenField_representedObjectForEditingString(tokenField: NSTokenField; editingString: NSString): id; message 'tokenField:representedObjectForEditingString:';
-    function tokenField_writeRepresentedObjects_toPasteboard(tokenField: NSTokenField; objects: NSArray; pboard: NSPasteboard): BOOL; message 'tokenField:writeRepresentedObjects:toPasteboard:';
+    function tokenField_writeRepresentedObjects_toPasteboard(tokenField: NSTokenField; objects: NSArray; pboard: NSPasteboard): ObjCBOOL; message 'tokenField:writeRepresentedObjects:toPasteboard:';
     function tokenField_readFromPasteboard(tokenField: NSTokenField; pboard: NSPasteboard): NSArray; message 'tokenField:readFromPasteboard:';
     function tokenField_menuForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSMenu; message 'tokenField:menuForRepresentedObject:';
-    function tokenField_hasMenuForRepresentedObject(tokenField: NSTokenField; representedObject: id): BOOL; message 'tokenField:hasMenuForRepresentedObject:';
+    function tokenField_hasMenuForRepresentedObject(tokenField: NSTokenField; representedObject: id): ObjCBOOL; message 'tokenField:hasMenuForRepresentedObject:';
     function tokenField_styleForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSTokenStyle; message 'tokenField:styleForRepresentedObject:';
   end;
 {$endif}

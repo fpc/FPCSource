@@ -43,8 +43,8 @@
   DOMHTMLStyleElement = objcclass external (DOMHTMLElement)
     
   public
-    procedure setDisabled (newValue: BOOL); message 'setDisabled:';
-    function disabled: BOOL; message 'disabled';
+    procedure setDisabled (newValue: ObjCBOOL); message 'setDisabled:';
+    function disabled: ObjCBOOL; message 'disabled';
     procedure setMedia (newValue: NSString); message 'setMedia:';
     function media: NSString; message 'media';
     procedure setType (newValue: NSString); message 'setType:';

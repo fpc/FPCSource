@@ -45,8 +45,8 @@
   public
     procedure setInstanceCount (newValue: NSInteger); message 'setInstanceCount:';
     function instanceCount: NSInteger; message 'instanceCount';
-    procedure setPreservesDepth (newValue: BOOL); message 'setPreservesDepth:';
-    function preservesDepth: BOOL; message 'preservesDepth';
+    procedure setPreservesDepth (newValue: ObjCBOOL); message 'setPreservesDepth:';
+    function preservesDepth: ObjCBOOL; message 'preservesDepth';
     procedure setInstanceDelay (newValue: CFTimeInterval); message 'setInstanceDelay:';
     function instanceDelay: CFTimeInterval; message 'instanceDelay';
     procedure setInstanceTransform (newValue: CATransform3D); message 'setInstanceTransform:';

@@ -44,7 +44,7 @@
     
   public
     function name: NSString; message 'name';
-    function specified: BOOL; message 'specified';
+    function specified: ObjCBOOL; message 'specified';
     procedure setValue (newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
     function ownerElement: DOMElement; message 'ownerElement';

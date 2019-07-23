@@ -58,7 +58,7 @@ const
 
   { Functions }
   function NSDefaultMallocZone: NSZonePtr; cdecl; external;
-  function NSCreateZone(startSize: NSUInteger; granularity: NSUInteger; canFree: BOOL): NSZonePtr; cdecl; external;
+  function NSCreateZone(startSize: NSUInteger; granularity: NSUInteger; canFree: ObjCBOOL): NSZonePtr; cdecl; external;
   procedure NSRecycleZone(zone_: NSZonePtr); cdecl; external;
   procedure NSSetZoneName(zone_: NSZonePtr; name: NSString); cdecl; external;
   function NSZoneName(zone_: NSZonePtr): NSString; cdecl; external;
@@ -83,7 +83,7 @@ type
   end;
 
   NSObjectProtocol = objcprotocol external name 'NSObject'
-    function isEqual(obj: id): BOOL; message 'isEqual:';
+    function isEqual(obj: id): ObjCBOOL; message 'isEqual:';
     function hash: NSUInteger; message 'hash';
 
     function superclass: pobjc_class; message 'superclass';
@@ -98,13 +98,13 @@ type
     function performSelector_withObject(aSelector: SEL; obj: id): id; message 'performSelector:withObject:';
     function performSelector_withObject_withObject(aSelector: SEL; obj1, obj2: id): id; message 'performSelector:withObject:withObject:';
 
-    function isProxy: BOOL; message 'isProxy';
+    function isProxy: ObjCBOOL; message 'isProxy';
 
-    function isKindOfClass(aClass: pobjc_class): BOOL; message 'isKindOfClass:';
-    function isMemberOfClass(aClass: pobjc_class): BOOL; message 'isMemberOfClass:';
-    function conformsToProtocol(aProtocol: Protocol): BOOL; message 'conformsToProtocol:';
+    function isKindOfClass(aClass: pobjc_class): ObjCBOOL; message 'isKindOfClass:';
+    function isMemberOfClass(aClass: pobjc_class): ObjCBOOL; message 'isMemberOfClass:';
+    function conformsToProtocol(aProtocol: Protocol): ObjCBOOL; message 'conformsToProtocol:';
 
-    function respondsToSelector(aSelector: SEL): BOOL; message 'respondsToSelector:';
+    function respondsToSelector(aSelector: SEL): ObjCBOOL; message 'respondsToSelector:';
 
     function retain: id; message 'retain';
     procedure release;  message 'release'; { oneway }
@@ -121,8 +121,8 @@ type
    public
     { NSObjectProtocol -- the message names are copied from the protocol
       definition by the compiler, but you can still repeat them if you want }
-    function isEqual(obj: id): BOOL;
-    function isEqual_(obj: id): BOOL; message 'isEqual:';
+    function isEqual(obj: id): ObjCBOOL;
+    function isEqual_(obj: id): ObjCBOOL; message 'isEqual:';
     function hash: NSUInteger;
 
     function superclass: pobjc_class;
@@ -140,17 +140,17 @@ type
     function performSelector_withObject_withObject(aSelector: SEL; obj1, obj2: id): id;
     function performSelector_withObject_withObject_(aSelector: SEL; obj1, obj2: id): id; message 'performSelector:withObject:withObject:';
 
-    function isProxy: BOOL;
+    function isProxy: ObjCBOOL;
 
-    function isKindOfClass(aClass: pobjc_class): BOOL;
-    function isKindOfClass_(aClass: pobjc_class): BOOL; message 'isKindOfClass:';
-    function isMemberOfClass(aClass: pobjc_class): BOOL;
-    function isMemberOfClass_(aClass: pobjc_class): BOOL; message 'isMemberOfClass:';
-    function conformsToProtocol(aProtocol: Protocol): BOOL;
-    function conformsToProtocol_(aProtocol: Protocol): BOOL; message 'conformsToProtocol:';
+    function isKindOfClass(aClass: pobjc_class): ObjCBOOL;
+    function isKindOfClass_(aClass: pobjc_class): ObjCBOOL; message 'isKindOfClass:';
+    function isMemberOfClass(aClass: pobjc_class): ObjCBOOL;
+    function isMemberOfClass_(aClass: pobjc_class): ObjCBOOL; message 'isMemberOfClass:';
+    function conformsToProtocol(aProtocol: Protocol): ObjCBOOL;
+    function conformsToProtocol_(aProtocol: Protocol): ObjCBOOL; message 'conformsToProtocol:';
 
-    function respondsToSelector(aSelector: SEL): BOOL;
-    function respondsToSelector_(aSelector: SEL): BOOL; message 'respondsToSelector:';
+    function respondsToSelector(aSelector: SEL): ObjCBOOL;
+    function respondsToSelector_(aSelector: SEL): ObjCBOOL; message 'respondsToSelector:';
 
     function retain: id;
     procedure release; { oneway }
@@ -161,8 +161,8 @@ type
 
     { NSObject class }
     { "class" prefix to method name to avoid name collision with NSObjectProtocol }
-    class function classIsEqual(obj: id): BOOL; message 'isEqual:';
-    class function classIsEqual_(obj: id): BOOL; message 'isEqual:';
+    class function classIsEqual(obj: id): ObjCBOOL; message 'isEqual:';
+    class function classIsEqual_(obj: id): ObjCBOOL; message 'isEqual:';
     { "class" prefix to method name to avoid name collision with NSObjectProtocol }
     class function classHash: cuint; message 'hash';
 
@@ -197,11 +197,11 @@ type
     class function classClass: pobjc_class; message 'class';
     class procedure poseAsClass(aClass: pobjc_class); message 'poseAsClass:';
     class procedure poseAsClass_(aClass: pobjc_class); message 'poseAsClass:';
-    class function instancesRespondToSelector(aSelector: SEL): BOOL; message 'instancesRespondToSelector:';
-    class function instancesRespondToSelector_(aSelector: SEL): BOOL; message 'instancesRespondToSelector:';
+    class function instancesRespondToSelector(aSelector: SEL): ObjCBOOL; message 'instancesRespondToSelector:';
+    class function instancesRespondToSelector_(aSelector: SEL): ObjCBOOL; message 'instancesRespondToSelector:';
     { "class" prefix to method name to avoid name collision with NSObjectProtocol }
-    class function classConformsToProtocol(aProtocol: Protocol): BOOL; message 'conformsToProtocol:';
-    class function classConformsToProtocol_(aProtocol: Protocol): BOOL; message 'conformsToProtocol:';
+    class function classConformsToProtocol(aProtocol: Protocol): ObjCBOOL; message 'conformsToProtocol:';
+    class function classConformsToProtocol_(aProtocol: Protocol): ObjCBOOL; message 'conformsToProtocol:';
     function methodForSelector(aSelector: SEL): IMP; message 'methodForSelector:';
     function methodForSelector_(aSelector: SEL): IMP; message 'methodForSelector:';
     class function instanceMethodForSelector(aSelector: SEL): IMP; message 'instanceMethodForSelector:';
@@ -247,10 +247,10 @@ type
   
 { NSDiscardableContent Protocol }
   NSDiscardableContentProtocol = objcprotocol external name 'NSDiscardableContent'
-    function beginContentAccess: BOOL; message 'beginContentAccess';
+    function beginContentAccess: ObjCBOOL; message 'beginContentAccess';
     procedure endContentAccess; message 'endContentAccess';
     procedure discardContentIfPossible; message 'discardContentIfPossible';
-    function isContentDiscarded: BOOL; message 'isContentDiscarded';
+    function isContentDiscarded: ObjCBOOL; message 'isContentDiscarded';
   end;
 
 {$endif FPC_HAS_FEATURE_OBJECTIVEC1}

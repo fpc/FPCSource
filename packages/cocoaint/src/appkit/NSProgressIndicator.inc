@@ -64,9 +64,9 @@ const
 { NSProgressIndicator }
   NSProgressIndicator = objcclass external (NSView)
   private
-    _isBezeled: BOOL;
-    _isIndeterminate: BOOL;
-    _threadedAnimation: BOOL;
+    _isBezeled: ObjCBOOL;
+    _isIndeterminate: ObjCBOOL;
+    _threadedAnimation: ObjCBOOL;
     _minimum: double;
     _maximum: double;
     _value: double;
@@ -102,10 +102,10 @@ const
     _NSProgressIndicatorReserved1: id;
     
   public
-    function isIndeterminate: BOOL; message 'isIndeterminate';
-    procedure setIndeterminate(flag: BOOL); message 'setIndeterminate:';
-    function isBezeled: BOOL; message 'isBezeled';
-    procedure setBezeled(flag: BOOL); message 'setBezeled:';
+    function isIndeterminate: ObjCBOOL; message 'isIndeterminate';
+    procedure setIndeterminate(flag: ObjCBOOL); message 'setIndeterminate:';
+    function isBezeled: ObjCBOOL; message 'isBezeled';
+    procedure setBezeled(flag: ObjCBOOL); message 'setBezeled:';
     function controlTint: NSControlTint; message 'controlTint';
     procedure setControlTint(tint: NSControlTint); message 'setControlTint:';
     function controlSize: NSControlSize; message 'controlSize';
@@ -117,15 +117,15 @@ const
     function maxValue: double; message 'maxValue';
     procedure setMinValue(newMinimum: double); message 'setMinValue:';
     procedure setMaxValue(newMaximum: double); message 'setMaxValue:';
-    function usesThreadedAnimation: BOOL; message 'usesThreadedAnimation';
-    procedure setUsesThreadedAnimation(threadedAnimation: BOOL); message 'setUsesThreadedAnimation:';
+    function usesThreadedAnimation: ObjCBOOL; message 'usesThreadedAnimation';
+    procedure setUsesThreadedAnimation(threadedAnimation: ObjCBOOL); message 'setUsesThreadedAnimation:';
     procedure startAnimation(sender: id); message 'startAnimation:';
     procedure stopAnimation(sender: id); message 'stopAnimation:';
     procedure setStyle(style_: NSProgressIndicatorStyle); message 'setStyle:';
     function style: NSProgressIndicatorStyle; message 'style';
     procedure sizeToFit; message 'sizeToFit';
-    function isDisplayedWhenStopped: BOOL; message 'isDisplayedWhenStopped';
-    procedure setDisplayedWhenStopped(isDisplayed: BOOL); message 'setDisplayedWhenStopped:';
+    function isDisplayedWhenStopped: ObjCBOOL; message 'isDisplayedWhenStopped';
+    procedure setDisplayedWhenStopped(isDisplayed: ObjCBOOL); message 'setDisplayedWhenStopped:';
   end;
 
 { NSProgressIndicatorDeprecatedCategory }

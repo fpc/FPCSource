@@ -79,7 +79,7 @@ type
     function identity: id; message 'identity';
     function phase: NSTouchPhase; message 'phase';
     function normalizedPosition: NSPoint; message 'normalizedPosition';
-    function isResting: BOOL; message 'isResting';
+    function isResting: ObjCBOOL; message 'isResting';
     function device: id; message 'device';
     function deviceSize: NSSize; message 'deviceSize';
 

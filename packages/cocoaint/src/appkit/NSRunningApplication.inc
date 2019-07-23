@@ -95,10 +95,10 @@ type
     _appReserved: id;
     
   public
-    function isTerminated: BOOL; message 'isTerminated';
-    function isFinishedLaunching: BOOL; message 'isFinishedLaunching';
-    function isHidden: BOOL; message 'isHidden';
-    function isActive: BOOL; message 'isActive';
+    function isTerminated: ObjCBOOL; message 'isTerminated';
+    function isFinishedLaunching: ObjCBOOL; message 'isFinishedLaunching';
+    function isHidden: ObjCBOOL; message 'isHidden';
+    function isActive: ObjCBOOL; message 'isActive';
     function activationPolicy: NSApplicationActivationPolicy; message 'activationPolicy';
     function localizedName: NSString; message 'localizedName';
     function bundleIdentifier: NSString; message 'bundleIdentifier';
@@ -108,11 +108,11 @@ type
     function launchDate: NSDate; message 'launchDate';
     function icon: NSImage; message 'icon';
     function executableArchitecture: NSInteger; message 'executableArchitecture';
-    function hide: BOOL; message 'hide';
-    function unhide: BOOL; message 'unhide';
-    function activateWithOptions(options: NSApplicationActivationOptions): BOOL; message 'activateWithOptions:';
-    function terminate: BOOL; message 'terminate';
-    function forceTerminate: BOOL; message 'forceTerminate';
+    function hide: ObjCBOOL; message 'hide';
+    function unhide: ObjCBOOL; message 'unhide';
+    function activateWithOptions(options: NSApplicationActivationOptions): ObjCBOOL; message 'activateWithOptions:';
+    function terminate: ObjCBOOL; message 'terminate';
+    function forceTerminate: ObjCBOOL; message 'forceTerminate';
     class function runningApplicationsWithBundleIdentifier(bundleIdentifier_: NSString): NSArray; message 'runningApplicationsWithBundleIdentifier:';
     class function runningApplicationWithProcessIdentifier(pid: pid_t): NSRunningApplication; message 'runningApplicationWithProcessIdentifier:';
     class function currentApplication: NSRunningApplication; message 'currentApplication';

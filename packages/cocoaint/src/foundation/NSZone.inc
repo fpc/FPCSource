@@ -33,7 +33,7 @@ const
 
 { Functions }
 function NSDefaultMallocZone: NSZone; cdecl; external name 'NSDefaultMallocZone';
-function NSCreateZone(startSize: NSUInteger; granularity: NSUInteger; canFree: BOOL): NSZone; cdecl; external name 'NSCreateZone';
+function NSCreateZone(startSize: NSUInteger; granularity: NSUInteger; canFree: ObjCBOOL): NSZone; cdecl; external name 'NSCreateZone';
 procedure NSRecycleZone(zonePointer: NSZone); cdecl; external name 'NSRecycleZone';
 procedure NSSetZoneName(zonePointer: NSZone; namePointer: NSString); cdecl; external name 'NSSetZoneName';
 function NSZoneName(zonePointer: NSZone): NSString; cdecl; external name 'NSZoneName';

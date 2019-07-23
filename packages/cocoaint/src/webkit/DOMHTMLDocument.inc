@@ -71,7 +71,7 @@
     procedure clear; message 'clear';
     procedure captureEvents; message 'captureEvents';
     procedure releaseEvents; message 'releaseEvents';
-    function hasFocus: BOOL; message 'hasFocus';
+    function hasFocus: ObjCBOOL; message 'hasFocus';
   end;
 
 {$endif}

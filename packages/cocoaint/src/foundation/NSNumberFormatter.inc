@@ -89,7 +89,7 @@ type
     _reserved: array[0..(12)-1] of Pointer;
     
   public
-    function getObjectValue_forString_range_error(obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPointer): BOOL; message 'getObjectValue:forString:range:error:';
+    function getObjectValue_forString_range_error(obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPointer): ObjCBOOL; message 'getObjectValue:forString:range:error:';
     function stringFromNumber(number: NSNumber): NSString; message 'stringFromNumber:';
     function numberFromString(string_: NSString): NSNumber; message 'numberFromString:';
     class function localizedStringFromNumber_numberStyle(num: NSNumber; nstyle: NSNumberFormatterStyle): NSString; message 'localizedStringFromNumber:numberStyle:';
@@ -97,8 +97,8 @@ type
     procedure setNumberStyle(style: NSNumberFormatterStyle); message 'setNumberStyle:';
     function locale: NSLocale; message 'locale';
     procedure setLocale(locale_: NSLocale); message 'setLocale:';
-    function generatesDecimalNumbers: BOOL; message 'generatesDecimalNumbers';
-    procedure setGeneratesDecimalNumbers(b: BOOL); message 'setGeneratesDecimalNumbers:';
+    function generatesDecimalNumbers: ObjCBOOL; message 'generatesDecimalNumbers';
+    procedure setGeneratesDecimalNumbers(b: ObjCBOOL); message 'setGeneratesDecimalNumbers:';
     function formatterBehavior: NSNumberFormatterBehavior; message 'formatterBehavior';
     procedure setFormatterBehavior(behavior: NSNumberFormatterBehavior); message 'setFormatterBehavior:';
     class function defaultFormatterBehavior: NSNumberFormatterBehavior; message 'defaultFormatterBehavior';
@@ -111,16 +111,16 @@ type
     procedure setPositiveFormat(format_: NSString); message 'setPositiveFormat:';
     function textAttributesForPositiveValues: NSDictionary; message 'textAttributesForPositiveValues';
     procedure setTextAttributesForPositiveValues(newAttributes: NSDictionary); message 'setTextAttributesForPositiveValues:';
-    function allowsFloats: BOOL; message 'allowsFloats';
-    procedure setAllowsFloats(flag: BOOL); message 'setAllowsFloats:';
+    function allowsFloats: ObjCBOOL; message 'allowsFloats';
+    procedure setAllowsFloats(flag: ObjCBOOL); message 'setAllowsFloats:';
     function decimalSeparator: NSString; message 'decimalSeparator';
     procedure setDecimalSeparator(string_: NSString); message 'setDecimalSeparator:';
-    function alwaysShowsDecimalSeparator: BOOL; message 'alwaysShowsDecimalSeparator';
-    procedure setAlwaysShowsDecimalSeparator(b: BOOL); message 'setAlwaysShowsDecimalSeparator:';
+    function alwaysShowsDecimalSeparator: ObjCBOOL; message 'alwaysShowsDecimalSeparator';
+    procedure setAlwaysShowsDecimalSeparator(b: ObjCBOOL); message 'setAlwaysShowsDecimalSeparator:';
     function currencyDecimalSeparator: NSString; message 'currencyDecimalSeparator';
     procedure setCurrencyDecimalSeparator(string_: NSString); message 'setCurrencyDecimalSeparator:';
-    function usesGroupingSeparator: BOOL; message 'usesGroupingSeparator';
-    procedure setUsesGroupingSeparator(b: BOOL); message 'setUsesGroupingSeparator:';
+    function usesGroupingSeparator: ObjCBOOL; message 'usesGroupingSeparator';
+    procedure setUsesGroupingSeparator(b: ObjCBOOL); message 'setUsesGroupingSeparator:';
     function groupingSeparator: NSString; message 'groupingSeparator';
     procedure setGroupingSeparator(string_: NSString); message 'setGroupingSeparator:';
     function zeroSymbol: NSString; message 'zeroSymbol';
@@ -197,26 +197,26 @@ type
     procedure setMaximum(number: NSNumber); message 'setMaximum:';
     function currencyGroupingSeparator: NSString; message 'currencyGroupingSeparator';
     procedure setCurrencyGroupingSeparator(string_: NSString); message 'setCurrencyGroupingSeparator:';
-    function isLenient: BOOL; message 'isLenient';
-    procedure setLenient(b: BOOL); message 'setLenient:';
-    function usesSignificantDigits: BOOL; message 'usesSignificantDigits';
-    procedure setUsesSignificantDigits(b: BOOL); message 'setUsesSignificantDigits:';
+    function isLenient: ObjCBOOL; message 'isLenient';
+    procedure setLenient(b: ObjCBOOL); message 'setLenient:';
+    function usesSignificantDigits: ObjCBOOL; message 'usesSignificantDigits';
+    procedure setUsesSignificantDigits(b: ObjCBOOL); message 'setUsesSignificantDigits:';
     function minimumSignificantDigits: NSUInteger; message 'minimumSignificantDigits';
     procedure setMinimumSignificantDigits(number: NSUInteger); message 'setMinimumSignificantDigits:';
     function maximumSignificantDigits: NSUInteger; message 'maximumSignificantDigits';
     procedure setMaximumSignificantDigits(number: NSUInteger); message 'setMaximumSignificantDigits:';
-    function isPartialStringValidationEnabled: BOOL; message 'isPartialStringValidationEnabled';
-    procedure setPartialStringValidationEnabled(b: BOOL); message 'setPartialStringValidationEnabled:';
+    function isPartialStringValidationEnabled: ObjCBOOL; message 'isPartialStringValidationEnabled';
+    procedure setPartialStringValidationEnabled(b: ObjCBOOL); message 'setPartialStringValidationEnabled:';
   end;
 
 { NSNumberFormatterCompatibilityCategory }
   NSNumberFormatterCompatibilityCategory = objccategory external (NSNumberFormatter)
-    function hasThousandSeparators: BOOL; message 'hasThousandSeparators';
-    procedure setHasThousandSeparators(flag: BOOL); message 'setHasThousandSeparators:';
+    function hasThousandSeparators: ObjCBOOL; message 'hasThousandSeparators';
+    procedure setHasThousandSeparators(flag: ObjCBOOL); message 'setHasThousandSeparators:';
     function thousandSeparator: NSString; message 'thousandSeparator';
     procedure setThousandSeparator(newSeparator: NSString); message 'setThousandSeparator:';
-    function localizesFormat: BOOL; message 'localizesFormat';
-    procedure setLocalizesFormat(flag: BOOL); message 'setLocalizesFormat:';
+    function localizesFormat: ObjCBOOL; message 'localizesFormat';
+    procedure setLocalizesFormat(flag: ObjCBOOL); message 'setLocalizesFormat:';
     function format: NSString; message 'format';
     procedure setFormat(string_: NSString); message 'setFormat:';
     function attributedStringForZero: NSAttributedString; message 'attributedStringForZero';

@@ -58,7 +58,7 @@
     procedure setCapacity(size: cint); message 'setCapacity:';
     function backListCount: cint; message 'backListCount';
     function forwardListCount: cint; message 'forwardListCount';
-    function containsItem(item: WebHistoryItem): BOOL; message 'containsItem:';
+    function containsItem(item: WebHistoryItem): ObjCBOOL; message 'containsItem:';
     function itemAtIndex(index: cint): WebHistoryItem; message 'itemAtIndex:';
   end;
 

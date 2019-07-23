@@ -47,7 +47,7 @@
   public
     class procedure loadAllPlugIns; message 'loadAllPlugIns';
     class procedure loadNonExecutablePlugIns; message 'loadNonExecutablePlugIns';
-    class procedure loadPlugIn_allowNonExecutable(url: NSURL; allowNonExecutable: BOOL); message 'loadPlugIn:allowNonExecutable:';
+    class procedure loadPlugIn_allowNonExecutable(url: NSURL; allowNonExecutable: ObjCBOOL); message 'loadPlugIn:allowNonExecutable:';
   end;
 
 {$endif}

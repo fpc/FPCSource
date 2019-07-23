@@ -42,7 +42,7 @@
     procedure webPlugInStart; message 'webPlugInStart';
     procedure webPlugInStop; message 'webPlugInStop';
     procedure webPlugInDestroy; message 'webPlugInDestroy';
-    procedure webPlugInSetIsSelected(isSelected: BOOL); message 'webPlugInSetIsSelected:';
+    procedure webPlugInSetIsSelected(isSelected: ObjCBOOL); message 'webPlugInSetIsSelected:';
     function objectForWebScript: id; message 'objectForWebScript';
     procedure webPlugInMainResourceDidReceiveResponse(response: NSURLResponse); message 'webPlugInMainResourceDidReceiveResponse:';
     procedure webPlugInMainResourceDidReceiveData(data: NSData); message 'webPlugInMainResourceDidReceiveData:';

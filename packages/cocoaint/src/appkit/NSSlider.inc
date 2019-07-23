@@ -62,7 +62,7 @@
     procedure setImage(backgroundImage: NSImage); message 'setImage:';
     function image: NSImage; message 'image';
     function isVertical: NSInteger; message 'isVertical';
-    function acceptsFirstMouse(theEvent: NSEvent): BOOL; message 'acceptsFirstMouse:';
+    function acceptsFirstMouse(theEvent: NSEvent): ObjCBOOL; message 'acceptsFirstMouse:';
   end;
 
 { NSTickMarkSupport_NSSliderCategory }
@@ -71,8 +71,8 @@
     function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
     procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
     function tickMarkPosition: NSTickMarkPosition; message 'tickMarkPosition';
-    procedure setAllowsTickMarkValuesOnly(yorn: BOOL); message 'setAllowsTickMarkValuesOnly:';
-    function allowsTickMarkValuesOnly: BOOL; message 'allowsTickMarkValuesOnly';
+    procedure setAllowsTickMarkValuesOnly(yorn: ObjCBOOL); message 'setAllowsTickMarkValuesOnly:';
+    function allowsTickMarkValuesOnly: ObjCBOOL; message 'allowsTickMarkValuesOnly';
     function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
     function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
     function indexOfTickMarkAtPoint(point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';

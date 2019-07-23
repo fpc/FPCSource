@@ -38,8 +38,8 @@
 
 { NSNibLoadingCategory }
   NSNibLoadingCategory = objccategory external (NSBundle)
-    class function loadNibFile_externalNameTable_withZone(fileName: NSString; context: NSDictionary; zone_: NSZonePtr): BOOL; message 'loadNibFile:externalNameTable:withZone:';
-    class function loadNibNamed_owner(nibName: NSString; owner: id): BOOL; message 'loadNibNamed:owner:';
+    class function loadNibFile_externalNameTable_withZone(fileName: NSString; context: NSDictionary; zone_: NSZonePtr): ObjCBOOL; message 'loadNibFile:externalNameTable:withZone:';
+    class function loadNibNamed_owner(nibName: NSString; owner: id): ObjCBOOL; message 'loadNibNamed:owner:';
   end;
 
 { NSNibAwakingCategory }

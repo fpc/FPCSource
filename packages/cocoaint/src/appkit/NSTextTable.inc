@@ -161,10 +161,10 @@ type
     procedure setNumberOfColumns(numCols: NSUInteger); message 'setNumberOfColumns:';
     function layoutAlgorithm: NSTextTableLayoutAlgorithm; message 'layoutAlgorithm';
     procedure setLayoutAlgorithm(algorithm: NSTextTableLayoutAlgorithm); message 'setLayoutAlgorithm:';
-    function collapsesBorders: BOOL; message 'collapsesBorders';
-    procedure setCollapsesBorders(flag: BOOL); message 'setCollapsesBorders:';
-    function hidesEmptyCells: BOOL; message 'hidesEmptyCells';
-    procedure setHidesEmptyCells(flag: BOOL); message 'setHidesEmptyCells:';
+    function collapsesBorders: ObjCBOOL; message 'collapsesBorders';
+    procedure setCollapsesBorders(flag: ObjCBOOL); message 'setCollapsesBorders:';
+    function hidesEmptyCells: ObjCBOOL; message 'hidesEmptyCells';
+    procedure setHidesEmptyCells(flag: ObjCBOOL); message 'setHidesEmptyCells:';
     function rectForBlock_layoutAtPoint_inRect_textContainer_characterRange(block: NSTextTableBlock; startingPoint: NSPoint; rect: NSRect; textContainer: NSTextContainer; charRange: NSRange): NSRect; message 'rectForBlock:layoutAtPoint:inRect:textContainer:characterRange:';
     function boundsRectForBlock_contentRect_inRect_textContainer_characterRange(block: NSTextTableBlock; contentRect: NSRect; rect: NSRect; textContainer: NSTextContainer; charRange: NSRange): NSRect; message 'boundsRectForBlock:contentRect:inRect:textContainer:characterRange:';
     procedure drawBackgroundForBlock_withFrame_inView_characterRange_layoutManager(block: NSTextTableBlock; frameRect: NSRect; controlView: NSView; charRange: NSRange; layoutManager: NSLayoutManager); message 'drawBackgroundForBlock:withFrame:inView:characterRange:layoutManager:';

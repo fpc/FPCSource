@@ -72,21 +72,21 @@
     function content: id; message 'content';
     function selection: id; message 'selection';
     function selectedObjects: NSArray; message 'selectedObjects';
-    procedure setAutomaticallyPreparesContent(flag: BOOL); message 'setAutomaticallyPreparesContent:';
-    function automaticallyPreparesContent: BOOL; message 'automaticallyPreparesContent';
+    procedure setAutomaticallyPreparesContent(flag: ObjCBOOL); message 'setAutomaticallyPreparesContent:';
+    function automaticallyPreparesContent: ObjCBOOL; message 'automaticallyPreparesContent';
     procedure prepareContent; message 'prepareContent';
     procedure setObjectClass(objectClass_: Pobjc_class); message 'setObjectClass:';
     function objectClass: Pobjc_class; message 'objectClass';
     function newObject: id; message 'newObject';
     procedure addObject(object_: id); message 'addObject:';
     procedure removeObject(object_: id); message 'removeObject:';
-    procedure setEditable(flag: BOOL); message 'setEditable:';
-    function isEditable: BOOL; message 'isEditable';
+    procedure setEditable(flag: ObjCBOOL); message 'setEditable:';
+    function isEditable: ObjCBOOL; message 'isEditable';
     procedure add(sender: id); message 'add:';
-    function canAdd: BOOL; message 'canAdd';
+    function canAdd: ObjCBOOL; message 'canAdd';
     procedure remove(sender: id); message 'remove:';
-    function canRemove: BOOL; message 'canRemove';
-    function validateUserInterfaceItem(item: NSValidatedUserInterfaceItemProtocol): BOOL; message 'validateUserInterfaceItem:';
+    function canRemove: ObjCBOOL; message 'canRemove';
+    function validateUserInterfaceItem(item: NSValidatedUserInterfaceItemProtocol): ObjCBOOL; message 'validateUserInterfaceItem:';
   end;
 
 { NSManagedControllerCategory }
@@ -97,10 +97,10 @@
     procedure setEntityName(entityName_: NSString); message 'setEntityName:';
     function fetchPredicate: NSPredicate; message 'fetchPredicate';
     procedure setFetchPredicate(predicate: NSPredicate); message 'setFetchPredicate:';
-    function fetchWithRequest_merge_error(fetchRequest: NSFetchRequest; merge: BOOL; error: NSErrorPointer): BOOL; message 'fetchWithRequest:merge:error:';
+    function fetchWithRequest_merge_error(fetchRequest: NSFetchRequest; merge: ObjCBOOL; error: NSErrorPointer): ObjCBOOL; message 'fetchWithRequest:merge:error:';
     procedure fetch(sender: id); message 'fetch:';
-    procedure setUsesLazyFetching(enabled: BOOL); message 'setUsesLazyFetching:';
-    function usesLazyFetching: BOOL; message 'usesLazyFetching';
+    procedure setUsesLazyFetching(enabled: ObjCBOOL); message 'setUsesLazyFetching:';
+    function usesLazyFetching: ObjCBOOL; message 'usesLazyFetching';
     function defaultFetchRequest: NSFetchRequest; message 'defaultFetchRequest';
   end;
 

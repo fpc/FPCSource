@@ -79,13 +79,13 @@
     function getElementsByTagNameNS_localName(namespaceURI_: NSString; localName_: NSString): DOMNodeList; message 'getElementsByTagNameNS:localName:';
     function getAttributeNodeNS_localName(namespaceURI_: NSString; localName_: NSString): DOMAttr; message 'getAttributeNodeNS:localName:';
     function setAttributeNodeNS(newAttr: DOMAttr): DOMAttr; message 'setAttributeNodeNS:';
-    function hasAttribute(name: NSString): BOOL; message 'hasAttribute:';
-    function hasAttributeNS_localName(namespaceURI_: NSString; localName_: NSString): BOOL; message 'hasAttributeNS:localName:';
+    function hasAttribute(name: NSString): ObjCBOOL; message 'hasAttribute:';
+    function hasAttributeNS_localName(namespaceURI_: NSString; localName_: NSString): ObjCBOOL; message 'hasAttributeNS:localName:';
     procedure focus; message 'focus';
     procedure blur; message 'blur';
-    procedure scrollIntoView(alignWithTop: BOOL); message 'scrollIntoView:';
-    function contains(element: DOMElement): BOOL; message 'contains:';
-    procedure scrollIntoViewIfNeeded(centerIfNeeded: BOOL); message 'scrollIntoViewIfNeeded:';
+    procedure scrollIntoView(alignWithTop: ObjCBOOL); message 'scrollIntoView:';
+    function contains(element: DOMElement): ObjCBOOL; message 'contains:';
+    procedure scrollIntoViewIfNeeded(centerIfNeeded: ObjCBOOL); message 'scrollIntoViewIfNeeded:';
     procedure scrollByLines(lines: cint); message 'scrollByLines:';
     procedure scrollByPages(pages: cint); message 'scrollByPages:';
     function getElementsByClassName(name: NSString): DOMNodeList; message 'getElementsByClassName:';
@@ -101,7 +101,7 @@
     procedure removeAttributeNS(namespaceURI_: NSString; localName_: NSString); message 'removeAttributeNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
     function getElementsByTagNameNS(namespaceURI_: NSString; localName_: NSString): DOMNodeList; message 'getElementsByTagNameNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
     function getAttributeNodeNS(namespaceURI_: NSString; localName_: NSString): DOMAttr; message 'getAttributeNodeNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
-    function hasAttributeNS(namespaceURI_: NSString; localName_: NSString): BOOL; message 'hasAttributeNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
+    function hasAttributeNS(namespaceURI_: NSString; localName_: NSString): ObjCBOOL; message 'hasAttributeNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

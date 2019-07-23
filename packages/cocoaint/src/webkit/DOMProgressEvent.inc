@@ -43,10 +43,10 @@
   DOMProgressEvent = objcclass external (DOMEvent)
     
   public
-    function lengthComputable: BOOL; message 'lengthComputable';
+    function lengthComputable: ObjCBOOL; message 'lengthComputable';
     function loaded: cuint; message 'loaded';
     function total: cuint; message 'total';
-    procedure initProgressEvent_canBubbleArg_cancelableArg_lengthComputableArg_loadedArg_totalArg(typeArg: NSString; canBubbleArg: BOOL; cancelableArg: BOOL; lengthComputableArg: BOOL; loadedArg: cuint; totalArg: cuint); message 'initProgressEvent:canBubbleArg:cancelableArg:lengthComputableArg:loadedArg:totalArg:';
+    procedure initProgressEvent_canBubbleArg_cancelableArg_lengthComputableArg_loadedArg_totalArg(typeArg: NSString; canBubbleArg: ObjCBOOL; cancelableArg: ObjCBOOL; lengthComputableArg: ObjCBOOL; loadedArg: cuint; totalArg: cuint); message 'initProgressEvent:canBubbleArg:cancelableArg:lengthComputableArg:loadedArg:totalArg:';
   end;
 
 {$endif}

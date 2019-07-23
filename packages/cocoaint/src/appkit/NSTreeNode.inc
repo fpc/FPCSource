@@ -63,12 +63,12 @@
     function initWithRepresentedObject(modelObject: id): id; message 'initWithRepresentedObject:';
     function representedObject: id; message 'representedObject';
     function indexPath: NSIndexPath; message 'indexPath';
-    function isLeaf: BOOL; message 'isLeaf';
+    function isLeaf: ObjCBOOL; message 'isLeaf';
     function childNodes: NSArray; message 'childNodes';
     function mutableChildNodes: NSMutableArray; message 'mutableChildNodes';
     function descendantNodeAtIndexPath(indexPath_: NSIndexPath): NSTreeNode; message 'descendantNodeAtIndexPath:';
     function parentNode: NSTreeNode; message 'parentNode';
-    procedure sortWithSortDescriptors_recursively(sortDescriptors: NSArray; recursively: BOOL); message 'sortWithSortDescriptors:recursively:';
+    procedure sortWithSortDescriptors_recursively(sortDescriptors: NSArray; recursively: ObjCBOOL); message 'sortWithSortDescriptors:recursively:';
   end;
 
 {$endif}

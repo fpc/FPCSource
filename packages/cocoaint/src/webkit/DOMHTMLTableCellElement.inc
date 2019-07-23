@@ -62,8 +62,8 @@
     function headers: NSString; message 'headers';
     procedure setHeight (newValue: NSString); message 'setHeight:';
     function height: NSString; message 'height';
-    procedure setNoWrap (newValue: BOOL); message 'setNoWrap:';
-    function noWrap: BOOL; message 'noWrap';
+    procedure setNoWrap (newValue: ObjCBOOL); message 'setNoWrap:';
+    function noWrap: ObjCBOOL; message 'noWrap';
     procedure setRowSpan (newValue: cint); message 'setRowSpan:';
     function rowSpan: cint; message 'rowSpan';
     procedure setScope (newValue: NSString); message 'setScope:';

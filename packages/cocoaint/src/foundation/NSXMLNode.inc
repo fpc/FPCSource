@@ -91,7 +91,7 @@ type
     procedure setObjectValue(value: id); message 'setObjectValue:';
     function objectValue: id; message 'objectValue';
     procedure setStringValue(string_: NSString); message 'setStringValue:';
-    procedure setStringValue_resolvingEntities(string_: NSString; resolve: BOOL); message 'setStringValue:resolvingEntities:';
+    procedure setStringValue_resolvingEntities(string_: NSString; resolve: ObjCBOOL); message 'setStringValue:resolvingEntities:';
     function stringValue: NSString; message 'stringValue';
     function index: NSUInteger; message 'index';
     function level: NSUInteger; message 'level';
@@ -116,7 +116,7 @@ type
     function description: NSString; message 'description';
     function XMLString: NSString; message 'XMLString';
     function XMLStringWithOptions(options: NSUInteger): NSString; message 'XMLStringWithOptions:';
-    function canonicalXMLStringPreservingComments(comments: BOOL): NSString; message 'canonicalXMLStringPreservingComments:';
+    function canonicalXMLStringPreservingComments(comments: ObjCBOOL): NSString; message 'canonicalXMLStringPreservingComments:';
     function nodesForXPath_error(xpath_: NSString; error: NSErrorPointer): NSArray; message 'nodesForXPath:error:';
     function objectsForXQuery_constants_error(xquery: NSString; constants: NSDictionary; error: NSErrorPointer): NSArray; message 'objectsForXQuery:constants:error:';
     function objectsForXQuery_error(xquery: NSString; error: NSErrorPointer): NSArray; message 'objectsForXQuery:error:';

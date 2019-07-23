@@ -73,14 +73,14 @@ var
     class function allocWithZone(zone_: NSZonePtr): id; message 'allocWithZone:';
     class function port: NSPort; message 'port';
     procedure invalidate; message 'invalidate';
-    function isValid: BOOL; message 'isValid';
+    function isValid: ObjCBOOL; message 'isValid';
     procedure setDelegate(anObject: NSPortDelegateProtocol); message 'setDelegate:';
     function delegate: NSPortDelegateProtocol; message 'delegate';
     procedure scheduleInRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
     function reservedSpaceLength: NSUInteger; message 'reservedSpaceLength';
-    function sendBeforeDate_components_from_reserved(limitDate: NSDate; components: NSMutableArray; receivePort: NSPort; headerSpaceReserved: NSUInteger): BOOL; message 'sendBeforeDate:components:from:reserved:';
-    function sendBeforeDate_msgid_components_from_reserved(limitDate: NSDate; msgID: NSUInteger; components: NSMutableArray; receivePort: NSPort; headerSpaceReserved: NSUInteger): BOOL; message 'sendBeforeDate:msgid:components:from:reserved:';
+    function sendBeforeDate_components_from_reserved(limitDate: NSDate; components: NSMutableArray; receivePort: NSPort; headerSpaceReserved: NSUInteger): ObjCBOOL; message 'sendBeforeDate:components:from:reserved:';
+    function sendBeforeDate_msgid_components_from_reserved(limitDate: NSDate; msgID: NSUInteger; components: NSMutableArray; receivePort: NSPort; headerSpaceReserved: NSUInteger): ObjCBOOL; message 'sendBeforeDate:msgid:components:from:reserved:';
     procedure addConnection_toRunLoop_forMode(conn: NSConnection; runLoop: NSRunLoop; mode: NSString); message 'addConnection:toRunLoop:forMode:';
     procedure removeConnection_fromRunLoop_forMode(conn: NSConnection; runLoop: NSRunLoop; mode: NSString); message 'removeConnection:fromRunLoop:forMode:';
 

@@ -63,7 +63,7 @@
     function backgroundColor: NSColor; message 'backgroundColor';
     function delegate: NSPathControlDelegateProtocol; message 'delegate';
     procedure setDelegate(delegate_: NSPathControlDelegateProtocol); message 'setDelegate:';
-    procedure setDraggingSourceOperationMask_forLocal(mask: NSDragOperation; isLocal: BOOL); message 'setDraggingSourceOperationMask:forLocal:';
+    procedure setDraggingSourceOperationMask_forLocal(mask: NSDragOperation; isLocal: ObjCBOOL); message 'setDraggingSourceOperationMask:forLocal:';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
   end;
@@ -77,9 +77,9 @@
 { NSPathControlDelegate Protocol }
   NSPathControlDelegateProtocol = objcprotocol external name 'NSPathControlDelegate'
   optional
-    function pathControl_shouldDragPathComponentCell_withPasteboard(pathControl: NSPathControl; pathComponentCell: NSPathComponentCell; pasteboard: NSPasteboard): BOOL; message 'pathControl:shouldDragPathComponentCell:withPasteboard:';
+    function pathControl_shouldDragPathComponentCell_withPasteboard(pathControl: NSPathControl; pathComponentCell: NSPathComponentCell; pasteboard: NSPasteboard): ObjCBOOL; message 'pathControl:shouldDragPathComponentCell:withPasteboard:';
     function pathControl_validateDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): NSDragOperation; message 'pathControl:validateDrop:';
-    function pathControl_acceptDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): BOOL; message 'pathControl:acceptDrop:';
+    function pathControl_acceptDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): ObjCBOOL; message 'pathControl:acceptDrop:';
     procedure pathControl_willDisplayOpenPanel(pathControl: NSPathControl; openPanel: NSOpenPanel); message 'pathControl:willDisplayOpenPanel:';
     procedure pathControl_willPopUpMenu(pathControl: NSPathControl; menu: NSMenu); message 'pathControl:willPopUpMenu:';
   end;

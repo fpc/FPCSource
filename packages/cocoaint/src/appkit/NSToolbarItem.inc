@@ -128,8 +128,8 @@ var
     function target: id; message 'target';
     procedure setAction(action_: SEL); message 'setAction:';
     function action: SEL; message 'action';
-    procedure setEnabled(enabled: BOOL); message 'setEnabled:';
-    function isEnabled: BOOL; message 'isEnabled';
+    procedure setEnabled(enabled: ObjCBOOL); message 'setEnabled:';
+    function isEnabled: ObjCBOOL; message 'isEnabled';
     procedure setImage(image_: NSImage); message 'setImage:';
     function image: NSImage; message 'image';
     procedure setView(view_: NSView); message 'setView:';
@@ -141,9 +141,9 @@ var
     procedure setVisibilityPriority(visibilityPriority_: NSInteger); message 'setVisibilityPriority:';
     function visibilityPriority: NSInteger; message 'visibilityPriority';
     procedure validate; message 'validate';
-    procedure setAutovalidates(resistance: BOOL); message 'setAutovalidates:';
-    function autovalidates: BOOL; message 'autovalidates';
-    function allowsDuplicatesInToolbar: BOOL; message 'allowsDuplicatesInToolbar';
+    procedure setAutovalidates(resistance: ObjCBOOL); message 'setAutovalidates:';
+    function autovalidates: ObjCBOOL; message 'autovalidates';
+    function allowsDuplicatesInToolbar: ObjCBOOL; message 'allowsDuplicatesInToolbar';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
@@ -151,7 +151,7 @@ var
 
 { NSToolbarItemValidationCategory }
   NSToolbarItemValidationCategory = objccategory external (NSObject)
-    function validateToolbarItem(theItem: NSToolbarItem): BOOL; message 'validateToolbarItem:';
+    function validateToolbarItem(theItem: NSToolbarItem): ObjCBOOL; message 'validateToolbarItem:';
   end;
 
 {$endif}

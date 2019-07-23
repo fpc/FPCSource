@@ -67,18 +67,18 @@ var
     class function graphicsContextWithAttributes(attributes_: NSDictionary): NSGraphicsContext; message 'graphicsContextWithAttributes:';
     class function graphicsContextWithWindow(window: NSWindow): NSGraphicsContext; message 'graphicsContextWithWindow:';
     class function graphicsContextWithBitmapImageRep(bitmapRep: NSBitmapImageRep): NSGraphicsContext; message 'graphicsContextWithBitmapImageRep:';
-    class function graphicsContextWithGraphicsPort_flipped(graphicsPort_: Pointer; initialFlippedState: BOOL): NSGraphicsContext; message 'graphicsContextWithGraphicsPort:flipped:';
+    class function graphicsContextWithGraphicsPort_flipped(graphicsPort_: Pointer; initialFlippedState: ObjCBOOL): NSGraphicsContext; message 'graphicsContextWithGraphicsPort:flipped:';
     class function currentContext: NSGraphicsContext; message 'currentContext';
     class procedure setCurrentContext(context: NSGraphicsContext); message 'setCurrentContext:';
-    class function currentContextDrawingToScreen: BOOL; message 'currentContextDrawingToScreen';
+    class function currentContextDrawingToScreen: ObjCBOOL; message 'currentContextDrawingToScreen';
     class procedure saveGraphicsState; message 'saveGraphicsState';
     class procedure restoreGraphicsState; message 'restoreGraphicsState';
     class procedure setGraphicsState(gState: NSInteger); message 'setGraphicsState:';
     function attributes: NSDictionary; message 'attributes';
-    function isDrawingToScreen: BOOL; message 'isDrawingToScreen';
+    function isDrawingToScreen: ObjCBOOL; message 'isDrawingToScreen';
     procedure flushGraphics; message 'flushGraphics';
     function graphicsPort: Pointer; message 'graphicsPort';
-    function isFlipped: BOOL; message 'isFlipped';
+    function isFlipped: ObjCBOOL; message 'isFlipped';
   end;
 
 { NSQuartzCoreAdditionsCategory }

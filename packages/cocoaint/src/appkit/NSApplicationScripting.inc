@@ -44,7 +44,7 @@
 
 { NSApplicationScriptingDelegationCategory }
   NSApplicationScriptingDelegationCategory = objccategory external (NSObject)
-    function application_delegateHandlesKey(sender: NSApplication; key: NSString): BOOL; message 'application:delegateHandlesKey:';
+    function application_delegateHandlesKey(sender: NSApplication; key: NSString): ObjCBOOL; message 'application:delegateHandlesKey:';
   end;
 
 {$endif}

@@ -72,9 +72,9 @@
     procedure objectDidBeginEditing(editor: id); message 'objectDidBeginEditing:';
     procedure objectDidEndEditing(editor: id); message 'objectDidEndEditing:';
     procedure discardEditing; message 'discardEditing';
-    function commitEditing: BOOL; message 'commitEditing';
+    function commitEditing: ObjCBOOL; message 'commitEditing';
     procedure commitEditingWithDelegate_didCommitSelector_contextInfo(delegate: id; didCommitSelector: SEL; contextInfo: Pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
-    function isEditing: BOOL; message 'isEditing';
+    function isEditing: ObjCBOOL; message 'isEditing';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

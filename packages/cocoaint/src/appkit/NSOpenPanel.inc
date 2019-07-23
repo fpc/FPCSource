@@ -48,14 +48,14 @@
   public
     class function openPanel: NSOpenPanel; message 'openPanel';
     function URLs: NSArray; message 'URLs';
-    function resolvesAliases: BOOL; message 'resolvesAliases';
-    procedure setResolvesAliases(flag: BOOL); message 'setResolvesAliases:';
-    function canChooseDirectories: BOOL; message 'canChooseDirectories';
-    procedure setCanChooseDirectories(flag: BOOL); message 'setCanChooseDirectories:';
-    function allowsMultipleSelection: BOOL; message 'allowsMultipleSelection';
-    procedure setAllowsMultipleSelection(flag: BOOL); message 'setAllowsMultipleSelection:';
-    function canChooseFiles: BOOL; message 'canChooseFiles';
-    procedure setCanChooseFiles(flag: BOOL); message 'setCanChooseFiles:';
+    function resolvesAliases: ObjCBOOL; message 'resolvesAliases';
+    procedure setResolvesAliases(flag: ObjCBOOL); message 'setResolvesAliases:';
+    function canChooseDirectories: ObjCBOOL; message 'canChooseDirectories';
+    procedure setCanChooseDirectories(flag: ObjCBOOL); message 'setCanChooseDirectories:';
+    function allowsMultipleSelection: ObjCBOOL; message 'allowsMultipleSelection';
+    procedure setAllowsMultipleSelection(flag: ObjCBOOL); message 'setAllowsMultipleSelection:';
+    function canChooseFiles: ObjCBOOL; message 'canChooseFiles';
+    procedure setCanChooseFiles(flag: ObjCBOOL); message 'setCanChooseFiles:';
   end;
 
 { NSDeprecated_NSOpenPanelCategory }

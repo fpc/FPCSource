@@ -50,10 +50,10 @@
     class function currentHost: NSHost; message 'currentHost';
     class function hostWithName(name_: NSString): NSHost; message 'hostWithName:';
     class function hostWithAddress(address_: NSString): NSHost; message 'hostWithAddress:';
-    class procedure setHostCacheEnabled(flag: BOOL); message 'setHostCacheEnabled:';
-    class function isHostCacheEnabled: BOOL; message 'isHostCacheEnabled';
+    class procedure setHostCacheEnabled(flag: ObjCBOOL); message 'setHostCacheEnabled:';
+    class function isHostCacheEnabled: ObjCBOOL; message 'isHostCacheEnabled';
     class procedure flushHostCache; message 'flushHostCache';
-    function isEqualToHost(aHost: NSHost): BOOL; message 'isEqualToHost:';
+    function isEqualToHost(aHost: NSHost): ObjCBOOL; message 'isEqualToHost:';
     function name: NSString; message 'name';
     function names: NSArray; message 'names';
     function address: NSString; message 'address';

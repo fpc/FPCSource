@@ -45,12 +45,12 @@
   public
     function datePickerStyle: NSDatePickerStyle; message 'datePickerStyle';
     procedure setDatePickerStyle(newStyle: NSDatePickerStyle); message 'setDatePickerStyle:';
-    function isBezeled: BOOL; message 'isBezeled';
-    procedure setBezeled(flag: BOOL); message 'setBezeled:';
-    function isBordered: BOOL; message 'isBordered';
-    procedure setBordered(flag: BOOL); message 'setBordered:';
-    function drawsBackground: BOOL; message 'drawsBackground';
-    procedure setDrawsBackground(flag: BOOL); message 'setDrawsBackground:';
+    function isBezeled: ObjCBOOL; message 'isBezeled';
+    procedure setBezeled(flag: ObjCBOOL); message 'setBezeled:';
+    function isBordered: ObjCBOOL; message 'isBordered';
+    procedure setBordered(flag: ObjCBOOL); message 'setBordered:';
+    function drawsBackground: ObjCBOOL; message 'drawsBackground';
+    procedure setDrawsBackground(flag: ObjCBOOL); message 'setDrawsBackground:';
     function backgroundColor: NSColor; message 'backgroundColor';
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function textColor: NSColor; message 'textColor';

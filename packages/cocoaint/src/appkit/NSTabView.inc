@@ -67,10 +67,10 @@ type
     _selectedTabViewItem: NSTabViewItem;
     _font: NSFont;
     _tabViewType: NSTabViewType;
-    _allowTruncatedLabels: BOOL;
+    _allowTruncatedLabels: ObjCBOOL;
     _delegate: id;
-    _tabViewUnusedBOOL1: BOOL;
-    _drawsBackground: BOOL;
+    _tabViewUnusedObjCBOOL1: ObjCBOOL;
+    _drawsBackground: ObjCBOOL;
     _pressedTabViewItem: NSTabViewItem;
     _endTabWidth: NSInteger;
     _maxOverlap: NSInteger;
@@ -120,15 +120,15 @@ type
     function font: NSFont; message 'font';
     function tabViewType: NSTabViewType; message 'tabViewType';
     function tabViewItems: NSArray; message 'tabViewItems';
-    function allowsTruncatedLabels: BOOL; message 'allowsTruncatedLabels';
+    function allowsTruncatedLabels: ObjCBOOL; message 'allowsTruncatedLabels';
     function minimumSize: NSSize; message 'minimumSize';
-    function drawsBackground: BOOL; message 'drawsBackground';
+    function drawsBackground: ObjCBOOL; message 'drawsBackground';
     function controlTint: NSControlTint; message 'controlTint';
     function controlSize: NSControlSize; message 'controlSize';
     procedure setFont(font_: NSFont); message 'setFont:';
     procedure setTabViewType(tabViewType_: NSTabViewType); message 'setTabViewType:';
-    procedure setAllowsTruncatedLabels(allowTruncatedLabels: BOOL); message 'setAllowsTruncatedLabels:';
-    procedure setDrawsBackground(flag: BOOL); message 'setDrawsBackground:';
+    procedure setAllowsTruncatedLabels(allowTruncatedLabels: ObjCBOOL); message 'setAllowsTruncatedLabels:';
+    procedure setDrawsBackground(flag: ObjCBOOL); message 'setDrawsBackground:';
     procedure setControlTint(controlTint_: NSControlTint); message 'setControlTint:';
     procedure setControlSize(controlSize_: NSControlSize); message 'setControlSize:';
     procedure addTabViewItem(tabViewItem: NSTabViewItem); message 'addTabViewItem:';
@@ -153,7 +153,7 @@ type
 { NSTabViewDelegate Protocol }
   NSTabViewDelegateProtocol = objcprotocol external name 'NSTabViewDelegate'
   optional
-    function tabView_shouldSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem): BOOL; message 'tabView:shouldSelectTabViewItem:';
+    function tabView_shouldSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem): ObjCBOOL; message 'tabView:shouldSelectTabViewItem:';
     procedure tabView_willSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem); message 'tabView:willSelectTabViewItem:';
     procedure tabView_didSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem); message 'tabView:didSelectTabViewItem:';
     procedure tabViewDidChangeNumberOfTabViewItems(TabView: NSTabView); message 'tabViewDidChangeNumberOfTabViewItems:';

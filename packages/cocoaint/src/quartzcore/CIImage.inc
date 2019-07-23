@@ -66,7 +66,7 @@ var
     class function imageWithCGLayer(layer: CGLayerRef): CIImage; message 'imageWithCGLayer:';
     class function imageWithCGLayer_options(layer: CGLayerRef; d: NSDictionary): CIImage; message 'imageWithCGLayer:options:';
     class function imageWithBitmapData_bytesPerRow_size_format_colorSpace(d: NSData; bpr: size_t; size: CGSize; f: CIFormat; cs: CGColorSpaceRef): CIImage; message 'imageWithBitmapData:bytesPerRow:size:format:colorSpace:';
-    class function imageWithTexture_size_flipped_colorSpace(name: cuint; size: CGSize; flag: BOOL; cs: CGColorSpaceRef): CIImage; message 'imageWithTexture:size:flipped:colorSpace:';
+    class function imageWithTexture_size_flipped_colorSpace(name: cuint; size: CGSize; flag: ObjCBOOL; cs: CGColorSpaceRef): CIImage; message 'imageWithTexture:size:flipped:colorSpace:';
     class function imageWithContentsOfURL(url_: NSURL): CIImage; message 'imageWithContentsOfURL:';
     class function imageWithContentsOfURL_options(url_: NSURL; d: NSDictionary): CIImage; message 'imageWithContentsOfURL:options:';
     class function imageWithData(data: NSData): CIImage; message 'imageWithData:';
@@ -84,7 +84,7 @@ var
     function initWithData(data: NSData): id; message 'initWithData:';
     function initWithData_options(data: NSData; d: NSDictionary): id; message 'initWithData:options:';
     function initWithBitmapData_bytesPerRow_size_format_colorSpace(d: NSData; bpr: size_t; size: CGSize; f: CIFormat; c: CGColorSpaceRef): id; message 'initWithBitmapData:bytesPerRow:size:format:colorSpace:';
-    function initWithTexture_size_flipped_colorSpace(name: cuint; size: CGSize; flag: BOOL; cs: CGColorSpaceRef): id; message 'initWithTexture:size:flipped:colorSpace:';
+    function initWithTexture_size_flipped_colorSpace(name: cuint; size: CGSize; flag: ObjCBOOL; cs: CGColorSpaceRef): id; message 'initWithTexture:size:flipped:colorSpace:';
     function initWithContentsOfURL(url_: NSURL): id; message 'initWithContentsOfURL:';
     function initWithContentsOfURL_options(url_: NSURL; d: NSDictionary): id; message 'initWithContentsOfURL:options:';
     function initWithIOSurface(surface: IOSurfaceRef): id; message 'initWithIOSurface:';

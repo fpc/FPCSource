@@ -53,9 +53,9 @@
   
 { NSColorPickingCustom Protocol }
   NSColorPickingCustomProtocol = objcprotocol external name 'NSColorPickingCustom'
-    function supportsMode(mode: NSColorPanelMode): BOOL; message 'supportsMode:';
+    function supportsMode(mode: NSColorPanelMode): ObjCBOOL; message 'supportsMode:';
     function currentMode: NSColorPanelMode; message 'currentMode';
-    function provideNewView(initialRequest: BOOL): NSView; message 'provideNewView:';
+    function provideNewView(initialRequest: ObjCBOOL): NSView; message 'provideNewView:';
     procedure setColor(newColor: NSColor); message 'setColor:';
   end;
 {$endif}

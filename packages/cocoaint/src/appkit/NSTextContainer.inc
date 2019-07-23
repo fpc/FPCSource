@@ -87,17 +87,17 @@ type
     procedure replaceLayoutManager(newLayoutManager: NSLayoutManager); message 'replaceLayoutManager:';
     function textView: NSTextView; message 'textView';
     procedure setTextView(textView_: NSTextView); message 'setTextView:';
-    procedure setWidthTracksTextView(flag: BOOL); message 'setWidthTracksTextView:';
-    function widthTracksTextView: BOOL; message 'widthTracksTextView';
-    procedure setHeightTracksTextView(flag: BOOL); message 'setHeightTracksTextView:';
-    function heightTracksTextView: BOOL; message 'heightTracksTextView';
+    procedure setWidthTracksTextView(flag: ObjCBOOL); message 'setWidthTracksTextView:';
+    function widthTracksTextView: ObjCBOOL; message 'widthTracksTextView';
+    procedure setHeightTracksTextView(flag: ObjCBOOL); message 'setHeightTracksTextView:';
+    function heightTracksTextView: ObjCBOOL; message 'heightTracksTextView';
     procedure setContainerSize(size: NSSize); message 'setContainerSize:';
     function containerSize: NSSize; message 'containerSize';
     procedure setLineFragmentPadding(pad: CGFloat); message 'setLineFragmentPadding:';
     function lineFragmentPadding: CGFloat; message 'lineFragmentPadding';
     function lineFragmentRectForProposedRect_sweepDirection_movementDirection_remainingRect(proposedRect: NSRect; sweepDirection: NSLineSweepDirection; movementDirection: NSLineMovementDirection; remainingRect: NSRectPointer): NSRect; message 'lineFragmentRectForProposedRect:sweepDirection:movementDirection:remainingRect:';
-    function isSimpleRectangularTextContainer: BOOL; message 'isSimpleRectangularTextContainer';
-    function containsPoint(point: NSPoint): BOOL; message 'containsPoint:';
+    function isSimpleRectangularTextContainer: ObjCBOOL; message 'isSimpleRectangularTextContainer';
+    function containsPoint(point: NSPoint): ObjCBOOL; message 'containsPoint:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

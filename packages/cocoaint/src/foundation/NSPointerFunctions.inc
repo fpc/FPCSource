@@ -69,19 +69,19 @@ type
 (*
     procedure setItem (newValue: NSUInteger); message 'setItem:';
     function item: NSUInteger; message 'item';
-    procedure setItem1 (newValue: BOOL); message 'setItem1:';
-    function item1: BOOL; message 'item1';
-    procedure setItem2 (newValue: BOOL); message 'setItem2:';
-    function item2: BOOL; message 'item2';
+    procedure setItem1 (newValue: ObjCBOOL); message 'setItem1:';
+    function item1: ObjCBOOL; message 'item1';
+    procedure setItem2 (newValue: ObjCBOOL); message 'setItem2:';
+    function item2: ObjCBOOL; message 'item2';
     procedure set_ (newValue: NSUInteger); message 'set_:';
     function : NSUInteger; message '';
     procedure setSrc (newValue: Pointer); message 'setSrc:';
     function src: Pointer; message 'src';
 *)
-    procedure setUsesStrongWriteBarrier (newValue: BOOL); message 'setUsesStrongWriteBarrier:';
-    function usesStrongWriteBarrier: BOOL; message 'usesStrongWriteBarrier';
-    procedure setUsesWeakReadAndWriteBarriers (newValue: BOOL); message 'setUsesWeakReadAndWriteBarriers:';
-    function usesWeakReadAndWriteBarriers: BOOL; message 'usesWeakReadAndWriteBarriers';
+    procedure setUsesStrongWriteBarrier (newValue: ObjCBOOL); message 'setUsesStrongWriteBarrier:';
+    function usesStrongWriteBarrier: ObjCBOOL; message 'usesStrongWriteBarrier';
+    procedure setUsesWeakReadAndWriteBarriers (newValue: ObjCBOOL); message 'setUsesWeakReadAndWriteBarriers:';
+    function usesWeakReadAndWriteBarriers: ObjCBOOL; message 'usesWeakReadAndWriteBarriers';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;

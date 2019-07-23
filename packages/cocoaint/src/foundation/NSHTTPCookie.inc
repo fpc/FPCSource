@@ -70,11 +70,11 @@ var
     function name: NSString; message 'name';
     function value: NSString; message 'value';
     function expiresDate: NSDate; message 'expiresDate';
-    function isSessionOnly: BOOL; message 'isSessionOnly';
+    function isSessionOnly: ObjCBOOL; message 'isSessionOnly';
     function domain: NSString; message 'domain';
     function path: NSString; message 'path';
-    function isSecure: BOOL; message 'isSecure';
-    function isHTTPOnly: BOOL; message 'isHTTPOnly';
+    function isSecure: ObjCBOOL; message 'isSecure';
+    function isHTTPOnly: ObjCBOOL; message 'isHTTPOnly';
     function comment: NSString; message 'comment';
     function commentURL: NSURL; message 'commentURL';
     function portList: NSArray; message 'portList';

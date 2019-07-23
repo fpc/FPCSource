@@ -43,7 +43,7 @@
   DOMImplementation = objcclass external (DOMObject)
     
   public
-    function hasFeature_version(feature: NSString; version_: NSString): BOOL; message 'hasFeature:version:';
+    function hasFeature_version(feature: NSString; version_: NSString): ObjCBOOL; message 'hasFeature:version:';
     function createDocumentType_publicId_systemId(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:publicId:systemId:';
     function createDocument_qualifiedName_doctype(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:qualifiedName:doctype:';
     function createCSSStyleSheet_media(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:media:';
@@ -52,7 +52,7 @@
 
 { DOMImplementationDeprecatedCategory }
   DOMImplementationDeprecatedCategory = objccategory external (DOMImplementation)
-    function hasFeature(feature: NSString; version_: NSString): BOOL; message 'hasFeature:feature:'; deprecated 'in_webkit_version_3 and later';
+    function hasFeature(feature: NSString; version_: NSString): ObjCBOOL; message 'hasFeature:feature:'; deprecated 'in_webkit_version_3 and later';
     function createDocumentType(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:qualifiedName:publicId:'; deprecated 'in_webkit_version_3 and later';
     function createDocument(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:namespaceURI:qualifiedName:'; deprecated 'in_webkit_version_3 and later';
     function createCSSStyleSheet(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:title:'; deprecated 'in_webkit_version_3 and later';

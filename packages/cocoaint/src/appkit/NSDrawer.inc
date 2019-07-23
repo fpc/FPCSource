@@ -127,8 +127,8 @@ var
 { NSDrawerDelegate Protocol }
   NSDrawerDelegateProtocol = objcprotocol external name 'NSDrawerDelegate'
   optional
-    function drawerShouldOpen(sender: NSDrawer): BOOL; message 'drawerShouldOpen:';
-    function drawerShouldClose(sender: NSDrawer): BOOL; message 'drawerShouldClose:';
+    function drawerShouldOpen(sender: NSDrawer): ObjCBOOL; message 'drawerShouldOpen:';
+    function drawerShouldClose(sender: NSDrawer): ObjCBOOL; message 'drawerShouldClose:';
     function drawerWillResizeContents_toSize(sender: NSDrawer; contentSize: NSSize): NSSize; message 'drawerWillResizeContents:toSize:';
     procedure drawerWillOpen(notification: NSNotification); message 'drawerWillOpen:';
     procedure drawerDidOpen(notification: NSNotification); message 'drawerDidOpen:';

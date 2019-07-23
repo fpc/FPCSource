@@ -154,7 +154,7 @@ type
     function bezierPathByFlatteningPath: NSBezierPath; message 'bezierPathByFlatteningPath';
     function bezierPathByReversingPath: NSBezierPath; message 'bezierPathByReversingPath';
     procedure transformUsingAffineTransform(transform: NSAffineTransform); message 'transformUsingAffineTransform:';
-    function isEmpty: BOOL; message 'isEmpty';
+    function isEmpty: ObjCBOOL; message 'isEmpty';
     function currentPoint: NSPoint; message 'currentPoint';
     function controlPointBounds: NSRect; message 'controlPointBounds';
     function bounds: NSRect; message 'bounds';
@@ -166,14 +166,14 @@ type
     procedure appendBezierPathWithRect(rect: NSRect); message 'appendBezierPathWithRect:';
     procedure appendBezierPathWithPoints_count(points: NSPointArray; count: NSInteger); message 'appendBezierPathWithPoints:count:';
     procedure appendBezierPathWithOvalInRect(rect: NSRect); message 'appendBezierPathWithOvalInRect:';
-    procedure appendBezierPathWithArcWithCenter_radius_startAngle_endAngle_clockwise(center: NSPoint; radius: CGFloat; startAngle: CGFloat; endAngle: CGFloat; clockwise: BOOL); message 'appendBezierPathWithArcWithCenter:radius:startAngle:endAngle:clockwise:';
+    procedure appendBezierPathWithArcWithCenter_radius_startAngle_endAngle_clockwise(center: NSPoint; radius: CGFloat; startAngle: CGFloat; endAngle: CGFloat; clockwise: ObjCBOOL); message 'appendBezierPathWithArcWithCenter:radius:startAngle:endAngle:clockwise:';
     procedure appendBezierPathWithArcWithCenter_radius_startAngle_endAngle(center: NSPoint; radius: CGFloat; startAngle: CGFloat; endAngle: CGFloat); message 'appendBezierPathWithArcWithCenter:radius:startAngle:endAngle:';
     procedure appendBezierPathWithArcFromPoint_toPoint_radius(point: NSPoint; point1: NSPoint; radius: CGFloat); message 'appendBezierPathWithArcFromPoint:toPoint:radius:';
     procedure appendBezierPathWithGlyph_inFont(glyph: NSGlyph; font: NSFont); message 'appendBezierPathWithGlyph:inFont:';
     procedure appendBezierPathWithGlyphs_count_inFont(glyphs: NSGlyphPtr; count: NSInteger; font: NSFont); message 'appendBezierPathWithGlyphs:count:inFont:';
     procedure appendBezierPathWithPackedGlyphs(packedGlyphs: PChar); message 'appendBezierPathWithPackedGlyphs:';
     procedure appendBezierPathWithRoundedRect_xRadius_yRadius(rect: NSRect; xRadius: CGFloat; yRadius: CGFloat); message 'appendBezierPathWithRoundedRect:xRadius:yRadius:';
-    function containsPoint(point: NSPoint): BOOL; message 'containsPoint:';
+    function containsPoint(point: NSPoint): ObjCBOOL; message 'containsPoint:';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
@@ -183,8 +183,8 @@ type
 
 { NSBezierPathDeprecatedCategory }
   NSBezierPathDeprecatedCategory = objccategory external (NSBezierPath)
-    function cachesBezierPath: BOOL; message 'cachesBezierPath'; deprecated 'in Mac OS X 10 and later';
-    procedure setCachesBezierPath(flag: BOOL); message 'setCachesBezierPath:'; deprecated 'in Mac OS X 10 and later';
+    function cachesBezierPath: ObjCBOOL; message 'cachesBezierPath'; deprecated 'in Mac OS X 10 and later';
+    procedure setCachesBezierPath(flag: ObjCBOOL); message 'setCachesBezierPath:'; deprecated 'in Mac OS X 10 and later';
   end;
 
 {$endif}

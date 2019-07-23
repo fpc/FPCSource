@@ -57,17 +57,17 @@ const
 
     { Adopted Protocols }
     procedure drawWithFrame_inView(cellFrame: NSRect; controlView: NSView);
-    function wantsToTrackMouse: BOOL;
-    procedure highlight_withFrame_inView(flag: BOOL; cellFrame: NSRect; controlView: NSView);
-    function trackMouse_inRect_ofView_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; flag: BOOL): BOOL;
+    function wantsToTrackMouse: ObjCBOOL;
+    procedure highlight_withFrame_inView(flag: ObjCBOOL; cellFrame: NSRect; controlView: NSView);
+    function trackMouse_inRect_ofView_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; flag: ObjCBOOL): ObjCBOOL;
     function cellSize: NSSize;
     function cellBaselineOffset: NSPoint;
     procedure setAttachment(anObject: NSTextAttachment);
     function attachment: NSTextAttachment;
     procedure drawWithFrame_inView_characterIndex(cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger);
     procedure drawWithFrame_inView_characterIndex_layoutManager(cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; layoutManager: NSLayoutManager);
-    function wantsToTrackMouseForEvent_inRect_ofView_atCharacterIndex(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger): BOOL;
-    function trackMouse_inRect_ofView_atCharacterIndex_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; flag: BOOL): BOOL;
+    function wantsToTrackMouseForEvent_inRect_ofView_atCharacterIndex(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger): ObjCBOOL;
+    function trackMouse_inRect_ofView_atCharacterIndex_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; flag: ObjCBOOL): ObjCBOOL;
     function cellFrameForTextContainer_proposedLineFragment_glyphPosition_characterIndex(textContainer: NSTextContainer; lineFrag: NSRect; position: NSPoint; charIndex: NSUInteger): NSRect;
   end;
 
@@ -118,17 +118,17 @@ const
 { NSTextAttachmentCell Protocol }
   NSTextAttachmentCellProtocol = objcprotocol external name 'NSTextAttachmentCell'
     procedure drawWithFrame_inView(cellFrame: NSRect; controlView: NSView); message 'drawWithFrame:inView:';
-    function wantsToTrackMouse: BOOL; message 'wantsToTrackMouse';
-    procedure highlight_withFrame_inView(flag: BOOL; cellFrame: NSRect; controlView: NSView); message 'highlight:withFrame:inView:';
-    function trackMouse_inRect_ofView_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; flag: BOOL): BOOL; message 'trackMouse:inRect:ofView:untilMouseUp:';
+    function wantsToTrackMouse: ObjCBOOL; message 'wantsToTrackMouse';
+    procedure highlight_withFrame_inView(flag: ObjCBOOL; cellFrame: NSRect; controlView: NSView); message 'highlight:withFrame:inView:';
+    function trackMouse_inRect_ofView_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; flag: ObjCBOOL): ObjCBOOL; message 'trackMouse:inRect:ofView:untilMouseUp:';
     function cellSize: NSSize; message 'cellSize';
     function cellBaselineOffset: NSPoint; message 'cellBaselineOffset';
     procedure setAttachment(anObject: NSTextAttachment); message 'setAttachment:';
     function attachment: NSTextAttachment; message 'attachment';
     procedure drawWithFrame_inView_characterIndex(cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger); message 'drawWithFrame:inView:characterIndex:';
     procedure drawWithFrame_inView_characterIndex_layoutManager(cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; layoutManager: NSLayoutManager); message 'drawWithFrame:inView:characterIndex:layoutManager:';
-    function wantsToTrackMouseForEvent_inRect_ofView_atCharacterIndex(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger): BOOL; message 'wantsToTrackMouseForEvent:inRect:ofView:atCharacterIndex:';
-    function trackMouse_inRect_ofView_atCharacterIndex_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; flag: BOOL): BOOL; message 'trackMouse:inRect:ofView:atCharacterIndex:untilMouseUp:';
+    function wantsToTrackMouseForEvent_inRect_ofView_atCharacterIndex(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger): ObjCBOOL; message 'wantsToTrackMouseForEvent:inRect:ofView:atCharacterIndex:';
+    function trackMouse_inRect_ofView_atCharacterIndex_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; flag: ObjCBOOL): ObjCBOOL; message 'trackMouse:inRect:ofView:atCharacterIndex:untilMouseUp:';
     function cellFrameForTextContainer_proposedLineFragment_glyphPosition_characterIndex(textContainer: NSTextContainer; lineFrag: NSRect; position: NSPoint; charIndex: NSUInteger): NSRect; message 'cellFrameForTextContainer:proposedLineFragment:glyphPosition:characterIndex:';
   end;
 {$endif}

@@ -70,8 +70,8 @@ const
     procedure setContentView(view: NSView); message 'setContentView:';
     function contentView: NSView; message 'contentView';
     procedure display; message 'display';
-    procedure setShowsApplicationBadge(flag: BOOL); message 'setShowsApplicationBadge:';
-    function showsApplicationBadge: BOOL; message 'showsApplicationBadge';
+    procedure setShowsApplicationBadge(flag: ObjCBOOL); message 'setShowsApplicationBadge:';
+    function showsApplicationBadge: ObjCBOOL; message 'showsApplicationBadge';
     procedure setBadgeLabel(string_: NSString); message 'setBadgeLabel:';
     function badgeLabel: NSString; message 'badgeLabel';
     function owner: id; message 'owner';

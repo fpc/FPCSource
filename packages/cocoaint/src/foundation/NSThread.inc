@@ -54,26 +54,26 @@ var
   public
     class function currentThread: NSThread; message 'currentThread';
     class procedure detachNewThreadSelector_toTarget_withObject(selector: SEL; target: id; argument: id); message 'detachNewThreadSelector:toTarget:withObject:';
-    class function isMultiThreaded: BOOL; message 'isMultiThreaded';
+    class function isMultiThreaded: ObjCBOOL; message 'isMultiThreaded';
     function threadDictionary: NSMutableDictionary; message 'threadDictionary';
     class procedure sleepUntilDate(date: NSDate); message 'sleepUntilDate:';
     class procedure sleepForTimeInterval(ti: NSTimeInterval); message 'sleepForTimeInterval:';
     class procedure exit; message 'exit';
     class function threadPriority: double; message 'threadPriority';
-    class function setThreadPriority(p: double): BOOL; message 'setThreadPriority:';
+    class function setThreadPriority(p: double): ObjCBOOL; message 'setThreadPriority:';
     class function callStackReturnAddresses: NSArray; message 'callStackReturnAddresses';
     class function callStackSymbols: NSArray; message 'callStackSymbols';
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
     function stackSize: NSUInteger; message 'stackSize';
     procedure setStackSize(s: NSUInteger); message 'setStackSize:';
-    function isMainThread: BOOL; message 'isMainThread';
+    function isMainThread: ObjCBOOL; message 'isMainThread';
     class function mainThread: NSThread; message 'mainThread';
     function init: id; message 'init';
     function initWithTarget_selector_object(target: id; selector: SEL; argument: id): id; message 'initWithTarget:selector:object:';
-    function isExecuting: BOOL; message 'isExecuting';
-    function isFinished: BOOL; message 'isFinished';
-    function isCancelled: BOOL; message 'isCancelled';
+    function isExecuting: ObjCBOOL; message 'isExecuting';
+    function isFinished: ObjCBOOL; message 'isFinished';
+    function isCancelled: ObjCBOOL; message 'isCancelled';
     procedure cancel; message 'cancel';
     procedure start; message 'start';
     procedure main; message 'main';
@@ -81,10 +81,10 @@ var
 
 { NSThreadPerformAdditionsCategory }
   NSThreadPerformAdditionsCategory = objccategory external (NSObject)
-    procedure performSelectorOnMainThread_withObject_waitUntilDone_modes(aSelector: SEL; arg: id; wait: BOOL; array_: NSArray); message 'performSelectorOnMainThread:withObject:waitUntilDone:modes:';
-    procedure performSelectorOnMainThread_withObject_waitUntilDone(aSelector: SEL; arg: id; wait: BOOL); message 'performSelectorOnMainThread:withObject:waitUntilDone:';
-    procedure performSelector_onThread_withObject_waitUntilDone_modes(aSelector: SEL; thr: NSThread; arg: id; wait: BOOL; array_: NSArray); message 'performSelector:onThread:withObject:waitUntilDone:modes:';
-    procedure performSelector_onThread_withObject_waitUntilDone(aSelector: SEL; thr: NSThread; arg: id; wait: BOOL); message 'performSelector:onThread:withObject:waitUntilDone:';
+    procedure performSelectorOnMainThread_withObject_waitUntilDone_modes(aSelector: SEL; arg: id; wait: ObjCBOOL; array_: NSArray); message 'performSelectorOnMainThread:withObject:waitUntilDone:modes:';
+    procedure performSelectorOnMainThread_withObject_waitUntilDone(aSelector: SEL; arg: id; wait: ObjCBOOL); message 'performSelectorOnMainThread:withObject:waitUntilDone:';
+    procedure performSelector_onThread_withObject_waitUntilDone_modes(aSelector: SEL; thr: NSThread; arg: id; wait: ObjCBOOL; array_: NSArray); message 'performSelector:onThread:withObject:waitUntilDone:modes:';
+    procedure performSelector_onThread_withObject_waitUntilDone(aSelector: SEL; thr: NSThread; arg: id; wait: ObjCBOOL); message 'performSelector:onThread:withObject:waitUntilDone:';
     procedure performSelectorInBackground_withObject(aSelector: SEL; arg: id); message 'performSelectorInBackground:withObject:';
   end;
 

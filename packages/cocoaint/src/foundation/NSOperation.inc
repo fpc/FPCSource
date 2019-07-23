@@ -77,12 +77,12 @@ var
     function init: id; message 'init';
     procedure start; message 'start';
     procedure main; message 'main';
-    function isCancelled: BOOL; message 'isCancelled';
+    function isCancelled: ObjCBOOL; message 'isCancelled';
     procedure cancel; message 'cancel';
-    function isExecuting: BOOL; message 'isExecuting';
-    function isFinished: BOOL; message 'isFinished';
-    function isConcurrent: BOOL; message 'isConcurrent';
-    function isReady: BOOL; message 'isReady';
+    function isExecuting: ObjCBOOL; message 'isExecuting';
+    function isFinished: ObjCBOOL; message 'isFinished';
+    function isConcurrent: ObjCBOOL; message 'isConcurrent';
+    function isReady: ObjCBOOL; message 'isReady';
     procedure addDependency(op: NSOperation); message 'addDependency:';
     procedure removeDependency(op: NSOperation); message 'removeDependency:';
     function dependencies: NSArray; message 'dependencies';
@@ -115,13 +115,13 @@ var
     
   public
     procedure addOperation(op: NSOperation); message 'addOperation:';
-    procedure addOperations_waitUntilFinished(ops: NSArray; wait: BOOL); message 'addOperations:waitUntilFinished:';
+    procedure addOperations_waitUntilFinished(ops: NSArray; wait: ObjCBOOL); message 'addOperations:waitUntilFinished:';
     function operations: NSArray; message 'operations';
     function operationCount: NSUInteger; message 'operationCount';
     function maxConcurrentOperationCount: NSInteger; message 'maxConcurrentOperationCount';
     procedure setMaxConcurrentOperationCount(cnt: NSInteger); message 'setMaxConcurrentOperationCount:';
-    procedure setSuspended(b: BOOL); message 'setSuspended:';
-    function isSuspended: BOOL; message 'isSuspended';
+    procedure setSuspended(b: ObjCBOOL); message 'setSuspended:';
+    function isSuspended: ObjCBOOL; message 'isSuspended';
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
     procedure cancelAllOperations; message 'cancelAllOperations';

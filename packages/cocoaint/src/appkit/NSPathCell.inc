@@ -106,11 +106,11 @@ type
     procedure setControlSize(size: NSControlSize); message 'setControlSize:';
 
     { Adopted Protocols }
-    function panel_shouldEnableURL(sender: id; url: NSURL): BOOL;
-    function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): BOOL;
+    function panel_shouldEnableURL(sender: id; url: NSURL): ObjCBOOL;
+    function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): ObjCBOOL;
     procedure panel_didChangeToDirectoryURL(sender: id; url: NSURL);
-    function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: BOOL): NSString;
-    procedure panel_willExpand(sender: id; expanding: BOOL);
+    function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: ObjCBOOL): NSString;
+    procedure panel_willExpand(sender: id; expanding: ObjCBOOL);
     procedure panelSelectionDidChange(sender: id);
   end;
 

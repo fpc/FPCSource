@@ -53,10 +53,10 @@
     procedure dealloc; message 'dealloc';
     procedure finalize; message 'finalize';
     function description: NSString; message 'description';
-    class function classRespondsToSelector(aSelector: SEL): BOOL; message 'respondsToSelector:';
+    class function classRespondsToSelector(aSelector: SEL): ObjCBOOL; message 'respondsToSelector:';
 
     { Adopted Protocols }
-    function isEqual(object_: id): BOOL;
+    function isEqual(object_: id): ObjCBOOL;
     function hash: NSUInteger;
     function superclass: Pobjc_class;
     function _class: Pobjc_class;
@@ -65,11 +65,11 @@
     function performSelector(aSelector: SEL): id;
     function performSelector_withObject(aSelector: SEL; object_: id): id;
     function performSelector_withObject_withObject(aSelector: SEL; object_: id; object_1: id): id;
-    function isProxy: BOOL;
-    function isKindOfClass(aClass: Pobjc_class): BOOL;
-    function isMemberOfClass(aClass: Pobjc_class): BOOL;
-    function conformsToProtocol(aProtocol: objc_protocol): BOOL;
-    function respondsToSelector(aSelector: SEL): BOOL;
+    function isProxy: ObjCBOOL;
+    function isKindOfClass(aClass: Pobjc_class): ObjCBOOL;
+    function isMemberOfClass(aClass: Pobjc_class): ObjCBOOL;
+    function conformsToProtocol(aProtocol: objc_protocol): ObjCBOOL;
+    function respondsToSelector(aSelector: SEL): ObjCBOOL;
     function retain: id;
     procedure release;
     function autorelease: id;

@@ -44,16 +44,16 @@
     
   public
     function form: DOMHTMLFormElement; message 'form';
-    procedure setDefaultSelected (newValue: BOOL); message 'setDefaultSelected:';
-    function defaultSelected: BOOL; message 'defaultSelected';
+    procedure setDefaultSelected (newValue: ObjCBOOL); message 'setDefaultSelected:';
+    function defaultSelected: ObjCBOOL; message 'defaultSelected';
     function text: NSString; message 'text';
     function index: cint; message 'index';
-    procedure setDisabled (newValue: BOOL); message 'setDisabled:';
-    function disabled: BOOL; message 'disabled';
+    procedure setDisabled (newValue: ObjCBOOL); message 'setDisabled:';
+    function disabled: ObjCBOOL; message 'disabled';
     procedure setLabel (newValue: NSString); message 'setLabel:';
     function label_: NSString; message 'label_';
-    procedure setSelected (newValue: BOOL); message 'setSelected:';
-    function selected: BOOL; message 'selected';
+    procedure setSelected (newValue: ObjCBOOL); message 'setSelected:';
+    function selected: ObjCBOOL; message 'selected';
     procedure setValue (newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
   end;

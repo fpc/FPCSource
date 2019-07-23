@@ -48,7 +48,7 @@
     
   public
     function initWithWindow_rect(win: NSWindow; rect_: NSRect): id; message 'initWithWindow:rect:'; deprecated 'in Mac OS X 10.6 and later';
-    function initWithSize_depth_separate_alpha(size_: NSSize; depth: NSWindowDepth; flag: BOOL; alpha: BOOL): id; message 'initWithSize:depth:separate:alpha:'; deprecated 'in Mac OS X 10.6 and later';
+    function initWithSize_depth_separate_alpha(size_: NSSize; depth: NSWindowDepth; flag: ObjCBOOL; alpha: ObjCBOOL): id; message 'initWithSize:depth:separate:alpha:'; deprecated 'in Mac OS X 10.6 and later';
     function window: NSWindow; message 'window'; deprecated 'in Mac OS X 10.6 and later';
     function rect: NSRect; message 'rect'; deprecated 'in Mac OS X 10.6 and later';
   end;

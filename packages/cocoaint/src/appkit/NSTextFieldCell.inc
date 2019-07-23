@@ -77,8 +77,8 @@ type
   public
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
-    procedure setDrawsBackground(flag: BOOL); message 'setDrawsBackground:';
-    function drawsBackground: BOOL; message 'drawsBackground';
+    procedure setDrawsBackground(flag: ObjCBOOL); message 'setDrawsBackground:';
+    function drawsBackground: ObjCBOOL; message 'drawsBackground';
     procedure setTextColor(color: NSColor); message 'setTextColor:';
     function textColor: NSColor; message 'textColor';
     function setUpFieldEditorAttributes(textObj: NSText): NSText; message 'setUpFieldEditorAttributes:';
@@ -88,7 +88,7 @@ type
     function placeholderString: NSString; message 'placeholderString';
     procedure setPlaceholderAttributedString(string_: NSAttributedString); message 'setPlaceholderAttributedString:';
     function placeholderAttributedString: NSAttributedString; message 'placeholderAttributedString';
-    procedure setWantsNotificationForMarkedText(flag: BOOL); message 'setWantsNotificationForMarkedText:';
+    procedure setWantsNotificationForMarkedText(flag: ObjCBOOL); message 'setWantsNotificationForMarkedText:';
     function allowedInputSourceLocales: NSArray; message 'allowedInputSourceLocales';
     procedure setAllowedInputSourceLocales(localeIdentifiers: NSArray); message 'setAllowedInputSourceLocales:';
   end;

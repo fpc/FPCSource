@@ -66,7 +66,7 @@ type
     reserved: array[0..(6)-1] of Pointer;
     
   public
-    class function propertyList_isValidForFormat(plist: id; format: NSPropertyListFormat): BOOL; message 'propertyList:isValidForFormat:';
+    class function propertyList_isValidForFormat(plist: id; format: NSPropertyListFormat): ObjCBOOL; message 'propertyList:isValidForFormat:';
     class function dataWithPropertyList_format_options_error(plist: id; format: NSPropertyListFormat; opt: NSPropertyListWriteOptions; error: NSErrorPointer): NSData; message 'dataWithPropertyList:format:options:error:';
     class function writePropertyList_toStream_format_options_error(plist: id; stream: NSOutputStream; format: NSPropertyListFormat; opt: NSPropertyListWriteOptions; error: NSErrorPointer): NSInteger; message 'writePropertyList:toStream:format:options:error:';
     class function propertyListWithData_options_format_error(data: NSData; opt: NSPropertyListReadOptions; format: NSPropertyListFormatPtr; error: NSErrorPointer): id; message 'propertyListWithData:options:format:error:';

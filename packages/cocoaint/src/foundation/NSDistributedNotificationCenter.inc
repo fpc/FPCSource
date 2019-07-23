@@ -67,10 +67,10 @@ var
     class function notificationCenterForType(notificationCenterType: NSString): NSDistributedNotificationCenter; message 'notificationCenterForType:';
     class function defaultCenter: id; message 'defaultCenter';
     procedure addObserver_selector_name_object_suspensionBehavior(observer: id; selector: SEL; name: NSString; object_: NSString; suspensionBehavior: NSNotificationSuspensionBehavior); message 'addObserver:selector:name:object:suspensionBehavior:';
-    procedure postNotificationName_object_userInfo_deliverImmediately(name: NSString; object_: NSString; userInfo: NSDictionary; deliverImmediately: BOOL); message 'postNotificationName:object:userInfo:deliverImmediately:';
+    procedure postNotificationName_object_userInfo_deliverImmediately(name: NSString; object_: NSString; userInfo: NSDictionary; deliverImmediately: ObjCBOOL); message 'postNotificationName:object:userInfo:deliverImmediately:';
     procedure postNotificationName_object_userInfo_options(name: NSString; object_: NSString; userInfo: NSDictionary; options: NSUInteger); message 'postNotificationName:object:userInfo:options:';
-    procedure setSuspended(suspended_: BOOL); message 'setSuspended:';
-    function suspended: BOOL; message 'suspended';
+    procedure setSuspended(suspended_: ObjCBOOL); message 'setSuspended:';
+    function suspended: ObjCBOOL; message 'suspended';
     procedure addObserver_selector_name_object(observer: id; aSelector: SEL; aName: NSString; anObject: NSString); message 'addObserver:selector:name:object:';
     procedure postNotificationName_object(aName: NSString; anObject: NSString); message 'postNotificationName:object:';
     procedure postNotificationName_object_userInfo(aName: NSString; anObject: NSString; aUserInfo: NSDictionary); message 'postNotificationName:object:userInfo:';

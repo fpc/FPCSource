@@ -70,16 +70,16 @@ type
     _cd_queueReference: id;
     
   public
-    class function contextShouldIgnoreUnmodeledPropertyChanges: BOOL; message 'contextShouldIgnoreUnmodeledPropertyChanges';
+    class function contextShouldIgnoreUnmodeledPropertyChanges: ObjCBOOL; message 'contextShouldIgnoreUnmodeledPropertyChanges';
     function initWithEntity_insertIntoManagedObjectContext(entity_: NSEntityDescription; context: NSManagedObjectContext): id; message 'initWithEntity:insertIntoManagedObjectContext:';
     function managedObjectContext: NSManagedObjectContext; message 'managedObjectContext';
     function entity: NSEntityDescription; message 'entity';
     function objectID: NSManagedObjectID; message 'objectID';
-    function isInserted: BOOL; message 'isInserted';
-    function isUpdated: BOOL; message 'isUpdated';
-    function isDeleted: BOOL; message 'isDeleted';
-    function isFault: BOOL; message 'isFault';
-    function hasFaultForRelationshipNamed(key: NSString): BOOL; message 'hasFaultForRelationshipNamed:';
+    function isInserted: ObjCBOOL; message 'isInserted';
+    function isUpdated: ObjCBOOL; message 'isUpdated';
+    function isDeleted: ObjCBOOL; message 'isDeleted';
+    function isFault: ObjCBOOL; message 'isFault';
+    function hasFaultForRelationshipNamed(key: NSString): ObjCBOOL; message 'hasFaultForRelationshipNamed:';
     function faultingState: NSUInteger; message 'faultingState';
     procedure willAccessValueForKey(key: NSString); message 'willAccessValueForKey:';
     procedure didAccessValueForKey(key: NSString); message 'didAccessValueForKey:';
@@ -103,10 +103,10 @@ type
     procedure setPrimitiveValue_forKey(value: id; key: NSString); message 'setPrimitiveValue:forKey:';
     function committedValuesForKeys(keys: NSArray): NSDictionary; message 'committedValuesForKeys:';
     function changedValues: NSDictionary; message 'changedValues';
-    function validateValue_forKey_error(value: idPtr; key: NSString; error: NSErrorPointer): BOOL; message 'validateValue:forKey:error:';
-    function validateForDelete(error: NSErrorPointer): BOOL; message 'validateForDelete:';
-    function validateForInsert(error: NSErrorPointer): BOOL; message 'validateForInsert:';
-    function validateForUpdate(error: NSErrorPointer): BOOL; message 'validateForUpdate:';
+    function validateValue_forKey_error(value: idPtr; key: NSString; error: NSErrorPointer): ObjCBOOL; message 'validateValue:forKey:error:';
+    function validateForDelete(error: NSErrorPointer): ObjCBOOL; message 'validateForDelete:';
+    function validateForInsert(error: NSErrorPointer): ObjCBOOL; message 'validateForInsert:';
+    function validateForUpdate(error: NSErrorPointer): ObjCBOOL; message 'validateForUpdate:';
   end;
 
 {$endif}

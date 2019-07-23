@@ -64,7 +64,7 @@ var
     procedure setClassAttributes(attributes: NSDictionary); message 'setClassAttributes:';
     function filter: CIFilter; message 'filter';
     procedure registerFilterName(name: NSString); message 'registerFilterName:';
-    function writeToURL_atomically(aURL: NSURL; flag: BOOL): BOOL; message 'writeToURL:atomically:';
+    function writeToURL_atomically(aURL: NSURL; flag: ObjCBOOL): ObjCBOOL; message 'writeToURL:atomically:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

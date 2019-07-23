@@ -78,7 +78,7 @@ type
     function arrayByAddingObject(anObject: id): NSArray; message 'arrayByAddingObject:';
     function arrayByAddingObjectsFromArray(otherArray: NSArray): NSArray; message 'arrayByAddingObjectsFromArray:';
     function componentsJoinedByString(separator: NSString): NSString; message 'componentsJoinedByString:';
-    function containsObject(anObject: id): BOOL; message 'containsObject:';
+    function containsObject(anObject: id): ObjCBOOL; message 'containsObject:';
     function description: NSString; message 'description';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
     function descriptionWithLocale_indent(locale: id; level: NSUInteger): NSString; message 'descriptionWithLocale:indent:';
@@ -88,7 +88,7 @@ type
     function indexOfObject_inRange(anObject: id; range: NSRange): NSUInteger; message 'indexOfObject:inRange:';
     function indexOfObjectIdenticalTo(anObject: id): NSUInteger; message 'indexOfObjectIdenticalTo:';
     function indexOfObjectIdenticalTo_inRange(anObject: id; range: NSRange): NSUInteger; message 'indexOfObjectIdenticalTo:inRange:';
-    function isEqualToArray(otherArray: NSArray): BOOL; message 'isEqualToArray:';
+    function isEqualToArray(otherArray: NSArray): ObjCBOOL; message 'isEqualToArray:';
     function lastObject: id; message 'lastObject';
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
     function reverseObjectEnumerator: NSEnumerator; message 'reverseObjectEnumerator';
@@ -97,8 +97,8 @@ type
     function sortedArrayUsingFunction_context_hint(comparator: NSArrayComparator; context: Pointer; hint: NSData): NSArray; message 'sortedArrayUsingFunction:context:hint:';
     function sortedArrayUsingSelector(comparator: SEL): NSArray; message 'sortedArrayUsingSelector:';
     function subarrayWithRange(range: NSRange): NSArray; message 'subarrayWithRange:';
-    function writeToFile_atomically(path: NSString; useAuxiliaryFile: BOOL): BOOL; message 'writeToFile:atomically:';
-    function writeToURL_atomically(url: NSURL; atomically: BOOL): BOOL; message 'writeToURL:atomically:';
+    function writeToFile_atomically(path: NSString; useAuxiliaryFile: ObjCBOOL): ObjCBOOL; message 'writeToFile:atomically:';
+    function writeToURL_atomically(url: NSURL; atomically: ObjCBOOL): ObjCBOOL; message 'writeToURL:atomically:';
     procedure makeObjectsPerformSelector(aSelector: SEL); message 'makeObjectsPerformSelector:';
     procedure makeObjectsPerformSelector_withObject(aSelector: SEL; argument: id); message 'makeObjectsPerformSelector:withObject:';
     function objectsAtIndexes(indexes: NSIndexSet): NSArray; message 'objectsAtIndexes:';
@@ -114,7 +114,7 @@ type
     function initWithObjects_count(objects: NSObjectArrayOfObjectsPtr; cnt: NSUInteger): id; message 'initWithObjects:count:';
     function initWithObjects(firstKey: id): id; varargs; message 'initWithObjects:';
     function initWithArray(array__: NSArray): id; message 'initWithArray:';
-    function initWithArray_copyItems(array__: NSArray; flag: BOOL): id; message 'initWithArray:copyItems:';
+    function initWithArray_copyItems(array__: NSArray; flag: ObjCBOOL): id; message 'initWithArray:copyItems:';
     class function arrayWithContentsOfFile(path: NSString): id; message 'arrayWithContentsOfFile:';
     class function arrayWithContentsOfURL(url: NSURL): id; message 'arrayWithContentsOfURL:';
     function initWithContentsOfFile(path: NSString): id; message 'initWithContentsOfFile:';

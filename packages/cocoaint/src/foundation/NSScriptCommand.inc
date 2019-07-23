@@ -87,7 +87,7 @@ const
     procedure setArguments(args: NSDictionary); message 'setArguments:';
     function arguments: NSDictionary; message 'arguments';
     function evaluatedArguments: NSDictionary; message 'evaluatedArguments';
-    function isWellFormed: BOOL; message 'isWellFormed';
+    function isWellFormed: ObjCBOOL; message 'isWellFormed';
     function performDefaultImplementation: id; message 'performDefaultImplementation';
     function executeCommand: id; message 'executeCommand';
     procedure setScriptErrorNumber(errorNumber: cint); message 'setScriptErrorNumber:';

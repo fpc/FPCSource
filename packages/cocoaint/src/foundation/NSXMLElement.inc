@@ -46,7 +46,7 @@
     _attributes: NSMutableArray;
     _namespaces: NSMutableArray;
     _children: NSArray;
-    _childrenHaveMutated: BOOL;
+    _childrenHaveMutated: ObjCBOOL;
     _padding3: array[0..(3)-1] of cuint8;
     _URI: NSString;
     _prefixIndex: NSInteger;
@@ -78,7 +78,7 @@
     procedure setChildren(children_: NSArray); message 'setChildren:';
     procedure addChild(child: NSXMLNode); message 'addChild:';
     procedure replaceChildAtIndex_withNode(index_: NSUInteger; node: NSXMLNode); message 'replaceChildAtIndex:withNode:';
-    procedure normalizeAdjacentTextNodesPreservingCDATA(preserve: BOOL); message 'normalizeAdjacentTextNodesPreservingCDATA:';
+    procedure normalizeAdjacentTextNodesPreservingCDATA(preserve: ObjCBOOL); message 'normalizeAdjacentTextNodesPreservingCDATA:';
   end;
 
 {$endif}

@@ -48,7 +48,7 @@
     _private: WebScriptObjectPrivate;
     
   public
-    class function throwException(exceptionMessage: NSString): BOOL; message 'throwException:';
+    class function throwException(exceptionMessage: NSString): ObjCBOOL; message 'throwException:';
     function JSObject: JSObjectRef; message 'JSObject';
     function callWebScriptMethod_withArguments(name: NSString; arguments: NSArray): id; message 'callWebScriptMethod:withArguments:';
     function evaluateWebScript(script: NSString): id; message 'evaluateWebScript:';
@@ -74,9 +74,9 @@
 { WebScriptingCategory }
   WebScriptingCategory = objccategory external (NSObject)
     class function webScriptNameForSelector(selector: SEL): NSString; message 'webScriptNameForSelector:';
-    class function isSelectorExcludedFromWebScript(selector: SEL): BOOL; message 'isSelectorExcludedFromWebScript:';
+    class function isSelectorExcludedFromWebScript(selector: SEL): ObjCBOOL; message 'isSelectorExcludedFromWebScript:';
     class function webScriptNameForKey(name: PChar): NSString; message 'webScriptNameForKey:';
-    class function isKeyExcludedFromWebScript(name: PChar): BOOL; message 'isKeyExcludedFromWebScript:';
+    class function isKeyExcludedFromWebScript(name: PChar): ObjCBOOL; message 'isKeyExcludedFromWebScript:';
     function invokeUndefinedMethodFromWebScript_withArguments(name: NSString; arguments: NSArray): id; message 'invokeUndefinedMethodFromWebScript:withArguments:';
     function invokeDefaultMethodWithArguments(arguments: NSArray): id; message 'invokeDefaultMethodWithArguments:';
     procedure finalizeForWebScript; message 'finalizeForWebScript';

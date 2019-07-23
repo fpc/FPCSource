@@ -47,10 +47,10 @@
     function screenY: cint; message 'screenY';
     function clientX: cint; message 'clientX';
     function clientY: cint; message 'clientY';
-    function ctrlKey: BOOL; message 'ctrlKey';
-    function shiftKey: BOOL; message 'shiftKey';
-    function altKey: BOOL; message 'altKey';
-    function metaKey: BOOL; message 'metaKey';
+    function ctrlKey: ObjCBOOL; message 'ctrlKey';
+    function shiftKey: ObjCBOOL; message 'shiftKey';
+    function altKey: ObjCBOOL; message 'altKey';
+    function metaKey: ObjCBOOL; message 'metaKey';
     function wheelDelta: cint; message 'wheelDelta';
     function wheelDeltaX: cint; message 'wheelDeltaX';
     function wheelDeltaY: cint; message 'wheelDeltaY';
@@ -58,8 +58,8 @@
     function offsetY: cint; message 'offsetY';
     function x: cint; message 'x';
     function y: cint; message 'y';
-    function isHorizontal: BOOL; message 'isHorizontal';
-    procedure initWheelEvent_wheelDeltaY_view_screenX_screenY_clientX_clientY_ctrlKey_altKey_shiftKey_metaKey(wheelDeltaX_: cint; wheelDeltaY_: cint; view_: DOMAbstractView; screenX_: cint; screenY_: cint; clientX_: cint; clientY_: cint; ctrlKey_: BOOL; altKey_: BOOL; shiftKey_: BOOL; metaKey_: BOOL); message 'initWheelEvent:wheelDeltaY:view:screenX:screenY:clientX:clientY:ctrlKey:altKey:shiftKey:metaKey:';
+    function isHorizontal: ObjCBOOL; message 'isHorizontal';
+    procedure initWheelEvent_wheelDeltaY_view_screenX_screenY_clientX_clientY_ctrlKey_altKey_shiftKey_metaKey(wheelDeltaX_: cint; wheelDeltaY_: cint; view_: DOMAbstractView; screenX_: cint; screenY_: cint; clientX_: cint; clientY_: cint; ctrlKey_: ObjCBOOL; altKey_: ObjCBOOL; shiftKey_: ObjCBOOL; metaKey_: ObjCBOOL); message 'initWheelEvent:wheelDeltaY:view:screenX:screenY:clientX:clientY:ctrlKey:altKey:shiftKey:metaKey:';
   end;
 
 {$endif}

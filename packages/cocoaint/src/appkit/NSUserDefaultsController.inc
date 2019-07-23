@@ -64,9 +64,9 @@
     function defaults: NSUserDefaults; message 'defaults';
     procedure setInitialValues(initialValues_: NSDictionary); message 'setInitialValues:';
     function initialValues: NSDictionary; message 'initialValues';
-    procedure setAppliesImmediately(flag: BOOL); message 'setAppliesImmediately:';
-    function appliesImmediately: BOOL; message 'appliesImmediately';
-    function hasUnappliedChanges: BOOL; message 'hasUnappliedChanges';
+    procedure setAppliesImmediately(flag: ObjCBOOL); message 'setAppliesImmediately:';
+    function appliesImmediately: ObjCBOOL; message 'appliesImmediately';
+    function hasUnappliedChanges: ObjCBOOL; message 'hasUnappliedChanges';
     function values: id; message 'values';
     procedure revert(sender: id); message 'revert:';
     procedure save(sender: id); message 'save:';

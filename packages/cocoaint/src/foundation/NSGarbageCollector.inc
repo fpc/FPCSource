@@ -44,10 +44,10 @@
     
   public
     class function defaultCollector: id; message 'defaultCollector';
-    function isCollecting: BOOL; message 'isCollecting'; deprecated 'in Mac OS X 10.6 and later';
+    function isCollecting: ObjCBOOL; message 'isCollecting'; deprecated 'in Mac OS X 10.6 and later';
     procedure disable; message 'disable';
     procedure enable; message 'enable';
-    function isEnabled: BOOL; message 'isEnabled';
+    function isEnabled: ObjCBOOL; message 'isEnabled';
     procedure collectIfNeeded; message 'collectIfNeeded';
     procedure collectExhaustively; message 'collectExhaustively';
     procedure disableCollectorForPointer(ptr: Pointer); message 'disableCollectorForPointer:';

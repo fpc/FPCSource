@@ -38,17 +38,17 @@
 
 { NSScripting_NSWindowCategory }
   NSScripting_NSWindowCategory = objccategory external name 'NSScripting' (NSWindow)
-    function hasCloseBox: BOOL; message 'hasCloseBox';
-    function hasTitleBar: BOOL; message 'hasTitleBar';
-    function isFloatingPanel: BOOL; message 'isFloatingPanel';
-    function isMiniaturizable: BOOL; message 'isMiniaturizable';
-    function isModalPanel: BOOL; message 'isModalPanel';
-    function isResizable: BOOL; message 'isResizable';
-    function isZoomable: BOOL; message 'isZoomable';
+    function hasCloseBox: ObjCBOOL; message 'hasCloseBox';
+    function hasTitleBar: ObjCBOOL; message 'hasTitleBar';
+    function isFloatingPanel: ObjCBOOL; message 'isFloatingPanel';
+    function isMiniaturizable: ObjCBOOL; message 'isMiniaturizable';
+    function isModalPanel: ObjCBOOL; message 'isModalPanel';
+    function isResizable: ObjCBOOL; message 'isResizable';
+    function isZoomable: ObjCBOOL; message 'isZoomable';
     function orderedIndex: NSInteger; message 'orderedIndex';
-    procedure setIsMiniaturized(flag: BOOL); message 'setIsMiniaturized:';
-    procedure setIsVisible(flag: BOOL); message 'setIsVisible:';
-    procedure setIsZoomed(flag: BOOL); message 'setIsZoomed:';
+    procedure setIsMiniaturized(flag: ObjCBOOL); message 'setIsMiniaturized:';
+    procedure setIsVisible(flag: ObjCBOOL); message 'setIsVisible:';
+    procedure setIsZoomed(flag: ObjCBOOL); message 'setIsZoomed:';
     procedure setOrderedIndex(index: NSInteger); message 'setOrderedIndex:';
     function handleCloseScriptCommand(command: NSCloseCommand): id; message 'handleCloseScriptCommand:';
     function handlePrintScriptCommand(command: NSScriptCommand): id; message 'handlePrintScriptCommand:';

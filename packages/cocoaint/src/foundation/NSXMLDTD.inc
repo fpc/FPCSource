@@ -46,14 +46,14 @@
     _publicID: NSString;
     _systemID: NSString;
     _children: NSArray;
-    _childrenHaveMutated: BOOL;
+    _childrenHaveMutated: ObjCBOOL;
     _padding3: array[0..(3)-1] of cuint8;
     _entities: NSMutableDictionary;
     _elements: NSMutableDictionary;
     _notations: NSMutableDictionary;
     _attributes: NSMutableDictionary;
     _original: NSString;
-    _modified: BOOL;
+    _modified: ObjCBOOL;
     _padding2: array[0..(3)-1] of cuint8;
     
   public

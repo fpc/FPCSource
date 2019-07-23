@@ -56,8 +56,8 @@ var
   public
     class function optionalSharedHistory: WebHistory; message 'optionalSharedHistory';
     class procedure setOptionalSharedHistory(history: WebHistory); message 'setOptionalSharedHistory:';
-    function loadFromURL_error(URL: NSURL; error: NSErrorPointer): BOOL; message 'loadFromURL:error:';
-    function saveToURL_error(URL: NSURL; error: NSErrorPointer): BOOL; message 'saveToURL:error:';
+    function loadFromURL_error(URL: NSURL; error: NSErrorPointer): ObjCBOOL; message 'loadFromURL:error:';
+    function saveToURL_error(URL: NSURL; error: NSErrorPointer): ObjCBOOL; message 'saveToURL:error:';
     procedure addItems(newItems: NSArray); message 'addItems:';
     procedure removeItems(items: NSArray); message 'removeItems:';
     procedure removeAllItems; message 'removeAllItems';

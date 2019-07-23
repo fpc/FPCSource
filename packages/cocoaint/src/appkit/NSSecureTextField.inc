@@ -51,11 +51,11 @@
 { NSSecureTextFieldCell }
   NSSecureTextFieldCell = objcclass external (NSTextFieldCell)
   private
-    _echosBullets: BOOL;
+    _echosBullets: ObjCBOOL;
     
   public
-    procedure setEchosBullets(flag: BOOL); message 'setEchosBullets:';
-    function echosBullets: BOOL; message 'echosBullets';
+    procedure setEchosBullets(flag: ObjCBOOL); message 'setEchosBullets:';
+    function echosBullets: ObjCBOOL; message 'echosBullets';
   end;
 
 {$endif}

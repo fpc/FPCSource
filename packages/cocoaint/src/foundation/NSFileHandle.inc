@@ -107,7 +107,7 @@ var
 
 { NSFileHandlePlatformSpecificCategory }
   NSFileHandlePlatformSpecificCategory = objccategory external (NSFileHandle)
-    function initWithFileDescriptor_closeOnDealloc(fd: cint; closeopt: BOOL): id; message 'initWithFileDescriptor:closeOnDealloc:';
+    function initWithFileDescriptor_closeOnDealloc(fd: cint; closeopt: ObjCBOOL): id; message 'initWithFileDescriptor:closeOnDealloc:';
     function initWithFileDescriptor(fd: cint): id; message 'initWithFileDescriptor:';
     function fileDescriptor: cint; message 'fileDescriptor';
   end;

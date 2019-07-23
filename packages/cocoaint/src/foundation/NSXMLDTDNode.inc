@@ -81,7 +81,7 @@ type
     function initWithXMLString(string_: NSString): id; message 'initWithXMLString:';
     procedure setDTDKind(kind_: NSXMLDTDNodeKind); message 'setDTDKind:';
     function DTDKind: NSXMLDTDNodeKind; message 'DTDKind';
-    function isExternal: BOOL; message 'isExternal';
+    function isExternal: ObjCBOOL; message 'isExternal';
     procedure setPublicID(publicID_: NSString); message 'setPublicID:';
     function publicID: NSString; message 'publicID';
     procedure setSystemID(systemID_: NSString); message 'setSystemID:';

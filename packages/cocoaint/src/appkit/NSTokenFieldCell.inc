@@ -110,10 +110,10 @@ type
     function tokenFieldCell_displayStringForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSString; message 'tokenFieldCell:displayStringForRepresentedObject:';
     function tokenFieldCell_editingStringForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSString; message 'tokenFieldCell:editingStringForRepresentedObject:';
     function tokenFieldCell_representedObjectForEditingString(tokenFieldCell: NSTokenFieldCell; editingString: NSString): id; message 'tokenFieldCell:representedObjectForEditingString:';
-    function tokenFieldCell_writeRepresentedObjects_toPasteboard(tokenFieldCell: NSTokenFieldCell; objects: NSArray; pboard: NSPasteboard): BOOL; message 'tokenFieldCell:writeRepresentedObjects:toPasteboard:';
+    function tokenFieldCell_writeRepresentedObjects_toPasteboard(tokenFieldCell: NSTokenFieldCell; objects: NSArray; pboard: NSPasteboard): ObjCBOOL; message 'tokenFieldCell:writeRepresentedObjects:toPasteboard:';
     function tokenFieldCell_readFromPasteboard(tokenFieldCell: NSTokenFieldCell; pboard: NSPasteboard): NSArray; message 'tokenFieldCell:readFromPasteboard:';
     function tokenFieldCell_menuForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSMenu; message 'tokenFieldCell:menuForRepresentedObject:';
-    function tokenFieldCell_hasMenuForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): BOOL; message 'tokenFieldCell:hasMenuForRepresentedObject:';
+    function tokenFieldCell_hasMenuForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): ObjCBOOL; message 'tokenFieldCell:hasMenuForRepresentedObject:';
     function tokenFieldCell_styleForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSTokenStyle; message 'tokenFieldCell:styleForRepresentedObject:';
   end;
 {$endif}

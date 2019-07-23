@@ -82,13 +82,13 @@ var
     function tag: NSInteger; message 'tag';
     procedure setTag(anInt: NSInteger); message 'setTag:';
     function selectedTag: NSInteger; message 'selectedTag';
-    procedure setIgnoresMultiClick(flag: BOOL); message 'setIgnoresMultiClick:';
-    function ignoresMultiClick: BOOL; message 'ignoresMultiClick';
+    procedure setIgnoresMultiClick(flag: ObjCBOOL); message 'setIgnoresMultiClick:';
+    function ignoresMultiClick: ObjCBOOL; message 'ignoresMultiClick';
     function sendActionOn(mask: NSInteger): NSInteger; message 'sendActionOn:';
-    function isContinuous: BOOL; message 'isContinuous';
-    procedure setContinuous(flag: BOOL); message 'setContinuous:';
-    function isEnabled: BOOL; message 'isEnabled';
-    procedure setEnabled(flag: BOOL); message 'setEnabled:';
+    function isContinuous: ObjCBOOL; message 'isContinuous';
+    procedure setContinuous(flag: ObjCBOOL); message 'setContinuous:';
+    function isEnabled: ObjCBOOL; message 'isEnabled';
+    procedure setEnabled(flag: ObjCBOOL); message 'setEnabled:';
     function alignment: NSTextAlignment; message 'alignment';
     procedure setAlignment(mode: NSTextAlignment); message 'setAlignment:';
     function font: NSFont; message 'font';
@@ -111,14 +111,14 @@ var
     procedure drawCellInside(aCell: NSCell); message 'drawCellInside:';
     procedure drawCell(aCell: NSCell); message 'drawCell:';
     procedure selectCell(aCell: NSCell); message 'selectCell:';
-    function sendAction_to(theAction: SEL; theTarget: id): BOOL; message 'sendAction:to:';
+    function sendAction_to(theAction: SEL; theTarget: id): ObjCBOOL; message 'sendAction:to:';
     procedure takeIntValueFrom(sender: id); message 'takeIntValueFrom:';
     procedure takeFloatValueFrom(sender: id); message 'takeFloatValueFrom:';
     procedure takeDoubleValueFrom(sender: id); message 'takeDoubleValueFrom:';
     procedure takeStringValueFrom(sender: id); message 'takeStringValueFrom:';
     procedure takeObjectValueFrom(sender: id); message 'takeObjectValueFrom:';
     function currentEditor: NSText; message 'currentEditor';
-    function abortEditing: BOOL; message 'abortEditing';
+    function abortEditing: ObjCBOOL; message 'abortEditing';
     procedure validateEditing; message 'validateEditing';
     procedure mouseDown(theEvent: NSEvent); message 'mouseDown:';
     function baseWritingDirection: NSWritingDirection; message 'baseWritingDirection';
@@ -131,8 +131,8 @@ var
 { NSKeyboardUI_NSControlCategory }
   NSKeyboardUI_NSControlCategory = objccategory external name 'NSKeyboardUI' (NSControl)
     procedure performClick(sender: id); message 'performClick:';
-    procedure setRefusesFirstResponder(flag: BOOL); message 'setRefusesFirstResponder:';
-    function refusesFirstResponder: BOOL; message 'refusesFirstResponder';
+    procedure setRefusesFirstResponder(flag: ObjCBOOL); message 'setRefusesFirstResponder:';
+    function refusesFirstResponder: ObjCBOOL; message 'refusesFirstResponder';
   end;
 
 { NSControlSubclassNotificationsCategory }
@@ -150,7 +150,7 @@ var
 
 { NSDeprecated_NSControlCategory }
   NSDeprecated_NSControlCategory = objccategory external name 'NSDeprecated' (NSControl)
-    procedure setFloatingPointFormat_left_right(autoRange: BOOL; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:'; deprecated 'in Mac OS X 10 and later';
+    procedure setFloatingPointFormat_left_right(autoRange: ObjCBOOL; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:'; deprecated 'in Mac OS X 10 and later';
   end;
 
 {$endif}
@@ -162,12 +162,12 @@ var
 { NSControlTextEditingDelegate Protocol }
   NSControlTextEditingDelegateProtocol = objcprotocol external name 'NSControlTextEditingDelegate'
   optional
-    function control_textShouldBeginEditing(control: NSControl; fieldEditor: NSText): BOOL; message 'control:textShouldBeginEditing:';
-    function control_textShouldEndEditing(control: NSControl; fieldEditor: NSText): BOOL; message 'control:textShouldEndEditing:';
-    function control_didFailToFormatString_errorDescription(control: NSControl; string_: NSString; error: NSString): BOOL; message 'control:didFailToFormatString:errorDescription:';
+    function control_textShouldBeginEditing(control: NSControl; fieldEditor: NSText): ObjCBOOL; message 'control:textShouldBeginEditing:';
+    function control_textShouldEndEditing(control: NSControl; fieldEditor: NSText): ObjCBOOL; message 'control:textShouldEndEditing:';
+    function control_didFailToFormatString_errorDescription(control: NSControl; string_: NSString; error: NSString): ObjCBOOL; message 'control:didFailToFormatString:errorDescription:';
     procedure control_didFailToValidatePartialString_errorDescription(control: NSControl; string_: NSString; error: NSString); message 'control:didFailToValidatePartialString:errorDescription:';
-    function control_isValidObject(control: NSControl; obj: id): BOOL; message 'control:isValidObject:';
-    function control_textView_doCommandBySelector(control: NSControl; textView: NSTextView; commandSelector: SEL): BOOL; message 'control:textView:doCommandBySelector:';
+    function control_isValidObject(control: NSControl; obj: id): ObjCBOOL; message 'control:isValidObject:';
+    function control_textView_doCommandBySelector(control: NSControl; textView: NSTextView; commandSelector: SEL): ObjCBOOL; message 'control:textView:doCommandBySelector:';
     function control_textView_completions_forPartialWordRange_indexOfSelectedItem(control: NSControl; textView: NSTextView; words: NSArray; charRange: NSRange; index: NSIntegerPtr): NSArray; message 'control:textView:completions:forPartialWordRange:indexOfSelectedItem:';
   end;
 {$endif}

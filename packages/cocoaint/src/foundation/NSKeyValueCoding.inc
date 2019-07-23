@@ -53,15 +53,15 @@ var
 
 { NSKeyValueCodingCategory }
   NSKeyValueCodingCategory = objccategory external (NSObject)
-    class function accessInstanceVariablesDirectly: BOOL; message 'accessInstanceVariablesDirectly';
+    class function accessInstanceVariablesDirectly: ObjCBOOL; message 'accessInstanceVariablesDirectly';
     function valueForKey(key: NSString): id; message 'valueForKey:';
     procedure setValue_forKey(value: id; key: NSString); message 'setValue:forKey:';
-    function validateValue_forKey_error(ioValue: idPtr; inKey: NSString; outError: NSErrorPointer): BOOL; message 'validateValue:forKey:error:';
+    function validateValue_forKey_error(ioValue: idPtr; inKey: NSString; outError: NSErrorPointer): ObjCBOOL; message 'validateValue:forKey:error:';
     function mutableArrayValueForKey(key: NSString): NSMutableArray; message 'mutableArrayValueForKey:';
     function mutableSetValueForKey(key: NSString): NSMutableSet; message 'mutableSetValueForKey:';
     function valueForKeyPath(keyPath: NSString): id; message 'valueForKeyPath:';
     procedure setValue_forKeyPath(value: id; keyPath: NSString); message 'setValue:forKeyPath:';
-    function validateValue_forKeyPath_error(ioValue: idPtr; inKeyPath: NSString; outError: NSErrorPointer): BOOL; message 'validateValue:forKeyPath:error:';
+    function validateValue_forKeyPath_error(ioValue: idPtr; inKeyPath: NSString; outError: NSErrorPointer): ObjCBOOL; message 'validateValue:forKeyPath:error:';
     function mutableArrayValueForKeyPath(keyPath: NSString): NSMutableArray; message 'mutableArrayValueForKeyPath:';
     function mutableSetValueForKeyPath(keyPath: NSString): NSMutableSet; message 'mutableSetValueForKeyPath:';
     function valueForUndefinedKey(key: NSString): id; message 'valueForUndefinedKey:';
@@ -95,7 +95,7 @@ var
 
 { NSDeprecatedKeyValueCodingCategory }
   NSDeprecatedKeyValueCodingCategory = objccategory external (NSObject)
-    class function useStoredAccessor: BOOL; message 'useStoredAccessor'; deprecated 'in Mac OS X 10.4 and later';
+    class function useStoredAccessor: ObjCBOOL; message 'useStoredAccessor'; deprecated 'in Mac OS X 10.4 and later';
     function storedValueForKey(key: NSString): id; message 'storedValueForKey:'; deprecated 'in Mac OS X 10.4 and later';
     procedure takeStoredValue_forKey(value: id; key: NSString); message 'takeStoredValue:forKey:'; deprecated 'in Mac OS X 10.4 and later';
     procedure takeValue_forKey(value: id; key: NSString); message 'takeValue:forKey:'; deprecated 'in Mac OS X 10.3 and later';

@@ -83,19 +83,19 @@ var
     {$endif}
     
   public
-    function initTextCell_pullsDown(stringValue_: NSString; pullDown: BOOL): id; message 'initTextCell:pullsDown:';
+    function initTextCell_pullsDown(stringValue_: NSString; pullDown: ObjCBOOL): id; message 'initTextCell:pullsDown:';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
-    procedure setPullsDown(flag: BOOL); message 'setPullsDown:';
-    function pullsDown: BOOL; message 'pullsDown';
-    procedure setAutoenablesItems(flag: BOOL); message 'setAutoenablesItems:';
-    function autoenablesItems: BOOL; message 'autoenablesItems';
+    procedure setPullsDown(flag: ObjCBOOL); message 'setPullsDown:';
+    function pullsDown: ObjCBOOL; message 'pullsDown';
+    procedure setAutoenablesItems(flag: ObjCBOOL); message 'setAutoenablesItems:';
+    function autoenablesItems: ObjCBOOL; message 'autoenablesItems';
     procedure setPreferredEdge(edge: NSRectEdge); message 'setPreferredEdge:';
     function preferredEdge: NSRectEdge; message 'preferredEdge';
-    procedure setUsesItemFromMenu(flag: BOOL); message 'setUsesItemFromMenu:';
-    function usesItemFromMenu: BOOL; message 'usesItemFromMenu';
-    procedure setAltersStateOfSelectedItem(flag: BOOL); message 'setAltersStateOfSelectedItem:';
-    function altersStateOfSelectedItem: BOOL; message 'altersStateOfSelectedItem';
+    procedure setUsesItemFromMenu(flag: ObjCBOOL); message 'setUsesItemFromMenu:';
+    function usesItemFromMenu: ObjCBOOL; message 'usesItemFromMenu';
+    procedure setAltersStateOfSelectedItem(flag: ObjCBOOL); message 'setAltersStateOfSelectedItem:';
+    function altersStateOfSelectedItem: ObjCBOOL; message 'altersStateOfSelectedItem';
     procedure addItemWithTitle(title_: NSString); message 'addItemWithTitle:';
     procedure addItemsWithTitles(itemTitles_: NSArray); message 'addItemsWithTitles:';
     procedure insertItemWithTitle_atIndex(title_: NSString; index: NSInteger); message 'insertItemWithTitle:atIndex:';
@@ -115,7 +115,7 @@ var
     procedure selectItem(item: NSMenuItem); message 'selectItem:';
     procedure selectItemAtIndex(index: NSInteger); message 'selectItemAtIndex:';
     procedure selectItemWithTitle(title_: NSString); message 'selectItemWithTitle:';
-    function selectItemWithTag(tag_: NSInteger): BOOL; message 'selectItemWithTag:';
+    function selectItemWithTag(tag_: NSInteger): ObjCBOOL; message 'selectItemWithTag:';
     procedure setTitle(aString: NSString); message 'setTitle:';
     function selectedItem: NSMenuItem; message 'selectedItem';
     function indexOfSelectedItem: NSInteger; message 'indexOfSelectedItem';

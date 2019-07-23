@@ -53,8 +53,8 @@
     function marginWidth: NSString; message 'marginWidth';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    procedure setNoResize (newValue: BOOL); message 'setNoResize:';
-    function noResize: BOOL; message 'noResize';
+    procedure setNoResize (newValue: ObjCBOOL); message 'setNoResize:';
+    function noResize: ObjCBOOL; message 'noResize';
     procedure setScrolling (newValue: NSString); message 'setScrolling:';
     function scrolling: NSString; message 'scrolling';
     procedure setSrc (newValue: NSString); message 'setSrc:';

@@ -88,8 +88,8 @@ const
     procedure setDataCell(cell: NSCell); message 'setDataCell:';
     function dataCell: id; message 'dataCell';
     function dataCellForRow(row: NSInteger): id; message 'dataCellForRow:';
-    procedure setEditable(flag: BOOL); message 'setEditable:';
-    function isEditable: BOOL; message 'isEditable';
+    procedure setEditable(flag: ObjCBOOL); message 'setEditable:';
+    function isEditable: ObjCBOOL; message 'isEditable';
     procedure sizeToFit; message 'sizeToFit';
     procedure setSortDescriptorPrototype(sortDescriptor: NSSortDescriptor); message 'setSortDescriptorPrototype:';
     function sortDescriptorPrototype: NSSortDescriptor; message 'sortDescriptorPrototype';
@@ -97,8 +97,8 @@ const
     function resizingMask: NSUInteger; message 'resizingMask';
     procedure setHeaderToolTip(string_: NSString); message 'setHeaderToolTip:';
     function headerToolTip: NSString; message 'headerToolTip';
-    function isHidden: BOOL; message 'isHidden';
-    procedure setHidden(hidden: BOOL); message 'setHidden:';
+    function isHidden: ObjCBOOL; message 'isHidden';
+    procedure setHidden(hidden: ObjCBOOL); message 'setHidden:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
@@ -107,8 +107,8 @@ const
 
 { NSDeprecated_NSTableColumnCategory }
   NSDeprecated_NSTableColumnCategory = objccategory external name 'NSDeprecated' (NSTableColumn)
-    procedure setResizable(flag: BOOL); message 'setResizable:'; deprecated 'in Mac OS X 10.4 and later';
-    function isResizable: BOOL; message 'isResizable'; deprecated 'in Mac OS X 10.4 and later';
+    procedure setResizable(flag: ObjCBOOL); message 'setResizable:'; deprecated 'in Mac OS X 10.4 and later';
+    function isResizable: ObjCBOOL; message 'isResizable'; deprecated 'in Mac OS X 10.4 and later';
   end;
 
 {$endif}

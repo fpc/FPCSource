@@ -94,12 +94,12 @@ var
     function integerForKey(defaultName: NSString): NSInteger; message 'integerForKey:';
     function floatForKey(defaultName: NSString): single; message 'floatForKey:';
     function doubleForKey(defaultName: NSString): double; message 'doubleForKey:';
-    function boolForKey(defaultName: NSString): BOOL; message 'boolForKey:';
+    function boolForKey(defaultName: NSString): ObjCBOOL; message 'boolForKey:';
     function URLForKey(defaultName: NSString): NSURL; message 'URLForKey:';
     procedure setInteger_forKey(value: NSInteger; defaultName: NSString); message 'setInteger:forKey:';
     procedure setFloat_forKey(value: single; defaultName: NSString); message 'setFloat:forKey:';
     procedure setDouble_forKey(value: double; defaultName: NSString); message 'setDouble:forKey:';
-    procedure setBool_forKey(value: BOOL; defaultName: NSString); message 'setBool:forKey:';
+    procedure setBool_forKey(value: ObjCBOOL; defaultName: NSString); message 'setBool:forKey:';
     procedure setURL_forKey(url: NSURL; defaultName: NSString); message 'setURL:forKey:';
     procedure registerDefaults(registrationDictionary: NSDictionary); message 'registerDefaults:';
     procedure addSuiteNamed(suiteName: NSString); message 'addSuiteNamed:';
@@ -113,9 +113,9 @@ var
     function persistentDomainForName(domainName: NSString): NSDictionary; message 'persistentDomainForName:';
     procedure setPersistentDomain_forName(domain: NSDictionary; domainName: NSString); message 'setPersistentDomain:forName:';
     procedure removePersistentDomainForName(domainName: NSString); message 'removePersistentDomainForName:';
-    function synchronize: BOOL; message 'synchronize';
-    function objectIsForcedForKey(key: NSString): BOOL; message 'objectIsForcedForKey:';
-    function objectIsForcedForKey_inDomain(key: NSString; domain: NSString): BOOL; message 'objectIsForcedForKey:inDomain:';
+    function synchronize: ObjCBOOL; message 'synchronize';
+    function objectIsForcedForKey(key: NSString): ObjCBOOL; message 'objectIsForcedForKey:';
+    function objectIsForcedForKey_inDomain(key: NSString; domain: NSString): ObjCBOOL; message 'objectIsForcedForKey:inDomain:';
   end;
 
 {$endif}

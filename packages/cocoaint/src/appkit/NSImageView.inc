@@ -68,12 +68,12 @@
     procedure setImageScaling(newScaling: NSImageScaling); message 'setImageScaling:';
     function imageFrameStyle: NSImageFrameStyle; message 'imageFrameStyle';
     procedure setImageFrameStyle(newStyle: NSImageFrameStyle); message 'setImageFrameStyle:';
-    procedure setEditable(yn: BOOL); message 'setEditable:';
-    function isEditable: BOOL; message 'isEditable';
-    procedure setAnimates(flag: BOOL); message 'setAnimates:';
-    function animates: BOOL; message 'animates';
-    function allowsCutCopyPaste: BOOL; message 'allowsCutCopyPaste';
-    procedure setAllowsCutCopyPaste(allow: BOOL); message 'setAllowsCutCopyPaste:';
+    procedure setEditable(yn: ObjCBOOL); message 'setEditable:';
+    function isEditable: ObjCBOOL; message 'isEditable';
+    procedure setAnimates(flag: ObjCBOOL); message 'setAnimates:';
+    function animates: ObjCBOOL; message 'animates';
+    function allowsCutCopyPaste: ObjCBOOL; message 'allowsCutCopyPaste';
+    procedure setAllowsCutCopyPaste(allow: ObjCBOOL); message 'setAllowsCutCopyPaste:';
   end;
 
 {$endif}

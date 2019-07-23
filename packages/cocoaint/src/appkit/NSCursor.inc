@@ -84,16 +84,16 @@ const
     function initWithImage_foregroundColorHint_backgroundColorHint_hotSpot(newImage: NSImage; fg: NSColor; bg: NSColor; hotSpot_: NSPoint): id; message 'initWithImage:foregroundColorHint:backgroundColorHint:hotSpot:';
     class procedure hide; message 'hide';
     class procedure unhide; message 'unhide';
-    class procedure setHiddenUntilMouseMoves(flag: BOOL); message 'setHiddenUntilMouseMoves:';
+    class procedure setHiddenUntilMouseMoves(flag: ObjCBOOL); message 'setHiddenUntilMouseMoves:';
     class procedure pop; message 'pop';
     function image: NSImage; message 'image';
     function hotSpot: NSPoint; message 'hotSpot';
     procedure push; message 'push';
     procedure set_; message 'set';
-    procedure setOnMouseExited(flag: BOOL); message 'setOnMouseExited:';
-    procedure setOnMouseEntered(flag: BOOL); message 'setOnMouseEntered:';
-    function isSetOnMouseExited: BOOL; message 'isSetOnMouseExited';
-    function isSetOnMouseEntered: BOOL; message 'isSetOnMouseEntered';
+    procedure setOnMouseExited(flag: ObjCBOOL); message 'setOnMouseExited:';
+    procedure setOnMouseEntered(flag: ObjCBOOL); message 'setOnMouseEntered:';
+    function isSetOnMouseExited: ObjCBOOL; message 'isSetOnMouseExited';
+    function isSetOnMouseEntered: ObjCBOOL; message 'isSetOnMouseEntered';
     procedure mouseEntered(theEvent: NSEvent); message 'mouseEntered:';
     procedure mouseExited(theEvent: NSEvent); message 'mouseExited:';
 

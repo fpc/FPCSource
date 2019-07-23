@@ -109,22 +109,22 @@ var
     function rootProxy: NSDistantObject; message 'rootProxy';
     procedure setDelegate(anObject: NSConnectionDelegateProtocol); message 'setDelegate:';
     function delegate: NSConnectionDelegateProtocol; message 'delegate';
-    procedure setIndependentConversationQueueing(yorn: BOOL); message 'setIndependentConversationQueueing:';
-    function independentConversationQueueing: BOOL; message 'independentConversationQueueing';
-    function isValid: BOOL; message 'isValid';
+    procedure setIndependentConversationQueueing(yorn: ObjCBOOL); message 'setIndependentConversationQueueing:';
+    function independentConversationQueueing: ObjCBOOL; message 'independentConversationQueueing';
+    function isValid: ObjCBOOL; message 'isValid';
     procedure invalidate; message 'invalidate';
     procedure addRequestMode(rmode: NSString); message 'addRequestMode:';
     procedure removeRequestMode(rmode: NSString); message 'removeRequestMode:';
     function requestModes: NSArray; message 'requestModes';
-    function registerName(name: NSString): BOOL; message 'registerName:';
-    function registerName_withNameServer(name: NSString; server: NSPortNameServer): BOOL; message 'registerName:withNameServer:';
+    function registerName(name: NSString): ObjCBOOL; message 'registerName:';
+    function registerName_withNameServer(name: NSString; server: NSPortNameServer): ObjCBOOL; message 'registerName:withNameServer:';
     class function connectionWithReceivePort_sendPort(receivePort_: NSPort; sendPort_: NSPort): id; message 'connectionWithReceivePort:sendPort:';
     class function currentConversation: id; message 'currentConversation';
     function initWithReceivePort_sendPort(receivePort_: NSPort; sendPort_: NSPort): id; message 'initWithReceivePort:sendPort:';
     function sendPort: NSPort; message 'sendPort';
     function receivePort: NSPort; message 'receivePort';
     procedure enableMultipleThreads; message 'enableMultipleThreads';
-    function multipleThreadsEnabled: BOOL; message 'multipleThreadsEnabled';
+    function multipleThreadsEnabled: ObjCBOOL; message 'multipleThreadsEnabled';
     procedure addRunLoop(runloop: NSRunLoop); message 'addRunLoop:';
     procedure removeRunLoop(runloop: NSRunLoop); message 'removeRunLoop:';
     procedure runInNewThread; message 'runInNewThread';
@@ -151,12 +151,12 @@ var
 { NSConnectionDelegate Protocol }
   NSConnectionDelegateProtocol = objcprotocol external name 'NSConnectionDelegate'
   optional
-    function makeNewConnection_sender(conn: NSConnection; ancestor: NSConnection): BOOL; message 'makeNewConnection:sender:';
-    function connection_shouldMakeNewConnection(ancestor: NSConnection; conn: NSConnection): BOOL; message 'connection:shouldMakeNewConnection:';
+    function makeNewConnection_sender(conn: NSConnection; ancestor: NSConnection): ObjCBOOL; message 'makeNewConnection:sender:';
+    function connection_shouldMakeNewConnection(ancestor: NSConnection; conn: NSConnection): ObjCBOOL; message 'connection:shouldMakeNewConnection:';
     function authenticationDataForComponents(components: NSArray): NSData; message 'authenticationDataForComponents:';
-    function authenticateComponents_withData(components: NSArray; signature: NSData): BOOL; message 'authenticateComponents:withData:';
+    function authenticateComponents_withData(components: NSArray; signature: NSData): ObjCBOOL; message 'authenticateComponents:withData:';
     function createConversationForConnection(conn: NSConnection): id; message 'createConversationForConnection:';
-    function connection_handleRequest(connection: NSConnection; doreq: NSDistantObjectRequest): BOOL; message 'connection:handleRequest:';
+    function connection_handleRequest(connection: NSConnection; doreq: NSDistantObjectRequest): ObjCBOOL; message 'connection:handleRequest:';
   end;
 {$endif}
 {$endif}

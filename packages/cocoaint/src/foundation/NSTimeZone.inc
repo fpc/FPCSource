@@ -66,7 +66,7 @@ var
     function data: NSData; message 'data';
     function secondsFromGMTForDate(aDate: NSDate): NSInteger; message 'secondsFromGMTForDate:';
     function abbreviationForDate(aDate: NSDate): NSString; message 'abbreviationForDate:';
-    function isDaylightSavingTimeForDate(aDate: NSDate): BOOL; message 'isDaylightSavingTimeForDate:';
+    function isDaylightSavingTimeForDate(aDate: NSDate): ObjCBOOL; message 'isDaylightSavingTimeForDate:';
     function daylightSavingTimeOffsetForDate(aDate: NSDate): NSTimeInterval; message 'daylightSavingTimeOffsetForDate:';
     function nextDaylightSavingTimeTransitionAfterDate(aDate: NSDate): NSDate; message 'nextDaylightSavingTimeTransitionAfterDate:';
 
@@ -89,11 +89,11 @@ var
     class function timeZoneDataVersion: NSString; message 'timeZoneDataVersion';
     function secondsFromGMT: NSInteger; message 'secondsFromGMT';
     function abbreviation: NSString; message 'abbreviation';
-    function isDaylightSavingTime: BOOL; message 'isDaylightSavingTime';
+    function isDaylightSavingTime: ObjCBOOL; message 'isDaylightSavingTime';
     function daylightSavingTimeOffset: NSTimeInterval; message 'daylightSavingTimeOffset';
     function nextDaylightSavingTimeTransition: NSDate; message 'nextDaylightSavingTimeTransition';
     function description: NSString; message 'description';
-    function isEqualToTimeZone(aTimeZone: NSTimeZone): BOOL; message 'isEqualToTimeZone:';
+    function isEqualToTimeZone(aTimeZone: NSTimeZone): ObjCBOOL; message 'isEqualToTimeZone:';
     function localizedName_locale(style: NSTimeZoneNameStyle; locale: NSLocale): NSString; message 'localizedName:locale:';
   end;
 

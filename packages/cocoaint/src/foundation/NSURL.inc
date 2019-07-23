@@ -105,9 +105,9 @@ var
     
   public
     function initWithScheme_host_path(scheme_: NSString; host_: NSString; path_: NSString): id; message 'initWithScheme:host:path:';
-    function initFileURLWithPath_isDirectory(path_: NSString; isDir: BOOL): id; message 'initFileURLWithPath:isDirectory:';
+    function initFileURLWithPath_isDirectory(path_: NSString; isDir: ObjCBOOL): id; message 'initFileURLWithPath:isDirectory:';
     function initFileURLWithPath(path_: NSString): id; message 'initFileURLWithPath:';
-    class function fileURLWithPath_isDirectory(path_: NSString; isDir: BOOL): id; message 'fileURLWithPath:isDirectory:';
+    class function fileURLWithPath_isDirectory(path_: NSString; isDir: ObjCBOOL): id; message 'fileURLWithPath:isDirectory:';
     class function fileURLWithPath(path_: NSString): id; message 'fileURLWithPath:';
     class function URLWithString(URLString: NSString): id; message 'URLWithString:';
     class function URLWithString_relativeToURL(URLString: NSString; baseURL_: NSURL): id; message 'URLWithString:relativeToURL:';
@@ -126,21 +126,21 @@ var
     function parameterString: NSString; message 'parameterString';
     function query: NSString; message 'query';
     function relativePath: NSString; message 'relativePath';
-    function isFileURL: BOOL; message 'isFileURL';
+    function isFileURL: ObjCBOOL; message 'isFileURL';
     function standardizedURL: NSURL; message 'standardizedURL';
-    function getResourceValue_forKey_error(value: idPtr; key: NSString; error: NSErrorPointer): BOOL; message 'getResourceValue:forKey:error:';
+    function getResourceValue_forKey_error(value: idPtr; key: NSString; error: NSErrorPointer): ObjCBOOL; message 'getResourceValue:forKey:error:';
     function resourceValuesForKeys_error(keys: NSArray; error: NSErrorPointer): NSDictionary; message 'resourceValuesForKeys:error:';
-    function setResourceValue_forKey_error(value: id; key: NSString; error: NSErrorPointer): BOOL; message 'setResourceValue:forKey:error:';
-    function setResourceValues_error(keyedValues: NSDictionary; error: NSErrorPointer): BOOL; message 'setResourceValues:error:';
-    function checkResourceIsReachableAndReturnError(error: NSErrorPointer): BOOL; message 'checkResourceIsReachableAndReturnError:';
-    function isFileReferenceURL: BOOL; message 'isFileReferenceURL';
+    function setResourceValue_forKey_error(value: id; key: NSString; error: NSErrorPointer): ObjCBOOL; message 'setResourceValue:forKey:error:';
+    function setResourceValues_error(keyedValues: NSDictionary; error: NSErrorPointer): ObjCBOOL; message 'setResourceValues:error:';
+    function checkResourceIsReachableAndReturnError(error: NSErrorPointer): ObjCBOOL; message 'checkResourceIsReachableAndReturnError:';
+    function isFileReferenceURL: ObjCBOOL; message 'isFileReferenceURL';
     function fileReferenceURL: NSURL; message 'fileReferenceURL';
     function filePathURL: NSURL; message 'filePathURL';
     function bookmarkDataWithOptions_includingResourceValuesForKeys_relativeToURL_error(options: NSURLBookmarkCreationOptions; keys: NSArray; relativeURL: NSURL; error: NSErrorPointer): NSData; message 'bookmarkDataWithOptions:includingResourceValuesForKeys:relativeToURL:error:';
-    function initByResolvingBookmarkData_options_relativeToURL_bookmarkDataIsStale_error(bookmarkData: NSData; options: NSURLBookmarkResolutionOptions; relativeURL: NSURL; isStale: pBOOL; error: NSErrorPointer): id; message 'initByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:';
-    class function URLByResolvingBookmarkData_options_relativeToURL_bookmarkDataIsStale_error(bookmarkData: NSData; options: NSURLBookmarkResolutionOptions; relativeURL: NSURL; isStale: pBOOL; error: NSErrorPointer): id; message 'URLByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:';
+    function initByResolvingBookmarkData_options_relativeToURL_bookmarkDataIsStale_error(bookmarkData: NSData; options: NSURLBookmarkResolutionOptions; relativeURL: NSURL; isStale: pObjCBOOL; error: NSErrorPointer): id; message 'initByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:';
+    class function URLByResolvingBookmarkData_options_relativeToURL_bookmarkDataIsStale_error(bookmarkData: NSData; options: NSURLBookmarkResolutionOptions; relativeURL: NSURL; isStale: pObjCBOOL; error: NSErrorPointer): id; message 'URLByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:';
     class function resourceValuesForKeys_fromBookmarkData(keys: NSArray; bookmarkData: NSData): NSDictionary; message 'resourceValuesForKeys:fromBookmarkData:';
-    class function writeBookmarkData_toURL_options_error(bookmarkData: NSData; bookmarkFileURL: NSURL; options: NSURLBookmarkFileCreationOptions; error: NSErrorPointer): BOOL; message 'writeBookmarkData:toURL:options:error:';
+    class function writeBookmarkData_toURL_options_error(bookmarkData: NSData; bookmarkFileURL: NSURL; options: NSURLBookmarkFileCreationOptions; error: NSErrorPointer): ObjCBOOL; message 'writeBookmarkData:toURL:options:error:';
     class function bookmarkDataWithContentsOfURL_error(bookmarkFileURL: NSURL; error: NSErrorPointer): NSData; message 'bookmarkDataWithContentsOfURL:error:';
 
     { Adopted Protocols }

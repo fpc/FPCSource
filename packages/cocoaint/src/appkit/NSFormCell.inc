@@ -56,7 +56,7 @@
     procedure setTitleFont(fontObj: NSFont); message 'setTitleFont:';
     function titleAlignment: NSTextAlignment; message 'titleAlignment';
     procedure setTitleAlignment(mode: NSTextAlignment); message 'setTitleAlignment:';
-    function isOpaque: BOOL; message 'isOpaque';
+    function isOpaque: ObjCBOOL; message 'isOpaque';
     procedure setPlaceholderString(string_: NSString); message 'setPlaceholderString:';
     function placeholderString: NSString; message 'placeholderString';
     procedure setPlaceholderAttributedString(string_: NSAttributedString); message 'setPlaceholderAttributedString:';

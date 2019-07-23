@@ -38,11 +38,11 @@
   
 { DOMEventTarget Protocol }
   DOMEventTargetProtocol = objcprotocol external name 'DOMEventTarget'
-    procedure addEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: BOOL); message 'addEventListener:listener:useCapture:';
-    procedure removeEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: BOOL); message 'removeEventListener:listener:useCapture:';
-    function dispatchEvent(event: DOMEvent): BOOL; message 'dispatchEvent:';
-    procedure addEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: BOOL); message 'addEventListener:type:listener:'; deprecated 'in_webkit_version_3 and later';
-    procedure removeEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: BOOL); message 'removeEventListener:type:listener:'; deprecated 'in_webkit_version_3 and later';
+    procedure addEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: ObjCBOOL); message 'addEventListener:listener:useCapture:';
+    procedure removeEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: ObjCBOOL); message 'removeEventListener:listener:useCapture:';
+    function dispatchEvent(event: DOMEvent): ObjCBOOL; message 'dispatchEvent:';
+    procedure addEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: ObjCBOOL); message 'addEventListener:type:listener:'; deprecated 'in_webkit_version_3 and later';
+    procedure removeEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: ObjCBOOL); message 'removeEventListener:type:listener:'; deprecated 'in_webkit_version_3 and later';
   end;
 {$endif}
 {$endif}

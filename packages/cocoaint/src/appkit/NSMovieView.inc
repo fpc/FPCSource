@@ -89,7 +89,7 @@ __MVFlagsPtr = ^__MVFlags;
     function movieRect: NSRect; message 'movieRect'; deprecated 'in Mac OS X 10.5 and later';
     procedure start(sender: id); message 'start:'; deprecated 'in Mac OS X 10.5 and later';
     procedure stop(sender: id); message 'stop:'; deprecated 'in Mac OS X 10.5 and later';
-    function isPlaying: BOOL; message 'isPlaying'; deprecated 'in Mac OS X 10.5 and later';
+    function isPlaying: ObjCBOOL; message 'isPlaying'; deprecated 'in Mac OS X 10.5 and later';
     procedure gotoPosterFrame(sender: id); message 'gotoPosterFrame:'; deprecated 'in Mac OS X 10.5 and later';
     procedure gotoBeginning(sender: id); message 'gotoBeginning:'; deprecated 'in Mac OS X 10.5 and later';
     procedure gotoEnd(sender: id); message 'gotoEnd:'; deprecated 'in Mac OS X 10.5 and later';
@@ -99,20 +99,20 @@ __MVFlagsPtr = ^__MVFlags;
     function rate: single; message 'rate'; deprecated 'in Mac OS X 10.5 and later';
     procedure setVolume(volume_: single); message 'setVolume:'; deprecated 'in Mac OS X 10.5 and later';
     function volume: single; message 'volume'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setMuted(mute: BOOL); message 'setMuted:'; deprecated 'in Mac OS X 10.5 and later';
-    function isMuted: BOOL; message 'isMuted'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setMuted(mute: ObjCBOOL); message 'setMuted:'; deprecated 'in Mac OS X 10.5 and later';
+    function isMuted: ObjCBOOL; message 'isMuted'; deprecated 'in Mac OS X 10.5 and later';
     procedure setLoopMode(mode: NSQTMovieLoopMode); message 'setLoopMode:'; deprecated 'in Mac OS X 10.5 and later';
     function loopMode: NSQTMovieLoopMode; message 'loopMode'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setPlaysSelectionOnly(flag: BOOL); message 'setPlaysSelectionOnly:'; deprecated 'in Mac OS X 10.5 and later';
-    function playsSelectionOnly: BOOL; message 'playsSelectionOnly'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setPlaysEveryFrame(flag: BOOL); message 'setPlaysEveryFrame:'; deprecated 'in Mac OS X 10.5 and later';
-    function playsEveryFrame: BOOL; message 'playsEveryFrame'; deprecated 'in Mac OS X 10.5 and later';
-    procedure showController_adjustingSize(show: BOOL; adjustSize: BOOL); message 'showController:adjustingSize:'; deprecated 'in Mac OS X 10.5 and later';
-    function isControllerVisible: BOOL; message 'isControllerVisible'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setPlaysSelectionOnly(flag: ObjCBOOL); message 'setPlaysSelectionOnly:'; deprecated 'in Mac OS X 10.5 and later';
+    function playsSelectionOnly: ObjCBOOL; message 'playsSelectionOnly'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setPlaysEveryFrame(flag: ObjCBOOL); message 'setPlaysEveryFrame:'; deprecated 'in Mac OS X 10.5 and later';
+    function playsEveryFrame: ObjCBOOL; message 'playsEveryFrame'; deprecated 'in Mac OS X 10.5 and later';
+    procedure showController_adjustingSize(show: ObjCBOOL; adjustSize: ObjCBOOL); message 'showController:adjustingSize:'; deprecated 'in Mac OS X 10.5 and later';
+    function isControllerVisible: ObjCBOOL; message 'isControllerVisible'; deprecated 'in Mac OS X 10.5 and later';
     procedure resizeWithMagnification(magnification: CGFloat); message 'resizeWithMagnification:'; deprecated 'in Mac OS X 10.5 and later';
     function sizeForMagnification(magnification: CGFloat): NSSize; message 'sizeForMagnification:'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setEditable(editable: BOOL); message 'setEditable:'; deprecated 'in Mac OS X 10.5 and later';
-    function isEditable: BOOL; message 'isEditable'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setEditable(editable: ObjCBOOL); message 'setEditable:'; deprecated 'in Mac OS X 10.5 and later';
+    function isEditable: ObjCBOOL; message 'isEditable'; deprecated 'in Mac OS X 10.5 and later';
     procedure cut(sender: id); message 'cut:'; deprecated 'in Mac OS X 10.5 and later';
     procedure copy_(sender: id); message 'copy:'; deprecated 'in Mac OS X 10.5 and later';
     procedure paste(sender: id); message 'paste:'; deprecated 'in Mac OS X 10.5 and later';
@@ -121,7 +121,7 @@ __MVFlagsPtr = ^__MVFlags;
     procedure clear(sender: id); message 'clear:'; deprecated 'in Mac OS X 10.5 and later';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): BOOL;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): ObjCBOOL;
   end;
 
 {$endif}

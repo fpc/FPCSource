@@ -111,7 +111,7 @@ var
 { NSKeyValueObservingCustomizationCategory }
   NSKeyValueObservingCustomizationCategory = objccategory external (NSObject)
     class function keyPathsForValuesAffectingValueForKey(key: NSString): NSSet; message 'keyPathsForValuesAffectingValueForKey:';
-    class function automaticallyNotifiesObserversForKey(key: NSString): BOOL; message 'automaticallyNotifiesObserversForKey:';
+    class function automaticallyNotifiesObserversForKey(key: NSString): ObjCBOOL; message 'automaticallyNotifiesObserversForKey:';
     procedure setObservationInfo(observationInfo: Pointer); message 'setObservationInfo:';
     function observationInfo: Pointer; message 'observationInfo';
   end;

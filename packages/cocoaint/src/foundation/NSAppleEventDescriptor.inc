@@ -43,14 +43,14 @@
   NSAppleEventDescriptor = objcclass external (NSObject, NSCopyingProtocol)
   private
     _desc: AEDesc;
-    _hasValidDesc: BOOL;
+    _hasValidDesc: ObjCBOOL;
     _padding: array[0..(3)-1] of char;
     
   public
     class function nullDescriptor: NSAppleEventDescriptor; message 'nullDescriptor';
     class function descriptorWithDescriptorType_bytes_length(descriptorType_: DescType; bytes: Pointer; byteCount: NSUInteger): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:bytes:length:';
     class function descriptorWithDescriptorType_data(descriptorType_: DescType; data_: NSData): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:data:';
-    class function descriptorWithBOOL(BOOL_: BOOL): NSAppleEventDescriptor; message 'descriptorWithBOOL:';
+    class function descriptorWithObjCBOOL(ObjCBOOL_: ObjCBOOL): NSAppleEventDescriptor; message 'descriptorWithObjCBOOL:';
     class function descriptorWithEnumCode(enumerator: OSType): NSAppleEventDescriptor; message 'descriptorWithEnumCode:';
     class function descriptorWithInt32(signedInt: SInt32): NSAppleEventDescriptor; message 'descriptorWithInt32:';
     class function descriptorWithTypeCode(typeCode: OSType): NSAppleEventDescriptor; message 'descriptorWithTypeCode:';
@@ -67,7 +67,7 @@
     function aeDesc: AEDescPtr; message 'aeDesc';
     function descriptorType: DescType; message 'descriptorType';
     function data: NSData; message 'data';
-    function BOOLValue: BOOL; message 'BOOLValue';
+    function ObjCBOOLValue: ObjCBOOL; message 'ObjCBOOLValue';
     function enumCodeValue: OSType; message 'enumCodeValue';
     function int32Value: SInt32; message 'int32Value';
     function typeCodeValue: OSType; message 'typeCodeValue';

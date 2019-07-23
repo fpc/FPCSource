@@ -51,9 +51,9 @@ const
     
   public
     function orient: cuint; message 'orient';
-    function horizontalOverflow: BOOL; message 'horizontalOverflow';
-    function verticalOverflow: BOOL; message 'verticalOverflow';
-    procedure initOverflowEvent_horizontalOverflow_verticalOverflow(orient_: cushort; horizontalOverflow_: BOOL; verticalOverflow_: BOOL); message 'initOverflowEvent:horizontalOverflow:verticalOverflow:';
+    function horizontalOverflow: ObjCBOOL; message 'horizontalOverflow';
+    function verticalOverflow: ObjCBOOL; message 'verticalOverflow';
+    procedure initOverflowEvent_horizontalOverflow_verticalOverflow(orient_: cushort; horizontalOverflow_: ObjCBOOL; verticalOverflow_: ObjCBOOL); message 'initOverflowEvent:horizontalOverflow:verticalOverflow:';
   end;
 
 {$endif}

@@ -43,7 +43,7 @@
   WebDocumentViewProtocol = objcprotocol external name 'WebDocumentView'
     procedure setDataSource(dataSource: WebDataSource); message 'setDataSource:';
     procedure dataSourceUpdated(dataSource: WebDataSource); message 'dataSourceUpdated:';
-    procedure setNeedsLayout(flag: BOOL); message 'setNeedsLayout:';
+    procedure setNeedsLayout(flag: ObjCBOOL); message 'setNeedsLayout:';
     procedure layout; message 'layout';
     procedure viewWillMoveToHostWindow(hostWindow: NSWindowPtr); message 'viewWillMoveToHostWindow:';
     procedure viewDidMoveToHostWindow; message 'viewDidMoveToHostWindow';
@@ -51,12 +51,12 @@
   
 { WebDocumentSearching Protocol }
   WebDocumentSearchingProtocol = objcprotocol external name 'WebDocumentSearching'
-    function searchFor_direction_caseSensitive_wrap(string_: NSString; forward: BOOL; caseFlag: BOOL; wrapFlag: BOOL): BOOL; message 'searchFor:direction:caseSensitive:wrap:';
+    function searchFor_direction_caseSensitive_wrap(string_: NSString; forward: ObjCBOOL; caseFlag: ObjCBOOL; wrapFlag: ObjCBOOL): ObjCBOOL; message 'searchFor:direction:caseSensitive:wrap:';
   end;
   
 { WebDocumentText Protocol }
   WebDocumentTextProtocol = objcprotocol external name 'WebDocumentText'
-    function supportsTextEncoding: BOOL; message 'supportsTextEncoding';
+    function supportsTextEncoding: ObjCBOOL; message 'supportsTextEncoding';
     function string_: NSString; message 'string';
     function attributedString: NSAttributedString; message 'attributedString';
     function selectedString: NSString; message 'selectedString';
@@ -71,7 +71,7 @@
     procedure receivedData_withDataSource(data: NSData; dataSource: WebDataSource); message 'receivedData:withDataSource:';
     procedure receivedError_withDataSource(error: NSError; dataSource: WebDataSource); message 'receivedError:withDataSource:';
     procedure finishedLoadingWithDataSource(dataSource: WebDataSource); message 'finishedLoadingWithDataSource:';
-    function canProvideDocumentSource: BOOL; message 'canProvideDocumentSource';
+    function canProvideDocumentSource: ObjCBOOL; message 'canProvideDocumentSource';
     function documentSource: NSString; message 'documentSource';
     function title: NSString; message 'title';
   end;

@@ -65,8 +65,8 @@ var
     function fontSize: CGFloat; message 'fontSize';
     procedure setForegroundColor (newValue: CGColorRef); message 'setForegroundColor:';
     function foregroundColor: CGColorRef; message 'foregroundColor';
-    procedure setWrapped (newValue: BOOL); message 'setWrapped:';
-    function isWrapped: BOOL; message 'isWrapped';
+    procedure setWrapped (newValue: ObjCBOOL); message 'setWrapped:';
+    function isWrapped: ObjCBOOL; message 'isWrapped';
     procedure setTruncationMode (newValue: NSString); message 'setTruncationMode:';
     function truncationMode: NSString; message 'truncationMode';
     procedure setAlignmentMode (newValue: NSString); message 'setAlignmentMode:';

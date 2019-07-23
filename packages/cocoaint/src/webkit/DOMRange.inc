@@ -59,7 +59,7 @@ const
     function startOffset: cint; message 'startOffset';
     function endContainer: DOMNode; message 'endContainer';
     function endOffset: cint; message 'endOffset';
-    function collapsed: BOOL; message 'collapsed';
+    function collapsed: ObjCBOOL; message 'collapsed';
     function commonAncestorContainer: DOMNode; message 'commonAncestorContainer';
     function text: NSString; message 'text';
     procedure setStart_offset(refNode: DOMNode; offset: cint); message 'setStart:offset:';
@@ -68,7 +68,7 @@ const
     procedure setStartAfter(refNode: DOMNode); message 'setStartAfter:';
     procedure setEndBefore(refNode: DOMNode); message 'setEndBefore:';
     procedure setEndAfter(refNode: DOMNode); message 'setEndAfter:';
-    procedure collapse(toStart: BOOL); message 'collapse:';
+    procedure collapse(toStart: ObjCBOOL); message 'collapse:';
     procedure selectNode(refNode: DOMNode); message 'selectNode:';
     procedure selectNodeContents(refNode: DOMNode); message 'selectNodeContents:';
     function compareBoundaryPoints_sourceRange(how: cushort; sourceRange: DOMRange): cshort; message 'compareBoundaryPoints:sourceRange:';
@@ -81,10 +81,10 @@ const
     function toString: NSString; message 'toString';
     procedure detach; message 'detach';
     function createContextualFragment(html: NSString): DOMDocumentFragment; message 'createContextualFragment:';
-    function intersectsNode(refNode: DOMNode): BOOL; message 'intersectsNode:';
+    function intersectsNode(refNode: DOMNode): ObjCBOOL; message 'intersectsNode:';
     function compareNode(refNode: DOMNode): cshort; message 'compareNode:';
     function comparePoint_offset(refNode: DOMNode; offset: cint): cshort; message 'comparePoint:offset:';
-    function isPointInRange_offset(refNode: DOMNode; offset: cint): BOOL; message 'isPointInRange:offset:';
+    function isPointInRange_offset(refNode: DOMNode; offset: cint): ObjCBOOL; message 'isPointInRange:offset:';
   end;
 
 { DOMRangeDeprecatedCategory }

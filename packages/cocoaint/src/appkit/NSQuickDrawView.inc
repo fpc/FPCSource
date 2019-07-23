@@ -44,7 +44,7 @@
   private
     _qdPort: Pointer;
     _savePort: Pointer;
-    _synchToView: BOOL;
+    _synchToView: ObjCBOOL;
     
   public
     function qdPort: Pointer; message 'qdPort'; deprecated 'in Mac OS X 10.4 and later';

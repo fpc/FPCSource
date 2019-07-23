@@ -24,11 +24,11 @@ type
 {$define CATRANSFORM3D_PAS_F}
 
 { Functions }
-function CATransform3DIsIdentity(t: CATransform3D): bool; cdecl; external;
+function CATransform3DIsIdentity(t: CATransform3D): cbool; cdecl; external;
 function CATransform3DConcat(a: CATransform3D; b: CATransform3D): CATransform3D; cdecl; external;
 function CATransform3DInvert(t: CATransform3D): CATransform3D; cdecl; external;
 function CATransform3DMakeAffineTransform(m: CGAffineTransform): CATransform3D; cdecl; external;
-function CATransform3DIsAffine(t: CATransform3D): bool; cdecl; external;
+function CATransform3DIsAffine(t: CATransform3D): cbool; cdecl; external;
 function CATransform3DGetAffineTransform(t: CATransform3D): CGAffineTransform; cdecl; external;
 
 {$endif}
@@ -41,7 +41,7 @@ function CATransform3DGetAffineTransform(t: CATransform3D): CGAffineTransform; c
 { External symbols }
 var
   CATransform3DIdentity: CATransform3D; cvar; external;
-  CATransform3DEqualToTransform: bool; cvar; external;
+  CATransform3DEqualToTransform: cbool; cvar; external;
   CATransform3DMakeTranslation: CATransform3D; cvar; external;
   CATransform3DMakeScale: CATransform3D; cvar; external;
   CATransform3DMakeRotation: CATransform3D; cvar; external;

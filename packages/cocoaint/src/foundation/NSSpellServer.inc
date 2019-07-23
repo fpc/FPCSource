@@ -71,8 +71,8 @@ var
   public
     procedure setDelegate(anObject: NSSpellServerDelegateProtocol); message 'setDelegate:';
     function delegate: NSSpellServerDelegateProtocol; message 'delegate';
-    function registerLanguage_byVendor(language: NSString; vendor: NSString): BOOL; message 'registerLanguage:byVendor:';
-    function isWordInUserDictionaries_caseSensitive(word: NSString; flag: BOOL): BOOL; message 'isWordInUserDictionaries:caseSensitive:';
+    function registerLanguage_byVendor(language: NSString; vendor: NSString): ObjCBOOL; message 'registerLanguage:byVendor:';
+    function isWordInUserDictionaries_caseSensitive(word: NSString; flag: ObjCBOOL): ObjCBOOL; message 'isWordInUserDictionaries:caseSensitive:';
     procedure run; message 'run';
   end;
 
@@ -85,7 +85,7 @@ var
 { NSSpellServerDelegate Protocol }
   NSSpellServerDelegateProtocol = objcprotocol external name 'NSSpellServerDelegate'
   optional
-    function spellServer_findMisspelledWordInString_language_wordCount_countOnly(sender: NSSpellServer; stringToCheck: NSString; language: NSString; wordCount: NSIntegerPtr; countOnly: BOOL): NSRange; message 'spellServer:findMisspelledWordInString:language:wordCount:countOnly:';
+    function spellServer_findMisspelledWordInString_language_wordCount_countOnly(sender: NSSpellServer; stringToCheck: NSString; language: NSString; wordCount: NSIntegerPtr; countOnly: ObjCBOOL): NSRange; message 'spellServer:findMisspelledWordInString:language:wordCount:countOnly:';
     function spellServer_suggestGuessesForWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString): NSArray; message 'spellServer:suggestGuessesForWord:inLanguage:';
     procedure spellServer_didLearnWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString); message 'spellServer:didLearnWord:inLanguage:';
     procedure spellServer_didForgetWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString); message 'spellServer:didForgetWord:inLanguage:';

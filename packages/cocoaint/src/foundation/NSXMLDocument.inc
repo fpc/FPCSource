@@ -59,8 +59,8 @@ type
     _version: NSString;
     _docType: NSXMLDTD;
     _children: NSArray;
-    _childrenHaveMutated: BOOL;
-    _standalone: BOOL;
+    _childrenHaveMutated: ObjCBOOL;
+    _standalone: ObjCBOOL;
     _padding3: array[0..(2)-1] of cuint8;
     _rootElement: NSXMLElement;
     _URI: NSString;
@@ -78,8 +78,8 @@ type
     function characterEncoding: NSString; message 'characterEncoding';
     procedure setVersion(version_: NSString); message 'setVersion:';
     function version: NSString; message 'version';
-    procedure setStandalone(standalone: BOOL); message 'setStandalone:';
-    function isStandalone: BOOL; message 'isStandalone';
+    procedure setStandalone(standalone: ObjCBOOL); message 'setStandalone:';
+    function isStandalone: ObjCBOOL; message 'isStandalone';
     procedure setDocumentContentKind(kind_: NSXMLDocumentContentKind); message 'setDocumentContentKind:';
     function documentContentKind: NSXMLDocumentContentKind; message 'documentContentKind';
     procedure setMIMEType(MIMEType_: NSString); message 'setMIMEType:';
@@ -99,7 +99,7 @@ type
     function objectByApplyingXSLT_arguments_error(xslt: NSData; arguments: NSDictionary; error: NSErrorPointer): id; message 'objectByApplyingXSLT:arguments:error:';
     function objectByApplyingXSLTString_arguments_error(xslt: NSString; arguments: NSDictionary; error: NSErrorPointer): id; message 'objectByApplyingXSLTString:arguments:error:';
     function objectByApplyingXSLTAtURL_arguments_error(xsltURL: NSURL; argument: NSDictionary; error: NSErrorPointer): id; message 'objectByApplyingXSLTAtURL:arguments:error:';
-    function validateAndReturnError(error: NSErrorPointer): BOOL; message 'validateAndReturnError:';
+    function validateAndReturnError(error: NSErrorPointer): ObjCBOOL; message 'validateAndReturnError:';
   end;
 
 {$endif}

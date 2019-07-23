@@ -113,21 +113,21 @@ __SPFlagsPtr = ^__SPFlags;
     procedure setDirectoryURL(url_: NSURL); message 'setDirectoryURL:';
     function allowedFileTypes: NSArray; message 'allowedFileTypes';
     procedure setAllowedFileTypes(types: NSArray); message 'setAllowedFileTypes:';
-    function allowsOtherFileTypes: BOOL; message 'allowsOtherFileTypes';
-    procedure setAllowsOtherFileTypes(flag: BOOL); message 'setAllowsOtherFileTypes:';
+    function allowsOtherFileTypes: ObjCBOOL; message 'allowsOtherFileTypes';
+    procedure setAllowsOtherFileTypes(flag: ObjCBOOL); message 'setAllowsOtherFileTypes:';
     function accessoryView: NSView; message 'accessoryView';
     procedure setAccessoryView(view: NSView); message 'setAccessoryView:';
     function delegate: NSOpenSavePanelDelegateProtocol; message 'delegate';
     procedure setDelegate(delegate_: NSOpenSavePanelDelegateProtocol); message 'setDelegate:';
-    function isExpanded: BOOL; message 'isExpanded';
-    function canCreateDirectories: BOOL; message 'canCreateDirectories';
-    procedure setCanCreateDirectories(flag: BOOL); message 'setCanCreateDirectories:';
-    function canSelectHiddenExtension: BOOL; message 'canSelectHiddenExtension';
-    procedure setCanSelectHiddenExtension(flag: BOOL); message 'setCanSelectHiddenExtension:';
-    function isExtensionHidden: BOOL; message 'isExtensionHidden';
-    procedure setExtensionHidden(flag: BOOL); message 'setExtensionHidden:';
-    function treatsFilePackagesAsDirectories: BOOL; message 'treatsFilePackagesAsDirectories';
-    procedure setTreatsFilePackagesAsDirectories(flag: BOOL); message 'setTreatsFilePackagesAsDirectories:';
+    function isExpanded: ObjCBOOL; message 'isExpanded';
+    function canCreateDirectories: ObjCBOOL; message 'canCreateDirectories';
+    procedure setCanCreateDirectories(flag: ObjCBOOL); message 'setCanCreateDirectories:';
+    function canSelectHiddenExtension: ObjCBOOL; message 'canSelectHiddenExtension';
+    procedure setCanSelectHiddenExtension(flag: ObjCBOOL); message 'setCanSelectHiddenExtension:';
+    function isExtensionHidden: ObjCBOOL; message 'isExtensionHidden';
+    procedure setExtensionHidden(flag: ObjCBOOL); message 'setExtensionHidden:';
+    function treatsFilePackagesAsDirectories: ObjCBOOL; message 'treatsFilePackagesAsDirectories';
+    procedure setTreatsFilePackagesAsDirectories(flag: ObjCBOOL); message 'setTreatsFilePackagesAsDirectories:';
     function prompt: NSString; message 'prompt';
     procedure setPrompt(prompt_: NSString); message 'setPrompt:';
     function title: NSString; message 'title';
@@ -139,8 +139,8 @@ __SPFlagsPtr = ^__SPFlags;
     function message: NSString; message 'message';
     procedure setMessage(message_: NSString); message 'setMessage:';
     procedure validateVisibleColumns; message 'validateVisibleColumns';
-    function showsHiddenFiles: BOOL; message 'showsHiddenFiles';
-    procedure setShowsHiddenFiles(flag: BOOL); message 'setShowsHiddenFiles:';
+    function showsHiddenFiles: ObjCBOOL; message 'showsHiddenFiles';
+    procedure setShowsHiddenFiles(flag: ObjCBOOL); message 'setShowsHiddenFiles:';
     procedure ok(sender: id); message 'ok:';
     procedure cancel(sender: id); message 'cancel:';
     function runModal: NSInteger; message 'runModal';
@@ -148,9 +148,9 @@ __SPFlagsPtr = ^__SPFlags;
 
 { NSSavePanelDelegateDeprecatedCategory }
   NSSavePanelDelegateDeprecatedCategory = objccategory external (NSObject)
-    function panel_isValidFilename(sender: id; filename: NSString): BOOL; message 'panel:isValidFilename:';
+    function panel_isValidFilename(sender: id; filename: NSString): ObjCBOOL; message 'panel:isValidFilename:';
     procedure panel_directoryDidChange(sender: id; path: NSString); message 'panel:directoryDidChange:';
-    function panel_shouldShowFilename(sender: id; filename: NSString): BOOL; message 'panel:shouldShowFilename:';
+    function panel_shouldShowFilename(sender: id; filename: NSString): ObjCBOOL; message 'panel:shouldShowFilename:';
   end;
 
 { NSDeprecated_NSSavePanelCategory }
@@ -174,11 +174,11 @@ __SPFlagsPtr = ^__SPFlags;
 { NSOpenSavePanelDelegate Protocol }
   NSOpenSavePanelDelegateProtocol = objcprotocol external name 'NSOpenSavePanelDelegate'
   optional
-    function panel_shouldEnableURL(sender: id; url: NSURL): BOOL; message 'panel:shouldEnableURL:';
-    function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): BOOL; message 'panel:validateURL:error:';
+    function panel_shouldEnableURL(sender: id; url: NSURL): ObjCBOOL; message 'panel:shouldEnableURL:';
+    function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): ObjCBOOL; message 'panel:validateURL:error:';
     procedure panel_didChangeToDirectoryURL(sender: id; url: NSURL); message 'panel:didChangeToDirectoryURL:';
-    function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: BOOL): NSString; message 'panel:userEnteredFilename:confirmed:';
-    procedure panel_willExpand(sender: id; expanding: BOOL); message 'panel:willExpand:';
+    function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: ObjCBOOL): NSString; message 'panel:userEnteredFilename:confirmed:';
+    procedure panel_willExpand(sender: id; expanding: ObjCBOOL); message 'panel:willExpand:';
     procedure panelSelectionDidChange(sender: id); message 'panelSelectionDidChange:';
   end;
 {$endif}
