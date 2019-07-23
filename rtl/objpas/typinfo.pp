@@ -546,26 +546,26 @@ unit TypInfo;
         property PropertyTable: PPropData read GetPropertyTable;
         property MethodTable: PIntfMethodTable read GetMethodTable;
       public
-      case TTypeKind of
-        tkInterface: (
-        {$ifdef PROVIDE_ATTR_TABLE}
-          AttributeTable : PAttributeTable;
-        {$endif}
-          Parent: PPTypeInfo;
-          Flags : TIntfFlagsBase;
-          IID: TGUID;
-          UnitNameField: ShortString;
-          { IIDStr: ShortString; }
-          { PropertyTable: TPropData }
-        );
-        { include for proper alignment }
-        tkInt64: (
-          dummy : Int64
-        );
+      {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+      {$endif}
+        case TTypeKind of
+          tkInterface: (
+            Parent: PPTypeInfo;
+            Flags : TIntfFlagsBase;
+            IID: TGUID;
+            UnitNameField: ShortString;
+            { IIDStr: ShortString; }
+            { PropertyTable: TPropData }
+          );
+          { include for proper alignment }
+          tkInt64: (
+            dummy : Int64
+          );
 {$ifndef FPUNONE}
-        tkFloat:
-          (FloatType : TFloatType
-        );
+          tkFloat:
+            (FloatType : TFloatType
+          );
 {$endif}
       end;
 
