@@ -129,31 +129,31 @@ var
   public
     class function sharedWorkspace: NSWorkspace; message 'sharedWorkspace';
     function notificationCenter: NSNotificationCenter; message 'notificationCenter';
-    function openFile(fullPath: NSString): BOOL; message 'openFile:';
-    function openFile_withApplication(fullPath: NSString; appName: NSString): BOOL; message 'openFile:withApplication:';
-    function openFile_withApplication_andDeactivate(fullPath: NSString; appName: NSString; flag: BOOL): BOOL; message 'openFile:withApplication:andDeactivate:';
-    function openFile_fromImage_at_inView(fullPath: NSString; anImage: NSImage; point: NSPoint; aView: NSView): BOOL; message 'openFile:fromImage:at:inView:';
-    function openURL(url: NSURL): BOOL; message 'openURL:';
-    function launchApplication(appName: NSString): BOOL; message 'launchApplication:';
+    function openFile(fullPath: NSString): ObjCBOOL; message 'openFile:';
+    function openFile_withApplication(fullPath: NSString; appName: NSString): ObjCBOOL; message 'openFile:withApplication:';
+    function openFile_withApplication_andDeactivate(fullPath: NSString; appName: NSString; flag: ObjCBOOL): ObjCBOOL; message 'openFile:withApplication:andDeactivate:';
+    function openFile_fromImage_at_inView(fullPath: NSString; anImage: NSImage; point: NSPoint; aView: NSView): ObjCBOOL; message 'openFile:fromImage:at:inView:';
+    function openURL(url: NSURL): ObjCBOOL; message 'openURL:';
+    function launchApplication(appName: NSString): ObjCBOOL; message 'launchApplication:';
     function launchApplicationAtURL_options_configuration_error(url: NSURL; options: NSWorkspaceLaunchOptions; configuration: NSDictionary; error: NSErrorPointer): NSRunningApplication; message 'launchApplicationAtURL:options:configuration:error:';
-    function launchApplication_showIcon_autolaunch(appName: NSString; showIcon: BOOL; autolaunch: BOOL): BOOL; message 'launchApplication:showIcon:autolaunch:';
+    function launchApplication_showIcon_autolaunch(appName: NSString; showIcon: ObjCBOOL; autolaunch: ObjCBOOL): ObjCBOOL; message 'launchApplication:showIcon:autolaunch:';
     function fullPathForApplication(appName: NSString): NSString; message 'fullPathForApplication:';
-    function selectFile_inFileViewerRootedAtPath(fullPath: NSString; rootFullPath: NSString): BOOL; message 'selectFile:inFileViewerRootedAtPath:';
+    function selectFile_inFileViewerRootedAtPath(fullPath: NSString; rootFullPath: NSString): ObjCBOOL; message 'selectFile:inFileViewerRootedAtPath:';
     procedure activateFileViewerSelectingURLs(fileURLs: NSArray); message 'activateFileViewerSelectingURLs:';
-    function showSearchResultsForQueryString(queryString: NSString): BOOL; message 'showSearchResultsForQueryString:';
+    function showSearchResultsForQueryString(queryString: NSString): ObjCBOOL; message 'showSearchResultsForQueryString:';
     procedure noteFileSystemChanged(path: NSString); message 'noteFileSystemChanged:';
-    function getInfoForFile_application_type(fullPath: NSString; appName: NSStringPointer; type_: NSStringPointer): BOOL; message 'getInfoForFile:application:type:';
-    function isFilePackageAtPath(fullPath: NSString): BOOL; message 'isFilePackageAtPath:';
+    function getInfoForFile_application_type(fullPath: NSString; appName: NSStringPointer; type_: NSStringPointer): ObjCBOOL; message 'getInfoForFile:application:type:';
+    function isFilePackageAtPath(fullPath: NSString): ObjCBOOL; message 'isFilePackageAtPath:';
     function iconForFile(fullPath: NSString): NSImage; message 'iconForFile:';
     function iconForFiles(fullPaths: NSArray): NSImage; message 'iconForFiles:';
     function iconForFileType(fileType: NSString): NSImage; message 'iconForFileType:';
-    function setIcon_forFile_options(image: NSImage; fullPath: NSString; options: NSWorkspaceIconCreationOptions): BOOL; message 'setIcon:forFile:options:';
+    function setIcon_forFile_options(image: NSImage; fullPath: NSString; options: NSWorkspaceIconCreationOptions): ObjCBOOL; message 'setIcon:forFile:options:';
     function fileLabels: NSArray; message 'fileLabels';
     function fileLabelColors: NSArray; message 'fileLabelColors';
-    function getFileSystemInfoForPath_isRemovable_isWritable_isUnmountable_description_type(fullPath: NSString; removableFlag: pBOOL; writableFlag: pBOOL; unmountableFlag: pBOOL; description_: NSStringPointer; fileSystemType: NSStringPointer): BOOL; message 'getFileSystemInfoForPath:isRemovable:isWritable:isUnmountable:description:type:';
-    function performFileOperation_source_destination_files_tag(operation: NSString; source: NSString; destination: NSString; files: NSArray; tag: NSIntegerPtr): BOOL; message 'performFileOperation:source:destination:files:tag:';
-    function unmountAndEjectDeviceAtPath(path: NSString): BOOL; message 'unmountAndEjectDeviceAtPath:';
-    function unmountAndEjectDeviceAtURL_error(url: NSURL; error: NSErrorPointer): BOOL; message 'unmountAndEjectDeviceAtURL:error:';
+    function getFileSystemInfoForPath_isRemovable_isWritable_isUnmountable_description_type(fullPath: NSString; removableFlag: pObjCBOOL; writableFlag: pObjCBOOL; unmountableFlag: pObjCBOOL; description_: NSStringPointer; fileSystemType: NSStringPointer): ObjCBOOL; message 'getFileSystemInfoForPath:isRemovable:isWritable:isUnmountable:description:type:';
+    function performFileOperation_source_destination_files_tag(operation: NSString; source: NSString; destination: NSString; files: NSArray; tag: NSIntegerPtr): ObjCBOOL; message 'performFileOperation:source:destination:files:tag:';
+    function unmountAndEjectDeviceAtPath(path: NSString): ObjCBOOL; message 'unmountAndEjectDeviceAtPath:';
+    function unmountAndEjectDeviceAtURL_error(url: NSURL; error: NSErrorPointer): ObjCBOOL; message 'unmountAndEjectDeviceAtURL:error:';
     function extendPowerOffBy(requested: NSInteger): NSInteger; message 'extendPowerOffBy:';
     procedure hideOtherApplications; message 'hideOtherApplications';
     function mountedLocalVolumePaths: NSArray; message 'mountedLocalVolumePaths';
@@ -161,33 +161,33 @@ var
     function URLForApplicationWithBundleIdentifier(bundleIdentifier: NSString): NSURL; message 'URLForApplicationWithBundleIdentifier:';
     function URLForApplicationToOpenURL(url: NSURL): NSURL; message 'URLForApplicationToOpenURL:';
     function absolutePathForAppBundleWithIdentifier(bundleIdentifier: NSString): NSString; message 'absolutePathForAppBundleWithIdentifier:';
-    function launchAppWithBundleIdentifier_options_additionalEventParamDescriptor_launchIdentifier(bundleIdentifier: NSString; options: NSWorkspaceLaunchOptions; descriptor: NSAppleEventDescriptor; identifier: NSNumberPointer): BOOL; message 'launchAppWithBundleIdentifier:options:additionalEventParamDescriptor:launchIdentifier:';
-    function openURLs_withAppBundleIdentifier_options_additionalEventParamDescriptor_launchIdentifiers(urls: NSArray; bundleIdentifier: NSString; options: NSWorkspaceLaunchOptions; descriptor: NSAppleEventDescriptor; identifiers: NSArrayPointer): BOOL; message 'openURLs:withAppBundleIdentifier:options:additionalEventParamDescriptor:launchIdentifiers:';
+    function launchAppWithBundleIdentifier_options_additionalEventParamDescriptor_launchIdentifier(bundleIdentifier: NSString; options: NSWorkspaceLaunchOptions; descriptor: NSAppleEventDescriptor; identifier: NSNumberPointer): ObjCBOOL; message 'launchAppWithBundleIdentifier:options:additionalEventParamDescriptor:launchIdentifier:';
+    function openURLs_withAppBundleIdentifier_options_additionalEventParamDescriptor_launchIdentifiers(urls: NSArray; bundleIdentifier: NSString; options: NSWorkspaceLaunchOptions; descriptor: NSAppleEventDescriptor; identifiers: NSArrayPointer): ObjCBOOL; message 'openURLs:withAppBundleIdentifier:options:additionalEventParamDescriptor:launchIdentifiers:';
     function launchedApplications: NSArray; message 'launchedApplications';
     function activeApplication: NSDictionary; message 'activeApplication';
     function typeOfFile_error(absoluteFilePath: NSString; outError: NSErrorPointer): NSString; message 'typeOfFile:error:';
     function localizedDescriptionForType(typeName: NSString): NSString; message 'localizedDescriptionForType:';
     function preferredFilenameExtensionForType(typeName: NSString): NSString; message 'preferredFilenameExtensionForType:';
-    function filenameExtension_isValidForType(filenameExtension: NSString; typeName: NSString): BOOL; message 'filenameExtension:isValidForType:';
-    function type_conformsToType(firstTypeName: NSString; secondTypeName: NSString): BOOL; message 'type:conformsToType:';
+    function filenameExtension_isValidForType(filenameExtension: NSString; typeName: NSString): ObjCBOOL; message 'filenameExtension:isValidForType:';
+    function type_conformsToType(firstTypeName: NSString; secondTypeName: NSString): ObjCBOOL; message 'type:conformsToType:';
   end;
 
 { NSDesktopImagesCategory }
   NSDesktopImagesCategory = objccategory external (NSWorkspace)
-    function setDesktopImageURL_forScreen_options_error(url: NSURL; screen: NSScreen; options: NSDictionary; error: NSErrorPointer): BOOL; message 'setDesktopImageURL:forScreen:options:error:';
+    function setDesktopImageURL_forScreen_options_error(url: NSURL; screen: NSScreen; options: NSDictionary; error: NSErrorPointer): ObjCBOOL; message 'setDesktopImageURL:forScreen:options:error:';
     function desktopImageURLForScreen(screen: NSScreen): NSURL; message 'desktopImageURLForScreen:';
     function desktopImageOptionsForScreen(screen: NSScreen): NSDictionary; message 'desktopImageOptionsForScreen:';
   end;
 
 { NSDeprecated_NSWorkspaceCategory }
   NSDeprecated_NSWorkspaceCategory = objccategory external name 'NSDeprecated' (NSWorkspace)
-    function openTempFile(fullPath: NSString): BOOL; message 'openTempFile:'; deprecated 'in Mac OS X 10.6 and later';
+    function openTempFile(fullPath: NSString): ObjCBOOL; message 'openTempFile:'; deprecated 'in Mac OS X 10.6 and later';
     procedure findApplications; message 'findApplications'; deprecated 'in Mac OS X 10.6 and later';
     procedure noteUserDefaultsChanged; message 'noteUserDefaultsChanged'; deprecated 'in Mac OS X 10.6 and later';
     procedure slideImage_from_to(image: NSImage; fromPoint: NSPoint; toPoint: NSPoint); message 'slideImage:from:to:'; deprecated 'in Mac OS X 10.6 and later';
     procedure checkForRemovableMedia; message 'checkForRemovableMedia'; deprecated 'in Mac OS X 10.6 and later';
-    function fileSystemChanged: BOOL; message 'fileSystemChanged'; deprecated 'in Mac OS X 10.6 and later';
-    function userDefaultsChanged: BOOL; message 'userDefaultsChanged'; deprecated 'in Mac OS X 10.6 and later';
+    function fileSystemChanged: ObjCBOOL; message 'fileSystemChanged'; deprecated 'in Mac OS X 10.6 and later';
+    function userDefaultsChanged: ObjCBOOL; message 'userDefaultsChanged'; deprecated 'in Mac OS X 10.6 and later';
     function mountNewRemovableMedia: NSArray; message 'mountNewRemovableMedia'; deprecated 'in Mac OS X 10.6 and later';
   end;
 

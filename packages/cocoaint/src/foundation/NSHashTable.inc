@@ -37,7 +37,7 @@ NSHashEnumeratorPtr = ^NSHashEnumerator;
 type
   NSHashTableCallBacks = record
     hash: function (table: NSHashTable; param1: Pointer): NSUInteger; cdecl;
-    isEqual: function (table: NSHashTable; param1: Pointer; param2: Pointer): BOOL; cdecl;
+    isEqual: function (table: NSHashTable; param1: Pointer; param2: Pointer): ObjCBOOL; cdecl;
     retain: procedure (table: NSHashTable; param1: Pointer); cdecl;
     release: procedure (table: NSHashTable; param1: Pointer); cdecl;
     describe: function (table: NSHashTable; param1: Pointer): NSString; cdecl;
@@ -55,7 +55,7 @@ NSHashTableCallBacksPtr = ^NSHashTableCallBacks;
 { Functions }
 procedure NSFreeHashTable(table: NSHashTable); cdecl; external;
 procedure NSResetHashTable(table: NSHashTable); cdecl; external;
-function NSCompareHashTables(table1: NSHashTable; table2: NSHashTable): BOOL; cdecl; external;
+function NSCompareHashTables(table1: NSHashTable; table2: NSHashTable): ObjCBOOL; cdecl; external;
 function NSCopyHashTableWithZone(table: NSHashTable; zone: NSZonePtr): NSHashTable; cdecl; external;
 function NSHashGet(table: NSHashTable; pointer_: Pointer): Pointer; cdecl; external;
 procedure NSHashInsert(table: NSHashTable; pointer_: Pointer); cdecl; external;
@@ -120,10 +120,10 @@ var
     procedure removeAllObjects; message 'removeAllObjects';
     function allObjects: NSArray; message 'allObjects';
     function anyObject: id; message 'anyObject';
-    function containsObject(anObject: id): BOOL; message 'containsObject:';
-    function intersectsHashTable(other: NSHashTable): BOOL; message 'intersectsHashTable:';
-    function isEqualToHashTable(other: NSHashTable): BOOL; message 'isEqualToHashTable:';
-    function isSubsetOfHashTable(other: NSHashTable): BOOL; message 'isSubsetOfHashTable:';
+    function containsObject(anObject: id): ObjCBOOL; message 'containsObject:';
+    function intersectsHashTable(other: NSHashTable): ObjCBOOL; message 'intersectsHashTable:';
+    function isEqualToHashTable(other: NSHashTable): ObjCBOOL; message 'isEqualToHashTable:';
+    function isSubsetOfHashTable(other: NSHashTable): ObjCBOOL; message 'isSubsetOfHashTable:';
     procedure intersectHashTable(other: NSHashTable); message 'intersectHashTable:';
     procedure unionHashTable(other: NSHashTable); message 'unionHashTable:';
     procedure minusHashTable(other: NSHashTable); message 'minusHashTable:';

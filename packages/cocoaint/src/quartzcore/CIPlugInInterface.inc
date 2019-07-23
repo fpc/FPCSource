@@ -38,7 +38,7 @@
   
 { CIPlugInRegistration Protocol }
   CIPlugInRegistrationProtocol = objcprotocol external name 'CIPlugInRegistration'
-    function load(host: Pointer): BOOL; message 'load:';
+    function load(host: Pointer): ObjCBOOL; message 'load:';
   end;
 {$endif}
 {$endif}

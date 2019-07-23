@@ -48,7 +48,7 @@
   public
     class function shapeWithRect(r: CGRect): id; message 'shapeWithRect:';
     function initWithRect(r: CGRect): id; message 'initWithRect:';
-    function transformBy_interior(m: CGAffineTransform; flag: BOOL): CIFilterShape; message 'transformBy:interior:';
+    function transformBy_interior(m: CGAffineTransform; flag: ObjCBOOL): CIFilterShape; message 'transformBy:interior:';
     function insetByX_Y(dx: cint; dy: cint): CIFilterShape; message 'insetByX:Y:';
     function unionWith(s: CIFilterShape): CIFilterShape; message 'unionWith:';
     function unionWithRect(r: CGRect): CIFilterShape; message 'unionWithRect:';

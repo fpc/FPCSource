@@ -81,7 +81,7 @@
     function fetchRequestTemplatesByName: NSDictionary; message 'fetchRequestTemplatesByName';
     function versionIdentifiers: NSSet; message 'versionIdentifiers';
     procedure setVersionIdentifiers(identifiers: NSSet); message 'setVersionIdentifiers:';
-    function isConfiguration_compatibleWithStoreMetadata(configuration: NSString; metadata: NSDictionary): BOOL; message 'isConfiguration:compatibleWithStoreMetadata:';
+    function isConfiguration_compatibleWithStoreMetadata(configuration: NSString; metadata: NSDictionary): ObjCBOOL; message 'isConfiguration:compatibleWithStoreMetadata:';
     function entityVersionHashesByName: NSDictionary; message 'entityVersionHashesByName';
 
     { Adopted Protocols }

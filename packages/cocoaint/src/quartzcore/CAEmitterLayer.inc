@@ -81,8 +81,8 @@ var
     function emitterMode: NSString; message 'emitterMode';
     procedure setRenderMode (newValue: NSString); message 'setRenderMode:';
     function renderMode: NSString; message 'renderMode';
-    procedure setPreservesDepth (newValue: BOOL); message 'setPreservesDepth:';
-    function preservesDepth: BOOL; message 'preservesDepth';
+    procedure setPreservesDepth (newValue: ObjCBOOL); message 'setPreservesDepth:';
+    function preservesDepth: ObjCBOOL; message 'preservesDepth';
     procedure setVelocity (newValue: single); message 'setVelocity:';
     function velocity: single; message 'velocity';
     procedure setScale (newValue: single); message 'setScale:';

@@ -79,13 +79,13 @@ var
   public
     class function animation: id; message 'animation';
     class function defaultValueForKey(key: NSString): id; message 'defaultValueForKey:';
-    function shouldArchiveValueForKey(key: NSString): BOOL; message 'shouldArchiveValueForKey:';
+    function shouldArchiveValueForKey(key: NSString): ObjCBOOL; message 'shouldArchiveValueForKey:';
     procedure setTimingFunction (newValue: CAMediaTimingFunction); message 'setTimingFunction:';
     function timingFunction: CAMediaTimingFunction; message 'timingFunction';
     procedure setDelegate (newValue: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
-    procedure setRemovedOnCompletion (newValue: BOOL); message 'setRemovedOnCompletion:';
-    function isRemovedOnCompletion: BOOL; message 'isRemovedOnCompletion';
+    procedure setRemovedOnCompletion (newValue: ObjCBOOL); message 'setRemovedOnCompletion:';
+    function isRemovedOnCompletion: ObjCBOOL; message 'isRemovedOnCompletion';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
@@ -103,8 +103,8 @@ var
     function repeatCount: single;
     procedure setRepeatDuration (newValue: CFTimeInterval);
     function repeatDuration: CFTimeInterval;
-    procedure setAutoreverses (newValue: BOOL);
-    function autoreverses: BOOL;
+    procedure setAutoreverses (newValue: ObjCBOOL);
+    function autoreverses: ObjCBOOL;
     procedure setFillMode (newValue: NSString);
     function fillMode: NSString;
   end;
@@ -116,10 +116,10 @@ var
     class function animationWithKeyPath(path: NSString): id; message 'animationWithKeyPath:';
     procedure setKeyPath (newValue: NSString); message 'setKeyPath:';
     function keyPath: NSString; message 'keyPath';
-    procedure setAdditive (newValue: BOOL); message 'setAdditive:';
-    function isAdditive: BOOL; message 'isAdditive';
-    procedure setCumulative (newValue: BOOL); message 'setCumulative:';
-    function isCumulative: BOOL; message 'isCumulative';
+    procedure setAdditive (newValue: ObjCBOOL); message 'setAdditive:';
+    function isAdditive: ObjCBOOL; message 'isAdditive';
+    procedure setCumulative (newValue: ObjCBOOL); message 'setCumulative:';
+    function isCumulative: ObjCBOOL; message 'isCumulative';
     procedure setValueFunction (newValue: CAValueFunction); message 'setValueFunction:';
     function valueFunction: CAValueFunction; message 'valueFunction';
   end;
@@ -181,7 +181,7 @@ var
 { CAAnimationDelegateCategory }
   CAAnimationDelegateCategory = objccategory external (NSObject)
     procedure animationDidStart(anim: CAAnimation); message 'animationDidStart:';
-    procedure animationDidStop_finished(anim: CAAnimation; flag: BOOL); message 'animationDidStop:finished:';
+    procedure animationDidStop_finished(anim: CAAnimation; flag: ObjCBOOL); message 'animationDidStop:finished:';
   end;
 
 {$endif}

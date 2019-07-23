@@ -55,8 +55,8 @@
     class function systemDefaultPortNameServer: NSPortNameServer; message 'systemDefaultPortNameServer';
     function portForName(name: NSString): NSPort; message 'portForName:';
     function portForName_host(name: NSString; host: NSString): NSPort; message 'portForName:host:';
-    function registerPort_name(port: NSPort; name: NSString): BOOL; message 'registerPort:name:';
-    function removePortForName(name: NSString): BOOL; message 'removePortForName:';
+    function registerPort_name(port: NSPort; name: NSString): ObjCBOOL; message 'registerPort:name:';
+    function removePortForName(name: NSString): ObjCBOOL; message 'removePortForName:';
   end;
 
 { NSMachBootstrapServer }
@@ -66,7 +66,7 @@
     class function sharedInstance: id; message 'sharedInstance';
     function portForName(name: NSString): NSPort; message 'portForName:';
     function portForName_host(name: NSString; host: NSString): NSPort; message 'portForName:host:';
-    function registerPort_name(port: NSPort; name: NSString): BOOL; message 'registerPort:name:';
+    function registerPort_name(port: NSPort; name: NSString): ObjCBOOL; message 'registerPort:name:';
     function servicePortWithName(name: NSString): NSPort; message 'servicePortWithName:';
   end;
 
@@ -86,10 +86,10 @@
     class function sharedInstance: id; message 'sharedInstance';
     function portForName(name: NSString): NSPort; message 'portForName:';
     function portForName_host(name: NSString; host: NSString): NSPort; message 'portForName:host:';
-    function registerPort_name(port: NSPort; name: NSString): BOOL; message 'registerPort:name:';
-    function removePortForName(name: NSString): BOOL; message 'removePortForName:';
+    function registerPort_name(port: NSPort; name: NSString): ObjCBOOL; message 'registerPort:name:';
+    function removePortForName(name: NSString): ObjCBOOL; message 'removePortForName:';
     function portForName_host_nameServerPortNumber(name: NSString; host: NSString; portNumber: cuint16): NSPort; message 'portForName:host:nameServerPortNumber:';
-    function registerPort_name_nameServerPortNumber(port: NSPort; name: NSString; portNumber: cuint16): BOOL; message 'registerPort:name:nameServerPortNumber:';
+    function registerPort_name_nameServerPortNumber(port: NSPort; name: NSString; portNumber: cuint16): ObjCBOOL; message 'registerPort:name:nameServerPortNumber:';
     procedure setDefaultNameServerPortNumber(portNumber: cuint16); message 'setDefaultNameServerPortNumber:';
     function defaultNameServerPortNumber: cuint16; message 'defaultNameServerPortNumber';
   end;

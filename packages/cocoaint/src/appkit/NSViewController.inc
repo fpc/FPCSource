@@ -65,7 +65,7 @@
     function nibBundle: NSBundle; message 'nibBundle';
     procedure setView(view_: NSView); message 'setView:';
     procedure commitEditingWithDelegate_didCommitSelector_contextInfo(delegate: id; didCommitSelector: SEL; contextInfo: Pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
-    function commitEditing: BOOL; message 'commitEditing';
+    function commitEditing: ObjCBOOL; message 'commitEditing';
     procedure discardEditing; message 'discardEditing';
   end;
 

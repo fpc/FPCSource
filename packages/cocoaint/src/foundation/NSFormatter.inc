@@ -46,9 +46,9 @@
     function stringForObjectValue(obj: id): NSString; message 'stringForObjectValue:';
     function attributedStringForObjectValue_withDefaultAttributes(obj: id; attrs: NSDictionary): NSAttributedString; message 'attributedStringForObjectValue:withDefaultAttributes:';
     function editingStringForObjectValue(obj: id): NSString; message 'editingStringForObjectValue:';
-    function getObjectValue_forString_errorDescription(obj: idPtr; string_: NSString; error: NSStringPointer): BOOL; message 'getObjectValue:forString:errorDescription:';
-    function isPartialStringValid_newEditingString_errorDescription(partialString: NSString; newString: NSStringPointer; error: NSStringPointer): BOOL; message 'isPartialStringValid:newEditingString:errorDescription:';
-    function isPartialStringValid_proposedSelectedRange_originalString_originalSelectedRange_errorDescription(partialStringPtr: NSStringPointer; proposedSelRangePtr: NSRangePointer; origString: NSString; origSelRange: NSRange; error: NSStringPointer): BOOL; message 'isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:';
+    function getObjectValue_forString_errorDescription(obj: idPtr; string_: NSString; error: NSStringPointer): ObjCBOOL; message 'getObjectValue:forString:errorDescription:';
+    function isPartialStringValid_newEditingString_errorDescription(partialString: NSString; newString: NSStringPointer; error: NSStringPointer): ObjCBOOL; message 'isPartialStringValid:newEditingString:errorDescription:';
+    function isPartialStringValid_proposedSelectedRange_originalString_originalSelectedRange_errorDescription(partialStringPtr: NSStringPointer; proposedSelRangePtr: NSRangePointer; origString: NSString; origSelRange: NSRange; error: NSStringPointer): ObjCBOOL; message 'isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;

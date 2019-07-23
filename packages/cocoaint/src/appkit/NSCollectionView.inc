@@ -74,8 +74,8 @@ const
     
   public
     function collectionView: NSCollectionView; message 'collectionView';
-    procedure setSelected(flag: BOOL); message 'setSelected:';
-    function isSelected: BOOL; message 'isSelected';
+    procedure setSelected(flag: ObjCBOOL); message 'setSelected:';
+    function isSelected: ObjCBOOL; message 'isSelected';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
@@ -137,13 +137,13 @@ const
   public
     procedure setDelegate(aDelegate: NSCollectionViewDelegateProtocol); message 'setDelegate:';
     function delegate: NSCollectionViewDelegateProtocol; message 'delegate';
-    function isFirstResponder: BOOL; message 'isFirstResponder';
+    function isFirstResponder: ObjCBOOL; message 'isFirstResponder';
     procedure setContent(content_: NSArray); message 'setContent:';
     function content: NSArray; message 'content';
-    procedure setSelectable(flag: BOOL); message 'setSelectable:';
-    function isSelectable: BOOL; message 'isSelectable';
-    procedure setAllowsMultipleSelection(flag: BOOL); message 'setAllowsMultipleSelection:';
-    function allowsMultipleSelection: BOOL; message 'allowsMultipleSelection';
+    procedure setSelectable(flag: ObjCBOOL); message 'setSelectable:';
+    function isSelectable: ObjCBOOL; message 'isSelectable';
+    procedure setAllowsMultipleSelection(flag: ObjCBOOL); message 'setAllowsMultipleSelection:';
+    function allowsMultipleSelection: ObjCBOOL; message 'allowsMultipleSelection';
     procedure setSelectionIndexes(indexes: NSIndexSet); message 'setSelectionIndexes:';
     function selectionIndexes: NSIndexSet; message 'selectionIndexes';
     function newItemForRepresentedObject(object_: id): NSCollectionViewItem; message 'newItemForRepresentedObject:';
@@ -161,7 +161,7 @@ const
     function backgroundColors: NSArray; message 'backgroundColors';
     function itemAtIndex(index: NSUInteger): NSCollectionViewItem; message 'itemAtIndex:';
     function frameForItemAtIndex(index: NSUInteger): NSRect; message 'frameForItemAtIndex:';
-    procedure setDraggingSourceOperationMask_forLocal(dragOperationMask: NSDragOperation; localDestination: BOOL); message 'setDraggingSourceOperationMask:forLocal:';
+    procedure setDraggingSourceOperationMask_forLocal(dragOperationMask: NSDragOperation; localDestination: ObjCBOOL); message 'setDraggingSourceOperationMask:forLocal:';
     function draggingImageForItemsAtIndexes_withEvent_offset(indexes: NSIndexSet; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'draggingImageForItemsAtIndexes:withEvent:offset:';
   end;
 
@@ -174,12 +174,12 @@ const
 { NSCollectionViewDelegate Protocol }
   NSCollectionViewDelegateProtocol = objcprotocol external name 'NSCollectionViewDelegate'
   optional
-    function collectionView_canDragItemsAtIndexes_withEvent(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent): BOOL; message 'collectionView:canDragItemsAtIndexes:withEvent:';
-    function collectionView_writeItemsAtIndexes_toPasteboard(collectionView: NSCollectionView; indexes: NSIndexSet; pasteboard: NSPasteboard): BOOL; message 'collectionView:writeItemsAtIndexes:toPasteboard:';
+    function collectionView_canDragItemsAtIndexes_withEvent(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent): ObjCBOOL; message 'collectionView:canDragItemsAtIndexes:withEvent:';
+    function collectionView_writeItemsAtIndexes_toPasteboard(collectionView: NSCollectionView; indexes: NSIndexSet; pasteboard: NSPasteboard): ObjCBOOL; message 'collectionView:writeItemsAtIndexes:toPasteboard:';
     function collectionView_namesOfPromisedFilesDroppedAtDestination_forDraggedItemsAtIndexes(collectionView: NSCollectionView; dropURL: NSURL; indexes: NSIndexSet): NSArray; message 'collectionView:namesOfPromisedFilesDroppedAtDestination:forDraggedItemsAtIndexes:';
     function collectionView_draggingImageForItemsAtIndexes_withEvent_offset(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'collectionView:draggingImageForItemsAtIndexes:withEvent:offset:';
     function collectionView_validateDrop_proposedIndex_dropOperation(collectionView: NSCollectionView; draggingInfo: NSDraggingInfoProtocol; proposedDropIndex: NSIntegerPtr; proposedDropOperation: NSCollectionViewDropOperationPtr): NSDragOperation; message 'collectionView:validateDrop:proposedIndex:dropOperation:';
-    function collectionView_acceptDrop_index_dropOperation(collectionView: NSCollectionView; draggingInfo: NSDraggingInfoProtocol; index: NSInteger; dropOperation: NSCollectionViewDropOperation): BOOL; message 'collectionView:acceptDrop:index:dropOperation:';
+    function collectionView_acceptDrop_index_dropOperation(collectionView: NSCollectionView; draggingInfo: NSDraggingInfoProtocol; index: NSInteger; dropOperation: NSCollectionViewDropOperation): ObjCBOOL; message 'collectionView:acceptDrop:index:dropOperation:';
   end;
 {$endif}
 {$endif}

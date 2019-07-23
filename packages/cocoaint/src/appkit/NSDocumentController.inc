@@ -59,23 +59,23 @@
     procedure addDocument(document: NSDocument); message 'addDocument:';
     procedure removeDocument(document: NSDocument); message 'removeDocument:';
     procedure newDocument(sender: id); message 'newDocument:';
-    function openUntitledDocumentAndDisplay_error(displayDocument: BOOL; outError: NSErrorPointer): id; message 'openUntitledDocumentAndDisplay:error:';
+    function openUntitledDocumentAndDisplay_error(displayDocument: ObjCBOOL; outError: NSErrorPointer): id; message 'openUntitledDocumentAndDisplay:error:';
     function makeUntitledDocumentOfType_error(typeName: NSString; outError: NSErrorPointer): id; message 'makeUntitledDocumentOfType:error:';
     procedure openDocument(sender: id); message 'openDocument:';
     function URLsFromRunningOpenPanel: NSArray; message 'URLsFromRunningOpenPanel';
     function runModalOpenPanel_forTypes(openPanel: NSOpenPanel; types: NSArray): NSInteger; message 'runModalOpenPanel:forTypes:';
-    function openDocumentWithContentsOfURL_display_error(absoluteURL: NSURL; displayDocument: BOOL; outError: NSErrorPointer): id; message 'openDocumentWithContentsOfURL:display:error:';
+    function openDocumentWithContentsOfURL_display_error(absoluteURL: NSURL; displayDocument: ObjCBOOL; outError: NSErrorPointer): id; message 'openDocumentWithContentsOfURL:display:error:';
     function makeDocumentWithContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'makeDocumentWithContentsOfURL:ofType:error:';
-    function reopenDocumentForURL_withContentsOfURL_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; outError: NSErrorPointer): BOOL; message 'reopenDocumentForURL:withContentsOfURL:error:';
+    function reopenDocumentForURL_withContentsOfURL_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; outError: NSErrorPointer): ObjCBOOL; message 'reopenDocumentForURL:withContentsOfURL:error:';
     function makeDocumentForURL_withContentsOfURL_ofType_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'makeDocumentForURL:withContentsOfURL:ofType:error:';
     procedure setAutosavingDelay(autosavingDelay_: NSTimeInterval); message 'setAutosavingDelay:';
     function autosavingDelay: NSTimeInterval; message 'autosavingDelay';
     procedure saveAllDocuments(sender: id); message 'saveAllDocuments:';
-    function hasEditedDocuments: BOOL; message 'hasEditedDocuments';
-    procedure reviewUnsavedDocumentsWithAlertTitle_cancellable_delegate_didReviewAllSelector_contextInfo(title: NSString; cancellable: BOOL; delegate: id; didReviewAllSelector: SEL; contextInfo: Pointer); message 'reviewUnsavedDocumentsWithAlertTitle:cancellable:delegate:didReviewAllSelector:contextInfo:';
+    function hasEditedDocuments: ObjCBOOL; message 'hasEditedDocuments';
+    procedure reviewUnsavedDocumentsWithAlertTitle_cancellable_delegate_didReviewAllSelector_contextInfo(title: NSString; cancellable: ObjCBOOL; delegate: id; didReviewAllSelector: SEL; contextInfo: Pointer); message 'reviewUnsavedDocumentsWithAlertTitle:cancellable:delegate:didReviewAllSelector:contextInfo:';
     procedure closeAllDocumentsWithDelegate_didCloseAllSelector_contextInfo(delegate: id; didCloseAllSelector: SEL; contextInfo: Pointer); message 'closeAllDocumentsWithDelegate:didCloseAllSelector:contextInfo:';
     procedure presentError_modalForWindow_delegate_didPresentSelector_contextInfo(error: NSError; window: NSWindow; delegate: id; didPresentSelector: SEL; contextInfo: Pointer); message 'presentError:modalForWindow:delegate:didPresentSelector:contextInfo:';
-    function presentError(error: NSError): BOOL; message 'presentError:';
+    function presentError(error: NSError): ObjCBOOL; message 'presentError:';
     function willPresentError(error: NSError): NSError; message 'willPresentError:';
     function maximumRecentDocumentCount: NSUInteger; message 'maximumRecentDocumentCount';
     procedure clearRecentDocuments(sender: id); message 'clearRecentDocuments:';
@@ -87,7 +87,7 @@
     function documentClassNames: NSArray; message 'documentClassNames';
     function documentClassForType(typeName: NSString): Pobjc_class; message 'documentClassForType:';
     function displayNameForType(typeName: NSString): NSString; message 'displayNameForType:';
-    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): BOOL; message 'validateUserInterfaceItem:';
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): ObjCBOOL; message 'validateUserInterfaceItem:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
@@ -103,11 +103,11 @@
     function makeDocumentWithContentsOfFile_ofType(fileName: NSString; type_: NSString): id; message 'makeDocumentWithContentsOfFile:ofType:'; deprecated 'in Mac OS X 10.4 and later';
     function makeDocumentWithContentsOfURL_ofType(url: NSURL; type_: NSString): id; message 'makeDocumentWithContentsOfURL:ofType:'; deprecated 'in Mac OS X 10.4 and later';
     function makeUntitledDocumentOfType(type_: NSString): id; message 'makeUntitledDocumentOfType:'; deprecated 'in Mac OS X 10.4 and later';
-    function openDocumentWithContentsOfFile_display(fileName: NSString; display: BOOL): id; message 'openDocumentWithContentsOfFile:display:'; deprecated 'in Mac OS X 10.4 and later';
-    function openDocumentWithContentsOfURL_display(url: NSURL; display: BOOL): id; message 'openDocumentWithContentsOfURL:display:'; deprecated 'in Mac OS X 10.4 and later';
-    function openUntitledDocumentOfType_display(type_: NSString; display: BOOL): id; message 'openUntitledDocumentOfType:display:'; deprecated 'in Mac OS X 10.4 and later';
-    procedure setShouldCreateUI(flag: BOOL); message 'setShouldCreateUI:'; deprecated 'in Mac OS X 10.4 and later';
-    function shouldCreateUI: BOOL; message 'shouldCreateUI'; deprecated 'in Mac OS X 10.4 and later';
+    function openDocumentWithContentsOfFile_display(fileName: NSString; display: ObjCBOOL): id; message 'openDocumentWithContentsOfFile:display:'; deprecated 'in Mac OS X 10.4 and later';
+    function openDocumentWithContentsOfURL_display(url: NSURL; display: ObjCBOOL): id; message 'openDocumentWithContentsOfURL:display:'; deprecated 'in Mac OS X 10.4 and later';
+    function openUntitledDocumentOfType_display(type_: NSString; display: ObjCBOOL): id; message 'openUntitledDocumentOfType:display:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure setShouldCreateUI(flag: ObjCBOOL); message 'setShouldCreateUI:'; deprecated 'in Mac OS X 10.4 and later';
+    function shouldCreateUI: ObjCBOOL; message 'shouldCreateUI'; deprecated 'in Mac OS X 10.4 and later';
   end;
 
 {$endif}

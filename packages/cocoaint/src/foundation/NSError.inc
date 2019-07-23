@@ -86,7 +86,7 @@ var
 { NSErrorRecoveryAttemptingCategory }
   NSErrorRecoveryAttemptingCategory = objccategory external (NSObject)
     procedure attemptRecoveryFromError_optionIndex_delegate_didRecoverSelector_contextInfo(error: NSError; recoveryOptionIndex: NSUInteger; delegate: id; didRecoverSelector: SEL; contextInfo: Pointer); message 'attemptRecoveryFromError:optionIndex:delegate:didRecoverSelector:contextInfo:';
-    function attemptRecoveryFromError_optionIndex(error: NSError; recoveryOptionIndex: NSUInteger): BOOL; message 'attemptRecoveryFromError:optionIndex:';
+    function attemptRecoveryFromError_optionIndex(error: NSError; recoveryOptionIndex: NSUInteger): ObjCBOOL; message 'attemptRecoveryFromError:optionIndex:';
   end;
 
 {$endif}

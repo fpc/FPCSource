@@ -45,10 +45,10 @@
     _internal: NSURLConnectionInternal;
     
   public
-    class function canHandleRequest(request: NSURLRequest): BOOL; message 'canHandleRequest:';
+    class function canHandleRequest(request: NSURLRequest): ObjCBOOL; message 'canHandleRequest:';
     class function connectionWithRequest_delegate(request: NSURLRequest; delegate: id): NSURLConnection; message 'connectionWithRequest:delegate:';
     function initWithRequest_delegate(request: NSURLRequest; delegate: id): id; message 'initWithRequest:delegate:';
-    function initWithRequest_delegate_startImmediately(request: NSURLRequest; delegate: id; startImmediately: BOOL): id; message 'initWithRequest:delegate:startImmediately:';
+    function initWithRequest_delegate_startImmediately(request: NSURLRequest; delegate: id; startImmediately: ObjCBOOL): id; message 'initWithRequest:delegate:startImmediately:';
     procedure start; message 'start';
     procedure cancel; message 'cancel';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
@@ -59,10 +59,10 @@
   NSURLConnectionDelegateCategory = objccategory external (NSObject)
     function connection_willSendRequest_redirectResponse(connection: NSURLConnection; request: NSURLRequest; response: NSURLResponse): NSURLRequest; message 'connection:willSendRequest:redirectResponse:';
     function connection_needNewBodyStream(connection: NSURLConnection; request: NSURLRequest): NSInputStream; message 'connection:needNewBodyStream:';
-    function connection_canAuthenticateAgainstProtectionSpace(connection: NSURLConnection; protectionSpace: NSURLProtectionSpace): BOOL; message 'connection:canAuthenticateAgainstProtectionSpace:';
+    function connection_canAuthenticateAgainstProtectionSpace(connection: NSURLConnection; protectionSpace: NSURLProtectionSpace): ObjCBOOL; message 'connection:canAuthenticateAgainstProtectionSpace:';
     procedure connection_didReceiveAuthenticationChallenge(connection: NSURLConnection; challenge: NSURLAuthenticationChallenge); message 'connection:didReceiveAuthenticationChallenge:';
     procedure connection_didCancelAuthenticationChallenge(connection: NSURLConnection; challenge: NSURLAuthenticationChallenge); message 'connection:didCancelAuthenticationChallenge:';
-    function connectionShouldUseCredentialStorage(connection: NSURLConnection): BOOL; message 'connectionShouldUseCredentialStorage:';
+    function connectionShouldUseCredentialStorage(connection: NSURLConnection): ObjCBOOL; message 'connectionShouldUseCredentialStorage:';
     procedure connection_didReceiveResponse(connection: NSURLConnection; response: NSURLResponse); message 'connection:didReceiveResponse:';
     procedure connection_didReceiveData(connection: NSURLConnection; data: NSData); message 'connection:didReceiveData:';
     procedure connection_didSendBodyData_totalBytesWritten_totalBytesExpectedToWrite(connection: NSURLConnection; bytesWritten: NSInteger; totalBytesWritten: NSInteger; totalBytesExpectedToWrite: NSInteger); message 'connection:didSendBodyData:totalBytesWritten:totalBytesExpectedToWrite:';

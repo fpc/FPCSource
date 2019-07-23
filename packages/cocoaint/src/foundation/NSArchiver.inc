@@ -63,7 +63,7 @@ var
     procedure encodeRootObject(rootObject: id); message 'encodeRootObject:';
     procedure encodeConditionalObject(object_: id); message 'encodeConditionalObject:';
     class function archivedDataWithRootObject(rootObject: id): NSData; message 'archivedDataWithRootObject:';
-    class function archiveRootObject_toFile(rootObject: id; path: NSString): BOOL; message 'archiveRootObject:toFile:';
+    class function archiveRootObject_toFile(rootObject: id; path: NSString): ObjCBOOL; message 'archiveRootObject:toFile:';
     procedure encodeClassName_intoClassName(trueName: NSString; inArchiveName: NSString); message 'encodeClassName:intoClassName:';
     function classNameEncodedForTrueClassName(trueName: NSString): NSString; message 'classNameEncodedForTrueClassName:';
     procedure replaceObject_withObject(object_: id; newObject: id); message 'replaceObject:withObject:';
@@ -92,7 +92,7 @@ var
     function initForReadingWithData(data: NSData): id; message 'initForReadingWithData:';
     procedure setObjectZone(zone_: NSZonePtr); message 'setObjectZone:';
     function objectZone: NSZonePtr; message 'objectZone';
-    function isAtEnd: BOOL; message 'isAtEnd';
+    function isAtEnd: ObjCBOOL; message 'isAtEnd';
     function systemVersion: cuint; message 'systemVersion';
     class function unarchiveObjectWithData(data: NSData): id; message 'unarchiveObjectWithData:';
     class function unarchiveObjectWithFile(path: NSString): id; message 'unarchiveObjectWithFile:';

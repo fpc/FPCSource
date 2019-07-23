@@ -66,7 +66,7 @@ type
   NSScriptWhoseTest = objcclass external (NSObject, NSCodingProtocol)
     
   public
-    function isTrue: BOOL; message 'isTrue';
+    function isTrue: ObjCBOOL; message 'isTrue';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
@@ -98,27 +98,27 @@ type
 
 { NSComparisonMethodsCategory }
   NSComparisonMethodsCategory = objccategory external (NSObject)
-    function isEqualTo(object_: id): BOOL; message 'isEqualTo:';
-    function isLessThanOrEqualTo(object_: id): BOOL; message 'isLessThanOrEqualTo:';
-    function isLessThan(object_: id): BOOL; message 'isLessThan:';
-    function isGreaterThanOrEqualTo(object_: id): BOOL; message 'isGreaterThanOrEqualTo:';
-    function isGreaterThan(object_: id): BOOL; message 'isGreaterThan:';
-    function isNotEqualTo(object_: id): BOOL; message 'isNotEqualTo:';
-    function doesContain(object_: id): BOOL; message 'doesContain:';
-    function isLike(object_: NSString): BOOL; message 'isLike:';
-    function isCaseInsensitiveLike(object_: NSString): BOOL; message 'isCaseInsensitiveLike:';
+    function isEqualTo(object_: id): ObjCBOOL; message 'isEqualTo:';
+    function isLessThanOrEqualTo(object_: id): ObjCBOOL; message 'isLessThanOrEqualTo:';
+    function isLessThan(object_: id): ObjCBOOL; message 'isLessThan:';
+    function isGreaterThanOrEqualTo(object_: id): ObjCBOOL; message 'isGreaterThanOrEqualTo:';
+    function isGreaterThan(object_: id): ObjCBOOL; message 'isGreaterThan:';
+    function isNotEqualTo(object_: id): ObjCBOOL; message 'isNotEqualTo:';
+    function doesContain(object_: id): ObjCBOOL; message 'doesContain:';
+    function isLike(object_: NSString): ObjCBOOL; message 'isLike:';
+    function isCaseInsensitiveLike(object_: NSString): ObjCBOOL; message 'isCaseInsensitiveLike:';
   end;
 
 { NSScriptingComparisonMethodsCategory }
   NSScriptingComparisonMethodsCategory = objccategory external (NSObject)
-    function scriptingIsEqualTo(object_: id): BOOL; message 'scriptingIsEqualTo:';
-    function scriptingIsLessThanOrEqualTo(object_: id): BOOL; message 'scriptingIsLessThanOrEqualTo:';
-    function scriptingIsLessThan(object_: id): BOOL; message 'scriptingIsLessThan:';
-    function scriptingIsGreaterThanOrEqualTo(object_: id): BOOL; message 'scriptingIsGreaterThanOrEqualTo:';
-    function scriptingIsGreaterThan(object_: id): BOOL; message 'scriptingIsGreaterThan:';
-    function scriptingBeginsWith(object_: id): BOOL; message 'scriptingBeginsWith:';
-    function scriptingEndsWith(object_: id): BOOL; message 'scriptingEndsWith:';
-    function scriptingContains(object_: id): BOOL; message 'scriptingContains:';
+    function scriptingIsEqualTo(object_: id): ObjCBOOL; message 'scriptingIsEqualTo:';
+    function scriptingIsLessThanOrEqualTo(object_: id): ObjCBOOL; message 'scriptingIsLessThanOrEqualTo:';
+    function scriptingIsLessThan(object_: id): ObjCBOOL; message 'scriptingIsLessThan:';
+    function scriptingIsGreaterThanOrEqualTo(object_: id): ObjCBOOL; message 'scriptingIsGreaterThanOrEqualTo:';
+    function scriptingIsGreaterThan(object_: id): ObjCBOOL; message 'scriptingIsGreaterThan:';
+    function scriptingBeginsWith(object_: id): ObjCBOOL; message 'scriptingBeginsWith:';
+    function scriptingEndsWith(object_: id): ObjCBOOL; message 'scriptingEndsWith:';
+    function scriptingContains(object_: id): ObjCBOOL; message 'scriptingContains:';
   end;
 
 {$endif}

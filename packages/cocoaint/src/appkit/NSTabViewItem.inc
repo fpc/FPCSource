@@ -95,8 +95,8 @@ type
     procedure setInitialFirstResponder(view_: NSView); message 'setInitialFirstResponder:';
     function toolTip: NSString; message 'toolTip';
     procedure setToolTip(toolTip_: NSString); message 'setToolTip:';
-    procedure drawLabel_inRect(shouldTruncateLabel: BOOL; labelRect: NSRect); message 'drawLabel:inRect:';
-    function sizeOfLabel(computeMin: BOOL): NSSize; message 'sizeOfLabel:';
+    procedure drawLabel_inRect(shouldTruncateLabel: ObjCBOOL; labelRect: NSRect); message 'drawLabel:inRect:';
+    function sizeOfLabel(computeMin: ObjCBOOL): NSSize; message 'sizeOfLabel:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

@@ -67,11 +67,11 @@
     function menuItem: NSMenuItem; message 'menuItem';
     procedure setMenuView(menuView_: NSMenuView); message 'setMenuView:';
     function menuView: NSMenuView; message 'menuView';
-    procedure setNeedsSizing(flag: BOOL); message 'setNeedsSizing:';
-    function needsSizing: BOOL; message 'needsSizing';
+    procedure setNeedsSizing(flag: ObjCBOOL); message 'setNeedsSizing:';
+    function needsSizing: ObjCBOOL; message 'needsSizing';
     procedure calcSize; message 'calcSize';
-    procedure setNeedsDisplay_(flag: BOOL); message 'setNeedsDisplay:';
-    function needsDisplay: BOOL; message 'needsDisplay';
+    procedure setNeedsDisplay_(flag: ObjCBOOL); message 'setNeedsDisplay:';
+    function needsDisplay: ObjCBOOL; message 'needsDisplay';
     function stateImageWidth: CGFloat; message 'stateImageWidth';
     function imageWidth: CGFloat; message 'imageWidth';
     function titleWidth: CGFloat; message 'titleWidth';

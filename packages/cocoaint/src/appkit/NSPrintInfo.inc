@@ -127,10 +127,10 @@ var
     function rightMargin: CGFloat; message 'rightMargin';
     function topMargin: CGFloat; message 'topMargin';
     function bottomMargin: CGFloat; message 'bottomMargin';
-    procedure setHorizontallyCentered(flag: BOOL); message 'setHorizontallyCentered:';
-    procedure setVerticallyCentered(flag: BOOL); message 'setVerticallyCentered:';
-    function isHorizontallyCentered: BOOL; message 'isHorizontallyCentered';
-    function isVerticallyCentered: BOOL; message 'isVerticallyCentered';
+    procedure setHorizontallyCentered(flag: ObjCBOOL); message 'setHorizontallyCentered:';
+    procedure setVerticallyCentered(flag: ObjCBOOL); message 'setVerticallyCentered:';
+    function isHorizontallyCentered: ObjCBOOL; message 'isHorizontallyCentered';
+    function isVerticallyCentered: ObjCBOOL; message 'isVerticallyCentered';
     procedure setHorizontalPagination(mode: NSPrintingPaginationMode); message 'setHorizontalPagination:';
     procedure setVerticalPagination(mode: NSPrintingPaginationMode); message 'setVerticalPagination:';
     function horizontalPagination: NSPrintingPaginationMode; message 'horizontalPagination';
@@ -149,8 +149,8 @@ var
     function PMPrintSettings: Pointer; message 'PMPrintSettings';
     procedure updateFromPMPageFormat; message 'updateFromPMPageFormat';
     procedure updateFromPMPrintSettings; message 'updateFromPMPrintSettings';
-    procedure setSelectionOnly(selectionOnly: BOOL); message 'setSelectionOnly:';
-    function isSelectionOnly: BOOL; message 'isSelectionOnly';
+    procedure setSelectionOnly(selectionOnly: ObjCBOOL); message 'setSelectionOnly:';
+    function isSelectionOnly: ObjCBOOL; message 'isSelectionOnly';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;

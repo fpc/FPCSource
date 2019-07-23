@@ -63,7 +63,7 @@
     function argumentNames: NSArray; message 'argumentNames';
     function typeForArgumentWithName(argumentName: NSString): NSString; message 'typeForArgumentWithName:';
     function appleEventCodeForArgumentWithName(argumentName: NSString): FourCharCode; message 'appleEventCodeForArgumentWithName:';
-    function isOptionalArgumentWithName(argumentName: NSString): BOOL; message 'isOptionalArgumentWithName:';
+    function isOptionalArgumentWithName(argumentName: NSString): ObjCBOOL; message 'isOptionalArgumentWithName:';
     function createCommandInstance: NSScriptCommand; message 'createCommandInstance';
     function createCommandInstanceWithZone(zone_: NSZonePtr): NSScriptCommand; message 'createCommandInstanceWithZone:';
 

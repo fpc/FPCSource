@@ -46,7 +46,7 @@
     function root: DOMNode; message 'root';
     function whatToShow: cuint; message 'whatToShow';
     function filter: id; message 'filter';
-    function expandEntityReferences: BOOL; message 'expandEntityReferences';
+    function expandEntityReferences: ObjCBOOL; message 'expandEntityReferences';
     procedure setCurrentNode (newValue: DOMNode); message 'setCurrentNode:';
     function currentNode: DOMNode; message 'currentNode';
     function parentNode: DOMNode; message 'parentNode';

@@ -43,7 +43,7 @@
   NSTableHeaderCell = objcclass external (NSTextFieldCell)
     
   public
-    procedure drawSortIndicatorWithFrame_inView_ascending_priority(cellFrame: NSRect; controlView_: NSView; ascending: BOOL; priority: NSInteger); message 'drawSortIndicatorWithFrame:inView:ascending:priority:';
+    procedure drawSortIndicatorWithFrame_inView_ascending_priority(cellFrame: NSRect; controlView_: NSView; ascending: ObjCBOOL; priority: NSInteger); message 'drawSortIndicatorWithFrame:inView:ascending:priority:';
     function sortIndicatorRectForBounds(theRect: NSRect): NSRect; message 'sortIndicatorRectForBounds:';
   end;
 

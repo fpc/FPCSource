@@ -120,7 +120,7 @@ var
     function persistentStoreCoordinator: NSPersistentStoreCoordinator; message 'persistentStoreCoordinator';
     procedure setUndoManager(undoManager_: NSUndoManager); message 'setUndoManager:';
     function undoManager: NSUndoManager; message 'undoManager';
-    function hasChanges: BOOL; message 'hasChanges';
+    function hasChanges: ObjCBOOL; message 'hasChanges';
     function objectRegisteredForID(objectID: NSManagedObjectID): NSManagedObject; message 'objectRegisteredForID:';
     function objectWithID(objectID: NSManagedObjectID): NSManagedObject; message 'objectWithID:';
     function existingObjectWithID_error(objectID: NSManagedObjectID; error: NSErrorPointer): NSManagedObject; message 'existingObjectWithID:error:';
@@ -128,7 +128,7 @@ var
     function countForFetchRequest_error(request: NSFetchRequest; error: NSErrorPointer): NSUInteger; message 'countForFetchRequest:error:';
     procedure insertObject(object_: NSManagedObject); message 'insertObject:';
     procedure deleteObject(object_: NSManagedObject); message 'deleteObject:';
-    procedure refreshObject_mergeChanges(object_: NSManagedObject; flag: BOOL); message 'refreshObject:mergeChanges:';
+    procedure refreshObject_mergeChanges(object_: NSManagedObject; flag: ObjCBOOL); message 'refreshObject:mergeChanges:';
     procedure detectConflictsForObject(object_: NSManagedObject); message 'detectConflictsForObject:';
     procedure observeValueForKeyPath_ofObject_change_context(keyPath: NSString; object_: id; change: NSDictionary; context: Pointer); message 'observeValueForKeyPath:ofObject:change:context:';
     procedure processPendingChanges; message 'processPendingChanges';
@@ -141,19 +141,19 @@ var
     procedure redo; message 'redo';
     procedure reset; message 'reset';
     procedure rollback; message 'rollback';
-    function save(error: NSErrorPointer): BOOL; message 'save:';
+    function save(error: NSErrorPointer): ObjCBOOL; message 'save:';
     procedure lock; message 'lock';
     procedure unlock; message 'unlock';
-    function tryLock: BOOL; message 'tryLock';
-    function propagatesDeletesAtEndOfEvent: BOOL; message 'propagatesDeletesAtEndOfEvent';
-    procedure setPropagatesDeletesAtEndOfEvent(flag: BOOL); message 'setPropagatesDeletesAtEndOfEvent:';
-    function retainsRegisteredObjects: BOOL; message 'retainsRegisteredObjects';
-    procedure setRetainsRegisteredObjects(flag: BOOL); message 'setRetainsRegisteredObjects:';
+    function tryLock: ObjCBOOL; message 'tryLock';
+    function propagatesDeletesAtEndOfEvent: ObjCBOOL; message 'propagatesDeletesAtEndOfEvent';
+    procedure setPropagatesDeletesAtEndOfEvent(flag: ObjCBOOL); message 'setPropagatesDeletesAtEndOfEvent:';
+    function retainsRegisteredObjects: ObjCBOOL; message 'retainsRegisteredObjects';
+    procedure setRetainsRegisteredObjects(flag: ObjCBOOL); message 'setRetainsRegisteredObjects:';
     function stalenessInterval: NSTimeInterval; message 'stalenessInterval';
     procedure setStalenessInterval(expiration: NSTimeInterval); message 'setStalenessInterval:';
     procedure setMergePolicy(mergePolicy_: id); message 'setMergePolicy:';
     function mergePolicy: id; message 'mergePolicy';
-    function obtainPermanentIDsForObjects_error(objects: NSArray; error: NSErrorPointer): BOOL; message 'obtainPermanentIDsForObjects:error:';
+    function obtainPermanentIDsForObjects_error(objects: NSArray; error: NSErrorPointer): ObjCBOOL; message 'obtainPermanentIDsForObjects:error:';
     procedure mergeChangesFromContextDidSaveNotification(notification: NSNotification); message 'mergeChangesFromContextDidSaveNotification:';
 
     { Adopted Protocols }

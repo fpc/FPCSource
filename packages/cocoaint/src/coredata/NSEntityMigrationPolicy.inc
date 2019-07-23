@@ -52,13 +52,13 @@ var
   NSEntityMigrationPolicy = objcclass external (NSObject)
     
   public
-    function beginEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): BOOL; message 'beginEntityMapping:manager:error:';
-    function createDestinationInstancesForSourceInstance_entityMapping_manager_error(sInstance: NSManagedObject; mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): BOOL; message 'createDestinationInstancesForSourceInstance:entityMapping:manager:error:';
-    function endInstanceCreationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): BOOL; message 'endInstanceCreationForEntityMapping:manager:error:';
-    function createRelationshipsForDestinationInstance_entityMapping_manager_error(dInstance: NSManagedObject; mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): BOOL; message 'createRelationshipsForDestinationInstance:entityMapping:manager:error:';
-    function endRelationshipCreationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): BOOL; message 'endRelationshipCreationForEntityMapping:manager:error:';
-    function performCustomValidationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): BOOL; message 'performCustomValidationForEntityMapping:manager:error:';
-    function endEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): BOOL; message 'endEntityMapping:manager:error:';
+    function beginEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'beginEntityMapping:manager:error:';
+    function createDestinationInstancesForSourceInstance_entityMapping_manager_error(sInstance: NSManagedObject; mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'createDestinationInstancesForSourceInstance:entityMapping:manager:error:';
+    function endInstanceCreationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'endInstanceCreationForEntityMapping:manager:error:';
+    function createRelationshipsForDestinationInstance_entityMapping_manager_error(dInstance: NSManagedObject; mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'createRelationshipsForDestinationInstance:entityMapping:manager:error:';
+    function endRelationshipCreationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'endRelationshipCreationForEntityMapping:manager:error:';
+    function performCustomValidationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'performCustomValidationForEntityMapping:manager:error:';
+    function endEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'endEntityMapping:manager:error:';
   end;
 
 {$endif}

@@ -84,10 +84,10 @@ type
     _delegate: id;
     _alertStyle: NSAlertStyle;
     _helpAnchor: id;
-    _layoutDone: BOOL;
-    _showsHelp: BOOL;
-    _showsSuppressionButton: BOOL;
-    reserved: BOOL;
+    _layoutDone: ObjCBOOL;
+    _showsHelp: ObjCBOOL;
+    _showsSuppressionButton: ObjCBOOL;
+    reserved: ObjCBOOL;
     _suppressionButton: id;
     _accessoryView: id;
     
@@ -102,16 +102,16 @@ type
     function icon: NSImage; message 'icon';
     function addButtonWithTitle(title: NSString): NSButton; message 'addButtonWithTitle:';
     function buttons: NSArray; message 'buttons';
-    procedure setShowsHelp(showsHelp_: BOOL); message 'setShowsHelp:';
-    function showsHelp: BOOL; message 'showsHelp';
+    procedure setShowsHelp(showsHelp_: ObjCBOOL); message 'setShowsHelp:';
+    function showsHelp: ObjCBOOL; message 'showsHelp';
     procedure setHelpAnchor(anchor: NSString); message 'setHelpAnchor:';
     function helpAnchor: NSString; message 'helpAnchor';
     procedure setAlertStyle(style: NSAlertStyle); message 'setAlertStyle:';
     function alertStyle: NSAlertStyle; message 'alertStyle';
     procedure setDelegate(delegate_: NSAlertDelegateProtocol); message 'setDelegate:';
     function delegate: NSAlertDelegateProtocol; message 'delegate';
-    procedure setShowsSuppressionButton(flag: BOOL); message 'setShowsSuppressionButton:';
-    function showsSuppressionButton: BOOL; message 'showsSuppressionButton';
+    procedure setShowsSuppressionButton(flag: ObjCBOOL); message 'setShowsSuppressionButton:';
+    function showsSuppressionButton: ObjCBOOL; message 'showsSuppressionButton';
     function suppressionButton: NSButton; message 'suppressionButton';
     procedure setAccessoryView(view: NSView); message 'setAccessoryView:';
     function accessoryView: NSView; message 'accessoryView';
@@ -131,7 +131,7 @@ type
 { NSAlertDelegate Protocol }
   NSAlertDelegateProtocol = objcprotocol external name 'NSAlertDelegate'
   optional
-    function alertShowHelp(alert: NSAlert): BOOL; message 'alertShowHelp:';
+    function alertShowHelp(alert: NSAlert): ObjCBOOL; message 'alertShowHelp:';
   end;
 {$endif}
 {$endif}

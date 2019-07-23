@@ -98,8 +98,8 @@ var
     class function dataFromTXTRecordDictionary(txtDictionary: NSDictionary): NSData; message 'dataFromTXTRecordDictionary:';
     function hostName: NSString; message 'hostName';
     procedure resolveWithTimeout(timeout: NSTimeInterval); message 'resolveWithTimeout:';
-    function getInputStream_outputStream(inputStream: NSInputStreamPointer; outputStream: NSOutputStreamPointer): BOOL; message 'getInputStream:outputStream:';
-    function setTXTRecordData(recordData: NSData): BOOL; message 'setTXTRecordData:';
+    function getInputStream_outputStream(inputStream: NSInputStreamPointer; outputStream: NSOutputStreamPointer): ObjCBOOL; message 'getInputStream:outputStream:';
+    function setTXTRecordData(recordData: NSData): ObjCBOOL; message 'setTXTRecordData:';
     function TXTRecordData: NSData; message 'TXTRecordData';
     procedure startMonitoring; message 'startMonitoring';
     procedure stopMonitoring; message 'stopMonitoring';
@@ -160,10 +160,10 @@ var
     procedure netServiceBrowserWillSearch(aNetServiceBrowser: NSNetServiceBrowser); message 'netServiceBrowserWillSearch:';
     procedure netServiceBrowserDidStopSearch(aNetServiceBrowser: NSNetServiceBrowser); message 'netServiceBrowserDidStopSearch:';
     procedure netServiceBrowser_didNotSearch(aNetServiceBrowser: NSNetServiceBrowser; errorDict: NSDictionary); message 'netServiceBrowser:didNotSearch:';
-    procedure netServiceBrowser_didFindDomain_moreComing(aNetServiceBrowser: NSNetServiceBrowser; domainString: NSString; moreComing: BOOL); message 'netServiceBrowser:didFindDomain:moreComing:';
-    procedure netServiceBrowser_didFindService_moreComing(aNetServiceBrowser: NSNetServiceBrowser; aNetService: NSNetService; moreComing: BOOL); message 'netServiceBrowser:didFindService:moreComing:';
-    procedure netServiceBrowser_didRemoveDomain_moreComing(aNetServiceBrowser: NSNetServiceBrowser; domainString: NSString; moreComing: BOOL); message 'netServiceBrowser:didRemoveDomain:moreComing:';
-    procedure netServiceBrowser_didRemoveService_moreComing(aNetServiceBrowser: NSNetServiceBrowser; aNetService: NSNetService; moreComing: BOOL); message 'netServiceBrowser:didRemoveService:moreComing:';
+    procedure netServiceBrowser_didFindDomain_moreComing(aNetServiceBrowser: NSNetServiceBrowser; domainString: NSString; moreComing: ObjCBOOL); message 'netServiceBrowser:didFindDomain:moreComing:';
+    procedure netServiceBrowser_didFindService_moreComing(aNetServiceBrowser: NSNetServiceBrowser; aNetService: NSNetService; moreComing: ObjCBOOL); message 'netServiceBrowser:didFindService:moreComing:';
+    procedure netServiceBrowser_didRemoveDomain_moreComing(aNetServiceBrowser: NSNetServiceBrowser; domainString: NSString; moreComing: ObjCBOOL); message 'netServiceBrowser:didRemoveDomain:moreComing:';
+    procedure netServiceBrowser_didRemoveService_moreComing(aNetServiceBrowser: NSNetServiceBrowser; aNetService: NSNetService; moreComing: ObjCBOOL); message 'netServiceBrowser:didRemoveService:moreComing:';
   end;
 {$endif}
 {$endif}

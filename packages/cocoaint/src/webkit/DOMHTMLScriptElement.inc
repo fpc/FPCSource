@@ -51,8 +51,8 @@
     function event: NSString; message 'event';
     procedure setCharset (newValue: NSString); message 'setCharset:';
     function charset: NSString; message 'charset';
-    procedure setDefer (newValue: BOOL); message 'setDefer:';
-    function defer: BOOL; message 'defer';
+    procedure setDefer (newValue: ObjCBOOL); message 'setDefer:';
+    function defer: ObjCBOOL; message 'defer';
     procedure setSrc (newValue: NSString); message 'setSrc:';
     function src: NSString; message 'src';
     procedure setType (newValue: NSString); message 'setType:';

@@ -85,8 +85,8 @@
     procedure setManagedObjectClassName(name_: NSString); message 'setManagedObjectClassName:';
     function name: NSString; message 'name';
     procedure setName(name_: NSString); message 'setName:';
-    function isAbstract: BOOL; message 'isAbstract';
-    procedure setAbstract(flag: BOOL); message 'setAbstract:';
+    function isAbstract: ObjCBOOL; message 'isAbstract';
+    procedure setAbstract(flag: ObjCBOOL); message 'setAbstract:';
     function subentitiesByName: NSDictionary; message 'subentitiesByName';
     function subentities: NSArray; message 'subentities';
     procedure setSubentities(array_: NSArray); message 'setSubentities:';
@@ -99,7 +99,7 @@
     function attributesByName: NSDictionary; message 'attributesByName';
     function relationshipsByName: NSDictionary; message 'relationshipsByName';
     function relationshipsWithDestinationEntity(entity: NSEntityDescription): NSArray; message 'relationshipsWithDestinationEntity:';
-    function isKindOfEntity(entity: NSEntityDescription): BOOL; message 'isKindOfEntity:';
+    function isKindOfEntity(entity: NSEntityDescription): ObjCBOOL; message 'isKindOfEntity:';
     function versionHash: NSData; message 'versionHash';
     function versionHashModifier: NSString; message 'versionHashModifier';
     procedure setVersionHashModifier(modifierString: NSString); message 'setVersionHashModifier:';

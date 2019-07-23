@@ -72,7 +72,7 @@ var
     
   public
     class function archivedDataWithRootObject(rootObject: id): NSData; message 'archivedDataWithRootObject:';
-    class function archiveRootObject_toFile(rootObject: id; path: NSString): BOOL; message 'archiveRootObject:toFile:';
+    class function archiveRootObject_toFile(rootObject: id; path: NSString): ObjCBOOL; message 'archiveRootObject:toFile:';
     function initForWritingWithMutableData(data: NSMutableData): id; message 'initForWritingWithMutableData:';
     procedure setDelegate(delegate_: NSKeyedArchiverDelegateProtocol); message 'setDelegate:';
     function delegate: NSKeyedArchiverDelegateProtocol; message 'delegate';
@@ -83,7 +83,7 @@ var
     class function classNameForClass(cls: Pobjc_class): NSString; message 'classNameForClass:';
     procedure encodeObject_forKey(objv: id; key: NSString); message 'encodeObject:forKey:';
     procedure encodeConditionalObject_forKey(objv: id; key: NSString); message 'encodeConditionalObject:forKey:';
-    procedure encodeBool_forKey(boolv: BOOL; key: NSString); message 'encodeBool:forKey:';
+    procedure encodeBool_forKey(boolv: ObjCBOOL; key: NSString); message 'encodeBool:forKey:';
     procedure encodeInt_forKey(intv: cint; key: NSString); message 'encodeInt:forKey:';
     procedure encodeInt32_forKey(intv: cint32; key: NSString); message 'encodeInt32:forKey:';
     procedure encodeInt64_forKey(intv: cint64; key: NSString); message 'encodeInt64:forKey:';
@@ -121,9 +121,9 @@ var
     procedure finishDecoding; message 'finishDecoding';
     class procedure setClass_forClassName(cls: Pobjc_class; codedName: NSString); message 'setClass:forClassName:';
     class function classForClassName(codedName: NSString): Pobjc_class; message 'classForClassName:';
-    function containsValueForKey(key: NSString): BOOL; message 'containsValueForKey:';
+    function containsValueForKey(key: NSString): ObjCBOOL; message 'containsValueForKey:';
     function decodeObjectForKey(key: NSString): id; message 'decodeObjectForKey:';
-    function decodeBoolForKey(key: NSString): BOOL; message 'decodeBoolForKey:';
+    function decodeBoolForKey(key: NSString): ObjCBOOL; message 'decodeBoolForKey:';
     function decodeIntForKey(key: NSString): cint; message 'decodeIntForKey:';
     function decodeInt32ForKey(key: NSString): cint32; message 'decodeInt32ForKey:';
     function decodeInt64ForKey(key: NSString): cint64; message 'decodeInt64ForKey:';

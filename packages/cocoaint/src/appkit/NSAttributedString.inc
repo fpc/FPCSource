@@ -180,7 +180,7 @@ var
     function attributedSubstringFromRange(range: NSRange): NSAttributedString; message 'attributedSubstringFromRange:';
     function attributesAtIndex_longestEffectiveRange_inRange(location: NSUInteger; range: NSRangePointer; rangeLimit: NSRange): NSDictionary; message 'attributesAtIndex:longestEffectiveRange:inRange:';
     function attribute_atIndex_longestEffectiveRange_inRange(attrName: NSString; location: NSUInteger; range: NSRangePointer; rangeLimit: NSRange): id; message 'attribute:atIndex:longestEffectiveRange:inRange:';
-    function isEqualToAttributedString(other: NSAttributedString): BOOL; message 'isEqualToAttributedString:';
+    function isEqualToAttributedString(other: NSAttributedString): ObjCBOOL; message 'isEqualToAttributedString:';
     function initWithString(str: NSString): id; message 'initWithString:';
     function initWithString_attributes(str: NSString; attrs: NSDictionary): id; message 'initWithString:attributes:';
     function initWithAttributedString(attrStr: NSAttributedString): id; message 'initWithAttributedString:';
@@ -205,11 +205,11 @@ var
   NSAttributedStringKitAdditionsCategory = objccategory external (NSAttributedString)
     function fontAttributesInRange(range: NSRange): NSDictionary; message 'fontAttributesInRange:';
     function rulerAttributesInRange(range: NSRange): NSDictionary; message 'rulerAttributesInRange:';
-    function containsAttachments: BOOL; message 'containsAttachments';
+    function containsAttachments: ObjCBOOL; message 'containsAttachments';
     function lineBreakBeforeIndex_withinRange(location: NSUInteger; aRange: NSRange): NSUInteger; message 'lineBreakBeforeIndex:withinRange:';
     function lineBreakByHyphenatingBeforeIndex_withinRange(location: NSUInteger; aRange: NSRange): NSUInteger; message 'lineBreakByHyphenatingBeforeIndex:withinRange:';
     function doubleClickAtIndex(location: NSUInteger): NSRange; message 'doubleClickAtIndex:';
-    function nextWordFromIndex_forward(location: NSUInteger; isForward: BOOL): NSUInteger; message 'nextWordFromIndex:forward:';
+    function nextWordFromIndex_forward(location: NSUInteger; isForward: ObjCBOOL): NSUInteger; message 'nextWordFromIndex:forward:';
     function URLAtIndex_effectiveRange(location: NSUInteger; effectiveRange: NSRangePointer): NSURL; message 'URLAtIndex:effectiveRange:';
     class function textTypes: NSArray; message 'textTypes';
     class function textUnfilteredTypes: NSArray; message 'textUnfilteredTypes';
@@ -246,10 +246,10 @@ var
 
 { NSMutableAttributedStringKitAdditionsCategory }
   NSMutableAttributedStringKitAdditionsCategory = objccategory external (NSMutableAttributedString)
-    function readFromURL_options_documentAttributes_error(url: NSURL; opts: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): BOOL; message 'readFromURL:options:documentAttributes:error:';
-    function readFromData_options_documentAttributes_error(data: NSData; opts: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): BOOL; message 'readFromData:options:documentAttributes:error:';
-    function readFromURL_options_documentAttributes(url: NSURL; options: NSDictionary; dict: NSDictionaryPointer): BOOL; message 'readFromURL:options:documentAttributes:';
-    function readFromData_options_documentAttributes(data: NSData; options: NSDictionary; dict: NSDictionaryPointer): BOOL; message 'readFromData:options:documentAttributes:';
+    function readFromURL_options_documentAttributes_error(url: NSURL; opts: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): ObjCBOOL; message 'readFromURL:options:documentAttributes:error:';
+    function readFromData_options_documentAttributes_error(data: NSData; opts: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): ObjCBOOL; message 'readFromData:options:documentAttributes:error:';
+    function readFromURL_options_documentAttributes(url: NSURL; options: NSDictionary; dict: NSDictionaryPointer): ObjCBOOL; message 'readFromURL:options:documentAttributes:';
+    function readFromData_options_documentAttributes(data: NSData; options: NSDictionary; dict: NSDictionaryPointer): ObjCBOOL; message 'readFromData:options:documentAttributes:';
     procedure superscriptRange(range: NSRange); message 'superscriptRange:';
     procedure subscriptRange(range: NSRange); message 'subscriptRange:';
     procedure unscriptRange(range: NSRange); message 'unscriptRange:';

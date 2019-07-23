@@ -69,7 +69,7 @@ type
     class function credentialWithUser_password_persistence(user_: NSString; password_: NSString; persistence_: NSURLCredentialPersistence): NSURLCredential; message 'credentialWithUser:password:persistence:';
     function user: NSString; message 'user';
     function password: NSString; message 'password';
-    function hasPassword: BOOL; message 'hasPassword';
+    function hasPassword: ObjCBOOL; message 'hasPassword';
   end;
 
 { NSClientCertificateCategory }

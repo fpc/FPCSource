@@ -55,8 +55,8 @@
     _priv: Pointer;
     
   public
-    function tryLock: BOOL; message 'tryLock';
-    function lockBeforeDate(limit: NSDate): BOOL; message 'lockBeforeDate:';
+    function tryLock: ObjCBOOL; message 'tryLock';
+    function lockBeforeDate(limit: NSDate): ObjCBOOL; message 'lockBeforeDate:';
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
 
@@ -74,11 +74,11 @@
     function initWithCondition(condition_: NSInteger): id; message 'initWithCondition:';
     function condition: NSInteger; message 'condition';
     procedure lockWhenCondition(condition_: NSInteger); message 'lockWhenCondition:';
-    function tryLock: BOOL; message 'tryLock';
-    function tryLockWhenCondition(condition_: NSInteger): BOOL; message 'tryLockWhenCondition:';
+    function tryLock: ObjCBOOL; message 'tryLock';
+    function tryLockWhenCondition(condition_: NSInteger): ObjCBOOL; message 'tryLockWhenCondition:';
     procedure unlockWithCondition(condition_: NSInteger); message 'unlockWithCondition:';
-    function lockBeforeDate(limit: NSDate): BOOL; message 'lockBeforeDate:';
-    function lockWhenCondition_beforeDate(condition_: NSInteger; limit: NSDate): BOOL; message 'lockWhenCondition:beforeDate:';
+    function lockBeforeDate(limit: NSDate): ObjCBOOL; message 'lockBeforeDate:';
+    function lockWhenCondition_beforeDate(condition_: NSInteger; limit: NSDate): ObjCBOOL; message 'lockWhenCondition:beforeDate:';
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
 
@@ -93,8 +93,8 @@
     _priv: Pointer;
     
   public
-    function tryLock: BOOL; message 'tryLock';
-    function lockBeforeDate(limit: NSDate): BOOL; message 'lockBeforeDate:';
+    function tryLock: ObjCBOOL; message 'tryLock';
+    function lockBeforeDate(limit: NSDate): ObjCBOOL; message 'lockBeforeDate:';
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
 
@@ -110,7 +110,7 @@
     
   public
     procedure wait; message 'wait';
-    function waitUntilDate(limit: NSDate): BOOL; message 'waitUntilDate:';
+    function waitUntilDate(limit: NSDate): ObjCBOOL; message 'waitUntilDate:';
     procedure signal; message 'signal';
     procedure broadcast; message 'broadcast';
     procedure setName(n: NSString); message 'setName:';

@@ -92,8 +92,8 @@ type
 {$define NSGRAPHICS_PAS_F}
 
 { Functions }
-function NSBestDepth(colorSpace: NSString; bps: NSInteger; bpp: NSInteger; planar: BOOL; exactMatch: pBOOL): NSWindowDepth; cdecl; external;
-function NSPlanarFromDepth(depth: NSWindowDepth): BOOL; cdecl; external;
+function NSBestDepth(colorSpace: NSString; bps: NSInteger; bpp: NSInteger; planar: ObjCBOOL; exactMatch: pObjCBOOL): NSWindowDepth; cdecl; external;
+function NSPlanarFromDepth(depth: NSWindowDepth): ObjCBOOL; cdecl; external;
 function NSColorSpaceFromDepth(depth: NSWindowDepth): NSString; cdecl; external;
 function NSBitsPerSampleFromDepth(depth: NSWindowDepth): NSInteger; cdecl; external;
 function NSBitsPerPixelFromDepth(depth: NSWindowDepth): NSInteger; cdecl; external;
@@ -118,7 +118,7 @@ procedure NSDrawWhiteBezel(aRect: NSRect; clipRect: NSRect); cdecl; external;
 procedure NSDrawButton(aRect: NSRect; clipRect: NSRect); cdecl; external;
 procedure NSEraseRect(aRect: NSRect); cdecl; external;
 function NSReadPixel(passedPoint: NSPoint): NSColor; cdecl; external;
-procedure NSDrawBitmap(rect: NSRect; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; bpp: NSInteger; bpr: NSInteger; isPlanar: BOOL; hasAlpha: BOOL; colorSpaceName: NSString; data: PPChar {array of PChar}); cdecl; external;
+procedure NSDrawBitmap(rect: NSRect; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; bpp: NSInteger; bpr: NSInteger; isPlanar: ObjCBOOL; hasAlpha: ObjCBOOL; colorSpaceName: NSString; data: PPChar {array of PChar}); cdecl; external;
 procedure NSCopyBits(srcGState: NSInteger; srcRect: NSRect; destPoint: NSPoint); cdecl; external;
 procedure NSHighlightRect(aRect: NSRect); cdecl; external;
 procedure NSBeep; cdecl; external;

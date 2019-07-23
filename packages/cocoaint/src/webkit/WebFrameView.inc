@@ -47,11 +47,11 @@
   public
     function webFrame: WebFrame; message 'webFrame';
     function documentView: NSViewPtr; message 'documentView';
-    procedure setAllowsScrolling(flag: BOOL); message 'setAllowsScrolling:';
-    function allowsScrolling: BOOL; message 'allowsScrolling';
-    function canPrintHeadersAndFooters: BOOL; message 'canPrintHeadersAndFooters';
+    procedure setAllowsScrolling(flag: ObjCBOOL); message 'setAllowsScrolling:';
+    function allowsScrolling: ObjCBOOL; message 'allowsScrolling';
+    function canPrintHeadersAndFooters: ObjCBOOL; message 'canPrintHeadersAndFooters';
     function printOperationWithPrintInfo(printInfo: NSPrintInfoPtr): NSPrintOperationPtr; message 'printOperationWithPrintInfo:';
-    function documentViewShouldHandlePrint: BOOL; message 'documentViewShouldHandlePrint';
+    function documentViewShouldHandlePrint: ObjCBOOL; message 'documentViewShouldHandlePrint';
     procedure printDocumentView; message 'printDocumentView';
   end;
 

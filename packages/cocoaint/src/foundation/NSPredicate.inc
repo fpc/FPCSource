@@ -48,11 +48,11 @@
     class function predicateWithFormat_argumentArray(predicateFormat_: NSString; arguments: NSArray): NSPredicate; message 'predicateWithFormat:argumentArray:';
     class function predicateWithFormat(firstKey: id): NSPredicate; varargs; message 'predicateWithFormat:';
     class function predicateWithFormat_arguments(predicateFormat_: NSString; argList: va_list): NSPredicate; message 'predicateWithFormat:arguments:';
-    class function predicateWithValue(value: BOOL): NSPredicate; message 'predicateWithValue:';
+    class function predicateWithValue(value: ObjCBOOL): NSPredicate; message 'predicateWithValue:';
     function predicateFormat: NSString; message 'predicateFormat';
     function predicateWithSubstitutionVariables(variables: NSDictionary): NSPredicate; message 'predicateWithSubstitutionVariables:';
-    function evaluateWithObject(object_: id): BOOL; message 'evaluateWithObject:';
-    function evaluateWithObject_substitutionVariables(object_: id; bindings: NSDictionary): BOOL; message 'evaluateWithObject:substitutionVariables:';
+    function evaluateWithObject(object_: id): ObjCBOOL; message 'evaluateWithObject:';
+    function evaluateWithObject_substitutionVariables(object_: id; bindings: NSDictionary): ObjCBOOL; message 'evaluateWithObject:substitutionVariables:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

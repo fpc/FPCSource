@@ -88,7 +88,7 @@ type
     function maximumRangeOfUnit(unit_: NSCalendarUnit): NSRange; message 'maximumRangeOfUnit:';
     function rangeOfUnit_inUnit_forDate(smaller: NSCalendarUnit; larger: NSCalendarUnit; date: NSDate): NSRange; message 'rangeOfUnit:inUnit:forDate:';
     function ordinalityOfUnit_inUnit_forDate(smaller: NSCalendarUnit; larger: NSCalendarUnit; date: NSDate): NSUInteger; message 'ordinalityOfUnit:inUnit:forDate:';
-    function rangeOfUnit_startDate_interval_forDate(unit_: NSCalendarUnit; datep: NSDatePointer; tip: NSTimeIntervalPtr; date: NSDate): BOOL; message 'rangeOfUnit:startDate:interval:forDate:';
+    function rangeOfUnit_startDate_interval_forDate(unit_: NSCalendarUnit; datep: NSDatePointer; tip: NSTimeIntervalPtr; date: NSDate): ObjCBOOL; message 'rangeOfUnit:startDate:interval:forDate:';
     function dateFromComponents(comps: NSDateComponents): NSDate; message 'dateFromComponents:';
     function components_fromDate(unitFlags: NSUInteger; date: NSDate): NSDateComponents; message 'components:fromDate:';
     function dateByAddingComponents_toDate_options(comps: NSDateComponents; date: NSDate; opts: NSUInteger): NSDate; message 'dateByAddingComponents:toDate:options:';

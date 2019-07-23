@@ -55,12 +55,12 @@ const
     function newValue: NSString; message 'newValue';
     function attrName: NSString; message 'attrName';
     function attrChange: cuint; message 'attrChange';
-    procedure initMutationEvent_canBubble_cancelable_relatedNode_prevValue_newValue_attrName_attrChange(type__: NSString; canBubble: BOOL; cancelable_: BOOL; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:attrChange:';
+    procedure initMutationEvent_canBubble_cancelable_relatedNode_prevValue_newValue_attrName_attrChange(type__: NSString; canBubble: ObjCBOOL; cancelable_: ObjCBOOL; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:attrChange:';
   end;
 
 { DOMMutationEventDeprecatedCategory }
   DOMMutationEventDeprecatedCategory = objccategory external (DOMMutationEvent)
-    procedure initMutationEvent(type__: NSString; canBubble: BOOL; cancelable_: BOOL; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:type:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:'; deprecated 'in_webkit_version_3 and later';
+    procedure initMutationEvent(type__: NSString; canBubble: ObjCBOOL; cancelable_: ObjCBOOL; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:type:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

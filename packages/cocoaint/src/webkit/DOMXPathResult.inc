@@ -10,7 +10,7 @@ const
   DOM_ANY_TYPE = 0;
   DOM_NUMBER_TYPE = 1;
   DOM_STRING_TYPE = 2;
-  DOM_BOOL_TYPE = 3;
+  DOM_ObjCBOOL_TYPE = 3;
   DOM_UNORDERED_NODE_ITERATOR_TYPE = 4;
   DOM_ORDERED_NODE_ITERATOR_TYPE = 5;
   DOM_UNORDERED_NODE_SNAPSHOT_TYPE = 6;
@@ -60,9 +60,9 @@ const
     function resultType: cuint; message 'resultType';
     function numberValue: double; message 'numberValue';
     function stringValue: NSString; message 'stringValue';
-    function BOOLValue: BOOL; message 'BOOLValue';
+    function ObjCBOOLValue: ObjCBOOL; message 'ObjCBOOLValue';
     function singleNodeValue: DOMNode; message 'singleNodeValue';
-    function invalidIteratorState: BOOL; message 'invalidIteratorState';
+    function invalidIteratorState: ObjCBOOL; message 'invalidIteratorState';
     function snapshotLength: cuint; message 'snapshotLength';
     function iterateNext: DOMNode; message 'iterateNext';
     function snapshotItem(index: cuint): DOMNode; message 'snapshotItem:';

@@ -90,7 +90,7 @@ var
     class function registeredStoreTypes: NSDictionary; message 'registeredStoreTypes';
     class procedure registerStoreClass_forStoreType(storeClass: Pobjc_class; storeType: NSString); message 'registerStoreClass:forStoreType:';
     class function metadataForPersistentStoreOfType_URL_error(storeType: NSString; url: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreOfType:URL:error:';
-    class function setMetadata_forPersistentStoreOfType_URL_error(metadata: NSDictionary; storeType: NSString; url: NSURL; error: NSErrorPointer): BOOL; message 'setMetadata:forPersistentStoreOfType:URL:error:';
+    class function setMetadata_forPersistentStoreOfType_URL_error(metadata: NSDictionary; storeType: NSString; url: NSURL; error: NSErrorPointer): ObjCBOOL; message 'setMetadata:forPersistentStoreOfType:URL:error:';
     class function elementsDerivedFromExternalRecordURL(fileURL: NSURL): NSDictionary; message 'elementsDerivedFromExternalRecordURL:';
     function importStoreWithIdentifier_fromExternalRecordsDirectory_toURL_options_withType_error(storeIdentifier: NSString; externalRecordsURL: NSURL; destinationURL: NSURL; options: NSDictionary; storeType: NSString; error: NSErrorPointer): NSPersistentStore; message 'importStoreWithIdentifier:fromExternalRecordsDirectory:toURL:options:withType:error:';
     procedure setMetadata_forPersistentStore(metadata: NSDictionary; store: NSPersistentStore); message 'setMetadata:forPersistentStore:';
@@ -100,14 +100,14 @@ var
     function persistentStores: NSArray; message 'persistentStores';
     function persistentStoreForURL(URL: NSURL): NSPersistentStore; message 'persistentStoreForURL:';
     function URLForPersistentStore(store: NSPersistentStore): NSURL; message 'URLForPersistentStore:';
-    function setURL_forPersistentStore(url: NSURL; store: NSPersistentStore): BOOL; message 'setURL:forPersistentStore:';
+    function setURL_forPersistentStore(url: NSURL; store: NSPersistentStore): ObjCBOOL; message 'setURL:forPersistentStore:';
     function addPersistentStoreWithType_configuration_URL_options_error(storeType: NSString; configuration: NSString; storeURL: NSURL; options: NSDictionary; error: NSErrorPointer): NSPersistentStore; message 'addPersistentStoreWithType:configuration:URL:options:error:';
-    function removePersistentStore_error(store: NSPersistentStore; error: NSErrorPointer): BOOL; message 'removePersistentStore:error:';
+    function removePersistentStore_error(store: NSPersistentStore; error: NSErrorPointer): ObjCBOOL; message 'removePersistentStore:error:';
     function migratePersistentStore_toURL_options_withType_error(store: NSPersistentStore; URL: NSURL; options: NSDictionary; storeType: NSString; error: NSErrorPointer): NSPersistentStore; message 'migratePersistentStore:toURL:options:withType:error:';
     function managedObjectIDForURIRepresentation(url: NSURL): NSManagedObjectID; message 'managedObjectIDForURIRepresentation:';
     procedure lock; message 'lock';
     procedure unlock; message 'unlock';
-    function tryLock: BOOL; message 'tryLock';
+    function tryLock: ObjCBOOL; message 'tryLock';
     class function metadataForPersistentStoreWithURL_error(url: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreWithURL:error:'; deprecated 'in Mac OS X 10.5 and later';
 
     { Adopted Protocols }

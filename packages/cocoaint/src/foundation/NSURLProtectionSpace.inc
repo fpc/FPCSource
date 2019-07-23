@@ -66,8 +66,8 @@ var
     function initWithHost_port_protocol_realm_authenticationMethod(host_: NSString; port_: NSInteger; protocol_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithHost:port:protocol:realm:authenticationMethod:';
     function initWithProxyHost_port_type_realm_authenticationMethod(host_: NSString; port_: NSInteger; type_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithProxyHost:port:type:realm:authenticationMethod:';
     function realm: NSString; message 'realm';
-    function receivesCredentialSecurely: BOOL; message 'receivesCredentialSecurely';
-    function isProxy: BOOL; message 'isProxy';
+    function receivesCredentialSecurely: ObjCBOOL; message 'receivesCredentialSecurely';
+    function isProxy: ObjCBOOL; message 'isProxy';
     function host: NSString; message 'host';
     function port: NSInteger; message 'port';
     function proxyType: NSString; message 'proxyType';

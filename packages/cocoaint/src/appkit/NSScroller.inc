@@ -131,10 +131,10 @@ type
     function controlTint: NSControlTint; message 'controlTint';
     procedure setControlSize(controlSize_: NSControlSize); message 'setControlSize:';
     function controlSize: NSControlSize; message 'controlSize';
-    procedure drawArrow_highlight(whichArrow: NSScrollerArrow; flag: BOOL); message 'drawArrow:highlight:';
+    procedure drawArrow_highlight(whichArrow: NSScrollerArrow; flag: ObjCBOOL); message 'drawArrow:highlight:';
     procedure drawKnob; message 'drawKnob';
-    procedure drawKnobSlotInRect_highlight(slotRect: NSRect; flag: BOOL); message 'drawKnobSlotInRect:highlight:';
-    procedure highlight(flag: BOOL); message 'highlight:';
+    procedure drawKnobSlotInRect_highlight(slotRect: NSRect; flag: ObjCBOOL); message 'drawKnobSlotInRect:highlight:';
+    procedure highlight(flag: ObjCBOOL); message 'highlight:';
     function testPart(thePoint: NSPoint): NSScrollerPart; message 'testPart:';
     procedure trackKnob(theEvent: NSEvent); message 'trackKnob:';
     procedure trackScrollButtons(theEvent: NSEvent); message 'trackScrollButtons:';

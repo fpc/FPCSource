@@ -89,12 +89,12 @@
   NSExtendedSetCategory = objccategory external (NSSet)
     function allObjects: NSArray; message 'allObjects';
     function anyObject: id; message 'anyObject';
-    function containsObject(anObject: id): BOOL; message 'containsObject:';
+    function containsObject(anObject: id): ObjCBOOL; message 'containsObject:';
     function description: NSString; message 'description';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
-    function intersectsSet(otherSet: NSSet): BOOL; message 'intersectsSet:';
-    function isEqualToSet(otherSet: NSSet): BOOL; message 'isEqualToSet:';
-    function isSubsetOfSet(otherSet: NSSet): BOOL; message 'isSubsetOfSet:';
+    function intersectsSet(otherSet: NSSet): ObjCBOOL; message 'intersectsSet:';
+    function isEqualToSet(otherSet: NSSet): ObjCBOOL; message 'isEqualToSet:';
+    function isSubsetOfSet(otherSet: NSSet): ObjCBOOL; message 'isSubsetOfSet:';
     procedure makeObjectsPerformSelector(aSelector: SEL); message 'makeObjectsPerformSelector:';
     procedure makeObjectsPerformSelector_withObject(aSelector: SEL; argument: id); message 'makeObjectsPerformSelector:withObject:';
     function setByAddingObject(anObject: id): NSSet; message 'setByAddingObject:';
@@ -113,7 +113,7 @@
     function initWithObjects_count(objects: idPtr; cnt: NSUInteger): id; message 'initWithObjects:count:';
     function initWithObjects(firstKey: id): id; varargs; message 'initWithObjects:';
     function initWithSet(set__: NSSet): id; message 'initWithSet:';
-    function initWithSet_copyItems(set__: NSSet; flag: BOOL): id; message 'initWithSet:copyItems:';
+    function initWithSet_copyItems(set__: NSSet; flag: ObjCBOOL): id; message 'initWithSet:copyItems:';
     function initWithArray(array_: NSArray): id; message 'initWithArray:';
   end;
 

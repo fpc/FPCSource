@@ -41,7 +41,7 @@
   NSUserInterfaceItemSearchingCategory = objccategory external (NSApplication)
     procedure registerUserInterfaceItemSearchHandler(handler: NSUserInterfaceItemSearchingProtocol); message 'registerUserInterfaceItemSearchHandler:';
     procedure unregisterUserInterfaceItemSearchHandler(handler: NSUserInterfaceItemSearchingProtocol); message 'unregisterUserInterfaceItemSearchHandler:';
-    function searchString_inUserInterfaceItemString_searchRange_foundRange(searchString: NSString; stringToSearch: NSString; searchRange: NSRange; foundRange: NSRangePtr): BOOL; message 'searchString:inUserInterfaceItemString:searchRange:foundRange:';
+    function searchString_inUserInterfaceItemString_searchRange_foundRange(searchString: NSString; stringToSearch: NSString; searchRange: NSRange; foundRange: NSRangePtr): ObjCBOOL; message 'searchString:inUserInterfaceItemString:searchRange:foundRange:';
   end;
 
 {$endif}

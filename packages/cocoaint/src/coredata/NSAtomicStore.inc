@@ -51,8 +51,8 @@
     
   public
     function initWithPersistentStoreCoordinator_configurationName_URL_options(coordinator: NSPersistentStoreCoordinator; configurationName_: NSString; url_: NSURL; options_: NSDictionary): id; message 'initWithPersistentStoreCoordinator:configurationName:URL:options:';
-    function load_(error: NSErrorPointer): BOOL; message 'load:';
-    function save(error: NSErrorPointer): BOOL; message 'save:';
+    function load_(error: NSErrorPointer): ObjCBOOL; message 'load:';
+    function save(error: NSErrorPointer): ObjCBOOL; message 'save:';
     function newCacheNodeForManagedObject(managedObject: NSManagedObject): NSAtomicStoreCacheNode; message 'newCacheNodeForManagedObject:';
     procedure updateCacheNode_fromManagedObject(node: NSAtomicStoreCacheNode; managedObject: NSManagedObject); message 'updateCacheNode:fromManagedObject:';
     function cacheNodes: NSSet; message 'cacheNodes';

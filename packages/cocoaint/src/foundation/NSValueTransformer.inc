@@ -27,7 +27,7 @@
 
 { External string constants }
 var
-  NSNegateBOOLTransformerName: NSString; cvar; external;
+  NSNegateObjCBOOLTransformerName: NSString; cvar; external;
   NSIsNilTransformerName: NSString; cvar; external;
   NSIsNotNilTransformerName: NSString; cvar; external;
   NSUnarchiveFromDataTransformerName: NSString; cvar; external;
@@ -55,7 +55,7 @@ var
     class function valueTransformerForName(name: NSString): NSValueTransformer; message 'valueTransformerForName:';
     class function valueTransformerNames: NSArray; message 'valueTransformerNames';
     class function transformedValueClass: Pobjc_class; message 'transformedValueClass';
-    class function allowsReverseTransformation: BOOL; message 'allowsReverseTransformation';
+    class function allowsReverseTransformation: ObjCBOOL; message 'allowsReverseTransformation';
     function transformedValue(value: id): id; message 'transformedValue:';
     function reverseTransformedValue(value: id): id; message 'reverseTransformedValue:';
   end;

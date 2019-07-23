@@ -190,8 +190,8 @@ __CFlagsPtr = ^__CFlags;
 {$define NSCELL_PAS_F}
 
 { Functions }
-procedure NSDrawThreePartImage(frame: NSRect; startCap: NSImage; centerFill: NSImage; endCap: NSImage; vertical: BOOL; op: NSCompositingOperation; alphaFraction: CGFloat; flipped: BOOL); cdecl; external;
-procedure NSDrawNinePartImage(frame: NSRect; topLeftCorner: NSImage; topEdgeFill: NSImage; topRightCorner: NSImage; leftEdgeFill: NSImage; centerFill: NSImage; rightEdgeFill: NSImage; bottomLeftCorner: NSImage; bottomEdgeFill: NSImage; bottomRightCorner: NSImage; op: NSCompositingOperation; alphaFraction: CGFloat; flipped: BOOL); cdecl; external;
+procedure NSDrawThreePartImage(frame: NSRect; startCap: NSImage; centerFill: NSImage; endCap: NSImage; vertical: ObjCBOOL; op: NSCompositingOperation; alphaFraction: CGFloat; flipped: ObjCBOOL); cdecl; external;
+procedure NSDrawNinePartImage(frame: NSRect; topLeftCorner: NSImage; topEdgeFill: NSImage; topRightCorner: NSImage; leftEdgeFill: NSImage; centerFill: NSImage; rightEdgeFill: NSImage; bottomLeftCorner: NSImage; bottomEdgeFill: NSImage; bottomRightCorner: NSImage; op: NSCompositingOperation; alphaFraction: CGFloat; flipped: ObjCBOOL); cdecl; external;
 
 {$endif}
 {$endif}
@@ -226,7 +226,7 @@ var
     _support: id;
     
   public
-    class function prefersTrackingUntilMouseUp: BOOL; message 'prefersTrackingUntilMouseUp';
+    class function prefersTrackingUntilMouseUp: ObjCBOOL; message 'prefersTrackingUntilMouseUp';
     function initTextCell(aString: NSString): id; message 'initTextCell:';
     function initImageCell(image_: NSImage): id; message 'initImageCell:';
     function controlView: NSView; message 'controlView';
@@ -243,37 +243,37 @@ var
     procedure setTag(anInt: NSInteger); message 'setTag:';
     function title: NSString; message 'title';
     procedure setTitle(aString: NSString); message 'setTitle:';
-    function isOpaque: BOOL; message 'isOpaque';
-    function isEnabled: BOOL; message 'isEnabled';
-    procedure setEnabled(flag: BOOL); message 'setEnabled:';
+    function isOpaque: ObjCBOOL; message 'isOpaque';
+    function isEnabled: ObjCBOOL; message 'isEnabled';
+    procedure setEnabled(flag: ObjCBOOL); message 'setEnabled:';
     function sendActionOn(mask: NSInteger): NSInteger; message 'sendActionOn:';
-    function isContinuous: BOOL; message 'isContinuous';
-    procedure setContinuous(flag: BOOL); message 'setContinuous:';
-    function isEditable: BOOL; message 'isEditable';
-    procedure setEditable(flag: BOOL); message 'setEditable:';
-    function isSelectable: BOOL; message 'isSelectable';
-    procedure setSelectable(flag: BOOL); message 'setSelectable:';
-    function isBordered: BOOL; message 'isBordered';
-    procedure setBordered(flag: BOOL); message 'setBordered:';
-    function isBezeled: BOOL; message 'isBezeled';
-    procedure setBezeled(flag: BOOL); message 'setBezeled:';
-    function isScrollable: BOOL; message 'isScrollable';
-    procedure setScrollable(flag: BOOL); message 'setScrollable:';
-    function isHighlighted: BOOL; message 'isHighlighted';
-    procedure setHighlighted(flag: BOOL); message 'setHighlighted:';
+    function isContinuous: ObjCBOOL; message 'isContinuous';
+    procedure setContinuous(flag: ObjCBOOL); message 'setContinuous:';
+    function isEditable: ObjCBOOL; message 'isEditable';
+    procedure setEditable(flag: ObjCBOOL); message 'setEditable:';
+    function isSelectable: ObjCBOOL; message 'isSelectable';
+    procedure setSelectable(flag: ObjCBOOL); message 'setSelectable:';
+    function isBordered: ObjCBOOL; message 'isBordered';
+    procedure setBordered(flag: ObjCBOOL); message 'setBordered:';
+    function isBezeled: ObjCBOOL; message 'isBezeled';
+    procedure setBezeled(flag: ObjCBOOL); message 'setBezeled:';
+    function isScrollable: ObjCBOOL; message 'isScrollable';
+    procedure setScrollable(flag: ObjCBOOL); message 'setScrollable:';
+    function isHighlighted: ObjCBOOL; message 'isHighlighted';
+    procedure setHighlighted(flag: ObjCBOOL); message 'setHighlighted:';
     function alignment: NSTextAlignment; message 'alignment';
     procedure setAlignment(mode: NSTextAlignment); message 'setAlignment:';
-    function wraps: BOOL; message 'wraps';
-    procedure setWraps(flag: BOOL); message 'setWraps:';
+    function wraps: ObjCBOOL; message 'wraps';
+    procedure setWraps(flag: ObjCBOOL); message 'setWraps:';
     function font: NSFont; message 'font';
     procedure setFont(fontObj: NSFont); message 'setFont:';
-    function isEntryAcceptable(aString: NSString): BOOL; message 'isEntryAcceptable:';
+    function isEntryAcceptable(aString: NSString): ObjCBOOL; message 'isEntryAcceptable:';
     function keyEquivalent: NSString; message 'keyEquivalent';
     procedure setFormatter(newFormatter: NSFormatter); message 'setFormatter:';
     function formatter: id; message 'formatter';
     function objectValue: id; message 'objectValue';
     procedure setObjectValue(obj: NSCopyingProtocol); message 'setObjectValue:';
-    function hasValidObjectValue: BOOL; message 'hasValidObjectValue';
+    function hasValidObjectValue: ObjCBOOL; message 'hasValidObjectValue';
     function stringValue: NSString; message 'stringValue';
     procedure setStringValue(aString: NSString); message 'setStringValue:';
     function compare(otherCell: id): NSComparisonResult; message 'compare:';
@@ -308,13 +308,13 @@ var
     function setUpFieldEditorAttributes(textObj: NSText): NSText; message 'setUpFieldEditorAttributes:';
     procedure drawInteriorWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawInteriorWithFrame:inView:';
     procedure drawWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawWithFrame:inView:';
-    procedure highlight_withFrame_inView(flag: BOOL; cellFrame: NSRect; controlView_: NSView); message 'highlight:withFrame:inView:';
+    procedure highlight_withFrame_inView(flag: ObjCBOOL; cellFrame: NSRect; controlView_: NSView); message 'highlight:withFrame:inView:';
     function mouseDownFlags: NSInteger; message 'mouseDownFlags';
     procedure getPeriodicDelay_interval(delay: psingle; interval: psingle); message 'getPeriodicDelay:interval:';
-    function startTrackingAt_inView(startPoint: NSPoint; controlView_: NSView): BOOL; message 'startTrackingAt:inView:';
-    function continueTracking_at_inView(lastPoint: NSPoint; currentPoint: NSPoint; controlView_: NSView): BOOL; message 'continueTracking:at:inView:';
-    procedure stopTracking_at_inView_mouseIsUp(lastPoint: NSPoint; stopPoint: NSPoint; controlView_: NSView; flag: BOOL); message 'stopTracking:at:inView:mouseIsUp:';
-    function trackMouse_inRect_ofView_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView_: NSView; flag: BOOL): BOOL; message 'trackMouse:inRect:ofView:untilMouseUp:';
+    function startTrackingAt_inView(startPoint: NSPoint; controlView_: NSView): ObjCBOOL; message 'startTrackingAt:inView:';
+    function continueTracking_at_inView(lastPoint: NSPoint; currentPoint: NSPoint; controlView_: NSView): ObjCBOOL; message 'continueTracking:at:inView:';
+    procedure stopTracking_at_inView_mouseIsUp(lastPoint: NSPoint; stopPoint: NSPoint; controlView_: NSView; flag: ObjCBOOL); message 'stopTracking:at:inView:mouseIsUp:';
+    function trackMouse_inRect_ofView_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView_: NSView; flag: ObjCBOOL): ObjCBOOL; message 'trackMouse:inRect:ofView:untilMouseUp:';
     procedure editWithFrame_inView_editor_delegate_event(aRect: NSRect; controlView_: NSView; textObj: NSText; anObject: id; theEvent: NSEvent); message 'editWithFrame:inView:editor:delegate:event:';
     procedure selectWithFrame_inView_editor_delegate_start_length(aRect: NSRect; controlView_: NSView; textObj: NSText; anObject: id; selStart: NSInteger; selLength: NSInteger); message 'selectWithFrame:inView:editor:delegate:start:length:';
     procedure endEditing(textObj: NSText); message 'endEditing:';
@@ -323,24 +323,24 @@ var
     function menu: NSMenu; message 'menu';
     function menuForEvent_inRect_ofView(event: NSEvent; cellFrame: NSRect; view: NSView): NSMenu; message 'menuForEvent:inRect:ofView:';
     class function defaultMenu: NSMenu; message 'defaultMenu';
-    procedure setSendsActionOnEndEditing(flag: BOOL); message 'setSendsActionOnEndEditing:';
-    function sendsActionOnEndEditing: BOOL; message 'sendsActionOnEndEditing';
+    procedure setSendsActionOnEndEditing(flag: ObjCBOOL); message 'setSendsActionOnEndEditing:';
+    function sendsActionOnEndEditing: ObjCBOOL; message 'sendsActionOnEndEditing';
     function baseWritingDirection: NSWritingDirection; message 'baseWritingDirection';
     procedure setBaseWritingDirection(writingDirection: NSWritingDirection); message 'setBaseWritingDirection:';
     procedure setLineBreakMode(mode: NSLineBreakMode); message 'setLineBreakMode:';
     function lineBreakMode: NSLineBreakMode; message 'lineBreakMode';
-    procedure setAllowsUndo(allowsUndo_: BOOL); message 'setAllowsUndo:';
-    function allowsUndo: BOOL; message 'allowsUndo';
+    procedure setAllowsUndo(allowsUndo_: ObjCBOOL); message 'setAllowsUndo:';
+    function allowsUndo: ObjCBOOL; message 'allowsUndo';
     function integerValue: NSInteger; message 'integerValue';
     procedure setIntegerValue(anInteger: NSInteger); message 'setIntegerValue:';
     procedure takeIntegerValueFrom(sender: id); message 'takeIntegerValueFrom:';
-    function truncatesLastVisibleLine: BOOL; message 'truncatesLastVisibleLine';
-    procedure setTruncatesLastVisibleLine(flag: BOOL); message 'setTruncatesLastVisibleLine:';
+    function truncatesLastVisibleLine: ObjCBOOL; message 'truncatesLastVisibleLine';
+    procedure setTruncatesLastVisibleLine(flag: ObjCBOOL); message 'setTruncatesLastVisibleLine:';
     function userInterfaceLayoutDirection: NSUserInterfaceLayoutDirection; message 'userInterfaceLayoutDirection';
     procedure setUserInterfaceLayoutDirection(layoutDirection: NSUserInterfaceLayoutDirection); message 'setUserInterfaceLayoutDirection:';
     function fieldEditorForView(aControlView: NSView): NSTextView; message 'fieldEditorForView:';
-    function usesSingleLineMode: BOOL; message 'usesSingleLineMode';
-    procedure setUsesSingleLineMode(flag: BOOL); message 'setUsesSingleLineMode:';
+    function usesSingleLineMode: ObjCBOOL; message 'usesSingleLineMode';
+    procedure setUsesSingleLineMode(flag: ObjCBOOL); message 'setUsesSingleLineMode:';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
@@ -350,11 +350,11 @@ var
 
 { NSKeyboardUI_NSCellCategory }
   NSKeyboardUI_NSCellCategory = objccategory external name 'NSKeyboardUI' (NSCell)
-    procedure setRefusesFirstResponder(flag: BOOL); message 'setRefusesFirstResponder:';
-    function refusesFirstResponder: BOOL; message 'refusesFirstResponder';
-    function acceptsFirstResponder: BOOL; message 'acceptsFirstResponder';
-    procedure setShowsFirstResponder(showFR: BOOL); message 'setShowsFirstResponder:';
-    function showsFirstResponder: BOOL; message 'showsFirstResponder';
+    procedure setRefusesFirstResponder(flag: ObjCBOOL); message 'setRefusesFirstResponder:';
+    function refusesFirstResponder: ObjCBOOL; message 'refusesFirstResponder';
+    function acceptsFirstResponder: ObjCBOOL; message 'acceptsFirstResponder';
+    procedure setShowsFirstResponder(showFR: ObjCBOOL); message 'setShowsFirstResponder:';
+    function showsFirstResponder: ObjCBOOL; message 'showsFirstResponder';
     procedure setMnemonicLocation(location: NSUInteger); message 'setMnemonicLocation:';
     function mnemonicLocation: NSUInteger; message 'mnemonicLocation';
     function mnemonic: NSString; message 'mnemonic';
@@ -363,23 +363,23 @@ var
     procedure setFocusRingType(focusRingType_: NSFocusRingType); message 'setFocusRingType:';
     function focusRingType: NSFocusRingType; message 'focusRingType';
     class function defaultFocusRingType: NSFocusRingType; message 'defaultFocusRingType';
-    function wantsNotificationForMarkedText: BOOL; message 'wantsNotificationForMarkedText';
+    function wantsNotificationForMarkedText: ObjCBOOL; message 'wantsNotificationForMarkedText';
   end;
 
 { NSCellAttributedStringMethodsCategory }
   NSCellAttributedStringMethodsCategory = objccategory external (NSCell)
     function attributedStringValue: NSAttributedString; message 'attributedStringValue';
     procedure setAttributedStringValue(obj: NSAttributedString); message 'setAttributedStringValue:';
-    function allowsEditingTextAttributes: BOOL; message 'allowsEditingTextAttributes';
-    procedure setAllowsEditingTextAttributes(flag: BOOL); message 'setAllowsEditingTextAttributes:';
-    function importsGraphics: BOOL; message 'importsGraphics';
-    procedure setImportsGraphics(flag: BOOL); message 'setImportsGraphics:';
+    function allowsEditingTextAttributes: ObjCBOOL; message 'allowsEditingTextAttributes';
+    procedure setAllowsEditingTextAttributes(flag: ObjCBOOL); message 'setAllowsEditingTextAttributes:';
+    function importsGraphics: ObjCBOOL; message 'importsGraphics';
+    procedure setImportsGraphics(flag: ObjCBOOL); message 'setImportsGraphics:';
   end;
 
 { NSCellMixedStateCategory }
   NSCellMixedStateCategory = objccategory external (NSCell)
-    procedure setAllowsMixedState(flag: BOOL); message 'setAllowsMixedState:';
-    function allowsMixedState: BOOL; message 'allowsMixedState';
+    procedure setAllowsMixedState(flag: ObjCBOOL); message 'setAllowsMixedState:';
+    function allowsMixedState: ObjCBOOL; message 'allowsMixedState';
     function nextState: NSInteger; message 'nextState';
     procedure setNextState; message 'setNextState';
   end;
@@ -406,7 +406,7 @@ var
   NSDeprecated_NSCellCategory = objccategory external name 'NSDeprecated' (NSCell)
     function entryType: NSInteger; message 'entryType'; deprecated 'in Mac OS X 10 and later';
     procedure setEntryType(aType: NSInteger); message 'setEntryType:'; deprecated 'in Mac OS X 10 and later';
-    procedure setFloatingPointFormat_left_right(autoRange: BOOL; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:'; deprecated 'in Mac OS X 10 and later';
+    procedure setFloatingPointFormat_left_right(autoRange: ObjCBOOL; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:'; deprecated 'in Mac OS X 10 and later';
   end;
 
 {$endif}

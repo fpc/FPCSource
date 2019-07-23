@@ -80,12 +80,12 @@ procedure NSReleaseAlertPanel(panel: id); cdecl; external;
   NSPanel = objcclass external (NSWindow)
     
   public
-    function isFloatingPanel: BOOL; message 'isFloatingPanel';
-    procedure setFloatingPanel(flag: BOOL); message 'setFloatingPanel:';
-    function becomesKeyOnlyIfNeeded: BOOL; message 'becomesKeyOnlyIfNeeded';
-    procedure setBecomesKeyOnlyIfNeeded(flag: BOOL); message 'setBecomesKeyOnlyIfNeeded:';
-    function worksWhenModal: BOOL; message 'worksWhenModal';
-    procedure setWorksWhenModal(flag: BOOL); message 'setWorksWhenModal:';
+    function isFloatingPanel: ObjCBOOL; message 'isFloatingPanel';
+    procedure setFloatingPanel(flag: ObjCBOOL); message 'setFloatingPanel:';
+    function becomesKeyOnlyIfNeeded: ObjCBOOL; message 'becomesKeyOnlyIfNeeded';
+    procedure setBecomesKeyOnlyIfNeeded(flag: ObjCBOOL); message 'setBecomesKeyOnlyIfNeeded:';
+    function worksWhenModal: ObjCBOOL; message 'worksWhenModal';
+    procedure setWorksWhenModal(flag: ObjCBOOL); message 'setWorksWhenModal:';
   end;
 
 {$endif}

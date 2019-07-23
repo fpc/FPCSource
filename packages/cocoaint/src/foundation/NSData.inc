@@ -107,10 +107,10 @@ type
   public
 
     { Adopted Protocols }
-    function beginContentAccess: BOOL;
+    function beginContentAccess: ObjCBOOL;
     procedure endContentAccess;
     procedure discardContentIfPossible;
-    function isContentDiscarded: BOOL;
+    function isContentDiscarded: ObjCBOOL;
   end;
 
 { NSExtendedDataCategory }
@@ -118,12 +118,12 @@ type
     function description: NSString; message 'description';
     procedure getBytes_length(buffer: Pointer; length_: NSUInteger); message 'getBytes:length:';
     procedure getBytes_range(buffer: Pointer; range: NSRange); message 'getBytes:range:';
-    function isEqualToData(other: NSData): BOOL; message 'isEqualToData:';
+    function isEqualToData(other: NSData): ObjCBOOL; message 'isEqualToData:';
     function subdataWithRange(range: NSRange): NSData; message 'subdataWithRange:';
-    function writeToFile_atomically(path: NSString; useAuxiliaryFile: BOOL): BOOL; message 'writeToFile:atomically:';
-    function writeToURL_atomically(url: NSURL; atomically: BOOL): BOOL; message 'writeToURL:atomically:';
-    function writeToFile_options_error(path: NSString; writeOptionsMask: NSDataWritingOptions; errorPtr: NSErrorPointer): BOOL; message 'writeToFile:options:error:';
-    function writeToURL_options_error(url: NSURL; writeOptionsMask: NSDataWritingOptions; errorPtr: NSErrorPointer): BOOL; message 'writeToURL:options:error:';
+    function writeToFile_atomically(path: NSString; useAuxiliaryFile: ObjCBOOL): ObjCBOOL; message 'writeToFile:atomically:';
+    function writeToURL_atomically(url: NSURL; atomically: ObjCBOOL): ObjCBOOL; message 'writeToURL:atomically:';
+    function writeToFile_options_error(path: NSString; writeOptionsMask: NSDataWritingOptions; errorPtr: NSErrorPointer): ObjCBOOL; message 'writeToFile:options:error:';
+    function writeToURL_options_error(url: NSURL; writeOptionsMask: NSDataWritingOptions; errorPtr: NSErrorPointer): ObjCBOOL; message 'writeToURL:options:error:';
     function rangeOfData_options_range(dataToFind: NSData; mask: NSDataSearchOptions; searchRange: NSRange): NSRange; message 'rangeOfData:options:range:';
   end;
 
@@ -132,7 +132,7 @@ type
     class function data: id; message 'data';
     class function dataWithBytes_length(bytes_: Pointer; length_: NSUInteger): id; message 'dataWithBytes:length:';
     class function dataWithBytesNoCopy_length(bytes_: Pointer; length_: NSUInteger): id; message 'dataWithBytesNoCopy:length:';
-    class function dataWithBytesNoCopy_length_freeWhenDone(bytes_: Pointer; length_: NSUInteger; b: BOOL): id; message 'dataWithBytesNoCopy:length:freeWhenDone:';
+    class function dataWithBytesNoCopy_length_freeWhenDone(bytes_: Pointer; length_: NSUInteger; b: ObjCBOOL): id; message 'dataWithBytesNoCopy:length:freeWhenDone:';
     class function dataWithContentsOfFile_options_error(path: NSString; readOptionsMask: NSDataReadingOptions; errorPtr: NSErrorPointer): id; message 'dataWithContentsOfFile:options:error:';
     class function dataWithContentsOfURL_options_error(url: NSURL; readOptionsMask: NSDataReadingOptions; errorPtr: NSErrorPointer): id; message 'dataWithContentsOfURL:options:error:';
     class function dataWithContentsOfFile(path: NSString): id; message 'dataWithContentsOfFile:';
@@ -140,7 +140,7 @@ type
     class function dataWithContentsOfMappedFile(path: NSString): id; message 'dataWithContentsOfMappedFile:';
     function initWithBytes_length(bytes_: Pointer; length_: NSUInteger): id; message 'initWithBytes:length:';
     function initWithBytesNoCopy_length(bytes_: Pointer; length_: NSUInteger): id; message 'initWithBytesNoCopy:length:';
-    function initWithBytesNoCopy_length_freeWhenDone(bytes_: Pointer; length_: NSUInteger; b: BOOL): id; message 'initWithBytesNoCopy:length:freeWhenDone:';
+    function initWithBytesNoCopy_length_freeWhenDone(bytes_: Pointer; length_: NSUInteger; b: ObjCBOOL): id; message 'initWithBytesNoCopy:length:freeWhenDone:';
     function initWithContentsOfFile_options_error(path: NSString; readOptionsMask: NSDataReadingOptions; errorPtr: NSErrorPointer): id; message 'initWithContentsOfFile:options:error:';
     function initWithContentsOfURL_options_error(url: NSURL; readOptionsMask: NSDataReadingOptions; errorPtr: NSErrorPointer): id; message 'initWithContentsOfURL:options:error:';
     function initWithContentsOfFile(path: NSString): id; message 'initWithContentsOfFile:';

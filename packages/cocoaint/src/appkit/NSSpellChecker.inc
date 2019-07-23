@@ -94,12 +94,12 @@ var
     
   public
     class function sharedSpellChecker: NSSpellChecker; message 'sharedSpellChecker';
-    class function sharedSpellCheckerExists: BOOL; message 'sharedSpellCheckerExists';
+    class function sharedSpellCheckerExists: ObjCBOOL; message 'sharedSpellCheckerExists';
     class function uniqueSpellDocumentTag: NSInteger; message 'uniqueSpellDocumentTag';
-    function checkSpellingOfString_startingAt_language_wrap_inSpellDocumentWithTag_wordCount(stringToCheck: NSString; startingOffset: NSInteger; language_: NSString; wrapFlag: BOOL; tag: NSInteger; wordCount: NSIntegerPtr): NSRange; message 'checkSpellingOfString:startingAt:language:wrap:inSpellDocumentWithTag:wordCount:';
+    function checkSpellingOfString_startingAt_language_wrap_inSpellDocumentWithTag_wordCount(stringToCheck: NSString; startingOffset: NSInteger; language_: NSString; wrapFlag: ObjCBOOL; tag: NSInteger; wordCount: NSIntegerPtr): NSRange; message 'checkSpellingOfString:startingAt:language:wrap:inSpellDocumentWithTag:wordCount:';
     function checkSpellingOfString_startingAt(stringToCheck: NSString; startingOffset: NSInteger): NSRange; message 'checkSpellingOfString:startingAt:';
     function countWordsInString_language(stringToCount: NSString; language_: NSString): NSInteger; message 'countWordsInString:language:';
-    function checkGrammarOfString_startingAt_language_wrap_inSpellDocumentWithTag_details(stringToCheck: NSString; startingOffset: NSInteger; language_: NSString; wrapFlag: BOOL; tag: NSInteger; details: NSArrayPointer): NSRange; message 'checkGrammarOfString:startingAt:language:wrap:inSpellDocumentWithTag:details:';
+    function checkGrammarOfString_startingAt_language_wrap_inSpellDocumentWithTag_details(stringToCheck: NSString; startingOffset: NSInteger; language_: NSString; wrapFlag: ObjCBOOL; tag: NSInteger; details: NSArrayPointer): NSRange; message 'checkGrammarOfString:startingAt:language:wrap:inSpellDocumentWithTag:details:';
     function checkString_range_types_options_inSpellDocumentWithTag_orthography_wordCount(stringToCheck: NSString; range: NSRange; checkingTypes: NSTextCheckingTypes; options: NSDictionary; tag: NSInteger; orthography: NSOrthographyPointer; wordCount: NSIntegerPtr): NSArray; message 'checkString:range:types:options:inSpellDocumentWithTag:orthography:wordCount:';
     function menuForResult_string_options_atLocation_inView(result_: NSTextCheckingResult; checkedString: NSString; options: NSDictionary; location: NSPoint; view: NSView): NSMenu; message 'menuForResult:string:options:atLocation:inView:';
     function userQuotesArrayForLanguage(language_: NSString): NSArray; message 'userQuotesArrayForLanguage:';
@@ -121,13 +121,13 @@ var
     procedure closeSpellDocumentWithTag(tag: NSInteger); message 'closeSpellDocumentWithTag:';
     function availableLanguages: NSArray; message 'availableLanguages';
     function userPreferredLanguages: NSArray; message 'userPreferredLanguages';
-    function automaticallyIdentifiesLanguages: BOOL; message 'automaticallyIdentifiesLanguages';
-    procedure setAutomaticallyIdentifiesLanguages(flag: BOOL); message 'setAutomaticallyIdentifiesLanguages:';
+    function automaticallyIdentifiesLanguages: ObjCBOOL; message 'automaticallyIdentifiesLanguages';
+    procedure setAutomaticallyIdentifiesLanguages(flag: ObjCBOOL); message 'setAutomaticallyIdentifiesLanguages:';
     function language: NSString; message 'language';
-    function setLanguage(language_: NSString): BOOL; message 'setLanguage:';
+    function setLanguage(language_: NSString): ObjCBOOL; message 'setLanguage:';
     procedure setWordFieldStringValue(aString: NSString); message 'setWordFieldStringValue:';
     procedure learnWord(word: NSString); message 'learnWord:';
-    function hasLearnedWord(word: NSString): BOOL; message 'hasLearnedWord:';
+    function hasLearnedWord(word: NSString): ObjCBOOL; message 'hasLearnedWord:';
     procedure unlearnWord(word: NSString); message 'unlearnWord:';
   end;
 

@@ -110,8 +110,8 @@ type
     procedure setFrameFromContentFrame(contentFrame: NSRect); message 'setFrameFromContentFrame:';
     function contentView: id; message 'contentView';
     procedure setContentView(aView: NSView); message 'setContentView:';
-    function isTransparent: BOOL; message 'isTransparent';
-    procedure setTransparent(flag: BOOL); message 'setTransparent:';
+    function isTransparent: ObjCBOOL; message 'isTransparent';
+    procedure setTransparent(flag: ObjCBOOL); message 'setTransparent:';
   end;
 
 { NSKeyboardUI_NSBoxCategory }

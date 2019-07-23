@@ -171,14 +171,14 @@ type
     procedure removeTextContainerAtIndex(index: NSUInteger); message 'removeTextContainerAtIndex:';
     procedure textContainerChangedGeometry(container: NSTextContainer); message 'textContainerChangedGeometry:';
     procedure textContainerChangedTextView(container: NSTextContainer); message 'textContainerChangedTextView:';
-    procedure setBackgroundLayoutEnabled(flag: BOOL); message 'setBackgroundLayoutEnabled:';
-    function backgroundLayoutEnabled: BOOL; message 'backgroundLayoutEnabled';
-    procedure setUsesScreenFonts(flag: BOOL); message 'setUsesScreenFonts:';
-    function usesScreenFonts: BOOL; message 'usesScreenFonts';
-    procedure setShowsInvisibleCharacters(flag: BOOL); message 'setShowsInvisibleCharacters:';
-    function showsInvisibleCharacters: BOOL; message 'showsInvisibleCharacters';
-    procedure setShowsControlCharacters(flag: BOOL); message 'setShowsControlCharacters:';
-    function showsControlCharacters: BOOL; message 'showsControlCharacters';
+    procedure setBackgroundLayoutEnabled(flag: ObjCBOOL); message 'setBackgroundLayoutEnabled:';
+    function backgroundLayoutEnabled: ObjCBOOL; message 'backgroundLayoutEnabled';
+    procedure setUsesScreenFonts(flag: ObjCBOOL); message 'setUsesScreenFonts:';
+    function usesScreenFonts: ObjCBOOL; message 'usesScreenFonts';
+    procedure setShowsInvisibleCharacters(flag: ObjCBOOL); message 'setShowsInvisibleCharacters:';
+    function showsInvisibleCharacters: ObjCBOOL; message 'showsInvisibleCharacters';
+    procedure setShowsControlCharacters(flag: ObjCBOOL); message 'setShowsControlCharacters:';
+    function showsControlCharacters: ObjCBOOL; message 'showsControlCharacters';
     procedure setHyphenationFactor(factor: single); message 'setHyphenationFactor:';
     function hyphenationFactor: single; message 'hyphenationFactor';
     procedure setDefaultAttachmentScaling(scaling: NSImageScaling); message 'setDefaultAttachmentScaling:';
@@ -186,12 +186,12 @@ type
     procedure setTypesetterBehavior(theBehavior: NSTypesetterBehavior); message 'setTypesetterBehavior:';
     function typesetterBehavior: NSTypesetterBehavior; message 'typesetterBehavior';
     function layoutOptions: NSUInteger; message 'layoutOptions';
-    procedure setAllowsNonContiguousLayout(flag: BOOL); message 'setAllowsNonContiguousLayout:';
-    function allowsNonContiguousLayout: BOOL; message 'allowsNonContiguousLayout';
-    function hasNonContiguousLayout: BOOL; message 'hasNonContiguousLayout';
+    procedure setAllowsNonContiguousLayout(flag: ObjCBOOL); message 'setAllowsNonContiguousLayout:';
+    function allowsNonContiguousLayout: ObjCBOOL; message 'allowsNonContiguousLayout';
+    function hasNonContiguousLayout: ObjCBOOL; message 'hasNonContiguousLayout';
     procedure invalidateGlyphsForCharacterRange_changeInLength_actualCharacterRange(charRange: NSRange; delta: NSInteger; actualCharRange: NSRangePointer); message 'invalidateGlyphsForCharacterRange:changeInLength:actualCharacterRange:';
     procedure invalidateLayoutForCharacterRange_actualCharacterRange(charRange: NSRange; actualCharRange: NSRangePointer); message 'invalidateLayoutForCharacterRange:actualCharacterRange:';
-    procedure invalidateLayoutForCharacterRange_isSoft_actualCharacterRange(charRange: NSRange; flag: BOOL; actualCharRange: NSRangePointer); message 'invalidateLayoutForCharacterRange:isSoft:actualCharacterRange:';
+    procedure invalidateLayoutForCharacterRange_isSoft_actualCharacterRange(charRange: NSRange; flag: ObjCBOOL; actualCharRange: NSRangePointer); message 'invalidateLayoutForCharacterRange:isSoft:actualCharacterRange:';
     procedure invalidateDisplayForCharacterRange(charRange: NSRange); message 'invalidateDisplayForCharacterRange:';
     procedure invalidateDisplayForGlyphRange(glyphRange: NSRange); message 'invalidateDisplayForGlyphRange:';
     procedure textStorage_edited_range_changeInLength_invalidatedRange(str: NSTextStorage; editedMask: NSUInteger; newCharRange: NSRange; delta: NSInteger; invalidatedCharRange: NSRange); message 'textStorage:edited:range:changeInLength:invalidatedRange:';
@@ -209,22 +209,22 @@ type
     procedure setIntAttribute_value_forGlyphAtIndex(attributeTag: NSInteger; val: NSInteger; glyphIndex: NSUInteger); message 'setIntAttribute:value:forGlyphAtIndex:';
     procedure invalidateGlyphsOnLayoutInvalidationForGlyphRange(glyphRange: NSRange); message 'invalidateGlyphsOnLayoutInvalidationForGlyphRange:';
     function numberOfGlyphs: NSUInteger; message 'numberOfGlyphs';
-    function glyphAtIndex_isValidIndex(glyphIndex: NSUInteger; isValidIndex: pBOOL): NSGlyph; message 'glyphAtIndex:isValidIndex:';
+    function glyphAtIndex_isValidIndex(glyphIndex: NSUInteger; isValidIndex: pObjCBOOL): NSGlyph; message 'glyphAtIndex:isValidIndex:';
     function glyphAtIndex(glyphIndex: NSUInteger): NSGlyph; message 'glyphAtIndex:';
-    function isValidGlyphIndex(glyphIndex: NSUInteger): BOOL; message 'isValidGlyphIndex:';
+    function isValidGlyphIndex(glyphIndex: NSUInteger): ObjCBOOL; message 'isValidGlyphIndex:';
     function characterIndexForGlyphAtIndex(glyphIndex: NSUInteger): NSUInteger; message 'characterIndexForGlyphAtIndex:';
     function glyphIndexForCharacterAtIndex(charIndex: NSUInteger): NSUInteger; message 'glyphIndexForCharacterAtIndex:';
     function intAttribute_forGlyphAtIndex(attributeTag: NSInteger; glyphIndex: NSUInteger): NSInteger; message 'intAttribute:forGlyphAtIndex:';
-    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits(glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pBOOL): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:';
-    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits_bidiLevels(glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pBOOL; bidiLevelBuffer: PByte): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:bidiLevels:';
+    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits(glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pObjCBOOL): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:';
+    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits_bidiLevels(glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pObjCBOOL; bidiLevelBuffer: PByte): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:bidiLevels:';
     function getGlyphs_range(glyphArray: NSGlyphPtr; glyphRange: NSRange): NSUInteger; message 'getGlyphs:range:';
     procedure setTextContainer_forGlyphRange(container: NSTextContainer; glyphRange: NSRange); message 'setTextContainer:forGlyphRange:';
     procedure setLineFragmentRect_forGlyphRange_usedRect(fragmentRect: NSRect; glyphRange: NSRange; usedRect: NSRect); message 'setLineFragmentRect:forGlyphRange:usedRect:';
     procedure setExtraLineFragmentRect_usedRect_textContainer(fragmentRect: NSRect; usedRect: NSRect; container: NSTextContainer); message 'setExtraLineFragmentRect:usedRect:textContainer:';
     procedure setLocation_forStartOfGlyphRange(location: NSPoint; glyphRange: NSRange); message 'setLocation:forStartOfGlyphRange:';
     procedure setLocations_startingGlyphIndexes_count_forGlyphRange(locations: NSPointArray; glyphIndexes: NSUIntegerPtr; count: NSUInteger; glyphRange: NSRange); message 'setLocations:startingGlyphIndexes:count:forGlyphRange:';
-    procedure setNotShownAttribute_forGlyphAtIndex(flag: BOOL; glyphIndex: NSUInteger); message 'setNotShownAttribute:forGlyphAtIndex:';
-    procedure setDrawsOutsideLineFragment_forGlyphAtIndex(flag: BOOL; glyphIndex: NSUInteger); message 'setDrawsOutsideLineFragment:forGlyphAtIndex:';
+    procedure setNotShownAttribute_forGlyphAtIndex(flag: ObjCBOOL; glyphIndex: NSUInteger); message 'setNotShownAttribute:forGlyphAtIndex:';
+    procedure setDrawsOutsideLineFragment_forGlyphAtIndex(flag: ObjCBOOL; glyphIndex: NSUInteger); message 'setDrawsOutsideLineFragment:forGlyphAtIndex:';
     procedure setAttachmentSize_forGlyphRange(attachmentSize: NSSize; glyphRange: NSRange); message 'setAttachmentSize:forGlyphRange:';
     procedure getFirstUnlaidCharacterIndex_glyphIndex(charIndex: NSUIntegerPtr; glyphIndex: NSUIntegerPtr); message 'getFirstUnlaidCharacterIndex:glyphIndex:';
     function firstUnlaidCharacterIndex: NSUInteger; message 'firstUnlaidCharacterIndex';
@@ -233,15 +233,15 @@ type
     function usedRectForTextContainer(container: NSTextContainer): NSRect; message 'usedRectForTextContainer:';
     function lineFragmentRectForGlyphAtIndex_effectiveRange(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer): NSRect; message 'lineFragmentRectForGlyphAtIndex:effectiveRange:';
     function lineFragmentUsedRectForGlyphAtIndex_effectiveRange(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer): NSRect; message 'lineFragmentUsedRectForGlyphAtIndex:effectiveRange:';
-    function lineFragmentRectForGlyphAtIndex_effectiveRange_withoutAdditionalLayout(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer; flag: BOOL): NSRect; message 'lineFragmentRectForGlyphAtIndex:effectiveRange:withoutAdditionalLayout:';
-    function lineFragmentUsedRectForGlyphAtIndex_effectiveRange_withoutAdditionalLayout(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer; flag: BOOL): NSRect; message 'lineFragmentUsedRectForGlyphAtIndex:effectiveRange:withoutAdditionalLayout:';
-    function textContainerForGlyphAtIndex_effectiveRange_withoutAdditionalLayout(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer; flag: BOOL): NSTextContainer; message 'textContainerForGlyphAtIndex:effectiveRange:withoutAdditionalLayout:';
+    function lineFragmentRectForGlyphAtIndex_effectiveRange_withoutAdditionalLayout(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer; flag: ObjCBOOL): NSRect; message 'lineFragmentRectForGlyphAtIndex:effectiveRange:withoutAdditionalLayout:';
+    function lineFragmentUsedRectForGlyphAtIndex_effectiveRange_withoutAdditionalLayout(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer; flag: ObjCBOOL): NSRect; message 'lineFragmentUsedRectForGlyphAtIndex:effectiveRange:withoutAdditionalLayout:';
+    function textContainerForGlyphAtIndex_effectiveRange_withoutAdditionalLayout(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer; flag: ObjCBOOL): NSTextContainer; message 'textContainerForGlyphAtIndex:effectiveRange:withoutAdditionalLayout:';
     function extraLineFragmentRect: NSRect; message 'extraLineFragmentRect';
     function extraLineFragmentUsedRect: NSRect; message 'extraLineFragmentUsedRect';
     function extraLineFragmentTextContainer: NSTextContainer; message 'extraLineFragmentTextContainer';
     function locationForGlyphAtIndex(glyphIndex: NSUInteger): NSPoint; message 'locationForGlyphAtIndex:';
-    function notShownAttributeForGlyphAtIndex(glyphIndex: NSUInteger): BOOL; message 'notShownAttributeForGlyphAtIndex:';
-    function drawsOutsideLineFragmentForGlyphAtIndex(glyphIndex: NSUInteger): BOOL; message 'drawsOutsideLineFragmentForGlyphAtIndex:';
+    function notShownAttributeForGlyphAtIndex(glyphIndex: NSUInteger): ObjCBOOL; message 'notShownAttributeForGlyphAtIndex:';
+    function drawsOutsideLineFragmentForGlyphAtIndex(glyphIndex: NSUInteger): ObjCBOOL; message 'drawsOutsideLineFragmentForGlyphAtIndex:';
     function attachmentSizeForGlyphAtIndex(glyphIndex: NSUInteger): NSSize; message 'attachmentSizeForGlyphAtIndex:';
     procedure setLayoutRect_forTextBlock_glyphRange(rect: NSRect; block: NSTextBlock; glyphRange: NSRange); message 'setLayoutRect:forTextBlock:glyphRange:';
     procedure setBoundsRect_forTextBlock_glyphRange(rect: NSRect; block: NSTextBlock; glyphRange: NSRange); message 'setBoundsRect:forTextBlock:glyphRange:';
@@ -262,7 +262,7 @@ type
     function glyphIndexForPoint_inTextContainer(point: NSPoint; container: NSTextContainer): NSUInteger; message 'glyphIndexForPoint:inTextContainer:';
     function fractionOfDistanceThroughGlyphForPoint_inTextContainer(point: NSPoint; container: NSTextContainer): CGFloat; message 'fractionOfDistanceThroughGlyphForPoint:inTextContainer:';
     function characterIndexForPoint_inTextContainer_fractionOfDistanceBetweenInsertionPoints(point: NSPoint; container: NSTextContainer; partialFraction: CGFloatPtr): NSUInteger; message 'characterIndexForPoint:inTextContainer:fractionOfDistanceBetweenInsertionPoints:';
-    function getLineFragmentInsertionPointsForCharacterAtIndex_alternatePositions_inDisplayOrder_positions_characterIndexes(charIndex: NSUInteger; aFlag: BOOL; dFlag: BOOL; positions: CGFloatPtr; charIndexes: NSUIntegerPtr): NSUInteger; message 'getLineFragmentInsertionPointsForCharacterAtIndex:alternatePositions:inDisplayOrder:positions:characterIndexes:';
+    function getLineFragmentInsertionPointsForCharacterAtIndex_alternatePositions_inDisplayOrder_positions_characterIndexes(charIndex: NSUInteger; aFlag: ObjCBOOL; dFlag: ObjCBOOL; positions: CGFloatPtr; charIndexes: NSUIntegerPtr): NSUInteger; message 'getLineFragmentInsertionPointsForCharacterAtIndex:alternatePositions:inDisplayOrder:positions:characterIndexes:';
     function temporaryAttributesAtCharacterIndex_effectiveRange(charIndex: NSUInteger; effectiveCharRange: NSRangePointer): NSDictionary; message 'temporaryAttributesAtCharacterIndex:effectiveRange:';
     procedure setTemporaryAttributes_forCharacterRange(attrs: NSDictionary; charRange: NSRange); message 'setTemporaryAttributes:forCharacterRange:';
     procedure addTemporaryAttributes_forCharacterRange(attrs: NSDictionary; charRange: NSRange); message 'addTemporaryAttributes:forCharacterRange:';
@@ -274,8 +274,8 @@ type
     function substituteFontForFont(originalFont: NSFont): NSFont; message 'substituteFontForFont:';
     function defaultLineHeightForFont(theFont: NSFont): CGFloat; message 'defaultLineHeightForFont:';
     function defaultBaselineOffsetForFont(theFont: NSFont): CGFloat; message 'defaultBaselineOffsetForFont:';
-    function usesFontLeading: BOOL; message 'usesFontLeading';
-    procedure setUsesFontLeading(flag: BOOL); message 'setUsesFontLeading:';
+    function usesFontLeading: ObjCBOOL; message 'usesFontLeading';
+    procedure setUsesFontLeading(flag: ObjCBOOL); message 'setUsesFontLeading:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
@@ -285,8 +285,8 @@ type
 { NSTextViewSupportCategory }
   NSTextViewSupportCategory = objccategory external (NSLayoutManager)
     function rulerMarkersForTextView_paragraphStyle_ruler(view: NSTextView; style: NSParagraphStyle; ruler: NSRulerView): NSArray; message 'rulerMarkersForTextView:paragraphStyle:ruler:';
-    function rulerAccessoryViewForTextView_paragraphStyle_ruler_enabled(view: NSTextView; style: NSParagraphStyle; ruler: NSRulerView; isEnabled: BOOL): NSView; message 'rulerAccessoryViewForTextView:paragraphStyle:ruler:enabled:';
-    function layoutManagerOwnsFirstResponderInWindow(window: NSWindow): BOOL; message 'layoutManagerOwnsFirstResponderInWindow:';
+    function rulerAccessoryViewForTextView_paragraphStyle_ruler_enabled(view: NSTextView; style: NSParagraphStyle; ruler: NSRulerView; isEnabled: ObjCBOOL): NSView; message 'rulerAccessoryViewForTextView:paragraphStyle:ruler:enabled:';
+    function layoutManagerOwnsFirstResponderInWindow(window: NSWindow): ObjCBOOL; message 'layoutManagerOwnsFirstResponderInWindow:';
     function firstTextView: NSTextView; message 'firstTextView';
     function textViewForBeginningOfSelection: NSTextView; message 'textViewForBeginningOfSelection';
     procedure drawBackgroundForGlyphRange_atPoint(glyphsToShow: NSRange; origin: NSPoint); message 'drawBackgroundForGlyphRange:atPoint:';
@@ -310,8 +310,8 @@ type
   NSLayoutManagerDelegateProtocol = objcprotocol external name 'NSLayoutManagerDelegate'
   optional
     procedure layoutManagerDidInvalidateLayout(sender: NSLayoutManager); message 'layoutManagerDidInvalidateLayout:';
-    procedure layoutManager_didCompleteLayoutForTextContainer_atEnd(layoutManager: NSLayoutManager; textContainer: NSTextContainer; layoutFinishedFlag: BOOL); message 'layoutManager:didCompleteLayoutForTextContainer:atEnd:';
-    function layoutManager_shouldUseTemporaryAttributes_forDrawingToScreen_atCharacterIndex_effectiveRange(layoutManager: NSLayoutManager; attrs: NSDictionary; toScreen: BOOL; charIndex: NSUInteger; effectiveCharRange: NSRangePointer): NSDictionary; message 'layoutManager:shouldUseTemporaryAttributes:forDrawingToScreen:atCharacterIndex:effectiveRange:';
+    procedure layoutManager_didCompleteLayoutForTextContainer_atEnd(layoutManager: NSLayoutManager; textContainer: NSTextContainer; layoutFinishedFlag: ObjCBOOL); message 'layoutManager:didCompleteLayoutForTextContainer:atEnd:';
+    function layoutManager_shouldUseTemporaryAttributes_forDrawingToScreen_atCharacterIndex_effectiveRange(layoutManager: NSLayoutManager; attrs: NSDictionary; toScreen: ObjCBOOL; charIndex: NSUInteger; effectiveCharRange: NSRangePointer): NSDictionary; message 'layoutManager:shouldUseTemporaryAttributes:forDrawingToScreen:atCharacterIndex:effectiveRange:';
   end;
 {$endif}
 {$endif}

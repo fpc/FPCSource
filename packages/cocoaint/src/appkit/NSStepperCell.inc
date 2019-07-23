@@ -69,10 +69,10 @@
     procedure setMaxValue(maxValue_: double); message 'setMaxValue:';
     function increment: double; message 'increment';
     procedure setIncrement(increment_: double); message 'setIncrement:';
-    function valueWraps: BOOL; message 'valueWraps';
-    procedure setValueWraps(valueWraps_: BOOL); message 'setValueWraps:';
-    function autorepeat: BOOL; message 'autorepeat';
-    procedure setAutorepeat(autorepeat_: BOOL); message 'setAutorepeat:';
+    function valueWraps: ObjCBOOL; message 'valueWraps';
+    procedure setValueWraps(valueWraps_: ObjCBOOL); message 'setValueWraps:';
+    function autorepeat: ObjCBOOL; message 'autorepeat';
+    procedure setAutorepeat(autorepeat_: ObjCBOOL); message 'setAutorepeat:';
   end;
 
 {$endif}

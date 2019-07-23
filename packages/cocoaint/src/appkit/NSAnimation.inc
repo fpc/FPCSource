@@ -126,7 +126,7 @@ var
     function initWithDuration_animationCurve(duration_: NSTimeInterval; animationCurve_: NSAnimationCurve): id; message 'initWithDuration:animationCurve:';
     procedure startAnimation; message 'startAnimation';
     procedure stopAnimation; message 'stopAnimation';
-    function isAnimating: BOOL; message 'isAnimating';
+    function isAnimating: ObjCBOOL; message 'isAnimating';
     function currentProgress: NSAnimationProgress; message 'currentProgress';
     procedure setCurrentProgress(progress: NSAnimationProgress); message 'setCurrentProgress:';
     procedure setDuration(duration_: NSTimeInterval); message 'setDuration:';
@@ -193,7 +193,7 @@ var
 { NSAnimationDelegate Protocol }
   NSAnimationDelegateProtocol = objcprotocol external name 'NSAnimationDelegate'
   optional
-    function animationShouldStart(animation: NSAnimation): BOOL; message 'animationShouldStart:';
+    function animationShouldStart(animation: NSAnimation): ObjCBOOL; message 'animationShouldStart:';
     procedure animationDidStop(animation: NSAnimation); message 'animationDidStop:';
     procedure animationDidEnd(animation: NSAnimation); message 'animationDidEnd:';
     function animation_valueForProgress(animation: NSAnimation; progress: NSAnimationProgress): single; message 'animation:valueForProgress:';

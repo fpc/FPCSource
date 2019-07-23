@@ -10,7 +10,7 @@ begin
  result := range.location + range.length;
 end;
 
-function NSLocationInRange (loc: NSUInteger; range: NSRange): BOOL;
+function NSLocationInRange (loc: NSUInteger; range: NSRange): ObjCBOOL;
 begin
  if (loc <= range.location + range.length) and (loc >= range.location) then
   result := true
@@ -18,7 +18,7 @@ begin
   result := false;
 end;
 
-function NSEqualRanges (range1, range2: NSRange): BOOL;
+function NSEqualRanges (range1, range2: NSRange): ObjCBOOL;
 begin
  if (range1.location = range2.location) and (range1.length = range2.length) then
   result := true

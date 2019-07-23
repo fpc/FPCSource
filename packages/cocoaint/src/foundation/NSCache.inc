@@ -61,8 +61,8 @@
     function totalCostLimit: NSUInteger; message 'totalCostLimit';
     procedure setCountLimit(lim: NSUInteger); message 'setCountLimit:';
     function countLimit: NSUInteger; message 'countLimit';
-    function evictsObjectsWithDiscardedContent: BOOL; message 'evictsObjectsWithDiscardedContent';
-    procedure setEvictsObjectsWithDiscardedContent(b: BOOL); message 'setEvictsObjectsWithDiscardedContent:';
+    function evictsObjectsWithDiscardedContent: ObjCBOOL; message 'evictsObjectsWithDiscardedContent';
+    procedure setEvictsObjectsWithDiscardedContent(b: ObjCBOOL); message 'setEvictsObjectsWithDiscardedContent:';
   end;
 
 {$endif}

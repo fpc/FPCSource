@@ -118,9 +118,9 @@ var
     
   public
     function initWithVoice(voice_: NSString): id; message 'initWithVoice:';
-    function startSpeakingString(string_: NSString): BOOL; message 'startSpeakingString:';
-    function startSpeakingString_toURL(string_: NSString; url: NSURL): BOOL; message 'startSpeakingString:toURL:';
-    function isSpeaking: BOOL; message 'isSpeaking';
+    function startSpeakingString(string_: NSString): ObjCBOOL; message 'startSpeakingString:';
+    function startSpeakingString_toURL(string_: NSString; url: NSURL): ObjCBOOL; message 'startSpeakingString:toURL:';
+    function isSpeaking: ObjCBOOL; message 'isSpeaking';
     procedure stopSpeaking; message 'stopSpeaking';
     procedure stopSpeakingAtBoundary(boundary: NSSpeechBoundary); message 'stopSpeakingAtBoundary:';
     procedure pauseSpeakingAtBoundary(boundary: NSSpeechBoundary); message 'pauseSpeakingAtBoundary:';
@@ -128,18 +128,18 @@ var
     function delegate: NSSpeechSynthesizerDelegateProtocol; message 'delegate';
     procedure setDelegate(anObject: NSSpeechSynthesizerDelegateProtocol); message 'setDelegate:';
     function voice: NSString; message 'voice';
-    function setVoice(voice_: NSString): BOOL; message 'setVoice:';
+    function setVoice(voice_: NSString): ObjCBOOL; message 'setVoice:';
     function rate: single; message 'rate';
     procedure setRate(rate_: single); message 'setRate:';
     function volume: single; message 'volume';
     procedure setVolume(volume_: single); message 'setVolume:';
-    function usesFeedbackWindow: BOOL; message 'usesFeedbackWindow';
-    procedure setUsesFeedbackWindow(flag: BOOL); message 'setUsesFeedbackWindow:';
+    function usesFeedbackWindow: ObjCBOOL; message 'usesFeedbackWindow';
+    procedure setUsesFeedbackWindow(flag: ObjCBOOL); message 'setUsesFeedbackWindow:';
     procedure addSpeechDictionary(speechDictionary: NSDictionary); message 'addSpeechDictionary:';
     function phonemesFromText(text: NSString): NSString; message 'phonemesFromText:';
     function objectForProperty_error(property_: NSString; outError: NSErrorPointer): id; message 'objectForProperty:error:';
-    function setObject_forProperty_error(object_: id; property_: NSString; outError: NSErrorPointer): BOOL; message 'setObject:forProperty:error:';
-    class function isAnyApplicationSpeaking: BOOL; message 'isAnyApplicationSpeaking';
+    function setObject_forProperty_error(object_: id; property_: NSString; outError: NSErrorPointer): ObjCBOOL; message 'setObject:forProperty:error:';
+    class function isAnyApplicationSpeaking: ObjCBOOL; message 'isAnyApplicationSpeaking';
     class function defaultVoice: NSString; message 'defaultVoice';
     class function availableVoices: NSArray; message 'availableVoices';
     class function attributesForVoice(voice_: NSString): NSDictionary; message 'attributesForVoice:';
@@ -154,7 +154,7 @@ var
 { NSSpeechSynthesizerDelegate Protocol }
   NSSpeechSynthesizerDelegateProtocol = objcprotocol external name 'NSSpeechSynthesizerDelegate'
   optional
-    procedure speechSynthesizer_didFinishSpeaking(sender: NSSpeechSynthesizer; finishedSpeaking: BOOL); message 'speechSynthesizer:didFinishSpeaking:';
+    procedure speechSynthesizer_didFinishSpeaking(sender: NSSpeechSynthesizer; finishedSpeaking: ObjCBOOL); message 'speechSynthesizer:didFinishSpeaking:';
     procedure speechSynthesizer_willSpeakWord_ofString(sender: NSSpeechSynthesizer; characterRange: NSRange; string_: NSString); message 'speechSynthesizer:willSpeakWord:ofString:';
     procedure speechSynthesizer_willSpeakPhoneme(sender: NSSpeechSynthesizer; phonemeOpcode: cshort); message 'speechSynthesizer:willSpeakPhoneme:';
     procedure speechSynthesizer_didEncounterErrorAtIndex_ofString_message(sender: NSSpeechSynthesizer; characterIndex: NSUInteger; string_: NSString; message: NSString); message 'speechSynthesizer:didEncounterErrorAtIndex:ofString:message:';

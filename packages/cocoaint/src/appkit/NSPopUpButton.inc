@@ -60,13 +60,13 @@ var
     {$endif}
     
   public
-    function initWithFrame_pullsDown(buttonFrame: NSRect; flag: BOOL): id; message 'initWithFrame:pullsDown:';
+    function initWithFrame_pullsDown(buttonFrame: NSRect; flag: ObjCBOOL): id; message 'initWithFrame:pullsDown:';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
-    procedure setPullsDown(flag: BOOL); message 'setPullsDown:';
-    function pullsDown: BOOL; message 'pullsDown';
-    procedure setAutoenablesItems(flag: BOOL); message 'setAutoenablesItems:';
-    function autoenablesItems: BOOL; message 'autoenablesItems';
+    procedure setPullsDown(flag: ObjCBOOL); message 'setPullsDown:';
+    function pullsDown: ObjCBOOL; message 'pullsDown';
+    procedure setAutoenablesItems(flag: ObjCBOOL); message 'setAutoenablesItems:';
+    function autoenablesItems: ObjCBOOL; message 'autoenablesItems';
     procedure setPreferredEdge(edge: NSRectEdge); message 'setPreferredEdge:';
     function preferredEdge: NSRectEdge; message 'preferredEdge';
     procedure addItemWithTitle(title_: NSString); message 'addItemWithTitle:';
@@ -88,7 +88,7 @@ var
     procedure selectItem(item: NSMenuItem); message 'selectItem:';
     procedure selectItemAtIndex(index: NSInteger); message 'selectItemAtIndex:';
     procedure selectItemWithTitle(title_: NSString); message 'selectItemWithTitle:';
-    function selectItemWithTag(tag_: NSInteger): BOOL; message 'selectItemWithTag:';
+    function selectItemWithTag(tag_: NSInteger): ObjCBOOL; message 'selectItemWithTag:';
     procedure setTitle(aString: NSString); message 'setTitle:';
     function selectedItem: NSMenuItem; message 'selectedItem';
     function indexOfSelectedItem: NSInteger; message 'indexOfSelectedItem';

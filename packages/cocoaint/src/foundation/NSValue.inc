@@ -71,12 +71,12 @@
     function unsignedLongLongValue: culonglong; message 'unsignedLongLongValue';
     function floatValue: single; message 'floatValue';
     function doubleValue: double; message 'doubleValue';
-    function boolValue: BOOL; message 'boolValue';
+    function boolValue: ObjCBOOL; message 'boolValue';
     function integerValue: NSInteger; message 'integerValue';
     function unsignedIntegerValue: NSUInteger; message 'unsignedIntegerValue';
     function stringValue: NSString; message 'stringValue';
     function compare(otherNumber: NSNumber): NSComparisonResult; message 'compare:';
-    function isEqualToNumber(number: NSNumber): BOOL; message 'isEqualToNumber:';
+    function isEqualToNumber(number: NSNumber): ObjCBOOL; message 'isEqualToNumber:';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
   end;
 
@@ -93,7 +93,7 @@
     function nonretainedObjectValue: id; message 'nonretainedObjectValue';
     class function valueWithPointer(pointer_: Pointer): NSValue; message 'valueWithPointer:';
     function pointerValue: Pointer; message 'pointerValue';
-    function isEqualToValue(value: NSValue): BOOL; message 'isEqualToValue:';
+    function isEqualToValue(value: NSValue): ObjCBOOL; message 'isEqualToValue:';
   end;
 
 { NSNumberCreationCategory }
@@ -110,7 +110,7 @@
     function initWithUnsignedLongLong(value: culonglong): id; message 'initWithUnsignedLongLong:';
     function initWithFloat(value: single): id; message 'initWithFloat:';
     function initWithDouble(value: double): id; message 'initWithDouble:';
-    function initWithBool(value: BOOL): id; message 'initWithBool:';
+    function initWithBool(value: ObjCBOOL): id; message 'initWithBool:';
     function initWithInteger(value: NSInteger): id; message 'initWithInteger:';
     function initWithUnsignedInteger(value: NSUInteger): id; message 'initWithUnsignedInteger:';
     class function numberWithChar(value: char): NSNumber; message 'numberWithChar:';
@@ -125,7 +125,7 @@
     class function numberWithUnsignedLongLong(value: culonglong): NSNumber; message 'numberWithUnsignedLongLong:';
     class function numberWithFloat(value: single): NSNumber; message 'numberWithFloat:';
     class function numberWithDouble(value: double): NSNumber; message 'numberWithDouble:';
-    class function numberWithBool(value: BOOL): NSNumber; message 'numberWithBool:';
+    class function numberWithBool(value: ObjCBOOL): NSNumber; message 'numberWithBool:';
     class function numberWithInteger(value: NSInteger): NSNumber; message 'numberWithInteger:';
     class function numberWithUnsignedInteger(value: NSUInteger): NSNumber; message 'numberWithUnsignedInteger:';
   end;

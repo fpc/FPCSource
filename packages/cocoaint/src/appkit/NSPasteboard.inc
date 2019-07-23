@@ -129,19 +129,19 @@ var
     function changeCount: NSInteger; message 'changeCount';
     procedure releaseGlobally; message 'releaseGlobally';
     function clearContents: NSInteger; message 'clearContents';
-    function writeObjects(objects: NSArray): BOOL; message 'writeObjects:';
+    function writeObjects(objects: NSArray): ObjCBOOL; message 'writeObjects:';
     function readObjectsForClasses_options(classArray: NSArray; options: NSDictionary): NSArray; message 'readObjectsForClasses:options:';
     function pasteboardItems: NSArray; message 'pasteboardItems';
     function indexOfPasteboardItem(pasteboardItem: NSPasteboardItem): NSUInteger; message 'indexOfPasteboardItem:';
-    function canReadItemWithDataConformingToTypes(types_: NSArray): BOOL; message 'canReadItemWithDataConformingToTypes:';
-    function canReadObjectForClasses_options(classArray: NSArray; options: NSDictionary): BOOL; message 'canReadObjectForClasses:options:';
+    function canReadItemWithDataConformingToTypes(types_: NSArray): ObjCBOOL; message 'canReadItemWithDataConformingToTypes:';
+    function canReadObjectForClasses_options(classArray: NSArray; options: NSDictionary): ObjCBOOL; message 'canReadObjectForClasses:options:';
     function declareTypes_owner(newTypes: NSArray; newOwner: id): NSInteger; message 'declareTypes:owner:';
     function addTypes_owner(newTypes: NSArray; newOwner: id): NSInteger; message 'addTypes:owner:';
     function types: NSArray; message 'types';
     function availableTypeFromArray(types_: NSArray): NSString; message 'availableTypeFromArray:';
-    function setData_forType(data: NSData; dataType: NSString): BOOL; message 'setData:forType:';
-    function setPropertyList_forType(plist: id; dataType: NSString): BOOL; message 'setPropertyList:forType:';
-    function setString_forType(string_: NSString; dataType: NSString): BOOL; message 'setString:forType:';
+    function setData_forType(data: NSData; dataType: NSString): ObjCBOOL; message 'setData:forType:';
+    function setPropertyList_forType(plist: id; dataType: NSString): ObjCBOOL; message 'setPropertyList:forType:';
+    function setString_forType(string_: NSString; dataType: NSString): ObjCBOOL; message 'setString:forType:';
     function dataForType(dataType: NSString): NSData; message 'dataForType:';
     function propertyListForType(dataType: NSString): id; message 'propertyListForType:';
     function stringForType(dataType: NSString): NSString; message 'stringForType:';
@@ -173,9 +173,9 @@ var
 
 { NSFileContentsCategory }
   NSFileContentsCategory = objccategory external (NSPasteboard)
-    function writeFileContents(filename: NSString): BOOL; message 'writeFileContents:';
+    function writeFileContents(filename: NSString): ObjCBOOL; message 'writeFileContents:';
     function readFileContentsType_toFile(type_: NSString; filename: NSString): NSString; message 'readFileContentsType:toFile:';
-    function writeFileWrapper(wrapper: NSFileWrapper): BOOL; message 'writeFileWrapper:';
+    function writeFileWrapper(wrapper: NSFileWrapper): ObjCBOOL; message 'writeFileWrapper:';
     function readFileWrapper: NSFileWrapper; message 'readFileWrapper';
   end;
 

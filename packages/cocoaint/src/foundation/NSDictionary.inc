@@ -75,11 +75,11 @@
     function descriptionInStringsFileFormat: NSString; message 'descriptionInStringsFileFormat';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
     function descriptionWithLocale_indent(locale: id; level: NSUInteger): NSString; message 'descriptionWithLocale:indent:';
-    function isEqualToDictionary(otherDictionary: NSDictionary): BOOL; message 'isEqualToDictionary:';
+    function isEqualToDictionary(otherDictionary: NSDictionary): ObjCBOOL; message 'isEqualToDictionary:';
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
     function objectsForKeys_notFoundMarker(keys: NSArray; marker: id): NSArray; message 'objectsForKeys:notFoundMarker:';
-    function writeToFile_atomically(path: NSString; useAuxiliaryFile: BOOL): BOOL; message 'writeToFile:atomically:';
-    function writeToURL_atomically(url: NSURL; atomically: BOOL): BOOL; message 'writeToURL:atomically:';
+    function writeToFile_atomically(path: NSString; useAuxiliaryFile: ObjCBOOL): ObjCBOOL; message 'writeToFile:atomically:';
+    function writeToURL_atomically(url: NSURL; atomically: ObjCBOOL): ObjCBOOL; message 'writeToURL:atomically:';
     function keysSortedByValueUsingSelector(comparator: SEL): NSArray; message 'keysSortedByValueUsingSelector:';
     procedure getObjects_andKeys(objects: idPtr; keys: idPtr); message 'getObjects:andKeys:';
   end;
@@ -95,7 +95,7 @@
     function initWithObjects_forKeys_count(objects: idPtr; keys: idPtr; cnt: NSUInteger): id; message 'initWithObjects:forKeys:count:';
     function initWithObjectsAndKeys(firstKey: id): id; varargs; message 'initWithObjectsAndKeys:';
     function initWithDictionary(otherDictionary: NSDictionary): id; message 'initWithDictionary:';
-    function initWithDictionary_copyItems(otherDictionary: NSDictionary; flag: BOOL): id; message 'initWithDictionary:copyItems:';
+    function initWithDictionary_copyItems(otherDictionary: NSDictionary; flag: ObjCBOOL): id; message 'initWithDictionary:copyItems:';
     function initWithObjects_forKeys(objects: NSArray; keys: NSArray): id; message 'initWithObjects:forKeys:';
     class function dictionaryWithContentsOfFile(path: NSString): id; message 'dictionaryWithContentsOfFile:';
     class function dictionaryWithContentsOfURL(url: NSURL): id; message 'dictionaryWithContentsOfURL:';

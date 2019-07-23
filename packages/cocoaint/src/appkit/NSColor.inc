@@ -148,8 +148,8 @@ var
     class function colorWithPatternImage(image: NSImage): NSColor; message 'colorWithPatternImage:';
     function patternImage: NSImage; message 'patternImage';
     procedure drawSwatchInRect(rect: NSRect); message 'drawSwatchInRect:';
-    class procedure setIgnoresAlpha(flag: BOOL); message 'setIgnoresAlpha:';
-    class function ignoresAlpha: BOOL; message 'ignoresAlpha';
+    class procedure setIgnoresAlpha(flag: ObjCBOOL); message 'setIgnoresAlpha:';
+    class function ignoresAlpha: ObjCBOOL; message 'ignoresAlpha';
   end;
 
 { NSQuartzCoreAdditions_NSColorCategory }

@@ -105,12 +105,12 @@ const
     class procedure setFontPanelFactory(factoryId: Pobjc_class); message 'setFontPanelFactory:';
     class procedure setFontManagerFactory(factoryId: Pobjc_class); message 'setFontManagerFactory:';
     class function sharedFontManager: NSFontManager; message 'sharedFontManager';
-    function isMultiple: BOOL; message 'isMultiple';
+    function isMultiple: ObjCBOOL; message 'isMultiple';
     function selectedFont: NSFont; message 'selectedFont';
-    procedure setSelectedFont_isMultiple(fontObj: NSFont; flag: BOOL); message 'setSelectedFont:isMultiple:';
+    procedure setSelectedFont_isMultiple(fontObj: NSFont; flag: ObjCBOOL); message 'setSelectedFont:isMultiple:';
     procedure setFontMenu(newMenu: NSMenu); message 'setFontMenu:';
-    function fontMenu(create_: BOOL): NSMenu; message 'fontMenu:';
-    function fontPanel(create_: BOOL): NSFontPanel; message 'fontPanel:';
+    function fontMenu(create_: ObjCBOOL): NSMenu; message 'fontMenu:';
+    function fontPanel(create_: ObjCBOOL): NSFontPanel; message 'fontPanel:';
     function fontWithFamily_traits_weight_size(family: NSString; traits: NSFontTraitMask; weight: NSInteger; size: CGFloat): NSFont; message 'fontWithFamily:traits:weight:size:';
     function traitsOfFont(fontObj: NSFont): NSFontTraitMask; message 'traitsOfFont:';
     function weightOfFont(fontObj: NSFont): NSInteger; message 'weightOfFont:';
@@ -123,22 +123,22 @@ const
     function convertFont_toFamily(fontObj: NSFont; family: NSString): NSFont; message 'convertFont:toFamily:';
     function convertFont_toHaveTrait(fontObj: NSFont; trait: NSFontTraitMask): NSFont; message 'convertFont:toHaveTrait:';
     function convertFont_toNotHaveTrait(fontObj: NSFont; trait: NSFontTraitMask): NSFont; message 'convertFont:toNotHaveTrait:';
-    function convertWeight_ofFont(upFlag: BOOL; fontObj: NSFont): NSFont; message 'convertWeight:ofFont:';
-    function isEnabled: BOOL; message 'isEnabled';
-    procedure setEnabled(flag: BOOL); message 'setEnabled:';
+    function convertWeight_ofFont(upFlag: ObjCBOOL; fontObj: NSFont): NSFont; message 'convertWeight:ofFont:';
+    function isEnabled: ObjCBOOL; message 'isEnabled';
+    procedure setEnabled(flag: ObjCBOOL); message 'setEnabled:';
     function action: SEL; message 'action';
     procedure setAction(aSelector: SEL); message 'setAction:';
-    function sendAction: BOOL; message 'sendAction';
+    function sendAction: ObjCBOOL; message 'sendAction';
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     function localizedNameForFamily_face(family: NSString; faceKey: NSString): NSString; message 'localizedNameForFamily:face:';
-    procedure setSelectedAttributes_isMultiple(attributes: NSDictionary; flag: BOOL); message 'setSelectedAttributes:isMultiple:';
+    procedure setSelectedAttributes_isMultiple(attributes: NSDictionary; flag: ObjCBOOL); message 'setSelectedAttributes:isMultiple:';
     function convertAttributes(attributes: NSDictionary): NSDictionary; message 'convertAttributes:';
     function availableFontNamesMatchingFontDescriptor(descriptor: NSFontDescriptor): NSArray; message 'availableFontNamesMatchingFontDescriptor:';
     function collectionNames: NSArray; message 'collectionNames';
     function fontDescriptorsInCollection(collectionNames_: NSString): NSArray; message 'fontDescriptorsInCollection:';
-    function addCollection_options(collectionName: NSString; collectionOptions: NSInteger): BOOL; message 'addCollection:options:';
-    function removeCollection(collectionName: NSString): BOOL; message 'removeCollection:';
+    function addCollection_options(collectionName: NSString; collectionOptions: NSInteger): ObjCBOOL; message 'addCollection:options:';
+    function removeCollection(collectionName: NSString): ObjCBOOL; message 'removeCollection:';
     procedure addFontDescriptors_toCollection(descriptors: NSArray; collectionName: NSString); message 'addFontDescriptors:toCollection:';
     procedure removeFontDescriptor_fromCollection(descriptor: NSFontDescriptor; collection: NSString); message 'removeFontDescriptor:fromCollection:';
     function currentFontAction: NSFontAction; message 'currentFontAction';
@@ -149,7 +149,7 @@ const
 
 { NSFontManagerMenuActionMethodsCategory }
   NSFontManagerMenuActionMethodsCategory = objccategory external (NSFontManager)
-    function fontNamed_hasTraits(fName: NSString; someTraits: NSFontTraitMask): BOOL; message 'fontNamed:hasTraits:';
+    function fontNamed_hasTraits(fName: NSString; someTraits: NSFontTraitMask): ObjCBOOL; message 'fontNamed:hasTraits:';
     function availableFontNamesWithTraits(someTraits: NSFontTraitMask): NSArray; message 'availableFontNamesWithTraits:';
     procedure addFontTrait(sender: id); message 'addFontTrait:';
     procedure removeFontTrait(sender: id); message 'removeFontTrait:';
@@ -161,7 +161,7 @@ const
 
 { NSFontManagerDelegateCategory }
   NSFontManagerDelegateCategory = objccategory external (NSObject)
-    function fontManager_willIncludeFont(sender: id; fontName: NSString): BOOL; message 'fontManager:willIncludeFont:';
+    function fontManager_willIncludeFont(sender: id; fontName: NSString): ObjCBOOL; message 'fontManager:willIncludeFont:';
   end;
 
 { NSFontManagerResponderMethodCategory }

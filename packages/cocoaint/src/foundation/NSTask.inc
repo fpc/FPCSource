@@ -76,10 +76,10 @@ var
     procedure launch; message 'launch';
     procedure interrupt; message 'interrupt';
     procedure terminate; message 'terminate';
-    function suspend: BOOL; message 'suspend';
-    function resume: BOOL; message 'resume';
+    function suspend: ObjCBOOL; message 'suspend';
+    function resume: ObjCBOOL; message 'resume';
     function processIdentifier: cint; message 'processIdentifier';
-    function isRunning: BOOL; message 'isRunning';
+    function isRunning: ObjCBOOL; message 'isRunning';
     function terminationStatus: cint; message 'terminationStatus';
     function terminationReason: NSTaskTerminationReason; message 'terminationReason';
   end;

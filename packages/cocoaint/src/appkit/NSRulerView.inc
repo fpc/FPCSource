@@ -94,24 +94,24 @@ type
     procedure addMarker(marker: NSRulerMarker); message 'addMarker:';
     procedure removeMarker(marker: NSRulerMarker); message 'removeMarker:';
     function markers: NSArray; message 'markers';
-    function trackMarker_withMouseEvent(marker: NSRulerMarker; event: NSEvent): BOOL; message 'trackMarker:withMouseEvent:';
+    function trackMarker_withMouseEvent(marker: NSRulerMarker; event: NSEvent): ObjCBOOL; message 'trackMarker:withMouseEvent:';
     procedure setAccessoryView(accessory: NSView); message 'setAccessoryView:';
     function accessoryView: NSView; message 'accessoryView';
     procedure moveRulerlineFromLocation_toLocation(oldLocation: CGFloat; newLocation: CGFloat); message 'moveRulerlineFromLocation:toLocation:';
     procedure invalidateHashMarks; message 'invalidateHashMarks';
     procedure drawHashMarksAndLabelsInRect(rect: NSRect); message 'drawHashMarksAndLabelsInRect:';
     procedure drawMarkersInRect(rect: NSRect); message 'drawMarkersInRect:';
-    function isFlipped: BOOL; message 'isFlipped';
+    function isFlipped: ObjCBOOL; message 'isFlipped';
   end;
 
 { NSRulerMarkerClientViewDelegationCategory }
   NSRulerMarkerClientViewDelegationCategory = objccategory external (NSView)
-    function rulerView_shouldMoveMarker(ruler: NSRulerView; marker: NSRulerMarker): BOOL; message 'rulerView:shouldMoveMarker:';
+    function rulerView_shouldMoveMarker(ruler: NSRulerView; marker: NSRulerMarker): ObjCBOOL; message 'rulerView:shouldMoveMarker:';
     function rulerView_willMoveMarker_toLocation(ruler: NSRulerView; marker: NSRulerMarker; location: CGFloat): CGFloat; message 'rulerView:willMoveMarker:toLocation:';
     procedure rulerView_didMoveMarker(ruler: NSRulerView; marker: NSRulerMarker); message 'rulerView:didMoveMarker:';
-    function rulerView_shouldRemoveMarker(ruler: NSRulerView; marker: NSRulerMarker): BOOL; message 'rulerView:shouldRemoveMarker:';
+    function rulerView_shouldRemoveMarker(ruler: NSRulerView; marker: NSRulerMarker): ObjCBOOL; message 'rulerView:shouldRemoveMarker:';
     procedure rulerView_didRemoveMarker(ruler: NSRulerView; marker: NSRulerMarker); message 'rulerView:didRemoveMarker:';
-    function rulerView_shouldAddMarker(ruler: NSRulerView; marker: NSRulerMarker): BOOL; message 'rulerView:shouldAddMarker:';
+    function rulerView_shouldAddMarker(ruler: NSRulerView; marker: NSRulerMarker): ObjCBOOL; message 'rulerView:shouldAddMarker:';
     function rulerView_willAddMarker_atLocation(ruler: NSRulerView; marker: NSRulerMarker; location: CGFloat): CGFloat; message 'rulerView:willAddMarker:atLocation:';
     procedure rulerView_didAddMarker(ruler: NSRulerView; marker: NSRulerMarker); message 'rulerView:didAddMarker:';
     procedure rulerView_handleMouseDown(ruler: NSRulerView; event: NSEvent); message 'rulerView:handleMouseDown:';

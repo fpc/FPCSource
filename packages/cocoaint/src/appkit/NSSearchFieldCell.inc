@@ -90,16 +90,16 @@ const
     function cancelButtonRectForBounds(rect: NSRect): NSRect; message 'cancelButtonRectForBounds:';
     procedure setSearchMenuTemplate(menu_: NSMenu); message 'setSearchMenuTemplate:';
     function searchMenuTemplate: NSMenu; message 'searchMenuTemplate';
-    procedure setSendsWholeSearchString(flag: BOOL); message 'setSendsWholeSearchString:';
-    function sendsWholeSearchString: BOOL; message 'sendsWholeSearchString';
+    procedure setSendsWholeSearchString(flag: ObjCBOOL); message 'setSendsWholeSearchString:';
+    function sendsWholeSearchString: ObjCBOOL; message 'sendsWholeSearchString';
     procedure setMaximumRecents(maxRecents: NSInteger); message 'setMaximumRecents:';
     function maximumRecents: NSInteger; message 'maximumRecents';
     procedure setRecentSearches(searches: NSArray); message 'setRecentSearches:';
     function recentSearches: NSArray; message 'recentSearches';
     procedure setRecentsAutosaveName(string_: NSString); message 'setRecentsAutosaveName:';
     function recentsAutosaveName: NSString; message 'recentsAutosaveName';
-    function sendsSearchStringImmediately: BOOL; message 'sendsSearchStringImmediately';
-    procedure setSendsSearchStringImmediately(flag: BOOL); message 'setSendsSearchStringImmediately:';
+    function sendsSearchStringImmediately: ObjCBOOL; message 'sendsSearchStringImmediately';
+    procedure setSendsSearchStringImmediately(flag: ObjCBOOL); message 'setSendsSearchStringImmediately:';
   end;
 
 {$endif}

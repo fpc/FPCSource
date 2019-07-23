@@ -55,8 +55,8 @@
     function height: cint; message 'height';
     procedure setHspace (newValue: cint); message 'setHspace:';
     function hspace: cint; message 'hspace';
-    procedure setIsMap (newValue: BOOL); message 'setIsMap:';
-    function isMap: BOOL; message 'isMap';
+    procedure setIsMap (newValue: ObjCBOOL); message 'setIsMap:';
+    function isMap: ObjCBOOL; message 'isMap';
     procedure setLongDesc (newValue: NSString); message 'setLongDesc:';
     function longDesc: NSString; message 'longDesc';
     procedure setSrc (newValue: NSString); message 'setSrc:';
@@ -67,7 +67,7 @@
     function vspace: cint; message 'vspace';
     procedure setWidth (newValue: cint); message 'setWidth:';
     function width: cint; message 'width';
-    function complete: BOOL; message 'complete';
+    function complete: ObjCBOOL; message 'complete';
     procedure setLowsrc (newValue: NSString); message 'setLowsrc:';
     function lowsrc: NSString; message 'lowsrc';
     function naturalHeight: cint; message 'naturalHeight';

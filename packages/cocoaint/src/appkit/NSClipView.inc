@@ -76,8 +76,8 @@
   public
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
-    procedure setDrawsBackground(flag: BOOL); message 'setDrawsBackground:';
-    function drawsBackground: BOOL; message 'drawsBackground';
+    procedure setDrawsBackground(flag: ObjCBOOL); message 'setDrawsBackground:';
+    function drawsBackground: ObjCBOOL; message 'drawsBackground';
     procedure setDocumentView(aView: NSView); message 'setDocumentView:';
     function documentView: id; message 'documentView';
     function documentRect: NSRect; message 'documentRect';
@@ -86,9 +86,9 @@
     function documentVisibleRect: NSRect; message 'documentVisibleRect';
     procedure viewFrameChanged(notification: NSNotification); message 'viewFrameChanged:';
     procedure viewBoundsChanged(notification: NSNotification); message 'viewBoundsChanged:';
-    procedure setCopiesOnScroll(flag: BOOL); message 'setCopiesOnScroll:';
-    function copiesOnScroll: BOOL; message 'copiesOnScroll';
-    function autoscroll(theEvent: NSEvent): BOOL; message 'autoscroll:';
+    procedure setCopiesOnScroll(flag: ObjCBOOL); message 'setCopiesOnScroll:';
+    function copiesOnScroll: ObjCBOOL; message 'copiesOnScroll';
+    function autoscroll(theEvent: NSEvent): ObjCBOOL; message 'autoscroll:';
     function constrainScrollPoint(newOrigin: NSPoint): NSPoint; message 'constrainScrollPoint:';
     procedure scrollToPoint(newOrigin: NSPoint); message 'scrollToPoint:';
   end;

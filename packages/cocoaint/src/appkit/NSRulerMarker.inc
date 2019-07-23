@@ -69,17 +69,17 @@
     function image: NSImage; message 'image';
     procedure setImageOrigin(imageOrigin_: NSPoint); message 'setImageOrigin:';
     function imageOrigin: NSPoint; message 'imageOrigin';
-    procedure setMovable(flag: BOOL); message 'setMovable:';
-    procedure setRemovable(flag: BOOL); message 'setRemovable:';
-    function isMovable: BOOL; message 'isMovable';
-    function isRemovable: BOOL; message 'isRemovable';
-    function isDragging: BOOL; message 'isDragging';
+    procedure setMovable(flag: ObjCBOOL); message 'setMovable:';
+    procedure setRemovable(flag: ObjCBOOL); message 'setRemovable:';
+    function isMovable: ObjCBOOL; message 'isMovable';
+    function isRemovable: ObjCBOOL; message 'isRemovable';
+    function isDragging: ObjCBOOL; message 'isDragging';
     procedure setRepresentedObject(representedObject_: NSCopyingProtocol); message 'setRepresentedObject:';
     function representedObject: NSCopyingProtocol; message 'representedObject';
     function imageRectInRuler: NSRect; message 'imageRectInRuler';
     function thicknessRequiredInRuler: CGFloat; message 'thicknessRequiredInRuler';
     procedure drawRect(rect: NSRect); message 'drawRect:';
-    function trackMouse_adding(mouseDownEvent: NSEvent; isAdding: BOOL): BOOL; message 'trackMouse:adding:';
+    function trackMouse_adding(mouseDownEvent: NSEvent; isAdding: ObjCBOOL): ObjCBOOL; message 'trackMouse:adding:';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;

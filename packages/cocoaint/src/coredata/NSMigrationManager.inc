@@ -68,7 +68,7 @@
     
   public
     function initWithSourceModel_destinationModel(sourceModel_: NSManagedObjectModel; destinationModel_: NSManagedObjectModel): id; message 'initWithSourceModel:destinationModel:';
-    function migrateStoreFromURL_type_options_withMappingModel_toDestinationURL_destinationType_destinationOptions_error(sourceURL: NSURL; sStoreType: NSString; sOptions: NSDictionary; mappings: NSMappingModel; dURL: NSURL; dStoreType: NSString; dOptions: NSDictionary; error: NSErrorPointer): BOOL; message 'migrateStoreFromURL:type:options:withMappingModel:toDestinationURL:destinationType:destinationOptions:error:';
+    function migrateStoreFromURL_type_options_withMappingModel_toDestinationURL_destinationType_destinationOptions_error(sourceURL: NSURL; sStoreType: NSString; sOptions: NSDictionary; mappings: NSMappingModel; dURL: NSURL; dStoreType: NSString; dOptions: NSDictionary; error: NSErrorPointer): ObjCBOOL; message 'migrateStoreFromURL:type:options:withMappingModel:toDestinationURL:destinationType:destinationOptions:error:';
     procedure reset; message 'reset';
     function mappingModel: NSMappingModel; message 'mappingModel';
     function sourceModel: NSManagedObjectModel; message 'sourceModel';

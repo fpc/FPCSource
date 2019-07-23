@@ -43,7 +43,7 @@ NSMapEnumeratorPtr = ^NSMapEnumerator;
 type
   NSMapTableKeyCallBacks = record
     hash: function (table: NSMapTable; param1: Pointer): NSUInteger; cdecl;
-    isEqual: function (table: NSMapTable; param1: Pointer; param2: Pointer): BOOL; cdecl;
+    isEqual: function (table: NSMapTable; param1: Pointer; param2: Pointer): ObjCBOOL; cdecl;
     retain: procedure (table: NSMapTable; param1: Pointer); cdecl;
     release: procedure (table: NSMapTable; param1: Pointer); cdecl;
     describe: function (table: NSMapTable; param1: Pointer): NSString; cdecl;
@@ -70,16 +70,16 @@ NSMapTableValueCallBacksPtr = ^NSMapTableValueCallBacks;
 { Functions }
 procedure NSFreeMapTable(table: NSMapTable); cdecl; external;
 procedure NSResetMapTable(table: NSMapTable); cdecl; external;
-function NSCompareMapTables(table1: NSMapTable; table2: NSMapTable): BOOL; cdecl; external;
+function NSCompareMapTables(table1: NSMapTable; table2: NSMapTable): ObjCBOOL; cdecl; external;
 function NSCopyMapTableWithZone(table: NSMapTable; zone: NSZonePtr): NSMapTable; cdecl; external;
-function NSMapMember(table: NSMapTable; key: Pointer; originalKey: PPointer; value: PPointer): BOOL; cdecl; external;
+function NSMapMember(table: NSMapTable; key: Pointer; originalKey: PPointer; value: PPointer): ObjCBOOL; cdecl; external;
 function NSMapGet(table: NSMapTable; key: Pointer): Pointer; cdecl; external;
 procedure NSMapInsert(table: NSMapTable; key: Pointer; value: Pointer); cdecl; external;
 procedure NSMapInsertKnownAbsent(table: NSMapTable; key: Pointer; value: Pointer); cdecl; external;
 function NSMapInsertIfAbsent(table: NSMapTable; key: Pointer; value: Pointer): Pointer; cdecl; external;
 procedure NSMapRemove(table: NSMapTable; key: Pointer); cdecl; external;
 function NSEnumerateMapTable(table: NSMapTable): NSMapEnumerator; cdecl; external;
-function NSNextMapEnumeratorPair(enumerator: NSMapEnumeratorPtr; key: PPointer; value: PPointer): BOOL; cdecl; external;
+function NSNextMapEnumeratorPair(enumerator: NSMapEnumeratorPtr; key: PPointer; value: PPointer): ObjCBOOL; cdecl; external;
 procedure NSEndMapTableEnumeration(enumerator: NSMapEnumeratorPtr); cdecl; external;
 function NSCountMapTable(table: NSMapTable): NSUInteger; cdecl; external;
 function NSStringFromMapTable(table: NSMapTable): NSString; cdecl; external;

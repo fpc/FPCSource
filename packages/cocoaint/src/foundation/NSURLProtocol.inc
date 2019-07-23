@@ -50,15 +50,15 @@
     function client: NSURLProtocolClientProtocol; message 'client';
     function request: NSURLRequest; message 'request';
     function cachedResponse: NSCachedURLResponse; message 'cachedResponse';
-    class function canInitWithRequest(request_: NSURLRequest): BOOL; message 'canInitWithRequest:';
+    class function canInitWithRequest(request_: NSURLRequest): ObjCBOOL; message 'canInitWithRequest:';
     class function canonicalRequestForRequest(request_: NSURLRequest): NSURLRequest; message 'canonicalRequestForRequest:';
-    class function requestIsCacheEquivalent_toRequest(a: NSURLRequest; b: NSURLRequest): BOOL; message 'requestIsCacheEquivalent:toRequest:';
+    class function requestIsCacheEquivalent_toRequest(a: NSURLRequest; b: NSURLRequest): ObjCBOOL; message 'requestIsCacheEquivalent:toRequest:';
     procedure startLoading; message 'startLoading';
     procedure stopLoading; message 'stopLoading';
     class function propertyForKey_inRequest(key: NSString; request_: NSURLRequest): id; message 'propertyForKey:inRequest:';
     class procedure setProperty_forKey_inRequest(value: id; key: NSString; request_: NSMutableURLRequest); message 'setProperty:forKey:inRequest:';
     class procedure removePropertyForKey_inRequest(key: NSString; request_: NSMutableURLRequest); message 'removePropertyForKey:inRequest:';
-    class function registerClass(protocolClass: Pobjc_class): BOOL; message 'registerClass:';
+    class function registerClass(protocolClass: Pobjc_class): ObjCBOOL; message 'registerClass:';
     class procedure unregisterClass(protocolClass: Pobjc_class); message 'unregisterClass:';
   end;
 

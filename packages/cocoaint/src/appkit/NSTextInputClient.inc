@@ -44,7 +44,7 @@
     procedure unmarkText; message 'unmarkText';
     function selectedRange: NSRange; message 'selectedRange';
     function markedRange: NSRange; message 'markedRange';
-    function hasMarkedText: BOOL; message 'hasMarkedText';
+    function hasMarkedText: ObjCBOOL; message 'hasMarkedText';
     function attributedSubstringForProposedRange_actualRange(aRange: NSRange; actualRange: NSRangePointer): NSAttributedString; message 'attributedSubstringForProposedRange:actualRange:';
     function validAttributesForMarkedText: NSArray; message 'validAttributesForMarkedText';
     function firstRectForCharacterRange_actualRange(aRange: NSRange; actualRange: NSRangePointer): NSRect; message 'firstRectForCharacterRange:actualRange:';
@@ -54,7 +54,7 @@
     function fractionOfDistanceThroughGlyphForPoint(aPoint: NSPoint): CGFloat; message 'fractionOfDistanceThroughGlyphForPoint:';
     function baselineDeltaForCharacterAtIndex(anIndex: NSUInteger): CGFloat; message 'baselineDeltaForCharacterAtIndex:';
     function windowLevel: NSInteger; message 'windowLevel';
-    function drawsVerticallyForCharacterAtIndex(charIndex: NSUInteger): BOOL; message 'drawsVerticallyForCharacterAtIndex:';
+    function drawsVerticallyForCharacterAtIndex(charIndex: NSUInteger): ObjCBOOL; message 'drawsVerticallyForCharacterAtIndex:';
   end;
 {$endif}
 {$endif}

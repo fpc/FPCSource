@@ -46,16 +46,16 @@
     function form: DOMHTMLFormElement; message 'form';
     procedure setAccessKey (newValue: NSString); message 'setAccessKey:';
     function accessKey: NSString; message 'accessKey';
-    procedure setDisabled (newValue: BOOL); message 'setDisabled:';
-    function disabled: BOOL; message 'disabled';
-    procedure setAutofocus (newValue: BOOL); message 'setAutofocus:';
-    function autofocus: BOOL; message 'autofocus';
+    procedure setDisabled (newValue: ObjCBOOL); message 'setDisabled:';
+    function disabled: ObjCBOOL; message 'disabled';
+    procedure setAutofocus (newValue: ObjCBOOL); message 'setAutofocus:';
+    function autofocus: ObjCBOOL; message 'autofocus';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
     function type_: NSString; message 'type_';
     procedure setValue (newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
-    function willValidate: BOOL; message 'willValidate';
+    function willValidate: ObjCBOOL; message 'willValidate';
     procedure click; message 'click';
   end;
 

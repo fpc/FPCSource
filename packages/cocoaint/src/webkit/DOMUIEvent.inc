@@ -52,12 +52,12 @@
     function pageX: cint; message 'pageX';
     function pageY: cint; message 'pageY';
     function which: cint; message 'which';
-    procedure initUIEvent_canBubble_cancelable_view_detail(type__: NSString; canBubble: BOOL; cancelable_: BOOL; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:canBubble:cancelable:view:detail:';
+    procedure initUIEvent_canBubble_cancelable_view_detail(type__: NSString; canBubble: ObjCBOOL; cancelable_: ObjCBOOL; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:canBubble:cancelable:view:detail:';
   end;
 
 { DOMUIEventDeprecatedCategory }
   DOMUIEventDeprecatedCategory = objccategory external (DOMUIEvent)
-    procedure initUIEvent(type__: NSString; canBubble: BOOL; cancelable_: BOOL; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:type:canBubble:cancelable:view:'; deprecated 'in_webkit_version_3 and later';
+    procedure initUIEvent(type__: NSString; canBubble: ObjCBOOL; cancelable_: ObjCBOOL; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:type:canBubble:cancelable:view:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

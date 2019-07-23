@@ -54,28 +54,28 @@ var
     _dataSource: id;
     
   public
-    function hasVerticalScroller: BOOL; message 'hasVerticalScroller';
-    procedure setHasVerticalScroller(flag: BOOL); message 'setHasVerticalScroller:';
+    function hasVerticalScroller: ObjCBOOL; message 'hasVerticalScroller';
+    procedure setHasVerticalScroller(flag: ObjCBOOL); message 'setHasVerticalScroller:';
     function intercellSpacing: NSSize; message 'intercellSpacing';
     procedure setIntercellSpacing(aSize: NSSize); message 'setIntercellSpacing:';
     function itemHeight: CGFloat; message 'itemHeight';
     procedure setItemHeight(itemHeight_: CGFloat); message 'setItemHeight:';
     function numberOfVisibleItems: NSInteger; message 'numberOfVisibleItems';
     procedure setNumberOfVisibleItems(visibleItems: NSInteger); message 'setNumberOfVisibleItems:';
-    procedure setButtonBordered(flag: BOOL); message 'setButtonBordered:';
-    function isButtonBordered: BOOL; message 'isButtonBordered';
+    procedure setButtonBordered(flag: ObjCBOOL); message 'setButtonBordered:';
+    function isButtonBordered: ObjCBOOL; message 'isButtonBordered';
     procedure reloadData; message 'reloadData';
     procedure noteNumberOfItemsChanged; message 'noteNumberOfItemsChanged';
-    procedure setUsesDataSource(flag: BOOL); message 'setUsesDataSource:';
-    function usesDataSource: BOOL; message 'usesDataSource';
+    procedure setUsesDataSource(flag: ObjCBOOL); message 'setUsesDataSource:';
+    function usesDataSource: ObjCBOOL; message 'usesDataSource';
     procedure scrollItemAtIndexToTop(index: NSInteger); message 'scrollItemAtIndexToTop:';
     procedure scrollItemAtIndexToVisible(index: NSInteger); message 'scrollItemAtIndexToVisible:';
     procedure selectItemAtIndex(index: NSInteger); message 'selectItemAtIndex:';
     procedure deselectItemAtIndex(index: NSInteger); message 'deselectItemAtIndex:';
     function indexOfSelectedItem: NSInteger; message 'indexOfSelectedItem';
     function numberOfItems: NSInteger; message 'numberOfItems';
-    function completes: BOOL; message 'completes';
-    procedure setCompletes(completes_: BOOL); message 'setCompletes:';
+    function completes: ObjCBOOL; message 'completes';
+    procedure setCompletes(completes_: ObjCBOOL); message 'setCompletes:';
     function delegate: NSComboBoxDelegateProtocol; message 'delegate';
     procedure setDelegate(anObject: NSComboBoxDelegateProtocol); message 'setDelegate:';
     function dataSource: NSComboBoxDataSourceProtocol; message 'dataSource';

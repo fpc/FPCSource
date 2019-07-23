@@ -68,7 +68,7 @@ type
     function segmentCount: NSInteger; message 'segmentCount';
     procedure setSelectedSegment(selectedSegment_: NSInteger); message 'setSelectedSegment:';
     function selectedSegment: NSInteger; message 'selectedSegment';
-    function selectSegmentWithTag(tag_: NSInteger): BOOL; message 'selectSegmentWithTag:';
+    function selectSegmentWithTag(tag_: NSInteger): ObjCBOOL; message 'selectSegmentWithTag:';
     procedure setWidth_forSegment(width: CGFloat; segment: NSInteger); message 'setWidth:forSegment:';
     function widthForSegment(segment: NSInteger): CGFloat; message 'widthForSegment:';
     procedure setImage_forSegment(image: NSImage; segment: NSInteger); message 'setImage:forSegment:';
@@ -79,10 +79,10 @@ type
     function labelForSegment(segment: NSInteger): NSString; message 'labelForSegment:';
     procedure setMenu_forSegment(menu_: NSMenu; segment: NSInteger); message 'setMenu:forSegment:';
     function menuForSegment(segment: NSInteger): NSMenu; message 'menuForSegment:';
-    procedure setSelected_forSegment(selected: BOOL; segment: NSInteger); message 'setSelected:forSegment:';
-    function isSelectedForSegment(segment: NSInteger): BOOL; message 'isSelectedForSegment:';
-    procedure setEnabled_forSegment(enabled: BOOL; segment: NSInteger); message 'setEnabled:forSegment:';
-    function isEnabledForSegment(segment: NSInteger): BOOL; message 'isEnabledForSegment:';
+    procedure setSelected_forSegment(selected: ObjCBOOL; segment: NSInteger); message 'setSelected:forSegment:';
+    function isSelectedForSegment(segment: NSInteger): ObjCBOOL; message 'isSelectedForSegment:';
+    procedure setEnabled_forSegment(enabled: ObjCBOOL; segment: NSInteger); message 'setEnabled:forSegment:';
+    function isEnabledForSegment(segment: NSInteger): ObjCBOOL; message 'isEnabledForSegment:';
     procedure setSegmentStyle(segmentStyle_: NSSegmentStyle); message 'setSegmentStyle:';
     function segmentStyle: NSSegmentStyle; message 'segmentStyle';
   end;

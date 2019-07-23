@@ -85,9 +85,9 @@ var
     function groupingLevel: NSInteger; message 'groupingLevel';
     procedure disableUndoRegistration; message 'disableUndoRegistration';
     procedure enableUndoRegistration; message 'enableUndoRegistration';
-    function isUndoRegistrationEnabled: BOOL; message 'isUndoRegistrationEnabled';
-    function groupsByEvent: BOOL; message 'groupsByEvent';
-    procedure setGroupsByEvent(groupsByEvent_: BOOL); message 'setGroupsByEvent:';
+    function isUndoRegistrationEnabled: ObjCBOOL; message 'isUndoRegistrationEnabled';
+    function groupsByEvent: ObjCBOOL; message 'groupsByEvent';
+    procedure setGroupsByEvent(groupsByEvent_: ObjCBOOL); message 'setGroupsByEvent:';
     procedure setLevelsOfUndo(levels: NSUInteger); message 'setLevelsOfUndo:';
     function levelsOfUndo: NSUInteger; message 'levelsOfUndo';
     procedure setRunLoopModes(runLoopModes_: NSArray); message 'setRunLoopModes:';
@@ -95,10 +95,10 @@ var
     procedure undo; message 'undo';
     procedure redo; message 'redo';
     procedure undoNestedGroup; message 'undoNestedGroup';
-    function canUndo: BOOL; message 'canUndo';
-    function canRedo: BOOL; message 'canRedo';
-    function isUndoing: BOOL; message 'isUndoing';
-    function isRedoing: BOOL; message 'isRedoing';
+    function canUndo: ObjCBOOL; message 'canUndo';
+    function canRedo: ObjCBOOL; message 'canRedo';
+    function isUndoing: ObjCBOOL; message 'isUndoing';
+    function isRedoing: ObjCBOOL; message 'isRedoing';
     procedure removeAllActions; message 'removeAllActions';
     procedure removeAllActionsWithTarget(target: id); message 'removeAllActionsWithTarget:';
     procedure registerUndoWithTarget_selector_object(target: id; selector: SEL; anObject: id); message 'registerUndoWithTarget:selector:object:';

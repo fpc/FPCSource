@@ -58,13 +58,13 @@
     
   public
     function initWithMovie(movie: Pointer): id; message 'initWithMovie:'; deprecated 'in Mac OS X 10.5 and later';
-    function initWithURL_byReference(url_: NSURL; byRef: BOOL): id; message 'initWithURL:byReference:'; deprecated 'in Mac OS X 10.5 and later';
+    function initWithURL_byReference(url_: NSURL; byRef: ObjCBOOL): id; message 'initWithURL:byReference:'; deprecated 'in Mac OS X 10.5 and later';
     function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
     function QTMovie_: Pointer; message 'QTMovie'; deprecated 'in Mac OS X 10.5 and later';
     function URL: NSURL; message 'URL'; deprecated 'in Mac OS X 10.5 and later';
     class function movieUnfilteredFileTypes: NSArray; message 'movieUnfilteredFileTypes'; deprecated 'in Mac OS X 10.5 and later';
     class function movieUnfilteredPasteboardTypes: NSArray; message 'movieUnfilteredPasteboardTypes'; deprecated 'in Mac OS X 10.5 and later';
-    class function canInitWithPasteboard(pasteboard: NSPasteboard): BOOL; message 'canInitWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
+    class function canInitWithPasteboard(pasteboard: NSPasteboard): ObjCBOOL; message 'canInitWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

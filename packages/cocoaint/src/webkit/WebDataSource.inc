@@ -53,7 +53,7 @@
     function request: NSMutableURLRequest; message 'request';
     function response: NSURLResponse; message 'response';
     function textEncodingName: NSString; message 'textEncodingName';
-    function isLoading: BOOL; message 'isLoading';
+    function isLoading: ObjCBOOL; message 'isLoading';
     function pageTitle: NSString; message 'pageTitle';
     function unreachableURL: NSURL; message 'unreachableURL';
     function webArchive: WebArchive; message 'webArchive';

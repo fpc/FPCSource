@@ -70,13 +70,13 @@ var
     _mantissa: record end; { array of 0 elements in C, does not allocate space }
     
   public
-    function initWithMantissa_exponent_isNegative(mantissa: culonglong; exponent: cshort; flag: BOOL): id; message 'initWithMantissa:exponent:isNegative:';
+    function initWithMantissa_exponent_isNegative(mantissa: culonglong; exponent: cshort; flag: ObjCBOOL): id; message 'initWithMantissa:exponent:isNegative:';
     function initWithDecimal(dcm: NSDecimal): id; message 'initWithDecimal:';
     function initWithString(numberValue: NSString): id; message 'initWithString:';
     function initWithString_locale(numberValue: NSString; locale_: id): id; message 'initWithString:locale:';
     function descriptionWithLocale(locale_: id): NSString; message 'descriptionWithLocale:';
     function decimalValue: NSDecimal; message 'decimalValue';
-    class function decimalNumberWithMantissa_exponent_isNegative(mantissa: culonglong; exponent: cshort; flag: BOOL): NSDecimalNumber; message 'decimalNumberWithMantissa:exponent:isNegative:';
+    class function decimalNumberWithMantissa_exponent_isNegative(mantissa: culonglong; exponent: cshort; flag: ObjCBOOL): NSDecimalNumber; message 'decimalNumberWithMantissa:exponent:isNegative:';
     class function decimalNumberWithDecimal(dcm: NSDecimal): NSDecimalNumber; message 'decimalNumberWithDecimal:';
     class function decimalNumberWithString(numberValue: NSString): NSDecimalNumber; message 'decimalNumberWithString:';
     class function decimalNumberWithString_locale(numberValue: NSString; locale_: id): NSDecimalNumber; message 'decimalNumberWithString:locale:';
@@ -127,8 +127,8 @@ var
     
   public
     class function defaultDecimalNumberHandler: id; message 'defaultDecimalNumberHandler';
-    function initWithRoundingMode_scale_raiseOnExactness_raiseOnOverflow_raiseOnUnderflow_raiseOnDivideByZero(roundingMode: NSRoundingMode; scale: cshort; exact: BOOL; overflow: BOOL; underflow: BOOL; divideByZero: BOOL): id; message 'initWithRoundingMode:scale:raiseOnExactness:raiseOnOverflow:raiseOnUnderflow:raiseOnDivideByZero:';
-    class function decimalNumberHandlerWithRoundingMode_scale_raiseOnExactness_raiseOnOverflow_raiseOnUnderflow_raiseOnDivideByZero(roundingMode: NSRoundingMode; scale: cshort; exact: BOOL; overflow: BOOL; underflow: BOOL; divideByZero: BOOL): id; message 'decimalNumberHandlerWithRoundingMode:scale:raiseOnExactness:raiseOnOverflow:raiseOnUnderflow:raiseOnDivideByZero:';
+    function initWithRoundingMode_scale_raiseOnExactness_raiseOnOverflow_raiseOnUnderflow_raiseOnDivideByZero(roundingMode: NSRoundingMode; scale: cshort; exact: ObjCBOOL; overflow: ObjCBOOL; underflow: ObjCBOOL; divideByZero: ObjCBOOL): id; message 'initWithRoundingMode:scale:raiseOnExactness:raiseOnOverflow:raiseOnUnderflow:raiseOnDivideByZero:';
+    class function decimalNumberHandlerWithRoundingMode_scale_raiseOnExactness_raiseOnOverflow_raiseOnUnderflow_raiseOnDivideByZero(roundingMode: NSRoundingMode; scale: cshort; exact: ObjCBOOL; overflow: ObjCBOOL; underflow: ObjCBOOL; divideByZero: ObjCBOOL): id; message 'decimalNumberHandlerWithRoundingMode:scale:raiseOnExactness:raiseOnOverflow:raiseOnUnderflow:raiseOnDivideByZero:';
 
     { Adopted Protocols }
     function roundingMode: NSRoundingMode;
@@ -145,7 +145,7 @@ var
 
 { NSDecimalNumberScanningCategory }
   NSDecimalNumberScanningCategory = objccategory external (NSScanner)
-    function scanDecimal(dcm: NSDecimalPtr): BOOL; message 'scanDecimal:';
+    function scanDecimal(dcm: NSDecimalPtr): ObjCBOOL; message 'scanDecimal:';
   end;
 
 {$endif}

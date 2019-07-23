@@ -74,7 +74,7 @@ var
     function earlierDate(anotherDate: NSDate): NSDate; message 'earlierDate:';
     function laterDate(anotherDate: NSDate): NSDate; message 'laterDate:';
     function compare(other: NSDate): NSComparisonResult; message 'compare:';
-    function isEqualToDate(otherDate: NSDate): BOOL; message 'isEqualToDate:';
+    function isEqualToDate(otherDate: NSDate): ObjCBOOL; message 'isEqualToDate:';
     function description: NSString; message 'description';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
   end;

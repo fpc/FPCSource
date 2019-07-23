@@ -51,8 +51,8 @@
     function coords: NSString; message 'coords';
     procedure setHref (newValue: NSString); message 'setHref:';
     function href: NSString; message 'href';
-    procedure setNoHref (newValue: BOOL); message 'setNoHref:';
-    function noHref: BOOL; message 'noHref';
+    procedure setNoHref (newValue: ObjCBOOL); message 'setNoHref:';
+    function noHref: ObjCBOOL; message 'noHref';
     procedure setShape (newValue: NSString); message 'setShape:';
     function shape: NSString; message 'shape';
     procedure setTarget (newValue: NSString); message 'setTarget:';

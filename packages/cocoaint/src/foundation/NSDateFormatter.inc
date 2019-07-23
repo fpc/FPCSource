@@ -68,7 +68,7 @@ type
     _counter: NSUInteger;
     
   public
-    function getObjectValue_forString_range_error(obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPointer): BOOL; message 'getObjectValue:forString:range:error:';
+    function getObjectValue_forString_range_error(obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPointer): ObjCBOOL; message 'getObjectValue:forString:range:error:';
     function stringFromDate(date: NSDate): NSString; message 'stringFromDate:';
     function dateFromString(string_: NSString): NSDate; message 'dateFromString:';
     class function localizedStringFromDate_dateStyle_timeStyle(date: NSDate; dstyle: NSDateFormatterStyle; tstyle: NSDateFormatterStyle): NSString; message 'localizedStringFromDate:dateStyle:timeStyle:';
@@ -80,8 +80,8 @@ type
     procedure setTimeStyle(style: NSDateFormatterStyle); message 'setTimeStyle:';
     function locale: NSLocale; message 'locale';
     procedure setLocale(locale_: NSLocale); message 'setLocale:';
-    function generatesCalendarDates: BOOL; message 'generatesCalendarDates';
-    procedure setGeneratesCalendarDates(b: BOOL); message 'setGeneratesCalendarDates:';
+    function generatesCalendarDates: ObjCBOOL; message 'generatesCalendarDates';
+    procedure setGeneratesCalendarDates(b: ObjCBOOL); message 'setGeneratesCalendarDates:';
     function formatterBehavior: NSDateFormatterBehavior; message 'formatterBehavior';
     procedure setFormatterBehavior(behavior: NSDateFormatterBehavior); message 'setFormatterBehavior:';
     class function defaultFormatterBehavior: NSDateFormatterBehavior; message 'defaultFormatterBehavior';
@@ -91,8 +91,8 @@ type
     procedure setTimeZone(tz: NSTimeZone); message 'setTimeZone:';
     function calendar: NSCalendar; message 'calendar';
     procedure setCalendar(calendar_: NSCalendar); message 'setCalendar:';
-    function isLenient: BOOL; message 'isLenient';
-    procedure setLenient(b: BOOL); message 'setLenient:';
+    function isLenient: ObjCBOOL; message 'isLenient';
+    procedure setLenient(b: ObjCBOOL); message 'setLenient:';
     function twoDigitStartDate: NSDate; message 'twoDigitStartDate';
     procedure setTwoDigitStartDate(date: NSDate); message 'setTwoDigitStartDate:';
     function defaultDate: NSDate; message 'defaultDate';
@@ -139,14 +139,14 @@ type
     procedure setShortStandaloneQuarterSymbols(array_: NSArray); message 'setShortStandaloneQuarterSymbols:';
     function gregorianStartDate: NSDate; message 'gregorianStartDate';
     procedure setGregorianStartDate(date: NSDate); message 'setGregorianStartDate:';
-    function doesRelativeDateFormatting: BOOL; message 'doesRelativeDateFormatting';
-    procedure setDoesRelativeDateFormatting(b: BOOL); message 'setDoesRelativeDateFormatting:';
+    function doesRelativeDateFormatting: ObjCBOOL; message 'doesRelativeDateFormatting';
+    procedure setDoesRelativeDateFormatting(b: ObjCBOOL); message 'setDoesRelativeDateFormatting:';
   end;
 
 { NSDateFormatterCompatibilityCategory }
   NSDateFormatterCompatibilityCategory = objccategory external (NSDateFormatter)
-    function initWithDateFormat_allowNaturalLanguage(format: NSString; flag: BOOL): id; message 'initWithDateFormat:allowNaturalLanguage:';
-    function allowsNaturalLanguage: BOOL; message 'allowsNaturalLanguage';
+    function initWithDateFormat_allowNaturalLanguage(format: NSString; flag: ObjCBOOL): id; message 'initWithDateFormat:allowNaturalLanguage:';
+    function allowsNaturalLanguage: ObjCBOOL; message 'allowsNaturalLanguage';
   end;
 
 {$endif}

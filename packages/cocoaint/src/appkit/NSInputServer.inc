@@ -55,18 +55,18 @@
     procedure markedTextAbandoned(sender: id);
     procedure markedTextSelectionChanged_client(newSel: NSRange; sender: id);
     procedure terminate(sender: id);
-    function canBeDisabled: BOOL;
-    function wantsToInterpretAllKeystrokes: BOOL;
-    function wantsToHandleMouseEvents: BOOL;
-    function wantsToDelayTextChangeNotifications: BOOL;
+    function canBeDisabled: ObjCBOOL;
+    function wantsToInterpretAllKeystrokes: ObjCBOOL;
+    function wantsToHandleMouseEvents: ObjCBOOL;
+    function wantsToDelayTextChangeNotifications: ObjCBOOL;
     procedure inputClientBecomeActive(sender: id);
     procedure inputClientResignActive(sender: id);
     procedure inputClientEnabled(sender: id);
     procedure inputClientDisabled(sender: id);
     procedure activeConversationWillChange_fromOldConversation(sender: id; oldConversation: NSInteger);
     procedure activeConversationChanged_toNewConversation(sender: id; newConversation: NSInteger);
-    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): BOOL;
-    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): BOOL;
+    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): ObjCBOOL;
+    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): ObjCBOOL;
     procedure mouseUpOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id);
   end;
 
@@ -83,10 +83,10 @@
     procedure markedTextAbandoned(sender: id); message 'markedTextAbandoned:'; deprecated 'in Mac OS X 10.6 and later';
     procedure markedTextSelectionChanged_client(newSel: NSRange; sender: id); message 'markedTextSelectionChanged:client:'; deprecated 'in Mac OS X 10.6 and later';
     procedure terminate(sender: id); message 'terminate:'; deprecated 'in Mac OS X 10.6 and later';
-    function canBeDisabled: BOOL; message 'canBeDisabled'; deprecated 'in Mac OS X 10.6 and later';
-    function wantsToInterpretAllKeystrokes: BOOL; message 'wantsToInterpretAllKeystrokes'; deprecated 'in Mac OS X 10.6 and later';
-    function wantsToHandleMouseEvents: BOOL; message 'wantsToHandleMouseEvents'; deprecated 'in Mac OS X 10.6 and later';
-    function wantsToDelayTextChangeNotifications: BOOL; message 'wantsToDelayTextChangeNotifications'; deprecated 'in Mac OS X 10.6 and later';
+    function canBeDisabled: ObjCBOOL; message 'canBeDisabled'; deprecated 'in Mac OS X 10.6 and later';
+    function wantsToInterpretAllKeystrokes: ObjCBOOL; message 'wantsToInterpretAllKeystrokes'; deprecated 'in Mac OS X 10.6 and later';
+    function wantsToHandleMouseEvents: ObjCBOOL; message 'wantsToHandleMouseEvents'; deprecated 'in Mac OS X 10.6 and later';
+    function wantsToDelayTextChangeNotifications: ObjCBOOL; message 'wantsToDelayTextChangeNotifications'; deprecated 'in Mac OS X 10.6 and later';
     procedure inputClientBecomeActive(sender: id); message 'inputClientBecomeActive:'; deprecated 'in Mac OS X 10.6 and later';
     procedure inputClientResignActive(sender: id); message 'inputClientResignActive:'; deprecated 'in Mac OS X 10.6 and later';
     procedure inputClientEnabled(sender: id); message 'inputClientEnabled:'; deprecated 'in Mac OS X 10.6 and later';
@@ -97,8 +97,8 @@
   
 { NSInputServerMouseTracker Protocol }
   NSInputServerMouseTrackerProtocol = objcprotocol external name 'NSInputServerMouseTracker'
-    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): BOOL; message 'mouseDownOnCharacterIndex:atCoordinate:withModifier:client:'; deprecated 'in Mac OS X 10.6 and later';
-    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): BOOL; message 'mouseDraggedOnCharacterIndex:atCoordinate:withModifier:client:'; deprecated 'in Mac OS X 10.6 and later';
+    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): ObjCBOOL; message 'mouseDownOnCharacterIndex:atCoordinate:withModifier:client:'; deprecated 'in Mac OS X 10.6 and later';
+    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): ObjCBOOL; message 'mouseDraggedOnCharacterIndex:atCoordinate:withModifier:client:'; deprecated 'in Mac OS X 10.6 and later';
     procedure mouseUpOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id); message 'mouseUpOnCharacterIndex:atCoordinate:withModifier:client:'; deprecated 'in Mac OS X 10.6 and later';
   end;
 {$endif}

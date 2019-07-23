@@ -59,8 +59,8 @@ var
     class procedure setAnimationDuration(dur: CFTimeInterval); message 'setAnimationDuration:';
     class function animationTimingFunction: CAMediaTimingFunction; message 'animationTimingFunction';
     class procedure setAnimationTimingFunction(function_: CAMediaTimingFunction); message 'setAnimationTimingFunction:';
-    class function disableActions: BOOL; message 'disableActions';
-    class procedure setDisableActions(flag: BOOL); message 'setDisableActions:';
+    class function disableActions: ObjCBOOL; message 'disableActions';
+    class procedure setDisableActions(flag: ObjCBOOL); message 'setDisableActions:';
     class function valueForKey(key: NSString): id; message 'valueForKey:';
     class procedure setValue_forKey(anObject: id; key: NSString); message 'setValue:forKey:';
   end;

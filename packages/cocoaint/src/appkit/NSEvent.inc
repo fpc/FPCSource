@@ -257,7 +257,7 @@ type
         keys: NSString;
         unmodKeys: NSString;
         _keyCode: cushort;
-        _isARepeat: BOOL;
+        _isARepeat: ObjCBOOL;
         {$ifdef cpu64}
         eventFlags: cint;
         reserved: array[0..(5)-1] of cint;
@@ -299,8 +299,8 @@ type
         6: (
     _miscGesture: record
         _subtype: cshort;
-        gestureEnded: BOOL;
-        reserved: BOOL;
+        gestureEnded: ObjCBOOL;
+        reserved: ObjCBOOL;
         value: cint;
         percentage: single;
         {$ifdef cpu64}
@@ -350,7 +350,7 @@ type
     function deltaZ: CGFloat; message 'deltaZ';
     function characters: NSString; message 'characters';
     function charactersIgnoringModifiers: NSString; message 'charactersIgnoringModifiers';
-    function isARepeat: BOOL; message 'isARepeat';
+    function isARepeat: ObjCBOOL; message 'isARepeat';
     function keyCode: cushort; message 'keyCode';
     function trackingNumber: NSInteger; message 'trackingNumber';
     function userData: Pointer; message 'userData';
@@ -362,8 +362,8 @@ type
     class function eventWithEventRef(eventRef_: Pointer): NSEvent; message 'eventWithEventRef:';
     function CGEvent: CGEventRef; message 'CGEvent';
     class function eventWithCGEvent(cgEvent_: CGEventRef): NSEvent; message 'eventWithCGEvent:';
-    class procedure setMouseCoalescingEnabled(flag: BOOL); message 'setMouseCoalescingEnabled:';
-    class function isMouseCoalescingEnabled: BOOL; message 'isMouseCoalescingEnabled';
+    class procedure setMouseCoalescingEnabled(flag: ObjCBOOL); message 'setMouseCoalescingEnabled:';
+    class function isMouseCoalescingEnabled: ObjCBOOL; message 'isMouseCoalescingEnabled';
     function magnification: CGFloat; message 'magnification';
     function deviceID: NSUInteger; message 'deviceID';
     function rotation: single; message 'rotation';
@@ -383,12 +383,12 @@ type
     function uniqueID: culonglong; message 'uniqueID';
     function capabilityMask: NSUInteger; message 'capabilityMask';
     function pointingDeviceType: NSPointingDeviceType; message 'pointingDeviceType';
-    function isEnteringProximity: BOOL; message 'isEnteringProximity';
+    function isEnteringProximity: ObjCBOOL; message 'isEnteringProximity';
     function touchesMatchingPhase_inView(phase: NSTouchPhase; view: NSView): NSSet; message 'touchesMatchingPhase:inView:';
     class procedure startPeriodicEventsAfterDelay_withPeriod(delay: NSTimeInterval; period: NSTimeInterval); message 'startPeriodicEventsAfterDelay:withPeriod:';
     class procedure stopPeriodicEvents; message 'stopPeriodicEvents';
     class function mouseEventWithType_location_modifierFlags_timestamp_windowNumber_context_eventNumber_clickCount_pressure(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; eNum: NSInteger; cNum: NSInteger; pressure_: single): NSEvent; message 'mouseEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:clickCount:pressure:';
-    class function keyEventWithType_location_modifierFlags_timestamp_windowNumber_context_characters_charactersIgnoringModifiers_isARepeat_keyCode(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; keys: NSString; ukeys: NSString; flag: BOOL; code: cushort): NSEvent; message 'keyEventWithType:location:modifierFlags:timestamp:windowNumber:context:characters:charactersIgnoringModifiers:isARepeat:keyCode:';
+    class function keyEventWithType_location_modifierFlags_timestamp_windowNumber_context_characters_charactersIgnoringModifiers_isARepeat_keyCode(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; keys: NSString; ukeys: NSString; flag: ObjCBOOL; code: cushort): NSEvent; message 'keyEventWithType:location:modifierFlags:timestamp:windowNumber:context:characters:charactersIgnoringModifiers:isARepeat:keyCode:';
     class function enterExitEventWithType_location_modifierFlags_timestamp_windowNumber_context_eventNumber_trackingNumber_userData(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; eNum: NSInteger; tNum: NSInteger; data: Pointer): NSEvent; message 'enterExitEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:trackingNumber:userData:';
     class function otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; subtype_: cshort; d: NSInteger; d1: NSInteger): NSEvent; message 'otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:';
     class function mouseLocation: NSPoint; message 'mouseLocation';

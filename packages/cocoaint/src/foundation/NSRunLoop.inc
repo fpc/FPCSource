@@ -70,7 +70,7 @@ var
   NSRunLoopConveniencesCategory = objccategory external (NSRunLoop)
     procedure run; message 'run';
     procedure runUntilDate(limitDate: NSDate); message 'runUntilDate:';
-    function runMode_beforeDate(mode: NSString; limitDate: NSDate): BOOL; message 'runMode:beforeDate:';
+    function runMode_beforeDate(mode: NSString; limitDate: NSDate): ObjCBOOL; message 'runMode:beforeDate:';
     procedure configureAsServer; message 'configureAsServer'; deprecated 'in Mac OS X 10.5 and later';
   end;
 

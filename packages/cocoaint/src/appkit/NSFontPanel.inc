@@ -138,14 +138,14 @@ const
     
   public
     class function sharedFontPanel: NSFontPanel; message 'sharedFontPanel';
-    class function sharedFontPanelExists: BOOL; message 'sharedFontPanelExists';
+    class function sharedFontPanelExists: ObjCBOOL; message 'sharedFontPanelExists';
     function accessoryView: NSView; message 'accessoryView';
     procedure setAccessoryView(aView: NSView); message 'setAccessoryView:';
-    procedure setPanelFont_isMultiple(fontObj: NSFont; flag: BOOL); message 'setPanelFont:isMultiple:';
+    procedure setPanelFont_isMultiple(fontObj: NSFont; flag: ObjCBOOL); message 'setPanelFont:isMultiple:';
     function panelConvertFont(fontObj: NSFont): NSFont; message 'panelConvertFont:';
-    function worksWhenModal: BOOL; message 'worksWhenModal';
-    function isEnabled: BOOL; message 'isEnabled';
-    procedure setEnabled(flag: BOOL); message 'setEnabled:';
+    function worksWhenModal: ObjCBOOL; message 'worksWhenModal';
+    function isEnabled: ObjCBOOL; message 'isEnabled';
+    procedure setEnabled(flag: ObjCBOOL); message 'setEnabled:';
     procedure reloadDefaultFontFamilies; message 'reloadDefaultFontFamilies';
   end;
 
