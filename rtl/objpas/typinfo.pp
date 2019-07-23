@@ -267,7 +267,11 @@ unit TypInfo;
         ArgData: Pointer;
       end;
 
+{$ifdef CPU16}
+      TAttributeEntryList = array[0..(High(SizeUInt) div SizeOf(TAttributeEntry))-1] of TAttributeEntry;
+{$else CPU16}
       TAttributeEntryList = array[0..$ffff] of TAttributeEntry;
+{$endif CPU16}
 
       TAttributeTable =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
