@@ -16,7 +16,7 @@ const
   StrBlubb = 'Blubb';
 
   ByteVal = $5a;
-  CurrVal = 33.51;
+  CurrVal = Currency(33.51);
   CompVal = 1234;
   SingleVal = 3.14156;
   SetVal = [One, Three];
@@ -131,7 +131,7 @@ begin
     Halt(61);
   if aStrm.Read(cu, SizeOf(cu)) <> SizeOf(cu) then
     Halt(62);
-  if not SameValue(cu, CurrVal, 0.00009) then
+  if cu <> CurrVal then
     Halt(63);
   if aStrm.Read(g, SizeOf(g)) <> SizeOf(g) then
     Halt(64);
