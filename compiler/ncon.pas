@@ -525,17 +525,19 @@ implementation
       begin
         case tfloatdef(typedef).floattype of
           s32real:
-            tcb.emit_tai(tai_realconst.create_s32real(value_real),s32floattype);
+            tcb.emit_tai(tai_realconst.create_s32real(value_real),typedef);
           s64real:
-            tcb.emit_tai(tai_realconst.create_s64real(value_real),s64floattype);
+            tcb.emit_tai(tai_realconst.create_s64real(value_real),typedef);
           s80real:
-            tcb.emit_tai(tai_realconst.create_s80real(value_real,0),s80floattype);
+            tcb.emit_tai(tai_realconst.create_s80real(value_real,s80floattype.size),typedef);
           sc80real:
-            tcb.emit_tai(tai_const.Create_64bit(round(value_real)),sc80floattype);
+            tcb.emit_tai(tai_realconst.create_s80real(value_real,sc80floattype.size),typedef);
           s64comp:
-            tcb.emit_tai(tai_const.Create_64bit(round(value_real)),s64inttype);
+            { the round is necessary for native compilers where comp isn't a float }
+            tcb.emit_tai(tai_realconst.create_s64compreal(round(value_real)),typedef);
           s64currency:
-            tcb.emit_tai(tai_const.create_64bit(trunc(value_currency * 10000)),s64currencytype);
+            { we don't need to multiply by 10000 here }
+            tcb.emit_tai(tai_realconst.create_s64compreal(round(value_real)),typedef);
           s128real:
             internalerror(2019070804);
         end;
