@@ -1548,7 +1548,10 @@ end;
         else
           q2 := f2;
         { the q1*q2 is coded as call to mul_byte }
+{$push}
+{$Q+}
         q3 := q1 * q2;
+{$pop}
 
         if (q1 <> 0) and (q2 <> 0) and
           ((q1 > q3) or (q2 > q3) or
@@ -1557,7 +1560,7 @@ end;
           (q3 shr 7 <> 0) and
            ((q3 <> byte(byte(1) shl 7)) or not(sign))
           ) then
-          HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+          FPC_Overflow();
 
         if sign then
           fpc_mul_shortint_checkoverflow := -q3
@@ -1608,7 +1611,7 @@ end;
                   overflow occurs                                      }
                 if f1overflowed or ((_f1 <> 0) and (f1 <> 0) and
                   ((_f1 > fpc_mul_byte_checkoverflow) or (f1 > fpc_mul_byte_checkoverflow))) then
-                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+                  FPC_Overflow();
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
             f1overflowed := f1overflowed or ((f1 and (1 shl 7)) <> 0);
@@ -1649,7 +1652,10 @@ end;
         else
           q2:=f2;
         { the q1*q2 is coded as call to mulword }
+{$push}
+{$Q+}
         q3:=q1*q2;
+{$pop}
 
         if (q1 <> 0) and (q2 <>0) and
           ((q1>q3) or (q2>q3) or
@@ -1658,7 +1664,7 @@ end;
           (q3 shr 15<>0) and
            ((q3<>word(word(1) shl 15)) or not(sign))
           ) then
-          HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+          FPC_Overflow();
 
         if sign then
           fpc_mul_integer_checkoverflow:=-q3
@@ -1710,7 +1716,7 @@ end;
                   overflow occurs                                      }
                 if f1overflowed or ((_f1<>0) and (f1<>0) and
                   ((_f1>fpc_mul_word_checkoverflow) or (f1>fpc_mul_word_checkoverflow))) then
-                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+                  FPC_Overflow();
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
             f1overflowed:=f1overflowed or ((f1 and (1 shl 15))<>0);
@@ -1752,7 +1758,10 @@ end;
         else
           q2:=f2;
         { the q1*q2 is coded as call to muldword }
+{$push}
+{$Q+}
         q3:=q1*q2;
+{$pop}
 
         if (q1 <> 0) and (q2 <>0) and
           ((q1>q3) or (q2>q3) or
@@ -1761,7 +1770,7 @@ end;
           (q3 shr 15<>0) and
            ((q3<>dword(dword(1) shl 31)) or not(sign))
           ) then
-          HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+          FPC_Overflow();
 
         if sign then
           fpc_mul_longint_checkoverflow:=-q3
@@ -1813,7 +1822,7 @@ end;
                   overflow occurs                                      }
                 if f1overflowed or ((_f1<>0) and (f1<>0) and
                   ((_f1>fpc_mul_dword_checkoverflow) or (f1>fpc_mul_dword_checkoverflow))) then
-                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+                  FPC_Overflow();
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
             f1overflowed:=f1overflowed or ((f1 and (dword(1) shl 31))<>0);
