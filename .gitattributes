@@ -8975,6 +8975,7 @@ rtl/atari/xbios.inc svneol=native#text/plain
 rtl/avr/avr.inc svneol=native#text/plain
 rtl/avr/cpuh.inc svneol=native#text/plain
 rtl/avr/cpuinnr.inc svneol=native#text/plain
+rtl/avr/divide.inc svneol=native#text/plain
 rtl/avr/int64p.inc svneol=native#text/plain
 rtl/avr/intrinsics.pp svneol=native#text/pascal
 rtl/avr/makefile.cpu svneol=native#text/plain
