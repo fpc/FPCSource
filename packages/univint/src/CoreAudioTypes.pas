@@ -22,6 +22,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -394,6 +395,7 @@ type
 		mBitsPerChannel: UInt32;
 		mReserved: UInt32;
 	end;
+	AudioStreamBasicDescriptionPTr = ^AudioStreamBasicDescription;
 
 {!
     @enum           AudioStreamBasicDescription Constants
@@ -739,6 +741,7 @@ const
 }
 type
 	AudioStreamPacketDescriptionPtr = ^AudioStreamPacketDescription;
+	AudioStreamPacketDescriptionPtrPtr = ^AudioStreamPacketDescriptionPtr;
 	AudioStreamPacketDescription = record
 		mStartOffset: SInt64;
 		mVariableFramesInPacket: UInt32;

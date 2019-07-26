@@ -8,6 +8,7 @@
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {	  Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, November 2009 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2018 }
 
 {
     Modified for use with Free Pascal
@@ -17,6 +18,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -214,7 +216,7 @@ uses MacTypes,ABAddressBook,CFBase;
 // --------------------------------------------------------------------------------
 //      Action Support
 // --------------------------------------------------------------------------------
-// This API allows developers to populate AddressBook.app's roll-over menus with custom
+// This API allows developers to populate Contacts.app's roll-over menus with custom
 // entries. Your CFBundle must implement a function named ABActionRegisterCallbacks which
 // will return a pointer to an ABActionCallbacks struct. This struct should be filled out
 // as follows:

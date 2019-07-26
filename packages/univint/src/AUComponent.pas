@@ -1,17 +1,63 @@
-{
-	File:		AUComponent.h
+{!
+	@file		AUComponent.h
+ 	@framework	AudioUnit.framework
+ 	@copyright	(c) 2002-2015 Apple, Inc. All rights reserved.
+	@brief		C interfaces for working with Audio Units.
 
-	Contains:	AudioUnit Interfaces
+	@discussion
 
-	Copyright:	© 2002-2008 by Apple, Inc., all rights reserved.
+	An audio unit is a plugin that can be loaded into an application's process and used to process
+	or generate audio. An audio unit is an AudioComponent type and so the AudioComponent APIs are
+	used to find specific types of audio units, open and close them.
 
-	Bugs?:		For bug reports, consult the following page on
-				the World Wide Web:
+	Audio units use a general notion of description to specify an unique instance. The Type is the 
+	general category of an audio unit. The SubType is an unique identifier specified by the 
+	Manufacturer (provider) of the audio unit. The IDs that are used for Type are specified by 
+	Apple, the Manufacturer ID should be specified by an unique identifier
+	(as registered with apple). See AudioComponentDescription.
 
-					http://bugs.freepascal.org
+	Audio unit types are of the following (see below for more information)
+
+		kAudioUnitType_Output					= 'auou',
+		kAudioUnitType_MusicDevice				= 'aumu',
+		kAudioUnitType_MusicEffect				= 'aumf',
+		kAudioUnitType_FormatConverter			= 'aufc',	
+		kAudioUnitType_Effect					= 'aufx',	
+		kAudioUnitType_Mixer					= 'aumx',
+		kAudioUnitType_Panner					= 'aupn',
+		kAudioUnitType_OfflineEffect			= 'auol',
+		kAudioUnitType_Generator				= 'augn',
+
+	An audio unit's general operations are:
+		- Open an audio unit (AudioComponentInstanceNew)
+		- Configure it based on the context (AudioUnitSetProperty)
+		- Initialize the audio unit (AudioUnitInitialize)
+			- at this point the audio unit is in a state where it can render audio
+		- Render audio (AudioUnitRender)
+		
+	An important part of a render operation for an audio unit is to manipulate the various controls 
+	that the unit provides to change the render effects; for instance to change the decay time of 
+	a reverb, the cut off frequency of a filter, etc. These are called parameters, and 
+	AudioUnitGetParameter and AudioUnitSetParameter are used to interact with these.
+
+	If any reconfiguration of the audio unit is required, then:
+		- Uninitialize (AudioUnitUninitialize)
+		- Configure it based on the context (AudioUnitSetProperty)
+		- Initialize the audio unit (AudioUnitInitialize)
+
+	Once the host is finished with an audio unit, it closes it:
+		- Dispose the audio unit (AudioComponentInstanceDispose)
+
+	Audio units can be used programmatically (for instance, mixers can be used to render audio for a
+	game, a generator to play audio files, etc), or they can be hosted in Digital Audio Workstation
+	(DAW) applications such as Logic, Garage Band, etc. In the DAW case, it is common for an audio
+	unit to provide a custom view to allow the user to interact with what can be complex DSP
+	operations that the audio unit performs. The view is retrieved from an audio unit through
+	AudioUnitGetProperty and then the host instantiates it (see <AudioToolbox/AUCocoaUIView.h>).
 }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, July 2019 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -20,6 +66,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -206,7 +253,7 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,AudioComponents,CoreAudioTypes;
+uses MacTypes,AudioComponents,CFBase,CFArray,CoreAudioTypes;
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -215,77 +262,12 @@ uses MacTypes,AudioComponents,CoreAudioTypes;
 //=====================================================================================================================
 //#pragma mark Overview
 
-{!
-    @header AUComponent
-	
-	@discussion
-	This file defines the collection of API calls for an audio unit. An audio unit is a plugin 
-	that can be loaded into an application's process and used to process or generate audio. An 
-	audio unit is an AudioComponent type and so
-	the AudioComponent APIs are used to find specific types of audio units, open and close them.
-	
-	Audio units use a general notion of description to specify an unique instance. The Type is the 
-	general category of an audio unit. The SubType is an unique identifier specified by the 
-	Manufacturer (provider) of the audio unit. The IDs that are used for Type are specified by 
-	Apple, the Manufacturer ID should be specified by an unique identifier
-	(as registered with apple). See AudioComponentDescription.
-	
-	Audio unit types are of the following (see below for more information)
+//CF_ASSUME_NONNULL_BEGIN
 
-		kAudioUnitType_Output					= 'auou',
-		kAudioUnitType_MusicDevice				= 'aumu',
-		kAudioUnitType_MusicEffect				= 'aumf',
-		kAudioUnitType_FormatConverter			= 'aufc',	
-		kAudioUnitType_Effect					= 'aufx',	
-		kAudioUnitType_Mixer					= 'aumx',
-		kAudioUnitType_Panner					= 'aupn',
-		kAudioUnitType_OfflineEffect			= 'auol',
-		kAudioUnitType_Generator				= 'augn',
-
-	An audio unit's general operations are:
-		Open an audio unit (AudioComponentInstanceNew)
-		Configure it based on the context - AudioUnitSetProperty
-		Initialise the audio unit (AudioUnitInitialize)
-			- at this point the audio unit is in a state where it can render audio
-		Render audio (AudioUnitRender)
-		
-	An important part of a render operation for an audio unit is to manipulate the various controls 
-	that the unit provides to change the render effects; for instance to change the decay time of 
-	a reverb, the cut off frequency of a filter, etc. These are called parameters, and 
-	AudioUnitGetParameter and AudioUnitSetParameter are used to interact with these.
-	
-	If any reconfiguration of the audio unit is required, then:
-		uninitialise (AudioUnitUninitialise)
-		Configure it based on the context - AudioUnitSetProperty
-		Initialise the audio unit (AudioUnitInitialize)
-
-	Once the host is finished with an audio unit, it closes it:
-		Dispose audio unit (AudioComponentInstanceDispose)
-	
-	Audio units can be used programmatically (for instance a mixers could be used to render audio 
-	for a game, a generator to play audio files, etc), or they can be hosted in Digital 
-	Audio Workstation (DAW) applications such as Logic, Garage Band. In the DAW case, it is common 
-	for an audio unit to provide a custom view to allow the user to interact with what can be 
-	complex DSP operations that the audio unit performs. The view is retrieved from an audio unit 
-	through AudioUnitGetProperty and then the host instantiates it 
-	(see <AudioUnit/AUCocoaUIView.h>)
-}
+//#define AU_SUPPORT_INTERAPP_AUDIO (TARGET_OS_IPHONE && !(0 && !TARGET_OS_SIMULATOR && !TARGET_OS_EMBEDDED))
 
 
-//#if !__LP64__
-//	#if PRAGMA_STRUCT_ALIGN
-//		#pragma options align=mac68k
-//	#elif PRAGMA_STRUCT_PACKPUSH
-//		#pragma pack(push, 2)
-//	#elif PRAGMA_STRUCT_PACK
-//		#pragma pack(2)
-//	#endif
-//#endif
-{$ifc not TARGET_CPU_64}
-{$ALIGN MAC68K}
-{$endc}
-
-//=====================================================================================================================
+//================================================================================================
 //#pragma mark -
 //#pragma mark Audio Unit Types
 {!
@@ -300,12 +282,12 @@ type
 {!
     @enum           Audio Unit Types
     @abstract		different types of audio units
-	@discussion		Audio unit's are classified into different types, where those types perform 
+	@discussion		Audio units are classified into different types, where those types perform 
 					different roles and functions.
 					There are some general categories of functionality that apply across different 
 					types of audio units:
 					(1) Real-time usage
-						The audio unit will complete its operations in less time that is 
+						The audio unit will complete its operations in less time than is 
 						represented by the render buffer. All audio units with the exception of 
 						the OfflineEffect should meet this criteria
 					(2) Real-time I/O
@@ -341,7 +323,7 @@ type
 	@constant		kAudioUnitType_MusicDevice
 					Used to describe software musical instruments such as samplers and 
 					synthesisers. They respond to MIDI and create notes, which are then controlled
-					through parameters or MIDI control messages. See <AudioUnit/MusicDevice.h>
+					through parameters or MIDI control messages. See <AudioToolbox/MusicDevice.h>
 										
 	@constant		kAudioUnitType_MusicEffect
 					Is an effect that is also able to respond directly to MIDI control messages, 
@@ -392,6 +374,10 @@ type
 					apply in the normalisation process can be estimated. As such, offline effects 
 					also have a notion of a priming stage that can be performed before the actual 
 					rendering/processing phase is executed.
+
+    @constant		kAudioUnitType_MIDIProcessor
+                    Plugins of this type process midi input and produce midi output. They do not produce audio.
+
 }
 const
 	kAudioUnitType_Output = FourCharCode('auou');
@@ -403,8 +389,48 @@ const
 	kAudioUnitType_Panner = FourCharCode('aupn');
 	kAudioUnitType_Generator = FourCharCode('augn');
 	kAudioUnitType_OfflineEffect = FourCharCode('auol');
+	kAudioUnitType_MIDIProcessor = FourCharCode('aumi'); 
 
-//=====================================================================================================================
+{$ifc TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
+{!
+    @enum           Audio Unit Types (for inter-app audio)
+    @abstract		types of inter-app audio units
+
+    @constant       kAudioUnitType_RemoteEffect
+    @constant       kAudioUnitType_RemoteGenerator
+    @constant       kAudioUnitType_RemoteInstrument
+    @constant       kAudioUnitType_RemoteMusicEffect
+	
+	@discussion
+        These Audio Unit types are identical to the corresponding "non-remote" types (e.g.
+        kAudioUnitType_Effect, etc.), with the exception that they are the types that must be
+        used for AudioUnits defined by applications calling AudioOutputUnitPublish.
+
+		When Audio Components of these types are instantiated via AudioComponentInstanceNew,
+		a connection is made to the process which published the component via AudioOutputUnitPublish.
+
+		When using Audio Units which are instances of these components, one must take care to
+		initialize the unit only immediately before beginning a series of render operations, and
+		uninitialize it immediately afterwards, since while initialized, the Audio Unit's background
+		process is being kept awake and is consuming system resources.
+		
+		When using AudioUnitGetProperty and AudioUnitSetProperty, only Apple-defined properties
+		are supported.
+
+		For kAudioUnitProperty_HostCallbacks, hosts can set this property on any remote audio unit.
+		This will cause the host callbacks to be called on each render cycle and the results 
+		communicated to the remote AU's process. The owner of the published AU ("node") can *get*
+		this property on its output units, obtaining the structure of function pointers, and call
+		the host callbacks during the render cycle.
+}
+const
+	kAudioUnitType_RemoteEffect = FourCharCode('aurx');
+	kAudioUnitType_RemoteGenerator = FourCharCode('aurg');
+	kAudioUnitType_RemoteInstrument = FourCharCode('auri');
+	kAudioUnitType_RemoteMusicEffect = FourCharCode('aurm'); 
+{$endc} {TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
+
+//================================================================================================
 //#pragma mark -
 //#pragma mark Apple Audio Units
 {!
@@ -415,16 +441,29 @@ const
 	kAudioUnitManufacturer_Apple = FourCharCode('appl');
 	
 {!
-	@enum			Apple output audio unit sub types 
-	@discussion		These are the subtypes for the various output units that apple ships. Output 
-					units add an additional notion of Start and Stop
-					see <AudioUnit/AudioOutputUnit.h>
+	@enum			Apple input/output audio unit sub types
+	@discussion		These are the subtypes for the various input/output units that Apple ships. Input/output
+					units add an additional notion of Start and Stop.
+					see <AudioToolbox/AudioOutputUnit.h>
 
 	@constant		kAudioUnitSubType_GenericOutput
 					A generic output unit provides the start/stop API, and provides the basic 
 					services to convert Linear PCM formats.
 
+	@constant		kAudioUnitSubType_VoiceProcessingIO
+						- Available on OS X and with iOS 3.0 or greater
+					This audio unit can do input as well as output. Bus 0 is used for the output 
+					side, bus 1 is used to get audio input (thus, on the iPhone, it works in a 
+					very similar way to the Remote I/O). This audio unit does signal processing on 
+					the incoming audio (taking out any of the audio that is played from the device 
+					at a given time from the incoming audio).
+}
+const
+	kAudioUnitSubType_GenericOutput = FourCharCode('genr');
+	kAudioUnitSubType_VoiceProcessingIO = FourCharCode('vpio'); 
 
+{!
+	@enum			Apple input/output audio unit sub types (OS X)
 	@constant		kAudioUnitSubType_HALOutput			
 						- desktop only
 					The audio unit that interfaces to any audio device. The user specifies which 
@@ -443,32 +482,13 @@ const
 					device to use for sound effects, alerts
 					and other UI sounds.
 
-	@constant		kAudioUnitSubType_RemoteIO			
-						- iPhone only
-					The audio unit that interfaces to the audio I/O pathways of the iPhone. The 
-					audio unit can do input as well as output. Bus 0 is used for the output side, 
-					bus 1 is used to get audio input.
-	@constant		kAudioUnitSubType_VoiceProcessingIO
-						- Available on the desktop and with iPhone 3.0 or greater
-					This audio unit can do input as well as output. Bus 0 is used for the output 
-					side, bus 1 is used to get audio input (thus, on the iPhone, it works in a 
-					very similar way to the Remote I/O). This audio unit does signal processing on 
-					the incoming audio (taking out any of the audio that is played from the device 
-					at a given time from the incoming audio).
 }
 const
-	kAudioUnitSubType_GenericOutput = FourCharCode('genr');
-//#if !TARGET_OS_IPHONE
 {$ifc not TARGET_OS_IPHONE}
 	kAudioUnitSubType_HALOutput = FourCharCode('ahal');
 	kAudioUnitSubType_DefaultOutput = FourCharCode('def ');
-	kAudioUnitSubType_SystemOutput = 'sys ';
-//#else
-{$elsec} { not TARGET_OS_IPHONE }
-	kAudioUnitSubType_RemoteIO				= 'rioc';
-//#endif;
+	kAudioUnitSubType_SystemOutput = FourCharCode('sys ');
 {$endc} { not TARGET_OS_IPHONE }
-	kAudioUnitSubType_VoiceProcessingIO = FourCharCode('vpio');
 
 {!
 	@enum			Apple music instrument audio unit sub types 
@@ -477,10 +497,13 @@ const
 						- desktop only
 					A multi-timbral music device that can use sample banks in either DLS or 
 					SoundFont formats. It fully supports GM-MIDI and the basic extensions of 
-					GS-MIDI
-	@constant		kAudioUnitSubType_Sampler			
+					GS-MIDI.
+	@constant		kAudioUnitSubType_Sampler
 					A mono-timbral music device which is a sampler synthesizer and supports full 
 					interactive editing of all state.
+	@constant		kAudioUnitSubType_MIDISynth
+					A fully GM-compatible multi-timbral music device which is a sampler synthesizer.
+					It can load instruments from sample banks in either DLS or SoundFont formats.
 }
 //#if !TARGET_OS_IPHONE
 {$ifc not TARGET_OS_IPHONE}
@@ -489,6 +512,7 @@ const
 //#endif
 {$endc} { not TARGET_OS_IPHONE }
 	kAudioUnitSubType_Sampler = FourCharCode('samp');
+	kAudioUnitSubType_MIDISynth = FourCharCode('msyn'); 
 
 {!
 	@enum			Apple converter audio unit sub types 
@@ -500,13 +524,6 @@ const
 					An audio unit that uses an AudioConverter to do Linear PCM conversions (sample 
 					rate, bit depth, interleaving).
 
-	@constant		kAudioUnitSubType_TimePitch
-						- desktop only
-					An audio unit that can be used to have independent control of both playback 
-					rate and pitch. It provides a generic view, so can be used in both a UI and 
-					programmatic context. It also comes in an Offline version so can be used to 
-					process audio files.
-					
 	@constant		kAudioUnitSubType_Varispeed
 					An audio unit that can be used to control playback rate (as the rate is faster, 
 					the pitch is higher). It provides a generic view, so can be used in both a UI 
@@ -514,49 +531,57 @@ const
 					to process audio files.
 					
 	@constant		kAudioUnitSubType_DeferredRenderer
-						- desktop only
 					An audio unit that is used to get its input from a separate thread than the 
 					thread that its render method is called. It thus allows an application to 
 					introduce multiple threads into a rendering graph. There is a buffer sized 
 					delay introduced between the input and output
 					
 	@constant		kAudioUnitSubType_Splitter
-						- desktop only
-					An audio unit that provides 2 output buses and 1 input bus. The audio unit 
-					splits (duplicates) the input signal to the two output buses
-					
+                    An audio unit that provides 2 output buses and 1 input bus. The audio unit
+                    splits (duplicates) the input signal to the two output buses
+ 
+	@constant		kAudioUnitSubType_MultiSplitter
+                    An audio unit that sends its input bus to any number of output buses.
+                    Every output bus gets all channels of the input bus.
+                    This unit's implementation is lighter weight than kAudioUnitSubType_Splitter 
+                    even for two output buses, and is recommended over kAudioUnitSubType_Splitter.
+ 
 	@constant		kAudioUnitSubType_Merger
-						- desktop only
-					An audio unit that provides 2 input buses and 2 output bus. The audio unit 
+					An audio unit that provides 2 input buses and 2 output bus. The audio unit
 					merges the two inputs to the single output
 
 	@constant		kAudioUnitSubType_NewTimePitch
 					An audio unit that provides good quality time stretching and pitch shifting 
 					while still being very fast.
 
-	@constant		kAudioUnitSubType_AUiPodTime
-						- iPhone only
-					An audio unit that provides simple (and limited) control over playback rate 
-					and time.
+	@constant		kAudioUnitSubType_AUiPodTimeOther
+					An audio unit that provides time domain time stretching.
+
 }
 const
 	kAudioUnitSubType_AUConverter = FourCharCode('conv');
-	
-//#if !TARGET_OS_IPHONE
-{$ifc not TARGET_OS_IPHONE}
-	kAudioUnitSubType_NewTimePitch = FourCharCode('nutp');
-	kAudioUnitSubType_TimePitch = FourCharCode('tmpt');
+	kAudioUnitSubType_Varispeed = FourCharCode('vari');
 	kAudioUnitSubType_DeferredRenderer = FourCharCode('defr');
 	kAudioUnitSubType_Splitter = FourCharCode('splt');
+	kAudioUnitSubType_MultiSplitter = FourCharCode('mspl');
 	kAudioUnitSubType_Merger = FourCharCode('merg');
-	kAudioUnitSubType_Varispeed = FourCharCode('vari');
-	kAudioUnitSubType_RoundTripAAC = 'raac';
-//#else
-{$elsec} { not TARGET_OS_IPHONE }
-	kAudioUnitSubType_AUiPodTime			= 'iptm';
-	kAudioUnitSubType_AUiPodTimeOther = 'ipto';
-//#endif;
-{$endc} { not TARGET_OS_IPHONE }
+	kAudioUnitSubType_NewTimePitch = FourCharCode('nutp');
+	kAudioUnitSubType_AUiPodTimeOther = FourCharCode('ipto');
+	kAudioUnitSubType_RoundTripAAC = FourCharCode('raac'); 
+
+{!
+	@enum			Apple converter audio unit sub types (OS X only)
+	@constant		kAudioUnitSubType_TimePitch
+					An audio unit that can be used to have independent control of both playback
+					rate and pitch. It provides a generic view, so can be used in both a UI and 
+					programmatic context. It also comes in an Offline version so can be used to 
+					process audio files.
+					
+}
+{$ifc TARGET_OS_MAC}
+const
+	kAudioUnitSubType_TimePitch = FourCharCode('tmpt'); 
+{$endc} {TARGET_OS_MAC}
 
 {!
 	@enum			Apple effect audio unit sub types 
@@ -584,61 +609,23 @@ const
 	@constant		kAudioUnitSubType_ParametricEQ			
 					A parametric EQ filter
 					
-	@constant		kAudioUnitSubType_GraphicEQ				
-						- desktop only
-					A 10 or 31 band Graphic EQ
-					
-	@constant		kAudioUnitSubType_PeakLimiter			
+	@constant		kAudioUnitSubType_PeakLimiter
 					A peak limiter
 					
 	@constant		kAudioUnitSubType_DynamicsProcessor		
 					A dynamics compressor/expander
 					
-	@constant		kAudioUnitSubType_MultiBandCompressor	
-						- desktop only
-					A 4 band compressor/expander
-					
-	@constant		kAudioUnitSubType_MatrixReverb			
-						- desktop only
-					A reverb that can be used to simulate various and different spaces
-					
-	@constant		kAudioUnitSubType_SampleDelay			
+	@constant		kAudioUnitSubType_SampleDelay
 						- desktop only
 					A delay that is used to delay the input a specified number of samples until 
 					the output
 					
-	@constant		kAudioUnitSubType_Pitch					
-						- desktop only
-					An audio unit used to change the pitch
-					
-	@constant		kAudioUnitSubType_AUFilter				
-						- desktop only
-					A filter unit that combines 5 different filters (low, 3 mids, high)
-					
-	@constant		kAudioUnitSubType_NetSend				
-						- desktop only
-					An audio unit that is used in conjunction with _NetReceive to send audio 
-					across the network (or between different applications)
-					
-	@constant		kAudioUnitSubType_Distortion			
+	@constant		kAudioUnitSubType_Distortion
 					A distortion audio unit 
 					
-	@constant		kAudioUnitSubType_RogerBeep				
-						- desktop only
-					An audio unit that can be used to emit a short tone in gaps between speech 
-					- similar to the tones used in a walkie-talkie
-					
-	@constant		kAudioUnitSubType_AUiPodEQ				
-						- iPhone only
-					A simple graphic EQ with common presets
-	
 	@constant		kAudioUnitSubType_NBandEQ
-						- iPhone only
 					A generalized N-band graphic EQ with specifiable filter types per-band
 	
-	@constant		kAudioUnitSubType_Reverb2
-						- iPhone only
-					A reverb for iOS
 }
 const
 	kAudioUnitSubType_PeakLimiter = FourCharCode('lmtr');
@@ -650,21 +637,40 @@ const
 	kAudioUnitSubType_LowShelfFilter = FourCharCode('lshf');
 	kAudioUnitSubType_ParametricEQ = FourCharCode('pmeq');
 	kAudioUnitSubType_Distortion = FourCharCode('dist');
-{$ifc not TARGET_OS_IPHONE}
+{$ifc TARGET_OS_MAC}
 	kAudioUnitSubType_Delay = FourCharCode('dely');
+	kAudioUnitSubType_SampleDelay = FourCharCode('sdly');
+{$endc} {TARGET_OS_MAC}
+	kAudioUnitSubType_NBandEQ = FourCharCode('nbeq'); 
+
+{!
+	@enum			Apple effect audio unit sub types (OS X only)
+	@constant		kAudioUnitSubType_GraphicEQ				
+					A 10 or 31 band Graphic EQ
+	@constant		kAudioUnitSubType_MultiBandCompressor	
+					A 4 band compressor/expander
+	@constant		kAudioUnitSubType_MatrixReverb
+					A reverb that can be used to simulate various and different spaces
+	@constant		kAudioUnitSubType_Pitch					
+					An audio unit used to change the pitch
+	@constant		kAudioUnitSubType_AUFilter
+					A filter unit that combines 5 different filters (low, 3 mids, high)
+	@constant		kAudioUnitSubType_NetSend
+					An audio unit that is used in conjunction with _NetReceive to send audio
+					across the network (or between different applications)
+	@constant		kAudioUnitSubType_RogerBeep				
+					An audio unit that can be used to emit a short tone in gaps between speech
+					- similar to the tones used in a walkie-talkie
+}
+const
 	kAudioUnitSubType_GraphicEQ = FourCharCode('greq');
 	kAudioUnitSubType_MultiBandCompressor = FourCharCode('mcmp');
 	kAudioUnitSubType_MatrixReverb = FourCharCode('mrev');
-	kAudioUnitSubType_SampleDelay = FourCharCode('sdly');
 	kAudioUnitSubType_Pitch = FourCharCode('tmpt');
 	kAudioUnitSubType_AUFilter = FourCharCode('filt');
 	kAudioUnitSubType_NetSend = FourCharCode('nsnd');
-	kAudioUnitSubType_RogerBeep = FourCharCode('rogr');
-{$elsec} { not TARGET_OS_IPHONE }
-	kAudioUnitSubType_Reverb2 = FourCharCode('rvb2');
-	kAudioUnitSubType_AUiPodEQ = FourCharCode('ipeq');
-	kAudioUnitSubType_NBandEQ = 'nbeq';
-{$endif} { not TARGET_OS_IPHONE }
+	kAudioUnitSubType_RogerBeep = FourCharCode('rogr'); 
+
 
 {!
 	@enum			Apple mixer audio unit sub types 
@@ -672,46 +678,46 @@ const
 
 	@constant		kAudioUnitSubType_MultiChannelMixer
 					Can have any number of inputs, with any number of channels on any input to one 
-					output bus with any number of channels on  the desktop. On iPhone the output 
-					number of channels is 2.
-				
-	@constant		kAudioUnitSubType_StereoMixer
-						- desktop only
-					Inputs can be mono or stereo. Single stereo output
-					
-	@constant		kAudioUnitSubType_3DMixer
-						- desktop only
-					Inputs can be mono, in which case they can be panned around using 3D 
-					coordinates and parameters. 
-					Stereo inputs are passed directly through to the output.
-					4 channel "ambisonic" inputs will be rendered to the output configuration
-					A single output of 2, 4, 5, 6, 7 or 8 channels.
-					
+					output bus with any number of channels.
+ 
+    @constant       kAudioUnitSubType_SpatialMixer
+                    Inputs that are mono will be panned around using 3D coordinates and parameters.
+                    Stereo inputs are passed directly through to the output.
+                    A single output is presented with 2, 4, 5, 6, 7 or 8 channels.
+                    There is also a built in reverb.
+	
 	@constant		kAudioUnitSubType_MatrixMixer
-						- desktop only
 					Any number of input and output buses with any number of channels on any bus. 
 					The mix is presented as a matrix of channels that can be controlled through 
 					input volume per channel, "cross-point" volume (a given input channel to a 
 					given output channel), output volume per channel and a global volume across 
 					the whole matrix
+ 
 
-	@constant		kAudioUnitSubType_AU3DMixerEmbedded
-						- iPhone only
-					A scaled-down version of the AU3DMixer that presents a stereo output, mono or 
-					stereo inputs
 }
 const
 	kAudioUnitSubType_MultiChannelMixer = FourCharCode('mcmx');
-//#if !TARGET_OS_IPHONE
-{$ifc not TARGET_OS_IPHONE}
-	kAudioUnitSubType_StereoMixer = FourCharCode('smxr');
-	kAudioUnitSubType_3DMixer = FourCharCode('3dmx');
 	kAudioUnitSubType_MatrixMixer = FourCharCode('mxmx');
-//#else
-{$elsec} { not TARGET_OS_IPHONE }
-	kAudioUnitSubType_AU3DMixerEmbedded		= FourCharCode('3dem');
-//#endif;
-{$endc} { not TARGET_OS_IPHONE }
+	kAudioUnitSubType_SpatialMixer = FourCharCode('3dem'); 
+
+{!
+	@enum			Apple mixer audio unit sub types (OS X only)
+	@constant		kAudioUnitSubType_StereoMixer
+					Inputs can be mono or stereo. Single stereo output
+					
+    @constant		kAudioUnitSubType_3DMixer
+                    (deprecated, use kAudioUnitSubType_SpatialMixer instead)
+                    Inputs can be mono, in which case they can be panned around using 3D
+                    coordinates and parameters.
+                    Stereo inputs are passed directly through to the output.
+                    4 channel "ambisonic" inputs will be rendered to the output configuration
+                    A single output of 2, 4, 5, 6, 7 or 8 channels.
+}
+const
+	kAudioUnitSubType_StereoMixer = FourCharCode('smxr');
+	kAudioUnitSubType_3DMixer = FourCharCode('3dmx'); (* API_DEPRECATED("no longer supported", macos(10.3, 10.10)) API_UNAVAILABLE(ios, watchos, tvos)
+ *)
+											// use kAudioUnitSubType_SpatialMixer instead
 
 {!
 	@enum			Apple panner audio unit sub types 
@@ -735,15 +741,13 @@ const
 						- desktop only
 					A panner unit that uses a generic "HRTF" model to pan to a stereo output
 }
-//#if !TARGET_OS_IPHONE
-{$ifc not TARGET_OS_IPHONE}
+{$if TARGET_OS_MAC}
 const
 	kAudioUnitSubType_SphericalHeadPanner = FourCharCode('sphr');
 	kAudioUnitSubType_VectorPanner = FourCharCode('vbas');
 	kAudioUnitSubType_SoundFieldPanner = FourCharCode('ambi');
 	kAudioUnitSubType_HRTFPanner = FourCharCode('hrtf');
-//#endif
-{$endc} { not TARGET_OS_IPHONE }
+{$endc} { TARGET_OS_MAC }
 
 {!
 	@enum			Apple generator audio unit sub types 
@@ -764,11 +768,11 @@ const
 					sends. It presents a custom UI so can be used in a UI context as well
 }
 const
+{$ifc TARGET_OS_MAC}
 	kAudioUnitSubType_NetReceive = FourCharCode('nrcv');
-{$ifc not TARGET_OS_IPHONE}
+{$endc} { TARGET_OS_MAC }
 	kAudioUnitSubType_ScheduledSoundPlayer = FourCharCode('sspl');
 	kAudioUnitSubType_AudioFilePlayer = FourCharCode('afpl');
-{$endc} { not TARGET_OS_IPHONE }
 
 //=====================================================================================================================
 //#pragma mark -
@@ -823,6 +827,9 @@ const
 					situations where you are sure you are providing the correct arguments
 					and structures to the various render calls
 }
+type
+	AudioUnitRenderActionFlags = UInt32;
+	AudioUnitRenderActionFlagsPtr = ^AudioUnitRenderActionFlags;
 const
 	kAudioUnitRenderAction_PreRender = 1 shl 2;
 	kAudioUnitRenderAction_PostRender = 1 shl 3;
@@ -832,8 +839,6 @@ const
 	kAudioOfflineUnitRenderAction_Complete = 1 shl 7;
 	kAudioUnitRenderAction_PostRenderError = 1 shl 8;
 	kAudioUnitRenderAction_DoNotCheckRenderArgs = 1 shl 9;
-type
-	AudioUnitRenderActionFlags = UInt32;
 
 {!
 	@enum			Audio unit errors
@@ -849,18 +854,25 @@ type
 					There is no connection (generally an audio unit is asked to render but it has 
 					not input from which to gather data)
 	@constant		kAudioUnitErr_FailedInitialization
-					The audio unit is unable to be initialised
+					The audio unit is unable to be initialized
 	@constant		kAudioUnitErr_TooManyFramesToProcess
-					When an audio unit is initialised it has a value which specifies the max 
+					When an audio unit is initialized it has a value which specifies the max 
 					number of frames it will be asked to render at any given time. If an audio 
 					unit is asked to render more than this, this error is returned.
 	@constant		kAudioUnitErr_InvalidFile
 					If an audio unit uses external files as a data source, this error is returned 
 					if a file is invalid (Apple's DLS synth returns this error)
+	@constant		kAudioUnitErr_UnknownFileType
+					If an audio unit uses external files as a data source, this error is returned
+					if a file is invalid (Apple's DLS synth returns this error)
+	@constant		kAudioUnitErr_FileNotSpecified
+					If an audio unit uses external files as a data source, this error is returned
+					if a file hasn't been set on it 
+					(Apple's DLS synth returns this error)
 	@constant		kAudioUnitErr_FormatNotSupported
 					Returned if an input or output format is not supported
 	@constant		kAudioUnitErr_Uninitialized
-					Returned if an operation requires an audio unit to be initialised and it is 
+					Returned if an operation requires an audio unit to be initialized and it is 
 					not.
 	@constant		kAudioUnitErr_InvalidScope
 					The specified scope is invalid
@@ -883,10 +895,25 @@ type
 					when the audio unit needs to be pre-flighted, 
 					but it hasn't been.
 	@constant		kAudioUnitErr_Unauthorized
-					Returned by either Open or Initialise, this error is used to indicate that the 
+					Returned by either Open or Initialize, this error is used to indicate that the 
 					audio unit is not authorised, that it cannot be used. A host can then present 
 					a UI to notify the user the audio unit is not able to be used in its current 
 					state.
+	@constant		kAudioUnitErr_MIDIOutputBufferFull
+					Returned during the render call, if the audio unit produces more MIDI output,
+					than the default allocated buffer. The audio unit can provide a size hint, in
+					case it needs a larger buffer. See the documentation for AUAudioUnit's
+					MIDIOutputBufferSizeHint property.
+    @constant   kAudioComponentErr_InstanceInvalidated
+        The component instance's implementation is not available, most likely because the process
+        that published it is no longer running.
+	@constant	kAudioUnitErr_RenderTimeout
+		The audio unit did not satisfy the render request in time.
+	@constant kAudioUnitErr_ExtensionNotFound
+		The specified identifier did not match any Audio Unit Extensions.
+	@constant		kAudioUnitErr_InvalidParameterValue
+					The parameter value is not supported, e.g. the value specified is NaN or
+					infinite.
 }
 const
 	kAudioUnitErr_InvalidProperty = -10879;
@@ -896,6 +923,8 @@ const
 	kAudioUnitErr_FailedInitialization = -10875;
 	kAudioUnitErr_TooManyFramesToProcess = -10874;
 	kAudioUnitErr_InvalidFile = -10871;
+	kAudioUnitErr_UnknownFileType = -10870;
+	kAudioUnitErr_FileNotSpecified = -10869;
 	kAudioUnitErr_FormatNotSupported = -10868;
 	kAudioUnitErr_Uninitialized = -10867;
 	kAudioUnitErr_InvalidScope = -10866;
@@ -906,6 +935,40 @@ const
 	kAudioUnitErr_Initialized = -10849;
 	kAudioUnitErr_InvalidOfflineRender = -10848;
 	kAudioUnitErr_Unauthorized = -10847;
+	kAudioUnitErr_MIDIOutputBufferFull = -66753;
+	kAudioComponentErr_InstanceTimedOut = -66754;
+	kAudioComponentErr_InstanceInvalidated = -66749;
+	kAudioUnitErr_RenderTimeout = -66745;
+	kAudioUnitErr_ExtensionNotFound = -66744;
+	kAudioUnitErr_InvalidParameterValue = -66743; 
+
+
+{$ifc TARGET_OS_IPHONE and not TARGET_OS_SIMULATOR}
+{!
+    @enum       AudioComponent errors for inter-app audio
+    
+    @constant   kAudioComponentErr_DuplicateDescription
+        a non-unique component description was provided to AudioOutputUnitPublish
+    @constant   kAudioComponentErr_UnsupportedType
+        an unsupported component type was provided to AudioOutputUnitPublish
+    @constant   kAudioComponentErr_TooManyInstances
+        components published via AudioOutputUnitPublish may only have one instance
+    @constant   kAudioComponentErr_NotPermitted
+		app needs "inter-app-audio" entitlement or host app needs "audio" in its UIBackgroundModes.
+		Or app is trying to register a component not declared in its Info.plist.
+    @constant   kAudioComponentErr_InitializationTimedOut
+        host did not render in a timely manner; must uninitialize and reinitialize.
+	@constant	kAudioComponentErr_InvalidFormat
+		inter-app AU element formats must have sample rates matching the hardware.
+}
+const
+	kAudioComponentErr_DuplicateDescription = -66752;
+	kAudioComponentErr_UnsupportedType = -66751;
+	kAudioComponentErr_TooManyInstances = -66750;
+	kAudioComponentErr_NotPermitted = -66748;
+	kAudioComponentErr_InitializationTimedOut = -66747;
+	kAudioComponentErr_InvalidFormat = -66746; 
+{$endc} {TARGET_OS_IPHONE and not TARGET_OS_SIMULATOR}
 
 {!
 	@typedef			AudioUnitPropertyID
@@ -962,11 +1025,12 @@ type
 					The parameter event describes a change to the parameter value that should
 					be applied over the specified period of time
 }
+type
+	AUParameterEventType = UInt32;
+	AUParameterEventTypePtr = ^AUParameterEventType;
 const
 	kParameterEvent_Immediate = 1;
 	kParameterEvent_Ramped = 2;
-type
-	AUParameterEventType = UInt32;
 
 {!
 	@struct			AudioUnitParameterEvent
@@ -1027,10 +1091,10 @@ type
 	@discussion		An audio unit parameter is defined by the triplet of audio unit scope, element 
 					and parameterID. This struct is used with the functions in AudioUnitUtilities.h 
 					to deal with audio unit parameters, but is included in this header file for 
-					completeness
+					completeness.
 
 	@field			mAudioUnit
-					The audio unit instance which the specified parameter applies too
+					The audio unit instance to which the specified parameter applies.
 	@field			mParameterID
 					The parameterID for the parameter
 	@field			mScope	
@@ -1052,7 +1116,7 @@ type
 	@discussion		An audio unit property is defined by the triplet of audio unit scope, element
 					and propertyID. This struct is used with the functions in AudioUnitUtilities.h 
 					to deal with audio unit properties, but is included in this header file for 
-					completeness
+					completeness.
 
 	@field			mAudioUnit
 					The audio unit instance which the specified property applies too
@@ -1099,10 +1163,11 @@ type
 	@param			ioData
 					The AudioBufferList that will be used to contain the rendered or provided 
 					audio data. These buffers will be aligned to 16 byte boundaries (which is 
-					normally what malloc will return).
+					normally what malloc will return). Can be null in the notification that
+					input is available.
 }
 type
-	AURenderCallback = function( inRefCon: UnivPtr; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inBusNumber: UInt32; inNumberFrames: UInt32; var ioData: AudioBufferList ): OSStatus;
+	AURenderCallback = function( inRefCon: UnivPtr; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inBusNumber: UInt32; inNumberFrames: UInt32; ioData: AudioBufferListPtr ): OSStatus;
 
 {!
 	@typedef		AudioUnitPropertyListenerProc
@@ -1145,48 +1210,80 @@ type
 type
 	AUInputSamplesInOutputCallback = procedure( inRefCon: UnivPtr; const (*var*) inOutputTimeStamp: AudioTimeStamp; inInputSample: Float64; inNumberInputSamples: Float64 );
 
-//=====================================================================================================================
+{!
+	@constant kAudioComponentRegistrationsChangedNotification
+	@abstract Notification generated when the set of available AudioComponents changes.
+	@discussion
+		Register for this notification name with [NSNotificationCenter defaultCenter] or
+		CFNotificationCenterGetLocalCenter(), using an object of NULL.
+}
+var kAudioComponentRegistrationsChangedNotification: CFStringRef; external name '_kAudioComponentRegistrationsChangedNotification'; (* attribute const *)
+(* API_AVAILABLE(macos(10.11), ios(7.0), watchos(2.0), tvos(9.0)) *)
+
+{!
+	@constant kAudioComponentInstanceInvalidationNotification
+	@abstract Notification generated when an audio unit extension process exits abnormally.
+	@discussion
+		Register for this notification name with [NSNotificationCenter defaultCenter] or
+		CFNotificationCenterGetLocalCenter(). The "object" refers to an AUAudioUnit instance to
+		be observed, or can be nil to observe all instances. The notification's userInfo
+		dictionary contains a key, "audioUnit", an NSValue whose pointerValue is the
+		AudioUnit or AudioComponentInstance which is wrapping the AUAudioUnit communicating with the
+		extension process. (This may be null if there is no such component instance.) For example:
+
+	[[NSNotificationCenter defaultCenter] addObserverForName:(NSString *)kAudioComponentInstanceInvalidationNotification object:nil queue:nil usingBlock:^(NSNotification *note) (
+		AUAudioUnit *auAudioUnit = (AUAudioUnit *)note.object;
+		NSValue *val = note.userInfo[@"audioUnit"];
+		AudioUnit audioUnit = (AudioUnit)val.pointerValue;
+		NSLog(@"Received kAudioComponentInstanceInvalidationNotification: auAudioUnit %@, audioUnit %p", auAudioUnit, audioUnit);
+	)];
+}
+var kAudioComponentInstanceInvalidationNotification: CFStringRef; external name '_kAudioComponentInstanceInvalidationNotification'; (* attribute const *)
+(* API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) *)
+
+
+//================================================================================================
 //#pragma mark -
 //#pragma mark Functions
 
 {!
 	@function		AudioUnitInitialize
 	@abstract		initialize an audio unit
-	@discussion		Upon success, the audio unit has been successfully initialised. This means 
+	@discussion		Upon success, the audio unit has been successfully initialized. This means 
 					that the formats for input and output are valid and can be supported and it 
 					has based its allocations on the max number of frames that it is able to 
-					render at any given time. Once initialised, it is in a state where it can be 
+					render at any given time. Once initialized, it is in a state where it can be 
 					asked to render.
 					
-					In common practice major state of an audio unit (such as its I/O formats, 
-					memory allocations) cannot be changed while an audio unit is inialized.
+					In common practice, major state of an audio unit (such as its I/O formats,
+					memory allocations) cannot be changed while an audio unit is initialized.
 	
 	@param			inUnit
-					The audio unit to initialise
+					The audio unit to initialize
 	@result			noErr, or an error representing the reasons why the audio unit was not able 
-					to be initialised successfully
+					to be initialized successfully
 }
 function AudioUnitInitialize( inUnit: AudioUnit ): OSStatus; external name '_AudioUnitInitialize';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitUninitialize
-	@abstract		uninitialize and audio unit
-	@discussion		Once an audio unit has been initialised, to change its state in response to 
-					some kind of environmental change, the audio unit should be uninitialised. 
+	@abstract		uninitialize an audio unit
+	@discussion		Once an audio unit has been initialized, to change its state in response to 
+					some kind of environmental change, the audio unit should be uninitialized. 
 					This will have the effect of the audio unit de-allocating its resources.
 					The caller can then reconfigure the audio unit to match the new environment 
 					(for instance, the sample rate to process audio is different than it was) and 
-					then re-initialise the audio unit when those changes have been applied.
+					then re-initialize the audio unit when those changes have been applied.
 	
 	@param			inUnit
-					The audio unit to uninitialise
+					The audio unit to uninitialize
 	@result			noErr, or an error representing the reasons why the audio unit was not able 
-					to be initialised successfully. Typically this call won't return an error 
+					to be initialized successfully. Typically this call won't return an error 
 					unless the audio unit in question is no longer valid.
 }
 function AudioUnitUninitialize( inUnit: AudioUnit ): OSStatus; external name '_AudioUnitUninitialize';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 
 {!
@@ -1216,7 +1313,7 @@ function AudioUnitUninitialize( inUnit: AudioUnit ): OSStatus; external name '_A
 	@result			noErr, or various audio unit errors related to properties
 }
 function AudioUnitGetPropertyInfo( inUnit: AudioUnit; inID: AudioUnitPropertyID; inScope: AudioUnitScope; inElement: AudioUnitElement; outDataSize: UInt32Ptr; outWritable: BooleanPtr ): OSStatus; external name '_AudioUnitGetPropertyInfo';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitGetProperty
@@ -1234,8 +1331,7 @@ function AudioUnitGetPropertyInfo( inUnit: AudioUnit; inID: AudioUnitPropertyID;
 					the element of the scope
 	@param			outData
 					used to retrieve the value of the property. It should point to memory at least 
-					as large as the value
-					described by ioDataSize 
+					as large as the value described by ioDataSize
 	@param			ioDataSize	
 					on input contains the size of the data pointed to by outData, on output, the 
 					size of the data that was returned.
@@ -1243,7 +1339,7 @@ function AudioUnitGetPropertyInfo( inUnit: AudioUnit; inID: AudioUnitPropertyID;
 	@result			noErr, or various audio unit errors related to properties
 }
 function AudioUnitGetProperty( inUnit: AudioUnit; inID: AudioUnitPropertyID; inScope: AudioUnitScope; inElement: AudioUnitElement; outData: UnivPtr; var ioDataSize: UInt32 ): OSStatus; external name '_AudioUnitGetProperty';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitSetProperty
@@ -1271,7 +1367,7 @@ function AudioUnitGetProperty( inUnit: AudioUnit; inID: AudioUnitPropertyID; inS
 	@result			noErr, or various audio unit errors related to properties
 }
 function AudioUnitSetProperty( inUnit: AudioUnit; inID: AudioUnitPropertyID; inScope: AudioUnitScope; inElement: AudioUnitElement; inData: {const} UnivPtr; inDataSize: UInt32 ): OSStatus; external name '_AudioUnitSetProperty';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitAddPropertyListener
@@ -1296,7 +1392,7 @@ function AudioUnitSetProperty( inUnit: AudioUnit; inID: AudioUnitPropertyID; inS
 	@result			noErr, or various audio unit errors related to properties
 }
 function AudioUnitAddPropertyListener( inUnit: AudioUnit; inID: AudioUnitPropertyID; inProc: AudioUnitPropertyListenerProc; inProcUserData: UnivPtr ): OSStatus; external name '_AudioUnitAddPropertyListener';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitRemovePropertyListenerWithUserData
@@ -1316,7 +1412,7 @@ function AudioUnitAddPropertyListener( inUnit: AudioUnit; inID: AudioUnitPropert
 	@result			noErr, or various audio unit errors related to properties
 }
 function AudioUnitRemovePropertyListenerWithUserData( inUnit: AudioUnit; inID: AudioUnitPropertyID; inProc: AudioUnitPropertyListenerProc; inProcUserData: UnivPtr ): OSStatus; external name '_AudioUnitRemovePropertyListenerWithUserData';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_5,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitAddRenderNotify
@@ -1341,7 +1437,7 @@ function AudioUnitRemovePropertyListenerWithUserData( inUnit: AudioUnit; inID: A
 	@result			noErr, or an audio unit error code
 }
 function AudioUnitAddRenderNotify( inUnit: AudioUnit; inProc: AURenderCallback; inProcUserData: UnivPtr ): OSStatus; external name '_AudioUnitAddRenderNotify';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.2), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitRemoveRenderNotify
@@ -1358,7 +1454,7 @@ function AudioUnitAddRenderNotify( inUnit: AudioUnit; inProc: AURenderCallback; 
 	@result			noErr, or an audio unit error code
 }
 function AudioUnitRemoveRenderNotify( inUnit: AudioUnit; inProc: AURenderCallback; inProcUserData: UnivPtr ): OSStatus; external name '_AudioUnitRemoveRenderNotify';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.2), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitGetParameter
@@ -1380,7 +1476,7 @@ function AudioUnitRemoveRenderNotify( inUnit: AudioUnit; inProc: AURenderCallbac
 	@result			noErr, or an audio unit error code (such as InvalidParameter)
 }
 function AudioUnitGetParameter( inUnit: AudioUnit; inID: AudioUnitParameterID; inScope: AudioUnitScope; inElement: AudioUnitElement; var outValue: AudioUnitParameterValue ): OSStatus; external name '_AudioUnitGetParameter';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitSetParameter
@@ -1406,7 +1502,7 @@ function AudioUnitGetParameter( inUnit: AudioUnit; inID: AudioUnitParameterID; i
 	@result			noErr, or an audio unit error code (such as InvalidParameter)
 }
 function AudioUnitSetParameter( inUnit: AudioUnit; inID: AudioUnitParameterID; inScope: AudioUnitScope; inElement: AudioUnitElement; inValue: AudioUnitParameterValue; inBufferOffsetInFrames: UInt32 ): OSStatus; external name '_AudioUnitSetParameter';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitScheduleParameters
@@ -1440,7 +1536,7 @@ function AudioUnitSetParameter( inUnit: AudioUnit; inID: AudioUnitParameterID; i
 	@result			noErr, or an audio unit error code (such as InvalidParameter)
 }
 function AudioUnitScheduleParameters( inUnit: AudioUnit; const inParameterEvent: AudioUnitParameterEventPtr; inNumParamEvents: UInt32 ): OSStatus; external name '_AudioUnitScheduleParameters';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.2), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function		AudioUnitRender
@@ -1482,15 +1578,15 @@ function AudioUnitScheduleParameters( inUnit: AudioUnit; const inParameterEvent:
 	
 	@result			noErr, or an audio unit render error
 }
-function AudioUnitRender( inUnit: AudioUnit; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inOutputBusNumber: UInt32; inNumberFrames: UInt32; ioData: AudioBufferListPtr ): OSStatus; external name '_AudioUnitRender';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_2_0) *)
+function AudioUnitRender( inUnit: AudioUnit; ioActionFlags: AudioUnitRenderActionFlagsPtr; const (*var*) inTimeStamp: AudioTimeStamp; inOutputBusNumber: UInt32; inNumberFrames: UInt32; ioData: AudioBufferListPtr ): OSStatus; external name '_AudioUnitRender';
+(* API_AVAILABLE(macos(10.2), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 {$ifc TARGET_OS_MAC}
-function AudioUnitProcess( inUnit: AudioUnit; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; var ioData: AudioBufferList ): OSStatus; external name '_AudioUnitProcess';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_NA) *)
+function AudioUnitProcess( inUnit: AudioUnit; ioActionFlags: AudioUnitRenderActionFlagsPtr; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; var ioData: AudioBufferList ): OSStatus; external name '_AudioUnitProcess';
+(* API_AVAILABLE(macos(10.7), ios(6.0), watchos(2.0), tvos(9.0)) *)
 
-function AudioUnitProcessMultiple( inUnit: AudioUnit; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; inNumberInputBufferLists: UInt32; {const} inInputBufferLists: AudioBufferListPtrPtr; inNumberOutputBufferLists: UInt32; ioOutputBufferLists: AudioBufferListPtrPtr ): OSStatus; external name '_AudioUnitProcessMultiple';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_NA) *)
+function AudioUnitProcessMultiple( inUnit: AudioUnit; ioActionFlags: AudioUnitRenderActionFlagsPtr; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; inNumberInputBufferLists: UInt32; {const} inInputBufferLists: AudioBufferListPtrPtr; inNumberOutputBufferLists: UInt32; ioOutputBufferLists: AudioBufferListPtrPtr ): OSStatus; external name '_AudioUnitProcessMultiple';
+(* API_AVAILABLE(macos(10.7), ios(6.0), watchos(2.0), tvos(9.0)) *)
 {$endc} {TARGET_OS_MAC}
 
 {!
@@ -1517,7 +1613,77 @@ function AudioUnitProcessMultiple( inUnit: AudioUnit; var ioActionFlags: AudioUn
 	@result			noErr, or an audio unit error
 }
 function AudioUnitReset( inUnit: AudioUnit; inScope: AudioUnitScope; inElement: AudioUnitElement ): OSStatus; external name '_AudioUnitReset';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
+
+{$ifc TARGET_OS_IPHONE and not TARGET_OS_SIMULATOR}
+{!
+    @function       AudioOutputUnitPublish
+
+    @abstract       Register an audio output unit as available to be used as an audio unit by
+                    other applications.
+
+    @param          inOutputUnit
+                        The audio output unit to be published.
+    @param          inDesc
+                        The AudioComponentDescription under which to register the application.
+    @param          inName  
+                        The application or component name.
+    @result         An OSStatus result code.
+    
+    @discussion
+        This allows a publishing application to register its audio (input/)output unit as being able
+        to be redirected and repurposed as an audio unit effect, generator, music device or music
+        effect by another host application.
+}
+function AudioOutputUnitPublish( const (*var*) inDesc: AudioComponentDescription; inName: CFStringRef; inVersion: UInt32; inOutputUnit: AudioUnit ): OSStatus; external name '_AudioOutputUnitPublish';
+(* API_AVAILABLE(ios(7.0), watchos(2.0), tvos(9.0)) API_UNAVAILABLE(macos) *)
+
+
+{!
+    @function       AudioComponentGetLastActiveTime
+    @abstract       Fetches the time at which the application publishing the component was last active.
+	@discussion
+		Inter-app audio hosts can use this to sort the list of available nodes by how recently
+		the user interacted with them.
+	
+    @param          inComponent
+                        The AudioComponent being queried.
+    @result         The CFAbsoluteTime at which the node was last active (0 if never).
+}
+function AudioComponentGetLastActiveTime( comp: AudioComponent ): CFAbsoluteTime; external name '_AudioComponentGetLastActiveTime';
+(* API_AVAILABLE(ios(7.0), watchos(2.0), tvos(9.0)) API_UNAVAILABLE(macos) *)
+{$endc} {TARGET_OS_IPHONE and not TARGET_OS_SIMULATOR}
+
+{$ifc TARGET_CPU_64 or TARGET_OS_IPHONE}
+{!
+	@function		AudioUnitExtensionSetComponentList
+	@abstract		Allows the implementor of an audio unit extension to dynamically modify the
+					list of component registrations for the extension.
+	@param			extensionIdentifier
+						The bundle ID of the audio unit extension.
+	@param			audioComponentInfo
+						An array of dictionaries, one for each component, in the same format as
+						described in AudioComponent.h for the Info.plist key "AudioComponents".
+    @result         An OSStatus result code.
+	@discussion
+					Note that the bundle ID of the process calling this API must prefix (or match)
+					the provided extension identifier.
+}
+function AudioUnitExtensionSetComponentList(extensionIdentifier: CFStringRef; audioComponentInfo: CFArrayRef {__nullable}): OSStatus; external name '_AudioUnitExtensionSetComponentList';
+(* API_AVAILABLE(macos(10.13), ios(11.0)) __TVOS_PROHIBITED __WATCHOS_PROHIBITED *)
+
+{!
+	@function		AudioUnitExtensionCopyComponentList
+	@abstract		Returns the component registrations for a given audio unit extension.
+	@param			extensionIdentifier
+						The bundle ID of the audio unit extension.
+	@result			An array of dictionaries, one for each component, in the same format as
+					described in AudioComponent.h for the Info.plist key "AudioComponents".
+					The caller should release this value when done with it.
+}
+function AudioUnitExtensionCopyComponentList(extensionIdentifier: CFStringRef): CFArrayRef {__nullable}; external name '_AudioUnitExtensionCopyComponentList';
+(* API_AVAILABLE(macos(10.13), ios(11.0)) __TVOS_PROHIBITED __WATCHOS_PROHIBITED *)
+{$endc} {TARGET_CPU_64 or TARGET_OS_IPHONE}
 
 
 {!
@@ -1546,7 +1712,7 @@ function AudioUnitReset( inUnit: AudioUnit; inScope: AudioUnitScope; inElement: 
 	@constant		kAudioUnitProcessMultipleSelect
 }
 const
-	kAudioUnitRange = $0000;	// range of selectors for audio units
+	kAudioUnitRange = $0000; 	// range of selectors for audio units
 	kAudioUnitInitializeSelect = $0001;
 	kAudioUnitUninitializeSelect = $0002;
 	kAudioUnitGetPropertyInfoSelect = $0003;
@@ -1577,7 +1743,7 @@ type
 	AudioUnitUninitializeProc = function( self: UnivPtr ): OSStatus;
 
 type
-	AudioUnitGetPropertyInfoProc = function( self: UnivPtr; prop: AudioUnitPropertyID; scope: AudioUnitScope; elem: AudioUnitElement; var outDataSize: UInt32; var outWritable: Boolean ): OSStatus;
+	AudioUnitGetPropertyInfoProc = function( self: UnivPtr; prop: AudioUnitPropertyID; scope: AudioUnitScope; elem: AudioUnitElement; outDataSize: UInt32Ptr; outWritable: BooleanPtr ): OSStatus;
 
 type
 	AudioUnitGetPropertyProc = function( self: UnivPtr; inID: AudioUnitPropertyID; inScope: AudioUnitScope; inElement: AudioUnitElement; outData: UnivPtr; var ioDataSize: UInt32 ): OSStatus;
@@ -1607,13 +1773,13 @@ type
 	AudioUnitResetProc = function( self: UnivPtr; inScope: AudioUnitScope; inElement: AudioUnitElement ): OSStatus;
 
 type
-	AudioUnitComplexRenderProc = function( self: UnivPtr; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inOutputBusNumber: UInt32; inNumberOfPackets: UInt32; var outNumberOfPackets: UInt32; var outPacketDescriptions: AudioStreamPacketDescription; ioData: AudioBufferListPtr; outMetadata: UnivPtr; var outMetadataByteSize: UInt32 ): OSStatus;
+	AudioUnitComplexRenderProc = function( self: UnivPtr; ioActionFlags: AudioUnitRenderActionFlagsPtr; const (*var*) inTimeStamp: AudioTimeStamp; inOutputBusNumber: UInt32; inNumberOfPackets: UInt32; var outNumberOfPackets: UInt32; var outPacketDescriptions: AudioStreamPacketDescription; var ioData: AudioBufferList; outMetadata: UnivPtr; var outMetadataByteSize: UInt32 ): OSStatus;
 
 type
-	AudioUnitProcessProc = function( self: UnivPtr; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; ioData: AudioBufferListPtr ): OSStatus;
+	AudioUnitProcessProc = function( self: UnivPtr; ioActionFlags: AudioUnitRenderActionFlagsPtr; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; var ioData: AudioBufferList ): OSStatus;
 
 type
-	AudioUnitProcessMultipleProc = function( self: UnivPtr; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; inNumberInputBufferLists: UInt32; {const} inInputBufferLists: AudioBufferListPtrPtr; inNumberOutputBufferLists: UInt32; ioOutputBufferLists: AudioBufferListPtrPtr ): OSStatus;
+	AudioUnitProcessMultipleProc = function( self: UnivPtr; ioActionFlags: AudioUnitRenderActionFlagsPtr; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; inNumberInputBufferLists: UInt32; {const} inInputBufferLists: AudioBufferListPtrPtr; inNumberOutputBufferLists: UInt32; ioOutputBufferLists: AudioBufferListPtrPtr ): OSStatus;
 
 
 {!
@@ -1670,7 +1836,7 @@ type
 	@param			ioData
 }
 type
-	AudioUnitRenderProc = function( inComponentStorage: UnivPtr; var ioActionFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inOutputBusNumber: UInt32; inNumberFrames: UInt32; ioData: AudioBufferListPtr ): OSStatus;
+	AudioUnitRenderProc = function( inComponentStorage: UnivPtr; ioActionFlags: AudioUnitRenderActionFlagsPtr; const (*var*) inTimeStamp: AudioTimeStamp; inOutputBusNumber: UInt32; inNumberFrames: UInt32; var ioData: AudioBufferList ): OSStatus;
 
 
 //=====================================================================================================================
@@ -1686,19 +1852,10 @@ type
 	@constant		kAudioUnitErr_InstrumentTypeNotFound
 					Apple's DLS synth returns this error if information about a particular 
 					instrument patch is requested, but is not valid.
-	@constant		kAudioUnitErr_UnknownFileType
-					If an audio unit uses external files as a data source, this error is returned
-					if a file is invalid (Apple's DLS synth returns this error)
-	@constant		kAudioUnitErr_FileNotSpecified
-					If an audio unit uses external files as a data source, this error is returned
-					if a file hasn't been set on it 
-					(Apple's DLS synth returns this error)
 }
 const
 	kAudioUnitErr_IllegalInstrument = -10873;
 	kAudioUnitErr_InstrumentTypeNotFound = -10872;
-	kAudioUnitErr_UnknownFileType = -10870;
-	kAudioUnitErr_FileNotSpecified = -10869;
 
 //#if !__LP64__ && !TARGET_OS_IPHONE
 {$ifc not TARGET_CPU_64 and not TARGET_OS_IPHONE}

@@ -7,6 +7,7 @@
  }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {	  Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, November 2009 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2018 }
 
 {
     Modified for use with Free Pascal
@@ -16,6 +17,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -202,7 +204,7 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes;
+uses MacTypes,CFBase;
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -222,7 +224,7 @@ const
 	kABMultiValueMask  = $100;
 
 type
-	ABPropertyType = SInt32;
+	ABPropertyType = CFIndex;
 const
     kABErrorInProperty           = 0;
     kABStringProperty            = 1;
@@ -232,6 +234,9 @@ const
     kABArrayProperty             = 5;
     kABDictionaryProperty        = 6;
     kABDataProperty              = 7;
+// #if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
+	kABDateComponentsProperty    = 8;
+// #endif
     kABMultiStringProperty       = kABMultiValueMask or kABStringProperty;
     kABMultiIntegerProperty      = kABMultiValueMask or kABIntegerProperty;
     kABMultiRealProperty         = kABMultiValueMask or kABRealProperty;
@@ -239,13 +244,16 @@ const
     kABMultiArrayProperty        = kABMultiValueMask or kABArrayProperty;
     kABMultiDictionaryProperty   = kABMultiValueMask or kABDictionaryProperty;
     kABMultiDataProperty         = kABMultiValueMask or kABDataProperty;
+// #if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
+	kABMultiDateComponentsProperty = kABMultiValueMask or kABDateComponentsProperty;
+// #endif
 
 // ================================================================
 //      Search APIs
 // ================================================================
 
 type
-	ABSearchComparison = SInt32;
+	ABSearchComparison = CFIndex;
 const
 	kABEqual 										= 0;
 	kABNotEqual 									= 1;
@@ -278,7 +286,7 @@ const
 // #endif
 
 type
-	ABSearchConjunction = SInt32;
+	ABSearchConjunction = CFIndex;
 const
 	kABSearchAnd = 0;
 	kABSearchOr = 1;

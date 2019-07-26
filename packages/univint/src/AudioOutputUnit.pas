@@ -1,18 +1,12 @@
-{
-     File:       AudioOutputUnit.h
- 
-     Contains:   AudioOutputUnit Interfaces
- 
-     Copyright:  © 2000-2008 by Apple, Inc., all rights reserved.
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://bugs.freepascal.org
- 
+{!
+	@file		AudioOutputUnit.h
+ 	@framework	AudioToolbox.framework
+ 	@copyright	(c) 2000-2015 Apple, Inc. All rights reserved.
+	@brief		Additional Audio Unit API for audio input/output units.
 }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, July 2019 }
 
 {
     Modified for use with Free Pascal
@@ -22,6 +16,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -232,16 +227,16 @@ uses MacTypes,AUComponent;
 //	Start/stop methods for output units
 //-----------------------------------------------------------------------------
 function AudioOutputUnitStart( ci: AudioUnit ): OSStatus; external name '_AudioOutputUnitStart';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 function AudioOutputUnitStop( ci: AudioUnit ): OSStatus; external name '_AudioOutputUnitStop';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 //-----------------------------------------------------------------------------
 //	Selectors for component and audio plugin calls
 //-----------------------------------------------------------------------------
 const
-	kAudioOutputUnitRange = $0200;	// selector range
+	kAudioOutputUnitRange = $0200; 	// selector range
 	kAudioOutputUnitStartSelect = $0201;
 	kAudioOutputUnitStopSelect = $0202;
 

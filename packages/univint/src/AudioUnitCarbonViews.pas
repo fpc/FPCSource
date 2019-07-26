@@ -1,15 +1,8 @@
-{
-     File:       AudioUnitCarbonView.h
- 
-     Contains:   AudioUnitCarbonView Interfaces
- 
-     Copyright:  © 2002-2008 by Apple, Inc., all rights reserved.
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://bugs.freepascal.org
- 
+{!
+	@file		AudioUnitCarbonView.h
+ 	@framework	AudioToolbox.framework
+ 	@copyright	(c) 2000-2015 Apple, Inc. All rights reserved.
+	@abstract	Deprecated interfaces for using Carbon-based views of Audio Units.
 }
 {	  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 
@@ -21,6 +14,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -307,9 +301,9 @@ type
 	@param		outControl
 					The Carbon control which contains the entire user interface for the view.
 }
-
+{$ifc not TARGET_CPU_64}
 function AudioUnitCarbonViewCreate( inView: AudioUnitCarbonView; inAudioUnit: AudioUnit; inWindow: WindowRef; inParentControl: ControlRef; const inLocation: Float32PointPtr; const inSize: Float32PointPtr; var outControl: ControlRef ): OSStatus; external name '_AudioUnitCarbonViewCreate';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_NA) *)
+(* API_DEPRECATED("no longer supported", macos(10.2, 10.11)) API_UNAVAILABLE(ios, watchos, tvos) *)
 
 {!
 	@function	AudioUnitCarbonViewSetEventListener
@@ -324,8 +318,6 @@ function AudioUnitCarbonViewCreate( inView: AudioUnitCarbonView; inAudioUnit: Au
 	@param		inUserData
 					A user data pointer passed to the callback.
 }
-//#ifndef __LP64__
-{$ifc not TARGET_CPU_64}
 function AudioUnitCarbonViewSetEventListener( inView: AudioUnitCarbonView; inCallback: AudioUnitCarbonViewEventListener; inUserData: UnivPtr ): OSStatus; external name '_AudioUnitCarbonViewSetEventListener';
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_2,__MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 {$endc}

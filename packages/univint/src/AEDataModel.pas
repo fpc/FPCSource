@@ -13,6 +13,8 @@
                      http://bugs.freepascal.org
  
 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, July 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -21,6 +23,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -368,16 +371,24 @@ const
 	keyOriginalAddressAttr = FourCharCode('from'); { new in 1.0.1 }
 	keyAcceptTimeoutAttr = FourCharCode('actm'); { new for Mac OS X }
 	keyReplyRequestedAttr = FourCharCode('repq'); { Was a reply requested for this event - returned as typeBoolean }
-	keySenderEUIDAttr = FourCharCode('seid'); { read only, returned as typeSInt32.  Will be the euid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderEGIDAttr = FourCharCode('sgid'); { read only, returned as typeSInt32.  Will be the egid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderUIDAttr = FourCharCode('uids'); { read only, returned as typeSInt32.  Will be the uid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderGIDAttr = FourCharCode('gids'); { read only, returned as typeSInt32.  Will be the gid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderPIDAttr = FourCharCode('spid'); { read only, returned as typeSInt32.  Will be the pid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderAuditTokenAttr = FourCharCode('tokn'); { read only, returned as an audit_token_t.  Will be the audit token of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderApplescriptEntitlementsAttr = FourCharCode('entl'); { read only, an AEDesc containing opaque data representing the entitlements held by the sender. Interpreted by sandbox routines. } { Mac OS X 10.8 or later }
+//	#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+	keySenderEUIDAttr = FourCharCode('seid'); { read only, returned as typeSInt32.  Will be the euid of the sender of this event. }
+	keySenderEGIDAttr = FourCharCode('sgid'); { read only, returned as typeSInt32.  Will be the egid of the sender of this event. }
+	keySenderUIDAttr = FourCharCode('uids'); { read only, returned as typeSInt32.  Will be the uid of the sender of this event. }
+	keySenderGIDAttr = FourCharCode('gids'); { read only, returned as typeSInt32.  Will be the gid of the sender of this event. }
+	keySenderPIDAttr = FourCharCode('spid'); { read only, returned as typeSInt32.  Will be the pid of the sender of this event. }
+	keySenderAuditTokenAttr = FourCharCode('tokn'); { read only, returned as an audit_token_t.  Will be the audit token of the sender of this event. }
+//	#endif
+//	#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1080
+	keySenderApplescriptEntitlementsAttr = FourCharCode('entl'); { read only, an AEDesc containing opaque data representing the entitlements held by the sender. Interpreted by sandbox routines. }
 	keySenderApplicationIdentifierEntitlementAttr = FourCharCode('aiea');
-	keySenderApplicationSandboxed = FourCharCode('sssb'); { read-only, an AEDesc typeBoolean, true if the sender application was in an application sandbox } { Mac OS X 10.8 or later }
-	keyActualSenderAuditToken = FourCharCode('acat'); { read-only, an AEDesc typeAuditToken of the acual ( possibly over-ridden ) audit token for the sender of this event } { Mac OS X 10.8 or later }
+	keySenderApplicationSandboxed = FourCharCode('sssb'); { read-only, an AEDesc typeBoolean, true if the sender application was in an application sandbox }
+	keyActualSenderAuditToken = FourCharCode('acat'); { read-only, an AEDesc typeAuditToken of the acual ( possibly over-ridden ) audit token for the sender of this event }
+//	#endif
+
+//	#if defined(__MAC_10_13) && __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_13
+	keyAppleEventAttributesAttr = FourCharCode('attr'); { read-only, an AEDescList of AEKeyword entries of the attributes on this event. }
+//	#endif
 
 { These bits are specified in the keyXMLDebuggingAttr (an SInt32) }
 const

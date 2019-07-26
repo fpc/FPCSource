@@ -3,7 +3,7 @@
  
      Contains:   TextEncoding-related types and constants, and prototypes for related functions
  
-     Copyright:  © 1995-2012 Apple Inc. All rights reserved.
+     Copyright:  © 1995-2017 Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -11,6 +11,8 @@
                      http://bugs.freepascal.org
  
 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -19,6 +21,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -344,6 +347,10 @@ const
 	kTextEncodingUnicodeV5_1 = $010B; { No constant for Unicode 5.2, but leave an opening.}
 	kTextEncodingUnicodeV6_0 = $010D; { Adds many symbols, including emoji support.}
 	kTextEncodingUnicodeV6_1 = $010E;  { Adds emoji variation sequences, properties changes.}
+	kTextEncodingUnicodeV6_3 = $0110; { Adds new bidi controls.}
+	kTextEncodingUnicodeV7_0 = $0111; { Adds RUBLE SIGN, symbols from Wingdings/Webdings.}
+	kTextEncodingUnicodeV8_0 = $0112; { Adds LARI SIGN, lowercase Cherokee, emoji modifiers, CJK Ext E, 6 scripts.}
+	kTextEncodingUnicodeV9_0 = $0113;  { Adds Tangut and 5 other scripts, 72 emoji.}
 
 { ISO 8-bit and 7-bit encodings begin at 0x200}
 const
@@ -940,6 +947,11 @@ const
 	kUCBidiCatPopDirectionalFormat = 17;  { PDF    Pop Directional Format}
 	kUCBidiCatNonSpacingMark = 18;   { NSM    Non-Spacing Mark}
 	kUCBidiCatBoundaryNeutral = 19;    { BN Boundary Neutral}
+                                        { New categories for Unicode 6.3}
+	kUCBidiCatLeftRightIsolate = 20;   { LRI    Left-to-Right Isolate}
+	kUCBidiCatRightLeftIsolate = 21;   { RLI    Right-to-Left Isolate}
+	kUCBidiCatFirstStrongIsolate = 22;   { FSI    First Strong Isolate}
+	kUCBidiCatPopDirectionalIsolate = 23;  { PDI    Pop Directional Isolate}
 
 
 {

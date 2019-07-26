@@ -6,6 +6,8 @@
  
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -14,6 +16,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -869,6 +872,7 @@ const
 	errOSARecordingIsAlreadyOn = errAERecordingIsAlreadyOn;
 	errOSAComponentMismatch = -1761; { Parameters are from 2 different components }
 	errOSACantOpenComponent = -1762; { Can't connect to scripting system with that ID }
+	errOSACantStorePointers = -1763;  { Can't store memory pointers in a saved script }
 
 
 { AppleEvent error definitions }
