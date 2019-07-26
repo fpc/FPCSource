@@ -18,9 +18,9 @@ type
     _name: NSString;
     _validationPredicates: NSArray;
     _validationWarnings: NSArray;
-    __propertyDescriptionFlags: bitpacked record
+    _propertyDescriptionFlags: bitpacked record
       case byte of
-        0: (_anonBitField___propertyDescriptionFlags0: cuint);
+        0: (_anonBitField__propertyDescriptionFlags0: cuint);
         1: (
           _isReadOnly: 0..1;
           _isTransient: 0..1;

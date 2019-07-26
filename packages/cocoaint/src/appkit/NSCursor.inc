@@ -17,9 +17,9 @@ type
   NSCursor = objcclass external (NSObject, NSCodingProtocol)
   private
     _hotSpot: NSPoint;
-    _cursorFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField__cursorFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           onMouseExited: 0..1;
           onMouseEntered: 0..1;

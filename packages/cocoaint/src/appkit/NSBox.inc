@@ -42,9 +42,9 @@ type
     _offsets: NSSize;
     _borderRect: NSRect;
     _titleRect: NSRect;
-    __bFlags: bitpacked record
+    _bFlags: bitpacked record
       case byte of
-        0: (_anonBitField___bFlags0: cuint);
+        0: (_anonBitField__bFlags0: cuint);
         1: (
           borderType: 0..((1 shl 2)-1);
           titlePosition: 0..((1 shl 3)-1);

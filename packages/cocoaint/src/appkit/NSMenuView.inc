@@ -29,9 +29,9 @@ type
     _horizontalEdgePad: CGFloat;
     trackingState: pointer;
     _scrollingView: id;
-    __mvFlags: bitpacked record
+    _mvFlags: bitpacked record
       case byte of
-        0: (_anonBitField___mvFlags0: cuint);
+        0: (_anonBitField__mvFlags0: cuint);
         1: (
           needsSizing_: 0..1;
           releasingWindow: 0..1;

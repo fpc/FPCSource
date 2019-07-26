@@ -110,8 +110,8 @@ type
     class function contentSizeForFrameSize_hasHorizontalScroller_hasVerticalScroller_borderType (fSize: NSSize; hFlag: ObjCBOOL; vFlag: ObjCBOOL; aType: NSBorderType): NSSize; message 'contentSizeForFrameSize:hasHorizontalScroller:hasVerticalScroller:borderType:'; deprecated 'in 10_0, 10_7, "+contentSizeForFrameSize:horizontalScrollerClass:verticalScrollerClass:borderType:controlSize:scrollerStyle: instead"';
     function documentVisibleRect: NSRect; message 'documentVisibleRect';
     function contentSize: NSSize; message 'contentSize';
-    procedure setDocumentView(newValue: id); message 'setDocumentView:';
-    function documentView: id; message 'documentView';
+    procedure setDocumentView(newValue: NSView); message 'setDocumentView:';
+    function documentView: NSView; message 'documentView';
     procedure setContentView(newValue: NSClipView); message 'setContentView:';
     function contentView: NSClipView; message 'contentView';
     procedure setDocumentCursor(newValue: NSCursor); message 'setDocumentCursor:';

@@ -29,9 +29,9 @@ type
     _tableView: NSTableView;
     _headerCell: NSCell;
     _dataCell: NSCell;
-    __colFlags: bitpacked record
+    _cFlags: bitpacked record
       case byte of
-        0: (_anonBitField___colFlags0: cuint);
+        0: (_anonBitField__cFlags0: cuint);
         1: (
           oldIsResizable: 0..1;
           isEditable: 0..1;

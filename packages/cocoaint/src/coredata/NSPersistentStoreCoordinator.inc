@@ -75,9 +75,9 @@ type
   private
     _queueOwner: id;
     _dispatchQueue: pointer;
-    _persistentStoreCoordinatorFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField__persistentStoreCoordinatorFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           _isRegistered: 0..1;
           _reservedFlags: 0..((1 shl 31)-1);

@@ -16,9 +16,9 @@ type
     _document: NSDocument;
     _topLevelObjects: NSArray;
     _owner: id;
-    __wcFlags: bitpacked record
+    _wcFlags: bitpacked record
       case byte of
-        0: (_anonBitField___wcFlags0: cuint);
+        0: (_anonBitField__wcFlags0: cuint);
         1: (
           shouldCloseDocument: 0..1;
           shouldCascade: 0..1;

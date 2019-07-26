@@ -14,9 +14,9 @@ type
     _color: NSColor;
     _reserved: id;
     _reserved2: SEL;
-    __cwFlags: bitpacked record
+    _cwFlags: bitpacked record
       case byte of
-        0: (_anonBitField___cwFlags0: cuint);
+        0: (_anonBitField__cwFlags0: cuint);
         1: (
           isActive: 0..1;
           isBordered: 0..1;

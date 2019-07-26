@@ -13,9 +13,9 @@ type
   private
     _reserved3: pointer;
     _managedProxy: id;
-    __objectControllerFlags: bitpacked record
+    _objectControllerFlags: bitpacked record
       case byte of
-        0: (_anonBitField___objectControllerFlags0: cuint);
+        0: (_anonBitField__objectControllerFlags0: cuint);
         1: (
           _editable: 0..1;
           _automaticallyPreparesContent: 0..1;

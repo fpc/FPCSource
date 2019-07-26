@@ -22,9 +22,9 @@ type
     _dependentKeyToModelKeyTable: NSMutableDictionary;
     _modelKeyToDependentKeyTable: NSMutableDictionary;
     _modelKeysToRefreshEachTime: NSMutableArray;
-    __bindingsControllerFlags: bitpacked record
+    _bindingsControllerFlags: bitpacked record
       case byte of
-        0: (_anonBitField___bindingsControllerFlags0: cuint);
+        0: (_anonBitField__bindingsControllerFlags0: cuint);
         1: (
           _alwaysPresentsApplicationModalAlerts: 0..1;
           _refreshesAllModelKeys: 0..1;

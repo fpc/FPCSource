@@ -43,9 +43,7 @@ type
     _dynamicFailureRequirements: NSMutableSet;
     _dynamicFailureDependents: NSMutableSet;
     _failureMap: id;
-    {$ifndef __OBJC2__}
     _reserved: id;
-    {$endif}
   public
     function initWithTarget_action (target: id; action: SEL): instancetype; message 'initWithTarget:action:'; { NS_DESIGNATED_INITIALIZER }
     function initWithCoder (coder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }

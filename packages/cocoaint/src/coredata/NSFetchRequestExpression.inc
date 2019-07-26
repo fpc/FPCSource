@@ -22,9 +22,9 @@ type
     _reserved4: pointer;
     _fetchRequest: NSExpression;
     _managedObjectContext: NSExpression;
-    _fetchExpressionFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField__fetchExpressionFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           isCountOnly: 0..1;
           _RESERVED: 0..((1 shl 31)-1);

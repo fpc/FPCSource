@@ -14,9 +14,9 @@ type
   private
     _aux: NSControlAuxiliary;
     _cell: id;
-    __conFlags: bitpacked record
+    _conFlags: bitpacked record
       case byte of
-        0: (_anonBitField___conFlags0: cuint);
+        0: (_anonBitField__conFlags0: cuint);
         1: (
           enabled: 0..1;
           ignoreMultiClick: 0..1;
@@ -160,6 +160,8 @@ type
     function selectedTag: NSInteger; message 'selectedTag';
 		{$ifndef LEGACY_SETNEEDSDISPLAY}
 		procedure setNeedsDisplay_; message 'setNeedsDisplay';
+		{$else}
+		procedure setNeedsDisplay; message 'setNeedsDisplay';
 		{$endif}
     procedure calcSize; message 'calcSize';
     procedure updateCell (aCell: NSCell); message 'updateCell:';

@@ -41,9 +41,9 @@ type
     _fixedListButton: id;
     _sliderButton: id;
     _accessoryView: id;
-    __fpFlags: bitpacked record
+    _fpFlags: bitpacked record
       case byte of
-        0: (_anonBitField___fpFlags0: cuint);
+        0: (_anonBitField__fpFlags0: cuint);
         1: (
           setFontChange: 0..1;
           setFontAttributeChange: 0..1;
@@ -83,8 +83,9 @@ type
     _actionButton: id;
     _fontEffectsBox: id;
     _sizeStyle: cint;
+    _mode: NSInteger;
     {$if  not defined(__LP64__)}
-    _fpUnused:array[0..71] of id;
+    _fpUnused:array[0..70] of id;
     {$endif}
   public
     class function sharedFontPanel: NSFontPanel; message 'sharedFontPanel';

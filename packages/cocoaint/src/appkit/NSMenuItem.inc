@@ -36,9 +36,9 @@ type
     _tag_: NSInteger;
     _extraData_: id;
     {$endif}
-    __miFlags: bitpacked record
+    _miFlags: bitpacked record
       case byte of
-        0: (_anonBitField___miFlags0: cuint);
+        0: (_anonBitField__miFlags0: cuint);
         1: (
           keGenerationCount: 0..((1 shl 8)-1);
           disabled: 0..1;
@@ -50,7 +50,8 @@ type
           indent: 0..((1 shl 4)-1);
           keShareMode: 0..((1 shl 3)-1);
           state: 0..((1 shl 2)-1);
-          RESERVED1: 0..((1 shl 2)-1);
+          destructive: 0..1;
+          RESERVED1: 0..1;
           limitedView: 0..1;
           nextItemIsAlternate: 0..1;
           blockKE: 0..1;

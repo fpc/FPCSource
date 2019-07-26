@@ -53,9 +53,9 @@ type
     _quotesBrowser: id;
     _replacementsBrowser: id;
     _defineButton: id;
-    __scFlags: bitpacked record
+    _scFlags: bitpacked record
       case byte of
-        0: (_anonBitField___scFlags0: cuint);
+        0: (_anonBitField__scFlags0: cuint);
         1: (
           autoShowGuesses: 0..1;
           needDelayedGuess: 0..1;

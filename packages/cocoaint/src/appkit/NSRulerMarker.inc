@@ -15,9 +15,9 @@ type
     _location: CGFloat;
     _image: NSImage;
     _imageOrigin: NSPoint;
-    __rFlags: bitpacked record
+    _rFlags: bitpacked record
       case byte of
-        0: (_anonBitField___rFlags0: cuint);
+        0: (_anonBitField__rFlags0: cuint);
         1: (
           movable: 0..1;
           removable: 0..1;

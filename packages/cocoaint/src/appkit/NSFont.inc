@@ -48,9 +48,9 @@ type
     _name: NSString;
     _size: CGFloat;
     _retainCount: NSInteger;
-    __fFlags: bitpacked record
+    _fFlags: bitpacked record
       case byte of
-        0: (_anonBitField___fFlags0: cuint);
+        0: (_anonBitField__fFlags0: cuint);
         1: (
           _isScreenFont: 0..1;
           _systemFontType: 0..((1 shl 8)-1);

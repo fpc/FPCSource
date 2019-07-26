@@ -67,9 +67,9 @@ const
   NSViewLayerContentsPlacementTopLeft = 11;
 
 type
-  __VFlags = bitpacked record
+  _VFlags = bitpacked record
     case byte of
-      0: (_anonBitField___VFlags0: cuint);
+      0: (_anonBitField__VFlags0: cuint);
       1: (
         {$ifdef __BIG_ENDIAN__}
         rotatedFromBase: 0..1;
@@ -121,7 +121,7 @@ type
       );
     end;
 type
-  _VFlags = __VFlags;
+  __VFlags = _VFlags;
 type
   _VFlagsPtr = ^__VFlags;
 type

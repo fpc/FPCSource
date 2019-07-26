@@ -45,9 +45,9 @@ type
   private
     _name: NSString;
     _size: NSSize;
-    __imageFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField___imageFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           scalable: 0..1;
           dataRetained: 0..1;

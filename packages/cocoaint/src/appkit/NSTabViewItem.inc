@@ -30,9 +30,9 @@ type
     _tabView: NSTabView;
     _tabState: NSTabState;
     _lastKeyView: NSView;
-    __tviFlags: bitpacked record
+    _tviFlags: bitpacked record
       case byte of
-        0: (_anonBitField___tviFlags0: cuint);
+        0: (_anonBitField__tviFlags0: cuint);
         1: (
           hasCustomColor: 0..1;
           labelSizeIsValid: 0..1;

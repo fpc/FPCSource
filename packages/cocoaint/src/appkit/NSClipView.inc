@@ -17,9 +17,9 @@ type
     _oldDocFrame: NSRect;
     _cursor: NSCursor;
     _scrollAnimationHelper: id;
-    __cvFlags: bitpacked record
+    _cvFlags: bitpacked record
       case byte of
-        0: (_anonBitField___cvFlags0: cuint);
+        0: (_anonBitField__cvFlags0: cuint);
         1: (
           int: 0..1;
           onlyUncovered: 0..1;
@@ -53,8 +53,8 @@ type
     function backgroundColor: NSColor; message 'backgroundColor';
     procedure setDrawsBackground(newValue: ObjCBOOL); message 'setDrawsBackground:';
     function drawsBackground: ObjCBOOL; message 'drawsBackground';
-    procedure setDocumentView(newValue: id); message 'setDocumentView:';
-    function documentView: id; message 'documentView';
+    procedure setDocumentView(newValue: NSView); message 'setDocumentView:';
+    function documentView: NSView; message 'documentView';
     function documentRect: NSRect; message 'documentRect';
     procedure setDocumentCursor(newValue: NSCursor); message 'setDocumentCursor:';
     function documentCursor: NSCursor; message 'documentCursor';

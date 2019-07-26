@@ -18,9 +18,9 @@ type
     _configurations: NSMutableDictionary;
     _fetchRequestTemplates: NSMutableDictionary;
     _versionIdentifiers: NSSet;
-    __managedObjectModelFlags: bitpacked record
+    _managedObjectModelFlags: bitpacked record
       case byte of
-        0: (_anonBitField___managedObjectModelFlags0: cuint);
+        0: (_anonBitField__managedObjectModelFlags0: cuint);
         1: (
           _isInUse: 0..1;
           _isImmutable: 0..1;

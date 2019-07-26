@@ -38,9 +38,9 @@ type
     _textView: NSTextView;
     _size: NSSize;
     _lineFragmentPadding: CGFloat;
-    __tcFlags: bitpacked record
+    _tcFlags: bitpacked record
       case byte of
-        0: (_anonBitField___tcFlags0: cuint);
+        0: (_anonBitField__tcFlags0: cuint);
         1: (
           widthTracksTextView: 0..1;
           heightTracksTextView: 0..1;

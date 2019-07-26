@@ -1,6 +1,7 @@
 {$mode delphi}
 {$modeswitch objectivec1}
 {$modeswitch cvar}
+{$packrecords c}
 {$ifdef COCOAALL}
 {$fatal "AppKit can't be used because -dCOCOAALL has been declared."}
 {$endif}

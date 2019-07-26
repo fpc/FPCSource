@@ -14,9 +14,9 @@ type
   private
     _delegate: id;
     _dataSource: id;
-    __cbcFlags: bitpacked record
+    _cbcFlags: bitpacked record
       case byte of
-        0: (_anonBitField___cbcFlags0: cuint);
+        0: (_anonBitField__cbcFlags0: cuint);
         1: (
           usesDataSource: 0..1;
           completes: 0..1;

@@ -49,9 +49,9 @@ type
     _displayName: id;
     _privateData: id;
     _undoManager: NSUndoManager;
-    __docFlags: bitpacked record
+    _docFlags: bitpacked record
       case byte of
-        0: (_anonBitField___docFlags0: cuint);
+        0: (_anonBitField__docFlags0: cuint);
         1: (
           inClose: 0..1;
           hasUndoManager: 0..1;

@@ -18,9 +18,9 @@ type
     _unused: id;
     _variablesEditorController: id;
     _showWhenRunController: id;
-    __AMWorkflowViewFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField___AMWorkflowViewFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           ignoreSubviewFrameChanges: 0..1;
           editingEnabled: 0..1;

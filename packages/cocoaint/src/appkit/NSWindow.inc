@@ -165,9 +165,9 @@ type
     _sizeLimits: NSSizePtr;
     _frameSaveName: NSString;
     _reservedWindow2: id;
-    __wFlags: bitpacked record
+    _wFlags: bitpacked record
       case byte of
-        0: (_anonBitField___wFlags0: cuint);
+        0: (_anonBitField__wFlags0: cuint);
         1: (
           backing: 0..((1 shl 2)-1);
           visible: 0..1;
