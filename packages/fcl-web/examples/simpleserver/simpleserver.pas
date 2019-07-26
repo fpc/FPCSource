@@ -67,7 +67,7 @@ Var
   S,IndexPage,D : String;
 
 begin
-  S:=Checkoptions('hqd:ni:p:sH:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:']);
+  S:=Checkoptions('hqd:ni:p:sH:m:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   Quiet:=HasOption('q','quiet');
