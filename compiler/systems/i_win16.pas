@@ -78,7 +78,11 @@ unit i_win16;
             dirsep       : '\';
             assem        : as_i8086_omf;
             assemextern  : as_i8086_nasmobj;
+{$ifdef WIN16_INTERNAL_LINKER}
+            link         : ld_int_win16;
+{$else}
             link         : ld_win16;
+{$endif}
             linkextern   : ld_win16;
 {$ifdef USE_SCRIPTED_WLIB}
             ar           : ar_watcom_wlib_omf_scripted;
