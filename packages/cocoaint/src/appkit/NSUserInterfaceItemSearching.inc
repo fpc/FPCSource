@@ -1,62 +1,31 @@
-{ Parsed from Appkit.framework NSUserInterfaceItemSearching.h }
+{ Parsed from AppKit.framework NSUserInterfaceItemSearching.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSUSERINTERFACEITEMSEARCHING_PAS_T}
-{$define NSUSERINTERFACEITEMSEARCHING_PAS_T}
-
-{$endif}
+type
+  NSUserInterfaceItemSearchingProtocolPtr = ^NSUserInterfaceItemSearchingProtocol;
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef NSUSERINTERFACEITEMSEARCHING_PAS_R}
-{$define NSUSERINTERFACEITEMSEARCHING_PAS_R}
+{$ifdef PROTOCOLS}
 
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSUSERINTERFACEITEMSEARCHING_PAS_F}
-{$define NSUSERINTERFACEITEMSEARCHING_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSUSERINTERFACEITEMSEARCHING_PAS_S}
-{$define NSUSERINTERFACEITEMSEARCHING_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSUserInterfaceItemSearchingProtocol = objcprotocol;
-
+type
+  NSUserInterfaceItemSearchingProtocol = objcprotocol external name 'NSUserInterfaceItemSearching' (NSObjectProtocol)
+  required
+    procedure searchForItemsWithSearchString_resultLimit_matchedItemHandler (searchString: NSString; resultLimit: NSInteger; handleMatchedItems: OpaqueCBlock); message 'searchForItemsWithSearchString:resultLimit:matchedItemHandler:';
+    function localizedTitlesForItem (item: id): NSArray; message 'localizedTitlesForItem:';
+  optional
+    procedure performActionForItem (item: id); message 'performActionForItem:';
+    procedure showAllHelpTopicsForSearchString (searchString: NSString); message 'showAllHelpTopicsForSearchString:';
+  end;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSUSERINTERFACEITEMSEARCHING_PAS_C}
-{$define NSUSERINTERFACEITEMSEARCHING_PAS_C}
 
-{ NSUserInterfaceItemSearchingCategory }
-  NSUserInterfaceItemSearchingCategory = objccategory external (NSApplication)
-    procedure registerUserInterfaceItemSearchHandler(handler: NSUserInterfaceItemSearchingProtocol); message 'registerUserInterfaceItemSearchHandler:';
-    procedure unregisterUserInterfaceItemSearchHandler(handler: NSUserInterfaceItemSearchingProtocol); message 'unregisterUserInterfaceItemSearchHandler:';
-    function searchString_inUserInterfaceItemString_searchRange_foundRange(searchString: NSString; stringToSearch: NSString; searchRange: NSRange; foundRange: NSRangePtr): ObjCBOOL; message 'searchString:inUserInterfaceItemString:searchRange:foundRange:';
-  end;
-
-{$endif}
-{$endif}
-{$ifdef PROTOCOLS}
-{$ifndef NSUSERINTERFACEITEMSEARCHING_PAS_P}
-{$define NSUSERINTERFACEITEMSEARCHING_PAS_P}
-  
-{ NSUserInterfaceItemSearching Protocol }
-  NSUserInterfaceItemSearchingProtocol = objcprotocol external name 'NSUserInterfaceItemSearching'
-  required
-    function localizedTitlesForItem(item: id): NSArray; message 'localizedTitlesForItem:';
-  optional
-    procedure performActionForItem(item: id); message 'performActionForItem:';
-    procedure showAllHelpTopicsForSearchString(searchString: NSString); message 'showAllHelpTopicsForSearchString:';
+type
+  NSUserInterfaceItemSearching = objccategory external (NSApplication)
+    procedure registerUserInterfaceItemSearchHandler (handler: NSUserInterfaceItemSearchingProtocol); message 'registerUserInterfaceItemSearchHandler:'; { available in 10_6 }
+    procedure unregisterUserInterfaceItemSearchHandler (handler: NSUserInterfaceItemSearchingProtocol); message 'unregisterUserInterfaceItemSearchHandler:'; { available in 10_6 }
+    function searchString_inUserInterfaceItemString_searchRange_foundRange (searchString: NSString; stringToSearch: NSString; searchRange: NSRange; foundRange: NSRangePtr): ObjCBOOL; message 'searchString:inUserInterfaceItemString:searchRange:foundRange:'; { available in 10_6 }
   end;
 {$endif}
-{$endif}
+

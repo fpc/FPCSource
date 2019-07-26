@@ -1,83 +1,66 @@
 { Parsed from Foundation.framework NSSortDescriptor.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSSORTDESCRIPTOR_PAS_T}
-{$define NSSORTDESCRIPTOR_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSORTDESCRIPTOR_PAS_R}
-{$define NSSORTDESCRIPTOR_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSORTDESCRIPTOR_PAS_F}
-{$define NSSORTDESCRIPTOR_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSORTDESCRIPTOR_PAS_S}
-{$define NSSORTDESCRIPTOR_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSSortDescriptor = objcclass;
-  NSSortDescriptorPointer = ^NSSortDescriptor;
-  NSSortDescriptorPtr = NSSortDescriptorPointer;
-
+type
+  NSSortDescriptorPtr = ^NSSortDescriptor;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSORTDESCRIPTOR_PAS_C}
-{$define NSSORTDESCRIPTOR_PAS_C}
 
-{ NSSortDescriptor }
-  NSSortDescriptor = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
+type
+  NSSortDescriptor = objcclass external (NSObject, NSSecureCodingProtocol, NSCopyingProtocol)
   private
     _sortDescriptorFlags: NSUInteger;
     _key: NSString;
     _selector: SEL;
     _selectorOrBlock: id;
-    
   public
-    class function sortDescriptorWithKey_ascending(key_: NSString; ascending_: ObjCBOOL): id; message 'sortDescriptorWithKey:ascending:';
-    class function sortDescriptorWithKey_ascending_selector(key_: NSString; ascending_: ObjCBOOL; selector_: SEL): id; message 'sortDescriptorWithKey:ascending:selector:';
-    function initWithKey_ascending(key_: NSString; ascending_: ObjCBOOL): id; message 'initWithKey:ascending:';
-    function initWithKey_ascending_selector(key_: NSString; ascending_: ObjCBOOL; selector_: SEL): id; message 'initWithKey:ascending:selector:';
+    class function sortDescriptorWithKey_ascending (key: NSString; ascending: ObjCBOOL): instancetype; message 'sortDescriptorWithKey:ascending:'; { available in 10_6, 4_0 }
+    class function sortDescriptorWithKey_ascending_selector (key: NSString; ascending: ObjCBOOL; selector: SEL): instancetype; message 'sortDescriptorWithKey:ascending:selector:'; { available in 10_6, 4_0 }
+    function initWithKey_ascending (key: NSString; ascending: ObjCBOOL): instancetype; message 'initWithKey:ascending:';
+    function initWithKey_ascending_selector (key: NSString; ascending: ObjCBOOL; selector: SEL): instancetype; message 'initWithKey:ascending:selector:';
     function key: NSString; message 'key';
     function ascending: ObjCBOOL; message 'ascending';
     function selector: SEL; message 'selector';
-    function compareObject_toObject(object_: id; object_1: id): NSComparisonResult; message 'compareObject:toObject:';
+    procedure allowEvaluation; message 'allowEvaluation'; { available in 10_9, 7_0 }
+    class function sortDescriptorWithKey_ascending_comparator (key_: NSString; ascending_: ObjCBOOL; cmptr: NSComparator): instancetype; message 'sortDescriptorWithKey:ascending:comparator:'; { available in 10_6, 4_0 }
+    function initWithKey_ascending_comparator (key_: NSString; ascending_: ObjCBOOL; cmptr: NSComparator): instancetype; message 'initWithKey:ascending:comparator:'; { available in 10_6, 4_0 }
+    function comparator: NSComparator; message 'comparator';
+    function compareObject_toObject (object1: id; object2: id): NSComparisonResult; message 'compareObject:toObject:';
     function reversedSortDescriptor: id; message 'reversedSortDescriptor';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-    function copyWithZone(zone_: NSZonePtr): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
+    class function supportsSecureCoding: ObjCBOOL; message 'supportsSecureCoding';
   end;
 
-{ NSSortDescriptorSortingCategory }
-  NSSortDescriptorSortingCategory = objccategory external (NSSet)
-    function sortedArrayUsingDescriptors(sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:';
+
+type
+  NSSet_NSSortDescriptorSorting = objccategory external name 'NSSortDescriptorSorting' (NSSet)
+    function sortedArrayUsingDescriptors (sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:'; { available in 10_6, 4_0 }
   end;
 
-{ NSSortDescriptorSorting_NSArrayCategory }
-  NSSortDescriptorSorting_NSArrayCategory = objccategory external name 'NSSortDescriptorSorting' (NSArray)
-    function sortedArrayUsingDescriptors(sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:';
+type
+  NSArray_NSSortDescriptorSorting = objccategory external name 'NSSortDescriptorSorting' (NSArray)
+    function sortedArrayUsingDescriptors (sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:';
   end;
 
-{ NSSortDescriptorSorting_NSMutableArrayCategory }
-  NSSortDescriptorSorting_NSMutableArrayCategory = objccategory external name 'NSSortDescriptorSorting' (NSMutableArray)
-    procedure sortUsingDescriptors(sortDescriptors: NSArray); message 'sortUsingDescriptors:';
+type
+  NSSortDescriptorSorting = objccategory external (NSMutableArray)
+    procedure sortUsingDescriptors (sortDescriptors: NSArray); message 'sortUsingDescriptors:';
   end;
 
+type
+  NSOrderedSet_NSKeyValueSorting = objccategory external name 'NSKeyValueSorting' (NSOrderedSet)
+    function sortedArrayUsingDescriptors (sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:'; { available in 10_7, 5_0 }
+  end;
+
+type
+  NSKeyValueSorting = objccategory external (NSMutableOrderedSet)
+    procedure sortUsingDescriptors (sortDescriptors: NSArray); message 'sortUsingDescriptors:'; { available in 10_7, 5_0 }
+  end;
 {$endif}
-{$endif}
+

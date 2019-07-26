@@ -1,76 +1,45 @@
-{ Parsed from Webkit.framework DOMEvent.h }
+{ Parsed from WebKit.framework DOMEvent.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMEVENT_PAS_T}
-{$define DOMEVENT_PAS_T}
+type
+  DOMEventPtr = ^DOMEvent;
+{$endif}
 
-{ Constants }
-
+{$ifdef TYPES}
 const
+  DOM_NONE = 0;
   DOM_CAPTURING_PHASE = 1;
   DOM_AT_TARGET = 2;
   DOM_BUBBLING_PHASE = 3;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMEVENT_PAS_R}
-{$define DOMEVENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMEVENT_PAS_F}
-{$define DOMEVENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMEVENT_PAS_S}
-{$define DOMEVENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMEvent = objcclass;
-  DOMEventPointer = ^DOMEvent;
-  DOMEventPtr = DOMEventPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMEVENT_PAS_C}
-{$define DOMEVENT_PAS_C}
 
-{ DOMEvent }
+type
   DOMEvent = objcclass external (DOMObject)
-    
   public
-    function type_: NSString; message 'type_';
-    function target: id; message 'target';
-    function currentTarget: id; message 'currentTarget';
-    function eventPhase: cuint; message 'eventPhase';
+    function type_: NSString; message 'type';
+    function target: DOMEventTargetProtocol; message 'target';
+    function currentTarget: DOMEventTargetProtocol; message 'currentTarget';
+    function eventPhase: cushort; message 'eventPhase';
     function bubbles: ObjCBOOL; message 'bubbles';
     function cancelable: ObjCBOOL; message 'cancelable';
     function timeStamp: DOMTimeStamp; message 'timeStamp';
-    function srcElement: id; message 'srcElement';
-    procedure setReturnValue (newValue: ObjCBOOL); message 'setReturnValue:';
+    function srcElement: DOMEventTargetProtocol; message 'srcElement';
+    procedure setReturnValue(newValue: ObjCBOOL); message 'setReturnValue:';
     function returnValue: ObjCBOOL; message 'returnValue';
-    procedure setCancelBubble (newValue: ObjCBOOL); message 'setCancelBubble:';
+    procedure setCancelBubble(newValue: ObjCBOOL); message 'setCancelBubble:';
     function cancelBubble: ObjCBOOL; message 'cancelBubble';
     procedure stopPropagation; message 'stopPropagation';
     procedure preventDefault; message 'preventDefault';
-    procedure initEvent_canBubbleArg_cancelableArg(eventTypeArg: NSString; canBubbleArg: ObjCBOOL; cancelableArg: ObjCBOOL); message 'initEvent:canBubbleArg:cancelableArg:';
+    procedure initEvent_canBubbleArg_cancelableArg (eventTypeArg: NSString; canBubbleArg: ObjCBOOL; cancelableArg: ObjCBOOL); message 'initEvent:canBubbleArg:cancelableArg:'; { available in 10_5 }
   end;
 
-{ DOMEventDeprecatedCategory }
-  DOMEventDeprecatedCategory = objccategory external (DOMEvent)
-    procedure initEvent(eventTypeArg: NSString; canBubbleArg: ObjCBOOL; cancelableArg: ObjCBOOL); message 'initEvent:eventTypeArg:canBubbleArg:'; deprecated 'in_webkit_version_3 and later';
-  end;
 
+type
+  DOMEventDeprecated = objccategory external (DOMEvent)
+    procedure initEvent_canBubbleArg (eventTypeArg: NSString; cancelableArg: ObjCBOOL); message 'initEvent:canBubbleArg:'; deprecated 'in 10_4, 10_5';
+  end;
 {$endif}
-{$endif}
+

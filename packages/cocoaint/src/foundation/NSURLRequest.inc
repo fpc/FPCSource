@@ -1,10 +1,16 @@
 { Parsed from Foundation.framework NSURLRequest.h }
 
-{$ifdef TYPES}
-{$ifndef NSURLREQUEST_PAS_T}
-{$define NSURLREQUEST_PAS_T}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSURLRequestPtr = ^NSURLRequest;
+  NSMutableURLRequestPtr = ^NSMutableURLRequest;
+{$endif}
+
+{$ifdef TYPES}
+type
+  NSURLRequestCachePolicy = NSUInteger;
+  NSURLRequestCachePolicyPtr = ^NSURLRequestCachePolicy;
 
 const
   NSURLRequestUseProtocolCachePolicy = 0;
@@ -15,101 +21,89 @@ const
   NSURLRequestReturnCacheDataDontLoad = 3;
   NSURLRequestReloadRevalidatingCacheData = 5;
 
-{ Types }
 type
-  NSURLRequestCachePolicy = NSUInteger;
-  NSURLRequestCachePolicyPtr = ^NSURLRequestCachePolicy;
+  NSURLRequestNetworkServiceType = NSUInteger;
+  NSURLRequestNetworkServiceTypePtr = ^NSURLRequestNetworkServiceType;
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSURLREQUEST_PAS_R}
-{$define NSURLREQUEST_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSURLREQUEST_PAS_F}
-{$define NSURLREQUEST_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSURLREQUEST_PAS_S}
-{$define NSURLREQUEST_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSURLRequest = objcclass;
-  NSURLRequestPointer = ^NSURLRequest;
-  NSURLRequestPtr = NSURLRequestPointer;
-  NSMutableURLRequest = objcclass;
-  NSMutableURLRequestPointer = ^NSMutableURLRequest;
-  NSMutableURLRequestPtr = NSMutableURLRequestPointer;
-
+const
+  NSURLNetworkServiceTypeDefault = 0;
+  NSURLNetworkServiceTypeVoIP = 1;
+  NSURLNetworkServiceTypeVideo = 2;
+  NSURLNetworkServiceTypeBackground = 3;
+  NSURLNetworkServiceTypeVoice = 4;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSURLREQUEST_PAS_C}
-{$define NSURLREQUEST_PAS_C}
 
-{ NSURLRequest }
-  NSURLRequest = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol, NSMutableCopyingProtocol)
+type
+  NSURLRequest = objcclass external (NSObject, NSSecureCodingProtocol, NSCopyingProtocol, NSMutableCopyingProtocol)
   private
     _internal: NSURLRequestInternal;
-    
   public
-    class function requestWithURL(URL_: NSURL): id; message 'requestWithURL:';
-    class function requestWithURL_cachePolicy_timeoutInterval(URL_: NSURL; cachePolicy_: NSURLRequestCachePolicy; timeoutInterval_: NSTimeInterval): id; message 'requestWithURL:cachePolicy:timeoutInterval:';
-    function initWithURL(URL_: NSURL): id; message 'initWithURL:';
-    function initWithURL_cachePolicy_timeoutInterval(URL_: NSURL; cachePolicy_: NSURLRequestCachePolicy; timeoutInterval_: NSTimeInterval): id; message 'initWithURL:cachePolicy:timeoutInterval:';
+    class function requestWithURL (URL: NSURL): instancetype; message 'requestWithURL:';
+    class function supportsSecureCoding: ObjCBOOL; message 'supportsSecureCoding';
+    class function requestWithURL_cachePolicy_timeoutInterval (URL: NSURL; cachePolicy: NSURLRequestCachePolicy; timeoutInterval: NSTimeInterval): instancetype; message 'requestWithURL:cachePolicy:timeoutInterval:';
+    function initWithURL (URL: NSURL): instancetype; message 'initWithURL:';
+    function initWithURL_cachePolicy_timeoutInterval (URL: NSURL; cachePolicy: NSURLRequestCachePolicy; timeoutInterval: NSTimeInterval): instancetype; message 'initWithURL:cachePolicy:timeoutInterval:';
     function URL: NSURL; message 'URL';
     function cachePolicy: NSURLRequestCachePolicy; message 'cachePolicy';
     function timeoutInterval: NSTimeInterval; message 'timeoutInterval';
     function mainDocumentURL: NSURL; message 'mainDocumentURL';
+    function networkServiceType: NSURLRequestNetworkServiceType; message 'networkServiceType';
+    function allowsCellularAccess: ObjCBOOL; message 'allowsCellularAccess';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-    function copyWithZone(zone_: NSZonePtr): id;
-    function mutableCopyWithZone(zone_: NSZonePtr): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
+    function mutableCopyWithZone (zone: NSZonePtr): id; message 'mutableCopyWithZone:';
   end;
 
-{ NSMutableURLRequest }
+type
   NSMutableURLRequest = objcclass external (NSURLRequest)
-    
   public
-    procedure setURL(URL_: NSURL); message 'setURL:';
-    procedure setCachePolicy(policy: NSURLRequestCachePolicy); message 'setCachePolicy:';
-    procedure setTimeoutInterval(seconds: NSTimeInterval); message 'setTimeoutInterval:';
-    procedure setMainDocumentURL(URL_: NSURL); message 'setMainDocumentURL:';
+    procedure setURL(newValue: NSURL); message 'setURL:';
+    function URL: NSURL; message 'URL';
+    procedure setCachePolicy(newValue: NSURLRequestCachePolicy); message 'setCachePolicy:';
+    function cachePolicy: NSURLRequestCachePolicy; message 'cachePolicy';
+    procedure setTimeoutInterval(newValue: NSTimeInterval); message 'setTimeoutInterval:';
+    function timeoutInterval: NSTimeInterval; message 'timeoutInterval';
+    procedure setMainDocumentURL(newValue: NSURL); message 'setMainDocumentURL:';
+    function mainDocumentURL: NSURL; message 'mainDocumentURL';
+    procedure setNetworkServiceType(newValue: NSURLRequestNetworkServiceType); message 'setNetworkServiceType:';
+    function networkServiceType: NSURLRequestNetworkServiceType; message 'networkServiceType';
+    procedure setAllowsCellularAccess(newValue: ObjCBOOL); message 'setAllowsCellularAccess:';
+    function allowsCellularAccess: ObjCBOOL; message 'allowsCellularAccess';
   end;
 
-{ NSHTTPURLRequestCategory }
-  NSHTTPURLRequestCategory = objccategory external (NSURLRequest)
+
+type
+  NSHTTPURLRequest = objccategory external (NSURLRequest)
     function HTTPMethod: NSString; message 'HTTPMethod';
     function allHTTPHeaderFields: NSDictionary; message 'allHTTPHeaderFields';
-    function valueForHTTPHeaderField(field: NSString): NSString; message 'valueForHTTPHeaderField:';
+    function valueForHTTPHeaderField (field: NSString): NSString; message 'valueForHTTPHeaderField:';
     function HTTPBody: NSData; message 'HTTPBody';
     function HTTPBodyStream: NSInputStream; message 'HTTPBodyStream';
     function HTTPShouldHandleCookies: ObjCBOOL; message 'HTTPShouldHandleCookies';
+    function HTTPShouldUsePipelining: ObjCBOOL; message 'HTTPShouldUsePipelining';
   end;
 
-{ NSMutableHTTPURLRequestCategory }
-  NSMutableHTTPURLRequestCategory = objccategory external (NSMutableURLRequest)
-    procedure setHTTPMethod(method: NSString); message 'setHTTPMethod:';
-    procedure setAllHTTPHeaderFields(headerFields: NSDictionary); message 'setAllHTTPHeaderFields:';
-    procedure setValue_forHTTPHeaderField(value: NSString; field: NSString); message 'setValue:forHTTPHeaderField:';
-    procedure addValue_forHTTPHeaderField(value: NSString; field: NSString); message 'addValue:forHTTPHeaderField:';
-    procedure setHTTPBody(data: NSData); message 'setHTTPBody:';
-    procedure setHTTPBodyStream(inputStream: NSInputStream); message 'setHTTPBodyStream:';
-    procedure setHTTPShouldHandleCookies(should: ObjCBOOL); message 'setHTTPShouldHandleCookies:';
+type
+  NSMutableHTTPURLRequest = objccategory external (NSMutableURLRequest)
+    procedure setHTTPMethod(newValue: NSString); message 'setHTTPMethod:';
+    function HTTPMethod: NSString; message 'HTTPMethod';
+    procedure setAllHTTPHeaderFields(newValue: NSDictionary); message 'setAllHTTPHeaderFields:';
+    function allHTTPHeaderFields: NSDictionary; message 'allHTTPHeaderFields';
+    procedure setValue_forHTTPHeaderField (value: NSString; field: NSString); message 'setValue:forHTTPHeaderField:';
+    procedure addValue_forHTTPHeaderField (value: NSString; field: NSString); message 'addValue:forHTTPHeaderField:';
+    procedure setHTTPBody(newValue: NSData); message 'setHTTPBody:';
+    function HTTPBody: NSData; message 'HTTPBody';
+    procedure setHTTPBodyStream(newValue: NSInputStream); message 'setHTTPBodyStream:';
+    function HTTPBodyStream: NSInputStream; message 'HTTPBodyStream';
+    procedure setHTTPShouldHandleCookies(newValue: ObjCBOOL); message 'setHTTPShouldHandleCookies:';
+    function HTTPShouldHandleCookies: ObjCBOOL; message 'HTTPShouldHandleCookies';
+    procedure setHTTPShouldUsePipelining(newValue: ObjCBOOL); message 'setHTTPShouldUsePipelining:';
+    function HTTPShouldUsePipelining: ObjCBOOL; message 'HTTPShouldUsePipelining';
   end;
+{$endif}
 
-{$endif}
-{$endif}

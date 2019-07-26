@@ -1,81 +1,49 @@
-{ Parsed from Appkit.framework NSDatePicker.h }
+{ Parsed from AppKit.framework NSDatePicker.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSDATEPICKER_PAS_T}
-{$define NSDATEPICKER_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSDATEPICKER_PAS_R}
-{$define NSDATEPICKER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSDATEPICKER_PAS_F}
-{$define NSDATEPICKER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSDATEPICKER_PAS_S}
-{$define NSDATEPICKER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSDatePicker = objcclass;
-  NSDatePickerPointer = ^NSDatePicker;
-  NSDatePickerPtr = NSDatePickerPointer;
-
+type
+  NSDatePickerPtr = ^NSDatePicker;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSDATEPICKER_PAS_C}
-{$define NSDATEPICKER_PAS_C}
 
-{ NSDatePicker }
+type
   NSDatePicker = objcclass external (NSControl)
-    
+  private
   public
+    procedure setDatePickerStyle(newValue: NSDatePickerStyle); message 'setDatePickerStyle:';
     function datePickerStyle: NSDatePickerStyle; message 'datePickerStyle';
-    procedure setDatePickerStyle(newStyle: NSDatePickerStyle); message 'setDatePickerStyle:';
+    procedure setBezeled(newValue: ObjCBOOL); message 'setBezeled:';
     function isBezeled: ObjCBOOL; message 'isBezeled';
-    procedure setBezeled(flag: ObjCBOOL); message 'setBezeled:';
+    procedure setBordered(newValue: ObjCBOOL); message 'setBordered:';
     function isBordered: ObjCBOOL; message 'isBordered';
-    procedure setBordered(flag: ObjCBOOL); message 'setBordered:';
+    procedure setDrawsBackground(newValue: ObjCBOOL); message 'setDrawsBackground:';
     function drawsBackground: ObjCBOOL; message 'drawsBackground';
-    procedure setDrawsBackground(flag: ObjCBOOL); message 'setDrawsBackground:';
+    procedure setBackgroundColor(newValue: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
-    procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
+    procedure setTextColor(newValue: NSColor); message 'setTextColor:';
     function textColor: NSColor; message 'textColor';
-    procedure setTextColor(color: NSColor); message 'setTextColor:';
+    procedure setDatePickerMode(newValue: NSDatePickerMode); message 'setDatePickerMode:';
     function datePickerMode: NSDatePickerMode; message 'datePickerMode';
-    procedure setDatePickerMode(newMode: NSDatePickerMode); message 'setDatePickerMode:';
+    procedure setDatePickerElements(newValue: NSDatePickerElementFlags); message 'setDatePickerElements:';
     function datePickerElements: NSDatePickerElementFlags; message 'datePickerElements';
-    procedure setDatePickerElements(elementFlags: NSDatePickerElementFlags); message 'setDatePickerElements:';
+    procedure setCalendar(newValue: NSCalendar); message 'setCalendar:';
     function calendar: NSCalendar; message 'calendar';
-    procedure setCalendar(newCalendar: NSCalendar); message 'setCalendar:';
+    procedure setLocale(newValue: NSLocale); message 'setLocale:';
     function locale: NSLocale; message 'locale';
-    procedure setLocale(newLocale: NSLocale); message 'setLocale:';
+    procedure setTimeZone(newValue: NSTimeZone); message 'setTimeZone:';
     function timeZone: NSTimeZone; message 'timeZone';
-    procedure setTimeZone(newTimeZone: NSTimeZone); message 'setTimeZone:';
+    procedure setDateValue(newValue: NSDate); message 'setDateValue:';
     function dateValue: NSDate; message 'dateValue';
-    procedure setDateValue(newStartDate: NSDate); message 'setDateValue:';
+    procedure setTimeInterval(newValue: NSTimeInterval); message 'setTimeInterval:';
     function timeInterval: NSTimeInterval; message 'timeInterval';
-    procedure setTimeInterval(newTimeInterval: NSTimeInterval); message 'setTimeInterval:';
+    procedure setMinDate(newValue: NSDate); message 'setMinDate:';
     function minDate: NSDate; message 'minDate';
-    procedure setMinDate(date: NSDate); message 'setMinDate:';
+    procedure setMaxDate(newValue: NSDate); message 'setMaxDate:';
     function maxDate: NSDate; message 'maxDate';
-    procedure setMaxDate(date: NSDate); message 'setMaxDate:';
+    procedure setDelegate(newValue: NSDatePickerCellDelegateProtocol); message 'setDelegate:';
     function delegate: NSDatePickerCellDelegateProtocol; message 'delegate';
-    procedure setDelegate(anObject: NSDatePickerCellDelegateProtocol); message 'setDelegate:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

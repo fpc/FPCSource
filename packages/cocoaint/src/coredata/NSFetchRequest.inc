@@ -1,123 +1,101 @@
-{ Parsed from Coredata.framework NSFetchRequest.h }
+{ Parsed from CoreData.framework NSFetchRequest.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSFETCHREQUEST_PAS_T}
-{$define NSFETCHREQUEST_PAS_T}
+type
+  NSFetchRequestPtr = ^NSFetchRequest;
+{$endif}
 
-{ Constants }
-
-const
-  NSManagedObjectResultType = $00;
-  NSManagedObjectIDResultType = $01;
-  NSDictionaryResultType = $02;
-
-{ Types }
+{$ifdef TYPES}
 type
   NSFetchRequestResultType = NSUInteger;
   NSFetchRequestResultTypePtr = ^NSFetchRequestResultType;
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSFETCHREQUEST_PAS_R}
-{$define NSFETCHREQUEST_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSFETCHREQUEST_PAS_F}
-{$define NSFETCHREQUEST_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSFETCHREQUEST_PAS_S}
-{$define NSFETCHREQUEST_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSFetchRequest = objcclass;
-  NSFetchRequestPointer = ^NSFetchRequest;
-  NSFetchRequestPtr = NSFetchRequestPointer;
-
+const
+  NSManagedObjectResultType = $00;
+  NSManagedObjectIDResultType = $01;
+  NSDictionaryResultType = $02 { available in 10_6,3_0 };
+  NSCountResultType = $04 { available in 10_6,3_0 };
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSFETCHREQUEST_PAS_C}
-{$define NSFETCHREQUEST_PAS_C}
 
-{ NSFetchRequest }
-  NSFetchRequest = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
+type
+  NSFetchRequest = objcclass external (NSPersistentStoreRequest, NSCodingProtocol)
   private
-    _reserved: Pointer;
-    _reserved2: Pointer;
-    _offset: NSUInteger;
+    _groupByProperties: NSArray;
+    _havingPredicate: NSPredicate;
+    _additionalPrivateIvars: idPtr;
     _valuesToFetch: NSArray;
-    _entity: NSEntityDescription; {garbage collector: __weak }
+    _entity: NSEntityDescription;
     _predicate: NSPredicate;
     _sortDescriptors: NSArray;
     _batchSize: NSUInteger;
     _fetchLimit: culong;
-    _affectedStores: NSArray;
     _relationshipKeyPathsForPrefetching: NSArray;
-    __flags: record
+    _fetchRequestFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSFetchRequest0: cuint);
-       1: (data: bitpacked record
-        distinctValuesOnly: 0..1;
-        _includesSubentities: 0..1;
-        _includesPropertyValues: 0..1;
-        _resultType: 0..((1 shl 3)-1);
-        _returnsObjectsAsFaults: 0..1;
-        excludePendingChanges: 0..1;
-        isInUse: 0..1;
-        __RESERVED: 0..((1 shl 23)-1);
-       end;
-      );
+        0: (_anonBitField__fetchRequestFlags0: cuint);
+        1: (
+          distinctValuesOnly: 0..1;
+          includesSubentities: 0..1;
+          includesPropertyValues: 0..1;
+          resultType: 0..((1 shl 3)-1);
+          returnsObjectsAsFaults: 0..1;
+          excludePendingChanges: 0..1;
+          isInUse: 0..1;
+          entityIsName: 0..1;
+          refreshesRefetched: 0..1;
+          propertiesValidated: 0..1;
+          disableCaching: 0..1;
+          _RESERVED: 0..((1 shl 19)-1);
+        );
       end;
-    
   public
+    class function fetchRequestWithEntityName (entityName: NSString): NSFetchRequest; message 'fetchRequestWithEntityName:'; { available in 10_7, 4_0 }
+    function init: instancetype; message 'init'; { NS_DESIGNATED_INITIALIZER }
+    function initWithEntityName (entityName: NSString): instancetype; message 'initWithEntityName:'; { available in 10_7, 4_0 }
+    procedure setEntity(newValue: NSEntityDescription); message 'setEntity:';
     function entity: NSEntityDescription; message 'entity';
-    procedure setEntity(entity_: NSEntityDescription); message 'setEntity:';
+    function entityName: NSString; message 'entityName';
+    procedure setPredicate(newValue: NSPredicate); message 'setPredicate:';
     function predicate: NSPredicate; message 'predicate';
-    procedure setPredicate(predicate_: NSPredicate); message 'setPredicate:';
+    procedure setSortDescriptors(newValue: NSArray); message 'setSortDescriptors:';
     function sortDescriptors: NSArray; message 'sortDescriptors';
-    procedure setSortDescriptors(sortDescriptors_: NSArray); message 'setSortDescriptors:';
+    procedure setFetchLimit(newValue: NSUInteger); message 'setFetchLimit:';
     function fetchLimit: NSUInteger; message 'fetchLimit';
-    procedure setFetchLimit(limit: NSUInteger); message 'setFetchLimit:';
+    procedure setAffectedStores(newValue: NSArray); message 'setAffectedStores:';
     function affectedStores: NSArray; message 'affectedStores';
-    procedure setAffectedStores(stores: NSArray); message 'setAffectedStores:';
+    procedure setResultType(newValue: NSFetchRequestResultType); message 'setResultType:';
     function resultType: NSFetchRequestResultType; message 'resultType';
-    procedure setResultType(type_: NSFetchRequestResultType); message 'setResultType:';
+    procedure setIncludesSubentities(newValue: ObjCBOOL); message 'setIncludesSubentities:';
     function includesSubentities: ObjCBOOL; message 'includesSubentities';
-    procedure setIncludesSubentities(yesNo: ObjCBOOL); message 'setIncludesSubentities:';
+    procedure setIncludesPropertyValues(newValue: ObjCBOOL); message 'setIncludesPropertyValues:';
     function includesPropertyValues: ObjCBOOL; message 'includesPropertyValues';
-    procedure setIncludesPropertyValues(yesNo: ObjCBOOL); message 'setIncludesPropertyValues:';
+    procedure setReturnsObjectsAsFaults(newValue: ObjCBOOL); message 'setReturnsObjectsAsFaults:';
     function returnsObjectsAsFaults: ObjCBOOL; message 'returnsObjectsAsFaults';
-    procedure setReturnsObjectsAsFaults(yesNo: ObjCBOOL); message 'setReturnsObjectsAsFaults:';
+    procedure setRelationshipKeyPathsForPrefetching(newValue: NSArray); message 'setRelationshipKeyPathsForPrefetching:';
     function relationshipKeyPathsForPrefetching: NSArray; message 'relationshipKeyPathsForPrefetching';
-    procedure setRelationshipKeyPathsForPrefetching(keys: NSArray); message 'setRelationshipKeyPathsForPrefetching:';
+    procedure setIncludesPendingChanges(newValue: ObjCBOOL); message 'setIncludesPendingChanges:';
     function includesPendingChanges: ObjCBOOL; message 'includesPendingChanges';
-    procedure setIncludesPendingChanges(flag: ObjCBOOL); message 'setIncludesPendingChanges:';
+    procedure setReturnsDistinctResults(newValue: ObjCBOOL); message 'setReturnsDistinctResults:';
     function returnsDistinctResults: ObjCBOOL; message 'returnsDistinctResults';
-    procedure setReturnsDistinctResults(flag: ObjCBOOL); message 'setReturnsDistinctResults:';
+    procedure setPropertiesToFetch(newValue: NSArray); message 'setPropertiesToFetch:';
     function propertiesToFetch: NSArray; message 'propertiesToFetch';
-    procedure setPropertiesToFetch(values: NSArray); message 'setPropertiesToFetch:';
+    procedure setFetchOffset(newValue: NSUInteger); message 'setFetchOffset:';
     function fetchOffset: NSUInteger; message 'fetchOffset';
-    procedure setFetchOffset(offset: NSUInteger); message 'setFetchOffset:';
+    procedure setFetchBatchSize(newValue: NSUInteger); message 'setFetchBatchSize:';
     function fetchBatchSize: NSUInteger; message 'fetchBatchSize';
-    procedure setFetchBatchSize(bsize: NSUInteger); message 'setFetchBatchSize:';
+    procedure setShouldRefreshRefetchedObjects(newValue: ObjCBOOL); message 'setShouldRefreshRefetchedObjects:';
+    function shouldRefreshRefetchedObjects: ObjCBOOL; message 'shouldRefreshRefetchedObjects';
+    procedure setPropertiesToGroupBy(newValue: NSArray); message 'setPropertiesToGroupBy:';
+    function propertiesToGroupBy: NSArray; message 'propertiesToGroupBy';
+    procedure setHavingPredicate(newValue: NSPredicate); message 'setHavingPredicate:';
+    function havingPredicate: NSPredicate; message 'havingPredicate';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-    function copyWithZone(zone_: NSZonePtr): id;
+    { Adopted protocols }
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

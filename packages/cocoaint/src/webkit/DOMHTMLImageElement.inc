@@ -1,74 +1,42 @@
-{ Parsed from Webkit.framework DOMHTMLImageElement.h }
+{ Parsed from WebKit.framework DOMHTMLImageElement.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMHTMLIMAGEELEMENT_PAS_T}
-{$define DOMHTMLIMAGEELEMENT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMHTMLIMAGEELEMENT_PAS_R}
-{$define DOMHTMLIMAGEELEMENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMHTMLIMAGEELEMENT_PAS_F}
-{$define DOMHTMLIMAGEELEMENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMHTMLIMAGEELEMENT_PAS_S}
-{$define DOMHTMLIMAGEELEMENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMHTMLImageElement = objcclass;
-  DOMHTMLImageElementPointer = ^DOMHTMLImageElement;
-  DOMHTMLImageElementPtr = DOMHTMLImageElementPointer;
-
+type
+  DOMHTMLImageElementPtr = ^DOMHTMLImageElement;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMHTMLIMAGEELEMENT_PAS_C}
-{$define DOMHTMLIMAGEELEMENT_PAS_C}
 
-{ DOMHTMLImageElement }
+type
   DOMHTMLImageElement = objcclass external (DOMHTMLElement)
-    
   public
-    procedure setName (newValue: NSString); message 'setName:';
+    procedure setName(newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    procedure setAlign (newValue: NSString); message 'setAlign:';
+    procedure setAlign(newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
-    procedure setAlt (newValue: NSString); message 'setAlt:';
+    procedure setAlt(newValue: NSString); message 'setAlt:';
     function alt: NSString; message 'alt';
-    procedure setBorder (newValue: NSString); message 'setBorder:';
+    procedure setBorder(newValue: NSString); message 'setBorder:';
     function border: NSString; message 'border';
-    procedure setHeight (newValue: cint); message 'setHeight:';
+    procedure setHeight(newValue: cint); message 'setHeight:';
     function height: cint; message 'height';
-    procedure setHspace (newValue: cint); message 'setHspace:';
+    procedure setHspace(newValue: cint); message 'setHspace:';
     function hspace: cint; message 'hspace';
-    procedure setIsMap (newValue: ObjCBOOL); message 'setIsMap:';
+    procedure setIsMap(newValue: ObjCBOOL); message 'setIsMap:';
     function isMap: ObjCBOOL; message 'isMap';
-    procedure setLongDesc (newValue: NSString); message 'setLongDesc:';
+    procedure setLongDesc(newValue: NSString); message 'setLongDesc:';
     function longDesc: NSString; message 'longDesc';
-    procedure setSrc (newValue: NSString); message 'setSrc:';
+    procedure setSrc(newValue: NSString); message 'setSrc:';
     function src: NSString; message 'src';
-    procedure setUseMap (newValue: NSString); message 'setUseMap:';
+    procedure setUseMap(newValue: NSString); message 'setUseMap:';
     function useMap: NSString; message 'useMap';
-    procedure setVspace (newValue: cint); message 'setVspace:';
+    procedure setVspace(newValue: cint); message 'setVspace:';
     function vspace: cint; message 'vspace';
-    procedure setWidth (newValue: cint); message 'setWidth:';
+    procedure setWidth(newValue: cint); message 'setWidth:';
     function width: cint; message 'width';
     function complete: ObjCBOOL; message 'complete';
-    procedure setLowsrc (newValue: NSString); message 'setLowsrc:';
+    procedure setLowsrc(newValue: NSString); message 'setLowsrc:';
     function lowsrc: NSString; message 'lowsrc';
     function naturalHeight: cint; message 'naturalHeight';
     function naturalWidth: cint; message 'naturalWidth';
@@ -77,6 +45,5 @@
     function altDisplayString: NSString; message 'altDisplayString';
     function absoluteImageURL: NSURL; message 'absoluteImageURL';
   end;
+{$endif}
 
-{$endif}
-{$endif}

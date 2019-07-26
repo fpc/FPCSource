@@ -1,97 +1,65 @@
-{ Parsed from Quartzcore.framework CAEmitterLayer.h }
+{ Parsed from QuartzCore.framework CAEmitterLayer.h }
+
 
 {$ifdef TYPES}
-{$ifndef CAEMITTERLAYER_PAS_T}
-{$define CAEMITTERLAYER_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef CAEMITTERLAYER_PAS_R}
-{$define CAEMITTERLAYER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef CAEMITTERLAYER_PAS_F}
-{$define CAEMITTERLAYER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef CAEMITTERLAYER_PAS_S}
-{$define CAEMITTERLAYER_PAS_S}
-
-{ External string constants }
-var
-  kCAEmitterLayerPoint: NSString; cvar; external;
-  kCAEmitterLayerLine: NSString; cvar; external;
-  kCAEmitterLayerRectangle: NSString; cvar; external;
-  kCAEmitterLayerCuboid: NSString; cvar; external;
-  kCAEmitterLayerCircle: NSString; cvar; external;
-  kCAEmitterLayerSphere: NSString; cvar; external;
-  kCAEmitterLayerPoints: NSString; cvar; external;
-  kCAEmitterLayerOutline: NSString; cvar; external;
-  kCAEmitterLayerSurface: NSString; cvar; external;
-  kCAEmitterLayerVolume: NSString; cvar; external;
-  kCAEmitterLayerUnordered: NSString; cvar; external;
-  kCAEmitterLayerOldestFirst: NSString; cvar; external;
-  kCAEmitterLayerOldestLast: NSString; cvar; external;
-  kCAEmitterLayerBackToFront: NSString; cvar; external;
-  kCAEmitterLayerAdditive: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  CAEmitterLayer = objcclass;
-  CAEmitterLayerPointer = ^CAEmitterLayer;
-  CAEmitterLayerPtr = CAEmitterLayerPointer;
-
+type
+  CAEmitterLayerPtr = ^CAEmitterLayer;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef CAEMITTERLAYER_PAS_C}
-{$define CAEMITTERLAYER_PAS_C}
 
-{ CAEmitterLayer }
+type
   CAEmitterLayer = objcclass external (CALayer)
-    
   public
-    procedure setEmitterCells (newValue: NSArray); message 'setEmitterCells:';
+    procedure setEmitterCells(newValue: NSArray); message 'setEmitterCells:';
     function emitterCells: NSArray; message 'emitterCells';
-    procedure setBirthRate (newValue: single); message 'setBirthRate:';
+    procedure setBirthRate(newValue: single); message 'setBirthRate:';
     function birthRate: single; message 'birthRate';
-    procedure setLifetime (newValue: single); message 'setLifetime:';
+    procedure setLifetime(newValue: single); message 'setLifetime:';
     function lifetime: single; message 'lifetime';
-    procedure setEmitterPosition (newValue: CGPoint); message 'setEmitterPosition:';
+    procedure setEmitterPosition(newValue: CGPoint); message 'setEmitterPosition:';
     function emitterPosition: CGPoint; message 'emitterPosition';
-    procedure setEmitterZPosition (newValue: CGFloat); message 'setEmitterZPosition:';
+    procedure setEmitterZPosition(newValue: CGFloat); message 'setEmitterZPosition:';
     function emitterZPosition: CGFloat; message 'emitterZPosition';
-    procedure setEmitterSize (newValue: CGSize); message 'setEmitterSize:';
+    procedure setEmitterSize(newValue: CGSize); message 'setEmitterSize:';
     function emitterSize: CGSize; message 'emitterSize';
-    procedure setEmitterDepth (newValue: CGFloat); message 'setEmitterDepth:';
+    procedure setEmitterDepth(newValue: CGFloat); message 'setEmitterDepth:';
     function emitterDepth: CGFloat; message 'emitterDepth';
-    procedure setEmitterShape (newValue: NSString); message 'setEmitterShape:';
+    procedure setEmitterShape(newValue: NSString); message 'setEmitterShape:';
     function emitterShape: NSString; message 'emitterShape';
-    procedure setEmitterMode (newValue: NSString); message 'setEmitterMode:';
+    procedure setEmitterMode(newValue: NSString); message 'setEmitterMode:';
     function emitterMode: NSString; message 'emitterMode';
-    procedure setRenderMode (newValue: NSString); message 'setRenderMode:';
+    procedure setRenderMode(newValue: NSString); message 'setRenderMode:';
     function renderMode: NSString; message 'renderMode';
-    procedure setPreservesDepth (newValue: ObjCBOOL); message 'setPreservesDepth:';
+    procedure setPreservesDepth(newValue: ObjCBOOL); message 'setPreservesDepth:';
     function preservesDepth: ObjCBOOL; message 'preservesDepth';
-    procedure setVelocity (newValue: single); message 'setVelocity:';
+    procedure setVelocity(newValue: single); message 'setVelocity:';
     function velocity: single; message 'velocity';
-    procedure setScale (newValue: single); message 'setScale:';
+    procedure setScale(newValue: single); message 'setScale:';
     function scale: single; message 'scale';
-    procedure setSpin (newValue: single); message 'setSpin:';
+    procedure setSpin(newValue: single); message 'setSpin:';
     function spin: single; message 'spin';
-    procedure setSeed (newValue: cuint); message 'setSeed:';
+    procedure setSeed(newValue: cuint); message 'setSeed:';
     function seed: cuint; message 'seed';
   end;
+{$endif}
 
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  kCAEmitterLayerPoint: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerLine: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerRectangle: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerCuboid: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerCircle: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerSphere: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerPoints: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerOutline: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerSurface: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerVolume: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerUnordered: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerOldestFirst: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerOldestLast: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerBackToFront: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
+  kCAEmitterLayerAdditive: NSString { available starting in __MAC_10_6, __IPHONE_5_0 }; cvar; external;
 {$endif}
-{$endif}
+

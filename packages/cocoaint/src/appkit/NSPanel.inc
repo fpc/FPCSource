@@ -1,92 +1,58 @@
-{ Parsed from Appkit.framework NSPanel.h }
+{ Parsed from AppKit.framework NSPanel.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPANEL_PAS_T}
-{$define NSPANEL_PAS_T}
+type
+  NSPanelPtr = ^NSPanel;
+{$endif}
 
-{ Constants }
-
-const
-  NSAlertDefaultReturn = 1;
-  NSAlertAlternateReturn = 0;
-  NSAlertOtherReturn = -1;
-  NSAlertErrorReturn = -2;
-
-const
-  NSOKButton = 1;
-  NSCancelButton = 0;
-
+{$ifdef TYPES}
 const
   NSUtilityWindowMask = 1 shl 4;
   NSDocModalWindowMask = 1 shl 6;
-
-const
   NSNonactivatingPanelMask = 1 shl 7;
-
-const
-  NSHUDWindowMask = 1 shl 13;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPANEL_PAS_R}
-{$define NSPANEL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPANEL_PAS_F}
-{$define NSPANEL_PAS_F}
-
-{ Functions }
-function NSRunAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; varargs: array of const): NSInteger; cdecl; external;
-function NSRunInformationalAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; varargs: array of const): NSInteger; cdecl; external;
-function NSRunCriticalAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; varargs: array of const): NSInteger; cdecl; external;
-function NSRunAlertPanelRelativeToWindow(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; varargs: array of const): NSInteger; cdecl; external; deprecated 'in Mac OS X 10 and later';
-function NSRunInformationalAlertPanelRelativeToWindow(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; varargs: array of const): NSInteger; cdecl; external; deprecated 'in Mac OS X 10 and later';
-function NSRunCriticalAlertPanelRelativeToWindow(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; varargs: array of const): NSInteger; cdecl; external; deprecated 'in Mac OS X 10 and later';
-procedure NSBeginAlertSheet(title: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; didDismissSelector: SEL; contextInfo: Pointer; msgFormat: NSString; varargs: array of const); cdecl; external;
-procedure NSBeginInformationalAlertSheet(title: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; didDismissSelector: SEL; contextInfo: Pointer; msgFormat: NSString; varargs: array of const); cdecl; external;
-procedure NSBeginCriticalAlertSheet(title: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; didDismissSelector: SEL; contextInfo: Pointer; msgFormat: NSString; varargs: array of const); cdecl; external;
-function NSGetAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; varargs: array of const): id; cdecl; external;
-function NSGetInformationalAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; varargs: array of const): id; cdecl; external;
-function NSGetCriticalAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; varargs: array of const): id; cdecl; external;
-procedure NSReleaseAlertPanel(panel: id); cdecl; external;
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPANEL_PAS_S}
-{$define NSPANEL_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPanel = objcclass;
-  NSPanelPointer = ^NSPanel;
-  NSPanelPtr = NSPanelPointer;
-
+  NSHUDWindowMask = 1 shl 13 { available in 10_6 };
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPANEL_PAS_C}
-{$define NSPANEL_PAS_C}
 
-{ NSPanel }
+type
   NSPanel = objcclass external (NSWindow)
-    
+  private
   public
+    procedure setFloatingPanel(newValue: ObjCBOOL); message 'setFloatingPanel:';
     function isFloatingPanel: ObjCBOOL; message 'isFloatingPanel';
-    procedure setFloatingPanel(flag: ObjCBOOL); message 'setFloatingPanel:';
+    procedure setBecomesKeyOnlyIfNeeded(newValue: ObjCBOOL); message 'setBecomesKeyOnlyIfNeeded:';
     function becomesKeyOnlyIfNeeded: ObjCBOOL; message 'becomesKeyOnlyIfNeeded';
-    procedure setBecomesKeyOnlyIfNeeded(flag: ObjCBOOL); message 'setBecomesKeyOnlyIfNeeded:';
+    procedure setWorksWhenModal(newValue: ObjCBOOL); message 'setWorksWhenModal:';
     function worksWhenModal: ObjCBOOL; message 'worksWhenModal';
-    procedure setWorksWhenModal(flag: ObjCBOOL); message 'setWorksWhenModal:';
   end;
+{$endif}
 
+{$ifdef FUNCTIONS}
+function NSRunAlertPanelRelativeToWindow(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow): NSInteger; varargs; cdecl; external; deprecated 'in 10_0, 10_0';
+function NSRunInformationalAlertPanelRelativeToWindow(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow): NSInteger; varargs; cdecl; external; deprecated 'in 10_0, 10_0';
+function NSRunCriticalAlertPanelRelativeToWindow(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow): NSInteger; varargs; cdecl; external; deprecated 'in 10_0, 10_0';
+function NSRunAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString): NSInteger; varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+function NSRunInformationalAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString): NSInteger; varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+function NSRunCriticalAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString): NSInteger; varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+procedure NSBeginAlertSheet(title: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; didDismissSelector: SEL; contextInfo: pointer; msgFormat: NSString); varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+procedure NSBeginInformationalAlertSheet(title: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; didDismissSelector: SEL; contextInfo: pointer; msgFormat: NSString); varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+procedure NSBeginCriticalAlertSheet(title: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; didDismissSelector: SEL; contextInfo: pointer; msgFormat: NSString); varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+function NSGetAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString): id; varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+function NSGetInformationalAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString): id; varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+function NSGetCriticalAlertPanel(title: NSString; msgFormat: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString): id; varargs; cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
+procedure NSReleaseAlertPanel(panel: id); cdecl; external; deprecated 'in 10_0, 10_10, "Use NSAlert instead"';
 {$endif}
+
+{$ifdef TYPES}
+const
+  NSAlertDefaultReturn = 1 deprecated 'in 10_0, 10_10, "Use NSAlertFirstButtonReturn, etc instead"';
+  NSAlertAlternateReturn = 0 deprecated 'in 10_0, 10_10, "Use NSAlertFirstButtonReturn, etc instead"';
+  NSAlertOtherReturn = -1 deprecated 'in 10_0, 10_10, "Use NSAlertFirstButtonReturn, etc instead"';
+  NSAlertErrorReturn = -2 deprecated 'in 10_0, 10_10, "Use NSAlertFirstButtonReturn, etc instead"';
+const
+  NSOKButton = 1 deprecated 'in 10_0, 10_10, "Use NSModalResponseOK instead"';
+  NSCancelButton = 0 deprecated 'in 10_0, 10_10, "Use NSModalResponseCancel instead"';
 {$endif}
+

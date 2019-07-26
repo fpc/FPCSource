@@ -1,83 +1,53 @@
-{ Parsed from Appkit.framework NSSlider.h }
+{ Parsed from AppKit.framework NSSlider.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSSLIDER_PAS_T}
-{$define NSSLIDER_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSLIDER_PAS_R}
-{$define NSSLIDER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSLIDER_PAS_F}
-{$define NSSLIDER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSLIDER_PAS_S}
-{$define NSSLIDER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSSlider = objcclass;
-  NSSliderPointer = ^NSSlider;
-  NSSliderPtr = NSSliderPointer;
-
+type
+  NSSliderPtr = ^NSSlider;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSLIDER_PAS_C}
-{$define NSSLIDER_PAS_C}
 
-{ NSSlider }
-  NSSlider = objcclass external (NSControl)
-    
+type
+  NSSlider = objcclass external (NSControl, NSAccessibilitySliderProtocol)
   public
+    procedure setSliderType(newValue: NSSliderType); message 'setSliderType:';
+    function sliderType: NSSliderType; message 'sliderType';
+    procedure setMinValue(newValue: double); message 'setMinValue:';
     function minValue: double; message 'minValue';
-    procedure setMinValue(aDouble: double); message 'setMinValue:';
+    procedure setMaxValue(newValue: double); message 'setMaxValue:';
     function maxValue: double; message 'maxValue';
-    procedure setMaxValue(aDouble: double); message 'setMaxValue:';
-    procedure setAltIncrementValue(incValue: double); message 'setAltIncrementValue:';
+    procedure setAltIncrementValue(newValue: double); message 'setAltIncrementValue:';
     function altIncrementValue: double; message 'altIncrementValue';
-    procedure setTitleCell(aCell: NSCell); message 'setTitleCell:';
-    function titleCell: id; message 'titleCell';
-    procedure setTitleColor(newColor: NSColor); message 'setTitleColor:';
-    function titleColor: NSColor; message 'titleColor';
-    procedure setTitleFont(fontObj: NSFont); message 'setTitleFont:';
-    function titleFont: NSFont; message 'titleFont';
-    function title: NSString; message 'title';
-    procedure setTitle(aString: NSString); message 'setTitle:';
-    procedure setKnobThickness(aFloat: CGFloat); message 'setKnobThickness:';
     function knobThickness: CGFloat; message 'knobThickness';
-    procedure setImage(backgroundImage: NSImage); message 'setImage:';
-    function image: NSImage; message 'image';
     function isVertical: NSInteger; message 'isVertical';
-    function acceptsFirstMouse(theEvent: NSEvent): ObjCBOOL; message 'acceptsFirstMouse:';
+    function acceptsFirstMouse (theEvent: NSEvent): ObjCBOOL; message 'acceptsFirstMouse:';
+    procedure setTitleCell (aCell: NSCell); message 'setTitleCell:'; deprecated 'in 10_0, 10_9';
+    function titleCell: id; message 'titleCell'; deprecated 'in 10_0, 10_9';
+    procedure setTitleColor (newColor: NSColor); message 'setTitleColor:'; deprecated 'in 10_0, 10_9';
+    function titleColor: NSColor; message 'titleColor'; deprecated 'in 10_0, 10_9';
+    procedure setTitleFont (fontObj: NSFont); message 'setTitleFont:'; deprecated 'in 10_0, 10_9';
+    function titleFont: NSFont; message 'titleFont'; deprecated 'in 10_0, 10_9';
+    function title: NSString; message 'title'; deprecated 'in 10_0, 10_9';
+    procedure setTitle (aString: NSString); message 'setTitle:'; deprecated 'in 10_0, 10_9';
+    procedure setKnobThickness (aFloat: CGFloat); message 'setKnobThickness:'; deprecated 'in 10_0, 10_9';
+    procedure setImage (backgroundImage: NSImage); message 'setImage:'; deprecated 'in 10_0, 10_9';
+    function image: NSImage; message 'image'; deprecated 'in 10_0, 10_9';
   end;
 
-{ NSTickMarkSupport_NSSliderCategory }
-  NSTickMarkSupport_NSSliderCategory = objccategory external name 'NSTickMarkSupport' (NSSlider)
-    procedure setNumberOfTickMarks(count: NSInteger); message 'setNumberOfTickMarks:';
+
+type
+  NSTickMarkSupport = objccategory external (NSSlider)
+    procedure setNumberOfTickMarks(newValue: NSInteger); message 'setNumberOfTickMarks:';
     function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
-    procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
+    procedure setTickMarkPosition(newValue: NSTickMarkPosition); message 'setTickMarkPosition:';
     function tickMarkPosition: NSTickMarkPosition; message 'tickMarkPosition';
-    procedure setAllowsTickMarkValuesOnly(yorn: ObjCBOOL); message 'setAllowsTickMarkValuesOnly:';
+    procedure setAllowsTickMarkValuesOnly(newValue: ObjCBOOL); message 'setAllowsTickMarkValuesOnly:';
     function allowsTickMarkValuesOnly: ObjCBOOL; message 'allowsTickMarkValuesOnly';
-    function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
-    function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
-    function indexOfTickMarkAtPoint(point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';
-    function closestTickMarkValueToValue(value: double): double; message 'closestTickMarkValueToValue:';
+    function tickMarkValueAtIndex (index: NSInteger): double; message 'tickMarkValueAtIndex:';
+    function rectOfTickMarkAtIndex (index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
+    function indexOfTickMarkAtPoint (point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';
+    function closestTickMarkValueToValue (value: double): double; message 'closestTickMarkValueToValue:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

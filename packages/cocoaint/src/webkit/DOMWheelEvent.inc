@@ -1,66 +1,28 @@
-{ Parsed from Webkit.framework DOMWheelEvent.h }
+{ Parsed from WebKit.framework DOMWheelEvent.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMWHEELEVENT_PAS_T}
-{$define DOMWHEELEVENT_PAS_T}
-
-{$endif}
+type
+  DOMWheelEventPtr = ^DOMWheelEvent;
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef DOMWHEELEVENT_PAS_R}
-{$define DOMWHEELEVENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMWHEELEVENT_PAS_F}
-{$define DOMWHEELEVENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMWHEELEVENT_PAS_S}
-{$define DOMWHEELEVENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMWheelEvent = objcclass;
-  DOMWheelEventPointer = ^DOMWheelEvent;
-  DOMWheelEventPtr = DOMWheelEventPointer;
-
+{$ifdef TYPES}
+const
+  DOM_DOM_DELTA_PIXEL = $00;
+  DOM_DOM_DELTA_LINE = $01;
+  DOM_DOM_DELTA_PAGE = $02;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMWHEELEVENT_PAS_C}
-{$define DOMWHEELEVENT_PAS_C}
 
-{ DOMWheelEvent }
-  DOMWheelEvent = objcclass external (DOMUIEvent)
-    
+type
+  DOMWheelEvent = objcclass external (DOMMouseEvent)
   public
-    function screenX: cint; message 'screenX';
-    function screenY: cint; message 'screenY';
-    function clientX: cint; message 'clientX';
-    function clientY: cint; message 'clientY';
-    function ctrlKey: ObjCBOOL; message 'ctrlKey';
-    function shiftKey: ObjCBOOL; message 'shiftKey';
-    function altKey: ObjCBOOL; message 'altKey';
-    function metaKey: ObjCBOOL; message 'metaKey';
-    function wheelDelta: cint; message 'wheelDelta';
     function wheelDeltaX: cint; message 'wheelDeltaX';
     function wheelDeltaY: cint; message 'wheelDeltaY';
-    function offsetX: cint; message 'offsetX';
-    function offsetY: cint; message 'offsetY';
-    function x: cint; message 'x';
-    function y: cint; message 'y';
+    function wheelDelta: cint; message 'wheelDelta';
     function isHorizontal: ObjCBOOL; message 'isHorizontal';
-    procedure initWheelEvent_wheelDeltaY_view_screenX_screenY_clientX_clientY_ctrlKey_altKey_shiftKey_metaKey(wheelDeltaX_: cint; wheelDeltaY_: cint; view_: DOMAbstractView; screenX_: cint; screenY_: cint; clientX_: cint; clientY_: cint; ctrlKey_: ObjCBOOL; altKey_: ObjCBOOL; shiftKey_: ObjCBOOL; metaKey_: ObjCBOOL); message 'initWheelEvent:wheelDeltaY:view:screenX:screenY:clientX:clientY:ctrlKey:altKey:shiftKey:metaKey:';
+    procedure initWheelEvent_wheelDeltaY_view_screenX_screenY_clientX_clientY_ctrlKey_altKey_shiftKey_metaKey (wheelDeltaX_: cint; wheelDeltaY_: cint; view_: DOMAbstractView; screenX_: cint; screenY_: cint; clientX_: cint; clientY_: cint; ctrlKey_: ObjCBOOL; altKey_: ObjCBOOL; shiftKey_: ObjCBOOL; metaKey_: ObjCBOOL); message 'initWheelEvent:wheelDeltaY:view:screenX:screenY:clientX:clientY:ctrlKey:altKey:shiftKey:metaKey:'; { available in 10_5 }
   end;
+{$endif}
 
-{$endif}
-{$endif}

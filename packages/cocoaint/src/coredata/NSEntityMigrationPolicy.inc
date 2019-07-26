@@ -1,65 +1,33 @@
-{ Parsed from Coredata.framework NSEntityMigrationPolicy.h }
+{ Parsed from CoreData.framework NSEntityMigrationPolicy.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSENTITYMIGRATIONPOLICY_PAS_T}
-{$define NSENTITYMIGRATIONPOLICY_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSENTITYMIGRATIONPOLICY_PAS_R}
-{$define NSENTITYMIGRATIONPOLICY_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSENTITYMIGRATIONPOLICY_PAS_F}
-{$define NSENTITYMIGRATIONPOLICY_PAS_F}
-
-{$endif}
+type
+  NSEntityMigrationPolicyPtr = ^NSEntityMigrationPolicy;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSENTITYMIGRATIONPOLICY_PAS_S}
-{$define NSENTITYMIGRATIONPOLICY_PAS_S}
-
-{ External string constants }
 var
-  NSMigrationManagerKey: NSString; cvar; external;
-  NSMigrationSourceObjectKey: NSString; cvar; external;
-  NSMigrationDestinationObjectKey: NSString; cvar; external;
-  NSMigrationEntityMappingKey: NSString; cvar; external;
-  NSMigrationPropertyMappingKey: NSString; cvar; external;
-  NSMigrationEntityPolicyKey: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSEntityMigrationPolicy = objcclass;
-  NSEntityMigrationPolicyPointer = ^NSEntityMigrationPolicy;
-  NSEntityMigrationPolicyPtr = NSEntityMigrationPolicyPointer;
-
+  NSMigrationManagerKey: NSString { available in 10_5,3_0 }; cvar; external;
+  NSMigrationSourceObjectKey: NSString { available in 10_5,3_0 }; cvar; external;
+  NSMigrationDestinationObjectKey: NSString { available in 10_5,3_0 }; cvar; external;
+  NSMigrationEntityMappingKey: NSString { available in 10_5,3_0 }; cvar; external;
+  NSMigrationPropertyMappingKey: NSString { available in 10_5,3_0 }; cvar; external;
+  NSMigrationEntityPolicyKey: NSString { available in 10_5,3_0 }; cvar; external;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSENTITYMIGRATIONPOLICY_PAS_C}
-{$define NSENTITYMIGRATIONPOLICY_PAS_C}
 
-{ NSEntityMigrationPolicy }
+type
   NSEntityMigrationPolicy = objcclass external (NSObject)
-    
   public
-    function beginEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'beginEntityMapping:manager:error:';
-    function createDestinationInstancesForSourceInstance_entityMapping_manager_error(sInstance: NSManagedObject; mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'createDestinationInstancesForSourceInstance:entityMapping:manager:error:';
-    function endInstanceCreationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'endInstanceCreationForEntityMapping:manager:error:';
-    function createRelationshipsForDestinationInstance_entityMapping_manager_error(dInstance: NSManagedObject; mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'createRelationshipsForDestinationInstance:entityMapping:manager:error:';
-    function endRelationshipCreationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'endRelationshipCreationForEntityMapping:manager:error:';
-    function performCustomValidationForEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'performCustomValidationForEntityMapping:manager:error:';
-    function endEntityMapping_manager_error(mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPointer): ObjCBOOL; message 'endEntityMapping:manager:error:';
+    function beginEntityMapping_manager_error (mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPtr): ObjCBOOL; message 'beginEntityMapping:manager:error:';
+    function createDestinationInstancesForSourceInstance_entityMapping_manager_error (sInstance: NSManagedObject; mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPtr): ObjCBOOL; message 'createDestinationInstancesForSourceInstance:entityMapping:manager:error:';
+    function endInstanceCreationForEntityMapping_manager_error (mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPtr): ObjCBOOL; message 'endInstanceCreationForEntityMapping:manager:error:';
+    function createRelationshipsForDestinationInstance_entityMapping_manager_error (dInstance: NSManagedObject; mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPtr): ObjCBOOL; message 'createRelationshipsForDestinationInstance:entityMapping:manager:error:';
+    function endRelationshipCreationForEntityMapping_manager_error (mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPtr): ObjCBOOL; message 'endRelationshipCreationForEntityMapping:manager:error:';
+    function performCustomValidationForEntityMapping_manager_error (mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPtr): ObjCBOOL; message 'performCustomValidationForEntityMapping:manager:error:';
+    function endEntityMapping_manager_error (mapping: NSEntityMapping; manager: NSMigrationManager; error: NSErrorPtr): ObjCBOOL; message 'endEntityMapping:manager:error:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

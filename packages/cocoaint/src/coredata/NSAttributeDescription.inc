@@ -1,10 +1,15 @@
-{ Parsed from Coredata.framework NSAttributeDescription.h }
+{ Parsed from CoreData.framework NSAttributeDescription.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSATTRIBUTEDESCRIPTION_PAS_T}
-{$define NSATTRIBUTEDESCRIPTION_PAS_T}
+type
+  NSAttributeDescriptionPtr = ^NSAttributeDescription;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSAttributeType = NSUInteger;
+  NSAttributeTypePtr = ^NSAttributeType;
 
 const
   NSUndefinedAttributeType = 0;
@@ -18,78 +23,42 @@ const
   NSBooleanAttributeType = 800;
   NSDateAttributeType = 900;
   NSBinaryDataAttributeType = 1000;
-  NSTransformableAttributeType = 1800;
-  NSObjectIDAttributeType = 2000;
-
-{ Types }
-type
-  NSAttributeType = NSUInteger;
-  NSAttributeTypePtr = ^NSAttributeType;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSATTRIBUTEDESCRIPTION_PAS_R}
-{$define NSATTRIBUTEDESCRIPTION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSATTRIBUTEDESCRIPTION_PAS_F}
-{$define NSATTRIBUTEDESCRIPTION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSATTRIBUTEDESCRIPTION_PAS_S}
-{$define NSATTRIBUTEDESCRIPTION_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSAttributeDescription = objcclass;
-  NSAttributeDescriptionPointer = ^NSAttributeDescription;
-  NSAttributeDescriptionPtr = NSAttributeDescriptionPointer;
-
+  NSTransformableAttributeType = 1800 { available in 10_5,3_0 };
+  NSObjectIDAttributeType = 2000 { available in 10_6,3_0 };
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSATTRIBUTEDESCRIPTION_PAS_C}
-{$define NSATTRIBUTEDESCRIPTION_PAS_C}
 
-{ NSAttributeDescription }
+type
   NSAttributeDescription = objcclass external (NSPropertyDescription)
   private
-    _attributeValueClass: Pobjc_class;
+    _attributeValueClass: pobjc_class;
     _valueTransformerName: NSString;
     _type: NSAttributeType;
     _attributeValueClassName: NSString;
-    __attributeDescriptionFlags: record
+    __attributeDescriptionFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSAttributeDescription0: cuint);
-       1: (data: bitpacked record
-        _useForLocking: 0..1;
-        _reservedAttributeDescription: 0..((1 shl 31)-1);
-       end;
-      );
+        0: (_anonBitField___attributeDescriptionFlags0: cuint);
+        1: (
+          _hasMaxValueInExtraIvars: 0..1;
+          _hasMinValueInExtraIvars: 0..1;
+          _storeBinaryDataExternally: 0..1;
+          _reservedAttributeDescription: 0..((1 shl 29)-1);
+        );
       end;
     _defaultValue: id;
-    
   public
+    procedure setAttributeType(newValue: NSAttributeType); message 'setAttributeType:';
     function attributeType: NSAttributeType; message 'attributeType';
-    procedure setAttributeType(type_: NSAttributeType); message 'setAttributeType:';
+    procedure setAttributeValueClassName(newValue: NSString); message 'setAttributeValueClassName:';
     function attributeValueClassName: NSString; message 'attributeValueClassName';
+    procedure setDefaultValue(newValue: id); message 'setDefaultValue:';
     function defaultValue: id; message 'defaultValue';
-    procedure setDefaultValue(value: id); message 'setDefaultValue:';
-    procedure setAttributeValueClassName(className: NSString); message 'setAttributeValueClassName:';
     function versionHash: NSData; message 'versionHash';
+    procedure setValueTransformerName(newValue: NSString); message 'setValueTransformerName:';
     function valueTransformerName: NSString; message 'valueTransformerName';
-    procedure setValueTransformerName(string_: NSString); message 'setValueTransformerName:';
+    procedure setAllowsExternalBinaryDataStorage(newValue: ObjCBOOL); message 'setAllowsExternalBinaryDataStorage:';
+    function allowsExternalBinaryDataStorage: ObjCBOOL; message 'allowsExternalBinaryDataStorage';
   end;
+{$endif}
 
-{$endif}
-{$endif}

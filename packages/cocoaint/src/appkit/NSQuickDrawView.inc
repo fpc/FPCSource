@@ -1,54 +1,23 @@
-{ Parsed from Appkit.framework NSQuickDrawView.h }
+{ Parsed from AppKit.framework NSQuickDrawView.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSQUICKDRAWVIEW_PAS_T}
-{$define NSQUICKDRAWVIEW_PAS_T}
-
-{$endif}
+type
+  NSQuickDrawViewPtr = ^NSQuickDrawView;
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef NSQUICKDRAWVIEW_PAS_R}
-{$define NSQUICKDRAWVIEW_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSQUICKDRAWVIEW_PAS_F}
-{$define NSQUICKDRAWVIEW_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSQUICKDRAWVIEW_PAS_S}
-{$define NSQUICKDRAWVIEW_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSQuickDrawView = objcclass;
-  NSQuickDrawViewPointer = ^NSQuickDrawView;
-  NSQuickDrawViewPtr = NSQuickDrawViewPointer;
-
-{$endif}
-
+{$if  not defined(__LP64__)}
 {$ifdef CLASSES}
-{$ifndef NSQUICKDRAWVIEW_PAS_C}
-{$define NSQUICKDRAWVIEW_PAS_C}
 
-{ NSQuickDrawView }
+type
   NSQuickDrawView = objcclass external (NSView)
   private
-    _qdPort: Pointer;
-    _savePort: Pointer;
+    _qdPort: pointer;
+    _savePort: pointer;
     _synchToView: ObjCBOOL;
-    
   public
-    function qdPort: Pointer; message 'qdPort'; deprecated 'in Mac OS X 10.4 and later';
+    function qdPort: pointer; message 'qdPort'; deprecated 'in 10_0, 10_4';
   end;
-
 {$endif}
+
 {$endif}

@@ -1,45 +1,14 @@
-{ Parsed from Appkit.framework NSTableHeaderView.h }
+{ Parsed from AppKit.framework NSTableHeaderView.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSTABLEHEADERVIEW_PAS_T}
-{$define NSTABLEHEADERVIEW_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSTABLEHEADERVIEW_PAS_R}
-{$define NSTABLEHEADERVIEW_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSTABLEHEADERVIEW_PAS_F}
-{$define NSTABLEHEADERVIEW_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTABLEHEADERVIEW_PAS_S}
-{$define NSTABLEHEADERVIEW_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSTableHeaderView = objcclass;
-  NSTableHeaderViewPointer = ^NSTableHeaderView;
-  NSTableHeaderViewPtr = NSTableHeaderViewPointer;
-
+type
+  NSTableHeaderViewPtr = ^NSTableHeaderView;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSTABLEHEADERVIEW_PAS_C}
-{$define NSTABLEHEADERVIEW_PAS_C}
 
-{ NSTableHeaderView }
+type
   NSTableHeaderView = objcclass external (NSView)
   private
     _tableView: NSTableView;
@@ -48,22 +17,32 @@
     _pressedColumn: NSInteger;
     _headerDragImage: NSImage;
     _draggedDistance: CGFloat;
-    _isColumnResizing: ObjCBOOL;
-    _showHandCursorFired: ObjCBOOL;
-    _toolTipRectsDirty: ObjCBOOL;
-    _alignTitleWithDataCell: ObjCBOOL;
+    _anonStruct_NSTableHeaderView0: record
+      case byte of
+        0: (anonBitField_NSTableHeaderView0: cuint);
+        1: (data: bitpacked record
+          _isColumnResizing: 0..1;
+          _showHandCursorFired: 0..1;
+          _toolTipRectsDirty: 0..1;
+          _alignTitleWithDataCell: 0..1;
+          _nextColumnAfterDrawnOneIsSelected: 0..1;
+          _wantsTranslucency: 0..1;
+          _addedBlurToClipView: 0..1;
+          _usedNewHeight: 0..1;
+          _reserved: 0..((1 shl 24)-1);
+        end;
+      );
+    end;
     _skipDrawingSeparator: ObjCBOOL;
-    _reserved: id;
-    
+    _viewDataX: id;
   public
-    procedure setTableView(tableView_: NSTableView); message 'setTableView:';
+    procedure setTableView(newValue: NSTableView); message 'setTableView:';
     function tableView: NSTableView; message 'tableView';
     function draggedColumn: NSInteger; message 'draggedColumn';
     function draggedDistance: CGFloat; message 'draggedDistance';
     function resizedColumn: NSInteger; message 'resizedColumn';
-    function headerRectOfColumn(column: NSInteger): NSRect; message 'headerRectOfColumn:';
-    function columnAtPoint(point: NSPoint): NSInteger; message 'columnAtPoint:';
+    function headerRectOfColumn (column: NSInteger): NSRect; message 'headerRectOfColumn:';
+    function columnAtPoint (point: NSPoint): NSInteger; message 'columnAtPoint:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

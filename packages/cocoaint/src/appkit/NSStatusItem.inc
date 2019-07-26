@@ -1,45 +1,14 @@
-{ Parsed from Appkit.framework NSStatusItem.h }
+{ Parsed from AppKit.framework NSStatusItem.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSSTATUSITEM_PAS_T}
-{$define NSSTATUSITEM_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSTATUSITEM_PAS_R}
-{$define NSSTATUSITEM_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSTATUSITEM_PAS_F}
-{$define NSSTATUSITEM_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSTATUSITEM_PAS_S}
-{$define NSSTATUSITEM_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSStatusItem = objcclass;
-  NSStatusItemPointer = ^NSStatusItem;
-  NSStatusItemPtr = NSStatusItemPointer;
-
+type
+  NSStatusItemPtr = ^NSStatusItem;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSTATUSITEM_PAS_C}
-{$define NSSTATUSITEM_PAS_C}
 
-{ NSStatusItem }
+type
   NSStatusItem = objcclass external (NSObject)
   private
     _fStatusBar: NSStatusBar;
@@ -47,65 +16,64 @@
     _fWindow: NSWindow;
     _fView: NSView;
     _fPriority: cint;
-    __fFlags: record
+    _fFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSStatusItem0: cuint);
-       1: (data: bitpacked record
-        customView: 0..1;
-        _highlightMode: 0..1;
-        hasAlternateImage: 0..1;
-        hidden: 0..1;
-        backgroundStyle: 0..((1 shl 4)-1);
-        inAdjustLength: 0..1;
-        reserved: 0..((1 shl 23)-1);
-       end;
-      );
+        0: (_anonBitField__fFlags0: cuint);
+        1: (
+          customView: 0..1;
+          highlightMode: 0..1;
+          hasAlternateImage: 0..1;
+          hidden: 0..1;
+          backgroundStyle: 0..((1 shl 4)-1);
+          inAdjustLength: 0..1;
+          pendingReplicantDisplay: 0..1;
+          disableImageReplicationCount: 0..((1 shl 4)-1);
+          updatingReplicant: 0..1;
+          didInactiveTemplateStyling: 0..1;
+          reserved: 0..((1 shl 16)-1);
+        );
       end;
     _statusItemMenu: id;
-    _fReserved2: id;
-    _fReserved3: id;
-    _fReserved4: id;
-    
+    _replicants: NSMutableDictionary;
+    _subitemOffsets: NSData;
+    _displayIdentifier: NSString;
   public
     function statusBar: NSStatusBar; message 'statusBar';
+    procedure setLength(newValue: CGFloat); message 'setLength:';
     function length: CGFloat; message 'length';
-    procedure setLength(length_: CGFloat); message 'setLength:';
-  end;
-
-{ NSStatusItemCommonCategory }
-  NSStatusItemCommonCategory = objccategory external (NSStatusItem)
-    function action: SEL; message 'action';
-    procedure setAction(action_: SEL); message 'setAction:';
-    function doubleAction: SEL; message 'doubleAction';
-    procedure setDoubleAction(action_: SEL); message 'setDoubleAction:';
-    function target: id; message 'target';
-    procedure setTarget(target_: id); message 'setTarget:';
-    function title: NSString; message 'title';
-    procedure setTitle(title_: NSString); message 'setTitle:';
-    function attributedTitle: NSAttributedString; message 'attributedTitle';
-    procedure setAttributedTitle(title_: NSAttributedString); message 'setAttributedTitle:';
-    function image: NSImage; message 'image';
-    procedure setImage(image_: NSImage); message 'setImage:';
-    function alternateImage: NSImage; message 'alternateImage';
-    procedure setAlternateImage(image_: NSImage); message 'setAlternateImage:';
+    procedure setMenu(newValue: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
-    procedure setMenu(menu_: NSMenu); message 'setMenu:';
+    function button: NSStatusBarButton; message 'button';
+  end;
+
+
+type
+  NSStatusItemDeprecated = objccategory external (NSStatusItem)
+    procedure setAction(newValue: SEL); message 'setAction:';
+    function action: SEL; message 'action';
+    procedure setDoubleAction(newValue: SEL); message 'setDoubleAction:';
+    function doubleAction: SEL; message 'doubleAction';
+    procedure setTarget(newValue: id); message 'setTarget:';
+    function target: id; message 'target';
+    procedure setTitle(newValue: NSString); message 'setTitle:';
+    function title: NSString; message 'title';
+    procedure setAttributedTitle(newValue: NSAttributedString); message 'setAttributedTitle:';
+    function attributedTitle: NSAttributedString; message 'attributedTitle';
+    procedure setImage(newValue: NSImage); message 'setImage:';
+    function image: NSImage; message 'image';
+    procedure setAlternateImage(newValue: NSImage); message 'setAlternateImage:';
+    function alternateImage: NSImage; message 'alternateImage';
+    procedure setEnabled(newValue: ObjCBOOL); message 'setEnabled:';
     function isEnabled: ObjCBOOL; message 'isEnabled';
-    procedure setEnabled(enabled: ObjCBOOL); message 'setEnabled:';
-    function toolTip: NSString; message 'toolTip';
-    procedure setToolTip(toolTip_: NSString); message 'setToolTip:';
-    procedure setHighlightMode(highlightMode_: ObjCBOOL); message 'setHighlightMode:';
+    procedure setHighlightMode(newValue: ObjCBOOL); message 'setHighlightMode:';
     function highlightMode: ObjCBOOL; message 'highlightMode';
-    function sendActionOn(mask: NSInteger): NSInteger; message 'sendActionOn:';
-    procedure popUpStatusItemMenu(menu_: NSMenu); message 'popUpStatusItemMenu:';
-    procedure drawStatusBarBackgroundInRect_withHighlight(rect: NSRect; highlight: ObjCBOOL); message 'drawStatusBarBackgroundInRect:withHighlight:';
-  end;
-
-{ NSStatusItemViewCategory }
-  NSStatusItemViewCategory = objccategory external (NSStatusItem)
+    procedure setToolTip(newValue: NSString); message 'setToolTip:';
+    function toolTip: NSString; message 'toolTip';
+    function sendActionOn (mask: NSInteger): NSInteger; message 'sendActionOn:';
+    procedure setView(newValue: NSView); message 'setView:';
     function view: NSView; message 'view';
-    procedure setView(view_: NSView); message 'setView:';
+    procedure drawStatusBarBackgroundInRect_withHighlight (rect: NSRect; highlight: ObjCBOOL); message 'drawStatusBarBackgroundInRect:withHighlight:';
+    procedure popUpStatusItemMenu (menu_: NSMenu); message 'popUpStatusItemMenu:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

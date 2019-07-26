@@ -1,35 +1,16 @@
 { Parsed from Foundation.framework NSURLProtectionSpace.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSURLPROTECTIONSPACE_PAS_T}
-{$define NSURLPROTECTIONSPACE_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSURLPROTECTIONSPACE_PAS_R}
-{$define NSURLPROTECTIONSPACE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSURLPROTECTIONSPACE_PAS_F}
-{$define NSURLPROTECTIONSPACE_PAS_F}
-
-{$endif}
+type
+  NSURLProtectionSpacePtr = ^NSURLProtectionSpace;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSURLPROTECTIONSPACE_PAS_S}
-{$define NSURLPROTECTIONSPACE_PAS_S}
-
-{ External string constants }
 var
-  NSURLProtectionSpaceHTTP: NSString; cvar; external;
-  NSURLProtectionSpaceHTTPS: NSString; cvar; external;
-  NSURLProtectionSpaceFTP: NSString; cvar; external;
+  NSURLProtectionSpaceHTTP: NSString { available in 10_5, 2_0 }; cvar; external;
+  NSURLProtectionSpaceHTTPS: NSString { available in 10_5, 2_0 }; cvar; external;
+  NSURLProtectionSpaceFTP: NSString { available in 10_5, 2_0 }; cvar; external;
   NSURLProtectionSpaceHTTPProxy: NSString; cvar; external;
   NSURLProtectionSpaceHTTPSProxy: NSString; cvar; external;
   NSURLProtectionSpaceFTPProxy: NSString; cvar; external;
@@ -38,33 +19,21 @@ var
   NSURLAuthenticationMethodHTTPBasic: NSString; cvar; external;
   NSURLAuthenticationMethodHTTPDigest: NSString; cvar; external;
   NSURLAuthenticationMethodHTMLForm: NSString; cvar; external;
-  NSURLAuthenticationMethodNTLM: NSString; cvar; external;
-  NSURLAuthenticationMethodNegotiate: NSString; cvar; external;
-  NSURLAuthenticationMethodClientCertificate: NSString; cvar; external;
-  NSURLAuthenticationMethodServerTrust: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSURLProtectionSpace = objcclass;
-  NSURLProtectionSpacePointer = ^NSURLProtectionSpace;
-  NSURLProtectionSpacePtr = NSURLProtectionSpacePointer;
-
+  NSURLAuthenticationMethodNTLM: NSString { available in 10_5, 2_0 }; cvar; external;
+  NSURLAuthenticationMethodNegotiate: NSString { available in 10_5, 2_0 }; cvar; external;
+  NSURLAuthenticationMethodClientCertificate: NSString { available in 10_6, 3_0 }; cvar; external;
+  NSURLAuthenticationMethodServerTrust: NSString { available in 10_6, 3_0 }; cvar; external;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSURLPROTECTIONSPACE_PAS_C}
-{$define NSURLPROTECTIONSPACE_PAS_C}
 
-{ NSURLProtectionSpace }
-  NSURLProtectionSpace = objcclass external (NSObject, NSCopyingProtocol)
+type
+  NSURLProtectionSpace = objcclass external (NSObject, NSSecureCodingProtocol, NSCopyingProtocol)
   private
     _internal: NSURLProtectionSpaceInternal;
-    
   public
-    function initWithHost_port_protocol_realm_authenticationMethod(host_: NSString; port_: NSInteger; protocol_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithHost:port:protocol:realm:authenticationMethod:';
-    function initWithProxyHost_port_type_realm_authenticationMethod(host_: NSString; port_: NSInteger; type_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithProxyHost:port:type:realm:authenticationMethod:';
+    function initWithHost_port_protocol_realm_authenticationMethod (host: NSString; port: NSInteger; protocol: NSString; realm: NSString; authenticationMethod: NSString): instancetype; message 'initWithHost:port:protocol:realm:authenticationMethod:';
+    function initWithProxyHost_port_type_realm_authenticationMethod (host: NSString; port: NSInteger; type_: NSString; realm: NSString; authenticationMethod: NSString): instancetype; message 'initWithProxyHost:port:type:realm:authenticationMethod:';
     function realm: NSString; message 'realm';
     function receivesCredentialSecurely: ObjCBOOL; message 'receivesCredentialSecurely';
     function isProxy: ObjCBOOL; message 'isProxy';
@@ -74,19 +43,22 @@ var
     function protocol: NSString; message 'protocol';
     function authenticationMethod: NSString; message 'authenticationMethod';
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
+    class function supportsSecureCoding: ObjCBOOL; message 'supportsSecureCoding';
   end;
 
-{ NSClientCertificateSpaceCategory }
-  NSClientCertificateSpaceCategory = objccategory external (NSURLProtectionSpace)
+
+type
+  NSClientCertificateSpace = objccategory external (NSURLProtectionSpace)
     function distinguishedNames: NSArray; message 'distinguishedNames';
   end;
 
-{ NSServerTrustValidationSpaceCategory }
-  NSServerTrustValidationSpaceCategory = objccategory external (NSURLProtectionSpace)
+type
+  NSServerTrustValidationSpace = objccategory external (NSURLProtectionSpace)
     function serverTrust: SecTrustRef; message 'serverTrust';
   end;
+{$endif}
 
-{$endif}
-{$endif}

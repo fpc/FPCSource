@@ -1,10 +1,13 @@
 { Parsed from Foundation.framework NSNumberFormatter.h }
 
-{$ifdef TYPES}
-{$ifndef NSNUMBERFORMATTER_PAS_T}
-{$define NSNUMBERFORMATTER_PAS_T}
 
-{ Constants }
+{ Types from NSNumberFormatter }
+{$ifdef TYPES}
+
+type
+  NSNumberFormatterStyle = NSUInteger;
+type
+  NSNumberFormatterStylePtr = ^NSNumberFormatterStyle;
 
 const
   NSNumberFormatterNoStyle = kCFNumberFormatterNoStyle;
@@ -14,16 +17,21 @@ const
   NSNumberFormatterScientificStyle = kCFNumberFormatterScientificStyle;
   NSNumberFormatterSpellOutStyle = kCFNumberFormatterSpellOutStyle;
 
-const
-  NSNumberFormatterBehaviorDefault = 0;
-  NSNumberFormatterBehavior10_0 = 1000;
-  NSNumberFormatterBehavior10_4 = 1040;
+type
+  NSNumberFormatterPadPosition = NSUInteger;
+type
+  NSNumberFormatterPadPositionPtr = ^NSNumberFormatterPadPosition;
 
 const
   NSNumberFormatterPadBeforePrefix = kCFNumberFormatterPadBeforePrefix;
   NSNumberFormatterPadAfterPrefix = kCFNumberFormatterPadAfterPrefix;
   NSNumberFormatterPadBeforeSuffix = kCFNumberFormatterPadBeforeSuffix;
   NSNumberFormatterPadAfterSuffix = kCFNumberFormatterPadAfterSuffix;
+
+type
+  NSNumberFormatterRoundingMode = NSUInteger;
+type
+  NSNumberFormatterRoundingModePtr = ^NSNumberFormatterRoundingMode;
 
 const
   NSNumberFormatterRoundCeiling = kCFNumberFormatterRoundCeiling;
@@ -33,201 +41,185 @@ const
   NSNumberFormatterRoundHalfEven = kCFNumberFormatterRoundHalfEven;
   NSNumberFormatterRoundHalfDown = kCFNumberFormatterRoundHalfDown;
   NSNumberFormatterRoundHalfUp = kCFNumberFormatterRoundHalfUp;
+{$endif}
 
-{ Types }
+
+{$ifdef TYPES}
 type
-  NSNumberFormatterStyle = NSUInteger;
-  NSNumberFormatterStylePtr = ^NSNumberFormatterStyle;
+  NSNumberFormatterPtr = ^NSNumberFormatter;
+{$endif}
+
+{$ifdef TYPES}
+type
   NSNumberFormatterBehavior = NSUInteger;
   NSNumberFormatterBehaviorPtr = ^NSNumberFormatterBehavior;
-  NSNumberFormatterPadPosition = NSUInteger;
-  NSNumberFormatterPadPositionPtr = ^NSNumberFormatterPadPosition;
-  NSNumberFormatterRoundingMode = NSUInteger;
-  NSNumberFormatterRoundingModePtr = ^NSNumberFormatterRoundingMode;
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSNUMBERFORMATTER_PAS_R}
-{$define NSNUMBERFORMATTER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSNUMBERFORMATTER_PAS_F}
-{$define NSNUMBERFORMATTER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSNUMBERFORMATTER_PAS_S}
-{$define NSNUMBERFORMATTER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSNumberFormatter = objcclass;
-  NSNumberFormatterPointer = ^NSNumberFormatter;
-  NSNumberFormatterPtr = NSNumberFormatterPointer;
-
+const
+  NSNumberFormatterBehaviorDefault = 0;
+  {$if (defined(TARGET_OS_MAC) and not (defined(TARGET_OS_EMBEDDED) or defined(TARGET_OS_IPHONE)))}
+  NSNumberFormatterBehavior10_0 = 1000;
+  {$endif}
+  NSNumberFormatterBehavior10_4 = 1040;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSNUMBERFORMATTER_PAS_C}
-{$define NSNUMBERFORMATTER_PAS_C}
 
-{ NSNumberFormatter }
+type
   NSNumberFormatter = objcclass external (NSFormatter)
   private
     _attributes: NSMutableDictionary;
-    _formatter: CFNumberFormatterRef; {garbage collector: __strong }
+    _formatter: CFNumberFormatterRef;
     _counter: NSUInteger;
-    _reserved: array[0..(12)-1] of Pointer;
-    
+    _behavior: NSNumberFormatterBehavior;
+    _lock: NSRecursiveLock;
+    _stateBitMask: culong;
+    _reserved:array[0..8] of pointer;
   public
-    function getObjectValue_forString_range_error(obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPointer): ObjCBOOL; message 'getObjectValue:forString:range:error:';
-    function stringFromNumber(number: NSNumber): NSString; message 'stringFromNumber:';
-    function numberFromString(string_: NSString): NSNumber; message 'numberFromString:';
-    class function localizedStringFromNumber_numberStyle(num: NSNumber; nstyle: NSNumberFormatterStyle): NSString; message 'localizedStringFromNumber:numberStyle:';
-    function numberStyle: NSNumberFormatterStyle; message 'numberStyle';
-    procedure setNumberStyle(style: NSNumberFormatterStyle); message 'setNumberStyle:';
-    function locale: NSLocale; message 'locale';
-    procedure setLocale(locale_: NSLocale); message 'setLocale:';
-    function generatesDecimalNumbers: ObjCBOOL; message 'generatesDecimalNumbers';
-    procedure setGeneratesDecimalNumbers(b: ObjCBOOL); message 'setGeneratesDecimalNumbers:';
-    function formatterBehavior: NSNumberFormatterBehavior; message 'formatterBehavior';
-    procedure setFormatterBehavior(behavior: NSNumberFormatterBehavior); message 'setFormatterBehavior:';
+    procedure setFormattingContext(newValue: NSFormattingContext); message 'setFormattingContext:';
+    function formattingContext: NSFormattingContext; message 'formattingContext';
+    function getObjectValue_forString_range_error (obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPtr): ObjCBOOL; message 'getObjectValue:forString:range:error:';
+    function stringFromNumber (number: NSNumber): NSString; message 'stringFromNumber:';
+    function numberFromString (string_: NSString): NSNumber; message 'numberFromString:';
+    class function localizedStringFromNumber_numberStyle (num: NSNumber; nstyle: NSNumberFormatterStyle): NSString; message 'localizedStringFromNumber:numberStyle:'; { available in 10_6, 4_0 }
     class function defaultFormatterBehavior: NSNumberFormatterBehavior; message 'defaultFormatterBehavior';
-    class procedure setDefaultFormatterBehavior(behavior: NSNumberFormatterBehavior); message 'setDefaultFormatterBehavior:';
+    class procedure setDefaultFormatterBehavior (behavior: NSNumberFormatterBehavior); message 'setDefaultFormatterBehavior:';
+    procedure setNumberStyle(newValue: NSNumberFormatterStyle); message 'setNumberStyle:';
+    function numberStyle: NSNumberFormatterStyle; message 'numberStyle';
+    procedure setLocale(newValue: NSLocale); message 'setLocale:';
+    function locale: NSLocale; message 'locale';
+    procedure setGeneratesDecimalNumbers(newValue: ObjCBOOL); message 'setGeneratesDecimalNumbers:';
+    function generatesDecimalNumbers: ObjCBOOL; message 'generatesDecimalNumbers';
+    procedure setFormatterBehavior(newValue: NSNumberFormatterBehavior); message 'setFormatterBehavior:';
+    function formatterBehavior: NSNumberFormatterBehavior; message 'formatterBehavior';
+    procedure setNegativeFormat(newValue: NSString); message 'setNegativeFormat:';
     function negativeFormat: NSString; message 'negativeFormat';
-    procedure setNegativeFormat(format_: NSString); message 'setNegativeFormat:';
+    procedure setTextAttributesForNegativeValues(newValue: NSDictionary); message 'setTextAttributesForNegativeValues:';
     function textAttributesForNegativeValues: NSDictionary; message 'textAttributesForNegativeValues';
-    procedure setTextAttributesForNegativeValues(newAttributes: NSDictionary); message 'setTextAttributesForNegativeValues:';
+    procedure setPositiveFormat(newValue: NSString); message 'setPositiveFormat:';
     function positiveFormat: NSString; message 'positiveFormat';
-    procedure setPositiveFormat(format_: NSString); message 'setPositiveFormat:';
+    procedure setTextAttributesForPositiveValues(newValue: NSDictionary); message 'setTextAttributesForPositiveValues:';
     function textAttributesForPositiveValues: NSDictionary; message 'textAttributesForPositiveValues';
-    procedure setTextAttributesForPositiveValues(newAttributes: NSDictionary); message 'setTextAttributesForPositiveValues:';
+    procedure setAllowsFloats(newValue: ObjCBOOL); message 'setAllowsFloats:';
     function allowsFloats: ObjCBOOL; message 'allowsFloats';
-    procedure setAllowsFloats(flag: ObjCBOOL); message 'setAllowsFloats:';
+    procedure setDecimalSeparator(newValue: NSString); message 'setDecimalSeparator:';
     function decimalSeparator: NSString; message 'decimalSeparator';
-    procedure setDecimalSeparator(string_: NSString); message 'setDecimalSeparator:';
+    procedure setAlwaysShowsDecimalSeparator(newValue: ObjCBOOL); message 'setAlwaysShowsDecimalSeparator:';
     function alwaysShowsDecimalSeparator: ObjCBOOL; message 'alwaysShowsDecimalSeparator';
-    procedure setAlwaysShowsDecimalSeparator(b: ObjCBOOL); message 'setAlwaysShowsDecimalSeparator:';
+    procedure setCurrencyDecimalSeparator(newValue: NSString); message 'setCurrencyDecimalSeparator:';
     function currencyDecimalSeparator: NSString; message 'currencyDecimalSeparator';
-    procedure setCurrencyDecimalSeparator(string_: NSString); message 'setCurrencyDecimalSeparator:';
+    procedure setUsesGroupingSeparator(newValue: ObjCBOOL); message 'setUsesGroupingSeparator:';
     function usesGroupingSeparator: ObjCBOOL; message 'usesGroupingSeparator';
-    procedure setUsesGroupingSeparator(b: ObjCBOOL); message 'setUsesGroupingSeparator:';
+    procedure setGroupingSeparator(newValue: NSString); message 'setGroupingSeparator:';
     function groupingSeparator: NSString; message 'groupingSeparator';
-    procedure setGroupingSeparator(string_: NSString); message 'setGroupingSeparator:';
+    procedure setZeroSymbol(newValue: NSString); message 'setZeroSymbol:';
     function zeroSymbol: NSString; message 'zeroSymbol';
-    procedure setZeroSymbol(string_: NSString); message 'setZeroSymbol:';
+    procedure setTextAttributesForZero(newValue: NSDictionary); message 'setTextAttributesForZero:';
     function textAttributesForZero: NSDictionary; message 'textAttributesForZero';
-    procedure setTextAttributesForZero(newAttributes: NSDictionary); message 'setTextAttributesForZero:';
+    procedure setNilSymbol(newValue: NSString); message 'setNilSymbol:';
     function nilSymbol: NSString; message 'nilSymbol';
-    procedure setNilSymbol(string_: NSString); message 'setNilSymbol:';
+    procedure setTextAttributesForNil(newValue: NSDictionary); message 'setTextAttributesForNil:';
     function textAttributesForNil: NSDictionary; message 'textAttributesForNil';
-    procedure setTextAttributesForNil(newAttributes: NSDictionary); message 'setTextAttributesForNil:';
+    procedure setNotANumberSymbol(newValue: NSString); message 'setNotANumberSymbol:';
     function notANumberSymbol: NSString; message 'notANumberSymbol';
-    procedure setNotANumberSymbol(string_: NSString); message 'setNotANumberSymbol:';
+    procedure setTextAttributesForNotANumber(newValue: NSDictionary); message 'setTextAttributesForNotANumber:';
     function textAttributesForNotANumber: NSDictionary; message 'textAttributesForNotANumber';
-    procedure setTextAttributesForNotANumber(newAttributes: NSDictionary); message 'setTextAttributesForNotANumber:';
+    procedure setPositiveInfinitySymbol(newValue: NSString); message 'setPositiveInfinitySymbol:';
     function positiveInfinitySymbol: NSString; message 'positiveInfinitySymbol';
-    procedure setPositiveInfinitySymbol(string_: NSString); message 'setPositiveInfinitySymbol:';
+    procedure setTextAttributesForPositiveInfinity(newValue: NSDictionary); message 'setTextAttributesForPositiveInfinity:';
     function textAttributesForPositiveInfinity: NSDictionary; message 'textAttributesForPositiveInfinity';
-    procedure setTextAttributesForPositiveInfinity(newAttributes: NSDictionary); message 'setTextAttributesForPositiveInfinity:';
+    procedure setNegativeInfinitySymbol(newValue: NSString); message 'setNegativeInfinitySymbol:';
     function negativeInfinitySymbol: NSString; message 'negativeInfinitySymbol';
-    procedure setNegativeInfinitySymbol(string_: NSString); message 'setNegativeInfinitySymbol:';
+    procedure setTextAttributesForNegativeInfinity(newValue: NSDictionary); message 'setTextAttributesForNegativeInfinity:';
     function textAttributesForNegativeInfinity: NSDictionary; message 'textAttributesForNegativeInfinity';
-    procedure setTextAttributesForNegativeInfinity(newAttributes: NSDictionary); message 'setTextAttributesForNegativeInfinity:';
+    procedure setPositivePrefix(newValue: NSString); message 'setPositivePrefix:';
     function positivePrefix: NSString; message 'positivePrefix';
-    procedure setPositivePrefix(string_: NSString); message 'setPositivePrefix:';
+    procedure setPositiveSuffix(newValue: NSString); message 'setPositiveSuffix:';
     function positiveSuffix: NSString; message 'positiveSuffix';
-    procedure setPositiveSuffix(string_: NSString); message 'setPositiveSuffix:';
+    procedure setNegativePrefix(newValue: NSString); message 'setNegativePrefix:';
     function negativePrefix: NSString; message 'negativePrefix';
-    procedure setNegativePrefix(string_: NSString); message 'setNegativePrefix:';
+    procedure setNegativeSuffix(newValue: NSString); message 'setNegativeSuffix:';
     function negativeSuffix: NSString; message 'negativeSuffix';
-    procedure setNegativeSuffix(string_: NSString); message 'setNegativeSuffix:';
+    procedure setCurrencyCode(newValue: NSString); message 'setCurrencyCode:';
     function currencyCode: NSString; message 'currencyCode';
-    procedure setCurrencyCode(string_: NSString); message 'setCurrencyCode:';
+    procedure setCurrencySymbol(newValue: NSString); message 'setCurrencySymbol:';
     function currencySymbol: NSString; message 'currencySymbol';
-    procedure setCurrencySymbol(string_: NSString); message 'setCurrencySymbol:';
+    procedure setInternationalCurrencySymbol(newValue: NSString); message 'setInternationalCurrencySymbol:';
     function internationalCurrencySymbol: NSString; message 'internationalCurrencySymbol';
-    procedure setInternationalCurrencySymbol(string_: NSString); message 'setInternationalCurrencySymbol:';
+    procedure setPercentSymbol(newValue: NSString); message 'setPercentSymbol:';
     function percentSymbol: NSString; message 'percentSymbol';
-    procedure setPercentSymbol(string_: NSString); message 'setPercentSymbol:';
+    procedure setPerMillSymbol(newValue: NSString); message 'setPerMillSymbol:';
     function perMillSymbol: NSString; message 'perMillSymbol';
-    procedure setPerMillSymbol(string_: NSString); message 'setPerMillSymbol:';
+    procedure setMinusSign(newValue: NSString); message 'setMinusSign:';
     function minusSign: NSString; message 'minusSign';
-    procedure setMinusSign(string_: NSString); message 'setMinusSign:';
+    procedure setPlusSign(newValue: NSString); message 'setPlusSign:';
     function plusSign: NSString; message 'plusSign';
-    procedure setPlusSign(string_: NSString); message 'setPlusSign:';
+    procedure setExponentSymbol(newValue: NSString); message 'setExponentSymbol:';
     function exponentSymbol: NSString; message 'exponentSymbol';
-    procedure setExponentSymbol(string_: NSString); message 'setExponentSymbol:';
+    procedure setGroupingSize(newValue: NSUInteger); message 'setGroupingSize:';
     function groupingSize: NSUInteger; message 'groupingSize';
-    procedure setGroupingSize(number: NSUInteger); message 'setGroupingSize:';
+    procedure setSecondaryGroupingSize(newValue: NSUInteger); message 'setSecondaryGroupingSize:';
     function secondaryGroupingSize: NSUInteger; message 'secondaryGroupingSize';
-    procedure setSecondaryGroupingSize(number: NSUInteger); message 'setSecondaryGroupingSize:';
+    procedure setMultiplier(newValue: NSNumber); message 'setMultiplier:';
     function multiplier: NSNumber; message 'multiplier';
-    procedure setMultiplier(number: NSNumber); message 'setMultiplier:';
+    procedure setFormatWidth(newValue: NSUInteger); message 'setFormatWidth:';
     function formatWidth: NSUInteger; message 'formatWidth';
-    procedure setFormatWidth(number: NSUInteger); message 'setFormatWidth:';
+    procedure setPaddingCharacter(newValue: NSString); message 'setPaddingCharacter:';
     function paddingCharacter: NSString; message 'paddingCharacter';
-    procedure setPaddingCharacter(string_: NSString); message 'setPaddingCharacter:';
+    procedure setPaddingPosition(newValue: NSNumberFormatterPadPosition); message 'setPaddingPosition:';
     function paddingPosition: NSNumberFormatterPadPosition; message 'paddingPosition';
-    procedure setPaddingPosition(position: NSNumberFormatterPadPosition); message 'setPaddingPosition:';
+    procedure setRoundingMode(newValue: NSNumberFormatterRoundingMode); message 'setRoundingMode:';
     function roundingMode: NSNumberFormatterRoundingMode; message 'roundingMode';
-    procedure setRoundingMode(mode: NSNumberFormatterRoundingMode); message 'setRoundingMode:';
+    procedure setRoundingIncrement(newValue: NSNumber); message 'setRoundingIncrement:';
     function roundingIncrement: NSNumber; message 'roundingIncrement';
-    procedure setRoundingIncrement(number: NSNumber); message 'setRoundingIncrement:';
+    procedure setMinimumIntegerDigits(newValue: NSUInteger); message 'setMinimumIntegerDigits:';
     function minimumIntegerDigits: NSUInteger; message 'minimumIntegerDigits';
-    procedure setMinimumIntegerDigits(number: NSUInteger); message 'setMinimumIntegerDigits:';
+    procedure setMaximumIntegerDigits(newValue: NSUInteger); message 'setMaximumIntegerDigits:';
     function maximumIntegerDigits: NSUInteger; message 'maximumIntegerDigits';
-    procedure setMaximumIntegerDigits(number: NSUInteger); message 'setMaximumIntegerDigits:';
+    procedure setMinimumFractionDigits(newValue: NSUInteger); message 'setMinimumFractionDigits:';
     function minimumFractionDigits: NSUInteger; message 'minimumFractionDigits';
-    procedure setMinimumFractionDigits(number: NSUInteger); message 'setMinimumFractionDigits:';
+    procedure setMaximumFractionDigits(newValue: NSUInteger); message 'setMaximumFractionDigits:';
     function maximumFractionDigits: NSUInteger; message 'maximumFractionDigits';
-    procedure setMaximumFractionDigits(number: NSUInteger); message 'setMaximumFractionDigits:';
+    procedure setMinimum(newValue: NSNumber); message 'setMinimum:';
     function minimum: NSNumber; message 'minimum';
-    procedure setMinimum(number: NSNumber); message 'setMinimum:';
+    procedure setMaximum(newValue: NSNumber); message 'setMaximum:';
     function maximum: NSNumber; message 'maximum';
-    procedure setMaximum(number: NSNumber); message 'setMaximum:';
+    procedure setCurrencyGroupingSeparator(newValue: NSString); message 'setCurrencyGroupingSeparator:';
     function currencyGroupingSeparator: NSString; message 'currencyGroupingSeparator';
-    procedure setCurrencyGroupingSeparator(string_: NSString); message 'setCurrencyGroupingSeparator:';
+    procedure setLenient(newValue: ObjCBOOL); message 'setLenient:';
     function isLenient: ObjCBOOL; message 'isLenient';
-    procedure setLenient(b: ObjCBOOL); message 'setLenient:';
+    procedure setUsesSignificantDigits(newValue: ObjCBOOL); message 'setUsesSignificantDigits:';
     function usesSignificantDigits: ObjCBOOL; message 'usesSignificantDigits';
-    procedure setUsesSignificantDigits(b: ObjCBOOL); message 'setUsesSignificantDigits:';
+    procedure setMinimumSignificantDigits(newValue: NSUInteger); message 'setMinimumSignificantDigits:';
     function minimumSignificantDigits: NSUInteger; message 'minimumSignificantDigits';
-    procedure setMinimumSignificantDigits(number: NSUInteger); message 'setMinimumSignificantDigits:';
+    procedure setMaximumSignificantDigits(newValue: NSUInteger); message 'setMaximumSignificantDigits:';
     function maximumSignificantDigits: NSUInteger; message 'maximumSignificantDigits';
-    procedure setMaximumSignificantDigits(number: NSUInteger); message 'setMaximumSignificantDigits:';
+    procedure setPartialStringValidationEnabled(newValue: ObjCBOOL); message 'setPartialStringValidationEnabled:';
     function isPartialStringValidationEnabled: ObjCBOOL; message 'isPartialStringValidationEnabled';
-    procedure setPartialStringValidationEnabled(b: ObjCBOOL); message 'setPartialStringValidationEnabled:';
   end;
-
-{ NSNumberFormatterCompatibilityCategory }
-  NSNumberFormatterCompatibilityCategory = objccategory external (NSNumberFormatter)
-    function hasThousandSeparators: ObjCBOOL; message 'hasThousandSeparators';
-    procedure setHasThousandSeparators(flag: ObjCBOOL); message 'setHasThousandSeparators:';
-    function thousandSeparator: NSString; message 'thousandSeparator';
-    procedure setThousandSeparator(newSeparator: NSString); message 'setThousandSeparator:';
-    function localizesFormat: ObjCBOOL; message 'localizesFormat';
-    procedure setLocalizesFormat(flag: ObjCBOOL); message 'setLocalizesFormat:';
-    function format: NSString; message 'format';
-    procedure setFormat(string_: NSString); message 'setFormat:';
-    function attributedStringForZero: NSAttributedString; message 'attributedStringForZero';
-    procedure setAttributedStringForZero(newAttributedString: NSAttributedString); message 'setAttributedStringForZero:';
-    function attributedStringForNil: NSAttributedString; message 'attributedStringForNil';
-    procedure setAttributedStringForNil(newAttributedString: NSAttributedString); message 'setAttributedStringForNil:';
-    function attributedStringForNotANumber: NSAttributedString; message 'attributedStringForNotANumber';
-    procedure setAttributedStringForNotANumber(newAttributedString: NSAttributedString); message 'setAttributedStringForNotANumber:';
-    function roundingBehavior: NSDecimalNumberHandler; message 'roundingBehavior';
-    procedure setRoundingBehavior(newRoundingBehavior: NSDecimalNumberHandler); message 'setRoundingBehavior:';
-  end;
-
 {$endif}
+
+{$if (defined(TARGET_OS_MAC) and not (defined(TARGET_OS_EMBEDDED) or defined(TARGET_OS_IPHONE)))}
+{$ifdef CLASSES}
+
+type
+  NSNumberFormatterCompatibility = objccategory external (NSNumberFormatter)
+    procedure setHasThousandSeparators(newValue: ObjCBOOL); message 'setHasThousandSeparators:';
+    function hasThousandSeparators: ObjCBOOL; message 'hasThousandSeparators';
+    procedure setThousandSeparator(newValue: NSString); message 'setThousandSeparator:';
+    function thousandSeparator: NSString; message 'thousandSeparator';
+    procedure setLocalizesFormat(newValue: ObjCBOOL); message 'setLocalizesFormat:';
+    function localizesFormat: ObjCBOOL; message 'localizesFormat';
+    procedure setFormat(newValue: NSString); message 'setFormat:';
+    function format: NSString; message 'format';
+    procedure setAttributedStringForZero(newValue: NSAttributedString); message 'setAttributedStringForZero:';
+    function attributedStringForZero: NSAttributedString; message 'attributedStringForZero';
+    procedure setAttributedStringForNil(newValue: NSAttributedString); message 'setAttributedStringForNil:';
+    function attributedStringForNil: NSAttributedString; message 'attributedStringForNil';
+    procedure setAttributedStringForNotANumber(newValue: NSAttributedString); message 'setAttributedStringForNotANumber:';
+    function attributedStringForNotANumber: NSAttributedString; message 'attributedStringForNotANumber';
+    procedure setRoundingBehavior(newValue: NSDecimalNumberHandler); message 'setRoundingBehavior:';
+    function roundingBehavior: NSDecimalNumberHandler; message 'roundingBehavior';
+  end;
+{$endif}
+
 {$endif}

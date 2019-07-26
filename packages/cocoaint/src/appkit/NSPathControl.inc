@@ -1,87 +1,71 @@
-{ Parsed from Appkit.framework NSPathControl.h }
+{ Parsed from AppKit.framework NSPathControl.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPATHCONTROL_PAS_T}
-{$define NSPATHCONTROL_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPATHCONTROL_PAS_R}
-{$define NSPATHCONTROL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPATHCONTROL_PAS_F}
-{$define NSPATHCONTROL_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPATHCONTROL_PAS_S}
-{$define NSPATHCONTROL_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPathControlDelegateProtocol = objcprotocol;
-  NSPathControl = objcclass;
-  NSPathControlPointer = ^NSPathControl;
-  NSPathControlPtr = NSPathControlPointer;
-
+type
+  NSPathControlPtr = ^NSPathControl;
+  NSPathControlDelegateProtocolPtr = ^NSPathControlDelegateProtocol;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPATHCONTROL_PAS_C}
-{$define NSPATHCONTROL_PAS_C}
 
-{ NSPathControl }
+type
   NSPathControl = objcclass external (NSControl)
   private
     _draggingSourceOperationMaskForLocal: NSDragOperation;
     _draggingSourceOperationMaskForNonLocal: NSDragOperation;
     _reserved: NSInteger;
     _delegate: id;
-    _aux: id;
-    
+    _pathAux: id;
   public
+    procedure setEditable(newValue: ObjCBOOL); message 'setEditable:';
+    function isEditable: ObjCBOOL; message 'isEditable';
+    procedure setAllowedTypes(newValue: NSArray); message 'setAllowedTypes:';
+    function allowedTypes: NSArray; message 'allowedTypes';
+    procedure setPlaceholderString(newValue: NSString); message 'setPlaceholderString:';
+    function placeholderString: NSString; message 'placeholderString';
+    procedure setPlaceholderAttributedString(newValue: NSAttributedString); message 'setPlaceholderAttributedString:';
+    function placeholderAttributedString: NSAttributedString; message 'placeholderAttributedString';
+    procedure setURL(newValue: NSURL); message 'setURL:';
     function URL: NSURL; message 'URL';
-    procedure setURL(url_: NSURL); message 'setURL:';
+    procedure setDoubleAction(newValue: SEL); message 'setDoubleAction:';
     function doubleAction: SEL; message 'doubleAction';
-    procedure setDoubleAction(action_: SEL); message 'setDoubleAction:';
+    procedure setPathStyle(newValue: NSPathStyle); message 'setPathStyle:';
     function pathStyle: NSPathStyle; message 'pathStyle';
-    procedure setPathStyle(style: NSPathStyle); message 'setPathStyle:';
-    function clickedPathComponentCell: NSPathComponentCell; message 'clickedPathComponentCell';
-    function pathComponentCells: NSArray; message 'pathComponentCells';
-    procedure setPathComponentCells(cells: NSArray); message 'setPathComponentCells:';
-    procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
+    function clickedPathItem: NSPathControlItem; message 'clickedPathItem';
+    procedure setPathItems(newValue: NSArray); message 'setPathItems:';
+    function pathItems: NSArray; message 'pathItems';
+    procedure setBackgroundColor(newValue: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
+    procedure setDelegate(newValue: NSPathControlDelegateProtocol); message 'setDelegate:';
     function delegate: NSPathControlDelegateProtocol; message 'delegate';
-    procedure setDelegate(delegate_: NSPathControlDelegateProtocol); message 'setDelegate:';
-    procedure setDraggingSourceOperationMask_forLocal(mask: NSDragOperation; isLocal: ObjCBOOL); message 'setDraggingSourceOperationMask:forLocal:';
-    procedure setMenu(menu_: NSMenu); message 'setMenu:';
+    procedure setDraggingSourceOperationMask_forLocal (mask: NSDragOperation; isLocal: ObjCBOOL); message 'setDraggingSourceOperationMask:forLocal:';
+    procedure setMenu(newValue: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
   end;
+{$endif}
 
-{$endif}
-{$endif}
 {$ifdef PROTOCOLS}
-{$ifndef NSPATHCONTROL_PAS_P}
-{$define NSPATHCONTROL_PAS_P}
-  
-{ NSPathControlDelegate Protocol }
-  NSPathControlDelegateProtocol = objcprotocol external name 'NSPathControlDelegate'
+
+type
+  NSPathControlDelegateProtocol = objcprotocol external name 'NSPathControlDelegate' (NSObjectProtocol)
   optional
-    function pathControl_shouldDragPathComponentCell_withPasteboard(pathControl: NSPathControl; pathComponentCell: NSPathComponentCell; pasteboard: NSPasteboard): ObjCBOOL; message 'pathControl:shouldDragPathComponentCell:withPasteboard:';
-    function pathControl_validateDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): NSDragOperation; message 'pathControl:validateDrop:';
-    function pathControl_acceptDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): ObjCBOOL; message 'pathControl:acceptDrop:';
-    procedure pathControl_willDisplayOpenPanel(pathControl: NSPathControl; openPanel: NSOpenPanel); message 'pathControl:willDisplayOpenPanel:';
-    procedure pathControl_willPopUpMenu(pathControl: NSPathControl; menu: NSMenu); message 'pathControl:willPopUpMenu:';
+    function pathControl_shouldDragItem_withPasteboard (pathControl: NSPathControl; pathItem: NSPathControlItem; pasteboard: NSPasteboard): ObjCBOOL; message 'pathControl:shouldDragItem:withPasteboard:';
+    function pathControl_shouldDragPathComponentCell_withPasteboard (pathControl: NSPathControl; pathComponentCell: NSPathComponentCell; pasteboard: NSPasteboard): ObjCBOOL; message 'pathControl:shouldDragPathComponentCell:withPasteboard:';
+    function pathControl_validateDrop (pathControl: NSPathControl; info: NSDraggingInfoProtocol): NSDragOperation; message 'pathControl:validateDrop:';
+    function pathControl_acceptDrop (pathControl: NSPathControl; info: NSDraggingInfoProtocol): ObjCBOOL; message 'pathControl:acceptDrop:';
+    procedure pathControl_willDisplayOpenPanel (pathControl: NSPathControl; openPanel: NSOpenPanel); message 'pathControl:willDisplayOpenPanel:';
+    procedure pathControl_willPopUpMenu (pathControl: NSPathControl; menu: NSMenu); message 'pathControl:willPopUpMenu:';
   end;
 {$endif}
+
+{$ifdef CLASSES}
+
+type
+  NSPathControl_NSDeprecated = objccategory external name 'NSDeprecated' (NSPathControl)
+    function clickedPathComponentCell: NSPathComponentCell; message 'clickedPathComponentCell';
+    function pathComponentCells: NSArray; message 'pathComponentCells';
+    procedure setPathComponentCells (cells: NSArray); message 'setPathComponentCells:';
+  end;
 {$endif}
+

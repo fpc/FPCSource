@@ -1,126 +1,99 @@
-{ Parsed from Webkit.framework WebPreferences.h }
+{ Parsed from WebKit.framework WebPreferences.h }
+
 
 {$ifdef TYPES}
-{$ifndef WEBPREFERENCES_PAS_T}
-{$define WEBPREFERENCES_PAS_T}
+type
+  WebPreferencesPtr = ^WebPreferences;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  WebCacheModel = NSUInteger;
+  WebCacheModelPtr = ^WebCacheModel;
 
 const
   WebCacheModelDocumentViewer = 0;
   WebCacheModelDocumentBrowser = 1;
   WebCacheModelPrimaryWebBrowser = 2;
 
-{ Types }
 type
-  WebCacheModel = WebNSUInteger;
-  WebCacheModelPtr = ^WebCacheModel;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef WEBPREFERENCES_PAS_R}
-{$define WEBPREFERENCES_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef WEBPREFERENCES_PAS_F}
-{$define WEBPREFERENCES_PAS_F}
-
-{$endif}
+  WebPreferencesPrivate = OpaqueType;
+  WebPreferencesPrivatePtr = ^WebPreferencesPrivate;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef WEBPREFERENCES_PAS_S}
-{$define WEBPREFERENCES_PAS_S}
-
-{ External string constants }
 var
   WebPreferencesChangedNotification: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  WebPreferences = objcclass;
-  WebPreferencesPointer = ^WebPreferences;
-  WebPreferencesPtr = WebPreferencesPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef WEBPREFERENCES_PAS_C}
-{$define WEBPREFERENCES_PAS_C}
 
-{ WebPreferences }
+type
   WebPreferences = objcclass external (NSObject, NSCodingProtocol)
   private
-    _private: WebPreferencesPrivate;
-    
+    _private: WebPreferencesPrivatePtr;
   public
     class function standardPreferences: WebPreferences; message 'standardPreferences';
-    function initWithIdentifier(anIdentifier: NSString): id; message 'initWithIdentifier:';
+    function initWithIdentifier (anIdentifier: NSString): instancetype; message 'initWithIdentifier:';
     function identifier: NSString; message 'identifier';
+    procedure setStandardFontFamily(newValue: NSString); message 'setStandardFontFamily:';
     function standardFontFamily: NSString; message 'standardFontFamily';
-    procedure setStandardFontFamily(family: NSString); message 'setStandardFontFamily:';
+    procedure setFixedFontFamily(newValue: NSString); message 'setFixedFontFamily:';
     function fixedFontFamily: NSString; message 'fixedFontFamily';
-    procedure setFixedFontFamily(family: NSString); message 'setFixedFontFamily:';
+    procedure setSerifFontFamily(newValue: NSString); message 'setSerifFontFamily:';
     function serifFontFamily: NSString; message 'serifFontFamily';
-    procedure setSerifFontFamily(family: NSString); message 'setSerifFontFamily:';
+    procedure setSansSerifFontFamily(newValue: NSString); message 'setSansSerifFontFamily:';
     function sansSerifFontFamily: NSString; message 'sansSerifFontFamily';
-    procedure setSansSerifFontFamily(family: NSString); message 'setSansSerifFontFamily:';
+    procedure setCursiveFontFamily(newValue: NSString); message 'setCursiveFontFamily:';
     function cursiveFontFamily: NSString; message 'cursiveFontFamily';
-    procedure setCursiveFontFamily(family: NSString); message 'setCursiveFontFamily:';
+    procedure setFantasyFontFamily(newValue: NSString); message 'setFantasyFontFamily:';
     function fantasyFontFamily: NSString; message 'fantasyFontFamily';
-    procedure setFantasyFontFamily(family: NSString); message 'setFantasyFontFamily:';
+    procedure setDefaultFontSize(newValue: cint); message 'setDefaultFontSize:';
     function defaultFontSize: cint; message 'defaultFontSize';
-    procedure setDefaultFontSize(size: cint); message 'setDefaultFontSize:';
+    procedure setDefaultFixedFontSize(newValue: cint); message 'setDefaultFixedFontSize:';
     function defaultFixedFontSize: cint; message 'defaultFixedFontSize';
-    procedure setDefaultFixedFontSize(size: cint); message 'setDefaultFixedFontSize:';
+    procedure setMinimumFontSize(newValue: cint); message 'setMinimumFontSize:';
     function minimumFontSize: cint; message 'minimumFontSize';
-    procedure setMinimumFontSize(size: cint); message 'setMinimumFontSize:';
+    procedure setMinimumLogicalFontSize(newValue: cint); message 'setMinimumLogicalFontSize:';
     function minimumLogicalFontSize: cint; message 'minimumLogicalFontSize';
-    procedure setMinimumLogicalFontSize(size: cint); message 'setMinimumLogicalFontSize:';
+    procedure setDefaultTextEncodingName(newValue: NSString); message 'setDefaultTextEncodingName:';
     function defaultTextEncodingName: NSString; message 'defaultTextEncodingName';
-    procedure setDefaultTextEncodingName(encoding: NSString); message 'setDefaultTextEncodingName:';
+    procedure setUserStyleSheetEnabled(newValue: ObjCBOOL); message 'setUserStyleSheetEnabled:';
     function userStyleSheetEnabled: ObjCBOOL; message 'userStyleSheetEnabled';
-    procedure setUserStyleSheetEnabled(flag: ObjCBOOL); message 'setUserStyleSheetEnabled:';
+    procedure setUserStyleSheetLocation(newValue: NSURL); message 'setUserStyleSheetLocation:';
     function userStyleSheetLocation: NSURL; message 'userStyleSheetLocation';
-    procedure setUserStyleSheetLocation(URL: NSURL); message 'setUserStyleSheetLocation:';
+    procedure setJavaEnabled(newValue: ObjCBOOL); message 'setJavaEnabled:';
     function isJavaEnabled: ObjCBOOL; message 'isJavaEnabled';
-    procedure setJavaEnabled(flag: ObjCBOOL); message 'setJavaEnabled:';
+    procedure setJavaScriptEnabled(newValue: ObjCBOOL); message 'setJavaScriptEnabled:';
     function isJavaScriptEnabled: ObjCBOOL; message 'isJavaScriptEnabled';
-    procedure setJavaScriptEnabled(flag: ObjCBOOL); message 'setJavaScriptEnabled:';
+    procedure setJavaScriptCanOpenWindowsAutomatically(newValue: ObjCBOOL); message 'setJavaScriptCanOpenWindowsAutomatically:';
     function javaScriptCanOpenWindowsAutomatically: ObjCBOOL; message 'javaScriptCanOpenWindowsAutomatically';
-    procedure setJavaScriptCanOpenWindowsAutomatically(flag: ObjCBOOL); message 'setJavaScriptCanOpenWindowsAutomatically:';
+    procedure setPlugInsEnabled(newValue: ObjCBOOL); message 'setPlugInsEnabled:';
     function arePlugInsEnabled: ObjCBOOL; message 'arePlugInsEnabled';
-    procedure setPlugInsEnabled(flag: ObjCBOOL); message 'setPlugInsEnabled:';
+    procedure setAllowsAnimatedImages(newValue: ObjCBOOL); message 'setAllowsAnimatedImages:';
     function allowsAnimatedImages: ObjCBOOL; message 'allowsAnimatedImages';
-    procedure setAllowsAnimatedImages(flag: ObjCBOOL); message 'setAllowsAnimatedImages:';
+    procedure setAllowsAnimatedImageLooping(newValue: ObjCBOOL); message 'setAllowsAnimatedImageLooping:';
     function allowsAnimatedImageLooping: ObjCBOOL; message 'allowsAnimatedImageLooping';
-    procedure setAllowsAnimatedImageLooping(flag: ObjCBOOL); message 'setAllowsAnimatedImageLooping:';
-    procedure setLoadsImagesAutomatically(flag: ObjCBOOL); message 'setLoadsImagesAutomatically:';
+    procedure setLoadsImagesAutomatically(newValue: ObjCBOOL); message 'setLoadsImagesAutomatically:';
     function loadsImagesAutomatically: ObjCBOOL; message 'loadsImagesAutomatically';
-    procedure setAutosaves(flag: ObjCBOOL); message 'setAutosaves:';
+    procedure setAutosaves(newValue: ObjCBOOL); message 'setAutosaves:';
     function autosaves: ObjCBOOL; message 'autosaves';
-    procedure setShouldPrintBackgrounds(flag: ObjCBOOL); message 'setShouldPrintBackgrounds:';
+    procedure setShouldPrintBackgrounds(newValue: ObjCBOOL); message 'setShouldPrintBackgrounds:';
     function shouldPrintBackgrounds: ObjCBOOL; message 'shouldPrintBackgrounds';
-    procedure setPrivateBrowsingEnabled(flag: ObjCBOOL); message 'setPrivateBrowsingEnabled:';
+    procedure setPrivateBrowsingEnabled(newValue: ObjCBOOL); message 'setPrivateBrowsingEnabled:';
     function privateBrowsingEnabled: ObjCBOOL; message 'privateBrowsingEnabled';
-    procedure setTabsToLinks(flag: ObjCBOOL); message 'setTabsToLinks:';
+    procedure setTabsToLinks(newValue: ObjCBOOL); message 'setTabsToLinks:';
     function tabsToLinks: ObjCBOOL; message 'tabsToLinks';
-    procedure setUsesPageCache(usesPageCache_: ObjCBOOL); message 'setUsesPageCache:';
+    procedure setUsesPageCache(newValue: ObjCBOOL); message 'setUsesPageCache:';
     function usesPageCache: ObjCBOOL; message 'usesPageCache';
-    procedure setCacheModel(cacheModel_: WebCacheModel); message 'setCacheModel:';
+    procedure setCacheModel(newValue: WebCacheModel); message 'setCacheModel:';
     function cacheModel: WebCacheModel; message 'cacheModel';
+    procedure setSuppressesIncrementalRendering(newValue: ObjCBOOL); message 'setSuppressesIncrementalRendering:';
+    function suppressesIncrementalRendering: ObjCBOOL; message 'suppressesIncrementalRendering';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

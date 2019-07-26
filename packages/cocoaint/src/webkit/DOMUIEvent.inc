@@ -1,47 +1,15 @@
-{ Parsed from Webkit.framework DOMUIEvent.h }
+{ Parsed from WebKit.framework DOMUIEvent.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMUIEVENT_PAS_T}
-{$define DOMUIEVENT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMUIEVENT_PAS_R}
-{$define DOMUIEVENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMUIEVENT_PAS_F}
-{$define DOMUIEVENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMUIEVENT_PAS_S}
-{$define DOMUIEVENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMUIEvent = objcclass;
-  DOMUIEventPointer = ^DOMUIEvent;
-  DOMUIEventPtr = DOMUIEventPointer;
-
+type
+  DOMUIEventPtr = ^DOMUIEvent;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMUIEVENT_PAS_C}
-{$define DOMUIEVENT_PAS_C}
 
-{ DOMUIEvent }
+type
   DOMUIEvent = objcclass external (DOMEvent)
-    
   public
     function view: DOMAbstractView; message 'view';
     function detail: cint; message 'detail';
@@ -52,13 +20,13 @@
     function pageX: cint; message 'pageX';
     function pageY: cint; message 'pageY';
     function which: cint; message 'which';
-    procedure initUIEvent_canBubble_cancelable_view_detail(type__: NSString; canBubble: ObjCBOOL; cancelable_: ObjCBOOL; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:canBubble:cancelable:view:detail:';
+    procedure initUIEvent_canBubble_cancelable_view_detail (type_: NSString; canBubble: ObjCBOOL; cancelable_: ObjCBOOL; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:canBubble:cancelable:view:detail:'; { available in 10_5 }
   end;
 
-{ DOMUIEventDeprecatedCategory }
-  DOMUIEventDeprecatedCategory = objccategory external (DOMUIEvent)
-    procedure initUIEvent(type__: NSString; canBubble: ObjCBOOL; cancelable_: ObjCBOOL; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:type:canBubble:cancelable:view:'; deprecated 'in_webkit_version_3 and later';
-  end;
 
+type
+  DOMUIEventDeprecated = objccategory external (DOMUIEvent)
+    procedure initUIEvent_canBubble_view (type_: NSString; cancelable_: ObjCBOOL; detail_: cint); message 'initUIEvent:canBubble:view:'; deprecated 'in 10_4, 10_5';
+  end;
 {$endif}
-{$endif}
+

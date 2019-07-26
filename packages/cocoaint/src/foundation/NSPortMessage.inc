@@ -1,63 +1,30 @@
 { Parsed from Foundation.framework NSPortMessage.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSPORTMESSAGE_PAS_T}
-{$define NSPORTMESSAGE_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPORTMESSAGE_PAS_R}
-{$define NSPORTMESSAGE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPORTMESSAGE_PAS_F}
-{$define NSPORTMESSAGE_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPORTMESSAGE_PAS_S}
-{$define NSPORTMESSAGE_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPortMessage = objcclass;
-  NSPortMessagePointer = ^NSPortMessage;
-  NSPortMessagePtr = NSPortMessagePointer;
-
+type
+  NSPortMessagePtr = ^NSPortMessage;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPORTMESSAGE_PAS_C}
-{$define NSPORTMESSAGE_PAS_C}
 
-{ NSPortMessage }
+type
   NSPortMessage = objcclass external (NSObject)
   private
     localPort: NSPort;
     remotePort: NSPort;
-    _components: NSMutableArray;
-    _msgid: cuint32;
-    reserved2: Pointer;
-    reserved: Pointer;
-    
+    components: NSMutableArray;
+    msgid: cuint32;
+    reserved2: pointer;
+    reserved: pointer;
   public
-    function initWithSendPort_receivePort_components(sendPort_: NSPort; replyPort: NSPort; components_: NSArray): id; message 'initWithSendPort:receivePort:components:';
-    function components: NSArray; message 'components';
+    function initWithSendPort_receivePort_components (sendPort: NSPort; replyPort: NSPort; components_: NSArray): instancetype; message 'initWithSendPort:receivePort:components:'; { NS_DESIGNATED_INITIALIZER }
+    function components_: NSArray; message 'components';
     function receivePort: NSPort; message 'receivePort';
     function sendPort: NSPort; message 'sendPort';
-    function sendBeforeDate(date: NSDate): ObjCBOOL; message 'sendBeforeDate:';
-    function msgid: cuint32; message 'msgid';
-    procedure setMsgid(msgid_: cuint32); message 'setMsgid:';
+    function sendBeforeDate (date: NSDate): ObjCBOOL; message 'sendBeforeDate:';
+    procedure setMsgid(newValue: cuint32); message 'setMsgid:';
+    function msgid_: cuint32; message 'msgid';
   end;
+{$endif}
 
-{$endif}
-{$endif}

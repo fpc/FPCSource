@@ -1,62 +1,30 @@
 { Parsed from Foundation.framework NSPortCoder.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSPORTCODER_PAS_T}
-{$define NSPORTCODER_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPORTCODER_PAS_R}
-{$define NSPORTCODER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPORTCODER_PAS_F}
-{$define NSPORTCODER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPORTCODER_PAS_S}
-{$define NSPORTCODER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPortCoder = objcclass;
-  NSPortCoderPointer = ^NSPortCoder;
-  NSPortCoderPtr = NSPortCoderPointer;
-
+type
+  NSPortCoderPtr = ^NSPortCoder;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPORTCODER_PAS_C}
-{$define NSPORTCODER_PAS_C}
 
-{ NSPortCoder }
+type
   NSPortCoder = objcclass external (NSCoder)
-    
   public
     function isBycopy: ObjCBOOL; message 'isBycopy';
     function isByref: ObjCBOOL; message 'isByref';
-    function connection: NSConnection; message 'connection';
-    procedure encodePortObject(aport: NSPort); message 'encodePortObject:';
+    procedure encodePortObject (aport: NSPort); message 'encodePortObject:';
     function decodePortObject: NSPort; message 'decodePortObject';
-    function initWithReceivePort_sendPort_components(rcvPort: NSPort; sndPort: NSPort; comps: NSArray): id; message 'initWithReceivePort:sendPort:components:';
-    procedure dispatch; message 'dispatch';
+    function connection: NSConnection; message 'connection'; deprecated 'in 10_0, 10_7, 2_0, NA';
+    function initWithReceivePort_sendPort_components (rcvPort: NSPort; sndPort: NSPort; comps: NSArray): id; message 'initWithReceivePort:sendPort:components:'; deprecated 'in 10_0, 10_7, 2_0, NA';
+    procedure dispatch; message 'dispatch'; deprecated 'in 10_0, 10_7, 2_0, NA';
   end;
 
-{ NSDistributedObjectsCategory }
-  NSDistributedObjectsCategory = objccategory external (NSObject)
-    function classForPortCoder: Pobjc_class; message 'classForPortCoder';
-    function replacementObjectForPortCoder(coder: NSPortCoder): id; message 'replacementObjectForPortCoder:';
-  end;
 
+type
+  NSDistributedObjects = objccategory external (NSObject)
+    function classForPortCoder: pobjc_class; message 'classForPortCoder';
+    function replacementObjectForPortCoder (coder: NSPortCoder): id; message 'replacementObjectForPortCoder:';
+  end;
 {$endif}
-{$endif}
+

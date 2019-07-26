@@ -1,76 +1,43 @@
-{ Parsed from Webkit.framework DOMHTMLTextAreaElement.h }
+{ Parsed from WebKit.framework DOMHTMLTextAreaElement.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMHTMLTEXTAREAELEMENT_PAS_T}
-{$define DOMHTMLTEXTAREAELEMENT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMHTMLTEXTAREAELEMENT_PAS_R}
-{$define DOMHTMLTEXTAREAELEMENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMHTMLTEXTAREAELEMENT_PAS_F}
-{$define DOMHTMLTEXTAREAELEMENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMHTMLTEXTAREAELEMENT_PAS_S}
-{$define DOMHTMLTEXTAREAELEMENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMHTMLTextAreaElement = objcclass;
-  DOMHTMLTextAreaElementPointer = ^DOMHTMLTextAreaElement;
-  DOMHTMLTextAreaElementPtr = DOMHTMLTextAreaElementPointer;
-
+type
+  DOMHTMLTextAreaElementPtr = ^DOMHTMLTextAreaElement;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMHTMLTEXTAREAELEMENT_PAS_C}
-{$define DOMHTMLTEXTAREAELEMENT_PAS_C}
 
-{ DOMHTMLTextAreaElement }
+type
   DOMHTMLTextAreaElement = objcclass external (DOMHTMLElement)
-    
   public
-    procedure setDefaultValue (newValue: NSString); message 'setDefaultValue:';
-    function defaultValue: NSString; message 'defaultValue';
-    function form: DOMHTMLFormElement; message 'form';
-    procedure setAccessKey (newValue: NSString); message 'setAccessKey:';
-    function accessKey: NSString; message 'accessKey';
-    procedure setCols (newValue: cint); message 'setCols:';
-    function cols: cint; message 'cols';
-    procedure setDisabled (newValue: ObjCBOOL); message 'setDisabled:';
-    function disabled: ObjCBOOL; message 'disabled';
-    procedure setAutofocus (newValue: ObjCBOOL); message 'setAutofocus:';
+    procedure setAutofocus(newValue: ObjCBOOL); message 'setAutofocus:';
     function autofocus: ObjCBOOL; message 'autofocus';
-    procedure setName (newValue: NSString); message 'setName:';
+    procedure setCols(newValue: cint); message 'setCols:';
+    function cols: cint; message 'cols';
+    procedure setDisabled(newValue: ObjCBOOL); message 'setDisabled:';
+    function disabled: ObjCBOOL; message 'disabled';
+    function form: DOMHTMLFormElement; message 'form';
+    procedure setName(newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    procedure setReadOnly (newValue: ObjCBOOL); message 'setReadOnly:';
+    procedure setReadOnly(newValue: ObjCBOOL); message 'setReadOnly:';
     function readOnly: ObjCBOOL; message 'readOnly';
-    procedure setRows (newValue: cint); message 'setRows:';
+    procedure setRows(newValue: cint); message 'setRows:';
     function rows: cint; message 'rows';
-    function type_: NSString; message 'type_';
-    procedure setValue (newValue: NSString); message 'setValue:';
+    function type_: NSString; message 'type';
+    procedure setDefaultValue(newValue: NSString); message 'setDefaultValue:';
+    function defaultValue: NSString; message 'defaultValue';
+    procedure setValue(newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
     function willValidate: ObjCBOOL; message 'willValidate';
-    procedure setSelectionStart (newValue: cint); message 'setSelectionStart:';
+    procedure setSelectionStart(newValue: cint); message 'setSelectionStart:';
     function selectionStart: cint; message 'selectionStart';
-    procedure setSelectionEnd (newValue: cint); message 'setSelectionEnd:';
+    procedure setSelectionEnd(newValue: cint); message 'setSelectionEnd:';
     function selectionEnd: cint; message 'selectionEnd';
+    procedure setAccessKey(newValue: NSString); message 'setAccessKey:';
+    function accessKey: NSString; message 'accessKey';
     procedure select; message 'select';
-    procedure setSelectionRange_end(start: cint; end_: cint); message 'setSelectionRange:end:';
+    procedure setSelectionRange_end (start: cint; end_: cint); message 'setSelectionRange:end:'; { available in 10_5 }
   end;
+{$endif}
 
-{$endif}
-{$endif}

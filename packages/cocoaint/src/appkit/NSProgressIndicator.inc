@@ -1,20 +1,17 @@
-{ Parsed from Appkit.framework NSProgressIndicator.h }
+{ Parsed from AppKit.framework NSProgressIndicator.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPROGRESSINDICATOR_PAS_T}
-{$define NSPROGRESSINDICATOR_PAS_T}
-
-{ Types }
 type
-  __NSProgressIndicatorThreadInfo = record end;
-  _NSProgressIndicatorThreadInfo = __NSProgressIndicatorThreadInfo;
+  NSProgressIndicatorPtr = ^NSProgressIndicator;
+{$endif}
+
+{$ifdef TYPES}
+type
+  _NSProgressIndicatorThreadInfo = OpaqueType;
   _NSProgressIndicatorThreadInfoPtr = ^_NSProgressIndicatorThreadInfo;
   NSProgressIndicatorThickness = NSUInteger;
   NSProgressIndicatorThicknessPtr = ^NSProgressIndicatorThickness;
-  NSProgressIndicatorStyle = NSUInteger;
-  NSProgressIndicatorStylePtr = ^NSProgressIndicatorStyle;
-
-{ Constants }
 
 const
   NSProgressIndicatorPreferredThickness = 14;
@@ -22,47 +19,19 @@ const
   NSProgressIndicatorPreferredLargeThickness = 18;
   NSProgressIndicatorPreferredAquaThickness = 12;
 
+type
+  NSProgressIndicatorStyle = NSUInteger;
+  NSProgressIndicatorStylePtr = ^NSProgressIndicatorStyle;
+
 const
   NSProgressIndicatorBarStyle = 0;
   NSProgressIndicatorSpinningStyle = 1;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPROGRESSINDICATOR_PAS_R}
-{$define NSPROGRESSINDICATOR_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPROGRESSINDICATOR_PAS_F}
-{$define NSPROGRESSINDICATOR_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPROGRESSINDICATOR_PAS_S}
-{$define NSPROGRESSINDICATOR_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSProgressIndicator = objcclass;
-  NSProgressIndicatorPointer = ^NSProgressIndicator;
-  NSProgressIndicatorPtr = NSProgressIndicatorPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPROGRESSINDICATOR_PAS_C}
-{$define NSPROGRESSINDICATOR_PAS_C}
 
-{ NSProgressIndicator }
-  NSProgressIndicator = objcclass external (NSView)
+type
+  NSProgressIndicator = objcclass external (NSView, NSAccessibilityProgressIndicatorProtocol)
   private
     _isBezeled: ObjCBOOL;
     _isIndeterminate: ObjCBOOL;
@@ -70,70 +39,74 @@ const
     _minimum: double;
     _maximum: double;
     _value: double;
-    _animationIndex: cint;
+    _animationIndex: cuint;
     _animationDelay: NSTimeInterval;
     _timer: id;
     _drawingWidth: CGFloat;
     _roundColor: id;
     _reserved: id;
-     {garbage collector: volatile }
-    __progressIndicatorFlags: record
+    __progressIndicatorFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSProgressIndicator0: cuint);
-       1: (data: bitpacked record
-        isSpinning: 0..1;
-        isVector: 0..1;
-        isLocked: 0..1;
-        _controlTint: 0..((1 shl 3)-1);
-        _controlSize: 0..((1 shl 2)-1);
-        _style: 0..1;
-        _delayedStartup: 0..1;
-        _orderOutForResize: 0..1;
-        hideWhenStopped: 0..1;
-        revive: 0..1;
-        _temporarilyBlockHeartBeating: 0..1;
-        _isHidden: 0..1;
-        _isHeartBeatInstalled: 0..1;
-        _lastFrame: 0..((1 shl 8)-1);
-        RESERVED: 0..((1 shl 8)-1);
-       end;
-      );
+        0: (_anonBitField___progressIndicatorFlags0: cuint);
+        1: (
+          isSpinning: 0..1;
+          isVector: 0..1;
+          isLocked: 0..1;
+          controlTint: 0..((1 shl 3)-1);
+          controlSize: 0..((1 shl 2)-1);
+          style: 0..1;
+          _delayedStartup: 0..1;
+          hideWhenStopped: 0..1;
+          revive: 0..1;
+          _temporarilyBlockHeartBeating: 0..1;
+          _isHidden: 0..1;
+          _isHeartBeatInstalled: 0..1;
+          _customRenderer: 0..1;
+          _lastFrame: 0..((1 shl 8)-1);
+          _isDetaching: 0..1;
+          RESERVED: 0..((1 shl 7)-1);
+        );
       end;
     _NSProgressIndicatorReserved1: id;
-    
   public
+    procedure setIndeterminate(newValue: ObjCBOOL); message 'setIndeterminate:';
     function isIndeterminate: ObjCBOOL; message 'isIndeterminate';
-    procedure setIndeterminate(flag: ObjCBOOL); message 'setIndeterminate:';
+    procedure setBezeled(newValue: ObjCBOOL); message 'setBezeled:';
     function isBezeled: ObjCBOOL; message 'isBezeled';
-    procedure setBezeled(flag: ObjCBOOL); message 'setBezeled:';
+    procedure setControlTint(newValue: NSControlTint); message 'setControlTint:';
     function controlTint: NSControlTint; message 'controlTint';
-    procedure setControlTint(tint: NSControlTint); message 'setControlTint:';
+    procedure setControlSize(newValue: NSControlSize); message 'setControlSize:';
     function controlSize: NSControlSize; message 'controlSize';
-    procedure setControlSize(size: NSControlSize); message 'setControlSize:';
+    procedure setDoubleValue(newValue: double); message 'setDoubleValue:';
     function doubleValue: double; message 'doubleValue';
-    procedure setDoubleValue(doubleValue_: double); message 'setDoubleValue:';
-    procedure incrementBy(delta: double); message 'incrementBy:';
+    procedure incrementBy (delta: double); message 'incrementBy:';
+    procedure setMinValue(newValue: double); message 'setMinValue:';
     function minValue: double; message 'minValue';
+    procedure setMaxValue(newValue: double); message 'setMaxValue:';
     function maxValue: double; message 'maxValue';
-    procedure setMinValue(newMinimum: double); message 'setMinValue:';
-    procedure setMaxValue(newMaximum: double); message 'setMaxValue:';
+    procedure setUsesThreadedAnimation(newValue: ObjCBOOL); message 'setUsesThreadedAnimation:';
     function usesThreadedAnimation: ObjCBOOL; message 'usesThreadedAnimation';
-    procedure setUsesThreadedAnimation(threadedAnimation: ObjCBOOL); message 'setUsesThreadedAnimation:';
-    procedure startAnimation(sender: id); message 'startAnimation:';
-    procedure stopAnimation(sender: id); message 'stopAnimation:';
-    procedure setStyle(style_: NSProgressIndicatorStyle); message 'setStyle:';
+    procedure startAnimation (sender: id); message 'startAnimation:';
+    procedure stopAnimation (sender: id); message 'stopAnimation:';
+    procedure setStyle(newValue: NSProgressIndicatorStyle); message 'setStyle:';
     function style: NSProgressIndicatorStyle; message 'style';
     procedure sizeToFit; message 'sizeToFit';
+    procedure setDisplayedWhenStopped(newValue: ObjCBOOL); message 'setDisplayedWhenStopped:';
     function isDisplayedWhenStopped: ObjCBOOL; message 'isDisplayedWhenStopped';
-    procedure setDisplayedWhenStopped(isDisplayed: ObjCBOOL); message 'setDisplayedWhenStopped:';
+
+		{ Adopted protocols }
+		function accessibilityValue: NSNumber; message 'accessibilityValue';
+    function accessibilityFrame: NSRect; message 'accessibilityFrame';
+    function accessibilityParent: id; message 'accessibilityParent';
+    
   end;
 
-{ NSProgressIndicatorDeprecatedCategory }
-  NSProgressIndicatorDeprecatedCategory = objccategory external (NSProgressIndicator)
-    function animationDelay: NSTimeInterval; message 'animationDelay'; deprecated 'in Mac OS X 10.6 and later';
-    procedure setAnimationDelay(delay: NSTimeInterval); message 'setAnimationDelay:'; deprecated 'in Mac OS X 10.6 and later';
-    procedure animate(sender: id); message 'animate:'; deprecated 'in Mac OS X 10.6 and later';
-  end;
 
+type
+  NSProgressIndicatorDeprecated = objccategory external (NSProgressIndicator)
+    function animationDelay: NSTimeInterval; message 'animationDelay'; deprecated 'in 10_0, 10_6';
+    procedure setAnimationDelay (delay: NSTimeInterval); message 'setAnimationDelay:'; deprecated 'in 10_0, 10_6';
+    procedure animate (sender: id); message 'animate:'; deprecated 'in 10_0, 10_6';
+  end;
 {$endif}
-{$endif}
+

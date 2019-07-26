@@ -1,162 +1,133 @@
 { Parsed from Foundation.framework NSConnection.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSCONNECTION_PAS_T}
-{$define NSCONNECTION_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSCONNECTION_PAS_R}
-{$define NSCONNECTION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSCONNECTION_PAS_F}
-{$define NSCONNECTION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCONNECTION_PAS_S}
-{$define NSCONNECTION_PAS_S}
-
-{ External string constants }
-var
-  NSConnectionReplyMode: NSString; cvar; external;
-  NSConnectionDidDieNotification: NSString; cvar; external;
-  NSFailedAuthenticationException: NSString; cvar; external;
-  NSConnectionDidInitializeNotification: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSConnectionDelegateProtocol = objcprotocol;
-  NSConnection = objcclass;
-  NSConnectionPointer = ^NSConnection;
-  NSConnectionPtr = NSConnectionPointer;
-  NSDistantObjectRequest = objcclass;
-  NSDistantObjectRequestPointer = ^NSDistantObjectRequest;
-  NSDistantObjectRequestPtr = NSDistantObjectRequestPointer;
-
+type
+  NSConnectionPtr = ^NSConnection;
+  NSDistantObjectRequestPtr = ^NSDistantObjectRequest;
+  NSConnectionDelegateProtocolPtr = ^NSConnectionDelegateProtocol;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSCONNECTION_PAS_C}
-{$define NSCONNECTION_PAS_C}
 
-{ NSConnection }
+type
   NSConnection = objcclass external (NSObject)
   private
-    _receivePort: id;
-    _sendPort: id;
-    _delegate: id;
+    receivePort: id;
+    sendPort: id;
+    delegate: id;
     busy: cint32;
     localProxyCount: cint32;
     waitCount: cint32;
     delayedRL: id;
-    _statistics: id;
+    statistics: id;
     isDead: char;
-    _isValid: char;
+    isValid: char;
     wantsInvalid: char;
-    _anoninternstruct_NSConnection0: record
+    _anonStruct_NSConnection0: record
       case byte of
-       0: (_anonbitfield_NSConnection0: char);
-       1: (data: bitpacked record
-        authGen: 0..1;
-        authCheck: 0..1;
-        encryptFlag: 0..1;
-        decryptFlag: 0..1;
-        doRequest: 0..1;
-        isQueueing: 0..1;
-        isMulti: 0..1;
-        invalidateRP: 0..1;
-       end;
+        0: (anonBitField_NSConnection0: cuint);
+        1: (data: bitpacked record
+          authGen: 0..1;
+          authCheck: 0..1;
+          _reserved1: 0..1;
+          _reserved2: 0..1;
+          doRequest: 0..1;
+          isQueueing: 0..1;
+          isMulti: 0..1;
+          invalidateRP: 0..1;
+        end;
       );
-      end;
+    end;
     ___1: id;
     ___2: id;
     runLoops: id;
-    _requestModes: id;
-    _rootObject: id;
-    registerInfo: Pointer;
+    requestModes: id;
+    rootObject: id;
+    registerInfo: pointer;
     replMode: id;
     classInfoImported: id;
     releasedProxies: id;
-    reserved: Pointer;
-    
+    reserved: id;
   public
-    function statistics: NSDictionary; message 'statistics';
+    function statistics_: NSDictionary; message 'statistics';
     class function allConnections: NSArray; message 'allConnections';
-    class function defaultConnection: NSConnection; message 'defaultConnection'; deprecated 'in Mac OS X 10.6 and later';
-    class function connectionWithRegisteredName_host(name: NSString; hostName: NSString): id; message 'connectionWithRegisteredName:host:';
-    class function connectionWithRegisteredName_host_usingNameServer(name: NSString; hostName: NSString; server: NSPortNameServer): id; message 'connectionWithRegisteredName:host:usingNameServer:';
-    class function rootProxyForConnectionWithRegisteredName_host(name: NSString; hostName: NSString): NSDistantObject; message 'rootProxyForConnectionWithRegisteredName:host:';
-    class function rootProxyForConnectionWithRegisteredName_host_usingNameServer(name: NSString; hostName: NSString; server: NSPortNameServer): NSDistantObject; message 'rootProxyForConnectionWithRegisteredName:host:usingNameServer:';
-    class function serviceConnectionWithName_rootObject_usingNameServer(name: NSString; root: id; server: NSPortNameServer): id; message 'serviceConnectionWithName:rootObject:usingNameServer:';
-    class function serviceConnectionWithName_rootObject(name: NSString; root: id): id; message 'serviceConnectionWithName:rootObject:';
-    procedure setRequestTimeout(ti: NSTimeInterval); message 'setRequestTimeout:';
+    class function defaultConnection: NSConnection; message 'defaultConnection'; deprecated 'in 10_0, 10_6, NA, NA';
+    class function connectionWithRegisteredName_host (name: NSString; hostName: NSString): instancetype; message 'connectionWithRegisteredName:host:';
+    class function connectionWithRegisteredName_host_usingNameServer (name: NSString; hostName: NSString; server: NSPortNameServer): instancetype; message 'connectionWithRegisteredName:host:usingNameServer:';
+    class function rootProxyForConnectionWithRegisteredName_host (name: NSString; hostName: NSString): NSDistantObject; message 'rootProxyForConnectionWithRegisteredName:host:';
+    class function rootProxyForConnectionWithRegisteredName_host_usingNameServer (name: NSString; hostName: NSString; server: NSPortNameServer): NSDistantObject; message 'rootProxyForConnectionWithRegisteredName:host:usingNameServer:';
+    class function serviceConnectionWithName_rootObject_usingNameServer (name: NSString; root: id; server: NSPortNameServer): instancetype; message 'serviceConnectionWithName:rootObject:usingNameServer:'; { available in 10_5, 2_0 }
+    class function serviceConnectionWithName_rootObject (name: NSString; root: id): instancetype; message 'serviceConnectionWithName:rootObject:'; { available in 10_5, 2_0 }
+    procedure setRequestTimeout(newValue: NSTimeInterval); message 'setRequestTimeout:';
     function requestTimeout: NSTimeInterval; message 'requestTimeout';
-    procedure setReplyTimeout(ti: NSTimeInterval); message 'setReplyTimeout:';
+    procedure setReplyTimeout(newValue: NSTimeInterval); message 'setReplyTimeout:';
     function replyTimeout: NSTimeInterval; message 'replyTimeout';
-    procedure setRootObject(anObject: id); message 'setRootObject:';
-    function rootObject: id; message 'rootObject';
-    function rootProxy: NSDistantObject; message 'rootProxy';
-    procedure setDelegate(anObject: NSConnectionDelegateProtocol); message 'setDelegate:';
-    function delegate: NSConnectionDelegateProtocol; message 'delegate';
-    procedure setIndependentConversationQueueing(yorn: ObjCBOOL); message 'setIndependentConversationQueueing:';
+    procedure setRootObject(newValue: id); message 'setRootObject:';
+    function rootObject_: id; message 'rootObject';
+    procedure setDelegate(newValue: NSConnectionDelegateProtocol); message 'setDelegate:';
+    function delegate_: NSConnectionDelegateProtocol; message 'delegate';
+    procedure setIndependentConversationQueueing(newValue: ObjCBOOL); message 'setIndependentConversationQueueing:';
     function independentConversationQueueing: ObjCBOOL; message 'independentConversationQueueing';
-    function isValid: ObjCBOOL; message 'isValid';
+    function isValid_: ObjCBOOL; message 'isValid';
+    function rootProxy: NSDistantObject; message 'rootProxy';
     procedure invalidate; message 'invalidate';
-    procedure addRequestMode(rmode: NSString); message 'addRequestMode:';
-    procedure removeRequestMode(rmode: NSString); message 'removeRequestMode:';
-    function requestModes: NSArray; message 'requestModes';
-    function registerName(name: NSString): ObjCBOOL; message 'registerName:';
-    function registerName_withNameServer(name: NSString; server: NSPortNameServer): ObjCBOOL; message 'registerName:withNameServer:';
-    class function connectionWithReceivePort_sendPort(receivePort_: NSPort; sendPort_: NSPort): id; message 'connectionWithReceivePort:sendPort:';
+    procedure addRequestMode (rmode: NSString); message 'addRequestMode:';
+    procedure removeRequestMode (rmode: NSString); message 'removeRequestMode:';
+    function requestModes_: NSArray; message 'requestModes';
+    function registerName (name: NSString): ObjCBOOL; message 'registerName:';
+    function registerName_withNameServer (name: NSString; server: NSPortNameServer): ObjCBOOL; message 'registerName:withNameServer:';
+    class function connectionWithReceivePort_sendPort (receivePort_: NSPort; sendPort_: NSPort): instancetype; message 'connectionWithReceivePort:sendPort:';
     class function currentConversation: id; message 'currentConversation';
-    function initWithReceivePort_sendPort(receivePort_: NSPort; sendPort_: NSPort): id; message 'initWithReceivePort:sendPort:';
-    function sendPort: NSPort; message 'sendPort';
-    function receivePort: NSPort; message 'receivePort';
+    function initWithReceivePort_sendPort (receivePort_: NSPort; sendPort_: NSPort): instancetype; message 'initWithReceivePort:sendPort:';
+    function sendPort_: NSPort; message 'sendPort';
+    function receivePort_: NSPort; message 'receivePort';
     procedure enableMultipleThreads; message 'enableMultipleThreads';
     function multipleThreadsEnabled: ObjCBOOL; message 'multipleThreadsEnabled';
-    procedure addRunLoop(runloop: NSRunLoop); message 'addRunLoop:';
-    procedure removeRunLoop(runloop: NSRunLoop); message 'removeRunLoop:';
+    procedure addRunLoop (runloop: NSRunLoop); message 'addRunLoop:';
+    procedure removeRunLoop (runloop: NSRunLoop); message 'removeRunLoop:';
     procedure runInNewThread; message 'runInNewThread';
     function remoteObjects: NSArray; message 'remoteObjects';
     function localObjects: NSArray; message 'localObjects';
+    procedure dispatchWithComponents (components: NSArray); message 'dispatchWithComponents:'; { available in 10_7, 5_0 }
   end;
+{$endif}
 
-{ NSDistantObjectRequest }
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSConnectionReplyMode: NSString; cvar; external;
+  NSConnectionDidDieNotification: NSString; cvar; external;
+{$endif}
+
+{$ifdef PROTOCOLS}
+
+type
+  NSConnectionDelegateProtocol = objcprotocol external name 'NSConnectionDelegate' (NSObjectProtocol)
+  optional
+    function makeNewConnection_sender (conn: NSConnection; ancestor: NSConnection): ObjCBOOL; message 'makeNewConnection:sender:';
+    function connection_shouldMakeNewConnection (ancestor: NSConnection; conn: NSConnection): ObjCBOOL; message 'connection:shouldMakeNewConnection:';
+    function authenticationDataForComponents (components: NSArray): NSData; message 'authenticationDataForComponents:';
+    function authenticateComponents_withData (components: NSArray; signature: NSData): ObjCBOOL; message 'authenticateComponents:withData:';
+    function createConversationForConnection (conn: NSConnection): id; message 'createConversationForConnection:';
+    function connection_handleRequest (connection: NSConnection; doreq: NSDistantObjectRequest): ObjCBOOL; message 'connection:handleRequest:';
+  end;
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSFailedAuthenticationException: NSString; cvar; external;
+  NSConnectionDidInitializeNotification: NSString; cvar; external;
+{$endif}
+
+{$ifdef CLASSES}
+
+type
   NSDistantObjectRequest = objcclass external (NSObject)
-    
   public
     function invocation: NSInvocation; message 'invocation';
     function connection: NSConnection; message 'connection';
     function conversation: id; message 'conversation';
-    procedure replyWithException(exception: NSException); message 'replyWithException:';
+    procedure replyWithException (exception: NSException); message 'replyWithException:';
   end;
+{$endif}
 
-{$endif}
-{$endif}
-{$ifdef PROTOCOLS}
-{$ifndef NSCONNECTION_PAS_P}
-{$define NSCONNECTION_PAS_P}
-  
-{ NSConnectionDelegate Protocol }
-  NSConnectionDelegateProtocol = objcprotocol external name 'NSConnectionDelegate'
-  optional
-    function makeNewConnection_sender(conn: NSConnection; ancestor: NSConnection): ObjCBOOL; message 'makeNewConnection:sender:';
-    function connection_shouldMakeNewConnection(ancestor: NSConnection; conn: NSConnection): ObjCBOOL; message 'connection:shouldMakeNewConnection:';
-    function authenticationDataForComponents(components: NSArray): NSData; message 'authenticationDataForComponents:';
-    function authenticateComponents_withData(components: NSArray; signature: NSData): ObjCBOOL; message 'authenticateComponents:withData:';
-    function createConversationForConnection(conn: NSConnection): id; message 'createConversationForConnection:';
-    function connection_handleRequest(connection: NSConnection; doreq: NSDistantObjectRequest): ObjCBOOL; message 'connection:handleRequest:';
-  end;
-{$endif}
-{$endif}

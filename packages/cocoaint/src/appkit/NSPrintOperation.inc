@@ -1,10 +1,15 @@
-{ Parsed from Appkit.framework NSPrintOperation.h }
+{ Parsed from AppKit.framework NSPrintOperation.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPRINTOPERATION_PAS_T}
-{$define NSPRINTOPERATION_PAS_T}
+type
+  NSPrintOperationPtr = ^NSPrintOperation;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSPrintingPageOrder = NSInteger;
+  NSPrintingPageOrderPtr = ^NSPrintingPageOrder;
 
 const
   NSDescendingPageOrder = -1;
@@ -12,82 +17,57 @@ const
   NSAscendingPageOrder = 1;
   NSUnknownPageOrder = 2;
 
-{ Types }
 type
-  NSPrintingPageOrder = NSInteger;
-  NSPrintingPageOrderPtr = ^NSPrintingPageOrder;
+  NSPrintRenderingQuality = NSInteger;
+  NSPrintRenderingQualityPtr = ^NSPrintRenderingQuality;
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPRINTOPERATION_PAS_R}
-{$define NSPRINTOPERATION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPRINTOPERATION_PAS_F}
-{$define NSPRINTOPERATION_PAS_F}
-
-{$endif}
+const
+  NSPrintRenderingQualityBest = 0;
+  NSPrintRenderingQualityResponsive = 1;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPRINTOPERATION_PAS_S}
-{$define NSPRINTOPERATION_PAS_S}
-
-{ External string constants }
 var
   NSPrintOperationExistsException: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPrintOperation = objcclass;
-  NSPrintOperationPointer = ^NSPrintOperation;
-  NSPrintOperationPtr = NSPrintOperationPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPRINTOPERATION_PAS_C}
-{$define NSPRINTOPERATION_PAS_C}
 
-{ NSPrintOperation }
+type
   NSPrintOperation = objcclass external (NSObject)
-    
+  private
   public
-    class function printOperationWithView_printInfo(view_: NSView; printInfo_: NSPrintInfo): NSPrintOperation; message 'printOperationWithView:printInfo:';
-    class function PDFOperationWithView_insideRect_toData_printInfo(view_: NSView; rect: NSRect; data: NSMutableData; printInfo_: NSPrintInfo): NSPrintOperation; message 'PDFOperationWithView:insideRect:toData:printInfo:';
-    class function PDFOperationWithView_insideRect_toPath_printInfo(view_: NSView; rect: NSRect; path: NSString; printInfo_: NSPrintInfo): NSPrintOperation; message 'PDFOperationWithView:insideRect:toPath:printInfo:';
-    class function EPSOperationWithView_insideRect_toData_printInfo(view_: NSView; rect: NSRect; data: NSMutableData; printInfo_: NSPrintInfo): NSPrintOperation; message 'EPSOperationWithView:insideRect:toData:printInfo:';
-    class function EPSOperationWithView_insideRect_toPath_printInfo(view_: NSView; rect: NSRect; path: NSString; printInfo_: NSPrintInfo): NSPrintOperation; message 'EPSOperationWithView:insideRect:toPath:printInfo:';
-    class function printOperationWithView(view_: NSView): NSPrintOperation; message 'printOperationWithView:';
-    class function PDFOperationWithView_insideRect_toData(view_: NSView; rect: NSRect; data: NSMutableData): NSPrintOperation; message 'PDFOperationWithView:insideRect:toData:';
-    class function EPSOperationWithView_insideRect_toData(view_: NSView; rect: NSRect; data: NSMutableData): NSPrintOperation; message 'EPSOperationWithView:insideRect:toData:';
+    class function printOperationWithView_printInfo (view: NSView; printInfo: NSPrintInfo): NSPrintOperation; message 'printOperationWithView:printInfo:';
+    class function PDFOperationWithView_insideRect_toData_printInfo (view: NSView; rect: NSRect; data: NSMutableData; printInfo: NSPrintInfo): NSPrintOperation; message 'PDFOperationWithView:insideRect:toData:printInfo:';
+    class function PDFOperationWithView_insideRect_toPath_printInfo (view: NSView; rect: NSRect; path: NSString; printInfo: NSPrintInfo): NSPrintOperation; message 'PDFOperationWithView:insideRect:toPath:printInfo:';
+    class function EPSOperationWithView_insideRect_toData_printInfo (view: NSView; rect: NSRect; data: NSMutableData; printInfo: NSPrintInfo): NSPrintOperation; message 'EPSOperationWithView:insideRect:toData:printInfo:';
+    class function EPSOperationWithView_insideRect_toPath_printInfo (view: NSView; rect: NSRect; path: NSString; printInfo: NSPrintInfo): NSPrintOperation; message 'EPSOperationWithView:insideRect:toPath:printInfo:';
+    class function printOperationWithView (view: NSView): NSPrintOperation; message 'printOperationWithView:';
+    class function PDFOperationWithView_insideRect_toData (view: NSView; rect: NSRect; data: NSMutableData): NSPrintOperation; message 'PDFOperationWithView:insideRect:toData:';
+    class function EPSOperationWithView_insideRect_toData (view: NSView; rect: NSRect; data: NSMutableData): NSPrintOperation; message 'EPSOperationWithView:insideRect:toData:';
     class function currentOperation: NSPrintOperation; message 'currentOperation';
-    class procedure setCurrentOperation(operation: NSPrintOperation); message 'setCurrentOperation:';
+    class procedure setCurrentOperation (operation: NSPrintOperation); message 'setCurrentOperation:';
     function isCopyingOperation: ObjCBOOL; message 'isCopyingOperation';
-    procedure setJobTitle(jobTitle_: NSString); message 'setJobTitle:';
+    function preferredRenderingQuality: NSPrintRenderingQuality; message 'preferredRenderingQuality';
+    procedure setJobTitle(newValue: NSString); message 'setJobTitle:';
     function jobTitle: NSString; message 'jobTitle';
-    procedure setShowsPrintPanel(flag: ObjCBOOL); message 'setShowsPrintPanel:';
+    procedure setShowsPrintPanel(newValue: ObjCBOOL); message 'setShowsPrintPanel:';
     function showsPrintPanel: ObjCBOOL; message 'showsPrintPanel';
-    procedure setShowsProgressPanel(flag: ObjCBOOL); message 'setShowsProgressPanel:';
+    procedure setShowsProgressPanel(newValue: ObjCBOOL); message 'setShowsProgressPanel:';
     function showsProgressPanel: ObjCBOOL; message 'showsProgressPanel';
-    procedure setPrintPanel(panel: NSPrintPanel); message 'setPrintPanel:';
+    procedure setPrintPanel(newValue: NSPrintPanel); message 'setPrintPanel:';
     function printPanel: NSPrintPanel; message 'printPanel';
-    procedure setCanSpawnSeparateThread(canSpawnSeparateThread_: ObjCBOOL); message 'setCanSpawnSeparateThread:';
+    procedure setPDFPanel(newValue: NSPDFPanel); message 'setPDFPanel:';
+    function PDFPanel: NSPDFPanel; message 'PDFPanel';
+    procedure setCanSpawnSeparateThread(newValue: ObjCBOOL); message 'setCanSpawnSeparateThread:';
     function canSpawnSeparateThread: ObjCBOOL; message 'canSpawnSeparateThread';
-    procedure setPageOrder(pageOrder_: NSPrintingPageOrder); message 'setPageOrder:';
+    procedure setPageOrder(newValue: NSPrintingPageOrder); message 'setPageOrder:';
     function pageOrder: NSPrintingPageOrder; message 'pageOrder';
-    procedure runOperationModalForWindow_delegate_didRunSelector_contextInfo(docWindow: NSWindow; delegate: id; didRunSelector: SEL; contextInfo: Pointer); message 'runOperationModalForWindow:delegate:didRunSelector:contextInfo:';
+    procedure runOperationModalForWindow_delegate_didRunSelector_contextInfo (docWindow: NSWindow; delegate: id; didRunSelector: SEL; contextInfo: pointer); message 'runOperationModalForWindow:delegate:didRunSelector:contextInfo:';
     function runOperation: ObjCBOOL; message 'runOperation';
     function view: NSView; message 'view';
+    procedure setPrintInfo(newValue: NSPrintInfo); message 'setPrintInfo:';
     function printInfo: NSPrintInfo; message 'printInfo';
-    procedure setPrintInfo(printInfo_: NSPrintInfo); message 'setPrintInfo:';
     function context: NSGraphicsContext; message 'context';
     function pageRange: NSRange; message 'pageRange';
     function currentPage: NSInteger; message 'currentPage';
@@ -97,15 +77,15 @@ var
     procedure cleanUpOperation; message 'cleanUpOperation';
   end;
 
-{ NSDeprecated_NSPrintOperationCategory }
-  NSDeprecated_NSPrintOperationCategory = objccategory external name 'NSDeprecated' (NSPrintOperation)
-    procedure setAccessoryView(view_: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
-    function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setJobStyleHint(hint: NSString); message 'setJobStyleHint:'; deprecated 'in Mac OS X 10.5 and later';
-    function jobStyleHint: NSString; message 'jobStyleHint'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setShowPanels(flag: ObjCBOOL); message 'setShowPanels:'; deprecated 'in Mac OS X 10.4 and later';
-    function showPanels: ObjCBOOL; message 'showPanels'; deprecated 'in Mac OS X 10.4 and later';
-  end;
 
+type
+  NSPrintOperation_NSDeprecated = objccategory external name 'NSDeprecated' (NSPrintOperation)
+    procedure setAccessoryView (view_: NSView); message 'setAccessoryView:'; deprecated 'in 10_0, 10_5';
+    function accessoryView: NSView; message 'accessoryView'; deprecated 'in 10_0, 10_5';
+    procedure setJobStyleHint (hint: NSString); message 'setJobStyleHint:'; deprecated 'in 10_2, 10_5';
+    function jobStyleHint: NSString; message 'jobStyleHint'; deprecated 'in 10_2, 10_5';
+    procedure setShowPanels (flag: ObjCBOOL); message 'setShowPanels:'; deprecated 'in 10_0, 10_4';
+    function showPanels: ObjCBOOL; message 'showPanels'; deprecated 'in 10_0, 10_4';
+  end;
 {$endif}
-{$endif}
+

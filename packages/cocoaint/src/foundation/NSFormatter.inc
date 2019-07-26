@@ -1,60 +1,50 @@
 { Parsed from Foundation.framework NSFormatter.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSFORMATTER_PAS_T}
-{$define NSFORMATTER_PAS_T}
-
-{$endif}
+type
+  NSFormatterPtr = ^NSFormatter;
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef NSFORMATTER_PAS_R}
-{$define NSFORMATTER_PAS_R}
+{$ifdef TYPES}
+type
+  NSFormattingContext = NSInteger;
+  NSFormattingContextPtr = ^NSFormattingContext;
 
-{$endif}
-{$endif}
+const
+  NSFormattingContextUnknown = 0;
+  NSFormattingContextDynamic = 1;
+  NSFormattingContextStandalone = 2;
+  NSFormattingContextListItem = 3;
+  NSFormattingContextBeginningOfSentence = 4;
+  NSFormattingContextMiddleOfSentence = 5;
 
-{$ifdef FUNCTIONS}
-{$ifndef NSFORMATTER_PAS_F}
-{$define NSFORMATTER_PAS_F}
+type
+  NSFormattingUnitStyle = NSInteger;
+  NSFormattingUnitStylePtr = ^NSFormattingUnitStyle;
 
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSFORMATTER_PAS_S}
-{$define NSFORMATTER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSFormatter = objcclass;
-  NSFormatterPointer = ^NSFormatter;
-  NSFormatterPtr = NSFormatterPointer;
-
+const
+  NSFormattingUnitStyleShort = 1;
+  NSFormattingUnitStyleMedium = 2;
+  NSFormattingUnitStyleLong = 3;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSFORMATTER_PAS_C}
-{$define NSFORMATTER_PAS_C}
 
-{ NSFormatter }
+type
   NSFormatter = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
-    
   public
-    function stringForObjectValue(obj: id): NSString; message 'stringForObjectValue:';
-    function attributedStringForObjectValue_withDefaultAttributes(obj: id; attrs: NSDictionary): NSAttributedString; message 'attributedStringForObjectValue:withDefaultAttributes:';
-    function editingStringForObjectValue(obj: id): NSString; message 'editingStringForObjectValue:';
-    function getObjectValue_forString_errorDescription(obj: idPtr; string_: NSString; error: NSStringPointer): ObjCBOOL; message 'getObjectValue:forString:errorDescription:';
-    function isPartialStringValid_newEditingString_errorDescription(partialString: NSString; newString: NSStringPointer; error: NSStringPointer): ObjCBOOL; message 'isPartialStringValid:newEditingString:errorDescription:';
-    function isPartialStringValid_proposedSelectedRange_originalString_originalSelectedRange_errorDescription(partialStringPtr: NSStringPointer; proposedSelRangePtr: NSRangePointer; origString: NSString; origSelRange: NSRange; error: NSStringPointer): ObjCBOOL; message 'isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:';
+    function stringForObjectValue (obj: id): NSString; message 'stringForObjectValue:';
+    function attributedStringForObjectValue_withDefaultAttributes (obj: id; attrs: NSDictionary): NSAttributedString; message 'attributedStringForObjectValue:withDefaultAttributes:';
+    function editingStringForObjectValue (obj: id): NSString; message 'editingStringForObjectValue:';
+    function getObjectValue_forString_errorDescription (obj: idPtr; string_: NSString; error: NSStringPtr): ObjCBOOL; message 'getObjectValue:forString:errorDescription:';
+    function isPartialStringValid_newEditingString_errorDescription (partialString: NSString; newString: NSStringPtr; error: NSStringPtr): ObjCBOOL; message 'isPartialStringValid:newEditingString:errorDescription:';
+    function isPartialStringValid_proposedSelectedRange_originalString_originalSelectedRange_errorDescription (partialStringPtr: NSStringPtr; proposedSelRangePtr: NSRangePointer; origString: NSString; origSelRange: NSRange; error: NSStringPtr): ObjCBOOL; message 'isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:';
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

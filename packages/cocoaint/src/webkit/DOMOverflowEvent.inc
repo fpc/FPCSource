@@ -1,60 +1,27 @@
-{ Parsed from Webkit.framework DOMOverflowEvent.h }
+{ Parsed from WebKit.framework DOMOverflowEvent.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMOVERFLOWEVENT_PAS_T}
-{$define DOMOVERFLOWEVENT_PAS_T}
+type
+  DOMOverflowEventPtr = ^DOMOverflowEvent;
+{$endif}
 
-{ Constants }
-
+{$ifdef TYPES}
 const
   DOM_HORIZONTAL = 0;
   DOM_VERTICAL = 1;
   DOM_BOTH = 2;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMOVERFLOWEVENT_PAS_R}
-{$define DOMOVERFLOWEVENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMOVERFLOWEVENT_PAS_F}
-{$define DOMOVERFLOWEVENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMOVERFLOWEVENT_PAS_S}
-{$define DOMOVERFLOWEVENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMOverflowEvent = objcclass;
-  DOMOverflowEventPointer = ^DOMOverflowEvent;
-  DOMOverflowEventPtr = DOMOverflowEventPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMOVERFLOWEVENT_PAS_C}
-{$define DOMOVERFLOWEVENT_PAS_C}
 
-{ DOMOverflowEvent }
+type
   DOMOverflowEvent = objcclass external (DOMEvent)
-    
   public
-    function orient: cuint; message 'orient';
+    function orient: cushort; message 'orient';
     function horizontalOverflow: ObjCBOOL; message 'horizontalOverflow';
     function verticalOverflow: ObjCBOOL; message 'verticalOverflow';
-    procedure initOverflowEvent_horizontalOverflow_verticalOverflow(orient_: cushort; horizontalOverflow_: ObjCBOOL; verticalOverflow_: ObjCBOOL); message 'initOverflowEvent:horizontalOverflow:verticalOverflow:';
+    procedure initOverflowEvent_horizontalOverflow_verticalOverflow (orient_: cushort; horizontalOverflow_: ObjCBOOL; verticalOverflow_: ObjCBOOL); message 'initOverflowEvent:horizontalOverflow:verticalOverflow:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

@@ -1,177 +1,70 @@
 { Parsed from Foundation.framework NSObject.h }
 
+
+{ Types from NSDeprecatedMethods }
 {$ifdef TYPES}
-{$ifndef NSOBJECT_PAS_T}
-{$define NSOBJECT_PAS_T}
 
 {$endif}
+
+
+{$ifdef TYPES}
+type
+  NSCopyingProtocolPtr = ^NSCopyingProtocol;
+  NSMutableCopyingProtocolPtr = ^NSMutableCopyingProtocol;
+  NSCodingProtocolPtr = ^NSCodingProtocol;
+  NSSecureCodingProtocolPtr = ^NSSecureCodingProtocol;
+  NSDiscardableContentProtocolPtr = ^NSDiscardableContentProtocol;
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef NSOBJECT_PAS_R}
-{$define NSOBJECT_PAS_R}
+{$ifdef PROTOCOLS}
 
-{$endif}
-{$endif}
+type
+  NSCopyingProtocol = objcprotocol external name 'NSCopying'
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+  end;
 
-{$ifdef FUNCTIONS}
-{$ifndef NSOBJECT_PAS_F}
-{$define NSOBJECT_PAS_F}
+type
+  NSMutableCopyingProtocol = objcprotocol external name 'NSMutableCopying'
+    function mutableCopyWithZone (zone: NSZonePtr): id; message 'mutableCopyWithZone:';
+  end;
 
-{ Functions }
-function NSAllocateObject(aClass: Pobjc_class; extraBytes: NSUInteger; zone: NSZonePtr): id; cdecl; external;
-procedure NSDeallocateObject(object_: id); cdecl; external;
-function NSCopyObject(object_: id; extraBytes: NSUInteger; zone: NSZonePtr): id; cdecl; external;
-function NSShouldRetainWithZone(anObject: id; requestedZone: NSZonePtr): ObjCBOOL; cdecl; external;
-procedure NSIncrementExtraRefCount(object_: id); cdecl; external;
-function NSDecrementExtraRefCountWasZero(object_: id): ObjCBOOL; cdecl; external;
-function NSExtraRefCount(object_: id): NSUInteger; cdecl; external;
+type
+  NSCodingProtocol = objcprotocol external name 'NSCoding'
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
+  end;
 
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSOBJECT_PAS_S}
-{$define NSOBJECT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSObjectProtocol = objcprotocol;
-  NSCopyingProtocol = objcprotocol;
-  NSMutableCopyingProtocol = objcprotocol;
-  NSCodingProtocol = objcprotocol;
-  NSDiscardableContentProtocol = objcprotocol;
-  NSObject = objcclass;
-  NSObjectPointer = ^NSObject;
-  NSObjectPtr = NSObjectPointer;
-
+type
+  NSSecureCodingProtocol = objcprotocol external name 'NSSecureCoding' (NSCodingProtocol)
+  required
+    class function supportsSecureCoding: ObjCBOOL; message 'supportsSecureCoding';
+  end;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSOBJECT_PAS_C}
-{$define NSOBJECT_PAS_C}
 
-{ NSObject }
-  NSObject = objcclass external (NSObjectProtocol)
-  private
-    isa: Pobjc_class;
-    
-  public
-    class procedure load; message 'load';
-    class procedure initialize; message 'initialize';
-    function init: id; message 'init';
-    class function new_: id; message 'new';
-    class function allocWithZone(zone_: NSZonePtr): id; message 'allocWithZone:';
-    class function alloc: id; message 'alloc';
-    procedure dealloc; message 'dealloc';
-    procedure finalize; message 'finalize';
-    function copy: id; message 'copy';
-    function mutableCopy: id; message 'mutableCopy';
-    class function copyWithZone(zone_: NSZonePtr): id; message 'copyWithZone:';
-    class function mutableCopyWithZone(zone_: NSZonePtr): id; message 'mutableCopyWithZone:';
-    class function superclass: Pobjc_class; message 'superclass';
-    class function classClass: Pobjc_class; message 'class';
-    class function instancesRespondToSelector(aSelector: SEL): ObjCBOOL; message 'instancesRespondToSelector:';
-    class function classConformsToProtocol(protocol: objc_protocol): ObjCBOOL; message 'conformsToProtocol:';
-    function methodForSelector(aSelector: SEL): IMP; message 'methodForSelector:';
-    class function instanceMethodForSelector(aSelector: SEL): IMP; message 'instanceMethodForSelector:';
-    procedure doesNotRecognizeSelector(aSelector: SEL); message 'doesNotRecognizeSelector:';
-    function forwardingTargetForSelector(aSelector: SEL): id; message 'forwardingTargetForSelector:';
-    procedure forwardInvocation(anInvocation: NSInvocation); message 'forwardInvocation:';
-    function methodSignatureForSelector(aSelector: SEL): NSMethodSignature; message 'methodSignatureForSelector:';
-    class function instanceMethodSignatureForSelector(aSelector: SEL): NSMethodSignature; message 'instanceMethodSignatureForSelector:';
-    class function description: NSString; message 'description';
-    class function isSubclassOfClass(aClass: Pobjc_class): ObjCBOOL; message 'isSubclassOfClass:';
-    class function resolveClassMethod(sel_: SEL): ObjCBOOL; message 'resolveClassMethod:';
-    class function resolveInstanceMethod(sel_: SEL): ObjCBOOL; message 'resolveInstanceMethod:';
-
-    { Adopted Protocols }
-    function isEqual(object_: id): ObjCBOOL;
-    function hash: NSUInteger;
-    function _class: Pobjc_class;
-    function self: id;
-    function zone: NSZonePtr;
-    function performSelector(aSelector: SEL): id;
-    function performSelector_withObject(aSelector: SEL; object_: id): id;
-    function performSelector_withObject_withObject(aSelector: SEL; object_: id; object_1: id): id;
-    function isProxy: ObjCBOOL;
-    function isKindOfClass(aClass: Pobjc_class): ObjCBOOL;
-    function isMemberOfClass(aClass: Pobjc_class): ObjCBOOL;
-    function conformsToProtocol(aProtocol: objc_protocol): ObjCBOOL;
-    function respondsToSelector(aSelector: SEL): ObjCBOOL;
-    function retain: id;
-    procedure release;
-    function autorelease: id;
-    function retainCount: NSUInteger;
-  end;
-
-{ NSCoderMethodsCategory }
-  NSCoderMethodsCategory = objccategory external (NSObject)
+type
+  NSCoderMethods = objccategory external (NSObject)
     class function version: NSInteger; message 'version';
-    class procedure setVersion(aVersion: NSInteger); message 'setVersion:';
-    function classForCoder: Pobjc_class; message 'classForCoder';
-    function replacementObjectForCoder(aCoder: NSCoder): id; message 'replacementObjectForCoder:';
-    function awakeAfterUsingCoder(aDecoder: NSCoder): id; message 'awakeAfterUsingCoder:';
+    class procedure setVersion (aVersion: NSInteger); message 'setVersion:';
+    function classForCoder: pobjc_class; message 'classForCoder';
+    function replacementObjectForCoder (aCoder: NSCoder): id; message 'replacementObjectForCoder:';
+    function awakeAfterUsingCoder (aDecoder: NSCoder): id; message 'awakeAfterUsingCoder:';
   end;
-
-{ NSDeprecatedMethodsCategory }
-  NSDeprecatedMethodsCategory = objccategory external (NSObject)
-    class procedure poseAsClass(aClass: Pobjc_class); message 'poseAsClass:';
-  end;
-
-{ NSDiscardableContentProxyCategory }
-  NSDiscardableContentProxyCategory = objccategory external (NSObject)
-    function autoContentAccessingProxy: id; message 'autoContentAccessingProxy';
-  end;
-
 {$endif}
+
+{$if (defined(TARGET_OS_MAC) and not (defined(TARGET_OS_EMBEDDED) or defined(TARGET_OS_IPHONE)))}
+{$ifdef CLASSES}
+
+type
+  NSDeprecatedMethods = objccategory external (NSObject)
+  end;
+{$endif}
+
 {$endif}
 {$ifdef PROTOCOLS}
-{$ifndef NSOBJECT_PAS_P}
-{$define NSOBJECT_PAS_P}
-  
-{ NSObject Protocol }
-  NSObjectProtocol = objcprotocol external name 'NSObject'
-    function isEqual(object_: id): ObjCBOOL; message 'isEqual:';
-    function hash: NSUInteger; message 'hash';
-    function superclass: Pobjc_class; message 'superclass';
-    function _class: Pobjc_class; message 'class';
-    function self: id; message 'self';
-    function zone: NSZonePtr; message 'zone';
-    function performSelector(aSelector: SEL): id; message 'performSelector:';
-    function performSelector_withObject(aSelector: SEL; object_: id): id; message 'performSelector:withObject:';
-    function performSelector_withObject_withObject(aSelector: SEL; object_: id; object_1: id): id; message 'performSelector:withObject:withObject:';
-    function isProxy: ObjCBOOL; message 'isProxy';
-    function isKindOfClass(aClass: Pobjc_class): ObjCBOOL; message 'isKindOfClass:';
-    function isMemberOfClass(aClass: Pobjc_class): ObjCBOOL; message 'isMemberOfClass:';
-    function conformsToProtocol(aProtocol: objc_protocol): ObjCBOOL; message 'conformsToProtocol:';
-    function respondsToSelector(aSelector: SEL): ObjCBOOL; message 'respondsToSelector:';
-    function retain: id; message 'retain';
-    procedure release; message 'release';
-    function autorelease: id; message 'autorelease';
-    function retainCount: NSUInteger; message 'retainCount';
-    function description: NSString; message 'description';
-  end;
-  
-{ NSCopying Protocol }
-  NSCopyingProtocol = objcprotocol external name 'NSCopying'
-    function copyWithZone(zone_: NSZonePtr): id; message 'copyWithZone:';
-  end;
-  
-{ NSMutableCopying Protocol }
-  NSMutableCopyingProtocol = objcprotocol external name 'NSMutableCopying'
-    function mutableCopyWithZone(zone_: NSZonePtr): id; message 'mutableCopyWithZone:';
-  end;
-  
-{ NSCoding Protocol }
-  NSCodingProtocol = objcprotocol external name 'NSCoding'
-    procedure encodeWithCoder(aCoder: NSCoder); message 'encodeWithCoder:';
-    function initWithCoder(aDecoder: NSCoder): id; message 'initWithCoder:';
-  end;
-  
-{ NSDiscardableContent Protocol }
+
+type
   NSDiscardableContentProtocol = objcprotocol external name 'NSDiscardableContent'
   required
     function beginContentAccess: ObjCBOOL; message 'beginContentAccess';
@@ -180,4 +73,22 @@ function NSExtraRefCount(object_: id): NSUInteger; cdecl; external;
     function isContentDiscarded: ObjCBOOL; message 'isContentDiscarded';
   end;
 {$endif}
+
+{$ifdef CLASSES}
+
+type
+  NSDiscardableContentProxy = objccategory external (NSObject)
+    function autoContentAccessingProxy: id; message 'autoContentAccessingProxy';
+  end;
 {$endif}
+
+{$ifdef FUNCTIONS}
+function NSAllocateObject(aClass: pobjc_class; extraBytes: NSUInteger; zone: NSZonePtr): id; cdecl; external;
+procedure NSDeallocateObject(object_: id); cdecl; external;
+function NSCopyObject(object_: id; extraBytes: NSUInteger; zone: NSZonePtr): id; cdecl; external; deprecated 'in 10_0, 10_8, 2_0, 6_0';
+function NSShouldRetainWithZone(anObject: id; requestedZone: NSZonePtr): ObjCBOOL; cdecl; external;
+procedure NSIncrementExtraRefCount(object_: id); cdecl; external;
+function NSDecrementExtraRefCountWasZero(object_: id): ObjCBOOL; cdecl; external;
+function NSExtraRefCount(object_: id): NSUInteger; cdecl; external;
+{$endif}
+

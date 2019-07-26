@@ -1,59 +1,26 @@
 { Parsed from Foundation.framework NSGarbageCollector.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSGARBAGECOLLECTOR_PAS_T}
-{$define NSGARBAGECOLLECTOR_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSGARBAGECOLLECTOR_PAS_R}
-{$define NSGARBAGECOLLECTOR_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSGARBAGECOLLECTOR_PAS_F}
-{$define NSGARBAGECOLLECTOR_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSGARBAGECOLLECTOR_PAS_S}
-{$define NSGARBAGECOLLECTOR_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSGarbageCollector = objcclass;
-  NSGarbageCollectorPointer = ^NSGarbageCollector;
-  NSGarbageCollectorPtr = NSGarbageCollectorPointer;
-
+type
+  NSGarbageCollectorPtr = ^NSGarbageCollector;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSGARBAGECOLLECTOR_PAS_C}
-{$define NSGARBAGECOLLECTOR_PAS_C}
 
-{ NSGarbageCollector }
+type
   NSGarbageCollector = objcclass external (NSObject)
-    
   public
     class function defaultCollector: id; message 'defaultCollector';
-    function isCollecting: ObjCBOOL; message 'isCollecting'; deprecated 'in Mac OS X 10.6 and later';
+    function isCollecting: ObjCBOOL; message 'isCollecting'; deprecated 'in 10_0, 10_6, NA, NA';
     procedure disable; message 'disable';
     procedure enable; message 'enable';
     function isEnabled: ObjCBOOL; message 'isEnabled';
     procedure collectIfNeeded; message 'collectIfNeeded';
     procedure collectExhaustively; message 'collectExhaustively';
-    procedure disableCollectorForPointer(ptr: Pointer); message 'disableCollectorForPointer:';
-    procedure enableCollectorForPointer(ptr: Pointer); message 'enableCollectorForPointer:';
+    procedure disableCollectorForPointer (ptr: pointer); message 'disableCollectorForPointer:';
+    procedure enableCollectorForPointer (ptr: pointer); message 'enableCollectorForPointer:';
     function zone: NSZonePtr; message 'zone';
   end;
+{$endif}
 
-{$endif}
-{$endif}

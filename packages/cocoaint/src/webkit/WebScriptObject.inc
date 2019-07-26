@@ -1,86 +1,62 @@
-{ Parsed from Webkit.framework WebScriptObject.h }
+{ Parsed from WebKit.framework WebScriptObject.h }
+
+
+{ Types from WebScriptObject }
+{$ifdef TYPES}
+
+{$endif}
+
 
 {$ifdef TYPES}
-{$ifndef WEBSCRIPTOBJECT_PAS_T}
-{$define WEBSCRIPTOBJECT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef WEBSCRIPTOBJECT_PAS_R}
-{$define WEBSCRIPTOBJECT_PAS_R}
-
-{$endif}
+type
+  WebScriptObjectPtr = ^WebScriptObject;
+  WebUndefinedPtr = ^WebUndefined;
 {$endif}
 
-{$ifdef FUNCTIONS}
-{$ifndef WEBSCRIPTOBJECT_PAS_F}
-{$define WEBSCRIPTOBJECT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef WEBSCRIPTOBJECT_PAS_S}
-{$define WEBSCRIPTOBJECT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  WebScriptObject = objcclass;
-  WebScriptObjectPointer = ^WebScriptObject;
-  WebScriptObjectPtr = WebScriptObjectPointer;
-  WebUndefined = objcclass;
-  WebUndefinedPointer = ^WebUndefined;
-  WebUndefinedPtr = WebUndefinedPointer;
-
-{$endif}
-
+{$ifndef WebScriptObject_h}
 {$ifdef CLASSES}
-{$ifndef WEBSCRIPTOBJECT_PAS_C}
-{$define WEBSCRIPTOBJECT_PAS_C}
 
-{ WebScriptObject }
+type
+  WebScripting = objccategory external (NSObject)
+    class function webScriptNameForSelector (selector: SEL): NSString; message 'webScriptNameForSelector:'; { available in 10_4 }
+    class function isSelectorExcludedFromWebScript (selector: SEL): ObjCBOOL; message 'isSelectorExcludedFromWebScript:'; { available in 10_4 }
+    class function webScriptNameForKey (name: PChar): NSString; message 'webScriptNameForKey:'; { available in 10_4 }
+    class function isKeyExcludedFromWebScript (name: PChar): ObjCBOOL; message 'isKeyExcludedFromWebScript:'; { available in 10_4 }
+    function invokeUndefinedMethodFromWebScript_withArguments (name: NSString; arguments: NSArray): id; message 'invokeUndefinedMethodFromWebScript:withArguments:'; { available in 10_4 }
+    function invokeDefaultMethodWithArguments (arguments: NSArray): id; message 'invokeDefaultMethodWithArguments:'; { available in 10_4 }
+    procedure finalizeForWebScript; message 'finalizeForWebScript'; { available in 10_4 }
+  end;
+
+
+type
   WebScriptObject = objcclass external (NSObject)
   private
     _private: WebScriptObjectPrivate;
-    
   public
-    class function throwException(exceptionMessage: NSString): ObjCBOOL; message 'throwException:';
-    function JSObject: JSObjectRef; message 'JSObject';
-    function callWebScriptMethod_withArguments(name: NSString; arguments: NSArray): id; message 'callWebScriptMethod:withArguments:';
-    function evaluateWebScript(script: NSString): id; message 'evaluateWebScript:';
-    procedure removeWebScriptKey(name: NSString); message 'removeWebScriptKey:';
+    class function throwException (exceptionMessage: NSString): ObjCBOOL; message 'throwException:';
+    function JSObject: JSObjectRef; message 'JSObject'; { available in 10_5 }
+    function callWebScriptMethod_withArguments (name: NSString; arguments: NSArray): id; message 'callWebScriptMethod:withArguments:';
+    function evaluateWebScript (script: NSString): id; message 'evaluateWebScript:';
+    procedure removeWebScriptKey (name: NSString); message 'removeWebScriptKey:';
     function stringRepresentation: NSString; message 'stringRepresentation';
-    function webScriptValueAtIndex(index: cuint): id; message 'webScriptValueAtIndex:';
-    procedure setWebScriptValueAtIndex_value(index: cuint; value: id); message 'setWebScriptValueAtIndex:value:';
-    procedure setException(description_: NSString); message 'setException:';
+    function webScriptValueAtIndex (index: cuint): id; message 'webScriptValueAtIndex:';
+    procedure setWebScriptValueAtIndex_value (index: cuint; value: id); message 'setWebScriptValueAtIndex:value:';
+    procedure setException (description: NSString); message 'setException:';
+    {$if defined(JSC_OBJC_API_ENABLED)}
+    function JSValue_: JSValue; message 'JSValue';
+    {$endif}
   end;
 
-{ WebUndefined }
+type
   WebUndefined = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
-    
   public
     class function undefined: WebUndefined; message 'undefined';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-    function copyWithZone(zone_: NSZonePtr): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
-
-{ WebScriptingCategory }
-  WebScriptingCategory = objccategory external (NSObject)
-    class function webScriptNameForSelector(selector: SEL): NSString; message 'webScriptNameForSelector:';
-    class function isSelectorExcludedFromWebScript(selector: SEL): ObjCBOOL; message 'isSelectorExcludedFromWebScript:';
-    class function webScriptNameForKey(name: PChar): NSString; message 'webScriptNameForKey:';
-    class function isKeyExcludedFromWebScript(name: PChar): ObjCBOOL; message 'isKeyExcludedFromWebScript:';
-    function invokeUndefinedMethodFromWebScript_withArguments(name: NSString; arguments: NSArray): id; message 'invokeUndefinedMethodFromWebScript:withArguments:';
-    function invokeDefaultMethodWithArguments(arguments: NSArray): id; message 'invokeDefaultMethodWithArguments:';
-    procedure finalizeForWebScript; message 'finalizeForWebScript';
-  end;
-
 {$endif}
+
 {$endif}
