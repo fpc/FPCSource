@@ -10477,6 +10477,12 @@ begin
   'procedure Fly(d: jsvalue; const c: jsvalue);',
   'begin',
   'end;',
+  'procedure Run(d: TRecord; const c: TRecord; var v: TRecord);',
+  'begin',
+  '  if jsvalue(d) then ;',
+  '  if jsvalue(c) then ;',
+  '  if jsvalue(v) then ;',
+  'end;',
   'var',
   '  Jv: jsvalue;',
   '  Rec: trecord;',
@@ -10485,6 +10491,8 @@ begin
   '  jv:=rec;',
   '  Fly(rec,rec);',
   '  Fly(@rec,@rec);',
+  '  if jsvalue(Rec) then ;',
+  '  Run(trecord(jv),trecord(jv),rec);',
   '']);
   ConvertProgram;
   CheckSource('TestRecord_JSValue',
@@ -10501,6 +10509,11 @@ begin
     '});',
     'this.Fly = function (d, c) {',
     '};',
+    'this.Run = function (d, c, v) {',
+    '  if (d) ;',
+    '  if (c) ;',
+    '  if (v) ;',
+    '};',
     'this.Jv = undefined;',
     'this.Rec = $mod.TRecord.$new();',
     '']),
@@ -10509,6 +10522,8 @@ begin
     '$mod.Jv = $mod.Rec;',
     '$mod.Fly($mod.TRecord.$clone($mod.Rec), $mod.Rec);',
     '$mod.Fly($mod.Rec, $mod.Rec);',
+    'if ($mod.Rec) ;',
+    '$mod.Run($mod.TRecord.$clone(rtl.getObject($mod.Jv)), rtl.getObject($mod.Jv), $mod.Rec);',
     '']));
 end;
 
@@ -25809,6 +25824,10 @@ procedure TTestModule.TestJSValue_If;
 begin
   StartProgram(false);
   Add([
+  'procedure Fly(var u);',
+  'begin',
+  '  if jsvalue(u) then ;',
+  'end;',
   'var',
   '  v: jsvalue;',
   'begin',
@@ -25819,6 +25838,9 @@ begin
   ConvertProgram;
   CheckSource('TestJSValue_If',
     LinesToStr([ // statements
+    'this.Fly = function (u) {',
+    '  if (u.get()) ;',
+    '};',
     'this.v = undefined;',
     '']),
     LinesToStr([ // $mod.$main
