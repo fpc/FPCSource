@@ -2560,12 +2560,16 @@ begin
         begin
         Res:=TPasResString(ResList[i]);
         aValue:=aFile.PascalResolver.Eval(Res.Expr,[refConst],False);
-        if aValue.Kind=revkString then
-           FResourceStrings.AddString(Res.Name,TResEvalString(aValue).S)
-        else if aValue.Kind=revkUnicodeString then
-           FResourceStrings.AddString(Res.Name,TJSONStringType(TResEvalUTF16(aValue).S))
+        case aValue.Kind of
+        {$IFDEF FPC_HAS_CPSTRING}
+        revkString:
+          FResourceStrings.AddString(Res.Name,TResEvalString(aValue).S);
+        {$ENDIF}
+        revkUnicodeString:
+          FResourceStrings.AddString(Res.Name,TJSONStringType(TResEvalUTF16(aValue).S))
         else
           Log.Log(mtNote,sSkipNoConstResourcestring,nSkipNoConstResourcestring,aFile.PasFileName);
+        end;
         ReleaseEvalValue(aValue);
         end;
       end;
@@ -2574,9 +2578,7 @@ begin
   end;
 end;
 
-
 procedure TPas2jsCompiler.WriteResourceStrings(aFileName : String);
-
 Var
   {$IFDEF Pas2js}
   buf: TJSArray;
@@ -2584,7 +2586,6 @@ Var
   buf: TMemoryStream;
   {$ENDIF}
   S : TJSONStringType;
-
 begin
   Log.LogMsg(nWritingFile,[FullFormatPath(aFilename)],'',0,0,False);
   try
@@ -2597,7 +2598,7 @@ begin
       // Note: No UTF-8 BOM in source map, Chrome 59 gives an error
       S:=FResourceStrings.AsString;
       {$ifdef pas2js}
-      aStream.push(S);
+      buf.push(S);
       {$else}
       buf.Write(S[1],length(S));
       {$endif}
