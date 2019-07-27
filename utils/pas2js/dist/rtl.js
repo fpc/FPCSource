@@ -280,7 +280,7 @@ var rtl = {
       // if root is an "object" then c.$ancestor === Object.getPrototypeOf(c)
       // if root is a "function" then c.$ancestor === c.__proto__, Object.getPrototypeOf(c) returns the root
     } else {
-      c = {};
+      c = { $ancestor: null };
       c.$create = function(fn,args){
         if (args == undefined) args = [];
         var o = Object.create(this);
@@ -355,7 +355,7 @@ var rtl = {
       c.$ancestor = ancestor;
       // c.$ancestor === Object.getPrototypeOf(c)
     } else {
-      c = {};
+      c = { $ancestor: null };
     };
     parent[name] = c;
     c.$class = c; // Note: o.$class === Object.getPrototypeOf(o)
