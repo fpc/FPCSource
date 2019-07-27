@@ -3633,6 +3633,7 @@ procedure TPCUWriter.WriteProcedureType(Obj: TJSONObject;
   El: TPasProcedureType; aContext: TPCUWriterContext);
 begin
   WritePasElement(Obj,El,aContext);
+  WriteGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   WriteElementList(Obj,El,'Args',El.Args,aContext);
   if El.CallingConvention<>ccDefault then
     Obj.Add('Call',PCUCallingConventionNames[El.CallingConvention]);
@@ -7280,6 +7281,7 @@ var
   c: TCallingConvention;
 begin
   ReadPasElement(Obj,El,aContext);
+  ReadGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   ReadElementList(Obj,El,'Args',El.Args,
     {$IFDEF CheckPasTreeRefCount}'TPasProcedureType.Args'{$ELSE}true{$ENDIF},
     aContext);

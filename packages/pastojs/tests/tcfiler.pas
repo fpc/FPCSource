@@ -1460,6 +1460,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredProcedureType(const Path: string;
   Orig, Rest: TPasProcedureType);
 begin
+  CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   CheckRestoredElementList(Path+'.Args',Orig.Args,Rest.Args);
   if Orig.CallingConvention<>Rest.CallingConvention then
     Fail(Path+'.CallingConvention Orig='+PCUCallingConventionNames[Orig.CallingConvention]+' Rest='+PCUCallingConventionNames[Rest.CallingConvention]);
