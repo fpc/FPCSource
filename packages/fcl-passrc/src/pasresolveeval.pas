@@ -193,6 +193,7 @@ const
   nConstraintXSpecifiedMoreThanOnce = 3127;
   nConstraintXAndConstraintYCannotBeTogether = 3128;
   nXIsNotAValidConstraint = 3129;
+  nWrongNumberOfParametersForGenericType = 3130;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -333,6 +334,7 @@ resourcestring
   sConstraintXSpecifiedMoreThanOnce = 'Constraint ''%s'' specified more than once';
   sConstraintXAndConstraintYCannotBeTogether = '''%s'' constraint and ''%s'' constraint cannot be specified together';
   sXIsNotAValidConstraint = '''%s'' is not a valid constraint';
+  sWrongNumberOfParametersForGenericType = 'wrong number of parameters for generic type %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

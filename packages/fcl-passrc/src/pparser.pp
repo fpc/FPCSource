@@ -169,6 +169,7 @@ type
     stTypeSection,
     stTypeDef, // e.g. a TPasType
     stResourceString, // e.g. TPasResString
+    stGenericTypeTemplates, // called after TPasGenericType.SetGenericTemplates or TPasProcedure.setNameParts
     stProcedure, // also method, procedure, constructor, destructor, ...
     stProcedureHeader,
     stWithExpr, // calls BeginScope after parsing every WITH-expression
@@ -3354,6 +3355,13 @@ var
     Scanner.SetForceCaret(NewBlock=declType);
   end;
 
+  procedure InitGenericType(NewEl: TPasGenericType; GenericTemplateTypes: TFPList);
+  begin
+    Declarations.Declarations.Add(NewEl);
+    NewEl.SetGenericTemplates(GenericTemplateTypes);
+    Engine.FinishScope(stGenericTypeTemplates,NewEl);
+  end;
+
 var
   ConstEl: TPasConst;
   ResStrEl: TPasResString;
@@ -3365,13 +3373,14 @@ var
   ExpEl: TPasExportSymbol;
   PropEl : TPasProperty;
   TypeName: String;
-  PT : TProcType;
+  PT , ProcType: TProcType;
   NamePos: TPasSourcePos;
   ok: Boolean;
   Proc: TPasProcedure;
   RecordEl: TPasRecordType;
   Attr: TPasAttributes;
   CurEl: TPasElement;
+  ProcTypeEl: TPasProcedureType;
 begin
   CurBlock := declNone;
   HadTypeSection:=false;
@@ -3600,9 +3609,8 @@ begin
               begin
               ClassEl := TPasClassType(CreateElement(TPasClassType,
                 TypeName, Declarations, NamePos));
-              Declarations.Declarations.Add(ClassEl);
               Declarations.Classes.Add(ClassEl);
-              ClassEl.SetGenericTemplates(List);
+              InitGenericType(ClassEl,List);
               NextToken;
               DoParseClassType(ClassEl);
               CheckHint(ClassEl,True);
@@ -3612,9 +3620,8 @@ begin
              begin
              RecordEl := TPasRecordType(CreateElement(TPasRecordType,
                TypeName, Declarations, NamePos));
-             Declarations.Declarations.Add(RecordEl);
              Declarations.Classes.Add(RecordEl);
-             RecordEl.SetGenericTemplates(List);
+             InitGenericType(RecordEl,List);
              NextToken;
              ParseRecordMembers(RecordEl,tkend,
                               (msAdvancedRecords in Scanner.CurrentModeSwitches)
@@ -3626,13 +3633,28 @@ begin
            tkArray:
              begin
              ArrEl := TPasArrayType(CreateElement(TPasArrayType, TypeName, Declarations, NamePos));
-             Declarations.Declarations.Add(ArrEl);
              Declarations.Types.Add(ArrEl);
-             ArrEl.SetGenericTemplates(List);
+             InitGenericType(ArrEl,List);
              DoParseArrayType(ArrEl);
              CheckHint(ArrEl,True);
              Engine.FinishScope(stTypeDef,ArrEl);
              end;
+          tkprocedure,tkfunction:
+            begin
+            if CurToken=tkFunction then
+              begin
+              ProcTypeEl := CreateFunctionType(TypeName, 'Result', Declarations, False, NamePos);
+              ProcType:=ptFunction;
+              end
+            else
+              begin
+              ProcTypeEl := TPasProcedureType(CreateElement(TPasProcedureType, TypeName, Declarations, NamePos));
+              ProcType:=ptProcedure;
+              end;
+            Declarations.Functions.Add(ProcTypeEl);
+            InitGenericType(ProcTypeEl,List);
+            ParseProcedureOrFunction(ProcTypeEl, ProcTypeEl, ProcType, True);
+            end;
           else
             ParseExc(nParserGenericClassOrArray,SParserGenericClassOrArray);
           end;
@@ -6389,7 +6411,10 @@ begin
       Parent:=CheckIfOverLoaded(Parent,Name);
     Result:=TPasProcedure(CreateElement(PC,Name,Parent,AVisibility));
     if NameParts<>nil then
+      begin
       Result.SetNameParts(NameParts);
+      Engine.FinishScope(stGenericTypeTemplates,Result);
+      end;
 
     case ProcType of
     ptFunction, ptClassFunction, ptOperator, ptClassOperator, ptAnonymousFunction:

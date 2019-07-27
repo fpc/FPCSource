@@ -661,6 +661,26 @@ type
     Element: TPasType; // TPasClassOfType or TPasPointerType
   end;
 
+  { TPasSpecializeTypeData - CustomData of TPasSpecializeType
+    for the generic type see TPasSpecializeType(Element).DestType }
+
+  TPasSpecializeTypeData = Class(TResolveData)
+  public
+    SpecializedType: TPasType;
+  end;
+
+  { TPSSpecializedItem }
+
+  TPSSpecializedItem = class
+  private
+    FSpecializedType: TPasGenericType;
+    procedure SetSpecializedType(AValue: TPasGenericType);
+  public
+    Params: TPasTypeArray;
+    destructor Destroy; override;
+    property SpecializedType: TPasGenericType read FSpecializedType write SetSpecializedType;
+  end;
+
   TPSRefAccess = (
     psraNone,
     psraRead,
@@ -896,9 +916,17 @@ type
     destructor Destroy; override;
   end;
 
+  { TPasGenericScope }
+
+  TPasGenericScope = Class(TPasIdentifierScope)
+  public
+    SpecializedTypes: TObjectList; // list of TPSSpecializedItem
+    destructor Destroy; override;
+  end;
+
   { TPasClassOrRecordScope }
 
-  TPasClassOrRecordScope = Class(TPasIdentifierScope)
+  TPasClassOrRecordScope = Class(TPasGenericScope)
   public
     DefaultProperty: TPasProperty;
     ClassConstructor: TPasClassConstructor;
@@ -1239,6 +1267,7 @@ type
     Flags: TPasResolverResultFlags;
   end;
   PPasResolverResult = ^TPasResolverResult;
+  TPasResolverResultArray = array of TPasResolverResult;
 
 type
   TPasResolverComputeFlag = (
@@ -1520,13 +1549,16 @@ type
     procedure FinishRangeType(El: TPasRangeType); virtual;
     procedure FinishConstRangeExpr(RangeExpr: TBinaryExpr;
       out LeftResolved, RightResolved: TPasResolverResult);
+    procedure FinishGenericTemplateTypes(aType: TPasGenericType); virtual;
     procedure FinishRecordType(El: TPasRecordType); virtual;
     procedure FinishClassType(El: TPasClassType); virtual;
     procedure FinishClassOfType(El: TPasClassOfType); virtual;
     procedure FinishPointerType(El: TPasPointerType); virtual;
     procedure FinishArrayType(El: TPasArrayType); virtual;
     procedure FinishGenericTemplateType(El: TPasGenericTemplateType); virtual;
+    procedure FinishSpecializeType(El: TPasSpecializeType); virtual;
     procedure FinishResourcestring(El: TPasResString); virtual;
+    procedure FinishProcNameParts(aProc: TPasProcedure); virtual;
     procedure FinishProcedure(aProc: TPasProcedure); virtual;
     procedure FinishProcedureType(El: TPasProcedureType); virtual;
     procedure FinishMethodDeclHeader(Proc: TPasProcedure); virtual;
@@ -1622,6 +1654,7 @@ type
     function FindTVarRec(ErrorEl: TPasElement): TPasRecordType; virtual;
     function GetTVarRec(El: TPasArrayType): TPasRecordType; virtual;
   protected
+    // constant evaluation
     fExprEvaluator: TResExprEvaluator;
     procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: TMaxPrecInt;
       MsgType: TMessageType; MsgNumber: integer; const Fmt: String;
@@ -1633,6 +1666,10 @@ type
     procedure OnRangeCheckEl(Sender: TResExprEvaluator; El: TPasElement;
       var MsgType: TMessageType); virtual;
     function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue;
+  protected
+    // generic/specialize
+    function GetSpecializedType(El: TPasSpecializeType): TPasGenericType;
+    procedure CheckSpecializeConstraints(El : TPasSpecializeType);
   protected
     // custom types (added by descendant resolvers)
     function CheckAssignCompatibilityCustom(
@@ -2781,6 +2818,36 @@ end;
 function dbgs(const a: TPSRefAccess): string;
 begin
   str(a,Result);
+end;
+
+{ TPasGenericScope }
+
+destructor TPasGenericScope.Destroy;
+begin
+  if SpecializedTypes<>nil then
+    begin
+    SpecializedTypes.Free;
+    SpecializedTypes:=nil;
+    end;
+  inherited Destroy;
+end;
+
+{ TPSSpecializedItem }
+
+procedure TPSSpecializedItem.SetSpecializedType(AValue: TPasGenericType);
+begin
+  if FSpecializedType=AValue then Exit;
+  if FSpecializedType<>nil then
+    FSpecializedType.Release{$IFDEF CheckPasTreeRefCount}('TPSSpecializedItem.SpecializedType'){$ENDIF};
+  FSpecializedType:=AValue;
+  if FSpecializedType<>nil then
+    FSpecializedType.AddRef{$IFDEF CheckPasTreeRefCount}('TPSSpecializedItem.SpecializedType'){$ENDIF};
+end;
+
+destructor TPSSpecializedItem.Destroy;
+begin
+  SpecializedType:=nil;
+  inherited Destroy;
 end;
 
 { TPasInheritedScope }
@@ -5412,7 +5479,9 @@ begin
   else if (C=TPasPointerType) then
     EmitTypeHints(El,TPasPointerType(El).DestType)
   else if C=TPasGenericTemplateType then
-    FinishGenericTemplateType(TPasGenericTemplateType(El));
+    FinishGenericTemplateType(TPasGenericTemplateType(El))
+  else if C=TPasSpecializeType then
+    FinishSpecializeType(TPasSpecializeType(El));
 end;
 
 procedure TPasResolver.FinishEnumType(El: TPasEnumType);
@@ -5536,6 +5605,32 @@ begin
 
   RgValue:=Eval(RangeExpr,[refConst]);
   ReleaseEvalValue(RgValue);
+end;
+
+procedure TPasResolver.FinishGenericTemplateTypes(aType: TPasGenericType);
+var
+  C: TClass;
+  Scope: TPasIdentifierScope;
+  GenTemplates: TFPList;
+  i: Integer;
+  TemplType: TPasGenericTemplateType;
+begin
+  // add template names to scope
+  C:=aType.ClassType;
+  if C.InheritsFrom(TPasMembersType) then
+    Scope:=aType.CustomData as TPasClassOrRecordScope
+  // ToDo: TPasArrayType
+  // ToDo: TPasProcedureType
+  else
+    RaiseMsg(20190726150359,nNotYetImplemented,sNotYetImplemented,[GetObjName(aType)],aType);
+  GenTemplates:=aType.GenericTemplateTypes;
+  if (GenTemplates=nil) or (GenTemplates.Count=0) then
+    RaiseMsg(20190726184902,nNotYetImplemented,sNotYetImplemented,['emty generic template list'],aType);
+  for i:=0 to GenTemplates.Count-1 do
+    begin
+    TemplType:=TPasGenericTemplateType(GenTemplates[i]);
+    AddIdentifier(Scope,TemplType.Name,TemplType,pikSimple);
+    end;
 end;
 
 procedure TPasResolver.FinishRecordType(El: TPasRecordType);
@@ -5940,6 +6035,50 @@ begin
     end;
 end;
 
+procedure TPasResolver.FinishSpecializeType(El: TPasSpecializeType);
+var
+  Params, GenericTemplateList: TFPList;
+  P: TPasElement;
+  DestType: TPasType;
+  i: Integer;
+begin
+  // resolve Params
+  Params:=El.Params;
+  for i:=0 to Params.Count-1 do
+    begin
+    P:=TPasElement(Params[i]);
+    if P is TPasExpr then
+      ResolveExpr(TPasExpr(P),rraRead);
+    end;
+  if Params.Count=0 then
+    RaiseMsg(20190724114416,nMissingParameterX,sMissingParameterX,['type'],El);
+
+  // check DestType
+  GenericTemplateList:=nil;
+  DestType:=El.DestType;
+  if DestType=nil then
+    RaiseMsg(20190725184734,nIdentifierNotFound,sIdentifierNotFound,['specialize type'],El)
+  else if not (DestType is TPasGenericType) then
+    RaiseMsg(20190725193552,nXExpectedButYFound,sXExpectedButYFound,['generic type',DestType.Name],El);
+  GenericTemplateList:=TPasGenericType(DestType).GenericTemplateTypes;
+  if (GenericTemplateList<>nil)
+      and (GenericTemplateList.Count<>Params.Count) then
+    GenericTemplateList:=nil;
+
+  if GenericTemplateList=nil then
+    begin
+    // ToDO: resolve DestType using Params.Count
+    //FindElementWithoutParams();
+    //Data:=Default(TPRFindData);
+    //Data.ErrorPosEl:=El;
+    //Abort:=false;
+    //IterateElements(El.Name,@OnFindFirst_PreferNoParams,@Data,Abort);
+    RaiseMsg(20190725194222,nWrongNumberOfParametersForGenericType,sWrongNumberOfParametersForGenericType,['ToDo'],El);
+    end;
+
+  GetSpecializedType(El);
+end;
+
 procedure TPasResolver.FinishResourcestring(El: TPasResString);
 var
   ResolvedEl: TPasResolverResult;
@@ -5948,6 +6087,19 @@ begin
   ComputeElement(El.Expr,ResolvedEl,[rcConstant]);
   if not (ResolvedEl.BaseType in btAllStringAndChars) then
     RaiseXExpectedButYFound(20171004135753,'string',GetTypeDescription(ResolvedEl),El.Expr);
+end;
+
+procedure TPasResolver.FinishProcNameParts(aProc: TPasProcedure);
+var
+  i, j: Integer;
+begin
+  for i:=0 to length(aProc.NameParts)-1 do
+    with aProc.NameParts[i] do
+      begin
+      if Templates<>nil then
+        for j:=0 to Templates.Count-1 do
+          AddType(TPasGenericTemplateType(Templates[j]));
+      end;
 end;
 
 procedure TPasResolver.FinishProcedure(aProc: TPasProcedure);
@@ -13755,6 +13907,169 @@ begin
   end;
 end;
 
+function TPasResolver.GetSpecializedType(El: TPasSpecializeType
+  ): TPasGenericType;
+var
+  Data: TPasSpecializeTypeData;
+  GenericType: TPasGenericType;
+  GenScope: TPasGenericScope;
+  Params: TFPList;
+  i, j: Integer;
+  Param: TPasElement;
+  ParamsResolved: TPasTypeArray;
+  ResolvedEl: TPasResolverResult;
+  SpecializedTypes: TObjectList;
+  Item: TPSSpecializedItem;
+begin
+  Result:=nil;
+  if El.CustomData<>nil then
+    RaiseInternalError(20190726142522);
+
+  CheckSpecializeConstraints(El);
+
+  // spezialize: parsing implementation must be delayed until implementation section is complete
+  GenericType:=El.DestType as TPasGenericType;
+  if not (GenericType.CustomData is TPasGenericScope) then
+    RaiseMsg(20190726194316,nNotYetImplemented,sNotYetImplemented,[GetObjName(GenericType.CustomData)],El);
+  GenScope:=TPasGenericScope(GenericType.CustomData);
+  Params:=El.Params;
+  SetLength(ParamsResolved,Params.Count);
+  for i:=0 to Params.Count-1 do
+    begin
+    Param:=TPasElement(Params[i]);
+    ComputeElement(Param,ResolvedEl,[rcType]);
+    ParamsResolved[i]:=ResolvedEl.LoTypeEl;
+    end;
+  SpecializedTypes:=GenScope.SpecializedTypes;
+  if SpecializedTypes=nil then
+    begin
+    SpecializedTypes:=TObjectList.Create(true);
+    GenScope.SpecializedTypes:=SpecializedTypes;
+    end;
+  i:=SpecializedTypes.Count-1;
+  Item:=nil;
+  while i>=0 do
+    begin
+    Item:=TPSSpecializedItem(SpecializedTypes[i]);
+    j:=length(Item.Params);
+    while (j>=0) and (Item.Params[j]=ParamsResolved[j]) do dec(j);
+    if j<0 then
+      break;
+    Item:=nil;
+    dec(i);
+    end;
+  if Item<>nil then
+    begin
+    // already specialized
+    Result:=Item.SpecializedType;
+    end
+  else
+    begin
+    // new specialization
+    Item:=TPSSpecializedItem.Create;
+    Item.Params:=ParamsResolved;
+    SpecializedTypes.Add(Item);
+    // ToDo: create specilized type
+    RaiseMsg(20190726141738,nNotYetImplemented,sNotYetImplemented,['specialize'],El);
+    end;
+
+  Data:=TPasSpecializeTypeData.Create;
+  // add to free list
+  AddResolveData(El,Data,lkModule);
+  Data.SpecializedType:=Result;
+end;
+
+procedure TPasResolver.CheckSpecializeConstraints(El: TPasSpecializeType);
+var
+  Params, GenericTemplateList: TFPList;
+  i, j: Integer;
+  P: TPasElement;
+  ParamType, DestType: TPasType;
+  ResolvedEl, ResolvedConstraint: TPasResolverResult;
+  GenTempl: TPasGenericTemplateType;
+  ConExpr: TPasExpr;
+  Value: String;
+  ConstraintClass: TPasClassType;
+begin
+  Params:=El.Params;
+  DestType:=El.DestType;
+  if not (DestType is TPasGenericType) then
+    RaiseMsg(20190726193025,nXExpectedButYFound,sXExpectedButYFound,['generic type',DestType.Name],El);
+  GenericTemplateList:=TPasGenericType(DestType).GenericTemplateTypes;
+  if GenericTemplateList=nil then
+    RaiseMsg(20190726193048,nXExpectedButYFound,sXExpectedButYFound,['generic templates',DestType.Name],El);
+  if GenericTemplateList.Count<>Params.Count then
+    RaiseMsg(20190726193107,nXExpectedButYFound,sXExpectedButYFound,['type with '+IntToStr(Params.Count)+' generic templates',DestType.Name],El);
+
+  // check constraints
+  for i:=0 to Params.Count-1 do
+    begin
+    P:=TPasElement(Params[i]);
+    if P is TPasType then
+      ParamType:=TPasType(P)
+    else if P is TPasExpr then
+      begin
+      ComputeElement(P,ResolvedEl,[rcType]);
+      if not (ResolvedEl.IdentEl is TPasType) then
+        RaiseMsg(20190725195434,nXExpectedButYFound,sXExpectedButYFound,['type',GetResolverResultDescription(ResolvedEl)],P);
+      ParamType:=TPasType(ResolvedEl.IdentEl);
+      end;
+    GenTempl:=TPasGenericTemplateType(GenericTemplateList[i]);
+    for j:=0 to length(GenTempl.Constraints)-1 do
+      begin
+      ConExpr:=GenTempl.Constraints[j];
+      if (ConExpr.Kind=pekIdent) then
+        begin
+        Value:=TPrimitiveExpr(ConExpr).Value;
+        if SameText(Value,'record') then
+          begin
+          if not (ParamType is TPasRecordType) then
+            RaiseMsg(20190725200015,nXExpectedButYFound,sXExpectedButYFound,['record type',ParamType.Name],P);
+          continue;
+          end
+        else if SameText(Value,'class') or SameText(Value,'constructor') then
+          begin
+          if not (ParamType is TPasClassType) then
+            RaiseMsg(20190726133231,nXExpectedButYFound,sXExpectedButYFound,['class type',ParamType.Name],P);
+          if TPasClassType(ParamType).ObjKind<>okClass then
+            RaiseMsg(20190726133232,nXExpectedButYFound,sXExpectedButYFound,['class type',ParamType.Name],P);
+          if TPasClassType(ParamType).IsExternal then
+            RaiseMsg(20190726133233,nXExpectedButYFound,sXExpectedButYFound,['class type',ParamType.Name],P);
+          if SameText(Value,'constructor') then
+            begin
+            // check if ParamType has the default constructor
+            // ToDo
+            RaiseMsg(20190726133722,nXIsNotSupported,sXIsNotSupported,['constraint keyword construcor'],P);
+            end;
+          continue;
+          end;
+        end;
+      // constraint can be a class type or interface type
+      // Param must be a class
+      ComputeElement(ConExpr,ResolvedConstraint,[rcType]);
+      if ResolvedConstraint.IdentEl=nil then
+        RaiseMsg(20190726134037,nXIsNotAValidConstraint,sXIsNotAValidConstraint,[GetElementSourcePosStr(ConExpr)],P);
+      if not (ResolvedConstraint.LoTypeEl is TPasClassType) then
+        RaiseMsg(20190726134223,nXIsNotAValidConstraint,sXIsNotAValidConstraint,[GetElementSourcePosStr(ConExpr)],P);
+      ConstraintClass:=TPasClassType(ResolvedConstraint.LoTypeEl);
+      if not (ParamType is TPasClassType) then
+        RaiseIncompatibleType(20190726135859,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+      case ConstraintClass.ObjKind of
+      okClass:
+        // Param must be a ConstraintClass
+        if CheckClassIsClass(ParamType,ConstraintClass)=cIncompatible then
+          RaiseIncompatibleType(20190726135309,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+      okInterface:
+        // ParamType must implement ConstraintClass
+        if GetClassImplementsIntf(TPasClassType(ParamType),ConstraintClass)=nil then
+          RaiseIncompatibleType(20190726135458,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+      else
+        RaiseIncompatibleType(20190726135310,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+      end;
+      end;
+    end;
+end;
+
 function TPasResolver.CheckAssignCompatibilityCustom(const LHS,
   RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean;
   var Handled: boolean): integer;
@@ -15955,8 +16270,12 @@ begin
         or (AClass=TPasProcedureType)
         or (AClass=TPasFunctionType)
         or (AClass=TPasSetType)
-        or (AClass=TPasRangeType) then
+        or (AClass=TPasRangeType)
+        or (AClass=TPasSpecializeType) then
       AddType(TPasType(El))
+    else if AClass=TPasGenericTemplateType then
+      // TPasParser first collects template types and later adds them as a list
+      // they are not real types
     else if AClass=TPasStringType then
       begin
       AddType(TPasType(El));
@@ -16003,8 +16322,6 @@ begin
       // resolved when finished
     else if AClass=TPasImplCommand then
     else if AClass=TPasAttributes then
-    else if AClass=TPasGenericTemplateType then
-      AddType(TPasType(El))
     else if AClass=TPasUnresolvedUnitRef then
       RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
     else
@@ -16687,6 +17004,11 @@ begin
   stTypeSection: FinishTypeSection(El);
   stTypeDef: FinishTypeDef(El as TPasType);
   stResourceString: FinishResourcestring(El as TPasResString);
+  stGenericTypeTemplates:
+    if El is TPasGenericType then
+      FinishGenericTemplateTypes(TPasGenericType(El))
+    else
+      FinishProcNameParts(El as TPasProcedure);
   stProcedure: FinishProcedure(El as TPasProcedure);
   stProcedureHeader: FinishProcedureType(El as TPasProcedureType);
   stExceptOnExpr: FinishExceptOnExpr;

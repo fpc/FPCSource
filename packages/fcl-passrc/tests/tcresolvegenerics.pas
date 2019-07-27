@@ -5,7 +5,7 @@ unit tcresolvegenerics;
 interface
 
 uses
-  Classes, SysUtils, testregistry, tcresolver, PasResolveEval;
+  Classes, SysUtils, testregistry, tcresolver, PasResolveEval, PParser;
 
 type
 
@@ -14,13 +14,21 @@ type
   TTestResolveGenerics = Class(TCustomTestResolver)
   Published
     procedure TestGen_GenericFunction; // ToDo
+    procedure TestGen_MissingTemplateFail;
     procedure TestGen_ConstraintStringFail;
     procedure TestGen_ConstraintMultiClassFail;
+    procedure TestGen_ConstraintRecordExpectedFail;
     // ToDo: constraint keyword record
     // ToDo: constraint keyword class, constructor, class+constructor
     // ToDo: constraint Unit2.TBird
     // ToDo: constraint Unit2.TGen<word>
+    procedure TestGen_GenericNotFoundFail;
+    procedure TestGen_RecordLocalNameDuplicateFail;
+    procedure TestGen_Record;
+    // ToDo: generic class
+    // ToDo: generic interface
     // ToDo: generic array
+    // ToDo: generic procedure type
   end;
 
 implementation
@@ -42,6 +50,16 @@ begin
   //'  w:=DoIt<word>(3);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_MissingTemplateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type generic g< > = array of word;',
+  'begin',
+  '']);
+  CheckParserException('Expected "Identifier"',nParserExpectTokenError);
 end;
 
 procedure TTestResolveGenerics.TestGen_ConstraintStringFail;
@@ -75,6 +93,66 @@ begin
   '']);
   CheckResolverException('''TBird'' constraint and ''TBear'' constraint cannot be specified together',
     nConstraintXAndConstraintYCannotBeTogether);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintRecordExpectedFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<T:record> = record v: T; end;',
+  'var r: specialize TBird<word>;',
+  'begin',
+  '']);
+  CheckResolverException('record type expected, but Word found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_GenericNotFoundFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TBird = specialize TAnimal<word>;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "TAnimal"',
+    nIdentifierNotFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_RecordLocalNameDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<T> = record T: word; end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "T" at afile.pp(4,18)',
+    nDuplicateIdentifier);
+end;
+
+procedure TTestResolveGenerics.TestGen_Record;
+begin
+  exit; // ToDo
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  {#Typ}T = word;',
+  '  generic TRec<{#Templ}T> = record',
+  '    {=Templ}v: T;',
+  '  end;',
+  'var',
+  '  r: specialize TRec<word>;',
+  '  {=Typ}w: T;',
+  'begin',
+  '  r.v:=w;',
+  '']);
+  ParseProgram;
 end;
 
 initialization
