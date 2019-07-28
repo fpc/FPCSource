@@ -4906,12 +4906,12 @@ begin
     end;
 
   // search for TIName
-  ResetSubExprScopes(ScopeDepth);
+  ScopeDepth:=StashSubExprScopes;
   FindData:=Default(TPRFindData);
   FindData.ErrorPosEl:=Params;
   Abort:=false;
   IterateElements(TIName,@OnFindFirst,@FindData,Abort);
-  RestoreSubExprScopes(ScopeDepth);
+  RestoreStashedScopes(ScopeDepth);
   {$IFDEF VerbosePas2JS}
   writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TIName="',TIName,'" FindData.Found="',GetObjName(FindData.Found),'"');
   {$ENDIF}

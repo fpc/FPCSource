@@ -5833,7 +5833,7 @@ begin
     exit;
     end;
   if El.DestType.Parent=El then
-    RaiseNotYetImplemented(20180429094237,El.DestType,'pointer of anonymous type');
+    RaiseMsg(20180429094237,nNotYetImplemented,sNotYetImplemented,['pointer of anonymous type'], El.DestType);
   CheckUseAsType(El.DestType,20190123095118,El);
   CheckPointerCycle(El);
 end;
@@ -18229,7 +18229,7 @@ var
   NewScopeCnt: Integer;
 begin
   NewScopeCnt:=FScopeCount;
-  while (NewScopeCnt>0) and (FScopes[NewScopeCnt] is TPasSubExprScope) do
+  while (NewScopeCnt>0) and (FScopes[NewScopeCnt-1] is TPasSubExprScope) do
     dec(NewScopeCnt);
   Result:=StashScopes(NewScopeCnt);
 end;
