@@ -688,11 +688,14 @@ var
  carry: qword;
 begin
   if (l < 0) then
-    inc(l);
- q:=qword(l);
- if q>qword(low(int64)) then
-   q:=qword(-l);
- a:=mtwist_u32rand;
+    begin
+      inc(l);
+      q:=qword(-l)
+    end
+  else
+    q:=qword(l);
+
+  a:=mtwist_u32rand;
  b:=mtwist_u32rand;
 
  c:=q shr 32;
