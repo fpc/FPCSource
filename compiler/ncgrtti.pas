@@ -1814,7 +1814,6 @@ implementation
         arglab : tasmlabel;
         argdef : tdef;
         i : sizeint;
-        arglen : word;
       begin
         if length(attr.paras)=0 then
           begin
@@ -1830,7 +1829,6 @@ implementation
             argtcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin);
 
-            arglen:=0;
             for i:=0 to High(attr.paras) do
               begin
                 case attr.paras[i].nodetype of
@@ -1840,9 +1838,9 @@ implementation
                   stringconstn,
                   pointerconstn,
                   guidconstn:
-                    inc(arglen,tconstnode(attr.paras[i]).emit_data(argtcb));
+                    tconstnode(attr.paras[i]).emit_data(argtcb);
                   setconstn:
-                    inc(arglen,tsetconstnode(attr.paras[i]).emit_data(argtcb));
+                    tsetconstnode(attr.paras[i]).emit_data(argtcb);
                   else
                     internalerror(2019070803);
                 end;
@@ -1857,7 +1855,7 @@ implementation
             argtcb.free;
 
             { write argument size and the reference to the argument entry }
-            tbltcb.emit_ord_const(arglen,u16inttype);
+            tbltcb.emit_ord_const(argdef.size,u16inttype);
             tbltcb.emit_tai(Tai_const.Create_sym(arglab),voidpointertype);
           end;
       end;
