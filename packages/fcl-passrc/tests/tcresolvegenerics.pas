@@ -18,14 +18,20 @@ type
     procedure TestGen_ConstraintStringFail;
     procedure TestGen_ConstraintMultiClassFail;
     procedure TestGen_ConstraintRecordExpectedFail;
+    // ToDo: constraints mismatch: TAnt<T:record>; TBird<T:Class> = record v: TAnt<T> end   Fail
     // ToDo: constraint keyword record
     // ToDo: constraint keyword class, constructor, class+constructor
-    // ToDo: constraint Unit2.TBird
-    // ToDo: constraint Unit2.TGen<word>
+    // ToDo: constraint T:Unit2.TBird
+    // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_GenericNotFoundFail;
     procedure TestGen_RecordLocalNameDuplicateFail;
-    procedure TestGen_Record;
+    procedure TestGen_Record; // ToDo
+    // ToDo: type TBird<T> = record end; var b: TBird<word>.T; fail
+    // ToDo: enums within generic
     // ToDo: generic class
+    // ToDo: generic class forward
+    // ToDo: ancestor cycle: TBird<T> = class(TBird<word>) fail
+    // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
     // ToDo: generic interface
     // ToDo: generic array
     // ToDo: generic procedure type
@@ -137,7 +143,6 @@ end;
 
 procedure TTestResolveGenerics.TestGen_Record;
 begin
-  exit; // ToDo
   StartProgram(false);
   Add([
   '{$mode objfpc}',
