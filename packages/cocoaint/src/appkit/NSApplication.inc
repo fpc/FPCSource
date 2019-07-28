@@ -683,7 +683,7 @@ type
 {$endif}
 
 {$ifdef FUNCTIONS}
-function NSApplicationMain(argc: cint; argv: PChar { variable size array of PChar }): cint; cdecl; external;
+function NSApplicationMain(argc: cint; argv: PPChar { variable size array of PChar }): cint; cdecl; external;
 function NSApplicationLoad: ObjCBOOL; cdecl; external;
 function NSShowsServicesMenuItem(itemName: NSString): ObjCBOOL; cdecl; external;
 function NSSetShowsServicesMenuItem(itemName: NSString; enabled: ObjCBOOL): NSInteger; cdecl; external;
