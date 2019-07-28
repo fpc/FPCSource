@@ -1280,7 +1280,7 @@ implementation
 
          { check for fpu exceptions }
          if cnf_check_fpu_exceptions in callnodeflags then
-           cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+           cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
 
          { perhaps i/o check ? }
          if (cs_check_io in current_settings.localswitches) and

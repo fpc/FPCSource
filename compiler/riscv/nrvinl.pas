@@ -160,13 +160,13 @@ implementation
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_S,location.register,
                 left.location.register));
-              cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           OS_F64:
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_D,location.register,
                 left.location.register));
-              cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
              end
           else
             inherited;
@@ -199,7 +199,7 @@ implementation
          else
            op := A_FMUL_D;
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
-         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
        end;
 
 
@@ -237,7 +237,7 @@ implementation
 {$endif}
 
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
-         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
        end;
 
 
@@ -275,7 +275,7 @@ implementation
 {$endif}
 
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_roundingmode(op,location.register,left.location.register,RM_RTZ));
-         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
        end;
 
 
@@ -349,7 +349,7 @@ implementation
              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[def_cgsize(resultdef), negproduct,negop3],location.register,paraarray[1].location.register,paraarray[2].location.register,paraarray[2].location.register));
-             cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
          else
            internalerror(2014032301);

@@ -238,6 +238,7 @@ interface
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op,
                  location.register,left.location.register,right.location.register),pf));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           fpu_fpv4_s16:
             begin
@@ -263,6 +264,7 @@ interface
               end;
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op, location.register,left.location.register,right.location.register), PF_F32));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           fpu_soft:
             { this case should be handled already by pass1 }
@@ -325,6 +327,7 @@ interface
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(op,
                 left.location.register,right.location.register), pf));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VMRS,NR_APSR_nzcv,NR_FPSCR));
               location.resflags:=GetFpuResFlags;
@@ -341,6 +344,7 @@ interface
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(op,
                 left.location.register,right.location.register),PF_F32));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_VMRS, NR_APSR_nzcv, NR_FPSCR));
             end;

@@ -272,9 +272,13 @@ implementation
               else
                 pf:=PF_F64;
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register),pf));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           fpu_fpv4_s16:
-            current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
+            begin
+              current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            end;
           fpu_soft:
             begin
               if singleprec then
@@ -309,9 +313,13 @@ implementation
               else
                 pf:=PF_F64;
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register),pf));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           fpu_fpv4_s16:
-            current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register), PF_F32));
+            begin
+              current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register), PF_F32));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            end;
         else
           internalerror(2009111403);
         end;
@@ -339,9 +347,13 @@ implementation
               else
                 pf:=PF_F64;
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register),pf));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           fpu_fpv4_s16:
-            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register), PF_F32));
+            begin
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register), PF_F32));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            end;
         else
           internalerror(2009111402);
         end;
@@ -515,6 +527,7 @@ implementation
                oppostfix:=PF_F32;
              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op[negproduct,negop3],
                location.register,paraarray[1].location.register,paraarray[2].location.register),oppostfix));
+             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
          else
            internalerror(2014032301);
