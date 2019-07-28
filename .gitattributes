@@ -8156,6 +8156,7 @@ packages/pastojs/src/pas2jsuseanalyzer.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsutils.pp svneol=native#text/plain
 packages/pastojs/tests/tcconverter.pp svneol=native#text/plain
 packages/pastojs/tests/tcfiler.pas svneol=native#text/plain
+packages/pastojs/tests/tcgenerics.pas svneol=native#text/plain
 packages/pastojs/tests/tcmodules.pas svneol=native#text/plain
 packages/pastojs/tests/tcoptimizations.pas svneol=native#text/plain
 packages/pastojs/tests/tcprecompile.pas svneol=native#text/plain

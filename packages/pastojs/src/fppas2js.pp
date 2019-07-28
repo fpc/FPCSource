@@ -13326,6 +13326,9 @@ var
   aResolver: TPas2JSResolver;
 begin
   Result:=nil;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
+
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertClassType START ',GetObjName(El));
   {$ENDIF}
@@ -13983,6 +13986,8 @@ var
   Prop: TJSObjectLiteralElement;
 begin
   Result:=nil;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
   if El.IsNested then
     DoError(20170222231636,nPasElementNotSupported,sPasElementNotSupported,
       ['is nested'],El);
@@ -14106,6 +14111,8 @@ var
   ReturnSt: TJSReturnStatement;
 begin
   Result:=nil;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
   if El.PackMode<>pmNone then
     DoError(20170222231648,nPasElementNotSupported,sPasElementNotSupported,
        ['packed'],El);
@@ -22860,6 +22867,8 @@ var
   VarSt: TJSVariableStatement;
 begin
   Result:=nil;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
   if El.Name='' then
     RaiseNotSupported(El,AContext,20190105101258,'anonymous record');
   {$IFDEF VerbosePas2JS}
