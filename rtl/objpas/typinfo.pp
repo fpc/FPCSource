@@ -714,7 +714,10 @@ unit TypInfo;
             tkMethod:
               (MethodKind : TMethodKind;
                ParamCount : Byte;
-               ParamList : array[0..1023] of Char
+               case Boolean of
+                 False: (ParamList : array[0..1023] of Char);
+                 { dummy for proper alignment }
+                 True: (ParamListDummy : Word);
              {in reality ParamList is a array[1..ParamCount] of:
                   record
                     Flags : TParamFlags;
