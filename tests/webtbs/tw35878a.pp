@@ -1,5 +1,6 @@
 var
-  i, rand, val: int64;
+  rand, val: int64;
+  i: int32;
 begin
   rand:=-5;
   for i:=1 to 10000 do
