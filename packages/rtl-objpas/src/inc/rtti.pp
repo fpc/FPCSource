@@ -2967,7 +2967,8 @@ begin
   if not aWithHidden and (Length(FParams) > 0) then
     Exit(FParams);
 
-  ptr := @FTypeData^.ParamList[0];
+  ptr := AlignTParamFlags(@FTypeData^.ParamList[0]);
+
   visible := 0;
   total := 0;
 
@@ -2983,7 +2984,9 @@ begin
       Inc(ptr, ptr^ + SizeOf(Byte));
       { skip type name }
       Inc(ptr, ptr^ + SizeOf(Byte));
-      { align? }
+      { align }
+      ptr := AlignTParamFlags(ptr);
+
       if not (pfHidden in infos[total].Flags) then
         Inc(visible);
       Inc(total);

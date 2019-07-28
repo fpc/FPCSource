@@ -19,6 +19,7 @@ var
   pb: PByte;
   i: SizeInt;
 begin
+  // writeln(SizeOf(TparamFlags));
   ti := PTypeInfo(TypeInfo(TTestProc));
   td := GetTypeData(ti);
   if td^.ProcSig.ParamCount <> 3 then
@@ -38,34 +39,41 @@ begin
     Halt(6);
   if procparam^.ParamFlags * [pfConstRef] <> [pfConstRef] then
     Halt(7);
-
+  
   ti := PTypeInfo(TypeInfo(TTestMethod));
   td := GetTypeData(ti);
   if td^.ParamCount <> 4 then
     Halt(8);
   pb := @td^.ParamList[0];
+  pb := AlignTParamFlags(pb);
   if PParamFlags(pb)^ * [pfHidden, pfSelf] <> [pfHidden, pfSelf] then
     Halt(9);
   pb := pb + SizeOf(TParamFlags);
   pb := pb + SizeOf(Byte) + pb^;
   pb := pb + SizeOf(Byte) + pb^;
+
+  pb := AlignTParamFlags(pb);
   if PParamFlags(pb)^ * [pfVar] <> [pfVar] then
     Halt(10);
   pb := pb + SizeOf(TParamFlags);
   pb := pb + SizeOf(Byte) + pb^;
   pb := pb + SizeOf(Byte) + pb^;
+
+  pb := AlignTParamFlags(pb);
   if PParamFlags(pb)^ * [pfOut] <> [pfOut] then
     Halt(11);
   pb := pb + SizeOf(TParamFlags);
   pb := pb + SizeOf(Byte) + pb^;
   pb := pb + SizeOf(Byte) + pb^;
+
+  pb := AlignTParamFlags(pb);
   if PParamFlags(pb)^ * [pfConstRef] <> [pfConstRef] then
     Halt(12);
   pb := pb + SizeOf(TParamFlags);
   pb := pb + SizeOf(Byte) + pb^;
   pb := pb + SizeOf(Byte) + pb^;
 
-  pb := pb + SizeOf(TCallConv);
+  pb := AlignPTypeInfo(pb + SizeOf(TCallConv));
   for i := 1 to td^.ParamCount - 1 do begin
     if PPPTypeInfo(pb)[i] <> Nil then begin
       Writeln(PPPTypeInfo(pb)[i]^^.Name);

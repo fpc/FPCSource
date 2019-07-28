@@ -832,6 +832,8 @@ unit TypInfo;
 // general property handling
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 Function AlignTypeData(p : Pointer) : Pointer; inline;
+Function AlignTParamFlags(p : Pointer) : Pointer; inline;
+Function AlignPTypeInfo(p : Pointer) : Pointer; inline;
 
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string): PPropInfo;
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string; AKinds: TTypeKinds): PPropInfo;
@@ -1351,6 +1353,40 @@ begin
 {$else VER3_0}
   Result:=Pointer(align(p,PtrInt(@TAlignCheck(nil^).q)))
 {$endif VER3_0}
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+end;
+
+
+Function AlignTParamFlags(p : Pointer) : Pointer; inline;
+{$packrecords c}
+  type
+    TAlignCheck = record
+      b : byte;
+      w : word;
+    end;
+{$packrecords default}
+begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=Pointer(align(p,PtrInt(@TAlignCheck(nil^).w)))
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+end;
+
+
+Function AlignPTypeInfo(p : Pointer) : Pointer; inline;
+{$packrecords c}
+  type
+    TAlignCheck = record
+      b : byte;
+      p : pointer;
+    end;
+{$packrecords default}
+begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=Pointer(align(p,PtrInt(@TAlignCheck(nil^).p)))
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
   Result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
