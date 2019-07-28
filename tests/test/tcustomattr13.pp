@@ -75,6 +75,16 @@ begin
 end;
 
 procedure CheckAttr1(aStrm: TStream);
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$push}
+{$packrecords c}
+type
+  TAlignDummy = record
+    b: Byte;
+    s: Single;
+  end;
+{$pop}
+{$endif}
 var
   b: Byte;
   ss: ShortString;
@@ -93,6 +103,9 @@ begin
     Halt(24);
   if ss <> StrHelloWorld then
     Halt(25);
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  aStrm.Position := Align(PtrUInt(aStrm.Position), PtrInt(@TAlignDummy(nil^).s)));
+{$endif}
   if aStrm.Read(s, SizeOf(Single)) <> SizeOf(Single) then
     Halt(26);
   if s <> Single(SingleVal) then
