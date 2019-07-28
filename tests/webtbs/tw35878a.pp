@@ -1,9 +1,9 @@
 var
-  rand, val: int64;
-  i: int32;
+  i, rand, val: int64;
 begin
   rand:=-5;
-  for i:=1 to 10000 do
+  i:=1;
+  while i<=10000 do
     begin
       val:=random(rand);
       if (val<-5) or (val>0) then
@@ -11,5 +11,6 @@ begin
           writeln('error: ', val);
           halt(1);
         end;
+      Inc(i);
     end;
 end.
