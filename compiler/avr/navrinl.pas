@@ -26,10 +26,12 @@ unit navrinl;
   interface
 
     uses
-      node,ninl,ncginl;
+      node,ninl,ncginl, aasmbase;
 
     type
       tavrinlinenode = class(tcginlinenode)
+        procedure second_abs_long; override;
+
         function pass_typecheck_cpu:tnode;override;
         function first_cpu : tnode;override;
         procedure pass_generate_code_cpu;override;
@@ -42,10 +44,32 @@ unit navrinl;
       aasmdata,
       aasmcpu,
       symdef,
+      defutil,
       hlcgobj,
       pass_2,
       cgbase, cgobj, cgutils,
       cpubase;
+
+    procedure tavrinlinenode.second_abs_long;
+      var
+        hl: TAsmLabel;
+        size: TCgSize;
+      begin
+        secondpass(left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+        location:=left.location;
+        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+
+        size:=def_cgsize(left.resultdef);
+
+        current_asmdata.getjumplabel(hl);
+        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,size,OC_GTE,0,left.location.register,hl);
+        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,size,left.location.register,location.register);
+
+        cg.a_label(current_asmdata.CurrAsmList,hl);
+      end;
+
 
     function tavrinlinenode.pass_typecheck_cpu : tnode;
       begin

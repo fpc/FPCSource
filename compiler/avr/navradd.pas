@@ -202,6 +202,29 @@ interface
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
           end;
 
+        if (not unsigned) and
+          (right.location.loc=LOC_CONSTANT) and
+          (right.location.value=0) and
+          (getresflags(unsigned) in [F_LT,F_GE]) then
+          begin
+            { This is a simple sign test, where we can just test the msb }
+            tmpreg1:=left.location.register;
+            for i:=2 to tcgsize2size[left.location.size] do
+              begin
+                if i=5 then
+                  tmpreg1:=left.location.registerhi
+                else
+                  tmpreg1:=cg.GetNextReg(tmpreg1);
+              end;
+
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,NR_R1));
+
+            location_reset(location,LOC_FLAGS,OS_NO);
+            location.resflags:=getresflags(unsigned);
+
+            exit;
+          end;
+
         if right.location.loc=LOC_CONSTANT then
           begin
             { decrease register pressure on registers >= r16 }

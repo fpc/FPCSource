@@ -1606,7 +1606,7 @@ unit cgcpu;
     procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;
       cmp_op : topcmp;a : tcgint;reg : tregister;l : tasmlabel);
       var
-        swapped : boolean;
+        swapped , test_msb: boolean;
         tmpreg : tregister;
         i : byte;
       begin
@@ -1637,18 +1637,31 @@ unit cgcpu;
                 end;
             end;
 
-            if swapped then
-              list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg))
-            else
-              list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
-
-            for i:=2 to tcgsize2size[size] do
+            { If doing a signed test for x<0, we can simply test the sign bit
+              of the most significant byte }
+            if (cmp_op in [OC_LT,OC_GTE]) and
+               (not swapped) then
               begin
-                reg:=GetNextReg(reg);
+                for i:=2 to tcgsize2size[size] do
+                  reg:=GetNextReg(reg);
+
+                list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
+              end
+            else
+              begin
                 if swapped then
-                  list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg))
+                  list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg))
                 else
-                  list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1));
+                  list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
+
+                for i:=2 to tcgsize2size[size] do
+                  begin
+                    reg:=GetNextReg(reg);
+                    if swapped then
+                      list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg))
+                    else
+                      list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1));
+                  end;
               end;
 
             a_jmp_cond(list,cmp_op,l);
