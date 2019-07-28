@@ -808,9 +808,9 @@ implementation
                case def_from.typ of
                  orddef :
                    begin { ordinal to real }
-                     { only for implicit and internal typecasts in tp/delphi }
+                     { only for implicit and internal typecasts in tp }
                      if (([cdo_explicit,cdo_internal] * cdoptions <> [cdo_explicit]) or
-                         ([m_tp7,m_delphi] * current_settings.modeswitches = [])) and
+                         (not(m_tp7 in current_settings.modeswitches))) and
                         (is_integer(def_from) or
                          (is_currency(def_from) and
                           (s64currencytype.typ = floatdef))) then
