@@ -2061,7 +2061,8 @@ unit cgcpu;
       begin
         if current_procinfo.procdef.isempty then
           exit;
-        if po_interrupt in current_procinfo.procdef.procoptions then
+        if (po_interrupt in current_procinfo.procdef.procoptions) and
+          (not nostackframe) then
           begin
             { check if the framepointer is actually used, this is done here because
               we have to know the size of the locals (must be 0), avr does not know
@@ -2160,7 +2161,8 @@ unit cgcpu;
           exit;
         if po_interrupt in current_procinfo.procdef.procoptions then
           begin
-            if not(current_procinfo.procdef.isempty) then
+            if not(current_procinfo.procdef.isempty) and
+              (not nostackframe) then
               begin
                 regs:=rg[R_INTREGISTER].used_in_proc;
                 if current_procinfo.framepointer<>NR_NO then
