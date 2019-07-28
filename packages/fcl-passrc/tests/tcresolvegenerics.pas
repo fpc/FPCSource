@@ -13,8 +13,12 @@ type
 
   TTestResolveGenerics = Class(TCustomTestResolver)
   Published
+    // generic functions
     procedure TestGen_GenericFunction; // ToDo
+
+    // generic types
     procedure TestGen_MissingTemplateFail;
+    procedure TestGen_VarTypeWithoutSpecializeFail;
     procedure TestGen_ConstraintStringFail;
     procedure TestGen_ConstraintMultiClassFail;
     procedure TestGen_ConstraintRecordExpectedFail;
@@ -31,10 +35,13 @@ type
     // ToDo: generic class
     // ToDo: generic class forward
     // ToDo: ancestor cycle: TBird<T> = class(TBird<word>) fail
+    // ToDo: class-of
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
     // ToDo: generic interface
     // ToDo: generic array
     // ToDo: generic procedure type
+    // ToDo: pointer of generic
+    // ToDo: generic helpers
   end;
 
 implementation
@@ -66,6 +73,18 @@ begin
   'begin',
   '']);
   CheckParserException('Expected "Identifier"',nParserExpectTokenError);
+end;
+
+procedure TTestResolveGenerics.TestGen_VarTypeWithoutSpecializeFail;
+begin
+  StartProgram(false);
+  Add([
+  'type generic TBird<T> = record end;',
+  'var b: TBird;',
+  'begin',
+  '']);
+  CheckResolverException('Generics without specialization cannot be used as a type for a variable',
+    nGenericsWithoutSpecializationAsType);
 end;
 
 procedure TTestResolveGenerics.TestGen_ConstraintStringFail;

@@ -194,6 +194,7 @@ const
   nConstraintXAndConstraintYCannotBeTogether = 3128;
   nXIsNotAValidConstraint = 3129;
   nWrongNumberOfParametersForGenericType = 3130;
+  nGenericsWithoutSpecializationAsType = 3131;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -335,6 +336,7 @@ resourcestring
   sConstraintXAndConstraintYCannotBeTogether = '''%s'' constraint and ''%s'' constraint cannot be specified together';
   sXIsNotAValidConstraint = '''%s'' is not a valid constraint';
   sWrongNumberOfParametersForGenericType = 'wrong number of parameters for generic type %s';
+  sGenericsWithoutSpecializationAsType = 'Generics without specialization cannot be used as a type for a %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

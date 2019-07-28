@@ -14110,6 +14110,7 @@ var
   OldStashCount, i: Integer;
   Scope: TPasGenericScope;
   TemplType: TPasGenericTemplateType;
+  NewParent: TPasElement;
 begin
   Result:=nil;
   GenericType:=El.DestType as TPasGenericType;
@@ -14134,9 +14135,23 @@ begin
     SpecializedTypes.Add(Result);
     NewName:=GenericType.Name+'$G'+IntToStr(SpecializedTypes.Count);
     NewClass:=TPTreeElement(GenericType.ClassType);
-    NewEl:=TPasGenericType(NewClass.Create(NewName,GenericType.Parent));
-    Result.SpecializedType:=NewEl;
-    NewEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    NewParent:=GenericType.Parent;
+    NewEl:=TPasGenericType(NewClass.Create(NewName,NewParent));
+    Result.SpecializedType:=NewEl; // this calls AddRef
+
+    if NewParent is TPasDeclarations then
+      begin
+      TPasDeclarations(NewParent).Declarations.Add(NewEl);
+      {$IFDEF CheckPasTreeRefCount}NewEl.RefIds.Add('TPasDeclarations.Children');{$ENDIF}
+      end
+    else if NewParent is TPasMembersType then
+      begin
+      TPasMembersType(NewParent).Members.Add(NewEl);
+      {$IFDEF CheckPasTreeRefCount}NewEl.RefIds.Add('TPasMembersType.Members');{$ENDIF}
+      end
+    else
+      NewEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF}; // fix refcount
+
     SpecializePasElementProperties(GenericType,NewEl);
 
     // create scope of specialized type
@@ -14202,6 +14217,8 @@ function TPasResolver.InitSpecializeScopes(El: TPasElement): integer;
       begin
       if CurEl.Parent=nil then
         RaiseInternalError(20190728130238,GetObjName(CurEl));
+      if CurEl.CustomData=nil then
+        exit(PushParentScopes(CurEl.Parent));
       if not (CurEl.CustomData is TPasIdentifierScope) then
         RaiseNotYetImplemented(20190728131934,El,GetObjName(CurEl)+' '+GetObjName(CurEl.CustomData));
       Keep:=PushParentScopes(CurEl.Parent);
@@ -22951,9 +22968,18 @@ procedure TPasResolver.CheckUseAsType(aType: TPasElement; id: TMaxPrecInt;
   ErrorEl: TPasElement);
 begin
   if aType=nil then exit;
-  if aType.ClassType<>TPasClassType then exit;
-  if TPasClassType(aType).HelperForType<>nil then
-    RaiseHelpersCannotBeUsedAsType(id,ErrorEl);
+  if aType is TPasGenericType then
+    begin
+    if aType.ClassType=TPasClassType then
+      begin
+      if TPasClassType(aType).HelperForType<>nil then
+        RaiseHelpersCannotBeUsedAsType(id,ErrorEl);
+      end;
+    if (TPasGenericType(aType).GenericTemplateTypes<>nil)
+        and (TPasGenericType(aType).GenericTemplateTypes.Count>0) then
+          RaiseMsg(id,nGenericsWithoutSpecializationAsType,sGenericsWithoutSpecializationAsType,
+            [ErrorEl.ElementTypeName],ErrorEl);
+    end;
 end;
 
 function TPasResolver.GetPasClassAncestor(ClassEl: TPasClassType;

@@ -3045,7 +3045,7 @@ begin
     begin
     Child:=TPasElement(Declarations[i]);
     Child.Parent:=nil;
-    Child.Release{$IFDEF CheckPasTreeRefCount}('TPasDeclarations.Childs'){$ENDIF};
+    Child.Release{$IFDEF CheckPasTreeRefCount}('TPasDeclarations.Children'){$ENDIF};
     end;
   FreeAndNil(Declarations);
 

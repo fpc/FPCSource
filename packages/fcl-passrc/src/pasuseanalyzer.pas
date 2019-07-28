@@ -270,6 +270,7 @@ type
     procedure UseType(El: TPasType; Mode: TPAUseMode); virtual;
     procedure UseClassOrRecType(El: TPasMembersType; Mode: TPAUseMode); virtual;
     procedure UseClassConstructor(El: TPasMembersType); virtual;
+    procedure UseSpecializeType(El: TPasSpecializeType; Mode: TPAUseMode); virtual;
     procedure UseVariable(El: TPasVariable; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseResourcestring(El: TPasResString); virtual;
@@ -1924,6 +1925,8 @@ begin
       end
     else if C.InheritsFrom(TPasProcedureType) then
       UseProcedureType(TPasProcedureType(El))
+    else if C=TPasSpecializeType then
+      UseSpecializeType(TPasSpecializeType(El),Mode)
     else
       RaiseNotSupported(20170306170315,El);
 
@@ -2197,6 +2200,24 @@ begin
     Member:=TPasElement(El.Members[i]);
     if (Member.ClassType=TPasClassConstructor) or (Member.ClassType=TPasClassDestructor) then
       UseProcedure(TPasProcedure(Member));
+    end;
+end;
+
+procedure TPasAnalyzer.UseSpecializeType(El: TPasSpecializeType;
+  Mode: TPAUseMode);
+var
+  Param: TPasElement;
+  i: Integer;
+begin
+  if not MarkElementAsUsed(El) then exit;
+  // El.DestType is TPasGenericType, which is never be used
+  if El.CustomData is TPasSpecializeTypeData then
+    UseElType(El,TPasSpecializeTypeData(El.CustomData).SpecializedType,Mode);
+  for i:=0 to El.Params.Count-1 do
+    begin
+    Param:=TPasElement(El.Params[i]);
+    if Param is TPasGenericTemplateType then continue;
+    UseElement(Param,rraRead,false);
     end;
 end;
 

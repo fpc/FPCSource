@@ -3358,6 +3358,7 @@ var
   procedure InitGenericType(NewEl: TPasGenericType; GenericTemplateTypes: TFPList);
   begin
     Declarations.Declarations.Add(NewEl);
+    {$IFDEF CheckPasTreeRefCount}NewEl.ChangeRefId('CreateElement','TPasDeclarations.Children');{$ENDIF}
     NewEl.SetGenericTemplates(GenericTemplateTypes);
     Engine.FinishScope(stGenericTypeTemplates,NewEl);
   end;
@@ -3504,6 +3505,7 @@ begin
             if Assigned(TypeEl) then        // !!!
               begin
                 Declarations.Declarations.Add(TypeEl);
+                {$IFDEF CheckPasTreeRefCount}if TypeEl.RefIds.IndexOf('CreateElement')>=0 then TypeEl.ChangeRefId('CreateElement','TPasDeclarations.Children');{$ENDIF}
                 if (TypeEl.ClassType = TPasClassType)
                     and (not (po_keepclassforward in Options)) then
                 begin
@@ -3548,6 +3550,7 @@ begin
               begin
                 ExpEl := TPasExportSymbol(List[i]);
                 Declarations.Declarations.Add(ExpEl);
+                {$IFDEF CheckPasTreeRefCount}ExpEl.ChangeRefId('CreateElement','TPasDeclarations.Children');{$ENDIF}
                 Declarations.ExportSymbols.Add(ExpEl);
               end;
             finally
@@ -3578,6 +3581,7 @@ begin
             begin
             PropEl:=ParseProperty(Declarations,CurtokenString,visDefault,false);
             Declarations.Declarations.Add(PropEl);
+            {$IFDEF CheckPasTreeRefCount}PropEl.ChangeRefId('CreateElement','TPasDeclarations.Children');{$ENDIF}
             Declarations.Properties.Add(PropEl);
             Engine.FinishScope(stDeclaration,PropEl);
             end;
@@ -3911,10 +3915,8 @@ end;
 
 // Starts after the variable name
 function TPasParser.ParseConstDecl(Parent: TPasElement): TPasConst;
-
 var
   OldForceCaret,ok: Boolean;
-
 begin
   SaveComments;
   Result := TPasConst(CreateElement(TPasConst, CurTokenString, Parent));
@@ -3930,6 +3932,7 @@ begin
       OldForceCaret:=Scanner.SetForceCaret(True);
       try
         Result.VarType := ParseType(Result,CurSourcePos);
+        {$IFDEF CheckPasTreeRefCount}if Result.VarType.RefIds.IndexOf('CreateElement')>=0 then Result.VarType.ChangeRefId('CreateElement','TPasVariable.VarType'){$ENDIF};
       finally
         Scanner.SetForceCaret(OldForceCaret);
       end;
@@ -4506,6 +4509,7 @@ begin
     OldForceCaret:=Scanner.SetForceCaret(True);
     try
       VarType := ParseComplexType(VarEl);
+      {$IFDEF CheckPasTreeRefCount}if VarType.RefIds.IndexOf('CreateElement')>=0 then VarType.ChangeRefId('CreateElement','TPasVariable.VarType'){$ENDIF};
     finally
       Scanner.SetForceCaret(OldForceCaret);
     end;
@@ -5432,6 +5436,7 @@ begin
     if CurToken = tkColon then
       begin
       Result.VarType := ParseType(Result,CurSourcePos);
+      {$IFDEF CheckPasTreeRefCount}if Result.VarType.RefIds.IndexOf('CreateElement')>=0 then Result.VarType.ChangeRefId('CreateElement','TPasVariable.VarType'){$ENDIF};
       NextToken;
       end
     else if not IsClass then
