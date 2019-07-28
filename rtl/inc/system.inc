@@ -682,16 +682,34 @@ begin
 end;
 
 function random(l:int64): int64;
+var
+ a, b, c, d: cardinal;
+ q, bd, ad, bc, ac: qword;
+ carry: qword;
 begin
-  { always call random, so the random generator cycles (TP-compatible) (JM) }
-  { also do it in two separate steps, so the order in which the two calls
-    are performed is predictable (JM) }
-  random:=mtwist_u32rand;
-  random:=random or ((qword(mtwist_u32rand) shl 32) and high(int64));
-  if (l<>0) then
-    random := random mod l
-  else
-    random := 0;
+  if (l < 0) then
+    inc(l);
+ q:=qword(l);
+ if q>qword(low(int64)) then
+   q:=qword(-l);
+ a:=mtwist_u32rand;
+ b:=mtwist_u32rand;
+
+ c:=q shr 32;
+ d:=cardinal(q);
+
+ bd:=b*d;
+ ad:=a*d;
+ bc:=b*c;
+ ac:=a*c;
+
+ // We only need the carry bit
+ carry:=((bd shr 32)+cardinal(ad)+cardinal(bc)) shr 32;
+
+ // Calculate the final result
+ result:=int64(carry+(ad shr 32)+(bc shr 32)+ac);
+ if l<0 then
+   result:=-result;
 end;
 
 {$ifndef FPUNONE}
