@@ -468,6 +468,11 @@ var
   SkipVersionCheck: boolean;
   SymAnsiStr: boolean;
 
+var
+  { needed during tobjectdef parsing... }
+  current_defoptions : tdefoptions;
+  current_objectoptions : tobjectoptions;
+  current_symtable_options : tsymtableoptions;
 
 {****************************************************************************
                           Helper Routines
@@ -922,7 +927,7 @@ begin
   readmanagementoperatoroptions(space,'Fields have MOPs');
 end;
 
-procedure readsymtableoptions(const s: string);
+function readsymtableoptions(const s: string) : tsymtableoptions;
 type
   tsymtblopt=record
     mask : tsymtableoption;
@@ -967,16 +972,27 @@ begin
   else
    write('none');
   writeln;
+  readsymtableoptions:=options;
 end;
 
 procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef); forward;
 procedure readsymbols(const s:string; ParentDef: TPpuContainerDef = nil); forward;
 
 procedure readsymtable(const s: string; ParentDef: TPpuContainerDef = nil);
+var
+  stored_symtable_options : tsymtableoptions;
 begin
-  readsymtableoptions(s);
+  stored_symtable_options:=current_symtable_options;
+  current_symtable_options:=readsymtableoptions(s);
   readdefinitions(s, ParentDef);
   readsymbols(s, ParentDef);
+  current_symtable_options:=stored_symtable_options;
+end;
+
+procedure readrecordsymtable(const s: string; ParentDef: TPpuContainerDef = nil);
+begin
+  readrecsymtableoptions;
+  readsymtable(s, ParentDef);
 end;
 
 Procedure ReadLinkContainer(const prefix:string);
@@ -1850,11 +1866,6 @@ begin
       dec(np);
     end;
 end;
-
-var
-  { needed during tobjectdef parsing... }
-  current_defoptions : tdefoptions;
-  current_objectoptions : tobjectoptions;
 
 procedure readcommondef(const s:string; out defoptions: tdefoptions; Def: TPpuDef = nil);
 type
@@ -4075,7 +4086,9 @@ begin
              readsymtable('parast', TPpuProcDef(def));
              { localst }
              if (pio_has_inlininginfo in implprocoptions) then
-                readsymtable('localst');
+                readsymtable('inline localst')
+             else if (df_generic in defoptions) then
+                readsymtable('generic localst');
              if (pio_has_inlininginfo in implprocoptions) then
                readnodetree;
              delete(space,1,4);
@@ -4175,8 +4188,7 @@ begin
              if not(df_copied_def in current_defoptions) then
                begin
                  space:='    '+space;
-                 readrecsymtableoptions;
-                 readsymtable('fields',TPpuRecordDef(def));
+                 readrecordsymtable('fields',TPpuRecordDef(def));
                  Delete(space,1,4);
                end;
              if not EndOfEntry then
@@ -4295,8 +4307,7 @@ begin
                begin
                  {read the record definitions and symbols}
                  space:='    '+space;
-                 readrecsymtableoptions;
-                 readsymtable('fields',objdef);
+                 readrecordsymtable('fields',objdef);
                  Delete(space,1,4);
               end;
              if not EndOfEntry then

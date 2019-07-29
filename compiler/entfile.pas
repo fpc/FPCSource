@@ -126,9 +126,9 @@ const
 
   ibmainname       = 90;
   ibsymtableoptions = 91;
-  ibrecsymtableoptions = 91;
   ibpackagefiles   = 92;
   ibpackagename    = 93;
+  ibrecsymtableoptions = 94;
   { target-specific things }
   iblinkotherframeworks = 100;
   ibjvmnamespace = 101;
