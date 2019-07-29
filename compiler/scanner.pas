@@ -146,7 +146,7 @@ interface
           { true, if we are parsing preprocessor expressions }
           in_preproc_comp_expr : boolean;
           { true if cross-compiling for a CPU in opposite endianess}
-          change_endian : boolean;
+          change_endian_for_tokens : boolean;
 
           constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
@@ -286,7 +286,7 @@ implementation
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       { This is needed for tcputype }
       cpuinfo,
-      fmodule,
+      fmodule,fppu,
       { this is needed for $I %CURRENTROUTINE%}
       procinfo
 {$if FPC_FULLVERSION<20700}
@@ -2709,11 +2709,10 @@ type
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         ignoredirectives:=TFPHashList.Create;
-{$ifdef FPC_BIG_ENDIAN}
-        change_endian:=(target_info.endian=endian_little);
-{$else}
-        change_endian:=(target_info.endian=endian_big);
-{$endif}
+        if (current_module is tppumodule) and assigned(tppumodule(current_module).ppufile) then
+          change_endian_for_tokens:=tppumodule(current_module).ppufile.change_endian
+        else
+          change_endian_for_tokens:=false;
        end;
 
 
@@ -2914,7 +2913,7 @@ type
         val : asizeint;
       begin
         replaytokenbuf.read(val,sizeof(asizeint));
-        if change_endian then
+        if change_endian_for_tokens then
           val:=swapendian(val);
         result:=val;
       end;
@@ -2924,7 +2923,7 @@ type
         val : longword;
       begin
         replaytokenbuf.read(val,sizeof(longword));
-        if change_endian then
+        if change_endian_for_tokens then
           val:=swapendian(val);
         result:=val;
       end;
@@ -2934,7 +2933,7 @@ type
         val : longint;
       begin
         replaytokenbuf.read(val,sizeof(longint));
-        if change_endian then
+        if change_endian_for_tokens then
           val:=swapendian(val);
         result:=val;
       end;
@@ -2960,7 +2959,7 @@ type
         val : smallint;
       begin
         replaytokenbuf.read(val,sizeof(smallint));
-        if change_endian then
+        if change_endian_for_tokens then
           val:=swapendian(val);
         result:=val;
       end;
@@ -2970,7 +2969,7 @@ type
         val : word;
       begin
         replaytokenbuf.read(val,sizeof(word));
-        if change_endian then
+        if change_endian_for_tokens then
           val:=swapendian(val);
         result:=val;
       end;
@@ -2992,7 +2991,7 @@ type
      i : longint;
    begin
      replaytokenbuf.read(b,size);
-     if change_endian then
+     if change_endian_for_tokens then
        for i:=0 to size-1 do
          Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
    end;
