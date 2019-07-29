@@ -29,11 +29,15 @@ type
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_GenericNotFoundFail;
     procedure TestGen_RecordLocalNameDuplicateFail;
-    procedure TestGen_Record; // ToDo
-    // ToDo: type TBird<T> = record end; var b: TBird<word>.T; fail
+    procedure TestGen_Record;
+    //procedure TestGen_RecordDelphi;
     // ToDo: enums within generic
+    procedure TestGen_Class;
+    //procedure TestGen_ClassDelphi;
     // ToDo: generic class
-    // ToDo: generic class forward
+    // ToDo: generic class forward (constraints must be repeated)
+    // ToDo: generic class forward  constraints mismatch fail
+    // ToDo: generic class overload
     // ToDo: ancestor cycle: TBird<T> = class(TBird<word>) fail
     // ToDo: class-of
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
@@ -175,6 +179,26 @@ begin
   '  {=Typ}w: T;',
   'begin',
   '  r.v:=w;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  {#Typ}T = word;',
+  '  generic TBird<{#Templ}T> = class',
+  '    {=Templ}v: T;',
+  '  end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  '  {=Typ}w: T;',
+  'begin',
+  '  b.v:=w;',
   '']);
   ParseProgram;
 end;

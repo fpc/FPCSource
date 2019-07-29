@@ -2080,6 +2080,7 @@ type
     function IsArrayExpr(Expr: TParamsExpr): TPasArrayType;
     function IsArrayOperatorAdd(Expr: TPasExpr): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
+    function GetTypeParameterCount(aType: TPasGenericType): integer;
     function IsInterfaceType(const ResolvedEl: TPasResolverResult;
       IntfType: TPasClassInterfaceType): boolean; overload;
     function IsInterfaceType(TypeEl: TPasType; IntfType: TPasClassInterfaceType): boolean; overload;
@@ -7729,10 +7730,13 @@ begin
     for i:=0 to Members.Count-1 do
       begin
       Decl:=TPasElement(Members[i]);
-      if (CompareText(Decl.Name,aClass.Name)=0)
-          and (Decl<>aClass) then
-        RaiseMsg(20180212144132,nDuplicateIdentifier,sDuplicateIdentifier,
-          [Decl.Name,GetElementSourcePosStr(Decl)],aClass);
+      if (CompareText(Decl.Name,aClass.Name)<>0)
+          or (Decl=aClass) then continue;
+      if (Decl is TPasGenericType)
+          and (GetTypeParameterCount(TPasGenericType(Decl))<>GetTypeParameterCount(aClass)) then
+        continue;
+      RaiseMsg(20180212144132,nDuplicateIdentifier,sDuplicateIdentifier,
+        [Decl.Name,GetElementSourcePosStr(Decl)],aClass);
       end;
     exit;
     end;
@@ -13971,7 +13975,8 @@ begin
     begin
     Item:=TPSSpecializedItem(SpecializedTypes[i]);
     j:=length(Item.Params)-1;
-    while (j>=0) and (Item.Params[j]=ParamsResolved[j]) do dec(j);
+    while (j>=0) and IsSameType(Item.Params[j],ParamsResolved[j],prraNone) do
+      dec(j);
     if j<0 then
       break;
     Item:=nil;
@@ -14161,6 +14166,12 @@ begin
       TPasRecordType(NewEl).PackMode:=TPasRecordType(GenericType).PackMode;
       Scope:=TPasGenericScope(PushScope(NewEl,TPasRecordScope));
       Scope.VisibilityContext:=NewEl;
+      end
+    else if NewEl is TPasClassType then
+      begin
+      //AddClassType();
+      //FinishAncestors();
+        RaiseNotYetImplemented(20190728134934,El);
       end
     else
       RaiseNotYetImplemented(20190728134933,El);
@@ -23496,6 +23507,13 @@ begin
   else if (C=TPasUnresolvedSymbolRef)
       and (Decl.CustomData is TResElDataBaseType) then
     exit(true);
+end;
+
+function TPasResolver.GetTypeParameterCount(aType: TPasGenericType): integer;
+begin
+  if aType=nil then exit(0);
+  if aType.GenericTemplateTypes=nil then exit(0);
+  Result:=aType.GenericTemplateTypes.Count;
 end;
 
 function TPasResolver.IsInterfaceType(const ResolvedEl: TPasResolverResult;
