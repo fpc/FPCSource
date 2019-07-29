@@ -2235,10 +2235,6 @@ const
     inc(tbi,sizeof(dword));
     if ppufile.change_endian then
       var32:=swapendian(var32);
-{$ifdef FPC_BIG_ENDIAN}
-    { Tokens seems to be swapped to little endian in compiler code }
-    var32:=swapendian(var32);
-{$endif}
     result:=var32;
   end;
 
@@ -2250,10 +2246,6 @@ const
     inc(tbi,sizeof(word));
     if ppufile.change_endian then
       var16:=swapendian(var16);
-{$ifdef FPC_BIG_ENDIAN}
-    { Tokens seems to be swapped to little endian in compiler code }
-    var16:=swapendian(var16);
-{$endif}
     result:=var16;
   end;
 
@@ -2265,10 +2257,6 @@ const
     inc(tbi,sizeof(longint));
     if ppufile.change_endian then
       var32:=swapendian(var32);
-{$ifdef FPC_BIG_ENDIAN}
-    { Tokens seems to be swapped to little endian in compiler code }
-    var32:=swapendian(var32);
-{$endif}
     result:=var32;
   end;
 
@@ -2280,25 +2268,18 @@ const
     inc(tbi,sizeof(shortint));
     if ppufile.change_endian then
       var16:=swapendian(var16);
-{$ifdef FPC_BIG_ENDIAN}
-    { Tokens seems to be swapped to little endian in compiler code }
-    var16:=swapendian(var16);
-{$endif}
     result:=var16;
   end;
 
   procedure tokenreadset(var b;size : longint);
-{$ifdef FPC_BIG_ENDIAN}
   var
     i : longint;
-{$endif}
   begin
     move(tokenbuf[tbi],b,size);
     inc(tbi,size);
-{$ifdef FPC_BIG_ENDIAN}
-    for i:=0 to size-1 do
-      Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
-{$endif}
+    if ppufile.change_endian then
+      for i:=0 to size-1 do
+        Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
   end;
 
   function gettokenbufbyte : byte;
@@ -2332,10 +2313,6 @@ const
         inc(tbi,sizeof(int64));
         if ppufile.change_endian then
           var64:=swapendian(var64);
-{$ifdef FPC_BIG_ENDIAN}
-        { Tokens seems to be swapped to little endian in compiler code }
-        var64:=swapendian(var64);
-{$endif}
         result:=var64;
       end
     else if CpuAddrBitSize[cpu]=32 then
@@ -2344,10 +2321,6 @@ const
         inc(tbi,sizeof(longint));
         if ppufile.change_endian then
           var32:=swapendian(var32);
-{$ifdef FPC_BIG_ENDIAN}
-        { Tokens seems to be swapped to little endian in compiler code }
-        var32:=swapendian(var32);
-{$endif}
         result:=var32;
       end
     else if CpuAddrBitSize[cpu]=16 then
@@ -2356,10 +2329,6 @@ const
         inc(tbi,sizeof(smallint));
         if ppufile.change_endian then
           var16:=swapendian(var16);
-{$ifdef FPC_BIG_ENDIAN}
-        { Tokens seems to be swapped to little endian in compiler code }
-        var16:=swapendian(var16);
-{$endif}
         result:=var16;
       end
     else

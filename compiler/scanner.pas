@@ -145,6 +145,8 @@ interface
 
           { true, if we are parsing preprocessor expressions }
           in_preproc_comp_expr : boolean;
+          { true if cross-compiling for a CPU in opposite endianess}
+          change_endian : boolean;
 
           constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
@@ -2707,7 +2709,12 @@ type
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         ignoredirectives:=TFPHashList.Create;
-      end;
+{$ifdef FPC_BIG_ENDIAN}
+        change_endian:=(target_info.endian=endian_little);
+{$else}
+        change_endian:=(target_info.endian=endian_big);
+{$endif}
+       end;
 
 
     procedure tscannerfile.firstfile;
@@ -2879,17 +2886,11 @@ type
 
     procedure tscannerfile.tokenwritesizeint(val : asizeint);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(asizeint));
       end;
 
     procedure tscannerfile.tokenwritelongint(val : longint);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(longint));
       end;
 
@@ -2900,17 +2901,11 @@ type
 
     procedure tscannerfile.tokenwriteword(val : word);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(word));
       end;
 
     procedure tscannerfile.tokenwritelongword(val : longword);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(longword));
       end;
 
@@ -2919,9 +2914,8 @@ type
         val : asizeint;
       begin
         replaytokenbuf.read(val,sizeof(asizeint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2930,9 +2924,8 @@ type
         val : longword;
       begin
         replaytokenbuf.read(val,sizeof(longword));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2941,9 +2934,8 @@ type
         val : longint;
       begin
         replaytokenbuf.read(val,sizeof(longint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2968,9 +2960,8 @@ type
         val : smallint;
       begin
         replaytokenbuf.read(val,sizeof(smallint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2979,9 +2970,8 @@ type
         val : word;
       begin
         replaytokenbuf.read(val,sizeof(word));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2998,16 +2988,13 @@ type
    end;
 
    procedure tscannerfile.tokenreadset(var b;size : longint);
-{$ifdef FPC_BIG_ENDIAN}
    var
      i : longint;
-{$endif}
    begin
      replaytokenbuf.read(b,size);
-{$ifdef FPC_BIG_ENDIAN}
-     for i:=0 to size-1 do
-       Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
-{$endif}
+     if change_endian then
+       for i:=0 to size-1 do
+         Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
    end;
 
    procedure tscannerfile.tokenwriteenum(var b;size : longint);
@@ -3016,22 +3003,8 @@ type
    end;
 
    procedure tscannerfile.tokenwriteset(var b;size : longint);
-{$ifdef FPC_BIG_ENDIAN}
-   var
-     i: longint;
-     tmpset: array[0..31] of byte;
-{$endif}
    begin
-{$ifdef FPC_BIG_ENDIAN}
-     { satisfy DFA because it assumes that size may be 0 and doesn't know that
-       recordtokenbuf.write wouldn't use tmpset in that case }
-     tmpset[0]:=0;
-     for i:=0 to size-1 do
-       tmpset[i]:=reverse_byte(Pbyte(@b)[i]);
-     recordtokenbuf.write(tmpset,size);
-{$else}
      recordtokenbuf.write(b,size);
-{$endif}
    end;
 
 
