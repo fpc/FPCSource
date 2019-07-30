@@ -371,6 +371,10 @@ begin
   else
     platformopt:=' -b elf64-powerpc -m elf64ppc';
 {$endif powerpc64}
+{$ifdef arm}
+  platformopt:=' -z noexecstack';
+{$endif arm}
+
   with Info do
    begin
      ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO -L. -o $EXE';
