@@ -473,6 +473,7 @@ interface
         constructor create;override;
         destructor destroy;override;
 
+        procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         function writeData:boolean;override;
       end;
 
@@ -3516,6 +3517,31 @@ cleanup:
       begin
         FHeader.Free;
         inherited destroy;
+      end;
+
+    procedure TNewExeOutput.GenerateLibraryImports(ImportLibraryList: TFPHashObjectList);
+      var
+        i,j: longint;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+        exesym: TExeSymbol;
+      begin
+        for i:=0 to ImportLibraryList.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(ImportLibraryList[i]);
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.MangledName));
+                if assigned(exesym) and
+                   (exesym.State<>symstate_defined) then
+                  begin
+                    ImportSymbol.CachedExeSymbol:=exesym;
+                    exesym.State:=symstate_defined;
+                  end;
+              end;
+          end;
+        PackUnresolvedExeSymbols('after DLL imports');
       end;
 
     function TNewExeOutput.writeData: boolean;
