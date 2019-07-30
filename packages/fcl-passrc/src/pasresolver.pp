@@ -14330,11 +14330,11 @@ begin
       if (Ref<>GenElType) and (Ref is TPasType) then
         begin
         // replace template with specialized type
-        SpecElType:=TPasType(Ref);
-        SpecElType.AddRef{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference2'){$ENDIF};
-        exit;
+        GenElType:=TPasType(Ref);
         end;
       end;
+    if SpecElType<>nil then
+      SpecElType.Release{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
     SpecElType:=GenElType;
     SpecElType.AddRef{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
     end

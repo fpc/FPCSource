@@ -30,8 +30,10 @@ type
     procedure TestGen_GenericNotFoundFail;
     procedure TestGen_RecordLocalNameDuplicateFail;
     procedure TestGen_Record;
-    //procedure TestGen_RecordDelphi;
+    procedure TestGen_RecordDelphi;
     // ToDo: enums within generic
+    // ToDo: procedure TestGen_SpecializeArg_ArrayOf;  type TBird = specialize<array of word>
+    // ToDo: unitname.specialize TBird<word>.specialize
     procedure TestGen_Class;
     //procedure TestGen_ClassDelphi;
     // ToDo: generic class
@@ -176,6 +178,25 @@ begin
   '  end;',
   'var',
   '  r: specialize TRec<word>;',
+  '  {=Typ}w: T;',
+  'begin',
+  '  r.v:=w;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_RecordDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  {#Typ}T = word;',
+  '  TRec<{#Templ}T> = record',
+  '    {=Templ}v: T;',
+  '  end;',
+  'var',
+  '  r: TRec<word>;',
   '  {=Typ}w: T;',
   'begin',
   '  r.v:=w;',

@@ -423,7 +423,6 @@ type
     Function ParseRecordDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName : string; const Packmode : TPackMode = pmNone) : TPasRecordType;
     function ParseEnumType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String): TPasEnumType;
     function ParseSetType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String; AIsPacked : Boolean = False): TPasSetType;
-    function ParseSpecializeType(Parent: TPasElement; Const TypeName: String): TPasSpecializeType;
     Function ParseClassDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const AClassName: String; AObjKind: TPasObjKind; PackMode : TPackMode= pmNone): TPasType;
     Function ParseProperty(Parent : TPasElement; Const AName : String; AVisibility : TPasMemberVisibility; IsClassField: boolean) : TPasProperty;
     function ParseRangeType(AParent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; Full: Boolean = True): TPasRangeType;
@@ -1589,8 +1588,9 @@ begin
             end;
           Ref:=ResolveTypeReference(Name,ST);
           ST.DestType:=Ref;
+          Ref:=nil;
           ReadSpecializeArguments(ST);
-          if TypeName<>'' then
+          if TypeName='' then
             Engine.FinishScope(stTypeDef,ST);
           Result:=ST;
         finally
@@ -1611,8 +1611,10 @@ begin
           begin
           Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent, NamePos));
           TPasAliasType(Result).DestType:=Ref;
+          Ref:=nil;
           TPasAliasType(Result).Expr:=Expr;
           Expr.Parent:=Result;
+          Expr:=nil;
           if TypeName<>'' then
             begin
             ok:=false;
@@ -1665,12 +1667,13 @@ function TPasParser.ParseTypeReference(Parent: TPasElement; NeedExpr: boolean;
 // c) TPasType, Expr<>nil
 var
   Name: String;
-  IsSpecialize: Boolean;
+  IsSpecialize, ok: Boolean;
   ST: TPasSpecializeType;
 begin
   Result:=nil;
   Expr:=nil;
   ST:=nil;
+  ok:=false;
   try
     if CurToken=tkspecialize then
       begin
@@ -1695,9 +1698,9 @@ begin
       Expr:=nil;
       // read nested specialize arguments
       ReadSpecializeArguments(ST);
+      NextToken;
       Result:=ST;
       ST:=nil;
-      NextToken;
       end
     else if IsSpecialize then
       CheckToken(tkLessThan)
@@ -1707,8 +1710,10 @@ begin
       if not NeedExpr then
         ReleaseAndNil(TPasElement(Expr){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
       end;
+    ok:=true;
   finally
-    if ST<>nil then St.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    if ST<>nil then ST.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    if (not ok) and (Result<>nil) then Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -1825,7 +1830,10 @@ begin
       tkInterface:
         Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface,PM);
       tkSpecialize:
-        Result:=ParseSpecializeType(Parent,TypeName);
+        begin
+        NextToken;
+        Result:=ParseSimpleType(Parent,CurSourcePos,TypeName);
+        end;
       tkClass:
         begin
         isHelper:=false;
@@ -4225,24 +4233,6 @@ begin
     if not (CurToken in [tkComma,tkSemicolon]) then
       ParseExc(nParserExpectedCommaSemicolon,SParserExpectedCommaSemicolon);
   until (CurToken=tkSemicolon);
-end;
-
-function TPasParser.ParseSpecializeType(Parent: TPasElement;
-  const TypeName: String): TPasSpecializeType;
-
-var
-  ok: Boolean;
-begin
-  NextToken;
-  Result:=ParseSimpleType(Parent,CurSourcePos,TypeName) as TPasSpecializeType;
-  ok:=false;
-  try
-    Engine.FinishScope(stTypeDef,Result);
-    ok:=true;
-  finally
-    if not ok then
-      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-  end;
 end;
 
 function TPasParser.ParseProcedureType(Parent: TPasElement;
