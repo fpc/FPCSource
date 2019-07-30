@@ -1741,7 +1741,7 @@ unit cgcpu;
             ai.condition:=C_EQ;
             list.concat(ai);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_THROWFPUEXCEPTION',false);
+            cg.a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l);
             if clear then
