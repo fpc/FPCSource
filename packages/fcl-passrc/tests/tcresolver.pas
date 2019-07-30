@@ -7385,7 +7385,7 @@ begin
   Add('function GetIt: longint; begin end;');
   Add('var s: smallint;');
   Add('begin');
-  Add('   s:=smallint(GetIt);');
+  Add('  s:=smallint(GetIt);');
   ParseProgram;
 end;
 
@@ -10205,6 +10205,7 @@ begin
   Add('  ProcA(TClassA({@o}o));');
   Add('  if TClassA({@o}o).id=3 then ;');
   Add('  if (o as TClassA).id=3 then ;');
+  Add('  o:=TObject(nil);');
   ParseProgram;
 end;
 
