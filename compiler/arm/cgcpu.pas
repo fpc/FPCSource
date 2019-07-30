@@ -1729,6 +1729,7 @@ unit cgcpu;
         l: TAsmLabel;
       begin
         if ((cs_check_fpu_exceptions in current_settings.localswitches) and
+            not(FPUARM_HAS_EXCEPTION_TRAPPING in fpu_capabilities[current_settings.fputype]) and
             (force or current_procinfo.FPUExceptionCheckNeeded)) then
           begin
             r:=getintregister(list,OS_INT);
