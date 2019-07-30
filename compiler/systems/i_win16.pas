@@ -63,7 +63,7 @@ unit i_win16;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            sharedlibext : '';
+            sharedlibext : '.dll';
             staticlibext : '.a';
             staticlibprefix : '';
             sharedlibprefix : '';
