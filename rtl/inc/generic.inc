@@ -1767,7 +1767,7 @@ end;
           ((q1>q3) or (q2>q3) or
           { the bit 31 can be only set if we have $8000 0000 }
           { and sign is true                                 }
-          (q3 shr 15<>0) and
+          (q3 shr 31<>0) and
            ((q3<>dword(dword(1) shl 31)) or not(sign))
           ) then
           FPC_Overflow();
