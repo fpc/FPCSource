@@ -206,11 +206,11 @@ end;
 
 procedure TTestResolveGenerics.TestGen_Class;
 begin
-  exit;
   StartProgram(false);
   Add([
   '{$mode objfpc}',
   'type',
+  '  TObject = class end;',
   '  {#Typ}T = word;',
   '  generic TBird<{#Templ}T> = class',
   '    {=Templ}v: T;',

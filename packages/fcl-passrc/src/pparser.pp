@@ -4333,6 +4333,10 @@ begin
         begin
         ClassEl := TPasClassType(CreateElement(TPasClassType,
           TypeName, Parent, NamePos));
+        if CurToken=tkobject then
+          ClassEl.ObjKind:=okObject
+        else
+          ClassEl.ObjKind:=okClass;
         if AddToParent and (Parent is TPasDeclarations) then
           TPasDeclarations(Parent).Classes.Add(ClassEl);
         InitGenericType(ClassEl,List);
@@ -7106,11 +7110,9 @@ begin
 end;
 
 procedure TPasParser.DoParseClassType(AType: TPasClassType);
-
 var
   s: String;
   Expr: TPasExpr;
-
 begin
   if (CurToken=tkIdentifier) and (AType.ObjKind=okClass) then
     begin
