@@ -471,6 +471,9 @@ interface
       TNewExeOutput = class(TExeOutput)
       private
         FHeader: TNewExeHeader;
+        FImports: TFPHashObjectList;
+        procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
+        procedure AddImportLibrariesExtractedFromObjectModules;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
       public
@@ -3528,6 +3531,42 @@ cleanup:
                                TNewExeOutput
 ****************************************************************************}
 
+    procedure TNewExeOutput.AddImportSymbol(const libname, symname,
+      symmangledname: TCmdStr; OrdNr: longint; isvar: boolean);
+      var
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TFPHashObject;
+      begin
+        ImportLibrary:=TImportLibrary(FImports.Find(libname));
+        if not assigned(ImportLibrary) then
+          ImportLibrary:=TImportLibrary.Create(FImports,libname);
+        ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
+        if not assigned(ImportSymbol) then
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
+      end;
+
+    procedure TNewExeOutput.AddImportLibrariesExtractedFromObjectModules;
+      var
+        i, j, k: Integer;
+        ObjData: TOmfObjData;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+      begin
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ImportLibraryList.Count-1 do
+              begin
+                ImportLibrary:=TImportLibrary(ObjData.ImportLibraryList[j]);
+                for k:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+                  begin
+                    ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[k]);
+                    AddImportSymbol(ImportLibrary.Name,ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                  end;
+              end;
+          end;
+      end;
+
     procedure TNewExeOutput.DoRelocationFixup(objsec: TObjSection);
       begin
         {todo}
@@ -3554,9 +3593,11 @@ cleanup:
         ImportSymbol: TImportSymbol;
         exesym: TExeSymbol;
       begin
-        for i:=0 to ImportLibraryList.Count-1 do
+        FImports:=ImportLibraryList;
+        AddImportLibrariesExtractedFromObjectModules;
+        for i:=0 to FImports.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(ImportLibraryList[i]);
+            ImportLibrary:=TImportLibrary(FImports[i]);
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
