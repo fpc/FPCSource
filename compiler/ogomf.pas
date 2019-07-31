@@ -466,6 +466,11 @@ interface
         property ExpectedWindowsVersion: Word read FExpectedWindowsVersion write FExpectedWindowsVersion;
       end;
 
+      { TNewExeSection }
+
+      TNewExeSection=class(TExeSection)
+      end;
+
       { TNewExeOutput }
 
       TNewExeOutput = class(TExeOutput)
@@ -3577,6 +3582,7 @@ cleanup:
         inherited create;
         CObjData:=TOmfObjData;
         CObjSymbol:=TOmfObjSymbol;
+        CExeSection:=TNewExeSection;
         FHeader:=TNewExeHeader.Create;
       end;
 
