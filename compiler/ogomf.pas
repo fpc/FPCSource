@@ -171,7 +171,7 @@ interface
         function ReadPubDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadModEnd(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadLeOrLiDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
-        function ReadImpDef(Rec: TOmfRecord_COMENT): Boolean;
+        function ReadImpDef(Rec: TOmfRecord_COMENT; objdata:TObjData): Boolean;
         function ReadExpDef(Rec: TOmfRecord_COMENT): Boolean;
         function ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
 
@@ -1876,13 +1876,16 @@ implementation
         Result:=True;
       end;
 
-    function TOmfObjInput.ReadImpDef(Rec: TOmfRecord_COMENT): Boolean;
+    function TOmfObjInput.ReadImpDef(Rec: TOmfRecord_COMENT; objdata: TObjData): Boolean;
       var
         ImpDefRec: TOmfRecord_COMENT_IMPDEF;
       begin
         ImpDefRec:=TOmfRecord_COMENT_IMPDEF.Create;
         ImpDefRec.DecodeFrom(Rec);
-        {todo: implement}
+        if ImpDefRec.ImportByOrdinal then
+          TOmfObjData(objdata).AddImportSymbol(ImpDefRec.ModuleName,'',ImpDefRec.InternalName,ImpDefRec.Ordinal,false)
+        else
+          TOmfObjData(objdata).AddImportSymbol(ImpDefRec.ModuleName,ImpDefRec.Name,ImpDefRec.InternalName,0,false);
         Result:=True;
         ImpDefRec.Free;
       end;
@@ -2278,7 +2281,7 @@ implementation
                         begin
                           case Ord(FCOMENTRecord.CommentString[1]) of
                             CC_OmfExtension_IMPDEF:
-                              if not ReadImpDef(FCOMENTRecord) then
+                              if not ReadImpDef(FCOMENTRecord,objdata) then
                                 exit;
                             CC_OmfExtension_EXPDEF:
                               if not ReadExpDef(FCOMENTRecord) then
