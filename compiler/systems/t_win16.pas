@@ -363,18 +363,26 @@ begin
   end;
   LinkScript.Concat('ENDGROUP');
 
-  LinkScript.Concat('EXESECTION .MZ_flat_content');
+  LinkScript.Concat('EXESECTION .NE_code');
   LinkScript.Concat('  OBJSECTION _TEXT||CODE');
   LinkScript.Concat('  OBJSECTION *||CODE');
+  LinkScript.Concat('ENDEXESECTION');
+  LinkScript.Concat('EXESECTION .NE_data');
   LinkScript.Concat('  OBJSECTION *||FAR_DATA');
   LinkScript.Concat('  OBJSECTION _NULL||BEGDATA');
   LinkScript.Concat('  OBJSECTION _AFTERNULL||BEGDATA');
   LinkScript.Concat('  OBJSECTION *||BEGDATA');
   LinkScript.Concat('  OBJSECTION *||DATA');
   LinkScript.Concat('  SYMBOL _edata');
+  LinkScript.Concat('ENDEXESECTION');
+  LinkScript.Concat('EXESECTION .NE_bss');
   LinkScript.Concat('  OBJSECTION *||BSS');
   LinkScript.Concat('  SYMBOL _end');
+  LinkScript.Concat('ENDEXESECTION');
+  LinkScript.Concat('EXESECTION .NE_stack');
   LinkScript.Concat('  OBJSECTION *||STACK');
+  LinkScript.Concat('ENDEXESECTION');
+  LinkScript.Concat('EXESECTION .NE_localheap');
   LinkScript.Concat('  OBJSECTION *||HEAP');
   LinkScript.Concat('ENDEXESECTION');
 
