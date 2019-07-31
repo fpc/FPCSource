@@ -253,7 +253,7 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,AudioComponents,CFBase,CFArray,CoreAudioTypes;
+uses MacTypes,AudioComponents,CFBase,CFArray,CFDate,CoreAudioTypes;
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -264,7 +264,7 @@ uses MacTypes,AudioComponents,CFBase,CFArray,CoreAudioTypes;
 
 //CF_ASSUME_NONNULL_BEGIN
 
-//#define AU_SUPPORT_INTERAPP_AUDIO (TARGET_OS_IPHONE && !(0 && !TARGET_OS_SIMULATOR && !TARGET_OS_EMBEDDED))
+//#define AU_SUPPORT_INTERAPP_AUDIO (TARGET_OS_IPHONE && !(0 && !TARGET_IPHONE_SIMULATOR && !TARGET_OS_EMBEDDED))
 
 
 //================================================================================================
@@ -943,7 +943,7 @@ const
 	kAudioUnitErr_InvalidParameterValue = -66743; 
 
 
-{$ifc TARGET_OS_IPHONE and not TARGET_OS_SIMULATOR}
+{$ifc TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
 {!
     @enum       AudioComponent errors for inter-app audio
     
@@ -968,7 +968,7 @@ const
 	kAudioComponentErr_NotPermitted = -66748;
 	kAudioComponentErr_InitializationTimedOut = -66747;
 	kAudioComponentErr_InvalidFormat = -66746; 
-{$endc} {TARGET_OS_IPHONE and not TARGET_OS_SIMULATOR}
+{$endc} {TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
 
 {!
 	@typedef			AudioUnitPropertyID
@@ -1615,7 +1615,7 @@ function AudioUnitProcessMultiple( inUnit: AudioUnit; ioActionFlags: AudioUnitRe
 function AudioUnitReset( inUnit: AudioUnit; inScope: AudioUnitScope; inElement: AudioUnitElement ): OSStatus; external name '_AudioUnitReset';
 (* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
-{$ifc TARGET_OS_IPHONE and not TARGET_OS_SIMULATOR}
+{$ifc TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
 {!
     @function       AudioOutputUnitPublish
 
@@ -1652,7 +1652,7 @@ function AudioOutputUnitPublish( const (*var*) inDesc: AudioComponentDescription
 }
 function AudioComponentGetLastActiveTime( comp: AudioComponent ): CFAbsoluteTime; external name '_AudioComponentGetLastActiveTime';
 (* API_AVAILABLE(ios(7.0), watchos(2.0), tvos(9.0)) API_UNAVAILABLE(macos) *)
-{$endc} {TARGET_OS_IPHONE and not TARGET_OS_SIMULATOR}
+{$endc} {TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
 
 {$ifc TARGET_CPU_64 or TARGET_OS_IPHONE}
 {!

@@ -1308,6 +1308,7 @@ type
 	end;
 	AUHostVersionIdentifierPtr = ^AUHostVersionIdentifier;
 
+{$ifc TARGET_OS_MAC}
 {
 	@typedef		AUMIDIOutputCallback
 	@abstract		A callback used by an audio unit to provide MIDI data to a host application
@@ -1326,7 +1327,8 @@ type
 		userData: UnivPtr {__nullable};
 	end;
 	AUMIDIOutputCallbackStructPtr = ^AUMIDIOutputCallbackStruct;
-	
+{$endc TARGET_OS_MAC}
+
 {!
 	@struct			AUInputSamplesInOutputCallbackStruct
 	@abstract		Used by a host when registering a callback with an audio unit, to provide 
