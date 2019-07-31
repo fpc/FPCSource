@@ -113,6 +113,7 @@ interface
         function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
         function reffardatasection:TObjSection;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
+        procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
         property MainSource: TPathStr read FMainSource;
         property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
       end;
@@ -916,6 +917,20 @@ implementation
               CurrObjSec.ObjRelocations.Add(objreloc);
             end;
         CurrObjSec.write(data,len);
+      end;
+
+    procedure TOmfObjData.AddImportSymbol(const libname, symname,
+      symmangledname: TCmdStr; OrdNr: longint; isvar: boolean);
+      var
+        ImportLibrary : TImportLibrary;
+        ImportSymbol  : TFPHashObject;
+      begin
+        ImportLibrary:=TImportLibrary(ImportLibraryList.Find(libname));
+        if not assigned(ImportLibrary) then
+          ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
+        ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
+        if not assigned(ImportSymbol) then
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
       end;
 
 {****************************************************************************
