@@ -101,9 +101,11 @@ interface
       TOmfObjData = class(TObjData)
       private
         FMainSource: TPathStr;
+        FImportLibraryList:TFPHashObjectList;
         class function CodeSectionName(const aname:string): string;
       public
         constructor create(const n:string);override;
+        destructor destroy;override;
         function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
         function sectiontype2class(atype:TAsmSectiontype):string;
@@ -112,6 +114,7 @@ interface
         function reffardatasection:TObjSection;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
         property MainSource: TPathStr read FMainSource;
+        property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
       end;
 
       { TOmfObjOutput }
@@ -733,6 +736,13 @@ implementation
         CObjSection:=TOmfObjSection;
         createsectiongroup('DGROUP');
         FMainSource:=current_module.mainsource;
+        FImportLibraryList:=TFPHashObjectList.Create(true);
+      end;
+
+    destructor TOmfObjData.destroy;
+      begin
+        FImportLibraryList.Free;
+        inherited destroy;
       end;
 
     function TOmfObjData.sectiontype2options(atype: TAsmSectiontype): TObjSectionOptions;
