@@ -718,8 +718,11 @@ implementation
 
     function TOmfObjSection.MemPosStr(AImageBase: qword): string;
       begin
-        Result:=HexStr(MZExeUnifiedLogicalSegment.MemBasePos shr 4,4)+':'+
-          HexStr(MemPos-MZExeUnifiedLogicalSegment.MemBasePos,4);
+        if Assigned(MZExeUnifiedLogicalSegment) then
+          Result:=HexStr(MZExeUnifiedLogicalSegment.MemBasePos shr 4,4)+':'+
+            HexStr(MemPos-MZExeUnifiedLogicalSegment.MemBasePos,4)
+        else
+          Result:=inherited;
       end;
 
 {****************************************************************************
