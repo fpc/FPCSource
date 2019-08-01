@@ -481,6 +481,7 @@ interface
         procedure AddImportLibrariesExtractedFromObjectModules;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
+        procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
       public
         constructor create;override;
         destructor destroy;override;
@@ -3575,6 +3576,27 @@ cleanup:
     procedure TNewExeOutput.DoRelocationFixup(objsec: TObjSection);
       begin
         {todo}
+      end;
+
+    function INewExeOmfObjSectionClassNameCompare(Item1, Item2: Pointer): Integer;
+      var
+        I1 : TOmfObjSection absolute Item1;
+        I2 : TOmfObjSection absolute Item2;
+      begin
+        Result:=CompareStr(I1.ClassName,I2.ClassName);
+        if Result=0 then
+          Result:=CompareStr(I1.Name,I2.Name);
+        if Result=0 then
+          Result:=I1.SortOrder-I2.SortOrder;
+      end;
+
+    procedure TNewExeOutput.Order_ObjSectionList(ObjSectionList: TFPObjectList;const aPattern: string);
+      var
+        i: Integer;
+      begin
+        for i:=0 to ObjSectionList.Count-1 do
+          TOmfObjSection(ObjSectionList[i]).SortOrder:=i;
+        ObjSectionList.Sort(@INewExeOmfObjSectionClassNameCompare);
       end;
 
     constructor TNewExeOutput.create;
