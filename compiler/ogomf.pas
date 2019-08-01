@@ -479,6 +479,8 @@ interface
         FImports: TFPHashObjectList;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
         procedure AddImportLibrariesExtractedFromObjectModules;
+        function WriteNewExe:boolean;
+        property Header: TNewExeHeader read FHeader;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
@@ -3573,6 +3575,13 @@ cleanup:
           end;
       end;
 
+    function TNewExeOutput.WriteNewExe: boolean;
+      begin
+        Header.WriteTo(FWriter);
+        { todo: write the rest of the file as well }
+        Result:=True;
+      end;
+
     procedure TNewExeOutput.DoRelocationFixup(objsec: TObjSection);
       begin
         {todo}
@@ -3606,6 +3615,7 @@ cleanup:
         CObjSymbol:=TOmfObjSymbol;
         CExeSection:=TNewExeSection;
         FHeader:=TNewExeHeader.Create;
+        MaxMemPos:=$FFFFFFFF;
       end;
 
     destructor TNewExeOutput.destroy;
@@ -3643,8 +3653,13 @@ cleanup:
 
     function TNewExeOutput.writeData: boolean;
       begin
-        {todo}
         Result:=False;
+        if ExeWriteMode in [ewm_exefull,ewm_exeonly] then
+          begin
+            Result:=WriteNewExe;
+            if not Result then
+              exit;
+          end;
       end;
 
 {****************************************************************************
