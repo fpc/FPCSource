@@ -73,6 +73,9 @@ implementation
 
       TInternalLinkerWin16=class(tinternallinker)
       protected
+        function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
+        function GetDataSize(aExeOutput: TExeOutput): QWord;override;
+        function GetBssSize(aExeOutput: TExeOutput): QWord;override;
         procedure DefaultLinkScript;override;
       public
         constructor create;override;
@@ -333,6 +336,24 @@ end;
 {****************************************************************************
                                TInternalLinkerWin16
 ****************************************************************************}
+
+function TInternalLinkerWin16.GetCodeSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
+
+function TInternalLinkerWin16.GetDataSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
+
+function TInternalLinkerWin16.GetBssSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
 
 procedure TInternalLinkerWin16.DefaultLinkScript;
 var
