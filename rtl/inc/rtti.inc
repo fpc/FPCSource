@@ -128,7 +128,7 @@ begin
 {$endif VER3_0}
   Count:=PRecordInfoInit(typeInfo)^.Count;
   { Get element info, hacky, but what else can we do? }
-  typeInfo:=Pointer(@PRecordInfoInit(typeInfo)^.Count)+SizeOf(PRecordInfoInit(typeInfo)^.Count);
+  typeInfo:=aligntoptr(Pointer(@PRecordInfoInit(typeInfo)^.Count)+SizeOf(PRecordInfoInit(typeInfo)^.Count));
   { Process elements }
   for i:=1 to count Do
     begin
@@ -404,7 +404,7 @@ begin
             Result:=PRecordInfoInit(Temp)^.Size;
             EleCount:=PRecordInfoInit(Temp)^.Count;
             { Get element info, hacky, but what else can we do? }
-            Temp:=Pointer(@PRecordInfoInit(Temp)^.Count)+SizeOf(PRecordInfoInit(Temp)^.Count);
+            Temp:=aligntoptr(Pointer(@PRecordInfoInit(Temp)^.Count)+SizeOf(PRecordInfoInit(Temp)^.Count));
 {$else VER3_0}
             Result:=PRecordInfoFull(Temp)^.Size;
             EleCount:=PRecordInfoFull(Temp)^.Count;
