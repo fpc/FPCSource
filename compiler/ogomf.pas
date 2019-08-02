@@ -764,6 +764,8 @@ implementation
         if Assigned(MZExeUnifiedLogicalSegment) then
           Result:=HexStr(MZExeUnifiedLogicalSegment.MemBasePos shr 4,4)+':'+
             HexStr(MemPos-MZExeUnifiedLogicalSegment.MemBasePos,4)
+        else if Assigned(ExeSection) and (ExeSection is TNewExeSection) then
+          Result:=HexStr(TNewExeSection(ExeSection).MemBasePos,4)+':'+HexStr(mempos,4)
         else
           Result:=inherited;
       end;
