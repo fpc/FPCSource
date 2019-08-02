@@ -500,6 +500,7 @@ interface
         FExeMetaSec: TNewExeMetaSection;
         FMemBasePos: Word;
       public
+        function MemPosStr(AImageBase: qword): string;override;
         procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
         function CanAddObjSection(objsec:TObjSection;ExeSectionLimit:QWord):boolean;
         property EarlySize: QWord read FEarlySize write FEarlySize;
@@ -3584,6 +3585,11 @@ cleanup:
 {****************************************************************************
                               TNewExeSection
 ****************************************************************************}
+
+    function TNewExeSection.MemPosStr(AImageBase: qword): string;
+      begin
+        Result:=HexStr(MemBasePos,4)+':'+HexStr(MemPos,4);
+      end;
 
     procedure TNewExeSection.AddObjSection(objsec: TObjSection; ignoreprops: boolean);
       begin
