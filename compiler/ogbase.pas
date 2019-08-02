@@ -523,6 +523,8 @@ interface
         constructor create(AList:TFPHashObjectList;const AName:string);virtual;
         destructor  destroy;override;
         procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);virtual;
+        { string representation for the linker map file }
+        function MemPosStr(AImageBase: qword): string;virtual;
         property ObjSectionList:TFPObjectList read FObjSectionList;
         property SecSymIdx:longint read FSecSymIdx write FSecSymIdx;
       end;
@@ -1769,6 +1771,12 @@ implementation
             SecOptions:=SecOptions+objsec.SecOptions;
           end;
         SecAlign:=max(objsec.SecAlign,SecAlign);
+      end;
+
+
+    function TExeSection.MemPosStr(AImageBase: qword): string;
+      begin
+        result:='0x'+HexStr(mempos+AImageBase,sizeof(pint)*2);
       end;
 
 

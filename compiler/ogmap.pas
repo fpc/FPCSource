@@ -164,7 +164,7 @@ implementation
      procedure TExeMap.AddMemoryMapExeSection(p:texesection);
        begin
          { .text           0x000018a8     0xd958 }
-         Add(PadSpace(p.name,15)+PadSpace(' 0x'+HexStr(p.mempos+Fimagebase,sizeof(pint)*2),12)+
+         Add(PadSpace(p.name,15)+PadSpace(' '+p.MemPosStr(Fimagebase),12)+
              ' '+PadSpaceLeft(sizestr(p.size),9));
        end;
 
