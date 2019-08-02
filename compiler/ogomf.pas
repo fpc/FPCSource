@@ -3775,7 +3775,10 @@ cleanup:
       begin
         inherited MemPos_Start;
         for i:=0 to ExeSectionList.Count-1 do
-          MemPos_ExeSection(TExeSection(ExeSectionList[i]));
+          begin
+            MemPos_ExeSection(TExeSection(ExeSectionList[i]));
+            CurrMemPos:=0;
+          end;
       end;
 
     procedure TNewExeOutput.GenerateLibraryImports(ImportLibraryList: TFPHashObjectList);
