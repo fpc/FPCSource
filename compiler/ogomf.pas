@@ -476,19 +476,13 @@ interface
       TNewExeMetaSection = (
         nemsNone,
         nemsCode,
-        nemsData,
-        nemsBss,
-        nemsStack,
-        nemsLocalHeap);
+        nemsData);
 
     const
       NewExeMetaSection2String: array [TNewExeMetaSection] of string[9] = (
         '',
         'Code',
-        'Data',
-        'Bss',
-        'Stack',
-        'LocalHeap');
+        'Data');
 
     type
 
@@ -3593,7 +3587,9 @@ cleanup:
 
     procedure TNewExeSection.AddObjSection(objsec: TObjSection; ignoreprops: boolean);
       begin
-        inherited;
+        { allow mixing initialized and uninitialized data in the same section
+          => set ignoreprops=true }
+        inherited AddObjSection(objsec,true);
         EarlySize:=align_qword(EarlySize,SecAlign)+objsec.Size;
       end;
 
@@ -3716,12 +3712,6 @@ cleanup:
             CurrExeMetaSec:=nemsCode;
           '.NE_data':
             CurrExeMetaSec:=nemsData;
-          '.NE_bss':
-            CurrExeMetaSec:=nemsBss;
-          '.NE_stack':
-            CurrExeMetaSec:=nemsStack;
-          '.NE_localheap':
-            CurrExeMetaSec:=nemsLocalHeap;
           else
             internalerror(2019080201);
         end;
