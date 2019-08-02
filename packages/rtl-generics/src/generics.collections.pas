@@ -679,7 +679,10 @@ type
     procedure ValueNotify(constref AValue: TValue; ACollectionNotification: TCollectionNotification); inline;
     procedure NodeNotify(ANode: PNode; ACollectionNotification: TCollectionNotification; ADispose: boolean); inline;
     procedure SetValue(var AValue: TValue; constref ANewValue: TValue);
+    function GetItem(const AKey: TKey): TValue;
+    procedure SetItem(const AKey: TKey; const AValue: TValue);
 
+    property Items[Index: TKey]: TValue read GetItem write SetItem;
     // for reporting
     procedure WriteStr(AStream: TStream; const AText: string);
   public type
@@ -782,6 +785,8 @@ type
   end;
 
   TAVLTreeMap<TKey, TValue> = class(TCustomAVLTreeMap<TKey, TValue, TEmptyRecord>)
+  public
+    property Items; default;
   end;
 
   TIndexedAVLTreeMap<TKey, TValue> = class(TCustomAVLTreeMap<TKey, TValue, SizeInt>)
@@ -808,6 +813,7 @@ type
   protected
     property OnKeyNotify;
     property OnValueNotify;
+    property Items;
   public type
     TItemEnumerator = TKeyEnumerator;
   public
@@ -3317,6 +3323,21 @@ begin
   if not Assigned(FValues) then
     FValues := TValueCollection.Create(TTree(Self));
   Result := TValueCollection(FValues);
+end;
+
+function TCustomAVLTreeMap<TREE_CONSTRAINTS>.GetItem(const AKey: TKey): TValue;
+var
+  LNode: PNode;
+begin
+  LNode := Find(AKey);
+  if not Assigned(LNode) then
+    raise EAVLTree.CreateRes(@SDictionaryKeyDoesNotExist);
+  result := LNode.Value;
+end;
+
+procedure TCustomAVLTreeMap<TREE_CONSTRAINTS>.SetItem(const AKey: TKey; const AValue: TValue);
+begin
+  Find(AKey).Value := AValue;
 end;
 
 constructor TCustomAVLTreeMap<TREE_CONSTRAINTS>.Create;
