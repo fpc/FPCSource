@@ -598,11 +598,16 @@ implementation
       var
         base: qword;
       begin
-        if assigned(TOmfObjSection(objsection).MZExeUnifiedLogicalSegment) then
-          base:=TOmfObjSection(objsection).MZExeUnifiedLogicalSegment.MemBasePos
+        if assigned(objsection.ExeSection) and (objsection.ExeSection is TNewExeSection) then
+          Result:=HexStr(TNewExeSection(objsection.ExeSection).MemBasePos,4)+':'+HexStr(address,4)
         else
-          base:=(address shr 4) shl 4;
-        Result:=HexStr(base shr 4,4)+':'+HexStr(address-base,4);
+          begin
+            if assigned(TOmfObjSection(objsection).MZExeUnifiedLogicalSegment) then
+              base:=TOmfObjSection(objsection).MZExeUnifiedLogicalSegment.MemBasePos
+            else
+              base:=(address shr 4) shl 4;
+            Result:=HexStr(base shr 4,4)+':'+HexStr(address-base,4);
+          end;
       end;
 
 {****************************************************************************
