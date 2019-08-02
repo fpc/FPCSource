@@ -1498,7 +1498,6 @@ implementation
           insert_funcret_para(pd);
           pd.calcparas;
           pd.forwarddef:=false;
-          pd.setmangledname(ps.name);
           pd.aliasnames.insert(pd.mangledname);
           handle_calling_convention(pd,hcc_default_actions_impl);
           { set procinfo and current_procinfo.procdef }
