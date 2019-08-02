@@ -498,11 +498,13 @@ interface
       private
         FEarlySize: QWord;
         FExeMetaSec: TNewExeMetaSection;
+        FMemBasePos: Word;
       public
         procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
         function CanAddObjSection(objsec:TObjSection;ExeSectionLimit:QWord):boolean;
         property EarlySize: QWord read FEarlySize write FEarlySize;
         property ExeMetaSec: TNewExeMetaSection read FExeMetaSec write FExeMetaSec;
+        property MemBasePos: Word read FMemBasePos write FMemBasePos;
       end;
 
       { TNewExeOutput }
@@ -3641,11 +3643,14 @@ cleanup:
 
     procedure TNewExeOutput.AddNewExeSection;
       var
+        SegNr: Integer;
         SecName: string;
       begin
-        WriteStr(SecName,'Segment',ExeSectionList.Count+1,'_',NewExeMetaSection2String[CurrExeMetaSec]);
+        SegNr:=ExeSectionList.Count+1;
+        WriteStr(SecName,'Segment',SegNr,'_',NewExeMetaSection2String[CurrExeMetaSec]);
         inherited Order_ExeSection(SecName);
         TNewExeSection(CurrExeSec).ExeMetaSec:=CurrExeMetaSec;
+        TNewExeSection(CurrExeSec).MemBasePos:=SegNr;
       end;
 
     function TNewExeOutput.WriteNewExe: boolean;
