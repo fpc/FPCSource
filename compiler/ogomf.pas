@@ -528,6 +528,7 @@ interface
         procedure Order_ExeSection(const aname:string);override;
         procedure Order_EndExeSection;override;
         procedure Order_ObjSection(const aname:string);override;
+        procedure MemPos_Start;override;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         function writeData:boolean;override;
       end;
@@ -3758,6 +3759,15 @@ cleanup:
             CurrExeSec.AddObjSection(objsec);
           end;
         TmpObjSectionList.Free;
+      end;
+
+    procedure TNewExeOutput.MemPos_Start;
+      var
+        i: Integer;
+      begin
+        inherited MemPos_Start;
+        for i:=0 to ExeSectionList.Count-1 do
+          MemPos_ExeSection(TExeSection(ExeSectionList[i]));
       end;
 
     procedure TNewExeOutput.GenerateLibraryImports(ImportLibraryList: TFPHashObjectList);
