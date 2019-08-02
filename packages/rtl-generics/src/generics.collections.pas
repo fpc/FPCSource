@@ -747,8 +747,8 @@ type
     function Remove(constref AKey: TKey; ADisposeNode: boolean = true): boolean;
     function ExtractPair(constref AKey: TKey; ADisposeNode: boolean = true): TTreePair; overload;
     function ExtractPair(constref ANode: PNode; ADispose: boolean = true): TTreePair; overload;
-    function ExtractNode(constref AKey: TKey; ADisposeNode: boolean): PNode; overload;
-    function ExtractNode(ANode: PNode; ADispose: boolean): PNode; overload;
+    function Extract(constref AKey: TKey; ADisposeNode: boolean): PNode;
+    function ExtractNode(ANode: PNode; ADispose: boolean): PNode;
     procedure Delete(ANode: PNode; ADispose: boolean = true); inline;
 
     function GetEnumerator: TPairEnumerator;
@@ -3430,7 +3430,7 @@ begin
   Result.Value := DoRemove(ANode, cnExtracted, ADispose);
 end;
 
-function TCustomAVLTreeMap<TREE_CONSTRAINTS>.ExtractNode(constref AKey: TKey; ADisposeNode: boolean): PNode;
+function TCustomAVLTreeMap<TREE_CONSTRAINTS>.Extract(constref AKey: TKey; ADisposeNode: boolean): PNode;
 begin
   Result:=Find(AKey);
   if Result<>nil then
