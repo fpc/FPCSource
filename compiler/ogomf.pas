@@ -466,9 +466,43 @@ interface
         property ExpectedWindowsVersion: Word read FExpectedWindowsVersion write FExpectedWindowsVersion;
       end;
 
+      { These are fake "meta sections" used by the linker script. The actual
+        NewExe sections are segments, limited to 64kb, which means there can be
+        multiple code segments, etc. These are created manually as object
+        sections are added. If they fit the current segment, without exceeding
+        64kb, they are added to the current segment, otherwise a new segment is
+        created. The current "meta sections" tells what kind of new segment to
+        create (e.g. nemsCode means that a new code segment will be created). }
+      TNewExeMetaSection = (
+        nemsNone,
+        nemsCode,
+        nemsData,
+        nemsBss,
+        nemsStack,
+        nemsLocalHeap);
+
+    const
+      NewExeMetaSection2String: array [TNewExeMetaSection] of string[9] = (
+        '',
+        'Code',
+        'Data',
+        'Bss',
+        'Stack',
+        'LocalHeap');
+
+    type
+
       { TNewExeSection }
 
       TNewExeSection=class(TExeSection)
+      private
+        FEarlySize: QWord;
+        FExeMetaSec: TNewExeMetaSection;
+      public
+        procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
+        function CanAddObjSection(objsec:TObjSection;ExeSectionLimit:QWord):boolean;
+        property EarlySize: QWord read FEarlySize write FEarlySize;
+        property ExeMetaSec: TNewExeMetaSection read FExeMetaSec write FExeMetaSec;
       end;
 
       { TNewExeOutput }
@@ -477,10 +511,13 @@ interface
       private
         FHeader: TNewExeHeader;
         FImports: TFPHashObjectList;
+        FCurrExeMetaSec: TNewExeMetaSection;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
         procedure AddImportLibrariesExtractedFromObjectModules;
+        procedure AddNewExeSection;
         function WriteNewExe:boolean;
         property Header: TNewExeHeader read FHeader;
+        property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
@@ -488,6 +525,9 @@ interface
         constructor create;override;
         destructor destroy;override;
 
+        procedure Order_ExeSection(const aname:string);override;
+        procedure Order_EndExeSection;override;
+        procedure Order_ObjSection(const aname:string);override;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         function writeData:boolean;override;
       end;
@@ -3539,6 +3579,26 @@ cleanup:
       end;
 
 {****************************************************************************
+                              TNewExeSection
+****************************************************************************}
+
+    procedure TNewExeSection.AddObjSection(objsec: TObjSection; ignoreprops: boolean);
+      begin
+        inherited;
+        EarlySize:=align_qword(EarlySize,SecAlign)+objsec.Size;
+      end;
+
+    function TNewExeSection.CanAddObjSection(objsec: TObjSection; ExeSectionLimit: QWord): boolean;
+      var
+        NewSecAlign: LongInt;
+        NewSize: QWord;
+      begin
+        NewSecAlign:=max(objsec.SecAlign,SecAlign);
+        NewSize:=align_qword(EarlySize,NewSecAlign)+objsec.Size;
+        Result:=NewSize<=ExeSectionLimit;
+      end;
+
+{****************************************************************************
                                TNewExeOutput
 ****************************************************************************}
 
@@ -3576,6 +3636,15 @@ cleanup:
                   end;
               end;
           end;
+      end;
+
+    procedure TNewExeOutput.AddNewExeSection;
+      var
+        SecName: string;
+      begin
+        WriteStr(SecName,'Segment',ExeSectionList.Count+1,'_',NewExeMetaSection2String[CurrExeMetaSec]);
+        inherited Order_ExeSection(SecName);
+        TNewExeSection(CurrExeSec).ExeMetaSec:=CurrExeMetaSec;
       end;
 
     function TNewExeOutput.WriteNewExe: boolean;
@@ -3619,12 +3688,76 @@ cleanup:
         CExeSection:=TNewExeSection;
         FHeader:=TNewExeHeader.Create;
         MaxMemPos:=$FFFFFFFF;
+        CurrExeMetaSec:=nemsNone;
       end;
 
     destructor TNewExeOutput.destroy;
       begin
         FHeader.Free;
         inherited destroy;
+      end;
+
+    procedure TNewExeOutput.Order_ExeSection(const aname: string);
+      begin
+        case aname of
+          '.NE_code':
+            CurrExeMetaSec:=nemsCode;
+          '.NE_data':
+            CurrExeMetaSec:=nemsData;
+          '.NE_bss':
+            CurrExeMetaSec:=nemsBss;
+          '.NE_stack':
+            CurrExeMetaSec:=nemsStack;
+          '.NE_localheap':
+            CurrExeMetaSec:=nemsLocalHeap;
+          else
+            internalerror(2019080201);
+        end;
+      end;
+
+    procedure TNewExeOutput.Order_EndExeSection;
+      begin
+        CurrExeMetaSec:=nemsNone;
+        inherited;
+      end;
+
+    procedure TNewExeOutput.Order_ObjSection(const aname: string);
+      const
+        SegmentLimit=$10000;
+      var
+        i,j     : longint;
+        ObjData : TObjData;
+        objsec  : TObjSection;
+        TmpObjSectionList : TFPObjectList;
+      begin
+        if CurrExeMetaSec=nemsNone then
+          internalerror(2019080202);
+        if not assigned (CurrExeSec) then
+          AddNewExeSection;
+        TmpObjSectionList:=TFPObjectList.Create(false);
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(ObjData.ObjSectionList[j]);
+                if (not objsec.Used) and
+                   MatchPattern(aname,objsec.name) then
+                  TmpObjSectionList.Add(objsec);
+              end;
+          end;
+        { Order list if needed }
+        Order_ObjSectionList(TmpObjSectionList,aname);
+        { Add the (ordered) list to the current ExeSection }
+        for i:=0 to TmpObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(TmpObjSectionList[i]);
+            { If there's no room left in the current section, create a new one }
+            if not TNewExeSection(CurrExeSec).CanAddObjSection(objsec,SegmentLimit) then
+              AddNewExeSection;
+            CurrExeSec.AddObjSection(objsec);
+          end;
+        TmpObjSectionList.Free;
       end;
 
     procedure TNewExeOutput.GenerateLibraryImports(ImportLibraryList: TFPHashObjectList);
