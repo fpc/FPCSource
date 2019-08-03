@@ -219,11 +219,7 @@ begin
   else
     location_reset(location, LOC_FLAGS, OS_NO);
 
-  checkoverflow:=
-    (nodetype in [addn,subn,muln]) and
-    (cs_check_overflow in current_settings.localswitches) and
-    (left.resultdef.typ<>pointerdef) and
-    (right.resultdef.typ<>pointerdef);
+  checkoverflow:=needoverflowcheck;
 
   load_left_right(cmpop, checkoverflow);
 

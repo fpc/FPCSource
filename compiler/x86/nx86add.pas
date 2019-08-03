@@ -93,7 +93,9 @@ unit nx86add;
         hl4   : tasmlabel;
         r     : Tregister;
         href  : treference;
+        overflowcheck: boolean;
       begin
+        overflowcheck:=needoverflowcheck;
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
@@ -152,7 +154,7 @@ unit nx86add;
                  if (op=A_ADD) and
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
-                    not(cs_check_overflow in current_settings.localswitches) and
+                    not overflowcheck and
                     UseIncDec then
                   begin
                     emit_reg(A_INC,TCGSize2Opsize[opsize],left.location.register);
@@ -161,7 +163,7 @@ unit nx86add;
                  if (op=A_SUB) and
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
-                    not(cs_check_overflow in current_settings.localswitches) and
+                    overflowcheck and
                     UseIncDec then
                   begin
                     emit_reg(A_DEC,TCGSize2Opsize[opsize],left.location.register);
@@ -170,7 +172,7 @@ unit nx86add;
                  if (op=A_IMUL) and
                     (right.location.loc=LOC_CONSTANT) and
                     (ispowerof2(int64(right.location.value),power)) and
-                    not(cs_check_overflow in current_settings.localswitches) then
+                    overflowcheck then
                   begin
                     emit_const_reg(A_SHL,TCGSize2Opsize[opsize],power,left.location.register);
                   end
@@ -178,7 +180,7 @@ unit nx86add;
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value>1) and (ispowerof2(int64(right.location.value)-1,power)) and
                     (power in [1..3]) and
-                    not(cs_check_overflow in current_settings.localswitches) then
+                    not overflowcheck then
                   begin
                     reference_reset_base(href,left.location.register,0,ctempposinvalid,0,[]);
                     href.index:=left.location.register;
@@ -209,7 +211,7 @@ unit nx86add;
         { is in unsigned VAR!!                                   }
         if mboverflow then
          begin
-           if cs_check_overflow in current_settings.localswitches  then
+           if overflowcheck then
             begin
               current_asmdata.getjumplabel(hl4);
               if unsigned then
@@ -1466,9 +1468,7 @@ unit nx86add;
 
        checkoverflow:=
          checkoverflow and
-          (left.resultdef.typ<>pointerdef) and
-          (right.resultdef.typ<>pointerdef) and
-          (cs_check_overflow in current_settings.localswitches);
+         needoverflowcheck;
 
        opsize:=def_cgsize(left.resultdef);
 

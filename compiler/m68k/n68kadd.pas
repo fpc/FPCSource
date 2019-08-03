@@ -399,9 +399,7 @@ implementation
       begin
         { if we need to handle overflow checking, fall back to the generic cg }
         if (nodetype in [addn,subn,muln]) and
-           (left.resultdef.typ<>pointerdef) and
-           (right.resultdef.typ<>pointerdef) and
-           (cs_check_overflow in current_settings.localswitches) then
+           needoverflowcheck then
           begin
             inherited;
             exit;
@@ -609,7 +607,7 @@ implementation
 
     function t68kaddnode.use_generic_mul64bit: boolean;
     begin
-      result:=(cs_check_overflow in current_settings.localswitches) or
+      result:=needoverflowcheck  or
         (cs_opt_size in current_settings.optimizerswitches) or
         not (CPUM68K_HAS_64BITMUL in cpu_capabilities[current_settings.cputype]);
     end;

@@ -426,7 +426,7 @@ end;
 
 function tmipsaddnode.use_generic_mul64bit: boolean;
 begin
-  result:=(cs_check_overflow in current_settings.localswitches) or
+  result:=needoverflowcheck or
     (not (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]));
 end;
 

@@ -728,7 +728,7 @@ interface
       begin
         result:=GenerateThumbCode or
           not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) or
-          (cs_check_overflow in current_settings.localswitches);
+          needoverflowcheck;
       end;
 
 begin
