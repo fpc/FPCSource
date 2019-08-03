@@ -3668,6 +3668,8 @@ cleanup:
       begin
         Header.InitialIP:=EntrySym.address;
         Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
+        Header.InitialSP:=0;
+        Header.InitialSS:=Header.AutoDataSegmentNumber;
         Header.WriteTo(FWriter);
         { todo: write the rest of the file as well }
         Result:=True;
