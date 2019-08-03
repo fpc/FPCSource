@@ -3666,6 +3666,8 @@ cleanup:
 
     function TNewExeOutput.WriteNewExe: boolean;
       begin
+        Header.InitialIP:=EntrySym.address;
+        Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
         Header.WriteTo(FWriter);
         { todo: write the rest of the file as well }
         Result:=True;
