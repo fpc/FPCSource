@@ -1,5 +1,5 @@
 { %result=201 }
-{$mode extendedpascal}
+{$mode iso}
 
 var
   l: longint;
