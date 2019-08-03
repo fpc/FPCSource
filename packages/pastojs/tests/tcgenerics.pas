@@ -15,6 +15,7 @@ type
   TTestGenerics = class(TCustomTestModule)
   Published
     Procedure TestGeneric_RecordEmpty;
+    Procedure TestGeneric_ClassEmpty;
   end;
 
 implementation
@@ -47,6 +48,36 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     'if ($mod.a.$eq($mod.b)) ;'
+    ]));
+end;
+
+procedure TTestGenerics.TestGeneric_ClassEmpty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  end;',
+  'var a,b: specialize TBird<word>;',
+  'begin',
+  '  if a=b then ;']);
+  ConvertProgram;
+  CheckSource('TestGeneric_ClassEmpty',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G1", $mod.TObject, function () {',
+    '});',
+    'this.a = null;',
+    'this.b = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if ($mod.a === $mod.b) ;'
     ]));
 end;
 
