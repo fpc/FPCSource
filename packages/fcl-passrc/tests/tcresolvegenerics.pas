@@ -27,6 +27,7 @@ type
     // ToDo: constraint keyword class, constructor, class+constructor
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
+    procedure TestGen_TemplNameEqTypeNameFail;
     procedure TestGen_GenericNotFoundFail;
     procedure TestGen_RecordLocalNameDuplicateFail;
     procedure TestGen_Record;
@@ -35,8 +36,9 @@ type
     // ToDo: procedure TestGen_SpecializeArg_ArrayOf;  type TBird = specialize<array of word>
     // ToDo: unitname.specialize TBird<word>.specialize
     procedure TestGen_Class;
-    //procedure TestGen_ClassDelphi;
-    // ToDo: generic class
+    procedure TestGen_ClassDelphi;
+    procedure TestGen_ClassForward;
+    // ToDo: specialize inside generic fail
     // ToDo: generic class forward (constraints must be repeated)
     // ToDo: generic class forward  constraints mismatch fail
     // ToDo: generic class overload
@@ -140,6 +142,20 @@ begin
     nXExpectedButYFound);
 end;
 
+procedure TTestResolveGenerics.TestGen_TemplNameEqTypeNameFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<TBird:record> = record v: T; end;',
+  'var r: specialize TBird<word>;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,16)',
+    nDuplicateIdentifier);
+end;
+
 procedure TTestResolveGenerics.TestGen_GenericNotFoundFail;
 begin
   StartProgram(false);
@@ -149,7 +165,7 @@ begin
   '  TBird = specialize TAnimal<word>;',
   'begin',
   '']);
-  CheckResolverException('identifier not found "TAnimal"',
+  CheckResolverException('identifier not found "TAnimal<>"',
     nIdentifierNotFound);
 end;
 
@@ -220,6 +236,52 @@ begin
   '  {=Typ}w: T;',
   'begin',
   '  b.v:=w;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  {#Typ}T = word;',
+  '  TBird<{#Templ}T> = class',
+  '    {=Templ}v: T;',
+  '  end;',
+  'var',
+  '  b: TBird<word>;',
+  '  {=Typ}w: T;',
+  'begin',
+  '  b.v:=w;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassForward;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  {#Typ}T = word;',
+  '  generic TBird<{#Templ_Forward}T> = class;',
+  '  TRec = record',
+  '    b: specialize TBird<T>;',
+  '  end;',
+  '  generic TBird<{#Templ}T> = class',
+  '    {=Templ}v: T;',
+  '    r: TRec;',
+  '  end;',
+  'var',
+  '  s: specialize TRec;',
+  '  {=Typ}w: T;',
+  'begin',
+  '  s.b.v:=w;',
+  '  s.b.r:=s;',
   '']);
   ParseProgram;
 end;
