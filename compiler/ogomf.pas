@@ -3660,6 +3660,8 @@ cleanup:
         inherited Order_ExeSection(SecName);
         TNewExeSection(CurrExeSec).ExeMetaSec:=CurrExeMetaSec;
         TNewExeSection(CurrExeSec).MemBasePos:=SegNr;
+        if (CurrExeMetaSec=nemsData) and (Header.AutoDataSegmentNumber=0) then
+          Header.AutoDataSegmentNumber:=SegNr;
       end;
 
     function TNewExeOutput.WriteNewExe: boolean;
