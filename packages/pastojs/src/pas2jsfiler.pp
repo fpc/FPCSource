@@ -460,7 +460,8 @@ const
     );
 
   PCUProcedureScopeFlagNames: array[TPasProcedureScopeFlag] of string = (
-    'GrpOverload'
+    'GrpOverload',
+    'ppsfIsSpecialized'
     );
 
   PCUDefaultPSRefAccess = psraRead;

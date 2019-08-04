@@ -38,6 +38,7 @@ type
     procedure TestGen_Class;
     procedure TestGen_ClassDelphi;
     procedure TestGen_ClassForward;
+    procedure TestGen_Class_Method;
     // ToDo: specialize inside generic fail
     // ToDo: generic class forward (constraints must be repeated)
     // ToDo: generic class forward  constraints mismatch fail
@@ -282,6 +283,31 @@ begin
   'begin',
   '  s.b.v:=w;',
   '  s.b.r:=s;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_Method;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  {#Typ}T = word;',
+  '  generic TBird<{#Templ}T> = class',
+  '    function Fly(p:T): T; virtual; abstract;',
+  '    function Run(p:T): T;',
+  '  end;',
+  'function TBird.Run(p:T): T;',
+  'begin',
+  'end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  '  {=Typ}w: T;',
+  'begin',
+  '  w:=b.Fly(w);',
+  '  w:=b.Run(w);',
   '']);
   ParseProgram;
 end;

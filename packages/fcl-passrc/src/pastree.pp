@@ -840,7 +840,7 @@ type
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
     procedure GetArguments(List : TStrings);
-    function CreateArgument(const AName, AUnresolvedTypeName: string):TPasArgument;
+    function CreateArgument(const AName, AUnresolvedTypeName: string): TPasArgument; // not used by TPasParser
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
