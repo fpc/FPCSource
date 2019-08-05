@@ -820,7 +820,7 @@ else
 # ppc3/ppcXXX = native (skipped for cross installation)
 #
 
-#cycle: override FPC=
+cycle: override FPC=
 cycle:
 # ppc (source native)
 # Clear detected compiler binary, because it can be existing crosscompiler binary, but we need native compiler here
