@@ -484,6 +484,14 @@ endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
 SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+PPUDUMPPROG:=$(firstword $(strip $(wildcard $(addsuffix /ppudump$(SRCEXEEXT),$(SEARCHPATH)))))
+ifndef PPUDUMP
+ifdef PPUDUMPPROG
+PPUDUMP=$(PPUDUMPPROG)
+else
+PPUDUMP=ppudump
+endif
+endif
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
@@ -4377,7 +4385,6 @@ endif
 endif
 endif
 else
-cycle: override FPC=
 cycle:
 	$(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl CYCLELEVEL=1
 	$(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=1
@@ -4485,7 +4492,7 @@ rtlppulogs : $(RTLPPULOGLIST)
 vpath %.ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 %.log-ppu : %.ppu
-	ppudump -VA -M $< > $@
+	$(PPUDUMP) -VA -M $< > $@
 ./utils/ppudump$(EXEEXT):
 	$(MAKE) -C $(COMPILERUTILSDIR) ppudump$(EXEEXT)
 ppuinfo :
