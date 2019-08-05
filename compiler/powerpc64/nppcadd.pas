@@ -219,7 +219,7 @@ begin
   else
     location_reset(location, LOC_FLAGS, OS_NO);
 
-  checkoverflow:=needoverflowcheck;
+  checkoverflow:= (nodetype in [addn,subn,muln]) and needoverflowcheck;
 
   load_left_right(cmpop, checkoverflow);
 
