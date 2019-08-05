@@ -4576,6 +4576,7 @@ endif
 endif
 endif
 else
+cycle: override FPC=
 cycle:
 ifdef NEED_G_COMPILERS
 	$(MAKE) fpcmade.generate_g_compilers

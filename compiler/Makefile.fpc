@@ -928,7 +928,7 @@ else
 # ppc3/ppcXXX = native (skipped for cross installation)
 #
 
-#cycle: override FPC=
+cycle: override FPC=
 cycle:
 ifdef NEED_G_COMPILERS
 	$(MAKE) fpcmade.generate_g_compilers
