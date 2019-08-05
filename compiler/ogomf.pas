@@ -497,13 +497,20 @@ interface
         FEarlySize: QWord;
         FExeMetaSec: TNewExeMetaSection;
         FMemBasePos: Word;
+        FDataPosSectors: Word;
+        FMinAllocSize: QWord;
+        FNewExeSegmentFlags: TNewExeSegmentFlags;
       public
+        procedure WriteHeaderTo(aWriter: TObjectWriter);
         function MemPosStr(AImageBase: qword): string;override;
         procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
         function CanAddObjSection(objsec:TObjSection;ExeSectionLimit:QWord):boolean;
         property EarlySize: QWord read FEarlySize write FEarlySize;
         property ExeMetaSec: TNewExeMetaSection read FExeMetaSec write FExeMetaSec;
         property MemBasePos: Word read FMemBasePos write FMemBasePos;
+        property DataPosSectors: Word read FDataPosSectors write FDataPosSectors;
+        property MinAllocSize: QWord read FMinAllocSize write FMinAllocSize;
+        property NewExeSegmentFlags: TNewExeSegmentFlags read FNewExeSegmentFlags write FNewExeSegmentFlags;
       end;
 
       { TNewExeOutput }
@@ -3591,6 +3598,22 @@ cleanup:
                               TNewExeSection
 ****************************************************************************}
 
+    procedure TNewExeSection.WriteHeaderTo(aWriter: TObjectWriter);
+      var
+        SegmentHeaderBytes: array [0..7] of Byte;
+      begin
+        SegmentHeaderBytes[0]:=Byte(DataPosSectors);
+        SegmentHeaderBytes[1]:=Byte(DataPosSectors shr 8);
+        SegmentHeaderBytes[2]:=Byte(Size);
+        SegmentHeaderBytes[3]:=Byte(Size shr 8);
+        SegmentHeaderBytes[4]:=Byte(Word(NewExeSegmentFlags));
+        SegmentHeaderBytes[5]:=Byte(Word(NewExeSegmentFlags) shr 8);
+        SegmentHeaderBytes[6]:=Byte(MinAllocSize);
+        SegmentHeaderBytes[7]:=Byte(MinAllocSize shr 8);
+
+        aWriter.write(SegmentHeaderBytes[0],8);
+      end;
+
     function TNewExeSection.MemPosStr(AImageBase: qword): string;
       begin
         Result:=HexStr(MemBasePos,4)+':'+HexStr(MemPos,4);
@@ -3669,6 +3692,8 @@ cleanup:
       end;
 
     function TNewExeOutput.WriteNewExe: boolean;
+      var
+        i: Integer;
       begin
         Header.InitialIP:=EntrySym.address;
         Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
@@ -3676,9 +3701,15 @@ cleanup:
         Header.InitialSS:=Header.AutoDataSegmentNumber;
 
         Header.SegmentTableStart:=NewExeHeaderSize;
+        Header.SegmentTableEntriesCount:=ExeSectionList.Count;
 
         Header.WriteTo(FWriter);
+
+        for i:=0 to ExeSectionList.Count-1 do
+          TNewExeSection(ExeSectionList[i]).WriteHeaderTo(FWriter);
+
         { todo: write the rest of the file as well }
+
         Result:=True;
       end;
 
