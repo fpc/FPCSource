@@ -1867,67 +1867,224 @@ begin
     end;
 end;
 
-procedure readcommondef(const s:string; out defoptions: tdefoptions; Def: TPpuDef = nil);
+procedure displaytokenbuffer(tokenbuf : pbyte;tokenbufsize : longint);
 type
-  tdefopt=record
-    mask : tdefoption;
-    str  : string[30];
-  end;
-  tdefstateinfo=record
-    mask : tdefstate;
-    str  : string[30];
-  end;
-  tgenconstrflag=record
-    mask : tgenericconstraintflag;
-    str  : string[30];
-  end;
   ptoken=^ttoken;
   pmsgstate =^tmsgstate;
-const
-  defopt : array[1..ord(high(tdefoption))] of tdefopt=(
-     (mask:df_unique;         str:'Unique Type'),
-     (mask:df_generic;        str:'Generic'),
-     (mask:df_specialization; str:'Specialization'),
-     (mask:df_copied_def;     str:'Copied Typedef'),
-     (mask:df_genconstraint;  str:'Generic Constraint'),
-     { this should never happen for defs stored to a ppu file }
-     (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)'),
-     (mask:df_llvm_no_struct_packing;  str:'LLVM unpacked struct'),
-     (mask:df_internal;       str:'Internal')
-  );
-  defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
-     (mask:ds_vmt_written;           str:'VMT Written'),
-     (mask:ds_rtti_table_used;       str:'RTTITable Used'),
-     (mask:ds_init_table_used;       str:'InitTable Used'),
-     (mask:ds_rtti_table_written;    str:'RTTITable Written'),
-     (mask:ds_init_table_written;    str:'InitTable Written'),
-     (mask:ds_dwarf_dbg_info_used;   str:'Dwarf DbgInfo Used'),
-     (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written')
-  );
-  genconstrflag : array[1..ord(high(tgenericconstraintflag))] of tgenconstrflag=(
-     (mask:gcf_constructor; str:'Constructor'),
-     (mask:gcf_class;       str:'Class'),
-     (mask:gcf_record;      str:'Record')
-  );
-  
 var
-  defstates  : tdefstates;
-  i, nb{, msgvalue}, mesgnb : longint;
-  first  : boolean;
-  copy_size, min_size, tokenbufsize : longint;
-  tokenbuf : pbyte;
-  tbi, stbi, last_col, new_col : longint;
-  last_line,new_line : dword;
-//  idtoken,
-  token : ttoken;
-//  state : tmsgstate;
-  new_settings : Tsettings;
-  len : sizeint;
-  wstring : widestring;
-  astring : ansistring;
-  linestr,genstr : string;
-  genconstr : tgenericconstraintflags;
+  tbi : longint;
+  state : tmsgstate;
+  prev_settings, new_settings : Tsettings;
+  nb, msgvalue, mesgnb : longint;
 
+
+  function readtoken: ttoken;
+    var
+      b,b2 : byte;
+    begin
+      b:=tokenbuf[tbi];
+      inc(tbi);
+      if (b and $80)<>0 then
+        begin
+          b2:=tokenbuf[tbi];
+          inc(tbi);
+          result:=ttoken(((b and $7f) shl 8) or b2);
+        end
+      else
+        result:=ttoken(b);
+    end;
+
+  function gettokenbufdword : dword;
+  var
+    var32 : dword;
+  begin
+    var32:=unaligned(pdword(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(dword));
+    if ppufile.change_endian then
+      var32:=swapendian(var32);
+    result:=var32;
+  end;
+
+  function gettokenbufword : word;
+  var
+    var16 : word;
+  begin
+    var16:=unaligned(pword(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(word));
+    if ppufile.change_endian then
+      var16:=swapendian(var16);
+    result:=var16;
+  end;
+
+  function gettokenbuflongint : longint;
+  var
+    var32 : longint;
+  begin
+    var32:=unaligned(plongint(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(longint));
+    if ppufile.change_endian then
+      var32:=swapendian(var32);
+    result:=var32;
+  end;
+
+  function gettokenbufshortint : shortint;
+  var
+    var16 : shortint;
+  begin
+    var16:=unaligned(pshortint(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(shortint));
+    if ppufile.change_endian then
+      var16:=swapendian(var16);
+    result:=var16;
+  end;
+
+  procedure tokenreadset(var b;size : longint);
+  var
+    i : longint;
+  begin
+    move(tokenbuf[tbi],b,size);
+    inc(tbi,size);
+    if ppufile.change_endian then
+      for i:=0 to size-1 do
+        Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
+  end;
+
+  function gettokenbufbyte : byte;
+  begin
+    result:=pbyte(@tokenbuf[tbi])^;
+    inc(tbi);
+  end;
+
+   function tokenreadenum(size : longint) : longword;
+  begin
+    if size=1 then
+      result:=gettokenbufbyte
+    else if size=2 then
+      result:=gettokenbufword
+    else if size=4 then
+      result:=gettokenbufdword;
+  end;
+
+
+
+  function gettokenbufsizeint : int64;
+  var
+    var64 : int64;
+    var32 : longint;
+    var16 : smallint;
+
+  begin
+    if CpuAddrBitSize[cpu]=64 then
+      begin
+        var64:=unaligned(pint64(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(int64));
+        if ppufile.change_endian then
+          var64:=swapendian(var64);
+        result:=var64;
+      end
+    else if CpuAddrBitSize[cpu]=32 then
+      begin
+        var32:=unaligned(plongint(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(longint));
+        if ppufile.change_endian then
+          var32:=swapendian(var32);
+        result:=var32;
+      end
+    else if CpuAddrBitSize[cpu]=16 then
+      begin
+        var16:=unaligned(psmallint(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(smallint));
+        if ppufile.change_endian then
+          var16:=swapendian(var16);
+        result:=var16;
+      end
+    else
+      begin
+        WriteError('Wrong CpuAddrBitSize');
+        result:=0;
+      end;
+  end;
+
+  procedure tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
+
+    {    This procedure
+       needs to be changed whenever
+       globals.tsettings type is changed,
+       the problem is that no error will appear
+       before tests with generics are tested. PM }
+
+       var
+         startpos, endpos : longword;
+      begin
+        { WARNING all those fields need to be in the correct
+        order otherwise cross_endian PPU reading will fail }
+        startpos:=tbi;
+        with asettings do
+          begin
+            alignment.procalign:=gettokenbuflongint;
+            alignment.loopalign:=gettokenbuflongint;
+            alignment.jumpalign:=gettokenbuflongint;
+            alignment.jumpalignskipmax:=gettokenbuflongint;
+            alignment.coalescealign:=gettokenbuflongint;
+            alignment.coalescealignskipmax:=gettokenbuflongint;
+            alignment.constalignmin:=gettokenbuflongint;
+            alignment.constalignmax:=gettokenbuflongint;
+            alignment.varalignmin:=gettokenbuflongint;
+            alignment.varalignmax:=gettokenbuflongint;
+            alignment.localalignmin:=gettokenbuflongint;
+            alignment.localalignmax:=gettokenbuflongint;
+            alignment.recordalignmin:=gettokenbuflongint;
+            alignment.recordalignmax:=gettokenbuflongint;
+            alignment.maxCrecordalign:=gettokenbuflongint;
+            tokenreadset(globalswitches,sizeof(globalswitches));
+            tokenreadset(targetswitches,sizeof(targetswitches));
+            tokenreadset(moduleswitches,sizeof(moduleswitches));
+            tokenreadset(localswitches,sizeof(localswitches));
+            tokenreadset(modeswitches,sizeof(modeswitches));
+            tokenreadset(optimizerswitches,sizeof(optimizerswitches));
+            tokenreadset(genwpoptimizerswitches,sizeof(genwpoptimizerswitches));
+            tokenreadset(dowpoptimizerswitches,sizeof(dowpoptimizerswitches));
+            tokenreadset(debugswitches,sizeof(debugswitches));
+            { 0: old behaviour for sets <=256 elements
+              >0: round to this size }
+            setalloc:=gettokenbufshortint;
+            packenum:=gettokenbufshortint;
+
+            packrecords:=gettokenbufshortint;
+            maxfpuregisters:=gettokenbufshortint;
+
+            cputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            optimizecputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            fputype:=tfputype(tokenreadenum(sizeof(tfputype)));
+            asmmode:=tasmmode(tokenreadenum(sizeof(tasmmode)));
+            interfacetype:=tinterfacetypes(tokenreadenum(sizeof(tinterfacetypes)));
+            defproccall:=tproccalloption(tokenreadenum(sizeof(tproccalloption)));
+            { tstringencoding is word type,
+              thus this should be OK here }
+            sourcecodepage:=tstringEncoding(gettokenbufword);
+
+            minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
+
+            disabledircache:=boolean(gettokenbufbyte);
+
+            tlsmodel:=ttlsmodel(tokenreadenum(sizeof(ttlsmodel)));
+{ TH: Since the field was conditional originally, it was not stored in PPUs.  }
+{ While adding ControllerSupport constant, I decided not to store ct_none     }
+{ on targets not supporting controllers, but this might be changed here and   }
+{ in tokenwritesettings in the future to unify the PPU structure and handling }
+{ of this field in the compiler.                                              }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if CpuHasController[cpu] then
+             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)))
+            else
+             ControllerType:=ct_none;
+{$POP}
+           endpos:=tbi;
+           if endpos-startpos<>expected_size then
+             Writeln(['Wrong size of Settings read-in: ',expected_size,' expected, but got ',endpos-startpos]);
+         end;
+     end;
   procedure dump_new_settings;
 (*     tsettings = record
          alignment       : talignmentinfo;
@@ -2222,214 +2379,238 @@ const
        writeln(['ASM mode ',new_settings.asmmode]);
     end;
 
-  function readtoken: ttoken;
-    var
-      b,b2 : byte;
+var
+  linestr,genstr : string;
+  token : ttoken;
+  copy_size, stbi, last_col, new_col : longint;
+  last_line,new_line : dword;
+  len : sizeint;
+  wstring : widestring;
+  astring : ansistring;
+begin
+  tbi:=0;
+  last_line:=0;
+  last_col:=0;
+  linestr:='';
+  genstr:='';
+  fillchar(new_settings,sizeof(new_settings),#0);
+  fillchar(prev_settings,sizeof(prev_settings),#0);
+  write([space,' Tokens: ']);
+  while tbi<tokenbufsize do
     begin
-      b:=tokenbuf[tbi];
-      inc(tbi);
-      if (b and $80)<>0 then
+      token:=readtoken;
+      if token<>_GENERICSPECIALTOKEN then
         begin
-          b2:=tokenbuf[tbi];
-          inc(tbi);
-          result:=ttoken(((b and $7f) shl 8) or b2);
-        end
-      else
-        result:=ttoken(b);
-    end;
-
-  function gettokenbufdword : dword;
-  var
-    var32 : dword;
-  begin
-    var32:=unaligned(pdword(@tokenbuf[tbi])^);
-    inc(tbi,sizeof(dword));
-    if ppufile.change_endian then
-      var32:=swapendian(var32);
-    result:=var32;
-  end;
-
-  function gettokenbufword : word;
-  var
-    var16 : word;
-  begin
-    var16:=unaligned(pword(@tokenbuf[tbi])^);
-    inc(tbi,sizeof(word));
-    if ppufile.change_endian then
-      var16:=swapendian(var16);
-    result:=var16;
-  end;
-
-  function gettokenbuflongint : longint;
-  var
-    var32 : longint;
-  begin
-    var32:=unaligned(plongint(@tokenbuf[tbi])^);
-    inc(tbi,sizeof(longint));
-    if ppufile.change_endian then
-      var32:=swapendian(var32);
-    result:=var32;
-  end;
-
-  function gettokenbufshortint : shortint;
-  var
-    var16 : shortint;
-  begin
-    var16:=unaligned(pshortint(@tokenbuf[tbi])^);
-    inc(tbi,sizeof(shortint));
-    if ppufile.change_endian then
-      var16:=swapendian(var16);
-    result:=var16;
-  end;
-
-  procedure tokenreadset(var b;size : longint);
-  var
-    i : longint;
-  begin
-    move(tokenbuf[tbi],b,size);
-    inc(tbi,size);
-    if ppufile.change_endian then
-      for i:=0 to size-1 do
-        Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
-  end;
-
-  function gettokenbufbyte : byte;
-  begin
-    result:=pbyte(@tokenbuf[tbi])^;
-    inc(tbi);
-  end;
-
-   function tokenreadenum(size : longint) : longword;
-  begin
-    if size=1 then
-      result:=gettokenbufbyte
-    else if size=2 then
-      result:=gettokenbufword
-    else if size=4 then
-      result:=gettokenbufdword;
-  end;
-
-
-
-  function gettokenbufsizeint : int64;
-  var
-    var64 : int64;
-    var32 : longint;
-    var16 : smallint;
-
-  begin
-    if CpuAddrBitSize[cpu]=64 then
-      begin
-        var64:=unaligned(pint64(@tokenbuf[tbi])^);
-        inc(tbi,sizeof(int64));
-        if ppufile.change_endian then
-          var64:=swapendian(var64);
-        result:=var64;
-      end
-    else if CpuAddrBitSize[cpu]=32 then
-      begin
-        var32:=unaligned(plongint(@tokenbuf[tbi])^);
-        inc(tbi,sizeof(longint));
-        if ppufile.change_endian then
-          var32:=swapendian(var32);
-        result:=var32;
-      end
-    else if CpuAddrBitSize[cpu]=16 then
-      begin
-        var16:=unaligned(psmallint(@tokenbuf[tbi])^);
-        inc(tbi,sizeof(smallint));
-        if ppufile.change_endian then
-          var16:=swapendian(var16);
-        result:=var16;
-      end
-    else
-      begin
-        WriteError('Wrong CpuAddrBitSize');
-        result:=0;
-      end;
-  end;
-
-  procedure tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
-
-    {    This procedure
-       needs to be changed whenever
-       globals.tsettings type is changed,
-       the problem is that no error will appear
-       before tests with generics are tested. PM }
-
-       var
-         startpos, endpos : longword;
-      begin
-        { WARNING all those fields need to be in the correct
-        order otherwise cross_endian PPU reading will fail }
-        startpos:=tbi;
-        with asettings do
+          if token <= high(ttoken) then
+            begin
+              write(arraytokeninfo[token].str);
+              if not (token in [_CWCHAR, _CWSTRING, _CSTRING, _CCHAR,
+                                _INTCONST,_REALNUMBER, _ID]) then
+                StrAppend(linestr,lowercase(arraytokeninfo[token].str));
+            end
+          else
+            begin
+              HasMoreInfos;
+              write('Error in Token List');
+              break;
+            end;
+          {idtoken:=}readtoken;
+        end;
+      case token of
+        _CWCHAR,
+        _CWSTRING :
           begin
-            alignment.procalign:=gettokenbuflongint;
-            alignment.loopalign:=gettokenbuflongint;
-            alignment.jumpalign:=gettokenbuflongint;
-            alignment.jumpalignskipmax:=gettokenbuflongint;
-            alignment.coalescealign:=gettokenbuflongint;
-            alignment.coalescealignskipmax:=gettokenbuflongint;
-            alignment.constalignmin:=gettokenbuflongint;
-            alignment.constalignmax:=gettokenbuflongint;
-            alignment.varalignmin:=gettokenbuflongint;
-            alignment.varalignmax:=gettokenbuflongint;
-            alignment.localalignmin:=gettokenbuflongint;
-            alignment.localalignmax:=gettokenbuflongint;
-            alignment.recordalignmin:=gettokenbuflongint;
-            alignment.recordalignmax:=gettokenbuflongint;
-            alignment.maxCrecordalign:=gettokenbuflongint;
-            tokenreadset(globalswitches,sizeof(globalswitches));
-            tokenreadset(targetswitches,sizeof(targetswitches));
-            tokenreadset(moduleswitches,sizeof(moduleswitches));
-            tokenreadset(localswitches,sizeof(localswitches));
-            tokenreadset(modeswitches,sizeof(modeswitches));
-            tokenreadset(optimizerswitches,sizeof(optimizerswitches));
-            tokenreadset(genwpoptimizerswitches,sizeof(genwpoptimizerswitches));
-            tokenreadset(dowpoptimizerswitches,sizeof(dowpoptimizerswitches));
-            tokenreadset(debugswitches,sizeof(debugswitches));
-            { 0: old behaviour for sets <=256 elements
-              >0: round to this size }
-            setalloc:=gettokenbufshortint;
-            packenum:=gettokenbufshortint;
-
-            packrecords:=gettokenbufshortint;
-            maxfpuregisters:=gettokenbufshortint;
-
-            cputype:=tcputype(tokenreadenum(sizeof(tcputype)));
-            optimizecputype:=tcputype(tokenreadenum(sizeof(tcputype)));
-            fputype:=tfputype(tokenreadenum(sizeof(tfputype)));
-            asmmode:=tasmmode(tokenreadenum(sizeof(tasmmode)));
-            interfacetype:=tinterfacetypes(tokenreadenum(sizeof(tinterfacetypes)));
-            defproccall:=tproccalloption(tokenreadenum(sizeof(tproccalloption)));
-            { tstringencoding is word type,
-              thus this should be OK here }
-            sourcecodepage:=tstringEncoding(gettokenbufword);
-
-            minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
-
-            disabledircache:=boolean(gettokenbufbyte);
-
-            tlsmodel:=ttlsmodel(tokenreadenum(sizeof(ttlsmodel)));
-{ TH: Since the field was conditional originally, it was not stored in PPUs.  }
-{ While adding ControllerSupport constant, I decided not to store ct_none     }
-{ on targets not supporting controllers, but this might be changed here and   }
-{ in tokenwritesettings in the future to unify the PPU structure and handling }
-{ of this field in the compiler.                                              }
-{$PUSH}
- {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
-            if CpuHasController[cpu] then
-             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)))
+            len:=gettokenbufsizeint;
+            setlength(wstring,len);
+            move(tokenbuf[tbi],wstring[1],len*2);
+            write([' ''',wstring,'''']);
+            StrAppend(linestr,' ''');
+            StrAppend(linestr,wstring);
+            StrAppend(linestr,'''');
+            inc(tbi,len*2);
+          end;
+        _CSTRING:
+          begin
+            len:=gettokenbufsizeint;
+            setlength(astring,len);
+            if len>0 then
+              move(tokenbuf[tbi],astring[1],len);
+            write([' ''',astring,'''']);
+            StrAppend(linestr,' ''');
+            StrAppend(linestr,astring);
+            StrAppend(linestr,'''');
+            inc(tbi,len);
+          end;
+        _CCHAR:
+          begin
+            write([' ''',unaligned(pshortstring(@tokenbuf[tbi])^),'''']);
+            StrAppend(linestr,' ''');
+            StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
+            StrAppend(linestr,'''');
+            inc(tbi,tokenbuf[tbi]+1);
+          end;
+        _INTCONST,
+        _REALNUMBER :
+          begin
+            write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
+            StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
+            inc(tbi,tokenbuf[tbi]+1);
+          end;
+        _ID :
+          begin
+            write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
+            StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
+            inc(tbi,tokenbuf[tbi]+1);
+          end;
+        _GENERICSPECIALTOKEN:
+          begin
+            { Short version of column change,
+              byte or $80 used }
+            if (tokenbuf[tbi] and $80)<>0 then
+              begin
+                new_col:=tokenbuf[tbi] and $7f;
+                write(['Col: ',new_col]);
+                if length(linestr)<new_col-1 then
+                  StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
+                inc(tbi);
+                last_col:=new_col;
+              end
             else
-             ControllerType:=ct_none;
-{$POP}
-           endpos:=tbi;
-           if endpos-startpos<>expected_size then
-             Writeln(['Wrong size of Settings read-in: ',expected_size,' expected, but got ',endpos-startpos]);
-         end;
-     end;
+              case tspecialgenerictoken(tokenbuf[tbi]) of
+                ST_LOADSETTINGS:
+                  begin
+                    inc(tbi);
+                    write([space,'Settings: ']);
+                    fillchar(new_settings,sizeof(new_settings),#0);
+                    { This does not load pmessage pointer }
+                    new_settings.pmessage:=nil;
+                    { TSettings size depends in target...
+                      We first read the size of the copied part }
+                    { Still not cross endian ready :( }
+                    copy_size:=gettokenbufsizeint;
+                    stbi:=tbi;
+                    tokenreadsettings(new_settings, copy_size);
+                    tbi:=stbi+copy_size;
+                    if CompareByte(new_settings,prev_settings,sizeof(new_settings))<>0 then
+                      begin
+                        dump_new_settings;
+                        writeln;
+                      end
+                    else
+                      begin
+                        writeln('Unchanged');
+                      end;
+                    prev_settings:=new_settings;
+                  end;
+                ST_LOADMESSAGES:
+                  begin
+                    inc(tbi);
+                    mesgnb:=tokenbuf[tbi];
+                    writeln([space,mesgnb,' messages: ']);
+                    inc(tbi);
+                    for nb:=1 to mesgnb do
+                      begin
+                        msgvalue:=gettokenbufsizeint;
+                        //inc(tbi,sizeof(sizeint));
+                        state:=tmsgstate(gettokenbufsizeint);
+                        writeln(['#',msgvalue,' ',state]);
+                      end;
+                  end;
+                ST_LINE:
+                  begin
+                    inc(tbi);
+                    new_line:=gettokenbufdword;
+                    if (new_line<>last_line) then
+                      begin
+                        StrAppend(genstr,linestr+LineEnding);
+                        linestr:='';
+                      end;
+                    writeln(['Line: ',new_line]);
+                    last_line:=new_line;
+                  end;
+                ST_COLUMN:
+                  begin
+                    inc(tbi);
+                    new_col:=gettokenbufword;
+                    write(['Col: ',new_col]);
+                    if length(linestr)<new_col - 1 then
+                      StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
+                    last_col:=new_col;
+                  end;
+                ST_FILEINDEX:
+                  begin
+                    inc(tbi);
+                    StrAppend(genstr,linestr+LineEnding);
+                    linestr:='';
+                    write(['File: ',gettokenbufword]);
+                  end;
+                else
+                  begin
+                    HasMoreInfos;
+                    write('Error in Token List');
+                    break;
+                  end;
+              end;
+          end;
+        else ; { empty else to avoid warning }
+      end;
 
+      if tbi<tokenbufsize then
+        write(',');
+    end;
+  writeln;
+  StrAppend(genstr,linestr);
+  writeln(['##',genstr,'##']);
+end;
+
+procedure readcommondef(const s:string; out defoptions: tdefoptions; Def: TPpuDef = nil);
+type
+  tdefopt=record
+    mask : tdefoption;
+    str  : string[30];
+  end;
+  tdefstateinfo=record
+    mask : tdefstate;
+    str  : string[30];
+  end;
+  tgenconstrflag=record
+    mask : tgenericconstraintflag;
+    str  : string[30];
+  end;
+const
+  defopt : array[1..ord(high(tdefoption))] of tdefopt=(
+     (mask:df_unique;         str:'Unique Type'),
+     (mask:df_generic;        str:'Generic'),
+     (mask:df_specialization; str:'Specialization'),
+     (mask:df_copied_def;     str:'Copied Typedef'),
+     (mask:df_genconstraint;  str:'Generic Constraint'),
+     { this should never happen for defs stored to a ppu file }
+     (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)'),
+     (mask:df_llvm_no_struct_packing;  str:'LLVM unpacked struct'),
+     (mask:df_internal;       str:'Internal')
+  );
+  defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
+     (mask:ds_vmt_written;           str:'VMT Written'),
+     (mask:ds_rtti_table_used;       str:'RTTITable Used'),
+     (mask:ds_init_table_used;       str:'InitTable Used'),
+     (mask:ds_rtti_table_written;    str:'RTTITable Written'),
+     (mask:ds_init_table_written;    str:'InitTable Written'),
+     (mask:ds_dwarf_dbg_info_used;   str:'Dwarf DbgInfo Used'),
+     (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written')
+  );
+  genconstrflag : array[1..ord(high(tgenericconstraintflag))] of tgenconstrflag=(
+     (mask:gcf_constructor; str:'Constructor'),
+     (mask:gcf_class;       str:'Class'),
+     (mask:gcf_record;      str:'Record')
+  );
+  
+var
+  defstates  : tdefstates;
+  i, nb, len : longint;
+  first  : boolean;
+  min_size, tokenbufsize : longint;
+  tokenbuf : pbyte;
+  genconstr : tgenericconstraintflags;
 begin
   i:=ppufile.getlongint;
   if Def <> nil then
@@ -2524,172 +2705,11 @@ begin
     end;
   if df_generic in defoptions then
     begin
-      last_line:=0;
-      last_col:=0;
-      linestr:='';
-      genstr:='';
       tokenbufsize:=ppufile.getlongint;
       writeln([space,' Tokenbuffer size : ',tokenbufsize]);
       tokenbuf:=allocmem(tokenbufsize);
       ppufile.getdata(tokenbuf^,tokenbufsize);
-      tbi:=0;
-      write([space,' Tokens: ']);
-      while tbi<tokenbufsize do
-        begin
-          token:=readtoken;
-          if token<>_GENERICSPECIALTOKEN then
-            begin
-              if token <= high(ttoken) then
-                begin
-                  write(arraytokeninfo[token].str);
-                  if not (token in [_CWCHAR, _CWSTRING, _CSTRING, _CCHAR,
-                                    _INTCONST,_REALNUMBER, _ID]) then
-                    StrAppend(linestr,lowercase(arraytokeninfo[token].str));
-                end
-              else
-                begin
-                  HasMoreInfos;
-                  write('Error in Token List');
-                  break;
-                end;
-              {idtoken:=}readtoken;
-            end;
-          case token of
-            _CWCHAR,
-            _CWSTRING :
-              begin
-                len:=gettokenbufsizeint;
-                setlength(wstring,len);
-                move(tokenbuf[tbi],wstring[1],len*2);
-                write([' ''',wstring,'''']);
-                StrAppend(linestr,' ''');
-                StrAppend(linestr,wstring);
-                StrAppend(linestr,'''');
-                inc(tbi,len*2);
-              end;
-            _CSTRING:
-              begin
-                len:=gettokenbufsizeint;
-                setlength(astring,len);
-                if len>0 then
-                  move(tokenbuf[tbi],astring[1],len);
-                write([' ''',astring,'''']);
-                StrAppend(linestr,' ''');
-                StrAppend(linestr,astring);
-                StrAppend(linestr,'''');
-                inc(tbi,len);
-              end;
-            _CCHAR:
-              begin
-                write([' ''',unaligned(pshortstring(@tokenbuf[tbi])^),'''']);
-                StrAppend(linestr,' ''');
-                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
-                StrAppend(linestr,'''');
-                inc(tbi,tokenbuf[tbi]+1);
-              end;
-            _INTCONST,
-            _REALNUMBER :
-              begin
-                write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
-                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
-                inc(tbi,tokenbuf[tbi]+1);
-              end;
-            _ID :
-              begin
-                write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
-                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
-                inc(tbi,tokenbuf[tbi]+1);
-              end;
-            _GENERICSPECIALTOKEN:
-              begin
-                { Short version of column change,
-                  byte or $80 used }
-                if (tokenbuf[tbi] and $80)<>0 then
-                  begin
-                    new_col:=tokenbuf[tbi] and $7f;
-                    write(['Col: ',new_col]);
-                    if length(linestr)<new_col-1 then
-                      StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
-                    inc(tbi);
-                    last_col:=new_col;
-                  end
-                else
-                  case tspecialgenerictoken(tokenbuf[tbi]) of
-                    ST_LOADSETTINGS:
-                      begin
-                        inc(tbi);
-                        write('Settings: ');
-                        fillchar(new_settings,sizeof(new_settings),#0);
-                        { This does not load pmessage pointer }
-                        new_settings.pmessage:=nil;
-                        { TSettings size depends in target...
-                          We first read the size of the copied part }
-                        { Still not cross endian ready :( }
-                        copy_size:=gettokenbufsizeint;
-                        stbi:=tbi;
-                        tokenreadsettings(new_settings, copy_size);
-                        tbi:=stbi+copy_size;
-                        dump_new_settings;
-                        writeln;
-                      end;
-                    ST_LOADMESSAGES:
-                      begin
-                        inc(tbi);
-                        write('Messages:');
-                        mesgnb:=tokenbuf[tbi];
-                        inc(tbi);
-                        for nb:=1 to mesgnb do
-                          begin
-                            {msgvalue:=}gettokenbufsizeint;
-                            inc(tbi,sizeof(sizeint));
-                            //state:=tmsgstate(gettokenbufsizeint);
-                          end;
-                      end;
-                    ST_LINE:
-                      begin
-                        inc(tbi);
-                        new_line:=gettokenbufdword;
-                        if (new_line<>last_line) then
-                          begin
-                            StrAppend(genstr,linestr+LineEnding);
-                            linestr:='';
-                          end;
-                        write(['Line: ',new_line]);
-                        last_line:=new_line;
-                      end;
-                    ST_COLUMN:
-                      begin
-                        inc(tbi);
-                        new_col:=gettokenbufword;
-                        write(['Col: ',new_col]);
-                        if length(linestr)<new_col - 1 then
-                          StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
-                        last_col:=new_col;
-                      end;
-                    ST_FILEINDEX:
-                      begin
-                        inc(tbi);
-                        StrAppend(genstr,linestr+LineEnding);
-                        linestr:='';
-                        write(['File: ',gettokenbufword]);
-                      end;
-                    else
-                      begin
-                        HasMoreInfos;
-                        write('Error in Token List');
-                        break;
-                      end;
-                  end;
-              end;
-            else ; { empty else to avoid warning }
-          end;
-
-          if tbi<tokenbufsize then
-            write(',');
-        end;
-      writeln;
-      StrAppend(genstr,linestr);
-      writeln(genstr);
+      displaytokenbuffer(tokenbuf,tokenbufsize);
       freemem(tokenbuf);
     end;
   if df_specialization in defoptions then
@@ -4068,10 +4088,13 @@ begin
              tokenbufsize:=ppufile.getlongint;
              if tokenbufsize<>0 then
                begin
-                 write  ([space,'      Declaration token buffer : TODO']);
+                 space:=space + '    ';
+                 write  ([space,'Declaration token buffer : size = ',tokenbufsize]);
                  tokenbuf:=allocmem(tokenbufsize);
                  ppufile.getdata(tokenbuf^,tokenbufsize);
+                 displaytokenbuffer(tokenbuf,tokenbufsize);
                  freemem(tokenbuf);
+                 delete(space,1,4);
                end;
              if po_syscall_has_libsym in procoptions then
                begin
