@@ -324,6 +324,10 @@ interface
         property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
       end;
 
+    const
+      NewExeHeaderSize = $40;
+
+    type
       TNewExeHeaderFlag = (
         nehfSingleData,                                               { bit  0 }
         nehfMultipleData,                                             { bit  1 }
@@ -3670,6 +3674,9 @@ cleanup:
         Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
         Header.InitialSP:=0;
         Header.InitialSS:=Header.AutoDataSegmentNumber;
+
+        Header.SegmentTableStart:=NewExeHeaderSize;
+
         Header.WriteTo(FWriter);
         { todo: write the rest of the file as well }
         Result:=True;
