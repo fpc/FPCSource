@@ -3689,6 +3689,14 @@ cleanup:
         TNewExeSection(CurrExeSec).MemBasePos:=SegNr;
         if (CurrExeMetaSec=nemsData) and (Header.AutoDataSegmentNumber=0) then
           Header.AutoDataSegmentNumber:=SegNr;
+        case CurrExeMetaSec of
+          nemsCode:
+            TNewExeSection(CurrExeSec).NewExeSegmentFlags:=[nesfMovable,nesfPreload];
+          nemsData:
+            TNewExeSection(CurrExeSec).NewExeSegmentFlags:=[nesfData,nesfPreload];
+          else
+            internalerror(2019070601);
+        end;
       end;
 
     function TNewExeOutput.WriteNewExe: boolean;
