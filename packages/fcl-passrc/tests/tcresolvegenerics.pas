@@ -39,10 +39,12 @@ type
     procedure TestGen_ClassDelphi;
     procedure TestGen_ClassForward;
     procedure TestGen_Class_Method;
+    procedure TestGen_Class_Method_LocalVar;
     // ToDo: specialize inside generic fail
     // ToDo: generic class forward (constraints must be repeated)
     // ToDo: generic class forward  constraints mismatch fail
-    // ToDo: generic class overload
+    // ToDo: generic class overload <T> <S,T>
+    // ToDo: generic class method overload <T> <S,T>
     // ToDo: ancestor cycle: TBird<T> = class(TBird<word>) fail
     // ToDo: class-of
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
@@ -308,6 +310,33 @@ begin
   'begin',
   '  w:=b.Fly(w);',
   '  w:=b.Run(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_Method_LocalVar;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<{#Templ}T> = class',
+  '    function Fly(p:T): T;',
+  '  end;',
+  'function TBird.Fly(p:T): T;',
+  'var l: T;',
+  'begin',
+  '  l:=p;',
+  '  p:=l;',
+  '  Result:=p;',
+  //'  Result:=l;',
+  'end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  '  w: word;',
+  'begin',
+  '  w:=b.Fly(w);',
   '']);
   ParseProgram;
 end;

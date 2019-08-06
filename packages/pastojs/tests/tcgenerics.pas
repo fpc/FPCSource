@@ -16,6 +16,7 @@ type
   Published
     Procedure TestGeneric_RecordEmpty;
     Procedure TestGeneric_ClassEmpty;
+    Procedure TestGeneric_Class_EmptyMethod;
   end;
 
 implementation
@@ -78,6 +79,43 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     'if ($mod.a === $mod.b) ;'
+    ]));
+end;
+
+procedure TTestGenerics.TestGeneric_Class_EmptyMethod;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    function Fly(w: T): T;',
+  '  end;',
+  'function TBird.Fly(w: T): T;',
+  'begin',
+  'end;',
+  'var a: specialize TBird<word>;',
+  'begin',
+  '  if a.Fly(3)=4 then ;']);
+  ConvertProgram;
+  CheckSource('TestGeneric_Class_EmptyMethod',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G1", $mod.TObject, function () {',
+    '  this.Fly = function (w) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.a = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '  if ($mod.a.Fly(3) === 4) ;'
     ]));
 end;
 

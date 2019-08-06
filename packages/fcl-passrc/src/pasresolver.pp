@@ -1728,6 +1728,9 @@ type
     procedure SpecializeDeclarations(GenEl, SpecEl: TPasDeclarations);
     procedure SpecializeArgument(GenEl, SpecEl: TPasArgument);
     procedure SpecializeImplBlock(GenEl, SpecEl: TPasImplBlock);
+    procedure SpecializeImplAssign(GenEl, SpecEl: TPasImplAssign);
+    procedure SpecializeExpr(GenEl, SpecEl: TPasExpr);
+    procedure SpecializePrimitiveExpr(GenEl, SpecEl: TPrimitiveExpr);
   protected
     // custom types (added by descendant resolvers)
     function CheckAssignCompatibilityCustom(
@@ -6290,6 +6293,9 @@ begin
     end
   else if ProcScope.GroupScope<>nil then
     RaiseInternalError(20190122142142,GetObjName(aProc));
+
+  if TopScope.Element<>aProc then
+    RaiseInternalError(20190806094032);
   PopScope;
 end;
 
@@ -14734,7 +14740,15 @@ begin
   SpecializePasElementProperties(GenEl,SpecEl);
 
   C:=GenEl.ClassType;
-  if C=TPasVariable then
+  if C=TPrimitiveExpr then
+    SpecializePrimitiveExpr(TPrimitiveExpr(GenEl),TPrimitiveExpr(SpecEl))
+  else if C=TPasImplBeginBlock then
+    // no special Add
+    SpecializeImplBlock(TPasImplBeginBlock(GenEl),TPasImplBeginBlock(SpecEl))
+  else if C=TPasImplAssign then
+    // no special Add
+    SpecializeImplAssign(TPasImplAssign(GenEl),TPasImplAssign(SpecEl))
+  else if C=TPasVariable then
     begin
     AddVariable(TPasVariable(SpecEl));
     SpecializeVariable(TPasVariable(GenEl),TPasVariable(SpecEl));
@@ -14744,8 +14758,6 @@ begin
     AddArgument(TPasArgument(SpecEl));
     SpecializeArgument(TPasArgument(GenEl),TPasArgument(SpecEl));
     end
-  else if C=TPasImplBeginBlock then
-    SpecializeImplBlock(TPasImplBeginBlock(GenEl),TPasImplBeginBlock(SpecEl))
   else if C=TProcedureBody then
     begin
     AddProcedureBody(TProcedureBody(SpecEl));
@@ -14823,6 +14835,8 @@ end;
 
 procedure TPasResolver.SpecializeElExpr(GenEl, SpecEl: TPasElement;
   GenElExpr: TPasExpr; var SpecElExpr: TPasExpr);
+var
+  NewClass: TPTreeElement;
 begin
   if GenElExpr=nil then exit;
   if GenElExpr.Parent<>GenEl then
@@ -14835,7 +14849,9 @@ begin
     exit;
     end;
   // normal expression
-  RaiseNotYetImplemented(20190803220358,GenEl);
+  NewClass:=TPTreeElement(GenElExpr.ClassType);
+  SpecElExpr:=TPasExpr(NewClass.Create(GenElExpr.Name,SpecEl));
+  SpecializeElement(GenElExpr,SpecElExpr);
 end;
 
 procedure TPasResolver.SpecializeProcedure(GenEl, SpecEl: TPasProcedure);
@@ -14845,8 +14861,6 @@ var
   SpecProcScope: TPasProcedureScope;
   GenBody: TProcedureBody;
 begin
-  SpecializePasElementProperties(GenEl,SpecEl);
-
   SpecProcScope:=SpecEl.CustomData as TPasProcedureScope;
   Include(SpecProcScope.Flags,ppsfIsSpecialized);
 
@@ -14920,6 +14934,7 @@ begin
     NewClass:=TPTreeElement(GenResultEl.ClassType);
     NewResultEl:=TPasResultElement(NewClass.Create(GenResultEl.Name,SpecEl));
     TPasFunctionType(SpecEl).ResultEl:=NewResultEl;
+    AddFunctionResult(NewResultEl);
     SpecializeElType(GenResultEl,NewResultEl,GenResultEl.ResultType,NewResultEl.ResultType);
     end;
 
@@ -14946,20 +14961,42 @@ begin
 end;
 
 procedure TPasResolver.SpecializeDeclarations(GenEl, SpecEl: TPasDeclarations);
+var
+  i: Integer;
+  GenDecl, NewDecl: TPasElement;
+  NewClass: TPTreeElement;
 begin
-  if SpecEl=nil then ;
-  if GenEl.Declarations.Count>0 then
-    RaiseNotYetImplemented(20190804184718,GenEl);
-  //ToDo: Declarations: TFPList; // list of TPasElement
-  //ToDo: Attributes, // TPasAttributes
-  //ToDo: Classes,    // TPasClassType, TPasRecordType
-  //ToDo: Consts,     // TPasConst
-  //ToDo: ExportSymbols,// TPasExportSymbol
-  //ToDo: Functions,  // TPasProcedure
-  //ToDo: Properties, // TPasProperty
-  //ToDo: ResStrings, // TPasResString
-  //ToDo: Types,      // TPasType, except TPasClassType, TPasRecordType
-  //ToDo: Variables   // TPasVariable, not descendants
+  for i:=0 to GenEl.Declarations.Count-1 do
+    begin
+    GenDecl:=TPasElement(GenEl.Declarations[i]);
+    if GenDecl.Parent<>GenEl then
+      RaiseNotYetImplemented(20190806091336,GenEl,GetObjName(GenDecl));
+    NewClass:=TPTreeElement(GenDecl.ClassType);
+    NewDecl:=TPasElement(NewClass.Create(GenDecl.Name,SpecEl));
+    SpecEl.Declarations.Add(NewDecl);
+    if NewClass=TPasAttributes then
+      SpecEl.Attributes.Add(NewDecl)
+    else if (NewClass=TPasClassType)
+        or (NewClass=TPasRecordType) then
+      SpecEl.Classes.Add(NewDecl)
+    else if NewClass=TPasConst then
+      SpecEl.Consts.Add(NewDecl)
+    else if NewClass=TPasExportSymbol then
+      SpecEl.ExportSymbols.Add(NewDecl)
+    else if NewClass.InheritsFrom(TPasProcedure) then
+      SpecEl.Functions.Add(NewDecl)
+    else if NewClass=TPasProperty then
+      SpecEl.Properties.Add(NewDecl)
+    else if NewClass=TPasResString then
+      SpecEl.ResStrings.Add(NewDecl)
+    else if NewClass.InheritsFrom(TPasType) then
+      SpecEl.Types.Add(NewDecl)
+    else if NewClass=TPasVariable then
+      SpecEl.Variables.Add(NewDecl)
+    else
+      RaiseNotYetImplemented(20190804184718,GenDecl);
+    SpecializeElement(GenDecl,NewDecl);
+    end;
 end;
 
 procedure TPasResolver.SpecializeArgument(GenEl, SpecEl: TPasArgument);
@@ -14973,10 +15010,43 @@ begin
 end;
 
 procedure TPasResolver.SpecializeImplBlock(GenEl, SpecEl: TPasImplBlock);
+var
+  i: Integer;
+  GenImpl, NewImpl: TPasImplElement;
+  NewClass: TPTreeElement;
 begin
-  if SpecEl=nil then ;
-  if GenEl.Elements.Count>0 then
-    RaiseNotYetImplemented(20190804185503,GenEl);
+  for i:=0 to GenEl.Elements.Count-1 do
+    begin
+    GenImpl:=TPasImplElement(GenEl.Elements[i]);
+    if GenImpl.Parent<>GenEl then
+      RaiseNotYetImplemented(20190806092151,GenEl,GetElementSourcePosStr(GenImpl));
+    NewClass:=TPTreeElement(GenImpl.ClassType);
+    NewImpl:=TPasImplElement(NewClass.Create(GenImpl.Name,SpecEl));
+    SpecEl.Elements.Add(NewImpl);
+    SpecializeElement(GenImpl,NewImpl);
+    end;
+end;
+
+procedure TPasResolver.SpecializeImplAssign(GenEl, SpecEl: TPasImplAssign);
+begin
+  SpecializeImplBlock(GenEl,SpecEl);
+  SpecEl.Kind:=GenEl.Kind;
+  SpecializeElExpr(GenEl,SpecEl,GenEl.left,SpecEl.left);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.right,SpecEl.right);
+end;
+
+procedure TPasResolver.SpecializeExpr(GenEl, SpecEl: TPasExpr);
+begin
+  SpecEl.Kind:=GenEl.Kind;
+  SpecEl.OpCode:=GenEl.OpCode;
+  SpecEl.format1:=GenEl.format1;
+  SpecEl.format2:=GenEl.format2;
+end;
+
+procedure TPasResolver.SpecializePrimitiveExpr(GenEl, SpecEl: TPrimitiveExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecEl.Value:=GenEl.Value;
 end;
 
 function TPasResolver.CheckAssignCompatibilityCustom(const LHS,
@@ -17157,7 +17227,9 @@ begin
     if IsElementSkipped(El) then exit;
 
     // create scope
-    if (AClass=TPasVariable)
+    if AClass.InheritsFrom(TPasExpr) then
+      // resolved when finished
+    else if (AClass=TPasVariable)
         or (AClass=TPasConst) then
       AddVariable(TPasVariable(El))
     else if AClass=TPasResString then
@@ -17222,15 +17294,13 @@ begin
         or (AClass=TPasLibrary) then
       AddModule(TPasModule(El))
     else if AClass=TPasUsesUnit then
-    else if AClass.InheritsFrom(TPasExpr) then
-      // resolved when finished
     else if AClass=TInitializationSection then
       AddInitialFinalizationSection(TInitializationSection(El))
     else if AClass=TFinalizationSection then
       AddInitialFinalizationSection(TFinalizationSection(El))
+    else if AClass=TPasImplCommand then
     else if AClass.InheritsFrom(TPasImplBlock) then
       // resolved when finished
-    else if AClass=TPasImplCommand then
     else if AClass=TPasAttributes then
     else if AClass=TPasUnresolvedUnitRef then
       RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
