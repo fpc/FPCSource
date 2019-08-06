@@ -37,10 +37,13 @@ const
   SELFREG_E_CLASS = -2;
 
 type
+  TStartMode = (smStandalone, smAutomation,smRegserver,smUnregserver);
+  TLastReleaseEvent = procedure(var shutdown: Boolean) of object;
 
   { TComServer }
 
   TComServer = class(TComServerObject)
+  class var orgInitProc: codepointer;
   private
     fCountObject: Integer;
     fCountFactory: Integer;
@@ -48,7 +51,23 @@ type
     fServerName,
     fServerFileName: String;
     fHelpFileName : String;
+    fRegister: Boolean;
     fStartSuspended : Boolean;
+    FIsInproc: Boolean;
+    FIsInteractive: Boolean;
+    FStartMode: TStartMode;
+    FOnLastRelease: TLastReleaseEvent;
+
+    class function AutomationDone: Boolean;
+    class procedure AutomationStart;
+    procedure CheckCmdLine;
+    procedure FactoryFree(Factory: TComObjectFactory);
+    procedure FactoryRegisterClassObject(Factory: TComObjectFactory);
+    procedure FactoryUpdateRegistry(Factory: TComObjectFactory);
+    procedure CheckReleased;
+    function GetTypeLibName: widestring;
+    procedure RegisterObjectWith(Factory: TComObjectFactory);
+    procedure Start;
   protected
     function CountObject(Created: Boolean): Integer; override;
     function CountFactory(Created: Boolean): Integer; override;
@@ -69,10 +88,16 @@ type
     function CanUnloadNow: Boolean;
     procedure RegisterServer;
     procedure UnRegisterServer;
+    property IsInprocServer: Boolean read FIsInproc write FIsInproc;
+    property IsInteractive: Boolean read fIsInteractive;
+    property StartMode: TStartMode read FStartMode;
+    property ServerObjects:integer read fCountObject;
   end;
 
 var
   ComServer: TComServer = nil;
+  haut :TLibHandle;
+
 
 //http://msdn.microsoft.com/en-us/library/ms690368%28VS.85%29.aspx
 //If the function succeeds, the return value is S_OK. Otherwise, it is S_FALSE.
@@ -219,9 +244,24 @@ end;
 function TComServer.CountObject(Created: Boolean): Integer;
 begin
   if Created then
-    Result:=InterLockedIncrement(fCountObject)
+  begin
+    Result := InterlockedIncrement(FCountObject);
+    if (not IsInProcServer) and (StartMode = smAutomation)
+      and Assigned(ComObj.CoAddRefServerProcess) then
+      ComObj.CoAddRefServerProcess;
+  end
   else
-    Result:=InterLockedDecrement(fCountObject);
+  begin
+    Result := InterlockedDecrement(FCountObject);
+    if (not IsInProcServer) and (StartMode = smAutomation)
+      and Assigned(ComObj.CoReleaseServerProcess) then
+    begin
+      if ComObj.CoReleaseServerProcess() = 0 then
+        CheckReleased;
+    end
+    else if Result = 0 then
+      CheckReleased;
+  end;
 end;
 
 function TComServer.CountFactory(Created: Boolean): Integer;
@@ -230,6 +270,22 @@ begin
     Result:=InterLockedIncrement(fCountFactory)
   else
     Result:=InterLockedDecrement(fCountFactory);
+end;
+
+procedure TComServer.FactoryFree(Factory: TComObjectFactory);
+begin
+  Factory.Free;
+end;
+
+procedure TComServer.FactoryRegisterClassObject(Factory: TComObjectFactory);
+begin
+  Factory.RegisterClassObject;
+end;
+
+procedure TComServer.FactoryUpdateRegistry(Factory: TComObjectFactory);
+begin
+  if Factory.Instancing <> ciInternal then
+    Factory.UpdateRegistry(FRegister);
 end;
 
 function TComServer.GetHelpFileName: string;
@@ -244,13 +300,28 @@ end;
 
 function TComServer.GetServerKey: string;
 begin
-  result:='LocalServer32';
+  if FIsInproc then
+    Result := 'InprocServer32'
+  else
+    Result := 'LocalServer32';
 end;
 
 function TComServer.GetServerName: string;
 begin
-  Result := fServerName;
+  if FServerName <> '' then
+    Result := FServerName
+  else
+    if FTypeLib <> nil then
+      Result := GetTypeLibName
+    else
+      Result := GetModuleName;
 end;
+
+function TComServer.GetTypeLibName: widestring;
+begin
+  OleCheck(TypeLib.GetDocumentation(-1, @Result, nil, nil, nil));
+end;
+
 
 function TComServer.GetStartSuspended: Boolean;
 begin
@@ -261,6 +332,30 @@ function TComServer.GetTypeLib: ITypeLib;
 begin
   Result := fTypeLib;
 end;
+
+procedure TComServer.RegisterObjectWith(Factory: TComObjectFactory);
+begin
+  Factory.RegisterClassObject;
+end;
+
+
+procedure TComServer.Start;
+begin
+  case fStartMode of
+  smRegServer:
+    begin
+      Self.RegisterServer;
+      Halt;
+    end;
+  smUnregServer:
+    begin
+      Self.UnRegisterServer;
+      Halt;
+    end;
+  end;
+  ComClassManager.ForEachFactory(Self, @RegisterObjectWith);
+end;
+
 
 procedure TComServer.SetHelpFileName(const Value: string);
 begin
@@ -277,16 +372,34 @@ begin
   Factory.UpdateRegistry(False);
 end;
 
+procedure TComServer.CheckCmdLine;
+const
+  sw_set:TSysCharSet = ['/','-'];
+begin
+  if FindCmdLineSwitch('automation',sw_set,true) or
+     FindCmdLineSwitch('embedding',sw_set,true) then
+    fStartMode := smAutomation
+  else if FindCmdlIneSwitch('regserver',sw_set,true) then
+    fStartMode := smRegServer
+  else if FindCmdLineSwitch('unregserver',sw_set,true) then
+    fStartMode := smUnregServer;
+end;
+
 constructor TComServer.Create;
 var
   name: WideString;
 begin
+  haut := SafeLoadLibrary('oleaut32.DLL');
+  CheckCmdLine;
   inherited Create;
 {$ifdef DEBUG_COM}
   WriteLn('TComServer.Create');
 {$endif}
   fCountFactory := 0;
   fCountObject := 0;
+
+  FTypeLib := nil;
+  FIsInproc := ModuleIsLib;
 
   fServerFileName := GetModuleFileName();
 
@@ -301,11 +414,61 @@ begin
   end
   else
     fServerName := GetModuleName;
+
+  if not ModuleIsLib then
+  begin
+    orgInitProc := InitProc;
+    InitProc := @TComServer.AutomationStart;
+  //  AddTerminateProc(TTerminateProc(@TComServer.AutomationDone));
+  end;
+
+  Self.FIsInteractive := True;
 end;
+
+class procedure TComServer.AutomationStart;
+begin
+  if orgInitProc <> nil then TProcedure(orgInitProc)();
+  ComServer.FStartSuspended := (CoInitFlags <> -1) and
+    Assigned(ComObj.CoInitializeEx) and Assigned(ComObj.CoResumeClassObjects);
+  ComServer.Start;
+  if ComServer.FStartSuspended then
+    ComObj.CoResumeClassObjects;
+end;
+
+class function TComServer.AutomationDone: Boolean;
+begin
+  Result := True;
+  if (ComServer <> nil) and (ComServer.ServerObjects > 0) and ComServer.IsInteractive then
+  begin
+    Result := MessageBox(0, PChar('COM server is in use'),
+      PChar('OLE Automation'), MB_YESNO or MB_TASKMODAL or
+      MB_ICONWARNING or MB_DEFBUTTON2) = IDYES;
+  end;
+end;
+
+
+procedure TComServer.CheckReleased;
+var
+  Shutdown: Boolean;
+begin
+  if not FIsInproc then
+  begin
+    Shutdown := FStartMode = smAutomation;
+    try
+      if Assigned(FOnLastRelease) then FOnLastRelease(Shutdown);
+    finally
+      if Shutdown then PostThreadMessage(MainThreadID, WM_QUIT, 0, 0);
+    end;
+  end;
+end;
+
 
 destructor TComServer.Destroy;
 begin
+  ComClassManager.ForEachFactory(Self, @FactoryFree,true);
+  Self.fTypeLib:=nil;
   inherited Destroy;
+  FreeLibrary(haut);
 {$ifdef DEBUG_COM}
   WriteLn('TComServer.Destroy');
 {$endif}
@@ -332,15 +495,17 @@ begin
   ComClassManager.ForEachFactory(self, @UnregisterServerFactory);
 end;
 
+
 initialization
 {$ifdef DEBUG_COM}
   WriteLn('comserv initialization begin');
 {$endif}
   ComServer := TComServer.Create;
+
 {$ifdef DEBUG_COM}
   WriteLn('comserv initialization end');
 {$endif}
 finalization
-  ComServer.Free;
+  ComServer.AutomationDone;
+  FreeAndNil(ComServer);
 end.
-
