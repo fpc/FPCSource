@@ -2315,6 +2315,95 @@ const
         'i8086 huge pointer arithmetic', {cs_hugeptr_arithmetic_normalization}
         'i8086 huge pointer comparison' {cs_hugeptr_comparison_normalization}
        );
+       { Switches which can be changed by a mode (fpc,tp7,delphi) }
+       modeswitchname : array[tmodeswitch] of string[50] =
+        ('m_none',
+         { generic }
+         'm_fpc','m_objfpc','m_delphi','m_tp7','m_mac','m_iso','m_extpas',
+         {$ifdef gpc_mode}'m_gpc',{$endif}
+         { more specific }
+         'm_class',               { delphi class model }
+         'm_objpas',              { load objpas unit }
+         'm_result',              { result in functions }
+         'm_string_pchar',        { pchar 2 string conversion }
+         'm_cvar_support',        { cvar variable directive }
+         'm_nested_comment',      { nested comments }
+         'm_tp_procvar',          { tp style procvars (no @ needed) }
+         'm_mac_procvar',         { macpas style procvars }
+         'm_repeat_forward',      { repeating forward declarations is needed }
+         'm_pointer_2_procedure', { allows the assignement of pointers to
+                                  procedure variables                     }
+         'm_autoderef',           { does auto dereferencing of struct. vars }
+         'm_initfinal',           { initialization/finalization for units }
+         'm_default_ansistring',  { ansistring turned on by default }
+         'm_out',                 { support the calling convention OUT }
+         'm_default_para',        { support default parameters }
+         'm_hintdirective',       { support hint directives }
+         'm_duplicate_names',     { allow locals/paras to have duplicate names of globals }
+         'm_property',            { allow properties }
+         'm_default_inline',      { allow inline proc directive }
+         'm_except',              { allow exception-related keywords }
+         'm_objectivec1',         { support interfacing with Objective-C (1.0) }
+         'm_objectivec2',         { support interfacing with Objective-C (2.0) }
+         'm_nested_procvars',     { support nested procedural variables }
+         'm_non_local_goto',      { support non local gotos (like iso pascal) }
+         'm_advanced_records',    { advanced record syntax with visibility sections, methods and properties }
+         'm_isolike_unary_minus', { unary minus like in iso pascal: same precedence level as binary minus/plus }
+         'm_systemcodepage',      { use system codepage as compiler codepage by default, emit ansistrings with system codepage }
+         'm_final_fields',        { allows declaring fields as "final", which means they must be initialised
+                                  in the (class) constructor and are constant from then on (same as final
+                                  fields in Java) }
+         'm_default_unicodestring', { makes the default string type in $h+ mode unicodestring rather than
+                                    ansistring; similarly, char becomes unicodechar rather than ansichar }
+         'm_type_helpers',        { allows the declaration of "type helper" for all supported types
+                                  (primitive types, records, classes, interfaces) }
+         'm_blocks',              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         'm_isolike_io',          { I/O as it required by an ISO compatible compiler }
+         'm_isolike_program_para',{ program parameters as it required by an ISO compatible compiler }
+         'm_isolike_mod',         { mod operation as it is required by an iso compatible compiler }
+         'm_array_operators',     { use Delphi compatible array operators instead of custom ones ("+") }
+         'm_multi_helpers',       { helpers can appear in multiple scopes simultaneously }
+         'm_array2dynarray',      { regular arrays can be implicitly converted to dynamic arrays }
+         'm_prefixed_attributes'  { enable attributes that are defined before the type they belong to }
+       );
+       { optimizer }
+       optimizerswitchname : array[toptimizerswitch] of string[50] =
+        ('cs_opt_none',
+         'cs_opt_level1',
+         'cs_opt_level2',
+         'cs_opt_level3',
+         'cs_opt_level4',
+         'cs_opt_regvar',
+         'cs_opt_uncertain',
+         'cs_opt_size',
+         'cs_opt_stackframe',
+         'cs_opt_peephole',
+         'cs_opt_loopunroll',
+         'cs_opt_tailrecursion',
+         'cs_opt_nodecse',
+         'cs_opt_nodedfa',
+         'cs_opt_loopstrength',
+         'cs_opt_scheduler',
+         'cs_opt_autoinline',
+         'cs_useebp',
+         'cs_userbp',
+         'cs_opt_reorder_fields',
+         'cs_opt_fastmath',
+         { Allow removing expressions whose result is not used, even when this
+           can change program behaviour (range check errors disappear',
+           access violations due to invalid pointer derefences disappear, ...).
+           Note: it does not (and must not) remove expressions that have
+             explicit side-effects, only implicit side-effects (like the ones
+             mentioned before) can disappear.
+         }
+         'cs_opt_dead_values',
+         { compiler checks for empty procedures/methods and removes calls to them if possible }
+         'cs_opt_remove_emtpy_proc',
+         'cs_opt_constant_propagate',
+         'cs_opt_dead_store_eliminate',
+         'cs_opt_forcenostackframe',
+         'cs_opt_use_load_modify_store'
+       );
     var
          globalswitch  : tglobalswitch;
          targetswitch  : ttargetswitch;
@@ -2322,6 +2411,12 @@ const
          localswitch   : tlocalswitch;
          modeswitch    : tmodeswitch;
          optimizerswitch : toptimizerswitch;
+         globalswitches  : tglobalswitches;
+         targetswitches  : ttargetswitches;
+         moduleswitches  : tmoduleswitches;
+         localswitches   : tlocalswitches;
+         modeswitches    : tmodeswitches;
+         optimizerswitches : toptimizerswitches;
     begin
        {alignment : talignmentinfo;}
        {talignmentinfo = packed record}
@@ -2348,26 +2443,60 @@ const
        writeln('Min record alignment: '+tostr(new_settings.alignment.recordalignmin));
        writeln('Max record alignment: '+tostr(new_settings.alignment.recordalignmax));
        writeln('Max C record alignment: '+tostr(new_settings.alignment.maxCrecordalign));
+       globalswitches:=new_settings.globalswitches;
        for globalswitch:=low(tglobalswitch) to high(tglobalswitch) do
-         if globalswitch in new_settings.globalswitches then
-           writeln('global switch: '+globalswitchname[globalswitch]);
-       if (new_settings.globalswitches <> []) then
+         if globalswitch in globalswitches then
+           begin
+             writeln('global switch: '+globalswitchname[globalswitch]);
+             exclude(globalswitches,globalswitch);
+           end;
+       if (globalswitches <> []) then
          writeln('Unknown global switch');
+       targetswitches:=new_settings.targetswitches;
        for targetswitch:=low(ttargetswitch) to high(ttargetswitch) do
-         if targetswitch in new_settings.targetswitches then
-           writeln('target switch: '+targetswitchname[targetswitch]);
+         if targetswitch in targetswitches then
+           begin
+             writeln('target switch: '+targetswitchname[targetswitch]);
+             exclude(targetswitches,targetswitch);
+           end;
+       if (targetswitches <> []) then
+         writeln('Unknown target switch');
+       moduleswitches:=new_settings.moduleswitches;
        for moduleswitch:=low(tmoduleswitch) to high(tmoduleswitch) do
-         if moduleswitch in new_settings.moduleswitches then
-           writeln('module switch: '+moduleswitchname[moduleswitch]);
+         if moduleswitch in moduleswitches then
+           begin
+             writeln('module switch: '+moduleswitchname[moduleswitch]);
+             exclude(moduleswitches,moduleswitch);
+           end;
+       if (moduleswitches <> []) then
+         writeln('Unknown module switch');
+       localswitches:=new_settings.localswitches;
        for localswitch:=low(tlocalswitch) to high(tlocalswitch) do
-         if localswitch in new_settings.localswitches then
-           writeln('local switch: '+localswitchname[localswitch]);
+         if localswitch in localswitches then
+           begin
+             writeln('local switch: '+localswitchname[localswitch]);
+             exclude(localswitches,localswitch);
+           end;
+       if (localswitches <> []) then
+         writeln('Unknown local switch');
+       modeswitches:=new_settings.modeswitches;
        for modeswitch:=low(tmodeswitch) to high(tmodeswitch) do
-         if modeswitch in new_settings.modeswitches then
-           writeln(['mode switch: ',modeswitch]);
+         if modeswitch in modeswitches then
+           begin
+             writeln(['mode switch: ',modeswitchname[modeswitch]]);
+             exclude(modeswitches,modeswitch);
+           end;
+       if (modeswitches <> []) then
+         writeln('Unknown mode switch');
+       optimizerswitches:=new_settings.optimizerswitches;
        for optimizerswitch:=low(toptimizerswitch) to high(toptimizerswitch) do
-         if optimizerswitch in new_settings.optimizerswitches then
-           writeln(['optimizer switch: ',optimizerswitch]);
+         if optimizerswitch in optimizerswitches then
+           begin
+             writeln(['optimizer switch: ',optimizerswitchname[optimizerswitch]]);
+             exclude(optimizerswitches,optimizerswitch);
+           end;
+       if (optimizerswitches <> []) then
+         writeln('Unknown optimizer switch');
        writeln(['Set allocation size ',new_settings.setalloc]);
        writeln(['Pack enums ',new_settings.packenum]);
        writeln(['Pack records ',new_settings.packrecords]);
