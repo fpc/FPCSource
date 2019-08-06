@@ -1951,13 +1951,17 @@ implementation
     function TOmfObjInput.ReadImpDef(Rec: TOmfRecord_COMENT; objdata: TObjData): Boolean;
       var
         ImpDefRec: TOmfRecord_COMENT_IMPDEF;
+        SymName: string;
       begin
         ImpDefRec:=TOmfRecord_COMENT_IMPDEF.Create;
         ImpDefRec.DecodeFrom(Rec);
+        SymName:=ImpDefRec.InternalName;
+        if not CaseSensitiveSymbols then
+          SymName:=UpCase(SymName);
         if ImpDefRec.ImportByOrdinal then
-          TOmfObjData(objdata).AddImportSymbol(ImpDefRec.ModuleName,'',ImpDefRec.InternalName,ImpDefRec.Ordinal,false)
+          TOmfObjData(objdata).AddImportSymbol(ImpDefRec.ModuleName,'',SymName,ImpDefRec.Ordinal,false)
         else
-          TOmfObjData(objdata).AddImportSymbol(ImpDefRec.ModuleName,ImpDefRec.Name,ImpDefRec.InternalName,0,false);
+          TOmfObjData(objdata).AddImportSymbol(ImpDefRec.ModuleName,ImpDefRec.Name,SymName,0,false);
         Result:=True;
         ImpDefRec.Free;
       end;
