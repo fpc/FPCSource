@@ -1929,13 +1929,11 @@ var
 
   function gettokenbufshortint : shortint;
   var
-    var16 : shortint;
+    var8 : shortint;
   begin
-    var16:=unaligned(pshortint(@tokenbuf[tbi])^);
+    var8:=pshortint(@tokenbuf[tbi])^;
     inc(tbi,sizeof(shortint));
-    if ppufile.change_endian then
-      var16:=swapendian(var16);
-    result:=var16;
+    result:=var8;
   end;
 
   procedure tokenreadset(var b;size : longint);
