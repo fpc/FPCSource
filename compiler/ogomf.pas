@@ -495,6 +495,7 @@ interface
       TNewExeSection=class(TExeSection)
       private
         FEarlySize: QWord;
+        FStackSize: QWord;
         FExeMetaSec: TNewExeMetaSection;
         FMemBasePos: Word;
         FDataPosSectors: Word;
@@ -506,6 +507,7 @@ interface
         procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
         function CanAddObjSection(objsec:TObjSection;ExeSectionLimit:QWord):boolean;
         property EarlySize: QWord read FEarlySize write FEarlySize;
+        property StackSize: QWord read FStackSize write FStackSize;
         property ExeMetaSec: TNewExeMetaSection read FExeMetaSec write FExeMetaSec;
         property MemBasePos: Word read FMemBasePos write FMemBasePos;
         property DataPosSectors: Word read FDataPosSectors write FDataPosSectors;
@@ -3620,10 +3622,38 @@ cleanup:
       end;
 
     procedure TNewExeSection.AddObjSection(objsec: TObjSection; ignoreprops: boolean);
+      var
+        s: TSymStr;
+        Separator: SizeInt;
+        SegName, SegClass: string;
+        IsStack: Boolean;
       begin
         { allow mixing initialized and uninitialized data in the same section
           => set ignoreprops=true }
         inherited AddObjSection(objsec,true);
+        s:=objsec.Name;
+        { name format is 'SegName||ClassName' }
+        Separator:=Pos('||',s);
+        if Separator>0 then
+          begin
+            SegName:=Copy(s,1,Separator-1);
+            SegClass:=Copy(s,Separator+2,Length(s)-Separator-1);
+          end
+        else
+          begin
+            SegName:=s;
+            SegClass:='';
+          end;
+        { wlink recognizes the stack segment by the class name 'STACK' }
+        { let's be compatible with wlink }
+        IsStack:=SegClass='STACK';
+        { tlink (and ms link?) use the scStack segment combination to recognize
+          the stack segment.
+          let's be compatible with tlink as well }
+        if TOmfObjSection(ObjSec).Combination=scStack then
+          IsStack:=True;
+        if IsStack then
+          StackSize:=StackSize+objsec.Size;
         EarlySize:=align_qword(EarlySize,SecAlign)+objsec.Size;
       end;
 
@@ -3707,6 +3737,8 @@ cleanup:
         Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
         Header.InitialSP:=0;
         Header.InitialSS:=Header.AutoDataSegmentNumber;
+        Header.InitialStackSize:=TNewExeSection(ExeSectionList[Header.AutoDataSegmentNumber-1]).StackSize;
+        {todo: subtract the stack size from the size of the auto data segment }
 
         Header.SegmentTableStart:=NewExeHeaderSize;
         Header.SegmentTableEntriesCount:=ExeSectionList.Count;
