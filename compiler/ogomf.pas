@@ -496,6 +496,7 @@ interface
       private
         FEarlySize: QWord;
         FStackSize: QWord;
+        FLocalHeapSize: QWord;
         FExeMetaSec: TNewExeMetaSection;
         FMemBasePos: Word;
         FDataPosSectors: Word;
@@ -508,6 +509,7 @@ interface
         function CanAddObjSection(objsec:TObjSection;ExeSectionLimit:QWord):boolean;
         property EarlySize: QWord read FEarlySize write FEarlySize;
         property StackSize: QWord read FStackSize write FStackSize;
+        property LocalHeapSize: QWord read FLocalHeapSize write FLocalHeapSize;
         property ExeMetaSec: TNewExeMetaSection read FExeMetaSec write FExeMetaSec;
         property MemBasePos: Word read FMemBasePos write FMemBasePos;
         property DataPosSectors: Word read FDataPosSectors write FDataPosSectors;
@@ -3630,7 +3632,7 @@ cleanup:
         s: TSymStr;
         Separator: SizeInt;
         SegName, SegClass: string;
-        IsStack: Boolean;
+        IsStack, IsHeap: Boolean;
       begin
         { allow mixing initialized and uninitialized data in the same section
           => set ignoreprops=true }
@@ -3658,6 +3660,9 @@ cleanup:
           IsStack:=True;
         if IsStack then
           StackSize:=StackSize+objsec.Size;
+        IsHeap:=SegClass='HEAP';
+        if IsHeap then
+          LocalHeapSize:=LocalHeapSize+objsec.Size;
         EarlySize:=align_qword(EarlySize,SecAlign)+objsec.Size;
       end;
 
@@ -3742,7 +3747,8 @@ cleanup:
         Header.InitialSP:=0;
         Header.InitialSS:=Header.AutoDataSegmentNumber;
         Header.InitialStackSize:=TNewExeSection(ExeSectionList[Header.AutoDataSegmentNumber-1]).StackSize;
-        {todo: subtract the stack size from the size of the auto data segment }
+        Header.InitialLocalHeapSize:=TNewExeSection(ExeSectionList[Header.AutoDataSegmentNumber-1]).LocalHeapSize;
+        {todo: subtract the stack size and the local heap size from the size of the auto data segment }
 
         Header.SegmentTableStart:=NewExeHeaderSize;
         Header.SegmentTableEntriesCount:=ExeSectionList.Count;
