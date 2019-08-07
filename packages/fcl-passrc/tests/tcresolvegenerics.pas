@@ -19,19 +19,23 @@ type
     // generic types
     procedure TestGen_MissingTemplateFail;
     procedure TestGen_VarTypeWithoutSpecializeFail;
+    procedure TestGen_GenTypeWithWrongParamCountFail;
     procedure TestGen_ConstraintStringFail;
     procedure TestGen_ConstraintMultiClassFail;
     procedure TestGen_ConstraintRecordExpectedFail;
-    // ToDo: constraints mismatch: TAnt<T:record>; TBird<T:Class> = record v: TAnt<T> end   Fail
-    // ToDo: constraint keyword record
-    // ToDo: constraint keyword class, constructor, class+constructor
+    procedure TestGen_ConstraintClassRecordFail;
+    procedure TestGen_ConstraintRecordClassFail;
+    procedure TestGen_ConstraintArrayFail;
+    // ToDo: constraint constructor
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_TemplNameEqTypeNameFail;
     procedure TestGen_GenericNotFoundFail;
+    procedure TestGen_SameNameSameParamCountFail;
     procedure TestGen_RecordLocalNameDuplicateFail;
     procedure TestGen_Record;
     procedure TestGen_RecordDelphi;
+    procedure TestGen_RecordNestedSpecialized;
     // ToDo: enums within generic
     // ToDo: procedure TestGen_SpecializeArg_ArrayOf;  type TBird = specialize<array of word>
     // ToDo: unitname.specialize TBird<word>.specialize
@@ -98,6 +102,18 @@ begin
     nGenericsWithoutSpecializationAsType);
 end;
 
+procedure TTestResolveGenerics.TestGen_GenTypeWithWrongParamCountFail;
+begin
+  StartProgram(false);
+  Add([
+  'type generic TBird<T> = record end;',
+  'var b: TBird<word, byte>;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "TBird<,>"',
+    nIdentifierNotFound);
+end;
+
 procedure TTestResolveGenerics.TestGen_ConstraintStringFail;
 begin
   StartProgram(false);
@@ -108,7 +124,7 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('''string'' is not a valid constraint',
+  CheckResolverException('"string" is not a valid constraint',
     nXIsNotAValidConstraint);
 end;
 
@@ -127,7 +143,7 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('''TBird'' constraint and ''TBear'' constraint cannot be specified together',
+  CheckResolverException('"TBird" constraint and "TBear" constraint cannot be specified together',
     nConstraintXAndConstraintYCannotBeTogether);
 end;
 
@@ -143,6 +159,50 @@ begin
   '']);
   CheckResolverException('record type expected, but Word found',
     nXExpectedButYFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintClassRecordFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRec = record end;',
+  '  generic TBird<T:class> = record v: T; end;',
+  'var r: specialize TBird<TRec>;',
+  'begin',
+  '']);
+  CheckResolverException('class type expected, but TRec found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintRecordClassFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T:record> = record v: T; end;',
+  'var r: specialize TBird<TObject>;',
+  'begin',
+  '']);
+  CheckResolverException('record type expected, but TObject found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintArrayFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TArr = array of word;',
+  '  generic TBird<T:TArr> = record v: T; end;',
+  'begin',
+  '']);
+  CheckResolverException('"TArr" is not a valid constraint',
+    nXIsNotAValidConstraint);
 end;
 
 procedure TTestResolveGenerics.TestGen_TemplNameEqTypeNameFail;
@@ -170,6 +230,20 @@ begin
   '']);
   CheckResolverException('identifier not found "TAnimal<>"',
     nIdentifierNotFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_SameNameSameParamCountFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBird<S,T> = record w: T; end;',
+  '  TBird<X,Y> = record f: X; end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,8)',
+    nDuplicateIdentifier);
 end;
 
 procedure TTestResolveGenerics.TestGen_RecordLocalNameDuplicateFail;
@@ -219,6 +293,21 @@ begin
   '  {=Typ}w: T;',
   'begin',
   '  r.v:=w;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_RecordNestedSpecialized;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class v: T; end;',
+  '  generic TFish<T:class> = record v: T; end;',
+  'var f: specialize TFish<specialize TBird<word>>;',
+  'begin',
   '']);
   ParseProgram;
 end;

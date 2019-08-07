@@ -1883,7 +1883,7 @@ type
     function FindUnit(const AName, InFilename: String;
       NameExpr, InFileExpr: TPasExpr): TPasModule; virtual; abstract;
     function FindElement(const aName: String): TPasElement; override;  // used by TPasParser
-    function FindElementFor(const aName: String; AParent: TPasElement): TPasElement; override; // used by TPasParser
+    function FindElementFor(const aName: String; AParent: TPasElement; TypeParamCount: integer): TPasElement; override; // used by TPasParser
     function FindElementWithoutParams(const AName: String; ErrorPosEl: TPasElement;
       NoProcsWithArgs: boolean): TPasElement;
     function FindElementWithoutParams(const AName: String; out Data: TPRFindData;
@@ -1990,6 +1990,7 @@ type
     procedure RaiseInvalidScopeForElement(id: TMaxPrecInt; El: TPasElement; const Msg: string = '');
     procedure RaiseIdentifierNotFound(id: TMaxPrecInt; Identifier: string; El: TPasElement);
     procedure RaiseXExpectedButYFound(id: TMaxPrecInt; const X,Y: string; El: TPasElement);
+    procedure RaiseXExpectedButTypeYFound(id: TMaxPrecInt; const X: string; Y: TPasType; El: TPasElement);
     procedure RaiseContextXExpectedButYFound(id: TMaxPrecInt; const C,X,Y: string; El: TPasElement);
     procedure RaiseContextXInvalidY(id: TMaxPrecInt; const X,Y: string; El: TPasElement);
     procedure RaiseConstantExprExp(id: TMaxPrecInt; ErrorEl: TPasElement);
@@ -2011,6 +2012,7 @@ type
     procedure RaiseInvalidProcModifier(id: TMaxPrecInt; Proc: TPasProcedure;
       pm: TProcedureModifier; ErrorEl: TPasElement);
     procedure WriteScopes;
+    procedure WriteScopesShort(Title: string);
     // find value and type of an element
     procedure ComputeElement(El: TPasElement; out ResolvedEl: TPasResolverResult;
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil);
@@ -5160,24 +5162,30 @@ begin
 
   // check duplicate in current scope
   OlderIdentifier:=Identifier.NextSameIdentifier;
-  if (OlderIdentifier<>nil) then
-    if (Identifier.Kind=pikSimple)
-        or (OlderIdentifier.Kind=pikSimple)
-        or (El.Visibility=visPublished) then
+  if OlderIdentifier<>nil then
+    begin
+    if (OlderIdentifier.Element.ClassType=TPasEnumValue)
+        and (OlderIdentifier.Element.Parent.Parent<>Scope.Element) then
       begin
-      if (OlderIdentifier.Element.ClassType=TPasEnumValue)
-          and (OlderIdentifier.Element.Parent.Parent<>Scope.Element) then
-        // this enum was propagated from a sub type -> remove enum
-        Scope.RemoveLocalIdentifier(OlderIdentifier.Element);
-      if (El.Visibility=visPublished) and (El is TPasProcedure)
-          and (OlderIdentifier.Element is TPasProcedure) then
-        RaiseMsg(20190626175432,nDuplicatePublishedMethodXAtY,
-                 sDuplicatePublishedMethodXAtY,
-                 [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El)
-      else
-        RaiseMsg(20170216151530,nDuplicateIdentifier,sDuplicateIdentifier,
-               [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El);
+      // this enum was propagated from a sub type -> remove enum from this scope
+      if OlderIdentifier.NextSameIdentifier<>nil then
+        RaiseNotYetImplemented(20190807114726,El,GetElementSourcePosStr(OlderIdentifier.Element));
+      Scope.RemoveLocalIdentifier(OlderIdentifier.Element);
+      OlderIdentifier:=nil;
       end;
+    if (El.Visibility=visPublished) and (El is TPasProcedure)
+        and (OlderIdentifier.Element is TPasProcedure) then
+      // published method bites method in same scope
+      RaiseMsg(20190626175432,nDuplicatePublishedMethodXAtY,
+               sDuplicatePublishedMethodXAtY,
+               [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El);
+    if (Identifier.Kind=pikSimple)
+        or (OlderIdentifier.Kind=pikSimple) then
+      // duplicate identifier
+      RaiseMsg(20170216151530,nDuplicateIdentifier,sDuplicateIdentifier,
+              [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El);
+
+    end;
 
   Result:=Identifier;
 end;
@@ -5914,23 +5922,17 @@ begin
         if SpecializedItem.Step<>psssNone then continue;
         OldStashCount:=InitSpecializeScopes(El);
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.FinishClassType Finishing specialize interface: ',GetObjName(SpecializedItem.SpecializedType),' ',ScopeCount,' FStashScopeCount=',FStashScopeCount);
-        for j:=0 to FScopeCount-1 do
-          writeln('  ',i,'/',FScopeCount,' ',GetObjName(FScopes[i]));
+        WriteScopesShort('TPasResolver.FinishClassType Finishing specialize interface: '+GetObjName(SpecializedItem.SpecializedType));
         {$ENDIF}
         SpecializeGenTypeIntf(El,SpecializedItem);
 
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.FinishClassType Finished specialize interface: ',GetObjName(SpecializedItem.SpecializedType),' ',ScopeCount,' FStashScopeCount=',FStashScopeCount);
-        for j:=0 to FScopeCount-1 do
-          writeln('  ',i,'/',FScopeCount,' ',GetObjName(FScopes[i]));
+        WriteScopesShort('TPasResolver.FinishClassType Finished specialize interface: '+GetObjName(SpecializedItem.SpecializedType));
         {$ENDIF}
 
         RestoreStashedScopes(OldStashCount);
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.FinishClassType RestoreStashedScopes ',GetObjName(SpecializedItem.SpecializedType),' ',ScopeCount,' FStashScopeCount=',FStashScopeCount);
-        for j:=0 to FScopeCount-1 do
-          writeln('  ',i,'/',FScopeCount,' ',GetObjName(FScopes[i]));
+        WriteScopesShort('TPasResolver.FinishClassType RestoreStashedScopes '+GetObjName(SpecializedItem.SpecializedType));
         {$ENDIF}
         end;
     end;
@@ -14329,17 +14331,10 @@ begin
   for i:=0 to Params.Count-1 do
     begin
     P:=TPasElement(Params[i]);
-    if P is TPasType then
-      ParamType:=TPasType(P)
-    else if P is TPasExpr then
-      begin
-      ComputeElement(P,ResolvedEl,[rcType]);
-      if not (ResolvedEl.IdentEl is TPasType) then
-        RaiseMsg(20190725195434,nXExpectedButYFound,sXExpectedButYFound,['type',GetResolverResultDescription(ResolvedEl)],P);
-      ParamType:=TPasType(ResolvedEl.IdentEl);
-      end
-    else
-      RaiseMsg(20190728114254,nXExpectedButYFound,sXExpectedButYFound,['type',GetResolverResultDescription(ResolvedEl)],P);
+    ComputeElement(P,ResolvedEl,[rcType]);
+    if not (ResolvedEl.IdentEl is TPasType) then
+      RaiseMsg(20190725195434,nXExpectedButYFound,sXExpectedButYFound,['type',GetResolverResultDescription(ResolvedEl)],P);
+    ParamType:=TPasType(ResolvedEl.IdentEl);
     if ParamType is TPasGenericTemplateType then
       begin
       // not fully specialized
@@ -14357,17 +14352,17 @@ begin
         if SameText(Value,'record') then
           begin
           if not (ParamType is TPasRecordType) then
-            RaiseMsg(20190725200015,nXExpectedButYFound,sXExpectedButYFound,['record type',ParamType.Name],P);
+            RaiseXExpectedButTypeYFound(20190725200015,'record type',ParamType,P);
           continue;
           end
         else if SameText(Value,'class') or SameText(Value,'constructor') then
           begin
           if not (ParamType is TPasClassType) then
-            RaiseMsg(20190726133231,nXExpectedButYFound,sXExpectedButYFound,['class type',ParamType.Name],P);
+            RaiseXExpectedButTypeYFound(20190726133231,'class type',ParamType,P);
           if TPasClassType(ParamType).ObjKind<>okClass then
-            RaiseMsg(20190726133232,nXExpectedButYFound,sXExpectedButYFound,['class type',ParamType.Name],P);
+            RaiseXExpectedButTypeYFound(20190726133232,'class type',ParamType,P);
           if TPasClassType(ParamType).IsExternal then
-            RaiseMsg(20190726133233,nXExpectedButYFound,sXExpectedButYFound,['class type',ParamType.Name],P);
+            RaiseXExpectedButTypeYFound(20190726133233,'non external class type',ParamType,P);
           if SameText(Value,'constructor') then
             begin
             // check if ParamType has the default constructor
@@ -14424,9 +14419,6 @@ var
   SpecializedTypes: TObjectList;
   NewName: String;
   NewClass: TPTreeElement;
-  {$IFDEF VerbosePasResolver}
-  i: integer;
-  {$ENDIF}
   SrcModule: TPasModule;
   SrcModuleScope: TPasModuleScope;
   SrcResolver: TPasResolver;
@@ -14448,9 +14440,7 @@ begin
   //writeln('TPasResolver.CreateSpecializedType ',ScopeCount,' FStashScopeCount=',FStashScopeCount);
   OldStashCount:=InitSpecializeScopes(GenericType);
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.CreateSpecializedType InitSpecializeScopes: ',ScopeCount,' FStashScopeCount=',FStashScopeCount);
-  for i:=0 to FScopeCount-1 do
-    writeln('  ',i,'/',FScopeCount,' ',GetObjName(FScopes[i]));
+  WriteScopesShort('TPasResolver.CreateSpecializedType InitSpecializeScopes: ');
   {$ENDIF}
 
   Result:=TPSSpecializedItem.Create;
@@ -14480,16 +14470,12 @@ begin
     SpecializeGenTypeIntf(GenericType,Result);
 
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.CreateSpecializedType FinishTypeDef:');
-  for i:=0 to FScopeCount-1 do
-    writeln('  ',i,'/',FScopeCount,' ',GetObjName(FScopes[i]));
+  WriteScopesShort('TPasResolver.CreateSpecializedType FinishTypeDef:');
   {$ENDIF}
 
   RestoreStashedScopes(OldStashCount);
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.CreateSpecializedType RestoreStashedScopes:');
-  for i:=0 to FScopeCount-1 do
-    writeln('  ',i,'/',FScopeCount,' ',GetObjName(FScopes[i]));
+  WriteScopesShort('TPasResolver.CreateSpecializedType RestoreStashedScopes:');
   {$ENDIF}
 
   if GenScope.GenericStep>=psgsImplementationParsed then
@@ -17356,11 +17342,11 @@ end;
 
 function TPasResolver.FindElement(const aName: String): TPasElement;
 begin
-  Result:=FindElementFor(aName,nil);
+  Result:=FindElementFor(aName,nil,0);
 end;
 
-function TPasResolver.FindElementFor(const aName: String; AParent: TPasElement
-  ): TPasElement;
+function TPasResolver.FindElementFor(const aName: String; AParent: TPasElement;
+  TypeParamCount: integer): TPasElement;
 // called by TPasParser for direct types, e.g. type t = ns1.unit1.tobj.tsub
 var
   p: SizeInt;
@@ -17368,18 +17354,12 @@ var
   NeedPop: Boolean;
   CurScopeEl, NextEl, ErrorEl, BestEl: TPasElement;
   CurSection: TPasSection;
-  i, SpecArgCount: Integer;
+  i: Integer;
   UsesUnit: TPasUsesUnit;
   CurScope: TPasDotBaseScope;
 begin
   Result:=nil;
-  //writeln('TPasResolver.FindElement Name="',aName,'"');
   ErrorEl:=nil; // use nil to use scanner position as error position
-
-  if AParent is TPasSpecializeType then
-    SpecArgCount:=TPasSpecializeType(AParent).Params.Count
-  else
-    SpecArgCount:=0;
 
   RightPath:=aName;
   LeftPath:='';
@@ -17430,8 +17410,8 @@ begin
     else
       NeedPop:=false;
 
-    if (SpecArgCount>0) and (RightPath='') then
-      NextEl:=FindGenericType(CurName,SpecArgCount,ErrorEl)
+    if (TypeParamCount>0) and (RightPath='') then
+      NextEl:=FindGenericType(CurName,TypeParamCount,ErrorEl)
     else
       NextEl:=FindElementWithoutParams(CurName,ErrorEl,true);
     {$IFDEF VerbosePasResolver}
@@ -17503,6 +17483,8 @@ begin
     if RightPath='' then
       exit(NextEl);
   until false;
+
+  if AParent=nil then ;;
 end;
 
 function TPasResolver.FindElementWithoutParams(const AName: String;
@@ -18599,6 +18581,17 @@ begin
   EmitElementHints(RefEl,DeclEl);
 end;
 
+procedure TPasResolver.WriteScopesShort(Title: string);
+var
+  i: Integer;
+begin
+  {AllowWriteln}
+  writeln(Title,' ScopeCount=',ScopeCount,' FStashScopeCount=',FStashScopeCount);
+  for i:=0 to FScopeCount-1 do
+    writeln('  ',i,'/',FScopeCount,' ',GetObjName(FScopes[i]));
+  {AllowWriteln-}
+end;
+
 function TPasResolver.GetLocalScope: TPasScope;
 begin
   Result:=TopScope;
@@ -19250,6 +19243,13 @@ procedure TPasResolver.RaiseXExpectedButYFound(id: TMaxPrecInt; const X, Y: stri
   El: TPasElement);
 begin
   RaiseMsg(id,nXExpectedButYFound,sXExpectedButYFound,[X,Y],El);
+end;
+
+procedure TPasResolver.RaiseXExpectedButTypeYFound(id: TMaxPrecInt;
+  const X: string; Y: TPasType; El: TPasElement);
+begin
+  RaiseMsg(id,nXExpectedButYFound,sXExpectedButYFound,
+    [x,GetTypeDescription(Y)],El);
 end;
 
 procedure TPasResolver.RaiseContextXExpectedButYFound(id: TMaxPrecInt; const C, X,
@@ -21512,6 +21512,9 @@ function TPasResolver.GetTypeDescription(aType: TPasType; AddPath: boolean): str
   function GetName: string;
   var
     s: String;
+    Spec: TPasSpecializeType;
+    P: TPasElement;
+    i: Integer;
   begin
     Result:=aType.Name;
     if Result='' then
@@ -21526,6 +21529,22 @@ function TPasResolver.GetTypeDescription(aType: TPasType; AddPath: boolean): str
           Result:='open array'
         else
           Result:='dynamic array';
+        end
+      else if aType is TPasSpecializeType then
+        begin
+        Spec:=TPasSpecializeType(aType);
+        if Spec.CustomData is TPasSpecializeTypeData then
+          exit(GetTypeDescription(TPasSpecializeTypeData(Spec.CustomData).SpecializedType));
+        Result:=GetTypeDescription(Spec.DestType,true)+'<';
+        for i:=0 to Spec.Params.Count-1 do
+          begin
+          P:=TPasElement(Spec.Params[i]);
+          if P is TPasType then
+            Result:=Result+GetTypeDescription(TPasType(P));
+          if i>0 then
+            Result:=Result+',';
+          end;
+        Result:=Result+'>';
         end
       else
         Result:=GetElementTypeName(aType);
@@ -23645,10 +23664,15 @@ begin
   else if ElClass=TPasSpecializeType then
     begin
     if El.CustomData is TPasSpecializeTypeData then
-      TypeEl:=TPasSpecializeTypeData(El.CustomData).SpecializedType
+      begin
+      TypeEl:=TPasSpecializeTypeData(El.CustomData).SpecializedType;
+      SetResolverIdentifier(ResolvedEl,btContext,TypeEl,TypeEl,TypeEl,[]);
+      end
     else
+      begin
       TypeEl:=TPasSpecializeType(El).DestType;
-    SetResolverIdentifier(ResolvedEl,btContext,El,TypeEl,TPasType(El),[]);
+      SetResolverIdentifier(ResolvedEl,btContext,El,TypeEl,TPasType(El),[]);
+      end;
     end
   else
     RaiseNotYetImplemented(20160922163705,El);
