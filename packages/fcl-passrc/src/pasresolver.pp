@@ -5973,7 +5973,19 @@ var
   Expr: TPasExpr;
   RangeResolved: TPasResolverResult;
   TypeEl: TPasType;
+  Parent: TPasArrayType;
 begin
+  // check cycles
+  Parent:=El;
+  repeat
+    if Parent=El.ElType then
+      RaiseMsg(20190807104630,nIllegalExpression,sIllegalExpression,[],El);
+    if Parent.Parent is TPasArrayType then
+      Parent:=TPasArrayType(Parent.Parent)
+    else
+      break;
+  until false;
+
   for i:=0 to length(El.Ranges)-1 do
     begin
     Expr:=El.Ranges[i];

@@ -1991,7 +1991,10 @@ begin
     ok:=true;
   finally
     if not ok then
+      begin
+      Result.Parent:=nil;
       Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      end;
   end;
 end;
 
