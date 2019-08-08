@@ -326,6 +326,7 @@ interface
 
     const
       NewExeHeaderSize = $40;
+      NewExeSegmentHeaderSize = 8;
 
     type
       TNewExeHeaderFlag = (
@@ -470,6 +471,18 @@ interface
         property ExpectedWindowsVersion: Word read FExpectedWindowsVersion write FExpectedWindowsVersion;
       end;
 
+      { TNewExeResourceTable }
+
+      TNewExeResourceTable = class
+      private
+        FResourceDataAlignmentShiftCount: Word;
+      public
+        constructor Create;
+        procedure WriteTo(aWriter: TObjectWriter);
+
+        property ResourceDataAlignmentShiftCount: Word read FResourceDataAlignmentShiftCount write FResourceDataAlignmentShiftCount;
+      end;
+
       { These are fake "meta sections" used by the linker script. The actual
         NewExe sections are segments, limited to 64kb, which means there can be
         multiple code segments, etc. These are created manually as object
@@ -524,12 +537,14 @@ interface
         FHeader: TNewExeHeader;
         FImports: TFPHashObjectList;
         FCurrExeMetaSec: TNewExeMetaSection;
+        FResourceTable: TNewExeResourceTable;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
         procedure AddImportLibrariesExtractedFromObjectModules;
         procedure AddNewExeSection;
         function WriteNewExe:boolean;
         property Header: TNewExeHeader read FHeader;
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
+        property ResourceTable: TNewExeResourceTable read FResourceTable;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
@@ -3603,6 +3618,46 @@ cleanup:
       end;
 
 {****************************************************************************
+                           TNewExeResourceTable
+****************************************************************************}
+
+    constructor TNewExeResourceTable.Create;
+      begin
+        ResourceDataAlignmentShiftCount:=8;
+      end;
+
+    procedure TNewExeResourceTable.WriteTo(aWriter: TObjectWriter);
+
+        procedure WriteAlignShift;
+          var
+            AlignShiftBytes: array [0..1] of Byte;
+          begin
+            AlignShiftBytes[0]:=Byte(ResourceDataAlignmentShiftCount);
+            AlignShiftBytes[1]:=Byte(ResourceDataAlignmentShiftCount shr 8);
+            aWriter.write(AlignShiftBytes[0],2);
+          end;
+
+        procedure WriteEndTypes;
+          const
+            EndTypesBytes: array [0..1] of Byte = (0, 0);
+          begin
+            aWriter.write(EndTypesBytes[0],2);
+          end;
+
+        procedure WriteEndNames;
+          const
+            EndNames: Byte = 0;
+          begin
+            aWriter.write(EndNames,1);
+          end;
+
+      begin
+        WriteAlignShift;
+        WriteEndTypes;
+        WriteEndNames;
+      end;
+
+{****************************************************************************
                               TNewExeSection
 ****************************************************************************}
 
@@ -3752,11 +3807,14 @@ cleanup:
 
         Header.SegmentTableStart:=NewExeHeaderSize;
         Header.SegmentTableEntriesCount:=ExeSectionList.Count;
+        Header.ResourceTableStart:=Header.SegmentTableStart+NewExeSegmentHeaderSize*Header.SegmentTableEntriesCount;
 
         Header.WriteTo(FWriter);
 
         for i:=0 to ExeSectionList.Count-1 do
           TNewExeSection(ExeSectionList[i]).WriteHeaderTo(FWriter);
+
+        ResourceTable.WriteTo(FWriter);
 
         { todo: write the rest of the file as well }
 
@@ -3798,10 +3856,12 @@ cleanup:
         FHeader:=TNewExeHeader.Create;
         MaxMemPos:=$FFFFFFFF;
         CurrExeMetaSec:=nemsNone;
+        FResourceTable:=TNewExeResourceTable.Create;
       end;
 
     destructor TNewExeOutput.destroy;
       begin
+        FResourceTable.Free;
         FHeader.Free;
         inherited destroy;
       end;
