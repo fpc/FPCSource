@@ -476,11 +476,31 @@ interface
       TNewExeResourceTable = class
       private
         FResourceDataAlignmentShiftCount: Word;
+
+        function GetSize: QWord;
       public
         constructor Create;
         procedure WriteTo(aWriter: TObjectWriter);
 
         property ResourceDataAlignmentShiftCount: Word read FResourceDataAlignmentShiftCount write FResourceDataAlignmentShiftCount;
+        property Size: QWord read GetSize;
+      end;
+
+      { TNewExeResidentNameTableEntry }
+
+      TNewExeResidentNameTableEntry = class(TFPHashObject)
+      private
+        FOrdinalNr: Word;
+      public
+        property OrdinalNr: Word read FOrdinalNr write FOrdinalNr;
+      end;
+
+      { TNewExeResidentNameTable }
+
+      TNewExeResidentNameTable = class(TFPHashObjectList)
+      private
+      public
+        procedure WriteTo(aWriter: TObjectWriter);
       end;
 
       { These are fake "meta sections" used by the linker script. The actual
@@ -538,6 +558,7 @@ interface
         FImports: TFPHashObjectList;
         FCurrExeMetaSec: TNewExeMetaSection;
         FResourceTable: TNewExeResourceTable;
+        FResidentNameTable: TNewExeResidentNameTable;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
         procedure AddImportLibrariesExtractedFromObjectModules;
         procedure AddNewExeSection;
@@ -545,6 +566,7 @@ interface
         property Header: TNewExeHeader read FHeader;
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
         property ResourceTable: TNewExeResourceTable read FResourceTable;
+        property ResidentNameTable: TNewExeResidentNameTable read FResidentNameTable;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
@@ -3621,6 +3643,11 @@ cleanup:
                            TNewExeResourceTable
 ****************************************************************************}
 
+    function TNewExeResourceTable.GetSize: QWord;
+      begin
+        Result:=5;
+      end;
+
     constructor TNewExeResourceTable.Create;
       begin
         ResourceDataAlignmentShiftCount:=8;
@@ -3655,6 +3682,34 @@ cleanup:
         WriteAlignShift;
         WriteEndTypes;
         WriteEndNames;
+      end;
+
+{****************************************************************************
+                         TNewExeResidentNameTable
+****************************************************************************}
+
+    procedure TNewExeResidentNameTable.WriteTo(aWriter: TObjectWriter);
+      var
+        i: Integer;
+        rn: TNewExeResidentNameTableEntry;
+        slen: Byte;
+        OrdNrBuf: array [0..1] of Byte;
+      begin
+        for i:=0 to Count-1 do
+          begin
+            rn:=TNewExeResidentNameTableEntry(Items[i]);
+            slen:=Length(rn.Name);
+            if slen=0 then
+              internalerror(2019080801);
+            aWriter.write(slen,1);
+            aWriter.write(rn.Name[1],slen);
+            OrdNrBuf[0]:=Byte(rn.OrdinalNr);
+            OrdNrBuf[1]:=Byte(rn.OrdinalNr shr 8);
+            aWriter.write(OrdNrBuf[0],2);
+          end;
+        { end of table mark }
+        slen:=0;
+        aWriter.write(slen,1);
       end;
 
 {****************************************************************************
@@ -3794,9 +3849,18 @@ cleanup:
       end;
 
     function TNewExeOutput.WriteNewExe: boolean;
+
+        function ExtractModuleName(filename: string): string;
+          begin
+            Result:=UpCase(ChangeFileExt(filename,''));
+          end;
+
       var
         i: Integer;
       begin
+        { the first entry in the resident-name table is the module name }
+        TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename));
+
         Header.InitialIP:=EntrySym.address;
         Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
         Header.InitialSP:=0;
@@ -3808,6 +3872,7 @@ cleanup:
         Header.SegmentTableStart:=NewExeHeaderSize;
         Header.SegmentTableEntriesCount:=ExeSectionList.Count;
         Header.ResourceTableStart:=Header.SegmentTableStart+NewExeSegmentHeaderSize*Header.SegmentTableEntriesCount;
+        Header.ResidentNameTableStart:=Header.ResourceTableStart+ResourceTable.Size;
 
         Header.WriteTo(FWriter);
 
@@ -3815,6 +3880,7 @@ cleanup:
           TNewExeSection(ExeSectionList[i]).WriteHeaderTo(FWriter);
 
         ResourceTable.WriteTo(FWriter);
+        ResidentNameTable.WriteTo(FWriter);
 
         { todo: write the rest of the file as well }
 
@@ -3857,10 +3923,12 @@ cleanup:
         MaxMemPos:=$FFFFFFFF;
         CurrExeMetaSec:=nemsNone;
         FResourceTable:=TNewExeResourceTable.Create;
+        FResidentNameTable:=TNewExeResidentNameTable.Create;
       end;
 
     destructor TNewExeOutput.destroy;
       begin
+        FResidentNameTable.Free;
         FResourceTable.Free;
         FHeader.Free;
         inherited destroy;
