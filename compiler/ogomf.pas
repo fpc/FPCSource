@@ -501,8 +501,10 @@ interface
 
       TNewExeResidentNameTable = class(TFPHashObjectList)
       private
+        function GetSize: QWord;
       public
         procedure WriteTo(aWriter: TObjectWriter);
+        property Size: QWord read GetSize;
       end;
 
       { These are fake "meta sections" used by the linker script. The actual
@@ -3700,6 +3702,17 @@ cleanup:
                          TNewExeResidentNameTable
 ****************************************************************************}
 
+    function TNewExeResidentNameTable.GetSize: QWord;
+      var
+        i: Integer;
+      begin
+        { the end of table mark is 1 byte }
+        Result:=1;
+        { each entry is 3 bytes, plus the length of the name }
+        for i:=0 to Count-1 do
+          Inc(Result,3+Length(TNewExeResidentNameTableEntry(Items[i]).Name));
+      end;
+
     procedure TNewExeResidentNameTable.WriteTo(aWriter: TObjectWriter);
       var
         i: Integer;
@@ -3885,6 +3898,7 @@ cleanup:
         Header.SegmentTableEntriesCount:=ExeSectionList.Count;
         Header.ResourceTableStart:=Header.SegmentTableStart+NewExeSegmentHeaderSize*Header.SegmentTableEntriesCount;
         Header.ResidentNameTableStart:=Header.ResourceTableStart+ResourceTable.Size;
+        Header.ModuleReferenceTableStart:=Header.ResidentNameTableStart+ResidentNameTable.Size;
 
         Header.WriteTo(FWriter);
 
