@@ -557,8 +557,8 @@ begin
   AssertNotNull('Have param types',C.Params);
   AssertEquals('Have one param type',1,C.Params.Count);
   AssertNotNull('First Param ',C.Params[0]);
-  AssertEquals('First Param expr',TPrimitiveExpr,TObject(C.Params[0]).ClassType);
-  AssertEquals('Has specialize param integer','Integer',TPrimitiveExpr(C.Params[0]).Value);
+  AssertEquals('First Param unresolvedtype',TPasUnresolvedTypeRef,TObject(C.Params[0]).ClassType);
+  AssertEquals('Has specialize param integer','Integer',TPasUnresolvedTypeRef(C.Params[0]).Name);
 end;
 
 procedure TTestClassType.TestOneSpecializedClass;

@@ -1726,11 +1726,14 @@ type
     procedure SpecializeProcedureType(GenEl, SpecEl: TPasProcedureType);
     procedure SpecializeProcedureBody(GenEl, SpecEl: TProcedureBody);
     procedure SpecializeDeclarations(GenEl, SpecEl: TPasDeclarations);
+    procedure SpecializeSpecializeType(GenEl, SpecEl: TPasSpecializeType);
     procedure SpecializeArgument(GenEl, SpecEl: TPasArgument);
     procedure SpecializeImplBlock(GenEl, SpecEl: TPasImplBlock);
     procedure SpecializeImplAssign(GenEl, SpecEl: TPasImplAssign);
+    procedure SpecializeImplForLoop(GenEl, SpecEl: TPasImplForLoop);
     procedure SpecializeExpr(GenEl, SpecEl: TPasExpr);
     procedure SpecializePrimitiveExpr(GenEl, SpecEl: TPrimitiveExpr);
+    procedure SpecializeBinaryExpr(GenEl, SpecEl: TBinaryExpr);
   protected
     // custom types (added by descendant resolvers)
     function CheckAssignCompatibilityCustom(
@@ -2138,6 +2141,7 @@ type
     function IsArrayOperatorAdd(Expr: TPasExpr): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
     function GetTypeParameterCount(aType: TPasGenericType): integer;
+    function IsGenericTemplType(const ResolvedEl: TPasResolverResult): boolean;
     function IsInterfaceType(const ResolvedEl: TPasResolverResult;
       IntfType: TPasClassInterfaceType): boolean; overload;
     function IsInterfaceType(TypeEl: TPasType; IntfType: TPasClassInterfaceType): boolean; overload;
@@ -4242,6 +4246,30 @@ end;
 function TPasResolver.IsNameExpr(El: TPasExpr): boolean;
 begin
   Result:=(El.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(El).Kind=pekIdent);
+end;
+
+// inline
+function TPasResolver.IsGenericTemplType(const ResolvedEl: TPasResolverResult
+  ): boolean;
+begin
+  Result:=(ResolvedEl.BaseType=btContext)
+      and (ResolvedEl.LoTypeEl.ClassType=TPasGenericTemplateType);
+end;
+
+// inline
+function TPasResolver.GetLocalScope: TPasScope;
+begin
+  Result:=TopScope;
+  if Result.ClassType=TPasGroupScope then
+    Result:=TPasGroupScope(Result).Scopes[0];
+end;
+
+// inline
+function TPasResolver.GetParentLocalScope: TPasScope;
+begin
+  Result:=Scopes[ScopeCount-2];
+  if Result.ClassType=TPasGroupScope then
+    Result:=TPasGroupScope(Result).Scopes[0];
 end;
 
 function TPasResolver.GetNameExprValue(El: TPasExpr): string;
@@ -11479,6 +11507,14 @@ begin
 
   //writeln('TPasResolver.ComputeBinaryExpr ',OpcodeStrings[Bin.OpCode],' Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
 
+  if IsGenericTemplType(LeftResolved) or IsGenericTemplType(RightResolved) then
+    begin
+    // cannot yet be decided
+    ResolvedEl:=LeftResolved;
+    ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
+    exit;
+    end;
+
   if LeftResolved.BaseType in btAllInteger then
     begin
     if (rrfReadable in LeftResolved.Flags)
@@ -14249,8 +14285,14 @@ begin
   // check if there is already such a specialization
   GenericType:=El.DestType as TPasGenericType;
   if not (GenericType.CustomData is TPasGenericScope) then
-    RaiseNotYetImplemented(20190726194316,El,GetObjName(GenericType.CustomData));
+    RaiseMsg(20190726194316,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
+      [GetTypeDescription(GenericType)],El);
   GenScope:=TPasGenericScope(GenericType.CustomData);
+
+  if (not (GenericType is TPasClassType))
+      and (GenScope.GenericStep<psgsInterfaceParsed) then
+    RaiseMsg(20190807205038,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
+      [GetTypeDescription(GenericType)],El);
 
   if not CheckSpecializeConstraints(El) then
     begin
@@ -14625,7 +14667,8 @@ begin
 
   // check specialized type step
   if SpecializedItem.Step<psssInterfaceFinished then
-    RaiseNotYetImplemented(20190804120128,GenericType,GetObjName(SpecializedItem.SpecializedType));
+    RaiseMsg(20190804120128,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
+      [GetTypeDescription(GenericType)],SpecializedItem.FirstSpecialize);
   if SpecializedItem.Step>psssInterfaceFinished then
     exit;
   SpecializedItem.Step:=psssImplementationBuilding;
@@ -14740,12 +14783,14 @@ begin
   C:=GenEl.ClassType;
   if C=TPrimitiveExpr then
     SpecializePrimitiveExpr(TPrimitiveExpr(GenEl),TPrimitiveExpr(SpecEl))
+  else if C=TBinaryExpr then
+    SpecializeBinaryExpr(TBinaryExpr(GenEl),TBinaryExpr(SpecEl))
   else if C=TPasImplBeginBlock then
-    // no special Add
     SpecializeImplBlock(TPasImplBeginBlock(GenEl),TPasImplBeginBlock(SpecEl))
   else if C=TPasImplAssign then
-    // no special Add
     SpecializeImplAssign(TPasImplAssign(GenEl),TPasImplAssign(SpecEl))
+  else if C=TPasImplForLoop then
+    SpecializeImplForLoop(TPasImplForLoop(GenEl),TPasImplForLoop(SpecEl))
   else if C=TPasVariable then
     begin
     AddVariable(TPasVariable(SpecEl));
@@ -14770,6 +14815,11 @@ begin
     begin
     AddType(TPasProcedureType(SpecEl));
     SpecializeProcedureType(TPasProcedureType(GenEl),TPasProcedureType(SpecEl));
+    end
+  else if C=TPasSpecializeType then
+    begin
+    AddType(TPasSpecializeType(SpecEl));
+    SpecializeSpecializeType(TPasSpecializeType(GenEl),TPasSpecializeType(SpecEl));
     end
   else
     RaiseNotYetImplemented(20190728151215,GenEl);
@@ -14807,6 +14857,7 @@ procedure TPasResolver.SpecializeElType(GenEl, SpecEl: TPasElement;
   GenElType: TPasType; var SpecElType: TPasType);
 var
   Ref: TPasElement;
+  NewClass: TPTreeElement;
 begin
   if GenElType=nil then exit;
   if GenElType.Parent<>GenEl then
@@ -14828,7 +14879,9 @@ begin
     exit;
     end;
   // e.g. anonymous type
-  RaiseNotYetImplemented(20190728152244,GenEl);
+  NewClass:=TPTreeElement(GenElType.ClassType);
+  SpecElType:=TPasType(NewClass.Create(GenElType.Name,SpecEl));
+  SpecializeElement(GenElType,SpecElType);
 end;
 
 procedure TPasResolver.SpecializeElExpr(GenEl, SpecEl: TPasElement;
@@ -14997,6 +15050,34 @@ begin
     end;
 end;
 
+procedure TPasResolver.SpecializeSpecializeType(GenEl,
+  SpecEl: TPasSpecializeType);
+var
+  i: Integer;
+  GenParam, SpecParam: TPasElement;
+  NewClass: TPTreeElement;
+begin
+  SpecializeElType(GenEl,SpecEl,GenEl.DestType,SpecEl.DestType);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
+  for i:=0 to GenEl.Params.Count-1 do
+    begin
+    GenParam:=TPasElement(GenEl.Params[i]);
+    if GenParam.Parent<>GenEl then
+      begin
+      // reference
+      GenParam.AddRef{$IFDEF CheckPasTreeRefCount}('TPasSpecializeType.Params'){$ENDIF};
+      SpecEl.AddParam(GenParam);
+      continue;
+      end;
+    NewClass:=TPTreeElement(GenParam.ClassType);
+    SpecParam:=TPasElement(NewClass.Create(GenParam.Name,SpecEl));
+    SpecEl.Params.Add(SpecParam);
+    SpecializeElement(GenParam,SpecParam);
+    end;
+
+  FinishSpecializeType(SpecEl);
+end;
+
 procedure TPasResolver.SpecializeArgument(GenEl, SpecEl: TPasArgument);
 begin
   SpecEl.Access:=GenEl.Access;
@@ -15027,24 +15108,58 @@ end;
 
 procedure TPasResolver.SpecializeImplAssign(GenEl, SpecEl: TPasImplAssign);
 begin
-  SpecializeImplBlock(GenEl,SpecEl);
+  if GenEl.Elements.Count>0 then
+    RaiseNotYetImplemented(20190808142935,GenEl);
   SpecEl.Kind:=GenEl.Kind;
   SpecializeElExpr(GenEl,SpecEl,GenEl.left,SpecEl.left);
   SpecializeElExpr(GenEl,SpecEl,GenEl.right,SpecEl.right);
+end;
+
+procedure TPasResolver.SpecializeImplForLoop(GenEl, SpecEl: TPasImplForLoop);
+var
+  i: Integer;
+  GenImpl, NewImpl: TPasImplElement;
+  NewClass: TPTreeElement;
+begin
+  if GenEl.Variable<>nil then
+    RaiseNotYetImplemented(20190808142627,GenEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.VariableName,SpecEl.VariableName);
+  SpecEl.LoopType:=GenEl.LoopType;
+  SpecializeElExpr(GenEl,SpecEl,GenEl.StartExpr,SpecEl.StartExpr);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.EndExpr,SpecEl.EndExpr);
+  FinishForLoopHeader(SpecEl);
+  // SpecEl.Body is set via AddElement
+  for i:=0 to GenEl.Elements.Count-1 do
+    begin
+    GenImpl:=TPasImplElement(GenEl.Elements[i]);
+    if GenImpl.Parent<>GenEl then
+      RaiseNotYetImplemented(20190806092151,GenEl,GetElementSourcePosStr(GenImpl));
+    NewClass:=TPTreeElement(GenImpl.ClassType);
+    NewImpl:=TPasImplElement(NewClass.Create(GenImpl.Name,SpecEl));
+    SpecEl.AddElement(NewImpl);
+    SpecializeElement(GenImpl,NewImpl);
+    end;
 end;
 
 procedure TPasResolver.SpecializeExpr(GenEl, SpecEl: TPasExpr);
 begin
   SpecEl.Kind:=GenEl.Kind;
   SpecEl.OpCode:=GenEl.OpCode;
-  SpecEl.format1:=GenEl.format1;
-  SpecEl.format2:=GenEl.format2;
+  SpecializeElExpr(GenEl,SpecEl,GenEl.format1,SpecEl.format1);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.format2,SpecEl.format2);
 end;
 
 procedure TPasResolver.SpecializePrimitiveExpr(GenEl, SpecEl: TPrimitiveExpr);
 begin
   SpecializeExpr(GenEl,SpecEl);
   SpecEl.Value:=GenEl.Value;
+end;
+
+procedure TPasResolver.SpecializeBinaryExpr(GenEl, SpecEl: TBinaryExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.left,SpecEl.left);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.right,SpecEl.right);
 end;
 
 function TPasResolver.CheckAssignCompatibilityCustom(const LHS,
@@ -18592,20 +18707,6 @@ begin
   {AllowWriteln-}
 end;
 
-function TPasResolver.GetLocalScope: TPasScope;
-begin
-  Result:=TopScope;
-  if Result.ClassType=TPasGroupScope then
-    Result:=TPasGroupScope(Result).Scopes[0];
-end;
-
-function TPasResolver.GetParentLocalScope: TPasScope;
-begin
-  Result:=Scopes[ScopeCount-2];
-  if Result.ClassType=TPasGroupScope then
-    Result:=TPasGroupScope(Result).Scopes[0];
-end;
-
 function TPasResolver.CreateScope(El: TPasElement; ScopeClass: TPasScopeClass
   ): TPasScope;
 begin
@@ -20314,6 +20415,11 @@ begin
     begin
     LBT:=GetActualBaseType(LHS.BaseType);
     RBT:=GetActualBaseType(RHS.BaseType);
+    if IsGenericTemplType(LHS) or IsGenericTemplType(RHS) then
+      begin
+      // not fully specified -> maybe
+      exit(cCompatible);
+      end;
     if LHS.LoTypeEl=nil then
       begin
       if LBT=btUntyped then

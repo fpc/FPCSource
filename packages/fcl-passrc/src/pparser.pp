@@ -4081,45 +4081,28 @@ procedure TPasParser.ReadSpecializeArguments(Spec: TPasElement);
   end;
 
 Var
-  Expr: TPasExpr;
   TypeEl: TPasType;
-
 begin
   //writeln('START TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
   CheckToken(tkLessThan);
-  NextToken;
-  Expr:=nil;
-  try
-    repeat
-      //writeln('ARG TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
-      TypeEl:=ParseTypeReference(Spec,true,Expr);
-      if TypeEl.Parent=Spec then
-        AddParam(TypeEl)
-      else
-        begin
-        TypeEl.Release{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
-        AddParam(Expr);
-        Expr:=nil;
-        end;
-      if CurToken=tkComma then
-        begin
-        NextToken;
-        continue;
-        end
-      else if CurToken=tkshr then
-        begin
-        ChangeToken(tkGreaterThan);
-        break;
-        end
-      else if CurToken=tkGreaterThan then
-        break
-      else
-        ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
-          [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]);
-    until false;
-  finally
-    Expr.Free;
-  end;
+  repeat
+    //writeln('ARG TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
+    TypeEl:=ParseType(Spec,CurTokenPos,'');
+    AddParam(TypeEl);
+    NextToken;
+    if CurToken=tkComma then
+      continue
+    else if CurToken=tkshr then
+      begin
+      ChangeToken(tkGreaterThan);
+      break;
+      end
+    else if CurToken=tkGreaterThan then
+      break
+    else
+      ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
+        [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]);
+  until false;
 end;
 
 function TPasParser.ReadDottedIdentifier(Parent: TPasElement; out

@@ -13,13 +13,14 @@ type
 
   TTestResolveGenerics = Class(TCustomTestResolver)
   Published
-    // generic functions
-    procedure TestGen_GenericFunction; // ToDo
-
     // generic types
     procedure TestGen_MissingTemplateFail;
     procedure TestGen_VarTypeWithoutSpecializeFail;
     procedure TestGen_GenTypeWithWrongParamCountFail;
+    procedure TestGen_GenericNotFoundFail;
+    procedure TestGen_SameNameSameParamCountFail;
+
+    // constraints
     procedure TestGen_ConstraintStringFail;
     procedure TestGen_ConstraintMultiClassFail;
     procedure TestGen_ConstraintRecordExpectedFail;
@@ -30,55 +31,64 @@ type
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_TemplNameEqTypeNameFail;
-    procedure TestGen_GenericNotFoundFail;
-    procedure TestGen_SameNameSameParamCountFail;
+
+    // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
     procedure TestGen_Record;
     procedure TestGen_RecordDelphi;
     procedure TestGen_RecordNestedSpecialized;
+    procedure TestGen_Record_SpecializeSelfInsideFail;
     // ToDo: enums within generic
+    procedure TestGen_RecordAnoArray;
     // ToDo: procedure TestGen_SpecializeArg_ArrayOf;  type TBird = specialize<array of word>
     // ToDo: unitname.specialize TBird<word>.specialize
+
+    // generic class
     procedure TestGen_Class;
     procedure TestGen_ClassDelphi;
     procedure TestGen_ClassForward;
     procedure TestGen_Class_Method;
-    procedure TestGen_Class_Method_LocalVar;
-    // ToDo: specialize inside generic fail
+    procedure TestGen_Class_SpecializeSelfInside;
     // ToDo: generic class forward (constraints must be repeated)
     // ToDo: generic class forward  constraints mismatch fail
     // ToDo: generic class overload <T> <S,T>
-    // ToDo: generic class method overload <T> <S,T>
+    procedure TestGen_Class_GenAncestor;
+    procedure TestGen_Class_AncestorSelfFail;
     // ToDo: ancestor cycle: TBird<T> = class(TBird<word>) fail
     // ToDo: class-of
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
+
     // ToDo: generic interface
+
     // ToDo: generic array
+
     // ToDo: generic procedure type
+
     // ToDo: pointer of generic
-    // ToDo: generic helpers
+
+    // ToDo: helpers for generics
+
+    // generic functions
+    // ToDo: generic class method overload <T> <S,T>
+    procedure TestGen_GenericFunction; // ToDo
+
+    // generic statements
+    procedure TestGen_LocalVar;
+    procedure TestGen_ForLoop;
+    // ToDo: for
+    // ToDo: for-in
+    // ToDo: if
+    // ToDo: case
+    // ToDo: while, repeat
+    // ToDo: try finally/except
+    // ToDo: call
+    // ToDo: dot
+    // ToDo: is as
   end;
 
 implementation
 
 { TTestResolveGenerics }
-
-procedure TTestResolveGenerics.TestGen_GenericFunction;
-begin
-  StartProgram(false);
-  Add([
-  'generic function DoIt<T>(a: T): T;',
-  'var i: T;',
-  'begin',
-  '  a:=i;',
-  '  Result:=a;',
-  'end;',
-  'var w: word;',
-  'begin',
-  //'  w:=DoIt<word>(3);',
-  '']);
-  ParseProgram;
-end;
 
 procedure TTestResolveGenerics.TestGen_MissingTemplateFail;
 begin
@@ -112,6 +122,33 @@ begin
   '']);
   CheckResolverException('identifier not found "TBird<,>"',
     nIdentifierNotFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_GenericNotFoundFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TBird = specialize TAnimal<word>;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "TAnimal<>"',
+    nIdentifierNotFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_SameNameSameParamCountFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBird<S,T> = record w: T; end;',
+  '  TBird<X,Y> = record f: X; end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,8)',
+    nDuplicateIdentifier);
 end;
 
 procedure TTestResolveGenerics.TestGen_ConstraintStringFail;
@@ -211,38 +248,11 @@ begin
   Add([
   '{$mode objfpc}',
   'type',
-  '  generic TBird<TBird:record> = record v: T; end;',
+  '  generic TBird<TBird> = record v: T; end;',
   'var r: specialize TBird<word>;',
   'begin',
   '']);
   CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,16)',
-    nDuplicateIdentifier);
-end;
-
-procedure TTestResolveGenerics.TestGen_GenericNotFoundFail;
-begin
-  StartProgram(false);
-  Add([
-  '{$mode objfpc}',
-  'type',
-  '  TBird = specialize TAnimal<word>;',
-  'begin',
-  '']);
-  CheckResolverException('identifier not found "TAnimal<>"',
-    nIdentifierNotFound);
-end;
-
-procedure TTestResolveGenerics.TestGen_SameNameSameParamCountFail;
-begin
-  StartProgram(false);
-  Add([
-  '{$mode delphi}',
-  'type',
-  '  TBird<S,T> = record w: T; end;',
-  '  TBird<X,Y> = record f: X; end;',
-  'begin',
-  '']);
-  CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,8)',
     nDuplicateIdentifier);
 end;
 
@@ -307,6 +317,34 @@ begin
   '  generic TBird<T> = class v: T; end;',
   '  generic TFish<T:class> = record v: T; end;',
   'var f: specialize TFish<specialize TBird<word>>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Record_SpecializeSelfInsideFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<T> = record',
+  '    v: specialize TBird<word>;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('type "TBird" is not yet completely defined',
+    nTypeXIsNotYetCompletelyDefined);
+end;
+
+procedure TTestResolveGenerics.TestGen_RecordAnoArray;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<T> = record v: T; end;',
+  'var b: specialize TBird<array of word>;',
   'begin',
   '']);
   ParseProgram;
@@ -403,7 +441,82 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGen_Class_Method_LocalVar;
+procedure TTestResolveGenerics.TestGen_Class_SpecializeSelfInside;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    e: T;',
+  '    v: TBird<boolean>;',
+  '  end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  '  w: word;',
+  'begin',
+  '  b.e:=w;',
+  '  if b.v.e then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_GenAncestor;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    i: T;',
+  '  end;',
+  '  generic TEagle<T> = class(TBird<T>)',
+  '    j: T;',
+  '  end;',
+  'var',
+  '  e: specialize TEagle<word>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_AncestorSelfFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class(TBird<word>)',
+  '    e: T;',
+  '  end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  'begin',
+  '']);
+  CheckResolverException('type "TBird" is not yet completely defined',nTypeXIsNotYetCompletelyDefined);
+end;
+
+procedure TTestResolveGenerics.TestGen_GenericFunction;
+begin
+  StartProgram(false);
+  Add([
+  'generic function DoIt<T>(a: T): T;',
+  'var i: T;',
+  'begin',
+  '  a:=i;',
+  '  Result:=a;',
+  'end;',
+  'var w: word;',
+  'begin',
+  //'  w:=DoIt<word>(3);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_LocalVar;
 begin
   StartProgram(false);
   Add([
@@ -427,6 +540,29 @@ begin
   '  w: word;',
   'begin',
   '  w:=b.Fly(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ForLoop;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<{#Templ}T> = class',
+  '    function Fly(p:T): T;',
+  '  end;',
+  'function TBird.Fly(p:T): T;',
+  'var i: T;',
+  'begin',
+  '  for i:=0 to 3 do Result:=i+p;',
+  'end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  'begin',
+  '  b.Fly(2);',
   '']);
   ParseProgram;
 end;
