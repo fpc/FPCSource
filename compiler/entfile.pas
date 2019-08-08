@@ -1202,7 +1202,9 @@ function tentryfile.getrealsize(sizeofreal : longint):entryreal;
 var
   e : entryreal;
   d : double;
+  di : qword;{ integer of same size as double }
   s : single;
+  si : dword; { integer of same size as single }
 begin
   if sizeofreal=sizeof(e) then
     begin
@@ -1242,9 +1244,11 @@ begin
        end;
       readdata(d,sizeof(d));
       if change_endian then
-        result:=swapendian(pqword(@d)^)
-      else
-        result:=d;
+        begin
+          di:=swapendian(pqword(@d)^);
+          d:=pdouble(@di)^;
+        end;
+      result:=d;
       inc(entryidx,sizeof(d));
       result:=d;
 {$ifdef DEBUG_PPU}
@@ -1267,9 +1271,11 @@ begin
        end;
       readdata(s,sizeof(s));
       if change_endian then
-        result:=swapendian(pdword(@s)^)
-      else
-        result:=s;
+        begin
+          si:=swapendian(pdword(@s)^);
+          s:=psingle(@si)^;
+        end;
+      result:=s;
       inc(entryidx,sizeof(s));
       result:=s;
 {$ifdef DEBUG_PPU}
