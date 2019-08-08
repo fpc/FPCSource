@@ -3229,6 +3229,15 @@ type
           end;
 
         { file pos changes? }
+        if current_tokenpos.fileindex<>last_filepos.fileindex then
+          begin
+            s:=ST_FILEINDEX;
+            writetoken(t);
+            recordtokenbuf.write(s,1);
+            tokenwriteword(current_tokenpos.fileindex);
+            last_filepos.fileindex:=current_tokenpos.fileindex;
+            last_filepos.line:=0;
+          end;
         if current_tokenpos.line<>last_filepos.line then
           begin
             s:=ST_LINE;
@@ -3236,6 +3245,7 @@ type
             recordtokenbuf.write(s,1);
             tokenwritelongint(current_tokenpos.line);
             last_filepos.line:=current_tokenpos.line;
+            last_filepos.column:=0;
           end;
         if current_tokenpos.column<>last_filepos.column then
           begin
@@ -3253,14 +3263,6 @@ type
                 tokenwriteword(current_tokenpos.column);
               end;
             last_filepos.column:=current_tokenpos.column;
-          end;
-        if current_tokenpos.fileindex<>last_filepos.fileindex then
-          begin
-            s:=ST_FILEINDEX;
-            writetoken(t);
-            recordtokenbuf.write(s,1);
-            tokenwriteword(current_tokenpos.fileindex);
-            last_filepos.fileindex:=current_tokenpos.fileindex;
           end;
 
         writetoken(token);
