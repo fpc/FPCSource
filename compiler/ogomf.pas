@@ -492,6 +492,8 @@ interface
       private
         FOrdinalNr: Word;
       public
+        constructor Create(HashObjectList:TFPHashObjectList;const s:TSymStr;OrdNr:Word);
+
         property OrdinalNr: Word read FOrdinalNr write FOrdinalNr;
       end;
 
@@ -3685,6 +3687,16 @@ cleanup:
       end;
 
 {****************************************************************************
+                       TNewExeResidentNameTableEntry
+****************************************************************************}
+
+    constructor TNewExeResidentNameTableEntry.Create(HashObjectList:TFPHashObjectList;const s:TSymStr;OrdNr:Word);
+      begin
+        inherited Create(HashObjectList,s);
+        OrdinalNr:=OrdNr;
+      end;
+
+{****************************************************************************
                          TNewExeResidentNameTable
 ****************************************************************************}
 
@@ -3859,7 +3871,7 @@ cleanup:
         i: Integer;
       begin
         { the first entry in the resident-name table is the module name }
-        TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename));
+        TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
 
         Header.InitialIP:=EntrySym.address;
         Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
