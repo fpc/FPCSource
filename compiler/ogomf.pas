@@ -615,6 +615,7 @@ interface
       end;
 
     function StripDllExt(const DllName:TSymStr):TSymStr;
+    function MaybeAddDllExt(const DllName:TSymStr):TSymStr;
 
 implementation
 
@@ -2028,9 +2029,9 @@ implementation
         if not CaseSensitiveSymbols then
           SymName:=UpCase(SymName);
         if ImpDefRec.ImportByOrdinal then
-          TOmfObjData(objdata).AddImportSymbol(ImpDefRec.ModuleName,'',SymName,ImpDefRec.Ordinal,false)
+          TOmfObjData(objdata).AddImportSymbol(MaybeAddDllExt(ImpDefRec.ModuleName),'',SymName,ImpDefRec.Ordinal,false)
         else
-          TOmfObjData(objdata).AddImportSymbol(ImpDefRec.ModuleName,ImpDefRec.Name,SymName,0,false);
+          TOmfObjData(objdata).AddImportSymbol(MaybeAddDllExt(ImpDefRec.ModuleName),ImpDefRec.Name,SymName,0,false);
         Result:=True;
         ImpDefRec.Free;
       end;
@@ -4211,6 +4212,14 @@ cleanup:
       begin
         if UpCase(ExtractFileExt(DllName))='.DLL' then
           Result:=Copy(DllName,1,Length(DllName)-4)
+        else
+          Result:=DllName;
+      end;
+
+    function MaybeAddDllExt(const DllName: TSymStr): TSymStr;
+      begin
+        if ExtractFileExt(DllName)='' then
+          Result:=ChangeFileExt(DllName,'.dll')
         else
           Result:=DllName;
       end;
