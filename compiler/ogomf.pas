@@ -510,9 +510,9 @@ interface
         property Size: QWord read GetSize;
       end;
 
-      { TNewExeResidentNameTableEntry }
+      { TNewExeExportNameTableEntry }
 
-      TNewExeResidentNameTableEntry = class(TFPHashObject)
+      TNewExeExportNameTableEntry = class(TFPHashObject)
       private
         FOrdinalNr: Word;
       public
@@ -521,9 +521,9 @@ interface
         property OrdinalNr: Word read FOrdinalNr write FOrdinalNr;
       end;
 
-      { TNewExeResidentNameTable }
+      { TNewExeExportNameTable }
 
-      TNewExeResidentNameTable = class(TFPHashObjectList)
+      TNewExeExportNameTable = class(TFPHashObjectList)
       private
         function GetSize: QWord;
       public
@@ -669,7 +669,7 @@ interface
         FImports: TFPHashObjectList;
         FCurrExeMetaSec: TNewExeMetaSection;
         FResourceTable: TNewExeResourceTable;
-        FResidentNameTable: TNewExeResidentNameTable;
+        FResidentNameTable: TNewExeExportNameTable;
         FModuleReferenceTable: TNewExeModuleReferenceTable;
         FImportedNameTable: TNewExeImportedNameTable;
         FEntryTable: TNewExeEntryTable;
@@ -684,7 +684,7 @@ interface
         property Header: TNewExeHeader read FHeader;
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
         property ResourceTable: TNewExeResourceTable read FResourceTable;
-        property ResidentNameTable: TNewExeResidentNameTable read FResidentNameTable;
+        property ResidentNameTable: TNewExeExportNameTable read FResidentNameTable;
         property ModuleReferenceTable: TNewExeModuleReferenceTable read FModuleReferenceTable;
         property ImportedNameTable: TNewExeImportedNameTable read FImportedNameTable;
         property EntryTable: TNewExeEntryTable read FEntryTable;
@@ -3845,20 +3845,20 @@ cleanup:
       end;
 
 {****************************************************************************
-                       TNewExeResidentNameTableEntry
+                       TNewExeExportNameTableEntry
 ****************************************************************************}
 
-    constructor TNewExeResidentNameTableEntry.Create(HashObjectList:TFPHashObjectList;const s:TSymStr;OrdNr:Word);
+    constructor TNewExeExportNameTableEntry.Create(HashObjectList:TFPHashObjectList;const s:TSymStr;OrdNr:Word);
       begin
         inherited Create(HashObjectList,s);
         OrdinalNr:=OrdNr;
       end;
 
 {****************************************************************************
-                         TNewExeResidentNameTable
+                         TNewExeExportNameTable
 ****************************************************************************}
 
-    function TNewExeResidentNameTable.GetSize: QWord;
+    function TNewExeExportNameTable.GetSize: QWord;
       var
         i: Integer;
       begin
@@ -3866,19 +3866,19 @@ cleanup:
         Result:=1;
         { each entry is 3 bytes, plus the length of the name }
         for i:=0 to Count-1 do
-          Inc(Result,3+Length(TNewExeResidentNameTableEntry(Items[i]).Name));
+          Inc(Result,3+Length(TNewExeExportNameTableEntry(Items[i]).Name));
       end;
 
-    procedure TNewExeResidentNameTable.WriteTo(aWriter: TObjectWriter);
+    procedure TNewExeExportNameTable.WriteTo(aWriter: TObjectWriter);
       var
         i: Integer;
-        rn: TNewExeResidentNameTableEntry;
+        rn: TNewExeExportNameTableEntry;
         slen: Byte;
         OrdNrBuf: array [0..1] of Byte;
       begin
         for i:=0 to Count-1 do
           begin
-            rn:=TNewExeResidentNameTableEntry(Items[i]);
+            rn:=TNewExeExportNameTableEntry(Items[i]);
             slen:=Length(rn.Name);
             if slen=0 then
               internalerror(2019080801);
@@ -4300,7 +4300,7 @@ cleanup:
         AddEntryPointsForAllExportSymbols;
 
         { the first entry in the resident-name table is the module name }
-        TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
+        TNewExeExportNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
 
         FillImportedNameAndModuleReferenceTable;
         ImportedNameTable.CalcTableOffsets;
@@ -4493,7 +4493,7 @@ cleanup:
         MaxMemPos:=$FFFFFFFF;
         CurrExeMetaSec:=nemsNone;
         FResourceTable:=TNewExeResourceTable.Create;
-        FResidentNameTable:=TNewExeResidentNameTable.Create;
+        FResidentNameTable:=TNewExeExportNameTable.Create;
         FModuleReferenceTable:=TNewExeModuleReferenceTable.Create;
         FImportedNameTable:=TNewExeImportedNameTable.Create;
         FEntryTable:=TNewExeEntryTable.Create;
