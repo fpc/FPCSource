@@ -546,6 +546,16 @@ interface
         property Size: QWord read GetSize;
       end;
 
+      { TNewExeEntryTable }
+
+      TNewExeEntryTable = class
+      private
+        function GetSize: QWord;
+      public
+        procedure WriteTo(aWriter: TObjectWriter);
+        property Size: QWord read GetSize;
+      end;
+
       { These are fake "meta sections" used by the linker script. The actual
         NewExe sections are segments, limited to 64kb, which means there can be
         multiple code segments, etc. These are created manually as object
@@ -604,6 +614,7 @@ interface
         FResidentNameTable: TNewExeResidentNameTable;
         FModuleReferenceTable: TNewExeModuleReferenceTable;
         FImportedNameTable: TNewExeImportedNameTable;
+        FEntryTable: TNewExeEntryTable;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
         procedure AddImportLibrariesExtractedFromObjectModules;
         procedure AddNewExeSection;
@@ -615,6 +626,7 @@ interface
         property ResidentNameTable: TNewExeResidentNameTable read FResidentNameTable;
         property ModuleReferenceTable: TNewExeModuleReferenceTable read FModuleReferenceTable;
         property ImportedNameTable: TNewExeImportedNameTable read FImportedNameTable;
+        property EntryTable: TNewExeEntryTable read FEntryTable;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
@@ -3878,6 +3890,21 @@ cleanup:
       end;
 
 {****************************************************************************
+                            TNewExeEntryTable
+****************************************************************************}
+
+    function TNewExeEntryTable.GetSize: QWord;
+      begin
+        { todo: implement }
+        Result:=0;
+      end;
+
+    procedure TNewExeEntryTable.WriteTo(aWriter: TObjectWriter);
+      begin
+        { todo: implement }
+      end;
+
+{****************************************************************************
                               TNewExeSection
 ****************************************************************************}
 
@@ -4045,6 +4072,7 @@ cleanup:
         Header.ModuleReferenceTableEntriesCount:=ModuleReferenceTable.Count;
         Header.ImportedNameTableStart:=Header.ModuleReferenceTableStart+ModuleReferenceTable.Size;
         Header.EntryTableOffset:=Header.ImportedNameTableStart+ImportedNameTable.Size;
+        Header.EntryTableLength:=EntryTable.Size;
 
         Header.WriteTo(FWriter);
 
@@ -4055,6 +4083,7 @@ cleanup:
         ResidentNameTable.WriteTo(FWriter);
         ModuleReferenceTable.WriteTo(FWriter,ImportedNameTable);
         ImportedNameTable.WriteTo(FWriter);
+        EntryTable.WriteTo(FWriter);
 
         { todo: write the rest of the file as well }
 
@@ -4134,10 +4163,12 @@ cleanup:
         FResidentNameTable:=TNewExeResidentNameTable.Create;
         FModuleReferenceTable:=TNewExeModuleReferenceTable.Create;
         FImportedNameTable:=TNewExeImportedNameTable.Create;
+        FEntryTable:=TNewExeEntryTable.Create;
       end;
 
     destructor TNewExeOutput.destroy;
       begin
+        FEntryTable.Free;
         FImportedNameTable.Free;
         FModuleReferenceTable.Free;
         FResidentNameTable.Free;
