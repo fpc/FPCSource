@@ -570,14 +570,44 @@ interface
         property Size: QWord read GetSize;
       end;
 
+      TNewExeEntryPointFlag = (
+        neepfMovableSegment,
+        neepfExported,
+        neepfSingleData
+      );
+      TNewExeEntryPointFlags = set of TNewExeEntryPointFlag;
+
+      { TNewExeEntryPoint }
+
+      TNewExeEntryPoint = class
+      private
+        FFlags: TNewExeEntryPointFlag;
+        FSegment: Byte;
+        FOffset: Word;
+      public
+        property Flags: TNewExeEntryPointFlag read FFlags write FFlags;
+        property Segment: Byte read FSegment write FSegment;
+        property Offset: Word read FOffset write FOffset;
+      end;
+
       { TNewExeEntryTable }
 
       TNewExeEntryTable = class
-      private
+      strict private
+        FItems: array of TNewExeEntryPoint;
+
+        function GetCount: Word;
+        function GetItems(i: Integer): TNewExeEntryPoint;
         function GetSize: QWord;
+        procedure SetItems(i: Integer; AValue: TNewExeEntryPoint);
       public
+        destructor Destroy;override;
+
         procedure WriteTo(aWriter: TObjectWriter);
+        procedure GrowTo(aNewCount: Word);
         property Size: QWord read GetSize;
+        property Count: Word read GetCount;
+        property Items[i: Integer]: TNewExeEntryPoint read GetItems write SetItems;default;
       end;
 
       { These are fake "meta sections" used by the linker script. The actual
@@ -3961,9 +3991,44 @@ cleanup:
         Result:=0;
       end;
 
+    procedure TNewExeEntryTable.SetItems(i: Integer; AValue: TNewExeEntryPoint);
+      begin
+        if (i<1) or (i>Length(FItems)) then
+          internalerror(2019081002);
+        FItems[i-1]:=AValue;
+      end;
+
+    function TNewExeEntryTable.GetCount: Word;
+      begin
+        Result:=Length(FItems);
+      end;
+
+    function TNewExeEntryTable.GetItems(i: Integer): TNewExeEntryPoint;
+      begin
+        if (i<1) or (i>Length(FItems)) then
+          internalerror(2019081002);
+        Result:=FItems[i-1];
+      end;
+
+    destructor TNewExeEntryTable.Destroy;
+      var
+        i: Integer;
+      begin
+        for i:=low(FItems) to high(FItems) do
+          FreeAndNil(FItems[i]);
+        inherited Destroy;
+      end;
+
     procedure TNewExeEntryTable.WriteTo(aWriter: TObjectWriter);
       begin
         { todo: implement }
+      end;
+
+    procedure TNewExeEntryTable.GrowTo(aNewCount: Word);
+      begin
+        if aNewCount<Count then
+          internalerror(2019081003);
+        SetLength(FItems,aNewCount);
       end;
 
 {****************************************************************************
