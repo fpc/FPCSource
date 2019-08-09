@@ -1714,26 +1714,73 @@ type
     function CreateSpecializedType(El: TPasSpecializeType;
       const ParamsResolved: TPasTypeArray): TPSSpecializedItem; virtual;
     function InitSpecializeScopes(El: TPasElement): integer; virtual;
-    procedure SpecializeGenTypeIntf(GenericType: TPasGenericType; SpecializedItem: TPSSpecializedItem); virtual;
-    procedure SpecializeGenTypeImpl(GenericType: TPasGenericType; SpecializedItem: TPSSpecializedItem); virtual;
+    procedure SpecializeGenTypeIntf(GenericType: TPasGenericType;
+      SpecializedItem: TPSSpecializedItem); virtual;
+    procedure SpecializeGenTypeImpl(GenericType: TPasGenericType;
+      SpecializedItem: TPSSpecializedItem); virtual;
     procedure SpecializeMembers(GenMembersType, SpecMembersType: TPasMembersType); virtual;
     procedure SpecializeElement(GenEl, SpecEl: TPasElement);
     procedure SpecializePasElementProperties(GenEl, SpecEl: TPasElement);
-    procedure SpecializeVariable(GenEl, SpecEl: TPasVariable);
-    procedure SpecializeElType(GenEl, SpecEl: TPasElement; GenElType: TPasType; var SpecElType: TPasType);
-    procedure SpecializeElExpr(GenEl, SpecEl: TPasElement; GenElExpr: TPasExpr; var SpecElExpr: TPasExpr);
+    procedure SpecializeVariable(GenEl, SpecEl: TPasVariable; Finish: boolean);
+    procedure SpecializeConst(GenEl, SpecEl: TPasConst);
+    procedure SpecializeProperty(GenEl, SpecEl: TPasProperty);
+    procedure SpecializeElType(GenEl, SpecEl: TPasElement;
+      GenElType: TPasType; var SpecElType: TPasType);
+    procedure SpecializeElExpr(GenEl, SpecEl: TPasElement;
+      GenElExpr: TPasExpr; var SpecElExpr: TPasExpr);
+    procedure SpecializeElImplEl(GenEl, SpecEl: TPasElement;
+      GenImplEl: TPasImplElement; var SpecImplEl: TPasImplElement);
+    procedure SpecializeElImplAlias(GenEl, SpecEl: TPasImplBlock;
+      GenImplAlias: TPasImplElement; var SpecImplAlias: TPasImplElement
+      {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+    procedure SpecializeElList(GenEl, SpecEl: TPasElement;
+      GenList, SpecList: TFPList; AllowReferences: boolean
+      {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
     procedure SpecializeProcedure(GenEl, SpecEl: TPasProcedure);
+    procedure SpecializeOperator(GenEl, SpecEl: TPasOperator);
     procedure SpecializeProcedureType(GenEl, SpecEl: TPasProcedureType);
     procedure SpecializeProcedureBody(GenEl, SpecEl: TProcedureBody);
     procedure SpecializeDeclarations(GenEl, SpecEl: TPasDeclarations);
     procedure SpecializeSpecializeType(GenEl, SpecEl: TPasSpecializeType);
     procedure SpecializeArgument(GenEl, SpecEl: TPasArgument);
     procedure SpecializeImplBlock(GenEl, SpecEl: TPasImplBlock);
+    procedure SpecializeImplAsmStatement(GenEl, SpecEl: TPasImplAsmStatement);
+    procedure SpecializeImplRepeatUntil(GenEl, SpecEl: TPasImplRepeatUntil);
+    procedure SpecializeImplIfElse(GenEl, SpecEl: TPasImplIfElse);
+    procedure SpecializeImplWhileDo(GenEl, SpecEl: TPasImplWhileDo);
+    procedure SpecializeImplWithDo(GenEl, SpecEl: TPasImplWithDo);
+    procedure SpecializeImplCaseOf(GenEl, SpecEl: TPasImplCaseOf);
+    procedure SpecializeImplCaseStatement(GenEl, SpecEl: TPasImplCaseStatement);
     procedure SpecializeImplAssign(GenEl, SpecEl: TPasImplAssign);
+    procedure SpecializeImplSimple(GenEl, SpecEl: TPasImplSimple);
     procedure SpecializeImplForLoop(GenEl, SpecEl: TPasImplForLoop);
+    procedure SpecializeImplTry(GenEl, SpecEl: TPasImplTry);
+    procedure SpecializeImplExceptOn(GenEl, SpecEl: TPasImplExceptOn);
+    procedure SpecializeImplRaise(GenEl, SpecEl: TPasImplRaise);
     procedure SpecializeExpr(GenEl, SpecEl: TPasExpr);
+    procedure SpecializeExprArray(GenEl, SpecEl: TPasElement;
+      GenArray: TPasExprArray; var SpecArray: TPasExprArray);
     procedure SpecializePrimitiveExpr(GenEl, SpecEl: TPrimitiveExpr);
+    procedure SpecializeUnaryExpr(GenEl, SpecEl: TUnaryExpr);
     procedure SpecializeBinaryExpr(GenEl, SpecEl: TBinaryExpr);
+    procedure SpecializeBoolConstExpr(GenEl, SpecEl: TBoolConstExpr);
+    procedure SpecializeParamsExpr(GenEl, SpecEl: TParamsExpr);
+    procedure SpecializeRecordValues(GenEl, SpecEl: TRecordValues);
+    procedure SpecializeArrayValues(GenEl, SpecEl: TArrayValues);
+    procedure SpecializeInlineSpecializeExpr(GenEl, SpecEl: TInlineSpecializeExpr);
+    procedure SpecializeProcedureExpr(GenEl, SpecEl: TProcedureExpr);
+    procedure SpecializeResString(GenEl, SpecEl: TPasResString);
+    procedure SpecializeAliasType(GenEl, SpecEl: TPasAliasType);
+    procedure SpecializePointerType(GenEl, SpecEl: TPasPointerType);
+    procedure SpecializeRangeType(GenEl, SpecEl: TPasRangeType);
+    procedure SpecializeArrayType(GenEl, SpecEl: TPasArrayType);
+    procedure SpecializeEnumValue(GenEl, SpecEl: TPasEnumValue);
+    procedure SpecializeEnumType(GenEl, SpecEl: TPasEnumType);
+    procedure SpecializeSetType(GenEl, SpecEl: TPasSetType);
+    procedure SpecializeVariant(GenEl, SpecEl: TPasVariant);
+    procedure SpecializeStringType(GenEl, SpecEl: TPasStringType);
+    procedure SpecializeAttributes(GenEl, SpecEl: TPasAttributes);
+    procedure SpecializeMethodResolution(GenEl, SpecEl: TPasMethodResolution);
   protected
     // custom types (added by descendant resolvers)
     function CheckAssignCompatibilityCustom(
@@ -8663,9 +8710,10 @@ end;
 procedure TPasResolver.CheckConditionExpr(El: TPasExpr;
   const ResolvedEl: TPasResolverResult);
 begin
-  if ResolvedEl.BaseType<>btBoolean then
-    RaiseXExpectedButYFound(20170216152135,
-      BaseTypeNames[btBoolean],BaseTypeNames[ResolvedEl.BaseType],El);
+  if ResolvedEl.BaseType=btBoolean then exit;
+  if IsGenericTemplType(ResolvedEl) then exit;
+  RaiseXExpectedButYFound(20170216152135,
+    BaseTypeNames[btBoolean],BaseTypeNames[ResolvedEl.BaseType],El);
 end;
 
 procedure TPasResolver.CheckProcSignatureMatch(DeclProc,
@@ -9037,8 +9085,11 @@ begin
     if (rrfReadable in CaseExprResolved.Flags) then
       ok:=CreateValues(CaseExprResolved,ValueSet);
     if not ok then
-      RaiseXExpectedButYFound(20170216151952,'ordinal expression',
-                 GetTypeDescription(CaseExprResolved.LoTypeEl),CaseOf.CaseExpr);
+      begin
+      if not IsGenericTemplType(CaseExprResolved) then
+        RaiseXExpectedButYFound(20170216151952,'ordinal expression',
+                   GetTypeDescription(CaseExprResolved.LoTypeEl),CaseOf.CaseExpr);
+      end;
 
     for i:=0 to CaseOf.Elements.Count-1 do
       begin
@@ -9054,6 +9105,8 @@ begin
           ComputeElement(OfExpr,OfExprResolved,[rcConstant,rcSetReferenceFlags]);
           if OfExprResolved.BaseType=btRange then
             ConvertRangeToElement(OfExprResolved);
+          if not ok then
+            continue;
           CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
 
           Value:=Eval(OfExpr,[refConstExt]);
@@ -14781,21 +14834,141 @@ begin
   SpecializePasElementProperties(GenEl,SpecEl);
 
   C:=GenEl.ClassType;
+  // expressions
   if C=TPrimitiveExpr then
     SpecializePrimitiveExpr(TPrimitiveExpr(GenEl),TPrimitiveExpr(SpecEl))
+  else if C=TUnaryExpr then
+    SpecializeUnaryExpr(TUnaryExpr(GenEl),TUnaryExpr(SpecEl))
   else if C=TBinaryExpr then
     SpecializeBinaryExpr(TBinaryExpr(GenEl),TBinaryExpr(SpecEl))
+  else if C=TBoolConstExpr then
+    SpecializeBoolConstExpr(TBoolConstExpr(GenEl),TBoolConstExpr(SpecEl))
+  else if C=TNilExpr then
+    SpecializeExpr(TNilExpr(GenEl),TNilExpr(SpecEl))
+  else if C=TInheritedExpr then
+    SpecializeExpr(TInheritedExpr(GenEl),TInheritedExpr(SpecEl))
+  else if C=TParamsExpr then
+    SpecializeParamsExpr(TParamsExpr(GenEl),TParamsExpr(SpecEl))
+  else if C=TRecordValues then
+    SpecializeRecordValues(TRecordValues(GenEl),TRecordValues(SpecEl))
+  else if C=TArrayValues then
+    SpecializeArrayValues(TArrayValues(GenEl),TArrayValues(SpecEl))
+  else if C=TInlineSpecializeExpr then
+    SpecializeInlineSpecializeExpr(TInlineSpecializeExpr(GenEl),TInlineSpecializeExpr(SpecEl))
+  else if C=TProcedureExpr then
+    SpecializeProcedureExpr(TProcedureExpr(GenEl),TProcedureExpr(SpecEl))
+  // TPasType
+  else if (C=TPasAliasType)
+      or (C=TPasTypeAliasType)
+      or (C=TPasClassOfType) then
+    begin
+    AddType(TPasAliasType(SpecEl));
+    SpecializeAliasType(TPasAliasType(GenEl),TPasAliasType(SpecEl));
+    end
+  else if C=TPasPointerType then
+    begin
+    AddType(TPasPointerType(SpecEl));
+    SpecializePointerType(TPasPointerType(GenEl),TPasPointerType(SpecEl));
+    end
+  else if C=TPasRangeType then
+    begin
+    AddType(TPasRangeType(SpecEl));
+    SpecializeRangeType(TPasRangeType(GenEl),TPasRangeType(SpecEl));
+    end
+  else if C=TPasArrayType then
+    begin
+    AddType(TPasArrayType(SpecEl));
+    SpecializeArrayType(TPasArrayType(GenEl),TPasArrayType(SpecEl));
+    end
+  else if C=TPasEnumValue then
+    begin
+    AddEnumValue(TPasEnumValue(SpecEl));
+    SpecializeEnumValue(TPasEnumValue(GenEl),TPasEnumValue(SpecEl));
+    end
+  else if C=TPasEnumType then
+    begin
+    AddEnumType(TPasEnumType(SpecEl));
+    SpecializeEnumType(TPasEnumType(GenEl),TPasEnumType(SpecEl));
+    end
+  else if C=TPasSetType then
+    SpecializeSetType(TPasSetType(GenEl),TPasSetType(SpecEl))
+  else if C=TPasVariant then
+    SpecializeVariant(TPasVariant(GenEl),TPasVariant(SpecEl))
+  // ToDo: TPasRecordType
+  // ToDo: TPasClassType
+  else if C=TPasStringType then
+    begin
+    AddType(TPasStringType(SpecEl));
+    SpecializeStringType(TPasStringType(GenEl),TPasStringType(SpecEl));
+    end
+  else if C=TPasSpecializeType then
+    begin
+    AddType(TPasSpecializeType(SpecEl));
+    SpecializeSpecializeType(TPasSpecializeType(GenEl),TPasSpecializeType(SpecEl));
+    end
+  // empty statement
+  else if C=TPasImplCommand then
+  // TPasImplBlock
   else if C=TPasImplBeginBlock then
     SpecializeImplBlock(TPasImplBeginBlock(GenEl),TPasImplBeginBlock(SpecEl))
+  else if C=TPasImplAsmStatement then
+    SpecializeImplAsmStatement(TPasImplAsmStatement(GenEl),TPasImplAsmStatement(SpecEl))
+  else if C=TPasImplRepeatUntil then
+    SpecializeImplRepeatUntil(TPasImplRepeatUntil(GenEl),TPasImplRepeatUntil(SpecEl))
+  else if C=TPasImplIfElse then
+    SpecializeImplIfElse(TPasImplIfElse(GenEl),TPasImplIfElse(SpecEl))
+  else if C=TPasImplWhileDo then
+    SpecializeImplWhileDo(TPasImplWhileDo(GenEl),TPasImplWhileDo(SpecEl))
+  else if C=TPasImplWithDo then
+    SpecializeImplWithDo(TPasImplWithDo(GenEl),TPasImplWithDo(SpecEl))
+  else if C=TPasImplCaseOf then
+    SpecializeImplCaseOf(TPasImplCaseOf(GenEl),TPasImplCaseOf(SpecEl))
+  else if C=TPasImplCaseStatement then
+    SpecializeImplCaseStatement(TPasImplCaseStatement(GenEl),TPasImplCaseStatement(SpecEl))
+  else if C=TPasImplCaseElse then
+    SpecializeImplBlock(TPasImplCaseElse(GenEl),TPasImplCaseElse(SpecEl))
   else if C=TPasImplAssign then
     SpecializeImplAssign(TPasImplAssign(GenEl),TPasImplAssign(SpecEl))
+  else if C=TPasImplSimple then
+    SpecializeImplSimple(TPasImplSimple(GenEl),TPasImplSimple(SpecEl))
   else if C=TPasImplForLoop then
     SpecializeImplForLoop(TPasImplForLoop(GenEl),TPasImplForLoop(SpecEl))
+  else if C=TPasImplTry then
+    SpecializeImplTry(TPasImplTry(GenEl),TPasImplTry(SpecEl))
+  else if (C=TPasImplTryFinally)
+      or (C=TPasImplTryExcept)
+      or (C=TPasImplTryExceptElse) then
+    SpecializeImplBlock(TPasImplCaseElse(GenEl),TPasImplCaseElse(SpecEl))
+  else if C=TPasImplExceptOn then
+    SpecializeImplExceptOn(TPasImplExceptOn(GenEl),TPasImplExceptOn(SpecEl))
+  else if C=TPasImplRaise then
+    SpecializeImplRaise(TPasImplRaise(GenEl),TPasImplRaise(SpecEl))
+  // declaration
+  else if C=TPasResString then
+    begin
+    AddResourceString(TPasResString(SpecEl));
+    SpecializeResString(TPasResString(GenEl),TPasResString(SpecEl));
+    end
   else if C=TPasVariable then
     begin
     AddVariable(TPasVariable(SpecEl));
-    SpecializeVariable(TPasVariable(GenEl),TPasVariable(SpecEl));
+    SpecializeVariable(TPasVariable(GenEl),TPasVariable(SpecEl),true);
     end
+  else if C=TPasConst then
+    begin
+    AddVariable(TPasConst(SpecEl));
+    SpecializeConst(TPasConst(GenEl),TPasConst(SpecEl));
+    end
+  else if C=TPasProperty then
+    begin
+    AddProperty(TPasProperty(SpecEl));
+    SpecializeProperty(TPasProperty(GenEl),TPasProperty(SpecEl));
+    end
+  else if C=TPasAttributes then
+    SpecializeAttributes(TPasAttributes(GenEl),TPasAttributes(SpecEl))
+  else if C=TPasMethodResolution then
+    SpecializeMethodResolution(TPasMethodResolution(GenEl),TPasMethodResolution(SpecEl))
+  // procedure
   else if C=TPasArgument then
     begin
     AddArgument(TPasArgument(SpecEl));
@@ -14806,6 +14979,11 @@ begin
     AddProcedureBody(TProcedureBody(SpecEl));
     SpecializeProcedureBody(TProcedureBody(GenEl),TProcedureBody(SpecEl));
     end
+  else if C=TPasOperator then
+    begin
+    AddProcedure(TPasOperator(SpecEl));
+    SpecializeOperator(TPasOperator(GenEl),TPasOperator(SpecEl));
+    end
   else if C.InheritsFrom(TPasProcedure) then
     begin
     AddProcedure(TPasProcedure(SpecEl));
@@ -14815,11 +14993,6 @@ begin
     begin
     AddType(TPasProcedureType(SpecEl));
     SpecializeProcedureType(TPasProcedureType(GenEl),TPasProcedureType(SpecEl));
-    end
-  else if C=TPasSpecializeType then
-    begin
-    AddType(TPasSpecializeType(SpecEl));
-    SpecializeSpecializeType(TPasSpecializeType(GenEl),TPasSpecializeType(SpecEl));
     end
   else
     RaiseNotYetImplemented(20190728151215,GenEl);
@@ -14837,7 +15010,8 @@ begin
   SpecEl.DocComment:=GenEl.DocComment;
 end;
 
-procedure TPasResolver.SpecializeVariable(GenEl, SpecEl: TPasVariable);
+procedure TPasResolver.SpecializeVariable(GenEl, SpecEl: TPasVariable;
+  Finish: boolean);
 begin
   SpecializeElType(GenEl,SpecEl,GenEl.VarType,SpecEl.VarType);
   SpecEl.VarModifiers:=GenEl.VarModifiers;
@@ -14850,7 +15024,32 @@ begin
     SpecializeElExpr(GenEl,SpecEl,GenEl.AbsoluteExpr,SpecEl.AbsoluteExpr);
   if GenEl.Expr<>nil then
     SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
-  FinishVariable(SpecEl);
+  if Finish then
+    FinishVariable(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeConst(GenEl, SpecEl: TPasConst);
+begin
+  SpecEl.IsConst:=GenEl.IsConst;
+  SpecializeVariable(GenEl,SpecEl,true);
+end;
+
+procedure TPasResolver.SpecializeProperty(GenEl, SpecEl: TPasProperty);
+begin
+  SpecializeVariable(GenEl,SpecEl,false);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.IndexExpr,SpecEl.IndexExpr);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ReadAccessor,SpecEl.ReadAccessor);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.WriteAccessor,SpecEl.WriteAccessor);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.DispIDExpr,SpecEl.DispIDExpr);
+  SpecializeExprArray(GenEl,SpecEl,GenEl.Implements,SpecEl.Implements);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.StoredAccessor,SpecEl.StoredAccessor);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.DefaultExpr,SpecEl.DefaultExpr);
+  SpecEl.DispIDReadOnly:=GenEl.DispIDReadOnly;
+  SpecEl.IsDefault:=GenEl.IsDefault;
+  SpecEl.IsNodefault:=GenEl.IsNodefault;
+  SpecializeElList(GenEl,SpecEl,GenEl.Args,SpecEl.Args,false
+    {$IFDEF CheckPasTreeRefCount},'TPasProperty.Args'{$ENDIF});
+  FinishProperty(SpecEl);
 end;
 
 procedure TPasResolver.SpecializeElType(GenEl, SpecEl: TPasElement;
@@ -14879,6 +15078,8 @@ begin
     exit;
     end;
   // e.g. anonymous type
+  if SpecElType<>nil then
+    RaiseNotYetImplemented(20190808222744,SpecEl,GetObjName(SpecElType));
   NewClass:=TPTreeElement(GenElType.ClassType);
   SpecElType:=TPasType(NewClass.Create(GenElType.Name,SpecEl));
   SpecializeElement(GenElType,SpecElType);
@@ -14890,19 +15091,70 @@ var
   NewClass: TPTreeElement;
 begin
   if GenElExpr=nil then exit;
+  if SpecElExpr<>nil then
+    RaiseNotYetImplemented(20190803220248,SpecEl,GetObjName(SpecElExpr));
   if GenElExpr.Parent<>GenEl then
-    begin
-    // reference
-    if SpecElExpr<>nil then
-      RaiseNotYetImplemented(20190803220248,SpecEl,GetObjName(SpecElExpr));
-    SpecElExpr:=GenElExpr;
-    SpecElExpr.AddRef{$IFDEF CheckPasTreeRefCount}('SpecializeElExpr'){$ENDIF};
-    exit;
-    end;
+    RaiseNotYetImplemented(20190809160834,GenEl);
   // normal expression
   NewClass:=TPTreeElement(GenElExpr.ClassType);
   SpecElExpr:=TPasExpr(NewClass.Create(GenElExpr.Name,SpecEl));
   SpecializeElement(GenElExpr,SpecElExpr);
+end;
+
+procedure TPasResolver.SpecializeElImplEl(GenEl, SpecEl: TPasElement;
+  GenImplEl: TPasImplElement; var SpecImplEl: TPasImplElement);
+var
+  NewClass: TPTreeElement;
+begin
+  if GenImplEl=nil then exit;
+  if GenImplEl.Parent<>GenEl then
+    RaiseNotYetImplemented(20190808222638,GenEl,GetObjName(GenImplEl.Parent));
+  NewClass:=TPTreeElement(GenImplEl.ClassType);
+  SpecImplEl:=TPasImplElement(NewClass.Create(GenImplEl.Name,SpecEl));
+  SpecializeElement(GenImplEl,SpecImplEl);
+end;
+
+procedure TPasResolver.SpecializeElImplAlias(GenEl, SpecEl: TPasImplBlock;
+  GenImplAlias: TPasImplElement; var SpecImplAlias: TPasImplElement
+  {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+var
+  i: Integer;
+begin
+  if GenImplAlias=nil then exit;
+  i:=GenEl.Elements.IndexOf(GenImplAlias);
+  if i<0 then
+    RaiseNotYetImplemented(20190808225239,GenEl);
+  SpecImplAlias:=TObject(SpecEl.Elements[i]) as TPasImplElement;
+  if SpecImplAlias.ClassType<>GenImplAlias.ClassType then
+    RaiseNotYetImplemented(20190808231616,GenImplAlias,GetObjName(SpecImplAlias));
+  SpecImplAlias.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
+end;
+
+procedure TPasResolver.SpecializeElList(GenEl, SpecEl: TPasElement;
+  GenList, SpecList: TFPList; AllowReferences: boolean
+  {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+var
+  i: Integer;
+  GenListItem, SpecListItem: TPasElement;
+  NewClass: TPTreeElement;
+begin
+  for i:=0 to GenList.Count-1 do
+    begin
+    GenListItem:=TPasElement(GenList[i]);
+    if GenListItem.Parent<>GenEl then
+      begin
+      if not AllowReferences then
+        RaiseNotYetImplemented(20190808212421,GenEl,IntToStr(i));
+      // reference
+      GenListItem.AddRef{$IFDEF CheckPasTreeRefCount}(RefID){$ENDIF};
+      SpecList.Add(GenListItem);
+      continue;
+      end;
+    NewClass:=TPTreeElement(GenListItem.ClassType);
+    SpecListItem:=TPasElement(NewClass.Create(GenListItem.Name,SpecEl));
+    SpecList.Add(SpecListItem);
+    SpecializeElement(GenListItem,SpecListItem);
+    end;
 end;
 
 procedure TPasResolver.SpecializeProcedure(GenEl, SpecEl: TPasProcedure);
@@ -14953,25 +15205,26 @@ begin
   FinishProcedure(SpecEl);
 end;
 
+procedure TPasResolver.SpecializeOperator(GenEl, SpecEl: TPasOperator);
+begin
+  SpecEl.OperatorType:=GenEl.OperatorType;
+  SpecEl.TokenBased:=GenEl.TokenBased;
+  SpecializeProcedure(GenEl,SpecEl);
+end;
+
 procedure TPasResolver.SpecializeProcedureType(GenEl, SpecEl: TPasProcedureType
   );
 var
   GenResultEl, NewResultEl: TPasResultElement;
   NewClass: TPTreeElement;
   i: Integer;
-  GenArg, NewArg: TPasArgument;
 begin
   // Args
-  for i:=0 to GenEl.Args.Count-1 do
-    begin
-    GenArg:=TPasArgument(GenEl.Args[i]);
-    if GenArg.Parent<>GenEl then
-      RaiseNotYetImplemented(20190803213700,GenArg,GetObjName(GenArg.Parent));
-    NewClass:=TPTreeElement(GenArg.ClassType);
-    NewArg:=TPasArgument(NewClass.Create(GenArg.Name,SpecEl));
-    SpecEl.Args.Add(NewArg);
-    SpecializeElement(GenArg,NewArg);
-    end;
+  SpecializeElList(GenEl,SpecEl,GenEl.Args,SpecEl.Args,false
+    {$IFDEF CheckPasTreeRefCount},'TPasProcedureType.Args'{$ENDIF});
+  for i:=0 to SpecEl.Args.Count-1 do
+    FinishArgument(TPasArgument(SpecEl.Args[i]));
+
   // properties
   SpecEl.CallingConvention:=GenEl.CallingConvention;
   SpecEl.Modifiers:=GenEl.Modifiers;
@@ -14998,6 +15251,7 @@ var
   NewClass: TPTreeElement;
 begin
   SpecializeDeclarations(GenEl,SpecEl);
+  FinishTypeSection(SpecEl);
 
   if GenEl.Body<>nil then
     begin
@@ -15052,28 +15306,11 @@ end;
 
 procedure TPasResolver.SpecializeSpecializeType(GenEl,
   SpecEl: TPasSpecializeType);
-var
-  i: Integer;
-  GenParam, SpecParam: TPasElement;
-  NewClass: TPTreeElement;
 begin
   SpecializeElType(GenEl,SpecEl,GenEl.DestType,SpecEl.DestType);
   SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
-  for i:=0 to GenEl.Params.Count-1 do
-    begin
-    GenParam:=TPasElement(GenEl.Params[i]);
-    if GenParam.Parent<>GenEl then
-      begin
-      // reference
-      GenParam.AddRef{$IFDEF CheckPasTreeRefCount}('TPasSpecializeType.Params'){$ENDIF};
-      SpecEl.AddParam(GenParam);
-      continue;
-      end;
-    NewClass:=TPTreeElement(GenParam.ClassType);
-    SpecParam:=TPasElement(NewClass.Create(GenParam.Name,SpecEl));
-    SpecEl.Params.Add(SpecParam);
-    SpecializeElement(GenParam,SpecParam);
-    end;
+  SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,true
+    {$IFDEF CheckPasTreeRefCount},'TPasSpecializeType.Params'{$ENDIF});
 
   FinishSpecializeType(SpecEl);
 end;
@@ -15085,7 +15322,7 @@ begin
   if GenEl.ValueExpr<>nil then
     SpecializeElExpr(GenEl,SpecEl,GenEl.ValueExpr,SpecEl.ValueExpr);
 
-  FinishArgument(SpecEl);
+  // FinishArgument is called when all arguments are ready
 end;
 
 procedure TPasResolver.SpecializeImplBlock(GenEl, SpecEl: TPasImplBlock);
@@ -15106,6 +15343,74 @@ begin
     end;
 end;
 
+procedure TPasResolver.SpecializeImplAsmStatement(GenEl,
+  SpecEl: TPasImplAsmStatement);
+begin
+  SpecializeImplBlock(GenEl,SpecEl);
+  SpecEl.Tokens.Assign(GenEl.Tokens);
+end;
+
+procedure TPasResolver.SpecializeImplRepeatUntil(GenEl,
+  SpecEl: TPasImplRepeatUntil);
+begin
+  SpecializeImplBlock(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ConditionExpr,SpecEl.ConditionExpr);
+end;
+
+procedure TPasResolver.SpecializeImplIfElse(GenEl, SpecEl: TPasImplIfElse);
+begin
+  // do not call SpecializeImplBlock(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ConditionExpr,SpecEl.ConditionExpr);
+  SpecializeElImplEl(GenEl,SpecEl,GenEl.IfBranch,SpecEl.IfBranch);
+  SpecializeElImplEl(GenEl,SpecEl,GenEl.ElseBranch,SpecEl.ElseBranch);
+end;
+
+procedure TPasResolver.SpecializeImplWhileDo(GenEl, SpecEl: TPasImplWhileDo);
+begin
+  // do not call SpecializeImplBlock(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ConditionExpr,SpecEl.ConditionExpr);
+  SpecializeElImplEl(GenEl,SpecEl,GenEl.Body,SpecEl.Body);
+end;
+
+procedure TPasResolver.SpecializeImplWithDo(GenEl, SpecEl: TPasImplWithDo);
+var
+  i: Integer;
+  GenExpr, SpecExpr: TPasExpr;
+  NewClass: TPTreeElement;
+begin
+  for i:=0 to GenEl.Expressions.Count-1 do
+    begin
+    GenExpr:=TPasExpr(GenEl.Expressions[i]);
+    if GenExpr.Parent<>GenEl then
+      RaiseNotYetImplemented(20190808224343,GenEl,IntToStr(i));
+    NewClass:=TPTreeElement(GenExpr.ClassType);
+    SpecExpr:=TPasExpr(NewClass.Create(GenExpr.Name,SpecEl));
+    SpecEl.Expressions.Add(SpecExpr);
+    BeginScope(stWithExpr,SpecExpr);
+    SpecializeElement(GenExpr,SpecExpr);
+    end;
+  SpecializeElImplEl(GenEl,SpecEl,GenEl.Body,SpecEl.Body);
+
+  FinishWithDo(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeImplCaseOf(GenEl, SpecEl: TPasImplCaseOf);
+begin
+  SpecializeElExpr(GenEl,SpecEl,GenEl.CaseExpr,SpecEl.CaseExpr);
+  SpecializeImplBlock(GenEl,SpecEl); // Elements
+  if GenEl.ElseBranch<>nil then
+    SpecializeElImplAlias(GenEl,SpecEl,GenEl.ElseBranch,TPasImplElement(SpecEl.ElseBranch)
+      {$IFDEF CheckPasTreeRefCount},'TPasImplCaseOf.ElseBranch'{$ENDIF});
+end;
+
+procedure TPasResolver.SpecializeImplCaseStatement(GenEl,
+  SpecEl: TPasImplCaseStatement);
+begin
+  SpecializeElList(GenEl,SpecEl,GenEl.Expressions,SpecEl.Expressions,false
+    {$IFDEF CheckPasTreeRefCount},'TPasImplCaseStatement.CaseExpr'{$ENDIF});
+  SpecializeElImplEl(GenEl,SpecEl,GenEl.Body,SpecEl.Body);
+end;
+
 procedure TPasResolver.SpecializeImplAssign(GenEl, SpecEl: TPasImplAssign);
 begin
   if GenEl.Elements.Count>0 then
@@ -15113,6 +15418,13 @@ begin
   SpecEl.Kind:=GenEl.Kind;
   SpecializeElExpr(GenEl,SpecEl,GenEl.left,SpecEl.left);
   SpecializeElExpr(GenEl,SpecEl,GenEl.right,SpecEl.right);
+end;
+
+procedure TPasResolver.SpecializeImplSimple(GenEl, SpecEl: TPasImplSimple);
+begin
+  if GenEl.Elements.Count>0 then
+    RaiseNotYetImplemented(20190808142935,GenEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
 end;
 
 procedure TPasResolver.SpecializeImplForLoop(GenEl, SpecEl: TPasImplForLoop);
@@ -15128,6 +15440,7 @@ begin
   SpecializeElExpr(GenEl,SpecEl,GenEl.StartExpr,SpecEl.StartExpr);
   SpecializeElExpr(GenEl,SpecEl,GenEl.EndExpr,SpecEl.EndExpr);
   FinishForLoopHeader(SpecEl);
+
   // SpecEl.Body is set via AddElement
   for i:=0 to GenEl.Elements.Count-1 do
     begin
@@ -15141,6 +15454,51 @@ begin
     end;
 end;
 
+procedure TPasResolver.SpecializeImplTry(GenEl, SpecEl: TPasImplTry);
+begin
+  SpecializeImplBlock(GenEl,SpecEl); // clone elements
+  if GenEl.FinallyExcept<>nil then
+    SpecializeElImplAlias(GenEl,SpecEl,GenEl.FinallyExcept,
+      TPasImplElement(SpecEl.FinallyExcept)
+      {$IFDEF CheckPasTreeRefCount},'TPasImplTry.FinallyExcept'{$ENDIF});
+  if GenEl.ElseBranch<>nil then
+    SpecializeElImplAlias(GenEl,SpecEl,GenEl.ElseBranch,
+      TPasImplElement(SpecEl.ElseBranch)
+      {$IFDEF CheckPasTreeRefCount},'TPasImplTry.ElseBranch'{$ENDIF});
+end;
+
+procedure TPasResolver.SpecializeImplExceptOn(GenEl, SpecEl: TPasImplExceptOn);
+var
+  GenVar: TPasVariable;
+  NewClass: TPTreeElement;
+begin
+  GenVar:=GenEl.VarEl;
+  if GenVar<>nil then
+    begin
+    if GenVar.Parent<>GenEl then
+      RaiseNotYetImplemented(20190808232327,GenEl);
+    NewClass:=TPTreeElement(GenVar.ClassType);
+    SpecEl.VarEl:=TPasVariable(NewClass.Create(GenVar.Name,SpecEl));
+    SpecializeElement(GenVar,SpecEl.VarEl);
+    if GenVar.VarType<>GenEl.TypeEl then
+      RaiseNotYetImplemented(20190808232601,GenEl);
+    SpecEl.TypeEl:=SpecEl.VarEl.VarType;
+    SpecEl.TypeEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
+    end
+  else
+    SpecializeElType(GenEl,SpecEl,GenEl.TypeEl,SpecEl.TypeEl);
+
+  FinishExceptOnExpr;
+  SpecializeElImplEl(GenEl,SpecEl,GenEl.Body,SpecEl.Body);
+  FinishExceptOnStatement;
+end;
+
+procedure TPasResolver.SpecializeImplRaise(GenEl, SpecEl: TPasImplRaise);
+begin
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ExceptObject,SpecEl.ExceptObject);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ExceptAddr,SpecEl.ExceptAddr);
+end;
+
 procedure TPasResolver.SpecializeExpr(GenEl, SpecEl: TPasExpr);
 begin
   SpecEl.Kind:=GenEl.Kind;
@@ -15149,10 +15507,30 @@ begin
   SpecializeElExpr(GenEl,SpecEl,GenEl.format2,SpecEl.format2);
 end;
 
+procedure TPasResolver.SpecializeExprArray(GenEl, SpecEl: TPasElement;
+  GenArray: TPasExprArray; var SpecArray: TPasExprArray);
+var
+  i: Integer;
+begin
+  if length(SpecArray)>0 then
+    RaiseNotYetImplemented(20190808205855,GenEl);
+  SetLength(SpecArray,length(GenArray));
+  for i:=0 to length(SpecArray)-1 do
+    SpecArray[i]:=nil;
+  for i:=0 to length(GenArray)-1 do
+    SpecializeElExpr(GenEl,SpecEl,GenArray[i],SpecArray[i]);
+end;
+
 procedure TPasResolver.SpecializePrimitiveExpr(GenEl, SpecEl: TPrimitiveExpr);
 begin
   SpecializeExpr(GenEl,SpecEl);
   SpecEl.Value:=GenEl.Value;
+end;
+
+procedure TPasResolver.SpecializeUnaryExpr(GenEl, SpecEl: TUnaryExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Operand,SpecEl.Operand);
 end;
 
 procedure TPasResolver.SpecializeBinaryExpr(GenEl, SpecEl: TBinaryExpr);
@@ -15160,6 +15538,155 @@ begin
   SpecializeExpr(GenEl,SpecEl);
   SpecializeElExpr(GenEl,SpecEl,GenEl.left,SpecEl.left);
   SpecializeElExpr(GenEl,SpecEl,GenEl.right,SpecEl.right);
+end;
+
+procedure TPasResolver.SpecializeBoolConstExpr(GenEl, SpecEl: TBoolConstExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecEl.Value:=GenEl.Value;
+end;
+
+procedure TPasResolver.SpecializeParamsExpr(GenEl, SpecEl: TParamsExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Value,SpecEl.Value);
+  SpecializeExprArray(GenEl,SpecEl,GenEl.Params,SpecEl.Params);
+end;
+
+procedure TPasResolver.SpecializeRecordValues(GenEl, SpecEl: TRecordValues);
+var
+  GenField: TRecordValuesItem;
+  i: Integer;
+  SpecFieldP: PRecordValuesItem;
+begin
+  SpecializeExpr(GenEl,SpecEl);
+
+  // fields
+  SetLength(SpecEl.Fields,length(GenEl.Fields));
+  for i:=0 to length(SpecEl.Fields)-1 do
+    with SpecEl.Fields[i] do
+      begin
+      NameExp:=nil;
+      ValueExp:=nil;
+      end;
+  for i:=0 to length(GenEl.Fields)-1 do
+    begin
+    GenField:=GenEl.Fields[i];
+    if GenField.NameExp.Parent<>GenEl then
+      RaiseNotYetImplemented(20190808205128,GenEl);
+    if GenField.ValueExp.Parent<>GenEl then
+      RaiseNotYetImplemented(20190808205138,GenEl);
+    SpecFieldP:=@SpecEl.Fields[i];
+    SpecializeElExpr(GenEl,SpecEl,GenField.NameExp,TPasExpr(SpecFieldP^.NameExp));
+    SpecializeElExpr(GenEl,SpecEl,GenField.ValueExp,SpecFieldP^.ValueExp);
+    end;
+end;
+
+procedure TPasResolver.SpecializeArrayValues(GenEl, SpecEl: TArrayValues);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecializeExprArray(GenEl,SpecEl,GenEl.Values,SpecEl.Values);
+end;
+
+procedure TPasResolver.SpecializeInlineSpecializeExpr(GenEl,
+  SpecEl: TInlineSpecializeExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.NameExpr,SpecEl.NameExpr);
+  SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,true
+    {$IFDEF CheckPasTreeRefCount},'TInlineSpecializeExpr.Params'{$ENDIF});
+end;
+
+procedure TPasResolver.SpecializeProcedureExpr(GenEl, SpecEl: TProcedureExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  if GenEl.Proc=nil then
+    RaiseNotYetImplemented(20190808221018,GenEl);
+  RaiseNotYetImplemented(20190808221040,GenEl);
+end;
+
+procedure TPasResolver.SpecializeResString(GenEl, SpecEl: TPasResString);
+begin
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
+  FinishResourcestring(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeAliasType(GenEl, SpecEl: TPasAliasType);
+begin
+  SpecializeElType(GenEl,SpecEl,GenEl.DestType,SpecEl.DestType);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
+  // not needed by specialize: FinishTypeAlias();
+  FinishTypeDef(SpecEl);
+end;
+
+procedure TPasResolver.SpecializePointerType(GenEl, SpecEl: TPasPointerType);
+begin
+  SpecializeElType(GenEl,SpecEl,GenEl.DestType,SpecEl.DestType);
+  FinishPointerType(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeRangeType(GenEl, SpecEl: TPasRangeType);
+begin
+  SpecializeElExpr(GenEl,SpecEl,GenEl.RangeExpr,TPasExpr(SpecEl.RangeExpr));
+  FinishRangeType(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeArrayType(GenEl, SpecEl: TPasArrayType);
+begin
+  SpecEl.IndexRange:=GenEl.IndexRange;
+  SpecEl.PackMode:=GenEl.PackMode;
+  SpecializeExprArray(GenEl,SpecEl,GenEl.Ranges,SpecEl.Ranges);
+  SpecializeElType(GenEl,SpecEl,GenEl.ElType,SpecEl.ElType);
+  FinishArrayType(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeEnumValue(GenEl, SpecEl: TPasEnumValue);
+begin
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Value,SpecEl.Value);
+end;
+
+procedure TPasResolver.SpecializeEnumType(GenEl, SpecEl: TPasEnumType);
+begin
+  SpecializeElList(GenEl,SpecEl,GenEl.Values,SpecEl.Values,false
+    {$IFDEF CheckPasTreeRefCount},'TPasEnumType.Values'{$ENDIF});
+  FinishEnumType(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeSetType(GenEl, SpecEl: TPasSetType);
+begin
+  SpecEl.IsPacked:=GenEl.IsPacked;
+  SpecializeElType(GenEl,SpecEl,GenEl.EnumType,SpecEl.EnumType);
+  FinishSetType(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeVariant(GenEl, SpecEl: TPasVariant);
+begin
+  SpecializeElList(GenEl,SpecEl,GenEl.Values,SpecEl.Values,false
+    {$IFDEF CheckPasTreeRefCount},'TPasVariant.Values'{$ENDIF});
+  RaiseNotYetImplemented(20190808214218,GenEl)
+  //ToDo: Members: TPasRecordType;
+end;
+
+procedure TPasResolver.SpecializeStringType(GenEl, SpecEl: TPasStringType);
+begin
+  SpecEl.LengthExpr:=GenEl.LengthExpr;
+  FinishTypeDef(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeAttributes(GenEl, SpecEl: TPasAttributes);
+begin
+  SpecializeExprArray(GenEl,SpecEl,GenEl.Calls,SpecEl.Calls);
+  FinishAttributes(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeMethodResolution(GenEl,
+  SpecEl: TPasMethodResolution);
+begin
+  SpecEl.ProcClass:=GenEl.ProcClass;
+  SpecializeElExpr(GenEl,SpecEl,GenEl.InterfaceName,SpecEl.InterfaceName);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.InterfaceProc,SpecEl.InterfaceProc);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ImplementationProc,SpecEl.ImplementationProc);
+  FinishMethodResolution(SpecEl);
 end;
 
 function TPasResolver.CheckAssignCompatibilityCustom(const LHS,
@@ -23511,6 +24038,8 @@ begin
       eopAdd, eopSubtract:
         if ResolvedEl.BaseType in (btAllInteger+btAllFloats) then
           exit
+        else if IsGenericTemplType(ResolvedEl) then
+          exit
         else
           RaiseMsg(20170216152532,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
             [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
@@ -23543,7 +24072,9 @@ begin
         exit;
         end;
       eopMemAddress:
-        if (ResolvedEl.BaseType=btContext) and (ResolvedEl.LoTypeEl is TPasProcedureType) then
+        if (ResolvedEl.BaseType=btContext)
+            and ((ResolvedEl.LoTypeEl is TPasProcedureType)
+              or IsGenericTemplType(ResolvedEl)) then
           // @@ProcVar
           exit
         else

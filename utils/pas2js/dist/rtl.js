@@ -1058,7 +1058,6 @@ var rtl = {
         s=' '+s;
         l++;
       };
-      return s;
     };
   },
 

@@ -5837,6 +5837,7 @@ begin
           //WriteLn(i,'WHILE Condition="',Condition,'" Token=',CurTokenText);
           El:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock,SrcPos));
           TPasImplWhileDo(El).ConditionExpr:=Left;
+          Left.Parent:=El;
           Left:=nil;
           CreateBlock(TPasImplWhileDo(El));
           El:=nil;

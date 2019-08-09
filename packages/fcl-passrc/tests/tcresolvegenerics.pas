@@ -74,8 +74,8 @@ type
 
     // generic statements
     procedure TestGen_LocalVar;
+    procedure TestGen_Statements;
     procedure TestGen_ForLoop;
-    // ToDo: for
     // ToDo: for-in
     // ToDo: if
     // ToDo: case
@@ -540,6 +540,43 @@ begin
   '  w: word;',
   'begin',
   '  w:=b.Fly(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Statements;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<{#Templ}T> = class',
+  '    function Fly(p:T): T;',
+  '  end;',
+  'function TBird.Fly(p:T): T;',
+  'var',
+  '  v1,v2,v3:T;',
+  'begin',
+  '  v1:=1;',
+  '  v2:=v1+v1*v1+v1 div p;',
+  '  v3:=-v1;',
+  '  repeat',
+  '    v1:=v1+1;',
+  '  until v1>=5;',
+  '  while v1>=0 do',
+  '    v1:=v1-v2;',
+  '  for v1:=v2 to v3 do v2:=v1;',
+  '  if v1<v2 then v3:=v1 else v3:=v2;',
+  '  if v1<v2 then else ;',
+  '  case v1 of',
+  '  1: v3:=3;',
+  '  end;',
+  'end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  'begin',
+  '  b.Fly(2);',
   '']);
   ParseProgram;
 end;

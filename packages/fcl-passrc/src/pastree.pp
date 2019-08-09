@@ -550,7 +550,7 @@ type
     function ElementTypeName: string; override;
   end;
 
-  { TPasGenericTemplateType }
+  { TPasGenericTemplateType - type param of a generic }
 
   TPasGenericTemplateType = Class(TPasType)
   public
@@ -564,7 +564,7 @@ type
     Constraints: TPasExprArray;
   end;
 
-  { TPasGenericType }
+  { TPasGenericType - abstract base class for all types which can be generics }
 
   TPasGenericType = class(TPasType)
   private
@@ -1407,7 +1407,7 @@ type
   end;
   TPasImplBlockClass = class of TPasImplBlock;
 
-  { TPasImplStatement }
+  { TPasImplStatement - base class }
 
   TPasImplStatement = class(TPasImplBlock)
   public
@@ -1627,7 +1627,7 @@ type
     procedure ClearTypeReferences(aType: TPasElement); override;
   public
     VarEl: TPasVariable; // can be nil
-    TypeEl : TPasType;
+    TypeEl : TPasType; // if VarEl<>nil then TypeEl=VarEl.VarType
     Body: TPasImplElement;
     Function VariableName : String;
     Function TypeName: string;
