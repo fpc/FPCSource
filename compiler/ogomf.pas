@@ -114,6 +114,7 @@ interface
         function reffardatasection:TObjSection;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
+        procedure AddExportSymbol(aExportByOrdinal,aResidentName,aNoData:Boolean;aParmCount:Integer;aExportedName,aInternalName:string;ExportOrdinal:Word);
         property MainSource: TPathStr read FMainSource;
         property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
       end;
@@ -172,7 +173,7 @@ interface
         function ReadModEnd(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadLeOrLiDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadImpDef(Rec: TOmfRecord_COMENT; objdata:TObjData): Boolean;
-        function ReadExpDef(Rec: TOmfRecord_COMENT): Boolean;
+        function ReadExpDef(Rec: TOmfRecord_COMENT; objdata:TObjData): Boolean;
         function ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
@@ -1105,6 +1106,14 @@ implementation
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
           ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
+      end;
+
+    procedure TOmfObjData.AddExportSymbol(aExportByOrdinal, aResidentName,
+        aNoData: Boolean; aParmCount: Integer; aExportedName,
+        aInternalName: string; ExportOrdinal: Word);
+      begin
+        { todo: implement }
+        //Writeln('AddExportSymbol(',aExportByOrdinal,',',aResidentName,',',aNoData,',',aParmCount,',',aExportedName,',',aInternalName,',',ExportOrdinal,')');
       end;
 
 {****************************************************************************
@@ -2068,10 +2077,26 @@ implementation
         ImpDefRec.Free;
       end;
 
-    function TOmfObjInput.ReadExpDef(Rec: TOmfRecord_COMENT): Boolean;
+    function TOmfObjInput.ReadExpDef(Rec: TOmfRecord_COMENT; objdata: TObjData): Boolean;
+      var
+        ExpDefRec: TOmfRecord_COMENT_EXPDEF;
+        SymName: string;
       begin
-        {todo: implement}
+        ExpDefRec:=TOmfRecord_COMENT_EXPDEF.Create;
+        ExpDefRec.DecodeFrom(Rec);
+        SymName:=ExpDefRec.InternalName;
+        if not CaseSensitiveSymbols then
+          SymName:=UpCase(SymName);
+        TOmfObjData(objdata).AddExportSymbol(
+          ExpDefRec.ExportByOrdinal,
+          ExpDefRec.ResidentName,
+          ExpDefRec.NoData,
+          ExpDefRec.ParmCount,
+          ExpDefRec.ExportedName,
+          SymName,
+          ExpDefRec.ExportOrdinal);
         Result:=True;
+        ExpDefRec.Free;
       end;
 
     function TOmfObjInput.ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
@@ -2462,7 +2487,7 @@ implementation
                               if not ReadImpDef(FCOMENTRecord,objdata) then
                                 exit;
                             CC_OmfExtension_EXPDEF:
-                              if not ReadExpDef(FCOMENTRecord) then
+                              if not ReadExpDef(FCOMENTRecord,objdata) then
                                 exit;
                           end;
                         end;
