@@ -584,10 +584,12 @@ interface
         FFlags: TNewExeEntryPointFlags;
         FSegment: Byte;
         FOffset: Word;
+        function GetFlagsByte: Byte;
       public
         property Flags: TNewExeEntryPointFlags read FFlags write FFlags;
         property Segment: Byte read FSegment write FSegment;
         property Offset: Word read FOffset write FOffset;
+        property FlagsByte: Byte read GetFlagsByte;
       end;
 
       { TNewExeEntryTable }
@@ -600,6 +602,8 @@ interface
         function GetItems(i: Integer): TNewExeEntryPoint;
         function GetSize: QWord;
         procedure SetItems(i: Integer; AValue: TNewExeEntryPoint);
+        function CanBeInSameBundle(i,j:Integer):Boolean;
+        function BundleSize(StartingElement:Integer): Byte;
       public
         destructor Destroy;override;
 
@@ -3983,13 +3987,46 @@ cleanup:
       end;
 
 {****************************************************************************
+                            TNewExeEntryPoint
+****************************************************************************}
+
+    function TNewExeEntryPoint.GetFlagsByte: Byte;
+      begin
+        Result:=0;
+        if neepfExported in Flags then
+          Result:=Result or 1;
+        if neepfSingleData in Flags then
+          Result:=Result or 2;
+      end;
+
+{****************************************************************************
                             TNewExeEntryTable
 ****************************************************************************}
 
     function TNewExeEntryTable.GetSize: QWord;
+      var
+        CurBundleStart, i: Integer;
+        CurBundleSize: Byte;
+        cp: TNewExeEntryPoint;
       begin
-        { todo: implement }
         Result:=0;
+        CurBundleStart:=1;
+        repeat
+          CurBundleSize:=BundleSize(CurBundleStart);
+          Inc(Result,2);
+          if CurBundleSize>0 then
+            begin
+              if Items[CurBundleStart]=nil then
+                { a bundle of null entries }
+              else if neepfMovableSegment in Items[CurBundleStart].Flags then
+                { a bundle of movable segment records }
+                Inc(Result,6*CurBundleSize)
+              else
+                { a bundle of fixed segment records }
+                Inc(Result,3*CurBundleSize);
+            end;
+          Inc(CurBundleStart,CurBundleSize);
+        until CurBundleSize=0;
       end;
 
     procedure TNewExeEntryTable.SetItems(i: Integer; AValue: TNewExeEntryPoint);
@@ -3997,6 +4034,30 @@ cleanup:
         if (i<1) or (i>Length(FItems)) then
           internalerror(2019081002);
         FItems[i-1]:=AValue;
+      end;
+
+    function TNewExeEntryTable.CanBeInSameBundle(i, j: Integer): Boolean;
+      begin
+        if (Items[i]=nil) or (Items[j]=nil) then
+          Result:=(Items[i]=nil) and (Items[j]=nil)
+        else if not (neepfMovableSegment in Items[i].Flags) and
+                not (neepfMovableSegment in Items[j].Flags) then
+          Result:=Items[i].Segment=Items[j].Segment
+        else
+          Result:=(neepfMovableSegment in Items[i].Flags)=
+                  (neepfMovableSegment in Items[j].Flags);
+      end;
+
+    function TNewExeEntryTable.BundleSize(StartingElement:Integer): Byte;
+      begin
+        if StartingElement>Count then
+          Result:=0
+        else
+          begin
+            Result:=1;
+            while (Result<255) and ((StartingElement+Result)<=Count) and CanBeInSameBundle(StartingElement,StartingElement+Result) do
+              Inc(Result);
+          end;
       end;
 
     function TNewExeEntryTable.GetCount: Word;
@@ -4021,8 +4082,63 @@ cleanup:
       end;
 
     procedure TNewExeEntryTable.WriteTo(aWriter: TObjectWriter);
+      var
+        CurBundleStart, i: Integer;
+        CurBundleSize: Byte;
+        buf: array [0..5] of Byte;
+        cp: TNewExeEntryPoint;
       begin
-        { todo: implement }
+        CurBundleStart:=1;
+        repeat
+          CurBundleSize:=BundleSize(CurBundleStart);
+          aWriter.write(CurBundleSize,1);
+          if CurBundleSize>0 then
+            begin
+              if Items[CurBundleStart]=nil then
+                begin
+                  { a bundle of null entries }
+                  buf[0]:=0;
+                  aWriter.write(buf[0],1);
+                end
+              else if neepfMovableSegment in Items[CurBundleStart].Flags then
+                begin
+                  { a bundle of movable segment records }
+                  buf[0]:=$ff;
+                  aWriter.write(buf[0],1);
+                  for i:=CurBundleStart to CurBundleStart+CurBundleSize-1 do
+                    begin
+                      cp:=Items[i];
+                      buf[0]:=cp.FlagsByte;
+                      buf[1]:=$CD;  { INT 3Fh instruction }
+                      buf[2]:=$3F;
+                      buf[3]:=Byte(cp.Segment);
+                      buf[4]:=Byte(cp.Offset);
+                      buf[5]:=Byte(cp.Offset shr 8);
+                      aWriter.write(buf[0],6);
+                    end;
+                end
+              else
+                begin
+                  { a bundle of fixed segment records }
+                  buf[0]:=Items[CurBundleStart].Segment;
+                  aWriter.write(buf[0],1);
+                  for i:=CurBundleStart to CurBundleStart+CurBundleSize-1 do
+                    begin
+                      cp:=Items[i];
+                      buf[0]:=cp.FlagsByte;
+                      buf[1]:=Byte(cp.Offset);
+                      buf[2]:=Byte(cp.Offset shr 8);
+                      aWriter.write(buf[0],3);
+                    end;
+                end;
+            end;
+          Inc(CurBundleStart,CurBundleSize);
+        until CurBundleSize=0;
+        { finish the end marker - a null bundle of 0 entries - must be 2 zero
+          bytes. The first one was already written by the loop, time to add the
+          second one. }
+        buf[0]:=0;
+        aWriter.write(buf[0],1);
       end;
 
     procedure TNewExeEntryTable.GrowTo(aNewCount: Word);
