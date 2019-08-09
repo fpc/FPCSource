@@ -507,6 +507,22 @@ interface
         property Size: QWord read GetSize;
       end;
 
+      { TNewExeImportedNameTableEntry }
+
+      TNewExeImportedNameTableEntry = class(TFPHashObject)
+      end;
+
+      { TNewExeImportedNameTable }
+
+      TNewExeImportedNameTable = class(TFPHashObjectList)
+      private
+        function GetSize: QWord;
+      public
+        procedure AddImportedName(const name:TSymStr);
+        procedure WriteTo(aWriter: TObjectWriter);
+        property Size: QWord read GetSize;
+      end;
+
       { These are fake "meta sections" used by the linker script. The actual
         NewExe sections are segments, limited to 64kb, which means there can be
         multiple code segments, etc. These are created manually as object
@@ -563,14 +579,17 @@ interface
         FCurrExeMetaSec: TNewExeMetaSection;
         FResourceTable: TNewExeResourceTable;
         FResidentNameTable: TNewExeResidentNameTable;
+        FImportedNameTable: TNewExeImportedNameTable;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
         procedure AddImportLibrariesExtractedFromObjectModules;
         procedure AddNewExeSection;
         function WriteNewExe:boolean;
+        procedure FillImportedNameTable;
         property Header: TNewExeHeader read FHeader;
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
         property ResourceTable: TNewExeResourceTable read FResourceTable;
         property ResidentNameTable: TNewExeResidentNameTable read FResidentNameTable;
+        property ImportedNameTable: TNewExeImportedNameTable read FImportedNameTable;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
@@ -3738,6 +3757,48 @@ cleanup:
       end;
 
 {****************************************************************************
+                          TNewExeImportedNameTable
+****************************************************************************}
+
+    function TNewExeImportedNameTable.GetSize: QWord;
+      var
+        i: Integer;
+      begin
+        { the table starts with an empty entry, which takes 1 byte }
+        Result:=1;
+        { each entry is 1 byte, plus the length of the name }
+        for i:=0 to Count-1 do
+          Inc(Result,1+Length(TNewExeResidentNameTableEntry(Items[i]).Name));
+      end;
+
+    procedure TNewExeImportedNameTable.AddImportedName(const name: TSymStr);
+      begin
+        if not Assigned(Find(name)) then
+          TNewExeImportedNameTableEntry.Create(Self,name);
+      end;
+
+    procedure TNewExeImportedNameTable.WriteTo(aWriter: TObjectWriter);
+      var
+        i: Integer;
+        entry: TNewExeImportedNameTableEntry;
+        slen: Byte;
+      begin
+        { the table starts with an empty entry }
+        slen:=0;
+        aWriter.write(slen,1);
+
+        for i:=0 to Count-1 do
+          begin
+            entry:=TNewExeImportedNameTableEntry(Items[i]);
+            slen:=Length(entry.Name);
+            if slen=0 then
+              internalerror(2019080901);
+            aWriter.write(slen,1);
+            aWriter.write(entry.Name[1],slen);
+          end;
+      end;
+
+{****************************************************************************
                               TNewExeSection
 ****************************************************************************}
 
@@ -3886,6 +3947,8 @@ cleanup:
         { the first entry in the resident-name table is the module name }
         TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
 
+        FillImportedNameTable;
+
         Header.InitialIP:=EntrySym.address;
         Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
         Header.InitialSP:=0;
@@ -3899,6 +3962,7 @@ cleanup:
         Header.ResourceTableStart:=Header.SegmentTableStart+NewExeSegmentHeaderSize*Header.SegmentTableEntriesCount;
         Header.ResidentNameTableStart:=Header.ResourceTableStart+ResourceTable.Size;
         Header.ModuleReferenceTableStart:=Header.ResidentNameTableStart+ResidentNameTable.Size;
+        Header.ImportedNameTableStart:=Header.ModuleReferenceTableStart+2*Header.ModuleReferenceTableEntriesCount;
 
         Header.WriteTo(FWriter);
 
@@ -3907,10 +3971,37 @@ cleanup:
 
         ResourceTable.WriteTo(FWriter);
         ResidentNameTable.WriteTo(FWriter);
+        { todo: write the module reference table here }
+        ImportedNameTable.WriteTo(FWriter);
 
         { todo: write the rest of the file as well }
 
         Result:=True;
+      end;
+
+    procedure TNewExeOutput.FillImportedNameTable;
+      var
+        i, j: Integer;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+        exesym: TExeSymbol;
+      begin
+        for i:=0 to FImports.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(FImports[i]);
+
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.MangledName));
+                if assigned(exesym) then
+                  begin
+                    ImportedNameTable.AddImportedName(ImportLibrary.Name);
+                    if (ImportSymbol.OrdNr=0) and (ImportSymbol.Name<>'') then
+                      ImportedNameTable.AddImportedName(ImportSymbol.Name);
+                  end;
+              end;
+          end;
       end;
 
     procedure TNewExeOutput.DoRelocationFixup(objsec: TObjSection);
@@ -3950,10 +4041,12 @@ cleanup:
         CurrExeMetaSec:=nemsNone;
         FResourceTable:=TNewExeResourceTable.Create;
         FResidentNameTable:=TNewExeResidentNameTable.Create;
+        FImportedNameTable:=TNewExeImportedNameTable.Create;
       end;
 
     destructor TNewExeOutput.destroy;
       begin
+        FImportedNameTable.Free;
         FResidentNameTable.Free;
         FResourceTable.Free;
         FHeader.Free;
