@@ -1990,11 +1990,12 @@ var
       end
     else if CpuAddrBitSize[cpu]=16 then
       begin
-        var16:=unaligned(psmallint(@tokenbuf[tbi])^);
-        inc(tbi,sizeof(smallint));
+        { ASizeInt is still a longint, see globtype.pas unit }
+        var32:=unaligned(plongint(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(longint));
         if ppufile.change_endian then
-          var16:=swapendian(var16);
-        result:=var16;
+          var32:=swapendian(var32);
+        result:=var32;
       end
     else
       begin
