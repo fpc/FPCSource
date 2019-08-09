@@ -123,7 +123,7 @@ begin
       for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
         begin
           ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-          AddImport(ImportLibrary.Name,ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+          AddImport(StripDllExt(ImportLibrary.Name),ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
         end;
     end;
   ObjOutput.Free;
