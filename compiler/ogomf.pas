@@ -614,6 +614,8 @@ interface
         constructor create(info: pasminfo; smart:boolean);override;
       end;
 
+    function StripDllExt(const DllName:TSymStr):TSymStr;
+
 implementation
 
     uses
@@ -4024,7 +4026,7 @@ cleanup:
                   begin
                     if not LibNameAdded then
                       begin
-                        ImportedNameTable.AddImportedName(ImportLibrary.Name);
+                        ImportedNameTable.AddImportedName(StripDllExt(ImportLibrary.Name));
                         LibNameAdded:=True;
                       end;
                     if (ImportSymbol.OrdNr=0) and (ImportSymbol.Name<>'') then
@@ -4199,6 +4201,18 @@ cleanup:
         inherited;
         CObjOutput:=TOmfObjOutput;
         CInternalAr:=TOmfLibObjectWriter;
+      end;
+
+{*****************************************************************************
+                            Procedures and functions
+*****************************************************************************}
+
+    function StripDllExt(const DllName:TSymStr):TSymStr;
+      begin
+        if UpCase(ExtractFileExt(DllName))='.DLL' then
+          Result:=Copy(DllName,1,Length(DllName)-4)
+        else
+          Result:=DllName;
       end;
 
 {*****************************************************************************
