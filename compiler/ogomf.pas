@@ -3829,7 +3829,7 @@ cleanup:
         Result:=1;
         { each entry is 1 byte, plus the length of the name }
         for i:=0 to Count-1 do
-          Inc(Result,1+Length(TNewExeResidentNameTableEntry(Items[i]).Name));
+          Inc(Result,1+Length(TNewExeImportedNameTableEntry(Items[i]).Name));
       end;
 
     procedure TNewExeImportedNameTable.AddImportedName(const name: TSymStr);
