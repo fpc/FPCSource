@@ -4044,6 +4044,7 @@ cleanup:
         Header.ModuleReferenceTableStart:=Header.ResidentNameTableStart+ResidentNameTable.Size;
         Header.ModuleReferenceTableEntriesCount:=ModuleReferenceTable.Count;
         Header.ImportedNameTableStart:=Header.ModuleReferenceTableStart+ModuleReferenceTable.Size;
+        Header.EntryTableOffset:=Header.ImportedNameTableStart+ImportedNameTable.Size;
 
         Header.WriteTo(FWriter);
 
