@@ -510,6 +510,10 @@ interface
       { TNewExeImportedNameTableEntry }
 
       TNewExeImportedNameTableEntry = class(TFPHashObject)
+      private
+        FTableOffset: Word;
+      public
+        property TableOffset: Word read FTableOffset write FTableOffset;
       end;
 
       { TNewExeImportedNameTable }
@@ -519,6 +523,7 @@ interface
         function GetSize: QWord;
       public
         procedure AddImportedName(const name:TSymStr);
+        procedure CalcTableOffsets;
         procedure WriteTo(aWriter: TObjectWriter);
         property Size: QWord read GetSize;
       end;
@@ -3777,6 +3782,24 @@ cleanup:
           TNewExeImportedNameTableEntry.Create(Self,name);
       end;
 
+    procedure TNewExeImportedNameTable.CalcTableOffsets;
+      var
+        cofs: LongInt;
+        i: Integer;
+        entry: TNewExeImportedNameTableEntry;
+      begin
+        { the table starts with an empty entry, which takes 1 byte }
+        cofs:=1;
+        for i:=0 to Count-1 do
+          begin
+            entry:=TNewExeImportedNameTableEntry(Items[i]);
+            entry.TableOffset:=cofs;
+            Inc(cofs,1+Length(entry.Name));
+            if cofs>High(Word) then
+              internalerror(2019080902);
+          end;
+      end;
+
     procedure TNewExeImportedNameTable.WriteTo(aWriter: TObjectWriter);
       var
         i: Integer;
@@ -3948,6 +3971,7 @@ cleanup:
         TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
 
         FillImportedNameTable;
+        ImportedNameTable.CalcTableOffsets;
 
         Header.InitialIP:=EntrySym.address;
         Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
