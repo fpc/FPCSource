@@ -644,6 +644,8 @@ interface
         procedure AddNewExeSection;
         function WriteNewExe:boolean;
         procedure FillImportedNameAndModuleReferenceTable;
+        function GetHighestExportSymbolOrdinal: Word;
+        procedure AssignOrdinalsToAllExportSymbols;
         property Header: TNewExeHeader read FHeader;
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
         property ResourceTable: TNewExeResourceTable read FResourceTable;
@@ -4110,6 +4112,9 @@ cleanup:
       var
         i: Integer;
       begin
+        { all exported symbols must have an ordinal }
+        AssignOrdinalsToAllExportSymbols;
+
         { the first entry in the resident-name table is the module name }
         TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
 
@@ -4179,6 +4184,51 @@ cleanup:
                       end;
                     if (ImportSymbol.OrdNr=0) and (ImportSymbol.Name<>'') then
                       ImportedNameTable.AddImportedName(ImportSymbol.Name);
+                  end;
+              end;
+          end;
+      end;
+
+    function TNewExeOutput.GetHighestExportSymbolOrdinal: Word;
+      var
+        i, j: Integer;
+        ObjData: TOmfObjData;
+        sym: TOmfObjExportedSymbol;
+      begin
+        Result:=0;
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ExportedSymbolList.Count-1 do
+              begin
+                sym:=TOmfObjExportedSymbol(ObjData.ExportedSymbolList[j]);
+                if sym.ExportByOrdinal then
+                  Result:=Max(Result,sym.ExportOrdinal);
+              end;
+          end;
+      end;
+
+    procedure TNewExeOutput.AssignOrdinalsToAllExportSymbols;
+      var
+        NextOrdinal: LongInt;
+        i, j: Integer;
+        ObjData: TOmfObjData;
+        sym: TOmfObjExportedSymbol;
+      begin
+        NextOrdinal:=GetHighestExportSymbolOrdinal+1;
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ExportedSymbolList.Count-1 do
+              begin
+                sym:=TOmfObjExportedSymbol(ObjData.ExportedSymbolList[j]);
+                if not sym.ExportByOrdinal then
+                  begin
+                    if NextOrdinal>High(Word) then
+                      internalerror(2019081001);
+                    sym.ExportByOrdinal:=True;
+                    sym.ExportOrdinal:=NextOrdinal;
+                    Inc(NextOrdinal);
                   end;
               end;
           end;
