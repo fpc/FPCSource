@@ -3985,10 +3985,12 @@ cleanup:
         ImportLibrary: TImportLibrary;
         ImportSymbol: TImportSymbol;
         exesym: TExeSymbol;
+        LibNameAdded: Boolean;
       begin
         for i:=0 to FImports.Count-1 do
           begin
             ImportLibrary:=TImportLibrary(FImports[i]);
+            LibNameAdded:=False;
 
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
@@ -3996,7 +3998,11 @@ cleanup:
                 exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.MangledName));
                 if assigned(exesym) then
                   begin
-                    ImportedNameTable.AddImportedName(ImportLibrary.Name);
+                    if not LibNameAdded then
+                      begin
+                        ImportedNameTable.AddImportedName(ImportLibrary.Name);
+                        LibNameAdded:=True;
+                      end;
                     if (ImportSymbol.OrdNr=0) and (ImportSymbol.Name<>'') then
                       ImportedNameTable.AddImportedName(ImportSymbol.Name);
                   end;
