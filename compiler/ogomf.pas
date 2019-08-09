@@ -96,12 +96,34 @@ interface
         property LinNumEntries: TOmfSubRecord_LINNUM_MsLink_LineNumberList read FLinNumEntries;
       end;
 
+      { TOmfObjExportedSymbol }
+
+      TOmfObjExportedSymbol = class(TFPHashObject)
+      private
+        FExportByOrdinal: Boolean;
+        FResidentName: Boolean;
+        FNoData: Boolean;
+        FParmCount: Integer;
+        FExportedName: string;
+        FInternalName: string;
+        FExportOrdinal: Word;
+      public
+        property ExportByOrdinal: Boolean read FExportByOrdinal write FExportByOrdinal;
+        property ResidentName: Boolean read FResidentName write FResidentName;
+        property NoData: Boolean read FNoData write FNoData;
+        property ParmCount: Integer read FParmCount write FParmCount;
+        property ExportedName: string read FExportedName write FExportedName;
+        property InternalName: string read FInternalName write FInternalName;
+        property ExportOrdinal: Word read FExportOrdinal write FExportOrdinal;
+      end;
+
       { TOmfObjData }
 
       TOmfObjData = class(TObjData)
       private
         FMainSource: TPathStr;
         FImportLibraryList:TFPHashObjectList;
+        FExportedSymbolList:TFPHashObjectList;
         class function CodeSectionName(const aname:string): string;
       public
         constructor create(const n:string);override;
@@ -114,9 +136,10 @@ interface
         function reffardatasection:TObjSection;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
-        procedure AddExportSymbol(aExportByOrdinal,aResidentName,aNoData:Boolean;aParmCount:Integer;aExportedName,aInternalName:string;ExportOrdinal:Word);
+        procedure AddExportSymbol(aExportByOrdinal,aResidentName,aNoData:Boolean;aParmCount:Integer;aExportedName,aInternalName:string;aExportOrdinal:Word);
         property MainSource: TPathStr read FMainSource;
         property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
+        property ExportedSymbolList:TFPHashObjectList read FExportedSymbolList;
       end;
 
       { TOmfObjOutput }
@@ -913,10 +936,12 @@ implementation
         createsectiongroup('DGROUP');
         FMainSource:=current_module.mainsource;
         FImportLibraryList:=TFPHashObjectList.Create(true);
+        FExportedSymbolList:=TFPHashObjectList.Create(true);
       end;
 
     destructor TOmfObjData.destroy;
       begin
+        FExportedSymbolList.Free;
         FImportLibraryList.Free;
         inherited destroy;
       end;
@@ -1110,10 +1135,20 @@ implementation
 
     procedure TOmfObjData.AddExportSymbol(aExportByOrdinal, aResidentName,
         aNoData: Boolean; aParmCount: Integer; aExportedName,
-        aInternalName: string; ExportOrdinal: Word);
+        aInternalName: string; aExportOrdinal: Word);
+      var
+        s: TOmfObjExportedSymbol;
       begin
-        { todo: implement }
-        //Writeln('AddExportSymbol(',aExportByOrdinal,',',aResidentName,',',aNoData,',',aParmCount,',',aExportedName,',',aInternalName,',',ExportOrdinal,')');
+        s:=TOmfObjExportedSymbol.Create(ExportedSymbolList,aInternalName);
+        with s do
+          begin
+            ExportByOrdinal:=aExportByOrdinal;
+            NoData:=aNoData;
+            ParmCount:=aParmCount;
+            ExportedName:=aExportedName;
+            InternalName:=aInternalName;
+            ExportOrdinal:=aExportOrdinal;
+          end;
       end;
 
 {****************************************************************************
