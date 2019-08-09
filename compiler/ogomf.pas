@@ -507,6 +507,24 @@ interface
         property Size: QWord read GetSize;
       end;
 
+      TNewExeImportedNameTable = class;
+
+      { TNewExeModuleReferenceTableEntry }
+
+      TNewExeModuleReferenceTableEntry = class(TFPHashObject)
+      end;
+
+      { TNewExeModuleReferenceTable }
+
+      TNewExeModuleReferenceTable = class(TFPHashObjectList)
+      private
+        function GetSize: QWord;
+      public
+        procedure AddModuleReference(const dllname:TSymStr);
+        procedure WriteTo(aWriter: TObjectWriter;imptbl:TNewExeImportedNameTable);
+        property Size: QWord read GetSize;
+      end;
+
       { TNewExeImportedNameTableEntry }
 
       TNewExeImportedNameTableEntry = class(TFPHashObject)
@@ -584,16 +602,18 @@ interface
         FCurrExeMetaSec: TNewExeMetaSection;
         FResourceTable: TNewExeResourceTable;
         FResidentNameTable: TNewExeResidentNameTable;
+        FModuleReferenceTable: TNewExeModuleReferenceTable;
         FImportedNameTable: TNewExeImportedNameTable;
         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
         procedure AddImportLibrariesExtractedFromObjectModules;
         procedure AddNewExeSection;
         function WriteNewExe:boolean;
-        procedure FillImportedNameTable;
+        procedure FillImportedNameAndModuleReferenceTable;
         property Header: TNewExeHeader read FHeader;
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
         property ResourceTable: TNewExeResourceTable read FResourceTable;
         property ResidentNameTable: TNewExeResidentNameTable read FResidentNameTable;
+        property ModuleReferenceTable: TNewExeModuleReferenceTable read FModuleReferenceTable;
         property ImportedNameTable: TNewExeImportedNameTable read FImportedNameTable;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -3765,6 +3785,39 @@ cleanup:
       end;
 
 {****************************************************************************
+                         TNewExeModuleReferenceTable
+****************************************************************************}
+
+    function TNewExeModuleReferenceTable.GetSize: QWord;
+      begin
+        Result:=Count*2;
+      end;
+
+    procedure TNewExeModuleReferenceTable.AddModuleReference(const dllname:TSymStr);
+      begin
+        if not Assigned(Find(dllname)) then
+          TNewExeModuleReferenceTableEntry.Create(Self,dllname);
+      end;
+
+    procedure TNewExeModuleReferenceTable.WriteTo(aWriter: TObjectWriter;imptbl: TNewExeImportedNameTable);
+      var
+        buf: array of Byte;
+        i: Integer;
+        ImpTblEntry: TNewExeImportedNameTableEntry;
+      begin
+        SetLength(buf,Size);
+        for i:=0 to Count-1 do
+          begin
+            ImpTblEntry:=TNewExeImportedNameTableEntry(imptbl.Find(TNewExeModuleReferenceTableEntry(Items[i]).Name));
+            if not Assigned(ImpTblEntry) then
+              internalerror(2019080903);
+            buf[2*i]:=Byte(ImpTblEntry.TableOffset);
+            buf[2*i+1]:=Byte(ImpTblEntry.TableOffset shr 8);
+          end;
+        aWriter.write(buf[0],Length(buf));
+      end;
+
+{****************************************************************************
                           TNewExeImportedNameTable
 ****************************************************************************}
 
@@ -3973,7 +4026,7 @@ cleanup:
         { the first entry in the resident-name table is the module name }
         TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
 
-        FillImportedNameTable;
+        FillImportedNameAndModuleReferenceTable;
         ImportedNameTable.CalcTableOffsets;
 
         Header.InitialIP:=EntrySym.address;
@@ -3989,7 +4042,8 @@ cleanup:
         Header.ResourceTableStart:=Header.SegmentTableStart+NewExeSegmentHeaderSize*Header.SegmentTableEntriesCount;
         Header.ResidentNameTableStart:=Header.ResourceTableStart+ResourceTable.Size;
         Header.ModuleReferenceTableStart:=Header.ResidentNameTableStart+ResidentNameTable.Size;
-        Header.ImportedNameTableStart:=Header.ModuleReferenceTableStart+2*Header.ModuleReferenceTableEntriesCount;
+        Header.ModuleReferenceTableEntriesCount:=ModuleReferenceTable.Count;
+        Header.ImportedNameTableStart:=Header.ModuleReferenceTableStart+ModuleReferenceTable.Size;
 
         Header.WriteTo(FWriter);
 
@@ -3998,7 +4052,7 @@ cleanup:
 
         ResourceTable.WriteTo(FWriter);
         ResidentNameTable.WriteTo(FWriter);
-        { todo: write the module reference table here }
+        ModuleReferenceTable.WriteTo(FWriter,ImportedNameTable);
         ImportedNameTable.WriteTo(FWriter);
 
         { todo: write the rest of the file as well }
@@ -4006,13 +4060,14 @@ cleanup:
         Result:=True;
       end;
 
-    procedure TNewExeOutput.FillImportedNameTable;
+    procedure TNewExeOutput.FillImportedNameAndModuleReferenceTable;
       var
         i, j: Integer;
         ImportLibrary: TImportLibrary;
         ImportSymbol: TImportSymbol;
         exesym: TExeSymbol;
         LibNameAdded: Boolean;
+        dllname: TSymStr;
       begin
         for i:=0 to FImports.Count-1 do
           begin
@@ -4027,7 +4082,9 @@ cleanup:
                   begin
                     if not LibNameAdded then
                       begin
-                        ImportedNameTable.AddImportedName(StripDllExt(ImportLibrary.Name));
+                        dllname:=StripDllExt(ImportLibrary.Name);
+                        ImportedNameTable.AddImportedName(dllname);
+                        ModuleReferenceTable.AddModuleReference(dllname);
                         LibNameAdded:=True;
                       end;
                     if (ImportSymbol.OrdNr=0) and (ImportSymbol.Name<>'') then
@@ -4074,12 +4131,14 @@ cleanup:
         CurrExeMetaSec:=nemsNone;
         FResourceTable:=TNewExeResourceTable.Create;
         FResidentNameTable:=TNewExeResidentNameTable.Create;
+        FModuleReferenceTable:=TNewExeModuleReferenceTable.Create;
         FImportedNameTable:=TNewExeImportedNameTable.Create;
       end;
 
     destructor TNewExeOutput.destroy;
       begin
         FImportedNameTable.Free;
+        FModuleReferenceTable.Free;
         FResidentNameTable.Free;
         FResourceTable.Free;
         FHeader.Free;
