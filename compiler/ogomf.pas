@@ -581,11 +581,11 @@ interface
 
       TNewExeEntryPoint = class
       private
-        FFlags: TNewExeEntryPointFlag;
+        FFlags: TNewExeEntryPointFlags;
         FSegment: Byte;
         FOffset: Word;
       public
-        property Flags: TNewExeEntryPointFlag read FFlags write FFlags;
+        property Flags: TNewExeEntryPointFlags read FFlags write FFlags;
         property Segment: Byte read FSegment write FSegment;
         property Offset: Word read FOffset write FOffset;
       end;
@@ -676,6 +676,7 @@ interface
         procedure FillImportedNameAndModuleReferenceTable;
         function GetHighestExportSymbolOrdinal: Word;
         procedure AssignOrdinalsToAllExportSymbols;
+        procedure AddEntryPointsForAllExportSymbols;
         property Header: TNewExeHeader read FHeader;
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
         property ResourceTable: TNewExeResourceTable read FResourceTable;
@@ -4180,6 +4181,8 @@ cleanup:
         { all exported symbols must have an ordinal }
         AssignOrdinalsToAllExportSymbols;
 
+        AddEntryPointsForAllExportSymbols;
+
         { the first entry in the resident-name table is the module name }
         TNewExeResidentNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
 
@@ -4295,6 +4298,45 @@ cleanup:
                     sym.ExportOrdinal:=NextOrdinal;
                     Inc(NextOrdinal);
                   end;
+              end;
+          end;
+      end;
+
+    procedure TNewExeOutput.AddEntryPointsForAllExportSymbols;
+      var
+        LastOrdinal: Word;
+        i, j: Integer;
+        ObjData: TOmfObjData;
+        sym: TOmfObjExportedSymbol;
+        ent: TNewExeEntryPoint;
+        exesym: TExeSymbol;
+        sec: TNewExeSection;
+      begin
+        LastOrdinal:=GetHighestExportSymbolOrdinal;
+        EntryTable.GrowTo(LastOrdinal);
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ExportedSymbolList.Count-1 do
+              begin
+                sym:=TOmfObjExportedSymbol(ObjData.ExportedSymbolList[j]);
+                { all exports must have an ordinal at this point }
+                if not sym.ExportByOrdinal then
+                  internalerror(2019081004);
+                { check for duplicated ordinals }
+                if Assigned(EntryTable[sym.ExportOrdinal]) then
+                  internalerror(2019081005);
+                ent:=TNewExeEntryPoint.Create;
+                EntryTable[sym.ExportOrdinal]:=ent;
+                exesym:=TExeSymbol(ExeSymbolList.Find(sym.InternalName));
+                if not Assigned(exesym) then
+                  internalerror(2019081006);
+                ent.Flags:=[neepfExported,neepfSingleData];
+                ent.Offset:=exesym.ObjSymbol.address;
+                sec:=TNewExeSection(exesym.ObjSymbol.objsection.ExeSection);
+                ent.Segment:=sec.MemBasePos;
+                if nesfMovable in sec.NewExeSegmentFlags then
+                  ent.Flags:=ent.Flags+[neepfMovableSegment];
               end;
           end;
       end;
