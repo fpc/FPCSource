@@ -283,6 +283,7 @@ type
     procedure EmitTypeHints(El: TPasType); virtual;
     procedure EmitVariableHints(El: TPasVariable); virtual;
     procedure EmitProcedureHints(El: TPasProcedure); virtual;
+    procedure EmitFunctionResultHints(El: TPasFunction); virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2620,9 +2621,7 @@ var
   Arg: TPasArgument;
   Usage: TPAElement;
   ProcScope: TPasProcedureScope;
-  PosEl: TPasElement;
   DeclProc, ImplProc: TPasProcedure;
-  FuncType: TPasFunctionType;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitProcedureHints ',GetElModName(El));
@@ -2689,22 +2688,7 @@ begin
       end;
     // check result
     if (El.ProcType is TPasFunctionType) then
-      begin
-      FuncType:=TPasFunctionType(TPasProcedure(El).ProcType);
-      PosEl:=FuncType.ResultEl;
-      if (ProcScope.ImplProc<>nil)
-          and (TPasFunction(ProcScope.ImplProc).FuncType.ResultEl<>nil) then
-        PosEl:=TPasFunction(ProcScope.ImplProc).FuncType.ResultEl;
-      Usage:=FindElement(FuncType.ResultEl);
-      if (Usage=nil) or (Usage.Access in [paiaNone,paiaRead]) then
-        // result was never used
-        EmitMessage(20170313214038,mtHint,nPAFunctionResultDoesNotSeemToBeSet,
-          sPAFunctionResultDoesNotSeemToBeSet,[],PosEl)
-      else
-        begin
-        // result was used
-        end;
-      end;
+      EmitFunctionResultHints(TPasFunction(El));
     end;
 
   if El.Body<>nil then
@@ -2712,6 +2696,55 @@ begin
     // check declarations
     EmitDeclarationsHints(El.Body);
     // ToDo: emit hints for statements
+    end;
+end;
+
+procedure TPasAnalyzer.EmitFunctionResultHints(El: TPasFunction);
+var
+  FuncType: TPasFunctionType;
+  Usage: TPAElement;
+  TypeEl: TPasType;
+  Members: TFPList;
+  i: Integer;
+  Member: TPasElement;
+  HasFields: Boolean;
+  PosEl: TPasResultElement;
+  ProcScope: TPasProcedureScope;
+begin
+  FuncType:=El.FuncType;
+  Usage:=FindElement(FuncType.ResultEl);
+  if (Usage=nil) or (Usage.Access in [paiaNone,paiaRead]) then
+    begin
+    // result was never set
+    TypeEl:=Resolver.ResolveAliasType(FuncType.ResultEl.ResultType);
+    if TypeEl is TPasRecordType then
+      begin
+      Members:=TPasRecordType(TypeEl).Members;
+      HasFields:=false;
+      for i:=0 to Members.Count-1 do
+        begin
+        Member:=TPasElement(Members[i]);
+        if Member.ClassType=TPasVariable then
+          begin
+          HasFields:=true;
+          break;
+          end;
+        end;
+      if not HasFields then
+        // empty record -> no hint
+        exit;
+      end;
+    PosEl:=FuncType.ResultEl;
+    ProcScope:=El.CustomData as TPasProcedureScope;
+    if (ProcScope.ImplProc<>nil)
+        and (TPasFunction(ProcScope.ImplProc).FuncType.ResultEl<>nil) then
+      PosEl:=TPasFunction(ProcScope.ImplProc).FuncType.ResultEl;
+    EmitMessage(20170313214038,mtHint,nPAFunctionResultDoesNotSeemToBeSet,
+      sPAFunctionResultDoesNotSeemToBeSet,[],PosEl)
+    end
+  else
+    begin
+    // result was used
     end;
 end;
 

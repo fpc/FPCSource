@@ -129,6 +129,7 @@ type
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet;
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
     procedure TestM_Hint_FunctionResultRecord;
+    procedure TestM_Hint_FunctionResultRecordEmpty;
     procedure TestM_Hint_FunctionResultPassRecordElement;
     procedure TestM_Hint_FunctionResultAssembler;
     procedure TestM_Hint_FunctionResultExit;
@@ -2195,6 +2196,25 @@ begin
   CheckUseAnalyzerHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
     'Local variable "X" is assigned but never used');
   CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_FunctionResultRecordEmpty;
+begin
+  StartProgram(true);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TEmpty = record',
+  '    class function Create: TEmpty; static;',
+  '  end;',
+  'class function TEmpty.Create: TEmpty;',
+  'begin',
+  'end;',
+  'begin',
+  '  TEmpty.Create;',
+  '']);
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 
