@@ -670,6 +670,7 @@ interface
         FCurrExeMetaSec: TNewExeMetaSection;
         FResourceTable: TNewExeResourceTable;
         FResidentNameTable: TNewExeExportNameTable;
+        FNonresidentNameTable: TNewExeExportNameTable;
         FModuleReferenceTable: TNewExeModuleReferenceTable;
         FImportedNameTable: TNewExeImportedNameTable;
         FEntryTable: TNewExeEntryTable;
@@ -685,6 +686,7 @@ interface
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
         property ResourceTable: TNewExeResourceTable read FResourceTable;
         property ResidentNameTable: TNewExeExportNameTable read FResidentNameTable;
+        property NonresidentNameTable: TNewExeExportNameTable read FNonresidentNameTable;
         property ModuleReferenceTable: TNewExeModuleReferenceTable read FModuleReferenceTable;
         property ImportedNameTable: TNewExeImportedNameTable read FImportedNameTable;
         property EntryTable: TNewExeEntryTable read FEntryTable;
@@ -4322,6 +4324,8 @@ cleanup:
         Header.ImportedNameTableStart:=Header.ModuleReferenceTableStart+ModuleReferenceTable.Size;
         Header.EntryTableOffset:=Header.ImportedNameTableStart+ImportedNameTable.Size;
         Header.EntryTableLength:=EntryTable.Size;
+        Header.NonresidentNameTableStart:=Header.EntryTableOffset+Header.EntryTableLength+Length(Header.MsDosStub);
+        Header.NonresidentNameTableLength:=NonresidentNameTable.Size;
 
         Header.WriteTo(FWriter);
 
@@ -4333,6 +4337,7 @@ cleanup:
         ModuleReferenceTable.WriteTo(FWriter,ImportedNameTable);
         ImportedNameTable.WriteTo(FWriter);
         EntryTable.WriteTo(FWriter);
+        NonresidentNameTable.WriteTo(FWriter);
 
         { todo: write the rest of the file as well }
 
@@ -4494,6 +4499,7 @@ cleanup:
         CurrExeMetaSec:=nemsNone;
         FResourceTable:=TNewExeResourceTable.Create;
         FResidentNameTable:=TNewExeExportNameTable.Create;
+        FNonresidentNameTable:=TNewExeExportNameTable.Create;
         FModuleReferenceTable:=TNewExeModuleReferenceTable.Create;
         FImportedNameTable:=TNewExeImportedNameTable.Create;
         FEntryTable:=TNewExeEntryTable.Create;
@@ -4504,6 +4510,7 @@ cleanup:
         FEntryTable.Free;
         FImportedNameTable.Free;
         FModuleReferenceTable.Free;
+        FNonresidentNameTable.Free;
         FResidentNameTable.Free;
         FResourceTable.Free;
         FHeader.Free;
