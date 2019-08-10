@@ -682,6 +682,7 @@ interface
         function GetHighestExportSymbolOrdinal: Word;
         procedure AssignOrdinalsToAllExportSymbols;
         procedure AddEntryPointsForAllExportSymbols;
+        procedure AddExportedNames;
         property Header: TNewExeHeader read FHeader;
         property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
         property ResourceTable: TNewExeResourceTable read FResourceTable;
@@ -4305,6 +4306,8 @@ cleanup:
         TNewExeExportNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
         { the first entry in the nonresident-name table is the module description }
         TNewExeExportNameTableEntry.Create(NonresidentNameTable,description,0);
+        { add all symbols, exported by name to the resident and nonresident-name tables }
+        AddExportedNames;
 
         FillImportedNameAndModuleReferenceTable;
         ImportedNameTable.CalcTableOffsets;
@@ -4460,6 +4463,29 @@ cleanup:
                 ent.Segment:=sec.MemBasePos;
                 if nesfMovable in sec.NewExeSegmentFlags then
                   ent.Flags:=ent.Flags+[neepfMovableSegment];
+              end;
+          end;
+      end;
+
+    procedure TNewExeOutput.AddExportedNames;
+      var
+        i, j: Integer;
+        ObjData: TOmfObjData;
+        sym: TOmfObjExportedSymbol;
+      begin
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ExportedSymbolList.Count-1 do
+              begin
+                sym:=TOmfObjExportedSymbol(ObjData.ExportedSymbolList[j]);
+                { all exports must have an ordinal at this point }
+                if not sym.ExportByOrdinal then
+                  internalerror(2019081007);
+                if sym.ResidentName then
+                  TNewExeExportNameTableEntry.Create(ResidentNameTable,sym.ExportedName,sym.ExportOrdinal)
+                else
+                  TNewExeExportNameTableEntry.Create(NonresidentNameTable,sym.ExportedName,sym.ExportOrdinal);
               end;
           end;
       end;
