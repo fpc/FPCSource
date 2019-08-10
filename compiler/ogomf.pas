@@ -4303,6 +4303,8 @@ cleanup:
 
         { the first entry in the resident-name table is the module name }
         TNewExeExportNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
+        { the first entry in the nonresident-name table is the module description }
+        TNewExeExportNameTableEntry.Create(NonresidentNameTable,description,0);
 
         FillImportedNameAndModuleReferenceTable;
         ImportedNameTable.CalcTableOffsets;
