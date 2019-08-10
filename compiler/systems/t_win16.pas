@@ -67,6 +67,7 @@ implementation
          constructor Create;override;
          procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
+         function  MakeSharedLibrary:boolean;override;
       end;
 
       { TInternalLinkerWin16 }
@@ -279,11 +280,17 @@ begin
     if s<>'' then
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
-  LinkRes.Add('format windows');
+  if isdll then
+    LinkRes.Add('format windows dll')
+  else
+    LinkRes.Add('format windows');
   LinkRes.Add('option heapsize='+tostr(heapsize));
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
-  LinkRes.Add('name ' + maybequoted(current_module.exefilename));
+  if isdll then
+    LinkRes.Add('name ' + maybequoted(current_module.sharedlibfilename))
+  else
+    LinkRes.Add('name ' + maybequoted(current_module.exefilename));
   LinkRes.Add('option dosseg');
 
   { Write and Close response }
@@ -306,6 +313,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='wlink $OPT $RES';
+     DllCmd[1]:='wlink $OPT $RES';
    end;
 end;
 
@@ -332,6 +340,31 @@ begin
     DeleteFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
+end;
+
+function TExternalLinkerWin16WLink.MakeSharedLibrary:boolean;
+var
+  binstr,
+  cmdstr  : TCmdStr;
+  success : boolean;
+begin
+  if not(cs_link_nolink in current_settings.globalswitches) then
+    Message1(exec_i_linking,current_module.sharedlibfilename);
+
+  { Write used files and libraries and our own tlink script }
+  WriteResponsefile(true);
+
+  { Call linker }
+  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+
+  { Remove ReponseFile }
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+    DeleteFile(outputexedir+Info.ResName);
+
+  MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
 
 
