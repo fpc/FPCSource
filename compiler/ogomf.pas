@@ -1183,6 +1183,7 @@ implementation
         with s do
           begin
             ExportByOrdinal:=aExportByOrdinal;
+            ResidentName:=aResidentName;
             NoData:=aNoData;
             ParmCount:=aParmCount;
             ExportedName:=aExportedName;
